@@ -24,6 +24,7 @@ console.log(`world players: ${Object.keys(g.players).length}, fixtures season 1:
 
 const t0 = Date.now()
 let userMatches = 0
+let userKO = 0
 let totalPF = 0, totalPA = 0
 const SEASONS = 10
 
@@ -36,6 +37,7 @@ for (let season = 0; season < SEASONS; season++) {
     if (fx) {
       simMatch(g, fx, weekRng(g), true)
       userMatches++
+      if (fx.stage) userKO++
       const mine = fx.homeId === g.userClubId
       totalPF += mine ? fx.homeScore : fx.awayScore
       totalPA += mine ? fx.awayScore : fx.homeScore
@@ -49,7 +51,8 @@ for (let season = 0; season < SEASONS; season++) {
 
 const ms = Date.now() - t0
 console.log(`\n${SEASONS} full seasons in ${ms}ms (${Math.round(ms / SEASONS)}ms/season)`)
-console.log(`user matches: ${userMatches}, avg score for ${(totalPF / userMatches).toFixed(1)} - ${(totalPA / userMatches).toFixed(1)} against`)
+console.log(`user matches: ${userMatches} (${userKO} knockout ties played by the user path), avg score for ${(totalPF / userMatches).toFixed(1)} - ${(totalPA / userMatches).toFixed(1)} against`)
+if (userKO === 0) console.error('BUG: user never played a knockout match through the user path')
 console.log(`news items: ${g.news.length}, players now: ${Object.keys(g.players).length}, fixtures now: ${g.fixtures.length}`)
 
 // score distribution check on a fresh season's league fixtures

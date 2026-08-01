@@ -80,10 +80,13 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     .every(f => f.played)
   if (!regularDone) return
 
+  // Knockout ties are created as soon as the previous round is complete —
+  // never lazily on their own match week, or the user's tie would be
+  // simmed away before the MatchDay screen ever saw it.
   const ko = comp.koWeeks
   if (comp.type === 'cup') {
     // Champions Cup: QF wk ko[0], SF ko[1], F ko[2]
-    if (state.week >= ko[0] && koFx('QF').length === 0) {
+    if (koFx('QF').length === 0) {
       const pools = poolStandings(state, comp)
       const winners = pools.map(p => p[0])
       const runners = pools.map(p => p[1])
@@ -93,19 +96,15 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       mkFx('QF', ko[0], seeds[1], seeds[6])
       mkFx('QF', ko[0], seeds[2], seeds[5])
     }
-    if (state.week >= ko[1] && koFx('SF').length === 0) {
-      const qf = koFx('QF')
-      if (qf.length === 4 && qf.every(f => f.played)) {
-        const w = qf.map(winnerOf)
-        mkFx('SF', ko[1], w[0], w[1])
-        mkFx('SF', ko[1], w[2], w[3])
-      }
+    const qf = koFx('QF')
+    if (koFx('SF').length === 0 && qf.length === 4 && qf.every(f => f.played)) {
+      const w = qf.map(winnerOf)
+      mkFx('SF', ko[1], w[0], w[1])
+      mkFx('SF', ko[1], w[2], w[3])
     }
-    if (state.week >= ko[2] && koFx('F').length === 0) {
-      const sf = koFx('SF')
-      if (sf.length === 2 && sf.every(f => f.played)) {
-        mkFx('F', ko[2], winnerOf(sf[0]), winnerOf(sf[1]))
-      }
+    const sf = koFx('SF')
+    if (koFx('F').length === 0 && sf.length === 2 && sf.every(f => f.played)) {
+      mkFx('F', ko[2], winnerOf(sf[0]), winnerOf(sf[1]))
     }
   } else {
     // league playoffs
@@ -113,18 +112,18 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     const n = comp.playoffTeams
     if (n === 4) {
       const [sfW, fW] = ko
-      if (state.week >= sfW && koFx('SF').length === 0) {
+      if (koFx('SF').length === 0) {
         mkFx('SF', sfW, order[0], order[3])
         mkFx('SF', sfW, order[1], order[2])
       }
-      if (state.week >= fW && koFx('F').length === 0) {
-        const sf = koFx('SF')
-        if (sf.length === 2 && sf.every(f => f.played)) mkFx('F', fW, winnerOf(sf[0]), winnerOf(sf[1]))
+      const sf = koFx('SF')
+      if (koFx('F').length === 0 && sf.length === 2 && sf.every(f => f.played)) {
+        mkFx('F', fW, winnerOf(sf[0]), winnerOf(sf[1]))
       }
     } else {
       const [r1W, sfW, fW] = ko
       const r1Stage = n === 6 ? 'BAR' : 'QF'
-      if (state.week >= r1W && koFx(r1Stage).length === 0) {
+      if (koFx(r1Stage).length === 0) {
         if (n === 6) {
           mkFx('BAR', r1W, order[2], order[5])
           mkFx('BAR', r1W, order[3], order[4])
@@ -135,22 +134,20 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
           mkFx('QF', r1W, order[2], order[5])
         }
       }
-      if (state.week >= sfW && koFx('SF').length === 0) {
-        const r1 = koFx(r1Stage)
-        if (r1.length && r1.every(f => f.played)) {
-          const w = r1.map(winnerOf)
-          if (n === 6) {
-            mkFx('SF', sfW, order[0], w[1])
-            mkFx('SF', sfW, order[1], w[0])
-          } else {
-            mkFx('SF', sfW, w[0], w[1])
-            mkFx('SF', sfW, w[2], w[3])
-          }
+      const r1 = koFx(r1Stage)
+      if (koFx('SF').length === 0 && r1.length && r1.every(f => f.played)) {
+        const w = r1.map(winnerOf)
+        if (n === 6) {
+          mkFx('SF', sfW, order[0], w[1])
+          mkFx('SF', sfW, order[1], w[0])
+        } else {
+          mkFx('SF', sfW, w[0], w[1])
+          mkFx('SF', sfW, w[2], w[3])
         }
       }
-      if (state.week >= fW && koFx('F').length === 0) {
-        const sf = koFx('SF')
-        if (sf.length === 2 && sf.every(f => f.played)) mkFx('F', fW, winnerOf(sf[0]), winnerOf(sf[1]))
+      const sf = koFx('SF')
+      if (koFx('F').length === 0 && sf.length === 2 && sf.every(f => f.played)) {
+        mkFx('F', fW, winnerOf(sf[0]), winnerOf(sf[1]))
       }
     }
   }
@@ -414,6 +411,10 @@ export function processWeekAndAdvance(state: GameState) {
       })
     }
   }
+
+  // rounds completed this week may unlock the next knockout stage —
+  // create those ties NOW so the user's match exists before its week starts
+  for (const comp of Object.values(state.comps)) maybeCreateKnockouts(state, comp, rng)
 
   // finals crown champions
   for (const comp of Object.values(state.comps)) {
