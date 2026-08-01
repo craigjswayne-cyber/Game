@@ -1,0 +1,77 @@
+import type { GameState } from './model'
+
+const DB_NAME = 'rugby-manager'
+const STORE = 'saves'
+
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1)
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains(STORE)) {
+        req.result.createObjectStore(STORE)
+      }
+    }
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+export interface SaveMeta {
+  slot: string
+  club: string
+  season: number
+  week: number
+  savedAt: number
+  managerName: string
+}
+
+export async function saveGame(slot: string, state: GameState): Promise<void> {
+  const db = await openDb()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    const meta: SaveMeta = {
+      slot,
+      club: state.clubs[state.userClubId]?.name ?? '?',
+      season: state.season,
+      week: state.week,
+      savedAt: Date.now(),
+      managerName: state.managerName,
+    }
+    tx.objectStore(STORE).put({ meta, state: JSON.parse(JSON.stringify(state)) }, slot)
+    tx.oncomplete = () => { db.close(); resolve() }
+    tx.onerror = () => { db.close(); reject(tx.error) }
+  })
+}
+
+export async function loadGame(slot: string): Promise<GameState | null> {
+  const db = await openDb()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly')
+    const req = tx.objectStore(STORE).get(slot)
+    req.onsuccess = () => { db.close(); resolve(req.result ? req.result.state as GameState : null) }
+    req.onerror = () => { db.close(); reject(req.error) }
+  })
+}
+
+export async function listSaves(): Promise<SaveMeta[]> {
+  const db = await openDb()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly')
+    const req = tx.objectStore(STORE).getAll()
+    req.onsuccess = () => {
+      db.close()
+      resolve((req.result ?? []).map((r: { meta: SaveMeta }) => r.meta).sort((a, b) => b.savedAt - a.savedAt))
+    }
+    req.onerror = () => { db.close(); reject(req.error) }
+  })
+}
+
+export async function deleteSave(slot: string): Promise<void> {
+  const db = await openDb()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).delete(slot)
+    tx.oncomplete = () => { db.close(); resolve() }
+    tx.onerror = () => { db.close(); reject(tx.error) }
+  })
+}

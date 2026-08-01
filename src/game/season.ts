@@ -1,0 +1,484 @@
+import type { Competition, Fixture, GameState, Player, TableRow } from './model'
+import { fmtMoney, SEASON_WEEKS, seasonLabel } from './model'
+import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
+import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TRC_WEEKS } from './schedule'
+import { aiRenewals, aiTransfers } from './ai'
+import { generatePress } from './media'
+import { playerValue } from './attributes'
+import { clamp, mulberry32, shuffled, type Rng } from './rng'
+import { rebuildSeason } from './rollover'
+
+export function weekRng(state: GameState): Rng {
+  return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
+}
+
+// ------------------------------------------------------------------
+// Tables & knockouts
+// ------------------------------------------------------------------
+
+function applyToTable(comp: Competition, fx: Fixture) {
+  if (fx.stage) return // knockout games don't affect tables
+  const h = comp.table.find(r => r.teamId === fx.homeId)
+  const a = comp.table.find(r => r.teamId === fx.awayId)
+  if (!h || !a) return
+  h.p++; a.p++
+  h.pf += fx.homeScore; h.pa += fx.awayScore
+  a.pf += fx.awayScore; a.pa += fx.homeScore
+  h.tf += fx.homeTries; h.ta += fx.awayTries
+  a.tf += fx.awayTries; a.ta += fx.homeTries
+  if (fx.homeScore > fx.awayScore) { h.w++; a.l++; h.pts += 4 }
+  else if (fx.homeScore < fx.awayScore) { a.w++; h.l++; a.pts += 4 }
+  else { h.d++; a.d++; h.pts += 2; a.pts += 2 }
+  // bonus points
+  if (fx.homeTries >= 4) { h.bp++; h.pts++ }
+  if (fx.awayTries >= 4) { a.bp++; a.pts++ }
+  if (fx.homeScore < fx.awayScore && fx.awayScore - fx.homeScore <= 7) { h.bp++; h.pts++ }
+  if (fx.awayScore < fx.homeScore && fx.homeScore - fx.awayScore <= 7) { a.bp++; a.pts++ }
+}
+
+/** In knockout rugby there are no draws — nudge a golden-point winner. */
+export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng) {
+  if (fx.homeScore !== fx.awayScore) return
+  const hs = teamUnits(state, autoLineup(state, fx.homeId)).overall
+  const as = teamUnits(state, autoLineup(state, fx.awayId)).overall
+  const pHome = hs / (hs + as) + 0.05
+  if (rng() < pHome) fx.homeScore += 3
+  else fx.awayScore += 3
+}
+
+function autoLineup(state: GameState, teamId: string) {
+  const pool = rosterOf(state, teamId).map(id => state.players[id]).filter(p => p && !p.injury && p.bans === 0)
+  return autoSelect(state, pool)
+}
+
+function poolStandings(state: GameState, comp: Competition): string[][] {
+  const pools = comp.pools ?? [comp.teamIds]
+  return pools.map(pool => {
+    const rows: TableRow[] = pool.map(emptyRow)
+    for (const fx of state.fixtures) {
+      if (fx.compId !== comp.id || !fx.played || fx.stage) continue
+      if (!pool.includes(fx.homeId)) continue
+      const mini: Competition = { ...comp, table: rows, pools: undefined }
+      applyToTable(mini, fx)
+    }
+    return sortTable(rows).map(r => r.teamId)
+  })
+}
+
+/** Create knockout fixtures for a competition when the calendar reaches them. */
+function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
+  if (!comp.playoffTeams) return
+  const koFx = (stage: string) => state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
+  const mkFx = (stage: string, week: number, home: string, away: string) => {
+    state.fixtures.push({
+      id: state.nextId++, compId: comp.id, round: 99, week, homeId: home, awayId: away,
+      played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
+    })
+  }
+  const regularDone = state.fixtures
+    .filter(f => f.compId === comp.id && !f.stage)
+    .every(f => f.played)
+  if (!regularDone) return
+
+  const ko = comp.koWeeks
+  if (comp.type === 'cup') {
+    // Champions Cup: QF wk ko[0], SF ko[1], F ko[2]
+    if (state.week >= ko[0] && koFx('QF').length === 0) {
+      const pools = poolStandings(state, comp)
+      const winners = pools.map(p => p[0])
+      const runners = pools.map(p => p[1])
+      const seeds = [...winners, ...shuffled(rng, runners)]
+      mkFx('QF', ko[0], seeds[0], seeds[7])
+      mkFx('QF', ko[0], seeds[3], seeds[4])
+      mkFx('QF', ko[0], seeds[1], seeds[6])
+      mkFx('QF', ko[0], seeds[2], seeds[5])
+    }
+    if (state.week >= ko[1] && koFx('SF').length === 0) {
+      const qf = koFx('QF')
+      if (qf.length === 4 && qf.every(f => f.played)) {
+        const w = qf.map(winnerOf)
+        mkFx('SF', ko[1], w[0], w[1])
+        mkFx('SF', ko[1], w[2], w[3])
+      }
+    }
+    if (state.week >= ko[2] && koFx('F').length === 0) {
+      const sf = koFx('SF')
+      if (sf.length === 2 && sf.every(f => f.played)) {
+        mkFx('F', ko[2], winnerOf(sf[0]), winnerOf(sf[1]))
+      }
+    }
+  } else {
+    // league playoffs
+    const order = sortTable(comp.table).map(r => r.teamId)
+    const n = comp.playoffTeams
+    if (n === 4) {
+      const [sfW, fW] = ko
+      if (state.week >= sfW && koFx('SF').length === 0) {
+        mkFx('SF', sfW, order[0], order[3])
+        mkFx('SF', sfW, order[1], order[2])
+      }
+      if (state.week >= fW && koFx('F').length === 0) {
+        const sf = koFx('SF')
+        if (sf.length === 2 && sf.every(f => f.played)) mkFx('F', fW, winnerOf(sf[0]), winnerOf(sf[1]))
+      }
+    } else {
+      const [r1W, sfW, fW] = ko
+      const r1Stage = n === 6 ? 'BAR' : 'QF'
+      if (state.week >= r1W && koFx(r1Stage).length === 0) {
+        if (n === 6) {
+          mkFx('BAR', r1W, order[2], order[5])
+          mkFx('BAR', r1W, order[3], order[4])
+        } else {
+          mkFx('QF', r1W, order[0], order[7])
+          mkFx('QF', r1W, order[3], order[4])
+          mkFx('QF', r1W, order[1], order[6])
+          mkFx('QF', r1W, order[2], order[5])
+        }
+      }
+      if (state.week >= sfW && koFx('SF').length === 0) {
+        const r1 = koFx(r1Stage)
+        if (r1.length && r1.every(f => f.played)) {
+          const w = r1.map(winnerOf)
+          if (n === 6) {
+            mkFx('SF', sfW, order[0], w[1])
+            mkFx('SF', sfW, order[1], w[0])
+          } else {
+            mkFx('SF', sfW, w[0], w[1])
+            mkFx('SF', sfW, w[2], w[3])
+          }
+        }
+      }
+      if (state.week >= fW && koFx('F').length === 0) {
+        const sf = koFx('SF')
+        if (sf.length === 2 && sf.every(f => f.played)) mkFx('F', fW, winnerOf(sf[0]), winnerOf(sf[1]))
+      }
+    }
+  }
+}
+
+const winnerOf = (fx: Fixture) => (fx.homeScore >= fx.awayScore ? fx.homeId : fx.awayId)
+
+// ------------------------------------------------------------------
+// Internationals
+// ------------------------------------------------------------------
+
+interface Window { start: number; end: number; nations: string[] }
+const WINDOWS: Window[] = [
+  { start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'] },
+  { start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'] },
+  { start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'] },
+]
+
+function manageInternationals(state: GameState, rng: Rng) {
+  for (const w of WINDOWS) {
+    if (state.week === w.start) {
+      // call-ups
+      const userCalls: Player[] = []
+      for (const nat of w.nations) {
+        const pool = Object.values(state.players)
+          .filter(p => p.nat === nat && p.clubId && !p.injury && p.ca >= 68)
+          .sort((a, b) => b.ca - a.ca)
+          .slice(0, 26)
+        state.natSquads[nat] = pool.map(p => p.id)
+        for (const p of pool) {
+          p.natSquad = true
+          if (p.clubId === state.userClubId) userCalls.push(p)
+        }
+      }
+      if (userCalls.length) {
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `International call-ups`,
+          body: `The following players have been called up and will be unavailable during the international window: ${userCalls.map(p => `${p.name} (${p.nat})`).join(', ')}.`,
+        })
+      }
+    }
+    if (state.week === w.end) {
+      for (const nat of w.nations) {
+        for (const id of state.natSquads[nat] ?? []) {
+          const p = state.players[id]
+          if (p) p.natSquad = false
+        }
+        delete state.natSquads[nat]
+      }
+    }
+  }
+}
+
+// ------------------------------------------------------------------
+// Training & recovery
+// ------------------------------------------------------------------
+
+function weeklyTraining(state: GameState, rng: Rng) {
+  const focusMap: Record<string, (keyof Player['a'])[]> = {
+    balanced: [], scrum: ['scr', 'str'], lineout: ['lin'], attack: ['han', 'pas', 'vis'],
+    defence: ['tac', 'pos'], fitness: ['sta'], kicking: ['kic', 'goa'],
+  }
+  for (const club of Object.values(state.clubs)) {
+    const isUser = club.id === state.userClubId
+    for (const id of club.players) {
+      const p = state.players[id]
+      if (!p) continue
+      // recovery
+      p.cond = clamp(p.cond + 22, 20, 100)
+      p.sharp = clamp(p.sharp - 4, 0, 100)
+      if (p.injury && state.week >= p.injury.until) {
+        p.injury = null
+        p.cond = 70
+        p.sharp = 40
+        if (isUser) {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+            subject: `${p.name} back in training`,
+            body: `${p.name} has recovered and is available for selection, though his match sharpness will need managing.`,
+            playerId: p.id,
+          })
+        }
+      }
+      // gentle in-season growth for youngsters, drift for user's training focus
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06) p.ca += 1
+      if (isUser && state.training !== 'balanced' && rng() < 0.03) {
+        for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
+      }
+      p.value = playerValue(p.ca, p.age, p.pa)
+    }
+  }
+}
+
+// ------------------------------------------------------------------
+// Finances & board
+// ------------------------------------------------------------------
+
+function weeklyFinance(state: GameState, rng: Rng) {
+  const club = state.clubs[state.userClubId]
+  const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+  club.balance -= wages
+  // sponsorship + broadcast, weekly share by reputation
+  club.balance += Math.round(club.rep * 1800 + 40_000)
+  // gate receipts from this week's home fixture
+  const home = state.fixtures.find(f =>
+    f.week === state.week && f.played && f.homeId === club.id && f.att)
+  if (home?.att) club.balance += Math.round(home.att * 30)
+  if (club.balance < -2_000_000 && state.week % 6 === 0) {
+    club.boardConfidence = clamp(club.boardConfidence - 5, 0, 100)
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: 'Board concerned by finances',
+      body: `The club is ${fmtMoney(Math.abs(club.balance))} in the red. The board urges you to balance the books — consider player sales.`,
+    })
+  }
+}
+
+function matchReport(state: GameState, fx: Fixture) {
+  const comp = state.comps[fx.compId]
+  const isHome = fx.homeId === state.userClubId
+  const us = isHome ? fx.homeScore : fx.awayScore
+  const them = isHome ? fx.awayScore : fx.homeScore
+  const verdict = us > them ? 'VICTORY' : us < them ? 'DEFEAT' : 'DRAW'
+  const scorers = (fx.events ?? [])
+    .filter(e => e.type === 'TRY' && e.playerName)
+    .map(e => `${e.playerName} (${e.min}')`)
+  const motm = fx.motm != null ? state.players[fx.motm] : null
+  const lines = [
+    `${teamShort(state, fx.homeId)} ${fx.homeScore} - ${fx.awayScore} ${teamShort(state, fx.awayId)}`,
+    fx.att ? `Att: ${fx.att.toLocaleString()} at ${state.clubs[fx.homeId]?.stadium ?? 'a neutral venue'}` : '',
+    scorers.length ? `Tries: ${scorers.join(', ')}` : 'No tries scored.',
+    motm ? `Player of the match: ${motm.name}` : '',
+  ].filter(Boolean)
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'result', read: false,
+    subject: `${verdict}: ${us}-${them} ${us >= them ? 'over' : 'to'} ${teamShort(state, isHome ? fx.awayId : fx.homeId)} (${comp?.short})`,
+    body: lines.join('\n'),
+    fixtureId: fx.id,
+  })
+}
+
+function milestones(state: GameState, rng: Rng) {
+  const club = state.clubs[state.userClubId]
+  for (const id of club.players) {
+    const p = state.players[id]
+    if (!p || !p.stats.apps) continue
+    const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
+    const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
+    const totPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points
+    const hits: string[] = []
+    if ([50, 100, 150, 200, 250].includes(totApps)) hits.push(`${totApps} career appearances`)
+    if ([25, 50, 75, 100].includes(totTries)) hits.push(`${totTries} career tries`)
+    if ([250, 500, 1000, 1500].includes(totPts)) hits.push(`${totPts} career points`)
+    for (const h of hits) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `Milestone: ${p.name}`,
+        body: `${p.name} has reached ${h}. A presentation is made before training.`,
+        playerId: p.id,
+      })
+    }
+  }
+}
+
+function leagueRoundUp(state: GameState) {
+  const leagueId = state.clubs[state.userClubId].leagueId
+  const round = state.fixtures.filter(f =>
+    f.compId === leagueId && f.week === state.week && f.played &&
+    f.homeId !== state.userClubId && f.awayId !== state.userClubId)
+  if (!round.length) return
+  const lines = round.map(f =>
+    `${teamShort(state, f.homeId)} ${f.homeScore}-${f.awayScore} ${teamShort(state, f.awayId)}`)
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `${state.comps[leagueId]?.short} round-up`,
+    body: lines.join('\n'),
+  })
+}
+
+function boardReaction(state: GameState, fx: Fixture) {
+  const club = state.clubs[state.userClubId]
+  const isHome = fx.homeId === club.id
+  const us = isHome ? fx.homeScore : fx.awayScore
+  const them = isHome ? fx.awayScore : fx.homeScore
+  const oppRep = state.clubs[isHome ? fx.awayId : fx.homeId]?.rep ?? 70
+  const diff = (oppRep - club.rep) / 25
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + 2.5 + diff * 2, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2), 0, 100)
+}
+
+// ------------------------------------------------------------------
+// Weekly processing
+// ------------------------------------------------------------------
+
+export function userFixtureThisWeek(state: GameState): Fixture | undefined {
+  return state.fixtures.find(f =>
+    f.week === state.week && !f.played &&
+    (f.homeId === state.userClubId || f.awayId === state.userClubId))
+}
+
+/**
+ * Process everything for the current week EXCEPT the user's fixture
+ * (which the UI plays via the MatchDay screen first).
+ * Then move to next week.
+ */
+export function processWeekAndAdvance(state: GameState) {
+  const rng = weekRng(state)
+
+  // internationals squad management happens before matches
+  manageInternationals(state, rng)
+
+  // knockout creation for this week (before playing)
+  for (const comp of Object.values(state.comps)) maybeCreateKnockouts(state, comp, rng)
+
+  // play all unplayed fixtures for this week (user's should already be played)
+  const thisWeek = state.fixtures.filter(f => f.week === state.week && !f.played)
+  for (const fx of thisWeek) {
+    simMatch(state, fx, rng, false)
+    const comp = state.comps[fx.compId]
+    if (comp) {
+      if (fx.stage) resolveKnockoutDraw(state, fx, rng)
+      applyToTable(comp, fx)
+      fx.tableApplied = true
+    }
+  }
+  // the user's fixture was played in detail by the MatchDay screen —
+  // apply its table effects exactly once here
+  const userFx = state.fixtures.find(f =>
+    f.week === state.week && f.played && !f.tableApplied &&
+    (f.homeId === state.userClubId || f.awayId === state.userClubId))
+  if (userFx) {
+    const comp = state.comps[userFx.compId]
+    if (comp) {
+      if (userFx.stage) resolveKnockoutDraw(state, userFx, rng)
+      applyToTable(comp, userFx)
+      userFx.tableApplied = true
+    }
+    boardReaction(state, userFx)
+    matchReport(state, userFx)
+    milestones(state, rng)
+    leagueRoundUp(state)
+  }
+
+  // board pressure: warnings, then the sack
+  {
+    const club = state.clubs[state.userClubId]
+    if (club.boardConfidence <= 10 && club.boardConfidence > 3 && state.week % 3 === 0) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: 'FINAL WARNING from the board',
+        body: 'The chairman has made it plain: results must turn around immediately, or the club will seek a new Director of Rugby.',
+      })
+    }
+    if (club.boardConfidence <= 3 && state.week > 8) {
+      state.unemployed = true
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: `SACKED: ${club.name} part company with ${state.managerName}`,
+        body: `A brutal end. The board thanked you for your service and wished you well. Your record: board confidence collapsed and the results told the same story.`,
+      })
+    }
+  }
+
+  // finals crown champions
+  for (const comp of Object.values(state.comps)) {
+    if (comp.champion) continue
+    const final = state.fixtures.find(f => f.compId === comp.id && f.stage === 'F' && f.played)
+    if (final) {
+      comp.champion = winnerOf(final)
+      state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `${teamShort(state, comp.champion)} win the ${comp.name}!`,
+        body: `${teamShort(state, comp.champion)} defeated ${teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
+      })
+    }
+    // pure round-robin comps (6N, TRC): champion = table top when all played
+    if (!comp.champion && comp.type === 'intl' && comp.table.length) {
+      const all = state.fixtures.filter(f => f.compId === comp.id)
+      if (all.length && all.every(f => f.played)) {
+        comp.champion = sortTable(comp.table)[0].teamId
+        state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `${teamShort(state, comp.champion)} win the ${comp.name}`,
+          body: `${teamShort(state, comp.champion)} have been crowned ${comp.name} champions.`,
+        })
+      }
+    }
+  }
+
+  // decrement bans for players whose team played
+  const playedTeams = new Set<string>()
+  for (const fx of state.fixtures.filter(f => f.week === state.week && f.played)) {
+    playedTeams.add(fx.homeId); playedTeams.add(fx.awayId)
+  }
+  for (const p of Object.values(state.players)) {
+    if (p.bans > 0 && p.clubId && playedTeams.has(p.clubId)) p.bans--
+  }
+
+  // contract expiry warnings for the user's squad
+  if (state.week === 20 || state.week === 31) {
+    const expiring = state.clubs[state.userClubId].players
+      .map(id => state.players[id])
+      .filter(p => p && p.contractEnds <= state.season)
+    if (expiring.length) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+        subject: `${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring`,
+        body: `Out of contract at the end of the season: ${expiring.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}. Offer new deals from their profile pages or they will walk for free.`,
+      })
+    }
+  }
+
+  weeklyTraining(state, rng)
+  weeklyFinance(state, rng)
+  aiTransfers(state, rng)
+  aiRenewals(state, rng)
+  generatePress(state, rng)
+
+  // trim news
+  if (state.news.length > 250) state.news = state.news.slice(-250)
+
+  // advance
+  if (state.week >= SEASON_WEEKS) {
+    rebuildSeason(state)
+  } else {
+    state.week += 1
+  }
+}
