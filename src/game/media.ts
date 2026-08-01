@@ -6,11 +6,9 @@ const OUTLETS = [
   'The Sunday Scrum', 'Lineout Live', 'The Egg Chasers Gazette', 'Front Row Daily',
 ]
 
-let pressCounter = 0
-
 function mk(state: GameState, question: string, playerId: number | undefined, options: PressItem['options'], rng: Rng): PressItem {
   return {
-    id: state.nextId++ + pressCounter++,
+    id: state.nextId++,
     week: state.week,
     season: state.season,
     outlet: pick(rng, OUTLETS),
@@ -117,7 +115,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     const p = state.players[item.playerId]
     if (p) {
       p.morale = clamp(p.morale + opt.morale, 1, 10)
-      if (opt.unsettle) p.transferListed = p.transferListed // flag handled via morale drop
+      if (opt.unsettle) p.morale = clamp(p.morale - 1, 1, 10) // agents circle an unsettled player
     }
   }
   const club = state.clubs[state.userClubId]
