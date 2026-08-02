@@ -1,4 +1,5 @@
 import type { GameState, Player, PressItem } from './model'
+import { derbyName, isDerby } from './rivalries'
 import { clamp, pick, type Rng } from './rng'
 
 const OUTLETS = [
@@ -69,6 +70,35 @@ export function generatePress(state: GameState, rng: Rng) {
           { label: 'Rumours are rumours', morale: 0, board: 0, reaction: 'You wave the question away.' },
         ], rng))
     }
+  }
+
+  // derby build-up: poke the fire or play it down
+  const nextFx = state.fixtures.find(f =>
+    !f.played && f.week === state.week &&
+    (f.homeId === club.id || f.awayId === club.id) && isDerby(f.homeId, f.awayId))
+  if (nextFx && rng() < 0.65) {
+    const oppId = nextFx.homeId === club.id ? nextFx.awayId : nextFx.homeId
+    const opp = state.clubs[oppId]
+    candidates.push(mk(state,
+      `${derbyName(nextFx.homeId, nextFx.awayId)} this weekend. ${opp?.short ?? 'They'} say the pressure is all on you. Your response?`,
+      undefined, [
+        { label: 'Fan the flames', morale: 0, board: 0.4, reaction: 'The back pages love it. The town is at boiling point — your players will feel ten feet tall, or feel the heat.' },
+        { label: 'Just another game', morale: 0, board: -0.2, reaction: 'Nobody believes you, least of all your own supporters.' },
+        { label: 'Praise the rivalry', morale: 0, board: 0.2, reaction: 'A statesmanlike answer. Both sets of fans nod approvingly, then go back to hating each other.' },
+      ], rng))
+  }
+
+  // wonderkid hype
+  const kids = squad.filter(p => p.age <= 21 && p.form >= 7 && p.stats.apps >= 2)
+  if (kids.length && rng() < 0.4) {
+    const p = pick(rng, kids)
+    candidates.push(mk(state,
+      `Everyone is talking about ${p.name} — ${p.age} years old and lighting up the league. Is he the future of the club?`,
+      p.id, [
+        { label: 'Crown him now', morale: 1.5, board: 0.2, unsettle: true, reaction: `${p.name} floats out of the press room — and every scout in the hemisphere just circled his name.` },
+        { label: 'Protect the kid', morale: 0.3, board: 0.3, reaction: 'Measured. He keeps developing away from the circus.' },
+        { label: 'He plays when he earns it', morale: -0.6, board: 0.4, reaction: `Old school. ${p.name} bristles, but the senior players approve.` },
+      ], rng))
   }
 
   // results pressure

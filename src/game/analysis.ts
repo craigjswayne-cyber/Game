@@ -44,6 +44,13 @@ export function assistantAdvice(state: GameState): string {
   }
   const club = state.clubs[state.userClubId]
   const lineup = club.tactic.lineup
+  // fixture congestion: flag a knackered XV before it costs you
+  const tired = lineup.slice(0, 15)
+    .map(id => id != null ? state.players[id] : null)
+    .filter(p => p && p.cond < 65)
+  if (tired.length >= 4) {
+    return `Assistant: ${tired.length} of the starting XV are running on empty (<65% fit). Rotate this week — tired legs concede late tries and pick up injuries.`
+  }
   let worst: { label: string; eff: number; pos: Pos } | null = null
   for (let i = 0; i < 15; i++) {
     const id = lineup[i]

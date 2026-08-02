@@ -161,6 +161,22 @@ function wonderkidWatch(state: GameState, rng: Rng) {
     `Every scout in the league has ${club?.short ?? 'his club'}'s ${k.age}-year-old ${k.pos} ${k.name} in their notebook. Coaches say he's added real polish this season. One director of rugby: "He'll cost a fortune in a year. Move now or regret it."`, k.id)
 }
 
+/** Fringe stars want minutes: too good to sit, and they'll say so. */
+function gameTimeGrumbles(state: GameState, rng: Rng) {
+  if (state.week < 10 || state.week % 6 !== 0) return
+  const squad = state.clubs[state.userClubId].players
+    .map(id => state.players[id])
+    .filter((p): p is Player => !!p && !p.onLoan && !p.injury)
+  const bench = squad.filter(p =>
+    p.ca >= 74 && p.age >= 23 && p.stats.starts < Math.max(2, Math.floor(state.week / 5)))
+  if (!bench.length || rng() > 0.6) return
+  const p = pick(rng, bench)!
+  const swing = p.pers === 'Temperamental' ? 1.6 : p.pers === 'Ambitious' ? 1.3 : 1
+  p.morale = clamp(p.morale - 0.7 * swing, 1, 10)
+  wire(state, `${p.name} frustrated by lack of rugby`,
+    `Sources say ${p.name} (${p.pos}, rated among your best) trained away from the main group on Monday. His camp's message: "He didn't come here to hold tackle bags." Play him, sell him, or watch the mood sour${p.pers === 'Mercenary' ? ' — and his agent is already dialling' : ''}.`, p.id)
+}
+
 /** Weekly wire generation — always something to read, never a flood. */
 export function generateGossip(state: GameState, rng: Rng) {
   if (state.unemployed) {
@@ -168,6 +184,15 @@ export function generateGossip(state: GameState, rng: Rng) {
     return
   }
   dressingRoomFallout(state, rng)
+  gameTimeGrumbles(state, rng)
+  if (state.week === 22) {
+    wire(state, `⏰ DEADLINE DAYS AHEAD`,
+      `The mid-season market reaches its climax over the next two rounds. Chairmen panic, agents feast, medicals happen in car parks at midnight. If you're planning a move — for a signing or a sale — now is the moment. Expect the phone to ring.`)
+  }
+  if (state.week === 25) {
+    wire(state, `🚪 The window slams shut`,
+      `Deadline chaos over. Sporting directors emerge blinking into the daylight to explain themselves. Business can still be done, but the frenzy is over for another year.`)
+  }
   const wheel = rng()
   if (state.week % 6 === 3) powerRankings(state)
   if (wheel < 0.3) transferRumour(state, rng)

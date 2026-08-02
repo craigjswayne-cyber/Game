@@ -75,7 +75,9 @@ export default function Home() {
             <h3>Welcome to the dugout</h3>
             Everything runs off <b>Continue</b> in the top corner — it advances the week, plays your match, and brings the world to your inbox.
             <br /><br />
-            Set your XV in <b>Tactics</b> before match day, answer the <b>Press</b> to manage morale, and scout the <b>Transfers</b> market — unscouted players show attribute ranges, not truths.
+            On match day: pick your XV, choose a <b>dressing-room speech</b>, and confirm you're ready. In play you can change tactics or make subs at <b>any stoppage</b> (📋), and when you win a kickable penalty, the call — posts, corner or tap — is yours.
+            <br /><br />
+            Between games: read <b>The Rugby Wire</b> for rumours and fallouts, watch stamina in the <b>Medical Centre</b>, and build your coaching staff in <b>Training</b>.
             <div className="muted">Tap anywhere to close.</div>
           </div>
         </div>
