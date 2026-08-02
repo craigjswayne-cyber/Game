@@ -33,7 +33,7 @@ export default function Tactics() {
     const p = pid != null ? game.players[pid] : null
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
     return (
-      <tr key={slot} onClick={() => setPickSlot(slot)} style={problem ? { background: '#f6e3e3' } : undefined}>
+      <tr key={slot} onClick={() => setPickSlot(slot)} className={problem ? 'prob-row' : undefined}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
         <td className="name">{p ? p.name : <span className="muted">— tap to select —</span>}
@@ -79,7 +79,7 @@ export default function Tactics() {
 
   const slider = (label: string, lo: string, hi: string, key: 'style' | 'tempo' | 'kicking' | 'aggression') => (
     <div className="slider-row">
-      <div className="lbls"><span>{lo}</span><b style={{ color: '#0b3d2e' }}>{label}</b><span>{hi}</span></div>
+      <div className="lbls"><span>{lo}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{hi}</span></div>
       <input type="range" min={0} max={100} value={t[key]}
         onChange={e => { t[key] = Number(e.target.value); touch() }} />
     </div>

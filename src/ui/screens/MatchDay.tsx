@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { teamShort, teamUnits, rosterOf, autoSelect, availablePlayers } from '../../game/matchEngine'
 import { XV_SLOTS, weekDate, type MatchEvent } from '../../game/model'
 import { userFixtureThisWeek } from '../../game/season'
-import { SectionTitle } from '../components'
+import { CrestT, SectionTitle } from '../components'
 import { stageName } from './Home'
 
 export default function MatchDay() {
@@ -44,12 +44,12 @@ function Preview({ fxId }: { fxId: number }) {
     const pct = total ? (mine / total) * 100 : 50
     return (
       <div style={{ padding: '4px 14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#4a544e' }}>
-          <span>{mine.toFixed(1)}</span><b>{label}</b><span>{theirs.toFixed(1)}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-soft)' }}>
+          <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
         </div>
-        <div style={{ height: 8, background: '#e3d8bf', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
-          <div style={{ width: `${pct}%`, background: '#0b3d2e' }} />
-          <div style={{ flex: 1, background: '#c9a227' }} />
+        <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+          <div style={{ width: `${pct}%`, background: 'var(--club1)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.15)' }} />
+          <div style={{ flex: 1, background: game.clubs[opp]?.colors[0] ?? '#c9a227', opacity: .85 }} />
         </div>
       </div>
     )
@@ -68,10 +68,15 @@ function Preview({ fxId }: { fxId: number }) {
       </header>
       <main className="content">
         <div className="card center">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
+            <CrestT g={game} teamId={fx.homeId} size={38} />
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--ink-faint)', letterSpacing: 2 }}>VS</span>
+            <CrestT g={game} teamId={fx.awayId} size={38} />
+          </div>
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
           <div className="meta">🏟️ {home?.stadium ?? 'Neutral venue'}{home ? `, ${home.city}` : ''}</div>
         </div>
-        <SectionTitle sub="you in green">Head to Head</SectionTitle>
+        <SectionTitle sub="your colours on the left">Head to Head</SectionTitle>
         {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
         {bar('Lineout', myUnits.lineout, oppUnits.lineout)}
         {bar('Breakdown', myUnits.breakdown, oppUnits.breakdown)}
@@ -161,9 +166,9 @@ function Live() {
     <>
       <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
         <div className="teams">
-          <div className="tname">{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
+          <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
           <div className="score">{hs} – {as}</div>
-          <div className="tname">{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
+          <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">{done ? 'Full Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}</div>
       </div>

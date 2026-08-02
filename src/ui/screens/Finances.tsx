@@ -46,7 +46,7 @@ export default function Finances() {
         <div className="meta">Fall short and confidence will suffer. Deliver, and you'll be backed.</div>
       </div>
       <SectionTitle sub={`${Math.round(club.boardConfidence)}%`}>Board Confidence</SectionTitle>
-      <div style={{ margin: '8px 14px', height: 10, background: '#e3d8bf', borderRadius: 5 }}>
+      <div style={{ margin: '8px 14px', height: 10, background: 'var(--cream-3)', borderRadius: 5 }}>
         <div style={{
           width: `${club.boardConfidence}%`, height: '100%', borderRadius: 5,
           background: club.boardConfidence > 60 ? '#2f7d4f' : club.boardConfidence > 30 ? '#c9a227' : '#9b2c2c',

@@ -30,6 +30,8 @@ interface Store {
     done: boolean
   } | null
   saveSlot: string
+  night: boolean
+  toggleNight: () => void
 
   start: (clubId: string, managerName: string) => void
   setGame: (g: GameState, slot: string) => void
@@ -51,6 +53,12 @@ export const useStore = create<Store>((set, get) => ({
   nav: [{ screen: 'menu' }],
   liveMatch: null,
   saveSlot: 'slot1',
+  night: typeof localStorage !== 'undefined' && localStorage.getItem('rm-night') === '1',
+  toggleNight: () => set(s => {
+    const night = !s.night
+    try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
+    return { night }
+  }),
 
   start: (clubId, managerName) => {
     const seed = (Math.random() * 2 ** 31) | 0

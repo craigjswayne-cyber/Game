@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { GameState, Player } from '../game/model'
 import { flagOf } from '../game/nations'
+import { hashString } from '../game/rng'
 
 export function SectionTitle({ children, sub }: { children: ReactNode; sub?: string }) {
   return (
@@ -34,7 +35,7 @@ export function Stars({ ca }: { ca: number }) {
   return (
     <span style={{ color: '#a8841a', fontSize: 11, letterSpacing: 1 }}>
       {'★'.repeat(Math.min(5, full))}{half && full < 5 ? '½' : ''}
-      <span style={{ color: '#c9bfa4' }}>{'★'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}</span>
+      <span style={{ color: 'var(--star-empty, #cfc4a9)' }}>{'★'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}</span>
     </span>
   )
 }
@@ -66,6 +67,62 @@ export function TeamDot({ g, teamId }: { g: GameState; teamId: string }) {
       style={{ background: `linear-gradient(135deg, ${c.colors[0]} 55%, ${c.colors[1]} 55%)` }}
     />
   )
+}
+
+interface CrestClub {
+  id: string
+  short: string
+  colors: [string, string]
+}
+
+const SHIELD = 'M12 1.5 L21.5 4.5 V13 C21.5 19 17.5 22.5 12 24.5 C6.5 22.5 2.5 19 2.5 13 V4.5 Z'
+
+/**
+ * Deterministic heraldic crest for a club: shield in club colours with a
+ * field pattern chosen from the club id (halves, sash, chief, chevron,
+ * quarters), gold border and a condensed monogram.
+ */
+export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: number; mr?: number }) {
+  const v = hashString(club.id) % 5
+  const [c1, c2] = club.colors
+  const letter = (club.short.match(/[A-Za-z]/)?.[0] ?? 'R').toUpperCase()
+  const clip = `crest-${club.id}`
+  return (
+    <svg
+      viewBox="0 0 24 26"
+      width={size}
+      height={Math.round((size * 26) / 24)}
+      style={{ verticalAlign: '-3px', marginRight: mr, flexShrink: 0 }}
+      aria-hidden
+    >
+      <defs>
+        <clipPath id={clip}><path d={SHIELD} /></clipPath>
+      </defs>
+      <path d={SHIELD} fill={c1} />
+      <g clipPath={`url(#${clip})`}>
+        {v === 0 && <rect x="12" y="0" width="12" height="26" fill={c2} />}
+        {v === 1 && <path d="M-2 21 L26 7 L26 13 L-2 27 Z" fill={c2} />}
+        {v === 2 && <rect x="0" y="0" width="24" height="8" fill={c2} />}
+        {v === 3 && <path d="M0 10 L12 16 L24 10 L24 15 L12 21 L0 15 Z" fill={c2} />}
+        {v === 4 && (<><rect x="12" y="0" width="12" height="13" fill={c2} /><rect x="0" y="13" width="12" height="13" fill={c2} /></>)}
+      </g>
+      <path d={SHIELD} fill="none" stroke="#c9a227" strokeWidth="1.5" />
+      <text
+        x="12" y="16" textAnchor="middle"
+        fontFamily="'Barlow Condensed', 'Arial Narrow', sans-serif"
+        fontWeight="700" fontSize="11.5"
+        fill="#f7f3e8" stroke="rgba(0,0,0,.55)" strokeWidth="1.6"
+        paintOrder="stroke"
+      >{letter}</text>
+    </svg>
+  )
+}
+
+/** Crest by team id — clubs get shields, nations fall back to flags. */
+export function CrestT({ g, teamId, size = 16 }: { g: GameState; teamId: string; size?: number }) {
+  const c = g.clubs[teamId]
+  if (!c) return <span style={{ marginRight: 5 }}>{flagOf(teamId)}</span>
+  return <Crest club={c} size={size} />
 }
 
 /** Colour for an attribute bar by value. */
