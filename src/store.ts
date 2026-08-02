@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { GameState, MatchEvent, Fixture } from './game/model'
 import { newGame } from './game/newgame'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
-import { teamShort } from './game/matchEngine'
+import { applyTeamTalk, beginMatch, makeSubstitution, playHalf, teamShort, type LiveCtx } from './game/matchEngine'
 import { simMatch } from './game/matchEngine'
 import { answerPress } from './game/media'
 import { saveGame } from './game/save'
@@ -22,12 +22,14 @@ interface Store {
   tick: number
   nav: NavEntry[]
   liveMatch: {
+    ctx: LiveCtx
     fixture: Fixture
     events: MatchEvent[]
     cursor: number
     playing: boolean
     speed: number
     done: boolean
+    talkMsg: string | null
   } | null
   saveSlot: string
   night: boolean
@@ -45,6 +47,9 @@ interface Store {
   kickOff: () => void
   matchCursor: (cursor: number, playing: boolean) => void
   finishMatch: () => void
+  teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
+  halfTimeSub: (outId: number, inId: number) => string
+  startSecondHalf: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
 }
@@ -111,25 +116,54 @@ export const useStore = create<Store>((set, get) => ({
     if (g.week % 4 === 0) void get().persist()
   },
 
-  /** From the MatchDay preview: run the detailed sim, start playback. */
+  /** From the MatchDay preview: simulate the first half, start playback. */
   kickOff: () => {
     const g = get().game
     if (!g) return
     const fx = userFixtureThisWeek(g)
     if (!fx) return
-    const { events } = simMatch(g, fx, weekRng(g), true)
+    const ctx = beginMatch(g, fx, weekRng(g), true)
+    playHalf(g, ctx) // first half
+    set(s => ({
+      liveMatch: { ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1, done: false, talkMsg: null },
+      tick: s.tick + 1,
+    }))
+  },
+
+  teamTalk: (kind) => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.half !== 1) return
+    const msg = applyTeamTalk(game, liveMatch.ctx, kind)
+    set(s => ({ liveMatch: s.liveMatch ? { ...s.liveMatch, talkMsg: msg } : null, tick: s.tick + 1 }))
+  },
+
+  halfTimeSub: (outId, inId) => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.half !== 1) return 'Not half-time.'
+    const msg = makeSubstitution(game, liveMatch.ctx, outId, inId)
+    set(s => ({ tick: s.tick + 1 }))
+    return msg
+  },
+
+  /** Resume after the half-time interval. */
+  startSecondHalf: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.half !== 1) return
+    const ctx = liveMatch.ctx
+    playHalf(game, ctx) // second half + finalisation
+    const fx = ctx.fx
     // knockout ties are settled in sudden-death extra time
     if (fx.stage && fx.homeScore === fx.awayScore) {
-      resolveKnockoutDraw(g, fx, weekRng(g))
-      events.push({
+      resolveKnockoutDraw(game, fx, weekRng(game))
+      ctx.events.push({
         min: 90, type: 'FT', teamId: '',
-        text: `SUDDEN DEATH! ${teamShort(g, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time — ${fx.homeScore}-${fx.awayScore}!`,
+        text: `SUDDEN DEATH! ${teamShort(game, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time — ${fx.homeScore}-${fx.awayScore}!`,
         homeScore: fx.homeScore, awayScore: fx.awayScore,
       })
-      fx.events = events
+      fx.events = ctx.events
     }
     set(s => ({
-      liveMatch: { fixture: fx, events, cursor: 0, playing: true, speed: 1, done: false },
+      liveMatch: s.liveMatch ? { ...s.liveMatch, playing: true, done: false } : null,
       tick: s.tick + 1,
     }))
   },

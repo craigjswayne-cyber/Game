@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { teamShort, teamUnits, rosterOf, autoSelect, availablePlayers } from '../../game/matchEngine'
+import { matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers } from '../../game/matchEngine'
 import { XV_SLOTS, weekDate, type MatchEvent } from '../../game/model'
 import { userFixtureThisWeek } from '../../game/season'
-import { CrestT, SectionTitle } from '../components'
+import { CrestT, Jersey, SectionTitle } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { rollWeather } from '../../game/matchEngine'
@@ -76,7 +76,9 @@ function Preview({ fxId }: { fxId: number }) {
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={38} />
+            {game.clubs[fx.homeId] && <Jersey club={game.clubs[fx.homeId]} size={54} />}
             <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--ink-faint)', letterSpacing: 2 }}>VS</span>
+            {game.clubs[fx.awayId] && <Jersey club={game.clubs[fx.awayId]} size={54} />}
             <CrestT g={game} teamId={fx.awayId} size={38} />
           </div>
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
@@ -131,16 +133,18 @@ function Live() {
   const [sound, setSound] = useState(soundOn())
   const tickerRef = useRef<HTMLDivElement>(null)
 
-  const { events, cursor, playing, fixture } = live
+  const { events, cursor, playing, fixture, ctx } = live
   const shown = events.slice(0, cursor)
   const last = shown[shown.length - 1]
-  const done = cursor >= events.length
+  const caughtUp = cursor >= events.length
+  const atHalfTime = caughtUp && ctx.half === 1
+  const done = caughtUp && ctx.half === 2
 
   useEffect(() => {
-    if (!playing || done) return
+    if (!playing || caughtUp) return
     const t = setTimeout(() => matchCursor(cursor + 1, true), SPEEDS[speedIdx].ms)
     return () => clearTimeout(t)
-  }, [cursor, playing, speedIdx, done])
+  }, [cursor, playing, speedIdx, caughtUp])
 
   // stadium sound & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
@@ -187,7 +191,7 @@ function Live() {
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">
-          {done ? 'Full Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
+          {done ? 'Full Time' : atHalfTime ? 'Half-Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
           {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
         </div>
@@ -226,12 +230,101 @@ function Live() {
             <span className="txt">{icon(e)} {e.text}</span>
           </div>
         ))}
+        {atHalfTime && <HalfTime />}
         {done && (
-          <button className="btn gold block" style={{ margin: '14px 0' }} onClick={finishMatch}>
-            Continue to Results ▸
-          </button>
+          <>
+            <StatsPanel />
+            <button className="btn gold block" style={{ margin: '14px 0' }} onClick={finishMatch}>
+              Continue to Results ▸
+            </button>
+          </>
         )}
       </div>
+    </div>
+  )
+}
+
+function StatsPanel() {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const st = matchStats(live.ctx)
+  const row = (label: string, v: [number, number], pct = false) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--hairline)', fontSize: 13 }}>
+      <b style={{ width: 34, textAlign: 'right', fontFamily: 'var(--cond)', fontSize: 15 }}>{v[0]}{pct ? '%' : ''}</b>
+      <span style={{ flex: 1, textAlign: 'center', color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 12 }}>{label}</span>
+      <b style={{ width: 34, fontFamily: 'var(--cond)', fontSize: 15 }}>{v[1]}{pct ? '%' : ''}</b>
+    </div>
+  )
+  return (
+    <div className="card" style={{ margin: '12px 0' }}>
+      <h3 style={{ fontSize: 14, textAlign: 'center' }}>
+        {teamShort(game, live.fixture.homeId)} · Match Stats · {teamShort(game, live.fixture.awayId)}
+      </h3>
+      {row('Possession', st.possession, true)}
+      {row('Tries', st.tries)}
+      {row('Penalty goals', st.pens)}
+      {row('Cards', st.cards)}
+    </div>
+  )
+}
+
+function HalfTime() {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const { teamTalk, halfTimeSub, startSecondHalf } = useStore.getState()
+  const [subMsg, setSubMsg] = useState<string | null>(null)
+  const [outId, setOutId] = useState<number | ''>('')
+  const [inId, setInId] = useState<number | ''>('')
+
+  const ctx = live.ctx
+  const mine = ctx.home.teamId === game.userClubId ? ctx.home : ctx.away
+  const starters = mine.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
+  const bench = mine.lineup.slice(15).map(id => id != null ? game.players[id] : null)
+    .filter(p => p && !p.injury && !mine.onPitch.has(p.id))
+
+  const talks = [
+    ['fire', '🔥 Let them have it'],
+    ['calm', '🧊 Stay composed'],
+    ['praise', '👏 Praise the effort'],
+    ['demand', '💪 Demand more'],
+  ] as const
+
+  return (
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
+      <h3 style={{ fontSize: 15 }}>Half-Time — the dressing room waits</h3>
+      <StatsPanel />
+      {!ctx.talkUsed ? (
+        <>
+          <div className="fact-label" style={{ marginTop: 4 }}>Team Talk</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
+            {talks.map(([k, label]) => (
+              <button key={k} className="btn ghost" style={{ fontSize: 12.5, padding: '9px 6px' }}
+                onClick={() => teamTalk(k)}>{label}</button>
+            ))}
+          </div>
+        </>
+      ) : live.talkMsg && (
+        <div className="meta" style={{ fontStyle: 'italic', margin: '6px 0' }}>{live.talkMsg}</div>
+      )}
+      <div className="fact-label" style={{ marginTop: 12 }}>Substitution ({5 - ctx.subsUsed} left)</div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+        <select className="inline-input" style={{ margin: 0 }} value={outId} onChange={e => setOutId(Number(e.target.value))}>
+          <option value="">Off…</option>
+          {starters.map(p => p && <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select className="inline-input" style={{ margin: 0 }} value={inId} onChange={e => setInId(Number(e.target.value))}>
+          <option value="">On…</option>
+          {bench.map(p => p && <option key={p.id} value={p.id}>{p.name} ({p.pos})</option>)}
+        </select>
+        <button className="btn" disabled={!outId || !inId || ctx.subsUsed >= 5}
+          onClick={() => { if (outId && inId) { setSubMsg(halfTimeSub(outId, inId)); setOutId(''); setInId('') } }}>
+          Make
+        </button>
+      </div>
+      {subMsg && <div className="meta" style={{ marginTop: 6 }}>{subMsg}</div>}
+      <button className="btn gold block" style={{ margin: '14px 0 2px', width: '100%' }} onClick={startSecondHalf}>
+        ▸ Start Second Half
+      </button>
     </div>
   )
 }

@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS } from '../../game/newgame'
 import type { RawClub } from '../../data/types'
-import { Crest } from '../components'
+import { Crest, Jersey } from '../components'
+import { playerValue } from '../../game/attributes'
+import { fmtMoney } from '../../game/model'
 
 // FM Mobile-style guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -132,15 +134,19 @@ export default function NewGame() {
             {club && (
               <div className="card detail-panel">
                 <div className="club-banner" style={{ background: club.colors[0], color: '#fff' }}>
-                  <Crest club={club} size={22} mr={8} />{club.name}
+                  <Crest club={club} size={22} mr={8} />
+                  <span style={{ flex: 1 }}>{club.name}</span>
+                  <Jersey club={club} size={46} />
                 </div>
                 <div className="fact-grid">
                   <div><label>Reputation</label><span style={{ color: '#a8841a' }}>{'★'.repeat(Math.max(1, Math.round(club.rep / 20)))}<span style={{ opacity: .3 }}>{'★'.repeat(5 - Math.max(1, Math.round(club.rep / 20)))}</span></span></div>
                   <div><label>Finances</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{finances(club.budget)[0]}</span></div>
-                  <div><label>Star Player</label><span>{starPlayer?.name}</span></div>
+                  <div><label>Star Player</label><span>⭐ {starPlayer?.name}</span></div>
                   <div><label>Stadium</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
                   <div><label>Media Verdict</label><span>{mediaLabel(club.rep)}</span></div>
                   <div><label>Transfer Budget</label><span>£{(club.budget / 1e6).toFixed(1)}m</span></div>
+                  <div><label>Squad Value</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
+                  <div><label>Squad Size</label><span>{club.players.length}</span></div>
                 </div>
               </div>
             )}
