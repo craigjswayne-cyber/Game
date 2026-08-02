@@ -4,7 +4,7 @@ import { newGame } from './game/newgame'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
-  stepTick, teamShort, type LiveCtx,
+  resolveDecision, stepTick, teamShort, type LiveCtx,
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
@@ -53,6 +53,7 @@ interface Store {
   kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy') => void
   advanceLive: () => void
   skipToBreak: () => void
+  decide: (choice: 'posts' | 'corner' | 'tap') => string
   matchCursor: (cursor: number, playing: boolean) => void
   finishMatch: () => void
   teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
@@ -172,13 +173,13 @@ export const useStore = create<Store>((set, get) => ({
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: cursor + 1 }, tick: s.tick + 1 } : {})
       return
     }
-    if (ctx.awaiting || ctx.seg === 3) {
-      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 } } : {})
+    if (ctx.awaiting || ctx.seg === 3 || ctx.decision) {
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 }, tick: s.tick + 1 } : {})
       return
     }
-    // simulate until something new happens or the clock hits a break
+    // simulate until something new happens, a decision is needed, or a break
     let r: ReturnType<typeof stepTick> = 'play'
-    while (ctx.events.length <= cursor && r === 'play') {
+    while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) {
       r = stepTick(game, ctx)
     }
     if (r === 'FT') settleKnockout(game, ctx)
@@ -186,18 +187,36 @@ export const useStore = create<Store>((set, get) => ({
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
   },
 
-  /** Fast-forward the rest of the current period (to HT, 60' or FT). */
+  /** Fast-forward the rest of the current period (to HT, 60' or FT).
+   *  Pending penalty calls default to taking the points. */
   skipToBreak: () => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch) return
     const { ctx } = liveMatch
     let r: ReturnType<typeof stepTick> = 'play'
-    while (!ctx.awaiting && ctx.seg < 3 && (r = stepTick(game, ctx)) === 'play') { /* run the clock */ }
+    while (!ctx.awaiting && ctx.seg < 3) {
+      if (ctx.decision) resolveDecision(game, ctx, 'posts')
+      r = stepTick(game, ctx)
+      if (ctx.decision) resolveDecision(game, ctx, 'posts')
+      if (r !== 'play') break
+    }
     if (r === 'FT') settleKnockout(game, ctx)
     set(s => s.liveMatch ? {
       liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3 },
       tick: s.tick + 1,
     } : {})
+  },
+
+  /** The touchline call on a kickable penalty. */
+  decide: (choice) => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || !liveMatch.ctx.decision) return ''
+    const msg = resolveDecision(game, liveMatch.ctx, choice)
+    set(s => s.liveMatch ? {
+      liveMatch: { ...s.liveMatch, playing: true },
+      tick: s.tick + 1,
+    } : {})
+    return msg
   },
 
   teamTalk: (kind) => {

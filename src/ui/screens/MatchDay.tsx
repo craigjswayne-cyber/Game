@@ -313,6 +313,7 @@ function PitchViz({ ctx, game, last, ballLeft }: {
 
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
+    const capId = game!.clubs[side.teamId]?.captain
     return side.lineup.slice(0, 15).map((id, slot) => {
       if (id == null || !side.onPitch.has(id)) return null
       const binned = (side.yellowUntil.get(id) ?? 0) > min
@@ -323,7 +324,7 @@ function PitchViz({ ctx, game, last, ballLeft }: {
       const x = isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift
       const hl = last?.playerId === id
       return (
-        <div key={id} className={`pdot${hl ? ' hl' : ''}`}
+        <div key={id} className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}`}
           style={{
             left: `${x}%`, top: `${8 + sy * 0.84}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
@@ -375,6 +376,7 @@ function Live() {
   const caughtUp = cursor >= events.length
   const atHalfTime = caughtUp && ctx.awaiting === 'HT'
   const atBreak = caughtUp && ctx.awaiting === 'BRK'
+  const atDecision = caughtUp && !!ctx.decision && ctx.seg < 3
   const done = caughtUp && ctx.seg === 3
 
   useEffect(() => {
@@ -437,6 +439,15 @@ function Live() {
 
       <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft} />
 
+      {!done && (
+        <div className="momo-bar" title="Momentum">
+          <div className="momo-fill" style={{
+            background: `linear-gradient(90deg, ${homeC[0]}, transparent 50%, ${awayC[0]})`,
+          }} />
+          <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
+        </div>
+      )}
+
       <div className="speed-controls">
         {SPEEDS.map((s, i) => (
           <button key={i} className={`btn ${i === speedIdx && playing ? 'gold' : 'ghost'}`}
@@ -465,7 +476,8 @@ function Live() {
             <span className="txt">{icon(e)} {e.text}</span>
           </div>
         ))}
-        {drawer && paused && !done && (
+        {atDecision && <DecisionPanel />}
+        {drawer && paused && !done && !atDecision && (
           <TouchlinePanel title="⏸ Play is paused — change the picture" showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel="▸ Resume Play" />
         )}
         {(atHalfTime || atBreak) && (
@@ -485,6 +497,55 @@ function Live() {
             </button>
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+/** A kickable penalty: posts, corner, or tap — your call, gaffer. */
+function DecisionPanel() {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const { decide } = useStore.getState()
+  const ctx = live.ctx
+  const mine = ctx.home.teamId === game.userClubId ? ctx.home : ctx.away
+  const opp = mine === ctx.home ? ctx.away : ctx.home
+  const diff = mine.score - opp.score
+  const kicker = mine.units.kickerId != null ? game.players[mine.units.kickerId] : null
+
+  const options = [
+    {
+      id: 'posts' as const, icon: '🥅', name: 'Take the Points',
+      desc: `${kicker ? kicker.name : 'Your kicker'} lines it up. Safe three${diff < 0 && diff >= -3 ? ' — levels or leads' : ''}.`,
+    },
+    {
+      id: 'corner' as const, icon: '🚀', name: 'Kick to the Corner',
+      desc: 'Lineout five metres out. Maul for the try — glory or nothing.',
+    },
+    {
+      id: 'tap' as const, icon: '⚡', name: 'Tap & Go',
+      desc: 'Catch them flat-footed. Keeps the tempo scorching.',
+    },
+  ]
+
+  return (
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid #a12f2f' }}>
+      <h3 style={{ fontSize: 15 }}>⏱ Penalty — your call from the touchline</h3>
+      <div className="meta" style={{ marginBottom: 8 }}>
+        {teamShort(game, mine.teamId)} {mine.score} – {opp.score} {teamShort(game, opp.teamId)} ·
+        {diff < 0 ? ` ${-diff} behind` : diff > 0 ? ` ${diff} ahead` : ' all square'} · {ctx.lastMin}'
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {options.map(o => (
+          <button key={o.id} className="btn ghost" style={{ textAlign: 'left', padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center' }}
+            onClick={() => decide(o.id)}>
+            <span style={{ fontSize: 20 }}>{o.icon}</span>
+            <span>
+              <b style={{ display: 'block', fontSize: 13.5 }}>{o.name}</b>
+              <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{o.desc}</span>
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   )

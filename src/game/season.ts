@@ -529,6 +529,24 @@ export function processWeekAndAdvance(state: GameState) {
     generatePress(state, rng)
   }
   generateGossip(state, rng)
+
+  // Player of the Month in the user's league — a form king gets his gong
+  if (state.week % 4 === 0 && state.week <= 36 && !state.unemployed) {
+    const leagueId = state.clubs[state.userClubId].leagueId
+    const cands = Object.values(state.players).filter(p =>
+      p.clubId && state.clubs[p.clubId]?.leagueId === leagueId && p.stats.apps >= 3)
+    const best = [...cands].sort((a, b) => b.form - a.form)[0]
+    if (best && best.form >= 7) {
+      best.morale = clamp(best.morale + 0.6, 1, 10)
+      const ours = best.clubId === state.userClubId
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: `Player of the Month: ${best.name}${ours ? ' 🏅' : ''}`,
+        body: `${best.name} (${teamShort(state, best.clubId!)}) takes the ${state.comps[leagueId]?.short ?? 'league'} Player of the Month award${ours ? ' — one of yours! The dressing room applauds him in, and his chest is a little bigger for it.' : '.'}`,
+        playerId: best.id,
+      })
+    }
+  }
   aiTransfers(state, rng)
   aiRenewals(state, rng)
   refreshVacancies(state, rng)

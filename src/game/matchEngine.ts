@@ -319,6 +319,10 @@ export interface LiveCtx {
   talkUsed: boolean
   subsUsed: number
   preTalk: string | null
+  /** a touchline call waiting on the user (kickable penalty etc) */
+  decision: { kind: 'penalty'; min: number } | null
+  /** momentum, -1 (away camped in our half) .. +1 (home dominant) */
+  momo: number
 }
 
 function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) {
@@ -367,7 +371,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     events: [], lastMin: 0,
     isUser: fx.homeId === state.userClubId || fx.awayId === state.userClubId,
     tick: 0, seg: 0, awaiting: null, motmId: null, talkUsed: false, subsUsed: 0,
-    preTalk: null,
+    preTalk: null, decision: null, momo: 0,
   }
 
   if (derby) {
@@ -398,6 +402,89 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
     const e = side.energy.get(id) ?? 80
     side.energy.set(id, Math.max(0, e - base * side.tempoF * posF * wF))
   }
+}
+
+/** Take the three points: roll the kick at goal. */
+function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
+  const { rng, detail, goalPenalty } = ctx
+  const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+  const pPen = (kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55) - goalPenalty + side.goalBonus
+  if (rng() < pPen) {
+    side.score += 3
+    side.pens += 1
+    if (kicker) {
+      kicker.stats.pens += 1; kicker.stats.points += 3
+      side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
+    }
+    pushEvent(state, ctx, min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
+  } else if (detail && rng() < 0.7) {
+    pushEvent(state, ctx, min, 'SUB', side, `${kicker?.name ?? 'The kicker'} pushes the penalty attempt wide.`, kicker?.id)
+  }
+}
+
+/** Score a try (+ conversion attempt) for a side — shared by open play and set-piece strikes. */
+function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, line?: string, forceScorer?: Player | null) {
+  const { rng, goalPenalty } = ctx
+  const scorer = forceScorer ?? tryScorer(state, side, rng)
+  side.score += 5
+  side.tries += 1
+  if (scorer) {
+    side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.9)
+    scorer.stats.tries += 1
+    scorer.stats.points += 5
+  }
+  pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? TRY_LINES[Math.floor(rng() * TRY_LINES.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
+  const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+  const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty + side.goalBonus
+  if (rng() < pCon) {
+    side.score += 2
+    if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
+    pushEvent(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
+  } else {
+    pushEvent(state, ctx, min + 1, 'SUB', side, `The conversion drifts wide.`)
+  }
+}
+
+/** Resolve the user's touchline call on a kickable penalty. */
+export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' | 'corner' | 'tap'): string {
+  const d = ctx.decision
+  if (!d) return ''
+  ctx.decision = null
+  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const opp = mine === ctx.home ? ctx.away : ctx.home
+  const min = Math.min(79, d.min + 1)
+  const rng = ctx.rng
+  if (choice === 'posts') {
+    takePenaltyShot(state, ctx, mine, min)
+    return 'Points on the board — or so you hope.'
+  }
+  if (choice === 'corner') {
+    const pTry = clamp(0.26 + (mine.units.lineout - opp.units.defence) * 0.022, 0.12, 0.52)
+    pushEvent(state, ctx, min, 'SUB', mine, `To the corner! The maul assembles five metres out...`)
+    if (rng() < pTry) {
+      const forwards = mine.lineup.slice(0, 8)
+        .map(id => id != null ? state.players[id] : null)
+        .filter((p): p is Player => !!p && mine.onPitch.has(p.id))
+      const scorer = forwards.length ? forwards[Math.floor(rng() * forwards.length)] : null
+      scoreTry(state, ctx, mine, min + 1, scorer ? `TRY! The maul rumbles over and ${scorer.name} grounds it!` : undefined, scorer)
+      return 'The maul delivers — tries win matches.'
+    }
+    if (rng() < 0.5) {
+      pushEvent(state, ctx, min + 1, 'SUB', opp, `Held up! ${teamShort(state, opp.teamId)} survive and win the scrum.`)
+      return 'Nothing. The gamble came up empty this time.'
+    }
+    mine.poss += 1.2
+    pushEvent(state, ctx, min + 1, 'SUB', mine, `They repel the maul but concede another penalty — pressure stays on.`)
+    return 'No points yet, but you have them pinned.'
+  }
+  // tap and go
+  mine.poss += 1.4
+  if (rng() < 0.17) {
+    scoreTry(state, ctx, mine, min, undefined)
+    return 'Brilliant! The quick tap catches them asleep!'
+  }
+  pushEvent(state, ctx, min, 'SUB', mine, `Quick tap! ${teamShort(state, mine.teamId)} go through the phases, camped on the line...`)
+  return 'Tempo lifted — the momentum is yours even without points.'
 }
 
 /** AI (and injury-forced) bench management: tired starters are replaced. */
@@ -440,6 +527,7 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
 function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const { rng, detail, derby, goalPenalty, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
+  const poss0: [number, number] = [home.poss, away.poss]
 
   drainEnergy(state, ctx, home)
   drainEnergy(state, ctx, away)
@@ -457,37 +545,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     const pTry = clamp(0.115 * Math.pow(ratio, 2.6), 0.01, 0.42)
     const r = rng()
     if (r < pTry) {
-      const scorer = tryScorer(state, side, rng)
-      side.score += 5
-      side.tries += 1
-      if (scorer) {
-        side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.9)
-        scorer.stats.tries += 1
-        scorer.stats.points += 5
-      }
-      pushEvent(state, ctx, min, 'TRY', side, scorer ? TRY_LINES[Math.floor(rng() * TRY_LINES.length)](scorer.name) : 'TRY! The pack drives over the line!', scorer?.id)
-      const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-      const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty + side.goalBonus
-      if (rng() < pCon) {
-        side.score += 2
-        if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
-        pushEvent(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
-      } else {
-        pushEvent(state, ctx, min + 1, 'SUB', side, `The conversion drifts wide.`)
-      }
+      scoreTry(state, ctx, side, min)
     } else if (r < pTry + 0.115) {
-      const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-      const pPen = (kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55) - goalPenalty + side.goalBonus
-      if (rng() < pPen) {
-        side.score += 3
-        side.pens += 1
-        if (kicker) {
-          kicker.stats.pens += 1; kicker.stats.points += 3
-          side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
-        }
-        pushEvent(state, ctx, min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
-      } else if (detail && rng() < 0.5) {
-        pushEvent(state, ctx, min, 'SUB', side, `${kicker?.name ?? 'The kicker'} pushes the penalty attempt wide.`, kicker?.id)
+      // a kickable penalty: yours is a touchline decision, theirs is automatic
+      if (detail && side.isUser && !ctx.decision) {
+        ctx.decision = { kind: 'penalty', min }
+        pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} — kickable range. The captain looks to the touchline for the call...`)
+      } else {
+        takePenaltyShot(state, ctx, side, min)
       }
     } else if (r < pTry + 0.115 + 0.006) {
       const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
@@ -573,6 +638,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
 
     aiAutoSubs(state, ctx, side, min)
   }
+
+  // momentum needle: who owned the last few minutes
+  const dh = home.poss - poss0[0]
+  const da = away.poss - poss0[1]
+  ctx.momo = clamp(ctx.momo * 0.62 + (dh - da) * 0.55, -1, 1)
 }
 
 /**
@@ -605,11 +675,14 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   return 'play'
 }
 
-/** Play through to the next natural stop (HT, 60' or FT). */
+/** Play through to the next natural stop (HT, 60' or FT).
+ *  Any pending touchline decision is auto-resolved (take the points). */
 export function playSegment(state: GameState, ctx: LiveCtx) {
   ctx.awaiting = null
   for (;;) {
+    if (ctx.decision) resolveDecision(state, ctx, 'posts')
     const r = stepTick(state, ctx)
+    if (ctx.decision) resolveDecision(state, ctx, 'posts')
     if (r !== 'play') { ctx.awaiting = null; break }
   }
 }
