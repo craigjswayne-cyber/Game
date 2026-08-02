@@ -4,6 +4,7 @@ import { BENCH_SLOTS, XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { autoSelect, availablePlayers } from '../../game/matchEngine'
 import { effAt } from '../../game/attributes'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
+import { assistantAdvice } from '../../game/analysis'
 
 export default function Tactics() {
   const game = useStore(s => s.game)!
@@ -93,6 +94,9 @@ export default function Tactics() {
           club.tactic.lineup = autoSelect(game, pool)
           touch()
         }}>Auto-Pick Best XV</button>
+      </div>
+      <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
+        <div className="meta" style={{ fontStyle: 'italic' }}>{assistantAdvice(game)}</div>
       </div>
       <SectionTitle>Starting XV</SectionTitle>
       <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>

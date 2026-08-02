@@ -158,6 +158,8 @@ interface SideCtx {
   yellowUntil: Map<number, number>
   sent: number // players lost to RC
   cardRisk: number
+  poss: number // accumulated momentum, for possession stats
+  pens: number // penalty goals kicked
 }
 
 function mkSide(state: GameState, teamId: string): SideCtx {
@@ -183,6 +185,7 @@ function mkSide(state: GameState, teamId: string): SideCtx {
     teamId, lineup, units,
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), sent: 0,
     cardRisk: 0.012 + aggBoost,
+    poss: 0, pens: 0,
   }
 }
 
@@ -207,13 +210,75 @@ export interface SimResult {
   motmId: number | null
 }
 
-export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): SimResult {
+const TRY_LINES = [
+  (n: string) => `TRY! ${n} crashes over from close range!`,
+  (n: string) => `TRY! ${n} finishes superbly in the corner!`,
+  (n: string) => `TRY! ${n} slices through the defence!`,
+  (n: string) => `TRY! ${n} powers over off the back of the maul!`,
+  (n: string) => `TRY! ${n} steps inside and dives under the posts!`,
+  (n: string) => `TRY! Sweeping move, and ${n} applies the finish!`,
+  (n: string) => `TRY! Quick tap by ${n} catches the defence napping!`,
+  (n: string) => `TRY! ${n} gathers a clever grubber and touches down!`,
+]
+const PEN_LINES = [
+  (n: string) => `${n} slots the penalty.`,
+  (n: string) => `${n} makes no mistake from the tee.`,
+  (n: string) => `${n} strikes it true — three more points.`,
+  (n: string) => `${n} bisects the uprights from distance.`,
+]
+const CON_LINES = [
+  (n: string) => `${n} adds the extras.`,
+  (n: string) => `${n} curls the conversion over.`,
+  (n: string) => `${n} converts from the touchline!`,
+]
+const FLAVOR = [
+  (n: string, t: string) => `Big carry from ${n} takes ${t} into the 22.`,
+  (n: string, t: string) => `${n} makes a searing half-break for ${t}.`,
+  (n: string, t: string) => `Turnover! ${n} wins the breakdown battle for ${t}.`,
+  (n: string, t: string) => `Monster scrum from the ${t} pack — penalty advantage.`,
+  (n: string, t: string) => `${n} claims the high ball under pressure.`,
+  (n: string, t: string) => `Rolling maul from ${t} eats up twenty metres.`,
+  (n: string, t: string) => `${n} clears the lines with a booming touch-finder.`,
+  (n: string, t: string) => `Thunderous hit by ${n} — the crowd roars.`,
+]
+
+/** Live match context — supports playing one half at a time so the user
+ *  can make half-time team talks, substitutions and tactic changes. */
+export interface LiveCtx {
+  fx: Fixture
+  home: SideCtx
+  away: SideCtx
+  rng: Rng
+  detail: boolean
+  weather: Weather
+  derby: boolean
+  goalPenalty: number
+  hfa: number
+  events: MatchEvent[]
+  lastMin: number
+  isUser: boolean
+  half: 0 | 1 | 2
+  motmId: number | null
+  talkUsed: boolean
+  subsUsed: number
+}
+
+function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) {
+  if (!ctx.detail) return
+  if (type !== 'HT' && type !== 'FT') {
+    min = Math.max(min, ctx.lastMin)
+    ctx.lastMin = Math.min(80, min)
+  }
+  ctx.events.push({
+    min, type, teamId: side?.teamId ?? '',
+    playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
+    text, homeScore: ctx.home.score, awayScore: ctx.away.score,
+  })
+}
+
+export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): LiveCtx {
   const home = mkSide(state, fx.homeId)
   const away = mkSide(state, fx.awayId)
-  const events: MatchEvent[] = []
-  const isUser = fx.homeId === state.userClubId || fx.awayId === state.userClubId
-
-  // conditions & occasion
   const weather = rollWeather(state.week, rng)
   fx.weather = weather
   const derby = isDerby(fx.homeId, fx.awayId)
@@ -231,7 +296,6 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
   if (weather === 'Wind') goalPenalty = 0.09
   if (weather === 'Snow') goalPenalty = 0.1
 
-  // attendance up front so the live scoreboard can show it
   const hostClub = state.clubs[fx.homeId]
   if (hostClub) {
     const interest = derby ? 0.99 : clamp(
@@ -239,198 +303,252 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
     fx.att = Math.round(hostClub.capacity * interest)
   }
 
-  let lastMin = 0
-  const push = (min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) => {
-    if (!detail) return
-    if (type !== 'HT' && type !== 'FT') {
-      min = Math.max(min, lastMin)
-      lastMin = Math.min(80, min)
-    }
-    events.push({
-      min, type, teamId: side?.teamId ?? '',
-      playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
-      text, homeScore: home.score, awayScore: away.score,
-    })
+  const ctx: LiveCtx = {
+    fx, home, away, rng, detail, weather, derby, goalPenalty,
+    hfa: state.clubs[fx.homeId] ? 1.06 : 1.03,
+    events: [], lastMin: 0,
+    isUser: fx.homeId === state.userClubId || fx.awayId === state.userClubId,
+    half: 0, motmId: null, talkUsed: false, subsUsed: 0,
   }
-
-  const TRY_LINES = [
-    (n: string) => `TRY! ${n} crashes over from close range!`,
-    (n: string) => `TRY! ${n} finishes superbly in the corner!`,
-    (n: string) => `TRY! ${n} slices through the defence!`,
-    (n: string) => `TRY! ${n} powers over off the back of the maul!`,
-    (n: string) => `TRY! ${n} steps inside and dives under the posts!`,
-    (n: string) => `TRY! Sweeping move, and ${n} applies the finish!`,
-    (n: string) => `TRY! Quick tap by ${n} catches the defence napping!`,
-    (n: string) => `TRY! ${n} gathers a clever grubber and touches down!`,
-  ]
-  const PEN_LINES = [
-    (n: string) => `${n} slots the penalty.`,
-    (n: string) => `${n} makes no mistake from the tee.`,
-    (n: string) => `${n} strikes it true — three more points.`,
-    (n: string) => `${n} bisects the uprights from distance.`,
-  ]
-  const CON_LINES = [
-    (n: string) => `${n} adds the extras.`,
-    (n: string) => `${n} curls the conversion over.`,
-    (n: string) => `${n} converts from the touchline!`,
-  ]
-  const FLAVOR = [
-    (n: string, t: string) => `Big carry from ${n} takes ${t} into the 22.`,
-    (n: string, t: string) => `${n} makes a searing half-break for ${t}.`,
-    (n: string, t: string) => `Turnover! ${n} wins the breakdown battle for ${t}.`,
-    (n: string, t: string) => `Monster scrum from the ${t} pack — penalty advantage.`,
-    (n: string, t: string) => `${n} claims the high ball under pressure.`,
-    (n: string, t: string) => `Rolling maul from ${t} eats up twenty metres.`,
-    (n: string, t: string) => `${n} clears the lines with a booming touch-finder.`,
-    (n: string, t: string) => `Thunderous hit by ${n} — the crowd roars.`,
-  ]
 
   if (derby) {
-    push(0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
+    pushEvent(state, ctx, 0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
   } else {
-    push(0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries — proper old-school rugby weather.' : ''}`)
+    pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries — proper old-school rugby weather.' : ''}`)
   }
+  return ctx
+}
 
-  // home advantage
-  const HFA = state.clubs[fx.homeId] ? 1.06 : 1.03
+function simTick(state: GameState, ctx: LiveCtx, tick: number) {
+  const { rng, detail, derby, goalPenalty, home, away } = ctx
+  const min = tick * 4 + Math.floor(rng() * 4) + 1
 
-  for (let tick = 0; tick < 20; tick++) {
-    const min = tick * 4 + Math.floor(rng() * 4) + 1
-    if (tick === 10) push(40, 'HT', null, 'Half-time')
-
-    for (const [side, opp, adv] of [[home, away, HFA], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
-      // numeric disadvantage from cards
-      const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent)
-      const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent)
-      const att = side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1
-      const def = opp.units.defence * 0.7 + opp.units.breakdown * 0.3
-      let ratio = ((att * adv * numF) / Math.max(1, def * oppNumF))
-      if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
-      const pTry = clamp(0.115 * Math.pow(ratio, 2.6), 0.01, 0.42)
-      const r = rng()
-      if (r < pTry) {
-        const scorer = tryScorer(state, side, rng)
-        side.score += 5
-        side.tries += 1
-        if (scorer) {
-          side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.9)
-          scorer.stats.tries += 1
-          scorer.stats.points += 5
-        }
-        push(min, 'TRY', side, scorer ? TRY_LINES[Math.floor(rng() * TRY_LINES.length)](scorer.name) : 'TRY! The pack drives over the line!', scorer?.id)
-        // conversion
-        const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-        const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty
-        if (rng() < pCon) {
-          side.score += 2
-          if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
-          push(min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
-        } else {
-          push(min + 1, 'SUB', side, `The conversion drifts wide.`)
-        }
-      } else if (r < pTry + 0.115) {
-        // penalty opportunity — kick at goal
-        const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-        const pPen = (kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55) - goalPenalty
-        if (rng() < pPen) {
-          side.score += 3
-          if (kicker) {
-            kicker.stats.pens += 1; kicker.stats.points += 3
-            side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
-          }
-          push(min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
-        } else if (detail && rng() < 0.5) {
-          push(min, 'SUB', side, `${kicker?.name ?? 'The kicker'} pushes the penalty attempt wide.`, kicker?.id)
-        }
-      } else if (r < pTry + 0.115 + 0.006) {
-        const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
-        if (fh && rng() < 0.3 + fh.a.kic / 40) {
-          side.score += 3
-          fh.stats.drops += 1; fh.stats.points += 3
-          push(min, 'DG', side, `Drop goal! ${fh.name} from the pocket!`, fh.id)
-        }
+  for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
+    const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent)
+    const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent)
+    const att = side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1
+    const def = opp.units.defence * 0.7 + opp.units.breakdown * 0.3
+    let ratio = ((att * adv * numF) / Math.max(1, def * oppNumF))
+    if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
+    side.poss += ratio
+    const pTry = clamp(0.115 * Math.pow(ratio, 2.6), 0.01, 0.42)
+    const r = rng()
+    if (r < pTry) {
+      const scorer = tryScorer(state, side, rng)
+      side.score += 5
+      side.tries += 1
+      if (scorer) {
+        side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.9)
+        scorer.stats.tries += 1
+        scorer.stats.points += 5
       }
-
-      // atmosphere lines for the live ticker
-      if (detail && rng() < 0.3) {
-        const ids = [...side.onPitch]
-        const ps = ids.map(id => state.players[id]).filter(Boolean)
-        if (ps.length) {
-          const p = ps[Math.floor(rng() * ps.length)]
-          push(min, 'SUB', side, FLAVOR[Math.floor(rng() * FLAVOR.length)](p.name, teamShort(state, side.teamId)), p.id)
-        }
+      pushEvent(state, ctx, min, 'TRY', side, scorer ? TRY_LINES[Math.floor(rng() * TRY_LINES.length)](scorer.name) : 'TRY! The pack drives over the line!', scorer?.id)
+      const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+      const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty
+      if (rng() < pCon) {
+        side.score += 2
+        if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
+        pushEvent(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
+      } else {
+        pushEvent(state, ctx, min + 1, 'SUB', side, `The conversion drifts wide.`)
       }
-
-      // discipline
-      if (rng() < side.cardRisk) {
-        const ids = [...side.onPitch]
-        const ps = ids.map(id => state.players[id]).filter(Boolean)
-        if (ps.length) {
-          const p = wpick(rng, ps, ps.map(x => x.a.agg))
-          if (rng() < 0.06) {
-            side.sent += 1
-            side.onPitch.delete(p.id)
-            p.stats.rc += 1
-            p.bans += 2 + Math.floor(rng() * 2)
-            side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
-            push(min, 'RC', side, `RED CARD! ${p.name} is sent off!`, p.id)
-          } else {
-            side.yellowUntil.set(p.id, min + 10)
-            p.stats.yc += 1
-            side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
-            push(min, 'YC', side, `Yellow card — ${p.name} to the bin for ten.`, p.id)
-          }
+    } else if (r < pTry + 0.115) {
+      const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
+      const pPen = (kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55) - goalPenalty
+      if (rng() < pPen) {
+        side.score += 3
+        side.pens += 1
+        if (kicker) {
+          kicker.stats.pens += 1; kicker.stats.points += 3
+          side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
         }
+        pushEvent(state, ctx, min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
+      } else if (detail && rng() < 0.5) {
+        pushEvent(state, ctx, min, 'SUB', side, `${kicker?.name ?? 'The kicker'} pushes the penalty attempt wide.`, kicker?.id)
       }
+    } else if (r < pTry + 0.115 + 0.006) {
+      const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
+      if (fh && rng() < 0.3 + fh.a.kic / 40) {
+        side.score += 3
+        fh.stats.drops += 1; fh.stats.points += 3
+        pushEvent(state, ctx, min, 'DG', side, `Drop goal! ${fh.name} from the pocket!`, fh.id)
+      }
+    }
 
-      // injury
-      if (rng() < 0.019) {
-        const ids = [...side.onPitch]
-        const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
-        if (ps.length) {
-          const p = ps[Math.floor(rng() * ps.length)]
-          const [desc, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
-          let weeks = lo + Math.floor(rng() * (hi - lo + 1))
-          if (p.clubId === state.userClubId && state.staff?.physio) {
-            weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
-          }
-          p.injury = { desc, until: state.week + weeks }
+    // atmosphere lines for the live ticker
+    if (detail && rng() < 0.3) {
+      const ids = [...side.onPitch]
+      const ps = ids.map(id => state.players[id]).filter(Boolean)
+      if (ps.length) {
+        const p = ps[Math.floor(rng() * ps.length)]
+        pushEvent(state, ctx, min, 'SUB', side, FLAVOR[Math.floor(rng() * FLAVOR.length)](p.name, teamShort(state, side.teamId)), p.id)
+      }
+    }
+
+    // discipline
+    if (rng() < side.cardRisk) {
+      const ids = [...side.onPitch]
+      const ps = ids.map(id => state.players[id]).filter(Boolean)
+      if (ps.length) {
+        const p = wpick(rng, ps, ps.map(x => x.a.agg))
+        if (rng() < 0.06) {
+          side.sent += 1
           side.onPitch.delete(p.id)
-          push(min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.`, p.id)
-          // bench replacement joins
-          const sub = side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
-            .find(s => s && !side.onPitch.has(s.id) && !s.injury && !side.ratings.has(s.id))
-          if (sub) { side.onPitch.add(sub.id); side.ratings.set(sub.id, 6) }
+          p.stats.rc += 1
+          p.bans += 2 + Math.floor(rng() * 2)
+          side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
+          pushEvent(state, ctx, min, 'RC', side, `RED CARD! ${p.name} is sent off!`, p.id)
+        } else {
+          side.yellowUntil.set(p.id, min + 10)
+          p.stats.yc += 1
+          side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
+          pushEvent(state, ctx, min, 'YC', side, `Yellow card — ${p.name} to the bin for ten.`, p.id)
         }
       }
     }
 
-    // tactical subs around 55-68 mins
-    if (tick === 15) {
-      for (const side of [home, away]) {
-        let subs = 0
-        for (let b = 15; b < 23 && subs < 5; b++) {
-          const id = side.lineup[b]
-          if (id == null) continue
-          const p = state.players[id]
-          if (!p || p.injury || side.ratings.has(id)) continue
-          side.onPitch.add(id)
-          side.ratings.set(id, 6)
-          subs++
+    // injury
+    if (rng() < 0.019) {
+      const ids = [...side.onPitch]
+      const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
+      if (ps.length) {
+        const p = ps[Math.floor(rng() * ps.length)]
+        const [desc, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
+        let weeks = lo + Math.floor(rng() * (hi - lo + 1))
+        if (p.clubId === state.userClubId && state.staff?.physio) {
+          weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
         }
+        p.injury = { desc, until: state.week + weeks }
+        side.onPitch.delete(p.id)
+        pushEvent(state, ctx, min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.`, p.id)
+        const sub = side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
+          .find(s => s && !side.onPitch.has(s.id) && !s.injury && !side.ratings.has(s.id))
+        if (sub) { side.onPitch.add(sub.id); side.ratings.set(sub.id, 6) }
       }
     }
   }
 
+  // tactical bench emptying around 55-68 mins
+  if (tick === 15) {
+    for (const side of [ctx.home, ctx.away]) {
+      let subs = 0
+      for (let b = 15; b < 23 && subs < 5; b++) {
+        const id = side.lineup[b]
+        if (id == null) continue
+        const p = state.players[id]
+        if (!p || p.injury || side.ratings.has(id)) continue
+        side.onPitch.add(id)
+        side.ratings.set(id, 6)
+        subs++
+      }
+    }
+  }
+}
+
+/** Play one half. After the second half, the result is finalised. */
+export function playHalf(state: GameState, ctx: LiveCtx) {
+  if (ctx.half >= 2) return
+  const second = ctx.half === 1
+  ctx.half = (ctx.half + 1) as 1 | 2
+  const from = second ? 10 : 0
+  for (let tick = from; tick < from + 10; tick++) simTick(state, ctx, tick)
+  if (!second) {
+    pushEvent(state, ctx, 40, 'HT', null, `Half-time: ${teamShort(state, ctx.fx.homeId)} ${ctx.home.score} - ${ctx.away.score} ${teamShort(state, ctx.fx.awayId)}`)
+  } else {
+    finalizeMatch(state, ctx)
+  }
+}
+
+/** Half-time team talk for the user's side. One per match. */
+export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'calm' | 'praise' | 'demand'): string {
+  if (ctx.talkUsed) return 'The talk has been given.'
+  ctx.talkUsed = true
+  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const opp = mine === ctx.home ? ctx.away : ctx.home
+  const winning = mine.score > opp.score
+  switch (kind) {
+    case 'fire':
+      mine.units.attack *= 1.07; mine.units.breakdown *= 1.05; mine.cardRisk *= 1.3
+      return 'You let them have it. Studs rattle the floor on the way out — expect fire, and maybe a card.'
+    case 'calm':
+      mine.units.defence *= 1.06; mine.cardRisk *= 0.8
+      return 'Composed and clear. The defensive shape gets one more walk-through before they head out.'
+    case 'praise':
+      if (winning) { mine.units.attack *= 1.04; mine.units.defence *= 1.03 }
+      return winning
+        ? 'Confidence flows — keep doing exactly this.'
+        : 'Generous words, though a few eyebrows rise given the scoreboard.'
+    case 'demand': {
+      const roll = ctx.rng()
+      if (roll < 0.5) {
+        mine.units.attack *= 1.08; mine.units.defence *= 1.04
+        return 'You demand more, and the senior players nod. They look ready to empty the tank.'
+      }
+      mine.units.attack *= 0.97
+      return 'You demand more — but a couple of heads drop. The gamble may backfire.'
+    }
+  }
+}
+
+/** Half-time substitution for the user's side (max 5 tactical subs). */
+export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, inId: number): string {
+  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  if (ctx.subsUsed >= 5) return 'All five tactical replacements used.'
+  const slotOut = mine.lineup.indexOf(outId)
+  const slotIn = mine.lineup.indexOf(inId)
+  const pin = state.players[inId]
+  const pout = state.players[outId]
+  if (slotOut < 0 || slotOut > 14 || !pout) return 'That player is not in the starting side.'
+  if (!pin || pin.injury || mine.ratings.has(inId) && mine.onPitch.has(inId)) return 'He is not available.'
+  mine.lineup[slotOut] = inId
+  if (slotIn >= 0) mine.lineup[slotIn] = outId
+  mine.onPitch.delete(outId)
+  mine.onPitch.add(inId)
+  if (!mine.ratings.has(inId)) mine.ratings.set(inId, 6)
+  ctx.subsUsed += 1
+  // recompute unit strengths with the new personnel
+  const club = state.clubs[mine.teamId]
+  const fresh = teamUnits(state, mine.lineup)
+  if (club) {
+    const t = club.tactic
+    const f = (v: number) => (v - 50) / 50
+    fresh.attack *= 1 + f(t.style) * 0.06 + f(t.tempo) * 0.05
+    fresh.scrum *= 1 - f(t.style) * 0.05
+    fresh.breakdown *= 1 + f(t.aggression) * 0.06 - f(t.style) * 0.03
+    fresh.kicking *= 1 + f(t.kicking) * 0.1
+    fresh.defence *= 1 - f(t.tempo) * 0.03
+  }
+  if (ctx.weather === 'Rain' || ctx.weather === 'Snow') {
+    fresh.attack *= ctx.weather === 'Snow' ? 0.9 : 0.94
+    fresh.breakdown *= 1.03
+  }
+  if (ctx.weather === 'Wind') fresh.kicking *= 0.92
+  mine.units = fresh
+  pushEvent(state, ctx, 40, 'SUB', mine, `Half-time change: ${pin.name} replaces ${pout.name}.`, pin.id)
+  return `${pin.name} will come on for ${pout.name}.`
+}
+
+/** Match statistics for the stats panel. */
+export function matchStats(ctx: LiveCtx) {
+  const tot = ctx.home.poss + ctx.away.poss || 1
+  return {
+    possession: [Math.round((ctx.home.poss / tot) * 100), Math.round((ctx.away.poss / tot) * 100)] as [number, number],
+    tries: [ctx.home.tries, ctx.away.tries] as [number, number],
+    pens: [ctx.home.pens, ctx.away.pens] as [number, number],
+    cards: [ctx.home.yellowUntil.size + ctx.home.sent, ctx.away.yellowUntil.size + ctx.away.sent] as [number, number],
+  }
+}
+
+function finalizeMatch(state: GameState, ctx: LiveCtx) {
+  const { fx, home, away, rng, detail, derby, isUser } = ctx
   fx.played = true
   fx.homeScore = home.score
   fx.awayScore = away.score
   fx.homeTries = home.tries
   fx.awayTries = away.tries
-  push(80, 'FT', null, `Full-time: ${teamShort(state, fx.homeId)} ${home.score} - ${away.score} ${teamShort(state, fx.awayId)}`)
-  if (detail) fx.events = events
+  pushEvent(state, ctx, 80, 'FT', null, `Full-time: ${teamShort(state, fx.homeId)} ${home.score} - ${away.score} ${teamShort(state, fx.awayId)}`)
+  if (detail) fx.events = ctx.events
 
-  // finalize ratings -> stats, form
   let motmId: number | null = null
   let motmR = -1
   for (const side of [home, away]) {
@@ -458,6 +576,13 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
     if (p) p.stats.motm += 1
     fx.motm = motmId
   }
+  ctx.motmId = motmId
+}
 
-  return { events, motmId }
+/** Simulate a full match in one go (AI fixtures, tests, quick sims). */
+export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): SimResult {
+  const ctx = beginMatch(state, fx, rng, detail)
+  playHalf(state, ctx)
+  playHalf(state, ctx)
+  return { events: ctx.events, motmId: ctx.motmId }
 }

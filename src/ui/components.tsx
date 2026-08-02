@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { GameState, Player } from '../game/model'
 import { flagOf } from '../game/nations'
-import { hashString } from '../game/rng'
+import { kitPattern, type KitPattern } from '../game/kits'
+
 
 export function SectionTitle({ children, sub }: { children: ReactNode; sub?: string }) {
   return (
@@ -77,13 +78,41 @@ interface CrestClub {
 
 const SHIELD = 'M12 1.5 L21.5 4.5 V13 C21.5 19 17.5 22.5 12 24.5 C6.5 22.5 2.5 19 2.5 13 V4.5 Z'
 
+/** Shield field decoration derived from how the club actually wears its colours. */
+function CrestField({ pattern, c2 }: { pattern: KitPattern; c2: string }) {
+  switch (pattern) {
+    case 'hoops': return (<><rect x="0" y="7" width="24" height="4" fill={c2} /><rect x="0" y="15" width="24" height="4" fill={c2} /></>)
+    case 'stripes': return (<><rect x="5" y="0" width="4" height="26" fill={c2} /><rect x="15" y="0" width="4" height="26" fill={c2} /></>)
+    case 'quarters': return (<><rect x="12" y="0" width="12" height="13" fill={c2} /><rect x="0" y="13" width="12" height="13" fill={c2} /></>)
+    case 'sash': return <path d="M-2 21 L26 7 L26 13 L-2 27 Z" fill={c2} />
+    case 'halves': return <rect x="12" y="0" width="12" height="26" fill={c2} />
+    default: return <rect x="0" y="0" width="24" height="7" fill={c2} />
+  }
+}
+
+// clubs whose real logo file is known to be missing from public/logos/
+const noLogo = new Set<string>()
+
 /**
- * Deterministic heraldic crest for a club: shield in club colours with a
- * field pattern chosen from the club id (halves, sash, chief, chevron,
- * quarters), gold border and a condensed monogram.
+ * Club crest. If a real logo has been dropped into public/logos/<id>.png
+ * it is used; otherwise a heraldic shield is generated with the club's
+ * kit pattern and colours, gold border and condensed monogram.
  */
 export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: number; mr?: number }) {
-  const v = hashString(club.id) % 5
+  const [missing, setMissing] = useState(noLogo.has(club.id))
+  if (!missing) {
+    return (
+      <img
+        src={`${import.meta.env.BASE_URL}logos/${club.id}.png`}
+        width={size}
+        height={Math.round((size * 26) / 24)}
+        style={{ verticalAlign: '-3px', marginRight: mr, flexShrink: 0, objectFit: 'contain' }}
+        onError={() => { noLogo.add(club.id); setMissing(true) }}
+        alt=""
+      />
+    )
+  }
+  const pattern = kitPattern(club.id)
   const [c1, c2] = club.colors
   const letter = (club.short.match(/[A-Za-z]/)?.[0] ?? 'R').toUpperCase()
   const clip = `crest-${club.id}`
@@ -100,20 +129,43 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
       </defs>
       <path d={SHIELD} fill={c1} />
       <g clipPath={`url(#${clip})`}>
-        {v === 0 && <rect x="12" y="0" width="12" height="26" fill={c2} />}
-        {v === 1 && <path d="M-2 21 L26 7 L26 13 L-2 27 Z" fill={c2} />}
-        {v === 2 && <rect x="0" y="0" width="24" height="8" fill={c2} />}
-        {v === 3 && <path d="M0 10 L12 16 L24 10 L24 15 L12 21 L0 15 Z" fill={c2} />}
-        {v === 4 && (<><rect x="12" y="0" width="12" height="13" fill={c2} /><rect x="0" y="13" width="12" height="13" fill={c2} /></>)}
+        <CrestField pattern={pattern} c2={c2} />
       </g>
       <path d={SHIELD} fill="none" stroke="#c9a227" strokeWidth="1.5" />
       <text
         x="12" y="16" textAnchor="middle"
-        fontFamily="'Barlow Condensed', 'Arial Narrow', sans-serif"
+        fontFamily="'PT Sans Narrow', 'Arial Narrow', sans-serif"
         fontWeight="700" fontSize="11.5"
         fill="#f7f3e8" stroke="rgba(0,0,0,.55)" strokeWidth="1.6"
         paintOrder="stroke"
       >{letter}</text>
+    </svg>
+  )
+}
+
+/** Home kit jersey rendered from the club's real pattern and colours. */
+export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) {
+  const [c1, c2] = club.colors
+  const pattern = kitPattern(club.id)
+  const clip = `kit-${club.id}`
+  const BODY = 'M14 8 L20 4 H28 L34 8 L38 14 L33 17 L32 15 V30 H16 V15 L15 17 L10 14 Z'
+  return (
+    <svg viewBox="0 0 48 34" width={size} height={Math.round(size * 34 / 48)} aria-hidden
+      style={{ flexShrink: 0 }}>
+      <defs><clipPath id={clip}><path d={BODY} /></clipPath></defs>
+      <path d={BODY} fill={c1} />
+      <g clipPath={`url(#${clip})`}>
+        {pattern === 'hoops' && (<><rect x="8" y="12" width="32" height="4" fill={c2} /><rect x="8" y="20" width="32" height="4" fill={c2} /><rect x="8" y="28" width="32" height="4" fill={c2} /></>)}
+        {pattern === 'stripes' && (<><rect x="18" y="2" width="4" height="32" fill={c2} /><rect x="26" y="2" width="4" height="32" fill={c2} /></>)}
+        {pattern === 'quarters' && (<><rect x="24" y="0" width="16" height="17" fill={c2} /><rect x="8" y="17" width="16" height="17" fill={c2} /></>)}
+        {pattern === 'sash' && <path d="M10 26 L38 6 L38 12 L14 30 L10 30 Z" fill={c2} />}
+        {pattern === 'halves' && <rect x="24" y="0" width="16" height="34" fill={c2} />}
+        {/* sleeves in the second colour for contrast */}
+        <path d="M14 8 L10 14 L15 17 L17 12 Z" fill={c2} opacity=".9" />
+        <path d="M34 8 L38 14 L33 17 L31 12 Z" fill={c2} opacity=".9" />
+      </g>
+      <path d={BODY} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.2" />
+      <path d="M20 4 L24 8 L28 4" fill="none" stroke="#f7f3e8" strokeWidth="1.6" />
     </svg>
   )
 }

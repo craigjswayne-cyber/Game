@@ -1,10 +1,29 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { boardObjective, fmtMoney } from '../../game/model'
 import { SectionTitle } from '../components'
 
 export default function Finances() {
   const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const [askMsg, setAskMsg] = useState<string | null>(null)
   const club = game.clubs[game.userClubId]
+  const askedKey = `asked-${game.season}`
+  const asked = (game as unknown as Record<string, unknown>)[askedKey] === true
+
+  const requestFunds = () => {
+    if (asked) return
+    ;(game as unknown as Record<string, boolean>)[askedKey] = true
+    if (club.boardConfidence >= 68) {
+      const extra = Math.round((club.budget * 0.25 + 400_000) / 50_000) * 50_000
+      club.budget += extra
+      setAskMsg(`The board backs you: ${fmtMoney(extra)} added to the transfer budget.`)
+    } else {
+      club.boardConfidence = Math.max(0, club.boardConfidence - 3)
+      setAskMsg('The board politely declines. Earn their confidence first.')
+    }
+    touch()
+  }
   const wages = club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
   const gate = game.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
   const avgAtt = gate.length ? Math.round(gate.reduce((s, f) => s + (f.att ?? 0), 0) / gate.length) : 0
@@ -40,6 +59,10 @@ export default function Finances() {
           ))}
         </tbody>
       </table></div>
+      {askMsg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{askMsg}</div>}
+      <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
+        {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
+      </button>
       <SectionTitle>Season Objective</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
         <h3 style={{ fontSize: 15 }}>The board expects you to {boardObjective(club.rep).text}.</h3>

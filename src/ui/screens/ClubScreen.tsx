@@ -1,7 +1,8 @@
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER } from '../../game/model'
-import { Crest, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationByCode } from '../../game/nations'
+import { squadValue, starPlayerIds } from '../../game/analysis'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -22,13 +23,20 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <Crest club={club} size={40} mr={10} />
-          <h3 style={{ fontSize: 20 }}>{club.name}</h3>
+          <h3 style={{ fontSize: 20, flex: 1 }}>{club.name}</h3>
+          <Jersey club={club} size={52} />
         </div>
         <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
         <div className="meta">🏟️ {club.stadium} — {club.capacity.toLocaleString()} capacity</div>
-        <div className="badge-row" style={{ marginTop: 6 }}>
+        <div className="badge-row" style={{ marginTop: 6, flexWrap: 'wrap' }}>
           <span className="chip">Reputation <b>{club.rep}</b></span>
           <span className="chip">Squad <b>{players.length}</b></span>
+          <span className="chip">Squad value <b>{fmtMoney(squadValue(game, club.id))}</b></span>
+          {players[0] && (() => {
+            const stars = starPlayerIds(game, club.id)
+            const star = players.find(p => stars.has(p.id))
+            return star ? <span className="chip">⭐ Star <b>{star.name}</b></span> : null
+          })()}
         </div>
       </div>
       {honours.length > 0 && (
@@ -48,7 +56,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {players.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>
               <td><PosBadge pos={p.pos} /></td>
-              <td className="name">{p.name}</td>
+              <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? ' ⭐' : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               <td><Stars ca={p.ca} /></td>
