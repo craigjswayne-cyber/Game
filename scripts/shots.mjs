@@ -57,6 +57,10 @@ try {
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(400)
   await page.click('text=Skip ⏭')
+  await page.waitForSelector('text=Play the Final Quarter', { timeout: 15000 })
+  await page.click('text=▸ Play the Final Quarter')
+  await page.waitForTimeout(400)
+  await page.click('text=Skip ⏭')
   await page.waitForSelector('text=Continue to Results', { timeout: 15000 })
   await shot('r8-fulltime')
 

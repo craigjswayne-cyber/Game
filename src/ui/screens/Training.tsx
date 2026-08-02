@@ -29,6 +29,23 @@ export default function Training() {
           <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{f.desc}</span>
         </button>
       ))}
+      <SectionTitle sub="up to 3 youngsters, faster growth">Development Focus</SectionTitle>
+      <div className="chips">
+        {players.filter(p => p.age <= 26).sort((a, b) => b.pa - b.ca - (a.pa - a.ca)).slice(0, 10).map(p => {
+          const on = game.devFocus.includes(p.id)
+          return (
+            <button key={p.id} className="chip" style={on ? { borderColor: '#c9a227', background: 'color-mix(in srgb, var(--gold) 14%, var(--paper))' } : undefined}
+              onClick={() => {
+                game.devFocus = on
+                  ? game.devFocus.filter(id => id !== p.id)
+                  : [...game.devFocus, p.id].slice(-3)
+                touch()
+              }}>
+              {on ? '● ' : '○ '}{p.name} <b>{p.age}</b>
+            </button>
+          )
+        })}
+      </div>
       <SectionTitle sub="wages come off the weekly balance">Backroom Staff</SectionTitle>
       {(Object.keys(STAFF_INFO) as (keyof StaffLevels)[]).map(role => {
         const info = STAFF_INFO[role]

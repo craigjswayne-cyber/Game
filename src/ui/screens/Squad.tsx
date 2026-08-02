@@ -162,7 +162,14 @@ export default function Squad() {
                   <td className="num">{p.age}</td>
                   <td><Nat code={p.nat} /></td>
                   <td><MoraleArrow v={p.morale} /></td>
-                  <td className="num">{avr ? avr.toFixed(2) : '—'}</td>
+                  <td className="num">
+                    {(p.ca0 != null && p.ca !== p.ca0) && (
+                      <span style={{ color: p.ca > p.ca0 ? '#2f7d4f' : '#a12f2f', marginRight: 3 }}>
+                        {p.ca > p.ca0 ? '▲' : '▼'}
+                      </span>
+                    )}
+                    {avr ? avr.toFixed(2) : '—'}
+                  </td>
                   <td className="num" style={{ fontWeight: 700 }}>{fmtMoney(p.value)}</td>
                 </>)}
                 {view === 'stats' && (<>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER, type Pos } from '../../game/model'
-import { respondToOffer } from '../../game/ai'
+import { counterIncomingOffer, respondToOffer } from '../../game/ai'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 
@@ -49,6 +49,7 @@ export default function Transfers() {
                 <div className="meta">Value {fmtMoney(p.value)} · {p.age} yrs · morale {p.morale.toFixed(0)}/10</div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
                   <button className="btn gold" onClick={() => { setMsg(respondToOffer(game, o.id, true)); touch() }}>Accept</button>
+                  <button className="btn" onClick={() => { setMsg(counterIncomingOffer(game, o.id)); touch() }}>Demand More</button>
                   <button className="btn danger" onClick={() => { setMsg(respondToOffer(game, o.id, false)); touch() }}>Reject</button>
                 </div>
               </div>

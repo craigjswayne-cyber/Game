@@ -137,8 +137,9 @@ function Live() {
   const shown = events.slice(0, cursor)
   const last = shown[shown.length - 1]
   const caughtUp = cursor >= events.length
-  const atHalfTime = caughtUp && ctx.half === 1
-  const done = caughtUp && ctx.half === 2
+  const atHalfTime = caughtUp && ctx.seg === 1
+  const atBreak = caughtUp && ctx.seg === 2
+  const done = caughtUp && ctx.seg === 3
 
   useEffect(() => {
     if (!playing || caughtUp) return
@@ -176,7 +177,7 @@ function Live() {
       : e.type === 'INJ' ? 'inj' : ''
 
   const icon = (e: MatchEvent) => ({
-    TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·',
+    TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
   }[e.type] ?? '·')
 
   const homeC = game.clubs[fixture.homeId]?.colors ?? ['#c9a227', '#082b20']
@@ -191,7 +192,7 @@ function Live() {
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">
-          {done ? 'Full Time' : atHalfTime ? 'Half-Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
+          {done ? 'Full Time' : atHalfTime ? 'Half-Time' : atBreak ? "60' Break" : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
           {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
         </div>
@@ -230,7 +231,7 @@ function Live() {
             <span className="txt">{icon(e)} {e.text}</span>
           </div>
         ))}
-        {atHalfTime && <HalfTime />}
+        {(atHalfTime || atBreak) && <Interval atBreak={atBreak} />}
         {done && (
           <>
             <StatsPanel />
@@ -268,15 +269,16 @@ function StatsPanel() {
   )
 }
 
-function HalfTime() {
+function Interval({ atBreak }: { atBreak: boolean }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
-  const { teamTalk, halfTimeSub, startSecondHalf } = useStore.getState()
+  const { teamTalk, halfTimeSub, startSecondHalf, liveTactics, touch } = useStore.getState()
   const [subMsg, setSubMsg] = useState<string | null>(null)
   const [outId, setOutId] = useState<number | ''>('')
   const [inId, setInId] = useState<number | ''>('')
 
   const ctx = live.ctx
+  const club = game.clubs[game.userClubId]
   const mine = ctx.home.teamId === game.userClubId ? ctx.home : ctx.away
   const starters = mine.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
   const bench = mine.lineup.slice(15).map(id => id != null ? game.players[id] : null)
@@ -289,11 +291,19 @@ function HalfTime() {
     ['demand', '💪 Demand more'],
   ] as const
 
+  const slider = (label: string, key: 'style' | 'tempo' | 'kicking' | 'aggression') => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
+      <span style={{ width: 78, fontSize: 11, color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5 }}>{label}</span>
+      <input type="range" min={0} max={100} value={club.tactic[key]} style={{ flex: 1, accentColor: 'var(--green-700)' }}
+        onChange={e => { club.tactic[key] = Number(e.target.value); liveTactics(); touch() }} />
+    </div>
+  )
+
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
-      <h3 style={{ fontSize: 15 }}>Half-Time — the dressing room waits</h3>
+      <h3 style={{ fontSize: 15 }}>{atBreak ? "60' — a break in play, final quarter ahead" : 'Half-Time — the dressing room waits'}</h3>
       <StatsPanel />
-      {!ctx.talkUsed ? (
+      {!atBreak && (!ctx.talkUsed ? (
         <>
           <div className="fact-label" style={{ marginTop: 4 }}>Team Talk</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
@@ -305,7 +315,12 @@ function HalfTime() {
         </>
       ) : live.talkMsg && (
         <div className="meta" style={{ fontStyle: 'italic', margin: '6px 0' }}>{live.talkMsg}</div>
-      )}
+      ))}
+      <div className="fact-label" style={{ marginTop: 12 }}>In-Match Tactics</div>
+      {slider('Style', 'style')}
+      {slider('Tempo', 'tempo')}
+      {slider('Kicking', 'kicking')}
+      {slider('Physicality', 'aggression')}
       <div className="fact-label" style={{ marginTop: 12 }}>Substitution ({5 - ctx.subsUsed} left)</div>
       <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
         <select className="inline-input" style={{ margin: 0 }} value={outId} onChange={e => setOutId(Number(e.target.value))}>
@@ -323,7 +338,7 @@ function HalfTime() {
       </div>
       {subMsg && <div className="meta" style={{ marginTop: 6 }}>{subMsg}</div>}
       <button className="btn gold block" style={{ margin: '14px 0 2px', width: '100%' }} onClick={startSecondHalf}>
-        ▸ Start Second Half
+        {atBreak ? '▸ Play the Final Quarter' : '▸ Start Second Half'}
       </button>
     </div>
   )

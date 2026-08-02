@@ -27,7 +27,7 @@ export function rollWeather(week: number, rng: Rng): Weather {
 export function availablePlayers(state: GameState, ids: number[], forNation = false): Player[] {
   return ids
     .map(id => state.players[id])
-    .filter(p => p && !p.injury && p.bans === 0 && (forNation || !p.natSquad))
+    .filter(p => p && !p.injury && !p.onLoan && p.bans === 0 && (forNation || !p.natSquad))
 }
 
 /** Pick the best legal 23 from a pool. Returns array of 23 player ids (or null). */
@@ -257,7 +257,8 @@ export interface LiveCtx {
   events: MatchEvent[]
   lastMin: number
   isUser: boolean
-  half: 0 | 1 | 2
+  /** 0 = pre-KO, 1 = HT reached, 2 = 60' break reached, 3 = full-time */
+  seg: 0 | 1 | 2 | 3
   motmId: number | null
   talkUsed: boolean
   subsUsed: number
@@ -308,7 +309,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     hfa: state.clubs[fx.homeId] ? 1.06 : 1.03,
     events: [], lastMin: 0,
     isUser: fx.homeId === state.userClubId || fx.awayId === state.userClubId,
-    half: 0, motmId: null, talkUsed: false, subsUsed: 0,
+    seg: 0, motmId: null, talkUsed: false, subsUsed: 0,
   }
 
   if (derby) {
@@ -445,18 +446,31 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   }
 }
 
-/** Play one half. After the second half, the result is finalised. */
-export function playHalf(state: GameState, ctx: LiveCtx) {
-  if (ctx.half >= 2) return
-  const second = ctx.half === 1
-  ctx.half = (ctx.half + 1) as 1 | 2
-  const from = second ? 10 : 0
-  for (let tick = from; tick < from + 10; tick++) simTick(state, ctx, tick)
-  if (!second) {
+/**
+ * Play the next segment: first half (0-40'), third quarter (40-60'),
+ * final quarter (60-80'). The user can intervene at half-time and at
+ * the 60-minute break; the final segment finalises the result.
+ */
+export function playSegment(state: GameState, ctx: LiveCtx) {
+  if (ctx.seg >= 3) return
+  const seg = (ctx.seg + 1) as 1 | 2 | 3
+  ctx.seg = seg
+  const ranges: Record<number, [number, number]> = { 1: [0, 10], 2: [10, 15], 3: [15, 20] }
+  const [from, to] = ranges[seg]
+  for (let tick = from; tick < to; tick++) simTick(state, ctx, tick)
+  if (seg === 1) {
     pushEvent(state, ctx, 40, 'HT', null, `Half-time: ${teamShort(state, ctx.fx.homeId)} ${ctx.home.score} - ${ctx.away.score} ${teamShort(state, ctx.fx.awayId)}`)
+  } else if (seg === 2) {
+    pushEvent(state, ctx, 60, 'BRK', null, `Hour mark — a lull in play. Time to change the picture from the sideline.`)
   } else {
     finalizeMatch(state, ctx)
   }
+}
+
+/** Back-compat helper: plays to the next natural stop (used by full sims). */
+export function playHalf(state: GameState, ctx: LiveCtx) {
+  playSegment(state, ctx)
+  if (ctx.seg === 2) playSegment(state, ctx) // second "half" = segments 2+3
 }
 
 /** Half-time team talk for the user's side. One per match. */
@@ -506,9 +520,15 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   mine.onPitch.add(inId)
   if (!mine.ratings.has(inId)) mine.ratings.set(inId, 6)
   ctx.subsUsed += 1
-  // recompute unit strengths with the new personnel
-  const club = state.clubs[mine.teamId]
-  const fresh = teamUnits(state, mine.lineup)
+  recomputeSideUnits(state, ctx, mine)
+  pushEvent(state, ctx, ctx.seg === 1 ? 40 : 60, 'SUB', mine, `Change from the bench: ${pin.name} replaces ${pout.name}.`, pin.id)
+  return `${pin.name} will come on for ${pout.name}.`
+}
+
+/** Rebuild a side's unit strengths from its current lineup, tactics and conditions. */
+export function recomputeSideUnits(state: GameState, ctx: LiveCtx, side: SideCtx) {
+  const club = state.clubs[side.teamId]
+  const fresh = teamUnits(state, side.lineup)
   if (club) {
     const t = club.tactic
     const f = (v: number) => (v - 50) / 50
@@ -523,9 +543,13 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
     fresh.breakdown *= 1.03
   }
   if (ctx.weather === 'Wind') fresh.kicking *= 0.92
-  mine.units = fresh
-  pushEvent(state, ctx, 40, 'SUB', mine, `Half-time change: ${pin.name} replaces ${pout.name}.`, pin.id)
-  return `${pin.name} will come on for ${pout.name}.`
+  side.units = fresh
+}
+
+/** Apply the user's (possibly changed) tactic sliders mid-match. */
+export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
+  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  recomputeSideUnits(state, ctx, mine)
 }
 
 /** Match statistics for the stats panel. */

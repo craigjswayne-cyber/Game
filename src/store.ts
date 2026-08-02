@@ -2,7 +2,8 @@ import { create } from 'zustand'
 import type { GameState, MatchEvent, Fixture } from './game/model'
 import { newGame } from './game/newgame'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
-import { applyTeamTalk, beginMatch, makeSubstitution, playHalf, teamShort, type LiveCtx } from './game/matchEngine'
+import { applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, playSegment, teamShort, type LiveCtx } from './game/matchEngine'
+import { applyForJob, resignJob } from './game/jobs'
 import { simMatch } from './game/matchEngine'
 import { answerPress } from './game/media'
 import { saveGame } from './game/save'
@@ -10,7 +11,7 @@ import { saveGame } from './game/save'
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
-  | 'press' | 'comp' | 'history' | 'nations' | 'legacy'
+  | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
 
 interface NavEntry {
   screen: Screen
@@ -49,7 +50,10 @@ interface Store {
   finishMatch: () => void
   teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
   halfTimeSub: (outId: number, inId: number) => string
+  liveTactics: () => void
   startSecondHalf: () => void
+  applyJob: (clubId: string) => string
+  resign: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
 }
@@ -107,7 +111,7 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g) return
     const fx = userFixtureThisWeek(g)
-    if (fx) {
+    if (fx && !g.unemployed) {
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
       return
     }
@@ -123,7 +127,7 @@ export const useStore = create<Store>((set, get) => ({
     const fx = userFixtureThisWeek(g)
     if (!fx) return
     const ctx = beginMatch(g, fx, weekRng(g), true)
-    playHalf(g, ctx) // first half
+    playSegment(g, ctx) // first half
     set(s => ({
       liveMatch: { ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1, done: false, talkMsg: null },
       tick: s.tick + 1,
@@ -132,26 +136,41 @@ export const useStore = create<Store>((set, get) => ({
 
   teamTalk: (kind) => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.half !== 1) return
+    if (!game || !liveMatch || liveMatch.ctx.seg !== 1) return
     const msg = applyTeamTalk(game, liveMatch.ctx, kind)
     set(s => ({ liveMatch: s.liveMatch ? { ...s.liveMatch, talkMsg: msg } : null, tick: s.tick + 1 }))
   },
 
   halfTimeSub: (outId, inId) => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.half !== 1) return 'Not half-time.'
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
     const msg = makeSubstitution(game, liveMatch.ctx, outId, inId)
     set(s => ({ tick: s.tick + 1 }))
     return msg
   },
 
-  /** Resume after the half-time interval. */
+  /** Re-read the tactic sliders mid-match (interval panels). */
+  liveTactics: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
+    applyTacticsChange(game, liveMatch.ctx)
+    set(s => ({ tick: s.tick + 1 }))
+  },
+
+  /** Resume after an interval: HT -> third quarter, 60' -> final quarter. */
   startSecondHalf: () => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.half !== 1) return
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
     const ctx = liveMatch.ctx
-    playHalf(game, ctx) // second half + finalisation
+    playSegment(game, ctx)
     const fx = ctx.fx
+    if (ctx.seg < 3) {
+      set(s => ({
+        liveMatch: s.liveMatch ? { ...s.liveMatch, playing: true, done: false } : null,
+        tick: s.tick + 1,
+      }))
+      return
+    }
     // knockout ties are settled in sudden-death extra time
     if (fx.stage && fx.homeScore === fx.awayScore) {
       resolveKnockoutDraw(game, fx, weekRng(game))
@@ -186,6 +205,23 @@ export const useStore = create<Store>((set, get) => ({
     if (!g) return
     answerPress(g, pressId, optionIndex)
     set(s => ({ tick: s.tick + 1 }))
+  },
+
+  applyJob: (clubId) => {
+    const g = get().game
+    if (!g) return 'No game.'
+    const msg = applyForJob(g, clubId)
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+    return msg
+  },
+
+  resign: () => {
+    const g = get().game
+    if (!g || g.unemployed) return
+    resignJob(g)
+    set(s => ({ nav: [{ screen: 'home' }], tick: s.tick + 1 }))
+    void get().persist()
   },
 
   persist: async () => {

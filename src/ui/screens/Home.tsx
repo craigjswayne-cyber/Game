@@ -28,6 +28,29 @@ export default function Home() {
   const pressOpen = game.press.filter(p => !p.answered).length
   const news = [...game.news].reverse()
 
+  if (game.unemployed) {
+    return (
+      <>
+        <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold)' }}
+          onClick={() => go('jobs')}>
+          <h3>📋 The Job Centre</h3>
+          <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open — apply, or press Continue and wait for the right one.</div>
+        </button>
+        <SectionTitle sub="the rugby world keeps turning">Inbox</SectionTitle>
+        {news.slice(0, 60).map(n => (
+          <button key={n.id}
+            className={`news-item${n.read ? '' : ' unread'}${openId === n.id ? ' open' : ''}`}
+            onClick={() => { n.read = true; setOpenId(openId === n.id ? null : n.id); touch() }}>
+            <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
+            <div className="subj">{n.subject}</div>
+            <div className="body">{n.body}</div>
+          </button>
+        ))}
+        <div className="spacer" />
+      </>
+    )
+  }
+
   return (
     <>
       {showTut && (

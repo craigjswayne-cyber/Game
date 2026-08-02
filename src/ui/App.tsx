@@ -19,12 +19,14 @@ import Press from './screens/Press'
 import Nations from './screens/Nations'
 import History from './screens/History'
 import Legacy from './screens/Legacy'
+import Jobs from './screens/Jobs'
 
 const TITLES: Record<string, string> = {
   home: 'Inbox', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
+  jobs: 'Job Centre',
 }
 
 const IcoMoon = () => (
@@ -52,29 +54,6 @@ export default function App() {
   if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /></div>
   if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /></div>
   if (!game) return <div className={`${appClass} no-rail`}><Menu /></div>
-
-  if (game.unemployed) {
-    return (
-      <div className={`${appClass} no-rail`}>
-        <div className="title-screen">
-          <div style={{ fontSize: 46 }}>📄</div>
-          <hr className="rules" />
-          <h1 style={{ fontSize: 30 }}>SACKED</h1>
-          <div className="tagline">
-            {game.clubs[game.userClubId].name} have parted company with {game.managerName}.<br />
-            The game, as they say, is gone.
-          </div>
-          <hr className="rules" />
-          <div className="menu-btns">
-            <button className="btn gold" style={{ fontSize: 16, padding: 13 }}
-              onClick={() => useStore.setState({ game: null, nav: [{ screen: 'menu' }] })}>
-              Start a New Career
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   if (cur.screen === 'matchday') {
     const mdClub = game.clubs[game.userClubId]
@@ -129,7 +108,7 @@ export default function App() {
             ? <button className="back-btn" onClick={back}>‹</button>
             : null}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1>{cur.screen === 'home' ? club.name : TITLES[cur.screen] ?? ''}</h1>
+            <h1>{cur.screen === 'home' ? (game.unemployed ? 'Unemployed' : club.name) : TITLES[cur.screen] ?? ''}</h1>
             <div className="date">{weekDate(game.season, game.week)} · {seasonLabel(game.season)} · Wk {game.week}</div>
           </div>
           <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
@@ -141,11 +120,21 @@ export default function App() {
       <main className="content">{screen()}</main>
       <nav className="bottom-nav">
         {navBtn('home', <IcoInbox />, 'Inbox', unread)}
-        {navBtn('squad', <IcoBall />, 'Squad')}
-        {navBtn('tactics', <IcoClipboard />, 'Tactics')}
-        {navBtn('tables', <IcoTrophy />, 'Comps')}
-        {navBtn('transfers', <IcoTransfer />, 'Transfers', offersOpen)}
-        {navBtn('press', <IcoPress />, 'Press', pressOpen)}
+        {game.unemployed ? (
+          <>
+            {navBtn('jobs', <IcoClipboard />, 'Jobs', game.vacancies.length)}
+            {navBtn('tables', <IcoTrophy />, 'Comps')}
+            {navBtn('legacy', <IcoBall />, 'Career')}
+          </>
+        ) : (
+          <>
+            {navBtn('squad', <IcoBall />, 'Squad')}
+            {navBtn('tactics', <IcoClipboard />, 'Tactics')}
+            {navBtn('tables', <IcoTrophy />, 'Comps')}
+            {navBtn('transfers', <IcoTransfer />, 'Transfers', offersOpen)}
+            {navBtn('press', <IcoPress />, 'Press', pressOpen)}
+          </>
+        )}
       </nav>
     </div>
   )
