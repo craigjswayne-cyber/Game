@@ -18,12 +18,13 @@ import MatchDay from './screens/MatchDay'
 import Press from './screens/Press'
 import Nations from './screens/Nations'
 import History from './screens/History'
+import Legacy from './screens/Legacy'
 
 const TITLES: Record<string, string> = {
   home: 'Inbox', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
-  nations: 'International Rugby', history: 'Roll of Honour',
+  nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
 }
 
 const IcoMoon = () => (
@@ -108,6 +109,7 @@ export default function App() {
       case 'press': return <Press />
       case 'nations': return <Nations />
       case 'history': return <History />
+      case 'legacy': return <Legacy />
       default: return <Home />
     }
   }

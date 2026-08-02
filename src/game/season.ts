@@ -1,10 +1,13 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
 import { fmtMoney, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TRC_WEEKS } from './schedule'
+import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
 import { generatePress } from './media'
 import { playerValue } from './attributes'
+import { scoutOpponent, weeklyScouting } from './scout'
+import { derbyName, isDerby } from './rivalries'
+import { STAFF_INFO } from './model'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason } from './rollover'
 
@@ -68,6 +71,7 @@ function poolStandings(state: GameState, comp: Competition): string[][] {
 /** Create knockout fixtures for a competition when the calendar reaches them. */
 function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   if (!comp.playoffTeams) return
+  const cupLike = comp.type === 'cup' || !!comp.pools
   const koFx = (stage: string) => state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
   const mkFx = (stage: string, week: number, home: string, away: string) => {
     state.fixtures.push({
@@ -84,8 +88,8 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   // never lazily on their own match week, or the user's tie would be
   // simmed away before the MatchDay screen ever saw it.
   const ko = comp.koWeeks
-  if (comp.type === 'cup') {
-    // Champions Cup: QF wk ko[0], SF ko[1], F ko[2]
+  if (cupLike) {
+    // pool competitions (Champions Cup, World Cup): QF ko[0], SF ko[1], F ko[2]
     if (koFx('QF').length === 0) {
       const pools = poolStandings(state, comp)
       const winners = pools.map(p => p[0])
@@ -159,15 +163,28 @@ const winnerOf = (fx: Fixture) => (fx.homeScore >= fx.awayScore ? fx.homeId : fx
 // Internationals
 // ------------------------------------------------------------------
 
-interface Window { start: number; end: number; nations: string[] }
-const WINDOWS: Window[] = [
-  { start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'] },
-  { start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'] },
-  { start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'] },
-]
+interface Window { start: number; end: number; nations: string[]; size: number }
+
+/** Call-up windows for the competitions that actually exist this season. */
+function activeWindows(state: GameState): Window[] {
+  const out: Window[] = []
+  if (state.comps['wc']) {
+    out.push({ start: 1, end: WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: 28 })
+  }
+  if (state.comps['trc']) {
+    out.push({ start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'], size: 26 })
+  }
+  if (state.comps['aut']) {
+    out.push({ start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'], size: 26 })
+  }
+  if (state.comps['sn']) {
+    out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: 26 })
+  }
+  return out
+}
 
 function manageInternationals(state: GameState, rng: Rng) {
-  for (const w of WINDOWS) {
+  for (const w of activeWindows(state)) {
     if (state.week === w.start) {
       // call-ups
       const userCalls: Player[] = []
@@ -175,7 +192,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         const pool = Object.values(state.players)
           .filter(p => p.nat === nat && p.clubId && !p.injury && p.ca >= 68)
           .sort((a, b) => b.ca - a.ca)
-          .slice(0, 26)
+          .slice(0, w.size)
         state.natSquads[nat] = pool.map(p => p.id)
         for (const p of pool) {
           p.natSquad = true
@@ -233,10 +250,12 @@ function weeklyTraining(state: GameState, rng: Rng) {
         }
       }
       // gentle in-season growth for youngsters, drift for user's training focus
-      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06) p.ca += 1
-      if (isUser && state.training !== 'balanced' && rng() < 0.03) {
+      const growBoost = isUser ? 1 + state.staff.assistant * 0.25 : 1
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost) p.ca += 1
+      if (isUser && state.training !== 'balanced' && rng() < 0.03 * (1 + state.staff.assistant * 0.5)) {
         for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
       }
+      if (isUser && state.staff.physio > 0) p.cond = clamp(p.cond + state.staff.physio * 3, 20, 100)
       p.value = playerValue(p.ca, p.age, p.pa)
     }
   }
@@ -250,6 +269,9 @@ function weeklyFinance(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   club.balance -= wages
+  // backroom staff wages
+  club.balance -= (Object.keys(STAFF_INFO) as (keyof typeof STAFF_INFO)[])
+    .reduce((s, k) => s + state.staff[k] * STAFF_INFO[k].wage, 0)
   // sponsorship + broadcast, weekly share by reputation
   club.balance += Math.round(club.rep * 1800 + 40_000)
   // gate receipts from this week's home fixture
@@ -335,8 +357,14 @@ function boardReaction(state: GameState, fx: Fixture) {
   const them = isHome ? fx.awayScore : fx.homeScore
   const oppRep = state.clubs[isHome ? fx.awayId : fx.homeId]?.rep ?? 70
   const diff = (oppRep - club.rep) / 25
-  if (us > them) club.boardConfidence = clamp(club.boardConfidence + 2.5 + diff * 2, 0, 100)
-  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2), 0, 100)
+  const derbyF = fx.derby ? 1.8 : 1 // derbies echo in the boardroom
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + (2.5 + diff * 2) * derbyF, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2) * derbyF, 0, 100)
+  // manager career record
+  state.mgr.m += 1
+  if (us > them) state.mgr.w += 1
+  else if (us === them) state.mgr.d += 1
+  else state.mgr.l += 1
 }
 
 // ------------------------------------------------------------------
@@ -390,6 +418,8 @@ export function processWeekAndAdvance(state: GameState) {
     matchReport(state, userFx)
     milestones(state, rng)
     leagueRoundUp(state)
+    // you learn a lot about the men you just faced
+    scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
   }
 
   // board pressure: warnings, then the sack
@@ -428,6 +458,15 @@ export function processWeekAndAdvance(state: GameState) {
         subject: `${teamShort(state, comp.champion)} win the ${comp.name}!`,
         body: `${teamShort(state, comp.champion)} defeated ${teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
       })
+      if (comp.champion === state.userClubId) {
+        state.mgr.trophies.push({ compId: comp.id, season: state.season })
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+          subject: `🏆 CHAMPIONS! The ${comp.name} is yours`,
+          body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years — and the board have noted exactly who delivered it.`,
+        })
+        state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
+      }
     }
     // pure round-robin comps (6N, TRC): champion = table top when all played
     if (!comp.champion && comp.type === 'intl' && comp.table.length) {
@@ -469,6 +508,7 @@ export function processWeekAndAdvance(state: GameState) {
 
   weeklyTraining(state, rng)
   weeklyFinance(state, rng)
+  weeklyScouting(state)
   aiTransfers(state, rng)
   aiRenewals(state, rng)
   generatePress(state, rng)
@@ -481,5 +521,18 @@ export function processWeekAndAdvance(state: GameState) {
     rebuildSeason(state)
   } else {
     state.week += 1
+  }
+
+  // derby on the horizon? whip up the build-up
+  const nextFx = state.fixtures.find(f =>
+    f.week === state.week && !f.played &&
+    (f.homeId === state.userClubId || f.awayId === state.userClubId))
+  if (nextFx && isDerby(nextFx.homeId, nextFx.awayId)) {
+    const oppId = nextFx.homeId === state.userClubId ? nextFx.awayId : nextFx.homeId
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `DERBY WEEK: ${derbyName(nextFx.homeId, nextFx.awayId)}`,
+      body: `It's ${teamShort(state, oppId)} this weekend and the town can talk of nothing else. Tickets are gone, tempers will fray, and the form book means precisely nothing. Win this one and the board — and the pubs — will remember it.`,
+    })
   }
 }

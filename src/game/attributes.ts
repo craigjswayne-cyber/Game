@@ -1,7 +1,14 @@
 import type { Pos, RawPlayer } from '../data/types'
-import type { Attrs, Player } from './model'
+import type { Attrs, Personality, Player } from './model'
 import { emptyStats } from './model'
-import { clamp, gauss, hashString, mulberry32 } from './rng'
+import { clamp, gauss, hashString, mulberry32, wpick, type Rng } from './rng'
+
+/** Assign a character type, nudged by leadership and aggression. */
+export function assignPersonality(rng: Rng, a: Attrs): Personality {
+  const opts: Personality[] = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader']
+  const w = [30, 18, 18, 9, 8 + (a.agg >= 15 ? 10 : 0), 8 + (a.lea >= 14 ? 14 : 0)]
+  return wpick(rng, opts, w)
+}
 
 // Positional attribute templates: importance weight 0..1 of each attribute
 // for the position. Derived attribute = base from quality scaled by weight,
@@ -108,6 +115,8 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     stats: emptyStats(),
     career: [],
     transferListed: false,
+    pers: assignPersonality(rng, a),
+    sc: 20,
   }
 }
 

@@ -62,6 +62,11 @@ export interface Injury {
   until: number
 }
 
+export type Personality =
+  | 'Professional' | 'Loyal' | 'Ambitious' | 'Mercenary' | 'Temperamental' | 'Leader'
+
+export type Weather = 'Dry' | 'Rain' | 'Wind' | 'Snow'
+
 export interface Player {
   id: number
   name: string
@@ -93,6 +98,10 @@ export interface Player {
   career: { season: number; clubId: string; apps: number; tries: number; points: number }[]
   transferListed: boolean
   youth?: boolean
+  /** character type — drives contracts, morale and media reactions */
+  pers: Personality
+  /** the user's scouting knowledge of this player, 0-100 */
+  sc: number
 }
 
 export interface Club {
@@ -143,6 +152,8 @@ export interface Fixture {
   stage?: string // 'QF' | 'SF' | 'F' | 'BAR' etc for knockouts
   tableApplied?: boolean
   motm?: number
+  weather?: Weather
+  derby?: boolean
 }
 
 export interface TableRow {
@@ -233,6 +244,26 @@ export interface TransferOffer {
   status: 'pending' | 'accepted' | 'rejected'
 }
 
+export interface StaffLevels {
+  assistant: number // 0-3: training gains
+  physio: number    // 0-3: injury length & recovery
+  scout: number     // 0-3: knowledge gathering speed
+}
+
+export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
+  assistant: { name: 'Assistant Coach', desc: 'Sharper sessions — bigger training gains, faster youth growth.', wage: 4000 },
+  physio: { name: 'Head Physio', desc: 'Shorter injury layoffs and quicker recovery between matches.', wage: 3000 },
+  scout: { name: 'Chief Scout', desc: 'Faster, wider scouting knowledge across the leagues.', wage: 2500 },
+}
+
+export interface ManagerStats {
+  m: number; w: number; d: number; l: number
+  trophies: { compId: string; season: number }[]
+  finishes: { season: number; leagueId: string; pos: number }[]
+  signings: number
+  spent: number
+}
+
 export interface GameState {
   seed: number
   saveName: string
@@ -253,6 +284,15 @@ export interface GameState {
   processedWeek: boolean
   managerName: string
   training: TrainingFocus
+  shortlist: number[]
+  staff: StaffLevels
+  mgr: ManagerStats
+  challenge?: string
+}
+
+/** World Cup years: 2027, 2031, ... (in-game season index) */
+export function isWorldCupSeason(season: number): boolean {
+  return (2025 + season) % 4 === 3
 }
 
 export const SEASON_WEEKS = 42

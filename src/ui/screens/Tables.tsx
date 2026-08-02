@@ -29,6 +29,7 @@ export default function Tables({ initial }: { initial?: string }) {
         ))}
         <button onClick={() => go('nations')}>Internationals</button>
         <button onClick={() => go('history')}>Honours</button>
+        <button onClick={() => go('legacy')}>Manager</button>
       </div>
       <SectionTitle sub={comp.champion ? `Champions: ${teamShort(game, comp.champion)}` : undefined}>{comp.name}</SectionTitle>
       <div className="tblwrap"><table className="dtable">

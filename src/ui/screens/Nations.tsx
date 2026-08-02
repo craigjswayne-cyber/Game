@@ -7,12 +7,11 @@ import { weekDate } from '../../game/model'
 
 export default function Nations() {
   const game = useStore(s => s.game)!
-  const [compId, setCompId] = useState('sn')
+  const tabs = ([
+    ['wc', '🏆 World Cup'], ['sn', 'Six Nations'], ['trc', 'Rugby Championship'], ['aut', 'Autumn Tests'],
+  ] as const).filter(([id]) => game.comps[id])
+  const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'sn')
   const comp = game.comps[compId]
-
-  const tabs = [
-    ['sn', 'Six Nations'], ['trc', 'Rugby Championship'], ['aut', 'Autumn Tests'],
-  ] as const
 
   return (
     <>

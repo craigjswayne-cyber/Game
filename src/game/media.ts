@@ -114,7 +114,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   if (item.playerId != null) {
     const p = state.players[item.playerId]
     if (p) {
-      p.morale = clamp(p.morale + opt.morale, 1, 10)
+      const swing = p.pers === 'Temperamental' ? 1.7 : 1
+      p.morale = clamp(p.morale + opt.morale * swing, 1, 10)
       if (opt.unsettle) p.morale = clamp(p.morale - 1, 1, 10) // agents circle an unsettled player
     }
   }
