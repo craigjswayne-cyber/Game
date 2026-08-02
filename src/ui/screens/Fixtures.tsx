@@ -1,15 +1,18 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { weekDate, type Fixture } from '../../game/model'
+import { weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { CrestT, SectionTitle } from '../components'
 import { stageName } from './Home'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
+  const [replayId, setReplayId] = useState<number | null>(null)
   const me = game.userClubId
   const fx = game.fixtures
     .filter(f => f.homeId === me || f.awayId === me)
     .sort((a, b) => a.week - b.week)
+  const replay = replayId != null ? game.fixtures.find(f => f.id === replayId) : null
 
   const res = (f: Fixture) => {
     if (!f.played) return <span className="muted">{f.homeId === me ? 'H' : 'A'}</span>
@@ -29,9 +32,12 @@ export default function Fixtures() {
             const opp = f.homeId === me ? f.awayId : f.homeId
             const isNext = !f.played && f.week === game.week
             return (
-              <tr key={f.id} className={isNext ? 'next-fx' : undefined}>
+              <tr key={f.id} className={isNext ? 'next-fx' : undefined}
+                onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
+                style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
                 <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-                <td className="name">{f.homeId === me ? 'v ' : '@ '}<CrestT g={game} teamId={opp} size={16} />{teamShort(game, opp)}</td>
+                <td className="name">{f.homeId === me ? 'v ' : '@ '}<CrestT g={game} teamId={opp} size={16} />{teamShort(game, opp)}
+                  {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}> ▸</span> : null}</td>
                 <td className="muted">{game.comps[f.compId]?.short ?? f.compId}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
                 <td>{res(f)}</td>
               </tr>
@@ -39,6 +45,24 @@ export default function Fixtures() {
           })}
         </tbody>
       </table></div>
+      {replay && (
+        <div className="modal-veil" onClick={() => setReplayId(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <SectionTitle sub={`${weekDate(game.season, replay.week)}${replay.att ? ` · ${replay.att.toLocaleString()} at ${game.clubs[replay.homeId]?.stadium ?? 'a neutral venue'}` : ''}`}>
+              {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
+            </SectionTitle>
+            <div style={{ padding: '0 4px' }}>
+              {(replay.events ?? []).filter(e => e.type !== 'SUB' || /replaces/.test(e.text)).map((e: MatchEvent, i: number) => (
+                <div key={i} className={`tick-event ${e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big' : e.type === 'YC' ? 'card-y' : e.type === 'RC' ? 'card-r' : e.type === 'INJ' ? 'inj' : ''}`}>
+                  <span className="min">{e.min}'</span>
+                  <span className="txt">{e.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="spacer" />
     </>
   )
