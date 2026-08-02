@@ -1,7 +1,7 @@
 import type { GameState, Player } from './model'
 import { fmtMoney } from './model'
 import { playerValue, playerWage } from './attributes'
-import { clamp, pick, type Rng } from './rng'
+import { clamp, mulberry32, pick, type Rng } from './rng'
 
 // ------------------------------------------------------------------
 // Transfer market
@@ -53,6 +53,31 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
 /** Weekly AI transfer activity + bids for user players. */
 export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
+
+  // squad-building intent: a couple of clubs a week target their weakest
+  // position with real money, so the world's top squads keep evolving
+  for (let k = 0; k < 2; k++) {
+    if (rng() > 0.35) continue
+    const buyer = pick(rng, clubs)
+    if (buyer.id === state.userClubId || buyer.budget < 800_000) continue
+    // find thinnest position by count of quality bodies
+    const byPos: Record<string, number> = {}
+    for (const id of buyer.players) {
+      const p = state.players[id]
+      if (p && p.ca >= 68) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
+    }
+    const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8: 2, SH: 2, FH: 2, CE: 3, WG: 3, FB: 2 }
+    const need = Object.entries(NEED_MIN).find(([pos, min]) => (byPos[pos] ?? 0) < min)?.[0]
+    if (!need) continue
+    const targets = Object.values(state.players).filter(p =>
+      p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
+      p.pos === need && p.ca >= 70 && !p.onLoan &&
+      (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
+      askingPrice(state, p) <= buyer.budget)
+      .sort((a, b) => b.ca - a.ca)
+    const p = targets[0]
+    if (p && rng() < 0.6) executeTransfer(state, p, buyer.id, askingPrice(state, p))
+  }
 
   // 1-2 AI-to-AI moves a week for a living world
   for (let k = 0; k < 2; k++) {
@@ -106,7 +131,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
 }
 
 /** User bids for a player: returns a result message; executes if accepted. */
-export function userBid(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string } {
+export function userBid(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
@@ -127,7 +152,28 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
     p.wage = wage
     return { ok: true, msg: `${p.name} signs for ${user.name} — ${fmtMoney(fee)} (${fmtMoney(wage)}/wk).` }
   }
+  if (fee >= ask * 0.78) {
+    const counter = Math.round((ask * 0.97) / 10_000) * 10_000
+    return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} — but they'd do business at ${fmtMoney(counter)}.`, counter }
+  }
   return { ok: false, msg: `${seller.short} reject the bid. They value ${p.name} at around ${fmtMoney(ask)}.` }
+}
+
+/** Demand more for a player an AI club has bid on. They may pay up or walk. */
+export function counterIncomingOffer(state: GameState, offerId: number): string {
+  const o = state.offers.find(x => x.id === offerId)
+  if (!o || o.status !== 'pending') return 'Offer no longer available.'
+  const p = state.players[o.playerId]
+  const bidder = state.clubs[o.fromClubId]
+  if (!p || !bidder) { o.status = 'rejected'; return 'Offer withdrawn.' }
+  const newFee = Math.round((o.fee * 1.18) / 10_000) * 10_000
+  const rng = mulberry32(state.seed ^ (o.id * 17))
+  if (newFee <= bidder.budget && rng() < 0.55) {
+    o.fee = newFee
+    return `${bidder.short} grumble... then agree to ${fmtMoney(newFee)}. Accept while it lasts.`
+  }
+  o.status = 'rejected'
+  return `${bidder.short} walk away from the table. The offer is gone.`
 }
 
 export function respondToOffer(state: GameState, offerId: number, accept: boolean): string {

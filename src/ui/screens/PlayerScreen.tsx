@@ -13,6 +13,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [msg, setMsg] = useState<string | null>(null)
   const [bidding, setBidding] = useState(false)
   const [bid, setBid] = useState(0)
+  const [counter, setCounter] = useState<number | null>(null)
 
   const p = game.players[playerId]
   if (!p) return <div className="muted" style={{ padding: 14 }}>Player no longer in the game world (retired or released).</div>
@@ -73,6 +74,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           Injured: {p.injury.desc} (~{Math.max(0, p.injury.until - game.week)}w)</span>}
         {p.bans > 0 && <span className="chip" style={{ color: '#9b2c2c' }}>Suspended {p.bans} match{p.bans > 1 ? 'es' : ''}</span>}
         {p.natSquad && <span className="chip">On international duty</span>}
+        {p.onLoan && <span className="chip" style={{ color: '#a8841a' }}>Away on season loan</span>}
         {p.transferListed && <span className="chip" style={{ color: '#a8841a' }}>Transfer listed</span>}
       </div>
 
@@ -132,8 +134,29 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </>
       )}
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>
+        {msg}
+        {counter != null && (
+          <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
+            const r = userBid(game, p.id, counter)
+            setMsg(r.msg); setCounter(r.counter ?? null); touch()
+          }}>Meet their price ({fmtMoney(counter)})</button>
+        )}
+      </div>}
 
+      {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
+        <button className="btn ghost block" onClick={() => {
+          p.onLoan = true
+          game.news.push({
+            id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
+            subject: `${p.name} heads out on loan`,
+            body: `${p.name} joins a feeder club for the rest of the season. Regular first-team rugby should accelerate his development — expect him back sharper next summer.`,
+            playerId: p.id,
+          })
+          setMsg(`${p.name} will spend the season on loan. He returns next summer, better for it.`)
+          touch()
+        }}>Send on Season Loan (develops faster)</button>
+      )}
       {mine ? (
         <div className="btn-row">
           <button className="btn" onClick={() => {
@@ -164,7 +187,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
                   <button className="btn gold" onClick={() => {
                     const r = userBid(game, p.id, bid)
-                    setMsg(r.msg); setBidding(false); touch()
+                    setMsg(r.msg); setCounter(r.counter ?? null); setBidding(false); touch()
                   }}>Submit Bid</button>
                   <button className="btn ghost" onClick={() => setBidding(false)}>Cancel</button>
                 </div>

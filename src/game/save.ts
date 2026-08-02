@@ -48,10 +48,14 @@ function migrate(s: GameState): GameState {
   s.shortlist ??= []
   s.staff ??= { assistant: 0, physio: 0, scout: 0 }
   s.mgr ??= { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
+  s.vacancies ??= []
+  s.devFocus ??= []
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]
     p.sc ??= p.clubId === s.userClubId ? 100 : 30
+    p.onLoan ??= false
+    p.ca0 ??= p.ca
   }
   return s
 }

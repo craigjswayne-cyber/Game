@@ -10,6 +10,7 @@ import { derbyName, isDerby } from './rivalries'
 import { STAFF_INFO } from './model'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason } from './rollover'
+import { refreshVacancies } from './jobs'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -190,7 +191,7 @@ function manageInternationals(state: GameState, rng: Rng) {
       const userCalls: Player[] = []
       for (const nat of w.nations) {
         const pool = Object.values(state.players)
-          .filter(p => p.nat === nat && p.clubId && !p.injury && p.ca >= 68)
+          .filter(p => p.nat === nat && p.clubId && !p.injury && !p.onLoan && p.ca >= 68)
           .sort((a, b) => b.ca - a.ca)
           .slice(0, w.size)
         state.natSquads[nat] = pool.map(p => p.id)
@@ -423,7 +424,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   // board pressure: warnings, then the sack
-  {
+  if (!state.unemployed) {
     const club = state.clubs[state.userClubId]
     if (club.boardConfidence <= 10 && club.boardConfidence > 3 && state.week % 3 === 0) {
       state.news.push({
@@ -434,10 +435,11 @@ export function processWeekAndAdvance(state: GameState) {
     }
     if (club.boardConfidence <= 3 && state.week > 8) {
       state.unemployed = true
+      state.vacancies.push({ clubId: club.id, week: state.week })
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `SACKED: ${club.name} part company with ${state.managerName}`,
-        body: `A brutal end. The board thanked you for your service and wished you well. Your record: board confidence collapsed and the results told the same story.`,
+        body: `A brutal end — but not the end. Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
       })
     }
   }
@@ -507,11 +509,31 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   weeklyTraining(state, rng)
-  weeklyFinance(state, rng)
-  weeklyScouting(state)
+  if (!state.unemployed) {
+    weeklyFinance(state, rng)
+    weeklyScouting(state)
+    generatePress(state, rng)
+  }
   aiTransfers(state, rng)
   aiRenewals(state, rng)
-  generatePress(state, rng)
+  refreshVacancies(state, rng)
+
+  // individual development focus: extra growth for up to 3 youngsters
+  if (!state.unemployed) {
+    for (const id of state.devFocus.slice(0, 3)) {
+      const p = state.players[id]
+      if (!p || p.clubId !== state.userClubId || p.age > 26) continue
+      const boost = 0.1 + state.staff.assistant * 0.04
+      if (p.ca < p.pa && rng() < boost) {
+        p.ca += 1
+        if (rng() < 0.6) {
+          const keys = Object.keys(p.a) as (keyof typeof p.a)[]
+          const k = keys[Math.floor(rng() * keys.length)]
+          p.a[k] = clamp(p.a[k] + 1, 1, 20)
+        }
+      }
+    }
+  }
 
   // trim news
   if (state.news.length > 250) state.news = state.news.slice(-250)

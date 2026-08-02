@@ -77,11 +77,49 @@ function agePlayers(state: GameState, rng: Rng) {
   }
   const userRetirees = retirees.filter(p => p.clubId === state.userClubId)
   for (const p of retirees) {
-    if (p.clubId) {
-      const c = state.clubs[p.clubId]
+    const clubId = p.clubId
+    if (clubId) {
+      const c = state.clubs[clubId]
       c.players = c.players.filter(id => id !== p.id)
     }
     delete state.players[p.id]
+    // FM-style rebirth: a notable retiree respawns as an academy newgen
+    // of similar potential at the same club, under a new name
+    const peak = Math.max(p.ca, p.q0)
+    if (clubId && peak >= 78 && state.clubs[clubId]) {
+      const club = state.clubs[clubId]
+      const q = 42 + Math.floor(rng() * 14)
+      const raw = {
+        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country),
+        pos: p.pos, age: 17 + Math.floor(rng() * 2), nat: p.nat, q,
+        gk: p.gk && rng() < 0.6,
+      }
+      const a = deriveAttrs(raw, state.seed + p.id * 7 + 3)
+      const heir: Player = {
+        id: nextPid(),
+        name: raw.name, pos: p.pos, alt: [...p.alt], age: raw.age, nat: p.nat, clubId,
+        a,
+        ca: q, pa: clamp(peak + Math.floor(rng() * 9) - 4, q + 10, 99), q0: q,
+        intl: false, gk: !!raw.gk,
+        form: 6, morale: 7, cond: 100, sharp: 50,
+        injury: null, bans: 0, natSquad: false,
+        wage: 650, contractEnds: state.season + 3,
+        value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
+        pers: assignPersonality(rng, a),
+        sc: clubId === state.userClubId ? 100 : 15,
+      }
+      heir.value = playerValue(heir.ca, heir.age, heir.pa)
+      state.players[heir.id] = heir
+      club.players.push(heir.id)
+      if (clubId === state.userClubId) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+          subject: `Academy buzz: the next ${p.name.split(' ').slice(-1)[0]}?`,
+          body: `${heir.name}, a ${heir.age}-year-old ${heir.pos}, has joined the academy — and the coaches whisper he has everything ${p.name} had at that age. Handle with care.`,
+          playerId: heir.id,
+        })
+      }
+    }
   }
   if (userRetirees.length) {
     state.news.push({
@@ -202,7 +240,7 @@ export function rebuildSeason(state: GameState) {
   seasonAwards(state)
 
   // board verdict on the season vs their stated objective
-  {
+  if (!state.unemployed) {
     const club = state.clubs[state.userClubId]
     const comp = state.comps[club.leagueId]
     if (comp) {
@@ -248,6 +286,20 @@ export function rebuildSeason(state: GameState) {
     p.injury = null
     p.bans = 0
     p.natSquad = false
+    if (p.onLoan) {
+      // back from a season of first-team rugby elsewhere
+      p.onLoan = false
+      if (p.ca < p.pa) p.ca = clamp(p.ca + 2 + Math.floor(mulberry32(state.seed + p.id)() * 3), 1, p.pa)
+      if (p.clubId === state.userClubId) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+          subject: `${p.name} returns from loan`,
+          body: `A season of regular rugby has done ${p.name} the world of good. He reports back noticeably sharper.`,
+          playerId: p.id,
+        })
+      }
+    }
+    p.ca0 = p.ca
   }
   state.natSquads = {}
 
@@ -276,6 +328,8 @@ export function rebuildSeason(state: GameState) {
   state.week = 1
   state.fixtures = []
   state.offers = []
+  state.vacancies = []
+  state.devFocus = state.devFocus.filter(id => state.players[id]?.clubId === state.userClubId)
   state.press = state.press.filter(p => !p.answered).slice(-5)
   state.comps = {}
 

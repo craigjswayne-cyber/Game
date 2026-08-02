@@ -102,6 +102,10 @@ export interface Player {
   pers: Personality
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
+  /** away on a season loan */
+  onLoan?: boolean
+  /** ability at the start of the season, for development arrows */
+  ca0?: number
 }
 
 export interface Club {
@@ -185,7 +189,7 @@ export type TrainingFocus = 'balanced' | 'scrum' | 'lineout' | 'attack' | 'defen
 
 export interface MatchEvent {
   min: number
-  type: 'TRY' | 'CON' | 'PEN' | 'DG' | 'YC' | 'RC' | 'INJ' | 'SUB' | 'HT' | 'FT' | 'KO'
+  type: 'TRY' | 'CON' | 'PEN' | 'DG' | 'YC' | 'RC' | 'INJ' | 'SUB' | 'HT' | 'FT' | 'KO' | 'BRK'
   teamId: string
   playerId?: number
   playerName?: string
@@ -288,6 +292,18 @@ export interface GameState {
   staff: StaffLevels
   mgr: ManagerStats
   challenge?: string
+  /** open managerial vacancies at AI clubs */
+  vacancies: { clubId: string; week: number; applied?: boolean }[]
+  /** up to 3 young players given individual development attention */
+  devFocus: number[]
+}
+
+/** Managerial reputation earned from results and silverware, 30-95. */
+export function mgrReputation(state: GameState): number {
+  const m = state.mgr
+  const winPct = m.m ? m.w / m.m : 0.4
+  const seasons = m.finishes.length
+  return Math.min(95, Math.round(34 + winPct * 46 + m.trophies.length * 7 + seasons * 1.5))
 }
 
 /** World Cup years: 2027, 2031, ... (in-game season index) */

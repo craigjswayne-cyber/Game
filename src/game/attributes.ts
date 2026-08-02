@@ -117,6 +117,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     transferListed: false,
     pers: assignPersonality(rng, a),
     sc: 20,
+    ca0: ca,
   }
 }
 
