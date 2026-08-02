@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS } from '../../game/newgame'
+import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
@@ -29,7 +30,7 @@ export default function NewGame() {
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
   const [clubId, setClubId] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [style, setStyle] = useState<'Balanced' | 'Forwards-first' | 'Expansive'>('Balanced')
+  const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
 
   const league = leagueIdx != null ? defs[leagueIdx] : null
@@ -53,12 +54,11 @@ export default function NewGame() {
     if (step < 3) { setStep(step + 1); return }
     if (!club) return
     start(club.id, name.trim(), challengeId ?? undefined)
-    // coaching style shapes your starting game plan
+    // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
-    if (g) {
-      const t = g.clubs[g.userClubId].tactic
-      if (style === 'Forwards-first') { t.style = 30; t.kicking = 62; t.aggression = 60 }
-      if (style === 'Expansive') { t.style = 76; t.tempo = 68; t.kicking = 38 }
+    const chosen = COACHING_STYLES.find(s => s.id === styleId)
+    if (g && chosen) {
+      Object.assign(g.clubs[g.userClubId].tactic, chosen.tactic)
     }
   }
   const prev = () => {
@@ -166,12 +166,13 @@ export default function NewGame() {
               <label className="fact-label">Your Name</label>
               <input className="inline-input" placeholder="e.g. A. Gaffer" autoFocus
                 value={name} onChange={e => setName(e.target.value)} />
-              <label className="fact-label" style={{ marginTop: 8, display: 'block' }}>Coaching Style</label>
-              <div className="tile-grid three" style={{ padding: 0, marginTop: 6 }}>
-                {(['Balanced', 'Forwards-first', 'Expansive'] as const).map(s => (
-                  <button key={s} className={`tile${style === s ? ' sel' : ''}`} style={{ padding: '10px 4px' }}
-                    onClick={() => setStyle(s)}>
-                    <b style={{ fontSize: 11.5 }}>{s}</b>
+              <label className="fact-label" style={{ marginTop: 8, display: 'block' }}>Coaching Philosophy</label>
+              <div className="speech-grid" style={{ padding: '6px 0 0' }}>
+                {COACHING_STYLES.map(s => (
+                  <button key={s.id} className={`speech-tile${styleId === s.id ? ' sel' : ''}`}
+                    onClick={() => setStyleId(s.id)}>
+                    <b>{s.name}</b>
+                    <span className="d">{s.desc}</span>
                   </button>
                 ))}
               </div>
@@ -191,7 +192,7 @@ export default function NewGame() {
               <div className="fact-grid">
                 <div><label>Manager</label><span>{name.trim()}</span></div>
                 <div><label>Competition</label><span>{league.name}</span></div>
-                <div><label>Coaching Style</label><span>{style}</span></div>
+                <div><label>Philosophy</label><span>{COACHING_STYLES.find(s => s.id === styleId)?.name}</span></div>
                 <div><label>Season</label><span>2025-26</span></div>
                 {challenge && <div><label>Challenge</label><span>{challenge.title}</span></div>}
                 <div><label>Board Objective</label><span>{club.rep >= 87 ? 'Win the title' : club.rep >= 80 ? 'Reach the playoffs' : club.rep >= 72 ? 'Top half' : 'Avoid the bottom two'}</span></div>

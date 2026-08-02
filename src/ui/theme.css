@@ -870,3 +870,184 @@ input, select { font: inherit; }
   flex-shrink: 0;
 }
 .night-btn svg { width: 18px; height: 18px; }
+
+/* ================= Live pitch: the two XVs ================= */
+.pitch .pdot {
+  position: absolute;
+  width: 13px; height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  font-family: var(--cond);
+  font-size: 8px; font-weight: 700; line-height: 11px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  transition: left 1.1s cubic-bezier(.45, .05, .35, 1), top .9s ease, transform .3s ease;
+  z-index: 2;
+}
+.pitch .pdot.hl {
+  transform: scale(1.55);
+  z-index: 4;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .55), 0 0 14px rgba(255, 245, 200, .9);
+  animation: dot-pulse .9s ease infinite;
+}
+.pitch .pdot .pname {
+  position: absolute;
+  bottom: 14px; left: 50%;
+  transform: translateX(-50%) scale(.68);
+  background: rgba(8, 30, 22, .92);
+  color: #fff;
+  font-size: 9px; font-weight: 700; letter-spacing: .4px;
+  padding: 2px 6px; border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,.55), 0 0 14px rgba(255,245,200,.9); }
+  50% { box-shadow: 0 0 0 5px rgba(255,255,255,.3), 0 0 20px rgba(255,245,200,.7); }
+}
+
+/* ================= Pre-match: speeches & ready check ================= */
+.speech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px; padding: 6px 14px;
+}
+.speech-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  background: var(--paper);
+  border: 1.5px solid var(--hairline);
+  border-radius: 9px;
+  padding: 10px 11px;
+  text-align: left;
+  box-shadow: var(--shadow-1);
+  transition: border-color .15s, transform .1s;
+}
+.speech-tile:active { transform: scale(.98); }
+.speech-tile.sel { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--paper)); }
+.speech-tile .ico { font-size: 17px; }
+.speech-tile b { font-size: 12.5px; color: var(--ink); font-family: var(--sans); }
+.speech-tile .d { font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }
+
+/* one-tap game plans */
+.preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.preset-chip {
+  background: var(--green-900);
+  color: #ece7d8;
+  border-radius: 15px;
+  padding: 6px 11px;
+  font-size: 11px; font-weight: 700; font-family: var(--sans);
+  box-shadow: var(--shadow-1);
+}
+.preset-chip:active { background: var(--green-700); }
+
+/* ================= Landscape lock ================= */
+.rotate-veil { display: none; }
+@media (orientation: portrait) {
+  .rotate-veil {
+    position: fixed; inset: 0; z-index: 999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: linear-gradient(172deg, var(--green-900, #0b3d2e), var(--green-950, #082b20));
+    color: #ece7d8;
+    text-align: center; padding: 30px;
+  }
+  .rotate-veil .phone {
+    font-size: 52px;
+    animation: rotate-hint 1.6s ease infinite;
+  }
+  .rotate-veil h2 { font-family: var(--sans); font-size: 19px; color: var(--gold-bright, #e3b92e); }
+  .rotate-veil p { font-size: 13px; color: #9fb2a7; max-width: 260px; line-height: 1.5; }
+}
+@keyframes rotate-hint {
+  0%, 20% { transform: rotate(0); }
+  55%, 100% { transform: rotate(90deg); }
+}
+
+/* ================= FM-style slide-out sub-menus ================= */
+.submenu-veil {
+  position: fixed; inset: 0; z-index: 120;
+  background: rgba(6, 25, 18, .45);
+  animation: veil-in .15s ease;
+}
+@keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
+.submenu {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: min(260px, 70vw);
+  background: linear-gradient(172deg, #10241c, #0a1a13);
+  border-right: 2px solid var(--gold);
+  box-shadow: 12px 0 40px rgba(0, 0, 0, .45);
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: submenu-in .18s ease;
+}
+@keyframes submenu-in { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.submenu-head {
+  font-family: var(--cond);
+  font-weight: 700; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-bright, #e3b92e);
+  padding: calc(env(safe-area-inset-top) + 16px) 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+.submenu-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 13px 18px;
+  color: #ece7d8;
+  font-family: var(--sans);
+  font-size: 14px; font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.submenu-item:active { background: rgba(255, 255, 255, .08); }
+.submenu-item .mico { font-size: 17px; width: 24px; text-align: center; }
+.submenu-item .mbadge {
+  background: var(--red, #a12f2f); color: #fff;
+  font-size: 10px; font-weight: 700;
+  min-width: 17px; height: 17px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+
+/* ================= The Rugby Wire ================= */
+.wire-mast {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 12px 14px 8px;
+  border-bottom: 3px double var(--hairline-2, #c9bfa8);
+  margin: 0 14px;
+}
+.wire-brand {
+  font-family: var(--serif, Georgia);
+  font-weight: 800; font-size: 21px; letter-spacing: 3px;
+  color: var(--title-ink, #082b20);
+}
+.app.night .wire-brand { color: #ece7d8; }
+.wire-sub {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.wire-card { cursor: pointer; }
+.wire-card.unread { border-left: 4px solid var(--gold); }
+.wire-card .wire-date {
+  font-family: var(--cond); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 3px;
+}
+
+/* ================= Manager profile: specialities ================= */
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px; padding: 6px 14px;
+}
+.spec-tile {
+  display: flex; flex-direction: column; gap: 3px;
+  background: var(--paper);
+  border: 1.5px solid var(--hairline);
+  border-radius: 9px;
+  padding: 10px 11px;
+  opacity: .55;
+  filter: grayscale(.8);
+  box-shadow: var(--shadow-1);
+}
+.spec-tile.on { opacity: 1; filter: none; border-color: var(--gold); }
+.spec-tile .ico { font-size: 18px; }
+.spec-tile b { font-size: 12.5px; color: var(--ink); font-family: var(--sans); }
+.spec-tile .d { font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }

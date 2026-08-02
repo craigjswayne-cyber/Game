@@ -7,6 +7,7 @@ import { URC_A } from '../data/leagues/urc_a'
 import { URC_B } from '../data/leagues/urc_b'
 import { SRP_A } from '../data/leagues/srp_a'
 import { SRP_B } from '../data/leagues/srp_b'
+import { CHAMP } from '../data/leagues/champ'
 import type { Club, GameState } from './model'
 import { buildPlayer, resetIds } from './attributes'
 import { autoSelect } from './matchEngine'
@@ -35,6 +36,10 @@ export const CHALLENGES: Challenge[] = [
     id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
     desc: 'Leinster hoover up every trophy in Ireland. From Thomond Park, end their reign — win the URC and the Champions Cup.',
   },
+  {
+    id: 'pirates', clubId: 'pirates', title: "The Pirates' Dream",
+    desc: 'Penzance to the Premiership: take the Cornish Pirates out of the Championship on a shoestring and put Cornwall in the top flight at last.',
+  },
 ]
 
 export interface LeagueDef {
@@ -51,6 +56,7 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'top14', name: 'Top 14', short: 'Top 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
   { id: 'urc', name: 'United Rugby Championship', short: 'URC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
   { id: 'srp', name: 'Super Rugby Pacific', short: 'Super Rugby', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
+  { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
 ]
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string): GameState {
@@ -78,7 +84,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     managerName,
     training: 'balanced',
     shortlist: [],
-    staff: { assistant: 0, physio: 0, scout: 0 },
+    staff: { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0 },
     mgr: { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 },
     challenge: challengeId,
     vacancies: [],

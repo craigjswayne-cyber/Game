@@ -60,6 +60,8 @@ export interface Injury {
   desc: string
   /** week the player returns */
   until: number
+  /** total weeks out (severity), used to size the rusty spell afterwards */
+  weeks?: number
 }
 
 export type Personality =
@@ -106,6 +108,9 @@ export interface Player {
   onLoan?: boolean
   /** ability at the start of the season, for development arrows */
   ca0?: number
+  /** weeks of match rust remaining after an injury — playable, but a
+   *  rushed return carries a much higher re-injury risk */
+  rust?: number
 }
 
 export interface Club {
@@ -202,7 +207,7 @@ export interface NewsItem {
   id: number
   week: number
   season: number
-  type: 'result' | 'transfer' | 'injury' | 'intl' | 'board' | 'award' | 'contract' | 'general' | 'youth'
+  type: 'result' | 'transfer' | 'injury' | 'intl' | 'board' | 'award' | 'contract' | 'general' | 'youth' | 'gossip'
   subject: string
   body: string
   read: boolean
@@ -252,12 +257,20 @@ export interface StaffLevels {
   assistant: number // 0-3: training gains
   physio: number    // 0-3: injury length & recovery
   scout: number     // 0-3: knowledge gathering speed
+  attack: number    // 0-3: attack coach — sharper strike play on matchday
+  defence: number   // 0-3: defence coach — tighter line speed and shape
+  scrumCoach: number // 0-3: set-piece coach — scrum & lineout platform
+  kicking: number   // 0-3: kicking coach — territory game and goal kicking
 }
 
 export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
   assistant: { name: 'Assistant Coach', desc: 'Sharper sessions — bigger training gains, faster youth growth.', wage: 4000 },
   physio: { name: 'Head Physio', desc: 'Shorter injury layoffs and quicker recovery between matches.', wage: 3000 },
   scout: { name: 'Chief Scout', desc: 'Faster, wider scouting knowledge across the leagues.', wage: 2500 },
+  attack: { name: 'Attack Coach', desc: 'Strike moves and shape — a sharper attack every matchday, bigger attacking training gains.', wage: 3500 },
+  defence: { name: 'Defence Coach', desc: 'Line speed and system — a meaner defence every matchday, bigger defensive training gains.', wage: 3500 },
+  scrumCoach: { name: 'Set-Piece Coach', desc: 'Scrum and lineout platform — the tight five win you matchday penalties.', wage: 3000 },
+  kicking: { name: 'Kicking Coach', desc: 'Territory and the tee — better tactical kicking and goal kicking under pressure.', wage: 2500 },
 }
 
 export interface ManagerStats {

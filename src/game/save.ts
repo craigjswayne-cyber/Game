@@ -46,7 +46,11 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
 /** Backfill fields added since a save was written. */
 function migrate(s: GameState): GameState {
   s.shortlist ??= []
-  s.staff ??= { assistant: 0, physio: 0, scout: 0 }
+  s.staff ??= { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0 }
+  s.staff.attack ??= 0
+  s.staff.defence ??= 0
+  s.staff.scrumCoach ??= 0
+  s.staff.kicking ??= 0
   s.mgr ??= { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
   s.vacancies ??= []
   s.devFocus ??= []
@@ -56,6 +60,7 @@ function migrate(s: GameState): GameState {
     p.sc ??= p.clubId === s.userClubId ? 100 : 30
     p.onLoan ??= false
     p.ca0 ??= p.ca
+    p.rust ??= 0
   }
   return s
 }

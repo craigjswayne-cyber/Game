@@ -1,0 +1,191 @@
+import { useState } from 'react'
+import { useStore } from '../../store'
+import { mgrReputation, seasonLabel, type GameState, type Player } from '../../game/model'
+import { SectionTitle } from '../components'
+
+/** Coaching badge tiers, earned through reputation. */
+export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
+  if (rep >= 85) return { name: 'Platinum Badge', icon: '💎', color: '#7fb4c9', next: null, at: null }
+  if (rep >= 70) return { name: 'Gold Badge', icon: '🥇', color: '#c9a227', next: 'Platinum', at: 85 }
+  if (rep >= 55) return { name: 'Silver Badge', icon: '🥈', color: '#9aa5ad', next: 'Gold', at: 70 }
+  return { name: 'Bronze Badge', icon: '🥉', color: '#a8763a', next: 'Silver', at: 55 }
+}
+
+interface Speciality {
+  id: string
+  name: string
+  icon: string
+  desc: string
+  earned: (g: GameState) => boolean
+  hint: string
+}
+
+const SPECIALITIES: Speciality[] = [
+  {
+    id: 'youth', name: 'Youth Developer', icon: '🌱',
+    desc: 'Trusts the academy and makes kids into men.',
+    earned: g => Object.values(g.players).filter(p =>
+      p.clubId === g.userClubId && p.youth && (p.stats.apps > 0 || p.career.some(c => c.apps > 0))).length >= 3,
+    hint: 'Give 3+ academy graduates real minutes.',
+  },
+  {
+    id: 'dealer', name: 'Wheeler-Dealer', icon: '🤝',
+    desc: 'Lives on the phone. The market bends to him.',
+    earned: g => g.mgr.signings >= 8,
+    hint: 'Complete 8 signings.',
+  },
+  {
+    id: 'tactician', name: 'Tactician', icon: '🧠',
+    desc: 'Wins the chess match more often than not.',
+    earned: g => g.mgr.m >= 20 && g.mgr.w / Math.max(1, g.mgr.m) >= 0.6,
+    hint: 'Keep a 60% win rate over 20+ matches.',
+  },
+  {
+    id: 'winner', name: 'Serial Winner', icon: '🏆',
+    desc: 'Silverware follows him around.',
+    earned: g => g.mgr.trophies.length >= 2,
+    hint: 'Lift 2 trophies.',
+  },
+  {
+    id: 'euro', name: 'Continental Royalty', icon: '👑',
+    desc: 'Conquered Europe\'s biggest prize.',
+    earned: g => g.mgr.trophies.some(t => t.compId === 'cc'),
+    hint: 'Win the Champions Cup.',
+  },
+  {
+    id: 'manman', name: 'Man-Manager', icon: '🫂',
+    desc: 'Players run through walls for him.',
+    earned: g => {
+      const squad = g.clubs[g.userClubId]?.players.map(id => g.players[id]).filter(Boolean) ?? []
+      return squad.length > 0 && squad.reduce((s, p) => s + p!.morale, 0) / squad.length >= 7.4
+    },
+    hint: 'Keep average squad morale above 7.4.',
+  },
+  {
+    id: 'survivor', name: 'The Survivor', icon: '🛡️',
+    desc: 'Boards come and go; he remains.',
+    earned: g => g.mgr.finishes.length >= 3,
+    hint: 'Complete 3 full seasons.',
+  },
+  {
+    id: 'miracle', name: 'Miracle Worker', icon: '✨',
+    desc: 'Won it all with a club nobody backed.',
+    earned: g => g.mgr.trophies.some(t => {
+      const club = g.clubs[g.userClubId]
+      return club && club.rep < 80 && t.compId === club.leagueId
+    }),
+    hint: 'Win a league title with an unfancied club.',
+  },
+]
+
+export default function Profile() {
+  const game = useStore(s => s.game)!
+  const go = useStore(s => s.go)
+  const { resign } = useStore.getState()
+  const [confirmResign, setConfirmResign] = useState(false)
+  const rep = mgrReputation(game)
+  const badge = badgeOf(rep)
+  const club = game.clubs[game.userClubId]
+  const m = game.mgr
+  const winPct = m.m ? Math.round((m.w / m.m) * 100) : 0
+
+  return (
+    <>
+      <div className="card" style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 44, lineHeight: 1 }}>{badge.icon}</div>
+        <h3 style={{ fontSize: 19, marginTop: 6 }}>{game.managerName}</h3>
+        <div className="meta">{game.unemployed ? 'Unemployed — between challenges' : `Director of Rugby · ${club.name}`}</div>
+        <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
+          {badge.name}
+        </div>
+        <div style={{ margin: '8px 30px 2px' }}>
+          <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ width: `${Math.round(((rep - 30) / 65) * 100)}%`, height: '100%', background: badge.color }} />
+          </div>
+          <div className="meta" style={{ marginTop: 4 }}>
+            Reputation {rep}{badge.next ? ` · ${badge.at! - rep} more to the ${badge.next} badge` : ' · the summit'}
+          </div>
+        </div>
+      </div>
+
+      <SectionTitle>Career Record</SectionTitle>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px' }}>
+        <span className="chip">Matches <b>{m.m}</b></span>
+        <span className="chip">Won <b>{m.w}</b></span>
+        <span className="chip">Drawn <b>{m.d}</b></span>
+        <span className="chip">Lost <b>{m.l}</b></span>
+        <span className="chip">Win rate <b>{winPct}%</b></span>
+        <span className="chip">Signings <b>{m.signings}</b></span>
+      </div>
+      {!game.unemployed && (
+        <div style={{ padding: '8px 14px 0' }}>
+          <div className="fact-label">Board Confidence</div>
+          <div style={{ height: 9, background: 'var(--cream-3)', borderRadius: 5, overflow: 'hidden', marginTop: 4 }}>
+            <div style={{
+              width: `${club.boardConfidence}%`, height: '100%',
+              background: club.boardConfidence > 55 ? '#2f7d4f' : club.boardConfidence > 25 ? '#c9a227' : '#9b2c2c',
+            }} />
+          </div>
+        </div>
+      )}
+
+      <SectionTitle sub="earned through deeds, not words">Coaching Specialities</SectionTitle>
+      <div className="spec-grid">
+        {SPECIALITIES.map(s => {
+          const has = s.earned(game)
+          return (
+            <div key={s.id} className={`spec-tile${has ? ' on' : ''}`}>
+              <span className="ico">{s.icon}</span>
+              <b>{s.name}</b>
+              <span className="d">{has ? s.desc : s.hint}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      <SectionTitle>Trophy Cabinet</SectionTitle>
+      {m.trophies.length === 0
+        ? <div className="meta" style={{ padding: '0 16px 8px' }}>Bare shelves — for now. Go and fill them.</div>
+        : (
+          <div className="tblwrap"><table className="dtable"><tbody>
+            {m.trophies.map((t, i) => (
+              <tr key={i}>
+                <td>🏆</td>
+                <td className="name">{game.comps[t.compId]?.name ?? t.compId}</td>
+                <td className="num">{seasonLabel(t.season)}</td>
+              </tr>
+            ))}
+          </tbody></table></div>
+        )}
+
+      <SectionTitle>Season by Season</SectionTitle>
+      {m.finishes.length === 0
+        ? <div className="meta" style={{ padding: '0 16px 8px' }}>Your first season is still being written.</div>
+        : (
+          <div className="tblwrap"><table className="dtable">
+            <thead><tr><th>Season</th><th>League</th><th className="num">Finish</th></tr></thead>
+            <tbody>
+              {[...m.finishes].reverse().map((f, i) => (
+                <tr key={i}>
+                  <td>{seasonLabel(f.season)}</td>
+                  <td className="name">{game.comps[f.leagueId]?.name ?? f.leagueId}</td>
+                  <td className="num" style={{ fontWeight: 700 }}>{f.pos}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+        )}
+
+      <div className="btn-row" style={{ marginTop: 12 }}>
+        <button className="btn ghost" onClick={() => go('saves')}>💾 Save / Load</button>
+        <button className="btn ghost" onClick={() => go('legacy')}>📜 Full Legacy</button>
+        {!game.unemployed && (
+          confirmResign
+            ? <button className="btn danger" onClick={() => resign()}>Confirm — Walk Away</button>
+            : <button className="btn ghost" style={{ color: '#9b2c2c' }} onClick={() => setConfirmResign(true)}>Resign…</button>
+        )}
+      </div>
+      <div className="spacer" />
+    </>
+  )
+}

@@ -1,5 +1,5 @@
-import type { CSSProperties, ReactNode } from 'react'
-import { useStore } from '../store'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useStore, type Screen } from '../store'
 import { weekDate, seasonLabel } from '../game/model'
 import { IcoBall, IcoClipboard, IcoInbox, IcoPress, IcoTransfer, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
@@ -20,13 +20,19 @@ import Nations from './screens/Nations'
 import History from './screens/History'
 import Legacy from './screens/Legacy'
 import Jobs from './screens/Jobs'
+import Feed from './screens/Feed'
+import Medical from './screens/Medical'
+import TeamReport from './screens/TeamReport'
+import Profile from './screens/Profile'
+import Saves from './screens/Saves'
 
 const TITLES: Record<string, string> = {
   home: 'Inbox', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
-  tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training',
+  tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
-  jobs: 'Job Centre',
+  jobs: 'Job Centre', feed: 'The Rugby Wire', medical: 'Medical Centre',
+  report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status',
 }
 
 const IcoMoon = () => (
@@ -41,33 +47,69 @@ const IcoSun = () => (
   </svg>
 )
 
+/** The game is a landscape experience — nudge portrait users to rotate. */
+function RotateVeil() {
+  return (
+    <div className="rotate-veil">
+      <div className="phone">📱</div>
+      <h2>Turn your phone sideways</h2>
+      <p>Rugby Manager plays in landscape — like every good dugout view.</p>
+    </div>
+  )
+}
+
+/** Best-effort hard lock where the platform allows it (installed PWA). */
+function useOrientationLock() {
+  useEffect(() => {
+    const tryLock = () => {
+      const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
+      o?.lock?.('landscape').catch(() => { /* browser tabs refuse — the veil handles it */ })
+    }
+    tryLock()
+    window.addEventListener('click', tryLock, { once: true })
+    return () => window.removeEventListener('click', tryLock)
+  }, [])
+}
+
+interface MenuItem {
+  ico: string
+  label: string
+  screen: Screen
+  badge?: number
+}
+
 export default function App() {
   const nav = useStore(s => s.nav)
   const game = useStore(s => s.game)
   const night = useStore(s => s.night)
   useStore(s => s.tick)
   const { back, go, home, continueWeek, toggleNight } = useStore.getState()
+  const [menu, setMenu] = useState<null | 'club' | 'world' | 'manager'>(null)
+  useOrientationLock()
 
   const cur = nav[nav.length - 1]
   const appClass = `app${night ? ' night' : ''}`
 
-  if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /></div>
-  if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /></div>
-  if (!game) return <div className={`${appClass} no-rail`}><Menu /></div>
+  if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><RotateVeil /></div>
+  if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><RotateVeil /></div>
+  if (!game) return <div className={`${appClass} no-rail`}><Menu /><RotateVeil /></div>
 
   if (cur.screen === 'matchday') {
     const mdClub = game.clubs[game.userClubId]
     return (
       <div className={`${appClass} no-rail`} style={{ '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties}>
         <MatchDay />
+        <RotateVeil />
       </div>
     )
   }
 
   const club = game.clubs[game.userClubId]
-  const unread = game.news.filter(n => !n.read).length
+  const unread = game.news.filter(n => !n.read && n.type !== 'gossip').length
+  const wireUnread = game.news.filter(n => !n.read && n.type === 'gossip').length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
+  const injuredCount = club.players.filter(id => game.players[id]?.injury).length
   const clubVars = {
     '--club1': club.colors[0],
     '--club2': club.colors[1],
@@ -89,14 +131,62 @@ export default function App() {
       case 'nations': return <Nations />
       case 'history': return <History />
       case 'legacy': return <Legacy />
+      case 'jobs': return <Jobs />
+      case 'feed': return <Feed />
+      case 'medical': return <Medical />
+      case 'report': return <TeamReport />
+      case 'profile': return <Profile />
+      case 'saves': return <Saves />
       default: return <Home />
     }
   }
 
+  const MENUS: Record<'club' | 'world' | 'manager', { title: string; items: MenuItem[] }> = {
+    club: {
+      title: club.short,
+      items: [
+        { ico: '📋', label: 'Team Report', screen: 'report' },
+        { ico: '🏋️', label: 'Training & Coaching', screen: 'training' },
+        { ico: '🏥', label: 'Medical Centre', screen: 'medical', badge: injuredCount },
+        { ico: '📅', label: 'Fixtures & Results', screen: 'fixtures' },
+        { ico: '💰', label: 'Finances', screen: 'finances' },
+        { ico: '🔁', label: 'Transfer Centre', screen: 'transfers', badge: offersOpen },
+        { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
+        { ico: '🏟️', label: 'Club Information', screen: 'club' },
+      ],
+    },
+    world: {
+      title: 'World',
+      items: [
+        { ico: '📰', label: 'The Rugby Wire', screen: 'feed', badge: wireUnread },
+        { ico: '🏆', label: 'Competitions', screen: 'tables' },
+        { ico: '🌍', label: 'International Rugby', screen: 'nations' },
+        { ico: '📜', label: 'Roll of Honour', screen: 'history' },
+        { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.length },
+      ],
+    },
+    manager: {
+      title: game.managerName,
+      items: [
+        { ico: '👤', label: 'Manager Profile', screen: 'profile' },
+        { ico: '📜', label: 'Manager Legacy', screen: 'legacy' },
+        { ico: '💾', label: 'Save / Load Game', screen: 'saves' },
+      ],
+    },
+  }
+
   const navBtn = (s: string, ico: ReactNode, label: string, badge?: number) => (
-    <button className={cur.screen === s ? 'active' : ''} onClick={() => (s === 'home' ? home() : go(s as never))}>
+    <button className={cur.screen === s ? 'active' : ''}
+      onClick={() => { setMenu(null); (s === 'home' ? home() : go(s as Screen)) }}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
       {label}
+    </button>
+  )
+
+  const groupBtn = (id: 'club' | 'world' | 'manager', ico: ReactNode, label: string, badge?: number) => (
+    <button className={menu === id ? 'active' : ''} onClick={() => setMenu(menu === id ? null : id)}>
+      <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
+      {label} ▸
     </button>
   )
 
@@ -123,19 +213,36 @@ export default function App() {
         {game.unemployed ? (
           <>
             {navBtn('jobs', <IcoClipboard />, 'Jobs', game.vacancies.length)}
-            {navBtn('tables', <IcoTrophy />, 'Comps')}
-            {navBtn('legacy', <IcoBall />, 'Career')}
+            {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
+            {groupBtn('manager', <IcoBall />, 'Manager')}
           </>
         ) : (
           <>
             {navBtn('squad', <IcoBall />, 'Squad')}
             {navBtn('tactics', <IcoClipboard />, 'Tactics')}
-            {navBtn('tables', <IcoTrophy />, 'Comps')}
-            {navBtn('transfers', <IcoTransfer />, 'Transfers', offersOpen)}
-            {navBtn('press', <IcoPress />, 'Press', pressOpen)}
+            {groupBtn('club', <IcoTransfer />, 'Club', offersOpen + pressOpen + injuredCount)}
+            {groupBtn('world', <IcoTrophy />, 'World', wireUnread + game.vacancies.length)}
+            {groupBtn('manager', <IcoPress />, 'Manager')}
           </>
         )}
       </nav>
+
+      {menu && (
+        <div className="submenu-veil" onClick={() => setMenu(null)}>
+          <div className="submenu" onClick={e => e.stopPropagation()}>
+            <div className="submenu-head">{MENUS[menu].title}</div>
+            {MENUS[menu].items.map(it => (
+              <button key={it.screen} className="submenu-item"
+                onClick={() => { setMenu(null); go(it.screen) }}>
+                <span className="mico">{it.ico}</span>
+                <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
+                {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <RotateVeil />
     </div>
   )
 }

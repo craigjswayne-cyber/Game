@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { BENCH_SLOTS, XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { autoSelect, availablePlayers } from '../../game/matchEngine'
 import { effAt } from '../../game/attributes'
+import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
 import { assistantAdvice } from '../../game/analysis'
 
@@ -78,11 +79,12 @@ export default function Tactics() {
     )
   }
 
-  const slider = (label: string, lo: string, hi: string, key: 'style' | 'tempo' | 'kicking' | 'aggression') => (
-    <div className="slider-row">
-      <div className="lbls"><span>{lo}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{hi}</span></div>
-      <input type="range" min={0} max={100} value={t[key]}
-        onChange={e => { t[key] = Number(e.target.value); touch() }} />
+  const slider = (info: typeof SLIDER_INFO[number]) => (
+    <div className="slider-row" key={info.key}>
+      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--accent-ink)' }}>{info.label}</b><span>{info.hi}</span></div>
+      <input type="range" min={0} max={100} value={t[info.key]}
+        onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
+      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, t[info.key])}</div>
     </div>
   )
 
@@ -102,11 +104,17 @@ export default function Tactics() {
       <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
       <SectionTitle>Replacements</SectionTitle>
       <table className="dtable"><tbody>{BENCH_SLOTS.map((_, i) => renderSlot(15 + i))}</tbody></table>
+      <SectionTitle sub="one tap sets all four sliders">Quick Game Plans</SectionTitle>
+      <div className="preset-row" style={{ padding: '0 14px' }}>
+        {PRESETS.map(p => (
+          <button key={p.id} className="preset-chip" title={p.desc}
+            onClick={() => { Object.assign(t, p.values); touch() }}>
+            {p.icon} {p.name}
+          </button>
+        ))}
+      </div>
       <SectionTitle>Game Plan</SectionTitle>
-      {slider('Style', 'Forwards / pick-and-go', 'Expansive / wide', 'style')}
-      {slider('Tempo', 'Slow & structured', 'High tempo', 'tempo')}
-      {slider('Kicking', 'Ball in hand', 'Kick for territory', 'kicking')}
-      {slider('Physicality', 'Stay clean', 'Push the limits', 'aggression')}
+      {SLIDER_INFO.map(slider)}
       {picker()}
       <div className="spacer" />
     </>
