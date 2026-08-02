@@ -92,7 +92,7 @@ export default function Squad() {
   const NameCell = ({ p }: { p: Player }) => (
     <td className="name">
       <FitRing v={p.cond} />{' '}
-      {p.name}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
+      {p.name}{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: '#a8841a' }}> (C)</b> : ''}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
     </td>
   )
 
