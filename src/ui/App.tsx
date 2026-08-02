@@ -49,13 +49,13 @@ export default function App() {
   const cur = nav[nav.length - 1]
   const appClass = `app${night ? ' night' : ''}`
 
-  if (cur.screen === 'menu') return <div className={appClass}><Menu /></div>
-  if (cur.screen === 'newgame') return <div className={appClass}><NewGame /></div>
-  if (!game) return <div className={appClass}><Menu /></div>
+  if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /></div>
+  if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /></div>
+  if (!game) return <div className={`${appClass} no-rail`}><Menu /></div>
 
   if (game.unemployed) {
     return (
-      <div className={appClass}>
+      <div className={`${appClass} no-rail`}>
         <div className="title-screen">
           <div style={{ fontSize: 46 }}>📄</div>
           <hr className="rules" />
@@ -79,7 +79,7 @@ export default function App() {
   if (cur.screen === 'matchday') {
     const mdClub = game.clubs[game.userClubId]
     return (
-      <div className={appClass} style={{ '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties}>
+      <div className={`${appClass} no-rail`} style={{ '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties}>
         <MatchDay />
       </div>
     )

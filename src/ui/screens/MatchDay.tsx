@@ -179,7 +179,7 @@ function Live() {
   const awayC = game.clubs[fixture.awayId]?.colors ?? ['#c9a227', '#082b20']
 
   return (
-    <>
+    <div className="live-wrap">
       <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
@@ -219,7 +219,7 @@ function Live() {
         {!done && <button className="btn" onClick={() => matchCursor(events.length, false)}>Skip ⏭</button>}
       </div>
 
-      <div className="content ticker" ref={tickerRef} style={{ flex: 1 }}>
+      <div className="content ticker" ref={tickerRef}>
         {shown.map((e, i) => (
           <div key={i} className={`tick-event ${cls(e)}`}>
             <span className="min">{e.min}'</span>
@@ -232,6 +232,6 @@ function Live() {
           </button>
         )}
       </div>
-    </>
+    </div>
   )
 }

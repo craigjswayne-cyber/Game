@@ -10,7 +10,7 @@ const server = spawn('npx', ['vite', 'preview', '--port', '4174', '--strictPort'
 await new Promise(r => setTimeout(r, 2500))
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
+const page = await browser.newPage({ viewport: { width: Number(process.env.W || 390), height: Number(process.env.H || 844) }, deviceScaleFactor: 2 })
 const errors = []
 page.on('pageerror', e => errors.push(String(e)))
 const shot = (n) => page.screenshot({ path: `${SHOTS}/${n}.png` })
