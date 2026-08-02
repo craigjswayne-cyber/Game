@@ -11,7 +11,31 @@ import type { Club, GameState } from './model'
 import { buildPlayer, resetIds } from './attributes'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague } from './schedule'
+import { isWorldCupSeason } from './model'
+import { seedKnowledge } from './scout'
 import { mulberry32 } from './rng'
+
+export interface Challenge {
+  id: string
+  clubId: string
+  title: string
+  desc: string
+}
+
+export const CHALLENGES: Challenge[] = [
+  {
+    id: 'sapiac', clubId: 'montauban', title: 'Sauvez Sapiac',
+    desc: 'Tiny Montauban are back in the Top 14 with the smallest budget in the land. Keep them up. Become immortal in the Tarn-et-Garonne.',
+  },
+  {
+    id: 'redbull', clubId: 'newcastle', title: 'The Energy Project',
+    desc: 'New owners, big ambitions, bottom-four squad. Turn Newcastle from perennial strugglers into Premiership champions.',
+  },
+  {
+    id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
+    desc: 'Leinster hoover up every trophy in Ireland. From Thomond Park, end their reign — win the URC and the Champions Cup.',
+  },
+]
 
 export interface LeagueDef {
   id: string
@@ -29,7 +53,7 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'srp', name: 'Super Rugby Pacific', short: 'Super Rugby', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
 ]
 
-export function newGame(userClubId: string, managerName: string, seed: number): GameState {
+export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
 
@@ -53,6 +77,10 @@ export function newGame(userClubId: string, managerName: string, seed: number): 
     processedWeek: false,
     managerName,
     training: 'balanced',
+    shortlist: [],
+    staff: { assistant: 0, physio: 0, scout: 0 },
+    mgr: { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 },
+    challenge: challengeId,
   }
 
   const seenNames = new Set<string>()
@@ -99,7 +127,8 @@ export function newGame(userClubId: string, managerName: string, seed: number): 
     .map(c => c.id)
   state.comps['cc'] = buildChampionsCup(euro, rng, state)
 
-  buildInternationals(rng, state)
+  buildInternationals(rng, state, isWorldCupSeason(0))
+  seedKnowledge(state)
 
   // initial lineups for every club
   for (const club of Object.values(state.clubs)) {
@@ -109,10 +138,11 @@ export function newGame(userClubId: string, managerName: string, seed: number): 
 
   // welcome news
   const uc = state.clubs[userClubId]
+  const challenge = challengeId ? CHALLENGES.find(c => c.id === challengeId) : null
   state.news.push({
     id: state.nextId++, week: 1, season: 0, type: 'board', read: false,
-    subject: `Welcome to ${uc.name}`,
-    body: `The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
+    subject: challenge ? `THE CHALLENGE: ${challenge.title}` : `Welcome to ${uc.name}`,
+    body: `${challenge ? challenge.desc + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
   })
 
   return state

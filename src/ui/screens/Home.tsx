@@ -15,6 +15,9 @@ export default function Home() {
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
   const [openId, setOpenId] = useState<number | null>(null)
+  const [showTut, setShowTut] = useState(() => {
+    try { return localStorage.getItem('rm-tut') !== '1' && game.week === 1 && game.season === 0 } catch { return false }
+  })
 
   const club = game.clubs[game.userClubId]
   const fx = userFixtureThisWeek(game) ?? game.fixtures
@@ -27,6 +30,17 @@ export default function Home() {
 
   return (
     <>
+      {showTut && (
+        <div className="tut-veil" onClick={() => { try { localStorage.setItem('rm-tut', '1') } catch { /* ok */ } setShowTut(false) }}>
+          <div className="tut-box">
+            <h3>Welcome to the dugout</h3>
+            Everything runs off <b>Continue</b> in the top corner — it advances the week, plays your match, and brings the world to your inbox.
+            <br /><br />
+            Set your XV in <b>Tactics</b> before match day, answer the <b>Press</b> to manage morale, and scout the <b>Transfers</b> market — unscouted players show attribute ranges, not truths.
+            <div className="muted">Tap anywhere to close.</div>
+          </div>
+        </div>
+      )}
       {fx && (
         <div className="card" onClick={() => go('tactics')} style={{
           borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? '#c9a227'}`,

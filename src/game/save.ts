@@ -43,12 +43,25 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
   })
 }
 
+/** Backfill fields added since a save was written. */
+function migrate(s: GameState): GameState {
+  s.shortlist ??= []
+  s.staff ??= { assistant: 0, physio: 0, scout: 0 }
+  s.mgr ??= { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
+  const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
+  for (const p of Object.values(s.players)) {
+    p.pers ??= PERS[p.id % PERS.length]
+    p.sc ??= p.clubId === s.userClubId ? 100 : 30
+  }
+  return s
+}
+
 export async function loadGame(slot: string): Promise<GameState | null> {
   const db = await openDb()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readonly')
     const req = tx.objectStore(STORE).get(slot)
-    req.onsuccess = () => { db.close(); resolve(req.result ? req.result.state as GameState : null) }
+    req.onsuccess = () => { db.close(); resolve(req.result ? migrate(req.result.state as GameState) : null) }
     req.onerror = () => { db.close(); reject(req.error) }
   })
 }

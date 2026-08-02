@@ -1,5 +1,6 @@
 import type { GameState, Player, Pos } from './model'
-import { boardObjective, emptyStats, fmtMoney, seasonLabel } from './model'
+import { boardObjective, emptyStats, fmtMoney, isWorldCupSeason, seasonLabel, XV_SLOTS } from './model'
+import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, sortTable } from './schedule'
 import { LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
@@ -20,14 +21,36 @@ function seasonAwards(state: GameState) {
   const potm = [...leaguePlayers].sort((a, b) =>
     b.stats.ratingSum / Math.max(1, b.stats.apps) - a.stats.ratingSum / Math.max(1, a.stats.apps))[0]
   const leagueName = state.comps[userLeague]?.name ?? 'the league'
+
+  // Team of the Season: best average rating per position slot
+  const used = new Set<number>()
+  const tots: string[] = []
+  for (const slot of XV_SLOTS) {
+    const cands = leaguePlayers
+      .filter(p => !used.has(p.id) && (p.pos === slot.pos || p.alt.includes(slot.pos)))
+      .sort((a, b) => b.stats.ratingSum / Math.max(1, b.stats.apps) - a.stats.ratingSum / Math.max(1, a.stats.apps))
+    if (cands[0]) { used.add(cands[0].id); tots.push(`${slot.shirt}. ${cands[0].name} (${state.clubs[cands[0].clubId!]?.short})`) }
+  }
+
+  // record-book lines
+  const leagueFx = state.fixtures.filter(f => f.compId === userLeague && f.played && !f.stage)
+  const biggest = leagueFx.sort((a, b) =>
+    Math.abs(b.homeScore - b.awayScore) - Math.abs(a.homeScore - a.awayScore))[0]
+  const bestAtt = leagueFx.sort((a, b) => (b.att ?? 0) - (a.att ?? 0))[0]
+
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-    subject: `${seasonLabel(state.season)} ${leagueName} awards`,
+    subject: `📖 The ${seasonLabel(state.season)} Annual — awards & records`,
     body: [
       `Player of the Season: ${potm.name} (${state.clubs[potm.clubId!]?.short}) — avg rating ${(potm.stats.ratingSum / Math.max(1, potm.stats.apps)).toFixed(2)}`,
       `Top Points Scorer: ${topPoints.name} — ${topPoints.stats.points} points`,
       `Top Try Scorer: ${topTries.name} — ${topTries.stats.tries} tries`,
-    ].join('\n'),
+      biggest ? `Biggest win: ${state.clubs[biggest.homeId]?.short} ${biggest.homeScore}-${biggest.awayScore} ${state.clubs[biggest.awayId]?.short}` : '',
+      bestAtt?.att ? `Best attendance: ${bestAtt.att.toLocaleString()} at ${state.clubs[bestAtt.homeId]?.stadium}` : '',
+      '',
+      `TEAM OF THE SEASON`,
+      ...tots,
+    ].filter(Boolean).join('\n'),
   })
 }
 
@@ -109,16 +132,19 @@ function youthIntake(state: GameState, rng: Rng) {
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
+      const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
       const p: Player = {
         id: nextPid(),
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
-        a: deriveAttrs(raw, state.seed + state.season * 977 + i),
+        a,
         ca: q, pa: clamp(q + 25 + Math.floor(rng() * 30), q, 99), q0: q,
         intl: false, gk: !!raw.gk,
         form: 6, morale: 7, cond: 100, sharp: 50,
         injury: null, bans: 0, natSquad: false,
         wage: 600, contractEnds: state.season + 3,
         value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
+        pers: assignPersonality(rng, a),
+        sc: club.id === state.userClubId ? 100 : 15,
       }
       p.value = playerValue(p.ca, p.age, p.pa)
       state.players[p.id] = p
@@ -181,6 +207,7 @@ export function rebuildSeason(state: GameState) {
     const comp = state.comps[club.leagueId]
     if (comp) {
       const pos = sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1
+      state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos })
       const obj = boardObjective(club.rep)
       const wonLeague = comp.champion === club.id
       const met = wonLeague || (pos > 0 && pos <= obj.pos)
@@ -260,7 +287,15 @@ export function rebuildSeason(state: GameState) {
     )
   }
   state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
-  buildInternationals(rng, state)
+  const wcYear = isWorldCupSeason(state.season)
+  buildInternationals(rng, state, wcYear)
+  if (wcYear) {
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
+      subject: `🏆 A RUGBY WORLD CUP season`,
+      body: `The ${2025 + state.season} Rugby World Cup kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy — and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
+    })
+  }
 
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {

@@ -5,6 +5,12 @@ import { XV_SLOTS, weekDate, type MatchEvent } from '../../game/model'
 import { userFixtureThisWeek } from '../../game/season'
 import { CrestT, SectionTitle } from '../components'
 import { stageName } from './Home'
+import { matchSfx, soundOn, toggleSound } from '../audio'
+import { rollWeather } from '../../game/matchEngine'
+import { weekRng } from '../../game/season'
+import { derbyName } from '../../game/rivalries'
+
+const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
 export default function MatchDay() {
   const game = useStore(s => s.game)!
@@ -75,6 +81,10 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
           <div className="meta">🏟️ {home?.stadium ?? 'Neutral venue'}{home ? `, ${home.city}` : ''}</div>
+          <div className="meta" style={{ marginTop: 3 }}>
+            {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} Forecast: {rollWeather(game.week, weekRng(game))}
+            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: '#a12f2f', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} — expect a cauldron</span>}
+          </div>
         </div>
         <SectionTitle sub="your colours on the left">Head to Head</SectionTitle>
         {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
@@ -118,6 +128,7 @@ function Live() {
   const live = useStore(s => s.liveMatch)!
   const { matchCursor, finishMatch } = useStore.getState()
   const [speedIdx, setSpeedIdx] = useState(0)
+  const [sound, setSound] = useState(soundOn())
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture } = live
@@ -130,6 +141,11 @@ function Live() {
     const t = setTimeout(() => matchCursor(cursor + 1, true), SPEEDS[speedIdx].ms)
     return () => clearTimeout(t)
   }, [cursor, playing, speedIdx, done])
+
+  // stadium sound & haptics on key events (skip when fast-forwarding)
+  useEffect(() => {
+    if (last && speedIdx < 2 && playing) matchSfx(last.type)
+  }, [cursor])
 
   useEffect(() => {
     tickerRef.current?.scrollTo({ top: tickerRef.current.scrollHeight, behavior: 'smooth' })
@@ -170,7 +186,11 @@ function Live() {
           <div className="score">{hs} – {as}</div>
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
-        <div className="minute">{done ? 'Full Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}</div>
+        <div className="minute">
+          {done ? 'Full Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
+          {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
+          {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
+        </div>
       </div>
 
       <div className="pitch">
@@ -192,6 +212,9 @@ function Live() {
         ))}
         <button className="btn ghost" onClick={() => matchCursor(playing ? cursor : cursor, !playing)}>
           {playing ? '⏸' : '▶'}
+        </button>
+        <button className="btn ghost" onClick={() => setSound(toggleSound())}>
+          {sound ? '🔊' : '🔇'}
         </button>
         {!done && <button className="btn" onClick={() => matchCursor(events.length, false)}>Skip ⏭</button>}
       </div>

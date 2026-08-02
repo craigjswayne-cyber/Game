@@ -4,6 +4,7 @@ import { ATTR_NAMES, POS_NAMES, fmtMoney, type Attrs } from '../../game/model'
 import { askingPrice, offerRenewal, renewalDemand, userBid } from '../../game/ai'
 import { attrBarColor, attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
+import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -20,6 +21,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const mine = p.clubId === game.userClubId
   const avg = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
   const ask = club && !mine ? askingPrice(game, p) : 0
+  const know = knowledge(game, p)
+  const shortlisted = game.shortlist.includes(p.id)
+  const toggleShortlist = useStore(s => s.toggleShortlist)
 
   const groups: [string, (keyof Attrs)[]][] = [
     ['Set Piece & Contact', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
@@ -49,13 +53,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             )}
           </div>
           <div style={{ textAlign: 'right' }}>
-            <Stars ca={p.ca} />
+            <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title="Estimated — scout him for certainty"> ?</span>}
             <div style={{ marginTop: 4 }}><FormPill v={p.form} /></div>
           </div>
         </div>
       </div>
 
       <div className="chips">
+        <span className="chip">Character <b>{p.pers}</b></span>
+        {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
+          Scouted <b>{Math.round(know)}%</b></span>}
         <span className="chip">Value <b>{fmtMoney(p.value)}</b></span>
         <span className="chip">Wage <b>{fmtMoney(p.wage)}/wk</b></span>
         <span className="chip">Contract to <b>{2026 + p.contractEnds}</b></span>
@@ -73,13 +80,24 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <div key={title}>
           <SectionTitle>{title}</SectionTitle>
           <div className="attr-grid">
-            {keys.map(k => (
-              <div className="attr" key={k}>
-                <span>{ATTR_NAMES[k]}</span>
-                <span className="bar"><i style={{ width: `${p.a[k] * 5}%`, background: attrBarColor(p.a[k]) }} /></span>
-                <span className={`v ${attrClass(p.a[k])}`}>{p.a[k]}</span>
-              </div>
-            ))}
+            {keys.map(k => {
+              const [lo, hi] = attrRange(game, p, k)
+              const mid = Math.round((lo + hi) / 2)
+              const exact = lo === hi
+              return (
+                <div className="attr" key={k}>
+                  <span>{ATTR_NAMES[k]}</span>
+                  <span className="bar"><i style={{
+                    width: `${mid * 5}%`,
+                    background: attrBarColor(mid),
+                    opacity: exact ? 1 : 0.55,
+                  }} /></span>
+                  <span className={`v ${exact ? attrClass(lo) : ''}`} style={exact ? undefined : { width: 40, fontSize: 13, color: 'var(--ink-faint)' }}>
+                    {exact ? lo : `${lo}–${hi}`}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
       ))}
@@ -130,6 +148,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       ) : club ? (
         <>
+          <button className={`btn ${shortlisted ? '' : 'ghost'} block`} onClick={() => toggleShortlist(p.id)}>
+            {shortlisted ? '★ On Shortlist — scouts filing reports' : '☆ Shortlist & Scout'}
+          </button>
           {!bidding
             ? <button className="btn gold block" onClick={() => { setBidding(true); setBid(ask) }}>
                 Bid for {p.name.split(' ').slice(-1)[0]} (ask ~{fmtMoney(ask)})

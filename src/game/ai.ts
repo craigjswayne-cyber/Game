@@ -35,6 +35,11 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.clubId = toClubId
   p.morale = clamp(p.morale + 1, 1, 10)
   p.transferListed = false
+  if (toClubId === state.userClubId) {
+    state.mgr.signings += 1
+    state.mgr.spent += fee
+    p.sc = 100
+  }
   p.wage = Math.max(p.wage, playerWage(p.ca, p.age))
   p.contractEnds = state.season + 2 + (p.age < 30 ? 1 : 0)
   state.news.push({
@@ -69,7 +74,8 @@ export function aiTransfers(state: GameState, rng: Rng) {
   if (rng() < 0.3) {
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
-    const wanted = squad.filter(p => p.transferListed || p.morale <= 4 || (p.ca >= 82 && rng() < 0.25))
+    const wanted = squad.filter(p => p.transferListed || p.morale <= 4 ||
+      (p.ca >= 82 && rng() < (p.pers === 'Ambitious' || p.pers === 'Mercenary' ? 0.4 : 0.2)))
     if (wanted.length) {
       const p = pick(rng, wanted)
       const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
@@ -136,9 +142,10 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
     return `${p.name} sold to ${bidder.name} for ${fmtMoney(o.fee)}.`
   }
   o.status = 'rejected'
-  if (p.morale <= 4) {
-    p.morale = clamp(p.morale - 0.5, 1, 10)
-    return `Bid rejected. ${p.name} is frustrated the move was blocked.`
+  const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
+  if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
+    p.morale = clamp(p.morale - (sulky ? 1.4 : 0.5), 1, 10)
+    return `Bid rejected. ${p.name} (${p.pers.toLowerCase()}) is frustrated the move was blocked.`
   }
   return `Bid rejected. ${p.name} stays.`
 }
@@ -148,7 +155,8 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
 // ------------------------------------------------------------------
 
 export function renewalDemand(p: Player): number {
-  return Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50
+  const persF = p.pers === 'Mercenary' ? 1.35 : p.pers === 'Loyal' ? 0.9 : p.pers === 'Ambitious' ? 1.15 : 1
+  return Math.round((playerWage(p.ca, p.age) * 1.1 * persF) / 50) * 50
 }
 
 export function offerRenewal(state: GameState, playerId: number): { ok: boolean; msg: string } {
@@ -160,7 +168,10 @@ export function offerRenewal(state: GameState, playerId: number): { ok: boolean;
   if (squadWages - p.wage + wage > user.wageBudget) {
     return { ok: false, msg: 'New terms would exceed the wage budget.' }
   }
-  if (p.morale < 3.5 && Math.random() < 0.5) {
+  if (p.pers === 'Ambitious' && p.ca >= 84 && user.rep < 82 && p.morale < 8) {
+    return { ok: false, msg: `${p.name}'s agent is blunt: his client is ambitious, and he wants to see the club matching that ambition before committing.` }
+  }
+  if (p.morale < 3.5 && p.pers !== 'Loyal' && Math.random() < 0.5) {
     return { ok: false, msg: `${p.name} isn't interested in extending right now.` }
   }
   p.wage = wage

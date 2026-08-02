@@ -1,8 +1,24 @@
-import type { Fixture, GameState, MatchEvent, Player, Pos } from './model'
+import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { BENCH_SLOTS, XV_SLOTS } from './model'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
+import { derbyName, isDerby } from './rivalries'
 import { clamp, gauss, wpick, type Rng } from './rng'
+
+/** Seasonal weather: wetter and colder through the winter weeks. */
+export function rollWeather(week: number, rng: Rng): Weather {
+  const winter = week >= 10 && week <= 26
+  const r = rng()
+  if (winter) {
+    if (r < 0.04) return 'Snow'
+    if (r < 0.38) return 'Rain'
+    if (r < 0.52) return 'Wind'
+    return 'Dry'
+  }
+  if (r < 0.16) return 'Rain'
+  if (r < 0.28) return 'Wind'
+  return 'Dry'
+}
 
 // ------------------------------------------------------------------
 // Selection
@@ -197,6 +213,32 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
   const events: MatchEvent[] = []
   const isUser = fx.homeId === state.userClubId || fx.awayId === state.userClubId
 
+  // conditions & occasion
+  const weather = rollWeather(state.week, rng)
+  fx.weather = weather
+  const derby = isDerby(fx.homeId, fx.awayId)
+  fx.derby = derby
+  let goalPenalty = 0
+  for (const side of [home, away]) {
+    if (weather === 'Rain' || weather === 'Snow') {
+      side.units.attack *= weather === 'Snow' ? 0.9 : 0.94
+      side.units.breakdown *= 1.03 // wet weather is forward weather
+    }
+    if (weather === 'Wind') side.units.kicking *= 0.92
+    if (derby) side.cardRisk *= 1.35
+  }
+  if (weather === 'Rain') goalPenalty = 0.06
+  if (weather === 'Wind') goalPenalty = 0.09
+  if (weather === 'Snow') goalPenalty = 0.1
+
+  // attendance up front so the live scoreboard can show it
+  const hostClub = state.clubs[fx.homeId]
+  if (hostClub) {
+    const interest = derby ? 0.99 : clamp(
+      0.5 + hostClub.rep / 200 + (state.clubs[fx.awayId]?.rep ?? 60) / 400 + gauss(rng) * 0.08, 0.3, 1)
+    fx.att = Math.round(hostClub.capacity * interest)
+  }
+
   let lastMin = 0
   const push = (min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) => {
     if (!detail) return
@@ -243,7 +285,11 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
     (n: string, t: string) => `Thunderous hit by ${n} — the crowd roars.`,
   ]
 
-  push(0, 'KO', home, 'Kick-off!')
+  if (derby) {
+    push(0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
+  } else {
+    push(0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries — proper old-school rugby weather.' : ''}`)
+  }
 
   // home advantage
   const HFA = state.clubs[fx.homeId] ? 1.06 : 1.03
@@ -258,7 +304,8 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
       const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent)
       const att = side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1
       const def = opp.units.defence * 0.7 + opp.units.breakdown * 0.3
-      const ratio = ((att * adv * numF) / Math.max(1, def * oppNumF))
+      let ratio = ((att * adv * numF) / Math.max(1, def * oppNumF))
+      if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
       const pTry = clamp(0.115 * Math.pow(ratio, 2.6), 0.01, 0.42)
       const r = rng()
       if (r < pTry) {
@@ -273,7 +320,7 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
         push(min, 'TRY', side, scorer ? TRY_LINES[Math.floor(rng() * TRY_LINES.length)](scorer.name) : 'TRY! The pack drives over the line!', scorer?.id)
         // conversion
         const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-        const pCon = kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55
+        const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty
         if (rng() < pCon) {
           side.score += 2
           if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
@@ -284,7 +331,7 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
       } else if (r < pTry + 0.115) {
         // penalty opportunity — kick at goal
         const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-        const pPen = kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55
+        const pPen = (kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55) - goalPenalty
         if (rng() < pPen) {
           side.score += 3
           if (kicker) {
@@ -343,7 +390,10 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
         if (ps.length) {
           const p = ps[Math.floor(rng() * ps.length)]
           const [desc, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
-          const weeks = lo + Math.floor(rng() * (hi - lo + 1))
+          let weeks = lo + Math.floor(rng() * (hi - lo + 1))
+          if (p.clubId === state.userClubId && state.staff?.physio) {
+            weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
+          }
           p.injury = { desc, until: state.week + weeks }
           side.onPitch.delete(p.id)
           push(min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.`, p.id)
@@ -380,13 +430,6 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
   push(80, 'FT', null, `Full-time: ${teamShort(state, fx.homeId)} ${home.score} - ${away.score} ${teamShort(state, fx.awayId)}`)
   if (detail) fx.events = events
 
-  // attendance + gate for club home games
-  const hc = state.clubs[fx.homeId]
-  if (hc) {
-    const interest = clamp(0.5 + hc.rep / 200 + (state.clubs[fx.awayId]?.rep ?? 60) / 400 + gauss(rng) * 0.08, 0.3, 1)
-    fx.att = Math.round(hc.capacity * interest)
-  }
-
   // finalize ratings -> stats, form
   let motmId: number | null = null
   let motmR = -1
@@ -402,7 +445,8 @@ export function simMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolea
         if (side.lineup.slice(0, 15).includes(pid)) p.stats.starts += 1
         p.stats.ratingSum += r
         p.form = clamp(p.form * 0.65 + r * 0.35, 1, 10)
-        p.morale = clamp(p.morale + (won ? 0.4 : -0.5), 1, 10)
+        const swing = (p.pers === 'Temperamental' ? 2 : 1) * (derby ? 1.6 : 1)
+        p.morale = clamp(p.morale + (won ? 0.4 : -0.5) * swing, 1, 10)
         p.cond = clamp(p.cond - (14 + Math.floor(rng() * 10)), 20, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
       }

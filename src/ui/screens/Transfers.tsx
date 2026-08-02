@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER, type Pos } from '../../game/model'
 import { respondToOffer } from '../../game/ai'
+import { fuzzedCa, knowledge } from '../../game/scout'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 
 export default function Transfers() {
@@ -56,6 +57,25 @@ export default function Transfers() {
         </>
       )}
 
+      {game.shortlist.length > 0 && (
+        <>
+          <SectionTitle sub="scouts filing weekly reports">Shortlist</SectionTitle>
+          <div className="tblwrap"><table className="dtable"><tbody>
+            {game.shortlist.map(id => game.players[id]).filter(Boolean).map(p => (
+              <tr key={p.id} onClick={() => go('player', p.id)}>
+                <td><PosBadge pos={p.pos} /></td>
+                <td className="name">{p.name}</td>
+                <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : 'Free agent'}</td>
+                <td><Stars ca={fuzzedCa(game, p)} /></td>
+                <td className="num" style={{ color: knowledge(game, p) >= 95 ? '#2f7d4f' : undefined }}>
+                  {Math.round(knowledge(game, p))}%
+                </td>
+              </tr>
+            ))}
+          </tbody></table></div>
+        </>
+      )}
+
       <SectionTitle sub="tap a player to scout & bid">Scout The Market</SectionTitle>
       <div style={{ padding: '0 14px' }}>
         <input className="inline-input" placeholder="Search player name…" value={query}
@@ -84,7 +104,7 @@ export default function Transfers() {
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
               <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : 'Free agent'}</td>
-              <td><Stars ca={p.ca} /></td>
+              <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
               <td className="num">{fmtMoney(p.value)}</td>
             </tr>
           ))}

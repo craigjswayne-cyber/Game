@@ -10,7 +10,7 @@ import { saveGame } from './game/save'
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
-  | 'press' | 'comp' | 'history' | 'nations'
+  | 'press' | 'comp' | 'history' | 'nations' | 'legacy'
 
 interface NavEntry {
   screen: Screen
@@ -33,7 +33,9 @@ interface Store {
   night: boolean
   toggleNight: () => void
 
-  start: (clubId: string, managerName: string) => void
+  start: (clubId: string, managerName: string, challengeId?: string) => void
+  toggleShortlist: (playerId: number) => void
+  hireStaff: (role: 'assistant' | 'physio' | 'scout') => void
   setGame: (g: GameState, slot: string) => void
   go: (screen: Screen, param?: string | number) => void
   back: () => void
@@ -60,11 +62,32 @@ export const useStore = create<Store>((set, get) => ({
     return { night }
   }),
 
-  start: (clubId, managerName) => {
+  start: (clubId, managerName, challengeId) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed)
+    const g = newGame(clubId, managerName, seed, challengeId)
     set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1 })
     void get().persist()
+  },
+
+  toggleShortlist: (playerId) => {
+    const g = get().game
+    if (!g) return
+    g.shortlist = g.shortlist.includes(playerId)
+      ? g.shortlist.filter(id => id !== playerId)
+      : [...g.shortlist, playerId].slice(-25)
+    set(s => ({ tick: s.tick + 1 }))
+  },
+
+  hireStaff: (role) => {
+    const g = get().game
+    if (!g || g.staff[role] >= 3) return
+    g.staff[role] += 1
+    g.news.push({
+      id: g.nextId++, week: g.week, season: g.season, type: 'general', read: true,
+      subject: `Backroom appointment`,
+      body: `The club has upgraded its ${role} setup to level ${g.staff[role]}.`,
+    })
+    set(s => ({ tick: s.tick + 1 }))
   },
 
   setGame: (g, slot) => set({ game: g, saveSlot: slot, nav: [{ screen: 'home' }], tick: get().tick + 1 }),

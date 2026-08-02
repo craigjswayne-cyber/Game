@@ -124,6 +124,7 @@ button { font: inherit; border: none; background: none; cursor: pointer; color: 
 input, select { font: inherit; }
 
 .app {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -674,6 +675,100 @@ input, select { font: inherit; }
 /* highlighted fixture / problem rows (theme-aware) */
 .next-fx td { background: color-mix(in srgb, var(--gold) 16%, var(--paper)); }
 .prob-row td { background: color-mix(in srgb, var(--red) 14%, var(--paper)); }
+
+/* ============ Guided new-career wizard (FM Mobile structure) ============ */
+.step-meter {
+  width: 64px; height: 6px; border-radius: 3px;
+  background: rgba(255, 255, 255, .15);
+  overflow: hidden; flex-shrink: 0;
+}
+.step-meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-bright), var(--gold)); border-radius: 3px; transition: width .3s ease; }
+
+.crumbs { display: flex; gap: 4px; margin-top: 9px; }
+.crumb {
+  flex: 1;
+  font-family: var(--cond);
+  font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  text-align: center;
+  color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .06);
+  padding: 6px 2px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crumb:first-child { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); }
+.crumb.on { color: var(--green-950); background: linear-gradient(180deg, var(--gold-bright), var(--gold)); }
+.crumb.done { color: var(--gold-bright); background: rgba(201, 162, 39, .18); }
+
+.wizard-hint {
+  font-family: var(--serif); font-style: italic; font-weight: 700;
+  color: var(--ink-soft); font-size: 13.5px;
+  padding: 14px 16px 4px;
+}
+
+.tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 10px 14px; }
+.tile-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.tile {
+  background: var(--paper);
+  border: 1.5px solid var(--hairline);
+  border-radius: 9px;
+  padding: 13px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  text-align: center;
+  box-shadow: var(--shadow-1);
+  color: var(--ink);
+  transition: border-color .12s ease;
+}
+.tile b { font-size: 13px; line-height: 1.25; }
+.tile .tile-ico { font-size: 20px; }
+.tile.sel {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1.5px var(--gold), var(--shadow-2);
+  background: color-mix(in srgb, var(--gold) 7%, var(--paper));
+}
+
+.detail-panel { padding: 0; overflow: hidden; }
+.club-banner {
+  font-family: var(--serif); font-weight: 800; font-size: 16px;
+  padding: 11px 14px;
+  display: flex; align-items: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+}
+.fact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; padding: 13px 14px; }
+.fact-grid label, .fact-label {
+  display: block;
+  font-size: 9.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 2px;
+}
+.fact-grid span { font-size: 13px; font-weight: 600; }
+
+.challenge-card {
+  display: flex; align-items: center; width: calc(100% - 28px);
+  border-left: 4px solid var(--gold);
+}
+
+.action-bar {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; gap: 10px;
+  padding: 10px 14px calc(env(safe-area-inset-bottom) + 10px);
+  background: linear-gradient(180deg, transparent, var(--cream) 30%);
+}
+.action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; }
+
+/* first-run welcome dialog */
+.tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; }
+.tut-box {
+  background: var(--green-950); color: #ece7d8;
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  padding: 20px 18px;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  font-size: 14px; line-height: 1.6;
+}
+.tut-box h3 { font-family: var(--serif); font-size: 18px; color: var(--gold-bright); margin-bottom: 8px; }
+.tut-box .muted { color: #9fb2a7; font-style: italic; margin-top: 12px; }
 
 /* floodlit toggle in masthead */
 .night-btn {

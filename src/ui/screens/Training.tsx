@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import type { TrainingFocus } from '../../game/model'
+import { STAFF_INFO, fmtMoney, type StaffLevels, type TrainingFocus } from '../../game/model'
 import { SectionTitle } from '../components'
 
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -29,6 +29,29 @@ export default function Training() {
           <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{f.desc}</span>
         </button>
       ))}
+      <SectionTitle sub="wages come off the weekly balance">Backroom Staff</SectionTitle>
+      {(Object.keys(STAFF_INFO) as (keyof StaffLevels)[]).map(role => {
+        const info = STAFF_INFO[role]
+        const lvl = game.staff[role]
+        return (
+          <div className="card" key={role} style={{ marginTop: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <div>
+                <h3 style={{ fontSize: 15 }}>{info.name} {lvl > 0 && <span style={{ color: '#a8841a' }}>{'●'.repeat(lvl)}{'○'.repeat(3 - lvl)}</span>}</h3>
+                <div className="meta">{info.desc}</div>
+                <div className="muted" style={{ marginTop: 2 }}>
+                  {lvl > 0 ? `Level ${lvl} · ${fmtMoney(lvl * info.wage)}/wk` : 'Not appointed'}
+                </div>
+              </div>
+              <button className="btn gold" disabled={lvl >= 3}
+                onClick={() => useStore.getState().hireStaff(role)}>
+                {lvl === 0 ? 'Hire' : lvl >= 3 ? 'Max' : 'Upgrade'}<br />
+                <span style={{ fontSize: 10, fontWeight: 600 }}>+{fmtMoney(info.wage)}/wk</span>
+              </button>
+            </div>
+          </div>
+        )
+      })}
       <SectionTitle sub="worst first">Condition Report</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Name</th><th className="num">Fitness</th><th className="num">Sharpness</th><th>Status</th></tr></thead>

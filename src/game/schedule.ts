@@ -146,8 +146,46 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState)
   return comp
 }
 
+export const WC_POOL_WEEKS = [2, 3, 4, 5, 6]
+export const WC_KO_WEEKS = [7, 8, 9]
+
+/** Rugby World Cup: 20 nations, 4 pools of 5, then QF/SF/Final. */
+function buildWorldCup(rng: Rng, state: GameState) {
+  const nations = [
+    'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
+    'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
+  ]
+  const comp: Competition = {
+    id: 'wc', name: 'Rugby World Cup', short: 'World Cup', type: 'intl',
+    teamIds: nations, table: nations.map(emptyRow), rounds: 5, playoffTeams: 8,
+    weeksByRound: WC_POOL_WEEKS, koWeeks: WC_KO_WEEKS, isNational: true,
+  }
+  // seeded pools: snake the top seeds so pools are balanced
+  const pools: string[][] = [[], [], [], []]
+  nations.forEach((n, i) => {
+    const row = Math.floor(i / 4)
+    const idx = row % 2 === 0 ? i % 4 : 3 - (i % 4)
+    pools[idx].push(n)
+  })
+  comp.pools = pools
+  pools.forEach(pool => {
+    const rounds = roundRobin(pool, rng, false)
+    rounds.forEach((pairs, r) => {
+      for (const [h, a] of pairs) {
+        state.fixtures.push({
+          id: state.nextId++, compId: 'wc', round: r, week: WC_POOL_WEEKS[r],
+          homeId: h, awayId: a, played: false,
+          homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        })
+      }
+    })
+  })
+  state.comps['wc'] = comp
+}
+
 /** Six Nations & Rugby Championship (played by national teams, engine-lite). */
-export function buildInternationals(rng: Rng, state: GameState) {
+export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
+  if (worldCup) buildWorldCup(rng, state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snRounds = roundRobin(sn, rng, false)
   const snComp: Competition = {
@@ -165,6 +203,9 @@ export function buildInternationals(rng: Rng, state: GameState) {
     }
   })
   state.comps['sn'] = snComp
+
+  // In a World Cup year there is no Rugby Championship and no autumn series
+  if (worldCup) return
 
   const trc = ['NZL', 'RSA', 'AUS', 'ARG']
   const trcRounds = roundRobin(trc, rng, true)
