@@ -1082,3 +1082,25 @@ input, select { font: inherit; }
 .form-pip.W { background: #2f7d4f; }
 .form-pip.D { background: #8a7a3a; }
 .form-pip.L { background: #9b2c2c; }
+
+/* ================= Momentum bar & captain armband ================= */
+.momo-bar {
+  position: relative;
+  height: 7px;
+  margin: 0 14px;
+  border-radius: 4px;
+  background: var(--cream-3);
+  overflow: visible;
+}
+.momo-fill { position: absolute; inset: 0; border-radius: 4px; opacity: .5; }
+.momo-needle {
+  position: absolute; top: -2.5px;
+  width: 4px; height: 12px;
+  margin-left: -2px;
+  background: var(--gold-bright, #e3b92e);
+  border: 1px solid rgba(0, 0, 0, .35);
+  border-radius: 2px;
+  transition: left .9s cubic-bezier(.45, .05, .35, 1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
+.pitch .pdot.cap { outline: 1.5px solid #e3b92e; outline-offset: 1px; }
