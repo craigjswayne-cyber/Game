@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { LEAGUE_DEFS } from '../../game/newgame'
-import { SectionTitle } from '../components'
+import { Crest, SectionTitle } from '../components'
 
 export default function NewGame() {
   const start = useStore(s => s.start)
@@ -37,8 +37,8 @@ export default function NewGame() {
         <SectionTitle sub={`${league.clubs.length} clubs`}>{league.name}</SectionTitle>
         {[...league.clubs].sort((a, b) => b.rep - a.rep).map(c => (
           <button key={c.id} className="club-pick" onClick={() => setClubId(c.id)}
-            style={clubId === c.id ? { background: '#dcebe2' } : undefined}>
-            <span className="club-color" style={{ background: c.colors[0] }} />
+            style={clubId === c.id ? { background: 'color-mix(in srgb, var(--gold) 16%, var(--paper))' } : undefined}>
+            <Crest club={c} size={22} mr={0} />
             <span className="cname">{c.name}</span>
             <span className="muted">{c.stadium}</span>
             <span style={{ color: '#a8841a', fontSize: 11 }}>{'★'.repeat(Math.max(1, Math.round(c.rep / 20)))}</span>

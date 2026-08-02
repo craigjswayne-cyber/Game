@@ -1,6 +1,6 @@
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER } from '../../game/model'
-import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { Crest, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationByCode } from '../../game/nations'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
@@ -20,7 +20,10 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           position: 'absolute', top: 0, left: 0, right: 0, height: 6,
           background: `linear-gradient(90deg, ${club.colors[0]} 0 65%, ${club.colors[1]} 65% 100%)`,
         }} />
-        <h3 style={{ fontSize: 20 }}>{club.name}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Crest club={club} size={40} mr={10} />
+          <h3 style={{ fontSize: 20 }}>{club.name}</h3>
+        </div>
         <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
         <div className="meta">🏟️ {club.stadium} — {club.capacity.toLocaleString()} capacity</div>
         <div className="badge-row" style={{ marginTop: 6 }}>

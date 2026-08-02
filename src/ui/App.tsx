@@ -26,21 +26,35 @@ const TITLES: Record<string, string> = {
   nations: 'International Rugby', history: 'Roll of Honour',
 }
 
+const IcoMoon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" />
+  </svg>
+)
+const IcoSun = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4.2" />
+    <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
+  </svg>
+)
+
 export default function App() {
   const nav = useStore(s => s.nav)
   const game = useStore(s => s.game)
+  const night = useStore(s => s.night)
   useStore(s => s.tick)
-  const { back, go, home, continueWeek } = useStore.getState()
+  const { back, go, home, continueWeek, toggleNight } = useStore.getState()
 
   const cur = nav[nav.length - 1]
+  const appClass = `app${night ? ' night' : ''}`
 
-  if (cur.screen === 'menu') return <div className="app"><Menu /></div>
-  if (cur.screen === 'newgame') return <div className="app"><NewGame /></div>
-  if (!game) return <div className="app"><Menu /></div>
+  if (cur.screen === 'menu') return <div className={appClass}><Menu /></div>
+  if (cur.screen === 'newgame') return <div className={appClass}><NewGame /></div>
+  if (!game) return <div className={appClass}><Menu /></div>
 
   if (game.unemployed) {
     return (
-      <div className="app">
+      <div className={appClass}>
         <div className="title-screen">
           <div style={{ fontSize: 46 }}>📄</div>
           <hr className="rules" />
@@ -62,7 +76,12 @@ export default function App() {
   }
 
   if (cur.screen === 'matchday') {
-    return <div className="app"><MatchDay /></div>
+    const mdClub = game.clubs[game.userClubId]
+    return (
+      <div className={appClass} style={{ '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties}>
+        <MatchDay />
+      </div>
+    )
   }
 
   const club = game.clubs[game.userClubId]
@@ -101,7 +120,7 @@ export default function App() {
   )
 
   return (
-    <div className="app" style={clubVars}>
+    <div className={appClass} style={clubVars}>
       <header className="masthead">
         <div className="masthead-row">
           {nav.length > 1
@@ -111,6 +130,9 @@ export default function App() {
             <h1>{cur.screen === 'home' ? club.name : TITLES[cur.screen] ?? ''}</h1>
             <div className="date">{weekDate(game.season, game.week)} · {seasonLabel(game.season)} · Wk {game.week}</div>
           </div>
+          <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
+            {night ? <IcoSun /> : <IcoMoon />}
+          </button>
           <button className="continue-btn" onClick={continueWeek}>Continue ▸</button>
         </div>
       </header>

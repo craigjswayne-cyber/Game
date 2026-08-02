@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
-import { SectionTitle } from '../components'
+import { CrestT, SectionTitle } from '../components'
 import { weekDate } from '../../game/model'
 
 const TYPE_ICON: Record<string, string> = {
@@ -35,7 +35,7 @@ export default function Home() {
             Next match · {comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           <h3 style={{ fontSize: 18, margin: '4px 0' }}>
-            {teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}
+            <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} v <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
           </h3>
           <div className="meta">
             {game.clubs[fx.homeId]?.stadium ?? 'Neutral venue'} · {weekDate(game.season, fx.week)}

@@ -42,7 +42,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {p.intl ? ' · International' : ''}{p.youth ? ' · Academy graduate' : ''}
             </div>
             {club && (
-              <button className="meta" style={{ color: '#0b3d2e', fontWeight: 600, marginTop: 2 }}
+              <button className="meta" style={{ color: 'var(--accent-ink)', fontWeight: 600, marginTop: 2 }}
                 onClick={() => go('club', club.id)}>
                 {club.name} ›
               </button>

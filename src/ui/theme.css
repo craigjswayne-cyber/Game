@@ -37,7 +37,72 @@
   --club1: #0b3d2e;
   --club2: #c9a227;
   --club1-ink: #ffffff;
+  /* semantic accents that flip under floodlights */
+  --accent-ink: #0b3d2e;
+  --title-ink: #082b20;
+  --star-empty: #cfc4a9;
 }
+
+/* ============ Floodlit mode (night theme) ============ */
+.app.night {
+  --cream: #0d1713;
+  --cream-2: #12201a;
+  --cream-3: #223429;
+  --paper: #142420;
+  --ink: #ece7d8;
+  --ink-soft: #b0bab1;
+  --ink-faint: #7e8a81;
+  --hairline: rgba(236, 231, 216, 0.09);
+  --accent-ink: #e3b92e;
+  --title-ink: #f0e9d2;
+  --star-empty: #35443b;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
+  background:
+    radial-gradient(130% 50% at 50% -8%, rgba(227, 185, 46, .07), transparent 60%),
+    var(--cream);
+}
+.app.night .section-title { color: var(--title-ink); }
+.app.night .card h3, .app.night .news-item .subj { color: var(--title-ink); }
+.app.night .tab-bar button.active { color: var(--gold-bright); }
+.app.night .tab-bar { border-bottom-color: var(--gold-dark); }
+.app.night .dtable th { border-bottom-color: var(--gold-dark); color: var(--ink-faint); }
+.app.night .btn.ghost { color: var(--ink); border-color: rgba(236, 231, 216, .3); }
+.app.night .slider-row .lbls b { color: var(--gold-bright); }
+.app.night .th-sort.active { color: var(--gold-bright); }
+.app.night .tick-event.big .txt { color: var(--title-ink); }
+.app.night .press-q { color: var(--ink); }
+.app.night .press-outlet { color: var(--gold); }
+.app.night .news-item .when { color: var(--gold); }
+.app.night .inline-input { border-color: var(--cream-3); color: var(--ink); }
+.app.night .pos-badge { box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.app.night .masthead {
+  background:
+    radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 38%, transparent), transparent 55%),
+    linear-gradient(168deg, #071e17 0%, #05130e 70%, #030c09 100%);
+}
+.app.night .bottom-nav { background: linear-gradient(180deg, #05130e, #030c09); }
+.app.night .pitch {
+  background:
+    linear-gradient(180deg, rgba(140, 190, 255, .10), rgba(0, 0, 15, .3)),
+    repeating-linear-gradient(90deg, #1d4a35 0 40px, #1a4330 40px 80px);
+  border-color: rgba(0, 0, 0, .5);
+  box-shadow: inset 0 2px 18px rgba(0, 0, 10, .55), 0 0 24px rgba(160, 200, 255, .07);
+}
+.app.night .scoreboard {
+  background:
+    radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 34%, transparent), transparent 60%),
+    linear-gradient(172deg, #06140f, #030c09);
+}
+.app.night .chip { background: var(--paper); }
+.app.night .modal-veil { background: rgba(0, 0, 0, .65); }
+/* chrome text: --cream doubles as a surface at night, so restate light ink */
+.app.night .masthead,
+.app.night .back-btn,
+.app.night .btn:not(.gold):not(.ghost),
+.app.night .scoreboard,
+.app.night .pos-badge,
+.app.night .title-screen { color: #ece7d8; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -605,3 +670,18 @@ input, select { font: inherit; }
 
 /* stat hero numbers (finances, club) */
 .big-num { font-family: var(--cond); font-weight: 700; font-size: 22px; letter-spacing: .5px; }
+
+/* highlighted fixture / problem rows (theme-aware) */
+.next-fx td { background: color-mix(in srgb, var(--gold) 16%, var(--paper)); }
+.prob-row td { background: color-mix(in srgb, var(--red) 14%, var(--paper)); }
+
+/* floodlit toggle in masthead */
+.night-btn {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream);
+  background: rgba(255, 255, 255, .08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
+  flex-shrink: 0;
+}
+.night-btn svg { width: 18px; height: 18px; }

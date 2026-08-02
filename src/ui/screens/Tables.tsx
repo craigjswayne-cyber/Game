@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { weekDate } from '../../game/model'
-import { SectionTitle, TeamDot } from '../components'
+import { CrestT, SectionTitle } from '../components'
 import { stageName } from './Home'
 
 export default function Tables({ initial }: { initial?: string }) {
@@ -44,7 +44,7 @@ export default function Tables({ initial }: { initial?: string }) {
               onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
               style={playoffLine && i === playoffLine - 1 ? { borderBottom: '2px solid #c9a227' } : undefined}>
               <td className="num muted">{i + 1}</td>
-              <td className="name"><TeamDot g={game} teamId={r.teamId} />{teamShort(game, r.teamId)}</td>
+              <td className="name"><CrestT g={game} teamId={r.teamId} size={17} />{teamShort(game, r.teamId)}</td>
               <td className="num">{r.p}</td>
               <td className="num">{r.w}</td>
               <td className="num">{r.d}</td>
@@ -64,7 +64,7 @@ export default function Tables({ initial }: { initial?: string }) {
             {ko.map(f => (
               <tr key={f.id}>
                 <td className="muted">{stageName(f.stage!)}</td>
-                <td className="name"><TeamDot g={game} teamId={f.homeId} />{teamShort(game, f.homeId)} v <TeamDot g={game} teamId={f.awayId} />{teamShort(game, f.awayId)}</td>
+                <td className="name"><CrestT g={game} teamId={f.homeId} size={15} />{teamShort(game, f.homeId)} v <CrestT g={game} teamId={f.awayId} size={15} />{teamShort(game, f.awayId)}</td>
                 <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : weekDate(game.season, f.week).slice(0, -5)}</td>
               </tr>
             ))}

@@ -46,6 +46,23 @@ try {
   await page.click('text=Skip ⏭')
   await page.waitForSelector('text=Continue to Results', { timeout: 15000 })
   await shot('r8-fulltime')
+
+  // floodlit mode
+  await page.click('text=Continue to Results')
+  await page.waitForSelector('.news-item', { timeout: 15000 })
+  await page.click('.night-btn')
+  await page.waitForTimeout(400)
+  await shot('n1-inbox-night')
+  await page.click('.bottom-nav >> text=Squad')
+  await page.waitForTimeout(400)
+  await shot('n2-squad-night')
+  await page.click('.dtable tbody tr >> nth=7')
+  await page.waitForSelector('text=Set Piece & Contact')
+  await shot('n3-player-night')
+  await page.click('.back-btn')
+  await page.click('.bottom-nav >> text=Comps')
+  await page.waitForTimeout(400)
+  await shot('n4-tables-night')
   console.log('SHOTS DONE')
 } catch (e) {
   await shot('r9-fail')
