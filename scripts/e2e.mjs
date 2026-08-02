@@ -169,4 +169,5 @@ try {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
   await browser.close()
   server.kill()
+  process.exit(0)
 }

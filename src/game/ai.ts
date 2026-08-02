@@ -55,9 +55,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
 
   // squad-building intent: a couple of clubs a week target their weakest
-  // position with real money, so the world's top squads keep evolving
-  for (let k = 0; k < 2; k++) {
-    if (rng() > 0.35) continue
+  // position with real money, so the world's top squads keep evolving.
+  // Weeks 23-24 are deadline days — the market goes berserk.
+  const deadline = state.week === 23 || state.week === 24
+  for (let k = 0; k < (deadline ? 6 : 2); k++) {
+    if (rng() > (deadline ? 0.65 : 0.35)) continue
     const buyer = pick(rng, clubs)
     if (buyer.id === state.userClubId || buyer.budget < 800_000) continue
     // find thinnest position by count of quality bodies
