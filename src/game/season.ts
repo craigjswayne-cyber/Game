@@ -198,6 +198,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         state.natSquads[nat] = pool.map(p => p.id)
         for (const p of pool) {
           p.natSquad = true
+          p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
           if (p.clubId === state.userClubId) userCalls.push(p)
         }
       }
