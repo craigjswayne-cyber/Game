@@ -39,6 +39,7 @@ export default function Tactics() {
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
         <td className="name">{p ? p.name : <span className="muted">— tap to select —</span>}
+          {p && club.captain === p.id && <b style={{ color: '#a8841a' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td>{p && <Stars ca={effAt(p, pos)} />}</td>
         <td>{p && <FormPill v={p.form} />}</td>
@@ -99,6 +100,22 @@ export default function Tactics() {
       </div>
       <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
         <div className="meta" style={{ fontStyle: 'italic' }}>{assistantAdvice(game)}</div>
+      </div>
+      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 18 }}>©</span>
+        <div style={{ flex: 1 }}>
+          <div className="fact-label">Club Captain</div>
+          <div className="meta">A strong leader lifts attack & defence and calms tempers — leadership matters.</div>
+        </div>
+        <select className="inline-input" style={{ margin: 0, maxWidth: 170 }}
+          value={club.captain ?? ''}
+          onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
+          {club.players.map(id => game.players[id]).filter(Boolean)
+            .sort((a, b) => b.a.lea - a.a.lea)
+            .map(p => (
+              <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+            ))}
+        </select>
       </div>
       <SectionTitle>Starting XV</SectionTitle>
       <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>

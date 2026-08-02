@@ -4,6 +4,19 @@ import type { GameState, Pos } from './model'
 import { XV_SLOTS } from './model'
 import { effAt } from './attributes'
 
+/** Every club needs a skipper: pick the best leader if the armband is free. */
+export function ensureCaptains(state: GameState) {
+  for (const club of Object.values(state.clubs)) {
+    const cap = club.captain != null ? state.players[club.captain] : null
+    if (cap && cap.clubId === club.id && !cap.onLoan) continue
+    const best = club.players
+      .map(id => state.players[id])
+      .filter(p => p && !p.onLoan)
+      .sort((a, b) => (b!.a.lea * 2 + b!.age + b!.ca / 10) - (a!.a.lea * 2 + a!.age + a!.ca / 10))[0]
+    club.captain = best ? best.id : null
+  }
+}
+
 /** FM-style star designations: the club's top players (CA-led, cap 3). */
 export function starPlayerIds(state: GameState, clubId: string): Set<number> {
   const club = state.clubs[clubId]

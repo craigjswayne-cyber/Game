@@ -4,6 +4,7 @@ import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, sortTable } from './schedule'
 import { LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
+import { ensureCaptains } from './analysis'
 import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
 import { regenName } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -384,6 +385,7 @@ export function rebuildSeason(state: GameState) {
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
   }
+  ensureCaptains(state)
 
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,

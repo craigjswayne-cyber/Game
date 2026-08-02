@@ -228,6 +228,21 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
         </div>
 
+        {(() => {
+          const danger = oppLineup.slice(0, 15)
+            .map(id => id != null ? game.players[id] : null)
+            .filter(Boolean)
+            .sort((a, b) => b!.ca - a!.ca)[0]
+          return danger ? (
+            <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+              <div className="fact-label">Danger Man</div>
+              <div className="meta">
+                <b>{danger.name}</b> ({danger.pos}) is the one to shackle — {game.clubs[opp]?.short ?? 'they'} play
+                through him. Keep him quiet and you're halfway there.
+              </div>
+            </div>
+          ) : null
+        })()}
         <SectionTitle sub="your colours on the left">Head to Head</SectionTitle>
         {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
         {bar('Lineout', myUnits.lineout, oppUnits.lineout)}

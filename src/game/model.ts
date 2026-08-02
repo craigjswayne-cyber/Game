@@ -132,6 +132,8 @@ export interface Club {
   // finance
   wageBudget: number
   boardConfidence: number // 0-100
+  /** club captain — a real leader on the pitch steadies the whole side */
+  captain?: number | null
 }
 
 export interface Tactic {
