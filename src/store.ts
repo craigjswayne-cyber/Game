@@ -1,10 +1,12 @@
 import { create } from 'zustand'
-import type { GameState, MatchEvent, Fixture } from './game/model'
+import type { GameState, MatchEvent, Fixture, StaffLevels } from './game/model'
 import { newGame } from './game/newgame'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
-import { applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, playSegment, teamShort, type LiveCtx } from './game/matchEngine'
+import {
+  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
+  stepTick, teamShort, type LiveCtx,
+} from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
-import { simMatch } from './game/matchEngine'
 import { answerPress } from './game/media'
 import { saveGame } from './game/save'
 
@@ -12,6 +14,7 @@ export type Screen =
   | 'menu' | 'newgame' | 'home' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
+  | 'feed' | 'medical' | 'report' | 'profile' | 'saves'
 
 interface NavEntry {
   screen: Screen
@@ -31,6 +34,7 @@ interface Store {
     speed: number
     done: boolean
     talkMsg: string | null
+    preTalkMsg: string | null
   } | null
   saveSlot: string
   night: boolean
@@ -38,14 +42,17 @@ interface Store {
 
   start: (clubId: string, managerName: string, challengeId?: string) => void
   toggleShortlist: (playerId: number) => void
-  hireStaff: (role: 'assistant' | 'physio' | 'scout') => void
+  hireStaff: (role: keyof StaffLevels) => void
   setGame: (g: GameState, slot: string) => void
+  setSlot: (slot: string) => void
   go: (screen: Screen, param?: string | number) => void
   back: () => void
   home: () => void
   touch: () => void
   continueWeek: () => void
-  kickOff: () => void
+  kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy') => void
+  advanceLive: () => void
+  skipToBreak: () => void
   matchCursor: (cursor: number, playing: boolean) => void
   finishMatch: () => void
   teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
@@ -56,6 +63,20 @@ interface Store {
   resign: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
+}
+
+/** After a tick hits FT: knockout ties are settled in sudden-death extra time. */
+function settleKnockout(g: GameState, ctx: LiveCtx) {
+  const fx = ctx.fx
+  if (fx.stage && fx.homeScore === fx.awayScore) {
+    resolveKnockoutDraw(g, fx, weekRng(g))
+    ctx.events.push({
+      min: 90, type: 'FT', teamId: '',
+      text: `SUDDEN DEATH! ${teamShort(g, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time — ${fx.homeScore}-${fx.awayScore}!`,
+      homeScore: fx.homeScore, awayScore: fx.awayScore,
+    })
+    fx.events = ctx.events
+  }
 }
 
 export const useStore = create<Store>((set, get) => ({
@@ -94,12 +115,13 @@ export const useStore = create<Store>((set, get) => ({
     g.news.push({
       id: g.nextId++, week: g.week, season: g.season, type: 'general', read: true,
       subject: `Backroom appointment`,
-      body: `The club has upgraded its ${role} setup to level ${g.staff[role]}.`,
+      body: `The club has upgraded its coaching department: ${String(role)} setup now level ${g.staff[role]}.`,
     })
     set(s => ({ tick: s.tick + 1 }))
   },
 
   setGame: (g, slot) => set({ game: g, saveSlot: slot, nav: [{ screen: 'home' }], tick: get().tick + 1 }),
+  setSlot: (slot) => set({ saveSlot: slot }),
 
   go: (screen, param) => set(s => ({ nav: [...s.nav, { screen, param }] })),
   back: () => set(s => ({ nav: s.nav.length > 1 ? s.nav.slice(0, -1) : s.nav })),
@@ -120,23 +142,67 @@ export const useStore = create<Store>((set, get) => ({
     if (g.week % 4 === 0) void get().persist()
   },
 
-  /** From the MatchDay preview: simulate the first half, start playback. */
-  kickOff: () => {
+  /** From the MatchDay preview: take the field. The match simulates
+   *  tick by tick as the ticker plays, so nothing is decided yet. */
+  kickOff: (preTalk) => {
     const g = get().game
     if (!g) return
     const fx = userFixtureThisWeek(g)
     if (!fx) return
     const ctx = beginMatch(g, fx, weekRng(g), true)
-    playSegment(g, ctx) // first half
+    let preTalkMsg: string | null = null
+    if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
     set(s => ({
-      liveMatch: { ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1, done: false, talkMsg: null },
+      liveMatch: {
+        ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1,
+        done: false, talkMsg: null, preTalkMsg,
+      },
       tick: s.tick + 1,
     }))
   },
 
+  /** One heartbeat of the live match: reveal the next event, or simulate
+   *  the next 4 minutes when the ticker has caught up. */
+  advanceLive: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || !liveMatch.playing) return
+    const { ctx } = liveMatch
+    let cursor = liveMatch.cursor
+    if (cursor < ctx.events.length) {
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: cursor + 1 }, tick: s.tick + 1 } : {})
+      return
+    }
+    if (ctx.awaiting || ctx.seg === 3) {
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, playing: false, done: ctx.seg === 3 } } : {})
+      return
+    }
+    // simulate until something new happens or the clock hits a break
+    let r: ReturnType<typeof stepTick> = 'play'
+    while (ctx.events.length <= cursor && r === 'play') {
+      r = stepTick(game, ctx)
+    }
+    if (r === 'FT') settleKnockout(game, ctx)
+    if (ctx.events.length > cursor) cursor += 1
+    set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
+  },
+
+  /** Fast-forward the rest of the current period (to HT, 60' or FT). */
+  skipToBreak: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch) return
+    const { ctx } = liveMatch
+    let r: ReturnType<typeof stepTick> = 'play'
+    while (!ctx.awaiting && ctx.seg < 3 && (r = stepTick(game, ctx)) === 'play') { /* run the clock */ }
+    if (r === 'FT') settleKnockout(game, ctx)
+    set(s => s.liveMatch ? {
+      liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3 },
+      tick: s.tick + 1,
+    } : {})
+  },
+
   teamTalk: (kind) => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.seg !== 1) return
+    if (!game || !liveMatch || liveMatch.ctx.awaiting !== 'HT') return
     const msg = applyTeamTalk(game, liveMatch.ctx, kind)
     set(s => ({ liveMatch: s.liveMatch ? { ...s.liveMatch, talkMsg: msg } : null, tick: s.tick + 1 }))
   },
@@ -149,7 +215,7 @@ export const useStore = create<Store>((set, get) => ({
     return msg
   },
 
-  /** Re-read the tactic sliders mid-match (interval panels). */
+  /** Re-read the tactic sliders mid-match — allowed at any stoppage. */
   liveTactics: () => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
@@ -161,26 +227,7 @@ export const useStore = create<Store>((set, get) => ({
   startSecondHalf: () => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
-    const ctx = liveMatch.ctx
-    playSegment(game, ctx)
-    const fx = ctx.fx
-    if (ctx.seg < 3) {
-      set(s => ({
-        liveMatch: s.liveMatch ? { ...s.liveMatch, playing: true, done: false } : null,
-        tick: s.tick + 1,
-      }))
-      return
-    }
-    // knockout ties are settled in sudden-death extra time
-    if (fx.stage && fx.homeScore === fx.awayScore) {
-      resolveKnockoutDraw(game, fx, weekRng(game))
-      ctx.events.push({
-        min: 90, type: 'FT', teamId: '',
-        text: `SUDDEN DEATH! ${teamShort(game, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time — ${fx.homeScore}-${fx.awayScore}!`,
-        homeScore: fx.homeScore, awayScore: fx.awayScore,
-      })
-      fx.events = ctx.events
-    }
+    liveMatch.ctx.awaiting = null
     set(s => ({
       liveMatch: s.liveMatch ? { ...s.liveMatch, playing: true, done: false } : null,
       tick: s.tick + 1,
@@ -188,7 +235,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   matchCursor: (cursor, playing) => set(s => s.liveMatch ? ({
-    liveMatch: { ...s.liveMatch, cursor, playing, done: cursor >= s.liveMatch.events.length },
+    liveMatch: { ...s.liveMatch, cursor, playing },
   }) : {}),
 
   /** After FT: process the rest of the week and return home. */

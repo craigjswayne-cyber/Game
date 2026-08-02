@@ -4,6 +4,7 @@ import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEng
 import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
 import { generatePress } from './media'
+import { generateGossip } from './gossip'
 import { playerValue } from './attributes'
 import { scoutOpponent, weeklyScouting } from './scout'
 import { derbyName, isDerby } from './rivalries'
@@ -229,23 +230,32 @@ function weeklyTraining(state: GameState, rng: Rng) {
     balanced: [], scrum: ['scr', 'str'], lineout: ['lin'], attack: ['han', 'pas', 'vis'],
     defence: ['tac', 'pos'], fitness: ['sta'], kicking: ['kic', 'goa'],
   }
+  // which specialist coach amplifies which training focus
+  const coachFor: Record<string, keyof GameState['staff'] | null> = {
+    balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
+    defence: 'defence', fitness: 'assistant', kicking: 'kicking',
+  }
   for (const club of Object.values(state.clubs)) {
     const isUser = club.id === state.userClubId
     for (const id of club.players) {
       const p = state.players[id]
       if (!p) continue
-      // recovery
-      p.cond = clamp(p.cond + 22, 20, 100)
+      // recovery — rusty players take longer to freshen up
+      p.cond = clamp(p.cond + ((p.rust ?? 0) > 0 ? 16 : 22), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
+      if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       if (p.injury && state.week >= p.injury.until) {
+        const weeksOut = p.injury.weeks ?? 2
         p.injury = null
         p.cond = 70
         p.sharp = 40
+        // a spell of match rust: playable, but rushing him back risks re-injury
+        p.rust = weeksOut >= 8 ? 3 : weeksOut >= 3 ? 2 : 1
         if (isUser) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
             subject: `${p.name} back in training`,
-            body: `${p.name} has recovered and is available for selection, though his match sharpness will need managing.`,
+            body: `${p.name} has recovered and is available for selection — but the medical team rate him RUSTY for ${p.rust} week${p.rust > 1 ? 's' : ''}. Pick him now and he could break down again; ease him back and he'll be right.`,
             playerId: p.id,
           })
         }
@@ -253,8 +263,12 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // gentle in-season growth for youngsters, drift for user's training focus
       const growBoost = isUser ? 1 + state.staff.assistant * 0.25 : 1
       if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost) p.ca += 1
-      if (isUser && state.training !== 'balanced' && rng() < 0.03 * (1 + state.staff.assistant * 0.5)) {
-        for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
+      if (isUser && state.training !== 'balanced') {
+        const coach = coachFor[state.training]
+        const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
+        if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45)) {
+          for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
+        }
       }
       if (isUser && state.staff.physio > 0) p.cond = clamp(p.cond + state.staff.physio * 3, 20, 100)
       p.value = playerValue(p.ca, p.age, p.pa)
@@ -514,6 +528,7 @@ export function processWeekAndAdvance(state: GameState) {
     weeklyScouting(state)
     generatePress(state, rng)
   }
+  generateGossip(state, rng)
   aiTransfers(state, rng)
   aiRenewals(state, rng)
   refreshVacancies(state, rng)

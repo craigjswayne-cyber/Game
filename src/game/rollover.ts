@@ -285,6 +285,7 @@ export function rebuildSeason(state: GameState) {
     p.sharp = 60
     p.injury = null
     p.bans = 0
+    p.rust = 0
     p.natSquad = false
     if (p.onLoan) {
       // back from a season of first-team rugby elsewhere
@@ -314,6 +315,31 @@ export function rebuildSeason(state: GameState) {
     .sort((a, b) => b.ca - a.ca)
   for (const p of fas.slice(120)) delete state.players[p.id]
   for (const p of fas.slice(0, 120)) if (p.age >= 35) delete state.players[p.id]
+
+  // Promotion & relegation between the Premiership and the Championship
+  const premComp = state.comps['prem']
+  const champComp = state.comps['champ']
+  if (premComp && champComp) {
+    const premOrder = sortTable(premComp.table).map(r => r.teamId)
+    const down = premOrder[premOrder.length - 1]
+    const up = champComp.champion ?? sortTable(champComp.table)[0]?.teamId
+    if (down && up && down !== up && state.clubs[down] && state.clubs[up]) {
+      state.clubs[down].leagueId = 'champ'
+      state.clubs[down].rep = Math.max(44, state.clubs[down].rep - 4)
+      state.clubs[up].leagueId = 'prem'
+      state.clubs[up].rep = Math.min(88, state.clubs[up].rep + 5)
+      const userInvolved = down === state.userClubId || up === state.userClubId
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: userInvolved ? 'board' : 'general', read: false,
+        subject: down === state.userClubId
+          ? `💔 RELEGATED: ${state.clubs[down].name} drop to the Championship`
+          : up === state.userClubId
+            ? `🎉 PROMOTED: ${state.clubs[up].name} are going up!`
+            : `Promotion & relegation: ${state.clubs[up].short} up, ${state.clubs[down].short} down`,
+        body: `${state.clubs[up].name} have won promotion to the Premiership. ${state.clubs[down].name} finished bottom and drop into the Championship.${down === state.userClubId ? ' The board is wounded and the budget will feel it — win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`,
+      })
+    }
+  }
 
   // Champions Cup qualification for next season from final league standings
   const euroSlots: string[] = []
