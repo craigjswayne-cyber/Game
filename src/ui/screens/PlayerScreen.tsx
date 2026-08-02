@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_NAMES, POS_NAMES, fmtMoney, type Attrs } from '../../game/model'
 import { askingPrice, offerRenewal, renewalDemand, userBid } from '../../game/ai'
-import { attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { attrBarColor, attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
@@ -76,6 +76,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             {keys.map(k => (
               <div className="attr" key={k}>
                 <span>{ATTR_NAMES[k]}</span>
+                <span className="bar"><i style={{ width: `${p.a[k] * 5}%`, background: attrBarColor(p.a[k]) }} /></span>
                 <span className={`v ${attrClass(p.a[k])}`}>{p.a[k]}</span>
               </div>
             ))}

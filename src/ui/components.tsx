@@ -55,3 +55,23 @@ export function AvailTag({ p, g }: { p: Player; g: GameState }) {
 export function attrClass(v: number): string {
   return v >= 16 ? 'elite' : v >= 12 ? 'good' : v <= 7 ? 'poor' : ''
 }
+
+/** Small club-colour swatch shown next to team names. */
+export function TeamDot({ g, teamId }: { g: GameState; teamId: string }) {
+  const c = g.clubs[teamId]
+  if (!c) return null
+  return (
+    <span
+      className="team-dot"
+      style={{ background: `linear-gradient(135deg, ${c.colors[0]} 55%, ${c.colors[1]} 55%)` }}
+    />
+  )
+}
+
+/** Colour for an attribute bar by value. */
+export function attrBarColor(v: number): string {
+  if (v >= 16) return 'linear-gradient(90deg, #e3b92e, #a8841a)'
+  if (v >= 12) return 'linear-gradient(90deg, #3f9463, #2f7d4f)'
+  if (v >= 8) return 'linear-gradient(90deg, #9aa89f, #7d8b82)'
+  return 'linear-gradient(90deg, #c9beab, #b3a78f)'
+}

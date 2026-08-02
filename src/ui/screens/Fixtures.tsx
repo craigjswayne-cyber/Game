@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { weekDate, type Fixture } from '../../game/model'
-import { SectionTitle } from '../components'
+import { SectionTitle, TeamDot } from '../components'
 import { stageName } from './Home'
 
 export default function Fixtures() {
@@ -31,7 +31,7 @@ export default function Fixtures() {
             return (
               <tr key={f.id} style={isNext ? { background: '#efe7cf' } : undefined}>
                 <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-                <td className="name">{f.homeId === me ? 'v ' : '@ '}{teamShort(game, opp)}</td>
+                <td className="name">{f.homeId === me ? 'v ' : '@ '}<TeamDot g={game} teamId={opp} />{teamShort(game, opp)}</td>
                 <td className="muted">{game.comps[f.compId]?.short ?? f.compId}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
                 <td>{res(f)}</td>
               </tr>
