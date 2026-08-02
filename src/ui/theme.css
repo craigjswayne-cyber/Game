@@ -1051,3 +1051,34 @@ input, select { font: inherit; }
 .spec-tile .ico { font-size: 18px; }
 .spec-tile b { font-size: 12.5px; color: var(--ink); font-family: var(--sans); }
 .spec-tile .d { font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }
+
+/* ================= Home hub widgets ================= */
+.hub-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 2px 14px 6px;
+}
+.hub-widget {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  padding: 9px 4px;
+  box-shadow: var(--shadow-1);
+}
+.hub-widget label {
+  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.hub-widget b { font-size: 16px; font-family: var(--cond); letter-spacing: .5px; color: var(--ink); }
+.hub-widget span { font-size: 9.5px; color: var(--ink-faint); }
+.form-pip {
+  width: 15px; height: 15px; border-radius: 3px;
+  font-size: 9.5px; font-weight: 700; line-height: 15px; color: #fff;
+  display: inline-block; text-align: center;
+}
+.form-pip.W { background: #2f7d4f; }
+.form-pip.D { background: #8a7a3a; }
+.form-pip.L { background: #9b2c2c; }

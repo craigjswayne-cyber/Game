@@ -183,6 +183,16 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.tempoF = 1 + f(t.tempo) * 0.22
     side.cardRisk = 0.012 + f(t.aggression) * 0.006
   }
+  // a proper captain in the XV steadies the ship and keeps discipline
+  if (club?.captain != null && side.lineup.slice(0, 15).includes(club.captain)) {
+    const cap = state.players[club.captain]
+    if (cap && cap.a.lea >= 12) {
+      const f = 1 + (cap.a.lea - 11) * 0.0022 // up to ~+2% at lea 20
+      side.units.attack *= f
+      side.units.defence *= f
+      side.cardRisk *= 0.93
+    }
+  }
   // your backroom staff sharpen the matchday units
   if (side.isUser && state.staff) {
     const s = state.staff

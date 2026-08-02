@@ -45,6 +45,7 @@ export function availabilityTag(p: Player, week: number): { txt: string; color: 
   if (p.injury) return { txt: `INJ ${Math.max(0, p.injury.until - week)}w`, color: '#9b2c2c' }
   if (p.bans > 0) return { txt: `BAN ${p.bans}`, color: '#9b2c2c' }
   if (p.natSquad) return { txt: 'INTL', color: '#a8841a' }
+  if ((p.rust ?? 0) > 0) return { txt: `⚠ RUSTY ${p.rust}w`, color: '#a8841a' }
   return null
 }
 

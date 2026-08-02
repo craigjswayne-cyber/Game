@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
+import { sortTable } from '../../game/schedule'
 import { CrestT, SectionTitle } from '../components'
-import { weekDate } from '../../game/model'
+import { fmtMoney, weekDate } from '../../game/model'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
-  award: '🏅', contract: '✍️', general: '📰', youth: '🎓',
+  award: '🏅', contract: '✍️', general: '📰', youth: '🎓', gossip: '🗞️',
 }
 
 export default function Home() {
@@ -26,7 +27,22 @@ export default function Home() {
   const comp = fx ? game.comps[fx.compId] : null
   const isThisWeek = fx && fx.week === game.week
   const pressOpen = game.press.filter(p => !p.answered).length
-  const news = [...game.news].reverse()
+  const news = [...game.news].filter(n => n.type !== 'gossip').reverse()
+
+  // hub widgets: form pips, league position, money
+  const recent = game.fixtures
+    .filter(f => f.played && (f.homeId === club.id || f.awayId === club.id))
+    .slice(-5)
+    .map(f => {
+      const us = f.homeId === club.id ? f.homeScore : f.awayScore
+      const them = f.homeId === club.id ? f.awayScore : f.homeScore
+      return us > them ? 'W' : us < them ? 'L' : 'D'
+    })
+  const leagueOrder = sortTable(game.comps[club.leagueId]?.table ?? [])
+  const pos = leagueOrder.findIndex(r => r.teamId === club.id) + 1
+  const finState = club.balance >= 3_000_000 ? ['Rich', '#2f7d4f']
+    : club.balance >= 500_000 ? ['Secure', '#6f8f4f']
+    : club.balance >= 0 ? ['Okay', '#8a7a3a'] : ['In the red', '#9b2c2c']
 
   if (game.unemployed) {
     return (
@@ -85,6 +101,34 @@ export default function Home() {
           </div>
         </div>
       )}
+      <div className="hub-row">
+        <button className="hub-widget" onClick={() => go('tables')}>
+          <label>League</label>
+          <b>{pos > 0 ? `${pos}${pos === 1 ? 'st' : pos === 2 ? 'nd' : pos === 3 ? 'rd' : 'th'}` : '—'}</b>
+          <span>{game.comps[club.leagueId]?.short}</span>
+        </button>
+        <button className="hub-widget" onClick={() => go('fixtures')}>
+          <label>Form</label>
+          <b style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
+            {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>no games</span> : recent.map((r, i) => (
+              <span key={i} className={`form-pip ${r}`}>{r}</span>
+            ))}
+          </b>
+          <span>{recent.length ? `last ${recent.length} match${recent.length > 1 ? 'es' : ''}` : 'season ahead'}</span>
+        </button>
+        <button className="hub-widget" onClick={() => go('finances')}>
+          <label>Finances</label>
+          <b style={{ color: finState[1] }}>{finState[0]}</b>
+          <span>{fmtMoney(club.budget)} to spend</span>
+        </button>
+        <button className="hub-widget" onClick={() => go('report')}>
+          <label>Board</label>
+          <b style={{ color: club.boardConfidence > 55 ? '#2f7d4f' : club.boardConfidence > 25 ? '#8a7a3a' : '#9b2c2c' }}>
+            {Math.round(club.boardConfidence)}%
+          </b>
+          <span>confidence</span>
+        </button>
+      </div>
       {pressOpen > 0 && (
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid #c9a227' }}
           onClick={() => go('press')}>

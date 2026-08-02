@@ -1,4 +1,5 @@
 import type { GameState } from './model'
+import { ensureCaptains } from './analysis'
 
 const DB_NAME = 'rugby-manager'
 const STORE = 'saves'
@@ -54,6 +55,7 @@ function migrate(s: GameState): GameState {
   s.mgr ??= { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
   s.vacancies ??= []
   s.devFocus ??= []
+  for (const c of Object.values(s.clubs)) c.captain ??= null
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]
@@ -62,6 +64,7 @@ function migrate(s: GameState): GameState {
     p.ca0 ??= p.ca
     p.rust ??= 0
   }
+  ensureCaptains(s)
   return s
 }
 
