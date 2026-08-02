@@ -672,6 +672,87 @@ input, select { font: inherit; }
 /* stat hero numbers (finances, club) */
 .big-num { font-family: var(--cond); font-weight: 700; font-size: 22px; letter-spacing: .5px; }
 
+/* live match wrapper — portrait/base: stacked column */
+.live-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  grid-area: 1 / 1 / -1 / -1;
+}
+.live-wrap .ticker { flex: 1; overflow-y: auto; }
+
+/* ================================================================
+   LANDSCAPE — the FM Mobile format: left icon rail, wide content,
+   two-panel live match. Portrait keeps the bottom bar.
+================================================================ */
+@media (orientation: landscape) and (min-width: 640px) {
+  .app {
+    max-width: none;
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: 'nav head' 'nav main';
+  }
+  .app.no-rail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'main';
+  }
+  .masthead { grid-area: head; padding-top: 8px; }
+  .content { grid-area: main; }
+  .content > .card, .content > .chips { max-width: 820px; }
+  .app > .title-screen { grid-row: 1 / -1; grid-column: 1 / -1; }
+
+  .bottom-nav {
+    grid-area: nav;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: calc(env(safe-area-inset-top) + 10px) 0 10px env(safe-area-inset-left);
+    border-top: none;
+    border-right: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+    box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
+    overflow-y: auto;
+  }
+  .bottom-nav button { flex: 0 0 auto; padding: 7px 0; font-size: 9px; }
+  .bottom-nav button.active::before {
+    top: 50%; left: 0; transform: translateY(-50%);
+    width: 3px; height: 26px;
+    border-radius: 0 3px 3px 0;
+  }
+  .bottom-nav .ico { width: 20px; height: 20px; }
+
+  /* denser grids with the extra width */
+  .attr-grid { grid-template-columns: 1fr 1fr 1fr; max-width: 900px; }
+  .fact-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 900px; }
+  .tile-grid.three { grid-template-columns: repeat(6, 1fr); max-width: 900px; }
+  .title-screen h1 { font-size: 38px; }
+  .title-screen .menu-btns { max-width: 340px; }
+
+  /* live match: pitch & scoreboard left, commentary right */
+  .app .live-wrap {
+    grid-area: 1 / 1 / -1 / -1;
+    display: grid;
+    grid-template-columns: minmax(340px, 44%) minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas: 'score tick' 'pitch tick' 'ctrl tick' 'fill tick';
+    height: 100%;
+    min-height: 0;
+  }
+  .live-wrap .scoreboard { grid-area: score; padding-top: 12px; }
+  .live-wrap .pitch { grid-area: pitch; height: 150px; }
+  .live-wrap .speed-controls { grid-area: ctrl; }
+  .app .live-wrap .ticker {
+    grid-area: tick;
+    flex: none;
+    overflow-y: auto;
+    border-left: 1px solid var(--hairline);
+    padding-top: 8px;
+    height: 100%;
+  }
+}
+
 /* highlighted fixture / problem rows (theme-aware) */
 .next-fx td { background: color-mix(in srgb, var(--gold) 16%, var(--paper)); }
 .prob-row td { background: color-mix(in srgb, var(--red) 14%, var(--paper)); }

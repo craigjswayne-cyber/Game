@@ -4,7 +4,7 @@
   "description": "A classic-style rugby union management game — real clubs, real players, deep seasons.",
   "start_url": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "landscape",
   "background_color": "#f5f0e6",
   "theme_color": "#0b3d2e",
   "icons": [
