@@ -1,5 +1,7 @@
+import type { CSSProperties, ReactNode } from 'react'
 import { useStore } from '../store'
 import { weekDate, seasonLabel } from '../game/model'
+import { IcoBall, IcoClipboard, IcoInbox, IcoPress, IcoTransfer, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
@@ -67,6 +69,10 @@ export default function App() {
   const unread = game.news.filter(n => !n.read).length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
+  const clubVars = {
+    '--club1': club.colors[0],
+    '--club2': club.colors[1],
+  } as CSSProperties
 
   const screen = () => {
     switch (cur.screen) {
@@ -87,15 +93,15 @@ export default function App() {
     }
   }
 
-  const navBtn = (s: string, ico: string, label: string, badge?: number) => (
+  const navBtn = (s: string, ico: ReactNode, label: string, badge?: number) => (
     <button className={cur.screen === s ? 'active' : ''} onClick={() => (s === 'home' ? home() : go(s as never))}>
-      <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge}</span> : null}</span>
+      <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
       {label}
     </button>
   )
 
   return (
-    <div className="app">
+    <div className="app" style={clubVars}>
       <header className="masthead">
         <div className="masthead-row">
           {nav.length > 1
@@ -110,12 +116,12 @@ export default function App() {
       </header>
       <main className="content">{screen()}</main>
       <nav className="bottom-nav">
-        {navBtn('home', '📮', 'Inbox', unread)}
-        {navBtn('squad', '🏉', 'Squad')}
-        {navBtn('tactics', '📋', 'Tactics')}
-        {navBtn('tables', '🏆', 'Comps')}
-        {navBtn('transfers', '💰', 'Transfers', offersOpen)}
-        {navBtn('press', '🗞️', 'Press', pressOpen)}
+        {navBtn('home', <IcoInbox />, 'Inbox', unread)}
+        {navBtn('squad', <IcoBall />, 'Squad')}
+        {navBtn('tactics', <IcoClipboard />, 'Tactics')}
+        {navBtn('tables', <IcoTrophy />, 'Comps')}
+        {navBtn('transfers', <IcoTransfer />, 'Transfers', offersOpen)}
+        {navBtn('press', <IcoPress />, 'Press', pressOpen)}
       </nav>
     </div>
   )

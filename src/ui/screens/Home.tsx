@@ -28,7 +28,9 @@ export default function Home() {
   return (
     <>
       {fx && (
-        <div className="card" onClick={() => go('tactics')}>
+        <div className="card" onClick={() => go('tactics')} style={{
+          borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? '#c9a227'}`,
+        }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
             Next match · {comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>

@@ -154,24 +154,29 @@ function Live() {
     TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·',
   }[e.type] ?? '·')
 
+  const homeC = game.clubs[fixture.homeId]?.colors ?? ['#c9a227', '#082b20']
+  const awayC = game.clubs[fixture.awayId]?.colors ?? ['#c9a227', '#082b20']
+
   return (
     <>
-      <div className="scoreboard">
+      <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
         <div className="teams">
-          <div className="tname">{teamShort(game, fixture.homeId)}</div>
+          <div className="tname">{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
           <div className="score">{hs} – {as}</div>
-          <div className="tname">{teamShort(game, fixture.awayId)}</div>
+          <div className="tname">{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">{done ? 'Full Time' : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}</div>
       </div>
 
       <div className="pitch">
-        <div className="tryzone" style={{ left: 0 }} />
-        <div className="tryzone" style={{ right: 0 }} />
+        <div className="tryzone" style={{ left: 0, background: `linear-gradient(90deg, ${homeC[0]}cc, ${homeC[0]}55)` }} />
+        <div className="tryzone" style={{ right: 0, background: `linear-gradient(270deg, ${awayC[0]}cc, ${awayC[0]}55)` }} />
         {[22, 50, 78].map(x => <div key={x} className="line" style={{ left: `${x}%` }} />)}
         {[36, 64].map(x => <div key={x} className="line dashed" style={{ left: `${x}%` }} />)}
-        <div className="zone-label" style={{ left: '2%' }}>{teamShort(game, fixture.homeId).slice(0, 3).toUpperCase()}</div>
-        <div className="zone-label" style={{ right: '2%' }}>{teamShort(game, fixture.awayId).slice(0, 3).toUpperCase()}</div>
+        <div className="posts" style={{ left: '7%' }} />
+        <div className="posts" style={{ right: '7%' }} />
+        <div className="zone-label" style={{ left: '2.5%' }}>{teamShort(game, fixture.homeId).slice(0, 3).toUpperCase()}</div>
+        <div className="zone-label" style={{ right: '2.5%' }}>{teamShort(game, fixture.awayId).slice(0, 3).toUpperCase()}</div>
         <div className="ball" style={{ left: `${ballLeft}%`, top: `${38 + ((min * 13) % 25)}%` }} />
       </div>
 

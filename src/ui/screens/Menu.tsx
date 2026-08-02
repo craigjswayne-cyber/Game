@@ -18,7 +18,12 @@ export default function Menu() {
 
   return (
     <div className="title-screen">
-      <div style={{ fontSize: 46 }}>🏉</div>
+      <svg viewBox="0 0 80 80" style={{ width: 84, height: 84 }} fill="none"
+        stroke="#c9a227" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <ellipse cx="40" cy="40" rx="26" ry="16.5" transform="rotate(-28 40 40)" />
+        <path d="M30.5 45.5l19-10M33.5 49l19-10M27.5 42l19-10" strokeWidth="1.6" />
+        <path d="M14 62c8 6 44 6 52 0M14 18c8-6 44-6 52 0" strokeWidth="1.2" opacity=".55" />
+      </svg>
       <hr className="rules" />
       <h1>RUGBY<br />MANAGER</h1>
       <div className="tagline">Stories, seasons & silverware — the rugby world awaits.</div>
