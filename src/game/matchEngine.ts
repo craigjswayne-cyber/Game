@@ -1020,23 +1020,23 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
   switch (kind) {
     case 'fire':
       mine.units.attack *= 1.07; mine.units.breakdown *= 1.05; mine.cardRisk *= 1.3
-      return 'You let them have it. Studs rattle the floor on the way out — expect fire, and maybe a card.'
+      return 'The shouting rattles the door on its hinges. They leave snorting — expect fire, and watch the referee.'
     case 'calm':
       mine.units.defence *= 1.06; mine.cardRisk *= 0.8
-      return 'Composed and clear. The defensive shape gets one more walk-through before they head out.'
+      return 'Calm, clear, matter-of-fact. The defensive shape gets one more walk-through before they head out.'
     case 'praise':
       if (winning) { mine.units.attack *= 1.04; mine.units.defence *= 1.03 }
       return winning
-        ? 'Confidence flows — keep doing exactly this.'
-        : 'Generous words, though a few eyebrows rise given the scoreboard.'
+        ? 'You are delighted and you tell them so. Confidence flows — keep doing exactly this.'
+        : 'Delighted? At that scoreline? A few eyebrows rise — the room is not sure you watched the same half.'
     case 'demand': {
       const roll = ctx.rng()
       if (roll < 0.5) {
         mine.units.attack *= 1.08; mine.units.defence *= 1.04
-        return 'You demand more, and the senior players nod. They look ready to empty the tank.'
+        return 'Encouraging, positive, believing — and the senior players nod along. They look ready to empty the tank.'
       }
       mine.units.attack *= 0.97
-      return 'You demand more — but a couple of heads drop. The gamble may backfire.'
+      return 'You gee them up, but a couple of heads stay down. The message floats past them.'
     }
   }
 }
