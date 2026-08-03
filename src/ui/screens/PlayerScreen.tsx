@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_NAMES, POS_NAMES, fmtMoney, type Attrs } from '../../game/model'
-import { askingPrice, offerRenewal, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
+import { askingPrice, offerRenewalAt, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
 import { attrBarColor, attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
@@ -14,6 +14,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [bidding, setBidding] = useState(false)
   const [bid, setBid] = useState(0)
   const [counter, setCounter] = useState<number | null>(null)
+  const [negotiating, setNegotiating] = useState(false)
+  const [wageOffer, setWageOffer] = useState(0)
+  const [wageCounter, setWageCounter] = useState<number | null>(null)
 
   const p = game.players[playerId]
   if (!p) return <div className="muted" style={{ padding: 14 }}>Player no longer in the game world (retired or released).</div>
@@ -184,17 +187,41 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       )}
       {mine ? (
-        <div className="btn-row">
-          <button className="btn" onClick={() => {
-            const r = offerRenewal(game, p.id)
-            setMsg(r.msg); touch()
-          }}>Offer New Deal ({fmtMoney(renewalDemand(p))}/wk)</button>
-          <button className={`btn ${p.transferListed ? 'ghost' : 'danger'}`} onClick={() => {
-            p.transferListed = !p.transferListed
-            setMsg(p.transferListed ? `${p.name} placed on the transfer list.` : `${p.name} removed from the list.`)
-            touch()
-          }}>{p.transferListed ? 'Unlist' : 'Transfer List'}</button>
-        </div>
+        <>
+          {negotiating && (
+            <div className="card">
+              <h3>Contract talks with {p.name.split(' ').slice(-1)[0]}'s agent</h3>
+              <div className="meta">His camp wants {fmtMoney(renewalDemand(p))}/wk (currently {fmtMoney(p.wage)}/wk). Lowball at your peril.</div>
+              <input className="inline-input" type="number" value={wageOffer} step={50} min={0}
+                onChange={e => setWageOffer(Number(e.target.value))} />
+              <div className="btn-row" style={{ margin: '10px 0 0' }}>
+                <button className="btn gold" onClick={() => {
+                  const r = offerRenewalAt(game, p.id, wageOffer)
+                  setMsg(r.msg); setWageCounter(r.counter ?? null); if (r.ok) setNegotiating(false); touch()
+                }}>Offer {fmtMoney(wageOffer)}/wk</button>
+                <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>Walk Away</button>
+              </div>
+              {wageCounter != null && (
+                <button className="btn" style={{ marginTop: 8, width: '100%' }} onClick={() => {
+                  const r = offerRenewalAt(game, p.id, wageCounter)
+                  setMsg(r.msg); setWageCounter(null); if (r.ok) setNegotiating(false); touch()
+                }}>Meet their number ({fmtMoney(wageCounter)}/wk)</button>
+              )}
+            </div>
+          )}
+          <div className="btn-row">
+            {!negotiating && (
+              <button className="btn" onClick={() => {
+                setNegotiating(true); setWageOffer(Math.round(renewalDemand(p) * 0.9 / 50) * 50); setWageCounter(null)
+              }}>Open Contract Talks</button>
+            )}
+            <button className={`btn ${p.transferListed ? 'ghost' : 'danger'}`} onClick={() => {
+              p.transferListed = !p.transferListed
+              setMsg(p.transferListed ? `${p.name} placed on the transfer list.` : `${p.name} removed from the list.`)
+              touch()
+            }}>{p.transferListed ? 'Unlist' : 'Transfer List'}</button>
+          </div>
+        </>
       ) : club ? (
         <>
           <button className={`btn ${shortlisted ? '' : 'ghost'} block`} onClick={() => toggleShortlist(p.id)}>
