@@ -122,7 +122,7 @@ export default function Tactics() {
           <div className="fact-label">Club Captain</div>
           <div className="meta">A strong leader lifts attack & defence and calms tempers — leadership matters.</div>
         </div>
-        <select className="inline-input" style={{ margin: 0, maxWidth: 170 }}
+        <select className="inline-input" style={{ margin: 0, maxWidth: 210 }}
           value={club.captain ?? ''}
           onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
           {club.players.map(id => game.players[id]).filter(Boolean)
