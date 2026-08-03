@@ -462,6 +462,13 @@ export function rebuildSeason(state: GameState) {
     )
   }
   state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
+  const chcSlots: string[] = []
+  const chcMap: Record<string, [number, number]> = { champ: [0, 2], prem: [5, 9], top14: [6, 11], urc: [5, 10] }
+  for (const [leagueId, [from, to]] of Object.entries(chcMap)) {
+    const comp = state.comps[leagueId]
+    if (comp) chcSlots.push(...sortTable(comp.table).map(t => t.teamId).slice(from, to))
+  }
+  state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
   const wcYear = isWorldCupSeason(state.season)
   buildInternationals(rng, state, wcYear)
   if (wcYear) {
