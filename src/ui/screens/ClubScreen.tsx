@@ -56,6 +56,36 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           })()}
         </div>
       </div>
+      {(() => {
+        // record book: retired legends + serving players with 100+ apps here
+        const serving = players
+          .map(p => {
+            const past = p.career.filter(c => c.clubId === club.id)
+              .reduce((t, c) => ({ apps: t.apps + c.apps, tries: t.tries + c.tries, pts: t.pts + c.points }), { apps: 0, tries: 0, pts: 0 })
+            return { name: `${p.name} *`, apps: past.apps + p.stats.apps, tries: past.tries + p.stats.tries, pts: past.pts + p.stats.points }
+          })
+          .filter(x => x.apps >= 100)
+        const book = [...(club.legends ?? []), ...serving].sort((a, b) => b.apps - a.apps).slice(0, 10)
+        if (!book.length) return null
+        return (
+          <>
+            <SectionTitle sub="100+ appearances · * still playing">Club Legends</SectionTitle>
+            <div className="tblwrap"><table className="dtable">
+              <thead><tr><th>Name</th><th className="num">Apps</th><th className="num">Tries</th><th className="num">Pts</th></tr></thead>
+              <tbody>
+                {book.map((l, i) => (
+                  <tr key={i}>
+                    <td className="name">{l.name}</td>
+                    <td className="num" style={{ fontWeight: 700 }}>{l.apps}</td>
+                    <td className="num">{l.tries}</td>
+                    <td className="num">{l.pts}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table></div>
+          </>
+        )
+      })()}
       {honours.length > 0 && (
         <>
           <SectionTitle>Honours (your era)</SectionTitle>

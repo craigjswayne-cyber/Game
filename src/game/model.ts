@@ -140,6 +140,8 @@ export interface Club {
   boardConfidence: number // 0-100
   /** club captain — a real leader on the pitch steadies the whole side */
   captain?: number | null
+  /** the record book: 100+ app servants, written in at retirement */
+  legends?: { name: string; apps: number; tries: number; pts: number }[]
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
 }

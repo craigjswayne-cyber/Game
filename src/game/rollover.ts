@@ -80,6 +80,21 @@ function agePlayers(state: GameState, rng: Rng) {
   }
   const userRetirees = retirees.filter(p => p.clubId === state.userClubId)
   for (const p of retirees) {
+    // the record book: 100+ appearances for a club earns a page in it
+    const byClub = new Map<string, { apps: number; tries: number; pts: number }>()
+    for (const c of p.career) {
+      const e = byClub.get(c.clubId) ?? { apps: 0, tries: 0, pts: 0 }
+      e.apps += c.apps; e.tries += c.tries; e.pts += c.points
+      byClub.set(c.clubId, e)
+    }
+    for (const [clubId, tot] of byClub) {
+      const club = state.clubs[clubId]
+      if (!club || tot.apps < 100) continue
+      club.legends = [...(club.legends ?? []), { name: p.name, ...tot }]
+        .sort((a, b) => b.apps - a.apps).slice(0, 25)
+    }
+  }
+  for (const p of retirees) {
     const clubId = p.clubId
     if (clubId) {
       const c = state.clubs[clubId]
