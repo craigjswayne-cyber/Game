@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
+import { capBill } from '../../game/ai'
 import { AvailTag, Nat, PosBadge, SectionTitle, Stars } from '../components'
 
 // FM Mobile squad layout: Pkd chip, fitness ring, starred names,
@@ -101,7 +102,8 @@ export default function Squad() {
     </td>
   )
 
-  const wageBill = club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
+  const wageBill = capBill(game, club)
+  const homegrown = club.players.map(id => game.players[id]).filter(p => p && (p.youth || p.nat === club.country)).length
 
   return (
     <>
@@ -118,7 +120,7 @@ export default function Squad() {
             onClick={() => setGroup(k)}>{label}</button>
         ))}
       </div>
-      <SectionTitle sub={`${players.length} players · ${fmtMoney(wageBill)}/wk`}>{group === 'aca' ? 'Academy Squad' : 'Club Squad'}</SectionTitle>
+      <SectionTitle sub={`${players.length} players · cap ${fmtMoney(wageBill)}/${fmtMoney(club.wageBudget)}wk · ${homegrown} homegrown${(club.marquee?.length ?? 0) ? ` · ${club.marquee!.length}⭐` : ''}`}>{group === 'aca' ? 'Academy Squad' : 'Club Squad'}</SectionTitle>
       <div className="tblwrap"><table className="dtable zebra">
         <thead>
           {view === 'selection' && (

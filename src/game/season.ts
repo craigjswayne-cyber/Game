@@ -258,12 +258,26 @@ function manageInternationals(state: GameState, rng: Rng) {
     }
     if (state.week === w.end + 1) {
       if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
+      const returnedMine: string[] = []
       for (const nat of w.nations) {
         for (const id of state.natSquads[nat] ?? []) {
           const p = state.players[id]
-          if (p) p.natSquad = false
+          if (p) {
+            p.natSquad = false
+            // Test rugby empties the tank — returning internationals need
+            // managing, not flogging
+            p.cond = clamp(p.cond - 10, 20, 100)
+            if (p.clubId === state.userClubId) returnedMine.push(p.name)
+          }
         }
         delete state.natSquads[nat]
+      }
+      if (returnedMine.length) {
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+          subject: `Internationals return — leggy`,
+          body: `Back in club colours: ${returnedMine.join(', ')}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it — your call.`,
+        })
       }
     }
   }

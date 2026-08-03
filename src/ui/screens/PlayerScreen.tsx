@@ -192,6 +192,23 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           touch()
         }}>🎓 Promote to First Team</button>
       )}
+      {mine && !p.acad && (() => {
+        const club = game.clubs[game.userClubId]
+        const marquee = club.marquee ?? []
+        const isMarquee = marquee.includes(p.id)
+        if (!isMarquee && marquee.length >= 2) return null
+        return (
+          <button className={`btn ${isMarquee ? '' : 'ghost'} block`} onClick={() => {
+            club.marquee = isMarquee ? marquee.filter(id => id !== p.id) : [...marquee, p.id]
+            setMsg(isMarquee
+              ? `${p.name} loses marquee status — his wage counts against the cap again.`
+              : `${p.name} designated a marquee player: his wage now sits outside the salary cap (${2 - marquee.length - 1} slot${2 - marquee.length - 1 === 1 ? '' : 's'} left).`)
+            touch()
+          }}>
+            {isMarquee ? '⭐ Marquee Player — tap to remove' : `⭐ Designate Marquee (${2 - marquee.length} slot${2 - marquee.length === 1 ? '' : 's'} free)`}
+          </button>
+        )
+      })()}
       {mine && !p.onLoan && (
         <div className="btn-row">
           <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'praise')); touch() }}>
