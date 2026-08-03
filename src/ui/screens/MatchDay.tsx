@@ -1108,10 +1108,10 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
   }
 
   const talks = [
-    ['fire', '🔥 Let them have it'],
-    ['calm', '🧊 Stay composed'],
-    ['praise', '👏 Praise the effort'],
-    ['demand', '💪 Demand more'],
+    ['fire', '🗣️ Shouting'],
+    ['calm', '🧊 Calm'],
+    ['demand', '📣 Encouraging'],
+    ['praise', '😄 Delighted'],
   ] as const
 
   const applyPreset = (values: { style: number; tempo: number; kicking: number; aggression: number }) => {
