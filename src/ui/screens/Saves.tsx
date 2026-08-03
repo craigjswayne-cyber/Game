@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { deleteSave, listSaves, loadGame, saveGame, type SaveMeta } from '../../game/save'
-import { seasonLabel, weekDate } from '../../game/model'
+import { deleteSave, listSaves, loadGame, migrate, saveGame, type SaveMeta } from '../../game/save'
+import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
 
 const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
@@ -38,6 +38,34 @@ export default function Saves() {
     await deleteSave(slot)
     setConfirmDel(null)
     refresh()
+  }
+
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const doExport = () => {
+    const club = game.clubs[game.userClubId]
+    const blob = new Blob([JSON.stringify(game)], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `rugby-manager-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
+    a.click()
+    URL.revokeObjectURL(a.href)
+    setMsg('Career exported — keep the file safe, import it on any device.')
+  }
+
+  const doImport = (file: File) => {
+    file.text().then(txt => {
+      const raw = JSON.parse(txt) as GameState
+      if (!raw || !raw.clubs || !raw.players || !raw.userClubId || raw.week == null) {
+        setMsg('That file is not a Rugby Manager save.')
+        return
+      }
+      const g = migrate(raw)
+      void saveGame('imported', g).then(() => {
+        setGame(g, 'imported')
+        setMsg(null)
+      })
+    }).catch(() => setMsg('Could not read that file — is it a Rugby Manager save?'))
   }
 
   return (
@@ -90,6 +118,19 @@ export default function Saves() {
           </div>
         )
       })}
+
+      <SectionTitle sub="move a career between phone and computer">Backup & Transfer</SectionTitle>
+      <div className="card">
+        <div className="meta" style={{ marginBottom: 8 }}>
+          Saves live in this browser only. Export your career to a file to back it up or continue on another device — import it there and play on.
+        </div>
+        <div className="btn-row" style={{ margin: 0 }}>
+          <button className="btn" onClick={doExport}>⬇️ Export Career</button>
+          <button className="btn ghost" onClick={() => fileRef.current?.click()}>⬆️ Import Save File</button>
+        </div>
+        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = '' }} />
+      </div>
 
       {saves.some(s => !SLOTS.includes(s.slot)) && (
         <>
