@@ -175,6 +175,8 @@ export interface SideCtx {
   tempoF: number
   /** energy-drain multiplier from match preparation (fitness week) */
   drainF: number
+  /** the AI coach's one in-match tactical shift has been made */
+  shifted?: boolean
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number
   isUser: boolean
@@ -768,6 +770,7 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   if (ctx.tick >= 20) return 'FT'
   simTick(state, ctx, ctx.tick)
   ctx.tick += 1
+  aiTacticShift(state, ctx)
   if (ctx.tick === 10) {
     ctx.seg = 1
     ctx.awaiting = 'HT'
@@ -789,6 +792,35 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
     return 'FT'
   }
   return 'play'
+}
+
+/** The opposite number is not a statue: an AI side chasing the game opens
+ *  up; an AI side protecting a lead late shuts up shop. Once per match. */
+function aiTacticShift(state: GameState, ctx: LiveCtx) {
+  for (const side of [ctx.home, ctx.away]) {
+    if (side.isUser || side.shifted) continue
+    const opp = side === ctx.home ? ctx.away : ctx.home
+    const diff = side.score - opp.score
+    const min = ctx.tick * 4
+    const coach = state.clubs[side.teamId]?.coach
+    const who = coach ?? `The ${teamShort(state, side.teamId)} coach`
+    if (ctx.tick >= 12 && diff <= -10) {
+      side.shifted = true
+      side.units.attack *= 1.06
+      side.units.defence *= 0.95
+      side.tempoF *= 1.14
+      side.cardRisk *= 1.15
+      pushEvent(state, ctx, min, 'SUB', side,
+        `${who} has seen enough — shackles off, bench emptied. ${teamShort(state, side.teamId)} will run everything as they chase the game.`)
+    } else if (ctx.tick >= 16 && diff >= 10) {
+      side.shifted = true
+      side.units.defence *= 1.05
+      side.units.attack *= 0.94
+      side.tempoF *= 0.88
+      pushEvent(state, ctx, min, 'SUB', side,
+        `${who} signals to the corners: game management time. ${teamShort(state, side.teamId)} will strangle the clock from here.`)
+    }
+  }
 }
 
 /** Play through to the next natural stop (HT, 60' or FT).
