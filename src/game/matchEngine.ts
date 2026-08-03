@@ -226,6 +226,11 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.015
     side.units.kicking *= 1 + (s.kicking ?? 0) * 0.02
     side.goalBonus = (s.kicking ?? 0) * 0.012
+    // swagger tax: a squad drunk on its own headlines turns up flat
+    if ((state.pressTone ?? 0) >= 4) {
+      side.units.attack *= 0.965
+      side.units.defence *= 0.965
+    }
     // this week's match preparation: a focused edge, always with a trade
     switch (state.matchPrep) {
       case 'attack': side.units.attack *= 1.035; side.units.defence *= 0.99; break

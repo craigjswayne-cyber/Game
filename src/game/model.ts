@@ -332,6 +332,9 @@ export interface GameState {
   preds?: Record<string, number>
   /** weekly balance snapshots for the finances season chart */
   finHist?: { w: number; b: number }[]
+  /** running press-conference tone: heavy praise breeds swagger, constant
+   *  criticism breeds fragility. Decays weekly toward neutral. */
+  pressTone?: number
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }
