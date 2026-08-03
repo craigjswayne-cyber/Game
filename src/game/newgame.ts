@@ -221,6 +221,14 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     .map(c => c.id)
   state.comps['cc'] = buildChampionsCup(euro, rng, state)
 
+  // Challenge Cup: the next 16 — Championship winners' pot and mid-table Europe
+  const chc = Object.values(state.clubs)
+    .filter(c => ['prem', 'top14', 'urc', 'champ'].includes(c.leagueId))
+    .sort((a, b) => b.rep - a.rep)
+    .slice(16, 32)
+    .map(c => c.id)
+  state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
+
   buildInternationals(rng, state, isWorldCupSeason(0))
   seedKnowledge(state)
   ensureCaptains(state)

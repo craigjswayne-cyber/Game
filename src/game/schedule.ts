@@ -111,12 +111,14 @@ export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Compe
 }
 
 /** Champions Cup: 16 clubs, 4 pools of 4 (double RR = 6 rounds), then QF/SF/F. */
-export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState): Competition {
+export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
+  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Continental Champions Cup', short: 'Champions Cup' },
+): Competition {
   const teams = shuffled(rng, clubIds.slice(0, 16))
   const comp: Competition = {
-    id: 'cc',
-    name: 'Continental Champions Cup',
-    short: 'Champions Cup',
+    id: meta.id,
+    name: meta.name,
+    short: meta.short,
     type: 'cup',
     teamIds: teams,
     table: teams.map(emptyRow),
@@ -135,7 +137,7 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState)
       for (const [h, a] of pairs) {
         state.fixtures.push({
           id: state.nextId++,
-          compId: 'cc',
+          compId: meta.id,
           round: r,
           week: CC_POOL_WEEKS[r],
           homeId: h, awayId: a,
