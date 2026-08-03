@@ -316,6 +316,30 @@ export function rebuildSeason(state: GameState) {
         predLine,
       ].filter(Boolean).join('\n'),
     })
+
+    // the end-of-season awards dinner — black tie, white wine, in-jokes
+    const rated = squad.filter(p => p.stats.apps >= 8)
+    if (rated.length >= 3) {
+      const avgR = (p: Player) => p.stats.ratingSum / Math.max(1, p.stats.apps)
+      const poty = [...rated].sort((a, b) => avgR(b) - avgR(a))[0]
+      const young = [...rated].filter(p => p.age <= 22).sort((a, b) => avgR(b) - avgR(a))[0]
+      const tryKing = [...rated].sort((a, b) => b.stats.tries - a.stats.tries)[0]
+      for (const w of [poty, young, tryKing]) {
+        if (w) w.morale = clamp(w.morale + 0.8, 1, 10)
+      }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: `🥂 Club awards night: ${poty.name} sweeps the room`,
+        body: [
+          `The season ends the way it should — the whole squad in one room, telling lies about each other.`,
+          ``,
+          `Player of the Season: ${poty.name} (avg ${avgR(poty).toFixed(2)})`,
+          young ? `Young Player of the Season: ${young.name} (${young.age})` : '',
+          tryKing.stats.tries > 0 ? `Top Try Scorer: ${tryKing.name} (${tryKing.stats.tries})` : '',
+        ].filter(Boolean).join('\n'),
+        playerId: poty.id,
+      })
+    }
   }
 
   // board verdict on the season vs their stated objective
