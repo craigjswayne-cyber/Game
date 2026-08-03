@@ -25,6 +25,7 @@ import Medical from './screens/Medical'
 import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
 import Saves from './screens/Saves'
+import DreamTeam from './screens/DreamTeam'
 
 const TITLES: Record<string, string> = {
   home: 'Inbox', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
@@ -33,6 +34,7 @@ const TITLES: Record<string, string> = {
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
   jobs: 'Job Centre', feed: 'The Rugby Wire', medical: 'Medical Centre',
   report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status',
+  dreamteam: 'Team of the Week',
 }
 
 const IcoMoon = () => (
@@ -137,6 +139,7 @@ export default function App() {
       case 'report': return <TeamReport />
       case 'profile': return <Profile />
       case 'saves': return <Saves />
+      case 'dreamteam': return <DreamTeam />
       default: return <Home />
     }
   }
@@ -159,6 +162,7 @@ export default function App() {
       title: 'World',
       items: [
         { ico: '📰', label: 'The Rugby Wire', screen: 'feed', badge: wireUnread },
+        { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
         { ico: '🏆', label: 'Competitions', screen: 'tables' },
         { ico: '🌍', label: 'International Rugby', screen: 'nations' },
         { ico: '📜', label: 'Roll of Honour', screen: 'history' },

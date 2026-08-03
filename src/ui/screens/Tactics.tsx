@@ -11,6 +11,7 @@ export default function Tactics() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
+  const [sel, setSel] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
   const t = club.tactic
@@ -23,6 +24,19 @@ export default function Tactics() {
     }
     t.lineup[slot] = pid
     setPickSlot(null)
+    setSel(null)
+    touch()
+  }
+
+  // FM Mobile interaction: tap a player to pick him up, tap another slot
+  // to swap the two; tap the same slot again for the full squad picker.
+  const tapSlot = (slot: number) => {
+    if (sel == null) { setSel(slot); return }
+    if (sel === slot) { setSel(null); setPickSlot(slot); return }
+    const a = t.lineup[sel]
+    t.lineup[sel] = t.lineup[slot]
+    t.lineup[slot] = a
+    setSel(null)
     touch()
   }
 
@@ -35,7 +49,8 @@ export default function Tactics() {
     const p = pid != null ? game.players[pid] : null
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
     return (
-      <tr key={slot} onClick={() => setPickSlot(slot)} className={problem ? 'prob-row' : undefined}>
+      <tr key={slot} onClick={() => tapSlot(slot)}
+        className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
         <td className="name">{p ? p.name : <span className="muted">— tap to select —</span>}
@@ -117,7 +132,7 @@ export default function Tactics() {
             ))}
         </select>
       </div>
-      <SectionTitle>Starting XV</SectionTitle>
+      <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Starting XV</SectionTitle>
       <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
       <SectionTitle>Replacements</SectionTitle>
       <table className="dtable"><tbody>{BENCH_SLOTS.map((_, i) => renderSlot(15 + i))}</tbody></table>

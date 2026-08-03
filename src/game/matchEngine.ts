@@ -839,6 +839,8 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         p.stats.apps += 1
         if (side.lineup.slice(0, 15).includes(pid)) p.stats.starts += 1
         p.stats.ratingSum += r
+        p.lastR = r
+        p.lastWk = state.week
         p.form = clamp(p.form * 0.65 + r * 0.35, 1, 10)
         const swing = (p.pers === 'Temperamental' ? 2 : 1) * (derby ? 1.6 : 1)
         p.morale = clamp(p.morale + (won ? 0.4 : -0.5) * swing, 1, 10)

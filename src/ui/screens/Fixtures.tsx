@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { weekDate, type Fixture, type MatchEvent } from '../../game/model'
-import { CrestT, SectionTitle } from '../components'
+import { CrestT, Jersey, SectionTitle } from '../components'
 import { stageName } from './Home'
 
 export default function Fixtures() {
@@ -22,8 +22,27 @@ export default function Fixtures() {
     return <span className={cls}>{us > them ? 'W' : us < them ? 'L' : 'D'} {f.homeScore}-{f.awayScore}</span>
   }
 
+  // magazine-style THIS WEEKEND card: this round in the user's league
+  const leagueId = game.clubs[me]?.leagueId
+  const weekend = game.fixtures
+    .filter(f => f.compId === leagueId && f.week === game.week && !f.played)
+    .slice(0, 7)
+
   return (
     <>
+      {weekend.length > 0 && (
+        <div className="card" style={{ padding: '10px 0' }}>
+          <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 15 }}>THIS WEEKEND</h3>
+          <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {game.comps[leagueId!]?.short}</div>
+          {weekend.map(f => (
+            <div key={f.id} className="wknd-row">
+              <span className="side">{game.clubs[f.homeId] && <Jersey club={game.clubs[f.homeId]} size={36} />} {teamShort(game, f.homeId)}</span>
+              <span className="vs">{f.homeId === me || f.awayId === me ? 'YOUR MATCH' : 'V'}</span>
+              <span className="side right">{teamShort(game, f.awayId)} {game.clubs[f.awayId] && <Jersey club={game.clubs[f.awayId]} size={36} />}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <SectionTitle sub={`${fx.filter(f => f.played).length}/${fx.length} played`}>Season Fixtures</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Date</th><th>Opponent</th><th>Comp</th><th>Result</th></tr></thead>

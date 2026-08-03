@@ -44,7 +44,14 @@ for (let season = 0; season < SEASONS; season++) {
     }
     // answer any open press
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)
+    const wk = g.week
     processWeekAndAdvance(g)
+    // knockout-theft guard: no user fixture for the processed week may have
+    // been simmed by the AI weekly loop (user-path matches carry events)
+    const stolen = g.fixtures.filter(f =>
+      f.week === wk && f.played && !f.events &&
+      (f.homeId === g.userClubId || f.awayId === g.userClubId))
+    if (stolen.length) console.error(`BUG: ${stolen.length} user fixture(s) in week ${wk} simmed by the AI path`)
   }
   console.log(`season rolled to ${g.season}, week ${g.week}; champions so far: ${g.history.map(h => `${h.compId}:${h.champion}`).join(' ')}`)
 }
@@ -52,7 +59,7 @@ for (let season = 0; season < SEASONS; season++) {
 const ms = Date.now() - t0
 console.log(`\n${SEASONS} full seasons in ${ms}ms (${Math.round(ms / SEASONS)}ms/season)`)
 console.log(`user matches: ${userMatches} (${userKO} knockout ties played by the user path), avg score for ${(totalPF / userMatches).toFixed(1)} - ${(totalPA / userMatches).toFixed(1)} against`)
-if (userKO === 0) console.error('BUG: user never played a knockout match through the user path')
+if (userKO === 0) console.warn('note: this seed produced no user knockout ties (mid-table decade) — theft guard above is the real check')
 console.log(`news items: ${g.news.length}, players now: ${Object.keys(g.players).length}, fixtures now: ${g.fixtures.length}`)
 
 // score distribution check on a fresh season's league fixtures

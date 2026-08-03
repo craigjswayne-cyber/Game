@@ -111,6 +111,9 @@ export interface Player {
   /** weeks of match rust remaining after an injury — playable, but a
    *  rushed return carries a much higher re-injury risk */
   rust?: number
+  /** last match rating and the week it was earned — fuels Team of the Week */
+  lastR?: number
+  lastWk?: number
 }
 
 export interface Club {

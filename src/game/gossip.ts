@@ -177,14 +177,50 @@ function gameTimeGrumbles(state: GameState, rng: Rng) {
     `Sources say ${p.name} (${p.pos}, rated among your best) trained away from the main group on Monday. His camp's message: "He didn't come here to hold tackle bags." Play him, sell him, or watch the mood sour${p.pers === 'Mercenary' ? ' — and his agent is already dialling' : ''}.`, p.id)
 }
 
+/** Fan forums, social posts and pundit columns — cheap talk, every week. */
+function socialBuzz(state: GameState, rng: Rng) {
+  const clubs = Object.values(state.clubs)
+  const club = pick(rng, clubs)
+  if (!club) return
+  const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
+  const star = [...squad].sort((a, b) => b.ca - a.ca)[0]
+  const kid = squad.filter(p => p.age <= 21).sort((a, b) => b.ca - a.ca)[0]
+  const other = pick(rng, clubs.filter(c => c.id !== club.id && c.rep >= club.rep - 8))
+  const target = other ? [...other.players.map(id => state.players[id]).filter(Boolean)].sort((a, b) => b!.ca - a!.ca)[0] : null
+  const takes: [string, string, number?][] = []
+  if (star) takes.push(
+    [`FAN FORUM: "${star.name.split(' ').slice(-1)[0]} to leave?" — ${club.short} board melts down`,
+      `A single unsourced post claiming ${star.name} has "told friends he wants out" hit 400 replies overnight on the ${club.short} fan forum. No agent, no journalist, no evidence — but try telling the replies that. One mod: "Every year, same thread."`, star.id],
+    [`SOCIAL: training-ground clip of ${star.name} goes viral`,
+      `Eleven seconds of ${star.name} doing something outrageous in ${club.short} training is doing the rounds — two million views and counting. Opposition analysts have watched it more than anyone.`, star.id],
+  )
+  if (kid && target) takes.push(
+    [`PUNDIT COLUMN: "${club.short} have unearthed a gem"`,
+      `This week's big read claims ${kid.name} (${kid.age}) is "the most natural ${kid.pos} of his generation" — and that half the league knows it. ${club.short} supporters would rather the column had stayed unwritten.`, kid.id],
+  )
+  if (target && other) takes.push(
+    [`AGENT TALK: ${target!.name} "flattered" by interest`,
+      `${target!.name}'s representatives did nothing to hose down speculation this week: "My client is very happy at ${other.short}. But every player listens." Fan forums across the league did the rest.`, target!.id],
+    [`FAN FORUM: dream signing thread — ${club.short}`,
+      `"Realistic transfer targets" is the thread title; ${target!.name} is the name on every page. The finances make no sense, the fit is debatable, the enthusiasm is total.`, target!.id],
+  )
+  if (!takes.length) return
+  const t = takes[Math.floor(rng() * takes.length)]
+  wire(state, t[0], t[1], t[2])
+}
+
 /** Weekly wire generation — always something to read, never a flood. */
 export function generateGossip(state: GameState, rng: Rng) {
   if (state.unemployed) {
     if (rng() < 0.5) transferRumour(state, rng)
+    if (rng() < 0.6) socialBuzz(state, rng)
     return
   }
   dressingRoomFallout(state, rng)
   gameTimeGrumbles(state, rng)
+  // cheap talk is constant even when real business is quiet
+  if (rng() < 0.8) socialBuzz(state, rng)
+  if (rng() < 0.45) transferRumour(state, rng)
   if (state.week === 22) {
     wire(state, `⏰ DEADLINE DAYS AHEAD`,
       `The mid-season market reaches its climax over the next two rounds. Chairmen panic, agents feast, medicals happen in car parks at midnight. If you're planning a move — for a signing or a sale — now is the moment. Expect the phone to ring.`)
@@ -195,9 +231,8 @@ export function generateGossip(state: GameState, rng: Rng) {
   }
   const wheel = rng()
   if (state.week % 6 === 3) powerRankings(state)
-  if (wheel < 0.3) transferRumour(state, rng)
-  else if (wheel < 0.42) contractSaga(state, rng)
-  else if (wheel < 0.55) wonderkidWatch(state, rng)
-  else if (wheel < 0.75) streakWatch(state, rng)
-  // else: a quiet week — they happen
+  if (wheel < 0.15) contractSaga(state, rng)
+  else if (wheel < 0.3) wonderkidWatch(state, rng)
+  else if (wheel < 0.55) streakWatch(state, rng)
+  // else: a quieter week — the forums never sleep, though
 }
