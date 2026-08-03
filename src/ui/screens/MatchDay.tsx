@@ -51,6 +51,7 @@ function Preview({ fxId }: { fxId: number }) {
   const { kickOff, back, touch } = useStore.getState()
   const [speech, setSpeech] = useState<SpeechId | null>(null)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
+  const [sel, setSel] = useState<number | null>(null)
   const [confirm, setConfirm] = useState(false)
 
   const fx = game.fixtures.find(f => f.id === fxId)!
@@ -77,6 +78,18 @@ function Preview({ fxId }: { fxId: number }) {
     }
     t.lineup[slot] = pid
     setPickSlot(null)
+    setSel(null)
+    touch()
+  }
+
+  // FM Mobile interaction: tap to pick up, tap again to swap; double-tap = picker
+  const tapSlot = (slot: number) => {
+    if (sel == null) { setSel(slot); return }
+    if (sel === slot) { setSel(null); setPickSlot(slot); return }
+    const a = t.lineup[sel]
+    t.lineup[sel] = t.lineup[slot]
+    t.lineup[slot] = a
+    setSel(null)
     touch()
   }
 
@@ -118,7 +131,8 @@ function Preview({ fxId }: { fxId: number }) {
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
     return (
-      <tr key={slot} onClick={() => setPickSlot(slot)} className={prob ? 'prob-row' : undefined}>
+      <tr key={slot} onClick={() => tapSlot(slot)}
+        className={`${prob ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
         <td className="name">
@@ -250,7 +264,7 @@ function Preview({ fxId }: { fxId: number }) {
         {bar('Attack', myUnits.attack, oppUnits.attack)}
         {bar('Defence', myUnits.defence, oppUnits.defence)}
 
-        <SectionTitle sub="tap any shirt to change it">Your XV</SectionTitle>
+        <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
         <div className="tblwrap">
           <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
         </div>

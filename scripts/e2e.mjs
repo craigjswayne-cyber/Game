@@ -147,6 +147,12 @@ try {
   }
   await shot('12-weeks-later')
 
+  // Team of the Week (magazine dream team)
+  await page.click('.bottom-nav >> text=World')
+  await page.click('.submenu-item >> text=Team of the Week')
+  await page.waitForSelector('text=DREAM TEAM')
+  await shot('12b-dreamteam')
+
   // press room via Club submenu
   await page.click('.bottom-nav >> text=Club')
   await page.click('.submenu-item >> text=Press Room')

@@ -8,8 +8,9 @@ import { URC_B } from '../data/leagues/urc_b'
 import { SRP_A } from '../data/leagues/srp_a'
 import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
-import type { Club, GameState } from './model'
+import type { Club, GameState, Pos } from './model'
 import { buildPlayer, resetIds } from './attributes'
+import { regenName } from './nations'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague } from './schedule'
 import { isWorldCupSeason } from './model'
@@ -116,6 +117,40 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         club.players.push(p.id)
       }
       state.clubs[club.id] = club
+    }
+  }
+
+  // every club fields a full senior squad plus a real academy:
+  // 4 named prospects (17-19, high ceilings) and squad players to 33
+  const FILL_POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB']
+  for (const club of Object.values(state.clubs)) {
+    const mkExtra = (age: number, q: number, youth: boolean, i: number) => {
+      // fill the thinnest position first
+      const byPos: Record<string, number> = {}
+      for (const id of club.players) {
+        const p = state.players[id]
+        if (p) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
+      }
+      const pos = [...FILL_POS].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
+      let name = regenName(rng, club.country)
+      let guard = 0
+      while (seenNames.has(name.toLowerCase()) && guard++ < 10) name = regenName(rng, club.country)
+      seenNames.add(name.toLowerCase())
+      const p = buildPlayer(
+        { name, pos, age, nat: club.country, q, gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3 },
+        club.id, seed + club.players.length * 31 + i, 0)
+      if (youth) p.youth = true
+      state.players[p.id] = p
+      club.players.push(p.id)
+    }
+    // academy prospects — the next generation is already in the building
+    for (let i = 0; i < 4; i++) {
+      mkExtra(17 + Math.floor(rng() * 3), 38 + Math.floor(rng() * 16) + Math.floor(club.rep / 14), true, i)
+    }
+    // senior depth to a full 33-man squad
+    let guard = 0
+    while (club.players.length < 33 && guard++ < 12) {
+      mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, guard + 50)
     }
   }
 

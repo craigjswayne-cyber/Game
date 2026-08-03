@@ -54,12 +54,13 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
 export function aiTransfers(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
 
-  // squad-building intent: a couple of clubs a week target their weakest
-  // position with real money, so the world's top squads keep evolving.
-  // Weeks 23-24 are deadline days — the market goes berserk.
+  // squad-building intent. Real moves are concentrated in the windows:
+  // early season (weeks 1-4) and the mid-season deadline (23-24) are
+  // busy; the rest of the season is a trickle — rumours do the talking.
   const deadline = state.week === 23 || state.week === 24
-  for (let k = 0; k < (deadline ? 6 : 2); k++) {
-    if (rng() > (deadline ? 0.65 : 0.35)) continue
+  const window = state.week <= 4 || deadline
+  for (let k = 0; k < (deadline ? 5 : 2); k++) {
+    if (rng() > (deadline ? 0.6 : window ? 0.35 : 0.1)) continue
     const buyer = pick(rng, clubs)
     if (buyer.id === state.userClubId || buyer.budget < 800_000) continue
     // find thinnest position by count of quality bodies
@@ -81,9 +82,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (p && rng() < 0.6) executeTransfer(state, p, buyer.id, askingPrice(state, p))
   }
 
-  // 1-2 AI-to-AI moves a week for a living world
+  // unsettled/listed players move — mostly in the windows
   for (let k = 0; k < 2; k++) {
-    if (rng() > 0.4) continue
+    if (rng() > (window ? 0.35 : 0.12)) continue
     const buyer = pick(rng, clubs)
     if (buyer.id === state.userClubId || buyer.budget < 200_000) continue
     const targets = Object.values(state.players).filter(p =>
