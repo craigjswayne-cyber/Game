@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { STAFF_INFO, fmtMoney, type StaffLevels, type TrainingFocus } from '../../game/model'
+import { FACILITY_INFO, STAFF_INFO, facilityCost, fmtMoney, type FacilityId, type StaffLevels, type TrainingFocus } from '../../game/model'
 import { SectionTitle } from '../components'
 
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -64,6 +64,33 @@ export default function Training() {
                 onClick={() => useStore.getState().hireStaff(role)}>
                 {lvl === 0 ? 'Hire' : lvl >= 3 ? 'Max' : 'Upgrade'}<br />
                 <span style={{ fontSize: 10, fontWeight: 600 }}>+{fmtMoney(info.wage)}/wk</span>
+              </button>
+            </div>
+          </div>
+        )
+      })}
+      <SectionTitle sub="paid from the club balance — bricks outlast squads">Facilities</SectionTitle>
+      {(Object.keys(FACILITY_INFO) as FacilityId[]).map(fid => {
+        const info = FACILITY_INFO[fid]
+        const lvl = game.facilities?.[fid] ?? 0
+        const cost = facilityCost(info, lvl)
+        const club = game.clubs[game.userClubId]
+        return (
+          <div className="card" key={fid} style={{ marginTop: 6, marginBottom: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <div>
+                <h3 style={{ fontSize: 14 }}>{info.icon} {info.name} {lvl > 0 && <span style={{ color: '#a8841a' }}>{'●'.repeat(lvl)}{'○'.repeat(3 - lvl)}</span>}</h3>
+                <div className="meta">{info.desc}</div>
+              </div>
+              <button className="btn gold" disabled={lvl >= 3 || club.balance < cost}
+                onClick={() => {
+                  if (club.balance < cost || lvl >= 3) return
+                  club.balance -= cost
+                  game.facilities = { ...(game.facilities ?? {}), [fid]: lvl + 1 }
+                  touch()
+                }}>
+                {lvl >= 3 ? 'Max' : lvl === 0 ? 'Build' : 'Upgrade'}<br />
+                {lvl < 3 && <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(cost)}</span>}
               </button>
             </div>
           </div>

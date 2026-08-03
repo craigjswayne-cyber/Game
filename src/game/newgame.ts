@@ -100,6 +100,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     challenge: challengeId,
     vacancies: [],
     devFocus: [],
+    facilities: {},
   }
 
   const seenNames = new Set<string>()

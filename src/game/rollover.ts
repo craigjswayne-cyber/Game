@@ -186,15 +186,17 @@ function youthIntake(state: GameState, rng: Rng) {
     const names: string[] = []
     for (let i = 0; i < n; i++) {
       const pos = pick(rng, YOUTH_POS)
-      const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12)
+      const coe = club.id === state.userClubId ? (state.facilities?.academy ?? 0) : 0
+      const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + coe * 2
       const raw = {
         name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
-      // roughly one club a season unearths a genuine wonderkid
-      const wonder = rng() < 0.085
+      // roughly one club a season unearths a genuine wonderkid — a Centre
+      // of Excellence tilts the odds your way
+      const wonder = rng() < 0.085 + coe * 0.02
       const p: Player = {
         id: nextPid(),
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
