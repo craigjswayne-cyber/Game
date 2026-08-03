@@ -15,13 +15,22 @@ export default function Finances() {
   const requestFunds = () => {
     if (asked) return
     ;(game as unknown as Record<string, boolean>)[askedKey] = true
-    if (club.boardConfidence >= 68) {
+    const tenure = game.mgr.finishes.filter(x => x.leagueId === club.leagueId).length
+    // boards say yes when they owe you (objectives delivered), when they
+    // adore you, or when you've built something over the long haul
+    const approved = game.boardOwed || club.boardConfidence >= 82 || (tenure >= 3 && club.boardConfidence >= 68)
+    if (approved) {
       const extra = Math.round((club.budget * 0.25 + 400_000) / 50_000) * 50_000
       club.budget += extra
-      setAskMsg(`The board backs you: ${fmtMoney(extra)} added to the transfer budget.`)
+      setAskMsg(game.boardOwed
+        ? `The chairman remembers what you delivered. ${fmtMoney(extra)} added — the favour is spent.`
+        : `The board backs you: ${fmtMoney(extra)} added to the transfer budget.`)
+      game.boardOwed = false
     } else {
       club.boardConfidence = Math.max(0, club.boardConfidence - 3)
-      setAskMsg('The board politely declines. Earn their confidence first.')
+      setAskMsg(club.boardConfidence >= 60
+        ? 'The board politely declines: "Deliver our objectives first, then we\'ll talk." Meet season objectives to earn a favour.'
+        : 'The board politely declines. Earn their confidence first.')
     }
     touch()
   }

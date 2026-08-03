@@ -335,6 +335,8 @@ export interface GameState {
   /** running press-conference tone: heavy praise breeds swagger, constant
    *  criticism breeds fragility. Decays weekly toward neutral. */
   pressTone?: number
+  /** the board owes you one (objectives delivered) — spend it on a request */
+  boardOwed?: boolean
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

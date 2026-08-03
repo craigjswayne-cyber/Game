@@ -149,6 +149,20 @@ function lineupFor(state: GameState, teamId: string): (number | null)[] {
 // Simulation
 // ------------------------------------------------------------------
 
+const REF_NAMES = [
+  'L. Pearce', 'K. Dickson', 'M. Carley', 'C. Ridley', 'A. Gardner', 'N. Amashukeli',
+  'A. Piardi', 'P. Williams', "B. O'Keeffe", 'N. Berry', 'H. Davidson', 'A. Brace', 'P. Brousset',
+]
+export type RefStyle = 'strict' | 'fair' | 'lenient'
+/** The man (or woman) in the middle — fixed per fixture, big influence. */
+export function refFor(fxId: number): { name: string; style: RefStyle } {
+  const h = (fxId * 2654435761) >>> 0
+  return {
+    name: REF_NAMES[h % REF_NAMES.length],
+    style: h % 4 === 0 ? 'strict' : h % 4 === 3 ? 'lenient' : 'fair',
+  }
+}
+
 const INJURIES = [
   ['bruised ribs', 1, 2], ['dead leg', 1, 1], ['sprained ankle', 2, 4],
   ['hamstring strain', 2, 5], ['concussion', 2, 3], ['shoulder injury', 3, 8],
@@ -241,8 +255,8 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     }
   }
   if (weather === 'Rain' || weather === 'Snow') {
-    side.units.attack *= weather === 'Snow' ? 0.9 : 0.94
-    side.units.breakdown *= 1.03 // wet weather is forward weather
+    side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
+    side.units.breakdown *= 1.04 // wet weather is forward weather
   }
   if (weather === 'Wind') side.units.kicking *= 0.92
 }
@@ -457,15 +471,19 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   const derby = isDerby(fx.homeId, fx.awayId)
   fx.derby = derby
   let goalPenalty = 0
+  const ref = refFor(fx.id)
   for (const side of [home, away]) {
     if (weather === 'Rain' || weather === 'Snow') {
-      side.units.attack *= weather === 'Snow' ? 0.9 : 0.94
-      side.units.breakdown *= 1.03
+      side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
+      side.units.breakdown *= 1.04
     }
     if (weather === 'Wind') side.units.kicking *= 0.92
     if (derby) side.cardRisk *= 1.35
+    // the whistle sets the tone: strict refs card, lenient refs let it flow
+    if (ref.style === 'strict') side.cardRisk *= 1.45
+    if (ref.style === 'lenient') { side.cardRisk *= 0.62; side.units.attack *= 1.03 }
   }
-  if (weather === 'Rain') goalPenalty = 0.06
+  if (weather === 'Rain') goalPenalty = 0.09
   if (weather === 'Wind') goalPenalty = 0.09
   if (weather === 'Snow') goalPenalty = 0.1
 
@@ -757,23 +775,29 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         const p = wpick(rng, ps, w)
         const [desc, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
         let weeks = lo + Math.floor(rng() * (hi - lo + 1))
-        if (p.clubId === state.userClubId && state.staff?.physio) {
-          weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
-        }
-        p.injury = { desc, until: state.week + weeks, weeks }
-        side.onPitch.delete(p.id)
-        pushEvent(state, ctx, min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.${(p.rust ?? 0) > 0 ? ' He was rushed back too soon.' : ''}`, p.id)
-        const sub = side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
-          .find(s => s && !side.onPitch.has(s.id) && !s.injury && !side.ratings.has(s.id))
-        if (sub) {
-          side.onPitch.add(sub.id)
-          side.ratings.set(sub.id, 6)
-          side.energy.set(sub.id, Math.max(60, sub.cond))
-          const slot = side.lineup.indexOf(p.id)
-          const bSlot = side.lineup.indexOf(sub.id)
-          if (slot >= 0 && slot < 15) {
-            side.lineup[slot] = sub.id
-            if (bSlot >= 0) side.lineup[bSlot] = p.id
+        if (weeks <= 1 && (p.rust ?? 0) === 0 && rng() < 0.55) {
+          // a knock, not a casualty: he plays on with heavy legs
+          side.energy.set(p.id, Math.max(5, (side.energy.get(p.id) ?? 70) - 28))
+          pushEvent(state, ctx, min, 'SUB', side, `${p.name} takes a heavy knock — he waves the physio away, but he's moving gingerly.`, p.id)
+        } else {
+          if (p.clubId === state.userClubId && state.staff?.physio) {
+            weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
+          }
+          p.injury = { desc, until: state.week + weeks, weeks }
+          side.onPitch.delete(p.id)
+          pushEvent(state, ctx, min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.${(p.rust ?? 0) > 0 ? ' He was rushed back too soon.' : ''}`, p.id)
+          const sub = side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
+            .find(s => s && !side.onPitch.has(s.id) && !s.injury && !side.ratings.has(s.id))
+          if (sub) {
+            side.onPitch.add(sub.id)
+            side.ratings.set(sub.id, 6)
+            side.energy.set(sub.id, Math.max(60, sub.cond))
+            const slot = side.lineup.indexOf(p.id)
+            const bSlot = side.lineup.indexOf(sub.id)
+            if (slot >= 0 && slot < 15) {
+              side.lineup[slot] = sub.id
+              if (bSlot >= 0) side.lineup[bSlot] = p.id
+            }
           }
         }
       }
