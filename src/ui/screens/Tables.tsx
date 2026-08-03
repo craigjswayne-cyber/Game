@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { weekDate } from '../../game/model'
+import { ordinal } from '../../game/gossip'
 import { CrestT, SectionTitle } from '../components'
 import { stageName } from './Home'
 
@@ -46,7 +47,12 @@ export default function Tables({ initial }: { initial?: string }) {
               onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
               style={playoffLine && i === playoffLine - 1 ? { borderBottom: '2px solid #c9a227' } : undefined}>
               <td className="num muted">{i + 1}</td>
-              <td className="name"><CrestT g={game} teamId={r.teamId} size={17} />{teamShort(game, r.teamId)}</td>
+              <td className="name">
+                <CrestT g={game} teamId={r.teamId} size={17} />{teamShort(game, r.teamId)}
+                {r.teamId === game.userClubId && game.preds?.[r.teamId] != null && (
+                  <span className="muted" style={{ fontSize: 10.5, marginLeft: 5 }}>pred {ordinal(game.preds[r.teamId])}</span>
+                )}
+              </td>
               <td className="num">{r.p}</td>
               <td className="num">{r.w}</td>
               <td className="num">{r.d}</td>
