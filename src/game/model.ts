@@ -311,6 +311,9 @@ export interface GameState {
   processedWeek: boolean
   managerName: string
   training: TrainingFocus
+  /** this week's match preparation — a short-term matchday emphasis,
+   *  distinct from long-term training (which grows attributes) */
+  matchPrep?: 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
   shortlist: number[]
   staff: StaffLevels
   mgr: ManagerStats

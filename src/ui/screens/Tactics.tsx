@@ -132,6 +132,31 @@ export default function Tactics() {
             ))}
         </select>
       </div>
+      <SectionTitle sub="a focused edge for the next match — always with a trade-off">Match Preparation</SectionTitle>
+      <div className="preset-row" style={{ padding: '0 14px' }}>
+        {([
+          ['attack', '⚡ Attacking Shapes', 'Sharper attack (−1% defence)'],
+          ['defence', '🛡 Defensive Drills', 'Meaner defence (−1% attack)'],
+          ['setpiece', '🏗 Set-Piece Work', 'Scrum & lineout +4% (−1% attack)'],
+          ['fitness', '🏃 Conditioning', 'Legs last longer on matchday'],
+          ['recovery', '🧖 Recovery Week', 'Squad regains extra fitness this week'],
+        ] as const).map(([k, label, desc]) => (
+          <button key={k} className="preset-chip" title={desc}
+            style={game.matchPrep === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {game.matchPrep && <div className="meta" style={{ padding: '4px 14px 0' }}>
+        {{
+          attack: 'The week is spent on strike moves and width. Attack +3.5%, defence −1%.',
+          defence: 'Wall-building: line speed, spacing, scramble. Defence +3.5%, attack −1%.',
+          setpiece: 'Live scrummaging and lineout reps. Scrum & lineout +4%, attack −1%.',
+          fitness: 'Lung-busters. Your players tire ~8% slower in the next match.',
+          recovery: 'Feet up, pool sessions, massage. Everyone recovers extra condition this week.',
+        }[game.matchPrep]}
+      </div>}
       <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Starting XV</SectionTitle>
       <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
       <SectionTitle>Replacements</SectionTitle>
