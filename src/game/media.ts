@@ -117,6 +117,60 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
+  // discipline row: cards in the last match
+  const lastFx = [...state.fixtures].reverse().find(f =>
+    f.played && (f.homeId === club.id || f.awayId === club.id))
+  const carded = lastFx?.events?.filter(e =>
+    (e.type === 'YC' || e.type === 'RC') && e.teamId === club.id && e.playerId != null) ?? []
+  if (carded.length >= 2 && rng() < 0.6) {
+    const ev = carded[carded.length - 1]
+    candidates.push(mk(state,
+      `${carded.length} cards at the weekend, ${ev.playerName ?? 'your man'} among them. Is there a discipline problem in your squad?`,
+      ev.playerId, [
+        { label: 'Defend your players', morale: 0.8, board: -0.4, reaction: 'The squad appreciates the shield. The disciplinary panel does not.' },
+        { label: 'Promise it will be addressed', morale: -0.6, board: 0.6, reaction: 'Sternly said. Extra tackling-technique sessions are already booked.' },
+        { label: 'Blame the officiating', morale: 0.4, board: -0.5, reaction: 'The players love it; the league office sends a warning letter.' },
+      ], rng))
+  }
+
+  // the vultures: job speculation when the board is restless
+  if (club.boardConfidence <= 42 && rng() < 0.5) {
+    candidates.push(mk(state,
+      `There are reports this morning that the board has sounded out potential replacements. Are you fighting for your job?`,
+      undefined, [
+        { label: `I'll be judged on trophies`, morale: 0.3, board: 0.3, reaction: 'Defiant. The players walk a little taller — now you have to deliver.' },
+        { label: 'That is a question for the board', morale: -0.4, board: -0.3, reaction: 'The vacuum fills with more speculation.' },
+        { label: 'Laugh it off', morale: 0.5, board: -0.1, reaction: 'The room chuckles. The chairman, watching the stream, does not.' },
+      ], rng))
+  }
+
+  // title run-in nerves
+  const myComp = state.comps[club.leagueId]
+  if (myComp && state.week >= 30 && rng() < 0.45) {
+    const pos = [...myComp.table].sort((a, b) => b.pts - a.pts).findIndex(r => r.teamId === club.id) + 1
+    if (pos > 0 && pos <= 2) {
+      candidates.push(mk(state,
+        `Top ${pos === 1 ? 'of the table' : 'two'} with the season on the line. Can this group handle the pressure of a run-in?`,
+        undefined, [
+          { label: 'We want the target on our backs', morale: 0.6, board: 0.3, reaction: 'Bold. The bookies shorten your odds; the players feed off it.' },
+          { label: 'One game at a time', morale: 0, board: 0.2, reaction: `The oldest line in the book, delivered with a straight face.` },
+          { label: 'Pressure is a privilege', morale: 0.3, board: 0.2, reaction: 'Instant back-page headline. The town believes.' },
+        ], rng))
+    }
+  }
+
+  // Test-window exodus
+  const away = squad.filter(p => p.natSquad).length
+  if (away >= 4 && rng() < 0.5) {
+    candidates.push(mk(state,
+      `${away} of your players are away on international duty. Should clubs be compensated when the Test windows strip their squads?`,
+      undefined, [
+        { label: 'Proud to produce Test players', morale: 0.4, board: 0.3, reaction: 'Gracious — and the academy parents noticed.' },
+        { label: 'The calendar is broken', morale: 0, board: 0.1, reaction: 'Half the league\'s coaches text you in agreement.' },
+        { label: 'We cope. Next question', morale: 0.2, board: 0, reaction: 'Brisk. The fringe players hear the message: their chance is coming.' },
+      ], rng))
+  }
+
   if (candidates.length && rng() < 0.75) {
     state.press.push(candidates[Math.floor(rng() * candidates.length)])
     // keep press list bounded
