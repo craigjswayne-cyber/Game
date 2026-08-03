@@ -32,6 +32,9 @@ export function availablePlayers(state: GameState, ids: number[], forNation = fa
 
 /** Pick the best legal 23 from a pool. Returns array of 23 player ids (or null). */
 export function autoSelect(state: GameState, pool: Player[]): (number | null)[] {
+  // academy players are a second squad — only raided when the seniors run dry
+  const seniors = pool.filter(p => !p.acad)
+  if (seniors.length >= 23) pool = seniors
   const used = new Set<number>()
   const lineup: (number | null)[] = new Array(23).fill(null)
   const score = (p: Player, pos: Pos) =>

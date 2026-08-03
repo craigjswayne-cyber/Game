@@ -78,6 +78,23 @@ function agePlayers(state: GameState, rng: Rng) {
     if (rng() < retireChance) retirees.push(p)
     p.value = playerValue(p.ca, p.age, p.pa)
   }
+  // graduation: at 22 you're too old for the academy; AI clubs also
+  // promote anyone who is clearly ready
+  for (const p of Object.values(state.players)) {
+    if (!p.acad) continue
+    if (p.age >= 22 || (p.clubId !== state.userClubId && p.ca >= 62)) {
+      p.acad = false
+      if (p.clubId === state.userClubId) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+          subject: `${p.name} graduates to the first-team squad`,
+          body: `Too old for the academy, ready or not: ${p.name} (${p.age}) moves up to full first-team training. Time to sink or swim.`,
+          playerId: p.id,
+        })
+      }
+    }
+  }
+
   const userRetirees = retirees.filter(p => p.clubId === state.userClubId)
   for (const p of retirees) {
     // the record book: 100+ appearances for a club earns a page in it
@@ -122,7 +139,7 @@ function agePlayers(state: GameState, rng: Rng) {
         form: 6, morale: 7, cond: 100, sharp: 50,
         injury: null, bans: 0, natSquad: false,
         wage: 650, contractEnds: state.season + 3,
-        value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
+        value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
         pers: assignPersonality(rng, a),
         sc: clubId === state.userClubId ? 100 : 15,
       }
@@ -223,7 +240,7 @@ function youthIntake(state: GameState, rng: Rng) {
         form: 6, morale: 7, cond: 100, sharp: 50,
         injury: null, bans: 0, natSquad: false,
         wage: 600, contractEnds: state.season + 3,
-        value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
+        value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
         pers: assignPersonality(rng, a),
         sc: club.id === state.userClubId ? 100 : 15,
       }

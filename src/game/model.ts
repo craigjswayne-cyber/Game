@@ -115,6 +115,8 @@ export interface Player {
   lastR?: number
   lastWk?: number
   talkWk?: number // absolute week (season*100+week) of the manager's last word with him
+  /** in the academy squad — hidden from first-team auto-selection until promoted */
+  acad?: boolean
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
 }
@@ -284,6 +286,7 @@ export interface StaffLevels {
   defence: number   // 0-3: defence coach — tighter line speed and shape
   scrumCoach: number // 0-3: set-piece coach — scrum & lineout platform
   kicking: number   // 0-3: kicking coach — territory game and goal kicking
+  academyCoach: number // 0-3: academy coach — develops the second squad
 }
 
 export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
@@ -294,6 +297,7 @@ export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string;
   defence: { name: 'Defence Coach', desc: 'Line speed and system — a meaner defence every matchday, bigger defensive training gains.', wage: 3500 },
   scrumCoach: { name: 'Set-Piece Coach', desc: 'Scrum and lineout platform — the tight five win you matchday penalties.', wage: 3000 },
   kicking: { name: 'Kicking Coach', desc: 'Territory and the tee — better tactical kicking and goal kicking under pressure.', wage: 2500 },
+  academyCoach: { name: 'Academy Coach', desc: 'Runs the second squad — academy prospects develop faster under a proper mentor.', wage: 2500 },
 }
 
 export interface ManagerStats {

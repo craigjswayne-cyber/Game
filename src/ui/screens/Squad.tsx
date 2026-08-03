@@ -32,7 +32,7 @@ export default function Squad() {
   const [view, setView] = useState<View>('selection')
   const [sort, setSort] = useState<SortKey>('pkd')
   const [desc, setDesc] = useState(false)
-  const [group, setGroup] = useState<'all' | 'fwd' | 'bck'>('all')
+  const [group, setGroup] = useState<'all' | 'fwd' | 'bck' | 'aca'>('all')
   const FWD = new Set(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])
 
   const club = game.clubs[game.userClubId]
@@ -44,6 +44,7 @@ export default function Squad() {
 
   const players = useMemo(() => {
     let ps = club.players.map(id => game.players[id]).filter(Boolean)
+    ps = group === 'aca' ? ps.filter(p => p.acad) : ps.filter(p => !p.acad)
     if (group === 'fwd') ps = ps.filter(p => FWD.has(p.pos))
     if (group === 'bck') ps = ps.filter(p => !FWD.has(p.pos))
     const dir = desc ? -1 : 1
@@ -112,12 +113,12 @@ export default function Squad() {
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6, padding: '8px 14px 0' }}>
-        {([['all', 'All'], ['fwd', 'Forwards'], ['bck', 'Backs']] as const).map(([k, label]) => (
+        {([['all', 'First Team'], ['fwd', 'Forwards'], ['bck', 'Backs'], ['aca', '🎓 Academy']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGroup(k)}>{label}</button>
         ))}
       </div>
-      <SectionTitle sub={`${players.length} players · ${fmtMoney(wageBill)}/wk`}>Club Squad</SectionTitle>
+      <SectionTitle sub={`${players.length} players · ${fmtMoney(wageBill)}/wk`}>{group === 'aca' ? 'Academy Squad' : 'Club Squad'}</SectionTitle>
       <div className="tblwrap"><table className="dtable zebra">
         <thead>
           {view === 'selection' && (
