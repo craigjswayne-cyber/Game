@@ -153,7 +153,11 @@ export const useStore = create<Store>((set, get) => ({
     const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
     const fx = clubFx ?? natFixtureThisWeek(g)
     if (!fx) return
-    const userTeamId = clubFx ? g.userClubId : g.natTeam ?? g.userClubId
+    const userTeamId = clubFx
+      ? g.userClubId
+      : (fx.homeId === g.natTeam || fx.awayId === g.natTeam) ? g.natTeam!
+      : (fx.homeId === 'LIO' || fx.awayId === 'LIO') ? 'LIO'
+      : g.userClubId
     const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
     let preTalkMsg: string | null = null
     if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)

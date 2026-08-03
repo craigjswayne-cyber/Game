@@ -1,13 +1,14 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
 import { fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
+import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
-import { playerValue } from './attributes'
+import { buildPlayer, playerValue } from './attributes'
 import { scoutOpponent, weeklyScouting } from './scout'
 import { derbyName, isDerby } from './rivalries'
+import { nationByCode, regenName } from './nations'
 import { STAFF_INFO } from './model'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason } from './rollover'
@@ -182,6 +183,12 @@ function activeWindows(state: GameState): Window[] {
   if (state.comps['sn']) {
     out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: 26 })
   }
+  if (state.comps['tour']) {
+    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['tour'].teamIds, size: 26 })
+  }
+  if (state.comps['lions']) {
+    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['lions'].teamIds, size: 30 })
+  }
   return out
 }
 
@@ -191,10 +198,32 @@ function manageInternationals(state: GameState, rng: Rng) {
       // call-ups
       const userCalls: Player[] = []
       for (const nat of w.nations) {
+        const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
         const pool = Object.values(state.players)
-          .filter(p => p.nat === nat && p.clubId && !p.injury && !p.onLoan && p.ca >= 68)
+          .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
+            p.clubId && !p.injury && !p.onLoan && p.ca >= 68)
           .sort((a, b) => b.ca - a.ca)
           .slice(0, w.size)
+        // emerging nations field home-based internationals our club world
+        // doesn't carry — generate them so no squad ever turns up empty
+        if (nat !== 'LIO' && pool.length < Math.max(23, Math.floor(w.size * 0.8))) {
+          const natRep = nationByCode(nat)?.rep ?? 55
+          const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
+          let i = 0
+          while (pool.length < w.size && i < 40) {
+            const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
+            const hp = buildPlayer(
+              {
+                name: regenName(rng, nat), pos: POS_CYCLE[i % POS_CYCLE.length],
+                age: 22 + Math.floor(rng() * 9), nat, q,
+                gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
+              },
+              null, state.seed + state.week * 131 + i * 17, state.season)
+            state.players[hp.id] = hp
+            pool.push(hp)
+            i++
+          }
+        }
         state.natSquads[nat] = pool.map(p => p.id)
         for (const p of pool) {
           p.natSquad = true
@@ -210,7 +239,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         })
       }
     }
-    if (state.week === w.end) {
+    if (state.week === w.end + 1) {
       for (const nat of w.nations) {
         for (const id of state.natSquads[nat] ?? []) {
           const p = state.players[id]
@@ -393,12 +422,15 @@ export function userFixtureThisWeek(state: GameState): Fixture | undefined {
     (f.homeId === state.userClubId || f.awayId === state.userClubId))
 }
 
-/** The national side's fixture this week, when the user also coaches one. */
+/** The national side's fixture this week, when the user also coaches one.
+ *  A home-nations coach also takes the Lions in a tour year. */
 export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   if (!state.natTeam) return undefined
+  const teams = [state.natTeam]
+  if (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)) teams.push('LIO')
   return state.fixtures.find(f =>
     f.week === state.week && !f.played &&
-    (f.homeId === state.natTeam || f.awayId === state.natTeam))
+    (teams.includes(f.homeId) || teams.includes(f.awayId)))
 }
 
 /**
@@ -431,7 +463,8 @@ export function processWeekAndAdvance(state: GameState) {
   const userFx = state.fixtures.find(f =>
     f.week === state.week && f.played && !f.tableApplied &&
     (f.homeId === state.userClubId || f.awayId === state.userClubId ||
-     (state.natTeam != null && (f.homeId === state.natTeam || f.awayId === state.natTeam))))
+     (state.natTeam != null && (f.homeId === state.natTeam || f.awayId === state.natTeam ||
+       (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (f.homeId === 'LIO' || f.awayId === 'LIO'))))))
   if (userFx) {
     const isClubMatch = userFx.homeId === state.userClubId || userFx.awayId === state.userClubId
     const comp = state.comps[userFx.compId]
@@ -449,8 +482,9 @@ export function processWeekAndAdvance(state: GameState) {
       scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
     } else {
       // Test match: national duty counts on the manager's record
-      const us = userFx.homeId === state.natTeam ? userFx.homeScore : userFx.awayScore
-      const them = userFx.homeId === state.natTeam ? userFx.awayScore : userFx.homeScore
+      const mySide = userFx.homeId === state.natTeam || userFx.homeId === 'LIO' ? userFx.homeId : userFx.awayId
+      const us = userFx.homeId === mySide ? userFx.homeScore : userFx.awayScore
+      const them = userFx.homeId === mySide ? userFx.awayScore : userFx.homeScore
       state.mgr.m += 1
       if (us > them) state.mgr.w += 1
       else if (us === them) state.mgr.d += 1
@@ -512,7 +546,9 @@ export function processWeekAndAdvance(state: GameState) {
       if (all.length && all.every(f => f.played)) {
         comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
-        if (state.natTeam != null && comp.champion === state.natTeam) {
+        const lionsWin = comp.id === 'lions' && comp.champion === 'LIO' &&
+          state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
+        if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season })
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
