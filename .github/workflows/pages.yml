@@ -1,8 +1,10 @@
 name: Deploy to GitHub Pages
 
+# Only main deploys — the github-pages environment rejects other branches,
+# so feature-branch runs would just fail noisily in seconds.
 on:
   push:
-    branches: [claude/rugby-manager-mobile-app-rk7yz1, main]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

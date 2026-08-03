@@ -6,6 +6,7 @@ import { mgrReputation } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
+import { regenName } from './nations'
 
 /** Chance an application succeeds, from reputation vs club stature. */
 export function jobChance(state: GameState, clubId: string): number {
@@ -17,9 +18,14 @@ export function jobChance(state: GameState, clubId: string): number {
 
 /** Keep a rolling set of 2-4 vacancies, biased towards struggling clubs. */
 export function refreshVacancies(state: GameState, rng: Rng) {
-  // expire stale vacancies (filled behind the scenes)
-  state.vacancies = state.vacancies.filter(v =>
-    state.week - v.week < 5 && state.clubs[v.clubId])
+  // expire stale vacancies (filled behind the scenes by a new name)
+  state.vacancies = state.vacancies.filter(v => {
+    const keep = state.week - v.week < 5 && state.clubs[v.clubId]
+    if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
+      state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country)
+    }
+    return keep
+  })
 
   if (state.vacancies.length >= 3 || rng() > (state.unemployed ? 0.55 : 0.22)) return
 
@@ -43,11 +49,13 @@ export function refreshVacancies(state: GameState, rng: Rng) {
     if (r <= 0) {
       state.vacancies.push({ clubId: c.clubId, week: state.week })
       const club = state.clubs[c.clubId]
+      const exCoach = club.coach ?? 'their head coach'
+      club.coach = undefined
       const pos = sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1
       const ord = pos <= 0 ? 'poor' : `${pos}${pos % 10 === 1 && pos !== 11 ? 'st' : pos % 10 === 2 && pos !== 12 ? 'nd' : pos % 10 === 3 && pos !== 13 ? 'rd' : 'th'}-placed`
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `${club.short} part company with their head coach`,
+        subject: `${club.short} part company with ${exCoach}`,
         body: `${club.name} are searching for a new Director of Rugby after a ${ord} run of form. The position is open.`,
       })
       break
@@ -96,6 +104,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     }
     state.userClubId = clubId
     state.unemployed = false
+    club.coach = undefined
     state.vacancies = state.vacancies.filter(x => x.clubId !== clubId)
     club.boardConfidence = 66
     state.devFocus = []

@@ -139,6 +139,8 @@ export interface Club {
   boardConfidence: number // 0-100
   /** club captain — a real leader on the pitch steadies the whole side */
   captain?: number | null
+  /** the AI head coach's name (yours shows the manager name) */
+  coach?: string
 }
 
 export interface Tactic {

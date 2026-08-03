@@ -250,15 +250,48 @@ function Preview({ fxId }: { fxId: number }) {
             .map(id => id != null ? game.players[id] : null)
             .filter(Boolean)
             .sort((a, b) => b!.ca - a!.ca)[0]
-          return danger ? (
-            <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
-              <div className="fact-label">Danger Man</div>
-              <div className="meta">
-                <b>{danger.name}</b> ({danger.pos}) is the one to shackle — {game.clubs[opp]?.short ?? 'they'} play
-                through him. Keep him quiet and you're halfway there.
-              </div>
-            </div>
-          ) : null
+          const oppClub = game.clubs[opp]
+          const meetings = game.fixtures.filter(f => f.played &&
+            ((f.homeId === opp && f.awayId === game.userClubId) || (f.homeId === game.userClubId && f.awayId === opp)))
+          const QUOTES = [
+            'We know exactly how they want to play — and we\'re ready for it.',
+            'No excuses from us this week. We\'ve targeted this one.',
+            'They\'re a good side, but this is our patch.',
+            'People keep writing us off. Suits us fine.',
+            'We\'ve had a good week. You\'ll see a response on Saturday.',
+          ]
+          return (
+            <>
+              {danger && (
+                <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+                  <div className="fact-label">Danger Man</div>
+                  <div className="meta">
+                    <b>{danger.name}</b> ({danger.pos}) is the one to shackle — {oppClub?.short ?? 'they'} play
+                    through him. Keep him quiet and you're halfway there.
+                  </div>
+                </div>
+              )}
+              {oppClub?.coach && (
+                <div className="card">
+                  <div className="fact-label">The Opposite Number</div>
+                  <div className="meta">
+                    <b>{oppClub.coach}</b> ({oppClub.short} head coach): “{QUOTES[(fx.id + game.week) % QUOTES.length]}”
+                  </div>
+                </div>
+              )}
+              {meetings.length > 0 && (
+                <div className="card">
+                  <div className="fact-label">Earlier This Season</div>
+                  {meetings.map(m => (
+                    <div key={m.id} className="meta">
+                      {teamShort(game, m.homeId)} {m.homeScore} – {m.awayScore} {teamShort(game, m.awayId)}
+                      {' '}<span className="muted">({game.comps[m.compId]?.short})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )
         })()}
         <SectionTitle sub="your colours on the left">Head to Head</SectionTitle>
         {bar('Scrum', myUnits.scrum, oppUnits.scrum)}

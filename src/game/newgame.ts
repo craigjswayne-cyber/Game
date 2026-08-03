@@ -9,6 +9,7 @@ import { SRP_A } from '../data/leagues/srp_a'
 import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
+import { JL1 } from '../data/leagues/jl1'
 import type { Club, GameState, Pos } from './model'
 import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
@@ -63,6 +64,7 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'srp', name: 'Super Rugby Pacific', short: 'Super Rugby', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
   { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
   { id: 'prod2', name: 'Pro D2', short: 'Pro D2', double: true, playoffTeams: 6, clubs: PROD2 },
+  { id: 'jl1', name: 'Japan League One', short: 'League One', double: true, playoffTeams: 4, clubs: JL1 },
 ]
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string): GameState {
@@ -220,6 +222,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   seedKnowledge(state)
   ensureCaptains(state)
   state.objectives = pickObjectives(state)
+  // every dugout has a name in it
+  for (const club of Object.values(state.clubs)) {
+    if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country)
+  }
 
   // initial lineups for every club
   for (const club of Object.values(state.clubs)) {
