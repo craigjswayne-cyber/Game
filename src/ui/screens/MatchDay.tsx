@@ -7,7 +7,7 @@ import {
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
-import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
+import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
@@ -56,6 +56,7 @@ function Preview({ fxId }: { fxId: number }) {
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
   const [confirm, setConfirm] = useState(false)
+  const [planApplied, setPlanApplied] = useState(false)
 
   const fx = game.fixtures.find(f => f.id === fxId)!
   const comp = game.comps[fx.compId]
@@ -155,6 +156,46 @@ function Preview({ fxId }: { fxId: number }) {
     const pool = availablePlayers(game, club.players).filter(p => !rest.has(p.id))
     const fresh = autoSelect(game, pool)
     for (let i = 0; i < 23; i++) t.lineup[i] = fresh[i]
+    touch()
+  }
+
+  // the assistant reads the matchup and proposes a game plan in plain English
+  const forecast = rollWeather(game.week, weekRng(game))
+  const matchRef = refFor(fx.id)
+  const oppCond = (() => {
+    const xv = oppLineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
+    return xv.length ? xv.reduce((s, p) => s + p!.cond, 0) / xv.length : 85
+  })()
+  const heated = !!derbyName(fx.homeId, fx.awayId) || !!grudgeBetween(game, fx.homeId, fx.awayId)
+  const gamePlan = (() => {
+    const plans: { text: string; d: Partial<Record<SliderKey, number>>; w: number }[] = []
+    if (forecast === 'Rain' || forecast === 'Snow')
+      plans.push({ w: 3, text: `${forecast} forecast — put boot to ball and pin the corners. Handling sides drown in this.`, d: { kicking: 15, style: -8 } })
+    if (oppUnits.scrum < myUnits.scrum * 0.94)
+      plans.push({ w: 2.5, text: 'Their scrum creaks. Keep it tight and squeeze the penalties out of them.', d: { style: -10, aggression: 8 } })
+    if (myUnits.scrum < oppUnits.scrum * 0.94)
+      plans.push({ w: 2, text: 'Avoid the arm wrestle — their pack is a handful. Play away from the set-piece.', d: { style: 8, kicking: 6 } })
+    if (oppUnits.defence < myUnits.attack * 0.95)
+      plans.push({ w: 2, text: 'Their edge defence is the soft spot. Go wide and shift the point of attack.', d: { style: 12, tempo: 8 } })
+    if (myUnits.lineout > oppUnits.lineout * 1.07)
+      plans.push({ w: 1.5, text: 'You own the air. Kick for touch and strangle the field position.', d: { kicking: 10 } })
+    if (matchRef.style === 'strict')
+      plans.push({ w: 2, text: `${matchRef.name} cards early — discipline first at the ruck.`, d: { aggression: -12 } })
+    if (matchRef.style === 'lenient')
+      plans.push({ w: 1.5, text: `${matchRef.name} lets it flow — lift the tempo and fight every breakdown.`, d: { tempo: 10, aggression: 6 } })
+    if (oppCond < 78)
+      plans.push({ w: 2, text: 'Their legs are heavy this week. Run them off their feet.', d: { tempo: 12 } })
+    if (heated)
+      plans.push({ w: 1.8, text: 'This one will boil over. Be the calmer side and let them implode.', d: { aggression: -8 } })
+    return plans.sort((a, b) => b.w - a.w).slice(0, 3)
+  })()
+  const applyPlan = () => {
+    for (const p of gamePlan) {
+      for (const [k, dv] of Object.entries(p.d) as [SliderKey, number][]) {
+        t[k] = Math.max(5, Math.min(95, t[k] + dv))
+      }
+    }
+    setPlanApplied(true)
     touch()
   }
 
@@ -387,6 +428,18 @@ function Preview({ fxId }: { fxId: number }) {
         {bar('Breakdown', myUnits.breakdown, oppUnits.breakdown)}
         {bar('Attack', myUnits.attack, oppUnits.attack)}
         {bar('Defence', myUnits.defence, oppUnits.defence)}
+
+        {gamePlan.length > 0 && (
+          <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)', marginTop: 8 }}>
+            <div className="fact-label">Assistant's Game Plan</div>
+            {gamePlan.map((p, i) => (
+              <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
+            ))}
+            <button className="btn ghost block" style={{ marginTop: 8 }} disabled={planApplied} onClick={applyPlan}>
+              {planApplied ? '✓ Plan applied — tactics adjusted' : '📋 Apply the plan — adjust my tactics'}
+            </button>
+          </div>
+        )}
 
         {(() => {
           const label: Record<number, string> = { 0: 'Front row', 3: 'Locks', 8: 'Halfbacks', 11: 'Centres' }
