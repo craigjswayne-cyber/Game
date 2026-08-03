@@ -14,7 +14,7 @@ export function BrandMark({ size = 64, inverse = false }: { size?: number; inver
       <text
         x="31" y="42.5" textAnchor="middle"
         fontFamily="'Montserrat', 'Segoe UI', sans-serif"
-        fontWeight="800" fontStyle="italic" fontSize="27" letterSpacing="-2.5"
+        fontWeight="800" fontSize="26" letterSpacing="-1"
         fill={fg}
       >RM</text>
     </svg>

@@ -35,7 +35,7 @@ export default function Legacy() {
 
       <SectionTitle sub={m.trophies.length ? undefined : 'the cabinet awaits'}>Trophy Cabinet</SectionTitle>
       {m.trophies.length === 0 ? (
-        <div className="muted" style={{ padding: '4px 16px 12px', fontStyle: 'italic' }}>
+        <div className="muted" style={{ padding: '4px 16px 12px' }}>
           Empty shelves and big dreams. Win something.
         </div>
       ) : (

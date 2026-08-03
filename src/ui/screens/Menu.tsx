@@ -45,7 +45,7 @@ export default function Menu() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 40, fontSize: 11, opacity: .65, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>
+      <div style={{ marginTop: 40, fontSize: 11, opacity: .65 }}>
         A personal project — real names used for fun, not for sale.
       </div>
     </div>

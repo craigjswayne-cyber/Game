@@ -111,7 +111,7 @@ export default function Home() {
             {game.clubs[fx.homeId]?.stadium ?? 'Neutral venue'} · {weekDate(game.season, fx.week)}
             {fx.homeId === club.id ? ' · Home' : ' · Away'}
           </div>
-          <div className="muted" style={{ marginTop: 6, fontStyle: 'italic' }}>
+          <div className="muted" style={{ marginTop: 6 }}>
             {isThisWeek
               ? 'Tap to set your team, then press Continue to play.'
               : 'No match this week — Continue advances to the next round.'}
