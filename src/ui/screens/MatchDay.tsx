@@ -230,6 +230,7 @@ function Preview({ fxId }: { fxId: number }) {
             <h1>Match Day</h1>
             <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
+          <button className="continue-btn" onClick={() => setConfirm(true)}>Kick Off ▸</button>
         </div>
       </header>
       <main className="content">

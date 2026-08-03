@@ -84,6 +84,60 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
   }
 }
 
+/** Tuesday-to-Thursday: the assistant's training report. */
+function trainingReport(state: GameState, rng: Rng) {
+  if (rng() > 0.55) return
+  const club = state.clubs[state.userClubId]
+  const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury && !p.acad)
+  if (squad.length < 15) return
+  const star = [...squad].sort((a, b) => b.form - a.form)[0]
+  const pushing = [...squad]
+    .filter(p => !club.tactic.lineup.slice(0, 15).includes(p.id) && p.form >= 6.5)
+    .sort((a, b) => b.form - a.form)[0]
+  const kid = club.players.map(id => state.players[id])
+    .filter((p): p is Player => !!p && !!p.acad)
+    .sort((a, b) => b.pa - a.pa)[0]
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `📋 Training report, week ${state.week}`,
+    body: [
+      `Best on the grass: ${star.name} — sharp all week.`,
+      pushing ? `Knocking on the door: ${pushing.name} is training like a man who wants the shirt.` : '',
+      kid && rng() < 0.5 ? `From the academy pitches: the coaches keep mentioning ${kid.name}. One for the notebook.` : '',
+      state.matchPrep ? `Focus this week: ${state.matchPrep} work, as ordered.` : `No match preparation set — the week ran on autopilot.`,
+    ].filter(Boolean).join('\n'),
+    playerId: star.id,
+  })
+}
+
+/** Small club moments — the life of a rugby town between matches. */
+function midweekMoment(state: GameState, rng: Rng) {
+  if (rng() > 0.22) return
+  const club = state.clubs[state.userClubId]
+  const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
+  const star = [...squad].sort((a, b) => b.ca - a.ca)[0]
+  const roll = rng()
+  if (roll < 0.3) {
+    for (const p of squad) p.morale = clamp(p.morale + 0.15, 1, 10)
+    wire(state, `Community day at ${club.short}`,
+      `The whole squad spent Wednesday coaching at local schools and visiting the children's ward. Corny? Maybe. But the group came back closer, and the town noticed.`)
+  } else if (roll < 0.5 && star) {
+    star.morale = clamp(star.morale + 0.5, 1, 10)
+    wire(state, `${star.name.split(' ').slice(-1)[0]} lands a boot deal`,
+      `${star.name} has signed a personal sponsorship with a boot manufacturer. His locker now contains fourteen boxes of boots and one very smug grin.`, star.id)
+  } else if (roll < 0.7) {
+    wire(state, `Groundsman wars at ${club.stadium}`,
+      `The head groundsman has banned the forwards from 'his' pitch until Thursday after last week's scrummaging session left it looking ploughed. The pack are training on the back field, muttering.`)
+  } else if (roll < 0.85 && star) {
+    wire(state, `${star.name.split(' ').slice(-1)[0]} spotted filming an advert`,
+      `${star.name} spent his day off filming a regional car dealership advert. Team-mates have already obtained the script. Training may include dramatic readings.`, star.id)
+  } else {
+    const chef = ['a new nutritionist', 'a sleep consultant', 'a breathing coach', 'an ice-bath guru'][Math.floor(rng() * 4)]
+    wire(state, `${club.short} hire ${chef}`,
+      `The performance department has brought in ${chef} for the rest of the season. The senior pros are sceptical. The young lads are all-in. Someone has already broken the new equipment.`)
+  }
+}
+
 /** A bug goes round the training ground — bodies in beds, not on grass. */
 function sicknessSweep(state: GameState, rng: Rng) {
   if (rng() > 0.045) return
@@ -312,6 +366,8 @@ export function ordinal(n: number): string {
 export function generateGossip(state: GameState, rng: Rng) {
   sicknessSweep(state, rng)
   moneyMen(state, rng)
+  trainingReport(state, rng)
+  midweekMoment(state, rng)
   if (state.unemployed) {
     if (windowOpen(state) && rng() < 0.5) transferRumour(state, rng)
     if (rng() < 0.6) socialBuzz(state, rng)

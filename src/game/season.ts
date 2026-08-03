@@ -297,6 +297,26 @@ function weeklyTraining(state: GameState, rng: Rng) {
     balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
     defence: 'defence', fitness: 'assistant', kicking: 'kicking',
   }
+  // a winning run carries a dressing room; a losing one drags it under
+  {
+    const uid = state.userClubId
+    const last3 = state.fixtures
+      .filter(f => f.played && (f.homeId === uid || f.awayId === uid))
+      .slice(-3)
+      .map(f => {
+        const us = f.homeId === uid ? f.homeScore : f.awayScore
+        const them = f.homeId === uid ? f.awayScore : f.homeScore
+        return us > them ? 'W' : us < them ? 'L' : 'D'
+      })
+    if (last3.length === 3 && (last3.every(r => r === 'W') || last3.every(r => r === 'L'))) {
+      const up = last3[0] === 'W'
+      for (const id of state.clubs[uid].players) {
+        const p = state.players[id]
+        if (p) p.morale = clamp(p.morale + (up ? 0.25 : -0.3), 1, 10)
+      }
+    }
+  }
+
   // turnaround: a Sunday game followed by a Friday game leaves 5 days'
   // recovery, not 7 — the whole squad freshens up slower that week
   const lastFx = state.fixtures.find(f =>
@@ -341,6 +361,15 @@ function weeklyTraining(state: GameState, rng: Rng) {
         if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + (state.facilities?.paddock ?? 0) * 0.35)) {
           for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
         }
+      }
+      // FM-style morale: everything drifts toward 'Good' unless events
+      // keep pushing it — form runs and game time do most of the work
+      if (isUser) {
+        p.morale += (6.5 - p.morale) * 0.06
+        const played = (p.lastWk ?? -9) >= state.week - 1
+        const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
+        if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
+        else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2), 1, 10)
       }
       // the academy coach quietly builds tomorrow's team
       if (isUser && p.acad && rng() < 0.025 + state.staff.academyCoach * 0.025) {
