@@ -541,12 +541,21 @@ export function processWeekAndAdvance(state: GameState) {
         state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
       }
     }
-    // pure round-robin comps (6N, TRC): champion = table top when all played
-    if (!comp.champion && comp.type === 'intl' && comp.table.length) {
+    // pure round-robin comps (6N, TRC, National 1): champion = table top when all played
+    if (!comp.champion && (comp.type === 'intl' || (comp.type === 'league' && !comp.playoffTeams)) && comp.table.length) {
       const all = state.fixtures.filter(f => f.compId === comp.id)
       if (all.length && all.every(f => f.played)) {
         comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
+        if (comp.type === 'league' && comp.champion === state.userClubId) {
+          state.mgr.trophies.push({ compId: comp.id, season: state.season })
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+            subject: `🏆 CHAMPIONS! The ${comp.name} title is yours`,
+            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made — the town will remember this season.`,
+          })
+          state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
+        }
         const lionsWin = comp.id === 'lions' && comp.champion === 'LIO' &&
           state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {

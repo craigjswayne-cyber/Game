@@ -26,6 +26,7 @@ const t0 = Date.now()
 let userMatches = 0
 let userKO = 0
 let totalPF = 0, totalPA = 0
+let distGames = 0, distPts = 0, distTries = 0, distHomeW = 0, distDraws = 0
 const SEASONS = 10
 
 for (let season = 0; season < SEASONS; season++) {
@@ -45,6 +46,17 @@ for (let season = 0; season < SEASONS; season++) {
     // answer any open press
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)
     const wk = g.week
+    // capture score-distribution stats before rollover wipes the fixture list
+    if (wk === SEASON_WEEKS) {
+      for (const f of g.fixtures) {
+        if (!f.played || g.comps[f.compId]?.type !== 'league') continue
+        distGames++
+        distPts += f.homeScore + f.awayScore
+        distTries += f.homeTries + f.awayTries
+        if (f.homeScore > f.awayScore) distHomeW++
+        else if (f.homeScore === f.awayScore) distDraws++
+      }
+    }
     processWeekAndAdvance(g)
     // knockout-theft guard: no user fixture for the processed week may have
     // been simmed by the AI weekly loop (user-path matches carry events)
@@ -62,13 +74,9 @@ console.log(`user matches: ${userMatches} (${userKO} knockout ties played by the
 if (userKO === 0) console.warn('note: this seed produced no user knockout ties (mid-table decade) — theft guard above is the real check')
 console.log(`news items: ${g.news.length}, players now: ${Object.keys(g.players).length}, fixtures now: ${g.fixtures.length}`)
 
-// score distribution check on a fresh season's league fixtures
-const played = g.fixtures.filter(f => f.played && g.comps[f.compId]?.type === 'league')
-const avgTotal = played.reduce((s, f) => s + f.homeScore + f.awayScore, 0) / Math.max(1, played.length)
-const homeWins = played.filter(f => f.homeScore > f.awayScore).length
-const draws = played.filter(f => f.homeScore === f.awayScore).length
-const avgTries = played.reduce((s, f) => s + f.homeTries + f.awayTries, 0) / Math.max(1, played.length)
-console.log(`league games: ${played.length}, avg total pts ${avgTotal.toFixed(1)}, avg tries ${avgTries.toFixed(1)}, home win ${(100 * homeWins / played.length).toFixed(0)}%, draws ${(100 * draws / played.length).toFixed(1)}%`)
+// score distribution accumulated at the end of every season, pre-rollover
+const n = Math.max(1, distGames)
+console.log(`league games: ${distGames}, avg total pts ${(distPts / n).toFixed(1)}, avg tries ${(distTries / n).toFixed(1)}, home win ${(100 * distHomeW / n).toFixed(0)}%, draws ${(100 * distDraws / n).toFixed(1)}%`)
 
 // serialize size (save game weight)
 const json = JSON.stringify(g)

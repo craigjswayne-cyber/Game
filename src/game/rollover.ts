@@ -396,6 +396,7 @@ export function rebuildSeason(state: GameState) {
   // Promotion & relegation between each top flight and its second tier
   const PYRAMID: [string, string, string][] = [
     ['prem', 'champ', 'the Premiership'],
+    ['champ', 'natl1', 'the Championship'],
     ['top14', 'prod2', 'the Top 14'],
   ]
   for (const [topId, lowId, topName] of PYRAMID) {

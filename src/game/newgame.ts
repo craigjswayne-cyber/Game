@@ -10,6 +10,7 @@ import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
+import { NATL1 } from '../data/leagues/natl1'
 import type { Club, GameState, Pos } from './model'
 import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
@@ -65,6 +66,7 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
   { id: 'prod2', name: 'Pro D2', short: 'Pro D2', double: true, playoffTeams: 6, clubs: PROD2 },
   { id: 'jl1', name: 'Japan League One', short: 'League One', double: true, playoffTeams: 4, clubs: JL1 },
+  { id: 'natl1', name: 'National League One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string): GameState {
