@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
   refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, XV_SLOTS, fixtureDate, fixtureDayOff, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, XV_SLOTS, fixtureDate, fixtureDayOff, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
@@ -142,6 +142,21 @@ function Preview({ fxId }: { fxId: number }) {
   const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
   if (gapDays <= 5) warnings.push({ level: 'warn', text: `Only a ${gapDays}-day turnaround since the last match — the squad recovered slower this week. Watch the tanks.` })
   if (!speech) warnings.push({ level: 'note', text: 'No dressing-room speech chosen — the players will make their own minds up.' })
+
+  // rotation dilemma: before a cup tie or on a quick turnaround, the
+  // assistant flags overloaded/underdone legs and offers a one-tap rotation
+  const rotFlagged = t.lineup.slice(0, 15)
+    .map(id => id != null ? game.players[id] : null)
+    .filter((p): p is Player => !!p && !p.injury && p.clubId === club.id && (inRedZone(p) || p.cond < 62))
+  const rotWindow = comp?.type !== 'league' || gapDays <= 5
+  const rotReason = (p: Player) => inRedZone(p) ? 'red zone' : `${Math.round(p.cond)}% fit`
+  const rotateXV = () => {
+    const rest = new Set(rotFlagged.map(p => p.id))
+    const pool = availablePlayers(game, club.players).filter(p => !rest.has(p.id))
+    const fresh = autoSelect(game, pool)
+    for (let i = 0; i < 23; i++) t.lineup[i] = fresh[i]
+    touch()
+  }
 
   const bar = (label: string, mine: number, theirs: number) => {
     const total = mine + theirs
@@ -361,6 +376,21 @@ function Preview({ fxId }: { fxId: number }) {
         {bar('Attack', myUnits.attack, oppUnits.attack)}
         {bar('Defence', myUnits.defence, oppUnits.defence)}
 
+        {rotWindow && rotFlagged.length >= 2 && (
+          <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+            <div className="fact-label">Assistant's Rotation Plan</div>
+            <div className="meta">
+              {comp?.type !== 'league'
+                ? 'A cup tie is the week to trust the squad. '
+                : `A ${gapDays}-day turnaround is no week for heavy legs. `}
+              {rotFlagged.map(p => `${p.name} (${rotReason(p)})`).join(', ')} — {rotFlagged.length === 2 ? 'both' : `all ${rotFlagged.length}`} flagged
+              by the medical staff. Say the word and I'll name a fresh XV around them.
+            </div>
+            <button className="btn ghost block" style={{ marginTop: 8 }} onClick={rotateXV}>
+              🔄 Rotate the XV — rest the flagged {rotFlagged.length === 1 ? 'man' : 'men'}
+            </button>
+          </div>
+        )}
         <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
         <div className="tblwrap">
           <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
@@ -1041,6 +1071,26 @@ function MatchVerdict() {
       )}
       <div className="fact-label" style={{ marginTop: 8 }}>Coach's Verdict</div>
       <div className="meta">{feedback}</div>
+      <div className="fact-label" style={{ marginTop: 8 }}>The Unit Battles</div>
+      {([
+        ['Scrum', mine.units.scrum, opp.units.scrum, 1],
+        ['Lineout', mine.units.lineout, opp.units.lineout, 2],
+        ['Breakdown', mine.units.breakdown, opp.units.breakdown, 3],
+      ] as const).map(([label, m, o, salt]) => {
+        // deterministic per-fixture wobble so the same edge reads differently week to week
+        const jit = ((((ctx.fx.id * 2654435761) >>> 0) + salt * 977) % 9) - 4
+        const pct = Math.max(22, Math.min(78, Math.round(50 + (m - o) * 5.5 + jit)))
+        const verdict = pct >= 57 ? 'dominated' : pct >= 52 ? 'edged it' : pct > 48 ? 'broke even' : pct > 43 ? 'shaded' : 'bullied'
+        const color = pct >= 52 ? '#2f7d4f' : pct <= 48 ? '#9b2c2c' : undefined
+        return (
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--hairline)', fontSize: 12.5 }}>
+            <span style={{ color: 'var(--ink-soft)' }}>{label}</span>
+            <span><b style={{ color, fontFamily: 'var(--cond)', fontSize: 14 }}>{pct}%</b>
+              <span className="muted"> won · {pct > 48 && pct < 52 ? verdict : pct >= 52 ? `we ${verdict}` : `they ${verdict === 'shaded' ? 'shaded it' : 'bullied us'}`}</span>
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
