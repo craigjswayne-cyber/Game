@@ -7,14 +7,42 @@ import { weekDate } from '../../game/model'
 
 export default function Nations() {
   const game = useStore(s => s.game)!
+  const go = useStore(st => st.go)
   const tabs = ([
     ['wc', '🏆 World Cup'], ['sn', 'Six Nations'], ['trc', 'Rugby Championship'], ['aut', 'Autumn Tests'],
+    ['tour', 'Summer Tours'], ['lions', '🦁 Lions Tour'],
   ] as const).filter(([id]) => game.comps[id])
   const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'sn')
   const comp = game.comps[compId]
 
+  const myNat = game.natTeam
+  const mySquad = myNat ? (game.natSquads[myNat] ?? []).map(id => game.players[id]).filter(Boolean) : []
+  const myPool = myNat && !mySquad.length
+    ? Object.values(game.players).filter(p => p.nat === myNat && p.clubId && p.ca >= 68).sort((a, b) => b.ca - a.ca).slice(0, 26)
+    : []
+
   return (
     <>
+      {myNat && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+          <h3 style={{ fontSize: 14 }}>🌍 You coach {nationByCode(myNat)?.name ?? myNat}</h3>
+          <div className="meta">
+            {mySquad.length
+              ? `Test window open — your ${mySquad.length}-man squad is in camp. Pick the 23 from the match preview.`
+              : `Between windows. The likely squad below reflects current club form — call-ups happen automatically when a window opens.`}
+          </div>
+          <div className="tblwrap" style={{ marginTop: 6 }}><table className="dtable"><tbody>
+            {(mySquad.length ? mySquad : myPool).slice(0, 26).map(p => (
+              <tr key={p.id} onClick={() => go('player', p.id)}>
+                <td className="muted">{p.pos}</td>
+                <td className="name">{p.name}</td>
+                <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : ''}</td>
+                <td className="num">{p.age}</td>
+              </tr>
+            ))}
+          </tbody></table></div>
+        </div>
+      )}
       <div className="tab-bar">
         {tabs.map(([id, name]) => (
           <button key={id} className={id === compId ? 'active' : ''} onClick={() => setCompId(id)}>{name}</button>

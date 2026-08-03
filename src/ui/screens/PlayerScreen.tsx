@@ -111,7 +111,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip">Points <b>{p.stats.points}</b></span>
         <span className="chip">Cons <b>{p.stats.cons}</b></span>
         <span className="chip">Pens <b>{p.stats.pens}</b></span>
+        {p.stats.drops > 0 && <span className="chip">Drop goals <b>{p.stats.drops}</b></span>}
         <span className="chip">Cards <b>{p.stats.yc}Y {p.stats.rc}R</b></span>
+        {p.stats.motm > 0 && <span className="chip">⭐ MOTM <b>{p.stats.motm}</b></span>}
+        {p.lastR != null && <span className="chip">Last match <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
+        {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (
+          <span className="chip">Development <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? '#2f7d4f' : '#9b2c2c' }}>
+            {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
+          </b></span>
+        )}
+        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold-bright)' }}>🌟 <b>Wonderkid</b></span>}
       </div>
 
       {p.career.length > 0 && (
@@ -129,6 +138,13 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <td className="num">{c.points}</td>
                 </tr>
               ))}
+              <tr style={{ fontWeight: 700 }}>
+                <td>TOTAL</td>
+                <td className="muted">incl. this season</td>
+                <td className="num">{p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps}</td>
+                <td className="num">{p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries}</td>
+                <td className="num">{p.career.reduce((s, c) => s + c.points, 0) + p.stats.points}</td>
+              </tr>
             </tbody>
           </table></div>
         </>
