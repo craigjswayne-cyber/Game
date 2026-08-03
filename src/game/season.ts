@@ -317,6 +317,25 @@ function weeklyTraining(state: GameState, rng: Rng) {
     }
   }
 
+  // mentor pairs dissolve when either man leaves the building
+  if (state.mentors?.length) {
+    state.mentors = state.mentors.filter(mp => {
+      const s2 = state.players[mp.senior]
+      const k2 = state.players[mp.kid]
+      const ok = s2 && k2 && s2.clubId === state.userClubId && k2.clubId === state.userClubId
+      if (!ok && k2 && k2.clubId === state.userClubId) {
+        k2.morale = clamp(k2.morale - 0.5, 1, 10)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+          subject: `${k2.name.split(' ').slice(-1)[0]} loses his mentor`,
+          body: `With ${s2 ? s2.name : 'his mentor'} gone, ${k2.name} is training alone again. The academy coach will keep an eye on him — but it isn't the same.`,
+          playerId: k2.id,
+        })
+      }
+      return !!ok
+    })
+  }
+
   // turnaround: a Sunday game followed by a Friday game leaves 5 days'
   // recovery, not 7 — the whole squad freshens up slower that week
   const lastFx = state.fixtures.find(f =>
@@ -370,6 +389,25 @@ function weeklyTraining(state: GameState, rng: Rng) {
         const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
         if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
         else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2), 1, 10)
+      }
+      // a good mentor is worth an extra coach: paired kids learn faster
+      if (isUser && p.acad && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
+        if (rng() < 0.045) {
+          const keys = Object.keys(p.a) as (keyof Player['a'])[]
+          const k = keys[Math.floor(rng() * keys.length)]
+          p.a[k] = clamp(p.a[k] + 1, 1, 20)
+        }
+        const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)!
+        const senior = state.players[pair.senior]
+        if (senior && rng() < 0.008 && p.pers !== senior.pers) {
+          p.pers = senior.pers
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+            subject: `${p.name.split(' ').slice(-1)[0]} is turning into his mentor`,
+            body: `The coaches have noticed it in the little things — the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
+            playerId: p.id,
+          })
+        }
       }
       // the academy coach quietly builds tomorrow's team
       if (isUser && p.acad && rng() < 0.025 + state.staff.academyCoach * 0.025) {
