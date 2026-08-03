@@ -9,7 +9,7 @@ import { stageName } from './Home'
 export default function Tables({ initial }: { initial?: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const comps = ['prem', 'top14', 'urc', 'srp', 'cc'].filter(id => game.comps[id])
+  const comps = ['prem', 'champ', 'top14', 'prod2', 'urc', 'srp', 'jl1', 'cc'].filter(id => game.comps[id])
   const userLeague = game.clubs[game.userClubId].leagueId
   const [compId, setCompId] = useState(initial ?? userLeague)
   const comp = game.comps[compId]
