@@ -271,23 +271,53 @@ export function renewalDemand(p: Player): number {
 
 export function offerRenewal(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
+  if (!p) return { ok: false, msg: 'Not your player.' }
+  return offerRenewalAt(state, playerId, renewalDemand(p))
+}
+
+/** Haggled renewal: offer any wage; the agent accepts, counters or walks. */
+export function offerRenewalAt(state: GameState, playerId: number, offer: number): { ok: boolean; msg: string; counter?: number } {
+  const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
   if (p.loanFrom) return { ok: false, msg: 'He is on loan — his contract belongs to his parent club.' }
-  const wage = renewalDemand(p)
+  const demand = renewalDemand(p)
   const squadWages = user.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
-  if (squadWages - p.wage + wage > user.wageBudget) {
-    return { ok: false, msg: 'New terms would exceed the wage budget.' }
+  if (squadWages - p.wage + offer > user.wageBudget) {
+    return { ok: false, msg: 'Those terms would exceed the wage budget.' }
   }
   if (p.pers === 'Ambitious' && p.ca >= 84 && user.rep < 82 && p.morale < 8) {
     return { ok: false, msg: `${p.name}'s agent is blunt: his client is ambitious, and he wants to see the club matching that ambition before committing.` }
   }
-  if (p.morale < 3.5 && p.pers !== 'Loyal' && Math.random() < 0.5) {
+  const rng = mulberry32(state.seed ^ (playerId * 31 + state.week * 7 + state.season * 101))
+  if (p.morale < 3.5 && p.pers !== 'Loyal' && rng() < 0.5) {
     return { ok: false, msg: `${p.name} isn't interested in extending right now.` }
   }
+  let wage = offer
+  if (offer < demand) {
+    const ratio = offer / demand
+    if (ratio < 0.85) {
+      if (p.pers === 'Mercenary' || p.pers === 'Temperamental') p.morale = clamp(p.morale - 0.6, 1, 10)
+      return {
+        ok: false,
+        msg: p.pers === 'Mercenary'
+          ? `The agent laughs down the phone. "${fmtMoney(offer)}? We'll speak when you're serious." ${p.name} has heard about the lowball.`
+          : `${p.name}'s agent calls the offer "some way short" and ends the meeting. Come back with more.`,
+      }
+    }
+    // close enough to talk: loyalty, mood and character decide
+    const acceptP =
+      (p.pers === 'Loyal' ? 0.6 : p.pers === 'Professional' ? 0.45 : p.pers === 'Mercenary' ? 0.12 : 0.3)
+      + (p.morale >= 7.5 ? 0.15 : 0) + (ratio - 0.85) * 1.2
+    if (rng() >= acceptP) {
+      const counter = Math.round((demand * 0.97) / 50) * 50
+      return { ok: false, msg: `${p.name}'s camp say no — but they'd sign today at ${fmtMoney(counter)}/wk.`, counter }
+    }
+  }
+  wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
   p.wage = wage
   p.contractEnds = state.season + (p.age >= 32 ? 1 : 2 + (p.age <= 26 ? 1 : 0))
-  p.morale = clamp(p.morale + 1, 1, 10)
+  p.morale = clamp(p.morale + (wage >= demand * 1.12 ? 1.5 : 1), 1, 10) // generosity is remembered
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
     subject: `${p.name} extends`,
