@@ -223,11 +223,14 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     .map(c => c.id)
   state.comps['cc'] = buildChampionsCup(euro, rng, state)
 
-  // Challenge Cup: the next 16 — Championship winners' pot and mid-table Europe
+  // Challenge Cup: the next 16 — Championship winners' pot and mid-table
+  // Europe. Champions Cup clubs are excluded outright: re-sorting with the
+  // champ clubs mixed in used to let a CC qualifier slip into both cups.
+  const ccSet = new Set(euro)
   const chc = Object.values(state.clubs)
-    .filter(c => ['prem', 'top14', 'urc', 'champ'].includes(c.leagueId))
+    .filter(c => ['prem', 'top14', 'urc', 'champ'].includes(c.leagueId) && !ccSet.has(c.id))
     .sort((a, b) => b.rep - a.rep)
-    .slice(16, 32)
+    .slice(0, 16)
     .map(c => c.id)
   state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
 

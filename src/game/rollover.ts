@@ -611,6 +611,24 @@ export function rebuildSeason(state: GameState) {
     const comp = state.comps[leagueId]
     if (comp) euroSlots.push(...sortTable(comp.table).map(r => r.teamId).slice(0, slots))
   }
+  // Challenge Cup slots come from the same final standings — this must run
+  // BEFORE the season wipe (it once read the rebuilt, zeroed tables, handing
+  // out places at random and double-booking Champions Cup clubs)
+  const chcSlots: string[] = []
+  const euroSet = new Set(euroSlots.slice(0, 16))
+  const chcMap: Record<string, [number, number]> = { champ: [0, 2], prem: [5, 9], top14: [6, 11], urc: [5, 10] }
+  for (const [leagueId, [from, to]] of Object.entries(chcMap)) {
+    const comp = state.comps[leagueId]
+    if (comp) chcSlots.push(...sortTable(comp.table).map(t => t.teamId).slice(from, to).filter(id => !euroSet.has(id)))
+  }
+  // a filtered slot leaves the draw short: top up with the best of the rest
+  if (chcSlots.length < 16) {
+    const taken = new Set([...euroSet, ...chcSlots])
+    const rest = Object.values(state.clubs)
+      .filter(c => ['prem', 'top14', 'urc', 'champ'].includes(c.leagueId) && !taken.has(c.id))
+      .sort((a, b) => b.rep - a.rep)
+    while (chcSlots.length < 16 && rest.length) chcSlots.push(rest.shift()!.id)
+  }
 
   // wipe season structures & rebuild
   state.season += 1
@@ -631,12 +649,6 @@ export function rebuildSeason(state: GameState) {
     )
   }
   state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
-  const chcSlots: string[] = []
-  const chcMap: Record<string, [number, number]> = { champ: [0, 2], prem: [5, 9], top14: [6, 11], urc: [5, 10] }
-  for (const [leagueId, [from, to]] of Object.entries(chcMap)) {
-    const comp = state.comps[leagueId]
-    if (comp) chcSlots.push(...sortTable(comp.table).map(t => t.teamId).slice(from, to))
-  }
   state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
   const wcYear = isWorldCupSeason(state.season)
   buildInternationals(rng, state, wcYear)
