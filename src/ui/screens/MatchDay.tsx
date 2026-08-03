@@ -556,6 +556,14 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
   const banner = showFx && evType ? BANNER[evType] : undefined
+  const txt = last?.text ?? ''
+  const setPiece = showFx && evType === 'SUB'
+    ? (/scrum/i.test(txt) ? 'SCRUM' : /lineout|against the throw/i.test(txt) ? 'LINEOUT' : /maul/i.test(txt) ? 'MAUL' : null)
+    : null
+  const binned = (side: SideCtx) =>
+    side.lineup.slice(0, 15)
+      .map(id => (id != null && (side.yellowUntil.get(id) ?? 0) > min) ? (side.yellowUntil.get(id)! - min) : 0)
+      .filter(m => m > 0)
 
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
@@ -599,6 +607,39 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
         className={`ball${kickFx && showFx ? (towardHome ? ' kick-r' : ' kick-l') : ''}`}
         style={{ left: `${ballLeft}%`, top: `${38 + ((min * 13) % 25)}%` }} />
+      {setPiece && (
+        <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
+          style={{ left: `${ballLeft}%`, top: '48%' }}>
+          {setPiece === 'LINEOUT' ? (
+            <>
+              <span className="lo-col" style={{ background: homeC[0] }} />
+              <span className="lo-col away" style={{ background: awayC[0] }} />
+            </>
+          ) : (
+            <>
+              <span className="pack l" style={{ background: homeC[0] }} />
+              <span className="pack r" style={{ background: awayC[0] }} />
+            </>
+          )}
+          <span className="splabel">{setPiece}</span>
+        </div>
+      )}
+      {showFx && evType === 'TRY' && (
+        <div key={`tb${fxKey}`} className="try-burst" style={{ left: towardHome ? '90%' : '10%' }}>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <i key={i} style={{
+              background: i % 2 ? lastTeamC[0] : (lastTeamC[1] ?? '#fff'),
+              ['--ang' as string]: `${i * 36}deg`,
+            } as React.CSSProperties} />
+          ))}
+        </div>
+      )}
+      {binned(ctx.home).map((m, i) => (
+        <span key={`bh${i}`} className="bin-chip" style={{ left: `${3 + i * 13}%` }}>🟨 {m}′</span>
+      ))}
+      {binned(ctx.away).map((m, i) => (
+        <span key={`ba${i}`} className="bin-chip" style={{ right: `${3 + i * 13}%` }}>🟨 {m}′</span>
+      ))}
       {banner && (
         <div key={`b${fxKey}`}
           className={`ev-banner${evType === 'YC' ? ' yc' : ''}${evType === 'RC' ? ' rc' : ''}${evType === 'INJ' ? ' inj' : ''}`}
