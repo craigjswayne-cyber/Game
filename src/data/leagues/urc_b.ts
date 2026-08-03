@@ -114,7 +114,6 @@ export const URC_B: RawClub[] = [
       { name: 'Jordan Hendrikse', pos: 'FH', alt: ['CE'], age: 24, nat: 'RSA', q: 79, gk: true, intl: true },
       { name: 'Siya Masuku', pos: 'FH', age: 29, nat: 'RSA', q: 74, gk: true },
       { name: 'Lukhanyo Am', pos: 'CE', age: 31, nat: 'RSA', q: 85, intl: true },
-      { name: 'Andre Esterhuizen', pos: 'CE', age: 31, nat: 'RSA', q: 84, intl: true },
       { name: 'Francois Venter', pos: 'CE', age: 34, nat: 'RSA', q: 74 },
       { name: 'Makazole Mapimpi', pos: 'WG', age: 35, nat: 'RSA', q: 82, intl: true },
       { name: 'Yaw Penxe', pos: 'WG', age: 28, nat: 'RSA', q: 74 },
@@ -186,7 +185,6 @@ export const URC_B: RawClub[] = [
       { name: 'Taulupe Faletau', pos: 'N8', age: 34, nat: 'WAL', q: 82, intl: true },
       { name: 'Ellis Bevan', pos: 'SH', age: 25, nat: 'WAL', q: 72, intl: true },
       { name: 'Johan Mulder', pos: 'SH', age: 26, nat: 'RSA', q: 69 },
-      { name: 'Callum Sheedy', pos: 'FH', age: 30, nat: 'WAL', q: 73, gk: true, intl: true },
       { name: 'Tinus de Beer', pos: 'FH', age: 29, nat: 'RSA', q: 75, gk: true },
       { name: 'Ben Thomas', pos: 'CE', alt: ['FH'], age: 26, nat: 'WAL', q: 78, intl: true },
       { name: 'Mason Grady', pos: 'CE', alt: ['WG'], age: 23, nat: 'WAL', q: 76, intl: true },
@@ -205,6 +203,7 @@ export const URC_B: RawClub[] = [
     colors: ['#000000', '#ffffff'],
     rep: 71, budget: 850000,
     players: [
+      { name: 'Nicky Smith', pos: 'LP', age: 31, nat: 'WAL', q: 80, intl: true },
       { name: 'Gareth Thomas', pos: 'LP', age: 31, nat: 'WAL', q: 74, intl: true },
       { name: 'Garyn Phillips', pos: 'LP', age: 25, nat: 'WAL', q: 66 },
       { name: 'Dewi Lake', pos: 'HK', age: 26, nat: 'WAL', q: 82, intl: true },
