@@ -330,6 +330,8 @@ export interface GameState {
   objectives?: string[]
   /** pundits' preseason predicted finishing positions for the user's league */
   preds?: Record<string, number>
+  /** weekly balance snapshots for the finances season chart */
+  finHist?: { w: number; b: number }[]
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

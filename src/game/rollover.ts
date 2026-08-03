@@ -491,6 +491,7 @@ export function rebuildSeason(state: GameState) {
   // wipe season structures & rebuild
   state.season += 1
   state.week = 1
+  state.finHist = []
   state.fixtures = []
   state.offers = []
   state.vacancies = []
