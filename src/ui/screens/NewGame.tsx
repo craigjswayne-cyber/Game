@@ -90,14 +90,14 @@ export default function NewGame() {
         </div>
       </header>
 
-      <main className="content" style={{ paddingBottom: 76 }}>
+      <main className="content" style={{ paddingBottom: 96 }}>
         {step === 0 && (
           <>
             <div className="wizard-hint">Choose the competition you'll manage in.</div>
             <div className="tile-grid">
               {defs.map((d, i) => (
                 <button key={d.id} className={`tile${leagueIdx === i ? ' sel' : ''}`}
-                  onClick={() => { setLeagueIdx(i); setClubId(null) }}>
+                  onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
                   <span className="tile-ico">🏆</span>
                   <b>{d.name}</b>
                   <span className="muted">{d.clubs.length} clubs</span>
@@ -164,7 +164,7 @@ export default function NewGame() {
             )}
             <div className="card">
               <label className="fact-label">Your Name</label>
-              <input className="inline-input" placeholder="e.g. A. Gaffer" autoFocus
+              <input className="inline-input" placeholder="e.g. A. Gaffer"
                 value={name} onChange={e => setName(e.target.value)}
                 onFocus={e => {
                   // keep the field visible above the software keyboard

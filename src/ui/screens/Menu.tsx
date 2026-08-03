@@ -19,7 +19,7 @@ export default function Menu() {
 
   return (
     <div className="title-screen">
-      <BrandMark size={92} />
+      <BrandMark size={60} />
       <hr className="rules" />
       <h1>RUGBY<br />MANAGER</h1>
       <div className="tagline">Stories, seasons & silverware — the rugby world awaits.</div>

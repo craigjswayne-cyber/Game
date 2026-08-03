@@ -133,7 +133,7 @@ export default function Tactics() {
         </select>
       </div>
       <SectionTitle sub="a focused edge for the next match — always with a trade-off">Match Preparation</SectionTitle>
-      <div className="preset-row" style={{ padding: '0 14px' }}>
+      <div className="preset-row oneline" style={{ padding: '0 14px' }}>
         {([
           ['attack', '⚡ Attacking Shapes', 'Sharper attack (−1% defence)'],
           ['defence', '🛡 Defensive Drills', 'Meaner defence (−1% attack)'],

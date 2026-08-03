@@ -471,9 +471,10 @@ input, select { font: inherit; }
 .scoreboard .tname .clubbar { display: block; width: 30px; height: 3px; border-radius: 2px; margin: 5px auto 0; }
 .scoreboard .score {
   font-family: var(--cond);
-  font-size: 52px; font-weight: 700; letter-spacing: 2px; line-height: .95;
+  font-size: 27px; font-weight: 700; letter-spacing: 1px; line-height: 1;
+  white-space: nowrap;
   color: var(--gold-bright);
-  min-width: 128px;
+  min-width: 84px;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 12px rgba(227, 185, 46, .25);
 }
@@ -739,25 +740,26 @@ input, select { font: inherit; }
   .title-screen h1 { font-size: 38px; }
   .title-screen .menu-btns { max-width: 340px; }
 
-  /* live match: pitch & scoreboard left, commentary right */
+  /* live match: classic CM — score strip across the top, pitch in the
+     middle, commentary in a long rectangle, controls at the foot */
   .app .live-wrap {
     grid-area: 1 / 1 / -1 / -1;
     display: grid;
-    grid-template-columns: minmax(340px, 44%) minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'score tick' 'pitch tick' 'ctrl tick';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'score' 'main' 'now' 'ctrl';
     height: 100%;
     min-height: 0;
   }
-  .live-wrap .scoreboard { grid-area: score; padding-top: 12px; }
-  .live-wrap .pitch { grid-area: pitch; height: auto; min-height: 150px; align-self: stretch; }
+  .live-wrap .scoreboard { grid-area: score; padding-top: 6px; padding-bottom: 4px; }
+  .live-wrap .pitch { grid-area: main; height: auto; min-height: 130px; align-self: stretch; margin: 4px 10px; }
+  .live-wrap .now-strip { grid-area: now; }
   .live-wrap .speed-controls { grid-area: ctrl; }
-  .app .live-wrap .ticker {
-    grid-area: tick;
+  .app .live-wrap .ticker.panel-area {
+    grid-area: main / main / ctrl / ctrl;
     flex: none;
     overflow-y: auto;
-    border-left: 1px solid var(--hairline);
-    padding-top: 8px;
+    padding-top: 6px;
     padding-bottom: calc(env(safe-area-inset-bottom) + 22px);
     height: 100%;
   }
@@ -1380,4 +1382,25 @@ input, select { font: inherit; }
 @keyframes now-in {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- the long rectangle: one commentary line, classic CM ---- */
+.now-strip { padding: 0 10px 2px; }
+.now-strip .now-line {
+  margin: 0; min-height: 54px; padding: 9px 14px;
+  font-size: 14.5px; align-items: center;
+}
+.now-strip .now-line.big .txt { font-size: 15.5px; }
+
+/* match prep chips on a single scrollable line */
+.preset-row.oneline { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.preset-row.oneline .preset-chip { flex: 0 0 auto; }
+
+/* title screen must fit short landscape viewports */
+.title-screen { overflow-y: auto; }
+@media (max-height: 480px) {
+  .title-screen h1 { font-size: 30px; letter-spacing: 2.5px; }
+  .title-screen .rules { margin: 8px auto; }
+  .title-screen .tagline { font-size: 12.5px; margin-top: 4px; }
+  .title-screen .menu-btns { margin-top: 14px; gap: 8px; }
 }
