@@ -745,6 +745,62 @@ export function processWeekAndAdvance(state: GameState) {
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
+    // the run-in: from week 28, gaps and rivals become the story
+    if (state.week >= 28 && !state.unemployed) {
+      const club = state.clubs[state.userClubId]
+      const comp = state.comps[club.leagueId]
+      if (comp && comp.type === 'league') {
+        const order = sortTable(comp.table)
+        const idx = order.findIndex(r => r.teamId === club.id)
+        const roundsLeft = state.fixtures.filter(f =>
+          f.compId === comp.id && !f.stage && !f.played &&
+          (f.homeId === club.id || f.awayId === club.id)).length
+        if (idx >= 0 && roundsLeft > 0) {
+          const me = order[idx]
+          const top = order[0]
+          const gapTop = top.pts - me.pts
+          const line = comp.playoffTeams || 0
+          const lineRow = line > 0 && idx >= line ? order[line - 1] : null
+          const bottom = order[order.length - 1]
+          const gapDown = me.pts - bottom.pts
+          const rivalResults = (ids: string[]) => state.fixtures
+            .filter(f => f.compId === comp.id && f.week === state.week && f.played &&
+              (ids.includes(f.homeId) || ids.includes(f.awayId)) &&
+              f.homeId !== club.id && f.awayId !== club.id)
+            .map(f => `${teamShort(state, f.homeId)} ${f.homeScore}–${f.awayScore} ${teamShort(state, f.awayId)}`)
+          let subject = ''
+          let body = ''
+          if (idx === 0 && gapTop === 0) {
+            const chasers = order.slice(1, 3).map(r => r.teamId)
+            subject = roundsLeft === 1 ? `🏁 FINAL DAY: the title is in your hands` : `🏁 TITLE RACE: you lead with ${roundsLeft} to play`
+            body = [`Top of the table, ${order[1] ? `${me.pts - order[1].pts} clear of ${teamShort(state, order[1].teamId)}` : 'clear'}. ${roundsLeft === 1 ? 'Win and it is yours. Simple as that.' : 'Every point is gold now.'}`,
+              ...rivalResults(chasers).map(r => `Chasers: ${r}`)].join('\n')
+          } else if (gapTop <= 6) {
+            subject = roundsLeft === 1 ? `🏁 FINAL DAY: title still alive` : `🏁 TITLE RACE: ${gapTop} behind with ${roundsLeft} to play`
+            body = [`${teamShort(state, top.teamId)} lead you by ${gapTop}. ${roundsLeft === 1 ? 'You need a win and a favour.' : 'Keep winning and keep watching the wires.'}`,
+              ...rivalResults([top.teamId]).map(r => `The leaders: ${r}`)].join('\n')
+          } else if (lineRow && lineRow.pts - me.pts <= 6) {
+            subject = `🎯 PLAYOFF PUSH: ${lineRow.pts - me.pts === 0 ? 'level on points' : `${lineRow.pts - me.pts} off the line`} with ${roundsLeft} to play`
+            body = [`${teamShort(state, lineRow.teamId)} hold the last playoff spot. ${roundsLeft <= 2 ? 'It comes down to these last afternoons.' : 'Time to go on a run.'}`,
+              ...rivalResults([lineRow.teamId]).map(r => `Your rivals: ${r}`)].join('\n')
+          } else if (idx === order.length - 1 || gapDown <= 4) {
+            const above = order[order.length - 2]
+            subject = roundsLeft === 1 ? `🚨 FINAL DAY: survival on the line` : `🚨 RELEGATION FIGHT: ${roundsLeft} rounds to save the season`
+            body = [idx === order.length - 1
+              ? `Bottom, ${above ? `${above.pts - me.pts} from safety` : 'and sinking'}. ${roundsLeft === 1 ? 'Win or go down.' : 'Every ruck is a relegation battle now.'}`
+              : `Only ${gapDown} points above the drop. Look over your shoulder at your peril — but look.`,
+              ...rivalResults([bottom.teamId, above?.teamId].filter(Boolean) as string[]).map(r => `Down there: ${r}`)].join('\n')
+          }
+          if (subject) {
+            state.news.push({
+              id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+              subject, body,
+            })
+          }
+        }
+      }
+    }
+
     // the Six Nations window is a big deal — a round-up lands every week
     if (state.comps['sn'] && SIX_NATIONS_WEEKS.includes(state.week)) {
       const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)

@@ -109,6 +109,15 @@ function Preview({ fxId }: { fxId: number }) {
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) — high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit — his tank will empty early.` })
   }
+  // late-season six-pointer: same fight, four points or fewer between you
+  if (game.week >= 28 && comp?.type === 'league') {
+    const order = [...comp.table].sort((a, b) => b.pts - a.pts)
+    const mine = order.findIndex(r => r.teamId === game.userClubId)
+    const theirs = order.findIndex(r => r.teamId === opp)
+    if (mine >= 0 && theirs >= 0 && Math.abs(order[mine].pts - order[theirs].pts) <= 4 && Math.abs(mine - theirs) <= 2) {
+      warnings.push({ level: 'note', text: `SIX-POINTER: ${Math.abs(order[mine].pts - order[theirs].pts) === 0 ? 'level on points' : `${Math.abs(order[mine].pts - order[theirs].pts)} points between you`} and fighting for the same prize. Beat them and bury them.` })
+    }
+  }
   const lastPlayed = game.fixtures.find(f =>
     f.week === game.week - 1 && f.played && (f.homeId === game.userClubId || f.awayId === game.userClubId))
   const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
