@@ -173,6 +173,8 @@ export interface SideCtx {
   energy: Map<number, number>
   /** drain multiplier from tempo tactics */
   tempoF: number
+  /** energy-drain multiplier from match preparation (fitness week) */
+  drainF: number
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number
   isUser: boolean
@@ -222,6 +224,14 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.015
     side.units.kicking *= 1 + (s.kicking ?? 0) * 0.02
     side.goalBonus = (s.kicking ?? 0) * 0.012
+    // this week's match preparation: a focused edge, always with a trade
+    switch (state.matchPrep) {
+      case 'attack': side.units.attack *= 1.035; side.units.defence *= 0.99; break
+      case 'defence': side.units.defence *= 1.035; side.units.attack *= 0.99; break
+      case 'setpiece': side.units.scrum *= 1.04; side.units.lineout *= 1.04; side.units.attack *= 0.99; break
+      case 'fitness': side.drainF = 0.92; break
+      case 'recovery': break // its work was done in the training week
+    }
   }
   if (weather === 'Rain' || weather === 'Snow') {
     side.units.attack *= weather === 'Snow' ? 0.9 : 0.94
@@ -248,7 +258,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), sent: 0,
     cardRisk: 0.012,
     poss: 0, pens: 0,
-    energy, tempoF: 1, goalBonus: 0,
+    energy, tempoF: 1, drainF: 1, goalBonus: 0,
     isUser: teamId === userTeamId,
   }
   applyModifiers(state, side, null)
@@ -493,7 +503,7 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
     const base = 2.0 + (20 - p.a.sta) * 0.14
     const posF = FW_POS.has(p.pos) ? 1.1 : 1
     const e = side.energy.get(id) ?? 80
-    side.energy.set(id, Math.max(0, e - base * side.tempoF * posF * wF))
+    side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * posF * wF))
   }
 }
 

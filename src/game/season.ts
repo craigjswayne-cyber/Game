@@ -305,6 +305,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
         }
       }
       if (isUser && state.staff.physio > 0) p.cond = clamp(p.cond + state.staff.physio * 3, 20, 100)
+      // a recovery week puts petrol back in every tank
+      if (isUser && state.matchPrep === 'recovery') p.cond = clamp(p.cond + 3.5, 20, 100)
       p.value = playerValue(p.ca, p.age, p.pa)
     }
   }
