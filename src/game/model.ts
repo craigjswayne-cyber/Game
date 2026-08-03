@@ -263,6 +263,17 @@ export interface TransferOffer {
   status: 'pending' | 'accepted' | 'rejected'
 }
 
+/** Club infrastructure, levels 0-3 — bricks and mortar that outlast any squad. */
+export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy'
+export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
+  gym: { name: 'Strength & Conditioning Gym', icon: '🏋️', desc: 'Players recover extra condition every week.', base: 350_000 },
+  kicking: { name: 'Kicking Enclosure', icon: '🥅', desc: 'Sharper goal-kicking in every match.', base: 300_000 },
+  paddock: { name: 'Training Paddock', icon: '🌱', desc: 'Attribute training bites more often.', base: 400_000 },
+  briefing: { name: 'Tactical Briefing Room', icon: '📽️', desc: 'Match preparation lands harder.', base: 380_000 },
+  academy: { name: 'Centre of Excellence', icon: '🎓', desc: 'Better academy intakes, more wonderkids.', base: 500_000 },
+}
+export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
+
 export interface StaffLevels {
   assistant: number // 0-3: training gains
   physio: number    // 0-3: injury length & recovery
@@ -337,6 +348,8 @@ export interface GameState {
   pressTone?: number
   /** the board owes you one (objectives delivered) — spend it on a request */
   boardOwed?: boolean
+  /** facility levels 0-3 for the user's club */
+  facilities?: Partial<Record<FacilityId, number>>
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

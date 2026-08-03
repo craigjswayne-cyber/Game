@@ -298,7 +298,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
       const p = state.players[id]
       if (!p) continue
       // recovery — rusty players take longer to freshen up
-      p.cond = clamp(p.cond + Math.round(((p.rust ?? 0) > 0 ? 16 : 22) * (isUser ? turnF : 1)), 20, 100)
+      const gym = isUser ? (state.facilities?.gym ?? 0) * 1.5 : 0
+      p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym) * (isUser ? turnF : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       if (p.injury && state.week >= p.injury.until) {
@@ -323,7 +324,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && state.training !== 'balanced') {
         const coach = coachFor[state.training]
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
-        if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45)) {
+        if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + (state.facilities?.paddock ?? 0) * 0.35)) {
           for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
         }
       }

@@ -239,18 +239,20 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.scrum *= 1 + (s.scrumCoach ?? 0) * 0.015
     side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.015
     side.units.kicking *= 1 + (s.kicking ?? 0) * 0.02
-    side.goalBonus = (s.kicking ?? 0) * 0.012
+    side.goalBonus = (s.kicking ?? 0) * 0.012 + (state.facilities?.kicking ?? 0) * 0.008
     // swagger tax: a squad drunk on its own headlines turns up flat
     if ((state.pressTone ?? 0) >= 4) {
       side.units.attack *= 0.965
       side.units.defence *= 0.965
     }
-    // this week's match preparation: a focused edge, always with a trade
+    // this week's match preparation: a focused edge, always with a trade —
+    // and a proper briefing room makes the message stick
+    const prepF = 1 + (state.facilities?.briefing ?? 0) * 0.25
     switch (state.matchPrep) {
-      case 'attack': side.units.attack *= 1.035; side.units.defence *= 0.99; break
-      case 'defence': side.units.defence *= 1.035; side.units.attack *= 0.99; break
-      case 'setpiece': side.units.scrum *= 1.04; side.units.lineout *= 1.04; side.units.attack *= 0.99; break
-      case 'fitness': side.drainF = 0.92; break
+      case 'attack': side.units.attack *= 1 + 0.035 * prepF; side.units.defence *= 0.99; break
+      case 'defence': side.units.defence *= 1 + 0.035 * prepF; side.units.attack *= 0.99; break
+      case 'setpiece': side.units.scrum *= 1 + 0.04 * prepF; side.units.lineout *= 1 + 0.04 * prepF; side.units.attack *= 0.99; break
+      case 'fitness': side.drainF = 0.92 - (state.facilities?.briefing ?? 0) * 0.01; break
       case 'recovery': break // its work was done in the training week
     }
   }
