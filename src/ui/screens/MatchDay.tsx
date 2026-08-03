@@ -644,6 +644,16 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     // the side with the ball steps up; the defence holds its line deeper
     const attacking = last && last.teamId === side.teamId
     const atk = attacking ? (isHome ? 2.4 : -2.4) : (isHome ? -1.4 : 1.4)
+    const ballTop = 38 + ((min * 13) % 25)
+    // the two nearest forwards of each side work the breakdown
+    const fwdSlots = [0, 1, 2, 3, 4, 5, 6, 7]
+    const baseX = (slot: number) => {
+      const [sx] = SPOTS[slot]
+      return isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift
+    }
+    const ruckers = [...fwdSlots]
+      .sort((a, b) => Math.abs(baseX(a) - ballLeft) - Math.abs(baseX(b) - ballLeft))
+      .slice(0, 2)
     return side.lineup.slice(0, 15).map((id, slot) => {
       if (id == null || !side.onPitch.has(id)) return null
       const binned = (side.yellowUntil.get(id) ?? 0) > min
@@ -654,14 +664,25 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       // every man moves: work-rate wander re-seeded each match minute
       const wx = ((min * 13 + slot * 29 + (isHome ? 0 : 7)) % 9) - 4
       const wy = ((min * 11 + slot * 17 + (isHome ? 3 : 0)) % 7) - 3
-      const x = (isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift) + atk + wx * 0.35
+      const ruck = ruckers.includes(slot)
+      let x = (isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift) + atk + wx * 0.35
+      let y = 8 + sy * 0.84 + wy * 0.9
+      if (ruck) {
+        // converge on the ball — bodies over the tackle area
+        x = x * 0.45 + (ballLeft + (isHome ? -1.5 : 1.5)) * 0.55
+        y = y * 0.5 + ballTop * 0.5
+      } else if (attacking && slot >= 8) {
+        // backs fan out wider and deeper, looking for space
+        y = y + (y > 50 ? 3 : -3)
+        x += isHome ? 1.2 : -1.2
+      }
       const hl = last?.playerId === id
       const scorerRun = hl && evType === 'TRY' && showFx
       return (
         <div key={id}
           className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${scorerRun ? (isHome ? ' run-r' : ' run-l') : hl ? '' : ' jog'}`}
           style={{
-            left: `${x}%`, top: `${8 + sy * 0.84 + wy * 0.9}%`,
+            left: `${x}%`, top: `${y}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
             animationDuration: `${2.2 + (slot % 5) * 0.35}s`,
             animationDelay: `-${((slot * 0.41) % 2.2).toFixed(2)}s`,
