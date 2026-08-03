@@ -991,6 +991,34 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
   const bench = mine.lineup.slice(15).map(id => id != null ? game.players[id] : null)
     .filter(p => p && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
 
+  // the assistant's whisper: who's gassed, who's struggling, who's on thin ice
+  const advice: string[] = []
+  if (ctx.subsUsed < 5) {
+    const tired = [...mine.onPitch]
+      .map(id => ({ p: game.players[id], e: mine.energy.get(id) ?? 100 }))
+      .filter(x => x.p && x.e < 38)
+      .sort((a, b) => a.e - b.e)
+    for (const { p, e } of tired.slice(0, 2)) {
+      const cover = bench.find(b => b && (b.pos === p!.pos || b.alt.includes(p!.pos)))
+      advice.push(`🔋 ${p!.name} is running on fumes (${Math.round(e)}%)${cover ? ` — ${cover.name} covers ${p!.pos} from the bench` : ''}.`)
+    }
+  }
+  const min = ctx.tick * 4
+  if (min >= 45) {
+    const poor = [...mine.ratings.entries()]
+      .map(([id, r]) => ({ p: game.players[id], r }))
+      .filter(x => x.p && mine.onPitch.has(x.p.id) && x.r < 4.6)
+      .sort((a, b) => a.r - b.r)[0]
+    if (poor) advice.push(`📉 ${poor.p!.name} is having one of those days (${poor.r.toFixed(1)}) — fresh legs might spare him.`)
+  }
+  for (const e of live.events.slice(0, live.cursor)) {
+    if (e.type === 'YC' && e.playerId != null && mine.onPitch.has(e.playerId) && (mine.yellowUntil.get(e.playerId) ?? 0) <= min) {
+      const p = game.players[e.playerId]
+      if (p) advice.push(`🟨 ${p.name} is walking a tightrope — one more infringement and it's red.`)
+      break
+    }
+  }
+
   const talks = [
     ['fire', '🔥 Let them have it'],
     ['calm', '🧊 Stay composed'],
@@ -1010,6 +1038,14 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
       <h3 style={{ fontSize: 15 }}>{title}</h3>
+      {advice.length > 0 && (
+        <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold-bright) 14%, var(--paper))', borderRadius: 8 }}>
+          <div className="fact-label">Assistant's Notes</div>
+          {advice.slice(0, 3).map((a, i) => (
+            <div key={i} className="meta" style={{ marginTop: 3 }}>{a}</div>
+          ))}
+        </div>
+      )}
       <StatsPanel />
       {showTalk && (!ctx.talkUsed ? (
         <>
