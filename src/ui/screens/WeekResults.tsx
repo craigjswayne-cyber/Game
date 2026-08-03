@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
@@ -17,9 +18,19 @@ export default function WeekResults({ param }: { param: string }) {
     .sort((a, b) => (a.homeId === game.userClubId || a.awayId === game.userClubId ? -1 : 0) - (b.homeId === game.userClubId || b.awayId === game.userClubId ? -1 : 0))
   const rows = comp && comp.type === 'league' ? sortTable(comp.table) : []
   const myPos = rows.findIndex(r => r.teamId === game.userClubId) + 1
+  const [tab, setTab] = useState<'results' | 'table'>('results')
 
   return (
     <>
+      <div className="tab-bar">
+        <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>Results</button>
+        {rows.length > 0 && (
+          <button className={tab === 'table' ? 'active' : ''} onClick={() => setTab('table')}>
+            Table{myPos > 0 ? ` (${ordinal(myPos)})` : ''}
+          </button>
+        )}
+      </div>
+      {tab === 'results' && (<>
       <SectionTitle sub={comp?.name}>This Week's Results</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {results.map(f => {
@@ -39,7 +50,8 @@ export default function WeekResults({ param }: { param: string }) {
         {results.length === 0 && <tr><td className="muted" style={{ padding: 14 }}>No other results this round.</td></tr>}
       </tbody></table></div>
 
-      {rows.length > 0 && (
+      </>)}
+      {tab === 'table' && rows.length > 0 && (
         <>
           <SectionTitle sub={myPos > 0 ? `you are ${ordinal(myPos)}` : undefined}>How The Table Stands</SectionTitle>
           <div className="tblwrap"><table className="dtable">
