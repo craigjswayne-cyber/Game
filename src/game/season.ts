@@ -81,6 +81,20 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       id: state.nextId++, compId: comp.id, round: 99, week, homeId: home, awayId: away,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
     })
+    // the draw is news when you're in the hat
+    const mine = [state.userClubId, state.natTeam].filter(Boolean)
+    if (mine.includes(home) || mine.includes(away)) {
+      const us = mine.includes(home) ? home : away
+      const opp = us === home ? away : home
+      const stg = { QF: 'quarter-final', SF: 'semi-final', F: 'FINAL', BAR: 'playoff barrage', R16: 'last sixteen' }[stage] ?? stage
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🎟 The ${comp.short} ${stg} draw: ${teamShort(state, opp)}`,
+        body: us === home
+          ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} — win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
+          : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
+      })
+    }
   }
   const regularDone = state.fixtures
     .filter(f => f.compId === comp.id && !f.stage)
@@ -577,6 +591,22 @@ export function processWeekAndAdvance(state: GameState) {
           body: `${teamShort(state, comp.champion)} have been crowned ${comp.name} champions.`,
         })
       }
+    }
+  }
+
+  // career milestone salutes for your own men
+  const MILESTONES = new Set([50, 100, 150, 200, 250, 300, 400, 500])
+  for (const id of state.clubs[state.userClubId]?.players ?? []) {
+    const p = state.players[id]
+    if (!p || p.lastWk !== state.week || state.unemployed) continue
+    const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
+    if (MILESTONES.has(total)) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `👏 ${p.name}: ${total} career appearances`,
+        body: `A guard of honour at training this week — ${p.name} brought up his ${total}th senior appearance at the weekend. ${total >= 200 ? 'A one-club legend in the making.' : 'The first big number of many, the coaches hope.'}`,
+        playerId: p.id,
+      })
     }
   }
 
