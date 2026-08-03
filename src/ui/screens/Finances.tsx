@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { boardObjective, fmtMoney } from '../../game/model'
+import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { SectionTitle } from '../components'
 
 export default function Finances() {
@@ -63,10 +64,23 @@ export default function Finances() {
       <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
-      <SectionTitle>Season Objective</SectionTitle>
+      <SectionTitle>Season Objectives</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
         <h3 style={{ fontSize: 15 }}>The board expects you to {boardObjective(club.rep).text}.</h3>
         <div className="meta">Fall short and confidence will suffer. Deliver, and you'll be backed.</div>
+        {(game.objectives ?? []).map(id => {
+          const def = OBJECTIVE_DEFS.find(o => o.id === id)
+          if (!def || !def.applies(game)) return null
+          const ok = def.met(game)
+          return (
+            <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 12.5, alignItems: 'flex-start' }}>
+              <span>{ok ? '✅' : '⬜'}</span>
+              <span style={{ color: ok ? 'var(--win)' : 'var(--ink-soft)' }}>
+                {def.text(game)} <b style={{ color: 'var(--ink-faint)' }}>· +£250k & board favour if met</b>
+              </span>
+            </div>
+          )
+        })}
       </div>
       <SectionTitle sub={`${Math.round(club.boardConfidence)}%`}>Board Confidence</SectionTitle>
       <div style={{ margin: '8px 14px', height: 10, background: 'var(--cream-3)', borderRadius: 5 }}>

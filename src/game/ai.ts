@@ -74,7 +74,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (!need) continue
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      p.pos === need && p.ca >= 70 && !p.onLoan &&
+      p.pos === need && p.ca >= 70 && !p.onLoan && !p.loanFrom &&
       (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
       askingPrice(state, p) <= buyer.budget)
       .sort((a, b) => b.ca - a.ca)
@@ -89,7 +89,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (buyer.id === state.userClubId || buyer.budget < 200_000) continue
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
+      !p.loanFrom && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
       p.ca >= 62 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
     const p = pick(rng, targets)
@@ -102,7 +102,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
   if (rng() < 0.3) {
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
-    const wanted = squad.filter(p => p.transferListed || p.morale <= 4 ||
+    const wanted = squad.filter(p => !p.loanFrom).filter(p => p.transferListed || p.morale <= 4 ||
       (p.ca >= 82 && rng() < (p.pers === 'Ambitious' || p.pers === 'Mercenary' ? 0.4 : 0.2)))
     if (wanted.length) {
       const p = pick(rng, wanted)
@@ -212,6 +212,7 @@ export function offerRenewal(state: GameState, playerId: number): { ok: boolean;
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
+  if (p.loanFrom) return { ok: false, msg: 'He is on loan — his contract belongs to his parent club.' }
   const wage = renewalDemand(p)
   const squadWages = user.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   if (squadWages - p.wage + wage > user.wageBudget) {

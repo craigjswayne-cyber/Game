@@ -18,6 +18,7 @@ import { buildChampionsCup, buildInternationals, buildLeague } from './schedule'
 import { isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
+import { pickObjectives } from './objectives'
 import { mulberry32 } from './rng'
 
 export interface Challenge {
@@ -218,6 +219,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   buildInternationals(rng, state, isWorldCupSeason(0))
   seedKnowledge(state)
   ensureCaptains(state)
+  state.objectives = pickObjectives(state)
 
   // initial lineups for every club
   for (const club of Object.values(state.clubs)) {

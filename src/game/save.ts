@@ -57,6 +57,7 @@ function migrate(s: GameState): GameState {
   s.devFocus ??= []
   s.natTeam ??= null
   s.natOffer ??= null
+  s.objectives ??= ['youth', 'derby']
   for (const c of Object.values(s.clubs)) c.captain ??= null
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
@@ -65,6 +66,7 @@ function migrate(s: GameState): GameState {
     p.onLoan ??= false
     p.ca0 ??= p.ca
     p.rust ??= 0
+    p.loanFrom ??= null
   }
   ensureCaptains(s)
   return s

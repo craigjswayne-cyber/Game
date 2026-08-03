@@ -79,6 +79,17 @@ export function applyForJob(state: GameState, clubId: string): string {
   if (rng() < jobChance(state, clubId)) {
     // hired!
     const oldClubId = state.userClubId
+    // loan-ins belong to the OLD project — send them home
+    for (const p of Object.values(state.players)) {
+      if (p.loanFrom && p.clubId === oldClubId && state.clubs[p.loanFrom]) {
+        const oldClub = state.clubs[oldClubId]
+        oldClub.players = oldClub.players.filter(id => id !== p.id)
+        oldClub.tactic.lineup = oldClub.tactic.lineup.map(id => (id === p.id ? null : id))
+        state.clubs[p.loanFrom].players.push(p.id)
+        p.clubId = p.loanFrom
+        p.loanFrom = null
+      }
+    }
     if (!state.unemployed && oldClubId !== clubId) {
       // walking out — old club becomes vacant
       state.vacancies.push({ clubId: oldClubId, week: state.week })
