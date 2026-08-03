@@ -26,9 +26,10 @@ import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
 import Saves from './screens/Saves'
 import DreamTeam from './screens/DreamTeam'
+import WeekResults from './screens/WeekResults'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', results: 'Full-Time Round-Up', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -140,6 +141,7 @@ export default function App() {
       case 'profile': return <Profile />
       case 'saves': return <Saves />
       case 'dreamteam': return <DreamTeam />
+      case 'results': return <WeekResults param={cur.param as string} />
       default: return <Home />
     }
   }

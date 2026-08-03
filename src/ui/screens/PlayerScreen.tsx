@@ -64,6 +64,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </div>
 
       <div className="chips">
+        <span className="chip">Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         <span className="chip">Character <b>{p.pers}</b></span>
         {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
@@ -97,8 +98,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     background: attrBarColor(mid),
                     opacity: exact ? 1 : 0.55,
                   }} /></span>
-                  <span className={`v ${exact ? attrClass(lo) : ''}`} style={exact ? undefined : { width: 40, fontSize: 13, color: 'var(--ink-faint)' }}>
-                    {exact ? lo : `${lo}–${hi}`}
+                  <span className={`v ${exact ? attrClass(lo) : ''}`} style={exact ? undefined : { width: 44, fontSize: 12.5, color: 'var(--ink-faint)' }}>
+                    {exact ? lo * 5 : `${lo * 5}–${hi * 5}`}
                   </span>
                 </div>
               )

@@ -14,7 +14,7 @@ export type Screen =
   | 'menu' | 'newgame' | 'home' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
-  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam'
+  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results'
 
 interface NavEntry {
   screen: Screen
@@ -269,9 +269,15 @@ export const useStore = create<Store>((set, get) => ({
   /** After FT: process the rest of the week and return home. */
   finishMatch: () => {
     const g = get().game
+    const live = get().liveMatch
     if (!g) return
+    const resultsKey = live ? `${live.fixture.compId}:${g.week}` : null
     processWeekAndAdvance(g)
-    set(s => ({ liveMatch: null, nav: [{ screen: 'home' }], tick: s.tick + 1 }))
+    set(s => ({
+      liveMatch: null,
+      nav: [{ screen: 'home' }, ...(resultsKey ? [{ screen: 'results' as const, param: resultsKey }] : [])],
+      tick: s.tick + 1,
+    }))
     void get().persist()
   },
 

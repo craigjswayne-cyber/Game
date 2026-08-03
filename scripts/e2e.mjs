@@ -123,24 +123,28 @@ try {
   await shot('08-transfers')
 
   // Continue -> match day: swap a player, give a speech, ready check
-  await page.click('text=Continue ▸')
+  await page.click('.continue-btn')
   await page.waitForSelector('text=Kick Off', { timeout: 15000 })
   await shot('09-matchday-preview')
   await page.click('.speech-tile >> text=Calm the nerves')
   await playMatch()
   await shot('10-fulltime')
   await page.click('text=Continue to Results')
+  await page.waitForSelector('text=This Week\'s Results', { timeout: 10000 })
+  await page.click('text=Back to the Dressing Room')
   await page.waitForSelector('.news-item', { timeout: 15000 })
   await shot('11-after-match')
 
   // burn through several weeks (mix of matchday + blank weeks)
   for (let i = 0; i < 8; i++) {
-    await page.click('text=Continue ▸')
+    await page.click('.continue-btn')
     await page.waitForTimeout(500)
     const kick = page.locator('text=Kick Off ▸')
     if (await kick.count()) {
       await playMatch()
       await page.click('text=Continue to Results')
+      await page.waitForSelector("text=This Week's Results", { timeout: 10000 })
+      await page.click('text=Back to the Dressing Room')
       await page.waitForTimeout(300)
     }
   }

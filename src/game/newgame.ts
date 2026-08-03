@@ -200,7 +200,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     state.news.push({
       id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
       subject: `🌟 The scouts' ones to watch`,
-      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market — first club to move wins.`,
+      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market — first club to move wins. See and tap every name: World ▸ Team of the Season ▸ Ones to Watch.`,
     })
   }
 
