@@ -43,10 +43,12 @@ export function refreshVacancies(state: GameState, rng: Rng) {
     if (r <= 0) {
       state.vacancies.push({ clubId: c.clubId, week: state.week })
       const club = state.clubs[c.clubId]
+      const pos = sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1
+      const ord = pos <= 0 ? 'poor' : `${pos}${pos % 10 === 1 && pos !== 11 ? 'st' : pos % 10 === 2 && pos !== 12 ? 'nd' : pos % 10 === 3 && pos !== 13 ? 'rd' : 'th'}-placed`
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${club.short} part company with their head coach`,
-        body: `${club.name} are searching for a new Director of Rugby after a ${sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1}th-placed run of form. The position is open.`,
+        body: `${club.name} are searching for a new Director of Rugby after a ${ord} run of form. The position is open.`,
       })
       break
     }
