@@ -28,6 +28,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         </div>
         <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
         <div className="meta">🏟️ {club.stadium} — {club.capacity.toLocaleString()} capacity</div>
+        <div className="meta">🧢 Head coach: {club.id === game.userClubId ? game.managerName : club.coach ?? 'vacant'}</div>
         <div className="badge-row" style={{ marginTop: 6, flexWrap: 'wrap' }}>
           <span className="chip">Reputation <b>{club.rep}</b></span>
           <span className="chip">Squad <b>{players.length}</b></span>
