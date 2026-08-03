@@ -358,11 +358,29 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   if (weather === 'Wind') goalPenalty = 0.09
   if (weather === 'Snow') goalPenalty = 0.1
 
+  // Attendance breathes with success: winning sides pack the ground,
+  // struggling ones see gaps — and no two gates are ever identical.
   const hostClub = state.clubs[fx.homeId]
   if (hostClub) {
-    const interest = derby ? 0.99 : clamp(
-      0.5 + hostClub.rep / 200 + (state.clubs[fx.awayId]?.rep ?? 60) / 400 + gauss(rng) * 0.08, 0.3, 1)
-    fx.att = Math.round(hostClub.capacity * interest)
+    const recent = state.fixtures
+      .filter(f => f.played && (f.homeId === hostClub.id || f.awayId === hostClub.id))
+      .slice(-4)
+    let formPts = 0
+    for (const f of recent) {
+      const us = f.homeId === hostClub.id ? f.homeScore : f.awayScore
+      const them = f.homeId === hostClub.id ? f.awayScore : f.homeScore
+      formPts += us > them ? 1 : us === them ? 0.5 : 0
+    }
+    const formF = recent.length ? (formPts / recent.length - 0.5) * 0.16 : 0 // hot streak ±8%
+    const confF = (hostClub.boardConfidence - 55) / 800                       // mood around the club
+    let interest = clamp(
+      0.44 + hostClub.rep / 250 + (state.clubs[fx.awayId]?.rep ?? 60) / 430 + formF + confF + gauss(rng) * 0.05,
+      0.24, 0.96)
+    if (derby) interest = clamp(interest + 0.16, 0.5, 0.99)
+    if (fx.stage) interest = clamp(interest + 0.08, 0.5, 0.99) // knockout fever
+    // a live count, never a round sell-out figure twice
+    const jitter = Math.floor(rng() * Math.max(60, hostClub.capacity * 0.012))
+    fx.att = Math.max(400, Math.round(hostClub.capacity * interest) - jitter)
   }
 
   const ctx: LiveCtx = {

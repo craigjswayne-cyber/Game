@@ -14,7 +14,7 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   newcastle: 'solid',
   northampton: 'hoops',   // black, green & gold hoops
   sale: 'solid',
-  saracens: 'sash',
+  saracens: 'solid',       // 2025-26: black shirt, red accents
   // Top 14
   toulouse: 'hoops',      // red & black
   bordeaux: 'sash',       // navy with claret
@@ -59,6 +59,19 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   waratahs: 'solid',
   force: 'sash',
   drua: 'solid',
+  // Championship
+  pirates: 'hoops',       // black & gold hoops
+  coventry: 'hoops',      // blue & white hoops
+  bedford: 'hoops',       // the Blues' hoops
+  richmond: 'hoops',      // old gold, red & black
+  lscottish: 'solid',
+  ealing: 'solid',
+  doncaster: 'solid',
+  nottingham: 'solid',
+  hartpury: 'solid',
+  cambridge: 'solid',
+  chinnor: 'solid',
+  caldy: 'hoops',         // navy & sky
 }
 
 export function kitPattern(clubId: string): KitPattern {
