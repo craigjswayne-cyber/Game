@@ -51,7 +51,7 @@ type SpeechId = typeof SPEECHES[number]['id']
 function Preview({ fxId }: { fxId: number }) {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
-  const { kickOff, back, touch } = useStore.getState()
+  const { kickOff, instantResult, back, touch } = useStore.getState()
   const [speech, setSpeech] = useState<SpeechId | null>(null)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
@@ -359,6 +359,10 @@ function Preview({ fxId }: { fxId: number }) {
             Kick Off ▸
           </button>
         </div>
+        <button className="btn ghost block" style={{ marginTop: 2 }}
+          onClick={() => instantResult(speech ?? undefined)}>
+          ⏩ Instant Result — the assistant takes over
+        </button>
         <div className="spacer" />
       </main>
       {picker()}
@@ -371,7 +375,7 @@ function Preview({ fxId }: { fxId: number }) {
 function NationPreview({ fxId }: { fxId: number }) {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
-  const { kickOff, back } = useStore.getState()
+  const { kickOff, instantResult, back } = useStore.getState()
   const [speech, setSpeech] = useState<SpeechId | null>(null)
   const [confirm, setConfirm] = useState(false)
 
@@ -528,6 +532,10 @@ function NationPreview({ fxId }: { fxId: number }) {
             Kick Off ▸
           </button>
         </div>
+        <button className="btn ghost block" style={{ marginTop: 2 }}
+          onClick={() => instantResult(speech ?? undefined)}>
+          ⏩ Instant Result — the assistant takes over
+        </button>
         <div className="spacer" />
       </main>
       {confirm && (
