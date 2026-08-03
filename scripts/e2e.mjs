@@ -20,7 +20,7 @@ const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
 
 /** Play a full interactive match from the preview screen. */
 async function playMatch() {
-  await page.click('text=Kick Off ▸')
+  await page.locator('text=Kick Off ▸').first().click()
   await page.waitForSelector('text=Take the Field', { timeout: 15000 })
   await page.click('text=▸ Take the Field')
   await page.waitForSelector('.scoreboard', { timeout: 15000 })

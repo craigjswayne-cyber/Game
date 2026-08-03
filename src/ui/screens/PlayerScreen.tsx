@@ -300,5 +300,6 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 }
 
 function moraleWord(m: number): string {
-  return m >= 8.5 ? 'Superb' : m >= 7 ? 'Good' : m >= 5.5 ? 'Okay' : m >= 4 ? 'Low' : 'Very poor'
+  return m >= 8.5 ? 'Superb' : m >= 7.5 ? 'Very Good' : m >= 6 ? 'Good'
+    : m >= 5 ? 'Fair' : m >= 3.5 ? 'Poor' : 'Very Poor'
 }
