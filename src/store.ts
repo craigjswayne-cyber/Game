@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { GameState, MatchEvent, Fixture, StaffLevels } from './game/model'
 import { newGame } from './game/newgame'
-import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
+import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
   resolveDecision, stepTick, teamShort, type LiveCtx,
@@ -62,6 +62,8 @@ interface Store {
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
   resign: () => void
+  answerNatOffer: (accept: boolean) => void
+  resignNat: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
 }
@@ -133,8 +135,8 @@ export const useStore = create<Store>((set, get) => ({
   continueWeek: () => {
     const g = get().game
     if (!g) return
-    const fx = userFixtureThisWeek(g)
-    if (fx && !g.unemployed) {
+    const fx = (!g.unemployed && userFixtureThisWeek(g)) || natFixtureThisWeek(g)
+    if (fx) {
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
       return
     }
@@ -148,9 +150,11 @@ export const useStore = create<Store>((set, get) => ({
   kickOff: (preTalk) => {
     const g = get().game
     if (!g) return
-    const fx = userFixtureThisWeek(g)
+    const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
+    const fx = clubFx ?? natFixtureThisWeek(g)
     if (!fx) return
-    const ctx = beginMatch(g, fx, weekRng(g), true)
+    const userTeamId = clubFx ? g.userClubId : g.natTeam ?? g.userClubId
+    const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
     let preTalkMsg: string | null = null
     if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
     set(s => ({
@@ -238,6 +242,7 @@ export const useStore = create<Store>((set, get) => ({
   liveTactics: () => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
+    if (liveMatch.ctx.userSideId !== game.userClubId) return // Test match: no club tactic board
     applyTacticsChange(game, liveMatch.ctx)
     set(s => ({ tick: s.tick + 1 }))
   },
@@ -287,6 +292,37 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || g.unemployed) return
     resignJob(g)
     set(s => ({ nav: [{ screen: 'home' }], tick: s.tick + 1 }))
+    void get().persist()
+  },
+
+  answerNatOffer: (accept) => {
+    const g = get().game
+    if (!g || !g.natOffer) return
+    const nat = g.natOffer.nat
+    g.natOffer = null
+    if (accept) {
+      g.natTeam = nat
+      g.news.push({
+        id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
+        subject: `🌍 Appointed: national head coach of ${nat}`,
+        body: `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day — and every championship they win goes in YOUR cabinet.`,
+      })
+    }
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+  },
+
+  resignNat: () => {
+    const g = get().game
+    if (!g || !g.natTeam) return
+    const nat = g.natTeam
+    g.natTeam = null
+    g.news.push({
+      id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
+      subject: `You step down as ${nat} head coach`,
+      body: `The union thanks you for your service. The door, they say, stays open.`,
+    })
+    set(s => ({ tick: s.tick + 1 }))
     void get().persist()
   },
 

@@ -8,6 +8,7 @@ import { URC_B } from '../data/leagues/urc_b'
 import { SRP_A } from '../data/leagues/srp_a'
 import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
+import { PROD2 } from '../data/leagues/prod2'
 import type { Club, GameState, Pos } from './model'
 import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
@@ -60,6 +61,7 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'urc', name: 'United Rugby Championship', short: 'URC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
   { id: 'srp', name: 'Super Rugby Pacific', short: 'Super Rugby', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
   { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
+  { id: 'prod2', name: 'Pro D2', short: 'Pro D2', double: true, playoffTeams: 6, clubs: PROD2 },
 ]
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string): GameState {

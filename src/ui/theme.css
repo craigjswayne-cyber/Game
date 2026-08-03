@@ -1188,3 +1188,73 @@ input, select { font: inherit; }
   font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 1px;
   padding: 4px 12px; border-radius: 5px;
 }
+
+/* ================= Broadcast-style match animations ================= */
+/* score pop when it changes */
+.scoreboard .score { animation: score-pop .55s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); text-shadow: 0 0 26px rgba(255, 255, 255, .55); }
+  100% { transform: scale(1); }
+}
+
+/* try-zone floodlight when a try is scored */
+.pitch.try-r .tz-r, .pitch.try-l .tz-l { animation: tz-flash 1.5s ease; }
+@keyframes tz-flash {
+  0%, 100% { filter: brightness(1); }
+  20%, 60% { filter: brightness(2.1) saturate(1.4); }
+  40%, 80% { filter: brightness(1.3); }
+}
+
+/* scorer's dash for the line */
+.pitch .pdot.run-r { animation: dash-r 1.2s cubic-bezier(.3, .1, .3, 1); }
+.pitch .pdot.run-l { animation: dash-l 1.2s cubic-bezier(.3, .1, .3, 1); }
+@keyframes dash-r { 0% { transform: translateX(-46px) scale(1.55); } 100% { transform: translateX(0) scale(1.55); } }
+@keyframes dash-l { 0% { transform: translateX(46px) scale(1.55); } 100% { transform: translateX(0) scale(1.55); } }
+
+/* the kick at goal: ball arcs for the posts, end over end */
+.pitch .ball.kick-r { animation: kick-arc-r 1.15s cubic-bezier(.35, .05, .5, 1); }
+.pitch .ball.kick-l { animation: kick-arc-l 1.15s cubic-bezier(.35, .05, .5, 1); }
+@keyframes kick-arc-r {
+  0% { transform: translate(-50%, -50%) rotate(-25deg); }
+  45% { transform: translate(140%, -340%) rotate(320deg) scale(.8); }
+  100% { transform: translate(-50%, -50%) rotate(695deg); }
+}
+@keyframes kick-arc-l {
+  0% { transform: translate(-50%, -50%) rotate(-25deg); }
+  45% { transform: translate(-240%, -340%) rotate(-320deg) scale(.8); }
+  100% { transform: translate(-50%, -50%) rotate(-695deg); }
+}
+
+/* broadcast banner sweeping across the pitch */
+.ev-banner {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: 3px;
+  padding: 7px 24px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1d2733;
+  box-shadow: 0 6px 26px rgba(0, 0, 0, .45);
+  animation: banner-in 1.6s cubic-bezier(.2, .9, .3, 1) forwards;
+  display: flex; align-items: center; gap: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ev-banner.yc { background: #f2c200; color: #231f00; }
+.ev-banner.rc { background: #c0392f; color: #ffffff; }
+.ev-banner.inj { background: #ffffff; color: #c0392f; font-size: 15px; letter-spacing: 2px; }
+@keyframes banner-in {
+  0% { opacity: 0; transform: translate(-50%, -50%) translateX(-70px) skewX(-8deg); }
+  12% { opacity: 1; transform: translate(-50%, -50%) skewX(0); }
+  80% { opacity: 1; transform: translate(-50%, -50%); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateX(50px); }
+}
+.ev-banner .cardchip { width: 13px; height: 18px; border-radius: 2.5px; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.ev-banner .cardchip.y { background: linear-gradient(160deg, #ffe14d, #e0b400); }
+.ev-banner .cardchip.r { background: linear-gradient(160deg, #ff6a5c, #a31207); }

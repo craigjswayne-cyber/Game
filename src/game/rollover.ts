@@ -381,29 +381,33 @@ export function rebuildSeason(state: GameState) {
   for (const p of fas.slice(120)) delete state.players[p.id]
   for (const p of fas.slice(0, 120)) if (p.age >= 35) delete state.players[p.id]
 
-  // Promotion & relegation between the Premiership and the Championship
-  const premComp = state.comps['prem']
-  const champComp = state.comps['champ']
-  if (premComp && champComp) {
-    const premOrder = sortTable(premComp.table).map(r => r.teamId)
-    const down = premOrder[premOrder.length - 1]
-    const up = champComp.champion ?? sortTable(champComp.table)[0]?.teamId
-    if (down && up && down !== up && state.clubs[down] && state.clubs[up]) {
-      state.clubs[down].leagueId = 'champ'
-      state.clubs[down].rep = Math.max(44, state.clubs[down].rep - 4)
-      state.clubs[up].leagueId = 'prem'
-      state.clubs[up].rep = Math.min(88, state.clubs[up].rep + 5)
-      const userInvolved = down === state.userClubId || up === state.userClubId
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: userInvolved ? 'board' : 'general', read: false,
-        subject: down === state.userClubId
-          ? `💔 RELEGATED: ${state.clubs[down].name} drop to the Championship`
-          : up === state.userClubId
-            ? `🎉 PROMOTED: ${state.clubs[up].name} are going up!`
-            : `Promotion & relegation: ${state.clubs[up].short} up, ${state.clubs[down].short} down`,
-        body: `${state.clubs[up].name} have won promotion to the Premiership. ${state.clubs[down].name} finished bottom and drop into the Championship.${down === state.userClubId ? ' The board is wounded and the budget will feel it — win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`,
-      })
-    }
+  // Promotion & relegation between each top flight and its second tier
+  const PYRAMID: [string, string, string][] = [
+    ['prem', 'champ', 'the Premiership'],
+    ['top14', 'prod2', 'the Top 14'],
+  ]
+  for (const [topId, lowId, topName] of PYRAMID) {
+    const topComp = state.comps[topId]
+    const lowComp = state.comps[lowId]
+    if (!topComp || !lowComp) continue
+    const topOrder = sortTable(topComp.table).map(r => r.teamId)
+    const down = topOrder[topOrder.length - 1]
+    const up = lowComp.champion ?? sortTable(lowComp.table)[0]?.teamId
+    if (!down || !up || down === up || !state.clubs[down] || !state.clubs[up]) continue
+    state.clubs[down].leagueId = lowId
+    state.clubs[down].rep = Math.max(44, state.clubs[down].rep - 4)
+    state.clubs[up].leagueId = topId
+    state.clubs[up].rep = Math.min(88, state.clubs[up].rep + 5)
+    const userInvolved = down === state.userClubId || up === state.userClubId
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: userInvolved ? 'board' : 'general', read: false,
+      subject: down === state.userClubId
+        ? `💔 RELEGATED: ${state.clubs[down].name} go down`
+        : up === state.userClubId
+          ? `🎉 PROMOTED: ${state.clubs[up].name} are going up!`
+          : `Promotion & relegation: ${state.clubs[up].short} up, ${state.clubs[down].short} down`,
+      body: `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.${down === state.userClubId ? ' The board is wounded and the budget will feel it — win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`,
+    })
   }
 
   // Champions Cup qualification for next season from final league standings
