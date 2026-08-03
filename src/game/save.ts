@@ -57,6 +57,7 @@ function migrate(s: GameState): GameState {
   s.devFocus ??= []
   s.natTeam ??= null
   s.natOffer ??= null
+  s.natLineup ??= null
   s.objectives ??= ['youth', 'derby']
   for (const c of Object.values(s.clubs)) { c.captain ??= null; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const

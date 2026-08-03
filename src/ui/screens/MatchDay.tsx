@@ -346,11 +346,39 @@ function NationPreview({ fxId }: { fxId: number }) {
   const comp = game.comps[fx.compId]
   const nat = (fx.homeId === game.natTeam || fx.awayId === game.natTeam) ? game.natTeam! : 'LIO'
   const opp = fx.homeId === nat ? fx.awayId : fx.homeId
+  const [sel, setSel] = useState<number | null>(null)
+  const [pickSlot, setPickSlot] = useState<number | null>(null)
 
-  const myLineup = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, nat), true)), [game, nat])
+  // the coach's Test 23: saved selection if valid, otherwise the selectors' XV
+  if (!game.natLineup || game.natLineup.team !== nat) {
+    game.natLineup = { team: nat, lineup: autoSelect(game, availablePlayers(game, rosterOf(game, nat), true)) }
+  }
+  const myLineup = game.natLineup.lineup
   const oppLineup = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, opp), true)), [game, opp])
   const myUnits = teamUnits(game, myLineup)
   const oppUnits = teamUnits(game, oppLineup)
+  const { touch } = useStore.getState()
+
+  const tapSlot = (slot: number) => {
+    if (sel == null) { setSel(slot); return }
+    if (sel === slot) { setSel(null); setPickSlot(slot); return }
+    const a = myLineup[sel]
+    myLineup[sel] = myLineup[slot]
+    myLineup[slot] = a
+    setSel(null)
+    touch()
+  }
+
+  const setSlot = (slot: number, pid: number | null) => {
+    if (pid != null) {
+      const other = myLineup.indexOf(pid)
+      if (other >= 0) myLineup[other] = myLineup[slot]
+    }
+    myLineup[slot] = pid
+    setPickSlot(null)
+    setSel(null)
+    touch()
+  }
 
   const bar = (label: string, mine: number, theirs: number) => {
     const total = mine + theirs
@@ -396,21 +424,60 @@ function NationPreview({ fxId }: { fxId: number }) {
         {bar('Attack', myUnits.attack, oppUnits.attack)}
         {bar('Defence', myUnits.defence, oppUnits.defence)}
 
-        <SectionTitle sub="the selectors have named the best available XV">Your Test XV</SectionTitle>
+        <SectionTitle sub={sel != null ? `moving ${game.players[myLineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the full squad'}>Your Test XV</SectionTitle>
         <div className="tblwrap"><table className="dtable"><tbody>
           {XV_SLOTS.map((s, i) => {
             const pid = myLineup[i]
             const p = pid != null ? game.players[pid] : null
             return (
-              <tr key={i}>
+              <tr key={i} onClick={() => tapSlot(i)} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
-                <td className="name">{p?.name ?? '—'}</td>
+                <td className="name">{p?.name ?? <span className="muted">— tap to pick —</span>}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos)} />}</td>
               </tr>
             )
           })}
         </tbody></table></div>
+        <SectionTitle>Test Bench</SectionTitle>
+        <div className="tblwrap"><table className="dtable"><tbody>
+          {BENCH_SLOTS.map((s, i) => {
+            const slot = 15 + i
+            const pid = myLineup[slot]
+            const p = pid != null ? game.players[pid] : null
+            return (
+              <tr key={slot} onClick={() => tapSlot(slot)} className={sel === slot ? 'held-row' : undefined}>
+                <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
+                <td><PosBadge pos={s.pos[0]} /></td>
+                <td className="name">{p?.name ?? <span className="muted">— tap to pick —</span>}</td>
+                <td>{p && <Stars ca={effAt(p, s.pos[0])} />}</td>
+              </tr>
+            )
+          })}
+        </tbody></table></div>
+        {pickSlot != null && (
+          <div className="modal-veil" onClick={() => setPickSlot(null)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="grab" />
+              <SectionTitle sub="the full Test squad">
+                Pick a {pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]}
+              </SectionTitle>
+              <table className="dtable"><tbody>
+                {availablePlayers(game, rosterOf(game, nat), true)
+                  .sort((a, b) => effAt(b, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) - effAt(a, pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]))
+                  .map(p => (
+                    <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
+                      style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
+                      <td><PosBadge pos={p.pos} /></td>
+                      <td className="name">{p.name}{myLineup.includes(p.id) ? ' (selected)' : ''}</td>
+                      <td><Stars ca={p.ca} /></td>
+                      <td className="num">{Math.round(p.cond)}%</td>
+                    </tr>
+                  ))}
+              </tbody></table>
+            </div>
+          </div>
+        )}
 
         <SectionTitle sub="one speech, choose the tone">Dressing Room</SectionTitle>
         <div className="speech-grid">
