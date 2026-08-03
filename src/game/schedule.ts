@@ -26,6 +26,7 @@ export const CC_KO_WEEKS = [35, 36, 38]
 export const AUTUMN_WEEKS = [10, 11, 12]
 export const SIX_NATIONS_WEEKS = [22, 23, 24, 25, 26]
 export const TRC_WEEKS = [2, 3, 4, 6, 7, 8]
+export const PNC_WEEKS = [2, 3, 4, 6, 7]
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -275,6 +276,25 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     }
   })
   state.comps['trc'] = trcComp
+
+  // Pacific Nations Cup: the tier-two showpiece, alongside the Championship
+  const pnc = ['FIJ', 'JPN', 'SAM', 'TGA', 'USA', 'CAN']
+  const pncRounds = roundRobin(pnc, rng, false)
+  const pncComp: Competition = {
+    id: 'pnc', name: 'Pacific Nations Cup', short: 'Pacific Cup', type: 'intl',
+    teamIds: pnc, table: pnc.map(emptyRow), rounds: 5, playoffTeams: 0,
+    weeksByRound: PNC_WEEKS, koWeeks: [], isNational: true,
+  }
+  pncRounds.forEach((pairs, r) => {
+    for (const [h, a] of pairs) {
+      state.fixtures.push({
+        id: state.nextId++, compId: 'pnc', round: r, week: PNC_WEEKS[r],
+        homeId: h, awayId: a, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    }
+  })
+  state.comps['pnc'] = pncComp
 
   // Autumn tests: north v south pairings, 3 weekends
   const north = ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA']

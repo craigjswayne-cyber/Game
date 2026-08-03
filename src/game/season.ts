@@ -1,7 +1,7 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
 import { fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
+import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
@@ -176,6 +176,9 @@ function activeWindows(state: GameState): Window[] {
   }
   if (state.comps['trc']) {
     out.push({ start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'], size: 26 })
+  }
+  if (state.comps['pnc']) {
+    out.push({ start: PNC_WEEKS[0] - 1, end: PNC_WEEKS[PNC_WEEKS.length - 1], nations: state.comps['pnc'].teamIds, size: 26 })
   }
   if (state.comps['aut']) {
     out.push({ start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'], size: 26 })
@@ -602,12 +605,14 @@ export function processWeekAndAdvance(state: GameState) {
   if (state.natOffer && state.week - state.natOffer.week > 3) state.natOffer = null
   if (!state.natTeam && !state.natOffer && !state.unemployed && (state.week === 6 || state.week === 18)) {
     const rep = mgrReputation(state)
-    if (rep >= 72) {
+    if (rep >= 64) {
       const TIERS: [string, number][] = [
+        ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
         ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
         ['ENG', 84], ['FRA', 86], ['RSA', 87], ['IRE', 87], ['NZL', 88],
       ]
-      const eligible = TIERS.filter(([, need]) => rep >= need).map(([n]) => n)
+      // offers come from the best jobs you qualify for, not the whole ladder
+      const eligible = TIERS.filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
       if (eligible.length && rng() < 0.55) {
         const nat = eligible[Math.floor(rng() * eligible.length)]
         state.natOffer = { nat, week: state.week }
