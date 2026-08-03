@@ -325,6 +325,8 @@ export interface GameState {
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */
   objectives?: string[]
+  /** pundits' preseason predicted finishing positions for the user's league */
+  preds?: Record<string, number>
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

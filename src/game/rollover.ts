@@ -2,6 +2,7 @@ import type { GameState, Player, Pos } from './model'
 import { boardObjective, emptyStats, fmtMoney, isWorldCupSeason, seasonLabel, XV_SLOTS } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, sortTable } from './schedule'
+import { punditPredictions } from './gossip'
 import { LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
@@ -293,6 +294,17 @@ export function rebuildSeason(state: GameState) {
     const squad = state.clubs[uid].players.map(id => state.players[id]).filter(Boolean)
     const topPts = [...squad].sort((a, b) => b.stats.points - a.stats.points)[0]
     const topTry = [...squad].sort((a, b) => b.stats.tries - a.stats.tries)[0]
+    let predLine = ''
+    const predicted = state.preds?.[uid]
+    const myComp = state.comps[state.clubs[uid].leagueId]
+    if (predicted && myComp) {
+      const actual = sortTable(myComp.table).findIndex(r => r.teamId === uid) + 1
+      if (actual > 0) {
+        predLine = `Pundits predicted ${actual < predicted ? `${ordinal(predicted)} — you finished ${ordinal(actual)}. They owe you an apology.`
+          : actual === predicted ? `${ordinal(predicted)} — and ${ordinal(actual)} it was. Read like a book.`
+          : `${ordinal(predicted)} — you finished ${ordinal(actual)}. The phone-ins will be brutal.`}`
+      }
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: `📋 Your ${seasonLabel(state.season)} season in review`,
@@ -301,6 +313,7 @@ export function rebuildSeason(state: GameState) {
         best ? `Best win: ${best.line}` : '',
         topPts?.stats.points ? `Top points: ${topPts.name} (${topPts.stats.points})` : '',
         topTry?.stats.tries ? `Top tries: ${topTry.name} (${topTry.stats.tries})` : '',
+        predLine,
       ].filter(Boolean).join('\n'),
     })
   }
@@ -493,4 +506,6 @@ export function rebuildSeason(state: GameState) {
     subject: `The ${seasonLabel(state.season)} season begins`,
     body: `Pre-season is over. Your transfer budget has been set at ${fmtMoney(state.clubs[state.userClubId].budget)}. Bring us silverware.`,
   })
+
+  punditPredictions(state, rng)
 }
