@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
-  rollWeather, sideEnergy, type LiveCtx, type SideCtx,
+  refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, XV_SLOTS, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
@@ -285,6 +285,20 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 </div>
               )}
+              {(() => {
+                const ref = refFor(fx.id)
+                const blurb = ref.style === 'strict'
+                  ? 'a stickler — walks the line all game and cards early. Keep the penalty count down or play with 14.'
+                  : ref.style === 'lenient'
+                    ? 'lets the game breathe — advantage over whistle. Expect a fast, open contest.'
+                    : 'firm but fair. The game should be decided by the players.'
+                return (
+                  <div className="card">
+                    <div className="fact-label">The Whistle</div>
+                    <div className="meta"><b>{ref.name}</b> is {blurb}</div>
+                  </div>
+                )
+              })()}
               {oppClub?.coach && (
                 <div className="card">
                   <div className="fact-label">The Opposite Number</div>

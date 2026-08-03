@@ -379,7 +379,7 @@ export function rebuildSeason(state: GameState) {
         if (!def || !def.applies(state)) continue
         const ok = def.met(state)
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
-        if (ok) club.budget += 250_000
+        if (ok) { club.budget += 250_000; state.boardOwed = true }
         sideLines.push(`${ok ? '✅' : '❌'} ${def.text(state)}${ok ? ' — met (+£250k budget)' : ' — missed'}`)
       }
       state.news.push({
