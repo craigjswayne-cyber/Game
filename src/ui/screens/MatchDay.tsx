@@ -560,6 +560,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
   const setPiece = showFx && evType === 'SUB'
     ? (/scrum/i.test(txt) ? 'SCRUM' : /lineout|against the throw/i.test(txt) ? 'LINEOUT' : /maul/i.test(txt) ? 'MAUL' : null)
     : null
+  const kickMiss = evType === 'SUB' && /wide/i.test(txt)
+  const kickCam = showFx && (kickFx || kickMiss)
   const binned = (side: SideCtx) =>
     side.lineup.slice(0, 15)
       .map(id => (id != null && (side.yellowUntil.get(id) ?? 0) > min) ? (side.yellowUntil.get(id)! - min) : 0)
@@ -632,6 +634,13 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
               ['--ang' as string]: `${i * 36}deg`,
             } as React.CSSProperties} />
           ))}
+        </div>
+      )}
+      {kickCam && (
+        <div key={`kc${fxKey}`} className={`kickcam${kickMiss ? ' miss' : ''}`}>
+          <span className="kc-post l" /><span className="kc-post r" /><span className="kc-bar" />
+          <span className="kc-ball" />
+          <span className="kc-verdict">{kickMiss ? 'WIDE' : 'GOOD!'}</span>
         </div>
       )}
       {binned(ctx.home).map((m, i) => (

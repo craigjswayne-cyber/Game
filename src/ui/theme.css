@@ -1312,3 +1312,45 @@ input, select { font: inherit; }
   border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
   pointer-events: none;
 }
+
+/* ---- kick cam: goalposts overlay on every shot at goal ---- */
+.kickcam {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  width: 92px; height: 74px; z-index: 7; pointer-events: none;
+  background: rgba(8, 18, 34, .55); border-radius: 10px;
+  animation: kc-fade 1.6s ease both;
+}
+.kickcam .kc-post {
+  position: absolute; bottom: 8px; width: 3px; height: 42px; border-radius: 2px;
+  background: #f3f5f8; box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+}
+.kickcam .kc-post.l { left: 30px; }
+.kickcam .kc-post.r { right: 30px; }
+.kickcam .kc-bar {
+  position: absolute; bottom: 28px; left: 30px; right: 30px; height: 3px;
+  border-radius: 2px; background: #f3f5f8; box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+}
+.kickcam .kc-ball {
+  position: absolute; bottom: 6px; left: 50%; width: 7px; height: 9px;
+  margin-left: -3.5px; border-radius: 50%; background: #e8d9b0;
+  border: 1px solid #9a7b3f;
+  animation: kc-flight 1.1s cubic-bezier(.3, .1, .5, 1) both;
+}
+.kickcam.miss .kc-ball { animation-name: kc-flight-miss; }
+@keyframes kc-flight {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-52px) scale(.55); }
+}
+@keyframes kc-flight-miss {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(26px, -50px) scale(.55); }
+}
+.kickcam .kc-verdict {
+  position: absolute; top: 4px; left: 0; right: 0; text-align: center;
+  font-family: var(--cond); font-weight: 800; font-size: 10.5px; letter-spacing: 1.5px;
+  color: #7fe0a0; opacity: 0;
+  animation: kc-verdict-in .3s ease .95s both;
+}
+.kickcam.miss .kc-verdict { color: #ff9a8a; }
+@keyframes kc-verdict-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes kc-fade { 0% { opacity: 0; } 10% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
