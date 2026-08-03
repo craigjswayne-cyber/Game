@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_NAMES, POS_NAMES, fmtMoney, type Attrs } from '../../game/model'
-import { askingPrice, offerRenewal, renewalDemand, userBid } from '../../game/ai'
+import { askingPrice, offerRenewal, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
 import { attrBarColor, attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
@@ -172,6 +172,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           setMsg(`${p.name} will spend the season on loan. He returns next summer, better for it.`)
           touch()
         }}>Send on Season Loan (develops faster)</button>
+      )}
+      {mine && !p.onLoan && (
+        <div className="btn-row">
+          <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'praise')); touch() }}>
+            🗣 Praise His Form
+          </button>
+          <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'word')); touch() }}>
+            ⚠️ Have a Word
+          </button>
+        </div>
       )}
       {mine ? (
         <div className="btn-row">
