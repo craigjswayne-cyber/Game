@@ -551,13 +551,15 @@ const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   YC: 'YELLOW CARD', RC: 'RED CARD', INJ: 'INJURY',
 }
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
   ballLeft: number
   fxKey: number
   showFx: boolean
+  /** score banners still fire at fast-forward speeds */
+  showBig: boolean
   lastTeamC: [string, string]
 }) {
   const fx = ctx.fx
@@ -569,7 +571,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
   const towardHome = last?.teamId === fx.homeId
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
-  const banner = showFx && evType ? BANNER[evType] : undefined
+  const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
   const txt = last?.text ?? ''
   const setPiece = showFx && evType === 'SUB'
     ? (/scrum/i.test(txt) ? 'SCRUM' : /lineout|against the throw/i.test(txt) ? 'LINEOUT' : /maul/i.test(txt) ? 'MAUL' : null)
@@ -691,6 +693,7 @@ function Live() {
   const [speedIdx, setSpeedIdx] = useState(0)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
+  const [showLog, setShowLog] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -760,19 +763,18 @@ function Live() {
           {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
         </div>
+        {!done && (
+          <div className="momo-bar" title="Momentum">
+            <div className="momo-fill" style={{
+              background: `linear-gradient(90deg, ${homeC[0]}, transparent 50%, ${awayC[0]})`,
+            }} />
+            <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
+          </div>
+        )}
       </div>
 
       <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
-        fxKey={cursor} showFx={showFx} lastTeamC={lastTeamC} />
-
-      {!done && (
-        <div className="momo-bar" title="Momentum">
-          <div className="momo-fill" style={{
-            background: `linear-gradient(90deg, ${homeC[0]}, transparent 50%, ${awayC[0]})`,
-          }} />
-          <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
-        </div>
-      )}
+        fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC} />
 
       <div className="speed-controls">
         {SPEEDS.map((s, i) => (
@@ -796,12 +798,13 @@ function Live() {
       </div>
 
       <div className="content ticker" ref={tickerRef}>
-        {shown.map((e, i) => (
-          <div key={i} className={`tick-event ${cls(e)}`}>
-            <span className="min">{e.min}'</span>
-            <span className="txt">{icon(e)} {e.text}</span>
+        {!done && !atHalfTime && !atBreak && !atDecision && !drawer && last && (
+          // one line at a time, replacing the previous — the broadcast way
+          <div key={cursor} className={`now-line ${cls(last)}`}>
+            <span className="min">{Math.min(80, last.min)}'</span>
+            <span className="txt">{icon(last)} {last.text}</span>
           </div>
-        ))}
+        )}
         {atDecision && <DecisionPanel />}
         {drawer && paused && !done && !atDecision && (
           <TouchlinePanel title="⏸ Play is paused — change the picture" showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel="▸ Resume Play" />
@@ -819,6 +822,15 @@ function Live() {
             <Highlights />
             <StatsPanel />
             <RatingsPanel />
+            <button className="btn ghost block" onClick={() => setShowLog(!showLog)}>
+              {showLog ? 'Hide full commentary' : `📜 Full commentary (${shown.length} entries)`}
+            </button>
+            {showLog && shown.map((e, i) => (
+              <div key={i} className={`tick-event ${cls(e)}`}>
+                <span className="min">{e.min}'</span>
+                <span className="txt">{icon(e)} {e.text}</span>
+              </div>
+            ))}
             <button className="btn gold block" style={{ margin: '14px 0' }} onClick={finishMatch}>
               Continue to Results ▸
             </button>

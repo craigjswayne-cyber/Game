@@ -165,7 +165,12 @@ export default function NewGame() {
             <div className="card">
               <label className="fact-label">Your Name</label>
               <input className="inline-input" placeholder="e.g. A. Gaffer" autoFocus
-                value={name} onChange={e => setName(e.target.value)} />
+                value={name} onChange={e => setName(e.target.value)}
+                onFocus={e => {
+                  // keep the field visible above the software keyboard
+                  const el = e.target
+                  setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
+                }} />
               <label className="fact-label" style={{ marginTop: 8, display: 'block' }}>Coaching Philosophy</label>
               <div className="speech-grid" style={{ padding: '6px 0 0' }}>
                 {COACHING_STYLES.map(s => (
