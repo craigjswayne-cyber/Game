@@ -379,6 +379,7 @@ export function rebuildSeason(state: GameState) {
     p.ca0 = p.ca
   }
   state.natSquads = {}
+  state.natLineup = null
 
   agePlayers(state, rng)
   handleContracts(state, rng)

@@ -324,6 +324,8 @@ export interface GameState {
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */
   objectives?: string[]
+  /** the user's hand-picked Test 23 for the current window */
+  natLineup?: { team: string; lineup: (number | null)[] } | null
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

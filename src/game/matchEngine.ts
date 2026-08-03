@@ -126,6 +126,13 @@ export function teamShort(state: GameState, teamId: string): string {
 function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
   const isNation = !club
+  if (isNation && state.natLineup && state.natLineup.team === teamId) {
+    const lu = state.natLineup.lineup
+    const squad = state.natSquads[teamId] ?? []
+    const valid = lu.slice(0, 15).every(id =>
+      id != null && state.players[id] && !state.players[id].injury && squad.includes(id))
+    if (valid) return lu
+  }
   if (club && teamId === state.userClubId) {
     const lu = club.tactic.lineup
     const valid = lu.slice(0, 15).every(id =>
@@ -279,17 +286,44 @@ const TRY_LINES = [
   (n: string) => `TRY! Sweeping move, and ${n} applies the finish!`,
   (n: string) => `TRY! Quick tap by ${n} catches the defence napping!`,
   (n: string) => `TRY! ${n} gathers a clever grubber and touches down!`,
+  (n: string) => `TRY! ${n} arcs outside his man and won't be caught!`,
+  (n: string) => `TRY! ${n} picks from the base and burrows over!`,
+  (n: string) => `TRY! A monstrous fend from ${n} and he strolls in!`,
+  (n: string) => `TRY! ${n} takes the offload one-handed and finishes!`,
+  (n: string) => `TRY! Fifty-metre intercept — ${n} all the way!`,
+  (n: string) => `TRY! ${n} chips, regathers, scores. Outrageous.`,
+  (n: string) => `TRY! Pick-and-go, pick-and-go, and ${n} forces it down!`,
+  (n: string) => `TRY! ${n} hits a scything line off the shoulder — untouched!`,
+  (n: string) => `TRY! The wraparound sends ${n} through the front door!`,
+  (n: string) => `TRY! ${n} bumps off three tacklers on his way to the line!`,
+]
+const TRY_LINES_WET = [
+  (n: string) => `TRY! ${n} follows a slithering kick through and wins the race!`,
+  (n: string) => `TRY! The greasy ball squirts loose and ${n} pounces!`,
+  (n: string) => `TRY! ${n} aquaplanes over in the corner — the crowd doesn't care!`,
+]
+const TRY_LINES_DERBY = [
+  (n: string) => `TRY! ${n} scores — and cups an ear to the away end! Bedlam!`,
+  (n: string) => `TRY! ${n} settles a hundred pub arguments with that one!`,
+  (n: string) => `TRY! ${n} through a wall of bodies — this derby has everything!`,
 ]
 const PEN_LINES = [
   (n: string) => `${n} slots the penalty.`,
   (n: string) => `${n} makes no mistake from the tee.`,
   (n: string) => `${n} strikes it true — three more points.`,
   (n: string) => `${n} bisects the uprights from distance.`,
+  (n: string) => `${n} takes his time... and drills it.`,
+  (n: string) => `No radar needed — ${n} splits them from 45 metres.`,
+  (n: string) => `${n} scrapes it over off the left post. They all count.`,
+  (n: string) => `Ice in the veins: ${n} silences the whistlers.`,
 ]
 const CON_LINES = [
   (n: string) => `${n} adds the extras.`,
   (n: string) => `${n} curls the conversion over.`,
   (n: string) => `${n} converts from the touchline!`,
+  (n: string) => `${n} strokes the conversion straight through the middle.`,
+  (n: string) => `Routine for ${n} — the lead grows.`,
+  (n: string) => `${n} bends it home against the breeze.`,
 ]
 const FLAVOR = [
   (n: string, t: string) => `Big carry from ${n} takes ${t} into the 22.`,
@@ -300,6 +334,31 @@ const FLAVOR = [
   (n: string, t: string) => `Rolling maul from ${t} eats up twenty metres.`,
   (n: string, t: string) => `${n} clears the lines with a booming touch-finder.`,
   (n: string, t: string) => `Thunderous hit by ${n} — the crowd roars.`,
+  (n: string, t: string) => `${n} steals the lineout — ${t} ball against the throw!`,
+  (n: string, t: string) => `Grubber in behind from ${n}; the ${t} chase is ferocious.`,
+  (n: string, t: string) => `${n} slips the tackle and ${t} are suddenly on the front foot.`,
+  (n: string, t: string) => `Choke tackle! ${n} holds him up and it's a ${t} scrum.`,
+  (n: string, t: string) => `${n} puts in a 50:22! What a strike — ${t} lineout deep in the corner.`,
+  (n: string, t: string) => `Offload of the season from ${n} — ${t} swarm forward.`,
+  (n: string, t: string) => `The ${t} defence blitzes and ${n} smashes the carrier behind the gain line.`,
+  (n: string, t: string) => `${n} is everywhere — third jackal attempt in ten minutes for ${t}.`,
+  (n: string, t: string) => `Cross-field kick... ${n} climbs highest but it goes to ground. Scrappy stuff.`,
+  (n: string, t: string) => `${n} takes a quick lineout — the ref waves play on and ${t} counter.`,
+]
+const FLAVOR_WET = [
+  (n: string, t: string) => `The rain hammers down as ${n} trudges to another ${t} scrum.`,
+  (n: string, t: string) => `Knock-on! The soap-bar ball squirts out of ${n}'s grasp.`,
+  (n: string, t: string) => `Box kick from ${n} disappears into the murk — ${t} chase hard.`,
+  (n: string, t: string) => `Mud everywhere. ${n}'s number is barely readable now.`,
+]
+const FLAVOR_WIND = [
+  (n: string, t: string) => `${n}'s clearance hangs in the gale and barely makes ten metres.`,
+  (n: string, t: string) => `The wind grabs the restart — ${n} does well to gather for ${t}.`,
+]
+const FLAVOR_DERBY = [
+  (n: string, t: string) => `Handbags after the whistle! ${n} in the middle of it — the ref calls the captains.`,
+  (n: string, t: string) => `The noise is deafening every time ${n} touches it for ${t}.`,
+  (n: string, t: string) => `Derby rugby: ${n} launched into the tackle a heartbeat late. The crowd howls.`,
 ]
 const TIRED_LINES = [
   (n: string) => `${n} has his hands on his knees — the tank is emptying.`,
@@ -467,7 +526,13 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
     scorer.stats.tries += 1
     scorer.stats.points += 5
   }
-  pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? TRY_LINES[Math.floor(rng() * TRY_LINES.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
+  const wetTry = (ctx.weather === 'Rain' || ctx.weather === 'Snow') && rng() < 0.25
+  const derbyTry = ctx.derby && rng() < 0.3
+  const tryPool = derbyTry ? TRY_LINES_DERBY : wetTry ? TRY_LINES_WET : TRY_LINES
+  pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? tryPool[Math.floor(rng() * tryPool.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
+  if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
+    pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} — some campaign he's having.`, scorer.id)
+  }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty + side.goalBonus
   if (rng() < pCon) {
@@ -607,7 +672,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         if (e < 22 && rng() < 0.5) {
           pushEvent(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(rng() * TIRED_LINES.length)](p.name), p.id)
         } else {
-          pushEvent(state, ctx, min, 'SUB', side, FLAVOR[Math.floor(rng() * FLAVOR.length)](p.name, teamShort(state, side.teamId)), p.id)
+          const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
+          const pool = derby && rng() < 0.3 ? FLAVOR_DERBY
+            : wet && rng() < 0.3 ? FLAVOR_WET
+            : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
+            : FLAVOR
+          pushEvent(state, ctx, min, 'SUB', side, pool[Math.floor(rng() * pool.length)](p.name, teamShort(state, side.teamId)), p.id)
         }
       }
     }
@@ -692,6 +762,8 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
     ctx.seg = 1
     ctx.awaiting = 'HT'
     pushEvent(state, ctx, 40, 'HT', null, `Half-time: ${teamShort(state, ctx.fx.homeId)} ${ctx.home.score} - ${ctx.away.score} ${teamShort(state, ctx.fx.awayId)}`)
+    const t = ctx.home.poss + ctx.away.poss || 1
+    pushEvent(state, ctx, 40, 'SUB', null, `First-half numbers: possession ${Math.round((ctx.home.poss / t) * 100)}%–${Math.round((ctx.away.poss / t) * 100)}%, tries ${ctx.home.tries}–${ctx.away.tries}, penalty goals ${ctx.home.pens}–${ctx.away.pens}.`)
     return 'HT'
   }
   if (ctx.tick === 15) {

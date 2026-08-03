@@ -240,6 +240,7 @@ function manageInternationals(state: GameState, rng: Rng) {
       }
     }
     if (state.week === w.end + 1) {
+      if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
       for (const nat of w.nations) {
         for (const id of state.natSquads[nat] ?? []) {
           const p = state.players[id]
