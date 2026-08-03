@@ -1050,6 +1050,44 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     fx.motm = motmId
   }
   ctx.motmId = motmId
+
+  // the morning paper: a proper match report for every game you took charge of
+  if (detail && isUser) {
+    const usHome = ctx.userSideId === fx.homeId
+    const us = usHome ? home : away
+    const them = usHome ? away : home
+    const margin = us.score - them.score
+    const oppName = teamShort(state, them.teamId)
+    const scorers = (side: SideCtx) => {
+      const byName = new Map<string, number[]>()
+      for (const e of ctx.events) {
+        if (e.type !== 'TRY' || e.teamId !== side.teamId || !e.playerName) continue
+        const mins = byName.get(e.playerName) ?? []
+        mins.push(e.min)
+        byName.set(e.playerName, mins)
+      }
+      return [...byName.entries()].map(([n, mins]) => `${n} (${mins.map(m => `${m}'`).join(', ')})`).join(', ')
+    }
+    const motm = motmId != null ? state.players[motmId] : null
+    const opener = margin >= 20 ? `A statement. ${teamShort(state, us.teamId)} were ruthless from the first whistle.`
+      : margin > 7 ? `A convincing afternoon's work, controlled from the front.`
+      : margin > 0 ? `Tight, tense — and yours. Games like this one win seasons.`
+      : margin === 0 ? `Honours even, and nobody quite sure how to feel about it.`
+      : margin >= -7 ? `The finest of margins, the wrong side of them. It will sting for a few days.`
+      : `A day to forget. The video session on Monday will be a long one.`
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: true,
+      subject: `📰 ${teamShort(state, fx.homeId)} ${home.score}–${away.score} ${teamShort(state, fx.awayId)}`,
+      body: [
+        opener,
+        scorers(us) ? `Tries: ${scorers(us)}` : `No tries for ${teamShort(state, us.teamId)} today.`,
+        scorers(them) ? `${oppName} tries: ${scorers(them)}` : '',
+        motm ? `Man of the match: ${motm.name} (${motmR.toFixed(1)})` : '',
+        fx.att ? `${fx.att.toLocaleString()} at ${state.clubs[fx.homeId]?.stadium ?? 'the ground'} · ${state.comps[fx.compId]?.name ?? ''}${fx.weather && fx.weather !== 'Dry' ? ` · ${fx.weather}` : ''}` : '',
+      ].filter(Boolean).join('\n'),
+      playerId: motm?.id,
+    })
+  }
 }
 
 /** Simulate a full match in one go (AI fixtures, tests, quick sims). */
