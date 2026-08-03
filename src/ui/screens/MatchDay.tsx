@@ -262,6 +262,20 @@ function Preview({ fxId }: { fxId: number }) {
           ]
           return (
             <>
+              {game.matchPrep && (
+                <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="fact-label">This Week's Preparation</div>
+                  <div className="meta">
+                    {{
+                      attack: '⚡ Attacking Shapes — strike moves drilled all week. Attack sharpened.',
+                      defence: '🛡 Defensive Drills — the wall is built. Defence sharpened.',
+                      setpiece: '🏗 Set-Piece Work — scrum and lineout honed to a point.',
+                      fitness: '🏃 Conditioning — the legs will last longer than theirs.',
+                      recovery: '🧖 Recovery Week — fresh bodies, full tanks.',
+                    }[game.matchPrep]}
+                  </div>
+                </div>
+              )}
               {danger && (
                 <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
                   <div className="fact-label">Danger Man</div>
