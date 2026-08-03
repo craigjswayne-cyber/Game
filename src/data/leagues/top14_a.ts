@@ -67,7 +67,6 @@ export const TOP14_A: RawClub[] = [
       { name: 'Maxime Lucu', pos: 'SH', age: 32, nat: 'FRA', q: 85, gk: true, intl: true },
       { name: 'Yann Lesgourgues', pos: 'SH', age: 24, nat: 'FRA', q: 71 },
       { name: 'Matthieu Jalibert', pos: 'FH', age: 26, nat: 'FRA', q: 88, gk: true, intl: true },
-      { name: 'Handré Pollard', pos: 'FH', age: 31, nat: 'RSA', q: 88, intl: true },
       { name: 'Matéo Garcia', pos: 'FH', age: 22, nat: 'FRA', q: 63 },
       { name: 'Yoram Moefana', pos: 'CE', age: 25, nat: 'FRA', q: 86, intl: true },
       { name: 'Nicolas Depoortère', pos: 'CE', age: 22, nat: 'FRA', q: 80, intl: true },
@@ -198,6 +197,8 @@ export const TOP14_A: RawClub[] = [
     colors: ['#8ed8f8', '#ffffff'],
     rep: 81, budget: 4500000,
     players: [
+      { name: 'Owen Farrell', pos: 'FH', alt: ['CE'], age: 33, nat: 'ENG', q: 84, gk: true, intl: true },
+      { name: 'Henry Arundell', pos: 'WG', alt: ['FB'], age: 22, nat: 'ENG', q: 82, intl: true },
       { name: 'Hassane Kolingar', pos: 'LP', age: 27, nat: 'FRA', q: 74, intl: true },
       { name: 'Guram Gogichashvili', pos: 'LP', age: 27, nat: 'GEO', q: 72, intl: true },
       { name: 'Janick Tarrit', pos: 'HK', age: 24, nat: 'FRA', q: 68 },

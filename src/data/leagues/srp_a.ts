@@ -84,6 +84,7 @@ export const SRP_A: RawClub[] = [
     colors: ['#ce181e', '#000000'],
     rep: 88, budget: 2000000,
     players: [
+      { name: 'Fergus Burke', pos: 'FH', alt: ['FB'], age: 25, nat: 'NZL', q: 78, gk: true },
       { name: 'Tamaiti Williams', pos: 'LP', age: 25, nat: 'NZL', q: 86, intl: true },
       { name: 'George Bower', pos: 'LP', alt: ['TP'], age: 33, nat: 'NZL', q: 73, intl: true },
       { name: 'Fletcher Newell', pos: 'TP', age: 25, nat: 'NZL', q: 84, intl: true },
