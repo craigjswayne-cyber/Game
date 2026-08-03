@@ -18,7 +18,7 @@ import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague } from './schedule'
 import { punditPredictions } from './gossip'
-import { isWorldCupSeason } from './model'
+import { CHEM_SLOTS, chemKey, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { pickObjectives } from './objectives'
@@ -247,6 +247,16 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   for (const club of Object.values(state.clubs)) {
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
+  }
+
+  // established squads don't start as strangers: seed the first-choice
+  // partnerships with a history so season one has settled combinations
+  state.chem = {}
+  for (const club of Object.values(state.clubs)) {
+    for (const [i, j] of CHEM_SLOTS) {
+      const a = club.tactic.lineup[i], b = club.tactic.lineup[j]
+      if (a != null && b != null) state.chem[chemKey(a, b)] = 8 + Math.floor(rng() * 20)
+    }
   }
 
   // welcome news

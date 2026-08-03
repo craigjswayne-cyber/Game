@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, XV_SLOTS, inRedZone } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, inRedZone } from './model'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
@@ -88,16 +88,29 @@ export function teamUnits(state: GameState, lineup: (number | null)[]): Units {
   }
   const fw = [0, 1, 2, 3, 4, 5, 6, 7]
   const bk = [8, 9, 10, 11, 12, 13, 14]
-  const scrum = avg([at(0, 'scr'), at(1, 'scr'), at(2, 'scr'), at(3, 'str'), at(4, 'str'), at(0, 'str'), at(2, 'str')])
-  const lineout = avg([at(1, 'lin'), at(3, 'lin'), at(4, 'lin'), at(5, 'lin'), at(7, 'lin')])
+  let scrum = avg([at(0, 'scr'), at(1, 'scr'), at(2, 'scr'), at(3, 'str'), at(4, 'str'), at(0, 'str'), at(2, 'str')])
+  let lineout = avg([at(1, 'lin'), at(3, 'lin'), at(4, 'lin'), at(5, 'lin'), at(7, 'lin')])
   const breakdown = avg(fw.map(i => at(i, 'ruc')))
-  const attack = avg([
+  let attack = avg([
     ...bk.map(i => at(i, 'han')),
     at(9, 'vis') * 1.5, at(8, 'pas') * 1.3, at(11, 'pac'), at(12, 'pac'),
     at(10, 'pac'), at(13, 'pac'), at(14, 'pos'),
   ])
-  const defence = avg([...fw.map(i => at(i, 'tac')), ...bk.map(i => at(i, 'tac')), at(14, 'pos') * 1.2])
-  const kicking = avg([at(9, 'kic') * 1.6, at(8, 'kic'), at(14, 'kic')])
+  let defence = avg([...fw.map(i => at(i, 'tac')), ...bk.map(i => at(i, 'tac')), at(14, 'pos') * 1.2])
+  let kicking = avg([at(9, 'kic') * 1.6, at(8, 'kic'), at(14, 'kic')])
+  // partnership chemistry: combinations that have played together click
+  if (state.chem) {
+    const games = (i: number, j: number) => {
+      const a = lineup[i], b = lineup[j]
+      return a != null && b != null ? state.chem![chemKey(a, b)] ?? 0 : 0
+    }
+    const f = (g: number) => (g >= 50 ? 0.03 : g >= 25 ? 0.02 : g >= 10 ? 0.01 : 0)
+    scrum *= 1 + (f(games(0, 1)) + f(games(1, 2))) / 2
+    lineout *= 1 + f(games(3, 4))
+    attack *= 1 + f(games(8, 9)) * 0.7 + f(games(11, 12)) * 0.3
+    defence *= 1 + f(games(11, 12)) * 0.7
+    kicking *= 1 + f(games(8, 9)) * 0.5
+  }
   // best goal kicker on the pitch
   let kickerId: number | null = null
   let goal = 5
@@ -517,6 +530,19 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // a live count, never a round sell-out figure twice
     const jitter = Math.floor(rng() * Math.max(60, hostClub.capacity * 0.012))
     fx.att = Math.max(400, Math.round(hostClub.capacity * interest) - jitter)
+  }
+
+  // every match started together deepens a partnership (counted at kick-off,
+  // after this match's units were computed from the old familiarity)
+  state.chem ??= {}
+  for (const side of [home, away]) {
+    for (const [i, j] of CHEM_SLOTS) {
+      const a = side.lineup[i], b = side.lineup[j]
+      if (a != null && b != null) {
+        const k = chemKey(a, b)
+        state.chem[k] = (state.chem[k] ?? 0) + 1
+      }
+    }
   }
 
   const ctx: LiveCtx = {

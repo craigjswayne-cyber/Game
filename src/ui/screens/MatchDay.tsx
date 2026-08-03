@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
   refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, XV_SLOTS, fixtureDate, fixtureDayOff, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
@@ -375,6 +375,34 @@ function Preview({ fxId }: { fxId: number }) {
         {bar('Breakdown', myUnits.breakdown, oppUnits.breakdown)}
         {bar('Attack', myUnits.attack, oppUnits.attack)}
         {bar('Defence', myUnits.defence, oppUnits.defence)}
+
+        {(() => {
+          const label: Record<number, string> = { 0: 'Front row', 3: 'Locks', 8: 'Halfbacks', 11: 'Centres' }
+          const rows = CHEM_SLOTS.filter(([i]) => label[i]).map(([i, j]) => {
+            const a = t.lineup[i] != null ? game.players[t.lineup[i]!] : null
+            const b = t.lineup[j] != null ? game.players[t.lineup[j]!] : null
+            if (!a || !b) return null
+            const g = game.chem?.[chemKey(a.id, b.id)] ?? 0
+            return { key: label[i], a, b, g, tier: chemTier(g) }
+          }).filter(Boolean) as { key: string; a: Player; b: Player; g: number; tier: string }[]
+          if (!rows.length) return null
+          const surname = (n: string) => n.split(' ').slice(-1)[0]
+          return (
+            <>
+              <SectionTitle sub="combinations click with games together">Partnerships</SectionTitle>
+              <div className="card" style={{ paddingTop: 6, paddingBottom: 6 }}>
+                {rows.map(r => (
+                  <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--hairline)', fontSize: 12.5 }}>
+                    <span><span style={{ color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, fontSize: 11 }}>{r.key}</span> · {surname(r.a.name)} & {surname(r.b.name)}</span>
+                    <span style={{ color: r.g >= 25 ? '#2f7d4f' : r.g < 5 ? '#9b2c2c' : 'var(--ink-soft)', fontWeight: 600 }}>
+                      {r.g} together · {r.tier}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )
+        })()}
 
         {rotWindow && rotFlagged.length >= 2 && (
           <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>

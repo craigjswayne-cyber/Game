@@ -660,6 +660,16 @@ export function rebuildSeason(state: GameState) {
     })
   }
 
+  // partnership chemistry only lives while the pair share a dressing room —
+  // prune split/retired pairs so the ledger stays small
+  if (state.chem) {
+    for (const k of Object.keys(state.chem)) {
+      const [a, b] = k.split('_').map(Number)
+      const pa = state.players[a], pb = state.players[b]
+      if (!pa || !pb || pa.clubId !== pb.clubId) delete state.chem[k]
+    }
+  }
+
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
     club.budget = Math.max(200_000, Math.round((club.rep * 45_000 + Math.max(0, club.balance) * 0.15) / 50_000) * 50_000)
