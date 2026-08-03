@@ -29,10 +29,21 @@ export default function Transfers() {
 
   return (
     <>
-      <div className="chips">
-        <span className="chip">Budget <b>{fmtMoney(user.budget)}</b></span>
-        <span className="chip">Balance <b>{fmtMoney(user.balance)}</b></span>
+      <div className="chips" style={{
+        position: 'sticky', top: 0, zIndex: 5, margin: 0, padding: '10px 14px 8px',
+        background: 'color-mix(in srgb, var(--cream) 92%, transparent)', backdropFilter: 'blur(6px)',
+        borderBottom: '1px solid var(--hairline)',
+      }}>
+        <span className="chip">💰 Budget <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">Wage room <b>{fmtMoney(Math.max(0, user.wageBudget - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}/wk</b></span>
+        <span className="chip" style={{
+          color: (game.week <= 4 || game.week === 23 || game.week === 24) ? 'var(--win)' : 'var(--ink-faint)',
+          fontWeight: 700,
+        }}>
+          {game.week <= 4 ? `Window open · closes wk 5`
+            : game.week === 23 || game.week === 24 ? `⏰ Deadline window · slams shut wk 25`
+            : `Window closed · deadline wk 23`}
+        </span>
       </div>
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
