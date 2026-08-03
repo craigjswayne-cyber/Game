@@ -29,6 +29,22 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
         <div className="meta">🏟️ {club.stadium} — {club.capacity.toLocaleString()} capacity</div>
         <div className="meta">🧢 Head coach: {club.id === game.userClubId ? game.managerName : club.coach ?? 'vacant'}</div>
+        {(() => {
+          const honours = game.history.filter(h => h.champion === club.id)
+          if (!honours.length) return null
+          const byComp: Record<string, number[]> = {}
+          for (const h of honours) (byComp[h.compId] ??= []).push(2025 + h.season)
+          return (
+            <div style={{ marginTop: 8 }}>
+              <div className="fact-label">🏆 Honours Board</div>
+              {Object.entries(byComp).map(([compId, years]) => (
+                <div key={compId} className="meta">
+                  {game.comps[compId]?.name ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
+                </div>
+              ))}
+            </div>
+          )
+        })()}
         <div className="badge-row" style={{ marginTop: 6, flexWrap: 'wrap' }}>
           <span className="chip">Reputation <b>{club.rep}</b></span>
           <span className="chip">Squad <b>{players.length}</b></span>

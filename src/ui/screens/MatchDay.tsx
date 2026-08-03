@@ -752,6 +752,7 @@ function Live() {
         )}
         {done && (
           <>
+            <Highlights />
             <StatsPanel />
             <RatingsPanel />
             <button className="btn gold block" style={{ margin: '14px 0' }} onClick={finishMatch}>
@@ -809,6 +810,29 @@ function DecisionPanel() {
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+/** The three moments everyone will be talking about on the drive home. */
+function Highlights() {
+  const live = useStore(s => s.liveMatch)!
+  const weight = (e: MatchEvent) =>
+    e.type === 'RC' ? 90 : e.type === 'TRY' ? 80 + e.min / 10 : e.type === 'DG' ? 55 : e.type === 'YC' ? 30 : 0
+  const picks = [...live.ctx.events]
+    .filter(e => weight(e) > 0)
+    .sort((a, b) => weight(b) - weight(a))
+    .slice(0, 3)
+    .sort((a, b) => a.min - b.min)
+  if (!picks.length) return null
+  return (
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold-bright)' }}>
+      <h3 style={{ fontSize: 14 }}>🎬 The Highlights</h3>
+      {picks.map((e, i) => (
+        <div key={i} className="meta" style={{ padding: '3px 0' }}>
+          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> — {e.text}
+        </div>
+      ))}
     </div>
   )
 }

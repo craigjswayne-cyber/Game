@@ -32,6 +32,8 @@ export default function Squad() {
   const [view, setView] = useState<View>('selection')
   const [sort, setSort] = useState<SortKey>('pkd')
   const [desc, setDesc] = useState(false)
+  const [group, setGroup] = useState<'all' | 'fwd' | 'bck'>('all')
+  const FWD = new Set(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
@@ -41,7 +43,9 @@ export default function Squad() {
   }
 
   const players = useMemo(() => {
-    const ps = club.players.map(id => game.players[id]).filter(Boolean)
+    let ps = club.players.map(id => game.players[id]).filter(Boolean)
+    if (group === 'fwd') ps = ps.filter(p => FWD.has(p.pos))
+    if (group === 'bck') ps = ps.filter(p => !FWD.has(p.pos))
     const dir = desc ? -1 : 1
     const posIdx = (p: Player) => POS_ORDER.indexOf(p.pos)
     const avr = (p: Player) => (p.stats.apps ? p.stats.ratingSum / p.stats.apps : 0)
@@ -62,7 +66,7 @@ export default function Squad() {
       }
     })
     return ps
-  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup])
+  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group])
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
@@ -105,6 +109,12 @@ export default function Squad() {
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info' : 'Stats'}
           </button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 6, padding: '8px 14px 0' }}>
+        {([['all', 'All'], ['fwd', 'Forwards'], ['bck', 'Backs']] as const).map(([k, label]) => (
+          <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            onClick={() => setGroup(k)}>{label}</button>
         ))}
       </div>
       <SectionTitle sub={`${players.length} players · ${fmtMoney(wageBill)}/wk`}>Club Squad</SectionTitle>
