@@ -114,6 +114,7 @@ export interface Player {
   /** last match rating and the week it was earned — fuels Team of the Week */
   lastR?: number
   lastWk?: number
+  talkWk?: number // absolute week (season*100+week) of the manager's last word with him
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
 }
