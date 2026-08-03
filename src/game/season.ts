@@ -625,6 +625,11 @@ export function processWeekAndAdvance(state: GameState) {
         body: `${teamShort(state, comp.champion)} defeated ${teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
       })
       if (comp.champion === state.userClubId || (state.natTeam != null && comp.champion === state.natTeam)) {
+        state.celebration = {
+          headline: comp.champion === state.userClubId ? `${teamShort(state, state.userClubId).toUpperCase()} ARE CHAMPIONS` : `CHAMPIONS OF THE ${comp.name.toUpperCase()}`,
+          sub: `${comp.name} · ${seasonLabel(state.season)} · ${state.managerName}`,
+          icon: '🏆',
+        }
         state.mgr.trophies.push({ compId: comp.id, season: state.season })
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
@@ -642,6 +647,11 @@ export function processWeekAndAdvance(state: GameState) {
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
         if (comp.type === 'league' && comp.champion === state.userClubId) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season })
+          state.celebration = {
+            headline: `${teamShort(state, state.userClubId).toUpperCase()} ARE CHAMPIONS`,
+            sub: `${comp.name} · ${seasonLabel(state.season)} · ${state.managerName}`,
+            icon: '🏆',
+          }
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `🏆 CHAMPIONS! The ${comp.name} title is yours`,

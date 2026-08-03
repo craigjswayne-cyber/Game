@@ -93,6 +93,24 @@ export default function App() {
   const cur = nav[nav.length - 1]
   const appClass = `app${night ? ' night' : ''}`
 
+      {game?.celebration && (
+        <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
+          {Array.from({ length: 26 }).map((_, i) => (
+            <i key={i} className="confetti" style={{
+              left: `${(i * 137) % 100}%`,
+              animationDelay: `${(i * 0.23) % 2.4}s`,
+              animationDuration: `${2.6 + (i % 5) * 0.5}s`,
+              background: ['#e3b92e', '#2e57ab', '#c0392f', '#2f7d4f', '#9fc2e8'][i % 5],
+            }} />
+          ))}
+          <div className="celebrate-box">
+            <div style={{ fontSize: 64, lineHeight: 1 }}>{game.celebration.icon}</div>
+            <h1>{game.celebration.headline}</h1>
+            <div className="sub">{game.celebration.sub}</div>
+            <div className="muted" style={{ marginTop: 14 }}>Tap anywhere — the party carries on without you.</div>
+          </div>
+        </div>
+      )}
   if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><RotateVeil /></div>
   if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><RotateVeil /></div>
   if (!game) return <div className={`${appClass} no-rail`}><Menu /><RotateVeil /></div>
