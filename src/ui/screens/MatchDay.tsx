@@ -311,7 +311,7 @@ function NationPreview({ fxId }: { fxId: number }) {
 
   const fx = game.fixtures.find(f => f.id === fxId)!
   const comp = game.comps[fx.compId]
-  const nat = game.natTeam!
+  const nat = (fx.homeId === game.natTeam || fx.awayId === game.natTeam) ? game.natTeam! : 'LIO'
   const opp = fx.homeId === nat ? fx.awayId : fx.homeId
 
   const myLineup = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, nat), true)), [game, nat])

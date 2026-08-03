@@ -146,6 +146,7 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState)
   return comp
 }
 
+export const TOUR_WEEKS = [41, 42]
 export const WC_POOL_WEEKS = [2, 3, 4, 5, 6]
 export const WC_KO_WEEKS = [7, 8, 9]
 
@@ -183,9 +184,59 @@ function buildWorldCup(rng: Rng, state: GameState) {
   state.comps['wc'] = comp
 }
 
+/** Lions years: 2029, 2033, ... (every 4th season, offset from the World Cup). */
+export function isLionsSeason(season: number): boolean {
+  return (2025 + season) % 4 === 1 && season > 0
+}
+
+/** Summer theatre: either a Lions series or north-south tours close the season. */
+function buildSummer(rng: Rng, state: GameState) {
+  const season = state.season
+  if (isLionsSeason(season)) {
+    const hosts = ['NZL', 'RSA', 'AUS']
+    const host = hosts[Math.floor((2025 + season - 2029) / 4) % 3]
+    const comp: Competition = {
+      id: 'lions', name: `Lions Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
+      short: 'Lions Tour', type: 'intl',
+      teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 2, playoffTeams: 0,
+      weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
+    }
+    TOUR_WEEKS.forEach((week, r) => {
+      state.fixtures.push({
+        id: state.nextId++, compId: 'lions', round: r, week,
+        homeId: host, awayId: 'LIO', played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: r === 0 ? '1st Test' : '2nd Test',
+      })
+    })
+    state.comps['lions'] = comp
+    return
+  }
+  // classic July tours: north heads south for two-Test series
+  const north = shuffled(rng, ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'])
+  const south = shuffled(rng, ['NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'])
+  const comp: Competition = {
+    id: 'tour', name: 'Summer Tours', short: 'Summer Tours', type: 'intl',
+    teamIds: [...north, ...south], table: [], rounds: 2, playoffTeams: 0,
+    weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
+  }
+  TOUR_WEEKS.forEach((week, r) => {
+    north.forEach((n, i) => {
+      state.fixtures.push({
+        id: state.nextId++, compId: 'tour', round: r, week,
+        homeId: south[i], awayId: n, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: r === 0 ? '1st Test' : '2nd Test',
+      })
+    })
+  })
+  state.comps['tour'] = comp
+}
+
 /** Six Nations & Rugby Championship (played by national teams, engine-lite). */
 export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
   if (worldCup) buildWorldCup(rng, state)
+  if (!worldCup) buildSummer(rng, state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snRounds = roundRobin(sn, rng, false)
   const snComp: Competition = {
