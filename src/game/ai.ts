@@ -1,5 +1,5 @@
 import type { GameState, Player } from './model'
-import { fmtMoney } from './model'
+import { addGrudge, fmtMoney } from './model'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 
@@ -23,6 +23,10 @@ export function askingPrice(state: GameState, p: Player): number {
 export function executeTransfer(state: GameState, p: Player, toClubId: string, fee: number) {
   const from = p.clubId ? state.clubs[p.clubId] : null
   const to = state.clubs[toClubId]
+  // losing a star you didn't want to sell leaves a mark on the fixture list
+  if (from && p.ca >= 80 && !p.transferListed && fee > 0) {
+    addGrudge(state, from.id, toClubId, `they came and took ${p.name}`)
+  }
   if (from) {
     from.players = from.players.filter(id => id !== p.id)
     from.balance += fee

@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, inRedZone } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, grudgeBetween, inRedZone } from './model'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
@@ -468,6 +468,8 @@ export interface LiveCtx {
   decision: { kind: 'penalty'; min: number } | null
   /** momentum, -1 (away camped in our half) .. +1 (home dominant) */
   momo: number
+  /** live bad blood between the clubs (reason string) — derby-lite heat */
+  grudge?: string | null
 }
 
 function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) {
@@ -503,6 +505,9 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     if (ref.style === 'strict') side.cardRisk *= 1.45
     if (ref.style === 'lenient') { side.cardRisk *= 0.62; side.units.attack *= 1.03 }
   }
+  // dynamic bad blood: derby-lite heat when there's history between the clubs
+  const grudge = !derby ? grudgeBetween(state, fx.homeId, fx.awayId) : null
+  if (grudge) { home.cardRisk *= 1.25; away.cardRisk *= 1.25 }
   if (weather === 'Rain') goalPenalty = 0.09
   if (weather === 'Wind') goalPenalty = 0.09
   if (weather === 'Snow') goalPenalty = 0.1
@@ -552,11 +557,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
     userSideId: fx.homeId === userTeamId ? fx.homeId : fx.awayId === userTeamId ? fx.awayId : null,
     tick: 0, seg: 0, awaiting: null, motmId: null, talkUsed: false, subsUsed: 0,
-    preTalk: null, decision: null, momo: 0,
+    preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
 
   if (derby) {
     pushEvent(state, ctx, 0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
+  } else if (grudge) {
+    pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air — ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
   } else {
     pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries — proper old-school rugby weather.' : ''}`)
   }
@@ -739,6 +746,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3) * eF(opp)
     let ratio = ((att * adv * numF) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
+    else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
     const pTry = clamp(0.115 * Math.pow(ratio, 2.6), 0.01, 0.42)
     const r = rng()
@@ -1124,6 +1132,12 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   fx.awayTries = away.tries
   pushEvent(state, ctx, 80, 'FT', null, `Full-time: ${teamShort(state, fx.homeId)} ${home.score} - ${away.score} ${teamShort(state, fx.awayId)}`)
   if (detail) fx.events = ctx.events
+
+  // an ill-tempered afternoon starts a feud of its own
+  const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent
+  if (totalCards >= 5 && state.clubs[fx.homeId] && state.clubs[fx.awayId] && !isDerby(fx.homeId, fx.awayId)) {
+    addGrudge(state, fx.homeId, fx.awayId, `the last meeting boiled over — ${totalCards} cards and a tunnel full of pushing`, 1)
+  }
 
   let motmId: number | null = null
   let motmR = -1

@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
   refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
@@ -324,6 +324,18 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 </div>
               )}
+              {(() => {
+                const g = !derbyName(fx.homeId, fx.awayId) ? grudgeBetween(game, fx.homeId, fx.awayId) : null
+                return g ? (
+                  <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+                    <div className="fact-label">Bad Blood</div>
+                    <div className="meta">
+                      There's history here — <b>{g.reason}</b>. Expect cards, a hostile
+                      atmosphere and a contest the form book can't call.
+                    </div>
+                  </div>
+                ) : null
+              })()}
               {danger && (
                 <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
                   <div className="fact-label">Danger Man</div>
