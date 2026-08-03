@@ -665,6 +665,8 @@ export function processWeekAndAdvance(state: GameState) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
     generatePress(state, rng)
+    // press tone cools toward neutral unless you keep feeding it
+    if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }
   generateGossip(state, rng)
 

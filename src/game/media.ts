@@ -252,4 +252,28 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   }
   const club = state.clubs[state.userClubId]
   club.boardConfidence = clamp(club.boardConfidence + opt.board * 5, 0, 100)
+
+  // tone ledger: what you say in public adds up
+  const prev = state.pressTone ?? 0
+  if (opt.morale >= 0.5) state.pressTone = clamp(prev + 1, -6, 6)
+  else if (opt.morale <= -0.5) state.pressTone = clamp(prev - 1, -6, 6)
+  const tone = state.pressTone ?? 0
+  if (prev < 4 && tone >= 4) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+      subject: `Swagger alert: is all that praise going to their heads?`,
+      body: `Your players can't stop telling the press how good they are — because you keep telling the press how good they are. The assistant's note is blunt: "Training tempo has dipped. They think they only need to turn up." Expect flat performances until someone puts a shift in — or until you sharpen your tongue.`,
+    })
+  }
+  if (prev > -4 && tone <= -4) {
+    for (const id of club.players) {
+      const p = state.players[id]
+      if (p) p.morale = clamp(p.morale - 0.5, 1, 10)
+    }
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+      subject: `Dressing room bruised by public criticism`,
+      body: `Week after week of hard words in press conferences has landed. Senior players are reportedly "sick of being thrown under the bus" and morale has sagged across the squad. A little public warmth would go a long way.`,
+    })
+  }
 }
