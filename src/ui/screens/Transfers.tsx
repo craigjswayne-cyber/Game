@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER, type Pos } from '../../game/model'
 import { counterIncomingOffer, respondToOffer } from '../../game/ai'
+import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 
@@ -76,6 +77,28 @@ export default function Transfers() {
           </tbody></table></div>
         </>
       )}
+
+      <SectionTitle sub="big-club benches — borrow a star of tomorrow, parent pays half">Loan Market</SectionTitle>
+      <div className="tblwrap"><table className="dtable"><tbody>
+        {loanTargets(game).map(p => (
+          <tr key={p.id}>
+            <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
+            <td className="name" onClick={() => go('player', p.id)}>
+              {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
+            </td>
+            <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
+            <td>
+              <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
+                onClick={() => { setMsg(loanIn(game, p.id)); touch() }}>
+                Sign on loan
+              </button>
+            </td>
+          </tr>
+        ))}
+        {loanTargets(game).length === 0 && (
+          <tr><td className="muted" style={{ padding: 12 }}>No clubs above you are loaning right now.</td></tr>
+        )}
+      </tbody></table></div>
 
       <SectionTitle sub="tap a player to scout & bid">Scout The Market</SectionTitle>
       <div style={{ padding: '0 14px' }}>

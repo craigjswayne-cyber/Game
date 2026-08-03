@@ -114,6 +114,8 @@ export interface Player {
   /** last match rating and the week it was earned — fuels Team of the Week */
   lastR?: number
   lastWk?: number
+  /** parent club when this player is on loan AT the user's club */
+  loanFrom?: string | null
 }
 
 export interface Club {
@@ -318,6 +320,8 @@ export interface GameState {
   natTeam?: string | null
   /** a country wants you — pending offer from a union */
   natOffer?: { nat: string; week: number } | null
+  /** the board's secondary season objectives (evaluated at rollover) */
+  objectives?: string[]
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

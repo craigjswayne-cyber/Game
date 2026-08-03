@@ -63,6 +63,7 @@ export function availabilityTag(p: Player, week: number): { txt: string; color: 
   if (p.bans > 0) return { txt: `BAN ${p.bans}`, color: '#9b2c2c' }
   if (p.natSquad) return { txt: 'INTL', color: '#a8841a' }
   if ((p.rust ?? 0) > 0) return { txt: `⚠ RUSTY ${p.rust}w`, color: '#a8841a' }
+  if (p.loanFrom) return { txt: 'ON LOAN HERE', color: '#3a68c4' }
   return null
 }
 

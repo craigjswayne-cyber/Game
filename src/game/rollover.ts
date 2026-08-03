@@ -5,6 +5,7 @@ import { buildChampionsCup, buildInternationals, buildLeague, sortTable } from '
 import { LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
+import { objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
 import { regenName } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -315,12 +316,22 @@ export function rebuildSeason(state: GameState) {
       const wonLeague = comp.champion === club.id
       const met = wonLeague || (pos > 0 && pos <= obj.pos)
       club.boardConfidence = clamp(club.boardConfidence + (wonLeague ? 25 : met ? 12 : -14), 5, 100)
+      // secondary objectives: side quests with real consequences
+      const sideLines: string[] = []
+      for (const id of state.objectives ?? []) {
+        const def = objectiveById(id)
+        if (!def || !def.applies(state)) continue
+        const ok = def.met(state)
+        club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
+        if (ok) club.budget += 250_000
+        sideLines.push(`${ok ? '✅' : '❌'} ${def.text(state)}${ok ? ' — met (+£250k budget)' : ' — missed'}`)
+      }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: met ? 'Board delighted with the season' : 'Board verdict: not good enough',
         body: `The objective was to ${obj.text}. You finished ${ordinal(pos)}${wonLeague ? ' and won the title' : ''}. ${met
           ? 'The chairman shakes your hand warmly — keep building.'
-          : 'The chairman expects markedly better next season.'}`,
+          : 'The chairman expects markedly better next season.'}${sideLines.length ? '\n\n' + sideLines.join('\n') : ''}`,
       })
     }
   }
@@ -454,6 +465,26 @@ export function rebuildSeason(state: GameState) {
     club.tactic.lineup = autoSelect(state, pool)
   }
   ensureCaptains(state)
+
+  // loan-ins go home to their parent clubs
+  for (const p of Object.values(state.players)) {
+    if (p.loanFrom && state.clubs[p.loanFrom]) {
+      const user = state.clubs[state.userClubId]
+      user.players = user.players.filter(id => id !== p.id)
+      user.tactic.lineup = user.tactic.lineup.map(id => (id === p.id ? null : id))
+      state.clubs[p.loanFrom].players.push(p.id)
+      p.clubId = p.loanFrom
+      p.loanFrom = null
+      if (p.ca < p.pa) p.ca = clamp(p.ca + 1 + Math.floor(rng() * 3), 1, p.pa)
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season, type: 'transfer', read: false,
+        subject: `${p.name} returns to ${state.clubs[p.clubId]?.short} after his loan`,
+        body: `The loan is over. ${p.name} heads back to his parent club having grown from the rugby you gave him.`,
+        playerId: p.id,
+      })
+    }
+  }
+  state.objectives = pickObjectives(state)
 
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
