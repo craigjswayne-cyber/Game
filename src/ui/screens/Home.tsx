@@ -92,7 +92,7 @@ export default function Home() {
             <br /><br />
             On match day: pick your XV, choose a <b>dressing-room speech</b>, and confirm you're ready. In play you can change tactics or make subs at <b>any stoppage</b> (📋), and when you win a kickable penalty, the call — posts, corner or tap — is yours.
             <br /><br />
-            Between games: read <b>The Rugby Wire</b> for rumours and fallouts, watch stamina in the <b>Medical Centre</b>, and build your coaching staff in <b>Training</b>.
+            Between games: set the week's <b>Match Preparation</b> on the Tactics screen, praise or challenge players one-to-one from their <b>profile</b>, read <b>The Rugby Wire</b> for rumours, and build your coaching staff in <b>Training</b>. Impress, and a <b>national team</b> may come calling.
             <div className="muted">Tap anywhere to close.</div>
           </div>
         </div>
