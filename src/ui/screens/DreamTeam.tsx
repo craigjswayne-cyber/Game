@@ -95,7 +95,35 @@ export default function DreamTeam() {
       {lb('Season Ratings Leaderboard', byRating, p => (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2))}
       {lb('Top Try Scorers', byTries, p => `${p.stats.tries}`)}
       {lb('Top Points Scorers', byPoints, p => `${p.stats.points}`)}
+      <OnesToWatch leagueId={leagueId} />
       <div className="spacer" />
+    </>
+  )
+}
+
+/** The scouts' wonderkid list: U21 ceilings worth tracking (and signing). */
+function OnesToWatch({ leagueId }: { leagueId: string }) {
+  const game = useStore(s => s.game)!
+  const go = useStore(s => s.go)
+  const kids = Object.values(game.players)
+    .filter(p => p.age <= 21 && (p.clubId == null || game.clubs[p.clubId]?.leagueId === leagueId))
+    .sort((a, b) => b.pa - a.pa)
+    .slice(0, 8)
+  if (!kids.length) return null
+  return (
+    <>
+      <SectionTitle sub="U21 ceilings the scouts rave about — free agents included">Ones to Watch</SectionTitle>
+      <div className="tblwrap"><table className="dtable"><tbody>
+        {kids.map(p => (
+          <tr key={p.id} onClick={() => go('player', p.id)}>
+            <td className="num">{p.age}</td>
+            <td className="name">🌟 {p.name}
+              <span className="muted"> ({p.pos} · {p.clubId ? teamShort(game, p.clubId) : 'FREE AGENT'})</span>
+            </td>
+            <td className="num muted">{p.nat}</td>
+          </tr>
+        ))}
+      </tbody></table></div>
     </>
   )
 }

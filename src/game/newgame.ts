@@ -9,8 +9,9 @@ import { SRP_A } from '../data/leagues/srp_a'
 import { SRP_B } from '../data/leagues/srp_b'
 import { CHAMP } from '../data/leagues/champ'
 import type { Club, GameState, Pos } from './model'
-import { buildPlayer, resetIds } from './attributes'
+import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
+import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague } from './schedule'
 import { isWorldCupSeason } from './model'
@@ -152,6 +153,47 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     while (club.players.length < 33 && guard++ < 12) {
       mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, guard + 50)
     }
+  }
+
+  // WONDERKIDS: a handful of generational academy talents scattered across
+  // the world, plus unattached prodigies from the wider rugby nations
+  const academyKids = Object.values(state.players).filter(p => p.youth && p.age <= 19)
+  const chosen = new Set<number>()
+  const watchList: string[] = []
+  for (let i = 0; i < 9 && academyKids.length; i++) {
+    const k = academyKids[Math.floor(rng() * academyKids.length)]
+    if (chosen.has(k.id)) continue
+    chosen.add(k.id)
+    k.ca = clamp(k.ca + 7 + Math.floor(rng() * 6), 1, 80)
+    k.pa = clamp(88 + Math.floor(rng() * 12), k.ca + 15, 99)
+    k.q0 = k.ca
+    k.value = playerValue(k.ca, k.age, k.pa)
+    if (watchList.length < 5) {
+      watchList.push(`${k.name} (${k.age}, ${k.pos} — ${state.clubs[k.clubId!]?.short})`)
+    }
+  }
+  const GEM_NATS = ['FIJ', 'GEO', 'TGA', 'SAM', 'USA', 'URU', 'ESP', 'POR']
+  const GEM_POS: Pos[] = ['WG', 'FL', 'CE', 'LK', 'FH', 'N8', 'SH', 'FB']
+  for (let i = 0; i < 8; i++) {
+    const nat = GEM_NATS[i % GEM_NATS.length]
+    const p = buildPlayer(
+      {
+        name: regenName(rng, nat), pos: GEM_POS[i % GEM_POS.length],
+        age: 18 + Math.floor(rng() * 3), nat,
+        q: 55 + Math.floor(rng() * 12), gk: rng() < 0.15,
+      },
+      null, seed + 7777 + i * 13, 0)
+    p.youth = true
+    p.pa = clamp(84 + Math.floor(rng() * 14), p.ca + 12, 99)
+    p.value = playerValue(p.ca, p.age, p.pa)
+    state.players[p.id] = p
+  }
+  if (watchList.length) {
+    state.news.push({
+      id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
+      subject: `🌟 The scouts' ones to watch`,
+      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market — first club to move wins.`,
+    })
   }
 
   // competitions

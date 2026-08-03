@@ -79,7 +79,9 @@ export function teamUnits(state: GameState, lineup: (number | null)[]): Units {
     if (!p) return 5
     const fit = 0.75 + 0.25 * (p.cond / 100)
     const frm = 0.9 + 0.02 * p.form
-    return p.a[k] * fit * frm
+    // match sharpness: a player eased back after a layoff is a touch off the pace
+    const shp = 0.945 + 0.055 * ((p.sharp ?? 70) / 100)
+    return p.a[k] * fit * frm * shp
   }
   const fw = [0, 1, 2, 3, 4, 5, 6, 7]
   const bk = [8, 9, 10, 11, 12, 13, 14]
@@ -172,6 +174,16 @@ export interface SideCtx {
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
 function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null) {
   const club = state.clubs[side.teamId]
+  // a happy dressing room plays for each other; a sour one hesitates
+  if (club) {
+    const xv = side.lineup.slice(0, 15).map(id => id != null ? state.players[id] : null).filter(Boolean)
+    if (xv.length) {
+      const avgMor = xv.reduce((s, p) => s + p!.morale, 0) / xv.length
+      const mF = 1 + (avgMor - 6.5) * 0.009 // roughly ±3% at the extremes
+      side.units.attack *= mF
+      side.units.defence *= mF
+    }
+  }
   if (club) {
     const t = club.tactic
     const f = (v: number) => (v - 50) / 50 // -1..1

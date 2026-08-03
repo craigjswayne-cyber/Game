@@ -172,11 +172,15 @@ function youthIntake(state: GameState, rng: Rng) {
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
+      // roughly one club a season unearths a genuine wonderkid
+      const wonder = rng() < 0.085
       const p: Player = {
         id: nextPid(),
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
         a,
-        ca: q, pa: clamp(q + 25 + Math.floor(rng() * 30), q, 99), q0: q,
+        ca: wonder ? clamp(q + 8, 1, 78) : q,
+        pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 25 + Math.floor(rng() * 30), q, 99),
+        q0: q,
         intl: false, gk: !!raw.gk,
         form: 6, morale: 7, cond: 100, sharp: 50,
         injury: null, bans: 0, natSquad: false,
@@ -189,6 +193,14 @@ function youthIntake(state: GameState, rng: Rng) {
       state.players[p.id] = p
       club.players.push(p.id)
       names.push(`${p.name} (${pos})`)
+      if (wonder && club.id === state.userClubId) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+          subject: `🌟 WONDERKID: the academy has struck gold`,
+          body: `The coaches are calling ${p.name} (${p.age}, ${pos}) the best prospect the academy has produced in a generation. Handle him right — game time, a development focus, patience — and he could be anything.`,
+          playerId: p.id,
+        })
+      }
     }
     if (club.id === state.userClubId) {
       state.news.push({
@@ -197,6 +209,28 @@ function youthIntake(state: GameState, rng: Rng) {
         body: `The academy has promoted this year's crop: ${names.join(', ')}. The coaches are excited about one or two of them.`,
       })
     }
+  }
+  // a few unattached young gems drift into the free-agent pool each season
+  for (let i = 0; i < 3; i++) {
+    const nats = ['FIJ', 'GEO', 'TGA', 'SAM', 'USA', 'URU']
+    const nat = pick(rng, nats)
+    const pos = pick(rng, YOUTH_POS)
+    const q = 54 + Math.floor(rng() * 12)
+    const raw = { name: regenName(rng, nat), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
+    const a = deriveAttrs(raw, state.seed + state.season * 3011 + i)
+    const p: Player = {
+      id: nextPid(),
+      name: raw.name, pos, alt: [], age: raw.age, nat, clubId: null,
+      a, ca: q, pa: clamp(84 + Math.floor(rng() * 14), q + 12, 99), q0: q,
+      intl: false, gk: !!raw.gk,
+      form: 6, morale: 7, cond: 100, sharp: 50,
+      injury: null, bans: 0, natSquad: false,
+      wage: 900, contractEnds: state.season, value: 0,
+      stats: emptyStats(), career: [], transferListed: false, youth: true,
+      pers: assignPersonality(rng, a), sc: 10,
+    }
+    p.value = playerValue(p.ca, p.age, p.pa)
+    state.players[p.id] = p
   }
 }
 
@@ -239,6 +273,36 @@ export function rebuildSeason(state: GameState) {
   const rng = mulberry32(state.seed ^ ((state.season + 1) * 60013))
 
   seasonAwards(state)
+
+  // the manager's season in review — a proper full-time moment
+  if (!state.unemployed) {
+    const uid = state.userClubId
+    const uf = state.fixtures.filter(f => f.played && (f.homeId === uid || f.awayId === uid))
+    let w = 0, d = 0, l = 0
+    let best: { diff: number; line: string } | null = null
+    for (const f of uf) {
+      const us = f.homeId === uid ? f.homeScore : f.awayScore
+      const them = f.homeId === uid ? f.awayScore : f.homeScore
+      if (us > them) w++; else if (us < them) l++; else d++
+      const diff = us - them
+      if (us > them && (!best || diff > best.diff)) {
+        best = { diff, line: `${state.clubs[f.homeId]?.short ?? f.homeId} ${f.homeScore}-${f.awayScore} ${state.clubs[f.awayId]?.short ?? f.awayId}` }
+      }
+    }
+    const squad = state.clubs[uid].players.map(id => state.players[id]).filter(Boolean)
+    const topPts = [...squad].sort((a, b) => b.stats.points - a.stats.points)[0]
+    const topTry = [...squad].sort((a, b) => b.stats.tries - a.stats.tries)[0]
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+      subject: `📋 Your ${seasonLabel(state.season)} season in review`,
+      body: [
+        `Record: ${w}W ${d}D ${l}L from ${uf.length} matches.`,
+        best ? `Best win: ${best.line}` : '',
+        topPts?.stats.points ? `Top points: ${topPts.name} (${topPts.stats.points})` : '',
+        topTry?.stats.tries ? `Top tries: ${topTry.name} (${topTry.stats.tries})` : '',
+      ].filter(Boolean).join('\n'),
+    })
+  }
 
   // board verdict on the season vs their stated objective
   if (!state.unemployed) {
