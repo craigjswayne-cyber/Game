@@ -1452,3 +1452,7 @@ input, select { font: inherit; }
   0% { transform: translateY(-4vh) rotate(0deg); opacity: 1; }
   100% { transform: translateY(106vh) rotate(720deg); opacity: .75; }
 }
+
+/* kicked balls streak through the air */
+.pitch .ball.kick-r { box-shadow: -14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
+.pitch .ball.kick-l { box-shadow: 14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
