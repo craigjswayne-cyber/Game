@@ -4,6 +4,23 @@ import { flagOf } from '../game/nations'
 import { kitPattern, type KitPattern } from '../game/kits'
 
 
+/** The brand roundel: white circle, monogram, magazine-style. */
+export function BrandMark({ size = 64, inverse = false }: { size?: number; inverse?: boolean }) {
+  const bg = inverse ? '#2e57ab' : '#ffffff'
+  const fg = inverse ? '#ffffff' : '#2e57ab'
+  return (
+    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
+      <circle cx="32" cy="32" r="31" fill={bg} />
+      <text
+        x="31" y="42.5" textAnchor="middle"
+        fontFamily="'Montserrat', 'Segoe UI', sans-serif"
+        fontWeight="800" fontStyle="italic" fontSize="27" letterSpacing="-2.5"
+        fill={fg}
+      >RM</text>
+    </svg>
+  )
+}
+
 export function SectionTitle({ children, sub }: { children: ReactNode; sub?: string }) {
   return (
     <div className="section-title">
