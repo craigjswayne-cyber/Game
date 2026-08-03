@@ -68,6 +68,27 @@ export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${
 export const chemTier = (g: number) =>
   g >= 50 ? 'telepathic' : g >= 25 ? 'established' : g >= 10 ? 'settled' : g >= 5 ? 'settling in' : 'brand new'
 
+/** Live grudge between two clubs, if any. */
+export const grudgeBetween = (state: GameState, x: string, y: string) =>
+  state.grudges?.find(g => ((g.a === x && g.b === y) || (g.a === y && g.b === x)) && g.until >= state.season) ?? null
+
+/** Record (or refresh) bad blood between two clubs; news if the user is in it. */
+export function addGrudge(state: GameState, a: string, b: string, reason: string, seasons = 2) {
+  if (!state.clubs[a] || !state.clubs[b] || a === b) return
+  state.grudges ??= []
+  const ex = state.grudges.find(g => (g.a === a && g.b === b) || (g.a === b && g.b === a))
+  if (ex) { ex.reason = reason; ex.until = Math.max(ex.until, state.season + seasons); return }
+  state.grudges.push({ a, b, reason, until: state.season + seasons })
+  if (a === state.userClubId || b === state.userClubId) {
+    const opp = a === state.userClubId ? b : a
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
+      body: `There is genuine needle between the clubs now — ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
+    })
+  }
+}
+
 export interface Injury {
   desc: string
   /** week the player returns */
@@ -379,6 +400,9 @@ export interface GameState {
   /** games played together by key partnerships (front row, locks, halfbacks,
    *  centres) — familiarity sharpens the relevant unit. Key: chemKey(a, b) */
   chem?: Record<string, number>
+  /** dynamic bad blood between clubs: cup eliminations, poached stars,
+   *  ill-tempered matches. Expires after `until` season. */
+  grudges?: { a: string; b: string; reason: string; until: number }[]
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

@@ -1,5 +1,5 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
-import { fixtureDayOff, fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
+import { addGrudge, fixtureDayOff, fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
@@ -590,6 +590,18 @@ export function processWeekAndAdvance(state: GameState) {
       fx.tableApplied = true
     }
   }
+  // knockout heartbreak breeds a grudge: losing a semi or a final puts the
+  // winner on your dartboard for the next couple of seasons
+  for (const fx of state.fixtures.filter(f =>
+    f.week === state.week && f.played && (f.stage === 'SF' || f.stage === 'F') &&
+    state.clubs[f.homeId] && state.clubs[f.awayId])) {
+    const winner = fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId
+    const loser = winner === fx.homeId ? fx.awayId : fx.homeId
+    const comp = state.comps[fx.compId]
+    addGrudge(state, loser, winner,
+      `they broke our hearts in the ${comp?.short ?? 'cup'} ${fx.stage === 'F' ? 'final' : 'semi-final'}`)
+  }
+
   // the user's fixture was played in detail by the MatchDay screen —
   // apply its table effects exactly once here (club match or Test match)
   const userFx = state.fixtures.find(f =>

@@ -660,6 +660,9 @@ export function rebuildSeason(state: GameState) {
     })
   }
 
+  // old wounds heal: expired grudges drop off the fixture list
+  state.grudges = (state.grudges ?? []).filter(g => g.until >= state.season)
+
   // partnership chemistry only lives while the pair share a dressing room —
   // prune split/retired pairs so the ledger stays small
   if (state.chem) {
