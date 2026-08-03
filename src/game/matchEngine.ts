@@ -337,6 +337,26 @@ const CON_LINES = [
   (n: string) => `Routine for ${n} — the lead grows.`,
   (n: string) => `${n} bends it home against the breeze.`,
 ]
+const FLAVOR_GRASSROOTS = [
+  (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul — proper National 1 rugby, this.`,
+  (n: string, t: string) => `A dog has briefly joined the ${t} defensive line. Play carries on regardless.`,
+  (n: string, t: string) => `${n} slips in the mud where the winter pitch never quite recovers. The crowd, all four hundred of them, enjoy that.`,
+  (n: string, t: string) => `Huge cheer from the clubhouse balcony as ${n} flattens his man. Someone rings the bell.`,
+  (n: string, t: string) => `${t} work it through nine phases — patient stuff for this level, and the tea hut has gone quiet.`,
+  (n: string, t: string) => `${n}, a schoolteacher on Monday mornings, sends the fly-half the wrong way. Class dismissed.`,
+  (n: string, t: string) => `The touch judge is a club volunteer and takes a moment to find his flag. ${t} tap and go.`,
+  (n: string, t: string) => `${n} charges down the clearance! The ball ricochets off the beer tent guy-rope and stays in.`,
+]
+
+const FLAVOR_PACIFIC = [
+  (n: string, t: string) => `${n} throws the wildest offload you'll see all year — and it sticks! ${t} pour forward.`,
+  (n: string, t: string) => `The drums in the stands haven't stopped since kick-off. ${n} feeds off it with a rampaging carry.`,
+  (n: string, t: string) => `Footwork from ${n} that ought to be illegal — three defenders grasp at air.`,
+  (n: string, t: string) => `${t} run it from their own line, because of course they do. The crowd loves every metre.`,
+  (n: string, t: string) => `A hit from ${n} you can hear over the sea breeze. The flags in the crowd shake with approval.`,
+  (n: string, t: string) => `One-handed take above his head from ${n} — Pacific rugby, no notes.`,
+]
+
 const FLAVOR = [
   (n: string, t: string) => `Big carry from ${n} takes ${t} into the 22.`,
   (n: string, t: string) => `${n} makes a searing half-break for ${t}.`,
@@ -686,6 +706,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         } else {
           const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
           const pool = derby && rng() < 0.3 ? FLAVOR_DERBY
+            : ctx.fx.compId === 'natl1' && rng() < 0.3 ? FLAVOR_GRASSROOTS
+            : ctx.fx.compId === 'pnc' && rng() < 0.3 ? FLAVOR_PACIFIC
             : wet && rng() < 0.3 ? FLAVOR_WET
             : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
             : FLAVOR

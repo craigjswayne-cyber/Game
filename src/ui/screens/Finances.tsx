@@ -39,6 +39,7 @@ export default function Finances() {
         <span className="chip">Wage bill <b>{fmtMoney(wages)}/wk</b></span>
         <span className="chip">Wage budget <b>{fmtMoney(club.wageBudget)}/wk</b></span>
       </div>
+      {(game.finHist?.length ?? 0) >= 2 && <BalanceChart hist={game.finHist!} />}
       <SectionTitle>Matchday</SectionTitle>
       <div className="chips">
         <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
@@ -94,6 +95,42 @@ export default function Finances() {
           : club.boardConfidence > 50 ? 'The board is broadly satisfied.'
           : club.boardConfidence > 30 ? 'The board expects results to improve.'
           : 'The board is losing patience. Win, and quickly.'}
+      </div>
+    </>
+  )
+}
+
+/** Season balance, week by week. Blue above zero, red below — one glance
+ *  tells you which way the club is heading. */
+function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
+  const max = Math.max(...hist.map(h => Math.abs(h.b)), 1)
+  const first = hist[0], latest = hist[hist.length - 1]
+  const trend = latest.b - first.b
+  return (
+    <>
+      <SectionTitle sub={`${trend >= 0 ? '+' : '−'}${fmtMoney(Math.abs(trend))} since week ${first.w}`}>Season Balance</SectionTitle>
+      <div className="card">
+        <div style={{ position: 'relative', display: 'flex', gap: 2, height: 72 }}>
+          <span style={{ position: 'absolute', left: 0, right: 0, top: 35, height: 1, background: 'var(--hairline)' }} />
+          {hist.map(h => {
+            const bar = Math.max(2, Math.round((Math.abs(h.b) / max) * 34))
+            return (
+              <span key={h.w} title={`Week ${h.w}: ${fmtMoney(h.b)}`}
+                style={{ flex: 1, minWidth: 2, position: 'relative' }}>
+                <i style={{
+                  position: 'absolute', left: 0, right: 0,
+                  ...(h.b >= 0 ? { bottom: 36, height: bar } : { top: 36, height: bar }),
+                  background: h.b >= 0 ? 'var(--green-800)' : 'var(--red)',
+                  borderRadius: 2.5,
+                }} />
+              </span>
+            )
+          })}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+          <span className="meta">wk {first.w}: {fmtMoney(first.b)}</span>
+          <span className="meta" style={{ fontWeight: 700 }}>now: {fmtMoney(latest.b)}</span>
+        </div>
       </div>
     </>
   )

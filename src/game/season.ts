@@ -343,6 +343,9 @@ function weeklyFinance(state: GameState, rng: Rng) {
   const home = state.fixtures.find(f =>
     f.week === state.week && f.played && f.homeId === club.id && f.att)
   if (home?.att) club.balance += Math.round(home.att * 30)
+  // weekly balance snapshot for the season chart
+  ;(state.finHist ??= []).push({ w: state.week, b: club.balance })
+  if (state.finHist.length > 50) state.finHist = state.finHist.slice(-50)
   if (club.balance < -2_000_000 && state.week % 6 === 0) {
     club.boardConfidence = clamp(club.boardConfidence - 5, 0, 100)
     state.news.push({
