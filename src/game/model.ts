@@ -61,6 +61,13 @@ export const emptyStats = (): SeasonStats => ({
 /** 1,300+ minutes (~17 full games) is the red zone: tired bodies break. */
 export const inRedZone = (p: { stats: { mins: number } }) => p.stats.mins >= 1300
 
+/** Partnership chemistry: lineup slot pairs whose familiarity matters —
+ *  LH-HK, HK-TH, the lock pairing, the halfbacks, the centres. */
+export const CHEM_SLOTS: [number, number][] = [[0, 1], [1, 2], [3, 4], [8, 9], [11, 12]]
+export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`)
+export const chemTier = (g: number) =>
+  g >= 50 ? 'telepathic' : g >= 25 ? 'established' : g >= 10 ? 'settled' : g >= 5 ? 'settling in' : 'brand new'
+
 export interface Injury {
   desc: string
   /** week the player returns */
@@ -369,6 +376,9 @@ export interface GameState {
   mentors?: { senior: number; kid: number }[]
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
+  /** games played together by key partnerships (front row, locks, halfbacks,
+   *  centres) — familiarity sharpens the relevant unit. Key: chemKey(a, b) */
+  chem?: Record<string, number>
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }
