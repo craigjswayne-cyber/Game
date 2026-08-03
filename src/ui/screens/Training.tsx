@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { FACILITY_INFO, STAFF_INFO, facilityCost, fmtMoney, type FacilityId, type StaffLevels, type TrainingFocus } from '../../game/model'
 import { SectionTitle } from '../components'
@@ -69,6 +70,8 @@ export default function Training() {
           </div>
         )
       })}
+      <SectionTitle sub="a senior pro shows an academy kid how it's done (max 3 pairs)">Mentoring</SectionTitle>
+      <MentorPanel />
       <SectionTitle sub="paid from the club balance — bricks outlast squads">Facilities</SectionTitle>
       {(Object.keys(FACILITY_INFO) as FacilityId[]).map(fid => {
         const info = FACILITY_INFO[fid]
@@ -112,5 +115,64 @@ export default function Training() {
       </table></div>
       <div className="spacer" />
     </>
+  )
+}
+
+
+/** Pair the wise heads with the next generation. */
+function MentorPanel() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const [seniorId, setSeniorId] = useState<number | ''>('')
+  const [kidId, setKidId] = useState<number | ''>('')
+  const club = game.clubs[game.userClubId]
+  const pairs = game.mentors ?? []
+  const squad = club.players.map(id => game.players[id]).filter(Boolean)
+  const seniors = squad.filter(p => !p.acad && p.age >= 28 && !pairs.some(mp => mp.senior === p.id))
+    .sort((a, b) => b.a.lea - a.a.lea)
+  const kids = squad.filter(p => p.acad && !pairs.some(mp => mp.kid === p.id))
+    .sort((a, b) => b.pa - a.pa)
+  return (
+    <div className="card">
+      {pairs.map((mp, i) => {
+        const s2 = game.players[mp.senior]
+        const k2 = game.players[mp.kid]
+        if (!s2 || !k2) return null
+        return (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0' }}>
+            <span className="meta"><b>{s2.name}</b> ({s2.pers}) → 🎓 <b>{k2.name}</b> ({k2.age})</span>
+            <button className="btn ghost" style={{ fontSize: 11, padding: '4px 10px' }}
+              onClick={() => { game.mentors = pairs.filter((_, j) => j !== i); touch() }}>End</button>
+          </div>
+        )
+      })}
+      {pairs.length === 0 && <div className="meta">No pairs yet. A Leader or Professional rubs off on a kid — faster growth, and his character sticks.</div>}
+      {pairs.length < 3 && seniors.length > 0 && kids.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}
+            onChange={e => setSeniorId(e.target.value ? Number(e.target.value) : '')}>
+            <option value="">Senior pro…</option>
+            {seniors.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pers}, {p.age})</option>)}
+          </select>
+          <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={kidId}
+            onChange={e => setKidId(e.target.value ? Number(e.target.value) : '')}>
+            <option value="">Academy kid…</option>
+            {kids.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pos}, {p.age})</option>)}
+          </select>
+          <button className="btn" disabled={!seniorId || !kidId} onClick={() => {
+            if (!seniorId || !kidId) return
+            game.mentors = [...pairs, { senior: seniorId, kid: kidId }]
+            const s2 = game.players[seniorId]; const k2 = game.players[kidId]
+            game.news.push({
+              id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
+              subject: `${s2.name} takes ${k2.name.split(' ').slice(-1)[0]} under his wing`,
+              body: `The old pro and the academy kid: ${s2.name} will mentor ${k2.name} for the season — extras after training, lifts to the ground, the lot. This is how clubs pass themselves on.`,
+              playerId: k2.id,
+            })
+            setSeniorId(''); setKidId(''); touch()
+          }}>Pair</button>
+        </div>
+      )}
+    </div>
   )
 }

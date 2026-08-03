@@ -365,6 +365,8 @@ export interface GameState {
   facilities?: Partial<Record<FacilityId, number>>
   /** a trophy moment waiting to be celebrated full-screen */
   celebration?: { headline: string; sub: string; icon: string } | null
+  /** senior pros paired with academy kids — wisdom rubs off (max 3) */
+  mentors?: { senior: number; kid: number }[]
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
   /** the user's hand-picked Test 23 for the current window */
