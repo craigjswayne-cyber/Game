@@ -130,6 +130,25 @@ function agePlayers(state: GameState, rng: Rng) {
       subject: 'Retirements',
       body: `Hanging up the boots: ${userRetirees.map(p => `${p.name} (${p.age})`).join(', ')}. The dressing room won't be the same.`,
     })
+    // a one-club servant gets a testimonial: full house, retired shirt
+    const legend = userRetirees
+      .map(p => ({ p, apps: p.career.filter(c => c.clubId === state.userClubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps }))
+      .filter(x => x.apps >= 150)
+      .sort((a, b) => b.apps - a.apps)[0]
+    if (legend) {
+      const club = state.clubs[state.userClubId]
+      const gate = Math.round(club.capacity * 32)
+      club.balance += gate
+      for (const id of club.players) {
+        const tm = state.players[id]
+        if (tm) tm.morale = clamp(tm.morale + 0.4, 1, 10)
+      }
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
+        subject: `🎗 Testimonial: ${legend.p.name} — ${legend.apps} games of service`,
+        body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.`,
+      })
+    }
   }
 }
 
