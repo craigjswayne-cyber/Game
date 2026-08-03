@@ -1404,3 +1404,9 @@ input, select { font: inherit; }
   .title-screen .tagline { font-size: 12.5px; margin-top: 4px; }
   .title-screen .menu-btns { margin-top: 14px; gap: 8px; }
 }
+
+/* full-time review: two columns in landscape, one page, minimal scroll */
+.review-grid { display: grid; grid-template-columns: 1fr; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+}

@@ -1,5 +1,5 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
-import { fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
+import { fixtureDayOff, fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
@@ -283,13 +283,22 @@ function weeklyTraining(state: GameState, rng: Rng) {
     balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
     defence: 'defence', fitness: 'assistant', kicking: 'kicking',
   }
+  // turnaround: a Sunday game followed by a Friday game leaves 5 days'
+  // recovery, not 7 — the whole squad freshens up slower that week
+  const lastFx = state.fixtures.find(f =>
+    f.week === state.week - 1 && f.played && (f.homeId === state.userClubId || f.awayId === state.userClubId))
+  const nextFx = state.fixtures.find(f =>
+    f.week === state.week && !f.played && (f.homeId === state.userClubId || f.awayId === state.userClubId))
+  const gapDays = lastFx && nextFx ? 7 + fixtureDayOff(nextFx.id) - fixtureDayOff(lastFx.id) : 7
+  const turnF = gapDays / 7 // 5-day turnaround = 71% recovery; 9 days = 128%
+
   for (const club of Object.values(state.clubs)) {
     const isUser = club.id === state.userClubId
     for (const id of club.players) {
       const p = state.players[id]
       if (!p) continue
       // recovery — rusty players take longer to freshen up
-      p.cond = clamp(p.cond + ((p.rust ?? 0) > 0 ? 16 : 22), 20, 100)
+      p.cond = clamp(p.cond + Math.round(((p.rust ?? 0) > 0 ? 16 : 22) * (isUser ? turnF : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
       if (p.injury && state.week >= p.injury.until) {
