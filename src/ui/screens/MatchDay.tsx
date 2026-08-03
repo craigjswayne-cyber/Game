@@ -749,6 +749,7 @@ function Live() {
   const paused = !playing && !done && !atHalfTime && !atBreak
   const lastTeamC = last?.teamId === fixture.awayId ? awayC : homeC
   const showFx = playing && speedIdx < 2
+  const panelActive = done || atHalfTime || atBreak || atDecision || (drawer && paused)
 
   return (
     <div className="live-wrap">
@@ -773,8 +774,10 @@ function Live() {
         )}
       </div>
 
-      <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
-        fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC} />
+      {!panelActive && (
+        <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
+          fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC} />
+      )}
 
       <div className="speed-controls">
         {SPEEDS.map((s, i) => (
@@ -797,14 +800,18 @@ function Live() {
         {!done && <button className="btn" onClick={() => { setDrawer(false); skipToBreak() }}>⏭</button>}
       </div>
 
-      <div className="content ticker" ref={tickerRef}>
-        {!done && !atHalfTime && !atBreak && !atDecision && !drawer && last && (
-          // one line at a time, replacing the previous — the broadcast way
-          <div key={cursor} className={`now-line ${cls(last)}`}>
-            <span className="min">{Math.min(80, last.min)}'</span>
-            <span className="txt">{icon(last)} {last.text}</span>
-          </div>
-        )}
+      {!panelActive && (
+        <div className="now-strip">
+          {last && (
+            <div key={cursor} className={`now-line ${cls(last)}`}>
+              <span className="min">{Math.min(80, last.min)}'</span>
+              <span className="txt">{icon(last)} {last.text}</span>
+            </div>
+          )}
+        </div>
+      )}
+      {panelActive && (
+      <div className="content ticker panel-area" ref={tickerRef}>
         {atDecision && <DecisionPanel />}
         {drawer && paused && !done && !atDecision && (
           <TouchlinePanel title="⏸ Play is paused — change the picture" showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel="▸ Resume Play" />
@@ -837,6 +844,7 @@ function Live() {
           </>
         )}
       </div>
+      )}
     </div>
   )
 }

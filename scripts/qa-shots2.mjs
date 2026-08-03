@@ -19,7 +19,6 @@ try {
   await page.click('text=New Career')
   await page.waitForSelector('text=Gallagher Premiership')
   await page.click('text=Gallagher Premiership')
-  await page.click('.action-bar >> text=Confirm')
   await page.waitForSelector('.tile-grid.three')
   await page.click('.tile >> text=Leicester')
   await page.waitForTimeout(600)

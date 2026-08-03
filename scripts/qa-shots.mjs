@@ -19,7 +19,6 @@ try {
   await page.click('text=New Career')
   await page.waitForSelector('text=National League One', { timeout: 8000 })
   await page.click('text=National League One')
-  await page.click('.action-bar >> text=Confirm')
   await page.waitForSelector('.tile-grid.three')
   await page.click('.tile >> text=Rosslyn Pk')
   log('clicked club')

@@ -28,7 +28,7 @@ import Saves from './screens/Saves'
 import DreamTeam from './screens/DreamTeam'
 
 const TITLES: Record<string, string> = {
-  home: 'Inbox', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -213,7 +213,7 @@ export default function App() {
       </header>
       <main className="content">{screen()}</main>
       <nav className="bottom-nav">
-        {navBtn('home', <IcoInbox />, 'Inbox', unread)}
+        {navBtn('home', <IcoInbox />, 'Home', unread)}
         {game.unemployed ? (
           <>
             {navBtn('jobs', <IcoClipboard />, 'Jobs', game.vacancies.length)}
