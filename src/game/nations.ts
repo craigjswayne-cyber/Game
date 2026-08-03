@@ -26,6 +26,7 @@ export const NATIONS: Nation[] = [
   { code: 'SAM', name: 'Samoa', flag: '🇼🇸', rep: 67 },
   { code: 'TGA', name: 'Tonga', flag: '🇹🇴', rep: 64 },
   { code: 'USA', name: 'United States', flag: '🇺🇸', rep: 60 },
+  { code: 'CAN', name: 'Canada', flag: '🇨🇦', rep: 52 },
   { code: 'URU', name: 'Uruguay', flag: '🇺🇾', rep: 60 },
   { code: 'POR', name: 'Portugal', flag: '🇵🇹', rep: 62 },
   { code: 'ESP', name: 'Spain', flag: '🇪🇸', rep: 57 },
