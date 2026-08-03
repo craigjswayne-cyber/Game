@@ -84,6 +84,60 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
   }
 }
 
+/** A bug goes round the training ground — bodies in beds, not on grass. */
+function sicknessSweep(state: GameState, rng: Rng) {
+  if (rng() > 0.045) return
+  const squad = state.clubs[state.userClubId].players
+    .map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury)
+  if (squad.length < 6) return
+  const hit = [...squad].sort(() => rng() - 0.5).slice(0, 2 + Math.floor(rng() * 3))
+  for (const p of hit) p.cond = clamp(p.cond - (12 + rng() * 10), 20, 100)
+  wire(state, `A bug sweeps the camp`,
+    `The medical room is standing-room only: ${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} have all been laid low by a virus doing the rounds. They'll play if picked, but the tanks won't be full this week. The kit man is bleaching everything.`)
+}
+
+/** Money men circle the modern game — most of it is smoke, occasionally
+ *  it's a takeover. */
+function moneyMen(state: GameState, rng: Rng) {
+  const st = state as GameState & { takeover?: { clubId: string; week: number; stage: number } }
+  const t = st.takeover
+  if (t) {
+    const club = state.clubs[t.clubId]
+    if (!club) { st.takeover = undefined; return }
+    if (state.week - t.week < 2 || rng() > 0.5) return
+    if (t.stage === 0) {
+      st.takeover = { ...t, week: state.week, stage: 1 }
+      wire(state, `Takeover talk hardens at ${club.short}`,
+        `The consortium linked with ${club.name} has reportedly entered exclusivity. Due diligence is under way; the current owners are said to be "open to the right offer". Supporters dare to dream of a war chest.`)
+      return
+    }
+    // resolution: most collapse, some complete
+    st.takeover = undefined
+    if (rng() < 0.3) {
+      const boost = 2_000_000 + Math.round(rng() * 6_000_000 / 500_000) * 500_000
+      club.budget += boost
+      club.balance += Math.round(boost * 0.6)
+      club.rep = clamp(club.rep + 2, 30, 95)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: `🤝 TAKEOVER COMPLETE: new owners at ${club.name}`,
+        body: `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment${club.id === state.userClubId ? ` — your transfer budget rises by ${fmtMoney(boost)}. New owners bring new expectations: deliver, and this could be the start of an era.` : `. The rest of the league takes note: ${club.short} just became dangerous in the market.`}`,
+      })
+    } else {
+      wire(state, `Takeover collapses at ${club.short}`,
+        `After weeks of whispers, the money men have walked away from ${club.name} — "valuation gap", say sources. The club statement thanks supporters for their patience and says it remains "well capitalised". Nobody is convinced.`)
+    }
+    return
+  }
+  if (rng() > 0.035) return
+  const candidates = Object.values(state.clubs).filter(c => c.rep >= 55)
+  if (!candidates.length) return
+  const club = pick(rng, candidates)
+  st.takeover = { clubId: club.id, week: state.week, stage: 0 }
+  wire(state, `Money men circle ${club.short}`,
+    `A wealthy consortium — the names change depending on who you ask — has been linked with a takeover of ${club.name}. A private jet at the local airfield has done a lot of heavy lifting in the fan forums. Most of these stories die quietly; some don't.`)
+}
+
 /** Rumours live where deals live: the windows (weeks 1-4, 22-25). */
 function windowOpen(state: GameState): boolean {
   return state.week <= 4 || (state.week >= 22 && state.week <= 25)
@@ -256,6 +310,8 @@ export function ordinal(n: number): string {
 
 /** Weekly wire generation — always something to read, never a flood. */
 export function generateGossip(state: GameState, rng: Rng) {
+  sicknessSweep(state, rng)
+  moneyMen(state, rng)
   if (state.unemployed) {
     if (windowOpen(state) && rng() < 0.5) transferRumour(state, rng)
     if (rng() < 0.6) socialBuzz(state, rng)
