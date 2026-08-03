@@ -4,7 +4,7 @@ import { newGame } from './game/newgame'
 import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
-  resolveDecision, stepTick, teamShort, type LiveCtx,
+  playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
@@ -51,6 +51,8 @@ interface Store {
   touch: () => void
   continueWeek: () => void
   kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy') => void
+  /** the assistant takes over: play the match out instantly with your team */
+  instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy') => void
   advanceLive: () => void
   skipToBreak: () => void
   decide: (choice: 'posts' | 'corner' | 'tap') => string
@@ -147,6 +149,31 @@ export const useStore = create<Store>((set, get) => ({
 
   /** From the MatchDay preview: take the field. The match simulates
    *  tick by tick as the ticker plays, so nothing is decided yet. */
+  instantResult: (preTalk) => {
+    const g = get().game
+    if (!g) return
+    const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
+    const fx = clubFx ?? natFixtureThisWeek(g)
+    if (!fx) return
+    const userTeamId = clubFx
+      ? g.userClubId
+      : (fx.homeId === g.natTeam || fx.awayId === g.natTeam) ? g.natTeam!
+      : (fx.homeId === 'LIO' || fx.awayId === 'LIO') ? 'LIO'
+      : g.userClubId
+    const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
+    if (preTalk) applyPreTalk(g, ctx, preTalk)
+    playHalf(g, ctx)
+    playHalf(g, ctx)
+    const resultsKey = `${fx.compId}:${g.week}`
+    processWeekAndAdvance(g)
+    set(s => ({
+      liveMatch: null,
+      nav: [{ screen: 'home' }, { screen: 'results' as const, param: resultsKey }],
+      tick: s.tick + 1,
+    }))
+    void get().persist()
+  },
+
   kickOff: (preTalk) => {
     const g = get().game
     if (!g) return
