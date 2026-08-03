@@ -10,7 +10,7 @@ export default function History() {
     <>
       <SectionTitle sub="champions of your era">Roll of Honour</SectionTitle>
       {rows.length === 0 && (
-        <div className="muted" style={{ padding: 14, fontStyle: 'italic' }}>
+        <div className="muted" style={{ padding: 14 }}>
           No trophies decided yet. History is written in May.
         </div>
       )}

@@ -114,7 +114,7 @@ export default function Tactics() {
         }}>Auto-Pick Best XV</button>
       </div>
       <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
-        <div className="meta" style={{ fontStyle: 'italic' }}>{assistantAdvice(game)}</div>
+        <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 18 }}>©</span>

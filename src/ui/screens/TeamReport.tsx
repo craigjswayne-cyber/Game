@@ -48,7 +48,7 @@ export default function TeamReport() {
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>The Assistant's Verdict</h3>
-        <div className="meta" style={{ fontStyle: 'italic' }}>{assistantAdvice(game)}</div>
+        <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>
 
       <SectionTitle>Where We Stand</SectionTitle>

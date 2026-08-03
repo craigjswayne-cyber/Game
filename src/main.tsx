@@ -5,7 +5,6 @@ import '@fontsource/montserrat/400.css'
 import '@fontsource/montserrat/600.css'
 import '@fontsource/montserrat/700.css'
 import '@fontsource/montserrat/800.css'
-import '@fontsource/montserrat/800-italic.css'
 import './ui/theme.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

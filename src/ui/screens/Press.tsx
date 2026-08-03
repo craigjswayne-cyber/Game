@@ -13,7 +13,7 @@ export default function Press() {
   return (
     <>
       {open.length === 0 && (
-        <div className="muted" style={{ padding: 14, fontStyle: 'italic' }}>
+        <div className="muted" style={{ padding: 14 }}>
           The press room is quiet… for now. Journalists tend to appear when players hit form, lose it, or get linked with moves.
         </div>
       )}
@@ -44,7 +44,7 @@ export default function Press() {
           {past.map(item => (
             <div key={item.id} className="news-item open">
               <div className="when">{item.outlet} · {weekDate(item.season, item.week)}</div>
-              <div className="subj" style={{ fontStyle: 'italic', fontWeight: 400 }}>“{item.question}”</div>
+              <div className="subj" style={{ fontWeight: 400 }}>“{item.question}”</div>
               <div className="body">You: “{item.answerLabel}” — {item.reaction}</div>
             </div>
           ))}

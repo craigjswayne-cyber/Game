@@ -27,7 +27,7 @@ export default function Jobs() {
           {' '}{game.mgr.m ? Math.round((game.mgr.w / game.mgr.m) * 100) : 0}% won, {game.mgr.trophies.length} troph{game.mgr.trophies.length === 1 ? 'y' : 'ies'}.
         </div>
         {game.unemployed && (
-          <div className="meta" style={{ marginTop: 4, fontStyle: 'italic' }}>
+          <div className="meta" style={{ marginTop: 4 }}>
             Press Continue to let the weeks pass — boards lose patience with strugglers, and new vacancies appear.
           </div>
         )}
@@ -37,7 +37,7 @@ export default function Jobs() {
 
       <SectionTitle sub={`${vacancies.length} open`}>Vacancies</SectionTitle>
       {vacancies.length === 0 && (
-        <div className="muted" style={{ padding: '4px 16px 12px', fontStyle: 'italic' }}>
+        <div className="muted" style={{ padding: '4px 16px 12px' }}>
           Nothing open this week. Somebody is always one bad month from the sack — check back after a few Continues.
         </div>
       )}

@@ -673,7 +673,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
           </div>
         </>
       ) : live.talkMsg && (
-        <div className="meta" style={{ fontStyle: 'italic', margin: '6px 0' }}>{live.talkMsg}</div>
+        <div className="meta" style={{ margin: '6px 0' }}>{live.talkMsg}</div>
       ))}
 
       <div className="fact-label" style={{ marginTop: 12 }}>Quick Game Plans</div>
@@ -697,7 +697,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
             onChange={e => { club.tactic[s.key] = Number(e.target.value); liveTactics(); touch() }} />
         </div>
       ))}
-      {explain && <div className="meta" style={{ margin: '6px 0', fontStyle: 'italic' }}>{explain}</div>}
+      {explain && <div className="meta" style={{ margin: '6px 0' }}>{explain}</div>}
 
       <div className="fact-label" style={{ marginTop: 12 }}>Substitution ({5 - ctx.subsUsed} left)</div>
       <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
