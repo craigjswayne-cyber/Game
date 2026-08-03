@@ -329,6 +329,18 @@ function weeklyTraining(state: GameState, rng: Rng) {
         }
       }
       if (isUser && state.staff.physio > 0) p.cond = clamp(p.cond + state.staff.physio * 3, 20, 100)
+      // the medical room earns its money: injured men can come back early
+      if (isUser && p.injury && p.injury.until - state.week >= 2 && rng() < 0.06 + state.staff.physio * 0.02) {
+        p.injury.until -= 1
+        if (p.injury.until - state.week <= 0) {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+            subject: `${p.name} ahead of schedule`,
+            body: `Good news from the treatment table: ${p.name} (${p.injury.desc}) has smashed his rehab targets and is available again this week — earlier than anyone dared hope.`,
+            playerId: p.id,
+          })
+        }
+      }
       // a recovery week puts petrol back in every tank
       if (isUser && state.matchPrep === 'recovery') p.cond = clamp(p.cond + 3.5, 20, 100)
       p.value = playerValue(p.ca, p.age, p.pa)

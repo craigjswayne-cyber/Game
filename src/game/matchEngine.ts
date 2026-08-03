@@ -191,6 +191,8 @@ export interface SideCtx {
   drainF: number
   /** the AI coach's one in-match tactical shift has been made */
   shifted?: boolean
+  /** an active Head Injury Assessment: who went off, who covers, verdict due */
+  hia?: { pid: number; subId: number; failed: boolean; returnTick: number }
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number
   isUser: boolean
@@ -554,11 +556,22 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
   }
 }
 
+/** No kick at goal is a certainty: base skill, then form (a kicker in a
+ *  purple patch is a different animal), confidence (morale) and the day's
+ *  conditions all move the needle. Floor drops to 38% on a bad day. */
+function kickChance(state: GameState, kicker: Player | null, base: number, div: number, goalPenalty: number, side: SideCtx): number {
+  if (!kicker) return 0.5 - goalPenalty + side.goalBonus
+  const skill = base + kicker.a.goa / div
+  const formF = (kicker.form - 6) * 0.012      // ±5% across the form range
+  const confF = (kicker.morale - 6.5) * 0.008  // nerves show from the tee
+  return clamp(skill + formF + confF - goalPenalty + side.goalBonus, 0.38, 0.93)
+}
+
 /** Take the three points: roll the kick at goal. */
 function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   const { rng, detail, goalPenalty } = ctx
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-  const pPen = (kicker ? clamp(0.5 + kicker.a.goa / 34, 0.5, 0.92) : 0.55) - goalPenalty + side.goalBonus
+  const pPen = kickChance(state, kicker, 0.5, 34, ctx.goalPenalty ?? 0, side)
   if (rng() < pPen) {
     side.score += 3
     side.pens += 1
@@ -591,7 +604,7 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
     pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} — some campaign he's having.`, scorer.id)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
-  const pCon = (kicker ? clamp(0.45 + kicker.a.goa / 32, 0.5, 0.94) : 0.55) - goalPenalty + side.goalBonus
+  const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
   if (rng() < pCon) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
@@ -802,6 +815,60 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             }
           }
         }
+      }
+    }
+
+    // Head Injury Assessment: ~1 per 3 matches. Temporary sub while the
+    // doctors work; 40% fail and the replacement becomes permanent.
+    if (side.hia && ctx.tick >= side.hia.returnTick) {
+      const { pid, subId, failed } = side.hia
+      const p = state.players[pid]
+      const sub = state.players[subId]
+      if (p && sub) {
+        if (failed) {
+          p.injury = { desc: 'concussion (failed HIA)', until: state.week + 2, weeks: 2 }
+          const slot = side.lineup.indexOf(pid)
+          const bSlot = side.lineup.indexOf(subId)
+          if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
+          pushEvent(state, ctx, min, 'INJ', side, `${p.name} FAILS his Head Injury Assessment — concussion protocols, no further part. ${sub.name} stays on.`, pid)
+        } else {
+          side.onPitch.delete(subId)
+          side.onPitch.add(pid)
+          pushEvent(state, ctx, min, 'SUB', side, `${p.name} passes his HIA and jogs back into the fray.`, pid)
+        }
+      }
+      side.hia = undefined
+    }
+    if (!side.hia && rng() < 0.0085) {
+      const ids = [...side.onPitch].filter(id => state.players[id] && !state.players[id].injury)
+      const p = ids.length ? state.players[ids[Math.floor(rng() * ids.length)]] : null
+      const sub = p ? side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
+        .find(s2 => s2 && !side.onPitch.has(s2.id) && !s2.injury && !side.ratings.has(s2.id)) : null
+      if (p && sub) {
+        side.onPitch.delete(p.id)
+        side.onPitch.add(sub.id)
+        side.ratings.set(sub.id, 6)
+        side.energy.set(sub.id, Math.max(60, sub.cond))
+        side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
+        pushEvent(state, ctx, min, 'INJ', side, `${p.name} is led away for a Head Injury Assessment — ${sub.name} on while the doctors do their work.`, p.id)
+      }
+    }
+
+    // stupid moments — rugby's comedy reel, momentum goes the other way
+    if (rng() < 0.006) {
+      const ids = [...side.onPitch]
+      const p = ids.length ? state.players[ids[Math.floor(rng() * ids.length)]] : null
+      if (p) {
+        const lines = [
+          `${p.name} drops the ball over the line with the try begging! White-line fever at its cruellest.`,
+          `${p.name} kicks it dead from halfway — absolutely nothing on. The coach turns away.`,
+          `Oh no — ${p.name} throws a wild offload straight to the opposition. Cheap turnover.`,
+          `${p.name} completely misses the restart. It bounces once and rolls into touch. Chaos.`,
+          `${p.name} runs a lap of honour before grounding it... and the cover knocks it loose! Unforgivable.`,
+        ]
+        pushEvent(state, ctx, min, 'SUB', side, lines[Math.floor(rng() * lines.length)], p.id)
+        side.ratings.set(p.id, clamp((side.ratings.get(p.id) ?? 6) - 0.5, 1, 10))
+        ctx.momo = clamp(ctx.momo + (side === home ? -0.3 : 0.3), -1, 1)
       }
     }
 
