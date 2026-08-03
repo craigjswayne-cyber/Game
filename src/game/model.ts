@@ -363,6 +363,8 @@ export interface GameState {
   boardOwed?: boolean
   /** facility levels 0-3 for the user's club */
   facilities?: Partial<Record<FacilityId, number>>
+  /** a trophy moment waiting to be celebrated full-screen */
+  celebration?: { headline: string; sub: string; icon: string } | null
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

@@ -521,6 +521,13 @@ export function rebuildSeason(state: GameState) {
     state.clubs[down].rep = Math.max(44, state.clubs[down].rep - 4)
     state.clubs[up].leagueId = topId
     state.clubs[up].rep = Math.min(88, state.clubs[up].rep + 5)
+    if (up === state.userClubId) {
+      state.celebration = {
+        headline: `PROMOTED — ${state.clubs[up].short.toUpperCase()} ARE GOING UP`,
+        sub: `Welcome to ${topName} · ${state.managerName}`,
+        icon: '🎉',
+      }
+    }
     const userInvolved = down === state.userClubId || up === state.userClubId
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: userInvolved ? 'board' : 'general', read: false,

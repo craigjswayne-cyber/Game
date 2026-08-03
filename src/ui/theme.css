@@ -1420,3 +1420,35 @@ input, select { font: inherit; }
   76%  { margin: -7.5px 0 0 -6px; }
   100% { margin: -6.5px 0 0 -6.5px; }
 }
+
+/* ---- the trophy moment: full-screen celebration ---- */
+.celebrate-veil {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(227, 185, 46, .18), transparent 55%),
+    rgba(6, 12, 26, .93);
+  cursor: pointer;
+  animation: cel-in .5s ease both;
+}
+@keyframes cel-in { from { opacity: 0; } to { opacity: 1; } }
+.celebrate-box { text-align: center; color: #eef3fb; padding: 24px; max-width: 560px; }
+.celebrate-box h1 {
+  font-family: var(--serif); font-weight: 900; font-size: 30px; letter-spacing: 2px;
+  margin-top: 12px; line-height: 1.15;
+  text-shadow: 0 2px 24px rgba(227, 185, 46, .45);
+  animation: cel-pop .7s cubic-bezier(.2, 1.5, .4, 1) both .15s;
+}
+.celebrate-box .sub {
+  margin-top: 8px; font-family: var(--cond); font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; font-size: 12.5px; color: var(--gold-bright);
+}
+@keyframes cel-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+.confetti {
+  position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px;
+  animation-name: conf-fall; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes conf-fall {
+  0% { transform: translateY(-4vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(106vh) rotate(720deg); opacity: .75; }
+}
