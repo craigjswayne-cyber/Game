@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
   refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, XV_SLOTS, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, XV_SLOTS, fixtureDate, fixtureDayOff, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
@@ -109,6 +109,10 @@ function Preview({ fxId }: { fxId: number }) {
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) — high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit — his tank will empty early.` })
   }
+  const lastPlayed = game.fixtures.find(f =>
+    f.week === game.week - 1 && f.played && (f.homeId === game.userClubId || f.awayId === game.userClubId))
+  const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
+  if (gapDays <= 5) warnings.push({ level: 'warn', text: `Only a ${gapDays}-day turnaround since the last match — the squad recovered slower this week. Watch the tanks.` })
   if (!speech) warnings.push({ level: 'note', text: 'No dressing-room speech chosen — the players will make their own minds up.' })
 
   const bar = (label: string, mine: number, theirs: number) => {
@@ -224,7 +228,7 @@ function Preview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>Match Day</h1>
-            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {weekDate(game.season, fx.week)}</div>
+            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
         </div>
       </header>
@@ -431,7 +435,7 @@ function NationPreview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>Test Match — {nat}</h1>
-            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {weekDate(game.season, fx.week)}</div>
+            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
         </div>
       </header>
@@ -708,6 +712,7 @@ function Live() {
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
   const [showLog, setShowLog] = useState(false)
+  const [showRatings, setShowRatings] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -718,6 +723,16 @@ function Live() {
   const atBreak = caughtUp && ctx.awaiting === 'BRK'
   const atDecision = caughtUp && !!ctx.decision && ctx.seg < 3
   const done = caughtUp && ctx.seg === 3
+
+  // coming back from another app can strand the heartbeat — kick it awake
+  useEffect(() => {
+    const wake = () => {
+      const lm = useStore.getState().liveMatch
+      if (document.visibilityState === 'visible' && lm?.playing) advanceLive()
+    }
+    document.addEventListener('visibilitychange', wake)
+    return () => document.removeEventListener('visibilitychange', wake)
+  }, [])
 
   useEffect(() => {
     if (!playing) return
@@ -840,19 +855,31 @@ function Live() {
         )}
         {done && (
           <>
-            <Highlights />
-            <StatsPanel />
-            <RatingsPanel />
-            <button className="btn ghost block" onClick={() => setShowLog(!showLog)}>
-              {showLog ? 'Hide full commentary' : `📜 Full commentary (${shown.length} entries)`}
-            </button>
+            <div className="review-grid">
+              <div>
+                <MatchVerdict />
+                <Highlights />
+              </div>
+              <div>
+                <StatsPanel />
+              </div>
+            </div>
+            <div className="btn-row" style={{ margin: '4px 14px' }}>
+              <button className="btn ghost" onClick={() => setShowRatings(!showRatings)}>
+                {showRatings ? 'Hide ratings' : '⭐ Player ratings'}
+              </button>
+              <button className="btn ghost" onClick={() => setShowLog(!showLog)}>
+                {showLog ? 'Hide commentary' : `📜 Commentary (${shown.length})`}
+              </button>
+            </div>
+            {showRatings && <RatingsPanel />}
             {showLog && shown.map((e, i) => (
               <div key={i} className={`tick-event ${cls(e)}`}>
                 <span className="min">{e.min}'</span>
                 <span className="txt">{icon(e)} {e.text}</span>
               </div>
             ))}
-            <button className="btn gold block" style={{ margin: '14px 0' }} onClick={finishMatch}>
+            <button className="btn gold block" style={{ margin: '10px 14px 14px' }} onClick={finishMatch}>
               Continue to Results ▸
             </button>
           </>
@@ -913,6 +940,45 @@ function DecisionPanel() {
 }
 
 /** The three moments everyone will be talking about on the drive home. */
+function MatchVerdict() {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const ctx = live.ctx
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  const opp = mine === ctx.home ? ctx.away : ctx.home
+  const star = ctx.motmId != null ? game.players[ctx.motmId] : null
+  const starMine = star && mine.ratings.has(star.id)
+  const margin = mine.score - opp.score
+  const t = ctx.home.poss + ctx.away.poss || 1
+  const myPoss = Math.round(((mine === ctx.home ? ctx.home.poss : ctx.away.poss) / t) * 100)
+  const feedback = margin > 0
+    ? (myPoss < 45 ? 'We won without the ball — the defensive shift was enormous. Take that anywhere.'
+      : margin >= 20 ? 'Ruthless. The assistant wants the same standards next week, not a lap of honour.'
+      : 'Winning tight ones is a habit — and we just fed the habit.')
+    : margin === 0
+      ? 'A draw that will feel like a loss or a win by Tuesday, depending on the video.'
+      : (myPoss >= 55 ? 'All that ball and nothing to show for it — the assistant circles our finishing in red.'
+        : margin <= -20 ? 'Beaten in every collision. The review will be honest, and it will sting.'
+        : 'Fine margins. Fix two moments and that is our game.')
+  return (
+    <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+      {star && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div className="fact-label">Star Player</div>
+            <b>{star.name}</b> <span className="muted">({starMine ? 'yours' : teamShort(game, opp.teamId)})</span>
+          </div>
+          <span className="form-pill" style={{ background: '#2f7d4f', fontSize: 15 }}>
+            {ctx.motmId != null ? (mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
+          </span>
+        </div>
+      )}
+      <div className="fact-label" style={{ marginTop: 8 }}>Coach's Verdict</div>
+      <div className="meta">{feedback}</div>
+    </div>
+  )
+}
+
 function Highlights() {
   const live = useStore(s => s.liveMatch)!
   const weight = (e: MatchEvent) =>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
-import { weekDate, type Fixture, type MatchEvent } from '../../game/model'
+import { fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { CrestT, Jersey, SectionTitle } from '../components'
 import { stageName } from './Home'
 
@@ -54,7 +54,7 @@ export default function Fixtures() {
               <tr key={f.id} className={isNext ? 'next-fx' : undefined}
                 onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
                 style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
-                <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
+                <td className="muted">{fixtureDate(game.season, f.week, f.id).replace(/day /, " ")}</td>
                 <td className="name">{f.homeId === me ? 'v ' : '@ '}<CrestT g={game} teamId={opp} size={16} />{teamShort(game, opp)}
                   {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}> ▸</span> : null}</td>
                 <td className="muted">{game.comps[f.compId]?.short ?? f.compId}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>

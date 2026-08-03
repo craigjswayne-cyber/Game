@@ -364,6 +364,22 @@ export function weekDate(season: number, week: number): string {
   return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
+/** Which day this fixture kicks off: -1 Friday, 0 Saturday, +1 Sunday.
+ *  Fixed per fixture, so previews, reports and recovery all agree. */
+export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
+  const h = (fxId * 2654435761) >>> 0
+  return h % 3 === 0 ? -1 : h % 3 === 2 ? 1 : 0
+}
+
+/** 'Friday 5 Sep' — the real kick-off date for a fixture. */
+export function fixtureDate(season: number, week: number, fxId: number): string {
+  const start = Date.UTC(2025 + season, 8, 6)
+  const d = new Date(start + ((week - 1) * 7 + fixtureDayOff(fxId)) * 86400000)
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`
+}
+
 export function seasonLabel(season: number): string {
   const y = 2025 + season
   return `${y}-${String((y + 1) % 100).padStart(2, '0')}`
