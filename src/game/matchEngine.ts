@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, XV_SLOTS } from './model'
+import { BENCH_SLOTS, XV_SLOTS, inRedZone } from './model'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
@@ -552,7 +552,7 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
   for (const id of side.onPitch) {
     const p = state.players[id]
     if (!p) continue
-    const base = 2.0 + (20 - p.a.sta) * 0.14
+    const base = (2.0 + (20 - p.a.sta) * 0.14) * (inRedZone(p) ? 1.12 : 1)
     const posF = FW_POS.has(p.pos) ? 1.1 : 1
     const e = side.energy.get(id) ?? 80
     side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * posF * wF))
@@ -788,7 +788,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         const w = ps.map(p => {
           const rustF = (p.rust ?? 0) > 0 ? 3.4 : 1
           const tiredF = (side.energy.get(p.id) ?? 70) < 25 ? 1.8 : 1
-          return rustF * tiredF
+          const loadF = inRedZone(p) ? 1.5 : 1 // 1,300+ season minutes
+          return rustF * tiredF * loadF
         })
         const p = wpick(rng, ps, w)
         const [desc, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
@@ -829,7 +830,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const sub = state.players[subId]
       if (p && sub) {
         if (failed) {
-          p.injury = { desc: 'concussion (failed HIA)', until: state.week + 2, weeks: 2 }
+          const rtp = 2 + (((pid + ctx.tick) % 2)) // return-to-play: 12-21 days
+          p.injury = { desc: 'concussion (failed HIA)', until: state.week + rtp, weeks: rtp }
           const slot = side.lineup.indexOf(pid)
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
@@ -1108,7 +1110,9 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       const r = clamp(r0 + (won ? 0.5 : -0.3) + gauss(rng) * 0.8, 1, 10)
       if (!isNation) {
         p.stats.apps += 1
-        if (side.lineup.slice(0, 15).includes(pid)) p.stats.starts += 1
+        const started = side.lineup.slice(0, 15).includes(pid)
+        if (started) p.stats.starts += 1
+        p.stats.mins += started ? 75 : 25
         p.stats.ratingSum += r
         p.lastR = r
         p.lastWk = state.week

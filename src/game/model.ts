@@ -49,12 +49,17 @@ export interface SeasonStats {
   rc: number
   ratingSum: number // sum of match ratings (avg = ratingSum/apps)
   motm: number
+  /** cumulative minutes this season — the load that wears bodies out */
+  mins: number
 }
 
 export const emptyStats = (): SeasonStats => ({
   apps: 0, starts: 0, tries: 0, points: 0, cons: 0, pens: 0, drops: 0,
-  yc: 0, rc: 0, ratingSum: 0, motm: 0,
+  yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0,
 })
+
+/** 1,300+ minutes (~17 full games) is the red zone: tired bodies break. */
+export const inRedZone = (p: { stats: { mins: number } }) => p.stats.mins >= 1300
 
 export interface Injury {
   desc: string
@@ -144,6 +149,8 @@ export interface Club {
   captain?: number | null
   /** the record book: 100+ app servants, written in at retirement */
   legends?: { name: string; apps: number; tries: number; pts: number }[]
+  /** marquee designations — their wages sit outside the cap (max 2) */
+  marquee?: number[]
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
 }

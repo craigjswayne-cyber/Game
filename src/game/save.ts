@@ -68,7 +68,7 @@ export function migrate(s: GameState): GameState {
   s.finHist ??= []
   s.boardOwed ??= false
   s.facilities ??= {}
-  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.legends ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
+  for (const c of Object.values(s.clubs)) { c.captain ??= null; c.legends ??= []; c.marquee ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]
@@ -78,6 +78,7 @@ export function migrate(s: GameState): GameState {
     p.rust ??= 0
     p.loanFrom ??= null
     p.acad ??= false
+    p.stats.mins ??= 0
   }
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player

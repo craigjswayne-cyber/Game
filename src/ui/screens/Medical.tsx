@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { STAFF_INFO, type Player } from '../../game/model'
+import { STAFF_INFO, inRedZone, type Player } from '../../game/model'
 import { PosBadge, SectionTitle } from '../components'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
@@ -13,6 +13,7 @@ export default function Medical() {
   const rusty = squad.filter(p => !p.injury && (p.rust ?? 0) > 0)
   const banned = squad.filter(p => p.bans > 0)
   const tired = squad.filter(p => !p.injury && p.cond < 62).sort((a, b) => a.cond - b.cond)
+  const loaded = squad.filter(p => !p.injury && inRedZone(p)).sort((a, b) => b.stats.mins - a.stats.mins)
   const away = squad.filter(p => p.natSquad || p.onLoan)
 
   const section = (title: string, sub: string, rows: Player[], render: (p: Player) => React.ReactNode) => (
@@ -51,6 +52,10 @@ export default function Medical() {
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>
           {p.injury!.desc} · {Math.max(1, p.injury!.until - game.week)}w
         </span>
+      ))}
+
+      {section('Red Zone — season load', '1,300+ minutes: they break easier and tire faster. Rest them.', loaded, p => (
+        <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>🔋 {p.stats.mins}′ this season</span>
       ))}
 
       {section('Returning from Injury', 'playable, but a rushed return risks a breakdown', rusty, p => (

@@ -144,7 +144,7 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
   const seller = state.clubs[p.clubId]
   if (fee >= ask) {
     const wage = Math.round(playerWage(p.ca, p.age) * (user.rep >= seller.rep ? 1 : 1.2))
-    const squadWages = user.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+    const squadWages = capBill(state, user)
     if (squadWages + wage > user.wageBudget) {
       return { ok: false, msg: `${seller.short} accept, but his wage demands (${fmtMoney(wage)}/wk) would break your wage budget.` }
     }
@@ -264,6 +264,12 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
     : `${first} looks baffled — he's been one of your best players. An unjustified rocket dents trust.`
 }
 
+/** The wage bill that counts against the cap — marquee men sit outside it. */
+export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
+  const marquee = new Set((club.marquee ?? []).slice(0, 2))
+  return club.players.reduce((s, id) => s + (marquee.has(id) ? 0 : (state.players[id]?.wage ?? 0)), 0)
+}
+
 export function renewalDemand(p: Player): number {
   const persF = p.pers === 'Mercenary' ? 1.35 : p.pers === 'Loyal' ? 0.9 : p.pers === 'Ambitious' ? 1.15 : 1
   return Math.round((playerWage(p.ca, p.age) * 1.1 * persF) / 50) * 50
@@ -282,8 +288,9 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
   if (p.loanFrom) return { ok: false, msg: 'He is on loan — his contract belongs to his parent club.' }
   const demand = renewalDemand(p)
-  const squadWages = user.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
-  if (squadWages - p.wage + offer > user.wageBudget) {
+  const marqueed = (user.marquee ?? []).includes(p.id)
+  const squadWages = capBill(state, user)
+  if (!marqueed && squadWages - ((user.marquee ?? []).includes(p.id) ? 0 : p.wage) + offer > user.wageBudget) {
     return { ok: false, msg: 'Those terms would exceed the wage budget.' }
   }
   if (p.pers === 'Ambitious' && p.ca >= 84 && user.rep < 82 && p.morale < 8) {
