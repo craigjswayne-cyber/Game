@@ -4,7 +4,7 @@
 import type { GameState, Player } from './model'
 import { fmtMoney } from './model'
 import { sortTable } from './schedule'
-import { clamp, pick, type Rng } from './rng'
+import { clamp, gauss, pick, type Rng } from './rng'
 
 function wire(state: GameState, subject: string, body: string, playerId?: number) {
   state.news.push({
@@ -207,6 +207,46 @@ function socialBuzz(state: GameState, rng: Rng) {
   if (!takes.length) return
   const t = takes[Math.floor(rng() * takes.length)]
   wire(state, t[0], t[1], t[2])
+}
+
+/** Preseason pundit predictions for the user's league. Stored on state.preds
+ *  and settled against reality in the season review. */
+export function punditPredictions(state: GameState, rng: Rng) {
+  const club = state.clubs[state.userClubId]
+  const comp = state.comps[club?.leagueId]
+  if (!club || !comp) return
+  const order = comp.teamIds
+    .map(id => ({ id, score: (state.clubs[id]?.rep ?? 50) + gauss(rng) * 2.6 }))
+    .sort((a, b) => b.score - a.score)
+    .map(x => x.id)
+  state.preds = {}
+  order.forEach((id, i) => { state.preds![id] = i + 1 })
+  const myPos = state.preds[club.id]
+  const nm = (id: string) => state.clubs[id]?.short ?? id
+  const verdict = myPos === 1
+    ? `${nm(club.id)} are everyone's title pick — anything less is failure.`
+    : myPos <= Math.max(3, comp.playoffTeams)
+      ? `${nm(club.id)} are tipped for the playoffs. The pressure is on from day one.`
+      : myPos <= Math.ceil(order.length / 2)
+        ? `${nm(club.id)} are pegged mid-table — "solid, unspectacular" is the consensus. Prove them wrong.`
+        : myPos === order.length
+          ? `The pundits have ${nm(club.id)} dead last. Wooden spoon talk already. Use it.`
+          : `${nm(club.id)} are among the relegation favourites. Nobody expects much — the perfect place to start.`
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+    subject: `🎙 Pundits' ${comp.name} predictions are in`,
+    body: [
+      `Title: ${nm(order[0])}. Chasing: ${nm(order[1])}, ${nm(order[2])}.`,
+      `Bottom: ${nm(order[order.length - 1])}.`,
+      `You: predicted ${ordinal(myPos)}.`,
+      verdict,
+    ].join('\n'),
+  })
+}
+
+export function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'], v = n % 100
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0])
 }
 
 /** Weekly wire generation — always something to read, never a flood. */
