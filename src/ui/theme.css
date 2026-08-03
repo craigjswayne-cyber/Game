@@ -756,7 +756,7 @@ input, select { font: inherit; }
   .live-wrap .now-strip { grid-area: now; }
   .live-wrap .speed-controls { grid-area: ctrl; }
   .app .live-wrap .ticker.panel-area {
-    grid-area: main / main / ctrl / ctrl;
+    grid-area: main / main / now / now;
     flex: none;
     overflow-y: auto;
     padding-top: 6px;
