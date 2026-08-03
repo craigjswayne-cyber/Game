@@ -171,6 +171,53 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
+  // post-match reaction: the result you just walked off the pitch with
+  const justPlayed = state.fixtures.find(f =>
+    f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id))
+  if (justPlayed && rng() < 0.6) {
+    const us = justPlayed.homeId === club.id ? justPlayed.homeScore : justPlayed.awayScore
+    const them = justPlayed.homeId === club.id ? justPlayed.awayScore : justPlayed.homeScore
+    const oppId = justPlayed.homeId === club.id ? justPlayed.awayId : justPlayed.homeId
+    const oppName = state.clubs[oppId]?.short ?? oppId
+    const margin = us - them
+    const derby = isDerby(justPlayed.homeId, justPlayed.awayId)
+    let reaction: PressItem | null = null
+    if (margin >= 25) {
+      reaction = mk(state,
+        `${us}-${them}. A statement performance — the best this team can play, or is there more?`,
+        undefined, [
+          { label: 'There is more to come', morale: 0.6, board: 0.3, reaction: 'Ominous for the rest of the league. The players believe it too.' },
+          { label: `Credit ${oppName} — they made it hard`, morale: 0.2, board: 0.2, reaction: 'Gracious in victory. Neutrals approve.' },
+          { label: 'We move on immediately', morale: 0, board: 0.2, reaction: 'All business. The standard is the standard.' },
+        ], rng)
+    } else if (margin <= -25) {
+      reaction = mk(state,
+        `${us}-${them} to ${oppName}. Supporters deserve an explanation. What went wrong out there?`,
+        undefined, [
+          { label: 'That was on me, not the players', morale: 0.7, board: -0.2, reaction: 'The dressing room notices who took the bullets.' },
+          { label: 'Some of that was unacceptable', morale: -0.9, board: 0.4, reaction: 'Hard words, publicly delivered. Training will be spiky this week.' },
+          { label: 'One bad day. No drama', morale: 0.1, board: -0.3, reaction: 'Calm — but the phone-ins want blood, not calm.' },
+        ], rng)
+    } else if (derby && margin > 0) {
+      reaction = mk(state,
+        `Derby day belongs to you. The fans are singing your name outside — a message for them?`,
+        undefined, [
+          { label: 'Enjoy every minute of it', morale: 0.5, board: 0.3, reaction: 'The clip of your grin does big numbers. Bragging rights secured.' },
+          { label: 'It is only worth four points', morale: -0.2, board: 0.3, reaction: 'True, technically. Nobody outside the building agrees.' },
+          { label: 'This club owns this city', morale: 0.8, board: -0.1, unsettle: false, reaction: 'Front page. Their fans will keep the receipt — mind the return fixture.' },
+        ], rng)
+    } else if (derby && margin < 0) {
+      reaction = mk(state,
+        `A derby defeat, and their supporters are letting you know about it. How do you face your own fans this week?`,
+        undefined, [
+          { label: 'We will not hide from this', morale: 0.4, board: 0.3, reaction: 'Straight talk. The fans respect honesty more than excuses.' },
+          { label: 'The performance was actually good', morale: 0, board: -0.4, reaction: 'The stats might back you up. Derby crowds do not deal in stats.' },
+          { label: 'Wait for the return fixture', morale: 0.3, board: 0, reaction: 'A promise. It will be remembered — deliver or else.' },
+        ], rng)
+    }
+    if (reaction && state.press.filter(p => !p.answered).length < 2) state.press.push(reaction)
+  }
+
   if (candidates.length && rng() < 0.75) {
     state.press.push(candidates[Math.floor(rng() * candidates.length)])
     // keep press list bounded
