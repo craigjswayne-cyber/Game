@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { fmtMoney, POS_ORDER } from '../../game/model'
+import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, POS_ORDER } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationByCode } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
@@ -96,6 +96,40 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </div>
         </>
       )}
+      {(() => {
+        // live feuds involving this club + its strongest partnerships
+        const feuds = (game.grudges ?? []).filter(g =>
+          (g.a === club.id || g.b === club.id) && g.until >= game.season)
+        const duos = CHEM_SLOTS.map(([i, j]) => {
+          const a = club.tactic.lineup[i] != null ? game.players[club.tactic.lineup[i]!] : null
+          const b = club.tactic.lineup[j] != null ? game.players[club.tactic.lineup[j]!] : null
+          if (!a || !b) return null
+          const g = game.chem?.[chemKey(a.id, b.id)] ?? 0
+          return g >= 25 ? { a, b, g } : null
+        }).filter(Boolean) as { a: { name: string }; b: { name: string }; g: number }[]
+        if (!feuds.length && !duos.length) return null
+        const surname = (n: string) => n.split(' ').slice(-1)[0]
+        return (
+          <>
+            <SectionTitle sub="who they hate, who clicks">Feuds & Partnerships</SectionTitle>
+            <div className="card">
+              {feuds.map((g, i) => {
+                const opp = g.a === club.id ? g.b : g.a
+                return (
+                  <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
+                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> — {g.reason} <span className="muted">(runs to {2025 + g.until}-{String((g.until + 26) % 100).padStart(2, '0')})</span>
+                  </div>
+                )
+              })}
+              {duos.map((d, i) => (
+                <div key={`d${i}`} className="meta" style={{ padding: '3px 0' }}>
+                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> — {d.g} games together, {chemTier(d.g)}
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      })()}
       <SectionTitle sub="tap to scout">Squad</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Name</th><th>Age</th><th>Nat</th><th>Ability</th><th>Form</th><th className="num">Value</th></tr></thead>
