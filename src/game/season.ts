@@ -328,6 +328,12 @@ function weeklyTraining(state: GameState, rng: Rng) {
           for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
         }
       }
+      // the academy coach quietly builds tomorrow's team
+      if (isUser && p.acad && rng() < 0.025 + state.staff.academyCoach * 0.025) {
+        const keys = Object.keys(p.a) as (keyof Player['a'])[]
+        const k = keys[Math.floor(rng() * keys.length)]
+        p.a[k] = clamp(p.a[k] + 1, 1, 20)
+      }
       if (isUser && state.staff.physio > 0) p.cond = clamp(p.cond + state.staff.physio * 3, 20, 100)
       // the medical room earns its money: injured men can come back early
       if (isUser && p.injury && p.injury.until - state.week >= 2 && rng() < 0.06 + state.staff.physio * 0.02) {
@@ -686,6 +692,22 @@ export function processWeekAndAdvance(state: GameState) {
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
+    // the Six Nations window is a big deal — a round-up lands every week
+    if (state.comps['sn'] && SIX_NATIONS_WEEKS.includes(state.week)) {
+      const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)
+      if (round.length) {
+        const order = sortTable(state.comps['sn'].table)
+        const leader = order[0] ? nationByCode(order[0].teamId)?.name : null
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `🏆 Six Nations round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
+          body: [
+            ...round.map(f => `${nationByCode(f.homeId)?.name} ${f.homeScore}–${f.awayScore} ${nationByCode(f.awayId)?.name}`),
+            leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',
+          ].filter(Boolean).join('\n'),
+        })
+      }
+    }
     generatePress(state, rng)
     // press tone cools toward neutral unless you keep feeding it
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8

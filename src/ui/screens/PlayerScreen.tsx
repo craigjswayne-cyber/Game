@@ -77,6 +77,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.injury && <span className="chip" style={{ borderColor: '#9b2c2c', color: '#9b2c2c' }}>
           Injured: {p.injury.desc} (~{Math.max(0, p.injury.until - game.week)}w)</span>}
         {p.bans > 0 && <span className="chip" style={{ color: '#9b2c2c' }}>Suspended {p.bans} match{p.bans > 1 ? 'es' : ''}</span>}
+        {p.acad && <span className="chip" style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>🎓 Academy squad</span>}
         {p.natSquad && <span className="chip">On international duty</span>}
         {p.onLoan && <span className="chip" style={{ color: '#a8841a' }}>Away on season loan</span>}
         {p.transferListed && <span className="chip" style={{ color: '#a8841a' }}>Transfer listed</span>}
@@ -176,6 +177,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           setMsg(`${p.name} will spend the season on loan. He returns next summer, better for it.`)
           touch()
         }}>Send on Season Loan (develops faster)</button>
+      )}
+      {mine && p.acad && (
+        <button className="btn gold block" onClick={() => {
+          p.acad = false
+          p.morale = Math.min(10, p.morale + 1)
+          game.news.push({
+            id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
+            subject: `${p.name} promoted to the first team`,
+            body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door — his work here is done.`,
+            playerId: p.id,
+          })
+          setMsg(`${p.name} joins first-team training. He'll never forget today.`)
+          touch()
+        }}>🎓 Promote to First Team</button>
       )}
       {mine && !p.onLoan && (
         <div className="btn-row">

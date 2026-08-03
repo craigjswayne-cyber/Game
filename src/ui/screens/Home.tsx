@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
+import { SIX_NATIONS_WEEKS } from '../../game/schedule'
+import { nationByCode, flagOf } from '../../game/nations'
+import { sortTable } from '../../game/schedule'
 import { userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
-import { sortTable } from '../../game/schedule'
 import { CrestT, SectionTitle } from '../components'
 import { fmtMoney, weekDate } from '../../game/model'
 
@@ -97,6 +99,27 @@ export default function Home() {
           </div>
         </div>
       )}
+      {game.comps['sn'] && game.week >= SIX_NATIONS_WEEKS[0] - 1 && game.week <= SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1] && (() => {
+        const rows = sortTable(game.comps['sn'].table).slice(0, 3)
+        const thisWk = game.fixtures.filter(f => f.compId === 'sn' && f.week === game.week)
+        return (
+          <div className="card" onClick={() => go('nations')}
+            style={{ background: 'linear-gradient(135deg, var(--green-900), var(--green-950))', color: '#eef3fb', cursor: 'pointer' }}>
+            <div className="fact-label" style={{ color: 'var(--gold-bright)' }}>🏆 SIX NATIONS — THE GREATEST CHAMPIONSHIP</div>
+            {thisWk.map(f => (
+              <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
+                {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : 'v'} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
+              </div>
+            ))}
+            {rows.length > 0 && rows[0].p > 0 && (
+              <div className="meta" style={{ color: '#adc4e8', marginTop: 5 }}>
+                Table: {rows.map((r, i) => `${i + 1}. ${nationByCode(r.teamId)?.name} (${r.pts})`).join(' · ')}
+              </div>
+            )}
+            <div className="meta" style={{ color: 'var(--gold-bright)', marginTop: 3 }}>Tap for the full championship ▸</div>
+          </div>
+        )
+      })()}
       {fx && (
         <div className="card" onClick={() => go('tactics')} style={{
           borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? '#c9a227'}`,

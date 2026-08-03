@@ -95,7 +95,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     managerName,
     training: 'balanced',
     shortlist: [],
-    staff: { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0 },
+    staff: { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0, academyCoach: 0 },
     mgr: { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 },
     challenge: challengeId,
     vacancies: [],
@@ -149,7 +149,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       const p = buildPlayer(
         { name, pos, age, nat: club.country, q, gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3 },
         club.id, seed + club.players.length * 31 + i, 0)
-      if (youth) p.youth = true
+      if (youth) { p.youth = true; p.acad = true }
       state.players[p.id] = p
       club.players.push(p.id)
     }
@@ -193,6 +193,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       },
       null, seed + 7777 + i * 13, 0)
     p.youth = true
+    p.acad = true
     p.pa = clamp(84 + Math.floor(rng() * 14), p.ca + 12, 99)
     p.value = playerValue(p.ca, p.age, p.pa)
     state.players[p.id] = p
