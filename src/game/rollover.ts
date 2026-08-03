@@ -361,6 +361,26 @@ export function rebuildSeason(state: GameState) {
     })
   }
 
+  // bums on seats: clubs that keep selling out build bigger stands
+  for (const club of Object.values(state.clubs)) {
+    const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
+    if (home.length < 5 || club.capacity >= 82_000) continue
+    const avg = home.reduce((sum, f) => sum + (f.att ?? 0), 0) / home.length
+    if (avg / club.capacity < 0.93 || rng() > 0.4) continue // boards dither
+    const add = Math.round((club.capacity * (0.04 + rng() * 0.06)) / 100) * 100
+    const cost = add * 1_400
+    if (add < 100 || club.balance < cost * 2) continue
+    club.balance -= cost
+    club.capacity += add
+    if (club.id === state.userClubId) {
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
+        subject: `🏗 ${club.stadium} to grow — ${add.toLocaleString()} new seats`,
+        body: `Full houses all season have convinced the board. Diggers arrive this summer: capacity rises to ${club.capacity.toLocaleString()} at a cost of ${fmtMoney(cost)}. Keep winning and we'll fill that too.`,
+      })
+    }
+  }
+
   // archive player season -> career
   for (const p of Object.values(state.players)) {
     if (p.stats.apps > 0 && p.clubId) {
