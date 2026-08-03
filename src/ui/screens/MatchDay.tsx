@@ -109,6 +109,25 @@ function Preview({ fxId }: { fxId: number }) {
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) — high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit — his tank will empty early.` })
   }
+  // milestone watch: pre-announce the numbers worth playing for today
+  for (const pid of t.lineup.slice(0, 15)) {
+    const pl = pid != null ? game.players[pid] : null
+    if (!pl) continue
+    const cTries = pl.career.reduce((s, c) => s + c.tries, 0) + pl.stats.tries
+    const cApps = pl.career.reduce((s, c) => s + c.apps, 0) + pl.stats.apps
+    const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points
+    for (const [val, at, label] of [
+      [cApps + 1, [100, 200, 300, 400], 'career appearance'],
+      [cTries, [49, 99], 'career try — one more today'],
+      [cPts, [495, 496, 497, 498, 499, 995, 996, 997, 998, 999], 'career point milestone in reach'],
+    ] as const) {
+      if ((at as readonly number[]).includes(val as number)) {
+        warnings.push({ level: 'note', text: `MILESTONE WATCH: ${pl.name} — ${label === 'career appearance' ? `${val}th career appearance today` : label === 'career try — one more today' ? `try number ${(val as number) + 1} of his career would bring up ${(val as number) + 1 === 50 ? '50' : '100'}` : `closing on ${(val as number) < 990 ? '500' : '1,000'} career points`}.` })
+        break
+      }
+    }
+  }
+
   // late-season six-pointer: same fight, four points or fewer between you
   if (game.week >= 28 && comp?.type === 'league') {
     const order = [...comp.table].sort((a, b) => b.pts - a.pts)

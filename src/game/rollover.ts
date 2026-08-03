@@ -57,6 +57,41 @@ function seasonAwards(state: GameState) {
   })
 }
 
+function settleRecords(state: GameState) {
+  state.records ??= {}
+  for (const comp of Object.values(state.comps)) {
+    if (comp.type !== 'league') continue
+    const teamSet = new Set(comp.teamIds)
+    const pool = Object.values(state.players).filter(p => p.clubId && teamSet.has(p.clubId) && p.stats.apps >= 6)
+    if (!pool.length) continue
+    const topP = [...pool].sort((a, b) => b.stats.points - a.stats.points)[0]
+    const topT = [...pool].sort((a, b) => b.stats.tries - a.stats.tries)[0]
+    const rec = state.records[comp.id] ??= {
+      pts: { name: topP.name, val: topP.stats.points, season: state.season },
+      tries: { name: topT.name, val: topT.stats.tries, season: state.season },
+    }
+    const userLeague = state.clubs[state.userClubId]?.leagueId === comp.id
+    if (topP.stats.points > rec.pts.val && rec.pts.season !== state.season) {
+      if (userLeague) state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: `📖 RECORD BROKEN: most points in a ${comp.short} season`,
+        body: `${topP.name} finishes with ${topP.stats.points} points — beating ${rec.pts.name}'s record of ${rec.pts.val} (${seasonLabel(rec.pts.season)}). The record book gets a new page.`,
+        playerId: topP.id,
+      })
+      state.records[comp.id].pts = { name: topP.name, val: topP.stats.points, season: state.season }
+    }
+    if (topT.stats.tries > rec.tries.val && rec.tries.season !== state.season) {
+      if (userLeague) state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: `📖 RECORD BROKEN: most tries in a ${comp.short} season`,
+        body: `${topT.name} crosses ${topT.stats.tries} times — past ${rec.tries.name}'s ${rec.tries.val} (${seasonLabel(rec.tries.season)}). Wingers everywhere take note.`,
+        playerId: topT.id,
+      })
+      state.records[comp.id].tries = { name: topT.name, val: topT.stats.tries, season: state.season }
+    }
+  }
+}
+
 function agePlayers(state: GameState, rng: Rng) {
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
@@ -195,6 +230,13 @@ function handleContracts(state: GameState, rng: Rng) {
         p.wage = playerWage(p.ca, p.age)
         continue
       }
+      // the DoR's safety net: settled squad men take the standard one-year
+      // extension rather than walking — the unhappy and the listed still go
+      if (p.clubId === state.userClubId && !p.transferListed && p.morale >= 4.5 && rng() < 0.7) {
+        p.contractEnds = state.season + 1
+        p.wage = playerWage(p.ca, p.age)
+        continue
+      }
       club.players = club.players.filter(id => id !== p.id)
       if (p.clubId === state.userClubId) freed.push(p)
       p.clubId = null
@@ -296,7 +338,7 @@ function replenishSquads(state: GameState, rng: Rng) {
     .sort((a, b) => b.ca - a.ca)
   for (const club of Object.values(state.clubs)) {
     let guard = 0
-    while (club.players.length < 26 && guard++ < 15) {
+    while (club.players.length < 26 && guard++ < 25) {
       // biggest positional hole
       const byPos: Record<string, number> = {}
       for (const id of club.players) {
@@ -305,7 +347,28 @@ function replenishSquads(state: GameState, rng: Rng) {
       }
       const need = YOUTH_POS.find(pos => (byPos[pos] ?? 0) < 2) ?? pick(rng, YOUTH_POS)
       const fa = freeAgents().find(p => p.pos === need || p.alt.includes(need)) ?? freeAgents()[0]
-      if (!fa) break
+      if (!fa) {
+        // the market is bare — register an academy scholar instead
+        const raw = {
+          name: regenName(rng, club.country), pos: need,
+          age: 18 + Math.floor(rng() * 2), nat: club.country,
+          q: clamp(40 + Math.floor(rng() * 12) + Math.floor(club.rep / 14), 38, 62),
+          gk: (need === 'FH' || need === 'FB') && rng() < 0.3,
+        }
+        const a2 = deriveAttrs(raw, state.seed + state.season * 131 + club.players.length * 7)
+        const kid: Player = {
+          id: nextPid(), name: raw.name, pos: raw.pos, alt: [], age: raw.age, nat: raw.nat,
+          clubId: club.id, a: a2, ca: raw.q, pa: clamp(raw.q + 15 + Math.floor(rng() * 20), raw.q, 99),
+          q0: raw.q, intl: false, gk: !!raw.gk, form: 6, morale: 7, cond: 100, sharp: 55,
+          injury: null, bans: 0, natSquad: false, wage: 600, contractEnds: state.season + 3,
+          value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
+          pers: assignPersonality(rng, a2), sc: club.id === state.userClubId ? 100 : 15,
+        }
+        kid.value = playerValue(kid.ca, kid.age, kid.pa)
+        state.players[kid.id] = kid
+        club.players.push(kid.id)
+        continue
+      }
       fa.clubId = club.id
       fa.wage = playerWage(fa.ca, fa.age)
       fa.contractEnds = state.season + 1
@@ -328,6 +391,7 @@ export function rebuildSeason(state: GameState) {
   const rng = mulberry32(state.seed ^ ((state.season + 1) * 60013))
 
   seasonAwards(state)
+  settleRecords(state)
 
   // the manager's season in review — a proper full-time moment
   if (!state.unemployed) {

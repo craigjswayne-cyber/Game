@@ -684,6 +684,23 @@ export function processWeekAndAdvance(state: GameState) {
     const p = state.players[id]
     if (!p || p.lastWk !== state.week || state.unemployed) continue
     const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
+    const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
+    const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points
+    if (cTries === 50 || cTries === 100) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🏉 ${p.name}: ${cTries} career tries`,
+        body: `The weekend brought up try number ${cTries} of ${p.name}'s career. The video team has already cut the montage.`,
+        playerId: p.id,
+      })
+    } else if (cPts >= 500 && cPts - (p.lastR != null ? 0 : 0) < 5000 && (cPts === 500 || cPts === 1000)) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🎯 ${p.name}: ${cPts.toLocaleString()} career points`,
+        body: `A milestone from the tee: ${p.name} passed ${cPts.toLocaleString()} career points at the weekend. Metronomes get remembered too.`,
+        playerId: p.id,
+      })
+    }
     if (MILESTONES.has(total)) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
