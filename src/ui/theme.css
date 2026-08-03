@@ -1410,3 +1410,13 @@ input, select { font: inherit; }
 @media (orientation: landscape) and (min-width: 640px) {
   .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
 }
+
+/* ---- every player is alive: idle jog between repositions ---- */
+.pitch .pdot.jog { animation-name: pjog; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+@keyframes pjog {
+  0%   { margin: -6.5px 0 0 -6.5px; }
+  27%  { margin: -8px 0 0 -5px; }
+  52%  { margin: -5.5px 0 0 -8px; }
+  76%  { margin: -7.5px 0 0 -6px; }
+  100% { margin: -6.5px 0 0 -6.5px; }
+}
