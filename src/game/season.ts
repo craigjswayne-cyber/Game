@@ -1,5 +1,5 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
-import { fmtMoney, SEASON_WEEKS, seasonLabel } from './model'
+import { fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, SIX_NATIONS_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
@@ -393,6 +393,14 @@ export function userFixtureThisWeek(state: GameState): Fixture | undefined {
     (f.homeId === state.userClubId || f.awayId === state.userClubId))
 }
 
+/** The national side's fixture this week, when the user also coaches one. */
+export function natFixtureThisWeek(state: GameState): Fixture | undefined {
+  if (!state.natTeam) return undefined
+  return state.fixtures.find(f =>
+    f.week === state.week && !f.played &&
+    (f.homeId === state.natTeam || f.awayId === state.natTeam))
+}
+
 /**
  * Process everything for the current week EXCEPT the user's fixture
  * (which the UI plays via the MatchDay screen first).
@@ -419,23 +427,36 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
   // the user's fixture was played in detail by the MatchDay screen —
-  // apply its table effects exactly once here
+  // apply its table effects exactly once here (club match or Test match)
   const userFx = state.fixtures.find(f =>
     f.week === state.week && f.played && !f.tableApplied &&
-    (f.homeId === state.userClubId || f.awayId === state.userClubId))
+    (f.homeId === state.userClubId || f.awayId === state.userClubId ||
+     (state.natTeam != null && (f.homeId === state.natTeam || f.awayId === state.natTeam))))
   if (userFx) {
+    const isClubMatch = userFx.homeId === state.userClubId || userFx.awayId === state.userClubId
     const comp = state.comps[userFx.compId]
     if (comp) {
       if (userFx.stage) resolveKnockoutDraw(state, userFx, rng)
       applyToTable(comp, userFx)
       userFx.tableApplied = true
     }
-    boardReaction(state, userFx)
-    matchReport(state, userFx)
-    milestones(state, rng)
-    leagueRoundUp(state)
-    // you learn a lot about the men you just faced
-    scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
+    if (isClubMatch) {
+      boardReaction(state, userFx)
+      matchReport(state, userFx)
+      milestones(state, rng)
+      leagueRoundUp(state)
+      // you learn a lot about the men you just faced
+      scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
+    } else {
+      // Test match: national duty counts on the manager's record
+      const us = userFx.homeId === state.natTeam ? userFx.homeScore : userFx.awayScore
+      const them = userFx.homeId === state.natTeam ? userFx.awayScore : userFx.homeScore
+      state.mgr.m += 1
+      if (us > them) state.mgr.w += 1
+      else if (us === them) state.mgr.d += 1
+      else state.mgr.l += 1
+      matchReport(state, userFx)
+    }
   }
 
   // board pressure: warnings, then the sack
@@ -475,7 +496,7 @@ export function processWeekAndAdvance(state: GameState) {
         subject: `${teamShort(state, comp.champion)} win the ${comp.name}!`,
         body: `${teamShort(state, comp.champion)} defeated ${teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
       })
-      if (comp.champion === state.userClubId) {
+      if (comp.champion === state.userClubId || (state.natTeam != null && comp.champion === state.natTeam)) {
         state.mgr.trophies.push({ compId: comp.id, season: state.season })
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
@@ -491,6 +512,14 @@ export function processWeekAndAdvance(state: GameState) {
       if (all.length && all.every(f => f.played)) {
         comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
+        if (state.natTeam != null && comp.champion === state.natTeam) {
+          state.mgr.trophies.push({ compId: comp.id, season: state.season })
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+            subject: `🏆 CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
+            body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
+          })
+        }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: `${teamShort(state, comp.champion)} win the ${comp.name}`,
@@ -520,6 +549,28 @@ export function processWeekAndAdvance(state: GameState) {
         subject: `${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring`,
         body: `Out of contract at the end of the season: ${expiring.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}. Offer new deals from their profile pages or they will walk for free.`,
       })
+    }
+  }
+
+  // a union comes calling: dual club-and-country roles for proven managers
+  if (state.natOffer && state.week - state.natOffer.week > 3) state.natOffer = null
+  if (!state.natTeam && !state.natOffer && !state.unemployed && (state.week === 6 || state.week === 18)) {
+    const rep = mgrReputation(state)
+    if (rep >= 72) {
+      const TIERS: [string, number][] = [
+        ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
+        ['ENG', 84], ['FRA', 86], ['RSA', 87], ['IRE', 87], ['NZL', 88],
+      ]
+      const eligible = TIERS.filter(([, need]) => rep >= need).map(([n]) => n)
+      if (eligible.length && rng() < 0.55) {
+        const nat = eligible[Math.floor(rng() * eligible.length)]
+        state.natOffer = { nat, week: state.week }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+          subject: `🌍 ${nat} want you as national head coach`,
+          body: `The union has been watching your work and wants you to take the national side alongside your club job — Test windows, championship campaigns, maybe a World Cup. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+        })
+      }
     }
   }
 

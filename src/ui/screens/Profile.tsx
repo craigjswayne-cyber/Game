@@ -81,8 +81,9 @@ const SPECIALITIES: Speciality[] = [
 export default function Profile() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const { resign } = useStore.getState()
+  const { resign, answerNatOffer, resignNat } = useStore.getState()
   const [confirmResign, setConfirmResign] = useState(false)
+  const [confirmNatResign, setConfirmNatResign] = useState(false)
   const rep = mgrReputation(game)
   const badge = badgeOf(rep)
   const club = game.clubs[game.userClubId]
@@ -108,6 +109,31 @@ export default function Profile() {
         </div>
       </div>
 
+      {game.natOffer && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+          <h3 style={{ fontSize: 15 }}>🌍 {game.natOffer.nat} want you as national head coach</h3>
+          <div className="meta">
+            Coach the national side alongside your club. In Test windows you take charge on match day when your
+            club is free — and every championship they win goes in your trophy cabinet.
+          </div>
+          <div className="btn-row" style={{ marginTop: 10 }}>
+            <button className="btn ghost" onClick={() => answerNatOffer(false)}>Decline</button>
+            <button className="btn gold" style={{ flex: 1.4 }} onClick={() => answerNatOffer(true)}>Accept the Job</button>
+          </div>
+        </div>
+      )}
+      {game.natTeam && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 22 }}>🌍</span>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontSize: 14 }}>National head coach: {game.natTeam}</h3>
+            <div className="meta">Test weeks are yours when the club calendar allows.</div>
+          </div>
+          {confirmNatResign
+            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>Confirm</button>
+            : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => setConfirmNatResign(true)}>Step down…</button>}
+        </div>
+      )}
       <SectionTitle>Career Record</SectionTitle>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px' }}>
         <span className="chip">Matches <b>{m.m}</b></span>

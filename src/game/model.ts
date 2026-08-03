@@ -314,6 +314,10 @@ export interface GameState {
   vacancies: { clubId: string; week: number; applied?: boolean }[]
   /** up to 3 young players given individual development attention */
   devFocus: number[]
+  /** national side the manager also coaches (FM-style dual role) */
+  natTeam?: string | null
+  /** a country wants you — pending offer from a union */
+  natOffer?: { nat: string; week: number } | null
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */

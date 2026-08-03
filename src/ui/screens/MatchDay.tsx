@@ -5,7 +5,7 @@ import {
   rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, XV_SLOTS, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
-import { userFixtureThisWeek, weekRng } from '../../game/season'
+import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
@@ -20,7 +20,8 @@ export default function MatchDay() {
   const live = useStore(s => s.liveMatch)
   const { back } = useStore.getState()
 
-  const fx = live?.fixture ?? userFixtureThisWeek(game)
+  const clubFx = game.unemployed ? undefined : userFixtureThisWeek(game)
+  const fx = live?.fixture ?? clubFx ?? natFixtureThisWeek(game)
   if (!fx) {
     return (
       <div className="title-screen">
@@ -29,7 +30,9 @@ export default function MatchDay() {
       </div>
     )
   }
-  return live ? <Live /> : <Preview fxId={fx.id} />
+  if (live) return <Live />
+  const isClubMatch = fx.homeId === game.userClubId || fx.awayId === game.userClubId
+  return isClubMatch ? <Preview fxId={fx.id} /> : <NationPreview fxId={fx.id} />
 }
 
 // ------------------------------------------------------------------
@@ -298,6 +301,122 @@ function Preview({ fxId }: { fxId: number }) {
   )
 }
 
+/** Test-match preview: you're coaching your COUNTRY this week. */
+function NationPreview({ fxId }: { fxId: number }) {
+  const game = useStore(s => s.game)!
+  useStore(s => s.tick)
+  const { kickOff, back } = useStore.getState()
+  const [speech, setSpeech] = useState<SpeechId | null>(null)
+  const [confirm, setConfirm] = useState(false)
+
+  const fx = game.fixtures.find(f => f.id === fxId)!
+  const comp = game.comps[fx.compId]
+  const nat = game.natTeam!
+  const opp = fx.homeId === nat ? fx.awayId : fx.homeId
+
+  const myLineup = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, nat), true)), [game, nat])
+  const oppLineup = useMemo(() => autoSelect(game, availablePlayers(game, rosterOf(game, opp), true)), [game, opp])
+  const myUnits = teamUnits(game, myLineup)
+  const oppUnits = teamUnits(game, oppLineup)
+
+  const bar = (label: string, mine: number, theirs: number) => {
+    const total = mine + theirs
+    const pct = total ? (mine / total) * 100 : 50
+    return (
+      <div style={{ padding: '4px 14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-soft)' }}>
+          <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
+        </div>
+        <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+          <div style={{ width: `${pct}%`, background: 'var(--green-700)' }} />
+          <div style={{ flex: 1, background: 'var(--gold)', opacity: .7 }} />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <header className="masthead">
+        <div className="masthead-row">
+          <button className="back-btn" onClick={back}>‹</button>
+          <div style={{ flex: 1 }}>
+            <h1>Test Match — {nat}</h1>
+            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {weekDate(game.season, fx.week)}</div>
+          </div>
+        </div>
+      </header>
+      <main className="content">
+        <div className="card center">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
+            <CrestT g={game} teamId={fx.homeId} size={40} />
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--ink-faint)', letterSpacing: 2 }}>VS</span>
+            <CrestT g={game} teamId={fx.awayId} size={40} />
+          </div>
+          <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
+          <div className="meta">🌍 International rugby — the whole country is watching, coach.</div>
+        </div>
+        <SectionTitle sub="your nation on the left">Head to Head</SectionTitle>
+        {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
+        {bar('Lineout', myUnits.lineout, oppUnits.lineout)}
+        {bar('Breakdown', myUnits.breakdown, oppUnits.breakdown)}
+        {bar('Attack', myUnits.attack, oppUnits.attack)}
+        {bar('Defence', myUnits.defence, oppUnits.defence)}
+
+        <SectionTitle sub="the selectors have named the best available XV">Your Test XV</SectionTitle>
+        <div className="tblwrap"><table className="dtable"><tbody>
+          {XV_SLOTS.map((s, i) => {
+            const pid = myLineup[i]
+            const p = pid != null ? game.players[pid] : null
+            return (
+              <tr key={i}>
+                <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
+                <td><PosBadge pos={s.pos} /></td>
+                <td className="name">{p?.name ?? '—'}</td>
+                <td>{p && <Stars ca={effAt(p, s.pos)} />}</td>
+              </tr>
+            )
+          })}
+        </tbody></table></div>
+
+        <SectionTitle sub="one speech, choose the tone">Dressing Room</SectionTitle>
+        <div className="speech-grid">
+          {SPEECHES.map(s => (
+            <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
+              onClick={() => setSpeech(speech === s.id ? null : s.id)}>
+              <span className="ico">{s.icon}</span>
+              <b>{s.name}</b>
+              <span className="d">{s.desc}</span>
+            </button>
+          ))}
+        </div>
+        <div className="btn-row" style={{ marginTop: 10 }}>
+          <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={() => setConfirm(true)}>
+            Kick Off ▸
+          </button>
+        </div>
+        <div className="spacer" />
+      </main>
+      {confirm && (
+        <div className="modal-veil" onClick={() => setConfirm(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>Ready to lead {nat} out?</h3>
+            <div className="meta">Anthems done, jerseys presented. Substitutions and the team talk are yours from the touchline.</div>
+            <div className="btn-row" style={{ marginTop: 12 }}>
+              <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
+              <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
+                onClick={() => { setConfirm(false); kickOff(speech ?? undefined) }}>
+                ▸ Take the Field
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ------------------------------------------------------------------
 // Live match
 // ------------------------------------------------------------------
@@ -313,17 +432,30 @@ const SPOTS: [number, number][] = [
   [64, 10], [58, 40], [63, 66], [64, 90], [76, 50], // 11-15
 ]
 
-function PitchViz({ ctx, game, last, ballLeft }: {
+const BANNER: Partial<Record<MatchEvent['type'], string>> = {
+  TRY: 'TRY!', PEN: 'PENALTY GOAL', DG: 'DROP GOAL!', CON: 'CONVERTED',
+  YC: 'YELLOW CARD', RC: 'RED CARD', INJ: 'INJURY',
+}
+
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, lastTeamC }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
   ballLeft: number
+  fxKey: number
+  showFx: boolean
+  lastTeamC: [string, string]
 }) {
   const fx = ctx.fx
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['#c9a227', '#082b20']
   const awayC = game!.clubs[fx.awayId]?.colors ?? ['#1a3a5c', '#f0eadc']
   const min = last?.min ?? 0
   const drift = (ballLeft - 50) * 0.14
+  const evType = last?.type
+  const towardHome = last?.teamId === fx.homeId
+  const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
+  const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
+  const banner = showFx && evType ? BANNER[evType] : undefined
 
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
@@ -337,8 +469,10 @@ function PitchViz({ ctx, game, last, ballLeft }: {
       const [sx, sy] = SPOTS[slot]
       const x = isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift
       const hl = last?.playerId === id
+      const scorerRun = hl && evType === 'TRY' && showFx
       return (
-        <div key={id} className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}`}
+        <div key={id}
+          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${scorerRun ? (isHome ? ' run-r' : ' run-l') : ''}`}
           style={{
             left: `${x}%`, top: `${8 + sy * 0.84}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
@@ -351,9 +485,9 @@ function PitchViz({ ctx, game, last, ballLeft }: {
   }
 
   return (
-    <div className="pitch">
-      <div className="tryzone" style={{ left: 0, background: `linear-gradient(90deg, ${homeC[0]}cc, ${homeC[0]}55)` }} />
-      <div className="tryzone" style={{ right: 0, background: `linear-gradient(270deg, ${awayC[0]}cc, ${awayC[0]}55)` }} />
+    <div className={`pitch${showFx && evType === 'TRY' ? (towardHome ? ' try-r' : ' try-l') : ''}`}>
+      <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${homeC[0]}cc, ${homeC[0]}55)` }} />
+      <div className="tryzone tz-r" style={{ right: 0, background: `linear-gradient(270deg, ${awayC[0]}cc, ${awayC[0]}55)` }} />
       {[22, 50, 78].map(x => <div key={x} className="line" style={{ left: `${x}%` }} />)}
       {[36, 64].map(x => <div key={x} className="line dashed" style={{ left: `${x}%` }} />)}
       <div className="posts" style={{ left: '7%' }} />
@@ -362,7 +496,18 @@ function PitchViz({ ctx, game, last, ballLeft }: {
       <div className="zone-label" style={{ right: '2.5%' }}>{teamShort(game!, fx.awayId).slice(0, 3).toUpperCase()}</div>
       {dots(ctx.home, true)}
       {dots(ctx.away, false)}
-      <div className="ball" style={{ left: `${ballLeft}%`, top: `${38 + ((min * 13) % 25)}%` }} />
+      <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
+        className={`ball${kickFx && showFx ? (towardHome ? ' kick-r' : ' kick-l') : ''}`}
+        style={{ left: `${ballLeft}%`, top: `${38 + ((min * 13) % 25)}%` }} />
+      {banner && (
+        <div key={`b${fxKey}`}
+          className={`ev-banner${evType === 'YC' ? ' yc' : ''}${evType === 'RC' ? ' rc' : ''}${evType === 'INJ' ? ' inj' : ''}`}
+          style={scoringFx ? { background: lastTeamC[0], color: contrastText(lastTeamC[0]) } : undefined}>
+          {evType === 'YC' && <span className="cardchip y" />}
+          {evType === 'RC' && <span className="cardchip r" />}
+          {banner}
+        </div>
+      )}
     </div>
   )
 }
@@ -435,13 +580,15 @@ function Live() {
   const homeC = game.clubs[fixture.homeId]?.colors ?? ['#c9a227', '#082b20']
   const awayC = game.clubs[fixture.awayId]?.colors ?? ['#c9a227', '#082b20']
   const paused = !playing && !done && !atHalfTime && !atBreak
+  const lastTeamC = last?.teamId === fixture.awayId ? awayC : homeC
+  const showFx = playing && speedIdx < 2
 
   return (
     <div className="live-wrap">
       <div className="scoreboard" style={{ '--home-c': homeC[0], '--away-c': awayC[0] } as React.CSSProperties}>
         <div className="teams">
           <div className="tname"><CrestT g={game} teamId={fixture.homeId} size={26} />{teamShort(game, fixture.homeId)}<span className="clubbar" style={{ background: homeC[0] }} /></div>
-          <div className="score">{hs} – {as}</div>
+          <div className="score" key={`${hs}-${as}`}>{hs} – {as}</div>
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">
@@ -451,7 +598,8 @@ function Live() {
         </div>
       </div>
 
-      <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft} />
+      <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
+        fxKey={cursor} showFx={showFx} lastTeamC={lastTeamC} />
 
       {!done && (
         <div className="momo-bar" title="Momentum">
@@ -522,7 +670,7 @@ function DecisionPanel() {
   const live = useStore(s => s.liveMatch)!
   const { decide } = useStore.getState()
   const ctx = live.ctx
-  const mine = ctx.home.teamId === game.userClubId ? ctx.home : ctx.away
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const diff = mine.score - opp.score
   const kicker = mine.units.kickerId != null ? game.players[mine.units.kickerId] : null
@@ -595,8 +743,8 @@ function RatingsPanel() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   const ctx = live.ctx
-  const mine = ctx.home.teamId === game.userClubId ? ctx.home : ctx.away
-  if (!game.clubs[mine.teamId] || mine.teamId !== game.userClubId) return null
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  if (mine.teamId !== ctx.userSideId) return null
   const rows = [...mine.ratings.entries()]
     .map(([id, r]) => ({ p: game.players[id], r }))
     .filter(x => x.p)
@@ -637,7 +785,8 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
 
   const ctx = live.ctx
   const club = game.clubs[game.userClubId]
-  const mine = ctx.home.teamId === game.userClubId ? ctx.home : ctx.away
+  const isClubMatch = ctx.userSideId === game.userClubId
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const starters = mine.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
   const bench = mine.lineup.slice(15).map(id => id != null ? game.players[id] : null)
     .filter(p => p && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
@@ -676,6 +825,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
         <div className="meta" style={{ margin: '6px 0' }}>{live.talkMsg}</div>
       ))}
 
+      {isClubMatch && <>
       <div className="fact-label" style={{ marginTop: 12 }}>Quick Game Plans</div>
       <div className="preset-row">
         {PRESETS.map(p => (
@@ -698,6 +848,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
         </div>
       ))}
       {explain && <div className="meta" style={{ margin: '6px 0' }}>{explain}</div>}
+      </>}
 
       <div className="fact-label" style={{ marginTop: 12 }}>Substitution ({5 - ctx.subsUsed} left)</div>
       <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>

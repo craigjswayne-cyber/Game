@@ -55,6 +55,8 @@ function migrate(s: GameState): GameState {
   s.mgr ??= { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
   s.vacancies ??= []
   s.devFocus ??= []
+  s.natTeam ??= null
+  s.natOffer ??= null
   for (const c of Object.values(s.clubs)) c.captain ??= null
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {

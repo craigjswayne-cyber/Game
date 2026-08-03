@@ -205,8 +205,9 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       side.cardRisk *= 0.93
     }
   }
-  // your backroom staff sharpen the matchday units
-  if (side.isUser && state.staff) {
+  // your backroom staff sharpen the matchday units (club only — Test
+  // weeks mean borrowed players, not your own coaching department)
+  if (side.isUser && side.teamId === state.userClubId && state.staff) {
     const s = state.staff
     side.units.attack *= 1 + (s.attack ?? 0) * 0.016
     side.units.defence *= 1 + (s.defence ?? 0) * 0.016
@@ -222,7 +223,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   if (weather === 'Wind') side.units.kicking *= 0.92
 }
 
-function mkSide(state: GameState, teamId: string): SideCtx {
+function mkSide(state: GameState, teamId: string, userTeamId: string | null): SideCtx {
   const lineup = lineupFor(state, teamId)
   const ratings = new Map<number, number>()
   const onPitch = new Set<number>()
@@ -241,7 +242,7 @@ function mkSide(state: GameState, teamId: string): SideCtx {
     cardRisk: 0.012,
     poss: 0, pens: 0,
     energy, tempoF: 1, goalBonus: 0,
-    isUser: teamId === state.userClubId,
+    isUser: teamId === userTeamId,
   }
   applyModifiers(state, side, null)
   return side
@@ -321,6 +322,8 @@ export interface LiveCtx {
   events: MatchEvent[]
   lastMin: number
   isUser: boolean
+  /** the team the user is coaching in this match (club or national side) */
+  userSideId: string | null
   /** next tick to simulate, 0..20 */
   tick: number
   /** 0 = pre-KO, 1 = HT reached, 2 = 60' break reached, 3 = full-time */
@@ -350,9 +353,9 @@ function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent
   })
 }
 
-export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean): LiveCtx {
-  const home = mkSide(state, fx.homeId)
-  const away = mkSide(state, fx.awayId)
+export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean, userTeamId: string | null = state.userClubId): LiveCtx {
+  const home = mkSide(state, fx.homeId, userTeamId)
+  const away = mkSide(state, fx.awayId, userTeamId)
   const weather = rollWeather(state.week, rng)
   fx.weather = weather
   const derby = isDerby(fx.homeId, fx.awayId)
@@ -399,7 +402,8 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     fx, home, away, rng, detail, weather, derby, goalPenalty,
     hfa: state.clubs[fx.homeId] ? 1.06 : 1.03,
     events: [], lastMin: 0,
-    isUser: fx.homeId === state.userClubId || fx.awayId === state.userClubId,
+    isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
+    userSideId: fx.homeId === userTeamId ? fx.homeId : fx.awayId === userTeamId ? fx.awayId : null,
     tick: 0, seg: 0, awaiting: null, motmId: null, talkUsed: false, subsUsed: 0,
     preTalk: null, decision: null, momo: 0,
   }
@@ -480,7 +484,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   const d = ctx.decision
   if (!d) return ''
   ctx.decision = null
-  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const min = Math.min(79, d.min + 1)
   const rng = ctx.rng
@@ -727,7 +731,7 @@ export function playHalf(state: GameState, ctx: LiveCtx) {
 export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy'): string {
   if (ctx.preTalk) return 'The speech has been made.'
   ctx.preTalk = kind
-  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const favourites = mine.units.overall >= opp.units.overall
   switch (kind) {
@@ -771,7 +775,7 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
 export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'calm' | 'praise' | 'demand'): string {
   if (ctx.talkUsed) return 'The talk has been given.'
   ctx.talkUsed = true
-  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const winning = mine.score > opp.score
   switch (kind) {
@@ -800,7 +804,7 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
 
 /** Substitution for the user's side (max 5 tactical subs), any time play is stopped. */
 export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, inId: number): string {
-  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   if (ctx.seg === 3) return 'The match is over.'
   if (ctx.subsUsed >= 5) return 'All five tactical replacements used.'
   const slotOut = mine.lineup.indexOf(outId)
@@ -830,7 +834,7 @@ export function recomputeSideUnits(state: GameState, ctx: LiveCtx, side: SideCtx
 
 /** Apply the user's (possibly changed) tactic sliders mid-match. */
 export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
-  const mine = ctx.home.teamId === state.userClubId ? ctx.home : ctx.away
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   recomputeSideUnits(state, ctx, mine)
 }
 
