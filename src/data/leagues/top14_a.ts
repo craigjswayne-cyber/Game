@@ -102,7 +102,6 @@ export const TOP14_A: RawClub[] = [
       { name: 'Oscar Jegou', pos: 'FL', age: 22, nat: 'FRA', q: 77, intl: true },
       { name: 'Judicaël Cancoriet', pos: 'FL', age: 28, nat: 'FRA', q: 72 },
       { name: 'Matthias Haddad', pos: 'FL', age: 22, nat: 'FRA', q: 70 },
-      { name: 'Nolann Le Garrec', pos: 'SH', age: 23, nat: 'FRA', q: 83, gk: true, intl: true },
       { name: 'Thomas Berjon', pos: 'SH', age: 27, nat: 'FRA', q: 72 },
       { name: 'Antoine Hastoy', pos: 'FH', age: 28, nat: 'FRA', q: 81, gk: true, intl: true },
       { name: 'Hugo Reus', pos: 'FH', age: 21, nat: 'FRA', q: 69 },
@@ -177,7 +176,6 @@ export const TOP14_A: RawClub[] = [
       { name: 'Selevasio Tolofua', pos: 'N8', alt: ['FL'], age: 28, nat: 'FRA', q: 73, intl: true },
       { name: 'Baptiste Serin', pos: 'SH', age: 31, nat: 'FRA', q: 81, gk: true, intl: true },
       { name: 'Jules Danglot', pos: 'SH', age: 24, nat: 'FRA', q: 66 },
-      { name: 'Paolo Garbisi', pos: 'FH', age: 25, nat: 'ITA', q: 82, gk: true, intl: true },
       { name: 'Enzo Hervé', pos: 'FH', age: 27, nat: 'FRA', q: 71 },
       { name: 'Ihaia West', pos: 'FH', age: 33, nat: 'NZL', q: 72 },
       { name: "Duncan Paia'aua", pos: 'CE', age: 30, nat: 'AUS', q: 74 },
@@ -197,6 +195,7 @@ export const TOP14_A: RawClub[] = [
     colors: ['#8ed8f8', '#ffffff'],
     rep: 81, budget: 4500000,
     players: [
+      { name: 'Nolann Le Garrec', pos: 'SH', age: 23, nat: 'FRA', q: 83, gk: true, intl: true },
       { name: 'Owen Farrell', pos: 'FH', alt: ['CE'], age: 33, nat: 'ENG', q: 84, gk: true, intl: true },
       { name: 'Henry Arundell', pos: 'WG', alt: ['FB'], age: 22, nat: 'ENG', q: 82, intl: true },
       { name: 'Hassane Kolingar', pos: 'LP', age: 27, nat: 'FRA', q: 74, intl: true },
