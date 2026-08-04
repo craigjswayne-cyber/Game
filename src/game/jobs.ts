@@ -142,6 +142,18 @@ export function applyForJob(state: GameState, clubId: string): string {
       if (p) p.sc = 100
     }
     club.tactic.lineup = autoSelect(state, club.players.map(id => state.players[id]).filter(Boolean))
+    // 'I am going nowhere', he said. The quote travels better than the van
+    const brokeVow = (state.vowedAt ?? 0) > 0 &&
+      state.season * 100 + state.week - (state.vowedAt ?? 0) <= 10 && oldClubId !== clubId
+    if (brokeVow) {
+      club.boardConfidence = clamp(club.boardConfidence - 8, 0, 100)
+      state.vowedAt = 0
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+        subject: `🗞 'I am going nowhere' - a quote that aged badly`,
+        body: `Every paper runs the same clip: ${state.managerName}, weeks ago, hand on heart, going nowhere. The move is done and nobody can undo it, but your new board noted how cheaply the last promise was sold, and the away end has a new song ready for your return.`,
+      })
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `Appointed: ${state.managerName} takes over at ${club.name}`,
