@@ -145,6 +145,25 @@ function agePlayers(state: GameState, rng: Rng) {
       club.legends = [...(club.legends ?? []), { name: p.name, ...tot }]
         .sort((a, b) => b.apps - a.apps).slice(0, 25)
     }
+
+    // the Hall of Fame: a career that will be talked about forever
+    const tApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const tTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const tPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+    const peakCa = Math.max(p.ca, p.q0, p.ca0 ?? 0)
+    if ((peakCa >= 85 && (tApps >= 350 || tTries >= 150 || tPts >= 2200)) || tApps >= 470 || tTries >= 190 || tPts >= 3000) {
+      const score = (h: { apps: number; tries: number; points: number }) => h.apps + h.tries * 2 + h.points / 10
+      state.hof = [...(state.hof ?? []), {
+        name: p.name, pos: p.pos, nat: p.nat,
+        apps: tApps, tries: tTries, points: tPts,
+        season: state.season, club: state.clubs[p.clubId ?? '']?.short ?? '—',
+      }].sort((a, b) => score(b) - score(a)).slice(0, 50)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: `🏛 ${p.name} enters the Hall of Fame`,
+        body: `${p.name} retires with numbers that close the argument: ${tApps} appearances, ${tTries} tries, ${tPts} points. ${p.clubId === state.userClubId ? 'He finishes as one of yours — a career your club will claim for generations.' : 'The game stands to applaud one of its greats.'} His plaque goes up alongside the immortals.`,
+      })
+    }
   }
   for (const p of retirees) {
     const clubId = p.clubId

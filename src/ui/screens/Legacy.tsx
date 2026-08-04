@@ -67,6 +67,27 @@ export default function Legacy() {
           </table></div>
         </>
       )}
+
+      {(game.hof ?? []).length > 0 && (
+        <>
+          <SectionTitle sub="the immortals — careers that closed the argument">🏛 Hall of Fame</SectionTitle>
+          <div className="tblwrap"><table className="dtable">
+            <thead><tr><th>Name</th><th>Pos</th><th className="num">Apps</th><th className="num">Tries</th><th className="num">Pts</th><th>Retired</th></tr></thead>
+            <tbody>
+              {(game.hof ?? []).map((h, i) => (
+                <tr key={i}>
+                  <td className="name">{h.name} <span className="muted">({h.club})</span></td>
+                  <td>{h.pos}</td>
+                  <td className="num" style={{ fontWeight: 700 }}>{h.apps}</td>
+                  <td className="num">{h.tries}</td>
+                  <td className="num">{h.points}</td>
+                  <td>{seasonLabel(h.season)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+        </>
+      )}
       <div className="spacer" />
     </>
   )

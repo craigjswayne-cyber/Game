@@ -526,9 +526,9 @@ function milestones(state: GameState, rng: Rng) {
   for (const id of club.players) {
     const p = state.players[id]
     if (!p || !p.stats.apps) continue
-    const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
-    const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
-    const totPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points
+    const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const totPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
     const hits: string[] = []
     if ([50, 100, 150, 200, 250].includes(totApps)) hits.push(`${totApps} career appearances`)
     if ([25, 50, 75, 100].includes(totTries)) hits.push(`${totTries} career tries`)
@@ -862,9 +862,9 @@ export function processWeekAndAdvance(state: GameState) {
   for (const id of state.clubs[state.userClubId]?.players ?? []) {
     const p = state.players[id]
     if (!p || p.lastWk !== state.week || state.unemployed) continue
-    const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
-    const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
-    const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points
+    const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+    const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+    const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
     if (cTries === 50 || cTries === 100) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,

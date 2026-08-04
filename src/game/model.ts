@@ -164,6 +164,8 @@ export interface Player {
   pers: Personality
   /** signature trait — a defining edge (or flaw) in his game */
   trait?: string | null
+  /** estimated career before the game world began (2025-26) */
+  hist?: { apps: number; tries: number; points: number }
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
   /** away on a season loan */
@@ -441,6 +443,8 @@ export interface GameState {
   /** terrace mood at the user's club, 5-98 — swings with results, colours
    *  the matchday atmosphere and nudges home advantage */
   fanMood?: number
+  /** the game's Hall of Fame: careers immortalised at retirement */
+  hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }
