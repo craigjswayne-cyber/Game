@@ -93,6 +93,16 @@ export function deriveHist(p: { id: number; age: number; pos: Player['pos']; a: 
   return { apps, tries, points }
 }
 
+/** Estimated Test caps before 2025: internationals only, built from age and
+ *  class - a 30-year-old world-class man arrives with a real cap count. */
+export function deriveCaps(p: { id: number; age: number; intl: boolean; ca: number }): number {
+  if (!p.intl) return 0
+  const yrs = Math.max(1, p.age - 22)
+  const r = mulberry32(p.id * 374761393 + 11)
+  const perYr = 3 + Math.max(0, Math.round((p.ca - 72) / 4)) + Math.floor(r() * 4)
+  return Math.min(130, Math.round(yrs * perYr))
+}
+
 /** Deterministic signature trait: roughly 40% of players carry one, decided
  *  by id and attribute profile so saves and fresh worlds always agree. */
 export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] }): string | null {
@@ -153,6 +163,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
   }
   player.trait = deriveTrait(player)
   player.hist = deriveHist(player)
+  player.caps = deriveCaps(player)
   return player
 }
 

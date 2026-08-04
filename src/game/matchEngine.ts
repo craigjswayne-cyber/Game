@@ -1236,6 +1236,18 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       if (!p) continue
       const r = clamp(r0 + (won ? 0.5 : -0.3) + gauss(rng) * 0.8, 1, 10)
       const friendly = ctx.fx.compId === 'fr'
+      if (isNation) {
+        // a Test match: another cap, and the first one is forever
+        p.caps = (p.caps ?? 0) + 1
+        if (p.caps === 1 && p.clubId === state.userClubId) {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `🌍 First cap: ${p.name}`,
+            body: `${p.name} won his first Test cap for ${nationByCode(side.teamId)?.name ?? side.teamId} this week. The shirt gets framed; the club that made him gets the reflected glow.`,
+            playerId: p.id,
+          })
+        }
+      }
       if (!isNation && friendly) {
         // friendlies bank rhythm, not records: no apps, minutes or ratings -
         // but the legs and the sharpness are real

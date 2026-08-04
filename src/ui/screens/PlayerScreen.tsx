@@ -73,6 +73,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="chips">
         <span className="chip">Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         <span className="chip">Character <b>{p.pers}</b></span>
+        {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> caps</span>}
         {p.trait && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>✨ {p.trait}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
