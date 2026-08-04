@@ -827,6 +827,8 @@ export function rebuildSeason(state: GameState) {
   for (const p of Object.values(state.players)) { if ((p.wantsDeal ?? 0) > 0) p.wantsDeal = 0 }
   state.slAlerted = []
   state.pledges = [] // a new season wipes the promise ledger clean
+  state.takeover = null // deals not done by summer quietly collapse
+  state.newOwnerUntil = null // the honeymoon does not survive the summer
 
   // partnership chemistry only lives while the pair share a dressing room -
   // prune split/retired pairs so the ledger stays small

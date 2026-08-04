@@ -623,8 +623,10 @@ function boardReaction(state: GameState, fx: Fixture) {
   const oppRep = state.clubs[isHome ? fx.awayId : fx.homeId]?.rep ?? 70
   const diff = (oppRep - club.rep) / 25
   const derbyF = fx.derby ? 1.8 : 1 // derbies echo in the boardroom
-  if (us > them) club.boardConfidence = clamp(club.boardConfidence + (2.5 + diff * 2) * derbyF, 0, 100)
-  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2) * derbyF, 0, 100)
+  // a new owner watches every result like it is a referendum on you
+  const ownerF = state.newOwnerUntil != null && state.week <= state.newOwnerUntil ? 1.4 : 1
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + (2.5 + diff * 2) * derbyF * ownerF, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2) * derbyF * ownerF, 0, 100)
   // manager career record
   state.mgr.m += 1
   if (us > them) state.mgr.w += 1

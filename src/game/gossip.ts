@@ -156,30 +156,51 @@ function sicknessSweep(state: GameState, rng: Rng) {
 /** Money men circle the modern game - most of it is smoke, occasionally
  *  it's a takeover. */
 function moneyMen(state: GameState, rng: Rng) {
-  const st = state as GameState & { takeover?: { clubId: string; week: number; stage: number } }
-  const t = st.takeover
+  const t = state.takeover
   if (t) {
     const club = state.clubs[t.clubId]
-    if (!club) { st.takeover = undefined; return }
+    if (!club) { state.takeover = null; return }
     if (state.week - t.week < 2 || rng() > 0.5) return
     if (t.stage === 0) {
-      st.takeover = { ...t, week: state.week, stage: 1 }
+      state.takeover = { ...t, week: state.week, stage: 1 }
       wire(state, `Takeover talk hardens at ${club.short}`,
         `The consortium linked with ${club.name} has reportedly entered exclusivity. Due diligence is under way; the current owners are said to be "open to the right offer". Supporters dare to dream of a war chest.`)
       return
     }
-    // resolution: most collapse, some complete
-    st.takeover = undefined
+    // resolution: most collapse, some complete - and not every buyer
+    // arrives with a chequebook. A few arrive with accountants.
+    state.takeover = null
     if (rng() < 0.3) {
-      const boost = 2_000_000 + Math.round(rng() * 6_000_000 / 500_000) * 500_000
-      club.budget += boost
-      club.balance += Math.round(boost * 0.6)
-      club.rep = clamp(club.rep + 2, 30, 95)
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: `🤝 TAKEOVER COMPLETE: new owners at ${club.name}`,
-        body: `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment${club.id === state.userClubId ? ` - your transfer budget rises by ${fmtMoney(boost)}. New owners bring new expectations: deliver, and this could be the start of an era.` : `. The rest of the league takes note: ${club.short} just became dangerous in the market.`}`,
-      })
+      if (rng() < 0.25) {
+        club.budget = Math.round(club.budget * 0.5)
+        club.wageBudget = Math.round(club.wageBudget * 0.92)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+          subject: `📉 TAKEOVER COMPLETE: belts tighten at ${club.name}`,
+          body: club.id === state.userClubId
+            ? `The deal is done - and the new owners' first act is an audit, their second a memo. Your transfer budget is cut to ${fmtMoney(club.budget)} and every contract will be "reviewed for value". Sell before you buy, and expect the new chairman to watch every result.`
+            : `${club.name}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.`,
+        })
+      } else {
+        const boost = 4_000_000 + Math.round(rng() * 10_000_000 / 500_000) * 500_000
+        club.budget += boost
+        club.balance += Math.round(boost * 0.6)
+        club.wageBudget = Math.round(club.wageBudget * 1.12)
+        club.rep = clamp(club.rep + 2, 30, 95)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+          subject: `🤝 TAKEOVER COMPLETE: new owners at ${club.name}`,
+          body: club.id === state.userClubId
+            ? `It's done. Your new owner walks the training ground on day one and leaves a message with your secretary: the transfer budget is up ${fmtMoney(boost)}, the wage ceiling is raised - and mediocrity is no longer on the menu. The next two months are your audition.`
+            : `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment. The rest of the league takes note: ${club.short} just became dangerous in the market.`,
+        })
+      }
+      // a new boss upstairs: the slate is half-wiped, and for two months
+      // every result lands harder while he makes up his mind about you
+      if (club.id === state.userClubId) {
+        club.boardConfidence = 58
+        state.newOwnerUntil = Math.min(state.week + 8, 45)
+      }
     } else {
       wire(state, `Takeover collapses at ${club.short}`,
         `After weeks of whispers, the money men have walked away from ${club.name} - "valuation gap", say sources. The club statement thanks supporters for their patience and says it remains "well capitalised". Nobody is convinced.`)
@@ -190,7 +211,7 @@ function moneyMen(state: GameState, rng: Rng) {
   const candidates = Object.values(state.clubs).filter(c => c.rep >= 55)
   if (!candidates.length) return
   const club = pick(rng, candidates)
-  st.takeover = { clubId: club.id, week: state.week, stage: 0 }
+  state.takeover = { clubId: club.id, week: state.week, stage: 0 }
   wire(state, `Money men circle ${club.short}`,
     `A wealthy consortium - the names change depending on who you ask - has been linked with a takeover of ${club.name}. A private jet at the local airfield has done a lot of heavy lifting in the fan forums. Most of these stories die quietly; some don't.`)
 }

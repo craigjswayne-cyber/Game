@@ -492,6 +492,12 @@ export interface GameState {
   /** signed pre-contracts: out-of-contract players who move on a free at
    *  the end of the season - binding once agreed */
   preContracts?: { playerId: number; toClubId: string; week: number }[]
+  /** a takeover in motion (the moneyMen storyline): rumour -> exclusivity ->
+   *  completion or collapse */
+  takeover?: { clubId: string; week: number; stage: number } | null
+  /** the new owner's honeymoon at the user's club: until this week the
+   *  boardroom reacts 1.4x to every result - impress him or feel it */
+  newOwnerUntil?: number | null
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */
