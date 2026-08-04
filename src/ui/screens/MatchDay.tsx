@@ -446,6 +446,25 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 )
               })()}
+              {(() => {
+                const bowing = oppLineup
+                  .map(id => id != null ? game.players[id] : null)
+                  .filter((p): p is Player => !!p && !!p.retiring && p.ca >= 78)
+                  .sort((a, b) => b.ca - a.ca)[0]
+                if (!bowing) return null
+                const home = fx.homeId === game.userClubId
+                return (
+                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                    <div className="fact-label">The Farewell Tour</div>
+                    <div className="meta">
+                      <b>{bowing.name}</b> ({bowing.age}, {bowing.pos}) has announced this season is his last.
+                      {home
+                        ? ` This is the final time ${oppClub?.short ?? 'they'} bring him to your ground. Beat him, then applaud him off.`
+                        : ` This is your last trip to face him on his own patch. Great players deserve a great send-off - just not the winning kind.`}
+                    </div>
+                  </div>
+                )
+              })()}
               {danger && (
                 <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
                   <div className="fact-label">Danger Man</div>
