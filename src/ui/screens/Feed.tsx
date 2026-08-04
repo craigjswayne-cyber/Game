@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { weekDate } from '../../game/model'
 
-/** THE RUGBY WIRE — gossip, rumours and the living world. */
+/** THE RUGBY WIRE - gossip, rumours and the living world. */
 export default function Feed() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)

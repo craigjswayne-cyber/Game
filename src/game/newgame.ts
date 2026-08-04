@@ -42,7 +42,7 @@ export const CHALLENGES: Challenge[] = [
   },
   {
     id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
-    desc: 'Leinster hoover up every trophy in Ireland. From Thomond Park, end their reign — win the URC and the Champions Cup.',
+    desc: 'Leinster hoover up every trophy in Ireland. From Thomond Park, end their reign - win the URC and the Champions Cup.',
   },
   {
     id: 'pirates', clubId: 'pirates', title: "The Pirates' Dream",
@@ -118,7 +118,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         boardConfidence: 70,
       }
       for (const rp of rc.players) {
-        // same real player supplied by two files (sabbaticals etc) — keep first
+        // same real player supplied by two files (sabbaticals etc) - keep first
         const key = rp.name.toLowerCase()
         if (seenNames.has(key)) continue
         seenNames.add(key)
@@ -153,7 +153,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       state.players[p.id] = p
       club.players.push(p.id)
     }
-    // academy prospects — the next generation is already in the building
+    // academy prospects - the next generation is already in the building
     for (let i = 0; i < 4; i++) {
       mkExtra(17 + Math.floor(rng() * 3), 38 + Math.floor(rng() * 16) + Math.floor(club.rep / 14), true, i)
     }
@@ -178,7 +178,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.q0 = k.ca
     k.value = playerValue(k.ca, k.age, k.pa)
     if (watchList.length < 5) {
-      watchList.push(`${k.name} (${k.age}, ${k.pos} — ${state.clubs[k.clubId!]?.short})`)
+      watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
     }
   }
   const GEM_NATS = ['FIJ', 'GEO', 'TGA', 'SAM', 'USA', 'URU', 'ESP', 'POR']
@@ -202,7 +202,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     state.news.push({
       id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
       subject: `🌟 The scouts' ones to watch`,
-      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market — first club to move wins. See and tap every name: World ▸ Team of the Season ▸ Ones to Watch.`,
+      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market - first club to move wins. See and tap every name: World ▸ Team of the Season ▸ Ones to Watch.`,
     })
   }
 
@@ -223,7 +223,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     .map(c => c.id)
   state.comps['cc'] = buildChampionsCup(euro, rng, state)
 
-  // Challenge Cup: the next 16 — Championship winners' pot and mid-table
+  // Challenge Cup: the next 16 - Championship winners' pot and mid-table
   // Europe. Champions Cup clubs are excluded outright: re-sorting with the
   // champ clubs mixed in used to let a CC qualifier slip into both cups.
   const ccSet = new Set(euro)

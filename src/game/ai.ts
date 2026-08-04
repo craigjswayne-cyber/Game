@@ -65,7 +65,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
 
   // squad-building intent. Real moves are concentrated in the windows:
   // early season (weeks 1-4) and the mid-season deadline (23-24) are
-  // busy; the rest of the season is a trickle — rumours do the talking.
+  // busy; the rest of the season is a trickle - rumours do the talking.
   const deadline = state.week === 26 || state.week === 27
   const window = state.week <= 7 || deadline
   for (let k = 0; k < (deadline ? 5 : 2); k++) {
@@ -91,7 +91,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (p && rng() < 0.6) executeTransfer(state, p, buyer.id, askingPrice(state, p))
   }
 
-  // unsettled/listed players move — mostly in the windows
+  // unsettled/listed players move - mostly in the windows
   for (let k = 0; k < 2; k++) {
     if (rng() > (window ? 0.35 : 0.12)) continue
     const buyer = pick(rng, clubs)
@@ -129,7 +129,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
             subject: `Bid received: ${p.name}`,
-            body: `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen — the offer will not stay open for long.`,
+            body: `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
             playerId: p.id,
           })
         }
@@ -160,15 +160,15 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
       return { ok: false, msg: `${seller.short} accept, but his wage demands (${fmtMoney(wage)}/wk) would break your wage budget.` }
     }
     if (user.rep < seller.rep - 12 && p.morale > 5 && !p.transferListed) {
-      return { ok: false, msg: `${seller.short} accepted your bid, but ${p.name} rejected the move — the club couldn't convince him.` }
+      return { ok: false, msg: `${seller.short} accepted your bid, but ${p.name} rejected the move - the club couldn't convince him.` }
     }
     executeTransfer(state, p, user.id, fee)
     p.wage = wage
-    return { ok: true, msg: `${p.name} signs for ${user.name} — ${fmtMoney(fee)} (${fmtMoney(wage)}/wk).` }
+    return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} (${fmtMoney(wage)}/wk).` }
   }
   if (fee >= ask * 0.78) {
     const counter = Math.round((ask * 0.97) / 10_000) * 10_000
-    return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} — but they'd do business at ${fmtMoney(counter)}.`, counter }
+    return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counter)}.`, counter }
   }
   return { ok: false, msg: `${seller.short} reject the bid. They value ${p.name} at around ${fmtMoney(ask)}.` }
 }
@@ -220,7 +220,7 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
   const p = state.players[playerId]
   if (!p || p.clubId !== state.userClubId) return 'Not your player.'
   const now = state.season * 100 + state.week
-  if (p.talkWk != null && now - p.talkWk < 3) return `You pulled him aside only recently — leave it a week or two, or the words lose their weight.`
+  if (p.talkWk != null && now - p.talkWk < 3) return `You pulled him aside only recently - leave it a week or two, or the words lose their weight.`
   p.talkWk = now
   const rng = mulberry32(((state.season * 53 + state.week) * 7919) ^ (playerId * 2654435761))
   const first = p.name.split(' ')[0]
@@ -231,11 +231,11 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
     if (goodForm) {
       bump(p.pers === 'Temperamental' ? 1.3 : 0.9)
       switch (p.pers) {
-        case 'Leader': return `${first} nods once. "Standards, gaffer." He walks out an inch taller — the rest of the room noticed.`
-        case 'Professional': return `A brief handshake and back to his stretches. He appreciated it — you can tell by the extra ten minutes he stays out kicking.`
-        case 'Temperamental': return `${first} beams like you've handed him the captaincy. He'll play like a superstar this week — mind he doesn't try to do it all himself.`
-        case 'Mercenary': return `"Good of you to notice." He's purring — and no doubt filing it away for the next contract chat.`
-        default: return `${first} leaves your office with his chest out. The praise landed — morale is up.`
+        case 'Leader': return `${first} nods once. "Standards, gaffer." He walks out an inch taller - the rest of the room noticed.`
+        case 'Professional': return `A brief handshake and back to his stretches. He appreciated it - you can tell by the extra ten minutes he stays out kicking.`
+        case 'Temperamental': return `${first} beams like you've handed him the captaincy. He'll play like a superstar this week - mind he doesn't try to do it all himself.`
+        case 'Mercenary': return `"Good of you to notice." He's purring - and no doubt filing it away for the next contract chat.`
+        default: return `${first} leaves your office with his chest out. The praise landed - morale is up.`
       }
     }
     if (p.pers === 'Professional' || p.pers === 'Leader') {
@@ -243,17 +243,17 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
       return `${first} frowns. He knows his form has been poor, and empty flattery insults him. That one backfired.`
     }
     bump(0.35)
-    return `He laps it up — though the coaches exchange a look. Praising poor form is a dangerous habit.`
+    return `He laps it up - though the coaches exchange a look. Praising poor form is a dangerous habit.`
   }
 
-  // 'word' — the quiet (or not so quiet) chat about standards
+  // 'word' - the quiet (or not so quiet) chat about standards
   if (!goodForm) {
     if (p.pers === 'Professional' || p.pers === 'Leader' || p.pers === 'Loyal') {
       bump(0.55)
       return `${first} takes it on the chin. "You're right, gaffer. It's not good enough." He's first out to training the next morning.`
     }
     if (p.pers === 'Ambitious') {
-      if (rng() < 0.5) { bump(0.65); return `${first} bristles, then burns. He wants the big time and knows this form won't get him there — expect a response.` }
+      if (rng() < 0.5) { bump(0.65); return `${first} bristles, then burns. He wants the big time and knows this form won't get him there - expect a response.` }
       bump(-0.8)
       return `${first} folds his arms and stares at the floor. The message was fair; the reaction wasn't. He'll sulk for a while.`
     }
@@ -262,7 +262,7 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
         subject: `Dressing room whispers: ${p.name} unhappy after dressing-down`,
-        body: `Word has leaked that ${p.name} was hauled in front of the coach over his recent form — and didn't take it well. Team-mates say he trained on his own on Tuesday.`,
+        body: `Word has leaked that ${p.name} was hauled in front of the coach over his recent form - and didn't take it well. Team-mates say he trained on his own on Tuesday.`,
         playerId: p.id,
       })
       return `${first} storms out and slams the door. By Thursday it's in the group chat. That could fester.`
@@ -271,11 +271,11 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
   }
   bump(p.pers === 'Temperamental' ? -1.5 : -0.8)
   return p.pers === 'Temperamental'
-    ? `${first} explodes. "In MY form?!" He's got a point — hauling in your in-form players is how dressing rooms are lost.`
-    : `${first} looks baffled — he's been one of your best players. An unjustified rocket dents trust.`
+    ? `${first} explodes. "In MY form?!" He's got a point - hauling in your in-form players is how dressing rooms are lost.`
+    : `${first} looks baffled - he's been one of your best players. An unjustified rocket dents trust.`
 }
 
-/** The wage bill that counts against the cap — marquee men sit outside it. */
+/** The wage bill that counts against the cap - marquee men sit outside it. */
 export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
   const marquee = new Set((club.marquee ?? []).slice(0, 2))
   return club.players.reduce((s, id) => s + (marquee.has(id) ? 0 : (state.players[id]?.wage ?? 0)), 0)
@@ -297,7 +297,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
-  if (p.loanFrom) return { ok: false, msg: 'He is on loan — his contract belongs to his parent club.' }
+  if (p.loanFrom) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
   const demand = renewalDemand(p)
   const marqueed = (user.marquee ?? []).includes(p.id)
   const squadWages = capBill(state, user)
@@ -329,7 +329,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
       + (p.morale >= 7.5 ? 0.15 : 0) + (ratio - 0.85) * 1.2
     if (rng() >= acceptP) {
       const counter = Math.round((demand * 0.97) / 50) * 50
-      return { ok: false, msg: `${p.name}'s camp say no — but they'd sign today at ${fmtMoney(counter)}/wk.`, counter }
+      return { ok: false, msg: `${p.name}'s camp say no - but they'd sign today at ${fmtMoney(counter)}/wk.`, counter }
     }
   }
   wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money

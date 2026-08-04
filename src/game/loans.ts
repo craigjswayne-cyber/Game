@@ -42,7 +42,7 @@ export function loanIn(state: GameState, playerId: number): string {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `Loan signing: ${p.name} arrives from ${parent.short}`,
-    body: `${p.name} (${p.age}, ${p.pos}) joins on loan until the end of the season. ${parent.short} cover half his wage — they want him playing, so play him.`,
+    body: `${p.name} (${p.age}, ${p.pos}) joins on loan until the end of the season. ${parent.short} cover half his wage - they want him playing, so play him.`,
     playerId: p.id,
   })
   // keep the parent's lineup coherent

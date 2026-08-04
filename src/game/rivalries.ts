@@ -25,7 +25,7 @@ const PAIRS: [string, string, string][] = [
   ['sharks', 'lions', 'The Currie Cup Rivalry'],
   ['benetton', 'zebre', 'The Italian Derby'],
   // Championship
-  ['richmond', 'lscottish', 'The Oldest Fixture — the Richmond Derby'],
+  ['richmond', 'lscottish', 'The Oldest Fixture - the Richmond Derby'],
   ['ealing', 'richmond', 'The West London Derby'],
   // Super Rugby Pacific
   ['blues', 'chiefs', 'The North Island Derby'],

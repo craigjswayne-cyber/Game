@@ -67,7 +67,7 @@ export default function Home() {
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('jobs')}>
           <h3>📋 The Job Centre</h3>
-          <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open — apply, or press Continue and wait for the right one.</div>
+          <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open - apply, or press Continue and wait for the right one.</div>
         </button>
         <SectionTitle sub="the rugby world keeps turning">Inbox</SectionTitle>
         {news.slice(0, 60).map(n => (
@@ -90,9 +90,9 @@ export default function Home() {
         <div className="tut-veil" onClick={() => { try { localStorage.setItem('rm-tut', '1') } catch { /* ok */ } setShowTut(false) }}>
           <div className="tut-box">
             <h3>Welcome to the dugout</h3>
-            Everything runs off <b>Continue</b> in the top corner — it advances the week, plays your match, and brings the world to your inbox.
+            Everything runs off <b>Continue</b> in the top corner - it advances the week, plays your match, and brings the world to your inbox.
             <br /><br />
-            On match day: pick your XV, choose a <b>dressing-room speech</b>, and confirm you're ready. In play you can change tactics or make subs at <b>any stoppage</b> (📋), and when you win a kickable penalty, the call — posts, corner or tap — is yours.
+            On match day: pick your XV, choose a <b>dressing-room speech</b>, and confirm you're ready. In play you can change tactics or make subs at <b>any stoppage</b> (📋), and when you win a kickable penalty, the call - posts, corner or tap - is yours.
             <br /><br />
             Between games: set the week's <b>Match Preparation</b> on the Tactics screen, praise or challenge players one-to-one from their <b>profile</b>, read <b>The Rugby Wire</b> for rumours, and build your coaching staff in <b>Training</b>. Impress, and a <b>national team</b> may come calling.
             <div className="muted">Tap anywhere to close.</div>
@@ -105,7 +105,7 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('nations')}
             style={{ background: 'linear-gradient(135deg, var(--green-900), var(--green-950))', color: '#eef3fb', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold-bright)' }}>🏆 SIX NATIONS — THE GREATEST CHAMPIONSHIP</div>
+            <div className="fact-label" style={{ color: 'var(--gold-bright)' }}>🏆 SIX NATIONS - THE GREATEST CHAMPIONSHIP</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
                 {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : 'v'} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
@@ -137,7 +137,7 @@ export default function Home() {
           <div className="muted" style={{ marginTop: 6 }}>
             {isThisWeek
               ? 'Tap to set your team, then press Continue to play.'
-              : 'No match this week — Continue advances to the next round.'}
+              : 'No match this week - Continue advances to the next round.'}
           </div>
         </div>
       )}
@@ -152,7 +152,7 @@ export default function Home() {
           <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
             <div className="fact-label">Blank Weekend</div>
             <div className="meta" style={{ marginBottom: 6 }}>
-              No fixture this week. A friendly banks sharpness and combinations for the squad — but injuries in a meaningless game sting twice as much.
+              No fixture this week. A friendly banks sharpness and combinations for the squad - but injuries in a meaningless game sting twice as much.
             </div>
             <div className="chips" style={{ padding: 0 }}>
               {idle.map(c => (
@@ -167,7 +167,7 @@ export default function Home() {
       <div className="hub-row">
         <button className="hub-widget" onClick={() => go('tables')}>
           <label>League</label>
-          <b>{pos > 0 ? `${pos}${pos === 1 ? 'st' : pos === 2 ? 'nd' : pos === 3 ? 'rd' : 'th'}` : '—'}</b>
+          <b>{pos > 0 ? `${pos}${pos === 1 ? 'st' : pos === 2 ? 'nd' : pos === 3 ? 'rd' : 'th'}` : '-'}</b>
           <span>{game.comps[club.leagueId]?.short}</span>
         </button>
         <button className="hub-widget" onClick={() => go('fixtures')}>
@@ -208,14 +208,14 @@ export default function Home() {
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold-bright)' }}
           onClick={() => go('seasonreview')}>
           <h3>📖 The Annual is out</h3>
-          <div className="meta">Last season on one page — the league, the cups, the stars and the money. Tap to read.</div>
+          <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
         </button>
       )}
       {pressOpen > 0 && (
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid #c9a227' }}
           onClick={() => go('press')}>
           <h3>🗞️ The press want a word</h3>
-          <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply — your answers move morale.</div>
+          <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
         </button>
       )}
       <SectionTitle sub={`board confidence ${Math.round(club.boardConfidence)}%`}>Inbox</SectionTitle>

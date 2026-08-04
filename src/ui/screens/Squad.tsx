@@ -6,7 +6,7 @@ import { capBill } from '../../game/ai'
 import { AvailTag, Nat, PosBadge, SectionTitle, Stars } from '../components'
 
 // FM Mobile squad layout: Pkd chip, fitness ring, starred names,
-// morale arrows, Av R and Value — with a View switcher.
+// morale arrows, Av R and Value - with a View switcher.
 
 type View = 'selection' | 'general' | 'stats'
 type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd'
@@ -181,7 +181,7 @@ export default function Squad() {
                         {p.ca > p.ca0 ? '▲' : '▼'}
                       </span>
                     )}
-                    {avr ? avr.toFixed(2) : '—'}
+                    {avr ? avr.toFixed(2) : '-'}
                   </td>
                   <td className="num" style={{ fontWeight: 700 }}>{fmtMoney(p.value)}</td>
                 </>)}

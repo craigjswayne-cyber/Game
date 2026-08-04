@@ -23,12 +23,12 @@ export default function Jobs() {
       <div className="card">
         <h3 style={{ fontSize: 16 }}>{game.unemployed ? 'Between jobs' : 'The managerial market'}</h3>
         <div className="meta">
-          Your reputation: <b style={{ color: 'var(--accent-ink)' }}>{rep}/95</b> — built on {game.mgr.m} matches,
+          Your reputation: <b style={{ color: 'var(--accent-ink)' }}>{rep}/95</b> - built on {game.mgr.m} matches,
           {' '}{game.mgr.m ? Math.round((game.mgr.w / game.mgr.m) * 100) : 0}% won, {game.mgr.trophies.length} troph{game.mgr.trophies.length === 1 ? 'y' : 'ies'}.
         </div>
         {game.unemployed && (
           <div className="meta" style={{ marginTop: 4 }}>
-            Press Continue to let the weeks pass — boards lose patience with strugglers, and new vacancies appear.
+            Press Continue to let the weeks pass - boards lose patience with strugglers, and new vacancies appear.
           </div>
         )}
       </div>
@@ -38,7 +38,7 @@ export default function Jobs() {
       <SectionTitle sub={`${vacancies.length} open`}>Vacancies</SectionTitle>
       {vacancies.length === 0 && (
         <div className="muted" style={{ padding: '4px 16px 12px' }}>
-          Nothing open this week. Somebody is always one bad month from the sack — check back after a few Continues.
+          Nothing open this week. Somebody is always one bad month from the sack - check back after a few Continues.
         </div>
       )}
       {vacancies.map(({ v, club }) => {
@@ -77,7 +77,7 @@ export default function Jobs() {
           ) : (
             <div className="btn-row">
               <button className="btn danger" onClick={() => { resign(); setConfirmResign(false) }}>
-                Confirm — walk away
+                Confirm - walk away
               </button>
               <button className="btn ghost" onClick={() => setConfirmResign(false)}>Stay</button>
             </div>

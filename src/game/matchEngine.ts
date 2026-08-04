@@ -32,7 +32,7 @@ export function availablePlayers(state: GameState, ids: number[], forNation = fa
 
 /** Pick the best legal 23 from a pool. Returns array of 23 player ids (or null). */
 export function autoSelect(state: GameState, pool: Player[]): (number | null)[] {
-  // academy players are a second squad — only raided when the seniors run dry
+  // academy players are a second squad - only raided when the seniors run dry
   const seniors = pool.filter(p => !p.acad)
   if (seniors.length >= 23) pool = seniors
   const used = new Set<number>()
@@ -181,7 +181,7 @@ const REF_NAMES = [
   'A. Piardi', 'P. Williams', "B. O'Keeffe", 'N. Berry', 'H. Davidson', 'A. Brace', 'P. Brousset',
 ]
 export type RefStyle = 'strict' | 'fair' | 'lenient'
-/** The man (or woman) in the middle — fixed per fixture, big influence. */
+/** The man (or woman) in the middle - fixed per fixture, big influence. */
 export function refFor(fxId: number): { name: string; style: RefStyle } {
   const h = (fxId * 2654435761) >>> 0
   return {
@@ -210,7 +210,7 @@ export interface SideCtx {
   cardRisk: number
   poss: number // accumulated momentum, for possession stats
   pens: number // penalty goals kicked
-  /** per-player petrol tank, 0-100 — drains with minutes played */
+  /** per-player petrol tank, 0-100 - drains with minutes played */
   energy: Map<number, number>
   /** drain multiplier from tempo tactics */
   tempoF: number
@@ -268,7 +268,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.defence *= f
     side.cardRisk *= 1 - 0.07 * leader.f
   }
-  // your backroom staff sharpen the matchday units (club only — Test
+  // your backroom staff sharpen the matchday units (club only - Test
   // weeks mean borrowed players, not your own coaching department)
   if (side.isUser && side.teamId === state.userClubId && state.staff) {
     const s = state.staff
@@ -283,7 +283,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       side.units.attack *= 0.965
       side.units.defence *= 0.965
     }
-    // this week's match preparation: a focused edge, always with a trade —
+    // this week's match preparation: a focused edge, always with a trade -
     // and a proper briefing room makes the message stick
     const prepF = 1 + (state.facilities?.briefing ?? 0) * 0.25
     switch (state.matchPrep) {
@@ -361,30 +361,30 @@ const TRY_LINES = [
   (n: string) => `TRY! ${n} picks from the base and burrows over!`,
   (n: string) => `TRY! A monstrous fend from ${n} and he strolls in!`,
   (n: string) => `TRY! ${n} takes the offload one-handed and finishes!`,
-  (n: string) => `TRY! Fifty-metre intercept — ${n} all the way!`,
+  (n: string) => `TRY! Fifty-metre intercept - ${n} all the way!`,
   (n: string) => `TRY! ${n} chips, regathers, scores. Outrageous.`,
   (n: string) => `TRY! Pick-and-go, pick-and-go, and ${n} forces it down!`,
-  (n: string) => `TRY! ${n} hits a scything line off the shoulder — untouched!`,
+  (n: string) => `TRY! ${n} hits a scything line off the shoulder - untouched!`,
   (n: string) => `TRY! The wraparound sends ${n} through the front door!`,
   (n: string) => `TRY! ${n} bumps off three tacklers on his way to the line!`,
 ]
 const TRY_LINES_WET = [
   (n: string) => `TRY! ${n} follows a slithering kick through and wins the race!`,
   (n: string) => `TRY! The greasy ball squirts loose and ${n} pounces!`,
-  (n: string) => `TRY! ${n} aquaplanes over in the corner — the crowd doesn't care!`,
+  (n: string) => `TRY! ${n} aquaplanes over in the corner - the crowd doesn't care!`,
 ]
 const TRY_LINES_DERBY = [
-  (n: string) => `TRY! ${n} scores — and cups an ear to the away end! Bedlam!`,
+  (n: string) => `TRY! ${n} scores - and cups an ear to the away end! Bedlam!`,
   (n: string) => `TRY! ${n} settles a hundred pub arguments with that one!`,
-  (n: string) => `TRY! ${n} through a wall of bodies — this derby has everything!`,
+  (n: string) => `TRY! ${n} through a wall of bodies - this derby has everything!`,
 ]
 const PEN_LINES = [
   (n: string) => `${n} slots the penalty.`,
   (n: string) => `${n} makes no mistake from the tee.`,
-  (n: string) => `${n} strikes it true — three more points.`,
+  (n: string) => `${n} strikes it true - three more points.`,
   (n: string) => `${n} bisects the uprights from distance.`,
   (n: string) => `${n} takes his time... and drills it.`,
-  (n: string) => `No radar needed — ${n} splits them from 45 metres.`,
+  (n: string) => `No radar needed - ${n} splits them from 45 metres.`,
   (n: string) => `${n} scrapes it over off the left post. They all count.`,
   (n: string) => `Ice in the veins: ${n} silences the whistlers.`,
 ]
@@ -393,66 +393,66 @@ const CON_LINES = [
   (n: string) => `${n} curls the conversion over.`,
   (n: string) => `${n} converts from the touchline!`,
   (n: string) => `${n} strokes the conversion straight through the middle.`,
-  (n: string) => `Routine for ${n} — the lead grows.`,
+  (n: string) => `Routine for ${n} - the lead grows.`,
   (n: string) => `${n} bends it home against the breeze.`,
 ]
 const FLAVOR_GRASSROOTS = [
-  (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul — proper National 1 rugby, this.`,
+  (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul - proper National 1 rugby, this.`,
   (n: string, t: string) => `A dog has briefly joined the ${t} defensive line. Play carries on regardless.`,
   (n: string, t: string) => `${n} slips in the mud where the winter pitch never quite recovers. The crowd, all four hundred of them, enjoy that.`,
   (n: string, t: string) => `Huge cheer from the clubhouse balcony as ${n} flattens his man. Someone rings the bell.`,
-  (n: string, t: string) => `${t} work it through nine phases — patient stuff for this level, and the tea hut has gone quiet.`,
+  (n: string, t: string) => `${t} work it through nine phases - patient stuff for this level, and the tea hut has gone quiet.`,
   (n: string, t: string) => `${n}, a schoolteacher on Monday mornings, sends the fly-half the wrong way. Class dismissed.`,
   (n: string, t: string) => `The touch judge is a club volunteer and takes a moment to find his flag. ${t} tap and go.`,
   (n: string, t: string) => `${n} charges down the clearance! The ball ricochets off the beer tent guy-rope and stays in.`,
 ]
 
 const FLAVOR_PACIFIC = [
-  (n: string, t: string) => `${n} throws the wildest offload you'll see all year — and it sticks! ${t} pour forward.`,
+  (n: string, t: string) => `${n} throws the wildest offload you'll see all year - and it sticks! ${t} pour forward.`,
   (n: string, t: string) => `The drums in the stands haven't stopped since kick-off. ${n} feeds off it with a rampaging carry.`,
-  (n: string, t: string) => `Footwork from ${n} that ought to be illegal — three defenders grasp at air.`,
+  (n: string, t: string) => `Footwork from ${n} that ought to be illegal - three defenders grasp at air.`,
   (n: string, t: string) => `${t} run it from their own line, because of course they do. The crowd loves every metre.`,
   (n: string, t: string) => `A hit from ${n} you can hear over the sea breeze. The flags in the crowd shake with approval.`,
-  (n: string, t: string) => `One-handed take above his head from ${n} — Pacific rugby, no notes.`,
+  (n: string, t: string) => `One-handed take above his head from ${n} - Pacific rugby, no notes.`,
 ]
 
 const FLAVOR = [
   (n: string, t: string) => `Big carry from ${n} takes ${t} into the 22.`,
   (n: string, t: string) => `${n} makes a searing half-break for ${t}.`,
   (n: string, t: string) => `Turnover! ${n} wins the breakdown battle for ${t}.`,
-  (n: string, t: string) => `Monster scrum from the ${t} pack — penalty advantage.`,
+  (n: string, t: string) => `Monster scrum from the ${t} pack - penalty advantage.`,
   (n: string, t: string) => `${n} claims the high ball under pressure.`,
   (n: string, t: string) => `Rolling maul from ${t} eats up twenty metres.`,
   (n: string, t: string) => `${n} clears the lines with a booming touch-finder.`,
-  (n: string, t: string) => `Thunderous hit by ${n} — the crowd roars.`,
-  (n: string, t: string) => `${n} steals the lineout — ${t} ball against the throw!`,
+  (n: string, t: string) => `Thunderous hit by ${n} - the crowd roars.`,
+  (n: string, t: string) => `${n} steals the lineout - ${t} ball against the throw!`,
   (n: string, t: string) => `Grubber in behind from ${n}; the ${t} chase is ferocious.`,
   (n: string, t: string) => `${n} slips the tackle and ${t} are suddenly on the front foot.`,
   (n: string, t: string) => `Choke tackle! ${n} holds him up and it's a ${t} scrum.`,
-  (n: string, t: string) => `${n} puts in a 50:22! What a strike — ${t} lineout deep in the corner.`,
-  (n: string, t: string) => `Offload of the season from ${n} — ${t} swarm forward.`,
+  (n: string, t: string) => `${n} puts in a 50:22! What a strike - ${t} lineout deep in the corner.`,
+  (n: string, t: string) => `Offload of the season from ${n} - ${t} swarm forward.`,
   (n: string, t: string) => `The ${t} defence blitzes and ${n} smashes the carrier behind the gain line.`,
-  (n: string, t: string) => `${n} is everywhere — third jackal attempt in ten minutes for ${t}.`,
+  (n: string, t: string) => `${n} is everywhere - third jackal attempt in ten minutes for ${t}.`,
   (n: string, t: string) => `Cross-field kick... ${n} climbs highest but it goes to ground. Scrappy stuff.`,
-  (n: string, t: string) => `${n} takes a quick lineout — the ref waves play on and ${t} counter.`,
+  (n: string, t: string) => `${n} takes a quick lineout - the ref waves play on and ${t} counter.`,
 ]
 const FLAVOR_WET = [
   (n: string, t: string) => `The rain hammers down as ${n} trudges to another ${t} scrum.`,
   (n: string, t: string) => `Knock-on! The soap-bar ball squirts out of ${n}'s grasp.`,
-  (n: string, t: string) => `Box kick from ${n} disappears into the murk — ${t} chase hard.`,
+  (n: string, t: string) => `Box kick from ${n} disappears into the murk - ${t} chase hard.`,
   (n: string, t: string) => `Mud everywhere. ${n}'s number is barely readable now.`,
 ]
 const FLAVOR_WIND = [
   (n: string, t: string) => `${n}'s clearance hangs in the gale and barely makes ten metres.`,
-  (n: string, t: string) => `The wind grabs the restart — ${n} does well to gather for ${t}.`,
+  (n: string, t: string) => `The wind grabs the restart - ${n} does well to gather for ${t}.`,
 ]
 const FLAVOR_DERBY = [
-  (n: string, t: string) => `Handbags after the whistle! ${n} in the middle of it — the ref calls the captains.`,
+  (n: string, t: string) => `Handbags after the whistle! ${n} in the middle of it - the ref calls the captains.`,
   (n: string, t: string) => `The noise is deafening every time ${n} touches it for ${t}.`,
   (n: string, t: string) => `Derby rugby: ${n} launched into the tackle a heartbeat late. The crowd howls.`,
 ]
 const TIRED_LINES = [
-  (n: string) => `${n} has his hands on his knees — the tank is emptying.`,
+  (n: string) => `${n} has his hands on his knees - the tank is emptying.`,
   (n: string) => `${n} is blowing hard out there.`,
 ]
 
@@ -488,7 +488,7 @@ export interface LiveCtx {
   decision: { kind: 'penalty'; min: number } | null
   /** momentum, -1 (away camped in our half) .. +1 (home dominant) */
   momo: number
-  /** live bad blood between the clubs (reason string) — derby-lite heat */
+  /** live bad blood between the clubs (reason string) - derby-lite heat */
   grudge?: string | null
 }
 
@@ -544,7 +544,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   if (weather === 'Snow') goalPenalty = 0.1
 
   // Attendance breathes with success: winning sides pack the ground,
-  // struggling ones see gaps — and no two gates are ever identical.
+  // struggling ones see gaps - and no two gates are ever identical.
   const hostClub = state.clubs[fx.homeId]
   if (hostClub) {
     const recent = state.fixtures
@@ -583,7 +583,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   }
 
   // the terraces are worth points: a bouncing home crowd lifts the side,
-  // a mutinous one flattens it (user's club only — the AI crowds average out)
+  // a mutinous one flattens it (user's club only - the AI crowds average out)
   let hfa = state.clubs[fx.homeId] ? 1.06 : 1.03
   if (fx.homeId === state.userClubId) hfa += ((state.fanMood ?? 60) - 60) * 0.0006
 
@@ -600,13 +600,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   if (derby) {
     pushEvent(state, ctx, 0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
   } else if (grudge) {
-    pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air — ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
+    pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air - ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
   } else {
-    pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries — proper old-school rugby weather.' : ''}`)
+    pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries - proper old-school rugby weather.' : ''}`)
   }
   if (fx.homeId === state.userClubId) {
     const mood = state.fanMood ?? 60
-    if (mood >= 80) pushEvent(state, ctx, 1, 'SUB', home, `The ground is absolutely bouncing — the supporters are in full voice before a ball is kicked.`)
+    if (mood >= 80) pushEvent(state, ctx, 1, 'SUB', home, `The ground is absolutely bouncing - the supporters are in full voice before a ball is kicked.`)
     else if (mood <= 30) pushEvent(state, ctx, 1, 'SUB', home, `A flat, edgy atmosphere. The crowd is waiting to be given a reason.`)
   }
   return ctx
@@ -665,7 +665,7 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
   }
 }
 
-/** Score a try (+ conversion attempt) for a side — shared by open play and set-piece strikes. */
+/** Score a try (+ conversion attempt) for a side - shared by open play and set-piece strikes. */
 function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, line?: string, forceScorer?: Player | null) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
@@ -681,7 +681,7 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   const tryPool = derbyTry ? TRY_LINES_DERBY : wetTry ? TRY_LINES_WET : TRY_LINES
   pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? tryPool[Math.floor(rng() * tryPool.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
   if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
-    pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} — some campaign he's having.`, scorer.id)
+    pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} - some campaign he's having.`, scorer.id)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
@@ -705,7 +705,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   const rng = ctx.rng
   if (choice === 'posts') {
     takePenaltyShot(state, ctx, mine, min)
-    return 'Points on the board — or so you hope.'
+    return 'Points on the board - or so you hope.'
   }
   if (choice === 'corner') {
     const pTry = clamp(0.26 + (mine.units.lineout - opp.units.defence) * 0.022, 0.12, 0.52)
@@ -716,14 +716,14 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
         .filter((p): p is Player => !!p && mine.onPitch.has(p.id))
       const scorer = forwards.length ? forwards[Math.floor(rng() * forwards.length)] : null
       scoreTry(state, ctx, mine, min + 1, scorer ? `TRY! The maul rumbles over and ${scorer.name} grounds it!` : undefined, scorer)
-      return 'The maul delivers — tries win matches.'
+      return 'The maul delivers - tries win matches.'
     }
     if (rng() < 0.5) {
       pushEvent(state, ctx, min + 1, 'SUB', opp, `Held up! ${teamShort(state, opp.teamId)} survive and win the scrum.`)
       return 'Nothing. The gamble came up empty this time.'
     }
     mine.poss += 1.2
-    pushEvent(state, ctx, min + 1, 'SUB', mine, `They repel the maul but concede another penalty — pressure stays on.`)
+    pushEvent(state, ctx, min + 1, 'SUB', mine, `They repel the maul but concede another penalty - pressure stays on.`)
     return 'No points yet, but you have them pinned.'
   }
   // tap and go
@@ -733,7 +733,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     return 'Brilliant! The quick tap catches them asleep!'
   }
   pushEvent(state, ctx, min, 'SUB', mine, `Quick tap! ${teamShort(state, mine.teamId)} go through the phases, camped on the line...`)
-  return 'Tempo lifted — the momentum is yours even without points.'
+  return 'Tempo lifted - the momentum is yours even without points.'
 }
 
 /** AI (and injury-forced) bench management: tired starters are replaced. */
@@ -800,7 +800,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       // a kickable penalty: yours is a touchline decision, theirs is automatic
       if (detail && side.isUser && !ctx.decision) {
         ctx.decision = { kind: 'penalty', min }
-        pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} — kickable range. The captain looks to the touchline for the call...`)
+        pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} - kickable range. The captain looks to the touchline for the call...`)
       } else {
         takePenaltyShot(state, ctx, side, min)
       }
@@ -835,7 +835,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     }
 
-    // discipline — tired sides give away more
+    // discipline - tired sides give away more
     const tiredCards = sideEnergy(side) < 35 ? 1.25 : 1
     if (rng() < side.cardRisk * tiredCards) {
       const ids = [...side.onPitch]
@@ -853,12 +853,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           side.yellowUntil.set(p.id, min + 10)
           p.stats.yc += 1
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
-          pushEvent(state, ctx, min, 'YC', side, `Yellow card — ${p.name} to the bin for ten.`, p.id)
+          pushEvent(state, ctx, min, 'YC', side, `Yellow card - ${p.name} to the bin for ten.`, p.id)
         }
       }
     }
 
-    // injury — tired legs and rusty returners break down more
+    // injury - tired legs and rusty returners break down more
     if (rng() < 0.019) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
@@ -875,7 +875,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         if (weeks <= 1 && (p.rust ?? 0) === 0 && rng() < 0.55) {
           // a knock, not a casualty: he plays on with heavy legs
           side.energy.set(p.id, Math.max(5, (side.energy.get(p.id) ?? 70) - 28))
-          pushEvent(state, ctx, min, 'SUB', side, `${p.name} takes a heavy knock — he waves the physio away, but he's moving gingerly.`, p.id)
+          pushEvent(state, ctx, min, 'SUB', side, `${p.name} takes a heavy knock - he waves the physio away, but he's moving gingerly.`, p.id)
         } else {
           if (p.clubId === state.userClubId && state.staff?.physio) {
             weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
@@ -913,7 +913,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const slot = side.lineup.indexOf(pid)
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
-          pushEvent(state, ctx, min, 'INJ', side, `${p.name} FAILS his Head Injury Assessment — concussion protocols, no further part. ${sub.name} stays on.`, pid)
+          pushEvent(state, ctx, min, 'INJ', side, `${p.name} FAILS his Head Injury Assessment - concussion protocols, no further part. ${sub.name} stays on.`, pid)
         } else {
           side.onPitch.delete(subId)
           side.onPitch.add(pid)
@@ -933,19 +933,19 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         side.ratings.set(sub.id, 6)
         side.energy.set(sub.id, Math.max(60, sub.cond))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
-        pushEvent(state, ctx, min, 'INJ', side, `${p.name} is led away for a Head Injury Assessment — ${sub.name} on while the doctors do their work.`, p.id)
+        pushEvent(state, ctx, min, 'INJ', side, `${p.name} is led away for a Head Injury Assessment - ${sub.name} on while the doctors do their work.`, p.id)
       }
     }
 
-    // stupid moments — rugby's comedy reel, momentum goes the other way
+    // stupid moments - rugby's comedy reel, momentum goes the other way
     if (rng() < 0.006) {
       const ids = [...side.onPitch]
       const p = ids.length ? state.players[ids[Math.floor(rng() * ids.length)]] : null
       if (p) {
         const lines = [
           `${p.name} drops the ball over the line with the try begging! White-line fever at its cruellest.`,
-          `${p.name} kicks it dead from halfway — absolutely nothing on. The coach turns away.`,
-          `Oh no — ${p.name} throws a wild offload straight to the opposition. Cheap turnover.`,
+          `${p.name} kicks it dead from halfway - absolutely nothing on. The coach turns away.`,
+          `Oh no - ${p.name} throws a wild offload straight to the opposition. Cheap turnover.`,
           `${p.name} completely misses the restart. It bounces once and rolls into touch. Chaos.`,
           `${p.name} runs a lap of honour before grounding it... and the cover knocks it loose! Unforgivable.`,
         ]
@@ -985,7 +985,7 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   if (ctx.tick === 15) {
     ctx.seg = 2
     ctx.awaiting = 'BRK'
-    pushEvent(state, ctx, 60, 'BRK', null, `Hour mark — a lull in play. Time to change the picture from the sideline.`)
+    pushEvent(state, ctx, 60, 'BRK', null, `Hour mark - a lull in play. Time to change the picture from the sideline.`)
     return 'BRK'
   }
   if (ctx.tick === 20) {
@@ -1014,7 +1014,7 @@ function aiTacticShift(state: GameState, ctx: LiveCtx) {
       side.tempoF *= 1.14
       side.cardRisk *= 1.15
       pushEvent(state, ctx, min, 'SUB', side,
-        `${who} has seen enough — shackles off, bench emptied. ${teamShort(state, side.teamId)} will run everything as they chase the game.`)
+        `${who} has seen enough - shackles off, bench emptied. ${teamShort(state, side.teamId)} will run everything as they chase the game.`)
     } else if (ctx.tick >= 16 && diff >= 10) {
       side.shifted = true
       side.units.defence *= 1.05
@@ -1055,17 +1055,17 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
     case 'calm':
       mine.units.defence *= 1.06
       mine.cardRisk *= 0.78
-      return 'Cool heads. You walk them through the first twenty minutes — no panic, no cheap penalties.'
+      return 'Cool heads. You walk them through the first twenty minutes - no panic, no cheap penalties.'
     case 'fire':
       mine.units.attack *= 1.07
       mine.units.breakdown *= 1.05
       mine.cardRisk *= 1.28
-      return 'The door rattles on its hinges. They leave the shed snorting — expect fireworks, and watch the referee.'
+      return 'The door rattles on its hinges. They leave the shed snorting - expect fireworks, and watch the referee.'
     case 'underdog':
       if (!favourites) {
         mine.units.attack *= 1.07
         mine.units.defence *= 1.05
-        return `"Nobody gives us a prayer out there. Perfect." The room tightens — shackles off, nothing to lose.`
+        return `"Nobody gives us a prayer out there. Perfect." The room tightens - shackles off, nothing to lose.`
       }
       mine.units.attack *= 0.98
       return 'You talk them down as underdogs... but everyone in the room knows you should win this. A few puzzled looks.'
@@ -1073,14 +1073,14 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
       if (favourites) {
         mine.units.attack *= 1.04
         mine.units.defence *= 1.03
-        return 'Standards. You expect a professional performance and the senior men nod — this is what we do.'
+        return 'Standards. You expect a professional performance and the senior men nod - this is what we do.'
       }
       if (ctx.rng() < 0.45) {
         mine.units.attack *= 1.06
-        return 'A big call against stronger opposition — but they respond. Chests out.'
+        return 'A big call against stronger opposition - but they respond. Chests out.'
       }
       mine.units.defence *= 0.96
-      return 'You demand a win few expect. One or two shoulders tighten — the pressure lands badly.'
+      return 'You demand a win few expect. One or two shoulders tighten - the pressure lands badly.'
   }
 }
 
@@ -1094,20 +1094,20 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
   switch (kind) {
     case 'fire':
       mine.units.attack *= 1.07; mine.units.breakdown *= 1.05; mine.cardRisk *= 1.3
-      return 'The shouting rattles the door on its hinges. They leave snorting — expect fire, and watch the referee.'
+      return 'The shouting rattles the door on its hinges. They leave snorting - expect fire, and watch the referee.'
     case 'calm':
       mine.units.defence *= 1.06; mine.cardRisk *= 0.8
       return 'Calm, clear, matter-of-fact. The defensive shape gets one more walk-through before they head out.'
     case 'praise':
       if (winning) { mine.units.attack *= 1.04; mine.units.defence *= 1.03 }
       return winning
-        ? 'You are delighted and you tell them so. Confidence flows — keep doing exactly this.'
-        : 'Delighted? At that scoreline? A few eyebrows rise — the room is not sure you watched the same half.'
+        ? 'You are delighted and you tell them so. Confidence flows - keep doing exactly this.'
+        : 'Delighted? At that scoreline? A few eyebrows rise - the room is not sure you watched the same half.'
     case 'demand': {
       const roll = ctx.rng()
       if (roll < 0.5) {
         mine.units.attack *= 1.08; mine.units.defence *= 1.04
-        return 'Encouraging, positive, believing — and the senior players nod along. They look ready to empty the tank.'
+        return 'Encouraging, positive, believing - and the senior players nod along. They look ready to empty the tank.'
       }
       mine.units.attack *= 0.97
       return 'You gee them up, but a couple of heads stay down. The message floats past them.'
@@ -1176,7 +1176,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // an ill-tempered afternoon starts a feud of its own
   const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent
   if (totalCards >= 5 && state.clubs[fx.homeId] && state.clubs[fx.awayId] && !isDerby(fx.homeId, fx.awayId)) {
-    addGrudge(state, fx.homeId, fx.awayId, `the last meeting boiled over — ${totalCards} cards and a tunnel full of pushing`, 1)
+    addGrudge(state, fx.homeId, fx.awayId, `the last meeting boiled over - ${totalCards} cards and a tunnel full of pushing`, 1)
   }
 
   let motmId: number | null = null
@@ -1190,7 +1190,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       const r = clamp(r0 + (won ? 0.5 : -0.3) + gauss(rng) * 0.8, 1, 10)
       const friendly = ctx.fx.compId === 'fr'
       if (!isNation && friendly) {
-        // friendlies bank rhythm, not records: no apps, minutes or ratings —
+        // friendlies bank rhythm, not records: no apps, minutes or ratings -
         // but the legs and the sharpness are real
         p.lastWk = state.week
         const left = side.energy.get(pid)
@@ -1229,7 +1229,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
             p.bans += 1
             state.news.push({
               id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-              subject: `${p.name} banned — totting up`,
+              subject: `${p.name} banned - totting up`,
               body: `${p.stats.yc} yellow cards this season have earned ${p.name} a one-match suspension from the citing commissioner.`,
               playerId: p.id,
             })
@@ -1266,7 +1266,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     const motm = motmId != null ? state.players[motmId] : null
     const opener = margin >= 20 ? `A statement. ${teamShort(state, us.teamId)} were ruthless from the first whistle.`
       : margin > 7 ? `A convincing afternoon's work, controlled from the front.`
-      : margin > 0 ? `Tight, tense — and yours. Games like this one win seasons.`
+      : margin > 0 ? `Tight, tense - and yours. Games like this one win seasons.`
       : margin === 0 ? `Honours even, and nobody quite sure how to feel about it.`
       : margin >= -7 ? `The finest of margins, the wrong side of them. It will sting for a few days.`
       : `A day to forget. The video session on Monday will be a long one.`

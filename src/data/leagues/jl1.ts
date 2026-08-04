@@ -1,4 +1,4 @@
-// Japan Rugby League One, Division 1 — real clubs, grounds and colours.
+// Japan Rugby League One, Division 1 - real clubs, grounds and colours.
 // Squads are generated (Japanese core + southern-hemisphere imports),
 // anchored by the marquee world stars who really play there.
 

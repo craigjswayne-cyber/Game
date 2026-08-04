@@ -50,7 +50,7 @@ export default function Saves() {
     a.download = `rugby-manager-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
     a.click()
     URL.revokeObjectURL(a.href)
-    setMsg('Career exported — keep the file safe, import it on any device.')
+    setMsg('Career exported - keep the file safe, import it on any device.')
   }
 
   const doImport = (file: File) => {
@@ -65,7 +65,7 @@ export default function Saves() {
         setGame(g, 'imported')
         setMsg(null)
       })
-    }).catch(() => setMsg('Could not read that file — is it a Rugby Manager save?'))
+    }).catch(() => setMsg('Could not read that file - is it a Rugby Manager save?'))
   }
 
   return (
@@ -92,7 +92,7 @@ export default function Saves() {
                 </h3>
                 {meta ? (
                   <div className="meta">
-                    {meta.managerName} — {meta.club}<br />
+                    {meta.managerName} - {meta.club}<br />
                     {seasonLabel(meta.season)}, {weekDate(meta.season, meta.week)} · saved {new Date(meta.savedAt).toLocaleString()}
                   </div>
                 ) : (
@@ -122,7 +122,7 @@ export default function Saves() {
       <SectionTitle sub="move a career between phone and computer">Backup & Transfer</SectionTitle>
       <div className="card">
         <div className="meta" style={{ marginBottom: 8 }}>
-          Saves live in this browser only. Export your career to a file to back it up or continue on another device — import it there and play on.
+          Saves live in this browser only. Export your career to a file to back it up or continue on another device - import it there and play on.
         </div>
         <div className="btn-row" style={{ margin: 0 }}>
           <button className="btn" onClick={doExport}>⬇️ Export Career</button>
@@ -140,7 +140,7 @@ export default function Saves() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: 14 }}>{s.slot}</h3>
-                  <div className="meta">{s.managerName} — {s.club} · {seasonLabel(s.season)} wk {s.week}</div>
+                  <div className="meta">{s.managerName} - {s.club} · {seasonLabel(s.season)} wk {s.week}</div>
                 </div>
                 <button className="btn ghost" style={{ fontSize: 12 }} onClick={() => void doLoad(s.slot)}>📂 Load</button>
               </div>

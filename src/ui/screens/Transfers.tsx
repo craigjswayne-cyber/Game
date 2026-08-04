@@ -15,6 +15,8 @@ export default function Transfers() {
   const [maxVal, setMaxVal] = useState(0)
   const [msg, setMsg] = useState<string | null>(null)
   const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans'>('market')
+  const [page, setPage] = useState(0)
+  const PER_PAGE = 10
 
   const user = game.clubs[game.userClubId]
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
@@ -27,6 +29,9 @@ export default function Transfers() {
     if (maxVal > 0) list = list.filter(p => p.value <= maxVal)
     return list.sort((a, b) => b.ca - a.ca).slice(0, 80)
   }, [game.players, pos, query, maxVal, game.week])
+  const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
+  const pageSafe = Math.min(page, pages - 1)
+  const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
 
   return (
     <>
@@ -59,7 +64,7 @@ export default function Transfers() {
       <div className="card">
         <div className="fact-label">Scouting Assignment</div>
         <div className="meta" style={{ marginBottom: 6 }}>
-          Point the network at one league — its players get watched every week
+          Point the network at one league - its players get watched every week
           {game.scoutFocus ? '' : ' (currently unassigned)'}. Shortlisted men are always tracked, with alerts when their situation changes.
         </div>
         <div className="chips" style={{ padding: 0 }}>
@@ -116,7 +121,7 @@ export default function Transfers() {
       )}
 
       {xtab === 'loans' && <>
-      <SectionTitle sub="big-club benches — borrow a star of tomorrow, parent pays half">Loan Market</SectionTitle>
+      <SectionTitle sub="big-club benches - borrow a star of tomorrow, parent pays half">Loan Market</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {loanTargets(game).map(p => (
           <tr key={p.id}>
@@ -161,7 +166,7 @@ export default function Transfers() {
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Name</th><th>Age</th><th>Nat</th><th>Club</th><th>Ability</th><th className="num">Value</th></tr></thead>
         <tbody>
-          {results.map(p => (
+          {pageRows.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name">{p.name}{p.transferListed ? ' 🏷️' : ''}</td>
@@ -174,6 +179,15 @@ export default function Transfers() {
           ))}
         </tbody>
       </table></div>
+      {pages > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, padding: '8px 0' }}>
+          <button className="btn ghost" disabled={pageSafe === 0} onClick={() => setPage(pageSafe - 1)}>‹ Prev</button>
+          <span className="meta" style={{ fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1 }}>
+            PAGE {pageSafe + 1}/{pages}
+          </span>
+          <button className="btn ghost" disabled={pageSafe >= pages - 1} onClick={() => setPage(pageSafe + 1)}>Next ›</button>
+        </div>
+      )}
       </>}
       <div className="spacer" />
     </>

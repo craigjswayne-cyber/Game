@@ -42,7 +42,7 @@ function applyToTable(comp: Competition, fx: Fixture) {
   if (fx.awayScore < fx.homeScore && fx.homeScore - fx.awayScore <= 7) { a.bp++; a.pts++ }
 }
 
-/** In knockout rugby there are no draws — nudge a golden-point winner. */
+/** In knockout rugby there are no draws - nudge a golden-point winner. */
 export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng) {
   if (fx.homeScore !== fx.awayScore) return
   const hs = teamUnits(state, autoLineup(state, fx.homeId)).overall
@@ -91,7 +91,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎟 The ${comp.short} ${stg} draw: ${teamShort(state, opp)}`,
         body: us === home
-          ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} — win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
+          ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} - win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
           : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
       })
     }
@@ -101,7 +101,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     .every(f => f.played)
   if (!regularDone) return
 
-  // Knockout ties are created as soon as the previous round is complete —
+  // Knockout ties are created as soon as the previous round is complete -
   // never lazily on their own match week, or the user's tie would be
   // simmed away before the MatchDay screen ever saw it.
   const ko = comp.koWeeks
@@ -222,7 +222,7 @@ function manageInternationals(state: GameState, rng: Rng) {
           .sort((a, b) => b.ca - a.ca)
           .slice(0, w.size)
         // emerging nations field home-based internationals our club world
-        // doesn't carry — generate them so no squad ever turns up empty
+        // doesn't carry - generate them so no squad ever turns up empty
         if (nat !== 'LIO' && pool.length < Math.max(23, Math.floor(w.size * 0.8))) {
           const natRep = nationByCode(nat)?.rep ?? 55
           const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
@@ -249,7 +249,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         }
       }
       if (userCalls.length) {
-        // several windows can open the same week — one combined item, not two
+        // several windows can open the same week - one combined item, not two
         const names = userCalls.map(p => `${p.name} (${p.nat})`).join(', ')
         const existing = state.news.find(n =>
           n.week === state.week && n.season === state.season && n.subject === 'International call-ups')
@@ -272,7 +272,7 @@ function manageInternationals(state: GameState, rng: Rng) {
           const p = state.players[id]
           if (p) {
             p.natSquad = false
-            // Test rugby empties the tank — returning internationals need
+            // Test rugby empties the tank - returning internationals need
             // managing, not flogging
             p.cond = clamp(p.cond - 10, 20, 100)
             if (p.clubId === state.userClubId) returnedMine.push(p.name)
@@ -283,8 +283,8 @@ function manageInternationals(state: GameState, rng: Rng) {
       if (returnedMine.length) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-          subject: `Internationals return — leggy`,
-          body: `Back in club colours: ${returnedMine.join(', ')}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it — your call.`,
+          subject: `Internationals return - leggy`,
+          body: `Back in club colours: ${returnedMine.join(', ')}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call.`,
         })
       }
     }
@@ -336,7 +336,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
           subject: `${k2.name.split(' ').slice(-1)[0]} loses his mentor`,
-          body: `With ${s2 ? s2.name : 'his mentor'} gone, ${k2.name} is training alone again. The academy coach will keep an eye on him — but it isn't the same.`,
+          body: `With ${s2 ? s2.name : 'his mentor'} gone, ${k2.name} is training alone again. The academy coach will keep an eye on him - but it isn't the same.`,
           playerId: k2.id,
         })
       }
@@ -345,7 +345,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
   }
 
   // turnaround: a Sunday game followed by a Friday game leaves 5 days'
-  // recovery, not 7 — the whole squad freshens up slower that week
+  // recovery, not 7 - the whole squad freshens up slower that week
   const lastFx = state.fixtures.find(f =>
     f.week === state.week - 1 && f.played && (f.homeId === state.userClubId || f.awayId === state.userClubId))
   const nextFx = state.fixtures.find(f =>
@@ -383,7 +383,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `💼 ${p.name} wants improved terms`,
-        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop — and other clubs will smell it. Offer a new deal from his player page.`,
+        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop - and other clubs will smell it. Offer a new deal from his player page.`,
         playerId: p.id,
       })
     }
@@ -394,7 +394,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
     for (const id of club.players) {
       const p = state.players[id]
       if (!p) continue
-      // recovery — rusty players take longer to freshen up
+      // recovery - rusty players take longer to freshen up
       const gym = isUser ? (state.facilities?.gym ?? 0) * 1.5 : 0
       p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym) * (isUser ? turnF : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
@@ -411,7 +411,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
             subject: `${p.name} back in training`,
-            body: `${p.name} has recovered and is available for selection — but the medical team rate him RUSTY for ${p.rust} week${p.rust > 1 ? 's' : ''}. Pick him now and he could break down again; ease him back and he'll be right.`,
+            body: `${p.name} has recovered and is available for selection - but the medical team rate him RUSTY for ${p.rust} week${p.rust > 1 ? 's' : ''}. Pick him now and he could break down again; ease him back and he'll be right.`,
             playerId: p.id,
           })
         }
@@ -427,7 +427,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
         }
       }
       // FM-style morale: everything drifts toward 'Good' unless events
-      // keep pushing it — form runs and game time do most of the work
+      // keep pushing it - form runs and game time do most of the work
       if (isUser) {
         p.morale += (6.5 - p.morale) * 0.06
         const played = (p.lastWk ?? -9) >= state.week - 1
@@ -442,7 +442,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
             subject: `💼 ${p.name}'s agent goes public`,
-            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal on his player page — or brace for bids.`,
+            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.`,
             playerId: p.id,
           })
         }
@@ -461,7 +461,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
             subject: `${p.name.split(' ').slice(-1)[0]} is turning into his mentor`,
-            body: `The coaches have noticed it in the little things — the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
+            body: `The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
             playerId: p.id,
           })
         }
@@ -480,7 +480,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
             subject: `${p.name} ahead of schedule`,
-            body: `Good news from the treatment table: ${p.name} (${p.injury.desc}) has smashed his rehab targets and is available again this week — earlier than anyone dared hope.`,
+            body: `Good news from the treatment table: ${p.name} (${p.injury.desc}) has smashed his rehab targets and is available again this week - earlier than anyone dared hope.`,
             playerId: p.id,
           })
         }
@@ -517,13 +517,13 @@ function weeklyFinance(state: GameState, rng: Rng) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: 'Board concerned by finances',
-      body: `The club is ${fmtMoney(Math.abs(club.balance))} in the red. The board urges you to balance the books — consider player sales.`,
+      body: `The club is ${fmtMoney(Math.abs(club.balance))} in the red. The board urges you to balance the books - consider player sales.`,
     })
   }
 }
 
 function matchReport(state: GameState, fx: Fixture) {
-  // the engine already filed a full report for matches played in detail —
+  // the engine already filed a full report for matches played in detail -
   // a second VICTORY/DEFEAT item on the same result is just noise
   if (fx.events?.length) return
   const comp = state.comps[fx.compId]
@@ -553,7 +553,7 @@ function milestones(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   for (const id of club.players) {
     const p = state.players[id]
-    // only the week he actually crossed the number — never a repeat salute
+    // only the week he actually crossed the number - never a repeat salute
     if (!p || !p.stats.apps || p.lastWk !== state.week) continue
     const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
     const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
@@ -565,7 +565,7 @@ function milestones(state: GameState, rng: Rng) {
     for (const h of hits) {
       const body = `${p.name} has reached ${h}. A presentation is made before training.`
       // a player parked exactly on a number (no tries this week) must not
-      // be saluted again — one presentation per milestone
+      // be saluted again - one presentation per milestone
       if (state.news.some(n => n.body === body)) continue
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -618,13 +618,13 @@ function boardReaction(state: GameState, fx: Fixture) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎶 The terraces are in full voice`,
-      body: `The songs have new verses and away allocations are selling out. The supporters believe in this team — and ${state.clubs[state.userClubId].stadium} is becoming a genuinely hard place to visit.`,
+      body: `The songs have new verses and away allocations are selling out. The supporters believe in this team - and ${state.clubs[state.userClubId].stadium} is becoming a genuinely hard place to visit.`,
     })
   } else if (before > 30 && state.fanMood <= 30) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `😤 Boos at full-time`,
-      body: `Sections of the support turned on the team this week. Banners are being painted and the phone-ins are merciless. Results are the only medicine — and until they come, home games will feel colder.`,
+      body: `Sections of the support turned on the team this week. Banners are being painted and the phone-ins are merciless. Results are the only medicine - and until they come, home games will feel colder.`,
     })
   }
 }
@@ -640,7 +640,7 @@ export function userFixtureThisWeek(state: GameState): Fixture | undefined {
 }
 
 /** Idle-week friendly: a home run-out against another idle club. Sharpness
- *  and combinations for the squad — but the injury risk is real. */
+ *  and combinations for the squad - but the injury risk is real. */
 export function arrangeFriendly(state: GameState, oppId: string): string {
   if (userFixtureThisWeek(state)) return 'You already have a match this week.'
   const opp = state.clubs[oppId]
@@ -655,7 +655,7 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `🤝 Friendly arranged: ${opp.short} this week`,
-    body: `${opp.name} have agreed to a run-out at your place. Minutes for the fringe men, sharpness for the returners — just don't get anyone hurt.`,
+    body: `${opp.name} have agreed to a run-out at your place. Minutes for the fringe men, sharpness for the returners - just don't get anyone hurt.`,
   })
   return `Friendly arranged against ${opp.name} this week.`
 }
@@ -696,7 +696,7 @@ export function processWeekAndAdvance(state: GameState) {
       fx.tableApplied = true
     }
   }
-  // DEADLINE DAY: the last week of each window is a circus — panic
+  // DEADLINE DAY: the last week of each window is a circus - panic
   // listings appear at cut prices and nobody's star is safe
   if ((state.week === 7 || state.week === 27) && !state.unemployed) {
     const bargains: string[] = []
@@ -707,21 +707,21 @@ export function processWeekAndAdvance(state: GameState) {
     for (let k = 0; k < 3 && pool.length; k++) {
       const p = pool.splice(Math.floor(rng() * pool.length), 1)[0]
       p.transferListed = true
-      bargains.push(`${p.name} (${p.pos}, ${state.clubs[p.clubId!]?.short}) — ${fmtMoney(askingPrice(state, p))}`)
+      bargains.push(`${p.name} (${p.pos}, ${state.clubs[p.clubId!]?.short}) - ${fmtMoney(askingPrice(state, p))}`)
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-      subject: `🚨 DEADLINE DAY — the window slams shut this week`,
+      subject: `🚨 DEADLINE DAY - the window slams shut this week`,
       body: [
         `Phones are running hot across the league. Clubs are cutting prices to move bodies before the deadline${bargains.length ? ':' : '.'}`,
         ...bargains.map(b => `• ${b}`),
-        `Move fast if you're buying — and don't be shocked if someone comes for one of yours before midnight.`,
+        `Move fast if you're buying - and don't be shocked if someone comes for one of yours before midnight.`,
       ].join('\n'),
     })
   }
 
   // monthly awards in the user's league: every four weeks the league names
-  // its player and manager of the month — small prizes, big feelings
+  // its player and manager of the month - small prizes, big feelings
   if (state.week % 4 === 0 && !state.unemployed) {
     const leagueId = state.clubs[state.userClubId].leagueId
     const comp = state.comps[leagueId]
@@ -763,9 +763,9 @@ export function processWeekAndAdvance(state: GameState) {
               ? `🥇 ${comp.short} awards: ${pom.name} is Player of the Month`
               : `🥇 ${comp.short} monthly awards`,
           body: [
-            `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`} — ${bestPts} pts from the window.`,
-            `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '—'}), form ${pom.form.toFixed(1)}.`,
-            userWon ? 'The board notice these things — and so does the crowd.' : pom.clubId === state.userClubId ? 'A proud week for the club and a lift for the man himself.' : '',
+            `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`} - ${bestPts} pts from the window.`,
+            `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '-'}), form ${pom.form.toFixed(1)}.`,
+            userWon ? 'The board notice these things - and so does the crowd.' : pom.clubId === state.userClubId ? 'A proud week for the club and a lift for the man himself.' : '',
           ].filter(Boolean).join('\n'),
           playerId: pom.id,
         })
@@ -785,7 +785,7 @@ export function processWeekAndAdvance(state: GameState) {
       `they broke our hearts in the ${comp?.short ?? 'cup'} ${fx.stage === 'F' ? 'final' : 'semi-final'}`)
   }
 
-  // the user's fixture was played in detail by the MatchDay screen —
+  // the user's fixture was played in detail by the MatchDay screen -
   // apply its table effects exactly once here (club match or Test match)
   const userFx = state.fixtures.find(f =>
     f.week === state.week && f.played && !f.tableApplied &&
@@ -839,12 +839,12 @@ export function processWeekAndAdvance(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `SACKED: ${club.name} part company with ${state.managerName}`,
-        body: `A brutal end — but not the end. Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
+        body: `A brutal end - but not the end. Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
       })
     }
   }
 
-  // rounds completed this week may unlock the next knockout stage —
+  // rounds completed this week may unlock the next knockout stage -
   // create those ties NOW so the user's match exists before its week starts
   for (const comp of Object.values(state.comps)) maybeCreateKnockouts(state, comp, rng)
 
@@ -870,7 +870,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
           subject: `🏆 CHAMPIONS! The ${comp.name} is yours`,
-          body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years — and the board have noted exactly who delivered it.`,
+          body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
         })
         state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
       }
@@ -891,7 +891,7 @@ export function processWeekAndAdvance(state: GameState) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `🏆 CHAMPIONS! The ${comp.name} title is yours`,
-            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made — the town will remember this season.`,
+            body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made - the town will remember this season.`,
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
@@ -922,7 +922,7 @@ export function processWeekAndAdvance(state: GameState) {
     const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
     const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
     const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
-    // tries/points can park exactly on a number for weeks — salute once only
+    // tries/points can park exactly on a number for weeks - salute once only
     const trySubj = `🏉 ${p.name}: ${cTries} career tries`
     const ptsSubj = `🎯 ${p.name}: ${cPts.toLocaleString()} career points`
     if ((cTries === 50 || cTries === 100) && !state.news.some(n => n.subject === trySubj)) {
@@ -944,7 +944,7 @@ export function processWeekAndAdvance(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `👏 ${p.name}: ${total} career appearances`,
-        body: `A guard of honour at training this week — ${p.name} brought up his ${total}th senior appearance at the weekend. ${total >= 200 ? 'A one-club legend in the making.' : 'The first big number of many, the coaches hope.'}`,
+        body: `A guard of honour at training this week - ${p.name} brought up his ${total}th senior appearance at the weekend. ${total >= 200 ? 'A one-club legend in the making.' : 'The first big number of many, the coaches hope.'}`,
         playerId: p.id,
       })
     }
@@ -991,7 +991,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🌍 ${nat} want you as national head coach`,
-          body: `The union has been watching your work and wants you to take the national side alongside your club job — Test windows, championship campaigns, maybe a World Cup. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Cup. Accept or decline from your Manager Profile. The offer won't stay open long.`,
         })
       }
     }
@@ -1044,7 +1044,7 @@ export function processWeekAndAdvance(state: GameState) {
             subject = roundsLeft === 1 ? `🚨 FINAL DAY: survival on the line` : `🚨 RELEGATION FIGHT: ${roundsLeft} rounds to save the season`
             body = [idx === order.length - 1
               ? `Bottom, ${above ? `${above.pts - me.pts} from safety` : 'and sinking'}. ${roundsLeft === 1 ? 'Win or go down.' : 'Every ruck is a relegation battle now.'}`
-              : `Only ${gapDown} points above the drop. Look over your shoulder at your peril — but look.`,
+              : `Only ${gapDown} points above the drop. Look over your shoulder at your peril - but look.`,
               ...rivalResults([bottom.teamId, above?.teamId].filter(Boolean) as string[]).map(r => `Down there: ${r}`)].join('\n')
           }
           if (subject) {
@@ -1057,7 +1057,7 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
 
-    // the Six Nations window is a big deal — a round-up lands every week
+    // the Six Nations window is a big deal - a round-up lands every week
     if (state.comps['sn'] && SIX_NATIONS_WEEKS.includes(state.week)) {
       const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)
       if (round.length) {
@@ -1079,7 +1079,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
   generateGossip(state, rng)
 
-  // Player of the Month in the user's league — a form king gets his gong
+  // Player of the Month in the user's league - a form king gets his gong
   if (state.week % 4 === 0 && state.week <= 36 && !state.unemployed) {
     const leagueId = state.clubs[state.userClubId].leagueId
     const cands = Object.values(state.players).filter(p =>
@@ -1091,7 +1091,7 @@ export function processWeekAndAdvance(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
         subject: `Player of the Month: ${best.name}${ours ? ' 🏅' : ''}`,
-        body: `${best.name} (${teamShort(state, best.clubId!)}) takes the ${state.comps[leagueId]?.short ?? 'league'} Player of the Month award${ours ? ' — one of yours! The dressing room applauds him in, and his chest is a little bigger for it.' : '.'}`,
+        body: `${best.name} (${teamShort(state, best.clubId!)}) takes the ${state.comps[leagueId]?.short ?? 'league'} Player of the Month award${ours ? ' - one of yours! The dressing room applauds him in, and his chest is a little bigger for it.' : '.'}`,
         playerId: best.id,
       })
     }
@@ -1136,7 +1136,7 @@ export function processWeekAndAdvance(state: GameState) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `DERBY WEEK: ${derbyName(nextFx.homeId, nextFx.awayId)}`,
-      body: `It's ${teamShort(state, oppId)} this weekend and the town can talk of nothing else. Tickets are gone, tempers will fray, and the form book means precisely nothing. Win this one and the board — and the pubs — will remember it.`,
+      body: `It's ${teamShort(state, oppId)} this weekend and the town can talk of nothing else. Tickets are gone, tempers will fray, and the form book means precisely nothing. Win this one and the board - and the pubs - will remember it.`,
     })
   }
 }

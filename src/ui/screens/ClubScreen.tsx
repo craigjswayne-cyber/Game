@@ -27,7 +27,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <Jersey club={club} size={52} />
         </div>
         <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
-        <div className="meta">🏟️ {club.stadium} — {club.capacity.toLocaleString()} capacity</div>
+        <div className="meta">🏟️ {club.stadium} - {club.capacity.toLocaleString()} capacity</div>
         <div className="meta">🧢 Head coach: {club.id === game.userClubId ? game.managerName : club.coach ?? 'vacant'}</div>
         {(() => {
           const honours = game.history.filter(h => h.champion === club.id)
@@ -122,13 +122,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
                   <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
-                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> — {g.reason} <span className="muted">(runs to {2025 + g.until}-{String((g.until + 26) % 100).padStart(2, '0')})</span>
+                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {g.reason} <span className="muted">(runs to {2025 + g.until}-{String((g.until + 26) % 100).padStart(2, '0')})</span>
                   </div>
                 )
               })}
               {duos.map((d, i) => (
                 <div key={`d${i}`} className="meta" style={{ padding: '3px 0' }}>
-                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> — {d.g} games together, {chemTier(d.g)}
+                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {d.g} games together, {chemTier(d.g)}
                 </div>
               ))}
             </div>

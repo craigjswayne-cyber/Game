@@ -77,7 +77,7 @@ function settleKnockout(g: GameState, ctx: LiveCtx) {
     resolveKnockoutDraw(g, fx, weekRng(g))
     ctx.events.push({
       min: 90, type: 'FT', teamId: '',
-      text: `SUDDEN DEATH! ${teamShort(g, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time — ${fx.homeScore}-${fx.awayScore}!`,
+      text: `SUDDEN DEATH! ${teamShort(g, fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId)} snatch it in extra time - ${fx.homeScore}-${fx.awayScore}!`,
       homeScore: fx.homeScore, awayScore: fx.awayScore,
     })
     fx.events = ctx.events
@@ -269,7 +269,7 @@ export const useStore = create<Store>((set, get) => ({
     return msg
   },
 
-  /** Re-read the tactic sliders mid-match — allowed at any stoppage. */
+  /** Re-read the tactic sliders mid-match - allowed at any stoppage. */
   liveTactics: () => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
@@ -342,7 +342,7 @@ export const useStore = create<Store>((set, get) => ({
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
         subject: `🌍 Appointed: national head coach of ${nat}`,
-        body: `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day — and every championship they win goes in YOUR cabinet.`,
+        body: `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`,
       })
     }
     set(s => ({ tick: s.tick + 1 }))

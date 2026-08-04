@@ -49,7 +49,7 @@ export interface SeasonStats {
   rc: number
   ratingSum: number // sum of match ratings (avg = ratingSum/apps)
   motm: number
-  /** cumulative minutes this season — the load that wears bodies out */
+  /** cumulative minutes this season - the load that wears bodies out */
   mins: number
 }
 
@@ -61,7 +61,7 @@ export const emptyStats = (): SeasonStats => ({
 /** 1,300+ minutes (~17 full games) is the red zone: tired bodies break. */
 export const inRedZone = (p: { stats: { mins: number } }) => p.stats.mins >= 1300
 
-/** Partnership chemistry: lineup slot pairs whose familiarity matters —
+/** Partnership chemistry: lineup slot pairs whose familiarity matters -
  *  LH-HK, HK-TH, the lock pairing, the halfbacks, the centres. */
 export const CHEM_SLOTS: [number, number][] = [[0, 1], [1, 2], [3, 4], [8, 9], [11, 12]]
 export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`)
@@ -70,12 +70,12 @@ export const chemTier = (g: number) =>
 
 /** Signature traits and what they do, for player pages and scouting. */
 export const TRAIT_INFO: Record<string, string> = {
-  'The Step': 'Feet like a dancer — defenders grasp at air. Scores more tries.',
+  'The Step': 'Feet like a dancer - defenders grasp at air. Scores more tries.',
   'Offload King': 'Keeps the ball alive through contact. Sharpens the whole attack.',
-  'Siege Gun': 'A boot from another postcode — dangerous from anywhere kickable.',
+  'Siege Gun': 'A boot from another postcode - dangerous from anywhere kickable.',
   'Metronome': 'Never misses the ones he should make. Raises the kicking floor.',
   'Jackal': 'First over every tackle. More breakdown menace.',
-  'Enforcer': 'Brings the dark arts — muscle at scrum and ruck, and refs know his name.',
+  'Enforcer': 'Brings the dark arts - muscle at scrum and ruck, and refs know his name.',
   'Big-Game Player': 'Grows three inches in knockouts and derbies.',
   'Hot Head': 'One flashpoint from a card, every single week.',
 }
@@ -111,7 +111,7 @@ export function addGrudge(state: GameState, a: string, b: string, reason: string
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
-      body: `There is genuine needle between the clubs now — ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
+      body: `There is genuine needle between the clubs now - ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
     })
   }
 }
@@ -160,9 +160,9 @@ export interface Player {
   career: { season: number; clubId: string; apps: number; tries: number; points: number }[]
   transferListed: boolean
   youth?: boolean
-  /** character type — drives contracts, morale and media reactions */
+  /** character type - drives contracts, morale and media reactions */
   pers: Personality
-  /** signature trait — a defining edge (or flaw) in his game */
+  /** signature trait - a defining edge (or flaw) in his game */
   trait?: string | null
   /** estimated career before the game world began (2025-26) */
   hist?: { apps: number; tries: number; points: number }
@@ -172,10 +172,10 @@ export interface Player {
   onLoan?: boolean
   /** ability at the start of the season, for development arrows */
   ca0?: number
-  /** weeks of match rust remaining after an injury — playable, but a
+  /** weeks of match rust remaining after an injury - playable, but a
    *  rushed return carries a much higher re-injury risk */
   rust?: number
-  /** last match rating and the week it was earned — fuels Team of the Week */
+  /** last match rating and the week it was earned - fuels Team of the Week */
   lastR?: number
   lastWk?: number
   talkWk?: number // absolute week (season*100+week) of the manager's last word with him
@@ -183,7 +183,7 @@ export interface Player {
   wantsDeal?: number
   /** the current injury has already had its specialist consult */
   specialist?: boolean
-  /** in the academy squad — hidden from first-team auto-selection until promoted */
+  /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
@@ -208,13 +208,13 @@ export interface Club {
   // finance
   wageBudget: number
   boardConfidence: number // 0-100
-  /** club captain — a real leader on the pitch steadies the whole side */
+  /** club captain - a real leader on the pitch steadies the whole side */
   captain?: number | null
   /** vice-captain: leads at reduced effect when the skipper is missing */
   vice?: number | null
   /** the record book: 100+ app servants, written in at retirement */
   legends?: { name: string; apps: number; tries: number; pts: number }[]
-  /** marquee designations — their wages sit outside the cap (max 2) */
+  /** marquee designations - their wages sit outside the cap (max 2) */
   marquee?: number[]
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
@@ -339,7 +339,7 @@ export interface TransferOffer {
   status: 'pending' | 'accepted' | 'rejected'
 }
 
-/** Club infrastructure, levels 0-3 — bricks and mortar that outlast any squad. */
+/** Club infrastructure, levels 0-3 - bricks and mortar that outlast any squad. */
 export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy'
 export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
   gym: { name: 'Strength & Conditioning Gym', icon: '🏋️', desc: 'Players recover extra condition every week.', base: 350_000 },
@@ -354,22 +354,22 @@ export interface StaffLevels {
   assistant: number // 0-3: training gains
   physio: number    // 0-3: injury length & recovery
   scout: number     // 0-3: knowledge gathering speed
-  attack: number    // 0-3: attack coach — sharper strike play on matchday
-  defence: number   // 0-3: defence coach — tighter line speed and shape
-  scrumCoach: number // 0-3: set-piece coach — scrum & lineout platform
-  kicking: number   // 0-3: kicking coach — territory game and goal kicking
-  academyCoach: number // 0-3: academy coach — develops the second squad
+  attack: number    // 0-3: attack coach - sharper strike play on matchday
+  defence: number   // 0-3: defence coach - tighter line speed and shape
+  scrumCoach: number // 0-3: set-piece coach - scrum & lineout platform
+  kicking: number   // 0-3: kicking coach - territory game and goal kicking
+  academyCoach: number // 0-3: academy coach - develops the second squad
 }
 
 export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
-  assistant: { name: 'Assistant Coach', desc: 'Sharper sessions — bigger training gains, faster youth growth.', wage: 4000 },
+  assistant: { name: 'Assistant Coach', desc: 'Sharper sessions - bigger training gains, faster youth growth.', wage: 4000 },
   physio: { name: 'Head Physio', desc: 'Shorter injury layoffs and quicker recovery between matches.', wage: 3000 },
   scout: { name: 'Chief Scout', desc: 'Faster, wider scouting knowledge across the leagues.', wage: 2500 },
-  attack: { name: 'Attack Coach', desc: 'Strike moves and shape — a sharper attack every matchday, bigger attacking training gains.', wage: 3500 },
-  defence: { name: 'Defence Coach', desc: 'Line speed and system — a meaner defence every matchday, bigger defensive training gains.', wage: 3500 },
-  scrumCoach: { name: 'Set-Piece Coach', desc: 'Scrum and lineout platform — the tight five win you matchday penalties.', wage: 3000 },
-  kicking: { name: 'Kicking Coach', desc: 'Territory and the tee — better tactical kicking and goal kicking under pressure.', wage: 2500 },
-  academyCoach: { name: 'Academy Coach', desc: 'Runs the second squad — academy prospects develop faster under a proper mentor.', wage: 2500 },
+  attack: { name: 'Attack Coach', desc: 'Strike moves and shape - a sharper attack every matchday, bigger attacking training gains.', wage: 3500 },
+  defence: { name: 'Defence Coach', desc: 'Line speed and system - a meaner defence every matchday, bigger defensive training gains.', wage: 3500 },
+  scrumCoach: { name: 'Set-Piece Coach', desc: 'Scrum and lineout platform - the tight five win you matchday penalties.', wage: 3000 },
+  kicking: { name: 'Kicking Coach', desc: 'Territory and the tee - better tactical kicking and goal kicking under pressure.', wage: 2500 },
+  academyCoach: { name: 'Academy Coach', desc: 'Runs the second squad - academy prospects develop faster under a proper mentor.', wage: 2500 },
 }
 
 export interface ManagerStats {
@@ -402,7 +402,7 @@ export interface GameState {
   processedWeek: boolean
   managerName: string
   training: TrainingFocus
-  /** this week's match preparation — a short-term matchday emphasis,
+  /** this week's match preparation - a short-term matchday emphasis,
    *  distinct from long-term training (which grows attributes) */
   matchPrep?: 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
   shortlist: number[]
@@ -415,7 +415,7 @@ export interface GameState {
   devFocus: number[]
   /** national side the manager also coaches (FM-style dual role) */
   natTeam?: string | null
-  /** a country wants you — pending offer from a union */
+  /** a country wants you - pending offer from a union */
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */
   objectives?: string[]
@@ -426,25 +426,25 @@ export interface GameState {
   /** running press-conference tone: heavy praise breeds swagger, constant
    *  criticism breeds fragility. Decays weekly toward neutral. */
   pressTone?: number
-  /** the board owes you one (objectives delivered) — spend it on a request */
+  /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
   /** facility levels 0-3 for the user's club */
   facilities?: Partial<Record<FacilityId, number>>
   /** a trophy moment waiting to be celebrated full-screen */
   celebration?: { headline: string; sub: string; icon: string } | null
-  /** senior pros paired with academy kids — wisdom rubs off (max 3) */
+  /** senior pros paired with academy kids - wisdom rubs off (max 3) */
   mentors?: { senior: number; kid: number }[]
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
   /** games played together by key partnerships (front row, locks, halfbacks,
-   *  centres) — familiarity sharpens the relevant unit. Key: chemKey(a, b) */
+   *  centres) - familiarity sharpens the relevant unit. Key: chemKey(a, b) */
   chem?: Record<string, number>
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   grudges?: { a: string; b: string; reason: string; until: number }[]
   /** structured snapshot of the user's last completed season */
   review?: SeasonReview | null
-  /** terrace mood at the user's club, 5-98 — swings with results, colours
+  /** terrace mood at the user's club, 5-98 - swings with results, colours
    *  the matchday atmosphere and nudges home advantage */
   fanMood?: number
   /** the game's Hall of Fame: careers immortalised at retirement */
@@ -489,7 +489,7 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
   return h % 3 === 0 ? -1 : h % 3 === 2 ? 1 : 0
 }
 
-/** 'Friday 5 Sep' — the real kick-off date for a fixture. */
+/** 'Friday 5 Sep' - the real kick-off date for a fixture. */
 export function fixtureDate(season: number, week: number, fxId: number): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + ((week - 1) * 7 + fixtureDayOff(fxId)) * 86400000)

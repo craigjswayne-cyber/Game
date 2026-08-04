@@ -70,7 +70,7 @@ export default function Legacy() {
 
       {(game.hof ?? []).length > 0 && (
         <>
-          <SectionTitle sub="the immortals — careers that closed the argument">🏛 Hall of Fame</SectionTitle>
+          <SectionTitle sub="the immortals - careers that closed the argument">🏛 Hall of Fame</SectionTitle>
           <div className="tblwrap"><table className="dtable">
             <thead><tr><th>Name</th><th>Pos</th><th className="num">Apps</th><th className="num">Tries</th><th className="num">Pts</th><th>Retired</th></tr></thead>
             <tbody>

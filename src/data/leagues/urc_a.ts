@@ -1,4 +1,4 @@
-// United Rugby Championship (Pool A) — 2025-26 season data
+// United Rugby Championship (Pool A) - 2025-26 season data
 import type { RawClub } from '../types'
 
 export const URC_A: RawClub[] = [

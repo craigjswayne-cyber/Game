@@ -1,4 +1,4 @@
-// Top 14 (France) 2025-26 — group A clubs
+// Top 14 (France) 2025-26 - group A clubs
 import type { RawClub } from '../types'
 
 export const TOP14_A: RawClub[] = [
