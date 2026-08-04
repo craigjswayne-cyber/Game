@@ -22,6 +22,7 @@ import History from './screens/History'
 import Legacy from './screens/Legacy'
 import Jobs from './screens/Jobs'
 import Feed from './screens/Feed'
+import Wire from './screens/Wire'
 import Medical from './screens/Medical'
 import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
@@ -38,7 +39,7 @@ const TITLES: Record<string, string> = {
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
   jobs: 'Job Centre', feed: 'The Rugby Wire', medical: 'Medical Centre',
   report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status',
-  dreamteam: 'Team of the Week',
+  dreamteam: 'Team of the Week', wire: 'The Rugby Wire',
 }
 
 const IcoMoon = () => (
@@ -157,6 +158,7 @@ export default function App() {
       case 'legacy': return <Legacy />
       case 'jobs': return <Jobs />
       case 'feed': return <Feed />
+      case 'wire': return <Wire />
       case 'medical': return <Medical />
       case 'report': return <TeamReport />
       case 'profile': return <Profile />
