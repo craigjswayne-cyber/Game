@@ -168,6 +168,14 @@ for (let season = 0; season < 20; season++) {
   if (f.yc && Math.abs(l.yc / l.matches - f.yc / f.matches) > 0.5 * (f.yc / f.matches)) console.log('WARN: card rate drifted >50% across the save')
   if (f.spells && Math.abs(l.spells - f.spells) > 0.5 * f.spells) console.log('WARN: injury rate drifted >50% across the save')
 }
+// career trajectory: a passively-managed big club should stay competitive,
+// not spiral through relegation cycles - engine-fairness check
+{
+  const traj = (g.annals ?? []).map(a => a.league.pos)
+  const relegations = (g.annals ?? []).filter(a => a.league.name.includes('Championship')).length
+  console.log(`career trajectory (league pos by season): ${traj.join(' ') || 'none'} · seasons in tier 2: ${relegations}`)
+  if (relegations > 8) console.log('WARN: passive big club spends most of its life relegated')
+}
 // natrank long-horizon: watch for Elo compression or bound-pinning
 {
   const vals = Object.values(g.natRank ?? {})
