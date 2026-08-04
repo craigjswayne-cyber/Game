@@ -273,23 +273,102 @@ function handleContracts(state: GameState, rng: Rng) {
 
 const YOUTH_POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB']
 
+/** Roll the user's next academy class. Fixed at the week-30 preview so the
+ *  coach's forecast and intake day always tell the same story. */
+export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameState['intakeClass']> {
+  const club = state.clubs[state.userClubId]
+  if (!club) return []
+  const coe = state.facilities?.academy ?? 0
+  const n = 2 + Math.floor(rng() * 3)
+  const out: NonNullable<GameState['intakeClass']> = []
+  for (let i = 0; i < n; i++) {
+    const pos = pick(rng, YOUTH_POS)
+    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + coe * 2
+    // roughly one club a season unearths a genuine wonderkid - a Centre
+    // of Excellence tilts the odds your way
+    const wonder = rng() < 0.085 + coe * 0.02
+    out.push({
+      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
+      pos, age: 17 + Math.floor(rng() * 2), q,
+      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 25 + Math.floor(rng() * 30), q, 99),
+      gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
+      wonder,
+    })
+  }
+  return out
+}
+
+const paStars = (pa: number) => pa >= 88 ? 5 : pa >= 80 ? 4 : pa >= 71 ? 3 : pa >= 62 ? 2 : 1
+
 function youthIntake(state: GameState, rng: Rng) {
+  // the user's class was fixed at the week-30 preview - deliver it verbatim,
+  // with the report card the plain arrival note never was
+  const userClub = state.clubs[state.userClubId]
+  if (userClub) {
+    const spec = state.intakeClass?.length ? state.intakeClass : rollIntakeClass(state, rng)
+    const report: string[] = []
+    spec.forEach((s, i) => {
+      const raw = { name: s.name, pos: s.pos, age: s.age, nat: userClub.country, q: s.q, gk: s.gk }
+      const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
+      const p: Player = {
+        id: nextPid(),
+        name: s.name, pos: s.pos, alt: [], age: s.age, nat: userClub.country, clubId: userClub.id,
+        a,
+        ca: s.wonder ? clamp(s.q + 8, 1, 78) : s.q,
+        pa: s.pa,
+        q0: s.q,
+        intl: false, gk: s.gk,
+        form: 6, morale: 7, cond: 100, sharp: 50,
+        injury: null, bans: 0, natSquad: false,
+        wage: 600, contractEnds: state.season + 3,
+        value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
+        pers: assignPersonality(rng, a),
+        sc: 100,
+      }
+      p.value = playerValue(p.ca, p.age, p.pa)
+      state.players[p.id] = p
+      userClub.players.push(p.id)
+      report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
+      if (s.wonder) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+          subject: `🌟 WONDERKID: the academy has struck gold`,
+          body: `The coaches are calling ${p.name} (${p.age}, ${p.pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything.`,
+          playerId: p.id,
+        })
+      }
+    })
+    const best = Math.max(0, ...spec.map(s => s.pa))
+    const grade = spec.some(s => s.wonder) || best >= 88 ? 'A' : best >= 81 ? 'B' : best >= 73 ? 'C' : best >= 65 ? 'D' : 'E'
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+      subject: `🎓 Intake day: the class arrives - grade ${grade}`,
+      body: [
+        `The academy has promoted this year's crop. The coaches' potential ratings:`,
+        ...report,
+        grade === 'A' ? `A vintage year. Protect them from the vultures and this class will define the club.`
+          : grade === 'B' ? `A strong group - at least one of these boys should make the first team his own.`
+          : grade === 'C' ? `A decent, honest class. Squad players, with a chance one over-delivers.`
+          : grade === 'D' ? `A thin year. The coaches are already talking about next season's group.`
+          : `A year to forget. The academy coach has asked that nobody frame this list.`,
+      ].join('\n'),
+    })
+    state.intakeClass = null
+  }
+
   for (const club of Object.values(state.clubs)) {
+    if (club.id === state.userClubId) continue
     const n = 2 + Math.floor(rng() * 3)
-    const names: string[] = []
     for (let i = 0; i < n; i++) {
       const pos = pick(rng, YOUTH_POS)
-      const coe = club.id === state.userClubId ? (state.facilities?.academy ?? 0) : 0
-      const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + coe * 2
+      const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12)
       const raw = {
         name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
-      // roughly one club a season unearths a genuine wonderkid - a Centre
-      // of Excellence tilts the odds your way
-      const wonder = rng() < 0.085 + coe * 0.02
+      const wonder = rng() < 0.085
       const p: Player = {
         id: nextPid(),
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
@@ -303,27 +382,11 @@ function youthIntake(state: GameState, rng: Rng) {
         wage: 600, contractEnds: state.season + 3,
         value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
         pers: assignPersonality(rng, a),
-        sc: club.id === state.userClubId ? 100 : 15,
+        sc: 15,
       }
       p.value = playerValue(p.ca, p.age, p.pa)
       state.players[p.id] = p
       club.players.push(p.id)
-      names.push(`${p.name} (${pos})`)
-      if (wonder && club.id === state.userClubId) {
-        state.news.push({
-          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-          subject: `🌟 WONDERKID: the academy has struck gold`,
-          body: `The coaches are calling ${p.name} (${p.age}, ${pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything.`,
-          playerId: p.id,
-        })
-      }
-    }
-    if (club.id === state.userClubId) {
-      state.news.push({
-        id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-        subject: 'Academy intake arrives',
-        body: `The academy has promoted this year's crop: ${names.join(', ')}. The coaches are excited about one or two of them.`,
-      })
     }
   }
   // a few unattached young gems drift into the free-agent pool each season
