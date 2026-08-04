@@ -125,6 +125,8 @@ function audit(g: GameState, tag: string) {
   }
   if (g.natConfidence != null && !(g.natConfidence >= 0 && g.natConfidence <= 100)) bad(`${tag} natConfidence out of range: ${g.natConfidence}`)
   if (g.natConfidence != null && !g.natTeam) bad(`${tag} union confidence without a national job`)
+  if (g.tenureStart != null && g.tenureStart > g.season) bad(`${tag} tenureStart in the future: ${g.tenureStart} > ${g.season}`)
+  for (const cid of g.legendOf ?? []) if (!g.clubs[cid]) bad(`${tag} legend of missing club ${cid}`)
   for (const [cid, rec] of Object.entries(g.derbyBook ?? {})) {
     if (!g.clubs[cid]) bad(`${tag} derby ledger vs missing club ${cid}`)
     if (rec.w < 0 || rec.d < 0 || rec.l < 0) bad(`${tag} negative derby record vs ${cid}`)

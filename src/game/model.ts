@@ -520,6 +520,10 @@ export interface GameState {
   /** the union's confidence in you as national coach, 0-100 - null when
    *  you do not hold a Test job. Below 28 at the annual review: sacked */
   natConfidence?: number | null
+  /** season index when the user took charge of the current club */
+  tenureStart?: number
+  /** club ids where the user has earned legend status - once, forever */
+  legendOf?: string[]
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
