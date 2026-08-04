@@ -4,6 +4,7 @@ import { BENCH_SLOTS, XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { autoSelect, availablePlayers } from '../../game/matchEngine'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
+import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
 import { assistantAdvice } from '../../game/analysis'
 
@@ -12,6 +13,8 @@ export default function Tactics() {
   const touch = useStore(s => s.touch)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
+  const [ttab, setTtab] = useState<'formation' | 'setup'>('formation')
+  const [roleSlot, setRoleSlot] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
   const t = club.tactic
@@ -104,8 +107,77 @@ export default function Tactics() {
     </div>
   )
 
+  const SPOTS: [number, number][] = [
+    [30, 10], [50, 8], [70, 10],
+    [40, 21], [60, 21],
+    [24, 32], [76, 32], [50, 34],
+    [50, 47], [37, 57],
+    [12, 76], [52, 64], [66, 71], [88, 76], [50, 87],
+  ]
+  const go = useStore.getState().go
+  const roleSheet = () => {
+    if (roleSlot == null) return null
+    const pid = t.lineup[roleSlot]
+    const p = pid != null ? game.players[pid] : null
+    const roles = rolesForSlot(roleSlot)
+    const current = t.roles?.[roleSlot] ?? null
+    return (
+      <div className="modal-veil" onClick={() => setRoleSlot(null)}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="grab" />
+          <SectionTitle sub={`No. ${XV_SLOTS[roleSlot].shirt} · how should he play the position?`}>
+            {p ? p.name : 'Empty slot'}
+          </SectionTitle>
+          <button className="club-pick" onClick={() => { (t.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
+            <span style={{ fontSize: 16 }}>{current == null ? '●' : '○'}</span>
+            <span className="cname">Natural</span>
+            <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>No special instruction.</span>
+          </button>
+          {roles.map(r => (
+            <button key={r.id} className="club-pick" onClick={() => { (t.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
+              <span style={{ fontSize: 16 }}>{current === r.id ? '●' : '○'}</span>
+              <span className="cname">{r.name}</span>
+              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{r.desc}</span>
+            </button>
+          ))}
+          {p && (
+            <button className="btn ghost block" style={{ marginTop: 8 }}
+              onClick={() => { setRoleSlot(null); go('player', p.id) }}>
+              Open {p.name.split(' ').slice(-1)[0]}'s profile ›
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
+      <div className="tab-bar">
+        <button className={ttab === 'formation' ? 'active' : ''} onClick={() => setTtab('formation')}>Formation</button>
+        <button className={ttab === 'setup' ? 'active' : ''} onClick={() => setTtab('setup')}>Instructions</button>
+      </div>
+      {ttab === 'formation' && <>
+      <div className="form-pitch">
+        {SPOTS.map(([x, y], i) => {
+          const pid = t.lineup[i]
+          const p = pid != null ? game.players[pid] : null
+          const role = t.roles?.[i] != null ? ROLE_BY_ID[t.roles![i]!] : null
+          return (
+            <button key={i} className="form-chip" style={{ left: `${x}%`, top: `${y}%` }}
+              onClick={() => setRoleSlot(i)}>
+              <span className="fc-role">{role ? role.short : XV_SLOTS[i].pos}</span>
+              <span className="fc-name">{p ? p.name.split(' ').slice(-1)[0] : '-'}</span>
+              <span className="fc-num">{XV_SLOTS[i].shirt}</span>
+            </button>
+          )
+        })}
+      </div>
+      <div className="meta" style={{ padding: '4px 16px' }}>
+        Tap a shirt to set his role or open his profile. Roles are small, honest edges - the scrummager props up the set piece, the playmaker opens the game.
+      </div>
+      </>}
+      {ttab === 'setup' && <>
       <div className="btn-row">
         <button className="btn gold" onClick={() => {
           const pool = availablePlayers(game, club.players)
@@ -188,7 +260,9 @@ export default function Tactics() {
       </div>
       <SectionTitle>Game Plan</SectionTitle>
       {SLIDER_INFO.map(slider)}
+      </>}
       {picker()}
+      {roleSheet()}
       <div className="spacer" />
     </>
   )

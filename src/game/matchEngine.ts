@@ -251,6 +251,31 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.tempoF = 1 + f(t.tempo) * 0.22
     side.cardRisk = 0.012 + f(t.aggression) * 0.006
   }
+  // positional roles: how each shirt is told to play (small, capped edges)
+  if (club?.tactic.roles) {
+    for (let i = 0; i < 15; i++) {
+      const r = club.tactic.roles[i]
+      if (!r || side.lineup[i] == null) continue
+      switch (r) {
+        case 'scrummager': side.units.scrum *= 1.02; side.units.attack *= 0.997; break
+        case 'mobile': side.units.attack *= 1.008; side.units.scrum *= 0.988; break
+        case 'lineout_general': side.units.lineout *= 1.025; break
+        case 'enforcer_lock': side.units.breakdown *= 1.012; side.cardRisk *= 1.04; break
+        case 'jackal_role': side.units.breakdown *= 1.015; break
+        case 'carrier': side.units.attack *= 1.008; break
+        case 'stopper': side.units.defence *= 1.01; break
+        case 'box_kicker': side.units.kicking *= 1.02; break
+        case 'sniper': side.units.attack *= 1.01; side.units.kicking *= 0.99; break
+        case 'kicking_general': side.units.kicking *= 1.03; side.units.attack *= 0.995; break
+        case 'playmaker': side.units.attack *= 1.012; side.units.defence *= 0.995; break
+        case 'crash': side.units.breakdown *= 1.01; break
+        case 'distributor': side.units.attack *= 1.008; break
+        case 'finisher': side.units.attack *= 1.006; break
+        case 'aerial': side.units.defence *= 1.008; side.units.kicking *= 1.01; break
+      }
+    }
+  }
+
   // hot heads walk the disciplinary tightrope every week
   for (const id of side.lineup.slice(0, 15)) {
     const p = id != null ? state.players[id] : null

@@ -226,6 +226,8 @@ export interface Tactic {
   kicking: number    // 0 keep in hand .. 100 kick heavy
   aggression: number // 0 clean .. 100 physical
   lineup: (number | null)[] // 23 slots: player ids, index 0-14 XV, 15-22 bench
+  /** positional role per XV slot (role ids from roles.ts), sparse */
+  roles?: (string | null)[]
 }
 
 export type CompType = 'league' | 'cup' | 'intl'
