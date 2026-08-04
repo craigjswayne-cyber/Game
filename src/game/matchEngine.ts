@@ -1329,26 +1329,48 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const winning = mine.score > opp.score
+  // deterministic rotation (score + tick), never the shared rng - ES rule
+  const say = (opts: string[]) => opts[(mine.score + opp.score + ctx.tick) % opts.length]
   switch (kind) {
     case 'fire':
       mine.units.attack *= 1.07; mine.units.breakdown *= 1.05; mine.cardRisk *= 1.3
-      return 'The shouting rattles the door on its hinges. They leave snorting - expect fire, and watch the referee.'
+      return say([
+        'The shouting rattles the door on its hinges. They leave snorting - expect fire, and watch the referee.',
+        'A cup of tea goes flying. Forty minutes of everything, you tell them, or explain yourselves to the fans outside. They leave at a jog.',
+        'You go through the pack man by man, voice up, collar loose. The room is silent, then very loud. Watch the penalty count.',
+      ])
     case 'calm':
       mine.units.defence *= 1.06; mine.cardRisk *= 0.8
-      return 'Calm, clear, matter-of-fact. The defensive shape gets one more walk-through before they head out.'
+      return say([
+        'Calm, clear, matter-of-fact. The defensive shape gets one more walk-through before they head out.',
+        'No theatre. Two fixes on the whiteboard, one reminder about discipline, handshakes on the way out. Grown-up rugby.',
+        'You lower the temperature of the room by ten degrees. The message: trust the system, make the tackle in front of you.',
+      ])
     case 'praise':
       if (winning) { mine.units.attack *= 1.04; mine.units.defence *= 1.03 }
       return winning
-        ? 'You are delighted and you tell them so. Confidence flows - keep doing exactly this.'
-        : 'Delighted? At that scoreline? A few eyebrows rise - the room is not sure you watched the same half.'
+        ? say([
+          'You are delighted and you tell them so. Confidence flows - keep doing exactly this.',
+          'You name three things they did exactly right and promise the second half is theirs if they keep doing them. Chests visibly lift.',
+        ])
+        : say([
+          'Delighted? At that scoreline? A few eyebrows rise - the room is not sure you watched the same half.',
+          'You accentuate the positives. The scoreboard in the corridor disagrees loudly, and so do a couple of the older heads.',
+        ])
     case 'demand': {
       const roll = ctx.rng()
       if (roll < 0.5) {
         mine.units.attack *= 1.08; mine.units.defence *= 1.04
-        return 'Encouraging, positive, believing - and the senior players nod along. They look ready to empty the tank.'
+        return say([
+          'Encouraging, positive, believing - and the senior players nod along. They look ready to empty the tank.',
+          'More, you ask - not different, just more. The captain answers for the room: they have more.',
+        ])
       }
       mine.units.attack *= 0.97
-      return 'You gee them up, but a couple of heads stay down. The message floats past them.'
+      return say([
+        'You gee them up, but a couple of heads stay down. The message floats past them.',
+        'You ask for more and the room hears criticism. Two players study their bootlaces. Wrong crowd, wrong day.',
+      ])
     }
   }
 }
