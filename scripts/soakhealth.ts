@@ -11,6 +11,8 @@ function report(label: string) {
   const size = JSON.stringify(g).length
   const players = Object.values(g.players)
   const careerRows = players.reduce((s, p) => s + p.career.length, 0)
+  const squads = Object.values(g.clubs).map(c => c.players.length).sort((a, b) => a - b)
+  const squadLine = `squads med ${squads[Math.floor(squads.length / 2)]} max ${squads[squads.length - 1]}`
   console.log([
     label,
     `save ${(size / 1e6).toFixed(2)}MB`,
@@ -26,6 +28,7 @@ function report(label: string) {
     `hof ${(g.hof ?? []).length}`,
     `careerRows ${careerRows}`,
     `fixtures ${g.fixtures.length}`,
+    squadLine,
   ].join(' | '))
 }
 
