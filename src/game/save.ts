@@ -150,14 +150,15 @@ export function migrate(s: GameState): GameState {
     }
   }
 
-  // squads were raised from 33 to 38 men (user feedback: too thin) - existing
-  // careers get the same depth once, fringe quality, thinnest positions first
-  if (!s.squadDepth) {
-    s.squadDepth = 38
+  // squads were raised to 38 seniors / 42 men (user feedback: too thin) -
+  // existing careers get the same depth once, fringe quality, thinnest
+  // positions first. Saves stamped at the short-lived 38 standard top up too
+  if ((s.squadDepth ?? 0) < 42) {
+    s.squadDepth = 42
     const FILL = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
     for (const club of Object.values(s.clubs)) {
       let guard = 0
-      while (club.players.length < 38 && guard++ < 10) {
+      while (club.players.length < 42 && guard++ < 14) {
         const byPos: Record<string, number> = {}
         for (const id of club.players) {
           const p = s.players[id]

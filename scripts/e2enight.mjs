@@ -46,10 +46,42 @@ try {
   await page.waitForSelector('.dtable')
   await shot('06-squad')
 
-  await page.click('.bottom-nav button[title="Matchday"]').catch(() => {})
+  // player profile
+  await page.click('.dtable tbody tr >> nth=0')
+  await page.waitForSelector('text=Set Piece & Contact')
+  await shot('06b-player')
+  await page.click('.back-btn')
+
+  // transfers (lives under the Club submenu)
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Transfer Centre')
+  await page.waitForTimeout(600)
+  await shot('06c-transfers')
+
+  // tables
+  await page.click('.bottom-nav button[title="World"]')
+  await page.click('.submenu-item >> text=Competitions')
+  await page.waitForSelector('.dtable')
+  await shot('06d-tables')
+
+  // press room
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Press Room')
+  await page.waitForTimeout(400)
+  await shot('06e-press')
+
+  // live match: kick off and play a half in the dark
   await page.click('text=MATCHDAY').catch(() => {})
   await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })
   await shot('07-matchday')
+  await page.locator('text=Kick Off ▸').first().click()
+  try {
+    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
+    await page.click('text=▸ Take the Field')
+  } catch { /* straight to the tunnel */ }
+  await page.waitForSelector('.scoreboard', { timeout: 15000 })
+  await page.waitForTimeout(1500)
+  await shot('08-live-match')
 
   console.log('NIGHT QA COMPLETE')
 } catch (e) {

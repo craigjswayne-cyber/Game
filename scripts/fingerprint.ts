@@ -16,12 +16,12 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  'newcastle 37-38 saracens',
-  'bath 32-34 bristol',
-  'sale 26-10 leicester',
-  'exeter 19-14 gloucester',
-  'harlequins 31-21 northampton',
-  'bristol 61-23 newcastle',
+  'saracens 46-24 gloucester',
+  'northampton 21-28 sale',
+  'exeter 22-6 bristol',
+  'bath 44-38 harlequins',
+  'newcastle 16-52 leicester',
+  'sale 30-16 saracens',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
