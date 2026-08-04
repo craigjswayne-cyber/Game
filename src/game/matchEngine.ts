@@ -398,16 +398,28 @@ const TRY_LINES = [
   (n: string) => `TRY! ${n} hits a scything line off the shoulder - untouched!`,
   (n: string) => `TRY! The wraparound sends ${n} through the front door!`,
   (n: string) => `TRY! ${n} bumps off three tacklers on his way to the line!`,
+  (n: string) => `TRY! ${n} shows and goes - nobody within five metres of him!`,
+  (n: string) => `TRY! Eight phases of patience, and ${n} finds the shortest of short sides!`,
+  (n: string) => `TRY! ${n} straightens, sits the last man down and strolls under the sticks!`,
+  (n: string) => `TRY! The blindside wing comes off his line and it is ${n} who finishes it!`,
+  (n: string) => `TRY! ${n} takes it flat and hits the line like a train - no stopping that!`,
+  (n: string) => `TRY! Turnover ball, three passes, and ${n} is away - breathless rugby!`,
+  (n: string) => `TRY! ${n} reaches through the tackle and plants it one-handed - the TMO checks and it is GOOD!`,
+  (n: string) => `TRY! A no-look pass sends ${n} in at the flag - cheek and class in one movement!`,
 ]
 const TRY_LINES_WET = [
   (n: string) => `TRY! ${n} follows a slithering kick through and wins the race!`,
   (n: string) => `TRY! The greasy ball squirts loose and ${n} pounces!`,
   (n: string) => `TRY! ${n} aquaplanes over in the corner - the crowd doesn't care!`,
+  (n: string) => `TRY! ${n} surfs a puddle over the line - filthy conditions, beautiful result!`,
+  (n: string) => `TRY! The maul splashes over and ${n} emerges from the swamp with the ball!`,
 ]
 const TRY_LINES_DERBY = [
   (n: string) => `TRY! ${n} scores - and cups an ear to the away end! Bedlam!`,
   (n: string) => `TRY! ${n} settles a hundred pub arguments with that one!`,
   (n: string) => `TRY! ${n} through a wall of bodies - this derby has everything!`,
+  (n: string) => `TRY! ${n} scores in front of the travelling fans and just stands there, arms wide!`,
+  (n: string) => `TRY! The town will be unbearable for a week - ${n} has scored in the derby!`,
 ]
 const PEN_LINES = [
   (n: string) => `${n} slots the penalty.`,
@@ -418,6 +430,9 @@ const PEN_LINES = [
   (n: string) => `No radar needed - ${n} splits them from 45 metres.`,
   (n: string) => `${n} scrapes it over off the left post. They all count.`,
   (n: string) => `Ice in the veins: ${n} silences the whistlers.`,
+  (n: string) => `${n} thumps it over from halfway - the big boot pays the bills.`,
+  (n: string) => `A horrible angle, and ${n} makes it look like a warm-up.`,
+  (n: string) => `${n} wipes the mud off the ball, wipes the rain off his face, and nails it.`,
 ]
 const CON_LINES = [
   (n: string) => `${n} adds the extras.`,
@@ -426,6 +441,8 @@ const CON_LINES = [
   (n: string) => `${n} strokes the conversion straight through the middle.`,
   (n: string) => `Routine for ${n} - the lead grows.`,
   (n: string) => `${n} bends it home against the breeze.`,
+  (n: string) => `${n} barely looks at it. Over. Next job.`,
+  (n: string) => `From the chalk of the touchline, ${n} draws it inside the far post - kicking coaches will replay that one.`,
 ]
 const FLAVOR_GRASSROOTS = [
   (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul - proper National 1 rugby, this.`,
@@ -466,25 +483,41 @@ const FLAVOR = [
   (n: string, t: string) => `${n} is everywhere - third jackal attempt in ten minutes for ${t}.`,
   (n: string, t: string) => `Cross-field kick... ${n} climbs highest but it goes to ground. Scrappy stuff.`,
   (n: string, t: string) => `${n} takes a quick lineout - the ref waves play on and ${t} counter.`,
+  (n: string, t: string) => `Show-and-go from ${n} splits the seam - ${t} are in behind!`,
+  (n: string, t: string) => `${n} wins the aerial duel and ${t} have a platform at last.`,
+  (n: string, t: string) => `The ${t} scrum inches forward... and forward... the ref's arm comes out.`,
+  (n: string, t: string) => `${n} throws a cut-out pass that misses three men - vision, that.`,
+  (n: string, t: string) => `A try-saver from ${n}! Ankle-tapped a metre from the corner flag.`,
+  (n: string, t: string) => `${n} carries three defenders five metres. The ${t} crowd stands to applaud a carry.`,
+  (n: string, t: string) => `Miscommunication in midfield and ${n} pounces on the loose ball for ${t}.`,
+  (n: string, t: string) => `${n} shapes to drop a goal... dummies... and ${t} keep it alive!`,
 ]
 const FLAVOR_WET = [
   (n: string, t: string) => `The rain hammers down as ${n} trudges to another ${t} scrum.`,
   (n: string, t: string) => `Knock-on! The soap-bar ball squirts out of ${n}'s grasp.`,
   (n: string, t: string) => `Box kick from ${n} disappears into the murk - ${t} chase hard.`,
   (n: string, t: string) => `Mud everywhere. ${n}'s number is barely readable now.`,
+  (n: string, t: string) => `${n} calls for the high ball, loses it in the floodlights and the rain. ${t} scramble.`,
+  (n: string, t: string) => `The ${t} forwards would rather be nowhere else - ${n} leads another wallow at the ruck.`,
 ]
 const FLAVOR_WIND = [
   (n: string, t: string) => `${n}'s clearance hangs in the gale and barely makes ten metres.`,
   (n: string, t: string) => `The wind grabs the restart - ${n} does well to gather for ${t}.`,
+  (n: string, t: string) => `${n} aims for the corner and the gale carries it dead. Kicking into a hurricane out there.`,
+  (n: string, t: string) => `A ${t} pass sails on the wind and ${n} has to climb for it two metres off course.`,
 ]
 const FLAVOR_DERBY = [
   (n: string, t: string) => `Handbags after the whistle! ${n} in the middle of it - the ref calls the captains.`,
   (n: string, t: string) => `The noise is deafening every time ${n} touches it for ${t}.`,
   (n: string, t: string) => `Derby rugby: ${n} launched into the tackle a heartbeat late. The crowd howls.`,
+  (n: string, t: string) => `A ${t} clearance goes straight into the away end, who keep the ball. The ref sighs.`,
+  (n: string, t: string) => `${n} and his opposite number exchange words at the lineout. Neither is discussing the weather.`,
 ]
 const TIRED_LINES = [
   (n: string) => `${n} has his hands on his knees - the tank is emptying.`,
   (n: string) => `${n} is blowing hard out there.`,
+  (n: string) => `${n} takes an age to get up from that ruck. The bench is warming up.`,
+  (n: string) => `Cramp for ${n} - he waves away the physio, but the legs have gone.`,
 ]
 
 /** Live match context. The match is simulated tick by tick (4 minutes per
