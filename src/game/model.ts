@@ -337,6 +337,8 @@ export interface NewsItem {
   read: boolean
   /** optional linked entity */
   playerId?: number
+  /** multi-name stories: every listed player is tappable in the feed */
+  playerIds?: number[]
   fixtureId?: number
 }
 

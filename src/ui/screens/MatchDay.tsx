@@ -314,31 +314,37 @@ function Preview({ fxId }: { fxId: number }) {
       <div className="modal-veil" onClick={() => setConfirm(false)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
-          <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>Are you ready for the game?</h3>
-          {warnings.length === 0 && (
-            <div className="meta" style={{ margin: '6px 0' }}>Everything looks in order. The tunnel awaits.</div>
-          )}
-          {warnings.map((w, i) => (
-            <div key={i} style={{
-              display: 'flex', gap: 8, padding: '6px 0', fontSize: 12.5, lineHeight: 1.4,
-              color: w.level === 'bad' ? '#9b2c2c' : w.level === 'warn' ? '#8a6d1a' : 'var(--ink-soft)',
-              borderBottom: '1px solid var(--hairline)',
-            }}>
-              <span>{w.level === 'bad' ? '⛔' : w.level === 'warn' ? '⚠️' : 'ℹ️'}</span>
-              <span>{w.text}</span>
+          <div style={{ padding: '0 18px 4px' }}>
+            <h3 style={{ fontSize: 17, margin: '2px 0 8px', textAlign: 'center' }}>Are you ready for the game?</h3>
+            {warnings.length === 0 && (
+              <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>Everything looks in order. The tunnel awaits.</div>
+            )}
+            {warnings.length > 0 && (
+              <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--hairline)', borderRadius: 10, padding: '2px 10px' }}>
+                {warnings.map((w, i) => (
+                  <div key={i} style={{
+                    display: 'flex', gap: 8, padding: '6px 0', fontSize: 12.5, lineHeight: 1.4,
+                    color: w.level === 'bad' ? '#9b2c2c' : w.level === 'warn' ? '#8a6d1a' : 'var(--ink-soft)',
+                    borderBottom: i < warnings.length - 1 ? '1px solid var(--hairline)' : 'none',
+                  }}>
+                    <span>{w.level === 'bad' ? '⛔' : w.level === 'warn' ? '⚠️' : 'ℹ️'}</span>
+                    <span>{w.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {speech && (
+              <div className="meta" style={{ marginTop: 8, textAlign: 'center' }}>
+                Speech: <b>{SPEECHES.find(s => s.id === speech)?.name}</b>
+              </div>
+            )}
+            <div className="btn-row" style={{ marginTop: 12 }}>
+              <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
+              <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
+                onClick={() => { setConfirm(false); kickOff(speech ?? undefined) }}>
+                ▸ Take the Field
+              </button>
             </div>
-          ))}
-          {speech && (
-            <div className="meta" style={{ marginTop: 8 }}>
-              Speech: <b>{SPEECHES.find(s => s.id === speech)?.name}</b>
-            </div>
-          )}
-          <div className="btn-row" style={{ marginTop: 12 }}>
-            <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
-            <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
-              onClick={() => { setConfirm(false); kickOff(speech ?? undefined) }}>
-              ▸ Take the Field
-            </button>
           </div>
         </div>
       </div>
@@ -1203,13 +1209,16 @@ function Live() {
       )}
 
       <div className="speed-controls">
-        {SPEEDS.map((s, i) => (
+        {/* the whistle has gone: playback controls make no sense at FT */}
+        {!done && SPEEDS.map((s, i) => (
           <button key={i} className={`btn ${i === speedIdx && playing ? 'gold' : 'ghost'}`}
             onClick={() => { setSpeedIdx(i); setDrawer(false); matchCursor(cursor, true) }}>{s.label}</button>
         ))}
-        <button className="btn ghost" onClick={() => matchCursor(cursor, !playing)}>
-          {playing ? '⏸' : '▶'}
-        </button>
+        {!done && (
+          <button className="btn ghost" onClick={() => matchCursor(cursor, !playing)}>
+            {playing ? '⏸' : '▶'}
+          </button>
+        )}
         {!done && ctx.seg < 3 && (
           <button className={`btn ${drawer ? 'gold' : 'ghost'}`}
             onClick={() => {

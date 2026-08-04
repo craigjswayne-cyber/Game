@@ -55,6 +55,16 @@ export default function Feed() {
                   View {game.players[n.playerId].name} ▸
                 </button>
               )}
+              {(n.playerIds ?? []).length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  {(n.playerIds ?? []).filter(id => game.players[id]).map(id => (
+                    <button key={id} className="btn ghost" style={{ fontSize: 12 }}
+                      onClick={e => { e.stopPropagation(); go('player', id) }}>
+                      {game.players[id].name} ▸
+                    </button>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </div>

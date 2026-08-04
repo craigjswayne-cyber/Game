@@ -186,6 +186,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   const academyKids = Object.values(state.players).filter(p => p.youth && p.age <= 19)
   const chosen = new Set<number>()
   const watchList: string[] = []
+  const watchIds: number[] = []
   for (let i = 0; i < 9 && academyKids.length; i++) {
     const k = academyKids[Math.floor(rng() * academyKids.length)]
     if (chosen.has(k.id)) continue
@@ -196,6 +197,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.value = playerValue(k.ca, k.age, k.pa)
     if (watchList.length < 5) {
       watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
+      watchIds.push(k.id)
     }
   }
   const GEM_NATS = ['FIJ', 'GEO', 'TGA', 'SAM', 'USA', 'URU', 'ESP', 'POR']
@@ -219,7 +221,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     state.news.push({
       id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
       subject: `🌟 The scouts' ones to watch`,
-      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market - first club to move wins. See and tap every name: World ▸ Team of the Season ▸ Ones to Watch.`,
+      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market - first club to move wins. Tap a name below to open his profile, or browse the full list: World ▸ Team of the Season ▸ Ones to Watch.`,
+      playerIds: watchIds,
     })
   }
 
