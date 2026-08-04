@@ -204,6 +204,63 @@ export default function Home() {
           })()}</span>
         </button>
       </div>
+      {(() => {
+        // FM-style one-page dashboard: everything glanceable, everything tappable
+        const mine = (f: { homeId: string; awayId: string }) => f.homeId === club.id || f.awayId === club.id
+        const played = game.fixtures.filter(f => f.played && mine(f)).sort((a, b) => b.week - a.week).slice(0, 2)
+        const coming = game.fixtures.filter(f => !f.played && mine(f)).sort((a, b) => a.week - b.week).slice(0, 3)
+        const out = club.players.map(id => game.players[id]).filter(p => p?.injury)
+        const wageRoom = club.wageBudget - club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
+        const resStr = (f: typeof played[0]) => {
+          const us = f.homeId === club.id ? f.homeScore : f.awayScore
+          const them = f.homeId === club.id ? f.awayScore : f.homeScore
+          return { txt: `${us}-${them}`, c: us > them ? '#2f7d4f' : us < them ? '#9b2c2c' : undefined }
+        }
+        return (
+          <div className="dash-row">
+            <button className="dash-panel" onClick={() => go('fixtures')}>
+              <div className="dash-head">Fixtures & Results</div>
+              {played.map(f => {
+                const r = resStr(f)
+                return (
+                  <div key={f.id} className="dash-line">
+                    <span className="muted">wk{f.week}</span>
+                    <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
+                    <span>{f.homeId === club.id ? 'H' : 'A'}</span>
+                    <b style={{ color: r.c }}>{r.txt}</b>
+                  </div>
+                )
+              })}
+              {coming.map(f => (
+                <div key={f.id} className="dash-line">
+                  <span className="muted">wk{f.week}</span>
+                  <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
+                  <span>{f.homeId === club.id ? 'H' : 'A'}</span>
+                  <span className="muted">{game.comps[f.compId]?.short ?? 'FR'}</span>
+                </div>
+              ))}
+            </button>
+            <button className="dash-panel" onClick={() => go('finances')}>
+              <div className="dash-head">Finances</div>
+              <div className="dash-line"><span>State</span><b style={{ color: finState[1] }}>{finState[0]}</b></div>
+              <div className="dash-line"><span>Balance</span><b>{fmtMoney(club.balance)}</b></div>
+              <div className="dash-line"><span>Transfer budget</span><b>{fmtMoney(club.budget)}</b></div>
+              <div className="dash-line"><span>Wage room</span><b>{fmtMoney(Math.max(0, wageRoom))}/wk</b></div>
+            </button>
+            <button className="dash-panel" onClick={() => go('medical')}>
+              <div className="dash-head">Medical Centre</div>
+              {out.length === 0 && <div className="dash-line"><span className="muted">A clean bill of health</span></div>}
+              {out.slice(0, 4).map(p => (
+                <div key={p!.id} className="dash-line">
+                  <span className="dl-t" style={{ color: '#9b2c2c' }}>{p!.name.split(' ').slice(-1)[0]}</span>
+                  <span className="muted">{Math.max(1, p!.injury!.until - game.week)}w</span>
+                </div>
+              ))}
+              {out.length > 4 && <div className="dash-line"><span className="muted">+{out.length - 4} more</span></div>}
+            </button>
+          </div>
+        )
+      })()}
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold-bright)' }}
           onClick={() => go('seasonreview')}>
