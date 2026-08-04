@@ -172,6 +172,17 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
+  // the new owner has landed: the room wants your first words on him
+  if (state.newOwnerUntil != null && state.newOwnerUntil - state.week >= 6 && rng() < 0.7) {
+    candidates.push(mk(state,
+      `The takeover is done and the new owner is in the building. Every manager in your position is one bad month from a "restructure". What is your message to him?`,
+      undefined, [
+        { label: 'Judge me on the rugby', morale: 0.4, board: 0.3, reaction: 'Confident, direct - owners like a man who volunteers for the scoreboard.' },
+        { label: 'We are aligned on the vision', morale: 0, board: 0.4, reaction: 'Fluent boardroom-speak. The suits nod; the terraces roll their eyes.' },
+        { label: 'Owners come and go', morale: 0.5, board: -0.6, reaction: 'The dressing room loves the defiance. Upstairs, a note is made.' },
+      ], rng))
+  }
+
   // the vultures: job speculation when the board is restless
   if (club.boardConfidence <= 42 && rng() < 0.5) {
     candidates.push(mk(state,

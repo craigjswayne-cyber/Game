@@ -114,6 +114,12 @@ function audit(g: GameState, tag: string) {
     if (pl.season === g.season && g.week > pl.due + 1) bad(`${tag} pledge overdue and unsettled (due w${pl.due}, now w${g.week})`)
   }
   if (g.intakeClass?.length && g.week < 30) bad(`${tag} intake class exists before the week-30 preview`)
+  if (g.takeover) {
+    if (!g.clubs[g.takeover.clubId]) bad(`${tag} takeover at missing club ${g.takeover.clubId}`)
+    if (g.takeover.stage !== 0 && g.takeover.stage !== 1) bad(`${tag} takeover in unknown stage ${g.takeover.stage}`)
+    if (g.takeover.week > g.week) bad(`${tag} takeover from the future (w${g.takeover.week}, now w${g.week}) - not cleared at rollover`)
+  }
+  if (g.newOwnerUntil != null && (g.newOwnerUntil < 1 || g.newOwnerUntil > 45)) bad(`${tag} newOwnerUntil out of range: ${g.newOwnerUntil}`)
   const pcSeen = new Set<number>()
   for (const pc of g.preContracts ?? []) {
     if (!g.players[pc.playerId]) bad(`${tag} pre-contract for missing player ${pc.playerId}`)
