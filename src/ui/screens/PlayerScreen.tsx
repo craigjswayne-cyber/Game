@@ -152,7 +152,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </b></span>
         )}
         {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold-bright)' }}>🌟 <b>Wonderkid</b></span>}
-        {(game.pledges ?? []).some(pl => pl.playerId === p.id) && (
+        {(game.pledges ?? []).some(pl => pl.playerId === p.id) && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }} title="You made him a promise in the office - keep it or wear it">
             🤝 <b>Promise made</b>
           </span>
