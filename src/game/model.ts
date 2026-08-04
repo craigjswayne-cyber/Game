@@ -296,6 +296,8 @@ export interface Competition {
   champion?: string
   isNational?: boolean
   pools?: string[][]
+  /** tournament seedings in order (1st seed first), fixed at the draw */
+  seeds?: string[]
 }
 
 export type TrainingFocus = 'balanced' | 'scrum' | 'lineout' | 'attack' | 'defence' | 'fitness' | 'kicking'
