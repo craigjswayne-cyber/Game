@@ -1,4 +1,5 @@
-import type { Club, GameState } from './model'
+import type { Club, FacilityId, GameState } from './model'
+import { initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
@@ -70,7 +71,21 @@ export function migrate(s: GameState): GameState {
   s.objectives ??= ['youth', 'derby']
   s.finHist ??= []
   s.boardOwed ??= false
-  s.facilities ??= {}
+  // facilities moved onto the clubs (every club in the world has an estate,
+  // and taking a new job means inheriting that club's buildings). Levels the
+  // manager already paid for at his own club are kept, whichever is higher.
+  for (const c of Object.values(s.clubs)) {
+    if (!c.facilities) c.facilities = initFacilities(c, s.seed)
+  }
+  if (s.facilities && Object.keys(s.facilities).length) {
+    const uc = s.clubs[s.userClubId]
+    if (uc) {
+      for (const [fid, lvl] of Object.entries(s.facilities) as [FacilityId, number][]) {
+        uc.facilities = { ...(uc.facilities ?? {}), [fid]: Math.max(lvl, uc.facilities?.[fid] ?? 0) }
+      }
+    }
+    s.facilities = {}
+  }
   s.facilityBuild ??= null
   s.facilityAskCooldown ??= 0
   // the backroom staff became people: give every level already paid for a face
@@ -182,6 +197,9 @@ export function migrate(s: GameState): GameState {
       }
     }
   }
+
+  // clubs injected by a later build get an estate too
+  for (const c of Object.values(s.clubs)) c.facilities ??= initFacilities(c, s.seed)
 
   // pre-2025 former clubs (old-boy stories): fills only players still unset
   seedExClubs(s)

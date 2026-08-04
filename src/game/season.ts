@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
-import { addGrudge, FACILITY_INFO, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
+import { addGrudge, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -27,8 +27,8 @@ export function weekRng(state: GameState): Rng {
 export function requestFacility(state: GameState, fid: FacilityId): string {
   const club = state.clubs[state.userClubId]
   const info = FACILITY_INFO[fid]
-  const lvl = state.facilities?.[fid] ?? 0
-  if (lvl >= 3) return `The ${info.name.toLowerCase()} is already world class.`
+  const lvl = club?.facilities?.[fid] ?? 0
+  if (lvl >= MAX_FACILITY) return `The ${info.name.toLowerCase()} is already world class. There is nothing left to build.`
   if (state.facilityBuild) return `The builders are already on site (${FACILITY_INFO[state.facilityBuild.id].name}). One project at a time.`
   const abs = state.season * 100 + state.week
   if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
@@ -54,6 +54,51 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     body: `${fmtMoney(cost)} released from club funds. The builders move in on Monday and the new ${info.name.toLowerCase()} opens in about five weeks. ${info.desc}`,
   })
   return `Approved. ${fmtMoney(cost)} released - about five weeks to build.`
+}
+
+/** Cost of the next stand: seats added, at the same rate the board pays. */
+export function expansionPlan(state: GameState) {
+  const club = state.clubs[state.userClubId]
+  const seats = Math.round((club.capacity * 0.06) / 100) * 100
+  const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
+  const avg = home.length ? home.reduce((s, f) => s + (f.att ?? 0), 0) / home.length : 0
+  return { seats, cost: seats * 1_400, avg: Math.round(avg), fill: avg ? avg / club.capacity : 0, played: home.length }
+}
+
+/**
+ * Ask for a bigger ground. The board wants to see the seats filled before it
+ * pours concrete - full houses and a healthy balance carry the vote.
+ */
+export function requestExpansion(state: GameState): string {
+  const club = state.clubs[state.userClubId]
+  const abs = state.season * 100 + state.week
+  if (club.capacity >= 82_000) return `${club.stadium} is one of the biggest grounds in the game. There is nowhere left to build.`
+  if (state.facilityBuild) return 'The builders are already on site elsewhere. One project at a time.'
+  if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
+  const { seats, cost, fill, played } = expansionPlan(state)
+  const enoughDemand = played >= 3 && fill >= 0.86
+  const approve = enoughDemand && club.balance >= cost * 1.3 && club.boardConfidence >= 50
+  if (!approve) {
+    state.facilityAskCooldown = abs + 8
+    const why = played < 3 ? 'there is not enough of a season to judge the demand yet'
+      : fill < 0.86 ? `the ground is only ${Math.round(fill * 100)}% full as it is`
+      : club.balance < cost * 1.3 ? 'the reserves will not carry a build this size'
+      : 'the board wants better results before it pours concrete'
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: `🏛 Board says no: expanding ${club.stadium}`,
+      body: `Your case for ${seats.toLocaleString()} more seats was heard and declined - ${why}. Fill the ground week after week and the argument makes itself.`,
+    })
+    return `Declined - ${why}.`
+  }
+  club.balance -= cost
+  club.capacity += seats
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: `🏗 ${club.stadium} grows by ${seats.toLocaleString()} seats`,
+    body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${club.stadium} now holds ${club.capacity.toLocaleString()}. The waiting list finally moves, and every one of those seats pays its way at the turnstile.`,
+  })
+  return `Approved. ${seats.toLocaleString()} new seats for ${fmtMoney(cost)} - capacity now ${club.capacity.toLocaleString()}.`
 }
 
 // ------------------------------------------------------------------
@@ -501,7 +546,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       const p = state.players[id]
       if (!p) continue
       // recovery - rusty players take longer to freshen up
-      const gym = isUser ? (state.facilities?.gym ?? 0) * 1.5 : 0
+      const gym = isUser ? facLevel(state, 'gym') * 0.9 : 0
       p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym) * (isUser ? turnF : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
@@ -533,7 +578,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && state.training !== 'balanced') {
         const coach = coachFor[state.training]
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
-        if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + (state.facilities?.paddock ?? 0) * 0.35)) {
+        if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {
           for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
         }
       }
@@ -619,6 +664,9 @@ function weeklyFinance(state: GameState, rng: Rng) {
   const home = state.fixtures.find(f =>
     f.week === state.week && f.played && f.homeId === club.id && f.att)
   if (home?.att) club.balance += Math.round(home.att * 30)
+  // the club shop: replica shirts shift faster when the terraces are happy
+  const shop = facLevel(state, 'shop')
+  if (shop > 0) club.balance += Math.round(shop * 9_000 * (0.6 + (state.fanMood ?? 60) / 100))
   // weekly balance snapshot for the season chart
   ;(state.finHist ??= []).push({ w: state.week, b: club.balance })
   if (state.finHist.length > 50) state.finHist = state.finHist.slice(-50)
@@ -974,7 +1022,8 @@ export function processWeekAndAdvance(state: GameState) {
   if (state.facilityBuild && state.season * 100 + state.week >= state.facilityBuild.done) {
     const b = state.facilityBuild
     const info = FACILITY_INFO[b.id]
-    state.facilities = { ...(state.facilities ?? {}), [b.id]: b.level }
+    const uc = state.clubs[state.userClubId]
+    if (uc) uc.facilities = { ...(uc.facilities ?? {}), [b.id]: b.level }
     state.facilityBuild = null
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

@@ -19,7 +19,7 @@ import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
-import { CHEM_SLOTS, chemKey, isWorldCupSeason } from './model'
+import { CHEM_SLOTS, chemKey, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { pickObjectives } from './objectives'
@@ -101,7 +101,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     challenge: challengeId,
     vacancies: [],
     devFocus: [],
-    facilities: {},
   }
 
   const seenNames = new Set<string>()
@@ -133,6 +132,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
         boardConfidence: 70,
       }
+      // bricks and mortar sized to the club's standing, before you arrive
+      club.facilities = initFacilities(club, seed)
       for (const rp of rc.players) {
         // same real player supplied by two files (sabbaticals etc) - keep first
         const key = rp.name.toLowerCase()

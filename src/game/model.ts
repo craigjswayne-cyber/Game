@@ -250,6 +250,8 @@ export interface Club {
   marquee?: number[]
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
+  /** bricks and mortar: levels 0-5 per facility, set from the club's standing */
+  facilities?: Partial<Record<FacilityId, number>>
 }
 
 export interface Tactic {
@@ -401,16 +403,57 @@ export interface TransferOffer {
   status: 'pending' | 'accepted' | 'rejected'
 }
 
-/** Club infrastructure, levels 0-3 - bricks and mortar that outlast any squad. */
-export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy'
+/** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad. */
+export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy' | 'pitch' | 'recovery' | 'shop'
+export const MAX_FACILITY = 5
 export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
+  pitch: { name: 'Playing Surface', icon: '🏉', desc: 'A true pitch: fewer breakdowns in home matches.', base: 260_000 },
   gym: { name: 'Strength & Conditioning Gym', icon: '🏋️', desc: 'Players recover extra condition every week.', base: 350_000 },
-  kicking: { name: 'Kicking Enclosure', icon: '🥅', desc: 'Sharper goal-kicking in every match.', base: 300_000 },
+  recovery: { name: 'Recovery Centre', icon: '🧊', desc: 'Ice baths and pools: injuries heal quicker.', base: 420_000 },
   paddock: { name: 'Training Paddock', icon: '🌱', desc: 'Attribute training bites more often.', base: 400_000 },
-  briefing: { name: 'Tactical Briefing Room', icon: '📽️', desc: 'Match preparation lands harder.', base: 380_000 },
+  kicking: { name: 'Kicking Enclosure', icon: '🥅', desc: 'Sharper goal-kicking in every match.', base: 300_000 },
+  briefing: { name: 'Analysis & Briefing Suite', icon: '📽️', desc: 'Match preparation lands harder.', base: 380_000 },
   academy: { name: 'Centre of Excellence', icon: '🎓', desc: 'Better academy intakes, more wonderkids.', base: 500_000 },
+  shop: { name: 'Club Shop & Megastore', icon: '🛍️', desc: 'Retail income every week, bigger when the fans are happy.', base: 240_000 },
 }
 export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
+
+/** The level the user's club holds. Facilities live on the club, so taking a
+ *  new job means inheriting that club's buildings, not carrying your own. */
+export function facLevel(state: GameState, fid: FacilityId): number {
+  return state.clubs[state.userClubId]?.facilities?.[fid] ?? 0
+}
+
+/**
+ * What a club's infrastructure looks like before a manager touches it: sized
+ * to its standing, varied per facility, deterministic per club. Ambitious
+ * mid-table clubs have a good gym and no megastore; giants have both.
+ */
+export function initFacilities(club: Club, seed = 0): Partial<Record<FacilityId, number>> {
+  const base = Math.max(0, Math.min(4, Math.round((club.rep - 50) / 10)))
+  let h = (2166136261 ^ seed) >>> 0
+  for (let i = 0; i < club.id.length; i++) h = Math.imul(h ^ club.id.charCodeAt(i), 16777619) >>> 0
+  const out: Partial<Record<FacilityId, number>> = {}
+  for (const fid of Object.keys(FACILITY_INFO) as FacilityId[]) {
+    h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+    const r = (h >>> 0) % 100
+    out[fid] = Math.max(0, Math.min(MAX_FACILITY, base + (r < 22 ? 1 : r < 52 ? -1 : 0)))
+  }
+  return out
+}
+
+/** A one-word verdict on the whole estate, for the infrastructure header. */
+export function estateGrade(club: Club): { label: string; sum: number; max: number } {
+  const ids = Object.keys(FACILITY_INFO) as FacilityId[]
+  const sum = ids.reduce((s, f) => s + (club.facilities?.[f] ?? 0), 0)
+  const max = ids.length * MAX_FACILITY
+  const pct = sum / max
+  return {
+    label: pct >= 0.8 ? 'World class' : pct >= 0.62 ? 'Excellent' : pct >= 0.44 ? 'Good'
+      : pct >= 0.26 ? 'Adequate' : pct >= 0.12 ? 'Basic' : 'Threadbare',
+    sum, max,
+  }
+}
 
 export interface StaffLevels {
   assistant: number // 0-3: training gains
@@ -513,7 +556,8 @@ export interface GameState {
   pressTone?: number
   /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
-  /** facility levels 0-3 for the user's club */
+  /** legacy: facilities now live on the club. Kept so old saves can be
+   *  migrated into Club.facilities, then emptied. */
   facilities?: Partial<Record<FacilityId, number>>
   /** a facility upgrade under construction: the board funded it, the
    *  builders are in, and it opens at `done` (absolute week) */

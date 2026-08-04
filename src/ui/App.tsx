@@ -31,6 +31,7 @@ import DreamTeam from './screens/DreamTeam'
 import WeekResults from './screens/WeekResults'
 import SeasonReview from './screens/SeasonReview'
 import Agency from './screens/Agency'
+import Infrastructure from './screens/Infrastructure'
 
 const TITLES: Record<string, string> = {
   home: 'Home', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
@@ -39,7 +40,7 @@ const TITLES: Record<string, string> = {
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
   jobs: 'Job Centre', feed: 'The Rugby Wire', medical: 'Medical Centre',
   report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status',
-  dreamteam: 'Team of the Week', wire: 'The Rugby Wire',
+  dreamteam: 'Team of the Week', wire: 'The Rugby Wire', infra: 'Club Infrastructure',
 }
 
 const IcoMoon = () => (
@@ -167,6 +168,7 @@ export default function App() {
       case 'results': return <WeekResults param={cur.param as string} />
       case 'seasonreview': return <SeasonReview />
       case 'agency': return <Agency />
+      case 'infra': return <Infrastructure />
       default: return <Home />
     }
   }
@@ -182,6 +184,7 @@ export default function App() {
         { ico: '💰', label: 'Finances', screen: 'finances' },
         { ico: '🔁', label: 'Transfer Centre', screen: 'transfers', badge: offersOpen },
         { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
+        { ico: '🏗️', label: 'Club Infrastructure', screen: 'infra' },
         { ico: '🏟️', label: 'Club Information', screen: 'club' },
       ],
     },

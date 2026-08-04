@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, fmtMoney, grudgeBetween, inRedZone, oldBoyApps } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps } from './model'
 import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
@@ -348,7 +348,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.scrum *= 1 + (s.scrumCoach ?? 0) * 0.015
     side.units.lineout *= 1 + (s.scrumCoach ?? 0) * 0.015
     side.units.kicking *= 1 + (s.kicking ?? 0) * 0.02
-    side.goalBonus = (s.kicking ?? 0) * 0.012 + (state.facilities?.kicking ?? 0) * 0.008
+    side.goalBonus = (s.kicking ?? 0) * 0.012 + facLevel(state, 'kicking') * 0.005
     // swagger tax: a squad drunk on its own headlines turns up flat
     if ((state.pressTone ?? 0) >= 4) {
       side.units.attack *= 0.965
@@ -356,12 +356,12 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     }
     // this week's match preparation: a focused edge, always with a trade -
     // and a proper briefing room makes the message stick
-    const prepF = 1 + (state.facilities?.briefing ?? 0) * 0.25
+    const prepF = 1 + facLevel(state, 'briefing') * 0.15
     switch (state.matchPrep) {
       case 'attack': side.units.attack *= 1 + 0.035 * prepF; side.units.defence *= 0.99; break
       case 'defence': side.units.defence *= 1 + 0.035 * prepF; side.units.attack *= 0.99; break
       case 'setpiece': side.units.scrum *= 1 + 0.04 * prepF; side.units.lineout *= 1 + 0.04 * prepF; side.units.attack *= 0.99; break
-      case 'fitness': side.drainF = 0.92 - (state.facilities?.briefing ?? 0) * 0.01; break
+      case 'fitness': side.drainF = 0.92 - facLevel(state, 'briefing') * 0.006; break
       case 'recovery': break // its work was done in the training week
     }
   }
@@ -1068,8 +1068,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       }
     }
 
-    // injury - tired legs and rusty returners break down more
-    if (rng() < 0.019) {
+    // injury - tired legs and rusty returners break down more, though a
+    // true home surface keeps a few of them on their feet
+    const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
+      ? facLevel(state, 'pitch') : 0
+    if (rng() < 0.019 * (1 - surface * 0.035)) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
@@ -1087,8 +1090,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           side.energy.set(p.id, Math.max(5, (side.energy.get(p.id) ?? 70) - 28))
           pushEvent(state, ctx, min, 'SUB', side, `${p.name} takes a heavy knock - he waves the physio away, but he's moving gingerly.`, p.id)
         } else {
-          if (p.clubId === state.userClubId && state.staff?.physio) {
-            weeks = Math.max(1, Math.round(weeks * (1 - state.staff.physio * 0.12)))
+          if (p.clubId === state.userClubId) {
+            // the physio and the recovery centre both shorten a lay-off
+            const care = (state.staff?.physio ?? 0) * 0.12 + facLevel(state, 'recovery') * 0.03
+            if (care > 0) weeks = Math.max(1, Math.round(weeks * (1 - care)))
           }
           p.injury = { desc, until: state.week + weeks, weeks }
           side.onPitch.delete(p.id)

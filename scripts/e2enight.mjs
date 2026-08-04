@@ -82,11 +82,17 @@ try {
   await page.waitForTimeout(300)
   await shot('06f3-staff-market')
   await page.click('.tab-bar >> text=Club')
-  await page.waitForSelector('text=Training Facilities')
-  await shot('06g-facilities')
+  await page.waitForSelector('text=Mentoring')
+  await shot('06g-mentoring')
+
+  // club infrastructure: the estate on one page
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Club Infrastructure')
+  await page.waitForSelector('text=League Estates')
+  await shot('06i-infrastructure')
   await page.locator('text=🏛 Ask board').first().click()
-  await page.waitForTimeout(400)
-  await shot('06h-facility-ask')
+  await page.waitForTimeout(300)
+  await shot('06j-infra-ask')
 
   // live match: kick off and play a half in the dark
   await page.click('text=MATCHDAY').catch(() => {})

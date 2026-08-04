@@ -1,12 +1,12 @@
 // World-state invariant audit: run seasons and validate consistency weekly.
 // Complements simtest (stats/perf) with hard correctness checks.
 import { newGame } from '../src/game/newgame'
-import { arrangeFriendly, processWeekAndAdvance, requestFacility, userFixtureThisWeek, weekRng } from '../src/game/season'
+import { arrangeFriendly, processWeekAndAdvance, requestExpansion, requestFacility, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
-import { FACILITY_INFO, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
 import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
 
 let fails = 0
@@ -170,8 +170,17 @@ function audit(g: GameState, tag: string) {
   if (g.facilityBuild) {
     const b = g.facilityBuild
     if (!FACILITY_INFO[b.id]) bad(`${tag} facility build with unknown id ${b.id}`)
-    if (!(b.level >= 1 && b.level <= 3)) bad(`${tag} facility build to level ${b.level}`)
+    if (!(b.level >= 1 && b.level <= MAX_FACILITY)) bad(`${tag} facility build to level ${b.level}`)
     if (b.done > g.season * 100 + g.week + 6) bad(`${tag} facility build finishes too far out (${b.done})`)
+  }
+  // every club in the world carries an estate, and no level ever goes rogue
+  for (const c of Object.values(g.clubs)) {
+    if (!c.facilities) { bad(`${tag} ${c.id} has no facilities`); continue }
+    for (const [fid, lvl] of Object.entries(c.facilities)) {
+      if (!FACILITY_INFO[fid as FacilityId]) bad(`${tag} ${c.id} has unknown facility ${fid}`)
+      if (!(lvl >= 0 && lvl <= MAX_FACILITY)) bad(`${tag} ${c.id} ${fid} at level ${lvl}`)
+    }
+    if (c.capacity < 1000 || c.capacity > 90_000) bad(`${tag} ${c.id} capacity ${c.capacity}`)
   }
   for (const [role, p] of Object.entries(g.staffPeople ?? {})) {
     if (!p) continue
@@ -184,10 +193,7 @@ function audit(g: GameState, tag: string) {
       if (p.course.toTier !== p.tier + 1) bad(`${tag} ${p.name} sitting a badge that is not his next one`)
     }
   }
-  for (const [fid, lvl] of Object.entries(g.facilities ?? {})) {
-    if (!FACILITY_INFO[fid as FacilityId]) bad(`${tag} unknown facility ${fid}`)
-    if (!(lvl >= 0 && lvl <= 3)) bad(`${tag} facility ${fid} at level ${lvl}`)
-  }
+
   // 11. prose quality: rendered game text never leaks internals or breaks
   // house style. En dashes are legal only in the scoreline convention (24–18,
   // 52%–48%); em dashes are banned outright; a stray "undefined", NaN or
@@ -259,6 +265,7 @@ for (let season = 0; season < SEASONS; season++) {
     if (g.week % 5 === 0) {
       const fids: FacilityId[] = ['gym', 'kicking', 'paddock', 'briefing', 'academy']
       requestFacility(g, fids[(g.week / 5) % 5 | 0])
+      if (g.week % 10 === 0) requestExpansion(g)
     }
     // churn the coaching department: courses and appointments every few weeks
     const roles: StaffRole[] = ['assistant', 'physio', 'scout', 'attack', 'defence', 'scrumCoach', 'kicking', 'academyCoach']
