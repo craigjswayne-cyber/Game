@@ -68,6 +68,21 @@ export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${
 export const chemTier = (g: number) =>
   g >= 50 ? 'telepathic' : g >= 25 ? 'established' : g >= 10 ? 'settled' : g >= 5 ? 'settling in' : 'brand new'
 
+/** One-page season review captured at rollover, shown early next season. */
+export interface SeasonReview {
+  season: number
+  clubName: string
+  league: { name: string; pos: number; predicted?: number; w: number; d: number; l: number }
+  overall: { w: number; d: number; l: number; m: number; bestWin?: string }
+  cups: { comp: string; result: string }[]
+  topPoints?: { name: string; val: number }
+  topTries?: { name: string; val: number }
+  bestAvg?: { name: string; val: number }
+  balanceDelta: number
+  confidence: number
+  trophies: string[]
+}
+
 /** Live grudge between two clubs, if any. */
 export const grudgeBetween = (state: GameState, x: string, y: string) =>
   state.grudges?.find(g => ((g.a === x && g.b === y) || (g.a === y && g.b === x)) && g.until >= state.season) ?? null
@@ -405,6 +420,8 @@ export interface GameState {
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
   grudges?: { a: string; b: string; reason: string; until: number }[]
+  /** structured snapshot of the user's last completed season */
+  review?: SeasonReview | null
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

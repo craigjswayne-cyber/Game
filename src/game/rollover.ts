@@ -414,13 +414,53 @@ export function rebuildSeason(state: GameState) {
     let predLine = ''
     const predicted = state.preds?.[uid]
     const myComp = state.comps[state.clubs[uid].leagueId]
-    if (predicted && myComp) {
-      const actual = sortTable(myComp.table).findIndex(r => r.teamId === uid) + 1
-      if (actual > 0) {
-        predLine = `Pundits predicted ${actual < predicted ? `${ordinal(predicted)} — you finished ${ordinal(actual)}. They owe you an apology.`
-          : actual === predicted ? `${ordinal(predicted)} — and ${ordinal(actual)} it was. Read like a book.`
-          : `${ordinal(predicted)} — you finished ${ordinal(actual)}. The phone-ins will be brutal.`}`
+    const actualPos = myComp ? sortTable(myComp.table).findIndex(r => r.teamId === uid) + 1 : 0
+    if (predicted && myComp && actualPos > 0) {
+      predLine = `Pundits predicted ${actualPos < predicted ? `${ordinal(predicted)} — you finished ${ordinal(actualPos)}. They owe you an apology.`
+        : actualPos === predicted ? `${ordinal(predicted)} — and ${ordinal(actualPos)} it was. Read like a book.`
+        : `${ordinal(predicted)} — you finished ${ordinal(actualPos)}. The phone-ins will be brutal.`}`
+    }
+
+    // structured snapshot for the one-page Season Review screen
+    const leagueFx = uf.filter(f => f.compId === state.clubs[uid].leagueId && !f.stage)
+    let lw = 0, ld = 0, ll = 0
+    for (const f of leagueFx) {
+      const us = f.homeId === uid ? f.homeScore : f.awayScore
+      const them = f.homeId === uid ? f.awayScore : f.homeScore
+      if (us > them) lw++; else if (us < them) ll++; else ld++
+    }
+    const stageRank: Record<string, number> = { BAR: 0, R16: 1, QF: 2, SF: 3, F: 4 }
+    const stageWord: Record<string, string> = { BAR: 'playoff barrage', R16: 'last-16 exit', QF: 'quarter-final exit', SF: 'semi-final exit', F: 'Runners-up' }
+    const cupRuns: { comp: string; result: string }[] = []
+    for (const comp of Object.values(state.comps)) {
+      if (comp.type === 'league') continue
+      const mine = state.fixtures.filter(f => f.compId === comp.id && f.played && (f.homeId === uid || f.awayId === uid))
+      if (!mine.length || !state.clubs[mine[0].homeId]) continue
+      const ko = mine.filter(f => f.stage).sort((a, b) => (stageRank[a.stage!] ?? 0) - (stageRank[b.stage!] ?? 0))
+      const last = ko[ko.length - 1]
+      let result = 'Pool stages'
+      if (last) {
+        const won = last.homeId === uid ? last.homeScore > last.awayScore : last.awayScore > last.homeScore
+        result = last.stage === 'F' && won ? '🏆 CHAMPIONS' : stageWord[last.stage!] ?? `${last.stage} exit`
       }
+      cupRuns.push({ comp: comp.short, result })
+    }
+    const rated0 = squad.filter(p => p.stats.apps >= 8)
+      .map(p => ({ p, avg: p.stats.ratingSum / Math.max(1, p.stats.apps) }))
+      .sort((a, b) => b.avg - a.avg)[0]
+    const club0 = state.clubs[uid]
+    state.review = {
+      season: state.season,
+      clubName: club0.name,
+      league: { name: myComp?.name ?? '', pos: actualPos, predicted, w: lw, d: ld, l: ll },
+      overall: { w, d, l, m: uf.length, bestWin: best?.line },
+      cups: cupRuns,
+      topPoints: topPts?.stats.points ? { name: topPts.name, val: topPts.stats.points } : undefined,
+      topTries: topTry?.stats.tries ? { name: topTry.name, val: topTry.stats.tries } : undefined,
+      bestAvg: rated0 ? { name: rated0.p.name, val: Math.round(rated0.avg * 100) / 100 } : undefined,
+      balanceDelta: club0.balance - (state.finHist?.[0]?.b ?? club0.balance),
+      confidence: club0.boardConfidence,
+      trophies: state.history.filter(h => h.season === state.season && h.champion === uid).map(h => state.comps[h.compId]?.name ?? h.compId),
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
