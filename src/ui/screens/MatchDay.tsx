@@ -487,6 +487,8 @@ function Preview({ fxId }: { fxId: number }) {
                     {total > 0 && (
                       <div className="meta">
                         Under you: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b> against {oppClub?.short ?? 'them'}.
+                        {rec!.w === 0 && rec!.l >= 3 && <> <b style={{ color: '#9b2c2c' }}>Your bogey side</b> - you have never beaten them, and the players know it. End it today.</>}
+                        {rec!.l === 0 && rec!.w >= 5 && <> <b style={{ color: '#2f7d4f' }}>Happy hunting ground</b> - they have never beaten you. Keep it that way.</>}
                       </div>
                     )}
                     {meetings.map(m => (

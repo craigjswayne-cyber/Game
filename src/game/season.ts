@@ -674,6 +674,22 @@ function boardReaction(state: GameState, fx: Fixture) {
       else if (us < them) rec.l += 1
       else rec.d += 1
     }
+    // the gate record: the first home match sets the bar quietly, and
+    // every crowd after that is chasing it
+    if (isHome && fx.att) {
+      const prev = state.gateRecord
+      if (!prev) {
+        state.gateRecord = { att: fx.att, oppId, season: state.season }
+      } else if (fx.att > prev.att) {
+        state.gateRecord = { att: fx.att, oppId, season: state.season }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+          subject: `🎟 RECORD GATE: ${fx.att.toLocaleString()} at ${club.stadium}`,
+          body: `The biggest crowd of your era watched the ${state.clubs[oppId]?.short ?? oppId} match - ${fx.att.toLocaleString()}, beating the old mark of ${prev.att.toLocaleString()}. The commercial team is giddy; the ground staff want a word about the queues. Full houses follow winning teams.`,
+          fixtureId: fx.id,
+        })
+      }
+    }
   }
   // manager career record
   state.mgr.m += 1
