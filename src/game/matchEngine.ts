@@ -41,7 +41,28 @@ export function autoSelect(state: GameState, pool: Player[]): (number | null)[] 
   const score = (p: Player, pos: Pos) =>
     effAt(p, pos) * (0.7 + 0.3 * (p.cond / 100)) * (0.85 + 0.03 * p.form)
 
+  // phase one: players in their own positions, best pairings first. A pure
+  // slot-order greedy burned stars out of position (an 86 hooker at loosehead
+  // for a 0.8 gain, costing 11 points at hooker) because it never weighed
+  // what using a man here costs at his real slot
+  {
+    const pairs: { slot: number; p: Player; s: number }[] = []
+    for (let i = 0; i < 15; i++) {
+      const pos = XV_SLOTS[i].pos
+      for (const p of pool) {
+        if (p.pos === pos || p.alt.includes(pos)) pairs.push({ slot: i, p, s: score(p, pos) })
+      }
+    }
+    pairs.sort((a, b) => b.s - a.s)
+    for (const { slot, p } of pairs) {
+      if (lineup[slot] != null || used.has(p.id)) continue
+      lineup[slot] = p.id
+      used.add(p.id)
+    }
+  }
+  // phase two: any shirt nobody natural can wear goes to the best shoehorn
   for (let i = 0; i < 15; i++) {
+    if (lineup[i] != null) continue
     const pos = XV_SLOTS[i].pos
     let best: Player | null = null
     let bestS = -1
