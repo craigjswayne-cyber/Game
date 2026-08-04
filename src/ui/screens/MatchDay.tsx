@@ -1025,6 +1025,19 @@ function Live() {
         })()}
       </div>
 
+      {done && ctx.userSideId && (() => {
+        const isHome = ctx.userSideId === fixture.homeId
+        const us = isHome ? hs : as
+        const them = isHome ? as : hs
+        const kind = us > them ? 'w' : us < them ? 'l' : 'd'
+        return (
+          <div className={`ft-stamp ${kind}`} key={`stamp-${fixture.id}`}>
+            <b>{us > them ? 'VICTORY' : us < them ? 'DEFEAT' : 'DRAW'}</b>
+            <span>{hs} - {as}</span>
+          </div>
+        )
+      })()}
+
       {!panelActive && (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC} />

@@ -5,7 +5,7 @@ import { nationByCode, flagOf } from '../../game/nations'
 import { sortTable } from '../../game/schedule'
 import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
-import { derbyName } from '../../game/rivalries'
+import { derbyName, rivalsOf } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
 import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
@@ -283,6 +283,27 @@ export default function Home() {
                 </div>
               ))}
               {out.length > 4 && <div className="dash-line"><span className="muted">+{out.length - 4} more</span></div>}
+              {(() => {
+                // rival watch: their misery is your dopamine, all season long
+                const rival = rivalsOf(club.id).find(id => game.clubs[id])
+                if (!rival) return null
+                const rf = game.fixtures.filter(f => f.played && f.compId !== 'fr' && (f.homeId === rival || f.awayId === rival))
+                  .sort((a, b) => b.week - a.week)[0]
+                const rComp = game.comps[game.clubs[rival].leagueId]
+                const rPos = rComp ? sortTable(rComp.table).findIndex(r => r.teamId === rival) + 1 : 0
+                const rr = rf ? (() => {
+                  const us = rf.homeId === rival ? rf.homeScore : rf.awayScore
+                  const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
+                  return { txt: `${us > them ? 'won' : us < them ? 'LOST' : 'drew'} ${us}-${them}`, c: us < them ? '#2f7d4f' : us > them ? '#9b2c2c' : undefined }
+                })() : null
+                return (
+                  <div className="dash-line" style={{ borderTop: '2px solid var(--hairline)' }}>
+                    <span className="dl-t">👀 {teamShort(game, rival)}</span>
+                    {rr && <b style={{ color: rr.c }}>{rr.txt}</b>}
+                    {rPos > 0 && <span className="muted">{rPos}th</span>}
+                  </div>
+                )
+              })()}
             </button>
           </div>
         )
