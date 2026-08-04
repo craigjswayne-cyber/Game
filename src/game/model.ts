@@ -422,6 +422,9 @@ export interface GameState {
   grudges?: { a: string; b: string; reason: string; until: number }[]
   /** structured snapshot of the user's last completed season */
   review?: SeasonReview | null
+  /** terrace mood at the user's club, 5-98 — swings with results, colours
+   *  the matchday atmosphere and nudges home advantage */
+  fanMood?: number
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

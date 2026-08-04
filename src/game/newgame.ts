@@ -249,6 +249,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     club.tactic.lineup = autoSelect(state, pool)
   }
 
+  // a new manager starts with the benefit of the doubt from the terraces
+  state.fanMood = 60
+
   // established squads don't start as strangers: seed the first-choice
   // partnerships with a history so season one has settled combinations
   state.chem = {}

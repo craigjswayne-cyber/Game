@@ -527,8 +527,9 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     }
     const formF = recent.length ? (formPts / recent.length - 0.5) * 0.16 : 0 // hot streak ±8%
     const confF = (hostClub.boardConfidence - 55) / 800                       // mood around the club
+    const fanF = hostClub.id === state.userClubId ? ((state.fanMood ?? 60) - 60) / 900 : 0
     let interest = clamp(
-      0.44 + hostClub.rep / 250 + (state.clubs[fx.awayId]?.rep ?? 60) / 430 + formF + confF + gauss(rng) * 0.05,
+      0.44 + hostClub.rep / 250 + (state.clubs[fx.awayId]?.rep ?? 60) / 430 + formF + confF + fanF + gauss(rng) * 0.05,
       0.24, 0.96)
     if (derby) interest = clamp(interest + 0.16, 0.5, 0.99)
     if (fx.stage) interest = clamp(interest + 0.08, 0.5, 0.99) // knockout fever
@@ -550,9 +551,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     }
   }
 
+  // the terraces are worth points: a bouncing home crowd lifts the side,
+  // a mutinous one flattens it (user's club only — the AI crowds average out)
+  let hfa = state.clubs[fx.homeId] ? 1.06 : 1.03
+  if (fx.homeId === state.userClubId) hfa += ((state.fanMood ?? 60) - 60) * 0.0006
+
   const ctx: LiveCtx = {
     fx, home, away, rng, detail, weather, derby, goalPenalty,
-    hfa: state.clubs[fx.homeId] ? 1.06 : 1.03,
+    hfa,
     events: [], lastMin: 0,
     isUser: fx.homeId === userTeamId || fx.awayId === userTeamId,
     userSideId: fx.homeId === userTeamId ? fx.homeId : fx.awayId === userTeamId ? fx.awayId : null,
@@ -566,6 +572,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air — ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
   } else {
     pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries — proper old-school rugby weather.' : ''}`)
+  }
+  if (fx.homeId === state.userClubId) {
+    const mood = state.fanMood ?? 60
+    if (mood >= 80) pushEvent(state, ctx, 1, 'SUB', home, `The ground is absolutely bouncing — the supporters are in full voice before a ball is kicked.`)
+    else if (mood <= 30) pushEvent(state, ctx, 1, 'SUB', home, `A flat, edgy atmosphere. The crowd is waiting to be given a reason.`)
   }
   return ctx
 }

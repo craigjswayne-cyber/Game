@@ -47,6 +47,11 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         })()}
         <div className="badge-row" style={{ marginTop: 6, flexWrap: 'wrap' }}>
           <span className="chip">Reputation <b>{club.rep}</b></span>
+          {club.id === game.userClubId && (() => {
+            const m = game.fanMood ?? 60
+            const word = m >= 80 ? 'Bouncing' : m >= 62 ? 'Behind you' : m >= 45 ? 'Watching' : m >= 30 ? 'Restless' : 'Mutinous'
+            return <span className="chip" style={{ color: m >= 62 ? '#2f7d4f' : m <= 30 ? '#9b2c2c' : undefined }}>Fans <b>{word}</b></span>
+          })()}
           <span className="chip">Squad <b>{players.length}</b></span>
           <span className="chip">Squad value <b>{fmtMoney(squadValue(game, club.id))}</b></span>
           {players[0] && (() => {

@@ -1,5 +1,5 @@
 import type { Competition, Fixture, GameState, Player, TableRow } from './model'
-import { addGrudge, fixtureDayOff, fmtMoney, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
+import { addGrudge, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiRenewals, aiTransfers } from './ai'
@@ -574,6 +574,26 @@ function boardReaction(state: GameState, fx: Fixture) {
   if (us > them) state.mgr.w += 1
   else if (us === them) state.mgr.d += 1
   else state.mgr.l += 1
+
+  // the terraces have longer memories and shorter fuses than the board
+  const before = state.fanMood ?? 60
+  const heat = fx.derby || grudgeBetween(state, fx.homeId, fx.awayId) ? 1.7 : 1
+  let mood = before + (us > them ? 4 * heat : us < them ? -(5 * heat + (isHome ? 1.5 : 0)) : -1)
+  mood += (55 - mood) * 0.03 // everything fades toward "fine"
+  state.fanMood = clamp(mood, 5, 98)
+  if (before < 80 && state.fanMood >= 80) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `🎶 The terraces are in full voice`,
+      body: `The songs have new verses and away allocations are selling out. The supporters believe in this team — and ${state.clubs[state.userClubId].stadium} is becoming a genuinely hard place to visit.`,
+    })
+  } else if (before > 30 && state.fanMood <= 30) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `😤 Boos at full-time`,
+      body: `Sections of the support turned on the team this week. Banners are being painted and the phone-ins are merciless. Results are the only medicine — and until they come, home games will feel colder.`,
+    })
+  }
 }
 
 // ------------------------------------------------------------------
