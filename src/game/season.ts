@@ -1444,7 +1444,15 @@ export function processWeekAndAdvance(state: GameState) {
       userFx.tableApplied = true
     }
     if (isClubMatch && userFx.compId === 'fr') {
-      // a friendly: sharpness banked, no board or career consequences
+      // a friendly: sharpness banked, no board consequences - but the
+      // manager's record counts every match he took charge of (FY feedback)
+      const us = userFx.homeId === state.userClubId ? userFx.homeScore : userFx.awayScore
+      const them = userFx.homeId === state.userClubId ? userFx.awayScore : userFx.homeScore
+      state.mgr.m += 1
+      if (us > them) state.mgr.w += 1
+      else if (us === them) state.mgr.d += 1
+      else state.mgr.l += 1
+      mgrMilestones(state, us > them)
       scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
     } else if (isClubMatch) {
       boardReaction(state, userFx)

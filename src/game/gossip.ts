@@ -426,7 +426,8 @@ function socialBuzz(state: GameState, rng: Rng) {
 }
 
 /** Preseason pundit predictions for the user's league. Stored on state.preds
- *  and settled against reality in the season review. */
+ *  and settled against reality in the season review. The news itself waits
+ *  until the friendlies are done - pundits write when the season looms. */
 export function punditPredictions(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   const comp = state.comps[club?.leagueId]
@@ -437,7 +438,21 @@ export function punditPredictions(state: GameState, rng: Rng) {
     .map(x => x.id)
   state.preds = {}
   order.forEach((id, i) => { state.preds![id] = i + 1 })
+}
+
+/** Post the predictions column once pre-season is over (week 4). */
+export function postPredictionsNews(state: GameState) {
+  const club = state.clubs[state.userClubId]
+  const comp = state.comps[club?.leagueId]
+  if (!club || !comp || !state.preds) return
+  if (state.news.some(n => n.season === state.season && n.subject.includes('predictions are in'))) return
+  const order = Object.entries(state.preds)
+    .filter(([id]) => comp.teamIds.includes(id))
+    .sort((a, b) => a[1] - b[1])
+    .map(([id]) => id)
+  if (order.length < 4) return
   const myPos = state.preds[club.id]
+  if (!myPos) return
   const nm = (id: string) => state.clubs[id]?.short ?? id
   const verdict = myPos === 1
     ? `${nm(club.id)} are everyone's title pick - anything less is failure.`
@@ -467,6 +482,8 @@ export function ordinal(n: number): string {
 
 /** Weekly wire generation - always something to read, never a flood. */
 export function generateGossip(state: GameState, rng: Rng) {
+  // the predictions column lands once the friendlies are done (FY feedback)
+  if (state.week === 4 && !state.unemployed) postPredictionsNews(state)
   sicknessSweep(state, rng)
   moneyMen(state, rng)
   trainingReport(state, rng)
