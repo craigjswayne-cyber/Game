@@ -312,7 +312,7 @@ function Preview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>Match Day</h1>
-            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
+            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
           <button className="continue-btn" onClick={() => setConfirm(true)}>Kick Off ▸</button>
         </div>
@@ -591,7 +591,7 @@ function NationPreview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>Test Match — {nat}</h1>
-            <div className="date">{comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
+            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
         </div>
       </header>

@@ -623,6 +623,27 @@ export function userFixtureThisWeek(state: GameState): Fixture | undefined {
     (f.homeId === state.userClubId || f.awayId === state.userClubId))
 }
 
+/** Idle-week friendly: a home run-out against another idle club. Sharpness
+ *  and combinations for the squad — but the injury risk is real. */
+export function arrangeFriendly(state: GameState, oppId: string): string {
+  if (userFixtureThisWeek(state)) return 'You already have a match this week.'
+  const opp = state.clubs[oppId]
+  if (!opp) return 'No such club.'
+  const busy = state.fixtures.some(f => f.week === state.week && !f.played && (f.homeId === oppId || f.awayId === oppId))
+  if (busy) return `${opp.short} have a fixture of their own this week.`
+  state.fixtures.push({
+    id: state.nextId++, compId: 'fr', round: 0, week: state.week,
+    homeId: state.userClubId, awayId: oppId,
+    played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+  })
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `🤝 Friendly arranged: ${opp.short} this week`,
+    body: `${opp.name} have agreed to a run-out at your place. Minutes for the fringe men, sharpness for the returners — just don't get anyone hurt.`,
+  })
+  return `Friendly arranged against ${opp.name} this week.`
+}
+
 /** The national side's fixture this week, when the user also coaches one.
  *  A home-nations coach also takes the Lions in a tour year. */
 export function natFixtureThisWeek(state: GameState): Fixture | undefined {
@@ -763,7 +784,10 @@ export function processWeekAndAdvance(state: GameState) {
       applyToTable(comp, userFx)
       userFx.tableApplied = true
     }
-    if (isClubMatch) {
+    if (isClubMatch && userFx.compId === 'fr') {
+      // a friendly: sharpness banked, no board or career consequences
+      scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
+    } else if (isClubMatch) {
       boardReaction(state, userFx)
       matchReport(state, userFx)
       milestones(state, rng)
