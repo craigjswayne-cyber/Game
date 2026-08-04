@@ -27,15 +27,15 @@ async function playMatch() {
     await page.click('text=▸ Take the Field')
   } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
-  await page.click('.speed-controls >> text=⏭')
+  await page.click('.speed-controls >> text=Skip')
   await page.waitForSelector('text=Start Second Half', { timeout: 20000 })
   await page.click('text=▸ Start Second Half')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls >> text=⏭')
+  await page.click('.speed-controls >> text=Skip')
   await page.waitForSelector('text=Play the Final Quarter', { timeout: 20000 })
   await page.click('text=▸ Play the Final Quarter')
   await page.waitForTimeout(300)
-  await page.click('.speed-controls >> text=⏭')
+  await page.click('.speed-controls >> text=Skip')
   await page.waitForSelector('text=Continue to Results', { timeout: 20000 })
 }
 

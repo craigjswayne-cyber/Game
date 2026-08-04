@@ -870,13 +870,13 @@ export function rebuildSeason(state: GameState) {
   // drifts from 33 to 43+ over a decade. Weakest seniors are released
   // into the free-agent pool (which is pruned just below).
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId || club.players.length <= 40) continue
+    if (club.id === state.userClubId || club.players.length <= 46) continue
     const releasable = club.players
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && !p.acad && p.age >= 21 && !p.onLoan && !p.loanFrom)
       .sort((a, b) => a.ca - b.ca)
     for (const p of releasable) {
-      if (club.players.length <= 38) break
+      if (club.players.length <= 44) break
       club.players = club.players.filter(id => id !== p.id)
       club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
       if (club.captain === p.id) club.captain = null
