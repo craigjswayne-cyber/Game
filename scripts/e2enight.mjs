@@ -1,0 +1,63 @@
+// Night-mode visual QA: the theme the user actually plays in.
+// Forces rm-night=1 before the app boots, then screenshots the key screens.
+import { chromium } from 'playwright-core'
+import { spawn } from 'node:child_process'
+import { mkdirSync } from 'node:fs'
+
+const SHOTS = process.env.SHOTS_DIR || 'shots'
+mkdirSync(SHOTS, { recursive: true })
+
+const server = spawn('npx', ['vite', 'preview', '--port', '4175', '--strictPort'], { stdio: 'pipe' })
+await new Promise(r => setTimeout(r, 2500))
+
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
+await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+const errors = []
+page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
+page.on('pageerror', e => errors.push(String(e)))
+const shot = (name) => page.screenshot({ path: `${SHOTS}/night-${name}.png` })
+
+try {
+  await page.goto('http://localhost:4175/')
+  await page.waitForSelector('text=RUGBY', { timeout: 15000 })
+  await shot('01-title')
+
+  await page.click('text=New Career')
+  await page.waitForSelector('text=Gallagher Premiership')
+  await shot('02-wizard-league')
+  await page.click('text=Gallagher Premiership')
+  await page.waitForSelector('.tile-grid.three')
+  await shot('03-wizard-club')
+  await page.click('.tile >> text=Leicester')
+  await page.waitForSelector('text=Star Player')
+  await shot('04-wizard-detail')
+  await page.click('.action-bar >> text=Confirm')
+  await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Night Gaffer')
+  await page.click('.speech-tile >> text=Forward Dominance')
+  await page.click('.action-bar >> text=Confirm')
+  await page.click('text=▸ Start Career')
+  await page.waitForSelector('.tut-box', { timeout: 15000 })
+  await page.click('.tut-veil')
+  await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
+  await shot('05-home')
+
+  await page.click('.bottom-nav button[title="Squad"]')
+  await page.waitForSelector('.dtable')
+  await shot('06-squad')
+
+  await page.click('.bottom-nav button[title="Matchday"]').catch(() => {})
+  await page.click('text=MATCHDAY').catch(() => {})
+  await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })
+  await shot('07-matchday')
+
+  console.log('NIGHT QA COMPLETE')
+} catch (e) {
+  await shot('99-failure')
+  console.error('NIGHT QA FAILED:', e.message)
+} finally {
+  console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
+  await browser.close()
+  server.kill()
+  process.exit(0)
+}
