@@ -8,9 +8,14 @@ import { stageName } from './Home'
 export default function Fixtures() {
   const game = useStore(s => s.game)!
   const [replayId, setReplayId] = useState<number | null>(null)
+  const [comp, setComp] = useState('ALL')
+  const [only, setOnly] = useState<'all' | 'played' | 'todo'>('all')
   const me = game.userClubId
-  const fx = game.fixtures
-    .filter(f => f.homeId === me || f.awayId === me)
+  const mine = game.fixtures.filter(f => f.homeId === me || f.awayId === me)
+  const comps = [...new Set(mine.map(f => f.compId))]
+  const fx = mine
+    .filter(f => comp === 'ALL' || f.compId === comp)
+    .filter(f => only === 'all' || (only === 'played' ? f.played : !f.played))
     .sort((a, b) => a.week - b.week)
   const replay = replayId != null ? game.fixtures.find(f => f.id === replayId) : null
 
@@ -43,7 +48,20 @@ export default function Fixtures() {
           ))}
         </div>
       )}
-      <SectionTitle sub={`${fx.filter(f => f.played).length}/${fx.length} played`}>Season Fixtures</SectionTitle>
+      <SectionTitle sub={`${mine.filter(f => f.played).length}/${mine.length} played`}>Season Fixtures</SectionTitle>
+      <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+          onClick={() => setComp('ALL')}>All comps</button>
+        {comps.map(cid => (
+          <button key={cid} className="preset-chip" style={comp === cid ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            onClick={() => setComp(cid)}>{game.comps[cid]?.short ?? (cid === 'fr' ? 'Friendly' : cid)}</button>
+        ))}
+        <span style={{ width: 8 }} />
+        {([['all', 'Everything'], ['played', 'Played'], ['todo', 'To come']] as const).map(([k, label]) => (
+          <button key={k} className="preset-chip" style={only === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            onClick={() => setOnly(k)}>{label}</button>
+        ))}
+      </div>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Date</th><th>Opponent</th><th>Comp</th><th>Result</th></tr></thead>
         <tbody>

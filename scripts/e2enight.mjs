@@ -46,6 +46,12 @@ try {
   await page.waitForSelector('.dtable')
   await shot('06-squad')
 
+  // squad filters: availability chip + search
+  await page.locator('.preset-chip >> text=🚑 Unavailable').click()
+  await page.waitForTimeout(250)
+  await shot('06a2-squad-filtered')
+  await page.locator('.preset-chip >> text=Everyone').click()
+
   // player profile
   await page.click('.dtable tbody tr >> nth=0')
   await page.waitForSelector('text=Set Piece & Contact')
@@ -57,6 +63,9 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
+  await page.locator('.preset-chip >> text=🏷️ Listed only').click()
+  await page.waitForTimeout(300)
+  await shot('06c2-transfers-filtered')
 
   // tables
   await page.click('.bottom-nav button[title="World"]')

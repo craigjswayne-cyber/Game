@@ -11,8 +11,11 @@ export default function Medical() {
   const go = useStore(s => s.go)
   const touch = useStore.getState().touch
   const [msg, setMsg] = useState('')
+  const [query, setQuery] = useState('')
   const club = game.clubs[game.userClubId]
+  const q = query.trim().toLowerCase()
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p)
+    .filter(p => !q || p.name.toLowerCase().includes(q) || p.pos.toLowerCase() === q)
 
   const injured = squad.filter(p => p.injury).sort((a, b) => (a.injury!.until) - (b.injury!.until))
   const rusty = squad.filter(p => !p.injury && (p.rust ?? 0) > 0)
@@ -54,10 +57,18 @@ export default function Medical() {
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
 
+      <div style={{ padding: '6px 14px 0' }}>
+        <input className="inline-input" placeholder="Find a player…" value={query}
+          onChange={e => setQuery(e.target.value)}
+          style={{ margin: 0, maxWidth: 240, padding: '4px 8px', fontSize: 12 }} />
+      </div>
+
       {allClear && (
         <div className="card center" style={{ borderLeft: '4px solid #2f7d4f' }}>
-          <h3 style={{ fontSize: 15 }}>✅ A quiet treatment room</h3>
-          <div className="meta">Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.</div>
+          <h3 style={{ fontSize: 15 }}>{q ? 'Nothing on him' : '✅ A quiet treatment room'}</h3>
+          <div className="meta">{q
+            ? 'No player matching that search is injured, suspended, rusty or short of a gallop.'
+            : 'Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.'}</div>
         </div>
       )}
 
