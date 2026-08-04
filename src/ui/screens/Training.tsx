@@ -17,11 +17,18 @@ export default function Training() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const club = game.clubs[game.userClubId]
+  const [ttab, setTtab] = useState<'training' | 'staff' | 'club'>('training')
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
   return (
     <>
+      <div className="tab-bar">
+        <button className={ttab === 'training' ? 'active' : ''} onClick={() => setTtab('training')}>Training</button>
+        <button className={ttab === 'staff' ? 'active' : ''} onClick={() => setTtab('staff')}>Staff</button>
+        <button className={ttab === 'club' ? 'active' : ''} onClick={() => setTtab('club')}>Club</button>
+      </div>
+      {ttab === 'training' && <>
       <SectionTitle sub="small weekly gains in the focus area">Weekly Focus</SectionTitle>
       {FOCUSES.map(f => (
         <button key={f.id} className="club-pick" onClick={() => { game.training = f.id; touch() }}>
@@ -47,6 +54,8 @@ export default function Training() {
           )
         })}
       </div>
+      </>}
+      {ttab === 'staff' && <>
       <SectionTitle sub="wages come off the weekly balance">Backroom Staff</SectionTitle>
       {(Object.keys(STAFF_INFO) as (keyof StaffLevels)[]).map(role => {
         const info = STAFF_INFO[role]
@@ -70,6 +79,8 @@ export default function Training() {
           </div>
         )
       })}
+      </>}
+      {ttab === 'club' && <>
       <SectionTitle sub="a senior pro shows an academy kid how it's done (max 3 pairs)">Mentoring</SectionTitle>
       <MentorPanel />
       <SectionTitle sub="paid from the club balance — bricks outlast squads">Facilities</SectionTitle>
@@ -99,6 +110,8 @@ export default function Training() {
           </div>
         )
       })}
+      </>}
+      {ttab === 'training' && <>
       <SectionTitle sub="worst first">Condition Report</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Name</th><th className="num">Fitness</th><th className="num">Sharpness</th><th>Status</th></tr></thead>
@@ -113,6 +126,7 @@ export default function Training() {
           ))}
         </tbody>
       </table></div>
+      </>}
       <div className="spacer" />
     </>
   )
