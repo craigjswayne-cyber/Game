@@ -60,6 +60,8 @@ try {
   // the Annual: annals table + POTY roll of honour, 12 seasons deep
   await page.click('text=The Annual is out')
   await page.waitForSelector('text=The Annals', { timeout: 10000 })
+  // FL surface: the award row must survive into a deep career's Annual
+  await page.waitForSelector('text=Try of the season', { timeout: 10000 })
   await shotScrolled('deep-02-annual')
   await page.click('.back-btn')
 
