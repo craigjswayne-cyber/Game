@@ -1018,7 +1018,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (cls.length) {
       state.intakeClass = cls
       const best = Math.max(...cls.map(c => c.pa))
-      const grade = cls.some(c => c.wonder) || best >= 88 ? 'A' : best >= 81 ? 'B' : best >= 73 ? 'C' : best >= 65 ? 'D' : 'E'
+      const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
       const star = cls.reduce((a, b) => (b.pa > a.pa ? b : a))
       const GROUP: Record<string, string> = {
         LP: 'the front row', HK: 'the front row', TP: 'the front row', LK: 'the second row',
