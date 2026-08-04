@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { FACILITY_INFO, STAFF_INFO, facilityCost, fmtMoney, type FacilityId, type StaffLevels, type TrainingFocus } from '../../game/model'
+import { requestFacility } from '../../game/season'
 import { SectionTitle } from '../components'
 
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -18,6 +19,7 @@ export default function Training() {
   const touch = useStore(s => s.touch)
   const club = game.clubs[game.userClubId]
   const [ttab, setTtab] = useState<'training' | 'staff' | 'club'>('training')
+  const [facMsg, setFacMsg] = useState('')
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
@@ -81,35 +83,39 @@ export default function Training() {
       })}
       </>}
       {ttab === 'club' && <>
-      <SectionTitle sub="a senior pro shows an academy kid how it's done (max 3 pairs)">Mentoring</SectionTitle>
+      <SectionTitle sub="a senior pro brings a kid through (max 3)">Mentoring</SectionTitle>
       <MentorPanel />
-      <SectionTitle sub="paid from the club balance - bricks outlast squads">Facilities</SectionTitle>
-      {(Object.keys(FACILITY_INFO) as FacilityId[]).map(fid => {
-        const info = FACILITY_INFO[fid]
-        const lvl = game.facilities?.[fid] ?? 0
-        const cost = facilityCost(info, lvl)
-        const club = game.clubs[game.userClubId]
-        return (
-          <div className="card" key={fid} style={{ marginTop: 6, marginBottom: 6 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-              <div>
-                <h3 style={{ fontSize: 14 }}>{info.icon} {info.name} {lvl > 0 && <span style={{ color: '#a8841a' }}>{'●'.repeat(lvl)}{'○'.repeat(3 - lvl)}</span>}</h3>
-                <div className="meta">{info.desc}</div>
+      <SectionTitle sub="board approval needed">Training Facilities</SectionTitle>
+      {facMsg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px', marginBottom: 6 }}>{facMsg}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
+        {(Object.keys(FACILITY_INFO) as FacilityId[]).map(fid => {
+          const info = FACILITY_INFO[fid]
+          const lvl = game.facilities?.[fid] ?? 0
+          const cost = facilityCost(info, lvl)
+          const building = game.facilityBuild?.id === fid ? game.facilityBuild : null
+          const weeksLeft = building ? Math.max(1, building.done - (game.season * 100 + game.week)) : 0
+          return (
+            <div className="card" key={fid} style={{ margin: 0, padding: '8px 10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <h3 style={{ fontSize: 13.5, margin: 0 }}>{info.icon} {info.name} <span style={{ color: '#a8841a' }}>{'●'.repeat(lvl)}{'○'.repeat(3 - lvl)}</span></h3>
+                  <div className="meta" style={{ fontSize: 11 }}>{info.desc}</div>
+                  {building && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🏗 Builders on site - opens in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
+                </div>
+                {!building && lvl < 3 && (
+                  <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
+                    disabled={game.facilityBuild != null}
+                    onClick={() => { setFacMsg(requestFacility(game, fid)); touch() }}>
+                    🏛 Ask board<br />
+                    <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(cost)}</span>
+                  </button>
+                )}
+                {lvl >= 3 && <span className="meta" style={{ flexShrink: 0, color: '#a8841a', fontWeight: 700 }}>World class</span>}
               </div>
-              <button className="btn gold" disabled={lvl >= 3 || club.balance < cost}
-                onClick={() => {
-                  if (club.balance < cost || lvl >= 3) return
-                  club.balance -= cost
-                  game.facilities = { ...(game.facilities ?? {}), [fid]: lvl + 1 }
-                  touch()
-                }}>
-                {lvl >= 3 ? 'Max' : lvl === 0 ? 'Build' : 'Upgrade'}<br />
-                {lvl < 3 && <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(cost)}</span>}
-              </button>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
       </>}
       {ttab === 'training' && <>
       <SectionTitle sub="worst first">Condition Report</SectionTitle>
@@ -147,7 +153,7 @@ function MentorPanel() {
   const kids = squad.filter(p => p.acad && !pairs.some(mp => mp.kid === p.id))
     .sort((a, b) => b.pa - a.pa)
   return (
-    <div className="card">
+    <div className="card" style={{ padding: '8px 10px' }}>
       {pairs.map((mp, i) => {
         const s2 = game.players[mp.senior]
         const k2 = game.players[mp.kid]
@@ -160,9 +166,9 @@ function MentorPanel() {
           </div>
         )
       })}
-      {pairs.length === 0 && <div className="meta">No pairs yet. A Leader or Professional rubs off on a kid - faster growth, and his character sticks.</div>}
+      {pairs.length === 0 && <div className="meta" style={{ fontSize: 11 }}>A Leader or Professional rubs off on a kid - faster growth, and his character sticks.</div>}
       {pairs.length < 3 && seniors.length > 0 && kids.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}
             onChange={e => setSeniorId(e.target.value ? Number(e.target.value) : '')}>
             <option value="">Senior pro…</option>

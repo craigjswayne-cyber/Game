@@ -96,6 +96,8 @@ interface CrestClub {
 }
 
 const SHIELD = 'M12 1.5 L21.5 4.5 V13 C21.5 19 17.5 22.5 12 24.5 C6.5 22.5 2.5 19 2.5 13 V4.5 Z'
+// inset line for the heraldic double border
+const SHIELD_IN = 'M12 3.7 L19.6 6.1 V13 C19.6 17.7 16.4 20.6 12 22.3 C7.6 20.6 4.4 17.7 4.4 13 V6.1 Z'
 
 /** Shield field decoration derived from how the club actually wears its colours. */
 function CrestField({ pattern, c2 }: { pattern: KitPattern; c2: string }) {
@@ -111,15 +113,18 @@ function CrestField({ pattern, c2 }: { pattern: KitPattern; c2: string }) {
 
 /**
  * Club crest: a heraldic shield generated from the club's kit pattern and
- * colours, gold border and condensed monogram. No PNG lookup - the old
- * logos/<id>.png attempt 404'd on every club (the folder ships empty) and
- * left blank crests on slow phones while the error event was pending.
+ * colours, with an enamelled sheen, a metallic gold ring, an inset hairline
+ * and a condensed monogram. No PNG lookup - the old logos/<id>.png attempt
+ * 404'd on every club (the folder ships empty) and left blank crests on slow
+ * phones while the error event was pending.
  */
 export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: number; mr?: number }) {
   const pattern = kitPattern(club.id)
   const [c1, c2] = club.colors
   const letter = (club.short.match(/[A-Za-z]/)?.[0] ?? 'R').toUpperCase()
   const clip = `crest-${club.id}`
+  const gloss = `gloss-${club.id}`
+  const gold = `gold-${club.id}`
   return (
     <svg
       viewBox="0 0 24 26"
@@ -130,17 +135,32 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
     >
       <defs>
         <clipPath id={clip}><path d={SHIELD} /></clipPath>
+        <linearGradient id={gloss} x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity=".26" />
+          <stop offset=".42" stopColor="#fff" stopOpacity=".05" />
+          <stop offset=".62" stopColor="#000" stopOpacity=".04" />
+          <stop offset="1" stopColor="#000" stopOpacity=".26" />
+        </linearGradient>
+        <linearGradient id={gold} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f0dc95" />
+          <stop offset=".45" stopColor="#c9a227" />
+          <stop offset="1" stopColor="#8a6a12" />
+        </linearGradient>
       </defs>
       <path d={SHIELD} fill={c1} />
       <g clipPath={`url(#${clip})`}>
         <CrestField pattern={pattern} c2={c2} />
+        <rect x="0" y="0" width="24" height="26" fill={`url(#${gloss})`} />
       </g>
-      <path d={SHIELD} fill="none" stroke="#c9a227" strokeWidth="1.5" />
+      {/* dark casing under the ring gives the gold an edge on light shields */}
+      <path d={SHIELD} fill="none" stroke="rgba(0,0,0,.42)" strokeWidth="2.6" />
+      <path d={SHIELD} fill="none" stroke={`url(#${gold})`} strokeWidth="1.5" />
+      <path d={SHIELD_IN} fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".6" />
       <text
-        x="12" y="16" textAnchor="middle"
+        x="12" y="16.2" textAnchor="middle"
         fontFamily="'PT Sans Narrow', 'Arial Narrow', sans-serif"
-        fontWeight="700" fontSize="11.5"
-        fill="#f7f3e8" stroke="rgba(0,0,0,.55)" strokeWidth="1.6"
+        fontWeight="700" fontSize="11.5" letterSpacing=".2"
+        fill="#f9f5ea" stroke="rgba(0,0,0,.6)" strokeWidth="1.7"
         paintOrder="stroke"
       >{letter}</text>
     </svg>

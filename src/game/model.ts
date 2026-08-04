@@ -493,6 +493,12 @@ export interface GameState {
   boardOwed?: boolean
   /** facility levels 0-3 for the user's club */
   facilities?: Partial<Record<FacilityId, number>>
+  /** a facility upgrade under construction: the board funded it, the
+   *  builders are in, and it opens at `done` (absolute week) */
+  facilityBuild?: { id: FacilityId; done: number; level: number } | null
+  /** absolute week (season*100+week) before which the board will not hear
+   *  another facility request - denials cost you the room for a while */
+  facilityAskCooldown?: number
   /** a trophy moment waiting to be celebrated full-screen */
   celebration?: { headline: string; sub: string; icon: string } | null
   /** senior pros paired with academy kids - wisdom rubs off (max 3) */

@@ -70,6 +70,18 @@ try {
   await page.waitForTimeout(400)
   await shot('06e-press')
 
+  // training: the facilities boardroom flow
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Training & Coaching')
+  await page.waitForSelector('.tab-bar')
+  await shot('06f-training')
+  await page.click('.tab-bar >> text=Club')
+  await page.waitForSelector('text=Training Facilities')
+  await shot('06g-facilities')
+  await page.locator('text=🏛 Ask board').first().click()
+  await page.waitForTimeout(400)
+  await shot('06h-facility-ask')
+
   // live match: kick off and play a half in the dark
   await page.click('text=MATCHDAY').catch(() => {})
   await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })
