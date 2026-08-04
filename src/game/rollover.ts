@@ -660,8 +660,10 @@ export function rebuildSeason(state: GameState) {
     })
   }
 
-  // old wounds heal: expired grudges drop off the fixture list
+  // old wounds heal: expired grudges drop off the fixture list, and
+  // contract stand-offs reset with the new season
   state.grudges = (state.grudges ?? []).filter(g => g.until >= state.season)
+  for (const p of Object.values(state.players)) { if ((p.wantsDeal ?? 0) > 0) p.wantsDeal = 0 }
 
   // partnership chemistry only lives while the pair share a dressing room —
   // prune split/retired pairs so the ledger stays small

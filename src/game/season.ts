@@ -5,7 +5,7 @@ import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_W
 import { aiRenewals, aiTransfers } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
-import { buildPlayer, playerValue } from './attributes'
+import { buildPlayer, playerValue, playerWage } from './attributes'
 import { scoutOpponent, weeklyScouting } from './scout'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName } from './nations'
@@ -345,6 +345,26 @@ function weeklyTraining(state: GameState, rng: Rng) {
   const gapDays = lastFx && nextFx ? 7 + fixtureDayOff(nextFx.id) - fixtureDayOff(lastFx.id) : 7
   const turnF = gapDays / 7 // 5-day turnaround = 71% recovery; 9 days = 128%
 
+  // an agent smells a payday: an underpaid star performer demands new terms
+  if (!state.unemployed && rng() < 0.12) {
+    const squad = state.clubs[state.userClubId].players.map(id => state.players[id]).filter(Boolean)
+    const cands = squad.filter(p =>
+      !p.acad && !p.loanFrom && p.stats.apps >= 8 &&
+      p.stats.ratingSum / Math.max(1, p.stats.apps) >= 7.15 &&
+      p.wage < playerWage(p.ca, p.age) * 0.85 &&
+      !(p.wantsDeal ?? 0) && p.contractEnds > state.season && p.age <= 32)
+    if (cands.length) {
+      const p = cands[Math.floor(rng() * cands.length)]
+      p.wantsDeal = state.week
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+        subject: `💼 ${p.name} wants improved terms`,
+        body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop — and other clubs will smell it. Offer a new deal from his player page.`,
+        playerId: p.id,
+      })
+    }
+  }
+
   for (const club of Object.values(state.clubs)) {
     const isUser = club.id === state.userClubId
     for (const id of club.players) {
@@ -389,6 +409,18 @@ function weeklyTraining(state: GameState, rng: Rng) {
         const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
         if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
         else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2), 1, 10)
+      }
+      // an unresolved contract demand sours by the week
+      if (isUser && (p.wantsDeal ?? 0) > 0) {
+        p.morale = clamp(p.morale - 0.12, 1, 10)
+        if (state.week - (p.wantsDeal ?? 0) === 8 && (p.pers === 'Mercenary' || p.pers === 'Ambitious')) {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+            subject: `💼 ${p.name}'s agent goes public`,
+            body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal on his player page — or brace for bids.`,
+            playerId: p.id,
+          })
+        }
       }
       // a good mentor is worth an extra coach: paired kids learn faster
       if (isUser && p.acad && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
