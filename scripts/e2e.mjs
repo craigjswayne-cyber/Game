@@ -72,8 +72,10 @@ try {
 
   // Tactics (readouts + presets)
   await page.click('.bottom-nav button[title="Tactics"]')
-  await page.waitForSelector('text=Quick Game Plans')
+  await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
+  await page.click('.tab-bar >> text=Instructions')
+  await page.waitForSelector('text=Quick Game Plans')
 
   // Club submenu -> Team Report
   await page.click('.bottom-nav button[title="Club"]')
