@@ -600,6 +600,7 @@ export function rebuildSeason(state: GameState) {
     p.cond = 100
     p.sharp = 60
     p.injury = null
+    p.specialist = false
     p.bans = 0
     p.rust = 0
     p.natSquad = false

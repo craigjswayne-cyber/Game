@@ -1,9 +1,10 @@
 // World-state invariant audit: run seasons and validate consistency weekly.
 // Complements simtest (stats/perf) with hard correctness checks.
 import { newGame } from '../src/game/newgame'
-import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
+import { arrangeFriendly, processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
+import { cottonWool, specialistConsult } from '../src/game/medical'
 import { SEASON_WEEKS, type GameState } from '../src/game/model'
 
 let fails = 0
@@ -81,6 +82,19 @@ function audit(g: GameState, tag: string) {
   for (const gr of g.grudges ?? []) {
     if (!g.clubs[gr.a] || !g.clubs[gr.b]) bad(`${tag} grudge names missing club ${gr.a}/${gr.b}`)
   }
+  // 9. newest systems: fan mood bounds, leadership sanity, agent flags
+  if (g.fanMood != null && !(g.fanMood >= 5 && g.fanMood <= 98)) bad(`${tag} fanMood ${g.fanMood}`)
+  for (const c of Object.values(g.clubs)) {
+    if (c.captain != null && c.vice != null && c.captain === c.vice) bad(`${tag} ${c.id} captain === vice`)
+    if (c.vice != null && g.players[c.vice] && g.players[c.vice].clubId !== c.id) bad(`${tag} ${c.id} vice plays elsewhere`)
+  }
+  for (const p of Object.values(g.players)) {
+    if (p.specialist && !p.injury) bad(`${tag} ${p.name} specialist flag with no injury`)
+    if ((p.wantsDeal ?? 0) > 0 && p.clubId !== g.userClubId) bad(`${tag} ${p.name} wantsDeal but not user's player`)
+  }
+  for (const h of g.hof ?? []) {
+    if (!(h.apps > 0) || Number.isNaN(h.points)) bad(`${tag} hof entry broken: ${h.name}`)
+  }
 }
 
 const club = process.argv[2] ?? 'leicester'
@@ -93,7 +107,19 @@ for (let season = 0; season < SEASONS; season++) {
   const target = g.season + 1
   let guard = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {
-    const fx = userFixtureThisWeek(g)
+    // exercise the manager's levers like a hyperactive player would
+    let fx = userFixtureThisWeek(g)
+    if (!fx && g.week % 2 === 0) {
+      const idle = Object.values(g.clubs).find(c => c.id !== g.userClubId &&
+        !g.fixtures.some(f => f.week === g.week && !f.played && (f.homeId === c.id || f.awayId === c.id)))
+      if (idle) { arrangeFriendly(g, idle.id); fx = userFixtureThisWeek(g) }
+    }
+    const squad = g.clubs[g.userClubId].players.map(id => g.players[id]).filter(Boolean)
+    const hurt = squad.find(p => p.injury && !p.specialist && p.injury.until - g.week >= 3)
+    if (hurt) specialistConsult(g, hurt.id)
+    const rusty = squad.find(p => !p.injury && (p.rust ?? 0) > 0)
+    if (rusty) cottonWool(g, rusty.id)
+    g.scoutFocus = ['top14', 'urc', 'prem', null][g.week % 4]
     if (fx) simMatch(g, fx, weekRng(g), true)
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)
     processWeekAndAdvance(g)
