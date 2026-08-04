@@ -5,8 +5,9 @@ import { nationByCode, flagOf } from '../../game/nations'
 import { sortTable } from '../../game/schedule'
 import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
+import { derbyName } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
-import { fmtMoney, weekDate } from '../../game/model'
+import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -117,6 +118,35 @@ export default function Home() {
               </div>
             )}
             <div className="meta" style={{ color: 'var(--gold-bright)', marginTop: 3 }}>Tap for the full championship ▸</div>
+          </div>
+        )
+      })()}
+      {(() => {
+        // the hook: why THIS week matters - the reason to press Continue
+        const grudge = fx ? grudgeBetween(game, fx.homeId, fx.awayId) : null
+        const derby = fx ? derbyName(fx.homeId, fx.awayId) : null
+        const hook = derby ? `⚔️ ${derby.toUpperCase()} WEEK`
+          : grudge ? `🔥 GRUDGE MATCH: ${grudge.reason}`
+          : fx?.stage ? `🏆 KNOCKOUT RUGBY: ${stageName(fx.stage)} this week`
+          : game.week === 7 || game.week === 27 ? '🚨 DEADLINE WEEK: the window slams shut'
+          : null
+        // streak framing: the cheapest dopamine in sport
+        const res = game.fixtures.filter(f => f.played && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
+          .sort((a, b) => b.week - a.week)
+        let unbeaten = 0, winless = 0
+        for (const f of res) {
+          const us = f.homeId === club.id ? f.homeScore : f.awayScore
+          const them = f.homeId === club.id ? f.awayScore : f.homeScore
+          if (us >= them && winless === 0) unbeaten++
+          else if (us <= them && unbeaten === 0) winless++
+          else break
+        }
+        const streak = unbeaten >= 3 ? `🔥 Unbeaten in ${unbeaten}` : winless >= 3 ? `❄️ ${winless} without a win` : null
+        if (!hook && !streak) return null
+        return (
+          <div className="card" style={{ borderLeft: `4px solid ${winless >= 3 ? '#9b2c2c' : 'var(--gold-bright)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
+            {hook && <b style={{ fontSize: 13 }}>{hook}</b>}
+            {streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700 }}>{streak}</span>}
           </div>
         )
       })()}

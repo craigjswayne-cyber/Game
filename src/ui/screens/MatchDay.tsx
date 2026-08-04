@@ -199,6 +199,12 @@ function Preview({ fxId }: { fxId: number }) {
     touch()
   }
 
+  // no warnings, speech chosen: nothing to confirm - straight down the tunnel
+  const tryKickOff = () => {
+    if (warnings.length === 0) kickOff(speech ?? undefined)
+    else setConfirm(true)
+  }
+
   const bar = (label: string, mine: number, theirs: number) => {
     const total = mine + theirs
     const pct = total ? (mine / total) * 100 : 50
@@ -314,7 +320,7 @@ function Preview({ fxId }: { fxId: number }) {
             <h1>Match Day</h1>
             <div className="date">{comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
-          <button className="continue-btn" onClick={() => setConfirm(true)}>Kick Off ▸</button>
+          <button className="continue-btn" onClick={tryKickOff}>Kick Off ▸</button>
         </div>
       </header>
       <main className="content">
@@ -518,7 +524,7 @@ function Preview({ fxId }: { fxId: number }) {
         </>}
 
         <div className="btn-row" style={{ marginTop: 10 }}>
-          <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={() => setConfirm(true)}>
+          <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={tryKickOff}>
             Kick Off ▸
           </button>
         </div>

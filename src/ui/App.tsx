@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
+import { natFixtureThisWeek, userFixtureThisWeek } from '../game/season'
 import { weekDate, seasonLabel } from '../game/model'
 import { IcoBall, IcoClipboard, IcoInbox, IcoPress, IcoTransfer, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
@@ -234,7 +235,9 @@ export default function App() {
           <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
             {night ? <IcoSun /> : <IcoMoon />}
           </button>
-          <button className="continue-btn" onClick={continueWeek}>Continue ▸</button>
+          <button className="continue-btn" onClick={continueWeek}>
+            {(!game.unemployed && userFixtureThisWeek(game)) || natFixtureThisWeek(game) ? 'Matchday ▸' : 'Continue ▸'}
+          </button>
         </div>
       </header>
       <main className="content">{screen()}</main>
