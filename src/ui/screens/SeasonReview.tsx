@@ -78,6 +78,28 @@ export default function SeasonReview() {
           {row('Board confidence at full-time', `${Math.round(r.confidence)}%`)}
         </div>
 
+        {(game.annals ?? []).length > 1 && (
+          <>
+            <SectionTitle sub="the career, season by season">The Annals</SectionTitle>
+            <div className="tblwrap"><table className="dtable">
+              <thead><tr><th>Season</th><th>Club</th><th className="num">Pos</th><th className="num">Record</th><th>Honours</th></tr></thead>
+              <tbody>
+                {[...(game.annals ?? [])].reverse().map(a => (
+                  <tr key={a.season}>
+                    <td>{seasonLabel(a.season)}</td>
+                    <td>{a.clubName}</td>
+                    <td className="num" style={a.league.pos === 1 ? { color: 'var(--accent-ink)', fontWeight: 700 } : undefined}>
+                      {a.league.pos > 0 ? ordinal(a.league.pos) : '-'}
+                    </td>
+                    <td className="num">{a.overall.w}-{a.overall.d}-{a.overall.l}</td>
+                    <td>{a.trophies.length ? `🏆 ${a.trophies.length > 1 ? `×${a.trophies.length}` : a.trophies[0]}` : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table></div>
+          </>
+        )}
+
         <button className="btn gold block" style={{ marginTop: 12, fontSize: 15 }} onClick={back}>
           File it away ▸
         </button>
