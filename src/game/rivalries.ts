@@ -43,3 +43,9 @@ export function derbyName(a: string, b: string): string | null {
 }
 
 export const isDerby = (a: string, b: string) => MAP.has(KEY(a, b))
+
+/** Every club this club shares a derby with. */
+export function rivalsOf(clubId: string): string[] {
+  return PAIRS.filter(([a, b]) => a === clubId || b === clubId)
+    .map(([a, b]) => (a === clubId ? b : a))
+}

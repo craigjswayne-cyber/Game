@@ -1098,6 +1098,34 @@ input, select { font: inherit; }
   overflow: visible;
 }
 .momo-fill { position: absolute; inset: 0; border-radius: 4px; opacity: .5; }
+/* full-time stamp: one big honest moment at the whistle, then it clears */
+.ft-stamp {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
+  animation: ftstamp 2.8s ease-out forwards;
+}
+.ft-stamp b {
+  font-family: var(--cond); font-size: 64px; font-weight: 900;
+  letter-spacing: 6px; transform: rotate(-6deg);
+  padding: 4px 26px; border: 5px solid currentColor; border-radius: 10px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
+}
+.ft-stamp span {
+  margin-top: 10px; font-family: var(--cond); font-size: 26px; font-weight: 800;
+  color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
+}
+.ft-stamp.w b { color: #2f7d4f; }
+.ft-stamp.l b { color: #9b2c2c; }
+.ft-stamp.d b { color: #6b7280; }
+@keyframes ftstamp {
+  0% { opacity: 0; transform: scale(1.9); }
+  14% { opacity: 1; transform: scale(1); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: scale(.98); }
+}
+
 /* FM-style player profile: dense three-column attribute chip grid */
 .fm-attrs {
   display: grid;
