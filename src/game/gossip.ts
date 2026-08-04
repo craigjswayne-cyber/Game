@@ -102,9 +102,22 @@ function trainingReport(state: GameState, rng: Rng) {
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `📋 Training report, week ${state.week}`,
     body: [
-      `Best on the grass: ${star.name} - sharp all week.`,
-      pushing ? `Knocking on the door: ${pushing.name} is training like a man who wants the shirt.` : '',
-      kid && rng() < 0.5 ? `From the academy pitches: the coaches keep mentioning ${kid.name}. One for the notebook.` : '',
+      pick(rng, [
+        `Best on the grass: ${star.name} - sharp all week.`,
+        `${star.name} trained like the ball was on a string. Best of the week by a distance.`,
+        `The staff vote for the week's best on the paddock was unanimous: ${star.name}.`,
+        `${star.name} finished every drill first and every session smiling. Ominous for the opposition.`,
+      ]),
+      pushing ? pick(rng, [
+        `Knocking on the door: ${pushing.name} is training like a man who wants the shirt.`,
+        `${pushing.name} spent the week making the selection meeting awkward. Good.`,
+        `If team sheets were picked on a Tuesday, ${pushing.name} starts this weekend.`,
+      ]) : '',
+      kid && rng() < 0.5 ? pick(rng, [
+        `From the academy pitches: the coaches keep mentioning ${kid.name}. One for the notebook.`,
+        `${kid.name} trained up with the seniors on Thursday and did not look out of place.`,
+        `The academy staff have started staying late to watch ${kid.name}. That usually means something.`,
+      ]) : '',
       state.matchPrep ? `Focus this week: ${state.matchPrep} work, as ordered.` : `No match preparation set - the week ran on autopilot.`,
     ].filter(Boolean).join('\n'),
     playerId: star.id,
@@ -340,6 +353,20 @@ function socialBuzz(state: GameState, rng: Rng) {
       `${target!.name}'s representatives did nothing to hose down speculation this week: "My client is very happy at ${other.short}. But every player listens." Fan forums across the league did the rest.`, target!.id],
     [`FAN FORUM: dream signing thread - ${club.short}`,
       `"Realistic transfer targets" is the thread title; ${target!.name} is the name on every page. The finances make no sense, the fit is debatable, the enthusiasm is total.`, target!.id],
+  )
+  if (star) takes.push(
+    [`SOCIAL: ${club.short} kit day photos leak a day early`,
+      `Next season's shirt appeared on a reseller feed before the official launch, modelled badly by a mannequin. The club is furious; the fans have already voted on the collar. Verdict: divisive.`],
+    [`REF MIC: the clip every group chat is quoting`,
+      `A referee's exchange with a front row from the weekend ("You are not bound. You have never been bound.") has escaped containment. Refereeing socials call it a teaching moment; props call it slander.`],
+    [`PODCAST: ${star.name}'s cheat-meal confession divides the nation`,
+      `Forty minutes on lineout detail earned no headlines; one sentence about a Friday kebab did. The nutritionist at ${club.short} has requested a right of reply.`, star.id],
+    [`GROUNDSMAN WATCH: visiting coach calls ${club.short} pitch "a ploughed field"`,
+      `The head groundsman has responded through gritted teeth: "The surface rewards a team that keeps the ball in hand." The visiting coach kept his boots as evidence.`],
+  )
+  if (kid) takes.push(
+    [`COMMUNITY: ${kid.name} turns up at a school assembly unannounced`,
+      `A teacher at a local primary asked the ${club.short} academy if someone could present a reading prize. ${kid.name} came, stayed two hours, and signed everything including the lectern. Wholesome content has now entered the group chats.`, kid.id],
   )
   if (!takes.length) return
   const t = takes[Math.floor(rng() * takes.length)]
