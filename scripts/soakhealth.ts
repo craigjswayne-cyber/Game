@@ -50,6 +50,7 @@ let newSpells = 0, spellWeeks = 0
 const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
 let farewells = 0, milestoneNews = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
+let taps = 0, brokenVows = 0, courtPressers = 0
 // selection quality: starters wearing a shirt they cannot naturally cover.
 // Nonzero is fine in an injury crisis; a high rate means autoSelect regressed
 let oopStarts = 0, startSamples = 0
@@ -101,6 +102,9 @@ for (let season = 0; season < 20; season++) {
         }
       }
     }
+    for (const pi of g.press) {
+      if (!pi.answered && pi.question.includes('The room goes quiet')) courtPressers++
+    }
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, Math.floor(Math.random() * 0) )
     for (const n of g.news) {
       if (seen.has(n.id)) continue
@@ -110,6 +114,8 @@ for (let season = 0; season < 20; season++) {
       if (n.subject.includes('Loan watch')) loanWatch++
       if (n.subject.includes('armband')) armbands++
       if (n.subject.includes('Dream debut') || n.subject.includes('grandkids')) debutNews++
+      if (n.subject.includes('are watching you')) taps++
+      if (n.subject.includes('aged badly')) brokenVows++
       {
         const fee = parseFee(n.body)
         if (fee != null) feeBuckets[Math.min(3, Math.floor(season / 5))].push(fee)
@@ -168,6 +174,9 @@ for (let season = 0; season < 20; season++) {
 }
 console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length})`)
 console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
+console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
+if (courtPressers > taps) console.log('WARN: courtship presser fired without a tap')
+if (brokenVows > 0) console.log('WARN: broken-vow story in a save where the manager never moved')
 {
   const rate = startSamples ? (oopStarts / startSamples) * 100 : 0
   console.log(`selection quality: ${oopStarts}/${startSamples} out-of-position starts (${rate.toFixed(1)}%)`)
