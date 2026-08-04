@@ -2,7 +2,7 @@ import type { Competition, Fixture, GameState, Player, TableRow } from './model'
 import { addGrudge, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
-import { aiRenewals, aiTransfers, askingPrice } from './ai'
+import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
@@ -1252,6 +1252,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
   aiTransfers(state, rng)
   aiRenewals(state, rng)
+  if (!state.unemployed) aiPreContractPoach(state, rng)
   refreshVacancies(state, rng)
 
   // individual development focus: extra growth for up to 3 youngsters

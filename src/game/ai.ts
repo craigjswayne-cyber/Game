@@ -37,6 +37,19 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     if (from.captain === p.id) from.captain = null
     if (from.vice === p.id) from.vice = null
   }
+  // a mid-window move voids any pre-contract: the new employer takes over
+  const pc = (state.preContracts ?? []).find(x => x.playerId === p.id)
+  if (pc) {
+    state.preContracts = state.preContracts!.filter(x => x.playerId !== p.id)
+    if (pc.toClubId === state.userClubId) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+        subject: `Pre-contract void: ${p.name}`,
+        body: `${p.name} has been sold before his deal expired, and the move voids the pre-contract he signed with you. Your summer signing is off - the lawyers say there is nothing to be done.`,
+        playerId: p.id,
+      })
+    }
+  }
   to.players.push(p.id)
   to.balance -= fee
   to.budget = Math.max(0, to.budget - fee)
@@ -294,6 +307,68 @@ export function capBill(state: GameState, club: { players: number[]; marquee?: n
   return club.players.reduce((s, id) => s + (marquee.has(id) ? 0 : (state.players[id]?.wage ?? 0)), 0)
 }
 
+/** Agree a pre-contract with an out-of-contract player at another club:
+ *  no fee, he arrives on a free when the season ends. Binding once signed. */
+export function agreePreContract(state: GameState, playerId: number): { ok: boolean; msg: string } {
+  const p = state.players[playerId]
+  const user = state.clubs[state.userClubId]
+  if (!p || !p.clubId || !user) return { ok: false, msg: 'Player unavailable.' }
+  if (p.clubId === user.id) return { ok: false, msg: 'Already your player.' }
+  if (p.contractEnds > state.season) return { ok: false, msg: 'He is under contract beyond this season.' }
+  if (state.week < 25) return { ok: false, msg: 'Pre-contract talks open from week 25.' }
+  state.preContracts ??= []
+  if (state.preContracts.some(pc => pc.playerId === p.id)) return { ok: false, msg: 'A pre-contract is already signed.' }
+  if (state.preContracts.filter(pc => pc.toClubId === user.id).length >= 3) {
+    return { ok: false, msg: 'Three pre-contracts already agreed - the board will not register more.' }
+  }
+  const wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50 // free-agent premium
+  if (capBill(state, user) + wage > user.wageBudget) {
+    return { ok: false, msg: `His terms (${fmtMoney(wage)}/wk) would break the wage budget.` }
+  }
+  const seller = state.clubs[p.clubId]
+  if (seller && user.rep < seller.rep - 12 && p.morale > 5) {
+    return { ok: false, msg: `${p.name} thanks you for the interest, but he is holding out for a bigger stage.` }
+  }
+  state.preContracts.push({ playerId: p.id, toClubId: user.id, week: state.week })
+  p.morale = clamp(p.morale + 0.5, 1, 10)
+  if (seller && p.ca >= 80) addGrudge(state, seller.id, user.id, `they signed ${p.name} on a pre-contract under our noses`)
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+    subject: `🖊 Pre-contract agreed: ${p.name}`,
+    body: `${p.name} (${p.pos}, ${p.age}) has signed a pre-contract with ${user.name}. He sees the season out at ${seller?.name ?? 'his club'}, then joins on a free at terms of ${fmtMoney(wage)}/week. ${seller ? `${seller.short} found out from the press release.` : ''}`,
+    playerId: p.id,
+  })
+  return { ok: true, msg: `${p.name} joins on a free this summer (${fmtMoney(wage)}/wk agreed).` }
+}
+
+/** From week 25, rivals circle the user's own expiring players: neglect a
+ *  renewal long enough and someone signs him for nothing. */
+export function aiPreContractPoach(state: GameState, rng: Rng) {
+  if (state.week < 25 || state.week > 38 || rng() > 0.12) return
+  const user = state.clubs[state.userClubId]
+  if (!user) return
+  state.preContracts ??= []
+  const exposed = user.players
+    .map(id => state.players[id])
+    .filter(Boolean)
+    .filter(p => p.contractEnds <= state.season && p.ca >= 76 && !p.loanFrom &&
+      !state.preContracts!.some(pc => pc.playerId === p.id))
+  if (!exposed.length) return
+  const p = pick(rng, exposed)
+  const suitors = Object.values(state.clubs).filter(c =>
+    c.id !== user.id && c.rep >= user.rep - 10 && rng() < 0.5)
+  const to = suitors[0]
+  if (!to) return
+  state.preContracts.push({ playerId: p.id, toClubId: to.id, week: state.week })
+  p.morale = clamp(p.morale + 0.5, 1, 10)
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+    subject: `💔 GAZUMPED: ${p.name} signs pre-contract with ${to.short}`,
+    body: `You left his renewal on the desk too long. ${p.name} has agreed a pre-contract with ${to.name} and will walk for nothing when the season ends. The deal is binding - there is no fee, no negotiation, and no way back.`,
+    playerId: p.id,
+  })
+}
+
 export function renewalDemand(p: Player): number {
   const persF = p.pers === 'Mercenary' ? 1.35 : p.pers === 'Loyal' ? 0.9 : p.pers === 'Ambitious' ? 1.15 : 1
   return Math.round((playerWage(p.ca, p.age) * 1.1 * persF) / 50) * 50
@@ -311,6 +386,9 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
   if (p.loanFrom) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
+  if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
+    return { ok: false, msg: `Too late - ${p.name} has already signed a pre-contract elsewhere. The deal is binding.` }
+  }
   const demand = renewalDemand(p)
   const marqueed = (user.marquee ?? []).includes(p.id)
   const squadWages = capBill(state, user)
@@ -366,7 +444,8 @@ export function aiRenewals(state: GameState, rng: Rng) {
     if (club.id === state.userClubId) continue
     for (const id of club.players) {
       const p = state.players[id]
-      if (p && p.contractEnds <= state.season && rng() < 0.75) {
+      if (p && p.contractEnds <= state.season && rng() < 0.75 &&
+        !(state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
         p.contractEnds = state.season + 1 + Math.floor(rng() * 2)
         p.wage = renewalDemand(p)
       }

@@ -239,6 +239,36 @@ function agePlayers(state: GameState, rng: Rng) {
 }
 
 function handleContracts(state: GameState, rng: Rng) {
+  // pre-contracts go through first: the moves were agreed in the spring
+  for (const pc of state.preContracts ?? []) {
+    const p = state.players[pc.playerId]
+    const to = state.clubs[pc.toClubId]
+    if (!p || !to || p.clubId === pc.toClubId) continue
+    const from = p.clubId ? state.clubs[p.clubId] : null
+    if (from) {
+      from.players = from.players.filter(id => id !== p.id)
+      from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
+      if (from.captain === p.id) from.captain = null
+      if (from.vice === p.id) from.vice = null
+    }
+    to.players.push(p.id)
+    p.clubId = to.id
+    p.wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50
+    p.contractEnds = state.season + 1 + (p.age < 30 ? 2 : 1)
+    p.morale = clamp(p.morale + 1, 1, 10)
+    p.transferListed = false
+    if (to.id === state.userClubId) { p.sc = 100; state.mgr.signings += 1 }
+    if (to.id === state.userClubId || from?.id === state.userClubId) {
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'transfer', read: false,
+        subject: `${p.name} joins ${to.name} on a free`,
+        body: `The pre-contract agreed in the spring goes through: ${p.name} arrives at ${to.name} for nothing, on ${fmtMoney(p.wage)}/week until ${2026 + p.contractEnds}. ${from ? `${from.short} watch a ${fmtMoney(p.value)} asset walk out the door.` : ''}`,
+        playerId: p.id,
+      })
+    }
+  }
+  state.preContracts = []
+
   const freed: Player[] = []
   for (const p of Object.values(state.players)) {
     if (p.clubId && p.contractEnds < state.season + 1) {

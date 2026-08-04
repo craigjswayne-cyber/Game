@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs } from '../../game/model'
-import { askingPrice, offerRenewalAt, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
+import { agreePreContract, askingPrice, offerRenewalAt, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
@@ -157,6 +157,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             🤝 <b>Promise made</b>
           </span>
         )}
+        {(() => {
+          const pc = (game.preContracts ?? []).find(x => x.playerId === p.id)
+          if (!pc) return null
+          const to = game.clubs[pc.toClubId]
+          const incoming = pc.toClubId === game.userClubId
+          return (
+            <span className="chip" style={{ borderColor: incoming ? 'var(--gold-bright)' : '#a12f2f' }}>
+              🖊 <b>Pre-contract: {to?.short ?? '?'}</b>
+            </span>
+          )
+        })()}
       </div>
 
       {(p.career.length > 0 || (p.hist?.apps ?? 0) > 0) && (
@@ -302,6 +313,13 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </button>
           {!bidding
             ? <>
+              {p.contractEnds <= game.season && game.week >= 25 && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
+                <button className="btn gold block" onClick={() => {
+                  setMsg(agreePreContract(game, p.id).msg); touch()
+                }}>
+                  🖊 Agree pre-contract - free this summer
+                </button>
+              )}
               <button className="btn gold block" onClick={() => {
                 const r = userBid(game, p.id, ask)
                 setMsg(r.msg); setCounter(r.counter ?? null); touch()
