@@ -2,7 +2,7 @@ import type { Competition, Fixture, GameState, Player, TableRow } from './model'
 import { addGrudge, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
-import { aiRenewals, aiTransfers } from './ai'
+import { aiRenewals, aiTransfers, askingPrice } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
@@ -642,6 +642,30 @@ export function processWeekAndAdvance(state: GameState) {
       fx.tableApplied = true
     }
   }
+  // DEADLINE DAY: the last week of each window is a circus — panic
+  // listings appear at cut prices and nobody's star is safe
+  if ((state.week === 4 || state.week === 24) && !state.unemployed) {
+    const bargains: string[] = []
+    const pool = Object.values(state.players).filter(p =>
+      p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId] &&
+      !p.transferListed && !p.onLoan && !p.loanFrom && !p.injury &&
+      p.ca >= 70 && p.ca <= 84 && p.age >= 24)
+    for (let k = 0; k < 3 && pool.length; k++) {
+      const p = pool.splice(Math.floor(rng() * pool.length), 1)[0]
+      p.transferListed = true
+      bargains.push(`${p.name} (${p.pos}, ${state.clubs[p.clubId!]?.short}) — ${fmtMoney(askingPrice(state, p))}`)
+    }
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+      subject: `🚨 DEADLINE DAY — the window slams shut this week`,
+      body: [
+        `Phones are running hot across the league. Clubs are cutting prices to move bodies before the deadline${bargains.length ? ':' : '.'}`,
+        ...bargains.map(b => `• ${b}`),
+        `Move fast if you're buying — and don't be shocked if someone comes for one of yours before midnight.`,
+      ].join('\n'),
+    })
+  }
+
   // monthly awards in the user's league: every four weeks the league names
   // its player and manager of the month — small prizes, big feelings
   if (state.week % 4 === 0 && !state.unemployed) {

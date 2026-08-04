@@ -102,8 +102,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (seller && rng() < 0.75) executeTransfer(state, p, buyer.id, fee)
   }
 
-  // occasional AI bid for a user player (more likely if unsettled/listed)
-  if (rng() < 0.3) {
+  // occasional AI bid for a user player (more likely if unsettled/listed;
+  // deadline day nearly doubles the vultures)
+  if (rng() < (deadline ? 0.55 : 0.3)) {
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
     const wanted = squad.filter(p => !p.loanFrom).filter(p => p.transferListed || p.morale <= 4 ||
