@@ -574,11 +574,34 @@ function replenishSquads(state: GameState, rng: Rng) {
   }
 }
 
+/** The year's best moment, replayed: the try judged most dramatic at the
+ *  whistle all season gets its own award night, commentary line and all. */
+function tryOfTheSeason(state: GameState) {
+  const t = state.tryOfSeason
+  state.tryOfSeason = null
+  if (!t || t.season !== state.season) return
+  const scorer = state.players[t.playerId]
+  const club = state.clubs[state.userClubId]
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+    subject: `🏉 Try of the Season: ${t.name}`,
+    body: [
+      `The supporters' vote was not close. ${t.name}'s ${ordinal(t.min)}-minute score against ${t.opp} is the ${club.name} Try of the Season.`,
+      `As it sounded at the time: "${t.text}"`,
+      scorer && scorer.clubId === state.userClubId
+        ? `He collects the award at the end-of-season dinner to the loudest cheer of the night.`
+        : `He is not at the club to collect it, which makes the ovation longer, not shorter.`,
+    ].join('\n'),
+    playerId: t.playerId,
+  })
+}
+
 /** Full end-of-season rollover into a fresh campaign. */
 export function rebuildSeason(state: GameState) {
   const rng = mulberry32(state.seed ^ ((state.season + 1) * 60013))
 
   seasonAwards(state)
+  tryOfTheSeason(state)
   worldPlayerOfTheYear(state)
   settleRecords(state)
 
