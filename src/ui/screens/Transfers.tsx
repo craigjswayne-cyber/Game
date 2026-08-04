@@ -48,6 +48,22 @@ export default function Transfers() {
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
 
+      <div className="card">
+        <div className="fact-label">Scouting Assignment</div>
+        <div className="meta" style={{ marginBottom: 6 }}>
+          Point the network at one league — its players get watched every week
+          {game.scoutFocus ? '' : ' (currently unassigned)'}. Shortlisted men are always tracked, with alerts when their situation changes.
+        </div>
+        <div className="chips" style={{ padding: 0 }}>
+          {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+            <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
+              style={game.scoutFocus === c.id ? { borderColor: 'var(--gold-bright)', color: 'var(--accent-ink)', fontWeight: 700 } : undefined}>
+              {game.scoutFocus === c.id ? '🔭 ' : ''}{c.short}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {offers.length > 0 && (
         <>
           <SectionTitle>Offers For Your Players</SectionTitle>

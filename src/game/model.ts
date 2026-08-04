@@ -445,6 +445,10 @@ export interface GameState {
   fanMood?: number
   /** the game's Hall of Fame: careers immortalised at retirement */
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
+  /** league the scouting network is assigned to watch weekly */
+  scoutFocus?: string | null
+  /** shortlist players already alerted about this season */
+  slAlerted?: number[]
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }

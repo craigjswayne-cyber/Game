@@ -66,6 +66,33 @@ export function weeklyScouting(state: GameState) {
       }
     }
   }
+  // the network's assignment: a focus league gets eyes every single week
+  if (state.scoutFocus && state.comps[state.scoutFocus]) {
+    for (const p of Object.values(state.players)) {
+      if (p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId]?.leagueId === state.scoutFocus) {
+        bumpKnowledge(p, 2 + scoutLvl * 1.5)
+      }
+    }
+  }
+  // shortlist alerts: the scouts ring when a target's situation changes
+  state.slAlerted ??= []
+  for (const id of state.shortlist) {
+    const p = state.players[id]
+    if (!p || !p.clubId || p.clubId === state.userClubId || state.slAlerted.includes(id)) continue
+    const alert = p.transferListed ? `has been TRANSFER LISTED by ${state.clubs[p.clubId]?.short}. He can be had cheap — move before someone else does.`
+      : p.contractEnds <= state.season ? `is out of contract this summer. ${state.clubs[p.clubId]?.short} haven't tied him down — a free transfer in the making.`
+      : p.form >= 8.2 ? `is in the form of his life (${p.form.toFixed(1)}). His price is climbing by the week.`
+      : null
+    if (alert) {
+      state.slAlerted.push(id)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+        subject: `🔔 Shortlist alert: ${p.name}`,
+        body: `The chief scout rings it in: ${p.name} (${p.pos}, ${state.clubs[p.clubId]?.short}) ${alert}`,
+        playerId: p.id,
+      })
+    }
+  }
 }
 
 /** Facing a team teaches you plenty about their matchday squad. */
