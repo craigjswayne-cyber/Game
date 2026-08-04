@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, grudgeBetween, inRedZone, oldBoyApps } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, fmtMoney, grudgeBetween, inRedZone, oldBoyApps } from './model'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
@@ -617,6 +617,8 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // a live count, never a round sell-out figure twice
     const jitter = Math.floor(rng() * Math.max(60, hostClub.capacity * 0.012))
     fx.att = Math.max(400, Math.round(hostClub.capacity * interest) - jitter)
+    // a testimonial packs the ground whatever the fixture list says
+    if (fx.testimonial != null) fx.att = Math.max(fx.att, hostClub.capacity - jitter)
   }
 
   // every match started together deepens a partnership (counted at kick-off,
@@ -658,6 +660,12 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const mood = state.fanMood ?? 60
     if (mood >= 80) pushEvent(state, ctx, 1, 'SUB', home, `The ground is absolutely bouncing - the supporters are in full voice before a ball is kicked.`)
     else if (mood <= 30) pushEvent(state, ctx, 1, 'SUB', home, `A flat, edgy atmosphere. The crowd is waiting to be given a reason.`)
+  }
+  if (fx.testimonial != null && state.players[fx.testimonial]) {
+    const hero = state.players[fx.testimonial]
+    pushEvent(state, ctx, 1, 'SUB', home,
+      `${hero.name}'s testimonial. He leads the teams out with his kids at his side, the ground on its feet, scarves above every head. Then the whistle blows and it is a rugby match again.`,
+      hero.id)
   }
   if (returnee && returneeApps >= 10) {
     const exSide = home.exIds.has(returnee.id) ? home : away
@@ -739,6 +747,9 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? tryPool[Math.floor(rng() * tryPool.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
   if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} - some campaign he's having.`, scorer.id)
+  } else if (scorer && ctx.detail && scorer.id === ctx.fx.testimonial) {
+    pushEvent(state, ctx, min + 1, 'SUB', side, `Of all the people. ${scorer.name} scores at his own testimonial and the ground refuses to sit down. Write the script yourself - you could not do better.`, scorer.id)
+    side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.3)
   } else if (scorer && ctx.detail && side.exIds.has(scorer.id) && rng() < 0.75) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `No celebration from ${scorer.name} against his old club - hands raised in apology, but the damage is done.`, scorer.id)
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.2)
@@ -1255,6 +1266,28 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent
   if (totalCards >= 5 && state.clubs[fx.homeId] && state.clubs[fx.awayId] && !isDerby(fx.homeId, fx.awayId)) {
     addGrudge(state, fx.homeId, fx.awayId, `the last meeting boiled over - ${totalCards} cards and a tunnel full of pushing`, 1)
+  }
+
+  // the testimonial's morning after: the gate goes to the club, the day
+  // goes into club folklore
+  if (fx.testimonial != null && fx.homeId === state.userClubId) {
+    const hero = state.players[fx.testimonial]
+    const club = state.clubs[fx.homeId]
+    if (hero && club && fx.att) {
+      const gate = fx.att * 30
+      club.balance += gate
+      for (const id of club.players) {
+        const tm = state.players[id]
+        if (tm) tm.morale = clamp(tm.morale + 0.4, 1, 10)
+      }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: `🎗 ${hero.name}'s testimonial: ${fx.att.toLocaleString()} say thank you`,
+        body: `${club.stadium} was full for ${hero.name}'s testimonial${hero.name && ctx.events.some(e => e.type === 'TRY' && e.playerId === hero.id) ? ' - and he scored, because of course he did' : ''}. The gate receipts (${fmtMoney(gate)}) go to the club at his insistence. One season left in the shirt: make it a good one.`,
+        playerId: hero.id,
+        fixtureId: fx.id,
+      })
+    }
   }
 
   // an old boy coming back to haunt the user's club makes the back page

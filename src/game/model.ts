@@ -199,6 +199,8 @@ export interface Player {
   wantsDeal?: number
   /** the current injury has already had its specialist consult */
   specialist?: boolean
+  /** playing his farewell season: testimonial granted, retires in summer */
+  farewell?: boolean
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
   /** parent club when this player is on loan AT the user's club */
@@ -267,6 +269,8 @@ export interface Fixture {
   motm?: number
   weather?: Weather
   derby?: boolean
+  /** this friendly is a testimonial for the named player - his day */
+  testimonial?: number
 }
 
 export interface TableRow {
