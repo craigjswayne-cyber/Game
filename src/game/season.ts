@@ -431,7 +431,9 @@ function weeklyTraining(state: GameState, rng: Rng) {
         p.sharp = 40
         // a spell of match rust: playable, but rushing him back risks re-injury
         p.rust = weeksOut >= 8 ? 3 : weeksOut >= 3 ? 2 : 1
-        if (isUser) {
+        // academy returns are the academy coach's business - the first-team
+        // inbox only hears about players the gaffer might actually pick
+        if (isUser && !p.acad) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
             subject: `${p.name} back in training`,
