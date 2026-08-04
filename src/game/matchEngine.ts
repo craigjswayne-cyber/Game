@@ -1045,7 +1045,7 @@ export function playHalf(state: GameState, ctx: LiveCtx) {
 }
 
 /** Pre-match dressing-room speech. One per match, chosen before kick-off. */
-export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy'): string {
+export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fire' | 'underdog' | 'expect'): string {
   if (ctx.preTalk) return 'The speech has been made.'
   ctx.preTalk = kind
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
@@ -1053,12 +1053,12 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
   const favourites = mine.units.overall >= opp.units.overall
   switch (kind) {
     case 'calm':
-      mine.units.defence *= 1.05
-      mine.cardRisk *= 0.82
+      mine.units.defence *= 1.06
+      mine.cardRisk *= 0.78
       return 'Cool heads. You walk them through the first twenty minutes — no panic, no cheap penalties.'
     case 'fire':
-      mine.units.attack *= 1.06
-      mine.units.breakdown *= 1.04
+      mine.units.attack *= 1.07
+      mine.units.breakdown *= 1.05
       mine.cardRisk *= 1.28
       return 'The door rattles on its hinges. They leave the shed snorting — expect fireworks, and watch the referee.'
     case 'underdog':
@@ -1081,10 +1081,6 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
       }
       mine.units.defence *= 0.96
       return 'You demand a win few expect. One or two shoulders tighten — the pressure lands badly.'
-    case 'enjoy':
-      mine.units.attack *= 1.03
-      mine.cardRisk *= 0.92
-      return `"Go and enjoy it." Smiles in the shed. Loose, confident — sometimes that's everything.`
   }
 }
 

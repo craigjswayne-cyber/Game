@@ -40,11 +40,10 @@ export default function MatchDay() {
 // ------------------------------------------------------------------
 
 const SPEECHES = [
-  { id: 'calm', icon: '🧊', name: 'Calm the nerves', desc: 'No panic, no cheap penalties. Solid start.' },
-  { id: 'fire', icon: '🔥', name: 'Light the fuse', desc: 'Fly out of the blocks — but watch the ref.' },
-  { id: 'underdog', icon: '🐺', name: 'Nobody rates us', desc: 'Best when you\'re written off. Shackles off.' },
-  { id: 'expect', icon: '👑', name: 'I expect a win', desc: 'Demand standards. Big if it lands, risky if not.' },
-  { id: 'enjoy', icon: '😄', name: 'Go and enjoy it', desc: 'Loose and confident. Small, safe lift.' },
+  { id: 'calm', icon: '🧊', name: 'Calm the nerves', desc: 'Defence up, discipline up. Solid start.' },
+  { id: 'fire', icon: '🔥', name: 'Light the fuse', desc: 'Attack & breakdown up — but cards loom.' },
+  { id: 'underdog', icon: '🐺', name: 'Nobody rates us', desc: 'Big lift when written off; flat if you\'re favourites.' },
+  { id: 'expect', icon: '👑', name: 'I expect a win', desc: 'Standards. Lands when strongest; risky otherwise.' },
 ] as const
 type SpeechId = typeof SPEECHES[number]['id']
 
@@ -57,6 +56,7 @@ function Preview({ fxId }: { fxId: number }) {
   const [sel, setSel] = useState<number | null>(null)
   const [confirm, setConfirm] = useState(false)
   const [planApplied, setPlanApplied] = useState(false)
+  const [ptab, setPtab] = useState<'brief' | 'team' | 'talk'>('team')
 
   const fx = game.fixtures.find(f => f.id === fxId)!
   const comp = game.comps[fx.compId]
@@ -334,6 +334,13 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
         </div>
 
+        <div className="tab-bar" style={{ marginTop: 4 }}>
+          <button className={ptab === 'brief' ? 'active' : ''} onClick={() => setPtab('brief')}>Briefing</button>
+          <button className={ptab === 'team' ? 'active' : ''} onClick={() => setPtab('team')}>Team</button>
+          <button className={ptab === 'talk' ? 'active' : ''} onClick={() => setPtab('talk')}>Talk{speech ? ' ✓' : ''}</button>
+        </div>
+
+        {ptab === 'brief' && <>
         {(() => {
           const danger = oppLineup.slice(0, 15)
             .map(id => id != null ? game.players[id] : null)
@@ -468,7 +475,9 @@ function Preview({ fxId }: { fxId: number }) {
             </>
           )
         })()}
+        </>}
 
+        {ptab === 'team' && <>
         {rotWindow && rotFlagged.length >= 2 && (
           <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
             <div className="fact-label">Assistant's Rotation Plan</div>
@@ -492,7 +501,9 @@ function Preview({ fxId }: { fxId: number }) {
         <div className="tblwrap">
           <table className="dtable"><tbody>{BENCH_SLOTS.map((_, i) => renderSlot(15 + i))}</tbody></table>
         </div>
+        </>}
 
+        {ptab === 'talk' && <>
         <SectionTitle sub="one speech, choose the tone">Dressing Room</SectionTitle>
         <div className="speech-grid">
           {SPEECHES.map(s => (
@@ -504,6 +515,7 @@ function Preview({ fxId }: { fxId: number }) {
             </button>
           ))}
         </div>
+        </>}
 
         <div className="btn-row" style={{ marginTop: 10 }}>
           <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={() => setConfirm(true)}>
