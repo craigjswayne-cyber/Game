@@ -201,6 +201,8 @@ export interface Player {
   specialist?: boolean
   /** playing his farewell season: testimonial granted, retires in summer */
   farewell?: boolean
+  /** World Player of the Year awards won */
+  poty?: number
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
   /** parent club when this player is on loan AT the user's club */
