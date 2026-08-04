@@ -1,11 +1,15 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
-import { STAFF_INFO, inRedZone, type Player } from '../../game/model'
+import { STAFF_INFO, fmtMoney, inRedZone, type Player } from '../../game/model'
+import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { PosBadge, SectionTitle } from '../components'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
+  const touch = useStore.getState().touch
+  const [msg, setMsg] = useState('')
   const club = game.clubs[game.userClubId]
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p)
 
@@ -48,9 +52,17 @@ export default function Medical() {
         </div>
       </div>
 
-      {section('Treatment Room', 'ruled out — cannot be selected', injured, p => (
+      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
+
+      {section('Treatment Room', `ruled out — a specialist consult (${fmtMoney(SPECIALIST_FEE)}) can shorten a long lay-off`, injured, p => (
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>
           {p.injury!.desc} · {Math.max(1, p.injury!.until - game.week)}w
+          {!p.specialist && p.injury!.until - game.week >= 3 && (
+            <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+              onClick={e => { e.stopPropagation(); setMsg(specialistConsult(game, p.id)); touch() }}>
+              🩺 Specialist
+            </button>
+          )}
         </span>
       ))}
 
@@ -58,8 +70,16 @@ export default function Medical() {
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>🔋 {p.stats.mins}′ this season</span>
       ))}
 
-      {section('Returning from Injury', 'playable, but a rushed return risks a breakdown', rusty, p => (
-        <span style={{ color: '#a8841a', fontWeight: 700, fontSize: 12 }}>⚠ RUSTY {p.rust}w</span>
+      {section('Returning from Injury', 'playable, but a rushed return risks a breakdown · one man a week can be wrapped in cotton wool', rusty, p => (
+        <span style={{ color: '#a8841a', fontWeight: 700, fontSize: 12 }}>
+          ⚠ RUSTY {p.rust}w
+          {game.cottonWk !== game.season * 100 + game.week && (
+            <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+              onClick={e => { e.stopPropagation(); setMsg(cottonWool(game, p.id)); touch() }}>
+              🛌 Cotton wool
+            </button>
+          )}
+        </span>
       ))}
 
       {section('Suspended', 'serving bans', banned, p => (

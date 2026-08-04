@@ -181,6 +181,8 @@ export interface Player {
   talkWk?: number // absolute week (season*100+week) of the manager's last word with him
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number
+  /** the current injury has already had its specialist consult */
+  specialist?: boolean
   /** in the academy squad — hidden from first-team auto-selection until promoted */
   acad?: boolean
   /** parent club when this player is on loan AT the user's club */
@@ -449,6 +451,8 @@ export interface GameState {
   scoutFocus?: string | null
   /** shortlist players already alerted about this season */
   slAlerted?: number[]
+  /** absolute week (season*100+week) the cotton-wool pick was last used */
+  cottonWk?: number
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
 }
