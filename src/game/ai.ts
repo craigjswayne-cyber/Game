@@ -172,7 +172,16 @@ export function aiTransfers(state: GameState, rng: Rng) {
 }
 
 /** User bids for a player: returns a result message; executes if accepted. */
-export function userBid(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
+/** The wage the player's camp opens personal terms at. */
+export function personalTermsDemand(state: GameState, p: Player): number {
+  const user = state.clubs[state.userClubId]
+  const seller = p.clubId ? state.clubs[p.clubId] : null
+  return Math.round(playerWage(p.ca, p.age) * (seller && user.rep < seller.rep ? 1.2 : 1))
+}
+
+/** Stage 1 of the 8D bid flow: agree the FEE only - nothing is signed
+ *  until personal terms are done. */
+export function agreeFee(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
@@ -185,22 +194,57 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
   // "reject £1.7m, but they'd do business at £1.7m"
   const counterPrice = Math.min(ask, Math.ceil((ask * 0.97) / 100_000) * 100_000)
   if (fee >= Math.min(ask, counterPrice - 50_000)) {
-    const wage = Math.round(playerWage(p.ca, p.age) * (user.rep >= seller.rep ? 1 : 1.2))
-    const squadWages = capBill(state, user)
-    if (squadWages + wage > user.wageBudget) {
-      return { ok: false, msg: `${seller.short} accept, but his wage demands (${fmtMoney(wage)}/wk) would break your wage budget.` }
-    }
     if (user.rep < seller.rep - 12 && p.morale > 5 && !p.transferListed) {
-      return { ok: false, msg: `${seller.short} accepted your bid, but ${p.name} rejected the move - the club couldn't convince him.` }
+      return { ok: false, msg: `${seller.short} accepted your bid, but ${p.name} won't discuss terms - the club couldn't convince him.` }
     }
-    executeTransfer(state, p, user.id, fee)
-    p.wage = wage
-    return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} (${fmtMoney(wage)}/wk).` }
+    return { ok: true, msg: `Fee agreed at ${fmtMoney(fee)}. Now agree personal terms with ${p.name}'s camp.` }
   }
   if (fee >= ask * 0.78) {
     return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.`, counter: counterPrice }
   }
   return { ok: false, msg: `${seller.short} reject the bid. They value ${p.name} at around ${fmtMoney(ask)}.` }
+}
+
+/** Stage 2: personal terms. A signing bonus and a first-team promise both
+ *  soften the wage his camp will take - the promise is a real pledge and
+ *  he will hold you to it. */
+export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean): { ok: boolean; msg: string } {
+  const p = state.players[playerId]
+  const user = state.clubs[state.userClubId]
+  if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
+  const seller = state.clubs[p.clubId]
+  if (fee + signOn > user.budget) return { ok: false, msg: 'Fee plus signing bonus exceeds your transfer budget.' }
+  const demand = personalTermsDemand(state, p)
+  const squadWages = capBill(state, user)
+  if (squadWages + wage > user.wageBudget) {
+    return { ok: false, msg: `Those wages (${fmtMoney(wage)}/wk) would break your wage budget.` }
+  }
+  const sweet = signOn >= demand * 8 ? 0.06 : signOn >= demand * 4 ? 0.03 : 0
+  const floor = Math.round(demand * (1 - sweet - (promiseMinutes ? 0.05 : 0)))
+  if (wage < floor) {
+    return {
+      ok: false,
+      msg: `${p.name}'s camp shake their heads. They opened at £${demand.toLocaleString()}/wk${signOn > 0 || promiseMinutes ? ` and your extras only soften that so far - they need at least £${floor.toLocaleString()}/wk on this package` : ' - a signing bonus or a first-team promise would soften that'}.`,
+    }
+  }
+  executeTransfer(state, p, user.id, fee)
+  p.wage = wage
+  user.balance -= signOn
+  if (promiseMinutes) {
+    ;(state.pledges ??= []).push({
+      playerId: p.id, kind: 'plans', week: state.week, season: state.season,
+      due: Math.min(state.week + 6, 44), baseApps: p.stats.apps,
+    })
+  }
+  return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} fee, £${wage.toLocaleString()}/wk${signOn > 0 ? `, ${fmtMoney(signOn)} signing bonus` : ''}${promiseMinutes ? ', first-team rugby promised' : ''}.` }
+}
+
+/** Legacy one-shot bid: agree the fee and sign at his demanded wage. */
+export function userBid(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
+  const agreed = agreeFee(state, playerId, fee)
+  if (!agreed.ok) return agreed
+  const p = state.players[playerId]!
+  return { ...signOnTerms(state, playerId, fee, personalTermsDemand(state, p), 0, false) }
 }
 
 /** Demand more for a player an AI club has bid on. They may pay up or walk. */

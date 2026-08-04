@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs } from '../../game/model'
-import { agreePreContract, askingPrice, offerRenewalAt, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
@@ -14,6 +14,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [bidding, setBidding] = useState(false)
   const [bid, setBid] = useState(0)
   const [counter, setCounter] = useState<number | null>(null)
+  // stage 2 of the 8D flow: fee agreed, personal terms on the table
+  const [termsFee, setTermsFee] = useState<number | null>(null)
+  const [wage, setWage] = useState(0)
+  const [signOn, setSignOn] = useState(0)
+  const [promiseMin, setPromiseMin] = useState(false)
   const [negotiating, setNegotiating] = useState(false)
   const [wageOffer, setWageOffer] = useState(0)
   const [wageCounter, setWageCounter] = useState<number | null>(null)
@@ -222,11 +227,45 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {msg}
         {counter != null && (
           <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
-            const r = userBid(game, p.id, counter)
-            setMsg(r.msg); setCounter(r.counter ?? null); touch()
+            const r = agreeFee(game, p.id, counter)
+            setMsg(r.msg); setCounter(r.counter ?? null)
+            if (r.ok) { setTermsFee(counter); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
+            touch()
           }}>Meet their price ({fmtMoney(counter)})</button>
         )}
       </div>}
+
+      {termsFee != null && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+          <h3 style={{ fontSize: 15 }}>✍️ Personal terms - fee agreed at {fmtMoney(termsFee)}</h3>
+          <div className="meta" style={{ margin: '4px 0' }}>His camp opens at <b>£{personalTermsDemand(game, p).toLocaleString()}/wk</b>. A signing bonus or a first-team promise softens the wage.</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
+            <span className="fact-label" style={{ width: 84 }}>Wage /wk</span>
+            <button className="btn ghost" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
+            <b style={{ minWidth: 76, textAlign: 'center' }}>£{wage.toLocaleString()}</b>
+            <button className="btn ghost" onClick={() => { setWage(wage + 500) }}>+</button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
+            <span className="fact-label" style={{ width: 84 }}>Sign-on</span>
+            <button className="btn ghost" onClick={() => { setSignOn(Math.max(0, signOn - 25_000)) }}>−</button>
+            <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtMoney(signOn)}</b>
+            <button className="btn ghost" onClick={() => { setSignOn(signOn + 25_000) }}>+</button>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 13 }}>
+            <input type="checkbox" checked={promiseMin} onChange={e => setPromiseMin(e.target.checked)} />
+            Promise first-team rugby (a real pledge - he will hold you to it)
+          </label>
+          <div className="btn-row" style={{ marginTop: 8 }}>
+            <button className="btn ghost" onClick={() => { setTermsFee(null); setMsg('You walk away from the table. The fee agreement lapses.') }}>Walk away</button>
+            <button className="btn gold" style={{ flex: 1.6 }} onClick={() => {
+              const r = signOnTerms(game, p.id, termsFee, wage, signOn, promiseMin)
+              setMsg(r.msg)
+              if (r.ok) setTermsFee(null)
+              touch()
+            }}>✍️ Agree terms</button>
+          </div>
+        </div>
+      )}
 
       {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
         <button className="btn ghost block" onClick={() => {
@@ -333,8 +372,10 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 </button>
               )}
               <button className="btn gold block" onClick={() => {
-                const r = userBid(game, p.id, ask)
-                setMsg(r.msg); setCounter(r.counter ?? null); touch()
+                const r = agreeFee(game, p.id, ask)
+                setMsg(r.msg); setCounter(r.counter ?? null)
+                if (r.ok) { setTermsFee(ask); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
+                touch()
               }}>
                 ⚡ Offer asking price ({fmtMoney(ask)})
               </button>
@@ -344,16 +385,23 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             </>
             : (
               <div className="card">
-                <h3>Your offer to {club.short}</h3>
-                <input className="inline-input" type="number" value={bid} step={50000} min={0}
-                  onChange={e => setBid(Number(e.target.value))} />
-                <div className="muted">Budget: {fmtMoney(game.clubs[game.userClubId].budget)}</div>
-                <div className="btn-row" style={{ margin: '10px 0 0' }}>
-                  <button className="btn gold" onClick={() => {
-                    const r = userBid(game, p.id, bid)
-                    setMsg(r.msg); setCounter(r.counter ?? null); setBidding(false); touch()
-                  }}>Submit Bid</button>
+                <h3 style={{ fontSize: 15 }}>Your offer to {club.short}</h3>
+                <div className="meta">Asking price {fmtMoney(ask)} · your budget {fmtMoney(game.clubs[game.userClubId].budget)}</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 0' }}>
+                  <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 500_000))}>−500k</button>
+                  <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 100_000))}>−100k</button>
+                  <b style={{ minWidth: 88, textAlign: 'center', fontSize: 16 }}>{fmtMoney(bid)}</b>
+                  <button className="btn ghost" onClick={() => setBid(bid + 100_000)}>+100k</button>
+                  <button className="btn ghost" onClick={() => setBid(bid + 500_000)}>+500k</button>
+                </div>
+                <div className="btn-row">
                   <button className="btn ghost" onClick={() => setBidding(false)}>Cancel</button>
+                  <button className="btn gold" style={{ flex: 1.6 }} onClick={() => {
+                    const r = agreeFee(game, p.id, bid)
+                    setMsg(r.msg); setCounter(r.counter ?? null); setBidding(false)
+                    if (r.ok) { setTermsFee(bid); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
+                    touch()
+                  }}>Submit Bid</button>
                 </div>
               </div>
             )}
