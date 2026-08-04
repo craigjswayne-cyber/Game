@@ -55,6 +55,8 @@ let farewells = 0, milestoneNews = 0, totsAwards = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
 let taps = 0, brokenVows = 0, courtPressers = 0
 let hearings = 0, appealsWon = 0, appealsLost = 0
+// news pressure: how many items land in the inbox per week (EA v2, permanent)
+const weeklyNews: number[] = []
 // selection quality: starters wearing a shirt they cannot naturally cover.
 // Nonzero is fine in an injury crisis; a high rate means autoSelect regressed
 let oopStarts = 0, startSamples = 0
@@ -138,9 +140,11 @@ for (let season = 0; season < 20; season++) {
       }
     }
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, Math.floor(Math.random() * 0) )
+    let newThisWeek = 0
     for (const n of g.news) {
       if (seen.has(n.id)) continue
       seen.add(n.id)
+      newThisWeek++
       prose(`news s${g.season}w${g.week}`, n.subject)
       prose(`news body s${g.season}w${g.week}`, n.body)
       if (n.subject.includes('The last dance')) farewells++
@@ -162,6 +166,7 @@ for (let season = 0; season < 20; season++) {
         milestoneSubjects.set(n.subject, (milestoneSubjects.get(n.subject) ?? 0) + 1)
       }
     }
+    weeklyNews.push(newThisWeek)
     // capture the season's medical/disciplinary totals before rollover wipes stats
     if (g.week === SEASON_WEEKS) {
       const ps = Object.values(g.players)
@@ -222,6 +227,15 @@ if (totsAwards < 10) console.log('WARN: try of the season fired under 10 times i
 console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
 console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
 console.log(`disciplinary hearings: ${hearings} · appeals won ${appealsWon} · lost ${appealsLost}`)
+{
+  const sorted = [...weeklyNews].sort((a, b) => a - b)
+  const mean = weeklyNews.reduce((s, x) => s + x, 0) / Math.max(1, weeklyNews.length)
+  const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0
+  const max = sorted[sorted.length - 1] ?? 0
+  console.log(`news pressure: mean ${mean.toFixed(1)}/wk · p95 ${p95} · max ${max}`)
+  if (mean > 10) console.log('WARN: inbox spam - mean news volume over 10 items a week')
+  if (p95 > 22) console.log('WARN: inbox spike weeks - p95 news volume over 22')
+}
 if (appealsWon + appealsLost > hearings) console.log('WARN: appeal verdicts without a hearing')
 if (courtPressers > taps) console.log('WARN: courtship presser fired without a tap')
 if (brokenVows > 0) console.log('WARN: broken-vow story in a save where the manager never moved')
