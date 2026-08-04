@@ -3,7 +3,7 @@ import { boardObjective, emptyStats, fmtMoney, isWorldCupSeason, seasonLabel, XV
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
-import { LEAGUE_DEFS } from './newgame'
+import { CHALLENGES, LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { objectiveById, pickObjectives } from './objectives'
@@ -1109,4 +1109,34 @@ export function rebuildSeason(state: GameState) {
 
   punditPredictions(state, rng)
   state.tryOfSeason = null // the new season starts its own reel
+  challengeCheck(state)
+}
+
+/** Scripted challenges are won at a season's end, and the game says so. */
+function challengeCheck(state: GameState) {
+  const ch = state.challenge
+  if (!ch) return
+  const uid = state.userClubId
+  const prev = state.season - 1 // the season just completed
+  const wonEver = (compId: string) => state.history.some(h => h.champion === uid && h.compId === compId)
+  const done =
+    ch === 'sapiac' ? uid === 'montauban' && state.clubs[uid]?.leagueId === 'top14'
+    : ch === 'redbull' ? uid === 'newcastle' && state.history.some(h => h.season === prev && h.compId === 'prem' && h.champion === uid)
+    : ch === 'dynasty' ? uid === 'munster' && wonEver('urc') && wonEver('cc')
+    : ch === 'pirates' ? uid === 'pirates' && state.clubs[uid]?.leagueId === 'prem'
+    : false
+  if (!done) return
+  state.challenge = undefined
+  ;(state.challengesDone ??= []).push(ch)
+  const title = CHALLENGES.find(c => c.id === ch)?.title ?? ch
+  const line =
+    ch === 'sapiac' ? 'Montauban stay in the Top 14. Sapiac is safe, and the Tarn-et-Garonne will sing your name for a generation.'
+    : ch === 'redbull' ? 'Newcastle are champions of England. From bottom-four squad to the summit - the project is complete.'
+    : ch === 'dynasty' ? 'The URC and the Champions Cup both live at Thomond Park now. The dynasty is broken, and it broke on your watch.'
+    : 'Penzance to the Premiership. Cornwall has a top-flight club at last, and it is yours.'
+  state.news.push({
+    id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
+    subject: `🏅 CHALLENGE COMPLETE: ${title}`,
+    body: `${line}\n\nThe badge goes on your profile, forever. Whatever happens next, nobody can take this one away.`,
+  })
 }

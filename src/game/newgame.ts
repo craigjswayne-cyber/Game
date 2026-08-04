@@ -105,7 +105,22 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
   const seenNames = new Set<string>()
 
-  for (const def of LEAGUE_DEFS()) {
+  // the Sapiac challenge's premise is that Montauban ARE in the Top 14 -
+  // make it true at boot: they come up, the weakest Top 14 side goes down
+  const defs = LEAGUE_DEFS()
+  if (challengeId === 'sapiac') {
+    const top14 = defs.find(d => d.id === 'top14')
+    const prod2 = defs.find(d => d.id === 'prod2')
+    const mont = prod2?.clubs.find(c => c.id === 'montauban')
+    if (top14 && prod2 && mont) {
+      // copy, never splice: the defs' inner arrays may be shared module state
+      const weakest = [...top14.clubs].sort((a, b) => a.rep - b.rep)[0]
+      top14.clubs = [...top14.clubs.filter(c => c.id !== weakest.id), mont]
+      prod2.clubs = [...prod2.clubs.filter(c => c.id !== 'montauban'), weakest]
+    }
+  }
+
+  for (const def of defs) {
     for (const rc of def.clubs) {
       const club: Club = {
         id: rc.id, name: rc.name, short: rc.short, city: rc.city,
@@ -208,8 +223,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     })
   }
 
-  // competitions
-  for (const def of LEAGUE_DEFS()) {
+  // competitions (same defs as above so a challenge swap carries through)
+  for (const def of defs) {
     const teamIds = def.clubs.map(c => c.id)
     state.comps[def.id] = buildLeague(
       { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams },

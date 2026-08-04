@@ -142,6 +142,10 @@ function audit(g: GameState, tag: string) {
     if (p.retiring && p.age < 37) bad(`${tag} retiring flag on ${p.name}, only ${p.age}`)
   }
   if ((g.courtedAt ?? 0) > g.season * 100 + g.week) bad(`${tag} courtedAt in the future`)
+  for (const id of [g.challenge, ...(g.challengesDone ?? [])]) {
+    if (id && !CHALLENGES.some(c => c.id === id)) bad(`${tag} unknown challenge id ${id}`)
+  }
+  if (g.challenge && (g.challengesDone ?? []).includes(g.challenge)) bad(`${tag} challenge both live and done: ${g.challenge}`)
   if (g.tryOfSeason) {
     if (g.tryOfSeason.season !== g.season) bad(`${tag} tryOfSeason from season ${g.tryOfSeason.season}, not cleared at rollover`)
     if (!(g.tryOfSeason.min >= 1 && g.tryOfSeason.min <= 85)) bad(`${tag} tryOfSeason minute ${g.tryOfSeason.min}`)
@@ -199,6 +203,7 @@ import { CHALLENGES } from '../src/game/newgame'
 for (const ch of CHALLENGES) {
   const cg = newGame(ch.clubId, 'Boot Check', 4242, ch.id)
   if (cg.userClubId !== ch.clubId) bad(`challenge ${ch.id} booted at ${cg.userClubId}`)
+  if (cg.challenge !== ch.id) bad(`challenge ${ch.id} not stamped on the save (got ${cg.challenge})`)
   if (!cg.news.some(n => n.subject.includes('THE CHALLENGE'))) bad(`challenge ${ch.id} missing intro`)
   audit(cg, `challenge:${ch.id}`)
 }
