@@ -1174,36 +1174,62 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
   const favourites = mine.units.overall >= opp.units.overall
+  const say = (opts: string[]) => opts[Math.floor(ctx.rng() * opts.length)]
   switch (kind) {
     case 'calm':
       mine.units.defence *= 1.06
       mine.cardRisk *= 0.78
-      return 'Cool heads. You walk them through the first twenty minutes - no panic, no cheap penalties.'
+      return say([
+        'Cool heads. You walk them through the first twenty minutes - no panic, no cheap penalties.',
+        'Quiet voice, slow words. By the end the room is breathing at your pace. First twenty on our terms.',
+        'You put the game plan on one whiteboard line and cap the pen. "Do the simple things forever." Nods all round.',
+      ])
     case 'fire':
       mine.units.attack *= 1.07
       mine.units.breakdown *= 1.05
       mine.cardRisk *= 1.28
-      return 'The door rattles on its hinges. They leave the shed snorting - expect fireworks, and watch the referee.'
+      return say([
+        'The door rattles on its hinges. They leave the shed snorting - expect fireworks, and watch the referee.',
+        'You knock a water bottle across the room on the way out. The studs in the tunnel sound like a drumroll.',
+        'Two sentences, both loud. The front row leave first and the door does not survive intact. Mind the penalty count.',
+      ])
     case 'underdog':
       if (!favourites) {
         mine.units.attack *= 1.07
         mine.units.defence *= 1.05
-        return `"Nobody gives us a prayer out there. Perfect." The room tightens - shackles off, nothing to lose.`
+        return say([
+          `"Nobody gives us a prayer out there. Perfect." The room tightens - shackles off, nothing to lose.`,
+          `You read their team sheet out loud, name by name, then bin it. "Now let's ruin their afternoon." Grins everywhere.`,
+          `"They have already written their headlines. Make the editors start again." The room hums.`,
+        ])
       }
       mine.units.attack *= 0.98
-      return 'You talk them down as underdogs... but everyone in the room knows you should win this. A few puzzled looks.'
+      return say([
+        'You talk them down as underdogs... but everyone in the room knows you should win this. A few puzzled looks.',
+        'The siege mentality does not fit a side this good, and the room knows it. The captain frowns at his boots.',
+      ])
     case 'expect':
       if (favourites) {
         mine.units.attack *= 1.04
         mine.units.defence *= 1.03
-        return 'Standards. You expect a professional performance and the senior men nod - this is what we do.'
+        return say([
+          'Standards. You expect a professional performance and the senior men nod - this is what we do.',
+          '"Win, and win properly." Nothing else needs saying. The leaders take it from there.',
+          'You name the standard, not the opposition. The room likes that - this is about us, not them.',
+        ])
       }
       if (ctx.rng() < 0.45) {
         mine.units.attack *= 1.06
-        return 'A big call against stronger opposition - but they respond. Chests out.'
+        return say([
+          'A big call against stronger opposition - but they respond. Chests out.',
+          'You demand it anyway, and the room decides to believe you. Dangerous men, believers.',
+        ])
       }
       mine.units.defence *= 0.96
-      return 'You demand a win few expect. One or two shoulders tighten - the pressure lands badly.'
+      return say([
+        'You demand a win few expect. One or two shoulders tighten - the pressure lands badly.',
+        'The words hang wrong in the air. Young eyes find the floor - that was a speech for a different team.',
+      ])
   }
 }
 
