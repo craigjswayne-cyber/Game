@@ -511,6 +511,8 @@ export interface GameState {
   derbyBook?: Record<string, { w: number; d: number; l: number }>
   /** the manager's book: tenure record against every club opponent */
   vsBook?: Record<string, { w: number; d: number; l: number }>
+  /** the biggest home crowd of the era - stadium expansion's long game */
+  gateRecord?: { att: number; oppId: string; season: number } | null
   /** the annals: every season review of the career, oldest first - the
    *  manager's chronicle, carried across clubs */
   annals?: SeasonReview[]

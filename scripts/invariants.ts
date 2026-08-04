@@ -135,6 +135,10 @@ function audit(g: GameState, tag: string) {
     if (!g.clubs[cid]) bad(`${tag} manager's book vs missing club ${cid}`)
     if (rec.w < 0 || rec.d < 0 || rec.l < 0) bad(`${tag} negative record vs ${cid}`)
   }
+  if (g.gateRecord) {
+    if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)
+    if (!g.clubs[g.gateRecord.oppId]) bad(`${tag} gate record vs missing club ${g.gateRecord.oppId}`)
+  }
   const pcSeen = new Set<number>()
   for (const pc of g.preContracts ?? []) {
     if (!g.players[pc.playerId]) bad(`${tag} pre-contract for missing player ${pc.playerId}`)
