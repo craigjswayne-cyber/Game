@@ -108,6 +108,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.vacancies = state.vacancies.filter(x => x.clubId !== clubId)
     club.boardConfidence = 66
     state.devFocus = []
+    state.intakeClass = null // the class previewed at the old club stays there
     for (const id of club.players) {
       const p = state.players[id]
       if (p) p.sc = 100

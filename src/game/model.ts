@@ -486,6 +486,9 @@ export interface GameState {
   scoutFocus?: string | null
   /** open promises made to players in the office, settled at their due week */
   pledges?: Pledge[]
+  /** the user's next academy class, fixed at the week-30 preview so intake
+   *  day delivers exactly what the coach foretold */
+  intakeClass?: { name: string; pos: Pos; age: number; q: number; pa: number; gk: boolean; wonder: boolean }[] | null
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */

@@ -13,7 +13,7 @@ import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName } from './nations'
 import { STAFF_INFO } from './model'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
-import { rebuildSeason } from './rollover'
+import { rebuildSeason, rollIntakeClass } from './rollover'
 import { refreshVacancies } from './jobs'
 
 export function weekRng(state: GameState): Rng {
@@ -812,6 +812,36 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     state.pledges = remain
+  }
+
+  // the academy coach has watched next summer's class all season - his
+  // preview is honest because the class it describes is already fixed
+  if (state.week === 30 && !state.unemployed && !state.intakeClass?.length) {
+    const cls = rollIntakeClass(state, rng)
+    if (cls.length) {
+      state.intakeClass = cls
+      const best = Math.max(...cls.map(c => c.pa))
+      const grade = cls.some(c => c.wonder) || best >= 88 ? 'A' : best >= 81 ? 'B' : best >= 73 ? 'C' : best >= 65 ? 'D' : 'E'
+      const star = cls.reduce((a, b) => (b.pa > a.pa ? b : a))
+      const GROUP: Record<string, string> = {
+        LP: 'the front row', HK: 'the front row', TP: 'the front row', LK: 'the second row',
+        FL: 'the back row', N8: 'the back row', SH: 'half-back', FH: 'half-back',
+        CE: 'midfield', WG: 'the back three', FB: 'the back three',
+      }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+        subject: `🎓 Academy preview: next summer's class`,
+        body: [
+          `The academy coach's end-of-tour report is in. ${cls.length} boys will step up at the end of the season.`,
+          grade === 'A' ? `His verdict: "There is a special one in this group. I would stake my job on it."`
+            : grade === 'B' ? `His verdict: "A strong year. One or two of these will play first-team rugby."`
+            : grade === 'C' ? `His verdict: "Honest, coachable kids. Do not expect fireworks."`
+            : grade === 'D' ? `His verdict: "A lean year. We will need to buy young instead."`
+            : `His verdict: "Between us? Start scouting elsewhere."`,
+          `The strength of the class is in ${GROUP[star.pos] ?? 'the pack'}. Names on intake day.`,
+        ].join('\n'),
+      })
+    }
   }
 
   // the Scouting Agency refreshes its world rankings every four weeks
