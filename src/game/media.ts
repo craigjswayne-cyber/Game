@@ -28,11 +28,31 @@ export function generatePress(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter(Boolean)
   const open = state.press.filter(p => !p.answered).length
-  if (open >= 2) return // don't spam
   // deterministic voicing: the same question wears different words from week
   // to week without ever drawing on the shared rng (zero stream footprint)
   const voice = (salt: number, opts: string[]) =>
     opts[(state.season * 5 + state.week * 3 + salt) % opts.length]
+
+  // the pre-season decision fires every season regardless of the spam gate:
+  // an internal staff call, and week 1 must never lose it to a leftover
+  // question from the final round of last season
+  if (state.week === 1 && !state.press.some(p => p.season === state.season && p.options.some(o => o.camp))) {
+    const item = mk(state,
+      voice(20, [
+        `Pre-season, and the performance staff want a decision. The budget stretches to one special week: a warm-weather camp abroad, a community week at home, or the sponsor's exhibition tour. Which is it?`,
+        `Three options are circled on the staff-room whiteboard for the spare pre-season week: the heat camp, the town, or the sponsor's roadshow. The department heads are waiting on you.`,
+      ]),
+      undefined, [
+        { label: 'Warm-weather camp (£400k)', morale: 0, board: 0, camp: 'heat', reaction: `Flights booked. A week of double sessions in the sun - the squad comes home lean, sharp, and united in their hatred of the hill runs.` },
+        { label: 'Community week at home', morale: 0, board: 0, camp: 'home', reaction: `Schools, junior clubs, open training. Costs nothing, and the town will remember it all season.` },
+        { label: `Sponsor's exhibition tour (+£600k)`, morale: 0, board: 0, camp: 'tour', reaction: `Three airports, two black-tie functions, one glossy cheque. The accountants beam. The players' legs file a formal complaint.` },
+      ], rng)
+    item.outlet = OFFICE_OUTLET
+    state.press.push(item)
+    return
+  }
+
+  if (open >= 2) return // don't spam
 
   // the morning after a bigger club's interest breaks, the first question
   // writes itself - and it goes straight to the top of the pile
@@ -545,6 +565,37 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
           baseApps: p.stats.apps,
         })
       }
+    }
+  }
+  // the pre-season decision lands the same week: deterministic trade-offs
+  if (opt.camp) {
+    const c = state.clubs[state.userClubId]
+    const squad = c.players.map(id => state.players[id]).filter((p): p is Player => !!p)
+    if (opt.camp === 'heat') {
+      c.balance -= 400_000
+      for (const p of squad) { p.sharp = clamp(p.sharp + 12, 0, 100); p.morale = clamp(p.morale + 0.3, 1, 10) }
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `☀️ Camp report: sharp, brown and slightly broken`,
+        body: `A week of double sessions in serious heat. The GPS numbers are the best the staff have ever logged in pre-season, and the group tightened the way only shared suffering manages. £400k well spent, probably.`,
+      })
+    } else if (opt.camp === 'home') {
+      state.fanMood = clamp((state.fanMood ?? 60) + 6, 10, 95)
+      for (const p of squad) p.morale = clamp(p.morale + 0.2, 1, 10)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🏟 Community week: the town turns out`,
+        body: `Open training drew a four-figure crowd on a Tuesday. Every school in the area got a visit, every junior club got a coach. It cost almost nothing and bought the kind of goodwill money cannot.`,
+      })
+    } else {
+      c.balance += 600_000
+      state.fanMood = clamp((state.fanMood ?? 60) - 3, 10, 95)
+      for (const p of squad) p.cond = clamp(p.cond - 8, 20, 100)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `✈️ Exhibition tour: the cheque clears`,
+        body: `Two exhibition matches, three time zones, one very happy sponsor and £600k in the bank. The supporters grumble about a pre-season spent in departure lounges, and the squad starts the year with heavy legs.`,
+      })
     }
   }
   const club = state.clubs[state.userClubId]
