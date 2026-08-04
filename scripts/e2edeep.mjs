@@ -14,10 +14,13 @@ await new Promise(r => setTimeout(r, 2500))
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
+// NIGHT=1 runs the whole flow in the dark theme
+const night = process.env.NIGHT === '1'
+if (night) await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
-const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
+const shot = (name) => page.screenshot({ path: `${SHOTS}/${night ? 'n-' : ''}${name}.png` })
 // the app scrolls inside .content, so fullPage cannot see below the fold
 const scrollTo = (frac) => page.evaluate((f) => {
   const el = document.querySelector('.content')
