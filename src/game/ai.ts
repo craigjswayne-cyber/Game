@@ -180,7 +180,11 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
   if (fee > user.budget) return { ok: false, msg: 'That bid exceeds your transfer budget.' }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
-  if (fee >= ask) {
+  // counters land on clean £100k steps, and a bid within £50k of the
+  // counter shakes hands - otherwise rounding lets the game say
+  // "reject £1.7m, but they'd do business at £1.7m"
+  const counterPrice = Math.min(ask, Math.ceil((ask * 0.97) / 100_000) * 100_000)
+  if (fee >= Math.min(ask, counterPrice - 50_000)) {
     const wage = Math.round(playerWage(p.ca, p.age) * (user.rep >= seller.rep ? 1 : 1.2))
     const squadWages = capBill(state, user)
     if (squadWages + wage > user.wageBudget) {
@@ -194,8 +198,7 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
     return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} (${fmtMoney(wage)}/wk).` }
   }
   if (fee >= ask * 0.78) {
-    const counter = Math.round((ask * 0.97) / 10_000) * 10_000
-    return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counter)}.`, counter }
+    return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.`, counter: counterPrice }
   }
   return { ok: false, msg: `${seller.short} reject the bid. They value ${p.name} at around ${fmtMoney(ask)}.` }
 }

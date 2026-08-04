@@ -727,21 +727,22 @@ input, select { font: inherit; }
   .bottom-nav {
     grid-area: nav;
     flex-direction: column;
-    justify-content: flex-start;
-    gap: 4px;
-    padding: calc(env(safe-area-inset-top) + 10px) 0 10px env(safe-area-inset-left);
+    /* fill the whole column: big, evenly spread targets (8B feedback) */
+    justify-content: space-evenly;
+    gap: 0;
+    padding: calc(env(safe-area-inset-top) + 6px) 0 6px env(safe-area-inset-left);
     border-top: none;
     border-right: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
     box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
     overflow-y: auto;
   }
-  .bottom-nav button { flex: 0 0 auto; padding: 7px 0; font-size: 9px; }
+  .bottom-nav button { flex: 1 1 0; min-height: 44px; padding: 4px 0; font-size: 9px; justify-content: center; }
   .bottom-nav button.active::before {
     top: 50%; left: 0; transform: translateY(-50%);
-    width: 3px; height: 26px;
+    width: 3px; height: 34px;
     border-radius: 0 3px 3px 0;
   }
-  .bottom-nav .ico { width: 20px; height: 20px; }
+  .bottom-nav .ico { width: 34px; height: 34px; }
 
   /* denser grids with the extra width */
   .attr-grid { grid-template-columns: 1fr 1fr 1fr; max-width: 900px; }
@@ -1207,9 +1208,9 @@ input, select { font: inherit; }
   margin: 8px 14px;
   height: 430px;
   border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .12)),
-    repeating-linear-gradient(0deg, #2e7d4f 0 54px, #2a7349 54px 108px);
+  /* calm, flat green: the mowing stripes fought the chips (8B feedback) */
+  background: linear-gradient(180deg, #2e7a4d, #29704662);
+  background-color: #2c754a;
   border: 1px solid rgba(0, 0, 0, .3);
   box-shadow: inset 0 2px 14px rgba(0, 0, 20, .25);
   overflow: hidden;
@@ -1217,12 +1218,12 @@ input, select { font: inherit; }
 .form-pitch::before {
   content: '';
   position: absolute; left: 0; right: 0; top: 40%;
-  border-top: 2px dashed rgba(255, 255, 255, .35);
+  border-top: 1px dashed rgba(255, 255, 255, .16);
 }
 .form-pitch::after {
   content: '';
   position: absolute; left: 0; right: 0; top: 5%;
-  border-top: 2px solid rgba(255, 255, 255, .45);
+  border-top: 1px solid rgba(255, 255, 255, .2);
 }
 .form-chip {
   position: absolute;

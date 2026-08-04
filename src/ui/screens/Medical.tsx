@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { STAFF_INFO, fmtMoney, inRedZone, type Player } from '../../game/model'
+import { fmtMoney, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { PosBadge, SectionTitle } from '../components'
 
@@ -20,39 +20,45 @@ export default function Medical() {
   const loaded = squad.filter(p => !p.injury && inRedZone(p)).sort((a, b) => b.stats.mins - a.stats.mins)
   const away = squad.filter(p => p.natSquad || p.onLoan)
 
-  const section = (title: string, sub: string, rows: Player[], render: (p: Player) => React.ReactNode) => (
-    <>
-      <SectionTitle sub={sub}>{title}</SectionTitle>
-      {rows.length === 0
-        ? <div className="meta" style={{ padding: '2px 16px 8px' }}>Nobody - good news.</div>
-        : (
-          <div className="tblwrap">
-            <table className="dtable"><tbody>
-              {rows.map(p => (
-                <tr key={p.id} onClick={() => go('player', p.id)}>
-                  <td><PosBadge pos={p.pos} /></td>
-                  <td className="name">{p.name}</td>
-                  <td>{render(p)}</td>
-                </tr>
-              ))}
-            </tbody></table>
-          </div>
-        )}
-    </>
-  )
+  // empty sections say nothing at all - six headers of "nobody" was noise
+  const section = (title: string, sub: string, rows: Player[], render: (p: Player) => React.ReactNode) =>
+    rows.length === 0 ? null : (
+      <>
+        <SectionTitle sub={sub}>{title}</SectionTitle>
+        <div className="tblwrap">
+          <table className="dtable"><tbody>
+            {rows.map(p => (
+              <tr key={p.id} onClick={() => go('player', p.id)}>
+                <td><PosBadge pos={p.pos} /></td>
+                <td className="name">{p.name}</td>
+                <td>{render(p)}</td>
+              </tr>
+            ))}
+          </tbody></table>
+        </div>
+      </>
+    )
+  const allClear = !injured.length && !rusty.length && !banned.length && !tired.length && !loaded.length && !away.length
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <h3 style={{ fontSize: 14 }}>🏥 Head Physio - level {game.staff.physio}/3</h3>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
         <div className="meta">
+          🏥 <b>Head Physio {game.staff.physio}/3</b>
           {game.staff.physio === 0
-            ? 'No specialist physio. Injuries run their full course. Hire one from Training → Backroom Staff.'
-            : `${STAFF_INFO.physio.desc} Current effect: injuries roughly ${game.staff.physio * 12}% shorter.`}
+            ? ' · none hired - injuries run their full course (Training → Backroom Staff)'
+            : ` · injuries roughly ${game.staff.physio * 12}% shorter`}
         </div>
       </div>
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
+
+      {allClear && (
+        <div className="card center" style={{ borderLeft: '4px solid #2f7d4f' }}>
+          <h3 style={{ fontSize: 15 }}>✅ A quiet treatment room</h3>
+          <div className="meta">Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.</div>
+        </div>
+      )}
 
       {section('Treatment Room', `ruled out - a specialist consult (${fmtMoney(SPECIALIST_FEE)}) can shorten a long lay-off`, injured, p => (
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>
