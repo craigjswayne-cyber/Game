@@ -774,6 +774,46 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // promises fall due: the squad keeps the receipts on what you said
+  // in the office, and settles them - kept or broken - at the due week
+  if (state.pledges?.length) {
+    const remain: typeof state.pledges = []
+    for (const pl of state.pledges) {
+      const p = state.players[pl.playerId]
+      // void quietly if the season rolled, either of you moved on, or you
+      // were shown the door - a new regime owes the squad nothing
+      if (pl.season !== state.season || !p || p.clubId !== state.userClubId || state.unemployed) continue
+      if (state.week < pl.due) { remain.push(pl); continue }
+      const gap = p.stats.apps - pl.baseApps
+      const kept = pl.kind === 'plans' ? gap >= 2
+        : pl.kind === 'minutes' ? gap >= 1
+        : p.contractEnds > state.season
+      const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
+      if (kept) {
+        p.morale = clamp(p.morale + 1.1, 1, 10)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+          subject: `🤝 Word kept: ${p.name}`,
+          body: pl.kind === 'plans' ? `You told ${p.name} he was in your plans, and the team sheets backed it up. He has not forgotten the conversation - and neither has the dressing room. Trust like that is worth points.`
+            : pl.kind === 'minutes' ? `${p.name} got the minutes you promised him. The academy coach is purring: "That is how you grow one." The kid would run through a wall for you now.`
+            : `${p.name} has his new deal, just as you said he would. The senior pros noticed: this is a club where a handshake still means something.`,
+          playerId: p.id,
+        })
+      } else {
+        p.morale = clamp(p.morale - (sulky ? 2.2 : 1.5), 1, 10)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+          subject: `💔 Promise broken: ${p.name}`,
+          body: pl.kind === 'plans' ? `You told ${p.name} he was in your plans ${state.week - pl.week} weeks ago. He has barely seen the pitch since. The conversation has leaked to the squad, and his agent is already briefing that "the manager's word means nothing at this club."`
+            : pl.kind === 'minutes' ? `${p.name} was promised minutes and got none. He trained with headphones in all week, and the academy coach has stopped defending you in the canteen.`
+            : `${p.name} is still waiting for the deal you as good as promised him. He held off other offers on your word - now he feels strung along, and the older heads in the squad are watching how this ends.`,
+          playerId: p.id,
+        })
+      }
+    }
+    state.pledges = remain
+  }
+
   // the Scouting Agency refreshes its world rankings every four weeks
   if (state.week % 4 === 2) updateAgency(state)
 

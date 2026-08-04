@@ -109,6 +109,10 @@ function audit(g: GameState, tag: string) {
     if (p.exClub && !g.clubs[p.exClub]) bad(`${tag} ${p.name} ex-club ${p.exClub} does not exist`)
     if (p.exClub && p.exClub === p.clubId && (p.exApps ?? 0) > 0 && oldBoyApps(p, p.exClub) > 0) bad(`${tag} ${p.name} counts old-boy apps at his own club`)
   }
+  for (const pl of g.pledges ?? []) {
+    if (!g.players[pl.playerId]) bad(`${tag} pledge for missing player ${pl.playerId}`)
+    if (pl.season === g.season && g.week > pl.due + 1) bad(`${tag} pledge overdue and unsettled (due w${pl.due}, now w${g.week})`)
+  }
 }
 
 const club = process.argv[2] ?? 'leicester'
