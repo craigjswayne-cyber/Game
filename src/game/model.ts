@@ -199,6 +199,9 @@ export interface Player {
   wantsDeal?: number
   /** the current injury has already had its specialist consult */
   specialist?: boolean
+  /** has announced this is his final season: retires at the rollover.
+   *  Set at the midwinter announcement for every player aged 37+ */
+  retiring?: boolean
   /** playing his farewell season: testimonial granted, retires in summer */
   farewell?: boolean
   /** World Player of the Year awards won */

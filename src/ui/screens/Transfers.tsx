@@ -93,7 +93,9 @@ export default function Transfers() {
                       {p.age} yrs · {fmtMoney(p.wage)}/wk now · asks {fmtMoney(demand)}/wk · morale {p.morale.toFixed(0)}/10
                     </div>
                   </div>
-                  {gazumped
+                  {p.retiring
+                    ? <span className="chip" style={{ borderColor: '#a12f2f', color: '#a12f2f', fontWeight: 700 }}>retiring</span>
+                    : gazumped
                     ? <span className="chip" style={{ borderColor: '#a12f2f', color: '#a12f2f', fontWeight: 700 }}>signed elsewhere</span>
                     : (p.wantsDeal ?? 0) > 0
                       ? <span className="chip" style={{ borderColor: 'var(--gold-bright)', fontWeight: 700 }}>wants a deal</span>
