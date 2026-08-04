@@ -885,6 +885,28 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
 }
 
 /** AI (and injury-forced) bench management: tired starters are replaced. */
+/** Best available bench replacement for the man leaving the pitch: judged at
+ *  HIS shirt's position, so a felled prop gets the prop cover and not just
+ *  whoever sits first on the bench. */
+function pickBenchSub(state: GameState, side: SideCtx, outId: number): Player | null {
+  const bench = side.lineup.slice(15)
+    .map(id => id != null ? state.players[id] : null)
+    .filter((s): s is Player => !!s && !side.onPitch.has(s.id) && !s.injury && !side.ratings.has(s.id))
+  if (!bench.length) return null
+  const slot = side.lineup.indexOf(outId)
+  if (slot >= 0 && slot < 15) {
+    const pos = XV_SLOTS[slot].pos
+    let best: Player | null = null
+    let bestS = -1
+    for (const s of bench) {
+      const v = effAt(s, pos)
+      if (v > bestS) { bestS = v; best = s }
+    }
+    return best
+  }
+  return bench[0]
+}
+
 function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   // the user manages his own bench (except forced injury subs elsewhere)
   if (side.isUser) return
@@ -1046,8 +1068,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           p.injury = { desc, until: state.week + weeks, weeks }
           side.onPitch.delete(p.id)
           pushEvent(state, ctx, min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.${(p.rust ?? 0) > 0 ? ' He was rushed back too soon.' : ''}`, p.id)
-          const sub = side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
-            .find(s => s && !side.onPitch.has(s.id) && !s.injury && !side.ratings.has(s.id))
+          const sub = pickBenchSub(state, side, p.id)
           if (sub) {
             side.onPitch.add(sub.id)
             side.ratings.set(sub.id, 6)
@@ -1058,6 +1079,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
               side.lineup[slot] = sub.id
               if (bSlot >= 0) side.lineup[bSlot] = p.id
             }
+            pushEvent(state, ctx, min, 'SUB', side, `${sub.name} comes on in his place.`, sub.id)
           }
         }
       }
@@ -1088,8 +1110,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     if (!side.hia && rng() < 0.0085) {
       const ids = [...side.onPitch].filter(id => state.players[id] && !state.players[id].injury)
       const p = ids.length ? state.players[ids[Math.floor(rng() * ids.length)]] : null
-      const sub = p ? side.lineup.slice(15).map(id => id != null ? state.players[id] : null)
-        .find(s2 => s2 && !side.onPitch.has(s2.id) && !s2.injury && !side.ratings.has(s2.id)) : null
+      const sub = p ? pickBenchSub(state, side, p.id) : null
       if (p && sub) {
         side.onPitch.delete(p.id)
         side.onPitch.add(sub.id)
