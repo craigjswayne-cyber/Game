@@ -90,6 +90,8 @@ export function migrate(s: GameState): GameState {
   s.crisisAt ??= {}
   seedNatRank(s)
   s.natConfidence ??= s.natTeam ? 60 : null
+  s.tenureStart ??= s.season
+  s.legendOf ??= []
   s.agency ??= { seniors: [], kids: [], best: {} }
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends ??= []; c.marquee ??= []; c.tactic.roles ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const

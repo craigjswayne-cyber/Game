@@ -240,6 +240,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   seedKnowledge(state)
   ensureCaptains(state)
   state.objectives = pickObjectives(state)
+  state.tenureStart = 0
+  state.legendOf = []
   // every dugout has a name in it
   for (const club of Object.values(state.clubs)) {
     if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country)
