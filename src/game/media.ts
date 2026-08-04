@@ -30,6 +30,22 @@ export function generatePress(state: GameState, rng: Rng) {
   const open = state.press.filter(p => !p.answered).length
   if (open >= 2) return // don't spam
 
+  // the morning after a bigger club's interest breaks, the first question
+  // writes itself - and it goes straight to the top of the pile
+  if (state.courtedAt === state.season * 100 + state.week - 1 && state.courtedBy) {
+    const suitor = state.clubs[state.courtedBy]
+    if (suitor) {
+      state.press.push(mk(state,
+        `Every outlet leads with the same story: ${suitor.name} have you on their shortlist. The room goes quiet. Are you staying?`,
+        undefined, [
+          { label: `'I am going nowhere'`, morale: 0.5, board: 0.8, reaction: `The clip runs on every channel by teatime. The chairman texts a thumbs up; the squad trains like a weight came off. ${suitor.short} move down their list.` },
+          { label: `'We have work to do here'`, morale: 0.2, board: 0.3, reaction: `Measured, professional, just short of a promise. The story cools without quite dying.` },
+          { label: `'I never discuss speculation'`, morale: -0.3, board: -0.6, reaction: `A stonewall the whole room hears as a maybe. The chairman's silence is loud, and the dressing room wonders if the gaffer is half out the door.` },
+        ], rng))
+      return
+    }
+  }
+
   const candidates: PressItem[] = []
 
   // hot streak player
