@@ -144,7 +144,9 @@ export const useStore = create<Store>((set, get) => ({
     }
     processWeekAndAdvance(g)
     set(s => ({ tick: s.tick + 1 }))
-    if (g.week % 4 === 0) void get().persist()
+    // autosave every advance: serialization is ~40ms even in deep saves,
+    // and a phone tab eviction should never cost more than one week
+    void get().persist()
   },
 
   /** From the MatchDay preview: take the field. The match simulates
