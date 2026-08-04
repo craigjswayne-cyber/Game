@@ -849,6 +849,10 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.2)
   } else if (scorer && ctx.detail && scorer.retiring && (scorer.ca >= 72 || (scorer.caps ?? 0) >= 25) && rng() < 0.6) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `The whole ground rises for ${scorer.name} - friend and foe alike. He retires in the summer, and nobody here wants to forget watching him do that.`, scorer.id)
+  } else if (scorer && ctx.detail && (scorer.rust ?? 0) >= 2 && (min + scorer.id) % 10 < 7) {
+    // gate is deterministic (minute + id), not an rng draw: commentary must
+    // never move the sim stream - see the EK lesson
+    pushEvent(state, ctx, min + 1, 'SUB', side, `${scorer.name} scores on the comeback trail - weeks of rehab, tackle bags and dark mornings, and that try is the answer to all of it. Look at his face.`, scorer.id)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
