@@ -1130,7 +1130,10 @@ function Live() {
   }, [cursor])
 
   useEffect(() => {
-    tickerRef.current?.scrollTo({ top: tickerRef.current.scrollHeight, behavior: 'smooth' })
+    // a panel (half-time talk, break, full-time) must open at its TOP -
+    // scrolling to the bottom buried the team talk (8C feedback)
+    if (atHalfTime || atBreak || done) tickerRef.current?.scrollTo({ top: 0 })
+    else tickerRef.current?.scrollTo({ top: tickerRef.current.scrollHeight, behavior: 'smooth' })
   }, [cursor, atHalfTime, atBreak, done])
 
   const hs = last?.homeScore ?? 0
