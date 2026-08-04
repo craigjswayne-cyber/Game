@@ -90,7 +90,7 @@ export default function NewGame() {
         </div>
       </header>
 
-      <main className="content" style={{ paddingBottom: 96 }}>
+      <main className="content" style={{ paddingBottom: 150 }}>
         {step === 0 && (
           <>
             <div className="wizard-hint">Choose the competition you'll manage in.</div>
