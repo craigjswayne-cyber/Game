@@ -616,6 +616,30 @@ function leagueRoundUp(state: GameState) {
   })
 }
 
+/** The dugout counts too: round numbers on the manager's own record.
+ *  The win check only fires on a win, or it would repeat while the
+ *  counter sits on the mark through defeats. */
+function mgrMilestones(state: GameState, won: boolean) {
+  const m = state.mgr
+  const winMarks = [50, 100, 250, 500, 750, 1000]
+  const gameMarks = [100, 250, 500, 750, 1000]
+  const pct = m.m > 0 ? Math.round((m.w / m.m) * 100) : 0
+  if (won && winMarks.includes(m.w)) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+      subject: `🏅 Career win number ${m.w}`,
+      body: `That was the ${m.w}th win of your managerial career - ${m.w} from ${m.m} matches (${pct}%), with ${m.trophies.length} ${m.trophies.length === 1 ? 'trophy' : 'trophies'} in the cabinet. The staff mark it with a quiet round of applause in the corridor. Back to work.`,
+    })
+  }
+  if (gameMarks.includes(m.m)) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+      subject: `📇 Match ${m.m} in the dugout`,
+      body: `You have now taken charge of ${m.m} matches: ${m.w} won, ${m.d} drawn, ${m.l} lost (${pct}%). Very few last this long in the job. The trick, as ever, is the next one.`,
+    })
+  }
+}
+
 function boardReaction(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
@@ -642,6 +666,7 @@ function boardReaction(state: GameState, fx: Fixture) {
   if (us > them) state.mgr.w += 1
   else if (us === them) state.mgr.d += 1
   else state.mgr.l += 1
+  mgrMilestones(state, us > them)
 
   // the terraces have longer memories and shorter fuses than the board
   const before = state.fanMood ?? 60
@@ -1142,6 +1167,7 @@ export function processWeekAndAdvance(state: GameState) {
       if (us > them) state.mgr.w += 1
       else if (us === them) state.mgr.d += 1
       else state.mgr.l += 1
+      mgrMilestones(state, us > them)
       matchReport(state, userFx)
     }
   }
