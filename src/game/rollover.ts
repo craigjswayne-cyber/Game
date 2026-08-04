@@ -1,7 +1,7 @@
 import type { GameState, Player, Pos } from './model'
 import { boardObjective, emptyStats, fmtMoney, isWorldCupSeason, seasonLabel, XV_SLOTS } from './model'
 import { assignPersonality } from './attributes'
-import { buildChampionsCup, buildInternationals, buildLeague, sortTable } from './schedule'
+import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
@@ -719,6 +719,7 @@ export function rebuildSeason(state: GameState) {
   state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
   const wcYear = isWorldCupSeason(state.season)
   buildInternationals(rng, state, wcYear)
+  schedulePreseason(state, rng)
   if (wcYear) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,

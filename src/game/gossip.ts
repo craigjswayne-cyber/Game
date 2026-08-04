@@ -197,7 +197,7 @@ function moneyMen(state: GameState, rng: Rng) {
 
 /** Rumours live where deals live: the windows (weeks 1-4, 22-25). */
 function windowOpen(state: GameState): boolean {
-  return state.week <= 4 || (state.week >= 22 && state.week <= 25)
+  return state.week <= 7 || (state.week >= 25 && state.week <= 28)
 }
 
 function transferRumour(state: GameState, rng: Rng) {
@@ -381,11 +381,11 @@ export function generateGossip(state: GameState, rng: Rng) {
   // cheap talk is constant even when real business is quiet
   if (rng() < 0.8) socialBuzz(state, rng)
   if (windowOpen(state) && rng() < 0.45) transferRumour(state, rng)
-  if (state.week === 22) {
+  if (state.week === 25) {
     wire(state, `⏰ DEADLINE DAYS AHEAD`,
       `The mid-season market reaches its climax over the next two rounds. Chairmen panic, agents feast, medicals happen in car parks at midnight. If you're planning a move — for a signing or a sale — now is the moment. Expect the phone to ring.`)
   }
-  if (state.week === 25) {
+  if (state.week === 28) {
     wire(state, `🚪 The window slams shut`,
       `Deadline chaos over. Sporting directors emerge blinking into the daylight to explain themselves. Business can still be done, but the frenzy is over for another year.`)
   }

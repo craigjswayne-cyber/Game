@@ -698,7 +698,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
   // DEADLINE DAY: the last week of each window is a circus — panic
   // listings appear at cut prices and nobody's star is safe
-  if ((state.week === 4 || state.week === 24) && !state.unemployed) {
+  if ((state.week === 7 || state.week === 27) && !state.unemployed) {
     const bargains: string[] = []
     const pool = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== state.userClubId && state.clubs[p.clubId] &&
@@ -1002,7 +1002,7 @@ export function processWeekAndAdvance(state: GameState) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
     // the run-in: from week 28, gaps and rivals become the story
-    if (state.week >= 28 && !state.unemployed) {
+    if (state.week >= 31 && !state.unemployed) {
       const club = state.clubs[state.userClubId]
       const comp = state.comps[club.leagueId]
       if (comp && comp.type === 'league') {

@@ -472,11 +472,11 @@ export function isWorldCupSeason(season: number): boolean {
   return (2025 + season) % 4 === 3
 }
 
-export const SEASON_WEEKS = 42
+export const SEASON_WEEKS = 45
 
 /** Convert (season, week) to a display date. Season 0 week 1 = Sat 6 Sep 2025. */
 export function weekDate(season: number, week: number): string {
-  const start = Date.UTC(2025 + season, 8, 6)
+  const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + (week - 1) * 7 * 86400000)
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
@@ -491,7 +491,7 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
 
 /** 'Friday 5 Sep' — the real kick-off date for a fixture. */
 export function fixtureDate(season: number, week: number, fxId: number): string {
-  const start = Date.UTC(2025 + season, 8, 6)
+  const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + ((week - 1) * 7 + fixtureDayOff(fxId)) * 86400000)
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']

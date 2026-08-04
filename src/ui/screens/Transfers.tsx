@@ -37,12 +37,12 @@ export default function Transfers() {
         <span className="chip">💰 Budget <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">Wage room <b>{fmtMoney(Math.max(0, user.wageBudget - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}/wk</b></span>
         <span className="chip" style={{
-          color: (game.week <= 4 || game.week === 23 || game.week === 24) ? 'var(--win)' : 'var(--ink-faint)',
+          color: (game.week <= 7 || game.week === 26 || game.week === 27) ? 'var(--win)' : 'var(--ink-faint)',
           fontWeight: 700,
         }}>
-          {game.week <= 4 ? `Window open · closes wk 5`
-            : game.week === 23 || game.week === 24 ? `⏰ Deadline window · slams shut wk 25`
-            : `Window closed · deadline wk 23`}
+          {game.week <= 7 ? `Window open · closes wk 8`
+            : game.week === 26 || game.week === 27 ? `⏰ Deadline window · slams shut wk 28`
+            : `Window closed · deadline wk 26`}
         </span>
       </div>
 
