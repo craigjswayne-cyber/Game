@@ -13,6 +13,11 @@ export default function Transfers() {
   const [pos, setPos] = useState<Pos | 'ALL'>('ALL')
   const [query, setQuery] = useState('')
   const [maxVal, setMaxVal] = useState(0)
+  const [maxAge, setMaxAge] = useState(0)
+  const [league, setLeague] = useState('ALL')
+  const [listedOnly, setListedOnly] = useState(false)
+  const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
+  const [mdesc, setMdesc] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans' | 'deals'>('market')
   const [page, setPage] = useState(0)
@@ -21,14 +26,34 @@ export default function Transfers() {
   const user = game.clubs[game.userClubId]
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
+  const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
+    <th className={`th-sort${msort === k ? ' active' : ''}${right ? ' num' : ''}`}
+      onClick={() => (msort === k ? setMdesc(!mdesc) : (setMsort(k), setMdesc(false)))}>
+      {children}{msort === k ? (mdesc ? ' ▴' : ' ▾') : ''}
+    </th>
+  )
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = Object.values(game.players).filter(p => p.clubId !== game.userClubId)
     if (pos !== 'ALL') list = list.filter(p => p.pos === pos || p.alt.includes(pos))
-    if (q) list = list.filter(p => p.name.toLowerCase().includes(q))
+    if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.clubId ? game.clubs[p.clubId]?.short.toLowerCase().includes(q) : false))
     if (maxVal > 0) list = list.filter(p => p.value <= maxVal)
-    return list.sort((a, b) => b.ca - a.ca).slice(0, 80)
-  }, [game.players, pos, query, maxVal, game.week])
+    if (maxAge > 0) list = list.filter(p => p.age <= maxAge)
+    if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
+    if (listedOnly) list = list.filter(p => p.transferListed)
+    const dir = mdesc ? -1 : 1
+    list.sort((a, b) => {
+      switch (msort) {
+        case 'value': return (b.value - a.value) * dir
+        case 'age': return (a.age - b.age) * dir
+        case 'name': return a.name.localeCompare(b.name) * dir
+        case 'form': return (b.form - a.form) * dir
+        default: return (b.ca - a.ca) * dir
+      }
+    })
+    return list.slice(0, 120)
+  }, [game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, msort, mdesc, game.week])
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
@@ -219,27 +244,55 @@ export default function Transfers() {
 
       </>}
       {xtab === 'market' && <>
-      <SectionTitle sub="tap a player to scout & bid">Scout The Market</SectionTitle>
-      <div style={{ padding: '0 14px' }}>
-        <input className="inline-input" placeholder="Search player name…" value={query}
-          onChange={e => setQuery(e.target.value)} />
-        <div style={{ display: 'flex', gap: 8 }}>
-          <select className="inline-input" value={pos} onChange={e => setPos(e.target.value as Pos | 'ALL')}>
-            <option value="ALL">All positions</option>
-            {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <select className="inline-input" value={maxVal} onChange={e => setMaxVal(Number(e.target.value))}>
-            <option value={0}>Any value</option>
-            <option value={250000}>≤ £250k</option>
-            <option value={1000000}>≤ £1m</option>
-            <option value={3000000}>≤ £3m</option>
-            <option value={8000000}>≤ £8m</option>
-          </select>
-        </div>
+      <SectionTitle sub={`${results.length} men match${results.length === 120 ? ' (showing the best 120)' : ''} · tap to scout & bid`}>Scout The Market</SectionTitle>
+      <div style={{ padding: '0 14px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input className="inline-input" placeholder="Name or club…" value={query}
+          onChange={e => { setQuery(e.target.value); setPage(0) }}
+          style={{ margin: 0, flex: '1 1 150px', minWidth: 120 }} />
+        <select className="inline-input" style={{ margin: 0, flex: '0 1 116px' }} value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+          <option value="ALL">All positions</option>
+          {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select className="inline-input" style={{ margin: 0, flex: '0 1 116px' }} value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+          <option value={0}>Any value</option>
+          <option value={250000}>up to £250k</option>
+          <option value={1000000}>up to £1m</option>
+          <option value={3000000}>up to £3m</option>
+          <option value={8000000}>up to £8m</option>
+        </select>
+        <select className="inline-input" style={{ margin: 0, flex: '0 1 106px' }} value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+          <option value={0}>Any age</option>
+          <option value={21}>21 and under</option>
+          <option value={24}>24 and under</option>
+          <option value={28}>28 and under</option>
+          <option value={32}>32 and under</option>
+        </select>
+        <select className="inline-input" style={{ margin: 0, flex: '0 1 132px' }} value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+          <option value="ALL">Every league</option>
+          {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
+            <option key={c.id} value={c.id}>{c.short}</option>
+          ))}
+        </select>
+        <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>🏷️ Listed only</button>
       </div>
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>Pos</th><th>Name</th><th>Age</th><th>Nat</th><th>Club</th><th>Ability</th><th className="num">Value</th></tr></thead>
+        <thead><tr>
+          <th>Pos</th>
+          <MTh k="name">Name</MTh>
+          <MTh k="age" right>Age</MTh>
+          <th>Nat</th>
+          <th>Club</th>
+          <MTh k="ca">Ability</MTh>
+          <MTh k="form" right>Form</MTh>
+          <MTh k="value" right>Value</MTh>
+        </tr></thead>
         <tbody>
+          {pageRows.length === 0 && (
+            <tr><td colSpan={8} className="muted" style={{ padding: 12 }}>
+              Nobody in the world matches that. Widen a filter{listedOnly ? ' - clubs list players as the window nears, so try again later' : ''}.
+            </td></tr>
+          )}
           {pageRows.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>
               <td><PosBadge pos={p.pos} /></td>
@@ -248,6 +301,7 @@ export default function Transfers() {
               <td><Nat code={p.nat} /></td>
               <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : 'Free agent'}</td>
               <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
+              <td className="num"><FormPill v={p.form} /></td>
               <td className="num">{fmtMoney(p.value)}</td>
             </tr>
           ))}

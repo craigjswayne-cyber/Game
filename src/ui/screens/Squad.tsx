@@ -34,6 +34,8 @@ export default function Squad() {
   const [sort, setSort] = useState<SortKey>('pkd')
   const [desc, setDesc] = useState(false)
   const [group, setGroup] = useState<'all' | 'fwd' | 'bck' | 'aca'>('all')
+  const [avail, setAvail] = useState<'any' | 'fit' | 'out' | 'young'>('any')
+  const [query, setQuery] = useState('')
   const FWD = new Set(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])
 
   const club = game.clubs[game.userClubId]
@@ -48,6 +50,12 @@ export default function Squad() {
     ps = group === 'aca' ? ps.filter(p => p.acad) : ps.filter(p => !p.acad)
     if (group === 'fwd') ps = ps.filter(p => FWD.has(p.pos))
     if (group === 'bck') ps = ps.filter(p => !FWD.has(p.pos))
+    const out = (p: Player) => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
+    if (avail === 'fit') ps = ps.filter(p => !out(p))
+    if (avail === 'out') ps = ps.filter(out)
+    if (avail === 'young') ps = ps.filter(p => p.age <= 23)
+    const q = query.trim().toLowerCase()
+    if (q) ps = ps.filter(p => p.name.toLowerCase().includes(q) || p.pos.toLowerCase() === q)
     const dir = desc ? -1 : 1
     const posIdx = (p: Player) => POS_ORDER.indexOf(p.pos)
     const avr = (p: Player) => (p.stats.apps ? p.stats.ratingSum / p.stats.apps : 0)
@@ -68,7 +76,7 @@ export default function Squad() {
       }
     })
     return ps
-  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group])
+  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, query])
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
@@ -114,11 +122,19 @@ export default function Squad() {
           </button>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: 6, padding: '8px 14px 0' }}>
+      <div style={{ display: 'flex', gap: 6, padding: '8px 14px 0', flexWrap: 'wrap', alignItems: 'center' }}>
         {([['all', 'First Team'], ['fwd', 'Forwards'], ['bck', 'Backs'], ['aca', '🎓 Academy']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGroup(k)}>{label}</button>
         ))}
+        <span style={{ width: 8 }} />
+        {([['any', 'Everyone'], ['fit', '✅ Available'], ['out', '🚑 Unavailable'], ['young', 'U23']] as const).map(([k, label]) => (
+          <button key={k} className="preset-chip" style={avail === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            onClick={() => setAvail(k)}>{label}</button>
+        ))}
+        <input className="inline-input" placeholder="Find a player…" value={query}
+          onChange={e => setQuery(e.target.value)}
+          style={{ margin: 0, flex: '1 1 130px', minWidth: 110, maxWidth: 220, padding: '4px 8px', fontSize: 12 }} />
       </div>
       <SectionTitle sub={`${players.length} players · cap ${fmtMoney(wageBill)}/${fmtMoney(club.wageBudget)}wk · ${homegrown} homegrown${(club.marquee?.length ?? 0) ? ` · ${club.marquee!.length}⭐` : ''}`}>{group === 'aca' ? 'Academy Squad' : 'Club Squad'}</SectionTitle>
       <div className="tblwrap"><table className="dtable zebra">
@@ -158,6 +174,11 @@ export default function Squad() {
           )}
         </thead>
         <tbody>
+          {players.length === 0 && (
+            <tr><td colSpan={8} className="muted" style={{ padding: 12 }}>
+              Nobody matches that. Clear the filters to see the whole squad.
+            </td></tr>
+          )}
           {players.map(p => {
             const avr = p.stats.apps ? (p.stats.ratingSum / p.stats.apps) : 0
             return (
