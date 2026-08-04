@@ -853,6 +853,7 @@ export function rebuildSeason(state: GameState) {
   state.pledges = [] // a new season wipes the promise ledger clean
   state.takeover = null // deals not done by summer quietly collapse
   state.newOwnerUntil = null // the honeymoon does not survive the summer
+  state.crisisAt = {} // week numbers reset with the calendar
 
   // partnership chemistry only lives while the pair share a dressing room -
   // prune split/retired pairs so the ledger stays small

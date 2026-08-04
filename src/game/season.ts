@@ -1,4 +1,4 @@
-import type { Competition, Fixture, GameState, Player, TableRow } from './model'
+import type { Competition, Fixture, GameState, Player, Pos, TableRow } from './model'
 import { addGrudge, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
@@ -14,6 +14,7 @@ import { nationByCode, regenName } from './nations'
 import { STAFF_INFO } from './model'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason, rollIntakeClass } from './rollover'
+import { loanTargets } from './loans'
 import { refreshVacancies } from './jobs'
 
 export function weekRng(state: GameState): Rng {
@@ -826,6 +827,46 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     state.pledges = remain
+  }
+
+  // the physio's red flag: a position group stripped below cover gets an
+  // assistant's alert with names, timelines and the loan-market options
+  if (!state.unemployed) {
+    const club = state.clubs[state.userClubId]
+    // 'need' is the number of starting shirts the group fills: an alert
+    // means the XV cannot be fielded from fit specialists at all
+    const GROUPS: { key: string; label: string; pos: Pos[]; need: number }[] = [
+      { key: 'prop', label: 'the props', pos: ['LP', 'TP'], need: 2 },
+      { key: 'hook', label: 'hooker', pos: ['HK'], need: 1 },
+      { key: 'lock', label: 'the second row', pos: ['LK'], need: 2 },
+      { key: 'back5', label: 'the back row', pos: ['FL', 'N8'], need: 3 },
+      { key: 'nine', label: 'scrum-half', pos: ['SH'], need: 1 },
+      { key: 'ten', label: 'fly-half', pos: ['FH'], need: 1 },
+      { key: 'centre', label: 'the centres', pos: ['CE'], need: 2 },
+      { key: 'back3', label: 'the back three', pos: ['WG', 'FB'], need: 3 },
+    ]
+    const squad = club.players.map(id => state.players[id]).filter(Boolean)
+    state.crisisAt ??= {}
+    for (const grp of GROUPS) {
+      const all = squad.filter(p => grp.pos.includes(p.pos) && !p.acad)
+      const fit = all.filter(p => !p.injury && p.bans === 0)
+      if (fit.length >= grp.need || all.length <= grp.need) continue
+      if (state.week - (state.crisisAt[grp.key] ?? -99) < 6) continue
+      state.crisisAt[grp.key] = state.week
+      const down = all.filter(p => p.injury || p.bans > 0)
+        .map(p => p.injury ? `${p.name} (back wk ${p.injury.until})` : `${p.name} (suspended)`)
+      const cover = loanTargets(state).filter(p => grp.pos.includes(p.pos)).slice(0, 3)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+        subject: `🚑 Injury crisis: ${grp.label}`,
+        body: [
+          `The physio's board makes grim reading at ${grp.label}: ${fit.length} fit of ${all.length} on the books.${down.length ? ` Out: ${down.join(', ')}.` : ''}`,
+          cover.length
+            ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}. Transfers screen, Loans tab.`
+            : `The loan market has nothing suitable this week. Youth, patience, or a positional reshuffle - your call.`,
+        ].join('\n'),
+      })
+    }
   }
 
   // derby week: the buildup starts the moment the previous weekend ends
