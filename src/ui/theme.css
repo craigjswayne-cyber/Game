@@ -134,6 +134,10 @@ input, select { font: inherit; }
   height: 100%;
   max-width: 560px;
   margin: 0 auto;
+  /* re-anchor inherited text colour INSIDE the themed subtree: body resolves
+     var(--ink) with light-theme values, so night-mode descendants relying on
+     inheritance would otherwise get the light theme's near-black ink */
+  color: var(--ink);
   background:
     linear-gradient(180deg, rgba(46, 87, 171, .05), rgba(46, 87, 171, 0) 140px),
     var(--cream);
