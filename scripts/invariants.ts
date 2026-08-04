@@ -155,6 +155,29 @@ function audit(g: GameState, tag: string) {
     if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)
     if (!g.clubs[g.gateRecord.oppId]) bad(`${tag} gate record vs missing club ${g.gateRecord.oppId}`)
   }
+  // 11. prose quality: rendered game text never leaks internals or breaks
+  // house style. En dashes are legal only in the scoreline convention (24–18,
+  // 52%–48%); em dashes are banned outright; a stray "undefined", NaN or
+  // [object Object] means a template rendered against a missing entity.
+  const prose = (where: string, text: string | undefined | null) => {
+    if (!text) return
+    const clip = text.replace(/\n/g, ' ').slice(0, 80)
+    if (/\bundefined\b/.test(text)) bad(`${tag} "undefined" leaked into ${where}: ${clip}`)
+    if (/\bNaN\b/.test(text)) bad(`${tag} NaN leaked into ${where}: ${clip}`)
+    if (text.includes('[object Object]')) bad(`${tag} raw object leaked into ${where}: ${clip}`)
+    if (text.includes('${')) bad(`${tag} unrendered template in ${where}: ${clip}`)
+    if (text.includes('—')) bad(`${tag} em dash in ${where}: ${clip}`)
+    if (/–/.test(text.replace(/[\d%]\s?–\s?\d/g, ''))) bad(`${tag} en dash outside a scoreline in ${where}: ${clip}`)
+    if (/ {2}/.test(text)) bad(`${tag} double space in ${where}: ${clip}`)
+  }
+  for (const n of g.news) { prose('news subject', n.subject); prose(`news body ("${n.subject.slice(0, 36)}")`, n.body) }
+  for (const pi of g.press) {
+    prose('press question', pi.question)
+    for (const o of pi.options) prose('press option', o.label)
+    prose('press reaction', pi.reaction)
+    prose('press answer label', pi.answerLabel)
+  }
+  for (const f of g.fixtures) for (const e of f.events ?? []) prose('match event', e.text)
   const pcSeen = new Set<number>()
   for (const pc of g.preContracts ?? []) {
     if (!g.players[pc.playerId]) bad(`${tag} pre-contract for missing player ${pc.playerId}`)
