@@ -249,11 +249,19 @@ function manageInternationals(state: GameState, rng: Rng) {
         }
       }
       if (userCalls.length) {
-        state.news.push({
-          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `International call-ups`,
-          body: `The following players have been called up and will be unavailable during the international window: ${userCalls.map(p => `${p.name} (${p.nat})`).join(', ')}.`,
-        })
+        // several windows can open the same week — one combined item, not two
+        const names = userCalls.map(p => `${p.name} (${p.nat})`).join(', ')
+        const existing = state.news.find(n =>
+          n.week === state.week && n.season === state.season && n.subject === 'International call-ups')
+        if (existing) {
+          existing.body += ` Also called up: ${names}.`
+        } else {
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `International call-ups`,
+            body: `The following players have been called up and will be unavailable during the international window: ${names}.`,
+          })
+        }
       }
     }
     if (state.week === w.end + 1) {
@@ -515,6 +523,9 @@ function weeklyFinance(state: GameState, rng: Rng) {
 }
 
 function matchReport(state: GameState, fx: Fixture) {
+  // the engine already filed a full report for matches played in detail —
+  // a second VICTORY/DEFEAT item on the same result is just noise
+  if (fx.events?.length) return
   const comp = state.comps[fx.compId]
   const isHome = fx.homeId === state.userClubId
   const us = isHome ? fx.homeScore : fx.awayScore
@@ -542,7 +553,8 @@ function milestones(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   for (const id of club.players) {
     const p = state.players[id]
-    if (!p || !p.stats.apps) continue
+    // only the week he actually crossed the number — never a repeat salute
+    if (!p || !p.stats.apps || p.lastWk !== state.week) continue
     const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
     const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
     const totPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
@@ -551,10 +563,14 @@ function milestones(state: GameState, rng: Rng) {
     if ([25, 50, 75, 100].includes(totTries)) hits.push(`${totTries} career tries`)
     if ([250, 500, 1000, 1500].includes(totPts)) hits.push(`${totPts} career points`)
     for (const h of hits) {
+      const body = `${p.name} has reached ${h}. A presentation is made before training.`
+      // a player parked exactly on a number (no tries this week) must not
+      // be saluted again — one presentation per milestone
+      if (state.news.some(n => n.body === body)) continue
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `Milestone: ${p.name}`,
-        body: `${p.name} has reached ${h}. A presentation is made before training.`,
+        body,
         playerId: p.id,
       })
     }
@@ -906,17 +922,20 @@ export function processWeekAndAdvance(state: GameState) {
     const total = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
     const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
     const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
-    if (cTries === 50 || cTries === 100) {
+    // tries/points can park exactly on a number for weeks — salute once only
+    const trySubj = `🏉 ${p.name}: ${cTries} career tries`
+    const ptsSubj = `🎯 ${p.name}: ${cPts.toLocaleString()} career points`
+    if ((cTries === 50 || cTries === 100) && !state.news.some(n => n.subject === trySubj)) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `🏉 ${p.name}: ${cTries} career tries`,
+        subject: trySubj,
         body: `The weekend brought up try number ${cTries} of ${p.name}'s career. The video team has already cut the montage.`,
         playerId: p.id,
       })
-    } else if (cPts >= 500 && cPts - (p.lastR != null ? 0 : 0) < 5000 && (cPts === 500 || cPts === 1000)) {
+    } else if ((cPts === 500 || cPts === 1000) && !state.news.some(n => n.subject === ptsSubj)) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `🎯 ${p.name}: ${cPts.toLocaleString()} career points`,
+        subject: ptsSubj,
         body: `A milestone from the tee: ${p.name} passed ${cPts.toLocaleString()} career points at the weekend. Metronomes get remembered too.`,
         playerId: p.id,
       })
