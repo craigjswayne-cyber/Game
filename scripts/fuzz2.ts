@@ -54,4 +54,43 @@ for (let i = 0; i < 300; i++) {
   updateNatRank(g, { id: 0, compId: i % 2 ? 'wc' : 'sn', round: 0, week: 1, homeId: a, awayId: b, played: true, homeScore: Math.floor(rng() * 80), awayScore: Math.floor(rng() * 80), homeTries: 0, awayTries: 0, stage: i % 3 === 0 ? 'F' : undefined } as any)
 }
 for (const [c, v] of Object.entries(g.natRank!)) check(`natrank bounds ${c}=${v}`, v >= 40 && v <= 100)
-console.log(bad === 0 ? 'FUZZ v2 PASSED: 400 hostile matches + 300 rank exchanges clean' : `FUZZ v2: ${bad} failures`)
+
+// v3: the newest hooks - the award ledger after the hostile matches above,
+// and the press room fed garbage answers
+import { generatePress, answerPress } from '../src/game/media'
+
+if (g.tryOfSeason) {
+  const t = g.tryOfSeason
+  check('tryOfSeason minute bounds', t.min >= 1 && t.min <= 85)
+  check('tryOfSeason has name and text', !!t.name && !!t.text)
+  check('tryOfSeason season is current', t.season === g.season)
+  check('tryOfSeason drama finite', Number.isFinite(t.drama))
+}
+let answered = 0
+for (let i = 0; i < 60; i++) {
+  g.week = 4 + (i % 40)
+  generatePress(g, mulberry32(i * 77 + 5))
+  for (const pi of g.press.filter(p => !p.answered)) {
+    try {
+      answerPress(g, pi.id, -1) // out of range low: must be inert
+      answerPress(g, pi.id, 99) // out of range high: must be inert
+      check(`press #${pi.id} unanswered after bad indices`, !pi.answered)
+      answerPress(g, pi.id, 0) // legit
+      const before = g.clubs[g.userClubId].boardConfidence
+      answerPress(g, pi.id, 1) // double answer: must be inert
+      check(`press #${pi.id} double answer inert`, g.clubs[g.userClubId].boardConfidence === before)
+      answered++
+    } catch (e) { bad++; console.log(`FUZZ EXCEPTION press #${pi.id}: ${(e as Error).message}`) }
+  }
+}
+try { answerPress(g, 999999999, 0) } catch { bad++; console.log('FUZZ EXCEPTION: bogus press id throws') }
+check('board confidence bounded after press abuse', g.clubs[g.userClubId].boardConfidence >= 0 && g.clubs[g.userClubId].boardConfidence <= 100)
+for (const id of g.clubs[g.userClubId].players) {
+  const p = g.players[id]
+  if (p) check(`morale bounds ${p.name}`, p.morale >= 1 && p.morale <= 10)
+}
+
+console.log(bad === 0
+  ? `FUZZ v3 PASSED: 400 hostile matches + 300 rank exchanges + ${answered} abused press conferences clean`
+  : `FUZZ v3: ${bad} failures`)
+if (bad > 0) process.exit(1)
