@@ -549,6 +549,9 @@ export interface GameState {
   /** World Player of the Year roll of honour, oldest first - the sport's
    *  history book, one line per season */
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
+  /** absolute week (season*100+week) a bigger club last courted the manager -
+   *  the tap on the shoulder comes at most once every 12 weeks */
+  courtedAt?: number
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
