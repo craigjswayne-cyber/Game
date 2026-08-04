@@ -577,8 +577,9 @@ function replenishSquads(state: GameState, rng: Rng) {
 /** The year's best moment, replayed: the try judged most dramatic at the
  *  whistle all season gets its own award night, commentary line and all. */
 function tryOfTheSeason(state: GameState) {
+  // note: the ledger is not cleared here - the season review captures it
+  // further down rebuildSeason, and the clear happens at the very end
   const t = state.tryOfSeason
-  state.tryOfSeason = null
   if (!t || t.season !== state.season) return
   const scorer = state.players[t.playerId]
   const club = state.clubs[state.userClubId]
@@ -715,6 +716,9 @@ export function rebuildSeason(state: GameState) {
       topPoints: topPts?.stats.points ? { name: topPts.name, val: topPts.stats.points } : undefined,
       topTries: topTry?.stats.tries ? { name: topTry.name, val: topTry.stats.tries } : undefined,
       bestAvg: rated0 ? { name: rated0.p.name, val: Math.round(rated0.avg * 100) / 100 } : undefined,
+      tryOfSeason: state.tryOfSeason && state.tryOfSeason.season === state.season
+        ? { name: state.tryOfSeason.name, min: state.tryOfSeason.min, opp: state.tryOfSeason.opp }
+        : undefined,
       balanceDelta: club0.balance - (state.finHist?.[0]?.b ?? club0.balance),
       confidence: club0.boardConfidence,
       trophies: state.history.filter(h => h.season === state.season && h.champion === uid).map(h => state.comps[h.compId]?.name ?? h.compId),
@@ -1104,4 +1108,5 @@ export function rebuildSeason(state: GameState) {
   })
 
   punditPredictions(state, rng)
+  state.tryOfSeason = null // the new season starts its own reel
 }
