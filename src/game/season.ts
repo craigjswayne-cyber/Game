@@ -1,5 +1,5 @@
-import type { Competition, Fixture, GameState, Player, Pos, TableRow } from './model'
-import { addGrudge, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
+import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
+import { addGrudge, FACILITY_INFO, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -19,6 +19,41 @@ import { eraSummary, refreshVacancies } from './jobs'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
+}
+
+/** Facility upgrades go through the boardroom (8-batch feedback): the board
+ *  weighs the books and their faith in you. A yes releases the funds and
+ *  puts builders on site for five weeks; a no closes the door for eight. */
+export function requestFacility(state: GameState, fid: FacilityId): string {
+  const club = state.clubs[state.userClubId]
+  const info = FACILITY_INFO[fid]
+  const lvl = state.facilities?.[fid] ?? 0
+  if (lvl >= 3) return `The ${info.name.toLowerCase()} is already world class.`
+  if (state.facilityBuild) return `The builders are already on site (${FACILITY_INFO[state.facilityBuild.id].name}). One project at a time.`
+  const abs = state.season * 100 + state.week
+  if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
+  const cost = facilityCost(info, lvl)
+  const approve = (club.balance >= cost * 1.4 && club.boardConfidence >= 45) || (club.boardConfidence >= 70 && club.balance >= cost)
+  if (!approve) {
+    state.facilityAskCooldown = abs + 8
+    const why = club.balance < cost ? 'the money simply is not there'
+      : club.boardConfidence < 45 ? 'results have not earned a project like this'
+      : 'the reserves are too thin for a project this size'
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: `🏛 Board says no: ${info.name}`,
+      body: `Your request for a level ${lvl + 1} ${info.name.toLowerCase()} was heard, considered and declined - ${why}. The door reopens in a couple of months; better results and a healthier balance reopen it faster.`,
+    })
+    return `Declined - ${why}.`
+  }
+  club.balance -= cost
+  state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: `🏛 Board approves: ${info.name} to level ${lvl + 1}`,
+    body: `${fmtMoney(cost)} released from club funds. The builders move in on Monday and the new ${info.name.toLowerCase()} opens in about five weeks. ${info.desc}`,
+  })
+  return `Approved. ${fmtMoney(cost)} released - about five weeks to build.`
 }
 
 // ------------------------------------------------------------------
@@ -931,6 +966,19 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     state.pledges = remain
+  }
+
+  // the builders finish: a board-funded facility upgrade opens its doors
+  if (state.facilityBuild && state.season * 100 + state.week >= state.facilityBuild.done) {
+    const b = state.facilityBuild
+    const info = FACILITY_INFO[b.id]
+    state.facilities = { ...(state.facilities ?? {}), [b.id]: b.level }
+    state.facilityBuild = null
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: `🏗 The new ${info.name.toLowerCase()} opens`,
+      body: `The builders are gone and the ribbon is cut: your ${info.name.toLowerCase()} is now level ${b.level}. ${info.desc} The squad found it within minutes; the coaches found it first.`,
+    })
   }
 
   // the physio's red flag: a position group stripped below cover gets an

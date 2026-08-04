@@ -137,6 +137,8 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.vsBook = {} // and a blank book against everyone else too
     state.gateRecord = null // a new ground sets its own bar
     state.tryOfSeason = null // the old club keeps its own best try
+    state.facilityBuild = null // the old club's builders finish without you
+    state.facilityAskCooldown = 0 // a new board hears you out fresh
     state.tenureStart = state.season // the clock on your era starts today
     for (const id of club.players) {
       const p = state.players[id]

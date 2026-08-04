@@ -1,12 +1,12 @@
 // World-state invariant audit: run seasons and validate consistency weekly.
 // Complements simtest (stats/perf) with hard correctness checks.
 import { newGame } from '../src/game/newgame'
-import { arrangeFriendly, processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
+import { arrangeFriendly, processWeekAndAdvance, requestFacility, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
-import { SEASON_WEEKS, oldBoyApps, type GameState } from '../src/game/model'
+import { FACILITY_INFO, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
 
 let fails = 0
 function bad(msg: string) {
@@ -166,6 +166,16 @@ function audit(g: GameState, tag: string) {
     if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)
     if (!g.clubs[g.gateRecord.oppId]) bad(`${tag} gate record vs missing club ${g.gateRecord.oppId}`)
   }
+  if (g.facilityBuild) {
+    const b = g.facilityBuild
+    if (!FACILITY_INFO[b.id]) bad(`${tag} facility build with unknown id ${b.id}`)
+    if (!(b.level >= 1 && b.level <= 3)) bad(`${tag} facility build to level ${b.level}`)
+    if (b.done > g.season * 100 + g.week + 6) bad(`${tag} facility build finishes too far out (${b.done})`)
+  }
+  for (const [fid, lvl] of Object.entries(g.facilities ?? {})) {
+    if (!FACILITY_INFO[fid as FacilityId]) bad(`${tag} unknown facility ${fid}`)
+    if (!(lvl >= 0 && lvl <= 3)) bad(`${tag} facility ${fid} at level ${lvl}`)
+  }
   // 11. prose quality: rendered game text never leaks internals or breaks
   // house style. En dashes are legal only in the scoreline convention (24–18,
   // 52%–48%); em dashes are banned outright; a stray "undefined", NaN or
@@ -233,6 +243,11 @@ for (let season = 0; season < SEASONS; season++) {
     const rusty = squad.find(p => !p.injury && (p.rust ?? 0) > 0)
     if (rusty) cottonWool(g, rusty.id)
     g.scoutFocus = ['top14', 'urc', 'prem', null][g.week % 4]
+    // pester the board for facilities like a manager with a vision
+    if (g.week % 5 === 0) {
+      const fids: FacilityId[] = ['gym', 'kicking', 'paddock', 'briefing', 'academy']
+      requestFacility(g, fids[(g.week / 5) % 5 | 0])
+    }
     // rotate positional roles like a tinkering manager
     const t = g.clubs[g.userClubId].tactic
     t.roles ??= []
