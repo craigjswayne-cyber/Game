@@ -54,11 +54,17 @@ export default function Fixtures() {
               <tr key={f.id} className={isNext ? 'next-fx' : undefined}
                 onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
                 style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
-                <td className="muted">{fixtureDate(game.season, f.week, f.id).replace(/day /, " ")}</td>
-                <td className="name">{f.homeId === me ? 'v ' : '@ '}<CrestT g={game} teamId={opp} size={16} />{teamShort(game, opp)}
-                  {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}> ▸</span> : null}</td>
-                <td className="muted">{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? 'Friendly' : f.compId)}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
-                <td>{res(f)}</td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id).replace(/day /, " ")}</td>
+                <td className="name">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{f.homeId === me ? 'v' : '@'}</span>
+                    <CrestT g={game} teamId={opp} size={16} />
+                    {teamShort(game, opp)}
+                    {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
+                  </span>
+                </td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? 'Friendly' : f.compId)}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{res(f)}</td>
               </tr>
             )
           })}
