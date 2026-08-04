@@ -49,6 +49,7 @@ let prevInjured = new Set<number>()
 let newSpells = 0, spellWeeks = 0
 const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
 let farewells = 0, milestoneNews = 0
+let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
 const wcSeedTops: string[] = []
 const milestoneSubjects = new Map<string, number>()
 const seen = new Set<number>()
@@ -63,6 +64,10 @@ for (let season = 0; season < 20; season++) {
       if (seen.has(n.id)) continue
       seen.add(n.id)
       if (n.subject.includes('The last dance')) farewells++
+      if (n.subject.includes('Signing off') || n.subject.includes('tells you first')) retireNews++
+      if (n.subject.includes('Loan watch')) loanWatch++
+      if (n.subject.includes('armband')) armbands++
+      if (n.subject.includes('Dream debut') || n.subject.includes('grandkids')) debutNews++
       {
         const fee = parseFee(n.body)
         if (fee != null) feeBuckets[Math.min(3, Math.floor(season / 5))].push(fee)
@@ -120,6 +125,13 @@ for (let season = 0; season < 20; season++) {
   console.log(`natrank after 20 seasons: min ${min.toFixed(1)} max ${max.toFixed(1)} spread ${(max - min).toFixed(1)} pinned-at-bounds ${pinned}`)
 }
 console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length})`)
+console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
+{
+  const stale = Object.values(g.players).filter(p => p.debutPending && p.stats.apps > 0).length
+  const youngRetiring = Object.values(g.players).filter(p => p.retiring && p.age < 37).length
+  if (stale) console.log(`WARN: ${stale} stale debutPending flags on played players`)
+  if (youngRetiring) console.log(`WARN: ${youngRetiring} retiring flags under age 37`)
+}
 console.log(`WC top seeds by cycle: ${wcSeedTops.join(', ') || 'none observed'}`)
 // D-round ledgers: bounded and coherent after 20 seasons
 {

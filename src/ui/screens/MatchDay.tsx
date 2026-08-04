@@ -449,7 +449,7 @@ function Preview({ fxId }: { fxId: number }) {
               {(() => {
                 const bowing = oppLineup
                   .map(id => id != null ? game.players[id] : null)
-                  .filter((p): p is Player => !!p && !!p.retiring && p.ca >= 78)
+                  .filter((p): p is Player => !!p && !!p.retiring && (p.ca >= 72 || (p.caps ?? 0) >= 25))
                   .sort((a, b) => b.ca - a.ca)[0]
                 if (!bowing) return null
                 const home = fx.homeId === game.userClubId
