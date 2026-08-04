@@ -179,6 +179,8 @@ export interface Player {
   hist?: { apps: number; tries: number; points: number }
   /** Test caps, pre-2025 estimate plus every international played here */
   caps?: number
+  /** British & Irish Lions tours made - the honour of a career */
+  lions?: number
   /** pre-2025 former club (same league), for old-boy stories from day one */
   exClub?: string | null
   /** appearances made at that former club before 2025 */

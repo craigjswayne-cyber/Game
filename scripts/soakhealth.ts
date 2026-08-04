@@ -52,7 +52,7 @@ let prevInjured = new Set<number>()
 let newSpells = 0, spellWeeks = 0
 const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
 let farewells = 0, milestoneNews = 0, totsAwards = 0
-let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
+let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0, lionsNews = 0
 let taps = 0, brokenVows = 0, courtPressers = 0
 let hearings = 0, appealsWon = 0, appealsLost = 0, campBeats = 0, employedW1 = 0
 // news pressure: how many items land in the inbox per week (EA v2, permanent)
@@ -154,6 +154,7 @@ for (let season = 0; season < 20; season++) {
       if (n.subject.includes('Loan watch')) loanWatch++
       if (n.subject.includes('armband')) armbands++
       if (n.subject.includes('Dream debut') || n.subject.includes('grandkids')) debutNews++
+      if (n.subject.includes('LIONS:')) lionsNews++
       if (n.subject.includes('are watching you')) taps++
       if (n.subject.includes('aged badly')) brokenVows++
       if (n.subject.includes('Appeal upheld')) appealsWon++
@@ -226,7 +227,8 @@ for (let season = 0; season < 20; season++) {
 }
 console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length}) · try of the season awards: ${totsAwards}`)
 if (totsAwards < 10) console.log('WARN: try of the season fired under 10 times in 20 seasons')
-console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
+console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews} · lions call-ups ${lionsNews}`)
+if (lionsNews === 0) console.log('WARN: no Lions call-up news in 20 seasons (5 tours)')
 console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
 console.log(`disciplinary hearings: ${hearings} · appeals won ${appealsWon} · lost ${appealsLost} · pre-season decisions ${campBeats}/${employedW1} employed week-1s`)
 if (campBeats < employedW1) console.log('WARN: pre-season decision missing in a season where the manager was employed')
