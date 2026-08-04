@@ -1,5 +1,6 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, fmtMoney, grudgeBetween, inRedZone, oldBoyApps } from './model'
+import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
@@ -1261,6 +1262,9 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   fx.awayTries = away.tries
   pushEvent(state, ctx, 80, 'FT', null, `Full-time: ${teamShort(state, fx.homeId)} ${home.score} - ${away.score} ${teamShort(state, fx.awayId)}`)
   if (detail) fx.events = ctx.events
+
+  // Test rugby keeps score beyond the scoreboard: the world rankings move
+  if (!state.clubs[fx.homeId] && !state.clubs[fx.awayId]) updateNatRank(state, fx)
 
   // an ill-tempered afternoon starts a feud of its own
   const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent

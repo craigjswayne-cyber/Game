@@ -2,23 +2,70 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
+import { natRankOrder } from '../../game/natrank'
+import { nationByCode } from '../../game/nations'
 import { CrestT, Nat, PosBadge, SectionTitle } from '../components'
 
 /** The Scouting Agency: monthly world rankings, FM-style. */
 export default function Agency() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const [tab, setTab] = useState<'seniors' | 'kids'>('seniors')
+  const [tab, setTab] = useState<'seniors' | 'kids' | 'nations'>('seniors')
 
   const list = tab === 'seniors' ? agencySeniors(game) : agencyKids(game)
   const prev = tab === 'seniors' ? (game.agency?.seniors ?? []) : (game.agency?.kids ?? [])
   const best = game.agency?.best ?? {}
+
+  if (tab === 'nations') {
+    const order = natRankOrder(game)
+    const prevOrder = game.natRankPrev ?? []
+    return (
+      <>
+        <div className="tab-bar">
+          <button onClick={() => setTab('seniors')}>World Rankings</button>
+          <button onClick={() => setTab('kids')}>Wonderkids</button>
+          <button className="active">Test Nations</button>
+        </div>
+        <SectionTitle sub="rating points move with every Test - upsets and knockouts move them most">Test Rankings: World</SectionTitle>
+        <div className="tblwrap"><table className="dtable">
+          <thead><tr><th>#</th><th></th><th>Nation</th><th className="num">Pts</th></tr></thead>
+          <tbody>
+            {order.map((code, i) => {
+              const n = nationByCode(code)
+              const prevIdx = prevOrder.indexOf(code)
+              const move = prevIdx < 0 ? 'flat' : prevIdx > i ? 'up' : prevIdx < i ? 'down' : 'flat'
+              const mine = game.natTeam === code
+              return (
+                <tr key={code} style={mine ? { background: 'color-mix(in srgb, #c9a227 14%, transparent)' } : undefined}>
+                  <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
+                  <td style={{ width: 18, fontSize: 11 }}>
+                    {move === 'up' ? <span style={{ color: '#2f7d4f' }}>▲</span>
+                      : move === 'down' ? <span style={{ color: '#9b2c2c' }}>▼</span>
+                      : <span className="muted">·</span>}
+                  </td>
+                  <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
+                    {n?.flag ?? ''} {n?.name ?? code}{mine ? ' (you)' : ''}
+                  </td>
+                  <td className="num">{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table></div>
+        <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
+          ▲▼ movement since last month · your nation highlighted when you hold a Test job
+        </div>
+        <div className="spacer" />
+      </>
+    )
+  }
 
   return (
     <>
       <div className="tab-bar">
         <button className={tab === 'seniors' ? 'active' : ''} onClick={() => setTab('seniors')}>World Rankings</button>
         <button className={tab === 'kids' ? 'active' : ''} onClick={() => setTab('kids')}>Wonderkids</button>
+        <button onClick={() => setTab('nations')}>Test Nations</button>
       </div>
       <SectionTitle sub={tab === 'seniors' ? 'the twenty best players on the planet, updated monthly' : 'the ceilings scouts whisper about - 21 and under'}>
         {tab === 'seniors' ? 'Senior Rankings: World' : 'Wonderkid Watch: World'}
