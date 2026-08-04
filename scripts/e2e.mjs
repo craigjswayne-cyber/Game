@@ -94,6 +94,12 @@ try {
   await page.waitForSelector('text=Treatment Room')
   await shot('06d-medical')
 
+  // Club submenu -> Club Information (dressing room mood board)
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Club Information')
+  await page.waitForSelector('text=Dressing Room')
+  await shot('06e-club-info')
+
   // World submenu -> Competitions
   await page.click('.bottom-nav button[title="World"]')
   await page.waitForSelector('.submenu')
