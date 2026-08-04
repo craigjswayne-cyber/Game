@@ -372,6 +372,8 @@ export interface ManagerStats {
   finishes: { season: number; leagueId: string; pos: number }[]
   signings: number
   spent: number
+  /** Manager of the Month awards won */
+  moms?: number
 }
 
 export interface GameState {

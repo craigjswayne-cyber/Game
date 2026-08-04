@@ -142,6 +142,7 @@ export default function Profile() {
         <span className="chip">Lost <b>{m.l}</b></span>
         <span className="chip">Win rate <b>{winPct}%</b></span>
         <span className="chip">Signings <b>{m.signings}</b></span>
+        {(m.moms ?? 0) > 0 && <span className="chip">🥇 Manager of the Month <b>×{m.moms}</b></span>}
       </div>
       {!game.unemployed && (
         <div style={{ padding: '8px 14px 0' }}>

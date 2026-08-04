@@ -59,6 +59,7 @@ export function migrate(s: GameState): GameState {
   s.staff.kicking ??= 0
   s.staff.academyCoach ??= 0
   s.mgr ??= { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
+  s.mgr.moms ??= 0
   s.vacancies ??= []
   s.devFocus ??= []
   s.natTeam ??= null

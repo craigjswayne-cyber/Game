@@ -642,6 +642,59 @@ export function processWeekAndAdvance(state: GameState) {
       fx.tableApplied = true
     }
   }
+  // monthly awards in the user's league: every four weeks the league names
+  // its player and manager of the month — small prizes, big feelings
+  if (state.week % 4 === 0 && !state.unemployed) {
+    const leagueId = state.clubs[state.userClubId].leagueId
+    const comp = state.comps[leagueId]
+    if (comp?.type === 'league') {
+      const from = state.week - 3
+      // manager of the month: best league results in the window
+      let bestClub: string | null = null
+      let bestPts = -1
+      for (const r of comp.table) {
+        let pts = 0
+        for (const f of state.fixtures) {
+          if (f.compId !== leagueId || !f.played || f.week < from || f.week > state.week) continue
+          if (f.homeId !== r.teamId && f.awayId !== r.teamId) continue
+          const us = f.homeId === r.teamId ? f.homeScore : f.awayScore
+          const them = f.homeId === r.teamId ? f.awayScore : f.homeScore
+          pts += us > them ? 3 : us === them ? 1 : 0
+        }
+        if (pts > bestPts) { bestPts = pts; bestClub = r.teamId }
+      }
+      // player of the month: hottest form among men who featured this window
+      const cands = comp.table.flatMap(r => (state.clubs[r.teamId]?.players ?? [])
+        .map(id => state.players[id])
+        .filter(p => p && (p.lastWk ?? -9) >= from))
+      const pom = cands.sort((a, b) => b!.form - a!.form || b!.stats.ratingSum - a!.stats.ratingSum)[0]
+      if (pom && bestClub && bestPts >= 0) {
+        pom.morale = clamp(pom.morale + 0.6, 1, 10)
+        const userWon = bestClub === state.userClubId
+        if (userWon) {
+          state.mgr.moms = (state.mgr.moms ?? 0) + 1
+          const club = state.clubs[state.userClubId]
+          club.boardConfidence = clamp(club.boardConfidence + 4, 0, 100)
+          state.fanMood = clamp((state.fanMood ?? 60) + 4, 5, 98)
+        }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+          subject: userWon
+            ? `🥇 Manager of the Month: YOU`
+            : pom.clubId === state.userClubId
+              ? `🥇 ${comp.short} awards: ${pom.name} is Player of the Month`
+              : `🥇 ${comp.short} monthly awards`,
+          body: [
+            `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`} — ${bestPts} pts from the window.`,
+            `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '—'}), form ${pom.form.toFixed(1)}.`,
+            userWon ? 'The board notice these things — and so does the crowd.' : pom.clubId === state.userClubId ? 'A proud week for the club and a lift for the man himself.' : '',
+          ].filter(Boolean).join('\n'),
+          playerId: pom.id,
+        })
+      }
+    }
+  }
+
   // knockout heartbreak breeds a grudge: losing a semi or a final puts the
   // winner on your dartboard for the next couple of seasons
   for (const fx of state.fixtures.filter(f =>
