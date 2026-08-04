@@ -101,6 +101,52 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </div>
         </>
       )}
+      {club.id === game.userClubId && (() => {
+        // the dressing room: who needs attention, and why - a read-only
+        // window over every unhappiness the game's systems can produce
+        const committed = new Set((game.preContracts ?? []).map(pc => pc.playerId))
+        const pledged = new Set((game.pledges ?? []).map(pl => pl.playerId))
+        const seniors = players.filter(p => !p.acad)
+        const avg = seniors.length ? seniors.reduce((s, p) => s + p.morale, 0) / seniors.length : 7
+        const verdict = avg >= 7.5 ? '😊 The room is bouncing - keep winning and keep quiet.'
+          : avg >= 6 ? '🙂 Settled enough. A few individuals need an eye kept on them.'
+          : avg >= 4.5 ? '😐 Uneasy. The card schools have gone quiet and doors close faster.'
+          : '😤 Mutinous. Sort the loudest voices before they sort you.'
+        const rows = seniors.map(p => {
+          const why: string[] = []
+          if (committed.has(p.id)) why.push('🖊 signed elsewhere')
+          if ((p.wantsDeal ?? 0) > 0) why.push('💷 wants a deal')
+          if (pledged.has(p.id) && !committed.has(p.id)) why.push('🤝 holding you to a promise')
+          if (p.transferListed) why.push('📋 transfer listed')
+          if (p.contractEnds <= game.season) why.push('⏳ deal expiring')
+          if (game.week >= 10 && p.stats.apps <= 2 && !p.injury) why.push('🪑 short of minutes')
+          if (!why.length && p.morale <= 4) why.push('🌧 flat, no single cause')
+          return { p, why }
+        }).filter(r => r.why.length && (r.p.morale <= 6.5 || r.why.some(w => !w.includes('deal expiring'))))
+          .sort((a, b) => a.p.morale - b.p.morale)
+          .slice(0, 8)
+        return (
+          <>
+            <SectionTitle sub="who needs attention, and why">Dressing Room</SectionTitle>
+            <div className="card">
+              <div className="meta" style={{ paddingBottom: rows.length ? 6 : 0 }}>{verdict}</div>
+              {rows.map(({ p, why }) => (
+                <div key={p.id} onClick={() => go('player', p.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: '1px solid var(--hairline)', cursor: 'pointer' }}>
+                  <span style={{ fontWeight: 700, minWidth: 0, flex: 1 }}>
+                    {p.name} <span className="muted" style={{ fontWeight: 400 }}>({p.pos})</span>
+                  </span>
+                  <span className="muted" style={{ fontSize: 12, textAlign: 'right' }}>{why.join(' · ')}</span>
+                  <b style={{ color: p.morale <= 4 ? '#9b2c2c' : p.morale <= 6 ? 'var(--ink-soft)' : '#2f7d4f' }}>
+                    {p.morale.toFixed(0)}
+                  </b>
+                </div>
+              ))}
+              {!rows.length && <div className="muted" style={{ fontSize: 12.5 }}>Nobody is agitating. Enjoy it - it never lasts.</div>}
+            </div>
+          </>
+        )
+      })()}
       {(() => {
         // live feuds involving this club + its strongest partnerships
         const feuds = (game.grudges ?? []).filter(g =>
