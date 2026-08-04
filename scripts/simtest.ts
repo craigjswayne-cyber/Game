@@ -19,7 +19,7 @@ for (const d of defs) {
 console.log(`clubs: ${ids.size}, players: ${defs.reduce((s, d) => s + d.clubs.reduce((x, c) => x + c.players.length, 0), 0)}, dup ids: ${dup}`)
 
 // --- run seasons ---
-const g = newGame('leicester', 'Test Gaffer', 12345)
+const g = newGame('leicester', 'Test Gaffer', Number(process.argv[3] ?? 12345)) // argv[3]: alternate seed for band checks
 console.log(`world players: ${Object.keys(g.players).length}, fixtures season 1: ${g.fixtures.length}`)
 
 const t0 = Date.now()

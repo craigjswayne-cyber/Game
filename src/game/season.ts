@@ -313,6 +313,7 @@ function manageInternationals(state: GameState, rng: Rng) {
     if (state.week === w.end + 1) {
       if (state.natLineup && w.nations.includes(state.natLineup.team)) state.natLineup = null
       const returnedMine: string[] = []
+      const lionsHome: Player[] = []
       for (const nat of w.nations) {
         for (const id of state.natSquads[nat] ?? []) {
           const p = state.players[id]
@@ -321,10 +322,34 @@ function manageInternationals(state: GameState, rng: Rng) {
             // Test rugby empties the tank - returning internationals need
             // managing, not flogging
             p.cond = clamp(p.cond - 10, 20, 100)
-            if (p.clubId === state.userClubId) returnedMine.push(p.name)
+            if (p.clubId === state.userClubId) {
+              if (nat === 'LIO') lionsHome.push(p)
+              else returnedMine.push(p.name)
+            }
           }
         }
         delete state.natSquads[nat]
+      }
+      if (lionsHome.length) {
+        // a Lions tour changes a player: he comes home a bigger presence
+        const comp = state.comps['lions']
+        const seriesWon = comp?.champion === 'LIO'
+        for (const p of lionsHome) {
+          p.morale = clamp(p.morale + 0.6, 1, 10)
+          p.a.lea = clamp(p.a.lea + 1, 1, 20)
+        }
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+          body: [
+            `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+            seriesWon
+              ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
+              : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
+            `The medical staff still counsel care: a Lions summer empties the tank like nothing else.`,
+          ].join(' '),
+          playerId: lionsHome[0].id,
+        })
       }
       if (returnedMine.length) {
         state.news.push({

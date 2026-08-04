@@ -606,6 +606,34 @@ export function rebuildSeason(state: GameState) {
   worldPlayerOfTheYear(state)
   settleRecords(state)
 
+  // the Lions come home: the tour ends with the season itself, so the
+  // window's return week (end + 1) never exists on the calendar - the
+  // homecoming is processed here, before the blanket natSquad reset
+  {
+    const lionsHome = (state.natSquads?.['LIO'] ?? [])
+      .map(id => state.players[id])
+      .filter((p): p is Player => !!p && p.clubId === state.userClubId)
+    if (lionsHome.length) {
+      const comp = state.comps['lions']
+      const seriesWon = comp?.champion === 'LIO'
+      for (const p of lionsHome) {
+        p.morale = clamp(p.morale + 0.6, 1, 10)
+        p.a.lea = clamp(p.a.lea + 1, 1, 20)
+      }
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'intl', read: false,
+        subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+        body: [
+          `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+          seriesWon
+            ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
+            : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
+        ].join(' '),
+        playerId: lionsHome[0].id,
+      })
+    }
+  }
+
   // the union's annual review: the Test job answers to somebody too
   if (state.natTeam && state.natConfidence != null) {
     const nat = state.natTeam
