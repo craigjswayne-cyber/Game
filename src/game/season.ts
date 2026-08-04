@@ -378,6 +378,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (p.injury && state.week >= p.injury.until) {
         const weeksOut = p.injury.weeks ?? 2
         p.injury = null
+        p.specialist = false
         p.cond = 70
         p.sharp = 40
         // a spell of match rust: playable, but rushing him back risks re-injury
