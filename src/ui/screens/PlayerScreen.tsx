@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_NAMES, POS_NAMES, fmtMoney, type Attrs } from '../../game/model'
+import { ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs } from '../../game/model'
 import { askingPrice, offerRenewalAt, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
 import { attrBarColor, attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
@@ -66,6 +66,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="chips">
         <span className="chip">Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         <span className="chip">Character <b>{p.pers}</b></span>
+        {p.trait && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>✨ {p.trait}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
         <span className="chip">Value <b>{fmtMoney(p.value)}</b></span>

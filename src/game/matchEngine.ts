@@ -90,7 +90,7 @@ export function teamUnits(state: GameState, lineup: (number | null)[]): Units {
   const bk = [8, 9, 10, 11, 12, 13, 14]
   let scrum = avg([at(0, 'scr'), at(1, 'scr'), at(2, 'scr'), at(3, 'str'), at(4, 'str'), at(0, 'str'), at(2, 'str')])
   let lineout = avg([at(1, 'lin'), at(3, 'lin'), at(4, 'lin'), at(5, 'lin'), at(7, 'lin')])
-  const breakdown = avg(fw.map(i => at(i, 'ruc')))
+  let breakdown = avg(fw.map(i => at(i, 'ruc')))
   let attack = avg([
     ...bk.map(i => at(i, 'han')),
     at(9, 'vis') * 1.5, at(8, 'pas') * 1.3, at(11, 'pac'), at(12, 'pac'),
@@ -111,6 +111,17 @@ export function teamUnits(state: GameState, lineup: (number | null)[]): Units {
     defence *= 1 + f(games(11, 12)) * 0.7
     kicking *= 1 + f(games(8, 9)) * 0.5
   }
+  // signature traits: small, capped edges from the men who carry them
+  let atkT = 1, brkT = 1, scrT = 1
+  for (const p of xv) {
+    if (!p?.trait) continue
+    if (p.trait === 'The Step' || p.trait === 'Offload King') atkT += 0.012
+    else if (p.trait === 'Jackal') brkT += 0.02
+    else if (p.trait === 'Enforcer') { brkT += 0.012; scrT += 0.01 }
+  }
+  attack *= Math.min(atkT, 1.05)
+  breakdown *= Math.min(brkT, 1.06)
+  scrum *= Math.min(scrT, 1.04)
   // best goal kicker on the pitch
   let kickerId: number | null = null
   let goal = 5
@@ -238,6 +249,11 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.tempoF = 1 + f(t.tempo) * 0.22
     side.cardRisk = 0.012 + f(t.aggression) * 0.006
   }
+  // hot heads walk the disciplinary tightrope every week
+  for (const id of side.lineup.slice(0, 15)) {
+    const p = id != null ? state.players[id] : null
+    if (p?.trait === 'Hot Head') side.cardRisk += 0.002
+  }
   // a proper captain in the XV steadies the ship and keeps discipline
   if (club?.captain != null && side.lineup.slice(0, 15).includes(club.captain)) {
     const cap = state.players[club.captain]
@@ -318,7 +334,7 @@ function tryScorer(state: GameState, side: SideCtx, rng: Rng): Player | null {
       WG: 5, FB: 3, CE: 3.4, FH: 1.4, SH: 1.8, N8: 2.2, FL: 2.2, HK: 2.0, LK: 1.2, LP: 0.7, TP: 0.7,
     }
     const fresh = 0.55 + 0.45 * ((side.energy.get(p.id) ?? 70) / 100)
-    return (posW[p.pos] ?? 1) * (0.5 + p.a.pac / 20) * fresh
+    return (posW[p.pos] ?? 1) * (0.5 + p.a.pac / 20) * fresh * (p.trait === 'The Step' ? 1.8 : 1)
   })
   return wpick(rng, ps, w)
 }
@@ -508,6 +524,17 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // dynamic bad blood: derby-lite heat when there's history between the clubs
   const grudge = !derby ? grudgeBetween(state, fx.homeId, fx.awayId) : null
   if (grudge) { home.cardRisk *= 1.25; away.cardRisk *= 1.25 }
+  // big-game players find another gear when it really matters
+  if (fx.stage || derby) {
+    for (const side of [home, away]) {
+      let n = 0
+      for (const id of side.lineup.slice(0, 15)) {
+        const p = id != null ? state.players[id] : null
+        if (p?.trait === 'Big-Game Player') { n++; side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) + 0.3) }
+      }
+      side.units.attack *= 1 + Math.min(n, 3) * 0.008
+    }
+  }
   if (weather === 'Rain') goalPenalty = 0.09
   if (weather === 'Wind') goalPenalty = 0.09
   if (weather === 'Snow') goalPenalty = 0.1
@@ -611,7 +638,9 @@ function kickChance(state: GameState, kicker: Player | null, base: number, div: 
   const skill = base + kicker.a.goa / div
   const formF = (kicker.form - 6) * 0.012      // ±5% across the form range
   const confF = (kicker.morale - 6.5) * 0.008  // nerves show from the tee
-  return clamp(skill + formF + confF - goalPenalty + side.goalBonus, 0.38, 0.93)
+  const traitB = kicker.trait === 'Siege Gun' ? 0.03 : 0
+  const floor = kicker.trait === 'Metronome' ? 0.45 : 0.38
+  return clamp(skill + formF + confF - goalPenalty + side.goalBonus + traitB, floor, 0.93)
 }
 
 /** Take the three points: roll the kick at goal. */

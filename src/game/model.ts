@@ -68,6 +68,18 @@ export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${
 export const chemTier = (g: number) =>
   g >= 50 ? 'telepathic' : g >= 25 ? 'established' : g >= 10 ? 'settled' : g >= 5 ? 'settling in' : 'brand new'
 
+/** Signature traits and what they do, for player pages and scouting. */
+export const TRAIT_INFO: Record<string, string> = {
+  'The Step': 'Feet like a dancer — defenders grasp at air. Scores more tries.',
+  'Offload King': 'Keeps the ball alive through contact. Sharpens the whole attack.',
+  'Siege Gun': 'A boot from another postcode — dangerous from anywhere kickable.',
+  'Metronome': 'Never misses the ones he should make. Raises the kicking floor.',
+  'Jackal': 'First over every tackle. More breakdown menace.',
+  'Enforcer': 'Brings the dark arts — muscle at scrum and ruck, and refs know his name.',
+  'Big-Game Player': 'Grows three inches in knockouts and derbies.',
+  'Hot Head': 'One flashpoint from a card, every single week.',
+}
+
 /** One-page season review captured at rollover, shown early next season. */
 export interface SeasonReview {
   season: number
@@ -150,6 +162,8 @@ export interface Player {
   youth?: boolean
   /** character type — drives contracts, morale and media reactions */
   pers: Personality
+  /** signature trait — a defining edge (or flaw) in his game */
+  trait?: string | null
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
   /** away on a season loan */
