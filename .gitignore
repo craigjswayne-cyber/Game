@@ -3,3 +3,4 @@ dist/
 shots/
 *.log
 *.tsbuildinfo
+scripts/deepsave.json
