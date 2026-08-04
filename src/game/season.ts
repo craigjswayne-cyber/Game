@@ -934,7 +934,9 @@ export function processWeekAndAdvance(state: GameState) {
     const bowing = Object.values(state.players)
       .filter(p => p.age >= 37 && !p.retiring && !p.farewell && p.clubId && state.clubs[p.clubId])
     for (const p of bowing) p.retiring = true
-    const stars = bowing.filter(p => p.ca >= 80 && p.clubId !== state.userClubId)
+    // at 37 even the greats have declined - judge the career, not today's
+    // number: still-capable, a big Test career, or a POTY on the shelf
+    const stars = bowing.filter(p => (p.ca >= 72 || (p.caps ?? 0) >= 25 || (p.poty ?? 0) > 0) && p.clubId !== state.userClubId)
       .sort((a, b) => b.ca - a.ca).slice(0, 2)
     for (const p of stars) {
       const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
