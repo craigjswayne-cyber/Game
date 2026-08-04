@@ -172,7 +172,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {(p.hist?.apps ?? 0) > 0 && (
                 <tr className="muted">
                   <td>pre 2025</td>
-                  <td>earlier career</td>
+                  <td>{p.exClub && game.clubs[p.exClub] ? `incl. ${game.clubs[p.exClub].short} (${p.exApps})` : 'earlier career'}</td>
                   <td className="num">{p.hist!.apps}</td>
                   <td className="num">{p.hist!.tries}</td>
                   <td className="num">{p.hist!.points}</td>

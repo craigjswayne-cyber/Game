@@ -1,7 +1,7 @@
 import type { Club, GameState } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds } from './attributes'
-import { LEAGUE_DEFS } from './newgame'
+import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { autoSelect } from './matchEngine'
 import { regenName } from './nations'
 import { hashString, mulberry32 } from './rng'
@@ -128,6 +128,9 @@ export function migrate(s: GameState): GameState {
       club.tactic.lineup = autoSelect(s, club.players.map(id => s.players[id]).filter(Boolean))
     }
   }
+
+  // pre-2025 former clubs (old-boy stories): fills only players still unset
+  seedExClubs(s)
 
   ensureCaptains(s)
   return s

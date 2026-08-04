@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, grudgeBetween, inRedZone } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, grudgeBetween, inRedZone, oldBoyApps } from './model'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
@@ -224,6 +224,8 @@ export interface SideCtx {
   hia?: { pid: number; subId: number; failed: boolean; returnTick: number }
   /** goal-kicking bonus from the kicking coach */
   goalBonus: number
+  /** players in this side facing a former club today - the old boys */
+  exIds: Set<number>
   isUser: boolean
 }
 
@@ -347,6 +349,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
     cardRisk: 0.012,
     poss: 0, pens: 0, consPens: 0,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
+    exIds: new Set(),
     isUser: teamId === userTeamId,
   }
   applyModifiers(state, side, null)
@@ -365,7 +368,7 @@ function tryScorer(state: GameState, side: SideCtx, rng: Rng): Player | null {
       WG: 5, FB: 3, CE: 3.4, FH: 1.4, SH: 1.8, N8: 2.2, FL: 2.2, HK: 2.0, LK: 1.2, LP: 0.7, TP: 0.7,
     }
     const fresh = 0.55 + 0.45 * ((side.energy.get(p.id) ?? 70) / 100)
-    return (posW[p.pos] ?? 1) * (0.5 + p.a.pac / 20) * fresh * (p.trait === 'The Step' ? 1.8 : 1)
+    return (posW[p.pos] ?? 1) * (0.5 + p.a.pac / 20) * fresh * (p.trait === 'The Step' ? 1.8 : 1) * (side.exIds.has(p.id) ? 1.25 : 1)
   })
   return wpick(rng, ps, w)
 }
@@ -557,6 +560,24 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // dynamic bad blood: derby-lite heat when there's history between the clubs
   const grudge = !derby ? grudgeBetween(state, fx.homeId, fx.awayId) : null
   if (grudge) { home.cardRisk *= 1.25; away.cardRisk *= 1.25 }
+  // old boys: a man facing his former club plays the game of his life
+  // (club matches only - career rows never reference national sides)
+  let returnee: Player | null = null
+  let returneeApps = 0
+  if (state.clubs[fx.homeId] && state.clubs[fx.awayId]) {
+    for (const side of [home, away]) {
+      const oppId = side === home ? fx.awayId : fx.homeId
+      for (const id of side.lineup) {
+        const p = id != null ? state.players[id] : null
+        if (!p || side.exIds.has(p.id)) continue
+        const oldApps = oldBoyApps(p, oppId)
+        if (!oldApps) continue
+        side.exIds.add(p.id)
+        if (side.onPitch.has(p.id)) side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) + 0.2)
+        if (oldApps > returneeApps) { returnee = p; returneeApps = oldApps }
+      }
+    }
+  }
   // big-game players find another gear when it really matters
   if (fx.stage || derby) {
     for (const side of [home, away]) {
@@ -638,6 +659,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     if (mood >= 80) pushEvent(state, ctx, 1, 'SUB', home, `The ground is absolutely bouncing - the supporters are in full voice before a ball is kicked.`)
     else if (mood <= 30) pushEvent(state, ctx, 1, 'SUB', home, `A flat, edgy atmosphere. The crowd is waiting to be given a reason.`)
   }
+  if (returnee && returneeApps >= 10) {
+    const exSide = home.exIds.has(returnee.id) ? home : away
+    const oldClub = teamShort(state, exSide === home ? fx.awayId : fx.homeId)
+    pushEvent(state, ctx, 1, 'SUB', exSide,
+      `A familiar face out there: ${returnee.name} lines up against ${oldClub}, where he made ${returneeApps} appearances. ${exSide === home ? 'He knows this opposition inside out.' : 'A polite reception from the home crowd - for now.'}`,
+      returnee.id)
+  }
   return ctx
 }
 
@@ -711,6 +739,9 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? tryPool[Math.floor(rng() * tryPool.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
   if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} - some campaign he's having.`, scorer.id)
+  } else if (scorer && ctx.detail && side.exIds.has(scorer.id) && rng() < 0.75) {
+    pushEvent(state, ctx, min + 1, 'SUB', side, `No celebration from ${scorer.name} against his old club - hands raised in apology, but the damage is done.`, scorer.id)
+    side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.2)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
@@ -1224,6 +1255,27 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent
   if (totalCards >= 5 && state.clubs[fx.homeId] && state.clubs[fx.awayId] && !isDerby(fx.homeId, fx.awayId)) {
     addGrudge(state, fx.homeId, fx.awayId, `the last meeting boiled over - ${totalCards} cards and a tunnel full of pushing`, 1)
+  }
+
+  // an old boy coming back to haunt the user's club makes the back page
+  if ((fx.homeId === state.userClubId || fx.awayId === state.userClubId) && fx.compId !== 'fr') {
+    const oppSide = fx.homeId === state.userClubId ? away : home
+    const oppClub = state.clubs[oppSide.teamId]
+    const ev = ctx.events.find(e => e.type === 'TRY' && e.teamId === oppSide.teamId &&
+      e.playerId != null && oppSide.exIds.has(e.playerId))
+    const haunter = ev?.playerId != null ? state.players[ev.playerId] : null
+    if (haunter && oppClub) {
+      const weWon = (fx.homeId === state.userClubId ? home.score > away.score : away.score > home.score)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+        subject: `Old boy ${haunter.name} crosses against his former club`,
+        body: weWon
+          ? `${haunter.name}, once of this parish, went over for ${oppClub.short} - no celebration, just a nod to the away end. Your side had the last word on the scoreboard, which is all that matters.`
+          : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming. The oldest story in sport, and it found you today.`,
+        playerId: haunter.id,
+        fixtureId: fx.id,
+      })
+    }
   }
 
   let motmId: number | null = null

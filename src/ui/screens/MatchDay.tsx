@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
   refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -389,6 +389,34 @@ function Preview({ fxId }: { fxId: number }) {
                     </div>
                   </div>
                 ) : null
+              })()}
+              {(() => {
+                const theirs = oppLineup
+                  .map(id => id != null ? game.players[id] : null)
+                  .filter((p): p is Player => !!p && oldBoyApps(p, game.userClubId) > 0)
+                  .sort((a, b) => oldBoyApps(b, game.userClubId) - oldBoyApps(a, game.userClubId))
+                const ours = t.lineup
+                  .map(id => id != null ? game.players[id] : null)
+                  .filter((p): p is Player => !!p && oldBoyApps(p, opp) > 0)
+                  .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
+                if (!theirs.length && !ours.length) return null
+                return (
+                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                    <div className="fact-label">Old Boys</div>
+                    {theirs.slice(0, 3).map(p => (
+                      <div key={p.id} className="meta">
+                        <b>{p.name}</b> ({p.pos}) faces the club he left - {oldBoyApps(p, game.userClubId)} appearances
+                        in your colours. Expect him to play like it is a final.
+                      </div>
+                    ))}
+                    {ours.slice(0, 3).map(p => (
+                      <div key={p.id} className="meta">
+                        Your <b>{p.name}</b> ({p.pos}) returns to a former home -
+                        {' '}{oldBoyApps(p, opp)} appearances for {oppClub?.short ?? 'them'}. He knows their calls.
+                      </div>
+                    ))}
+                  </div>
+                )
               })()}
               {danger && (
                 <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>

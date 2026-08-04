@@ -68,6 +68,16 @@ export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${
 export const chemTier = (g: number) =>
   g >= 50 ? 'telepathic' : g >= 25 ? 'established' : g >= 10 ? 'settled' : g >= 5 ? 'settling in' : 'brand new'
 
+/** Appearances this player made for a club he has since left - 0 if he is
+ *  still there. Fuels the old-boy storyline when the fixture list brings
+ *  him back to a former home. */
+export function oldBoyApps(p: Player, clubId: string): number {
+  if (p.clubId === clubId) return 0
+  let apps = p.exClub === clubId ? (p.exApps ?? 0) : 0
+  for (const r of p.career) if (r.clubId === clubId) apps += r.apps
+  return apps
+}
+
 /** Signature traits and what they do, for player pages and scouting. */
 export const TRAIT_INFO: Record<string, string> = {
   'The Step': 'Feet like a dancer - defenders grasp at air. Scores more tries.',
@@ -168,6 +178,10 @@ export interface Player {
   hist?: { apps: number; tries: number; points: number }
   /** Test caps, pre-2025 estimate plus every international played here */
   caps?: number
+  /** pre-2025 former club (same league), for old-boy stories from day one */
+  exClub?: string | null
+  /** appearances made at that former club before 2025 */
+  exApps?: number
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
   /** away on a season loan */

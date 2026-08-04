@@ -6,7 +6,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
-import { SEASON_WEEKS, type GameState } from '../src/game/model'
+import { SEASON_WEEKS, oldBoyApps, type GameState } from '../src/game/model'
 
 let fails = 0
 function bad(msg: string) {
@@ -104,6 +104,10 @@ function audit(g: GameState, tag: string) {
   }
   for (const pid of [...(g.agency?.seniors ?? []), ...(g.agency?.kids ?? [])]) {
     if (!g.players[pid]) bad(`${tag} agency lists retired/missing player ${pid}`)
+  }
+  for (const p of Object.values(g.players)) {
+    if (p.exClub && !g.clubs[p.exClub]) bad(`${tag} ${p.name} ex-club ${p.exClub} does not exist`)
+    if (p.exClub && p.exClub === p.clubId && (p.exApps ?? 0) > 0 && oldBoyApps(p, p.exClub) > 0) bad(`${tag} ${p.name} counts old-boy apps at his own club`)
   }
 }
 
