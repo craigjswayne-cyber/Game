@@ -207,6 +207,58 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
+  // the manager's office: players knock on your door
+  const OFFICE = "The Manager's Office"
+
+  // a frozen-out senior wants to know where he stands
+  const frozen = squad.filter(p => !p.acad && p.age >= 24 && p.ca >= 68 &&
+    p.morale <= 5.5 && p.stats.apps <= 2 && !p.injury &&
+    state.week >= 10 && state.week <= 40)
+  if (frozen.length && rng() < 0.35) {
+    const p = pick(rng, frozen)
+    const item = mk(state,
+      `${p.name} knocks and closes the door behind him. "Boss, I have barely played all season. Tell me straight - am I in your plans or not?"`,
+      p.id, [
+        { label: 'You are in my plans - stay ready', morale: 1.1, board: 0, reaction: `${p.name} leaves with his head up. He will hold you to it - pick him soon or this conversation happens again, louder.` },
+        { label: 'Honestly? He can find a new club', morale: -0.9, board: 0.3, unsettle: true, reaction: `A hard truth, kindly delivered. ${p.name} thanks you for being straight - and his agent is making calls within the hour.` },
+        { label: 'Nobody is owed a shirt here', morale: -0.4, board: 0.2, reaction: `He nods, jaw tight, and heads back to training. The squad hears about it - the honest ones respect it.` },
+      ], rng)
+    item.outlet = OFFICE
+    candidates.push(item)
+  }
+
+  // an academy prospect wants a loan
+  const restless = squad.filter(p => p.acad && p.age <= 21 && p.pa >= 74 &&
+    p.stats.apps <= 3 && !p.injury && state.week >= 8 && state.week <= 34)
+  if (restless.length && rng() < 0.3) {
+    const p = pick(rng, restless)
+    const item = mk(state,
+      `${p.name}, ${p.age}, is waiting by your office after training. "I am not learning anything carrying tackle bags, boss. Send me on loan - I need real minutes."`,
+      p.id, [
+        { label: 'Promise him minutes here', morale: 0.9, board: 0, reaction: `${p.name} lights up. Play him in the next few weeks or the shine wears off fast.` },
+        { label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, reaction: `A smart development call. List him for loan from the Transfers screen and the offers will come.` },
+        { label: 'He is not ready to leave', morale: -0.7, board: 0, reaction: `He trudges out without a word. The academy coach thinks you have just cooled your hottest prospect.` },
+      ], rng)
+    item.outlet = OFFICE
+    candidates.push(item)
+  }
+
+  // a veteran on an expiring deal wants to know what happens next
+  const fading = squad.filter(p => p.age >= 32 && p.contractEnds <= state.season &&
+    p.stats.apps >= 4 && state.week >= 20 && state.week <= 38)
+  if (fading.length && rng() < 0.35) {
+    const p = pick(rng, fading)
+    const item = mk(state,
+      `${p.name}, ${p.age} now, sits down across from you. "My deal is up this summer. I am not asking for promises, boss - I just need to know if I should be planning a life after this place."`,
+      p.id, [
+        { label: 'There is another year in you', morale: 1.2, board: -0.2, reaction: `${p.name} shakes your hand hard. Offer the terms from his player page before someone else does.` },
+        { label: 'This season is his last here', morale: -1.0, board: 0.4, reaction: `He takes it with dignity. He will finish the job properly - and the young players just saw how endings are handled here.` },
+        { label: 'Decide in the run-in', morale: -0.3, board: 0, reaction: `Honest, but the uncertainty follows him around. His agent quietly starts taking other calls.` },
+      ], rng)
+    item.outlet = OFFICE
+    candidates.push(item)
+  }
+
   // post-match reaction: the result you just walked off the pitch with
   const justPlayed = state.fixtures.find(f =>
     f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id))

@@ -744,6 +744,16 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
+  // the Scouting Agency's boards refresh monthly, but retirees must drop off
+  // now - a chart pointing at a deleted player is a broken chart
+  if (state.agency) {
+    state.agency.seniors = state.agency.seniors.filter(pid => state.players[pid])
+    state.agency.kids = state.agency.kids.filter(pid => state.players[pid])
+    for (const k of Object.keys(state.agency.best)) {
+      if (!state.players[Number(k)]) delete state.agency.best[Number(k)]
+    }
+  }
+
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
     club.budget = Math.max(200_000, Math.round((club.rep * 45_000 + Math.max(0, club.balance) * 0.15) / 50_000) * 50_000)
