@@ -53,6 +53,14 @@ let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
 // selection quality: starters wearing a shirt they cannot naturally cover.
 // Nonzero is fine in an injury crisis; a high rate means autoSelect regressed
 let oopStarts = 0, startSamples = 0
+// forced-sub quality: injury replacements should be like-for-like when
+// cover exists (EI). Judged by position class of the departing man
+let injSubs = 0, likeForLike = 0
+const CLASS: Record<string, string[]> = {
+  LP: ['LP', 'TP'], TP: ['TP', 'LP'], HK: ['HK'], LK: ['LK', 'FL'],
+  FL: ['FL', 'N8', 'LK'], N8: ['N8', 'FL'], SH: ['SH'], FH: ['FH', 'CE'],
+  CE: ['CE', 'FH', 'WG'], WG: ['WG', 'FB', 'CE'], FB: ['FB', 'WG'],
+}
 const wcSeedTops: string[] = []
 const milestoneSubjects = new Map<string, number>()
 const seen = new Set<number>()
@@ -63,6 +71,17 @@ for (let season = 0; season < 20; season++) {
     const fx = userFixtureThisWeek(g)
     if (fx) {
       simMatch(g, fx, weekRng(g), true)
+      const evs = fx.events ?? []
+      for (let i = 0; i < evs.length - 1; i++) {
+        const e = evs[i]
+        if (e.type !== 'INJ' || !e.text.includes('is down') || e.playerId == null) continue
+        const next = evs.slice(i + 1, i + 3).find(x => x.text.includes('comes on in his place'))
+        if (!next || next.playerId == null) continue
+        const out = g.players[e.playerId], sub = g.players[next.playerId]
+        if (!out || !sub) continue
+        injSubs++
+        if (sub.pos === out.pos || sub.alt.includes(out.pos) || (CLASS[out.pos]?.includes(sub.pos) ?? false)) likeForLike++
+      }
       const t = g.clubs[g.userClubId].tactic
       const xv = new Set(t.lineup.slice(0, 15).filter((x): x is number => x != null))
       const avail = g.clubs[g.userClubId].players
@@ -153,6 +172,9 @@ console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loa
   const rate = startSamples ? (oopStarts / startSamples) * 100 : 0
   console.log(`selection quality: ${oopStarts}/${startSamples} out-of-position starts (${rate.toFixed(1)}%)`)
   if (rate > 5) console.log('WARN: autoSelect regressing - too many out-of-position starters')
+  const lfl = injSubs ? (likeForLike / injSubs) * 100 : 100
+  console.log(`forced-sub quality: ${likeForLike}/${injSubs} like-for-like (${lfl.toFixed(0)}%)`)
+  if (injSubs >= 20 && lfl < 40) console.log('WARN: injury subs regressing - pickBenchSub not respecting the shirt')
 }
 {
   const stale = Object.values(g.players).filter(p => p.debutPending && p.stats.apps > 0).length
