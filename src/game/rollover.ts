@@ -733,6 +733,7 @@ export function rebuildSeason(state: GameState) {
   state.grudges = (state.grudges ?? []).filter(g => g.until >= state.season)
   for (const p of Object.values(state.players)) { if ((p.wantsDeal ?? 0) > 0) p.wantsDeal = 0 }
   state.slAlerted = []
+  state.pledges = [] // a new season wipes the promise ledger clean
 
   // partnership chemistry only lives while the pair share a dressing room -
   // prune split/retired pairs so the ledger stays small

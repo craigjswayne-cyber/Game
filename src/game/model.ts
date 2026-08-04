@@ -330,6 +330,21 @@ export interface PressOption {
   unsettle?: boolean
   /** printed reaction */
   reaction: string
+  /** choosing this option makes the player a promise - and he remembers */
+  pledge?: Pledge['kind']
+}
+
+/** A promise made to a player in the office. The squad keeps the receipts:
+ *  at the due week it is settled as kept or broken, with consequences. */
+export interface Pledge {
+  playerId: number
+  kind: 'plans' | 'minutes' | 'deal'
+  week: number
+  season: number
+  /** week the promise falls due for settling */
+  due: number
+  /** the player's apps when the promise was made */
+  baseApps: number
 }
 
 export interface PressItem {
@@ -469,6 +484,8 @@ export interface GameState {
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
   /** league the scouting network is assigned to watch weekly */
   scoutFocus?: string | null
+  /** open promises made to players in the office, settled at their due week */
+  pledges?: Pledge[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */
