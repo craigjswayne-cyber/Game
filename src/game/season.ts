@@ -249,6 +249,27 @@ function manageInternationals(state: GameState, rng: Rng) {
           p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
           if (p.clubId === state.userClubId) userCalls.push(p)
         }
+        // the national coach announces HIS squad - a proper occasion
+        if (nat === state.natTeam || (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))) {
+          const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
+          const fwd = pool.filter(p => FWD.includes(p.pos))
+          const bks = pool.filter(p => !FWD.includes(p.pos))
+          const line = (p: Player) => `${p.name}${(p.caps ?? 0) > 0 ? ` (${p.caps})` : ' (uncapped)'}${p.clubId ? ` - ${state.clubs[p.clubId]?.short ?? ''}` : ''}`
+          const newCaps = pool.filter(p => (p.caps ?? 0) === 0).length
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `📋 Your ${nationByCode(nat)?.name ?? nat} squad is announced`,
+            body: [
+              `The federation has published your ${pool.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
+              '',
+              `FORWARDS: ${fwd.map(line).join('; ')}`,
+              '',
+              `BACKS: ${bks.map(line).join('; ')}`,
+              '',
+              'Pick your Test XV from the International Rugby screen before each match.',
+            ].join('\n'),
+          })
+        }
       }
       if (userCalls.length) {
         // several windows can open the same week - one combined item, not two
