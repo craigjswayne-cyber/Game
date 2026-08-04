@@ -353,6 +353,8 @@ export interface PressOption {
   /** lodge a disciplinary appeal for the named player's ban - the verdict
    *  lands immediately (deterministic, no shared rng) */
   appeal?: boolean
+  /** the pre-season decision: one special week, three philosophies */
+  camp?: 'heat' | 'home' | 'tour'
 }
 
 /** A promise made to a player in the office. The squad keeps the receipts:
