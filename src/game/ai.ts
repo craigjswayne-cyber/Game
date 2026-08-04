@@ -107,6 +107,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
     const wanted = squad.filter(p => !p.loanFrom).filter(p => p.transferListed || p.morale <= 4 ||
+      ((p.wantsDeal ?? 0) > 0 && state.week - (p.wantsDeal ?? 0) >= 4 && rng() < 0.3) ||
       (p.ca >= 82 && rng() < (p.pers === 'Ambitious' || p.pers === 'Mercenary' ? 0.4 : 0.2)))
     if (wanted.length) {
       const p = pick(rng, wanted)
@@ -329,6 +330,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   p.wage = wage
   p.contractEnds = state.season + (p.age >= 32 ? 1 : 2 + (p.age <= 26 ? 1 : 0))
   p.morale = clamp(p.morale + (wage >= demand * 1.12 ? 1.5 : 1), 1, 10) // generosity is remembered
+  if ((p.wantsDeal ?? 0) > 0) { p.wantsDeal = 0; p.morale = clamp(p.morale + 0.5, 1, 10) } // demand settled
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
     subject: `${p.name} extends`,

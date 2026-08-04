@@ -71,6 +71,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip">Value <b>{fmtMoney(p.value)}</b></span>
         <span className="chip">Wage <b>{fmtMoney(p.wage)}/wk</b></span>
         <span className="chip">Contract to <b>{2026 + p.contractEnds}</b></span>
+        {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: '#a8841a', color: '#a8841a', fontWeight: 700 }}>
+          💼 Agent wants new terms</span>}
         <span className="chip">Morale <b>{moraleWord(p.morale)}</b></span>
         <span className="chip">Fitness <b>{Math.round(p.cond)}%</b></span>
         <span className="chip">Sharpness <b>{Math.round(p.sharp)}%</b></span>

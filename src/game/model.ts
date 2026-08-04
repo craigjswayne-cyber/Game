@@ -148,6 +148,8 @@ export interface Player {
   lastR?: number
   lastWk?: number
   talkWk?: number // absolute week (season*100+week) of the manager's last word with him
+  /** week his agent demanded improved terms (0/undefined = content) */
+  wantsDeal?: number
   /** in the academy squad — hidden from first-team auto-selection until promoted */
   acad?: boolean
   /** parent club when this player is on loan AT the user's club */
