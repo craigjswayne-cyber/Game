@@ -379,6 +379,24 @@ function Preview({ fxId }: { fxId: number }) {
                 </div>
               )}
               {(() => {
+                const dn = derbyName(fx.homeId, fx.awayId)
+                if (!dn) return null
+                const rec = game.derbyBook?.[opp]
+                const played = rec ? rec.w + rec.d + rec.l : 0
+                return (
+                  <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+                    <div className="fact-label">🔥 {dn}</div>
+                    <div className="meta">
+                      The form book goes in the bin, the cards come out, and the town keeps the score
+                      longer than the league table does.
+                      {played > 0
+                        ? <> Your ledger against {oppClub?.short ?? 'them'}: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b>.</>
+                        : <> Your first one. Win it and they will sing your name; lose it and they will remember that too.</>}
+                    </div>
+                  </div>
+                )
+              })()}
+              {(() => {
                 const g = !derbyName(fx.homeId, fx.awayId) ? grudgeBetween(game, fx.homeId, fx.awayId) : null
                 return g ? (
                   <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
