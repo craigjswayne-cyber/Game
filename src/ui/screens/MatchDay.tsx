@@ -944,6 +944,16 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       .map(id => (id != null && (side.yellowUntil.get(id) ?? 0) > min) ? (side.yellowUntil.get(id)! - min) : 0)
       .filter(m => m > 0)
 
+  // cards respect the replay clock: a binned man vanishes for his ten
+  // minutes, a sent-off man from the moment of the red - derived from the
+  // event timeline, not the final-state sets
+  const sentOffEvts = ctx.events.filter(e => e.type === 'RC' && e.playerId != null)
+  const sentOffIds = new Set(sentOffEvts.map(e => e.playerId!))
+  const binEvts = ctx.events.filter(e => e.type === 'YC' && e.playerId != null)
+  const cardedNow = (id: number) =>
+    sentOffEvts.some(e => e.playerId === id && e.min <= min) ||
+    binEvts.some(e => e.playerId === id && min >= e.min && min < e.min + 10)
+
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
     const capId = game!.clubs[side.teamId]?.captain
@@ -961,9 +971,11 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       .sort((a, b) => Math.abs(baseX(a) - ballLeft) - Math.abs(baseX(b) - ballLeft))
       .slice(0, 2)
     return side.lineup.slice(0, 15).map((id, slot) => {
-      if (id == null || !side.onPitch.has(id)) return null
-      const binned = (side.yellowUntil.get(id) ?? 0) > min
-      if (binned) return null
+      if (id == null) return null
+      if (cardedNow(id)) return null
+      // sent-off men are out of the final onPitch set but must still render
+      // before their card; everyone else absent from onPitch was subbed off
+      if (!side.onPitch.has(id) && !sentOffIds.has(id)) return null
       const p = game!.players[id]
       if (!p) return null
       const [sx, sy] = SPOTS[slot]
