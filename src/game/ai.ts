@@ -111,7 +111,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (buyer.id === state.userClubId || buyer.budget < 200_000) continue
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      !p.loanFrom && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
+      !p.loanFrom && !p.retiring && (p.transferListed || p.morale < 4 || p.contractEnds <= state.season) &&
       p.ca >= 62 && askingPrice(state, p) <= buyer.budget)
     if (!targets.length) continue
     const p = pick(rng, targets)
@@ -316,6 +316,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (p.clubId === user.id) return { ok: false, msg: 'Already your player.' }
   if (p.contractEnds > state.season) return { ok: false, msg: 'He is under contract beyond this season.' }
   if (p.loanFrom || p.onLoan) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
+  if (p.retiring) return { ok: false, msg: `${p.name} is retiring in the summer. There is nothing to sign.` }
   if (state.week < 25) return { ok: false, msg: 'Pre-contract talks open from week 25.' }
   state.preContracts ??= []
   if (state.preContracts.some(pc => pc.playerId === p.id)) return { ok: false, msg: 'A pre-contract is already signed.' }
@@ -352,7 +353,7 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
   const exposed = user.players
     .map(id => state.players[id])
     .filter(Boolean)
-    .filter(p => p.contractEnds <= state.season && p.ca >= 76 && !p.loanFrom &&
+    .filter(p => p.contractEnds <= state.season && p.ca >= 76 && !p.loanFrom && !p.retiring &&
       !state.preContracts!.some(pc => pc.playerId === p.id))
   if (!exposed.length) return
   const p = pick(rng, exposed)
@@ -387,6 +388,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
   if (p.loanFrom) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
+  if (p.retiring) return { ok: false, msg: `${p.name} appreciates the gesture, but his mind is made up - he retires in the summer.` }
   if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
     return { ok: false, msg: `Too late - ${p.name} has already signed a pre-contract elsewhere. The deal is binding.` }
   }
@@ -445,7 +447,7 @@ export function aiRenewals(state: GameState, rng: Rng) {
     if (club.id === state.userClubId) continue
     for (const id of club.players) {
       const p = state.players[id]
-      if (p && p.contractEnds <= state.season && rng() < 0.75 &&
+      if (p && p.contractEnds <= state.season && rng() < 0.75 && !p.retiring &&
         !(state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
         p.contractEnds = state.season + 1 + Math.floor(rng() * 2)
         p.wage = renewalDemand(p)

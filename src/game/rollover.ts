@@ -155,7 +155,7 @@ function agePlayers(state: GameState, rng: Rng) {
       }
     }
     // retirement
-    const retireChance = p.farewell ? 1 // he said it was the last dance, and he meant it
+    const retireChance = p.farewell || p.retiring ? 1 // he said it was the last dance, and he meant it
       : p.age >= 38 ? 1 : p.age >= 36 ? 0.6 : p.age >= 34 ? (p.ca < 72 ? 0.45 : 0.2) : p.age >= 33 && p.ca < 60 ? 0.3 : 0
     if (rng() < retireChance) retirees.push(p)
     p.value = playerValue(p.ca, p.age, p.pa)

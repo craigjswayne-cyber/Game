@@ -157,6 +157,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             🏅 <b>World POTY{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
           </span>
         )}
+        {p.retiring && !p.farewell && (
+          <span className="chip" style={{ borderColor: '#a12f2f' }} title="He has announced this season is his last">
+            🎤 <b>Retiring in the summer</b>
+          </span>
+        )}
         {(game.pledges ?? []).some(pl => pl.playerId === p.id) && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }} title="You made him a promise in the office - keep it or wear it">
             🤝 <b>Promise made</b>

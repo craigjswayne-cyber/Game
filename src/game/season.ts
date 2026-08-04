@@ -924,6 +924,36 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // the long goodbye: the game's oldest names call time in midwinter, so
+  // the run-in doubles as a farewell tour. At 37 next summer is certain
+  // anyway (the rollover retires everyone turning 38), so the announcement
+  // never changes anyone's fate - it just says it out loud
+  if (state.week === 12) {
+    const bowing = Object.values(state.players)
+      .filter(p => p.age >= 37 && !p.retiring && !p.farewell && p.clubId && state.clubs[p.clubId])
+    for (const p of bowing) p.retiring = true
+    const stars = bowing.filter(p => p.ca >= 80 && p.clubId !== state.userClubId)
+      .sort((a, b) => b.ca - a.ca).slice(0, 2)
+    for (const p of stars) {
+      const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
+      const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🎤 Signing off: ${p.name} calls time`,
+        body: `${p.name} (${p.age}, ${state.clubs[p.clubId!]?.name}) has announced this season will be his last. ${apps} appearances${tries ? ` and ${tries} tries` : ''} say everything about the career; the next few months are the farewell tour, and every ground he visits will stand for him. One last shot at silverware first.`,
+        playerId: p.id,
+      })
+    }
+    for (const p of bowing.filter(p => p.clubId === state.userClubId)) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🎤 ${p.name} tells you first: this is the last one`,
+        body: `${p.name} (${p.age}) knocks on your door before the press find out: he is retiring at the end of the season. No drama, no demands - he just wanted you to hear it from him. Plan the succession, and if you can, give him a send-off worth the years.`,
+        playerId: p.id,
+      })
+    }
+  }
+
   // loan watch: the postcard from the feeder club. The verdicts are honest -
   // tone tracks the same deterministic roll the summer return boost uses
   if ([10, 18, 26, 34, 42].includes(state.week) && !state.unemployed) {

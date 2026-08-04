@@ -138,6 +138,9 @@ function audit(g: GameState, tag: string) {
     if (run > rec.w) bad(`${tag} win streak ${run} exceeds total wins ${rec.w} vs ${cid}`)
     if (-run > rec.l) bad(`${tag} losing streak ${-run} exceeds total losses ${rec.l} vs ${cid}`)
   }
+  for (const p of Object.values(g.players)) {
+    if (p.retiring && p.age < 37) bad(`${tag} retiring flag on ${p.name}, only ${p.age}`)
+  }
   {
     let prevSeason = -1
     for (const w of g.potyRoll ?? []) {
