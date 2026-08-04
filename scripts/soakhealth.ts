@@ -44,6 +44,10 @@ function econReport(label: string) {
   const mine = g.clubs[g.userClubId]
   console.log(`${label} econ | user bal ${(mine.balance / 1e6).toFixed(1)}M | AI bal min ${(bals[0] / 1e6).toFixed(1)}M med ${(med / 1e6).toFixed(1)}M max ${(bals[bals.length - 1] / 1e6).toFixed(1)}M | AI budget avg ${(budget / 1e6).toFixed(1)}M`)
 }
+// treatment room + disciplinary ledger, tallied per season
+let prevInjured = new Set<number>()
+let newSpells = 0, spellWeeks = 0
+const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
 let farewells = 0, milestoneNews = 0
 const wcSeedTops: string[] = []
 const milestoneSubjects = new Map<string, number>()
@@ -68,7 +72,21 @@ for (let season = 0; season < 20; season++) {
         milestoneSubjects.set(n.subject, (milestoneSubjects.get(n.subject) ?? 0) + 1)
       }
     }
+    // capture the season's medical/disciplinary totals before rollover wipes stats
+    if (g.week === SEASON_WEEKS) {
+      const ps = Object.values(g.players)
+      const yc = ps.reduce((s, p) => s + p.stats.yc, 0)
+      const rc = ps.reduce((s, p) => s + p.stats.rc, 0)
+      const matches = g.fixtures.filter(f => f.played).length
+      medBuckets.push({ yc, rc, matches, spells: newSpells, avgWks: newSpells ? spellWeeks / newSpells : 0 })
+      newSpells = 0; spellWeeks = 0
+      prevInjured = new Set()
+    }
     processWeekAndAdvance(g)
+    for (const p of Object.values(g.players)) {
+      if (p.injury && !prevInjured.has(p.id)) { newSpells++; spellWeeks += p.injury.weeks }
+    }
+    prevInjured = new Set(Object.values(g.players).filter(p => p.injury).map(p => p.id))
   }
   const wc = g.comps['wc']
   if (wc?.seeds?.length) wcSeedTops.push(wc.seeds[0])
@@ -80,6 +98,19 @@ for (let season = 0; season < 20; season++) {
   console.log(`transfer fees by era: ${feeBuckets.map((b, i) => `s${i * 5 + 1}-${i * 5 + 5}: n${b.length} med ${(med(b) / 1e6).toFixed(2)}M`).join(' | ')}`)
   const first = med(feeBuckets[0]), last = med(feeBuckets[3])
   if (first > 0 && last > first * 3) console.log('WARN: fee inflation over 3x across the save')
+}
+// treatment room + discipline: rates should hold steady across the save
+{
+  const clubs = Object.keys(g.clubs).length
+  const line = (b: (typeof medBuckets)[number]) =>
+    `YC/match ${(b.yc / Math.max(1, b.matches)).toFixed(2)} RC/match ${(b.rc / Math.max(1, b.matches)).toFixed(3)} spells/club ${(b.spells / clubs).toFixed(1)} avg ${(b.avgWks).toFixed(1)}wk`
+  const first5 = medBuckets.slice(0, 5), last5 = medBuckets.slice(-5)
+  const agg = (bs: typeof medBuckets) => bs.reduce((a, b) => ({ yc: a.yc + b.yc, rc: a.rc + b.rc, matches: a.matches + b.matches, spells: a.spells + b.spells, avgWks: a.avgWks + b.avgWks / bs.length }), { yc: 0, rc: 0, matches: 0, spells: 0, avgWks: 0 })
+  console.log(`discipline+medical s1-5:  ${line(agg(first5))}`)
+  console.log(`discipline+medical s16-20: ${line(agg(last5))}`)
+  const f = agg(first5), l = agg(last5)
+  if (f.yc && Math.abs(l.yc / l.matches - f.yc / f.matches) > 0.5 * (f.yc / f.matches)) console.log('WARN: card rate drifted >50% across the save')
+  if (f.spells && Math.abs(l.spells - f.spells) > 0.5 * f.spells) console.log('WARN: injury rate drifted >50% across the save')
 }
 // natrank long-horizon: watch for Elo compression or bound-pinning
 {
