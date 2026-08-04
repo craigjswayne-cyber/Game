@@ -140,6 +140,7 @@ function audit(g: GameState, tag: string) {
   }
   for (const p of Object.values(g.players)) {
     if (p.retiring && p.age < 37) bad(`${tag} retiring flag on ${p.name}, only ${p.age}`)
+    if ((p.lions ?? 0) < 0 || (p.lions ?? 0) > 8) bad(`${tag} ${p.name} has ${p.lions} Lions tours`)
   }
   if ((g.courtedAt ?? 0) > g.season * 100 + g.week) bad(`${tag} courtedAt in the future`)
   for (const id of [g.challenge, ...(g.challengesDone ?? [])]) {

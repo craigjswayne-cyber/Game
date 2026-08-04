@@ -217,6 +217,7 @@ function manageInternationals(state: GameState, rng: Rng) {
     if (state.week === w.start) {
       // call-ups
       const userCalls: Player[] = []
+      const lionsCalls: Player[] = []
       for (const nat of w.nations) {
         const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
         const pool = Object.values(state.players)
@@ -248,7 +249,12 @@ function manageInternationals(state: GameState, rng: Rng) {
         for (const p of pool) {
           p.natSquad = true
           p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
-          if (p.clubId === state.userClubId) userCalls.push(p)
+          if (nat === 'LIO') {
+            // no - THIS is the proudest phone call in rugby
+            p.lions = (p.lions ?? 0) + 1
+            p.morale = clamp(p.morale + 0.5, 1, 10)
+            if (p.clubId === state.userClubId) lionsCalls.push(p)
+          } else if (p.clubId === state.userClubId) userCalls.push(p)
         }
         // the national coach announces HIS squad - a proper occasion
         if (nat === state.natTeam || (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))) {
@@ -271,6 +277,22 @@ function manageInternationals(state: GameState, rng: Rng) {
             ].join('\n'),
           })
         }
+      }
+      if (lionsCalls.length) {
+        // the honour of a career deserves better than the generic list
+        const tour = state.comps['lions']?.name ?? 'the Lions tour'
+        const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `🦁 LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+          body: [
+            (state.season * 5 + state.week * 3) % 2 === 0
+              ? `The call every player in these islands dreams of: ${names} ${lionsCalls.length === 1 ? 'is' : 'are'} going on ${tour}. The whole club walks taller this morning.`
+              : `The ${tour} squad is out, and the club's name is on it: ${names}. Training stopped for the announcement. Nobody minded.`,
+            `${lionsCalls.length === 1 ? 'He' : 'They'} will be away for the tour window. Plan the run-in accordingly - and welcome back a Lion.`,
+          ].join('\n'),
+          playerId: lionsCalls[0].id,
+        })
       }
       if (userCalls.length) {
         // several windows can open the same week - one combined item, not two
