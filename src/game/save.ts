@@ -77,6 +77,8 @@ export function migrate(s: GameState): GameState {
   s.review ??= null
   s.fanMood ??= 60
   s.hof ??= []
+  s.scoutFocus ??= null
+  s.slAlerted ??= []
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.legends ??= []; c.marquee ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
