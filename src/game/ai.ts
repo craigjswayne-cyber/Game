@@ -1,5 +1,6 @@
 import type { GameState, Player } from './model'
 import { addGrudge, fmtMoney } from './model'
+import { ensureCaptains } from './analysis'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 
@@ -32,6 +33,9 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     from.balance += fee
     from.budget += Math.round(fee * 0.7)
     from.tactic.lineup = from.tactic.lineup.map(id => (id === p.id ? null : id))
+    // the armband doesn't travel: reappoint leaders if he wore it
+    if (from.captain === p.id) from.captain = null
+    if (from.vice === p.id) from.vice = null
   }
   to.players.push(p.id)
   to.balance -= fee
@@ -52,6 +56,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     body: `${to.name} have completed the signing of ${p.name} from ${from?.name ?? 'free agency'} for a fee of ${fmtMoney(fee)}. The ${p.age}-year-old has agreed terms of ${fmtMoney(p.wage)}/week until ${2026 + p.contractEnds}.`,
     playerId: p.id,
   })
+  ensureCaptains(state) // reappoint leaders wherever the move vacated an armband
 }
 
 /** Weekly AI transfer activity + bids for user players. */
