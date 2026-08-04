@@ -14,6 +14,7 @@ import { NATL1 } from '../data/leagues/natl1'
 import type { Club, GameState, Pos } from './model'
 import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
+import { inheritStaff } from './staff'
 import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
@@ -294,6 +295,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     subject: challenge ? `THE CHALLENGE: ${challenge.title}` : `Welcome to ${uc.name}`,
     body: `${challenge ? challenge.desc + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
   })
+
+  // the coaching department you walk into, sized to the club's standing
+  inheritStaff(state)
 
   punditPredictions(state, rng)
 

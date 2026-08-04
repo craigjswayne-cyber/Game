@@ -7,6 +7,7 @@ import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
 import { regenName } from './nations'
+import { inheritStaff } from './staff'
 
 /** Chance an application succeeds, from reputation vs club stature. */
 export function jobChance(state: GameState, clubId: string): number {
@@ -139,6 +140,9 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.tryOfSeason = null // the old club keeps its own best try
     state.facilityBuild = null // the old club's builders finish without you
     state.facilityAskCooldown = 0 // a new board hears you out fresh
+    // a new club, a new backroom: the department here is what it is
+    state.staffSalt = (state.staffSalt ?? 0) + 1
+    inheritStaff(state)
     state.tenureStart = state.season // the clock on your era starts today
     for (const id of club.players) {
       const p = state.players[id]

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { FACILITY_INFO, STAFF_INFO, facilityCost, fmtMoney, type FacilityId, type StaffLevels, type TrainingFocus } from '../../game/model'
+import { FACILITY_INFO, STAFF_INFO, facilityCost, fmtMoney, type FacilityId, type TrainingFocus } from '../../game/model'
 import { requestFacility } from '../../game/season'
+import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
+import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
 
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -57,31 +59,7 @@ export default function Training() {
         })}
       </div>
       </>}
-      {ttab === 'staff' && <>
-      <SectionTitle sub="wages come off the weekly balance">Backroom Staff</SectionTitle>
-      {(Object.keys(STAFF_INFO) as (keyof StaffLevels)[]).map(role => {
-        const info = STAFF_INFO[role]
-        const lvl = game.staff[role]
-        return (
-          <div className="card" key={role} style={{ marginTop: 8, marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-              <div>
-                <h3 style={{ fontSize: 15 }}>{info.name} {lvl > 0 && <span style={{ color: '#a8841a' }}>{'●'.repeat(lvl)}{'○'.repeat(3 - lvl)}</span>}</h3>
-                <div className="meta">{info.desc}</div>
-                <div className="muted" style={{ marginTop: 2 }}>
-                  {lvl > 0 ? `Level ${lvl} · ${fmtMoney(lvl * info.wage)}/wk` : 'Not appointed'}
-                </div>
-              </div>
-              <button className="btn gold" disabled={lvl >= 3}
-                onClick={() => useStore.getState().hireStaff(role)}>
-                {lvl === 0 ? 'Hire' : lvl >= 3 ? 'Max' : 'Upgrade'}<br />
-                <span style={{ fontSize: 10, fontWeight: 600 }}>+{fmtMoney(info.wage)}/wk</span>
-              </button>
-            </div>
-          </div>
-        )
-      })}
-      </>}
+      {ttab === 'staff' && <StaffPanel />}
       {ttab === 'club' && <>
       <SectionTitle sub="a senior pro brings a kid through (max 3)">Mentoring</SectionTitle>
       <MentorPanel />
@@ -138,6 +116,92 @@ export default function Training() {
   )
 }
 
+
+/**
+ * The coaching department as people: a named man with a badge in every job,
+ * a market of candidates, and courses that can be failed (8-batch feedback).
+ */
+function StaffPanel() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const [open, setOpen] = useState<StaffRole | null>(null)
+  const [msg, setMsg] = useState('')
+  const abs = game.season * 100 + game.week
+  const roles = Object.keys(STAFF_INFO) as StaffRole[]
+  return (
+    <>
+      <SectionTitle sub={`badges are earned on a course - ${EXAM_PASS_PCT}% of coaches pass`}>Backroom Staff</SectionTitle>
+      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px', marginBottom: 6 }}>{msg}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 6 }}>
+        {roles.map(role => {
+          const info = STAFF_INFO[role]
+          const p = game.staffPeople?.[role]
+          const cands = open === role ? staffCandidates(game, role) : []
+          const weeksLeft = p?.course ? Math.max(1, p.course.done - abs) : 0
+          return (
+            <div className="card" key={role} style={{ margin: 0, padding: '8px 10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="fact-label">{info.name}</div>
+                  {p ? (
+                    <>
+                      <h3 style={{ fontSize: 14, margin: 0 }}>
+                        {flagOf(p.nat)} {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 11.5 }}>{BADGE[p.tier].toUpperCase()}</b>
+                      </h3>
+                      <div className="meta" style={{ fontSize: 11 }}>
+                        {p.age} · {p.trait} · {fmtMoney(p.wage)}/wk{(p.passed ?? 0) > 0 ? ` · ${p.passed} badge${p.passed === 1 ? '' : 's'} here` : ''}
+                      </div>
+                      {p.course && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🎓 On the {BADGE[p.course.toTier].toLowerCase()} course - result in {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
+                      {!p.course && (p.retakeAt ?? 0) > abs && <div className="meta" style={{ fontSize: 11 }}>Resit available in {p.retakeAt! - abs} weeks</div>}
+                    </>
+                  ) : (
+                    <>
+                      <h3 style={{ fontSize: 14, margin: 0, opacity: .75 }}>Vacant</h3>
+                      <div className="meta" style={{ fontSize: 11 }}>{info.desc}</div>
+                    </>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+                  {p && p.tier < 3 && !p.course && (
+                    <button className="btn gold" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
+                      onClick={() => { setMsg(sendToCourse(game, role)); touch() }}>
+                      🎓 Course<br /><span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
+                    </button>
+                  )}
+                  <button className="btn ghost" style={{ padding: '4px 8px', fontSize: 11 }}
+                    onClick={() => { setOpen(open === role ? null : role); setMsg('') }}>
+                    {open === role ? 'Close' : p ? 'Market' : 'Candidates'}
+                  </button>
+                </div>
+              </div>
+              {open === role && cands.map((c, i) => {
+                const keen = staffInterest(game, c)
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))', paddingTop: 5, marginTop: 5 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                        {flagOf(c.nat)} {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 10.5 }}>{BADGE[c.tier].toUpperCase()}</span>
+                      </div>
+                      <div className="meta" style={{ fontSize: 10.5 }}>
+                        {c.age} · {c.trait} · {fmtMoney(c.wage)}/wk · {fmtMoney(c.fee)} compensation
+                      </div>
+                    </div>
+                    <span className="meta" style={{ fontSize: 10.5, color: keen === 'keen' ? '#2f7d4f' : keen === 'persuadable' ? '#8a7a3a' : '#9b2c2c', fontWeight: 700, flexShrink: 0 }}>
+                      {keen === 'keen' ? 'Keen' : keen === 'persuadable' ? 'Listening' : 'Not interested'}
+                    </span>
+                    <button className="btn" style={{ padding: '4px 9px', fontSize: 11, flexShrink: 0 }}
+                      onClick={() => { setMsg(appointStaff(game, role, i)); setOpen(null); touch() }}>Appoint</button>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+      <div className="spacer" />
+    </>
+  )
+}
 
 /** Pair the wise heads with the next generation. */
 function MentorPanel() {

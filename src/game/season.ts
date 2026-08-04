@@ -11,7 +11,7 @@ import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName } from './nations'
-import { STAFF_INFO } from './model'
+import { resolveCourses, staffWageBill } from './staff'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { loanTargets } from './loans'
@@ -611,9 +611,8 @@ function weeklyFinance(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
   const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   club.balance -= wages
-  // backroom staff wages
-  club.balance -= (Object.keys(STAFF_INFO) as (keyof typeof STAFF_INFO)[])
-    .reduce((s, k) => s + state.staff[k] * STAFF_INFO[k].wage, 0)
+  // backroom staff wages - real salaries where a real man holds the job
+  club.balance -= staffWageBill(state)
   // sponsorship + broadcast, weekly share by reputation
   club.balance += Math.round(club.rep * 1800 + 40_000)
   // gate receipts from this week's home fixture
@@ -967,6 +966,9 @@ export function processWeekAndAdvance(state: GameState) {
     }
     state.pledges = remain
   }
+
+  // the examiners report back on any coach sitting his next badge
+  resolveCourses(state)
 
   // the builders finish: a board-funded facility upgrade opens its doors
   if (state.facilityBuild && state.season * 100 + state.week >= state.facilityBuild.done) {

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, MatchEvent, Fixture, StaffLevels } from './game/model'
+import type { GameState, MatchEvent, Fixture } from './game/model'
 import { newGame } from './game/newgame'
 import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
@@ -44,7 +44,6 @@ interface Store {
 
   start: (clubId: string, managerName: string, challengeId?: string) => void
   toggleShortlist: (playerId: number) => void
-  hireStaff: (role: keyof StaffLevels) => void
   setGame: (g: GameState, slot: string) => void
   setSlot: (slot: string) => void
   go: (screen: Screen, param?: string | number) => void
@@ -113,18 +112,6 @@ export const useStore = create<Store>((set, get) => ({
     g.shortlist = g.shortlist.includes(playerId)
       ? g.shortlist.filter(id => id !== playerId)
       : [...g.shortlist, playerId].slice(-25)
-    set(s => ({ tick: s.tick + 1 }))
-  },
-
-  hireStaff: (role) => {
-    const g = get().game
-    if (!g || g.staff[role] >= 3) return
-    g.staff[role] += 1
-    g.news.push({
-      id: g.nextId++, week: g.week, season: g.season, type: 'general', read: true,
-      subject: `Backroom appointment`,
-      body: `The club has upgraded its coaching department: ${String(role)} setup now level ${g.staff[role]}.`,
-    })
     set(s => ({ tick: s.tick + 1 }))
   },
 
