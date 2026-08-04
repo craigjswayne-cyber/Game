@@ -73,11 +73,18 @@ try {
   await shot('05-player')
   await page.click('.back-btn')
 
-  // Tactics (readouts + presets)
+  // Tactics area: five pages (8C restructure)
   await page.click('.bottom-nav button[title="Tactics"]')
+  await page.waitForSelector('text=Starting XV')
+  await shot('06-selection')
+  await page.click('.tab-bar >> text=In-Form XV')
+  await page.waitForSelector('text=The In-Form XV')
+  await page.click('.tab-bar >> text=Tactics')
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
-  await page.click('.tab-bar >> text=Instructions')
+  await page.click('.tab-bar >> text=Prep')
+  await page.waitForSelector('text=Match Preparation')
+  await page.click('.tab-bar >> text=Game Plan')
   await page.waitForSelector('text=Quick Game Plans')
 
   // Club submenu -> Team Report
