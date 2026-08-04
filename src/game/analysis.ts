@@ -4,17 +4,30 @@ import type { GameState, Pos } from './model'
 import { XV_SLOTS } from './model'
 import { effAt } from './attributes'
 
-/** Every club needs a skipper: pick the best leader if the armband is free. */
-export function ensureCaptains(state: GameState) {
+/** Every club needs a skipper: pick the best leader if the armband is free.
+ *  quiet suppresses the succession news - for newgame seeding and save
+ *  migration, where a change is bookkeeping, not a story. */
+export function ensureCaptains(state: GameState, quiet = false) {
   for (const club of Object.values(state.clubs)) {
     const rank = (a: { a: { lea: number }; age: number; ca: number }) => a.a.lea * 2 + a.age + a.ca / 10
     const cap = club.captain != null ? state.players[club.captain] : null
     if (!cap || cap.clubId !== club.id || cap.onLoan) {
+      const prevId = club.captain
       const best = club.players
         .map(id => state.players[id])
         .filter(p => p && !p.onLoan)
         .sort((a, b) => rank(b!) - rank(a!))[0]
       club.captain = best ? best.id : null
+      // the armband never just moves at the user's club - it passes
+      if (!quiet && club.id === state.userClubId && best && prevId != null && prevId !== best.id) {
+        const wasVice = club.vice === best.id
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+          subject: `🧢 The armband passes to ${best.name}`,
+          body: `The captaincy fell vacant and the dressing room has looked to its senior man: ${best.name} (${best.age}, ${best.pos})${wasVice ? ', the vice-captain, steps up' : ' takes the armband'}. He is the natural choice on leadership and years of service. If you see it differently, hand it to someone else from the Tactics screen.`,
+          playerId: best.id,
+        })
+      }
     }
     const vice = club.vice != null ? state.players[club.vice] : null
     if (!vice || vice.clubId !== club.id || vice.onLoan || club.vice === club.captain) {

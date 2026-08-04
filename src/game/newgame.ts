@@ -238,7 +238,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   schedulePreseason(state, rng)
   seedExClubs(state)
   seedKnowledge(state)
-  ensureCaptains(state)
+  ensureCaptains(state, true)
   state.objectives = pickObjectives(state)
   state.tenureStart = 0
   state.legendOf = []

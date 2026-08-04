@@ -149,7 +149,7 @@ export function migrate(s: GameState): GameState {
   // pre-2025 former clubs (old-boy stories): fills only players still unset
   seedExClubs(s)
 
-  ensureCaptains(s)
+  ensureCaptains(s, true)
   return s
 }
 
