@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs } from '../../game/model'
 import { askingPrice, offerRenewalAt, renewalDemand, talkToPlayer, userBid } from '../../game/ai'
-import { attrBarColor, attrClass, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 
@@ -107,40 +107,32 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </button>
         </div>
       )}
-      {groups.map(([title, keys]) => (
-        <div key={title}>
-          <SectionTitle>{title}</SectionTitle>
-          <div className="attr-grid">
+      <SectionTitle sub={compare && rival ? `${rival.name.split(' ').slice(-1)[0]}'s numbers beside each chip` : 'the full picture, FM style · 0-100'}>Attributes</SectionTitle>
+      <div className="fm-attrs">
+        {groups.map(([title, keys]) => (
+          <div className="fm-col" key={title}>
+            <div className="fm-col-head">{title}</div>
             {keys.map(k => {
               const [lo, hi] = attrRange(game, p, k)
-              const mid = Math.round((lo + hi) / 2)
               const exact = lo === hi
+              const mid = Math.round((lo + hi) / 2)
+              const v = mid * 5
               const rv = compare && rival ? rival.a[k] : null
               return (
-                <div className="attr" key={k}>
-                  <span>{ATTR_NAMES[k]}</span>
-                  <span className="bar"><i style={{
-                    width: `${mid * 5}%`,
-                    background: attrBarColor(mid),
-                    opacity: exact ? 1 : 0.55,
-                  }} /></span>
-                  <span className={`v ${exact ? attrClass(lo) : ''}`} style={exact ? undefined : { width: 44, fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                    {exact ? lo * 5 : `${lo * 5}–${hi * 5}`}
-                  </span>
+                <div className="fm-attr" key={k}>
+                  <span className="fm-name">{ATTR_NAMES[k]}</span>
                   {rv != null && (
-                    <span style={{
-                      width: 34, textAlign: 'right', fontSize: 12, fontWeight: 700,
-                      color: mid > rv ? '#2f7d4f' : mid < rv ? '#9b2c2c' : 'var(--ink-faint)',
-                    }}>
-                      {rv * 5}
-                    </span>
+                    <b className="fm-rival" style={{ color: mid > rv ? '#2f7d4f' : mid < rv ? '#9b2c2c' : 'var(--ink-faint)' }}>{rv * 5}</b>
                   )}
+                  <b className={`fm-chip ${exact ? (v >= 80 ? 'hi' : v >= 55 ? 'mid' : 'lo') : 'rng'}`}>
+                    {exact ? v : `${lo * 5}-${hi * 5}`}
+                  </b>
                 </div>
               )
             })}
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       <SectionTitle sub={`avg rating ${avg ? avg.toFixed(2) : '-'}`}>This Season</SectionTitle>
       <div className="chips">
