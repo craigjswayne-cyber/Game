@@ -88,6 +88,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         .sort((a, b) => b.rep - a.rep)[0]
       if (suitor && mine.boardConfidence >= 55) {
         state.courtedAt = abs
+        state.courtedBy = suitor.id
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🤝 ${suitor.short} are watching you`,

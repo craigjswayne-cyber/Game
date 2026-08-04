@@ -552,6 +552,8 @@ export interface GameState {
   /** absolute week (season*100+week) a bigger club last courted the manager -
    *  the tap on the shoulder comes at most once every 12 weeks */
   courtedAt?: number
+  /** the club doing the courting, so the press can name them */
+  courtedBy?: string | null
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
