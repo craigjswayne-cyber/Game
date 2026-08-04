@@ -168,25 +168,59 @@ function Preview({ fxId }: { fxId: number }) {
   })()
   const heated = !!derbyName(fx.homeId, fx.awayId) || !!grudgeBetween(game, fx.homeId, fx.awayId)
   const gamePlan = (() => {
+    // the assistant's voice rotates per fixture (fx.id keeps it stable
+    // across re-renders) so the same advice never reads the same twice
+    const v = (opts: string[]) => opts[fx.id % opts.length]
     const plans: { text: string; d: Partial<Record<SliderKey, number>>; w: number }[] = []
     if (forecast === 'Rain' || forecast === 'Snow')
-      plans.push({ w: 3, text: `${forecast} forecast - put boot to ball and pin the corners. Handling sides drown in this.`, d: { kicking: 15, style: -8 } })
+      plans.push({ w: 3, text: v([
+        `${forecast} forecast - put boot to ball and pin the corners. Handling sides drown in this.`,
+        `${forecast} on the way. Territory wins this one: kick long, chase hard, let them make the mistakes.`,
+        `Filthy weather due. Keep the ball off the deck at your peril - this is a day for the boot and the maul.`,
+      ]), d: { kicking: 15, style: -8 } })
     if (oppUnits.scrum < myUnits.scrum * 0.94)
-      plans.push({ w: 2.5, text: 'Their scrum creaks. Keep it tight and squeeze the penalties out of them.', d: { style: -10, aggression: 8 } })
+      plans.push({ w: 2.5, text: v([
+        'Their scrum creaks. Keep it tight and squeeze the penalties out of them.',
+        'We have them at the scrum. March them backwards until the referee gets bored of whistling.',
+        'Their front row is the weak link. Every scrum is three points waiting to happen.',
+      ]), d: { style: -10, aggression: 8 } })
     if (myUnits.scrum < oppUnits.scrum * 0.94)
-      plans.push({ w: 2, text: 'Avoid the arm wrestle - their pack is a handful. Play away from the set-piece.', d: { style: 8, kicking: 6 } })
+      plans.push({ w: 2, text: v([
+        'Avoid the arm wrestle - their pack is a handful. Play away from the set-piece.',
+        'Do not feed their scrum. Quick taps, quick lineouts, keep the big lads honest and blowing.',
+        'Their pack wants a fight we cannot win. Deny them the set-piece and stretch the game.',
+      ]), d: { style: 8, kicking: 6 } })
     if (oppUnits.defence < myUnits.attack * 0.95)
-      plans.push({ w: 2, text: 'Their edge defence is the soft spot. Go wide and shift the point of attack.', d: { style: 12, tempo: 8 } })
+      plans.push({ w: 2, text: v([
+        'Their edge defence is the soft spot. Go wide and shift the point of attack.',
+        'Numbers out wide win this. Two passes past the ruck and they are scrambling.',
+        'Their wings tuck in. Earn the corner and the tries will follow.',
+      ]), d: { style: 12, tempo: 8 } })
     if (myUnits.lineout > oppUnits.lineout * 1.07)
-      plans.push({ w: 1.5, text: 'You own the air. Kick for touch and strangle the field position.', d: { kicking: 10 } })
+      plans.push({ w: 1.5, text: v([
+        'You own the air. Kick for touch and strangle the field position.',
+        'Their lineout wobbles under pressure. Kick to the corners and feast on the throw.',
+      ]), d: { kicking: 10 } })
     if (matchRef.style === 'strict')
-      plans.push({ w: 2, text: `${matchRef.name} cards early - discipline first at the ruck.`, d: { aggression: -12 } })
+      plans.push({ w: 2, text: v([
+        `${matchRef.name} cards early - discipline first at the ruck.`,
+        `${matchRef.name} referees the letter of the law. Stay on your feet, hands off, no cheap shots.`,
+      ]), d: { aggression: -12 } })
     if (matchRef.style === 'lenient')
-      plans.push({ w: 1.5, text: `${matchRef.name} lets it flow - lift the tempo and fight every breakdown.`, d: { tempo: 10, aggression: 6 } })
+      plans.push({ w: 1.5, text: v([
+        `${matchRef.name} lets it flow - lift the tempo and fight every breakdown.`,
+        `${matchRef.name} keeps the whistle in his pocket. The breakdown is a street fight today - win it.`,
+      ]), d: { tempo: 10, aggression: 6 } })
     if (oppCond < 78)
-      plans.push({ w: 2, text: 'Their legs are heavy this week. Run them off their feet.', d: { tempo: 12 } })
+      plans.push({ w: 2, text: v([
+        'Their legs are heavy this week. Run them off their feet.',
+        'They backed up a hard match and it shows. High tempo from the first whistle and they will crack late.',
+      ]), d: { tempo: 12 } })
     if (heated)
-      plans.push({ w: 1.8, text: 'This one will boil over. Be the calmer side and let them implode.', d: { aggression: -8 } })
+      plans.push({ w: 1.8, text: v([
+        'This one will boil over. Be the calmer side and let them implode.',
+        'Bad blood in this fixture. Let them throw the punches and take the points from the penalties.',
+      ]), d: { aggression: -8 } })
     return plans.sort((a, b) => b.w - a.w).slice(0, 3)
   })()
   const applyPlan = () => {
