@@ -65,6 +65,16 @@ for (let season = 0; season < 20; season++) {
 }
 console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length})`)
 console.log(`WC top seeds by cycle: ${wcSeedTops.join(', ') || 'none observed'}`)
+// D-round ledgers: bounded and coherent after 20 seasons
+{
+  const vb = Object.keys(g.vsBook ?? {}).length
+  const db = Object.keys(g.derbyBook ?? {}).length
+  const poty = Object.values(g.players).filter(p => (p.poty ?? 0) > 0).length
+  const legends = (g.legendOf ?? []).length
+  console.log(`d-ledgers: vsBook ${vb} opponents · derbyBook ${db} · gateRecord ${g.gateRecord ? g.gateRecord.att : 'none'} · natConf ${g.natConfidence ?? 'n/a'} · tenureStart s${g.tenureStart} · legends ${legends} · living POTY holders ${poty}`)
+  if (vb > 200) console.log('WARN: vsBook unbounded?')
+  if (g.gateRecord && !g.clubs[g.gateRecord.oppId]) console.log('WARN: gate record dangling club')
+}
 // integrity sweep at the end
 let orphans = 0, badRefs = 0
 for (const c of Object.values(g.clubs)) {
