@@ -233,11 +233,24 @@ export function generatePress(state: GameState, rng: Rng) {
   if (frozen.length && rng() < 0.35) {
     const p = pick(rng, frozen)
     const item = mk(state,
-      `${p.name} knocks and closes the door behind him. "Boss, I have barely played all season. Tell me straight - am I in your plans or not?"`,
+      pick(rng, [
+        `${p.name} knocks and closes the door behind him. "Boss, I have barely played all season. Tell me straight - am I in your plans or not?"`,
+        `${p.name} has been waiting outside since the end of training. "I watch every session from the sidelines, boss. I need to know if there is a future for me here."`,
+        `${p.name} does not sit down. "I am not here to argue. One question: do you see me in this team? Because right now I cannot."`,
+      ]),
       p.id, [
-        { label: 'You are in my plans - stay ready', morale: 1.1, board: 0, pledge: 'plans', reaction: `${p.name} leaves with his head up. He will hold you to it - pick him soon or this conversation happens again, louder.` },
-        { label: 'Honestly? He can find a new club', morale: -0.9, board: 0.3, unsettle: true, reaction: `A hard truth, kindly delivered. ${p.name} thanks you for being straight - and his agent is making calls within the hour.` },
-        { label: 'Nobody is owed a shirt here', morale: -0.4, board: 0.2, reaction: `He nods, jaw tight, and heads back to training. The squad hears about it - the honest ones respect it.` },
+        { label: 'You are in my plans - stay ready', morale: 1.1, board: 0, pledge: 'plans', reaction: pick(rng, [
+          `${p.name} leaves with his head up. He will hold you to it - pick him soon or this conversation happens again, louder.`,
+          `The tension goes out of his shoulders. A promise in this office is a promise on the team sheet - he will be counting the weeks.`,
+        ]) },
+        { label: 'Honestly? He can find a new club', morale: -0.9, board: 0.3, unsettle: true, reaction: pick(rng, [
+          `A hard truth, kindly delivered. ${p.name} thanks you for being straight - and his agent is making calls within the hour.`,
+          `He goes quiet, then nods. "Appreciate the honesty, boss." The listing will not shock anyone in the dressing room.`,
+        ]) },
+        { label: 'Nobody is owed a shirt here', morale: -0.4, board: 0.2, reaction: pick(rng, [
+          `He nods, jaw tight, and heads back to training. The squad hears about it - the honest ones respect it.`,
+          `"Fine. Then I will take one." He trains like a man possessed all week. That answer either made him or lost him.`,
+        ]) },
       ], rng)
     item.outlet = OFFICE
     candidates.push(item)
@@ -250,11 +263,24 @@ export function generatePress(state: GameState, rng: Rng) {
   if (restless.length && rng() < 0.3) {
     const p = pick(rng, restless)
     const item = mk(state,
-      `${p.name}, ${p.age}, is waiting by your office after training. "I am not learning anything carrying tackle bags, boss. Send me on loan - I need real minutes."`,
+      pick(rng, [
+        `${p.name}, ${p.age}, is waiting by your office after training. "I am not learning anything carrying tackle bags, boss. Send me on loan - I need real minutes."`,
+        `${p.name} catches you in the corridor, all nerves and rehearsed lines. "Boss, my mates from the age-groups are playing senior rugby every week. I am standing still here. Let me go and prove it somewhere."`,
+        `The academy coach sends ${p.name} up to see you. The lad gets it out in one breath: "Loan me out, boss. I will come back better - or I will come back and you can tell me I was wrong."`,
+      ]),
       p.id, [
-        { label: 'Promise him minutes here', morale: 0.9, board: 0, pledge: 'minutes', reaction: `${p.name} lights up. Play him in the next few weeks or the shine wears off fast.` },
-        { label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, reaction: `A smart development call. List him for loan from the Transfers screen and the offers will come.` },
-        { label: 'He is not ready to leave', morale: -0.7, board: 0, reaction: `He trudges out without a word. The academy coach thinks you have just cooled your hottest prospect.` },
+        { label: 'Promise him minutes here', morale: 0.9, board: 0, pledge: 'minutes', reaction: pick(rng, [
+          `${p.name} lights up. Play him in the next few weeks or the shine wears off fast.`,
+          `He floats out of the office. A first-team promise at his age is rocket fuel - but it burns fast if the team sheet never shows it.`,
+        ]) },
+        { label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, reaction: pick(rng, [
+          `A smart development call. List him for loan from the Transfers screen and the offers will come.`,
+          `He grins and shakes your hand twice. The academy coach approves: minutes make players, benches make excuses.`,
+        ]) },
+        { label: 'He is not ready to leave', morale: -0.7, board: 0, reaction: pick(rng, [
+          `He trudges out without a word. The academy coach thinks you have just cooled your hottest prospect.`,
+          `"Right." One word, and the door does not slam, which is somehow worse. Keep an eye on his training reports.`,
+        ]) },
       ], rng)
     item.outlet = OFFICE
     candidates.push(item)
@@ -266,11 +292,24 @@ export function generatePress(state: GameState, rng: Rng) {
   if (fading.length && rng() < 0.35) {
     const p = pick(rng, fading)
     const item = mk(state,
-      `${p.name}, ${p.age} now, sits down across from you. "My deal is up this summer. I am not asking for promises, boss - I just need to know if I should be planning a life after this place."`,
+      pick(rng, [
+        `${p.name}, ${p.age} now, sits down across from you. "My deal is up this summer. I am not asking for promises, boss - I just need to know if I should be planning a life after this place."`,
+        `${p.name} waits until the room is empty. "Twelve years a professional, boss, and this is the conversation you never get used to. My contract is up. Where do I stand?"`,
+        `${p.name} brings two coffees in and sets one down in front of you. "No agents, no lawyers, just us. My deal ends this summer. Tell me what you are thinking."`,
+      ]),
       p.id, [
-        { label: 'There is another year in you', morale: 1.2, board: -0.2, pledge: 'deal', reaction: `${p.name} shakes your hand hard. Offer the terms from his player page before someone else does.` },
-        { label: 'This season is his last here', morale: -1.0, board: 0.4, reaction: `He takes it with dignity. He will finish the job properly - and the young players just saw how endings are handled here.` },
-        { label: 'Decide in the run-in', morale: -0.3, board: 0, reaction: `Honest, but the uncertainty follows him around. His agent quietly starts taking other calls.` },
+        { label: 'There is another year in you', morale: 1.2, board: -0.2, pledge: 'deal', reaction: pick(rng, [
+          `${p.name} shakes your hand hard. Offer the terms from his player page before someone else does.`,
+          `Relief, then a grin you have not seen since pre-season. Get the paperwork moving before his agent hears anything else.`,
+        ]) },
+        { label: 'This season is his last here', morale: -1.0, board: 0.4, reaction: pick(rng, [
+          `He takes it with dignity. He will finish the job properly - and the young players just saw how endings are handled here.`,
+          `A long exhale, a nod, a handshake. "Then let us win something on the way out." Class to the end.`,
+        ]) },
+        { label: 'Decide in the run-in', morale: -0.3, board: 0, reaction: pick(rng, [
+          `Honest, but the uncertainty follows him around. His agent quietly starts taking other calls.`,
+          `He expected better than a maybe. The performances will tell you his answer before you give him yours.`,
+        ]) },
       ], rng)
     item.outlet = OFFICE
     candidates.push(item)
