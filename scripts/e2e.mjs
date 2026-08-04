@@ -162,6 +162,14 @@ try {
   await page.waitForSelector('text=DREAM TEAM')
   await shot('12b-dreamteam')
 
+  // Scouting Agency world rankings
+  await page.click('.bottom-nav button[title="World"]')
+  await page.click('.submenu-item >> text=Scouting Agency')
+  await page.waitForSelector('text=Senior Rankings: World')
+  await page.click('.tab-bar >> text=Wonderkids')
+  await page.waitForSelector('text=Wonderkid Watch: World')
+  await shot('12c-agency')
+
   // press room via Club submenu
   await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Press Room')

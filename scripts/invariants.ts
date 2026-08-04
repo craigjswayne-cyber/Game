@@ -5,6 +5,7 @@ import { arrangeFriendly, processWeekAndAdvance, userFixtureThisWeek, weekRng } 
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
+import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
 import { SEASON_WEEKS, type GameState } from '../src/game/model'
 
 let fails = 0
@@ -95,6 +96,15 @@ function audit(g: GameState, tag: string) {
   for (const h of g.hof ?? []) {
     if (!(h.apps > 0) || Number.isNaN(h.points)) bad(`${tag} hof entry broken: ${h.name}`)
   }
+  // 10. roles reference valid ids; agency lists reference live players
+  for (const c of Object.values(g.clubs)) {
+    for (const r of c.tactic.roles ?? []) {
+      if (r != null && !ROLE_BY_ID[r]) bad(`${tag} ${c.id} has unknown role ${r}`)
+    }
+  }
+  for (const pid of [...(g.agency?.seniors ?? []), ...(g.agency?.kids ?? [])]) {
+    if (!g.players[pid]) bad(`${tag} agency lists retired/missing player ${pid}`)
+  }
 }
 
 const club = process.argv[2] ?? 'leicester'
@@ -120,6 +130,12 @@ for (let season = 0; season < SEASONS; season++) {
     const rusty = squad.find(p => !p.injury && (p.rust ?? 0) > 0)
     if (rusty) cottonWool(g, rusty.id)
     g.scoutFocus = ['top14', 'urc', 'prem', null][g.week % 4]
+    // rotate positional roles like a tinkering manager
+    const t = g.clubs[g.userClubId].tactic
+    t.roles ??= []
+    const slot = g.week % 15
+    const opts = rolesForSlot(slot)
+    t.roles[slot] = g.week % 3 === 0 ? null : opts[g.week % opts.length].id
     if (fx) simMatch(g, fx, weekRng(g), true)
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)
     processWeekAndAdvance(g)
