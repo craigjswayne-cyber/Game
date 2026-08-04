@@ -66,7 +66,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
   // squad-building intent. Real moves are concentrated in the windows:
   // early season (weeks 1-4) and the mid-season deadline (23-24) are
   // busy; the rest of the season is a trickle - rumours do the talking.
-  const deadline = state.week === 26 || state.week === 27
+  const deadline = state.week === 7 || state.week === 26 || state.week === 27
   const window = state.week <= 7 || deadline
   for (let k = 0; k < (deadline ? 5 : 2); k++) {
     if (rng() > (deadline ? 0.6 : window ? 0.35 : 0.1)) continue
@@ -107,39 +107,52 @@ export function aiTransfers(state: GameState, rng: Rng) {
     if (seller && rng() < 0.75) executeTransfer(state, p, buyer.id, fee)
   }
 
-  // occasional AI bid for a user player (more likely if unsettled/listed;
-  // deadline day nearly doubles the vultures)
-  if (rng() < (deadline ? 0.55 : 0.3)) {
+  // AI bids for user players: a trickle in normal weeks, a feeding frenzy
+  // on deadline day - several bids can land at once, at panic premiums
+  for (let k = 0; k < (deadline ? 3 : 1); k++) {
+    if (rng() > (deadline ? 0.55 : 0.3)) continue
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
     const wanted = squad.filter(p => !p.loanFrom).filter(p => p.transferListed || p.morale <= 4 ||
       ((p.wantsDeal ?? 0) > 0 && state.week - (p.wantsDeal ?? 0) >= 4 && rng() < 0.3) ||
       (p.ca >= 82 && rng() < (p.pers === 'Ambitious' || p.pers === 'Mercenary' ? 0.4 : 0.2)))
-    if (wanted.length) {
-      const p = pick(rng, wanted)
-      const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
-      if (bidders.length) {
-        const bidder = pick(rng, bidders)
-        const fee = Math.round((p.value * (p.transferListed ? 0.95 : 1.2 + rng() * 0.4)) / 10_000) * 10_000
-        if (!state.offers.some(o => o.playerId === p.id && o.status === 'pending')) {
-          state.offers.push({
-            id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
-            fee, week: state.week, forUser: true, status: 'pending',
-          })
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
-            subject: `Bid received: ${p.name}`,
-            body: `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
-            playerId: p.id,
-          })
-        }
-      }
-    }
+    if (!wanted.length) continue
+    const p = pick(rng, wanted)
+    if (state.offers.some(o => o.playerId === p.id && o.status === 'pending')) continue
+    const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
+    if (!bidders.length) continue
+    const bidder = pick(rng, bidders)
+    const fee = Math.round((p.value * (p.transferListed ? 0.95 : 1.2 + rng() * 0.4) * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+    state.offers.push({
+      id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
+      fee, week: state.week, forUser: true, status: 'pending',
+    })
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+      subject: deadline ? `🚨 Deadline-day bid: ${p.name}` : `Bid received: ${p.name}`,
+      body: deadline
+        ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days: respond from the Transfers screen or the offer dies with it.`
+        : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
+      playerId: p.id,
+    })
   }
 
   // expire stale offers
   for (const o of state.offers) {
     if (o.status === 'pending' && state.week - o.week >= 2) o.status = 'rejected'
+  }
+  // the window slamming shut kills every open bid on your players
+  if (state.week === 8 || state.week === 28) {
+    const lapsed = state.offers.filter(o => o.status === 'pending' && o.forUser)
+    for (const o of lapsed) o.status = 'rejected'
+    if (lapsed.length) {
+      const names = lapsed.map(o => state.players[o.playerId]?.name).filter(Boolean).join(', ')
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+        subject: `Window shut - ${lapsed.length === 1 ? 'an offer lapses' : `${lapsed.length} offers lapse`}`,
+        body: `The transfer window has closed and every unanswered bid is void. Offers for ${names} are off the table until it reopens.`,
+      })
+    }
   }
   if (state.offers.length > 30) state.offers = state.offers.slice(-30)
 }
