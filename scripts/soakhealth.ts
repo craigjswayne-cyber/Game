@@ -68,6 +68,25 @@ const CLASS: Record<string, string[]> = {
 const wcSeedTops: string[] = []
 const milestoneSubjects = new Map<string, number>()
 const seen = new Set<number>()
+// prose quality (the FH tripwire, deep edition): the beats that only fire in
+// a long save - era obituaries, testimonials, farewell tours, POTY nights,
+// takeovers - must never leak internals or break house style
+let proseHits = 0
+const proseSeenPress = new Set<number>()
+const prose = (where: string, text: string | undefined | null) => {
+  if (!text) return
+  const flag = (why: string) => {
+    proseHits++
+    if (proseHits <= 20) console.log(`WARN: prose ${why} in ${where}: ${text.replace(/\n/g, ' ').slice(0, 80)}`)
+  }
+  if (/\bundefined\b/.test(text)) flag('"undefined"')
+  if (/\bNaN\b/.test(text)) flag('NaN')
+  if (text.includes('[object Object]')) flag('raw object')
+  if (text.includes('${')) flag('unrendered template')
+  if (text.includes('—')) flag('em dash')
+  if (/–/.test(text.replace(/[\d%]\s?–\s?\d/g, ''))) flag('en dash outside scoreline')
+  if (/ {2}/.test(text)) flag('double space')
+}
 for (let season = 0; season < 20; season++) {
   const target = g.season + 1
   let guard = 0
@@ -75,6 +94,7 @@ for (let season = 0; season < 20; season++) {
     const fx = userFixtureThisWeek(g)
     if (fx) {
       simMatch(g, fx, weekRng(g), true)
+      for (const e of fx.events ?? []) prose(`match event s${g.season}w${g.week}`, e.text)
       const evs = fx.events ?? []
       for (let i = 0; i < evs.length - 1; i++) {
         const e = evs[i]
@@ -106,12 +126,21 @@ for (let season = 0; season < 20; season++) {
       }
     }
     for (const pi of g.press) {
-      if (!pi.answered && pi.question.includes('The room goes quiet')) courtPressers++
+      // match on the vow option, not the question text - FI gave the
+      // courtship question three voicings and the label is the stable part
+      if (!pi.answered && pi.options.some(o => o.label.includes('I am going nowhere'))) courtPressers++
+      if (!proseSeenPress.has(pi.id)) {
+        proseSeenPress.add(pi.id)
+        prose(`press s${g.season}w${g.week}`, pi.question)
+        for (const o of pi.options) { prose('press option', o.label); prose('press reaction', o.reaction) }
+      }
     }
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, Math.floor(Math.random() * 0) )
     for (const n of g.news) {
       if (seen.has(n.id)) continue
       seen.add(n.id)
+      prose(`news s${g.season}w${g.week}`, n.subject)
+      prose(`news body s${g.season}w${g.week}`, n.body)
       if (n.subject.includes('The last dance')) farewells++
       if (n.subject.includes('Signing off') || n.subject.includes('tells you first')) retireNews++
       if (n.subject.includes('Loan watch')) loanWatch++
@@ -219,6 +248,14 @@ console.log(`WC top seeds by cycle: ${wcSeedTops.join(', ') || 'none observed'}`
   if (badRuns.length) console.log(`WARN: ${badRuns.length} streak/total mismatches in vsBook`)
   if (vb > 200) console.log('WARN: vsBook unbounded?')
   if (g.gateRecord && !g.clubs[g.gateRecord.oppId]) console.log('WARN: gate record dangling club')
+}
+// prose sweep verdict: every news item, press line and match event above,
+// plus the long-lived ledgers that outlast the news feed
+{
+  for (const h of g.hof ?? []) prose('hall of fame', `${h.name} ${h.club ?? ''}`)
+  for (const a of g.annals ?? []) prose('annals', a.league.name)
+  console.log(`prose sweep: ${proseHits} violations across 20 seasons (news ${seen.size}, press ${proseSeenPress.size})`)
+  if (proseHits > 0) console.log('WARN: prose violations in the deep world - see lines above')
 }
 // integrity sweep at the end
 let orphans = 0, badRefs = 0
