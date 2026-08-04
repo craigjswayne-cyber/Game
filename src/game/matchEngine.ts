@@ -73,7 +73,27 @@ export function autoSelect(state: GameState, pool: Player[]): (number | null)[] 
     }
     if (best) { lineup[i] = best.id; used.add(best.id) }
   }
+  // bench: same discipline as the XV - real cover first (a bench slot is a
+  // promise about who can come on where), shoehorn only into empty seats
+  {
+    const pairs: { b: number; p: Player; s: number }[] = []
+    for (let b = 0; b < 8; b++) {
+      const slots = BENCH_SLOTS[b].pos
+      for (const p of pool) {
+        if (slots.includes(p.pos) || p.alt.some(a => slots.includes(a))) {
+          pairs.push({ b, p, s: score(p, slots[0]) })
+        }
+      }
+    }
+    pairs.sort((a, b) => b.s - a.s)
+    for (const { b, p } of pairs) {
+      if (lineup[15 + b] != null || used.has(p.id)) continue
+      lineup[15 + b] = p.id
+      used.add(p.id)
+    }
+  }
   for (let b = 0; b < 8; b++) {
+    if (lineup[15 + b] != null) continue
     const slots = BENCH_SLOTS[b].pos
     let best: Player | null = null
     let bestS = -1
