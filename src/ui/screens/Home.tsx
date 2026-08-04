@@ -209,11 +209,6 @@ export default function Home() {
           </b>
           <span>{recent.length ? `last ${recent.length} match${recent.length > 1 ? 'es' : ''}` : 'season ahead'}</span>
         </button>
-        <button className="hub-widget" onClick={() => go('finances')}>
-          <label>Finances</label>
-          <b style={{ color: finState[1] }}>{finState[0]}</b>
-          <span>{fmtMoney(club.budget)} to spend</span>
-        </button>
         <button className="hub-widget" onClick={() => go('report')}>
           <label>Board</label>
           <b style={{ color: club.boardConfidence > 55 ? '#2f7d4f' : club.boardConfidence > 25 ? '#8a7a3a' : '#9b2c2c' }}>
