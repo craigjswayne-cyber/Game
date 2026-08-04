@@ -7,7 +7,9 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { SEASON_WEEKS } from '../src/game/model'
 
-const g = newGame('leicester', 'Deep Gaffer', 121212)
+// a challenge career: the deep world now exercises the Sapiac boot swap,
+// the live/conquered challenge cards on the profile, and the French leagues
+const g = newGame('montauban', 'Deep Gaffer', 121212, 'sapiac')
 for (let season = 0; season < 12; season++) {
   const target = g.season + 1
   let guard = 0
@@ -23,6 +25,7 @@ for (let season = 0; season < 12; season++) {
 // land at week 2 of the new season so the Annual card is live on Home
 processWeekAndAdvance(g)
 console.log(`deep save: season ${g.season} week ${g.week} · annals ${(g.annals ?? []).length} · potyRoll ${(g.potyRoll ?? []).length} · hof ${(g.hof ?? []).length}`)
+console.log(`challenge: live=${g.challenge ?? 'none'} · done=${JSON.stringify(g.challengesDone ?? [])} · league=${g.clubs[g.userClubId].leagueId}`)
 const record = {
   meta: {
     slot: 'deep', club: g.clubs[g.userClubId]?.name ?? '?', season: g.season,
