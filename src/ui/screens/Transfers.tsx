@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER, type Pos } from '../../game/model'
-import { counterIncomingOffer, respondToOffer } from '../../game/ai'
+import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
@@ -14,7 +14,7 @@ export default function Transfers() {
   const [query, setQuery] = useState('')
   const [maxVal, setMaxVal] = useState(0)
   const [msg, setMsg] = useState<string | null>(null)
-  const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans'>('market')
+  const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans' | 'deals'>('market')
   const [page, setPage] = useState(0)
   const PER_PAGE = 10
 
@@ -58,7 +58,76 @@ export default function Transfers() {
         <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>Market</button>
         <button className={xtab === 'shortlist' ? 'active' : ''} onClick={() => setXtab('shortlist')}>Shortlist</button>
         <button className={xtab === 'loans' ? 'active' : ''} onClick={() => setXtab('loans')}>Loans</button>
+        <button className={xtab === 'deals' ? 'active' : ''} onClick={() => setXtab('deals')}>Deals</button>
       </div>
+
+      {xtab === 'deals' && (() => {
+        const committed = new Set((game.preContracts ?? []).map(pc => pc.playerId))
+        const expiring = user.players
+          .map(id => game.players[id])
+          .filter(Boolean)
+          .filter(p => p.contractEnds <= game.season || (p.wantsDeal ?? 0) > 0)
+          .sort((a, b) => b.ca - a.ca)
+        const incoming = (game.preContracts ?? [])
+          .filter(pc => pc.toClubId === game.userClubId)
+          .map(pc => game.players[pc.playerId])
+          .filter(Boolean)
+        return (
+          <>
+            <SectionTitle sub="deals running down and demands on the table">Contract Situations</SectionTitle>
+            {expiring.length === 0 && (
+              <div className="muted" style={{ padding: 14 }}>
+                Nothing urgent. Every contract runs beyond this season and nobody is agitating for improved terms.
+              </div>
+            )}
+            {expiring.map(p => {
+              const gazumped = committed.has(p.id)
+              const demand = renewalDemand(p)
+              return (
+                <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--hairline)', cursor: 'pointer' }}>
+                  <PosBadge pos={p.pos} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700 }}>{p.name}</div>
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      {p.age} yrs · {fmtMoney(p.wage)}/wk now · asks {fmtMoney(demand)}/wk · morale {p.morale.toFixed(0)}/10
+                    </div>
+                  </div>
+                  {gazumped
+                    ? <span className="chip" style={{ borderColor: '#a12f2f', color: '#a12f2f', fontWeight: 700 }}>signed elsewhere</span>
+                    : (p.wantsDeal ?? 0) > 0
+                      ? <span className="chip" style={{ borderColor: 'var(--gold-bright)', fontWeight: 700 }}>wants a deal</span>
+                      : <span className="chip" style={{ fontWeight: 700 }}>expiring</span>}
+                </div>
+              )
+            })}
+            {expiring.length > 0 && (
+              <div className="muted" style={{ padding: '8px 14px', fontSize: 12 }}>
+                Tap a player to renew from his page. From week 25 an unrenewed man can sign a
+                pre-contract elsewhere and walk for nothing in the summer.
+              </div>
+            )}
+            {incoming.length > 0 && (
+              <>
+                <SectionTitle sub="pre-contracts agreed - they arrive when the season ends">Arriving In Summer</SectionTitle>
+                {incoming.map(p => (
+                  <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--hairline)', cursor: 'pointer' }}>
+                    <PosBadge pos={p.pos} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700 }}>{p.name}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        {p.age} yrs · from {p.clubId ? game.clubs[p.clubId]?.short ?? '?' : 'free agency'} · on a free
+                      </div>
+                    </div>
+                    <span className="chip" style={{ borderColor: 'var(--gold-bright)', fontWeight: 700 }}>🖊 agreed</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        )
+      })()}
 
       {xtab === 'shortlist' && <>
       <div className="card">
