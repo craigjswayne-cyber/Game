@@ -3,6 +3,16 @@ import { teamShort } from '../../game/matchEngine'
 import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
 
+// ephemeral competitions (rebuilt only in their years) vanish from the live
+// registry between editions, so the roll needs its own memory of their names
+const GONE_BUT_NOT_FORGOTTEN: Record<string, string> = {
+  wc: 'Rugby World Cup',
+  lions: 'Lions Tour',
+  tour: 'Summer Tours',
+  aut: 'Autumn Internationals',
+  pnc: 'Pacific Nations Cup',
+}
+
 export default function History() {
   const game = useStore(s => s.game)!
   const rows = [...game.history].reverse()
@@ -20,7 +30,7 @@ export default function History() {
           {rows.map((h, i) => (
             <tr key={i}>
               <td>{seasonLabel(h.season)}</td>
-              <td>{game.comps[h.compId]?.name ?? h.compId}</td>
+              <td>{game.comps[h.compId]?.name ?? GONE_BUT_NOT_FORGOTTEN[h.compId] ?? h.compId}</td>
               <td className="name">🏆 {teamShort(game, h.champion)}</td>
             </tr>
           ))}
