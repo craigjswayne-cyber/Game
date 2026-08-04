@@ -27,6 +27,7 @@ import Profile from './screens/Profile'
 import Saves from './screens/Saves'
 import DreamTeam from './screens/DreamTeam'
 import WeekResults from './screens/WeekResults'
+import SeasonReview from './screens/SeasonReview'
 
 const TITLES: Record<string, string> = {
   home: 'Home', results: 'Full-Time Round-Up', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
@@ -160,6 +161,7 @@ export default function App() {
       case 'saves': return <Saves />
       case 'dreamteam': return <DreamTeam />
       case 'results': return <WeekResults param={cur.param as string} />
+      case 'seasonreview': return <SeasonReview />
       default: return <Home />
     }
   }

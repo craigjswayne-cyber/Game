@@ -169,6 +169,13 @@ export default function Home() {
           <span>confidence</span>
         </button>
       </div>
+      {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
+        <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold-bright)' }}
+          onClick={() => go('seasonreview')}>
+          <h3>📖 The Annual is out</h3>
+          <div className="meta">Last season on one page — the league, the cups, the stars and the money. Tap to read.</div>
+        </button>
+      )}
       {pressOpen > 0 && (
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid #c9a227' }}
           onClick={() => go('press')}>
