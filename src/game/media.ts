@@ -101,6 +101,42 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
+  // title-race mind games: late season, neck and neck with one rival
+  const raceComp = state.comps[club.leagueId]
+  if (raceComp && state.week >= 31 && rng() < 0.5) {
+    const order = [...raceComp.table].sort((a, b) => b.pts - a.pts)
+    const myIdx = order.findIndex(r => r.teamId === club.id)
+    const rivalRow = myIdx >= 0 && myIdx <= 2
+      ? (order[myIdx === 0 ? 1 : myIdx - 1] ?? null)
+      : null
+    const rivalClub = rivalRow && Math.abs(rivalRow.pts - order[myIdx].pts) <= 6 ? state.clubs[rivalRow.teamId] : null
+    if (rivalClub) {
+      candidates.push(mk(state,
+        `The title race is down to you and ${rivalClub.name}. ${rivalClub.coach ?? 'Their coach'} says his side "handles the big moments better". Care to respond?`,
+        undefined, [
+          { label: 'Put the pressure on them', morale: 0.6, board: 0, reaction: `"${rivalClub.short} have everything to lose - we're loving this." The squad walks taller; the run-in just got personal.` },
+          { label: 'Focus on ourselves', morale: 0.2, board: 0.4, reaction: 'Calm, professional, forgettable. The dressing room stays level.' },
+          { label: 'Flatter them into sleep', morale: 0, board: 0.2, reaction: `You call ${rivalClub.short} "the best side in the league". Pundits call it mind games. Maybe it is.` },
+        ], rng))
+    }
+  }
+
+  // unveiling: a new signing arrived this week - set his expectations
+  const unveiling = state.news.find(n =>
+    n.type === 'transfer' && n.season === state.season && state.week - n.week <= 1 &&
+    n.playerId != null && state.players[n.playerId]?.clubId === club.id &&
+    n.subject.includes(`joins ${club.name}`))
+  const signing = unveiling?.playerId != null ? state.players[unveiling.playerId] : null
+  if (signing && rng() < 0.7) {
+    candidates.push(mk(state,
+      `${signing.name} is in the room for his unveiling, shirt in hand. What are you expecting from your new ${posNoun(signing)}?`,
+      signing.id, [
+        { label: 'A marquee moment', morale: 1.2, board: 0.3, reaction: `"He changes everything for us." ${signing.name} beams - and every match report this season will measure him against that sentence.` },
+        { label: 'Time to settle', morale: 0.4, board: 0, reaction: 'Sensible. The pressure valve stays closed while he learns the calls.' },
+        { label: 'He fights for his place', morale: -0.5, board: 0.4, reaction: `A cold shower at his own unveiling. The squad notes that nobody gets given a shirt here.` },
+      ], rng))
+  }
+
   // results pressure
   const recent = state.fixtures.filter(f =>
     f.played && (f.homeId === club.id || f.awayId === club.id)).slice(-4)
