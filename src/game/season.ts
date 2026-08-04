@@ -949,6 +949,46 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // southern lore: a Rugby Championship clean sweep is the south's Slam -
+  // six from six against the hardest room in the sport
+  {
+    const trc = state.comps['trc']
+    const lastWk = TRC_WEEKS[TRC_WEEKS.length - 1]
+    const penultWk = TRC_WEEKS[TRC_WEEKS.length - 2]
+    if (trc && state.week === penultWk) {
+      const leader = sortTable(trc.table)[0]
+      if (leader && leader.w === 5 && leader.d === 0 && leader.l === 0) {
+        const name = nationByCode(leader.teamId)?.name ?? leader.teamId
+        const yours = state.natTeam === leader.teamId
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `⚡ ${name} are 80 minutes from a Championship clean sweep`,
+          body: yours
+            ? `Five from five in the hardest championship on earth, one to play. Win it and your side join the shortest of lists. The south does not hand these out.`
+            : `${name} have won all five and can complete a Rugby Championship clean sweep in the final round. The southern hemisphere holds its breath.`,
+        })
+      }
+    }
+    if (trc && state.week === lastWk) {
+      const fx = state.fixtures.filter(f => f.compId === 'trc')
+      if (fx.length && fx.every(f => f.played)) {
+        const top = sortTable(trc.table)[0]
+        if (top && top.w === 6) {
+          const name = nationByCode(top.teamId)?.name ?? top.teamId
+          const yours = state.natTeam === top.teamId
+          if (yours && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 10, 0, 100)
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `👑 CLEAN SWEEP: ${name} win every Rugby Championship match`,
+            body: yours
+              ? `Six from six against the best the south can field. A clean sweep of the Rugby Championship, and your name on it. In a hundred years they will still be reading this list out.`
+              : `${name} complete a perfect Rugby Championship - six wins from six. The other three nations go home to their reviews.`,
+          })
+        }
+      }
+    }
+  }
+
   // the World Cup post-mortem: the seed said one thing - what did the
   // tournament say back?
   {
