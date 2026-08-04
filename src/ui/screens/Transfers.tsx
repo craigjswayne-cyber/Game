@@ -14,6 +14,7 @@ export default function Transfers() {
   const [query, setQuery] = useState('')
   const [maxVal, setMaxVal] = useState(0)
   const [msg, setMsg] = useState<string | null>(null)
+  const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans'>('market')
 
   const user = game.clubs[game.userClubId]
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
@@ -48,6 +49,13 @@ export default function Transfers() {
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
 
+      <div className="tab-bar">
+        <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>Market</button>
+        <button className={xtab === 'shortlist' ? 'active' : ''} onClick={() => setXtab('shortlist')}>Shortlist</button>
+        <button className={xtab === 'loans' ? 'active' : ''} onClick={() => setXtab('loans')}>Loans</button>
+      </div>
+
+      {xtab === 'shortlist' && <>
       <div className="card">
         <div className="fact-label">Scouting Assignment</div>
         <div className="meta" style={{ marginBottom: 6 }}>
@@ -64,7 +72,9 @@ export default function Transfers() {
         </div>
       </div>
 
-      {offers.length > 0 && (
+      </>}
+
+      {xtab === 'market' && offers.length > 0 && (
         <>
           <SectionTitle>Offers For Your Players</SectionTitle>
           {offers.map(o => {
@@ -86,7 +96,7 @@ export default function Transfers() {
         </>
       )}
 
-      {game.shortlist.length > 0 && (
+      {xtab === 'shortlist' && game.shortlist.length > 0 && (
         <>
           <SectionTitle sub="scouts filing weekly reports">Shortlist</SectionTitle>
           <div className="tblwrap"><table className="dtable"><tbody>
@@ -105,6 +115,7 @@ export default function Transfers() {
         </>
       )}
 
+      {xtab === 'loans' && <>
       <SectionTitle sub="big-club benches — borrow a star of tomorrow, parent pays half">Loan Market</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {loanTargets(game).map(p => (
@@ -127,6 +138,8 @@ export default function Transfers() {
         )}
       </tbody></table></div>
 
+      </>}
+      {xtab === 'market' && <>
       <SectionTitle sub="tap a player to scout & bid">Scout The Market</SectionTitle>
       <div style={{ padding: '0 14px' }}>
         <input className="inline-input" placeholder="Search player name…" value={query}
@@ -161,6 +174,7 @@ export default function Transfers() {
           ))}
         </tbody>
       </table></div>
+      </>}
       <div className="spacer" />
     </>
   )
