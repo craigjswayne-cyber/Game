@@ -66,8 +66,8 @@ export function aiTransfers(state: GameState, rng: Rng) {
   // squad-building intent. Real moves are concentrated in the windows:
   // early season (weeks 1-4) and the mid-season deadline (23-24) are
   // busy; the rest of the season is a trickle — rumours do the talking.
-  const deadline = state.week === 23 || state.week === 24
-  const window = state.week <= 4 || deadline
+  const deadline = state.week === 26 || state.week === 27
+  const window = state.week <= 7 || deadline
   for (let k = 0; k < (deadline ? 5 : 2); k++) {
     if (rng() > (deadline ? 0.6 : window ? 0.35 : 0.1)) continue
     const buyer = pick(rng, clubs)
@@ -348,7 +348,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
 
 /** AI clubs renew their expiring key players (some slip through to free agency). */
 export function aiRenewals(state: GameState, rng: Rng) {
-  if (state.week !== 25 && state.week !== 33) return
+  if (state.week !== 28 && state.week !== 36) return
   for (const club of Object.values(state.clubs)) {
     if (club.id === state.userClubId) continue
     for (const id of club.players) {

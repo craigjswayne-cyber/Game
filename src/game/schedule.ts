@@ -1,32 +1,34 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
 import { shuffled, type Rng } from './rng'
 
-// ---- Season calendar (week indices 1..42) ----
-// 1-14   league rounds (autumn tests overlay weeks 10-12)
-// 15,16  Champions Cup pool 1-2 (leagues pause)
-// 17,18  league
-// 19,20  Champions Cup pool 3-4
-// 21-28  league (Six Nations overlay 22-26)
-// 29,30  Champions Cup pool 5-6
-// 31-34  league
-// 35     CC quarter-finals
-// 36     CC semi-finals
-// 37     league playoff round 1 (QF / barrage)
-// 38     CC FINAL
-// 39     league semi-finals
-// 40     league FINALS
-// 41-42  end of season processing
+// ---- Season calendar (week indices 1..45) ----
+// 1-3    PRE-SEASON friendlies (cross-league, every club)
+// 4-17   league rounds (autumn tests overlay weeks 13-15)
+// 18,19  Champions Cup pool 1-2 (leagues pause)
+// 20,21  league
+// 22,23  Champions Cup pool 3-4
+// 24-31  league (Six Nations overlay 25-29)
+// 32,33  Champions Cup pool 5-6
+// 34-37  league
+// 38     CC quarter-finals
+// 39     CC semi-finals
+// 40     league playoff round 1 (QF / barrage)
+// 41     CC FINAL
+// 42     league semi-finals
+// 43     league FINALS
+// 44-45  end of season processing
 
+export const PRESEASON_WEEKS = [1, 2, 3]
 export const LEAGUE_WEEKS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-  17, 18, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33, 34,
+  4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+  20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37,
 ]
-export const CC_POOL_WEEKS = [15, 16, 19, 20, 29, 30]
-export const CC_KO_WEEKS = [35, 36, 38]
-export const AUTUMN_WEEKS = [10, 11, 12]
-export const SIX_NATIONS_WEEKS = [22, 23, 24, 25, 26]
-export const TRC_WEEKS = [2, 3, 4, 6, 7, 8]
-export const PNC_WEEKS = [2, 3, 4, 6, 7]
+export const CC_POOL_WEEKS = [18, 19, 22, 23, 32, 33]
+export const CC_KO_WEEKS = [38, 39, 41]
+export const AUTUMN_WEEKS = [13, 14, 15]
+export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
+export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
+export const PNC_WEEKS = [5, 6, 7, 9, 10]
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -91,7 +93,7 @@ export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Compe
     rounds: rounds.length,
     playoffTeams: spec.playoffTeams,
     weeksByRound: weeks,
-    koWeeks: spec.playoffTeams > 4 ? [37, 39, 40] : [39, 40],
+    koWeeks: spec.playoffTeams > 4 ? [40, 42, 43] : [42, 43],
   }
   rounds.forEach((pairs, r) => {
     for (const [h, a] of pairs) {
@@ -111,6 +113,46 @@ export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Compe
 }
 
 /** Champions Cup: 16 clubs, 4 pools of 4 (double RR = 6 rounds), then QF/SF/F. */
+/** Pre-season: three weeks of friendlies for every club before the real
+ *  stuff. The user's run is cross-league opposition, home-away-home. */
+export function schedulePreseason(state: GameState, rng: Rng) {
+  const mkFr = (week: number, homeId: string, awayId: string) => {
+    state.fixtures.push({
+      id: state.nextId++, compId: 'fr', round: week - 1, week,
+      homeId, awayId, played: false,
+      homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+    })
+  }
+  const user = state.clubs[state.userClubId]
+  const usedByUser = new Set<string>()
+  for (const week of PRESEASON_WEEKS) {
+    const used = new Set<string>([state.userClubId])
+    // the user's opponent: another league, similar level, no repeats
+    if (user) {
+      const opp = Object.values(state.clubs)
+        .filter(c => c.leagueId !== user.leagueId && !usedByUser.has(c.id))
+        .sort((a, b) => Math.abs(a.rep - user.rep) - Math.abs(b.rep - user.rep))[0]
+      if (opp) {
+        usedByUser.add(opp.id)
+        used.add(opp.id)
+        if (week === PRESEASON_WEEKS[1]) mkFr(week, opp.id, user.id)
+        else mkFr(week, user.id, opp.id)
+      }
+    }
+    // everyone else pairs up too, cross-league where the draw allows
+    const rest = shuffled(rng, Object.values(state.clubs).map(c => c.id).filter(id => !used.has(id)))
+    for (const id of rest) {
+      if (used.has(id)) continue
+      const partner = rest.find(o => !used.has(o) && o !== id && state.clubs[o].leagueId !== state.clubs[id].leagueId)
+        ?? rest.find(o => !used.has(o) && o !== id)
+      if (!partner) break
+      used.add(id)
+      used.add(partner)
+      mkFr(week, id, partner)
+    }
+  }
+}
+
 export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Continental Champions Cup', short: 'Champions Cup' },
 ): Competition {
@@ -149,9 +191,9 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   return comp
 }
 
-export const TOUR_WEEKS = [41, 42]
-export const WC_POOL_WEEKS = [2, 3, 4, 5, 6]
-export const WC_KO_WEEKS = [7, 8, 9]
+export const TOUR_WEEKS = [44, 45]
+export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
+export const WC_KO_WEEKS = [10, 11, 12]
 
 /** Rugby World Cup: 20 nations, 4 pools of 5, then QF/SF/Final. */
 function buildWorldCup(rng: Rng, state: GameState) {

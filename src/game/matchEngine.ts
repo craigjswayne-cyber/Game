@@ -7,7 +7,7 @@ import { clamp, gauss, wpick, type Rng } from './rng'
 
 /** Seasonal weather: wetter and colder through the winter weeks. */
 export function rollWeather(week: number, rng: Rng): Weather {
-  const winter = week >= 10 && week <= 26
+  const winter = week >= 13 && week <= 29
   const r = rng()
   if (winter) {
     if (r < 0.04) return 'Snow'
@@ -1188,7 +1188,17 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       const p = state.players[pid]
       if (!p) continue
       const r = clamp(r0 + (won ? 0.5 : -0.3) + gauss(rng) * 0.8, 1, 10)
-      if (!isNation) {
+      const friendly = ctx.fx.compId === 'fr'
+      if (!isNation && friendly) {
+        // friendlies bank rhythm, not records: no apps, minutes or ratings —
+        // but the legs and the sharpness are real
+        p.lastWk = state.week
+        const left = side.energy.get(pid)
+        p.cond = left != null
+          ? clamp(Math.min(p.cond, left + 8) - 6, 12, 100)
+          : clamp(p.cond - (14 + Math.floor(rng() * 10)), 20, 100)
+        p.sharp = clamp(p.sharp + 12, 0, 100)
+      } else if (!isNation) {
         p.stats.apps += 1
         const started = side.lineup.slice(0, 15).includes(pid)
         if (started) p.stats.starts += 1

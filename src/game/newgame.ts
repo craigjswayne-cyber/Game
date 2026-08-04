@@ -16,7 +16,7 @@ import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
 import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildLeague } from './schedule'
+import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHEM_SLOTS, chemKey, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
@@ -235,6 +235,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
 
   buildInternationals(rng, state, isWorldCupSeason(0))
+  schedulePreseason(state, rng)
   seedKnowledge(state)
   ensureCaptains(state)
   state.objectives = pickObjectives(state)
