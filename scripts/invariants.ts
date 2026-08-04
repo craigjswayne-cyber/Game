@@ -114,6 +114,15 @@ function audit(g: GameState, tag: string) {
     if (pl.season === g.season && g.week > pl.due + 1) bad(`${tag} pledge overdue and unsettled (due w${pl.due}, now w${g.week})`)
   }
   if (g.intakeClass?.length && g.week < 30) bad(`${tag} intake class exists before the week-30 preview`)
+  const pcSeen = new Set<number>()
+  for (const pc of g.preContracts ?? []) {
+    if (!g.players[pc.playerId]) bad(`${tag} pre-contract for missing player ${pc.playerId}`)
+    if (!g.clubs[pc.toClubId]) bad(`${tag} pre-contract to missing club ${pc.toClubId}`)
+    if (pcSeen.has(pc.playerId)) bad(`${tag} duplicate pre-contract for player ${pc.playerId}`)
+    pcSeen.add(pc.playerId)
+    if (g.week < 25) bad(`${tag} pre-contract exists before week 25`)
+    if (g.players[pc.playerId]?.clubId === pc.toClubId) bad(`${tag} pre-contract points at the player's own club`)
+  }
 }
 
 const club = process.argv[2] ?? 'leicester'

@@ -489,6 +489,9 @@ export interface GameState {
   /** the user's next academy class, fixed at the week-30 preview so intake
    *  day delivers exactly what the coach foretold */
   intakeClass?: { name: string; pos: Pos; age: number; q: number; pa: number; gk: boolean; wonder: boolean }[] | null
+  /** signed pre-contracts: out-of-contract players who move on a free at
+   *  the end of the season - binding once agreed */
+  preContracts?: { playerId: number; toClubId: string; week: number }[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */
