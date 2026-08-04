@@ -74,6 +74,28 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       })
     }
   }
+
+  // the tap on the shoulder: a bigger club with an empty dugout courts a
+  // manager who is doing well WHERE HE IS - the oldest dilemma in the game
+  if (!state.unemployed && state.week >= 4 && state.week <= 42 && rng() < 0.35) {
+    const abs = state.season * 100 + state.week
+    if (abs - (state.courtedAt ?? -999) >= 12) {
+      const mine = state.clubs[state.userClubId]
+      const suitor = state.vacancies
+        .map(v => state.clubs[v.clubId])
+        .filter(c => c && c.id !== mine.id && c.rep >= mine.rep + 5 &&
+          mgrReputation(state) >= c.rep - 10)
+        .sort((a, b) => b.rep - a.rep)[0]
+      if (suitor && mine.boardConfidence >= 55) {
+        state.courtedAt = abs
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+          subject: `🤝 ${suitor.short} are watching you`,
+          body: `The back pages have put your name at the top of ${suitor.name}'s shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.`,
+        })
+      }
+    }
+  }
 }
 
 /** Apply for a vacancy. Returns the outcome message. */

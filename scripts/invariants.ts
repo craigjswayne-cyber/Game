@@ -141,6 +141,7 @@ function audit(g: GameState, tag: string) {
   for (const p of Object.values(g.players)) {
     if (p.retiring && p.age < 37) bad(`${tag} retiring flag on ${p.name}, only ${p.age}`)
   }
+  if ((g.courtedAt ?? 0) > g.season * 100 + g.week) bad(`${tag} courtedAt in the future`)
   {
     let prevSeason = -1
     for (const w of g.potyRoll ?? []) {
