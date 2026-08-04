@@ -166,6 +166,8 @@ export interface Player {
   trait?: string | null
   /** estimated career before the game world began (2025-26) */
   hist?: { apps: number; tries: number; points: number }
+  /** Test caps, pre-2025 estimate plus every international played here */
+  caps?: number
   /** the user's scouting knowledge of this player, 0-100 */
   sc: number
   /** away on a season loan */
