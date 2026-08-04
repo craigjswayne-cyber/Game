@@ -54,6 +54,7 @@ const medBuckets: { yc: number; rc: number; matches: number; spells: number; avg
 let farewells = 0, milestoneNews = 0, totsAwards = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
 let taps = 0, brokenVows = 0, courtPressers = 0
+let hearings = 0, appealsWon = 0, appealsLost = 0
 // selection quality: starters wearing a shirt they cannot naturally cover.
 // Nonzero is fine in an injury crisis; a high rate means autoSelect regressed
 let oopStarts = 0, startSamples = 0
@@ -129,6 +130,7 @@ for (let season = 0; season < 20; season++) {
       // match on the vow option, not the question text - FI gave the
       // courtship question three voicings and the label is the stable part
       if (!pi.answered && pi.options.some(o => o.label.includes('I am going nowhere'))) courtPressers++
+      if (!pi.answered && pi.options.some(o => o.appeal)) hearings++
       if (!proseSeenPress.has(pi.id)) {
         proseSeenPress.add(pi.id)
         prose(`press s${g.season}w${g.week}`, pi.question)
@@ -149,6 +151,8 @@ for (let season = 0; season < 20; season++) {
       if (n.subject.includes('Dream debut') || n.subject.includes('grandkids')) debutNews++
       if (n.subject.includes('are watching you')) taps++
       if (n.subject.includes('aged badly')) brokenVows++
+      if (n.subject.includes('Appeal upheld')) appealsWon++
+      if (n.subject.includes('Appeal dismissed')) appealsLost++
       {
         const fee = parseFee(n.body)
         if (fee != null) feeBuckets[Math.min(3, Math.floor(season / 5))].push(fee)
@@ -217,6 +221,8 @@ console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneN
 if (totsAwards < 10) console.log('WARN: try of the season fired under 10 times in 20 seasons')
 console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
 console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
+console.log(`disciplinary hearings: ${hearings} · appeals won ${appealsWon} · lost ${appealsLost}`)
+if (appealsWon + appealsLost > hearings) console.log('WARN: appeal verdicts without a hearing')
 if (courtPressers > taps) console.log('WARN: courtship presser fired without a tap')
 if (brokenVows > 0) console.log('WARN: broken-vow story in a save where the manager never moved')
 {

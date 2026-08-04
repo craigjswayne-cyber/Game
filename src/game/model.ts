@@ -350,6 +350,9 @@ export interface PressOption {
   pledge?: Pledge['kind']
   /** a public loyalty vow: recorded, and it follows you if you walk it back */
   vow?: boolean
+  /** lodge a disciplinary appeal for the named player's ban - the verdict
+   *  lands immediately (deterministic, no shared rng) */
+  appeal?: boolean
 }
 
 /** A promise made to a player in the office. The squad keeps the receipts:

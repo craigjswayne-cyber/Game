@@ -54,6 +54,30 @@ export function generatePress(state: GameState, rng: Rng) {
     }
   }
 
+  // the hearing: one of yours saw red this week and the ban is confirmed.
+  // Time-sensitive, so it jumps the candidate queue like the courtship does
+  {
+    const f = state.fixtures.find(f =>
+      f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id))
+    const rcs = f?.events?.filter(e => e.type === 'RC' && e.teamId === club.id && e.playerId != null) ?? []
+    const banned = rcs.length ? state.players[rcs[rcs.length - 1].playerId!] : null
+    if (banned && (banned.bans ?? 0) >= 1 && !state.press.some(p => p.options.some(o => o.appeal) && p.season === state.season && state.week - p.week <= 2)) {
+      const n = banned.bans
+      state.press.push(mk(state,
+        voice(19, [
+          `The citing commissioner has upheld ${banned.name}'s red card: a ${n}-match ban. The club has 48 hours to appeal. Do you?`,
+          `${banned.name}'s suspension is confirmed this morning - ${n} match${n === 1 ? '' : 'es'}. Half your inbox is lawyers who fancy the footage. Appeal it?`,
+          `The panel was not moved: ${n} match${n === 1 ? '' : 'es'} for ${banned.name}. The supporters call it a stitch-up. Fight it, or take it?`,
+        ]),
+        banned.id, [
+          { label: 'Lodge the appeal', morale: 0.6, board: 0, appeal: true, reaction: `The paperwork goes in overnight and the hearing is fast-tracked. The verdict lands in your inbox the same day.` },
+          { label: 'Accept the ban with dignity', morale: -0.2, board: 0.4, reaction: `No circus, no lawyers. The panel notes the club's professionalism, and the player serves his time quietly.` },
+          { label: 'Blast the officiating', morale: 0.8, board: -0.5, reaction: `The dressing room loves it. The league office adds a note to your file, and the next fifty-fifty call may remember this.` },
+        ], rng))
+      return
+    }
+  }
+
   const candidates: PressItem[] = []
 
   // hot streak player
@@ -480,6 +504,33 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   item.reaction = opt.reaction
   // a public loyalty vow goes on the record - walk it back and it walks with you
   if (opt.vow) state.vowedAt = state.season * 100 + state.week
+  // a lodged appeal is heard the same day: deterministic verdict, no shared
+  // rng - the same save always gets the same hearing
+  if (opt.appeal && item.playerId != null) {
+    const p = state.players[item.playerId]
+    if (p) {
+      const upheld = (p.id + state.season * 7 + state.week * 3) % 3 !== 0 // the club wins 2 hearings in 3
+      if (upheld && p.bans > 0) {
+        p.bans -= 1
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+          subject: `⚖️ Appeal upheld: ${p.name}'s ban reduced`,
+          body: `The panel reviewed the footage frame by frame and knocked a match off the suspension. ${p.bans > 0 ? `${p.bans} match${p.bans === 1 ? '' : 'es'} still to serve.` : 'He is free to play this weekend.'}`,
+          playerId: p.id,
+        })
+      } else {
+        p.bans += 1
+        const c = state.clubs[state.userClubId]
+        c.boardConfidence = clamp(c.boardConfidence - 2, 0, 100)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+          subject: `⚖️ Appeal dismissed: ${p.name}'s ban extended`,
+          body: `The panel called the challenge "without merit" and added a match for its trouble. The chairman's jaw tightens upstairs. ${p.bans} match${p.bans === 1 ? '' : 'es'} to serve.`,
+          playerId: p.id,
+        })
+      }
+    }
+  }
   if (item.playerId != null) {
     const p = state.players[item.playerId]
     if (p) {
