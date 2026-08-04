@@ -21,8 +21,11 @@ const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
 /** Play a full interactive match from the preview screen. */
 async function playMatch() {
   await page.locator('text=Kick Off ▸').first().click()
-  await page.waitForSelector('text=Take the Field', { timeout: 15000 })
-  await page.click('text=▸ Take the Field')
+  // a clean team sheet skips the ready-check modal entirely
+  try {
+    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
+    await page.click('text=▸ Take the Field')
+  } catch { /* no modal - straight to the tunnel */ }
   await page.waitForSelector('.scoreboard', { timeout: 15000 })
   await page.click('.speed-controls >> text=⏭')
   await page.waitForSelector('text=Start Second Half', { timeout: 20000 })
