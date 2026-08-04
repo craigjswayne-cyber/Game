@@ -1625,16 +1625,6 @@ export function processWeekAndAdvance(state: GameState) {
     state.week += 1
   }
 
-  // derby on the horizon? whip up the build-up
-  const nextFx = state.fixtures.find(f =>
-    f.week === state.week && !f.played &&
-    (f.homeId === state.userClubId || f.awayId === state.userClubId))
-  if (nextFx && isDerby(nextFx.homeId, nextFx.awayId)) {
-    const oppId = nextFx.homeId === state.userClubId ? nextFx.awayId : nextFx.homeId
-    state.news.push({
-      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-      subject: `DERBY WEEK: ${derbyName(nextFx.homeId, nextFx.awayId)}`,
-      body: `It's ${teamShort(state, oppId)} this weekend and the town can talk of nothing else. Tickets are gone, tempers will fray, and the form book means precisely nothing. Win this one and the board - and the pubs - will remember it.`,
-    })
-  }
+  // (derby build-up now lives in the pre-advance block above, with the
+  // all-time ledger - the old duplicate beat here was removed)
 }
