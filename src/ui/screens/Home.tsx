@@ -8,6 +8,7 @@ import { teamShort } from '../../game/matchEngine'
 import { derbyName } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
 import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
+import { OBJECTIVE_DEFS } from '../../game/objectives'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -284,6 +285,23 @@ export default function Home() {
               {out.length > 4 && <div className="dash-line"><span className="muted">+{out.length - 4} more</span></div>}
             </button>
           </div>
+        )
+      })()}
+      {(() => {
+        const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
+        if (!objs.length) return null
+        return (
+          <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left' }}
+            onClick={() => go('finances')}>
+            <div className="fact-label">🎯 Season Objectives · {objs.filter(o => o!.met(game)).length}/{objs.length} on track</div>
+            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
+              {objs.map(o => (
+                <span key={o!.id} style={{ color: o!.met(game) ? '#2f7d4f' : 'var(--ink-soft)' }}>
+                  {o!.met(game) ? '✓' : '○'} {o!.text(game)}
+                </span>
+              ))}
+            </div>
+          </button>
         )
       })()}
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (

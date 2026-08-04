@@ -8,6 +8,7 @@ import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
 import { scoutOpponent, weeklyScouting } from './scout'
 import { updateAgency } from './agency'
+import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName } from './nations'
 import { STAFF_INFO } from './model'
@@ -723,6 +724,33 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the Scouting Agency refreshes its world rankings every four weeks
   if (state.week % 4 === 2) updateAgency(state)
+
+  // half-term: the board grades the season so far, in writing
+  if (state.week === 24 && !state.unemployed) {
+    const club = state.clubs[state.userClubId]
+    const comp = state.comps[club.leagueId]
+    const posNow = comp ? sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1 : 0
+    const pred = state.preds?.[club.id]
+    const diff = pred && posNow ? pred - posNow : 0
+    const objs = (state.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
+    const met = objs.filter(o => o!.met(state)).length
+    const grade = diff >= 3 ? 'A' : diff >= 1 ? 'B' : diff === 0 ? 'C' : diff >= -2 ? 'D' : 'E'
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: `🏛 Half-term report card: grade ${grade}`,
+      body: [
+        `The board's mid-season review has landed on your desk.`,
+        posNow ? `League: ${posNow}${posNow === 1 ? 'st' : posNow === 2 ? 'nd' : posNow === 3 ? 'rd' : 'th'}${pred ? ` (pundits predicted ${pred}${pred === 1 ? 'st' : pred === 2 ? 'nd' : pred === 3 ? 'rd' : 'th'})` : ''}.` : '',
+        objs.length ? `Season objectives: ${met}/${objs.length} on track.` : '',
+        `Boardroom confidence: ${Math.round(club.boardConfidence)}%.`,
+        grade === 'A' ? 'Verdict: "Exceptional. Whatever you are doing, keep doing it."'
+          : grade === 'B' ? 'Verdict: "Ahead of expectations. The room is pleased."'
+          : grade === 'C' ? 'Verdict: "On par. The second half of the season will define you."'
+          : grade === 'D' ? 'Verdict: "Below where we should be. Improvement is expected, not hoped for."'
+          : 'Verdict: "Unacceptable. The board will be watching the next two months very closely."',
+      ].filter(Boolean).join('\n'),
+    })
+  }
 
   // monthly awards in the user's league: every four weeks the league names
   // its player and manager of the month - small prizes, big feelings
