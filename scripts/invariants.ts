@@ -166,6 +166,15 @@ function audit(g: GameState, tag: string) {
   }
 }
 
+// every scripted challenge must boot at its club with its intro news
+import { CHALLENGES } from '../src/game/newgame'
+for (const ch of CHALLENGES) {
+  const cg = newGame(ch.clubId, 'Boot Check', 4242, ch.id)
+  if (cg.userClubId !== ch.clubId) bad(`challenge ${ch.id} booted at ${cg.userClubId}`)
+  if (!cg.news.some(n => n.subject.includes('THE CHALLENGE'))) bad(`challenge ${ch.id} missing intro`)
+  audit(cg, `challenge:${ch.id}`)
+}
+
 const club = process.argv[2] ?? 'leicester'
 const seed = Number(process.argv[3] ?? 777)
 console.log(`auditing ${club} seed ${seed}`)
