@@ -378,6 +378,16 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 </div>
               )}
+              {fx.stage === 'F' && (
+                <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+                  <div className="fact-label">🏆 THE FINAL</div>
+                  <div className="meta">
+                    Eighty minutes from the {game.comps[fx.compId]?.name ?? 'trophy'}. Everything the
+                    season has been builds to this - there is no next week, no second leg, no points
+                    for a brave defeat. Win it.
+                  </div>
+                </div>
+              )}
               {(() => {
                 const dn = derbyName(fx.homeId, fx.awayId)
                 if (!dn) return null
