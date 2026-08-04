@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { SIX_NATIONS_WEEKS } from '../../game/schedule'
 import { nationByCode, flagOf } from '../../game/nations'
 import { sortTable } from '../../game/schedule'
-import { userFixtureThisWeek } from '../../game/season'
+import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { CrestT, SectionTitle } from '../components'
 import { fmtMoney, weekDate } from '../../game/model'
@@ -141,6 +141,29 @@ export default function Home() {
           </div>
         </div>
       )}
+      {!fx && !game.unemployed && (() => {
+        const idle = Object.values(game.clubs)
+          .filter(c => c.id !== club.id &&
+            !game.fixtures.some(f => f.week === game.week && !f.played && (f.homeId === c.id || f.awayId === c.id)))
+          .sort((a, b) => Math.abs(a.rep - club.rep) - Math.abs(b.rep - club.rep))
+          .slice(0, 3)
+        if (!idle.length) return null
+        return (
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+            <div className="fact-label">Blank Weekend</div>
+            <div className="meta" style={{ marginBottom: 6 }}>
+              No fixture this week. A friendly banks sharpness and combinations for the squad — but injuries in a meaningless game sting twice as much.
+            </div>
+            <div className="chips" style={{ padding: 0 }}>
+              {idle.map(c => (
+                <button key={c.id} className="chip" onClick={() => { arrangeFriendly(game, c.id); touch() }}>
+                  🤝 {c.short} (rep {c.rep})
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
       <div className="hub-row">
         <button className="hub-widget" onClick={() => go('tables')}>
           <label>League</label>
