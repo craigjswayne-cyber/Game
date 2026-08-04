@@ -869,6 +869,42 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // the World Cup post-mortem: the seed said one thing - what did the
+  // tournament say back?
+  {
+    const wcFinal = state.fixtures.find(f => f.compId === 'wc' && f.stage === 'F' && f.played && f.week === state.week)
+    const nat = state.natTeam
+    if (wcFinal && nat) {
+      const seeds = state.comps['wc']?.seeds ?? []
+      const seed = seeds.indexOf(nat) + 1
+      const won = (wcFinal.homeId === nat && wcFinal.homeScore > wcFinal.awayScore) ||
+        (wcFinal.awayId === nat && wcFinal.awayScore > wcFinal.homeScore)
+      const inFinal = wcFinal.homeId === nat || wcFinal.awayId === nat
+      const wcFx = state.fixtures.filter(f => f.compId === 'wc' && f.played && (f.homeId === nat || f.awayId === nat))
+      const deepest = wcFx.some(f => f.stage === 'F') ? (won ? 1 : 2)
+        : wcFx.some(f => f.stage === 'SF') ? 4
+        : wcFx.some(f => f.stage === 'QF') ? 8
+        : 16
+      const name = nationByCode(nat)?.name ?? nat
+      const finishWord = deepest === 1 ? 'WORLD CHAMPIONS' : deepest === 2 ? 'beaten finalists'
+        : deepest === 4 ? 'semi-finalists' : deepest === 8 ? 'quarter-finalists' : 'out in the pools'
+      const parWord = seed > 0 && deepest < seed ? 'You over-delivered on the seeding, and the country knows it.'
+        : seed > 0 && deepest === seed ? 'Par on the seeding. The review will be fair, if unsentimental.'
+        : seed > 0 ? 'Short of the seeding - expect the post-mortem to use your name.'
+        : ''
+      if (wcFx.length) {
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Cup post-mortem: ${name}`,
+          body: [
+            `${name} finish the World Cup as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
+            deepest === 1 ? `Whatever else happens in your career, they can never take this away.` : parWord,
+          ].filter(Boolean).join(' '),
+        })
+      }
+    }
+  }
+
   // derby week: the buildup starts the moment the previous weekend ends
   if (!state.unemployed) {
     const next = state.fixtures.find(f => !f.played && f.week === state.week + 1 &&

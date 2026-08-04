@@ -1,5 +1,9 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
 import { shuffled, type Rng } from './rng'
+import { seedNatRank } from './natrank'
+import { nationByCode } from './nations'
+
+const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th'}`
 
 // ---- Season calendar (week indices 1..45) ----
 // 1-3    PRE-SEASON friendlies (cross-league, every club)
@@ -201,19 +205,35 @@ function buildWorldCup(rng: Rng, state: GameState) {
     'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
     'WAL', 'GEO', 'JPN', 'SAM', 'TGA', 'USA', 'URU', 'POR', 'ESP', 'CHL',
   ]
+  // the draw is seeded from the live world rankings: four years of Test
+  // results decide who gets the kind pool and who gets the group of death
+  seedNatRank(state)
+  const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
     id: 'wc', name: 'Rugby World Cup', short: 'World Cup', type: 'intl',
     teamIds: nations, table: nations.map(emptyRow), rounds: 5, playoffTeams: 8,
     weeksByRound: WC_POOL_WEEKS, koWeeks: WC_KO_WEEKS, isNational: true,
+    seeds: seeded,
   }
   // seeded pools: snake the top seeds so pools are balanced
   const pools: string[][] = [[], [], [], []]
-  nations.forEach((n, i) => {
+  seeded.forEach((n, i) => {
     const row = Math.floor(i / 4)
     const idx = row % 2 === 0 ? i % 4 : 3 - (i % 4)
     pools[idx].push(n)
   })
   comp.pools = pools
+  const top4 = seeded.slice(0, 4).map(c => nationByCode(c)?.name ?? c)
+  const userSeed = state.natTeam ? seeded.indexOf(state.natTeam) + 1 : 0
+  state.news.push({
+    id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
+    subject: `🏆 World Cup draw: the rankings pick the pools`,
+    body: [
+      `The World Cup pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
+      userSeed > 0 ? `${nationByCode(state.natTeam!)?.name ?? state.natTeam} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
+        : `Four pools, five nations each, and somewhere in there a group of death.`,
+    ].join('\n'),
+  })
   pools.forEach(pool => {
     const rounds = roundRobin(pool, rng, false)
     rounds.forEach((pairs, r) => {
