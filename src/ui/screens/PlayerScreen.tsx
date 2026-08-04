@@ -131,7 +131,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold-bright)' }}>🌟 <b>Wonderkid</b></span>}
       </div>
 
-      {p.career.length > 0 && (
+      {(p.career.length > 0 || (p.hist?.apps ?? 0) > 0) && (
         <>
           <SectionTitle>Career</SectionTitle>
           <div className="tblwrap"><table className="dtable">
@@ -146,12 +146,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <td className="num">{c.points}</td>
                 </tr>
               ))}
+              {(p.hist?.apps ?? 0) > 0 && (
+                <tr className="muted">
+                  <td>pre 2025</td>
+                  <td>earlier career</td>
+                  <td className="num">{p.hist!.apps}</td>
+                  <td className="num">{p.hist!.tries}</td>
+                  <td className="num">{p.hist!.points}</td>
+                </tr>
+              )}
               <tr style={{ fontWeight: 700 }}>
                 <td>TOTAL</td>
                 <td className="muted">incl. this season</td>
-                <td className="num">{p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps}</td>
-                <td className="num">{p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries}</td>
-                <td className="num">{p.career.reduce((s, c) => s + c.points, 0) + p.stats.points}</td>
+                <td className="num">{p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)}</td>
+                <td className="num">{p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)}</td>
+                <td className="num">{p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)}</td>
               </tr>
             </tbody>
           </table></div>

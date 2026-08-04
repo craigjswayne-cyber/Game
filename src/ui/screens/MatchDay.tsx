@@ -114,9 +114,9 @@ function Preview({ fxId }: { fxId: number }) {
   for (const pid of t.lineup.slice(0, 15)) {
     const pl = pid != null ? game.players[pid] : null
     if (!pl) continue
-    const cTries = pl.career.reduce((s, c) => s + c.tries, 0) + pl.stats.tries
-    const cApps = pl.career.reduce((s, c) => s + c.apps, 0) + pl.stats.apps
-    const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points
+    const cTries = pl.career.reduce((s, c) => s + c.tries, 0) + pl.stats.tries + (pl.hist?.tries ?? 0)
+    const cApps = pl.career.reduce((s, c) => s + c.apps, 0) + pl.stats.apps + (pl.hist?.apps ?? 0)
+    const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
     for (const [val, at, label] of [
       [cApps + 1, [100, 200, 300, 400], 'career appearance'],
       [cTries, [49, 99], 'career try — one more today'],

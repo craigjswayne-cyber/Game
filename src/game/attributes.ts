@@ -79,6 +79,20 @@ let idCounter = 1
 export function resetIds(start: number) { idCounter = start }
 export function nextPid() { return idCounter++ }
 
+/** Estimated pre-2025 career, deterministic per player: senior rugby from
+ *  age 21, volume scaled by quality, tries by position, points by the boot. */
+export function deriveHist(p: { id: number; age: number; pos: Player['pos']; a: Player['a']; gk?: boolean; ca: number }): { apps: number; tries: number; points: number } {
+  const yrs = Math.max(0, p.age - 21)
+  if (!yrs) return { apps: 0, tries: 0, points: 0 }
+  const r = mulberry32(p.id * 2246822519 + 5)
+  const perYr = 13 + Math.max(0, Math.round((p.ca - 55) / 3)) + Math.floor(r() * 7)
+  const apps = Math.round(yrs * Math.min(perYr, 27))
+  const tf: Record<string, number> = { WG: 0.42, FB: 0.28, CE: 0.24, FH: 0.1, SH: 0.14, N8: 0.18, FL: 0.16, HK: 0.14, LK: 0.07, LP: 0.04, TP: 0.04 }
+  const tries = Math.round(apps * (tf[p.pos] ?? 0.1) * (0.6 + r() * 0.6))
+  const points = tries * 5 + (p.gk ? Math.round(apps * (3.5 + r() * 4)) : 0)
+  return { apps, tries, points }
+}
+
 /** Deterministic signature trait: roughly 40% of players carry one, decided
  *  by id and attribute profile so saves and fresh worlds always agree. */
 export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] }): string | null {
@@ -138,6 +152,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     ca0: ca,
   }
   player.trait = deriveTrait(player)
+  player.hist = deriveHist(player)
   return player
 }
 
