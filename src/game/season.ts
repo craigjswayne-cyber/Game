@@ -627,6 +627,15 @@ function boardReaction(state: GameState, fx: Fixture) {
   const ownerF = state.newOwnerUntil != null && state.week <= state.newOwnerUntil ? 1.4 : 1
   if (us > them) club.boardConfidence = clamp(club.boardConfidence + (2.5 + diff * 2) * derbyF * ownerF, 0, 100)
   else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2) * derbyF * ownerF, 0, 100)
+  // the derby ledger: every meeting with a rival is written down forever
+  if (fx.derby) {
+    const oppId = isHome ? fx.awayId : fx.homeId
+    const book = (state.derbyBook ??= {})
+    const rec = (book[oppId] ??= { w: 0, d: 0, l: 0 })
+    if (us > them) rec.w += 1
+    else if (us < them) rec.l += 1
+    else rec.d += 1
+  }
   // manager career record
   state.mgr.m += 1
   if (us > them) state.mgr.w += 1
@@ -817,6 +826,33 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     state.pledges = remain
+  }
+
+  // derby week: the buildup starts the moment the previous weekend ends
+  if (!state.unemployed) {
+    const next = state.fixtures.find(f => !f.played && f.week === state.week + 1 &&
+      (f.homeId === state.userClubId || f.awayId === state.userClubId) &&
+      isDerby(f.homeId, f.awayId))
+    if (next) {
+      const oppId = next.homeId === state.userClubId ? next.awayId : next.homeId
+      const opp = state.clubs[oppId]
+      const home = next.homeId === state.userClubId
+      const rec = state.derbyBook?.[oppId]
+      const pl = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+      const recLine = rec && rec.w + rec.d + rec.l > 0
+        ? `Your record against them since you took charge: ${pl(rec.w, 'win')}, ${pl(rec.d, 'draw')}, ${pl(rec.l, 'defeat')}.`
+        : `Your first meeting with them in this job. First impressions last a lifetime in fixtures like this.`
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🔥 DERBY WEEK: ${derbyName(next.homeId, next.awayId)}`,
+        body: [
+          `${opp?.name ?? 'The old enemy'} ${home ? 'come to' : 'await at'} ${home ? state.clubs[state.userClubId].stadium : opp?.stadium ?? 'their place'} on Saturday, and the town already knows it. Tickets went an hour after release. Training gates will be busier than usual this week.`,
+          recLine,
+          `Nobody remembers the league position of a derby winner. Everybody remembers the score.`,
+        ].join('\n'),
+        fixtureId: next.id,
+      })
+    }
   }
 
   // the academy coach has watched next summer's class all season - his

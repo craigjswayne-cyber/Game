@@ -498,6 +498,9 @@ export interface GameState {
   /** the new owner's honeymoon at the user's club: until this week the
    *  boardroom reacts 1.4x to every result - impress him or feel it */
   newOwnerUntil?: number | null
+  /** the derby ledger: the user's all-time record against each rival,
+   *  keyed by opponent club id - bragging rights, kept forever */
+  derbyBook?: Record<string, { w: number; d: number; l: number }>
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */

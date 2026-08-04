@@ -110,6 +110,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.devFocus = []
     state.intakeClass = null // the class previewed at the old club stays there
     state.newOwnerUntil = null // the old club's owner is not your problem now
+    state.derbyBook = {} // new town, new rivals, blank ledger
     for (const id of club.players) {
       const p = state.players[id]
       if (p) p.sc = 100

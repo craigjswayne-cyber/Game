@@ -120,6 +120,10 @@ function audit(g: GameState, tag: string) {
     if (g.takeover.week > g.week) bad(`${tag} takeover from the future (w${g.takeover.week}, now w${g.week}) - not cleared at rollover`)
   }
   if (g.newOwnerUntil != null && (g.newOwnerUntil < 1 || g.newOwnerUntil > 45)) bad(`${tag} newOwnerUntil out of range: ${g.newOwnerUntil}`)
+  for (const [cid, rec] of Object.entries(g.derbyBook ?? {})) {
+    if (!g.clubs[cid]) bad(`${tag} derby ledger vs missing club ${cid}`)
+    if (rec.w < 0 || rec.d < 0 || rec.l < 0) bad(`${tag} negative derby record vs ${cid}`)
+  }
   const pcSeen = new Set<number>()
   for (const pc of g.preContracts ?? []) {
     if (!g.players[pc.playerId]) bad(`${tag} pre-contract for missing player ${pc.playerId}`)
