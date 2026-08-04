@@ -86,7 +86,8 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
 
 /** Tuesday-to-Thursday: the assistant's training report. */
 function trainingReport(state: GameState, rng: Rng) {
-  if (rng() > 0.55) return
+  // fortnightly at most — a report every single week reads like spam
+  if (state.week % 2 === 1 || rng() > 0.7) return
   const club = state.clubs[state.userClubId]
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p && !p.injury && !p.acad)
   if (squad.length < 15) return
@@ -117,7 +118,9 @@ function midweekMoment(state: GameState, rng: Rng) {
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
   const star = [...squad].sort((a, b) => b.ca - a.ca)[0]
   const roll = rng()
-  if (roll < 0.3) {
+  const recentCommunity = state.news.some(n =>
+    n.season === state.season && n.subject === `Community day at ${club.short}` && state.week - n.week < 10)
+  if (roll < 0.3 && !recentCommunity) {
     for (const p of squad) p.morale = clamp(p.morale + 0.15, 1, 10)
     wire(state, `Community day at ${club.short}`,
       `The whole squad spent Wednesday coaching at local schools and visiting the children's ward. Corny? Maybe. But the group came back closer, and the town noticed.`)
