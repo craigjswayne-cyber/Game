@@ -77,6 +77,8 @@ console.log(`WC top seeds by cycle: ${wcSeedTops.join(', ') || 'none observed'}`
   console.log(`d-ledgers: vsBook ${vb} opponents · derbyBook ${db} · gateRecord ${g.gateRecord ? g.gateRecord.att : 'none'} · natConf ${g.natConfidence ?? 'n/a'} · tenureStart s${g.tenureStart} · legends ${legends} · living POTY holders ${poty}`)
   console.log(`ds-round: streak extremes ${runMin}..${runMax} · potyRoll ${(g.potyRoll ?? []).length} seasons`)
   if ((g.potyRoll ?? []).some(w => !w.name || w.season > g.season)) console.log('WARN: bad potyRoll entry')
+  const badRuns = Object.entries(g.vsBook ?? {}).filter(([, r]) => (r.run ?? 0) > r.w || -(r.run ?? 0) > r.l)
+  if (badRuns.length) console.log(`WARN: ${badRuns.length} streak/total mismatches in vsBook`)
   if (vb > 200) console.log('WARN: vsBook unbounded?')
   if (g.gateRecord && !g.clubs[g.gateRecord.oppId]) console.log('WARN: gate record dangling club')
 }
