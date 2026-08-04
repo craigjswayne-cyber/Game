@@ -869,6 +869,57 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // Six Nations lore: the Slam and the Spoon are bigger than the table
+  {
+    const sn = state.comps['sn']
+    const lastWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1]
+    const penultWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 2]
+    if (sn && state.week === penultWk) {
+      const leader = sortTable(sn.table)[0]
+      if (leader && leader.w === 4 && leader.d === 0 && leader.l === 0) {
+        const name = nationByCode(leader.teamId)?.name ?? leader.teamId
+        const yours = state.natTeam === leader.teamId
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `⚡ ${name} are 80 minutes from a Grand Slam`,
+          body: yours
+            ? `Four from four, one to play. Your side stand one win from a Grand Slam - the week every coach dreams about and none sleeps through. Handle the occasion, not just the opposition.`
+            : `${name} have won all four and go into the final round with a Grand Slam on the table. The whole championship stops to watch.`,
+        })
+      }
+    }
+    if (sn && state.week === lastWk) {
+      const fx = state.fixtures.filter(f => f.compId === 'sn')
+      if (fx.length && fx.every(f => f.played)) {
+        const rows = sortTable(sn.table)
+        const top = rows[0]
+        const bottom = rows[rows.length - 1]
+        if (top && top.w === 5) {
+          const name = nationByCode(top.teamId)?.name ?? top.teamId
+          const yours = state.natTeam === top.teamId
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `👑 GRAND SLAM: ${name} win them all`,
+            body: yours
+              ? `Five from five. A GRAND SLAM for ${name}, and your name goes on it forever. Titles are won most years; Slams are remembered in decades. Enjoy every minute of the week that follows.`
+              : `${name} complete the Grand Slam - five wins from five. The rest of the championship applauds through gritted teeth.`,
+          })
+        }
+        if (bottom && bottom.w === 0 && bottom.d === 0) {
+          const name = nationByCode(bottom.teamId)?.name ?? bottom.teamId
+          const yours = state.natTeam === bottom.teamId
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: `🥄 The Wooden Spoon goes to ${name}`,
+            body: yours
+              ? `Five defeats from five. The Wooden Spoon is ${name}'s - and yours. The union's review lands next week, and the press will not be gentle. Something has to change, starting with the result.`
+              : `${name} finish the championship without a win and take the Wooden Spoon home. Their review will be brutal.`,
+          })
+        }
+      }
+    }
+  }
+
   // the World Cup post-mortem: the seed said one thing - what did the
   // tournament say back?
   {
