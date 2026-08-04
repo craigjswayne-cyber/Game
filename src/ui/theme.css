@@ -1060,7 +1060,7 @@ input, select { font: inherit; }
 /* ================= Home hub widgets ================= */
 .hub-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   padding: 2px 14px 6px;
 }

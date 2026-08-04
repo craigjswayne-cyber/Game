@@ -295,9 +295,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             {shortlisted ? '★ On Shortlist - scouts filing reports' : '☆ Shortlist & Scout'}
           </button>
           {!bidding
-            ? <button className="btn gold block" onClick={() => { setBidding(true); setBid(ask) }}>
-                Bid for {p.name.split(' ').slice(-1)[0]} (ask ~{fmtMoney(ask)})
+            ? <>
+              <button className="btn gold block" onClick={() => {
+                const r = userBid(game, p.id, ask)
+                setMsg(r.msg); setCounter(r.counter ?? null); touch()
+              }}>
+                ⚡ Offer asking price ({fmtMoney(ask)})
               </button>
+              <button className="btn ghost block" style={{ marginTop: 4 }} onClick={() => { setBidding(true); setBid(ask) }}>
+                Haggle a different fee…
+              </button>
+            </>
             : (
               <div className="card">
                 <h3>Your offer to {club.short}</h3>
