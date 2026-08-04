@@ -179,6 +179,9 @@ try {
   await page.click('.tab-bar >> text=Wonderkids')
   await page.waitForSelector('text=Wonderkid Watch: World')
   await shot('12c-agency')
+  await page.click('.tab-bar >> text=Test Nations')
+  await page.waitForSelector('text=Test Rankings: World')
+  await shot('12d-nations')
 
   // press room via Club submenu
   await page.click('.bottom-nav button[title="Club"]')
