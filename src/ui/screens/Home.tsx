@@ -9,6 +9,7 @@ import { derbyName, rivalsOf } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
 import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
+import { ordinal } from '../../game/gossip'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -283,28 +284,33 @@ export default function Home() {
                 </div>
               ))}
               {out.length > 4 && <div className="dash-line"><span className="muted">+{out.length - 4} more</span></div>}
-              {(() => {
-                // rival watch: their misery is your dopamine, all season long
-                const rival = rivalsOf(club.id).find(id => game.clubs[id])
-                if (!rival) return null
-                const rf = game.fixtures.filter(f => f.played && f.compId !== 'fr' && (f.homeId === rival || f.awayId === rival))
-                  .sort((a, b) => b.week - a.week)[0]
-                const rComp = game.comps[game.clubs[rival].leagueId]
-                const rPos = rComp ? sortTable(rComp.table).findIndex(r => r.teamId === rival) + 1 : 0
-                const rr = rf ? (() => {
-                  const us = rf.homeId === rival ? rf.homeScore : rf.awayScore
-                  const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
-                  return { txt: `${us > them ? 'won' : us < them ? 'LOST' : 'drew'} ${us}-${them}`, c: us < them ? '#2f7d4f' : us > them ? '#9b2c2c' : undefined }
-                })() : null
-                return (
-                  <div className="dash-line" style={{ borderTop: '2px solid var(--hairline)' }}>
+            </button>
+            {(() => {
+              // rival watch: their misery is your dopamine, all season long.
+              // Its own panel - it used to squat inside the Medical Centre,
+              // which read as the physio listing another club's players
+              const rival = rivalsOf(club.id).find(id => game.clubs[id])
+              if (!rival) return null
+              const rf = game.fixtures.filter(f => f.played && f.compId !== 'fr' && (f.homeId === rival || f.awayId === rival))
+                .sort((a, b) => b.week - a.week)[0]
+              const rComp = game.comps[game.clubs[rival].leagueId]
+              const rPos = rComp ? sortTable(rComp.table).findIndex(r => r.teamId === rival) + 1 : 0
+              const rr = rf ? (() => {
+                const us = rf.homeId === rival ? rf.homeScore : rf.awayScore
+                const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
+                return { txt: `${us > them ? 'won' : us < them ? 'LOST' : 'drew'} ${us}-${them}`, c: us < them ? '#2f7d4f' : us > them ? '#9b2c2c' : undefined }
+              })() : null
+              return (
+                <button className="dash-panel" onClick={() => go('club', rival)}>
+                  <div className="dash-head">Rival Watch</div>
+                  <div className="dash-line">
                     <span className="dl-t">👀 {teamShort(game, rival)}</span>
                     {rr && <b style={{ color: rr.c }}>{rr.txt}</b>}
-                    {rPos > 0 && <span className="muted">{rPos}th</span>}
+                    {rPos > 0 && <span className="muted">{ordinal(rPos)}</span>}
                   </div>
-                )
-              })()}
-            </button>
+                </button>
+              )
+            })()}
           </div>
         )
       })()}
