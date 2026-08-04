@@ -1029,6 +1029,39 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // final week: the moment the semi-final whistle goes, the buildup starts.
+  // Knockout finals are only drawn the week they are played, so the beat
+  // fires off the semi-final win - which is the sweeter moment anyway
+  {
+    const mines = [
+      ...(!state.unemployed ? [state.userClubId] : []),
+      ...(state.natTeam ? [state.natTeam] : []),
+    ]
+    for (const mine of mines) {
+      const sf = state.fixtures.find(f => f.played && f.week === state.week && f.stage === 'SF' &&
+        (f.homeId === mine || f.awayId === mine))
+      if (!sf) continue
+      const us = sf.homeId === mine ? sf.homeScore : sf.awayScore
+      const them = sf.homeId === mine ? sf.awayScore : sf.homeScore
+      if (us <= them) continue
+      const compName = state.comps[sf.compId]?.name ?? 'the cup'
+      const otherSf = state.fixtures.find(f => f.compId === sf.compId && f.stage === 'SF' && f.id !== sf.id)
+      const oppId = otherSf?.played
+        ? (otherSf.homeScore > otherSf.awayScore ? otherSf.homeId : otherSf.awayId)
+        : null
+      const oppName = oppId ? (state.clubs[oppId]?.name ?? nationByCode(oppId)?.name ?? oppId) : null
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🏆 YOU ARE IN THE FINAL: ${compName}`,
+        body: [
+          `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
+          `Nobody remembers a beaten finalist. Pick the team that wins it.`,
+        ].join('\n'),
+        fixtureId: sf.id,
+      })
+    }
+  }
+
   // derby week: the buildup starts the moment the previous weekend ends
   if (!state.unemployed) {
     const next = state.fixtures.find(f => !f.played && f.week === state.week + 1 &&
