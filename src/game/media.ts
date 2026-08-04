@@ -38,7 +38,7 @@ export function generatePress(state: GameState, rng: Rng) {
       state.press.push(mk(state,
         `Every outlet leads with the same story: ${suitor.name} have you on their shortlist. The room goes quiet. Are you staying?`,
         undefined, [
-          { label: `'I am going nowhere'`, morale: 0.5, board: 0.8, reaction: `The clip runs on every channel by teatime. The chairman texts a thumbs up; the squad trains like a weight came off. ${suitor.short} move down their list.` },
+          { label: `'I am going nowhere'`, morale: 0.5, board: 0.8, vow: true, reaction: `The clip runs on every channel by teatime. The chairman texts a thumbs up; the squad trains like a weight came off. ${suitor.short} move down their list.` },
           { label: `'We have work to do here'`, morale: 0.2, board: 0.3, reaction: `Measured, professional, just short of a promise. The story cools without quite dying.` },
           { label: `'I never discuss speculation'`, morale: -0.3, board: -0.6, reaction: `A stonewall the whole room hears as a maybe. The chairman's silence is loud, and the dressing room wonders if the gaffer is half out the door.` },
         ], rng))
@@ -402,6 +402,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   item.answered = true
   item.answerLabel = opt.label
   item.reaction = opt.reaction
+  // a public loyalty vow goes on the record - walk it back and it walks with you
+  if (opt.vow) state.vowedAt = state.season * 100 + state.week
   if (item.playerId != null) {
     const p = state.players[item.playerId]
     if (p) {

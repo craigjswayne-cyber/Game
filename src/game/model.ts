@@ -347,6 +347,8 @@ export interface PressOption {
   reaction: string
   /** choosing this option makes the player a promise - and he remembers */
   pledge?: Pledge['kind']
+  /** a public loyalty vow: recorded, and it follows you if you walk it back */
+  vow?: boolean
 }
 
 /** A promise made to a player in the office. The squad keeps the receipts:
@@ -554,6 +556,9 @@ export interface GameState {
   courtedAt?: number
   /** the club doing the courting, so the press can name them */
   courtedBy?: string | null
+  /** absolute week (season*100+week) of the last public loyalty vow -
+   *  take another job inside 10 weeks and the quote travels with you */
+  vowedAt?: number
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
