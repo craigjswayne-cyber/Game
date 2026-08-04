@@ -949,10 +949,21 @@ export function processWeekAndAdvance(state: GameState) {
       })
     }
     for (const p of bowing.filter(p => p.clubId === state.userClubId)) {
+      // the scout answers the letter: three names who could wear the shirt next
+      const succ = Object.values(state.players)
+        .filter(c => c.clubId && c.clubId !== state.userClubId && state.clubs[c.clubId] &&
+          c.pos === p.pos && c.age <= 29 && c.ca >= p.ca - 4 && !c.retiring && !c.onLoan && !c.loanFrom)
+        .sort((a, b) => b.ca - a.ca)
+        .slice(0, 3)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎤 ${p.name} tells you first: this is the last one`,
-        body: `${p.name} (${p.age}) knocks on your door before the press find out: he is retiring at the end of the season. No drama, no demands - he just wanted you to hear it from him. Plan the succession, and if you can, give him a send-off worth the years.`,
+        body: [
+          `${p.name} (${p.age}) knocks on your door before the press find out: he is retiring at the end of the season. No drama, no demands - he just wanted you to hear it from him. Give him a send-off worth the years.`,
+          succ.length
+            ? `The chief scout has already been through the files for the ${p.pos} shirt: ${succ.map(c => `${c.name} (${c.age}, ${state.clubs[c.clubId!]?.short}, ${fmtMoney(c.value)})`).join(', ')}. The succession starts now, not in the summer.`
+            : `The chief scout has been through the files and does not love the ${p.pos} market this year. The academy may have to answer this one.`,
+        ].join('\n'),
         playerId: p.id,
       })
     }
