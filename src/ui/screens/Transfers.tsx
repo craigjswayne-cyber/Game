@@ -89,7 +89,10 @@ export default function Transfers() {
             return (
               <div className="card" key={o.id}>
                 <h3>{bidder.name} bid {fmtMoney(o.fee)} for {p.name}</h3>
-                <div className="meta">Value {fmtMoney(p.value)} · {p.age} yrs · morale {p.morale.toFixed(0)}/10</div>
+                <div className="meta">
+                  Value {fmtMoney(p.value)} · {p.age} yrs · morale {p.morale.toFixed(0)}/10
+                  {[7, 26, 27].includes(game.week) && <b style={{ color: '#a12f2f' }}> · 🚨 dies at the deadline</b>}
+                </div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
                   <button className="btn gold" onClick={() => { setMsg(respondToOffer(game, o.id, true)); touch() }}>Accept</button>
                   <button className="btn" onClick={() => { setMsg(counterIncomingOffer(game, o.id)); touch() }}>Demand More</button>

@@ -1,6 +1,7 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { weekDate } from '../../game/model'
+import { OFFICE_OUTLET } from '../../game/media'
 
 export default function Press() {
   const game = useStore(s => s.game)!
@@ -19,7 +20,9 @@ export default function Press() {
       )}
       {open.map(item => (
         <div key={item.id}>
-          <div className="press-outlet">{item.outlet} asks…</div>
+          <div className="press-outlet">
+            {item.outlet === OFFICE_OUTLET ? '🚪 In your office - just the two of you' : `${item.outlet} asks…`}
+          </div>
           <div className="press-q">“{item.question}”</div>
           {item.playerId != null && game.players[item.playerId] && (
             <button className="muted" style={{ padding: '0 14px 8px', fontWeight: 600, color: 'var(--accent-ink)' }}
@@ -43,7 +46,7 @@ export default function Press() {
           <SectionTitle>Recent Coverage</SectionTitle>
           {past.map(item => (
             <div key={item.id} className="news-item open">
-              <div className="when">{item.outlet} · {weekDate(item.season, item.week)}</div>
+              <div className="when">{item.outlet === OFFICE_OUTLET ? '🚪 In private' : item.outlet} · {weekDate(item.season, item.week)}</div>
               <div className="subj" style={{ fontWeight: 400 }}>“{item.question}”</div>
               <div className="body">You: “{item.answerLabel}” - {item.reaction}</div>
             </div>

@@ -7,6 +7,9 @@ const OUTLETS = [
   'The Sunday Scrum', 'Lineout Live', 'The Egg Chasers Gazette', 'Front Row Daily',
 ]
 
+/** Not an outlet at all: player conversations behind a closed door. */
+export const OFFICE_OUTLET = "The Manager's Office"
+
 function mk(state: GameState, question: string, playerId: number | undefined, options: PressItem['options'], rng: Rng): PressItem {
   return {
     id: state.nextId++,
@@ -208,7 +211,7 @@ export function generatePress(state: GameState, rng: Rng) {
   }
 
   // the manager's office: players knock on your door
-  const OFFICE = "The Manager's Office"
+  const OFFICE = OFFICE_OUTLET
 
   // a frozen-out senior wants to know where he stands
   const frozen = squad.filter(p => !p.acad && p.age >= 24 && p.ca >= 68 &&
@@ -341,7 +344,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   const club = state.clubs[state.userClubId]
   club.boardConfidence = clamp(club.boardConfidence + opt.board * 5, 0, 100)
 
-  // tone ledger: what you say in public adds up
+  // tone ledger: what you say in public adds up - but words behind the
+  // office door are private, and never move the public needle
+  if (item.outlet === OFFICE_OUTLET) return
   const prev = state.pressTone ?? 0
   if (opt.morale >= 0.5) state.pressTone = clamp(prev + 1, -6, 6)
   else if (opt.morale <= -0.5) state.pressTone = clamp(prev - 1, -6, 6)
