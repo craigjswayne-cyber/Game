@@ -120,12 +120,28 @@ export default function Tactics() {
         <span style={{ fontSize: 18 }}>©</span>
         <div style={{ flex: 1 }}>
           <div className="fact-label">Club Captain</div>
-          <div className="meta">A strong leader lifts attack & defence and calms tempers — leadership matters.</div>
+          <div className="meta">A strong leader lifts attack & defence and calms tempers — and his mood colours the whole dressing room.</div>
         </div>
         <select className="inline-input" style={{ margin: 0, maxWidth: 210 }}
           value={club.captain ?? ''}
           onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
           {club.players.map(id => game.players[id]).filter(Boolean)
+            .sort((a, b) => b.a.lea - a.a.lea)
+            .map(p => (
+              <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+            ))}
+        </select>
+      </div>
+      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 15, fontWeight: 700 }}>VC</span>
+        <div style={{ flex: 1 }}>
+          <div className="fact-label">Vice-Captain</div>
+          <div className="meta">Steps up at half the effect whenever the skipper is rested, injured or away.</div>
+        </div>
+        <select className="inline-input" style={{ margin: 0, maxWidth: 210 }}
+          value={club.vice ?? ''}
+          onChange={e => { club.vice = e.target.value ? Number(e.target.value) : null; touch() }}>
+          {club.players.map(id => game.players[id]).filter(p => p && p.id !== club.captain)
             .sort((a, b) => b.a.lea - a.a.lea)
             .map(p => (
               <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>

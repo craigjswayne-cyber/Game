@@ -210,6 +210,8 @@ export interface Club {
   boardConfidence: number // 0-100
   /** club captain — a real leader on the pitch steadies the whole side */
   captain?: number | null
+  /** vice-captain: leads at reduced effect when the skipper is missing */
+  vice?: number | null
   /** the record book: 100+ app servants, written in at retirement */
   legends?: { name: string; apps: number; tries: number; pts: number }[]
   /** marquee designations — their wages sit outside the cap (max 2) */
