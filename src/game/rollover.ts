@@ -1139,4 +1139,11 @@ function challengeCheck(state: GameState) {
     subject: `🏅 CHALLENGE COMPLETE: ${title}`,
     body: `${line}\n\nThe badge goes on your profile, forever. Whatever happens next, nobody can take this one away.`,
   })
+  // the full-screen moment - deliberately after promotion sets its own, so
+  // the rarer achievement wins the confetti
+  state.celebration = {
+    headline: 'CHALLENGE COMPLETE',
+    sub: `${title} · ${state.managerName}`,
+    icon: '🏅',
+  }
 }
