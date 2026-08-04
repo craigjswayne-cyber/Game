@@ -1627,3 +1627,12 @@ input, select { font: inherit; }
 /* kicked balls streak through the air */
 .pitch .ball.kick-r { box-shadow: -14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
 .pitch .ball.kick-l { box-shadow: 14px 3px 10px rgba(255, 244, 200, .35), 0 1px 3px rgba(0, 0, 0, .5); }
+
+/* landscape tile grids: these overrides must come AFTER the base rules -
+   the copies inside the earlier media block lost the cascade and left
+   phones with two giant columns (8-batch feedback screenshot) */
+@media (orientation: landscape) and (min-width: 640px) {
+  .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 920px; }
+  .tile-grid.three { grid-template-columns: repeat(6, 1fr); max-width: 980px; }
+  .tile { padding: 9px 6px; gap: 4px; }
+}

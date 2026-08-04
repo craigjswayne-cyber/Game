@@ -93,30 +93,34 @@ export default function NewGame() {
       <main className="content" style={{ paddingBottom: 150 }}>
         {step === 0 && (
           <>
+            {/* compact rows, not tiles: every league and challenge on one
+                screen with no scrolling (8-batch feedback) */}
             <div className="wizard-hint">Choose the competition you'll manage in.</div>
-            <div className="tile-grid">
+            <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6 }}>
               {defs.map((d, i) => (
-                <button key={d.id} className={`tile${leagueIdx === i ? ' sel' : ''}`}
+                <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
-                  <span className="tile-ico">🏆</span>
-                  <b>{d.name}</b>
+                  <span style={{ fontSize: 15 }}>🏆</span>
+                  <span className="cname">{d.name}</span>
                   <span className="muted">{d.clubs.length} clubs</span>
                 </button>
               ))}
             </div>
-            <div className="wizard-hint" style={{ marginTop: 14 }}>…or take on a Challenge.</div>
-            {CHALLENGES.map(ch => {
-              const chClub = defs.flatMap(d => d.clubs).find(c => c.id === ch.clubId)
-              return (
-                <button key={ch.id} className="card challenge-card" onClick={() => pickChallenge(ch.id)}>
-                  {chClub && <Crest club={chClub} size={34} mr={12} />}
-                  <span style={{ flex: 1, textAlign: 'left' }}>
-                    <b style={{ fontFamily: 'var(--serif)', fontSize: 15, color: 'var(--title-ink, #082b20)' }}>{ch.title}</b>
-                    <span className="meta" style={{ display: 'block' }}>{ch.desc}</span>
-                  </span>
-                </button>
-              )
-            })}
+            <div className="wizard-hint" style={{ marginTop: 10 }}>…or take on a Challenge.</div>
+            <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
+              {CHALLENGES.map(ch => {
+                const chClub = defs.flatMap(d => d.clubs).find(c => c.id === ch.clubId)
+                return (
+                  <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>
+                    {chClub && <Crest club={chClub} size={28} mr={10} />}
+                    <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--title-ink, #082b20)' }}>{ch.title}</b>
+                      <span className="meta" style={{ fontSize: 11.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{ch.desc}</span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </>
         )}
 
