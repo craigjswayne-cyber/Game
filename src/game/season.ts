@@ -743,6 +743,37 @@ export function processWeekAndAdvance(state: GameState) {
     })
   }
 
+  // the morning after deadline day: the window is shut, here is the rundown
+  if ((state.week === 8 || state.week === 28) && !state.unemployed) {
+    const deals = state.news.filter(n => n.type === 'transfer' && n.season === state.season &&
+      n.week === state.week - 1 && n.subject.includes(' joins ') && n.playerId != null)
+    if (deals.length >= 2) {
+      const TIMES = ['08:10', '09:45', '11:30', '13:05', '14:40', '16:15', '18:00', '19:35', '21:10', '22:55']
+      const lines: string[] = []
+      deals.slice(0, 8).forEach((n, i) => {
+        const p = state.players[n.playerId!]
+        const to = p?.clubId ? state.clubs[p.clubId] : null
+        if (!p || !to) return
+        const fee = n.body.match(/for a fee of (.+?)\. The /)?.[1] ?? 'an undisclosed fee'
+        const mine = to.id === state.userClubId || n.body.includes(`from ${state.clubs[state.userClubId].name}`)
+        lines.push(`${TIMES[i]} - DONE DEAL: ${p.name} (${p.pos}) to ${to.short}, ${fee}.${mine ? ' Your business.' : ''}`)
+      })
+      const flop = Object.values(state.players)
+        .filter(p => p.clubId && p.clubId !== state.userClubId && p.ca >= 76 && p.transferListed)
+        .sort((a, b) => b.ca - a.ca)[0]
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+        subject: `📻 Deadline day, as it happened`,
+        body: [
+          `The window is shut. ${deals.length} deals crossed the line on the final day - the rundown:`,
+          ...lines,
+          ...(flop ? [`23:40 - COLLAPSED: ${flop.name}'s move fell apart at the medical. He stays at ${state.clubs[flop.clubId!]?.short} - for now.`] : []),
+          `Business is done until the window reopens. Back to rugby.`,
+        ].join('\n'),
+      })
+    }
+  }
+
   // the Scouting Agency refreshes its world rankings every four weeks
   if (state.week % 4 === 2) updateAgency(state)
 
