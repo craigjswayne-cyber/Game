@@ -425,6 +425,74 @@ function socialBuzz(state: GameState, rng: Rng) {
   wire(state, t[0], t[1], t[2])
 }
 
+/** Clubhouse tales: warm, daft, deeply rugby stories with no losers.
+ *  A couple a season, never negative - the game should make you smile. */
+function clubhouseTales(state: GameState, rng: Rng) {
+  if (rng() > 0.055) return
+  if (state.news.some(n => n.season === state.season && n.subject.startsWith('CLUBHOUSE') && state.week - n.week < 6)) return
+  const club = state.clubs[state.userClubId]
+  const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
+  const prop = squad.find(p => p.pos === 'LP' || p.pos === 'TP')
+  const lock = squad.find(p => p.pos === 'LK')
+  const nine = squad.find(p => p.pos === 'SH')
+  const ten = squad.find(p => p.pos === 'FH')
+  const wing = squad.find(p => p.pos === 'WG')
+  const tales: [string, string, number?][] = []
+  if (prop) tales.push(
+    [`CLUBHOUSE: ${prop.name.split(' ').slice(-1)[0]} wins the squad golf day, refuses to be humble`,
+      `${prop.name} shot the round of his life at the team golf day and has already had the scorecard laminated. It is now blu-tacked inside his locker at eye level. The backs have demanded a recount; the referee (the kit man) says the result stands.`, prop.id],
+    [`CLUBHOUSE: ice bath declared too small for the front row`,
+      `The new recovery suite opened this week, and within a day the front row lodged a formal complaint that the ice bath "fits one and a half props maximum". A rota has been posted. ${prop.name} has annexed the 6pm slot indefinitely and laminated that too.`, prop.id],
+  )
+  if (lock) tales.push(
+    [`CLUBHOUSE: ${lock.name.split(' ').slice(-1)[0]} adopts the groundsman's dog, sort of`,
+      `The groundsman's terrier has decided ${lock.name} is its favourite person on earth and now attends every session, sitting neatly beside the tackle bags. The club shop is printing a tiny replica shirt. Nobody has told the groundsman where his dog spends its days, but he probably knows.`, lock.id],
+  )
+  if (nine && ten) tales.push(
+    [`CLUBHOUSE: half-backs in bus playlist standoff`,
+      `${nine.name} and ${ten.name} have shared control of the team bus playlist for two seasons, and the arrangement has finally collapsed over what the squad describe only as "the incident with the sea shanties". A peace deal now alternates song by song. The forwards, who wanted silence, have lost again.`, nine.id],
+  )
+  if (wing) tales.push(
+    [`CLUBHOUSE: ${wing.name.split(' ').slice(-1)[0]} loses race to a schoolboy, demands rematch`,
+      `At a community visit this week the fastest man at the club was beaten over 40 metres by a twelve-year-old wearing school shoes. ${wing.name} maintains the start was jumped and has formally requested a rematch "on a proper track, with blocks". The twelve-year-old's PE teacher is considering terms.`, wing.id],
+  )
+  tales.push(
+    [`CLUBHOUSE: team-room quiz night ends in googling scandal`,
+      `Wednesday's quiz night was abandoned at the sports round when one table - all forwards - answered a question about 1987 with suspicious speed and full sentences. Phones are now surrendered at the door, and the quizmaster (the physio) has been given "full disciplinary powers", which everyone already regrets.`],
+    [`CLUBHOUSE: the kit man's biannual sock audit strikes fear into all`,
+      `It is sock audit week. The kit man has counted out, counted back, and found the squad collectively nine pairs short. An amnesty box has appeared outside the changing room with a sign reading "NO QUESTIONS ASKED (THIS TIME)". Three pairs have already been returned under cover of darkness.`],
+    [`CLUBHOUSE: bus driver gets a guard of honour for his 200th away trip`,
+      `Two hundred away trips, zero breakdowns, one legendary flask. The squad formed a guard of honour in the car park this week for the team bus driver, who described it as "completely unnecessary" while visibly delighted. He has been presented with a shirt with WHEELS 1 on the back.`],
+  )
+  if (!tales.length) return
+  const t = tales[(state.season * 11 + state.week * 7) % tales.length]
+  wire(state, t[0], t[1], t[2])
+}
+
+/** Once or twice a year World Rugby floats something outrageous, purely to
+ *  see the fans combust. Nothing ever comes of it. Nothing ever will. */
+function lawWatch(state: GameState, rng: Rng) {
+  if (rng() > 0.033) return
+  const proposals: [string, string][] = [
+    ['LAW WATCH: 25-point "super try" floated for length-of-the-field scores',
+      `A working group has proposed quintuple points for tries begun behind a team's own 22. Coaches call it "bingo rugby". Fans have already built entire imaginary seasons around it. World Rugby stresses it is "one idea among many", which is committee language for never.`],
+    ['LAW WATCH: proposal to reduce teams to 13 players "under review"',
+      `A discussion paper suggests trimming the XV to thirteen to "open space and cut collisions". The northern unions are apoplectic, the southern unions intrigued, and one existing sport with exactly that player count is watching with its arms folded. Expect a quiet burial by autumn.`],
+    ['LAW WATCH: shot clock for scrums - 30 seconds or a free-kick',
+      `The proposal: packs get half a minute from mark to engagement or concede the put-in. Front rows everywhere describe the idea as "a war crime". Referees privately love it. The trial is earmarked for a development competition nobody can name, which tells you everything.`],
+    ['LAW WATCH: kicks at goal worth less in the final quarter, says think-tank',
+      `Penalties would drop to two points after the hour "to encourage ambition". Kickers are furious, flankers delighted, and the fan forums have run the numbers on every classic final and declared history itself invalid. World Rugby thanks the think-tank for its input.`],
+    ['LAW WATCH: unlimited substitutions trial mooted for pre-season',
+      `Rolling subs, all match, every match. Conditioning coaches are drooling; purists are drafting strongly worded letters with footnotes. The proposal is "at concept stage", a phrase that has preceded precisely nothing becoming law in the sport's history.`],
+    ['LAW WATCH: golden point extra time for all league matches "on the table"',
+      `No more draws, ever, says the paper - first score after 80 wins it. The romantics mourn the honourable draw; the broadcasters have already cut a trailer. The league's fixture staff, asked to model the overtime, sent back a single spreadsheet cell reading "no".`],
+  ]
+  const pick2 = proposals[(state.season * 7 + state.week * 5) % proposals.length]
+  // never twice in quick succession - one wind-up at a time
+  if (state.news.some(n => n.season === state.season && n.subject.startsWith('LAW WATCH') && state.week - n.week < 12)) return
+  wire(state, pick2[0], pick2[1])
+}
+
 /** Preseason pundit predictions for the user's league. Stored on state.preds
  *  and settled against reality in the season review. The news itself waits
  *  until the friendlies are done - pundits write when the season looms. */
@@ -484,6 +552,8 @@ export function ordinal(n: number): string {
 export function generateGossip(state: GameState, rng: Rng) {
   // the predictions column lands once the friendlies are done (FY feedback)
   if (state.week === 4 && !state.unemployed) postPredictionsNews(state)
+  lawWatch(state, rng)
+  if (!state.unemployed) clubhouseTales(state, rng)
   sicknessSweep(state, rng)
   moneyMen(state, rng)
   trainingReport(state, rng)
