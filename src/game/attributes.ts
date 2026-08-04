@@ -79,6 +79,24 @@ let idCounter = 1
 export function resetIds(start: number) { idCounter = start }
 export function nextPid() { return idCounter++ }
 
+/** Deterministic signature trait: roughly 40% of players carry one, decided
+ *  by id and attribute profile so saves and fresh worlds always agree. */
+export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] }): string | null {
+  if (p.id % 5 >= 2) return null
+  const { a, pos } = p
+  const back3 = pos === 'WG' || pos === 'FB' || pos === 'CE'
+  const fwd = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8'].includes(pos)
+  if (a.agg >= 16) return 'Hot Head'
+  if (a.goa >= 16) return 'Metronome'
+  if (a.goa >= 14 && a.kic >= 14) return 'Siege Gun'
+  if (back3 && a.pac >= 15) return 'The Step'
+  if (a.han >= 15 && ['CE', 'N8', 'FL', 'FB'].includes(pos)) return 'Offload King'
+  if (a.ruc >= 15 && ['FL', 'N8', 'HK'].includes(pos)) return 'Jackal'
+  if (fwd && a.str >= 15) return 'Enforcer'
+  if (a.lea >= 14) return 'Big-Game Player'
+  return null
+}
+
 export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number, seasonNow: number): Player {
   const a = deriveAttrs(raw, seed)
   const rng = mulberry32(seed ^ (hashString(raw.name) + 7))
@@ -88,7 +106,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     : raw.age <= 26 ? 1 + Math.floor(rng() * 5)
     : 0
   const pa = clamp(ca + paBoost, ca, 99)
-  return {
+  const player: Player = {
     id: nextPid(),
     name: raw.name,
     pos: raw.pos,
@@ -119,6 +137,8 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     sc: 20,
     ca0: ca,
   }
+  player.trait = deriveTrait(player)
+  return player
 }
 
 /** Effective ability of a player in a given position (penalty when out of position). */

@@ -1,6 +1,6 @@
 import type { Club, GameState } from './model'
 import { ensureCaptains } from './analysis'
-import { buildPlayer, resetIds } from './attributes'
+import { buildPlayer, deriveTrait, resetIds } from './attributes'
 import { LEAGUE_DEFS } from './newgame'
 import { autoSelect } from './matchEngine'
 import { regenName } from './nations'
@@ -86,6 +86,7 @@ export function migrate(s: GameState): GameState {
     p.loanFrom ??= null
     p.acad ??= false
     p.stats.mins ??= 0
+    if (p.trait === undefined) p.trait = deriveTrait(p)
   }
   // CRITICAL: restore the player-id counter. Only newGame resets it, so a
   // cold-started session that loads a save would otherwise mint new player
