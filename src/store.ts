@@ -50,9 +50,9 @@ interface Store {
   home: () => void
   touch: () => void
   continueWeek: () => void
-  kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy') => void
+  kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
   /** the assistant takes over: play the match out instantly with your team */
-  instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect' | 'enjoy') => void
+  instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
   advanceLive: () => void
   skipToBreak: () => void
   decide: (choice: 'posts' | 'corner' | 'tap') => string

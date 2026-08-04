@@ -126,6 +126,7 @@ try {
   await page.click('.continue-btn')
   await page.waitForSelector('text=Kick Off', { timeout: 15000 })
   await shot('09-matchday-preview')
+  await page.click('.tab-bar >> text=Talk')
   await page.click('.speech-tile >> text=Calm the nerves')
   await playMatch()
   await shot('10-fulltime')
