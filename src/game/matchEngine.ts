@@ -844,10 +844,12 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   } else if (scorer && ctx.detail && scorer.id === ctx.fx.testimonial) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `Of all the people. ${scorer.name} scores at his own testimonial and the ground refuses to sit down. Write the script yourself - you could not do better.`, scorer.id)
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.3)
-  } else if (scorer && ctx.detail && side.exIds.has(scorer.id) && rng() < 0.75) {
+  } else if (scorer && ctx.detail && side.exIds.has(scorer.id) && (min + scorer.id) % 4 < 3) {
+    // deterministic gates on all detail-only flavour: commentary must never
+    // consume the shared rng stream (the EK/ER lesson, applied everywhere)
     pushEvent(state, ctx, min + 1, 'SUB', side, `No celebration from ${scorer.name} against his old club - hands raised in apology, but the damage is done.`, scorer.id)
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.2)
-  } else if (scorer && ctx.detail && scorer.retiring && (scorer.ca >= 72 || (scorer.caps ?? 0) >= 25) && rng() < 0.6) {
+  } else if (scorer && ctx.detail && scorer.retiring && (scorer.ca >= 72 || (scorer.caps ?? 0) >= 25) && (min + scorer.id) % 5 < 3) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `The whole ground rises for ${scorer.name} - friend and foe alike. He retires in the summer, and nobody here wants to forget watching him do that.`, scorer.id)
   } else if (scorer && ctx.detail && (scorer.rust ?? 0) >= 2 && (min + scorer.id) % 10 < 7) {
     // gate is deterministic (minute + id), not an rng draw: commentary must
