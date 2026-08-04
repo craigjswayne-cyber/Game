@@ -15,7 +15,7 @@ import { STAFF_INFO } from './model'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { loanTargets } from './loans'
-import { refreshVacancies } from './jobs'
+import { eraSummary, refreshVacancies } from './jobs'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -1320,7 +1320,7 @@ export function processWeekAndAdvance(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `SACKED: ${club.name} part company with ${state.managerName}`,
-        body: `A brutal end - but not the end. Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
+        body: `A brutal end - but not the end. ${eraSummary(state)} Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
       })
     }
   }

@@ -134,6 +134,28 @@ export function applyForJob(state: GameState, clubId: string): string {
 }
 
 /** Walk away from the current job. */
+/** The era in one line: years served, record, silverware, legend status.
+ *  Used by both exits - the resignation and the sack. */
+export function eraSummary(state: GameState): string {
+  const club = state.clubs[state.userClubId]
+  if (!club) return ''
+  const tenure = state.season - (state.tenureStart ?? state.season) + 1
+  const era = (state.annals ?? []).filter(a => a.clubName === club.name).slice(-tenure)
+  let w = era.reduce((s, a) => s + a.overall.w, 0)
+  let l = era.reduce((s, a) => s + a.overall.l, 0)
+  let cups = era.reduce((s, a) => s + a.trophies.length, 0)
+  // the current part-season is part of the story too
+  for (const f of state.fixtures) {
+    if (!f.played || (f.homeId !== club.id && f.awayId !== club.id)) continue
+    const us = f.homeId === club.id ? f.homeScore : f.awayScore
+    const them = f.homeId === club.id ? f.awayScore : f.homeScore
+    if (us > them) w++
+    else if (us < them) l++
+  }
+  const legend = (state.legendOf ?? []).includes(club.id)
+  return `The era in numbers: ${tenure} ${tenure === 1 ? 'season' : 'seasons'}, ${w} wins, ${l} defeats, ${cups} ${cups === 1 ? 'trophy' : 'trophies'}.${legend ? ' The legend status stays - that was voted, not loaned.' : ''}`
+}
+
 export function resignJob(state: GameState) {
   const club = state.clubs[state.userClubId]
   state.unemployed = true
@@ -141,6 +163,6 @@ export function resignJob(state: GameState) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${state.managerName} resigns at ${club.name}`,
-    body: `You clear your desk on your own terms. The rumour mill starts turning immediately - where next?`,
+    body: `You clear your desk on your own terms. ${eraSummary(state)} The rumour mill starts turning immediately - where next?`,
   })
 }
