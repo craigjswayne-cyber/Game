@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { mgrReputation, seasonLabel, type GameState, type Player } from '../../game/model'
+import { CHALLENGES } from '../../game/newgame'
 import { SectionTitle } from '../components'
 
 /** Coaching badge tiers, earned through reputation. */
@@ -137,6 +138,25 @@ export default function Profile() {
           {confirmNatResign
             ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>Confirm</button>
             : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => setConfirmNatResign(true)}>Step down…</button>}
+        </div>
+      )}
+      {(game.challengesDone ?? []).length > 0 && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+          <h3 style={{ fontSize: 15 }}>🏅 Challenges Conquered</h3>
+          {(game.challengesDone ?? []).map(id => (
+            <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>
+              {CHALLENGES.find(c => c.id === id)?.title ?? id}
+            </div>
+          ))}
+        </div>
+      )}
+      {game.challenge && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 22 }}>🎯</span>
+          <div>
+            <h3 style={{ fontSize: 14 }}>{CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge}</h3>
+            <div className="meta">The challenge is live. Judged at each season's end.</div>
+          </div>
         </div>
       )}
       <SectionTitle>Career Record</SectionTitle>

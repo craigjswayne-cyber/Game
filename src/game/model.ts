@@ -462,6 +462,7 @@ export interface GameState {
   shortlist: number[]
   staff: StaffLevels
   mgr: ManagerStats
+  /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /** open managerial vacancies at AI clubs */
   vacancies: { clubId: string; week: number; applied?: boolean }[]
@@ -558,6 +559,8 @@ export interface GameState {
   /** the season's most dramatic try by the user's club, judged live at each
    *  full-time whistle and honoured at the Annual */
   tryOfSeason?: { playerId: number; name: string; min: number; opp: string; text: string; drama: number; season: number } | null
+  /** challenges conquered this career, badged forever on the profile */
+  challengesDone?: string[]
   /** absolute week (season*100+week) a bigger club last courted the manager -
    *  the tap on the shoulder comes at most once every 12 weeks */
   courtedAt?: number
