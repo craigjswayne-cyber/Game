@@ -152,6 +152,37 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </>
         )
       })()}
+      {club.id === game.userClubId && (() => {
+        // the era's numbers: the record gate, the derby ledgers, the statue
+        const gate = game.gateRecord
+        const derbies = Object.entries(game.derbyBook ?? {}).filter(([, r]) => r.w + r.d + r.l > 0)
+        const legend = (game.legendOf ?? []).includes(club.id)
+        if (!gate && !derbies.length && !legend) return null
+        return (
+          <>
+            <SectionTitle sub="what this era will be remembered for">Era Records</SectionTitle>
+            <div className="card">
+              {legend && (
+                <div className="meta" style={{ padding: '3px 0', color: 'var(--accent-ink)', fontWeight: 700 }}>
+                  🗽 Club legend - voted by the supporters' trust, forever
+                </div>
+              )}
+              {gate && (
+                <div className="meta" style={{ padding: '3px 0' }}>
+                  🎟 Record gate: <b>{gate.att.toLocaleString()}</b> v {game.clubs[gate.oppId]?.short ?? gate.oppId}
+                  {' '}<span className="muted">({2025 + gate.season}-{String((gate.season + 26) % 100).padStart(2, '0')})</span>
+                </div>
+              )}
+              {derbies.map(([cid, r]) => (
+                <div key={cid} className="meta" style={{ padding: '3px 0' }}>
+                  🔥 v {game.clubs[cid]?.short ?? cid}: <b style={{ color: r.w > r.l ? '#2f7d4f' : r.w < r.l ? '#9b2c2c' : undefined }}>{r.w}W {r.d}D {r.l}L</b>
+                  {r.w > r.l ? <span className="muted"> - bragging rights held</span> : r.w < r.l ? <span className="muted"> - they hold the whip hand</span> : null}
+                </div>
+              ))}
+            </div>
+          </>
+        )
+      })()}
       {(() => {
         // live feuds involving this club + its strongest partnerships
         const feuds = (game.grudges ?? []).filter(g =>
