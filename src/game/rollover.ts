@@ -57,6 +57,42 @@ function seasonAwards(state: GameState) {
   })
 }
 
+/** The game's biggest individual prize: judged on the whole world's season,
+ *  not one league - form first, with a nudge for tries and silverware. */
+function worldPlayerOfTheYear(state: GameState) {
+  const cands = Object.values(state.players)
+    .filter(p => p.clubId && state.clubs[p.clubId] && p.stats.apps >= 15)
+    .map(p => {
+      const avg = p.stats.ratingSum / p.stats.apps
+      const cups = state.history.filter(h => h.season === state.season && h.champion === p.clubId).length
+      // tries already lift match ratings, so the nudge here stays small -
+      // any bigger and the podium is wingers only
+      return { p, avg, score: avg + p.stats.tries * 0.004 + cups * 0.15 }
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+  if (cands.length < 3) return
+  const [win, second, third] = cands
+  win.p.poty = (win.p.poty ?? 0) + 1
+  const mine = (x: typeof win) => x.p.clubId === state.userClubId
+  const line = (x: typeof win) =>
+    `${x.p.name} (${x.p.pos}, ${state.clubs[x.p.clubId!]?.short}) - avg ${x.avg.toFixed(2)}, ${x.p.stats.tries} tries`
+  state.news.push({
+    id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
+    subject: `🏅 World Player of the Year: ${win.p.name}`,
+    body: [
+      `The world game names its best. The shortlist:`,
+      `1. ${line(win)}${(win.p.poty ?? 0) > 1 ? ` (award number ${win.p.poty})` : ''}`,
+      `2. ${line(second)}`,
+      `3. ${line(third)}`,
+      mine(win) ? `He is YOURS. The whole sport just watched your man collect its biggest prize - enjoy the market circling him, because it starts tomorrow.`
+        : mine(second) || mine(third) ? `One of yours made the podium. The scouts noticed; so did his agent.`
+        : `The bar for next season is set.`,
+    ].join('\n'),
+    playerId: win.p.id,
+  })
+}
+
 function settleRecords(state: GameState) {
   state.records ??= {}
   for (const comp of Object.values(state.comps)) {
@@ -537,6 +573,7 @@ export function rebuildSeason(state: GameState) {
   const rng = mulberry32(state.seed ^ ((state.season + 1) * 60013))
 
   seasonAwards(state)
+  worldPlayerOfTheYear(state)
   settleRecords(state)
 
   // the union's annual review: the Test job answers to somebody too
