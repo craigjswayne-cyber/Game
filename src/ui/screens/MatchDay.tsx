@@ -465,6 +465,42 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 )
               })()}
+              {(() => {
+                // milestone anticipation. Appearances use the full salute
+                // ladder (exact, so it shows one match only); tries and
+                // points would linger for weeks at 'one away', so only the
+                // numbers worth waiting on make the card
+                const APPS = [50, 100, 150, 200, 250]
+                const TRIES = [50, 100]
+                const PTS = [1000, 1500]
+                const lines: { p: Player; text: string }[] = []
+                for (const id of t.lineup.slice(0, 15)) {
+                  const p = id != null ? game.players[id] : null
+                  if (!p) continue
+                  const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
+                  const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
+                  const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
+                  if (APPS.includes(cApps + 1)) {
+                    lines.push({ p, text: `makes career appearance number ${cApps + 1} if he takes the field` })
+                  } else if (TRIES.some(m => m - cTries === 1) && p.form >= 6.5) {
+                    lines.push({ p, text: `is one try away from ${cTries + 1} in his career, and he is in the form to get it` })
+                  } else {
+                    const target = PTS.find(m => m > cPts && m - cPts <= 9)
+                    if (target) lines.push({ p, text: `needs ${target - cPts} points to reach ${target.toLocaleString()} in his career` })
+                  }
+                }
+                if (!lines.length) return null
+                return (
+                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                    <div className="fact-label">On The Brink</div>
+                    {lines.slice(0, 3).map(({ p, text }) => (
+                      <div key={p.id} className="meta">
+                        <b>{p.name}</b> ({p.pos}) {text}. The ground will know the moment it happens.
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
               {danger && (
                 <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
                   <div className="fact-label">Danger Man</div>
