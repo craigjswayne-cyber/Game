@@ -539,6 +539,44 @@ export function rebuildSeason(state: GameState) {
   seasonAwards(state)
   settleRecords(state)
 
+  // the union's annual review: the Test job answers to somebody too
+  if (state.natTeam && state.natConfidence != null) {
+    const nat = state.natTeam
+    const natFx = state.fixtures.filter(f => f.played && (f.homeId === nat || f.awayId === nat) &&
+      !state.clubs[f.homeId] && !state.clubs[f.awayId])
+    let w = 0, l = 0
+    for (const f of natFx) {
+      const us = f.homeId === nat ? f.homeScore : f.awayScore
+      const them = f.homeId === nat ? f.awayScore : f.homeScore
+      if (us > them) w++
+      else if (us < them) l++
+    }
+    const conf = Math.round(state.natConfidence)
+    if (conf < 28) {
+      state.natTeam = null
+      state.natConfidence = null
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
+        subject: `🌍 SACKED: ${nat} relieve you of the national job`,
+        body: `The union's annual review was short. ${w} Test wins against ${l} defeats was not the trajectory they hired you for, and the ${nat} job is no longer yours. The club work continues - and unions have short memories when results turn.`,
+      })
+    } else {
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
+        subject: `🌍 Union annual review: ${conf >= 70 ? 'glowing' : conf >= 45 ? 'satisfactory' : 'concerned'}`,
+        body: [
+          `The ${nat} union has completed its annual review of the national programme: ${w} Test wins, ${l} defeats this season. Confidence in the head coach stands at ${conf}%.`,
+          conf >= 70 ? `They are already talking about extending your tenure.`
+            : conf >= 45 ? `Steady as she goes - but unions measure everything in World Cups.`
+            : `The knives are not out yet, but the drawer is open. The next window matters.`,
+        ].join(' '),
+      })
+      // summers soften opinions a little, in both directions - but they do
+      // not launder a losing record
+      state.natConfidence = clamp(state.natConfidence * 0.9 + 55 * 0.1, 0, 100)
+    }
+  }
+
   // the manager's season in review - a proper full-time moment
   if (!state.unemployed) {
     const uid = state.userClubId

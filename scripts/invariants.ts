@@ -123,6 +123,8 @@ function audit(g: GameState, tag: string) {
   for (const [code, pts] of Object.entries(g.natRank ?? {})) {
     if (!(pts >= 40 && pts <= 100)) bad(`${tag} nation rating out of range: ${code}=${pts}`)
   }
+  if (g.natConfidence != null && !(g.natConfidence >= 0 && g.natConfidence <= 100)) bad(`${tag} natConfidence out of range: ${g.natConfidence}`)
+  if (g.natConfidence != null && !g.natTeam) bad(`${tag} union confidence without a national job`)
   for (const [cid, rec] of Object.entries(g.derbyBook ?? {})) {
     if (!g.clubs[cid]) bad(`${tag} derby ledger vs missing club ${cid}`)
     if (rec.w < 0 || rec.d < 0 || rec.l < 0) bad(`${tag} negative derby record vs ${cid}`)

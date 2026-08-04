@@ -925,6 +925,7 @@ export function processWeekAndAdvance(state: GameState) {
         if (top && top.w === 5) {
           const name = nationByCode(top.teamId)?.name ?? top.teamId
           const yours = state.natTeam === top.teamId
+          if (yours && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 12, 0, 100)
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
             subject: `👑 GRAND SLAM: ${name} win them all`,
@@ -972,6 +973,10 @@ export function processWeekAndAdvance(state: GameState) {
         : seed > 0 ? 'Short of the seeding - expect the post-mortem to use your name.'
         : ''
       if (wcFx.length) {
+        if (state.natConfidence != null) {
+          const swing = deepest === 1 ? 20 : deepest === 2 ? 8 : seed > 0 && deepest < seed ? 6 : seed > 0 && deepest > seed ? -8 : 0
+          state.natConfidence = clamp(state.natConfidence + swing, 0, 100)
+        }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Cup post-mortem: ${name}`,
@@ -1171,6 +1176,14 @@ export function processWeekAndAdvance(state: GameState) {
       else if (us === them) state.mgr.d += 1
       else state.mgr.l += 1
       mgrMilestones(state, us > them)
+      // the union keeps score: every Test moves their confidence in you,
+      // weighted by where the two sides sit in the world
+      if (mySide === state.natTeam && state.natConfidence != null) {
+        const oppId = userFx.homeId === mySide ? userFx.awayId : userFx.homeId
+        const better = (state.natRank?.[oppId] ?? 70) > (state.natRank?.[mySide] ?? 70)
+        const delta = us > them ? (better ? 4 : 2.5) : us < them ? (better ? -3.5 : -5.5) : 0.5
+        state.natConfidence = clamp(state.natConfidence + delta, 0, 100)
+      }
       matchReport(state, userFx)
     }
   }

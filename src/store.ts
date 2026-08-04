@@ -339,6 +339,7 @@ export const useStore = create<Store>((set, get) => ({
     g.natOffer = null
     if (accept) {
       g.natTeam = nat
+      g.natConfidence = 60
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
         subject: `🌍 Appointed: national head coach of ${nat}`,
@@ -354,6 +355,7 @@ export const useStore = create<Store>((set, get) => ({
     if (!g || !g.natTeam) return
     const nat = g.natTeam
     g.natTeam = null
+    g.natConfidence = null
     g.news.push({
       id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
       subject: `You step down as ${nat} head coach`,

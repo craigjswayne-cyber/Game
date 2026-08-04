@@ -515,6 +515,9 @@ export interface GameState {
   crisisAt?: Record<string, number>
   /** world rugby rankings: rating points per nation, exchanged Test by Test */
   natRank?: Record<string, number>
+  /** the union's confidence in you as national coach, 0-100 - null when
+   *  you do not hold a Test job. Below 28 at the annual review: sacked */
+  natConfidence?: number | null
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */

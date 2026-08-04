@@ -127,7 +127,12 @@ export default function Profile() {
           <span style={{ fontSize: 22 }}>🌍</span>
           <div style={{ flex: 1 }}>
             <h3 style={{ fontSize: 14 }}>National head coach: {game.natTeam}</h3>
-            <div className="meta">Test weeks are yours when the club calendar allows.</div>
+            <div className="meta">
+              Test weeks are yours when the club calendar allows.
+              {game.natConfidence != null && (
+                <> Union confidence: <b style={{ color: game.natConfidence >= 60 ? '#2f7d4f' : game.natConfidence >= 40 ? 'var(--ink-soft)' : '#9b2c2c' }}>{Math.round(game.natConfidence)}%</b></>
+              )}
+            </div>
           </div>
           {confirmNatResign
             ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>Confirm</button>
