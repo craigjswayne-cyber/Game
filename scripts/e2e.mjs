@@ -18,6 +18,23 @@ page.on('pageerror', e => errors.push(String(e)))
 
 const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
 
+// the Wire interstitial shows this week's stories full screen - step past it
+const clearWire = async () => {
+  for (let i = 0; i < 40; i++) {
+    if (await page.locator('text=On to the Week').count()) {
+      await page.click('text=On to the Week')
+      await page.waitForTimeout(250)
+      return
+    }
+    if (await page.locator('text=Next Story ▸').count()) {
+      await page.click('text=Next Story ▸')
+      await page.waitForTimeout(120)
+      continue
+    }
+    return
+  }
+}
+
 /** Play a full interactive match from the preview screen. */
 async function playMatch() {
   await page.locator('text=Kick Off ▸').first().click()
@@ -155,6 +172,9 @@ try {
   await page.click('text=Continue to Results')
   await page.waitForSelector('text=This Week\'s Results', { timeout: 10000 })
   await page.click('text=Back to the Dressing Room')
+  await page.waitForTimeout(300)
+  await shot('11-wire-story')
+  await clearWire()
   await page.waitForSelector('.news-item', { timeout: 15000 })
   await shot('11-after-match')
 
@@ -162,6 +182,7 @@ try {
   for (let i = 0; i < 8; i++) {
     await page.click('.continue-btn')
     await page.waitForTimeout(500)
+    await clearWire()
     const kick = page.locator('text=Kick Off ▸')
     if (await kick.count()) {
       await playMatch()
@@ -169,6 +190,7 @@ try {
       await page.waitForSelector("text=This Week's Results", { timeout: 10000 })
       await page.click('text=Back to the Dressing Room')
       await page.waitForTimeout(300)
+      await clearWire()
     }
   }
   await shot('12-weeks-later')

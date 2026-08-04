@@ -14,7 +14,7 @@ export type Screen =
   | 'menu' | 'newgame' | 'home' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
-  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency'
+  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire'
 
 interface NavEntry {
   screen: Screen
@@ -37,6 +37,8 @@ interface Store {
     preTalkMsg: string | null
   } | null
   saveSlot: string
+  /** unread stories queued for the full-screen Wire flow after Continue */
+  wireQueue: number[]
   night: boolean
   toggleNight: () => void
 
@@ -89,6 +91,7 @@ export const useStore = create<Store>((set, get) => ({
   tick: 0,
   nav: [{ screen: 'menu' }],
   liveMatch: null,
+  wireQueue: [],
   saveSlot: 'slot1',
   night: typeof localStorage !== 'undefined' && localStorage.getItem('rm-night') === '1',
   toggleNight: () => set(s => {
@@ -142,8 +145,15 @@ export const useStore = create<Store>((set, get) => ({
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
       return
     }
+    const sinceId = g.nextId
     processWeekAndAdvance(g)
-    set(s => ({ tick: s.tick + 1 }))
+    // the Wire takes over: this week's stories fill the screen one by one
+    const wire = g.news.filter(n => !n.read && n.id >= sinceId).map(n => n.id)
+    set(s => ({
+      wireQueue: wire,
+      nav: wire.length ? [...s.nav.filter(e => e.screen !== 'wire'), { screen: 'wire' as const }] : s.nav,
+      tick: s.tick + 1,
+    }))
     // autosave every advance: serialization is ~40ms even in deep saves,
     // and a phone tab eviction should never cost more than one week
     void get().persist()
@@ -167,10 +177,14 @@ export const useStore = create<Store>((set, get) => ({
     playHalf(g, ctx)
     playHalf(g, ctx)
     const resultsKey = `${fx.compId}:${g.week}`
+    const sinceId = g.nextId
     processWeekAndAdvance(g)
+    const wire = g.news.filter(n => !n.read && n.id >= sinceId).map(n => n.id)
     set(s => ({
       liveMatch: null,
-      nav: [{ screen: 'home' }, { screen: 'results' as const, param: resultsKey }],
+      wireQueue: wire,
+      // results on top; backing out of them lands on the Wire stories
+      nav: [{ screen: 'home' }, ...(wire.length ? [{ screen: 'wire' as const }] : []), { screen: 'results' as const, param: resultsKey }],
       tick: s.tick + 1,
     }))
     void get().persist()
@@ -301,10 +315,15 @@ export const useStore = create<Store>((set, get) => ({
     const live = get().liveMatch
     if (!g) return
     const resultsKey = live ? `${live.fixture.compId}:${g.week}` : null
+    const sinceId = g.nextId
     processWeekAndAdvance(g)
+    const wire = g.news.filter(n => !n.read && n.id >= sinceId).map(n => n.id)
     set(s => ({
       liveMatch: null,
-      nav: [{ screen: 'home' }, ...(resultsKey ? [{ screen: 'results' as const, param: resultsKey }] : [])],
+      wireQueue: wire,
+      nav: [{ screen: 'home' },
+        ...(wire.length ? [{ screen: 'wire' as const }] : []),
+        ...(resultsKey ? [{ screen: 'results' as const, param: resultsKey }] : [])],
       tick: s.tick + 1,
     }))
     void get().persist()
