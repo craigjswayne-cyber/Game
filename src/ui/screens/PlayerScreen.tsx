@@ -17,6 +17,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [negotiating, setNegotiating] = useState(false)
   const [wageOffer, setWageOffer] = useState(0)
   const [wageCounter, setWageCounter] = useState<number | null>(null)
+  const [compare, setCompare] = useState(false)
 
   const p = game.players[playerId]
   if (!p) return <div className="muted" style={{ padding: 14 }}>Player no longer in the game world (retired or released).</div>
@@ -34,6 +35,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
     ['Skills', ['han', 'pas', 'kic', 'goa', 'vis', 'dec']],
     ['Physical & Mental', ['pac', 'agi', 'sta', 'pos', 'wor', 'lea']],
   ]
+
+  // one-tap comparison: this man against your best in the same shirt
+  const rival = !mine ? game.clubs[game.userClubId].players
+    .map(id => game.players[id])
+    .filter(q => q && !q.acad && (q.pos === p.pos || q.alt.includes(p.pos)))
+    .sort((a, b) => b!.ca - a!.ca)[0] ?? null : null
 
   return (
     <>
@@ -86,6 +93,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.transferListed && <span className="chip" style={{ color: '#a8841a' }}>Transfer listed</span>}
       </div>
 
+      {rival && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div className="fact-label">Compare</div>
+            <div className="meta">
+              Your best {p.pos}: <b>{rival.name}</b> ({Math.round(rival.ca)} overall, {rival.age} yrs, {fmtMoney(rival.wage)}/wk)
+              {compare ? ' — his numbers shown beside each bar.' : ''}
+            </div>
+          </div>
+          <button className={`btn ${compare ? 'gold' : 'ghost'}`} onClick={() => setCompare(!compare)}>
+            {compare ? '✓ Comparing' : '⚖ Compare'}
+          </button>
+        </div>
+      )}
       {groups.map(([title, keys]) => (
         <div key={title}>
           <SectionTitle>{title}</SectionTitle>
@@ -94,6 +115,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               const [lo, hi] = attrRange(game, p, k)
               const mid = Math.round((lo + hi) / 2)
               const exact = lo === hi
+              const rv = compare && rival ? rival.a[k] : null
               return (
                 <div className="attr" key={k}>
                   <span>{ATTR_NAMES[k]}</span>
@@ -105,6 +127,14 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <span className={`v ${exact ? attrClass(lo) : ''}`} style={exact ? undefined : { width: 44, fontSize: 12.5, color: 'var(--ink-faint)' }}>
                     {exact ? lo * 5 : `${lo * 5}–${hi * 5}`}
                   </span>
+                  {rv != null && (
+                    <span style={{
+                      width: 34, textAlign: 'right', fontSize: 12, fontWeight: 700,
+                      color: mid > rv ? '#2f7d4f' : mid < rv ? '#9b2c2c' : 'var(--ink-faint)',
+                    }}>
+                      {rv * 5}
+                    </span>
+                  )}
                 </div>
               )
             })}
