@@ -354,7 +354,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
     out.push({
       name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
       pos, age: 17 + Math.floor(rng() * 2), q,
-      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 18 + Math.floor(rng() * rng() * 40), q, 99),
+      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
       gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       wonder,
     })
@@ -403,7 +403,7 @@ function youthIntake(state: GameState, rng: Rng) {
       }
     })
     const best = Math.max(0, ...spec.map(s => s.pa))
-    const grade = spec.some(s => s.wonder) || best >= 88 ? 'A' : best >= 81 ? 'B' : best >= 73 ? 'C' : best >= 65 ? 'D' : 'E'
+    const grade = best >= 96 ? 'A' : best >= 90 ? 'B' : best >= 82 ? 'C' : best >= 74 ? 'D' : 'E'
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
       subject: `🎓 Intake day: the class arrives - grade ${grade}`,
@@ -438,7 +438,7 @@ function youthIntake(state: GameState, rng: Rng) {
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
         a,
         ca: wonder ? clamp(q + 8, 1, 78) : q,
-        pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 18 + Math.floor(rng() * rng() * 40), q, 99),
+        pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
         q0: q,
         intl: false, gk: !!raw.gk,
         form: 6, morale: 7, cond: 100, sharp: 50,
