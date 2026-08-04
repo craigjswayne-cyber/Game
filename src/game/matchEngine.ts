@@ -1378,6 +1378,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
 
   let motmId: number | null = null
   let motmR = -1
+  const debutants: { p: Player; r: number; kind: 'signing' | 'academy' }[] = []
   for (const side of [home, away]) {
     const won = side.score > (side === home ? away.score : home.score)
     const isNation = !state.clubs[side.teamId]
@@ -1411,6 +1412,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
           : clamp(p.cond - (14 + Math.floor(rng() * 10)), 20, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
       } else if (!isNation) {
+        if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }
         p.stats.apps += 1
         const started = side.lineup.slice(0, 15).includes(pid)
         if (started) p.stats.starts += 1
@@ -1457,6 +1459,30 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     fx.motm = motmId
   }
   ctx.motmId = motmId
+
+  // a debut worth the back page: a new face who scored, took MOTM or
+  // simply played out of his skin gets his moment in print
+  for (const { p, r, kind } of debutants) {
+    if (p.clubId !== state.userClubId) continue
+    const scored = ctx.events.some(e => e.type === 'TRY' && e.playerId === p.id)
+    const isMotm = p.id === motmId
+    if (!scored && !isMotm && r < 7.8) continue
+    const homegrown = kind === 'academy'
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: homegrown ? `🌟 A debut to tell his grandkids about: ${p.name}` : `🌟 Dream debut for ${p.name}`,
+      body: [
+        homegrown
+          ? `${p.name} (${p.age}, ${p.pos}) made his first-team debut today - the academy's own, first competitive rugby of his life.`
+          : `First competitive appearance in the shirt for ${p.name} (${p.pos}), and he made it count.`,
+        scored ? `He scored, because new signings who cost the coaching staff sleep always do.` : '',
+        isMotm ? `The sponsors gave him the match award before he had learned everyone's names.` : '',
+        `Rated ${r.toFixed(1)} by the press box. The supporters have a new song by Tuesday.`,
+      ].filter(Boolean).join(' '),
+      playerId: p.id,
+      fixtureId: fx.id,
+    })
+  }
 
   // the morning paper: a proper match report for every game you took charge of
   if (detail && isUser) {

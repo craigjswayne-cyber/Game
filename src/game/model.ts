@@ -199,6 +199,10 @@ export interface Player {
   wantsDeal?: number
   /** the current injury has already had its specialist consult */
   specialist?: boolean
+  /** waiting on his first competitive appearance - 'signing' for a new
+   *  arrival, 'academy' for a graduate's first senior rugby ever.
+   *  Cleared the moment it comes, memorable or not */
+  debutPending?: 'signing' | 'academy' | null
   /** has announced this is his final season: retires at the rollover.
    *  Set at the midwinter announcement for every player aged 37+ */
   retiring?: boolean

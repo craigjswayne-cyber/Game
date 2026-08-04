@@ -39,6 +39,7 @@ export function loanIn(state: GameState, playerId: number): string {
   p.clubId = user.id
   p.morale = clamp(p.morale + 1, 1, 10)
   p.sc = 100
+  p.debutPending = 'signing'
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `Loan signing: ${p.name} arrives from ${parent.short}`,

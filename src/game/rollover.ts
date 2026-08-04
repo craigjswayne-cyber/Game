@@ -166,6 +166,7 @@ function agePlayers(state: GameState, rng: Rng) {
     if (!p.acad) continue
     if (p.age >= 22 || (p.clubId !== state.userClubId && p.ca >= 62)) {
       p.acad = false
+      p.debutPending = p.stats.apps === 0 && p.career.length === 0 ? 'academy' : null
       if (p.clubId === state.userClubId) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
@@ -324,6 +325,7 @@ function handleContracts(state: GameState, rng: Rng) {
     p.contractEnds = state.season + 1 + (p.age < 30 ? 2 : 1)
     p.morale = clamp(p.morale + 1, 1, 10)
     p.transferListed = false
+    p.debutPending = 'signing'
     if (to.id === state.userClubId) { p.sc = 100; state.mgr.signings += 1 }
     if (to.id === state.userClubId || from?.id === state.userClubId) {
       state.news.push({
