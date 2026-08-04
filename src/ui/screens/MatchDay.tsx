@@ -489,6 +489,8 @@ function Preview({ fxId }: { fxId: number }) {
                         Under you: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b> against {oppClub?.short ?? 'them'}.
                         {rec!.w === 0 && rec!.l >= 3 && <> <b style={{ color: '#9b2c2c' }}>Your bogey side</b> - you have never beaten them, and the players know it. End it today.</>}
                         {rec!.l === 0 && rec!.w >= 5 && <> <b style={{ color: '#2f7d4f' }}>Happy hunting ground</b> - they have never beaten you. Keep it that way.</>}
+                        {(rec!.run ?? 0) >= 3 && !(rec!.l === 0 && rec!.w >= 5) && <> <b style={{ color: '#2f7d4f' }}>{rec!.run} straight wins</b> over them - the streak is yours to protect.</>}
+                        {(rec!.run ?? 0) <= -3 && !(rec!.w === 0 && rec!.l >= 3) && <> <b style={{ color: '#9b2c2c' }}>{-(rec!.run ?? 0)} straight defeats</b> to this lot - somebody has to break the hoodoo.</>}
                       </div>
                     )}
                     {meetings.map(m => (

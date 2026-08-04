@@ -509,8 +509,9 @@ export interface GameState {
   /** the derby ledger: the user's all-time record against each rival,
    *  keyed by opponent club id - bragging rights, kept forever */
   derbyBook?: Record<string, { w: number; d: number; l: number }>
-  /** the manager's book: tenure record against every club opponent */
-  vsBook?: Record<string, { w: number; d: number; l: number }>
+  /** the manager's book: tenure record against every club opponent.
+   *  run is the live streak: +N straight wins, -N straight defeats, 0 after a draw */
+  vsBook?: Record<string, { w: number; d: number; l: number; run?: number }>
   /** the biggest home crowd of the era - stadium expansion's long game */
   gateRecord?: { att: number; oppId: string; season: number } | null
   /** the annals: every season review of the career, oldest first - the
@@ -538,6 +539,9 @@ export interface GameState {
   cottonWk?: number
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
+  /** World Player of the Year roll of honour, oldest first - the sport's
+   *  history book, one line per season */
+  potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
