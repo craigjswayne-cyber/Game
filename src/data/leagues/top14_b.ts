@@ -1,4 +1,4 @@
-// Top 14 (France) 2025-26 — group B: Castres, Bayonne, Lyon, Montpellier, Pau, Perpignan, Montauban
+// Top 14 (France) 2025-26 - group B: Castres, Bayonne, Lyon, Montpellier, Pau, Perpignan, Montauban
 import type { RawClub } from '../types'
 
 export const TOP14_B: RawClub[] = [

@@ -53,7 +53,7 @@ export default function TeamReport() {
 
       <SectionTitle>Where We Stand</SectionTitle>
       <div className="chip-row" style={{ padding: '0 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <span className="chip">League position <b>{pos > 0 ? `${pos} / ${leagueClubs.length}` : '—'}</b></span>
+        <span className="chip">League position <b>{pos > 0 ? `${pos} / ${leagueClubs.length}` : '-'}</b></span>
         <span className="chip">Squad value <b>{fmtMoney(squadValue(game, club.id))}</b> (rank {valueRank})</span>
         <span className="chip">Reputation rank <b>{repRank} / {leagueClubs.length}</b></span>
         <span className="chip">Average age <b>{avgAge.toFixed(1)}</b></span>
@@ -72,7 +72,7 @@ export default function TeamReport() {
         ))}
       </tbody></table></div>
 
-      <SectionTitle sub="cover for every shirt — red rows need recruits">Positional Depth</SectionTitle>
+      <SectionTitle sub="cover for every shirt - red rows need recruits">Positional Depth</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Role</th><th className="num">Cover</th><th>Best option</th></tr></thead>
         <tbody>
@@ -83,7 +83,7 @@ export default function TeamReport() {
               <td className="num" style={d.count < d.need ? { color: '#9b2c2c', fontWeight: 700 } : undefined}>
                 {d.count}/{d.need}
               </td>
-              <td style={{ fontSize: 12 }}>{d.best?.name ?? '—'}</td>
+              <td style={{ fontSize: 12 }}>{d.best?.name ?? '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -106,7 +106,7 @@ export default function TeamReport() {
           <tr key={i} onClick={() => p && go('player', p.id)}>
             <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{slot.shirt}</td>
             <td><PosBadge pos={slot.pos} /></td>
-            <td className="name">{p?.name ?? '—'}</td>
+            <td className="name">{p?.name ?? '-'}</td>
             <td>{p && <Stars ca={effAt(p, slot.pos)} />}</td>
           </tr>
         ))}

@@ -29,7 +29,7 @@ export const SLIDER_INFO: SliderInfo[] = [
   },
   {
     key: 'kicking', label: 'Kicking', lo: 'Ball in hand', hi: 'Kick for territory',
-    up: 'Territory game: contestable kicks and corner pins — your kicking unit matters more, great in bad weather.',
+    up: 'Territory game: contestable kicks and corner pins - your kicking unit matters more, great in bad weather.',
     down: 'Keep it in hand: more running threat, but you live in your own half if it goes wrong.',
   },
   {
@@ -44,7 +44,7 @@ export function sliderReadout(key: SliderKey, v: number): string {
   const info = SLIDER_INFO.find(s => s.key === key)!
   if (v >= 66) return info.up
   if (v <= 34) return info.down
-  return 'Balanced — no bonus, no cost.'
+  return 'Balanced - no bonus, no cost.'
 }
 
 export interface Preset {
@@ -59,7 +59,7 @@ export interface Preset {
 export const PRESETS: Preset[] = [
   {
     id: 'allout', name: 'All-Out Attack', icon: '⚔️',
-    desc: 'Everything wide and fast. Chasing a score — shape be damned.',
+    desc: 'Everything wide and fast. Chasing a score - shape be damned.',
     values: { style: 82, tempo: 85, kicking: 18, aggression: 58 },
   },
   {
@@ -96,7 +96,7 @@ export interface CoachingStyle {
 export const COACHING_STYLES: CoachingStyle[] = [
   {
     id: 'balanced', name: 'Balanced',
-    desc: 'Pragmatism above all — pick the right tool each week.',
+    desc: 'Pragmatism above all - pick the right tool each week.',
     tactic: {},
   },
   {
@@ -116,7 +116,7 @@ export const COACHING_STYLES: CoachingStyle[] = [
   },
   {
     id: 'hightempo', name: 'High-Tempo Chaos',
-    desc: 'Play at a pace nobody can live with — fitness is a weapon.',
+    desc: 'Play at a pace nobody can live with - fitness is a weapon.',
     tactic: { style: 60, tempo: 88, kicking: 40 },
   },
   {
@@ -131,7 +131,7 @@ export const COACHING_STYLES: CoachingStyle[] = [
   },
   {
     id: 'offload', name: 'The Offloading Game',
-    desc: 'Keep the ball alive through contact — high risk, box office.',
+    desc: 'Keep the ball alive through contact - high risk, box office.',
     tactic: { style: 72, tempo: 62, kicking: 30, aggression: 56 },
   },
 ]

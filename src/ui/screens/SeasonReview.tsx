@@ -3,7 +3,7 @@ import { fmtMoney, seasonLabel } from '../../game/model'
 import { ordinal } from '../../game/gossip'
 import { SectionTitle } from '../components'
 
-/** The annual: last season on one page — the league, the cups, the
+/** The annual: last season on one page - the league, the cups, the
  *  stars, the money and the board's mood. */
 export default function SeasonReview() {
   const game = useStore(s => s.game)!
@@ -50,7 +50,7 @@ export default function SeasonReview() {
 
         <SectionTitle sub={r.league.name}>The League</SectionTitle>
         <div className="card">
-          {row('Finished', r.league.pos > 0 ? ordinal(r.league.pos) : '—', true)}
+          {row('Finished', r.league.pos > 0 ? ordinal(r.league.pos) : '-', true)}
           {r.league.predicted ? row('Pundits said', ordinal(r.league.predicted)) : null}
           {row('League record', `${r.league.w}W ${r.league.d}D ${r.league.l}L`)}
           {r.overall.bestWin ? row('Best win', r.overall.bestWin) : null}
@@ -68,8 +68,8 @@ export default function SeasonReview() {
         <SectionTitle sub="the names of the season">The Stars</SectionTitle>
         <div className="card">
           {r.bestAvg ? row('Player of the season', `${r.bestAvg.name} (avg ${r.bestAvg.val.toFixed(2)})`, true) : null}
-          {r.topPoints ? row('Top points', `${r.topPoints.name} — ${r.topPoints.val}`) : null}
-          {r.topTries ? row('Top tries', `${r.topTries.name} — ${r.topTries.val}`) : null}
+          {r.topPoints ? row('Top points', `${r.topPoints.name} - ${r.topPoints.val}`) : null}
+          {r.topTries ? row('Top tries', `${r.topTries.name} - ${r.topTries.val}`) : null}
         </div>
 
         <SectionTitle sub="the ledger and the boardroom">The Business</SectionTitle>

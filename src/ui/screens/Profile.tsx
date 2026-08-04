@@ -95,7 +95,7 @@ export default function Profile() {
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 44, lineHeight: 1 }}>{badge.icon}</div>
         <h3 style={{ fontSize: 19, marginTop: 6 }}>{game.managerName}</h3>
-        <div className="meta">{game.unemployed ? 'Unemployed — between challenges' : `Director of Rugby · ${club.name}`}</div>
+        <div className="meta">{game.unemployed ? 'Unemployed - between challenges' : `Director of Rugby · ${club.name}`}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
           {badge.name}
         </div>
@@ -114,7 +114,7 @@ export default function Profile() {
           <h3 style={{ fontSize: 15 }}>🌍 {game.natOffer.nat} want you as national head coach</h3>
           <div className="meta">
             Coach the national side alongside your club. In Test windows you take charge on match day when your
-            club is free — and every championship they win goes in your trophy cabinet.
+            club is free - and every championship they win goes in your trophy cabinet.
           </div>
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn ghost" onClick={() => answerNatOffer(false)}>Decline</button>
@@ -172,7 +172,7 @@ export default function Profile() {
 
       <SectionTitle>Trophy Cabinet</SectionTitle>
       {m.trophies.length === 0
-        ? <div className="meta" style={{ padding: '0 16px 8px' }}>Bare shelves — for now. Go and fill them.</div>
+        ? <div className="meta" style={{ padding: '0 16px 8px' }}>Bare shelves - for now. Go and fill them.</div>
         : (
           <div className="tblwrap"><table className="dtable"><tbody>
             {m.trophies.map((t, i) => (
@@ -208,7 +208,7 @@ export default function Profile() {
         <button className="btn ghost" onClick={() => go('legacy')}>📜 Full Legacy</button>
         {!game.unemployed && (
           confirmResign
-            ? <button className="btn danger" onClick={() => resign()}>Confirm — Walk Away</button>
+            ? <button className="btn danger" onClick={() => resign()}>Confirm - Walk Away</button>
             : <button className="btn ghost" style={{ color: '#9b2c2c' }} onClick={() => setConfirmResign(true)}>Resign…</button>
         )}
       </div>

@@ -1,4 +1,4 @@
-// Synthesised match-day sound & haptics. No audio assets — everything is
+// Synthesised match-day sound & haptics. No audio assets - everything is
 // generated with WebAudio so the PWA stays tiny and offline.
 
 let ctx: AudioContext | null = null

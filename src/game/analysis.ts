@@ -59,7 +59,7 @@ export function assistantAdvice(state: GameState): string {
     .map(id => id != null ? state.players[id] : null)
     .filter(p => p && p.cond < 65)
   if (tired.length >= 4) {
-    return `Assistant: ${tired.length} of the starting XV are running on empty (<65% fit). Rotate this week — tired legs concede late tries and pick up injuries.`
+    return `Assistant: ${tired.length} of the starting XV are running on empty (<65% fit). Rotate this week - tired legs concede late tries and pick up injuries.`
   }
   let worst: { label: string; eff: number; pos: Pos } | null = null
   for (let i = 0; i < 15; i++) {
@@ -77,7 +77,7 @@ export function assistantAdvice(state: GameState): string {
     .filter(p => effAt(p!, worst!.pos) * (0.75 + 0.25 * (p!.cond / 100)) > worst!.eff * 1.05)
     .sort((a, b) => effAt(b!, worst!.pos) - effAt(a!, worst!.pos))[0]
   if (better) {
-    return `Assistant: our weak link is ${worst.label} — ${better.name} looks the stronger option at ${worst.pos} right now.`
+    return `Assistant: our weak link is ${worst.label} - ${better.name} looks the stronger option at ${worst.pos} right now.`
   }
   return `Assistant: ${worst.label} is our thinnest position, but nothing better is available in the squad.`
 }

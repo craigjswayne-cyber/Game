@@ -60,7 +60,7 @@ try {
   await shot('03-inbox')
 
   // Squad
-  await page.click('.bottom-nav >> text=Squad')
+  await page.click('.bottom-nav button[title="Squad"]')
   await page.waitForSelector('.dtable')
   await shot('04-squad')
 
@@ -71,12 +71,12 @@ try {
   await page.click('.back-btn')
 
   // Tactics (readouts + presets)
-  await page.click('.bottom-nav >> text=Tactics')
+  await page.click('.bottom-nav button[title="Tactics"]')
   await page.waitForSelector('text=Quick Game Plans')
   await shot('06-tactics')
 
   // Club submenu -> Team Report
-  await page.click('.bottom-nav >> text=Club')
+  await page.click('.bottom-nav button[title="Club"]')
   await page.waitForSelector('.submenu')
   await shot('06b-club-menu')
   await page.click('.submenu-item >> text=Team Report')
@@ -84,32 +84,32 @@ try {
   await shot('06c-team-report')
 
   // Club submenu -> Medical Centre
-  await page.click('.bottom-nav >> text=Club')
+  await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Medical Centre')
   await page.waitForSelector('text=Treatment Room')
   await shot('06d-medical')
 
   // World submenu -> Competitions
-  await page.click('.bottom-nav >> text=World')
+  await page.click('.bottom-nav button[title="World"]')
   await page.waitForSelector('.submenu')
   await page.click('.submenu-item >> text=Competitions')
   await page.waitForSelector('.dtable')
   await shot('07-tables')
 
   // World submenu -> The Rugby Wire
-  await page.click('.bottom-nav >> text=World')
+  await page.click('.bottom-nav button[title="World"]')
   await page.click('.submenu-item >> text=The Rugby Wire')
   await page.waitForSelector('text=THE RUGBY WIRE')
   await shot('07b-wire')
 
   // Manager submenu -> Profile
-  await page.click('.bottom-nav >> text=Manager')
+  await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Manager Profile')
   await page.waitForSelector('text=Coaching Specialities')
   await shot('07c-profile')
 
   // Manager submenu -> Save/Load
-  await page.click('.bottom-nav >> text=Manager')
+  await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Save / Load Game')
   await page.waitForSelector('text=Save Slots')
   await page.click('.card >> text=💾 Save >> nth=0')
@@ -117,7 +117,7 @@ try {
   await shot('07d-saves')
 
   // Club submenu -> Transfers
-  await page.click('.bottom-nav >> text=Club')
+  await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForSelector('text=Scout The Market')
   await shot('08-transfers')
@@ -152,13 +152,13 @@ try {
   await shot('12-weeks-later')
 
   // Team of the Week (magazine dream team)
-  await page.click('.bottom-nav >> text=World')
+  await page.click('.bottom-nav button[title="World"]')
   await page.click('.submenu-item >> text=Team of the Week')
   await page.waitForSelector('text=DREAM TEAM')
   await shot('12b-dreamteam')
 
   // press room via Club submenu
-  await page.click('.bottom-nav >> text=Club')
+  await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Press Room')
   await page.waitForTimeout(400)
   await shot('13-press')

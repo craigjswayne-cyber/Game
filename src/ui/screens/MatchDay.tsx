@@ -41,7 +41,7 @@ export default function MatchDay() {
 
 const SPEECHES = [
   { id: 'calm', icon: '🧊', name: 'Calm the nerves', desc: 'Defence up, discipline up. Solid start.' },
-  { id: 'fire', icon: '🔥', name: 'Light the fuse', desc: 'Attack & breakdown up — but cards loom.' },
+  { id: 'fire', icon: '🔥', name: 'Light the fuse', desc: 'Attack & breakdown up - but cards loom.' },
   { id: 'underdog', icon: '🐺', name: 'Nobody rates us', desc: 'Big lift when written off; flat if you\'re favourites.' },
   { id: 'expect', icon: '👑', name: 'I expect a win', desc: 'Standards. Lands when strongest; risky otherwise.' },
 ] as const
@@ -106,9 +106,9 @@ function Preview({ fxId }: { fxId: number }) {
     const pid = t.lineup[i]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
-    if (prob) warnings.push({ level: 'bad', text: `No fit no. ${XV_SLOTS[i].shirt} (${prob === 'EMPTY' ? 'empty slot' : `${p!.name} — ${prob.toLowerCase()}`}) — he'll be auto-replaced at kick-off.` })
-    else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) — high re-injury risk if he plays.` })
-    else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit — his tank will empty early.` })
+    if (prob) warnings.push({ level: 'bad', text: `No fit no. ${XV_SLOTS[i].shirt} (${prob === 'EMPTY' ? 'empty slot' : `${p!.name} - ${prob.toLowerCase()}`}) - he'll be auto-replaced at kick-off.` })
+    else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) - high re-injury risk if he plays.` })
+    else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit - his tank will empty early.` })
   }
   // milestone watch: pre-announce the numbers worth playing for today
   for (const pid of t.lineup.slice(0, 15)) {
@@ -119,11 +119,11 @@ function Preview({ fxId }: { fxId: number }) {
     const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
     for (const [val, at, label] of [
       [cApps + 1, [100, 200, 300, 400], 'career appearance'],
-      [cTries, [49, 99], 'career try — one more today'],
+      [cTries, [49, 99], 'career try - one more today'],
       [cPts, [495, 496, 497, 498, 499, 995, 996, 997, 998, 999], 'career point milestone in reach'],
     ] as const) {
       if ((at as readonly number[]).includes(val as number)) {
-        warnings.push({ level: 'note', text: `MILESTONE WATCH: ${pl.name} — ${label === 'career appearance' ? `${val}th career appearance today` : label === 'career try — one more today' ? `try number ${(val as number) + 1} of his career would bring up ${(val as number) + 1 === 50 ? '50' : '100'}` : `closing on ${(val as number) < 990 ? '500' : '1,000'} career points`}.` })
+        warnings.push({ level: 'note', text: `MILESTONE WATCH: ${pl.name} - ${label === 'career appearance' ? `${val}th career appearance today` : label === 'career try - one more today' ? `try number ${(val as number) + 1} of his career would bring up ${(val as number) + 1 === 50 ? '50' : '100'}` : `closing on ${(val as number) < 990 ? '500' : '1,000'} career points`}.` })
         break
       }
     }
@@ -141,8 +141,8 @@ function Preview({ fxId }: { fxId: number }) {
   const lastPlayed = game.fixtures.find(f =>
     f.week === game.week - 1 && f.played && (f.homeId === game.userClubId || f.awayId === game.userClubId))
   const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
-  if (gapDays <= 5) warnings.push({ level: 'warn', text: `Only a ${gapDays}-day turnaround since the last match — the squad recovered slower this week. Watch the tanks.` })
-  if (!speech) warnings.push({ level: 'note', text: 'No dressing-room speech chosen — the players will make their own minds up.' })
+  if (gapDays <= 5) warnings.push({ level: 'warn', text: `Only a ${gapDays}-day turnaround since the last match - the squad recovered slower this week. Watch the tanks.` })
+  if (!speech) warnings.push({ level: 'note', text: 'No dressing-room speech chosen - the players will make their own minds up.' })
 
   // rotation dilemma: before a cup tie or on a quick turnaround, the
   // assistant flags overloaded/underdone legs and offers a one-tap rotation
@@ -170,19 +170,19 @@ function Preview({ fxId }: { fxId: number }) {
   const gamePlan = (() => {
     const plans: { text: string; d: Partial<Record<SliderKey, number>>; w: number }[] = []
     if (forecast === 'Rain' || forecast === 'Snow')
-      plans.push({ w: 3, text: `${forecast} forecast — put boot to ball and pin the corners. Handling sides drown in this.`, d: { kicking: 15, style: -8 } })
+      plans.push({ w: 3, text: `${forecast} forecast - put boot to ball and pin the corners. Handling sides drown in this.`, d: { kicking: 15, style: -8 } })
     if (oppUnits.scrum < myUnits.scrum * 0.94)
       plans.push({ w: 2.5, text: 'Their scrum creaks. Keep it tight and squeeze the penalties out of them.', d: { style: -10, aggression: 8 } })
     if (myUnits.scrum < oppUnits.scrum * 0.94)
-      plans.push({ w: 2, text: 'Avoid the arm wrestle — their pack is a handful. Play away from the set-piece.', d: { style: 8, kicking: 6 } })
+      plans.push({ w: 2, text: 'Avoid the arm wrestle - their pack is a handful. Play away from the set-piece.', d: { style: 8, kicking: 6 } })
     if (oppUnits.defence < myUnits.attack * 0.95)
       plans.push({ w: 2, text: 'Their edge defence is the soft spot. Go wide and shift the point of attack.', d: { style: 12, tempo: 8 } })
     if (myUnits.lineout > oppUnits.lineout * 1.07)
       plans.push({ w: 1.5, text: 'You own the air. Kick for touch and strangle the field position.', d: { kicking: 10 } })
     if (matchRef.style === 'strict')
-      plans.push({ w: 2, text: `${matchRef.name} cards early — discipline first at the ruck.`, d: { aggression: -12 } })
+      plans.push({ w: 2, text: `${matchRef.name} cards early - discipline first at the ruck.`, d: { aggression: -12 } })
     if (matchRef.style === 'lenient')
-      plans.push({ w: 1.5, text: `${matchRef.name} lets it flow — lift the tempo and fight every breakdown.`, d: { tempo: 10, aggression: 6 } })
+      plans.push({ w: 1.5, text: `${matchRef.name} lets it flow - lift the tempo and fight every breakdown.`, d: { tempo: 10, aggression: 6 } })
     if (oppCond < 78)
       plans.push({ w: 2, text: 'Their legs are heavy this week. Run them off their feet.', d: { tempo: 12 } })
     if (heated)
@@ -227,7 +227,7 @@ function Preview({ fxId }: { fxId: number }) {
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
         <td className="name">
-          {p ? p.name : <span className="muted">— tap to pick —</span>}
+          {p ? p.name : <span className="muted">- tap to pick -</span>}
           {prob && p && <span style={{ color: '#9b2c2c', fontSize: 10.5, fontWeight: 700 }}> {prob}</span>}
           {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: '#a8841a', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY</span>}
         </td>
@@ -330,7 +330,7 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="meta">🏟️ {home?.stadium ?? 'Neutral venue'}{home ? `, ${home.city}` : ''}</div>
           <div className="meta" style={{ marginTop: 3 }}>
             {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} Forecast: {rollWeather(game.week, weekRng(game))}
-            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: '#a12f2f', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} — expect a cauldron</span>}
+            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: '#a12f2f', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} - expect a cauldron</span>}
           </div>
         </div>
 
@@ -350,7 +350,7 @@ function Preview({ fxId }: { fxId: number }) {
           const meetings = game.fixtures.filter(f => f.played &&
             ((f.homeId === opp && f.awayId === game.userClubId) || (f.homeId === game.userClubId && f.awayId === opp)))
           const QUOTES = [
-            'We know exactly how they want to play — and we\'re ready for it.',
+            'We know exactly how they want to play - and we\'re ready for it.',
             'No excuses from us this week. We\'ve targeted this one.',
             'They\'re a good side, but this is our patch.',
             'People keep writing us off. Suits us fine.',
@@ -363,11 +363,11 @@ function Preview({ fxId }: { fxId: number }) {
                   <div className="fact-label">This Week's Preparation</div>
                   <div className="meta">
                     {{
-                      attack: '⚡ Attacking Shapes — strike moves drilled all week. Attack sharpened.',
-                      defence: '🛡 Defensive Drills — the wall is built. Defence sharpened.',
-                      setpiece: '🏗 Set-Piece Work — scrum and lineout honed to a point.',
-                      fitness: '🏃 Conditioning — the legs will last longer than theirs.',
-                      recovery: '🧖 Recovery Week — fresh bodies, full tanks.',
+                      attack: '⚡ Attacking Shapes - strike moves drilled all week. Attack sharpened.',
+                      defence: '🛡 Defensive Drills - the wall is built. Defence sharpened.',
+                      setpiece: '🏗 Set-Piece Work - scrum and lineout honed to a point.',
+                      fitness: '🏃 Conditioning - the legs will last longer than theirs.',
+                      recovery: '🧖 Recovery Week - fresh bodies, full tanks.',
                     }[game.matchPrep]}
                   </div>
                 </div>
@@ -378,7 +378,7 @@ function Preview({ fxId }: { fxId: number }) {
                   <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
                     <div className="fact-label">Bad Blood</div>
                     <div className="meta">
-                      There's history here — <b>{g.reason}</b>. Expect cards, a hostile
+                      There's history here - <b>{g.reason}</b>. Expect cards, a hostile
                       atmosphere and a contest the form book can't call.
                     </div>
                   </div>
@@ -388,7 +388,7 @@ function Preview({ fxId }: { fxId: number }) {
                 <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
                   <div className="fact-label">Danger Man</div>
                   <div className="meta">
-                    <b>{danger.name}</b> ({danger.pos}) is the one to shackle — {oppClub?.short ?? 'they'} play
+                    <b>{danger.name}</b> ({danger.pos}) is the one to shackle - {oppClub?.short ?? 'they'} play
                     through him. Keep him quiet and you're halfway there.
                   </div>
                 </div>
@@ -396,9 +396,9 @@ function Preview({ fxId }: { fxId: number }) {
               {(() => {
                 const ref = refFor(fx.id)
                 const blurb = ref.style === 'strict'
-                  ? 'a stickler — walks the line all game and cards early. Keep the penalty count down or play with 14.'
+                  ? 'a stickler - walks the line all game and cards early. Keep the penalty count down or play with 14.'
                   : ref.style === 'lenient'
-                    ? 'lets the game breathe — advantage over whistle. Expect a fast, open contest.'
+                    ? 'lets the game breathe - advantage over whistle. Expect a fast, open contest.'
                     : 'firm but fair. The game should be decided by the players.'
                 return (
                   <div className="card">
@@ -443,7 +443,7 @@ function Preview({ fxId }: { fxId: number }) {
               <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
             ))}
             <button className="btn ghost block" style={{ marginTop: 8 }} disabled={planApplied} onClick={applyPlan}>
-              {planApplied ? '✓ Plan applied — tactics adjusted' : '📋 Apply the plan — adjust my tactics'}
+              {planApplied ? '✓ Plan applied - tactics adjusted' : '📋 Apply the plan - adjust my tactics'}
             </button>
           </div>
         )}
@@ -485,15 +485,15 @@ function Preview({ fxId }: { fxId: number }) {
               {comp?.type !== 'league'
                 ? 'A cup tie is the week to trust the squad. '
                 : `A ${gapDays}-day turnaround is no week for heavy legs. `}
-              {rotFlagged.map(p => `${p.name} (${rotReason(p)})`).join(', ')} — {rotFlagged.length === 2 ? 'both' : `all ${rotFlagged.length}`} flagged
+              {rotFlagged.map(p => `${p.name} (${rotReason(p)})`).join(', ')} - {rotFlagged.length === 2 ? 'both' : `all ${rotFlagged.length}`} flagged
               by the medical staff. Say the word and I'll name a fresh XV around them.
             </div>
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={rotateXV}>
-              🔄 Rotate the XV — rest the flagged {rotFlagged.length === 1 ? 'man' : 'men'}
+              🔄 Rotate the XV - rest the flagged {rotFlagged.length === 1 ? 'man' : 'men'}
             </button>
           </div>
         )}
-        <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
+        <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
         <div className="tblwrap">
           <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
         </div>
@@ -524,7 +524,7 @@ function Preview({ fxId }: { fxId: number }) {
         </div>
         <button className="btn ghost block" style={{ marginTop: 2 }}
           onClick={() => instantResult(speech ?? undefined)}>
-          ⏩ Instant Result — the assistant takes over
+          ⏩ Instant Result - the assistant takes over
         </button>
         <div className="spacer" />
       </main>
@@ -602,7 +602,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="masthead-row">
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
-            <h1>Test Match — {nat}</h1>
+            <h1>Test Match - {nat}</h1>
             <div className="date">{comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
         </div>
@@ -615,7 +615,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             <CrestT g={game} teamId={fx.awayId} size={40} />
           </div>
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
-          <div className="meta">🌍 International rugby — the whole country is watching, coach.</div>
+          <div className="meta">🌍 International rugby - the whole country is watching, coach.</div>
         </div>
         <SectionTitle sub="your nation on the left">Head to Head</SectionTitle>
         {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
@@ -624,7 +624,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         {bar('Attack', myUnits.attack, oppUnits.attack)}
         {bar('Defence', myUnits.defence, oppUnits.defence)}
 
-        <SectionTitle sub={sel != null ? `moving ${game.players[myLineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the full squad'}>Your Test XV</SectionTitle>
+        <SectionTitle sub={sel != null ? `moving ${game.players[myLineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the full squad'}>Your Test XV</SectionTitle>
         <div className="tblwrap"><table className="dtable"><tbody>
           {XV_SLOTS.map((s, i) => {
             const pid = myLineup[i]
@@ -633,7 +633,7 @@ function NationPreview({ fxId }: { fxId: number }) {
               <tr key={i} onClick={() => tapSlot(i)} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
-                <td className="name">{p?.name ?? <span className="muted">— tap to pick —</span>}</td>
+                <td className="name">{p?.name ?? <span className="muted">- tap to pick -</span>}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos)} />}</td>
               </tr>
             )
@@ -649,7 +649,7 @@ function NationPreview({ fxId }: { fxId: number }) {
               <tr key={slot} onClick={() => tapSlot(slot)} className={sel === slot ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos[0]} /></td>
-                <td className="name">{p?.name ?? <span className="muted">— tap to pick —</span>}</td>
+                <td className="name">{p?.name ?? <span className="muted">- tap to pick -</span>}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos[0])} />}</td>
               </tr>
             )
@@ -697,7 +697,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         </div>
         <button className="btn ghost block" style={{ marginTop: 2 }}
           onClick={() => instantResult(speech ?? undefined)}>
-          ⏩ Instant Result — the assistant takes over
+          ⏩ Instant Result - the assistant takes over
         </button>
         <div className="spacer" />
       </main>
@@ -803,7 +803,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       let x = (isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift) + atk + wx * 0.35
       let y = 8 + sy * 0.84 + wy * 0.9
       if (ruck) {
-        // converge on the ball — bodies over the tackle area
+        // converge on the ball - bodies over the tackle area
         x = x * 0.45 + (ballLeft + (isHome ? -1.5 : 1.5)) * 0.55
         y = y * 0.5 + ballTop * 0.5
       } else if (attacking && slot >= 8) {
@@ -925,7 +925,7 @@ function Live() {
   const atDecision = caughtUp && !!ctx.decision && ctx.seg < 3
   const done = caughtUp && ctx.seg === 3
 
-  // coming back from another app can strand the heartbeat — kick it awake
+  // coming back from another app can strand the heartbeat - kick it awake
   useEffect(() => {
     const wake = () => {
       const lm = useStore.getState().liveMatch
@@ -1044,11 +1044,11 @@ function Live() {
       <div className="content ticker panel-area" ref={tickerRef}>
         {atDecision && <DecisionPanel />}
         {drawer && paused && !done && !atDecision && (
-          <TouchlinePanel title="⏸ Play is paused — change the picture" showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel="▸ Resume Play" />
+          <TouchlinePanel title="⏸ Play is paused - change the picture" showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel="▸ Resume Play" />
         )}
         {(atHalfTime || atBreak) && (
           <TouchlinePanel
-            title={atBreak ? "60' — a break in play, final quarter ahead" : 'Half-Time — the dressing room waits'}
+            title={atBreak ? "60' - a break in play, final quarter ahead" : 'Half-Time - the dressing room waits'}
             showTalk={atHalfTime}
             onResume={() => { setDrawer(false); useStore.getState().startSecondHalf() }}
             resumeLabel={atBreak ? '▸ Play the Final Quarter' : '▸ Start Second Half'}
@@ -1091,7 +1091,7 @@ function Live() {
   )
 }
 
-/** A kickable penalty: posts, corner, or tap — your call, gaffer. */
+/** A kickable penalty: posts, corner, or tap - your call, gaffer. */
 function DecisionPanel() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
@@ -1105,11 +1105,11 @@ function DecisionPanel() {
   const options = [
     {
       id: 'posts' as const, icon: '🥅', name: 'Take the Points',
-      desc: `${kicker ? kicker.name : 'Your kicker'} lines it up. Safe three${diff < 0 && diff >= -3 ? ' — levels or leads' : ''}.`,
+      desc: `${kicker ? kicker.name : 'Your kicker'} lines it up. Safe three${diff < 0 && diff >= -3 ? ' - levels or leads' : ''}.`,
     },
     {
       id: 'corner' as const, icon: '🚀', name: 'Kick to the Corner',
-      desc: 'Lineout five metres out. Maul for the try — glory or nothing.',
+      desc: 'Lineout five metres out. Maul for the try - glory or nothing.',
     },
     {
       id: 'tap' as const, icon: '⚡', name: 'Tap & Go',
@@ -1119,7 +1119,7 @@ function DecisionPanel() {
 
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid #a12f2f' }}>
-      <h3 style={{ fontSize: 15 }}>⏱ Penalty — your call from the touchline</h3>
+      <h3 style={{ fontSize: 15 }}>⏱ Penalty - your call from the touchline</h3>
       <div className="meta" style={{ marginBottom: 8 }}>
         {teamShort(game, mine.teamId)} {mine.score} – {opp.score} {teamShort(game, opp.teamId)} ·
         {diff < 0 ? ` ${-diff} behind` : diff > 0 ? ` ${diff} ahead` : ' all square'} · {ctx.lastMin}'
@@ -1153,12 +1153,12 @@ function MatchVerdict() {
   const t = ctx.home.poss + ctx.away.poss || 1
   const myPoss = Math.round(((mine === ctx.home ? ctx.home.poss : ctx.away.poss) / t) * 100)
   const feedback = margin > 0
-    ? (myPoss < 45 ? 'We won without the ball — the defensive shift was enormous. Take that anywhere.'
+    ? (myPoss < 45 ? 'We won without the ball - the defensive shift was enormous. Take that anywhere.'
       : margin >= 20 ? 'Ruthless. The assistant wants the same standards next week, not a lap of honour.'
-      : 'Winning tight ones is a habit — and we just fed the habit.')
+      : 'Winning tight ones is a habit - and we just fed the habit.')
     : margin === 0
       ? 'A draw that will feel like a loss or a win by Tuesday, depending on the video.'
-      : (myPoss >= 55 ? 'All that ball and nothing to show for it — the assistant circles our finishing in red.'
+      : (myPoss >= 55 ? 'All that ball and nothing to show for it - the assistant circles our finishing in red.'
         : margin <= -20 ? 'Beaten in every collision. The review will be honest, and it will sting.'
         : 'Fine margins. Fix two moments and that is our game.')
   return (
@@ -1215,7 +1215,7 @@ function Highlights() {
       <h3 style={{ fontSize: 14 }}>🎬 The Highlights</h3>
       {picks.map((e, i) => (
         <div key={i} className="meta" style={{ padding: '3px 0' }}>
-          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> — {e.text}
+          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> - {e.text}
         </div>
       ))}
     </div>
@@ -1309,7 +1309,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       .sort((a, b) => a.e - b.e)
     for (const { p, e } of tired.slice(0, 2)) {
       const cover = bench.find(b => b && (b.pos === p!.pos || b.alt.includes(p!.pos)))
-      advice.push(`🔋 ${p!.name} is running on fumes (${Math.round(e)}%)${cover ? ` — ${cover.name} covers ${p!.pos} from the bench` : ''}.`)
+      advice.push(`🔋 ${p!.name} is running on fumes (${Math.round(e)}%)${cover ? ` - ${cover.name} covers ${p!.pos} from the bench` : ''}.`)
     }
   }
   const min = ctx.tick * 4
@@ -1318,12 +1318,12 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       .map(([id, r]) => ({ p: game.players[id], r }))
       .filter(x => x.p && mine.onPitch.has(x.p.id) && x.r < 4.6)
       .sort((a, b) => a.r - b.r)[0]
-    if (poor) advice.push(`📉 ${poor.p!.name} is having one of those days (${poor.r.toFixed(1)}) — fresh legs might spare him.`)
+    if (poor) advice.push(`📉 ${poor.p!.name} is having one of those days (${poor.r.toFixed(1)}) - fresh legs might spare him.`)
   }
   for (const e of live.events.slice(0, live.cursor)) {
     if (e.type === 'YC' && e.playerId != null && mine.onPitch.has(e.playerId) && (mine.yellowUntil.get(e.playerId) ?? 0) <= min) {
       const p = game.players[e.playerId]
-      if (p) advice.push(`🟨 ${p.name} is walking a tightrope — one more infringement and it's red.`)
+      if (p) advice.push(`🟨 ${p.name} is walking a tightrope - one more infringement and it's red.`)
       break
     }
   }
@@ -1381,7 +1381,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
         ))}
       </div>
 
-      <div className="fact-label" style={{ marginTop: 10 }}>In-Match Tactics <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>— tap a name to see what it does</span></div>
+      <div className="fact-label" style={{ marginTop: 10 }}>In-Match Tactics <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>- tap a name to see what it does</span></div>
       {SLIDER_INFO.map(s => (
         <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}

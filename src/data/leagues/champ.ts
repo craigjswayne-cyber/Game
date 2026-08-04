@@ -1,4 +1,4 @@
-// The English second tier — real clubs, grounds and colours.
+// The English second tier - real clubs, grounds and colours.
 // Squads are generated deterministically: honest journeymen, hungry
 // kids and the odd fallen star, all in the 40-70 quality band.
 

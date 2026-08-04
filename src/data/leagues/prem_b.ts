@@ -1,4 +1,4 @@
-// Gallagher Premiership (England), 2025-26 — clubs L-S
+// Gallagher Premiership (England), 2025-26 - clubs L-S
 import type { RawClub } from '../types'
 
 export const PREM_B: RawClub[] = [

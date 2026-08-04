@@ -1,4 +1,4 @@
-// Gallagher Premiership (England) 2025-26 — clubs A (Bath, Bristol, Exeter, Gloucester, Harlequins)
+// Gallagher Premiership (England) 2025-26 - clubs A (Bath, Bristol, Exeter, Gloucester, Harlequins)
 import type { RawClub } from '../types'
 
 export const PREM_A: RawClub[] = [

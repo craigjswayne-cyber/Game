@@ -182,7 +182,7 @@ export default function NewGame() {
                 ))}
               </div>
               <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Reputation</label>
-              <div className="meta">Unknown — you'll earn it on the touchline.</div>
+              <div className="meta">Unknown - you'll earn it on the touchline.</div>
             </div>
           </>
         )}

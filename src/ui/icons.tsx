@@ -1,4 +1,4 @@
-// Crisp stroke icons for the bottom nav — no emoji, premium finish.
+// Crisp stroke icons for the bottom nav - no emoji, premium finish.
 
 const S = {
   fill: 'none',

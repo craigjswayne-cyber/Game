@@ -24,7 +24,7 @@ export default function Medical() {
     <>
       <SectionTitle sub={sub}>{title}</SectionTitle>
       {rows.length === 0
-        ? <div className="meta" style={{ padding: '2px 16px 8px' }}>Nobody — good news.</div>
+        ? <div className="meta" style={{ padding: '2px 16px 8px' }}>Nobody - good news.</div>
         : (
           <div className="tblwrap">
             <table className="dtable"><tbody>
@@ -44,7 +44,7 @@ export default function Medical() {
   return (
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <h3 style={{ fontSize: 14 }}>🏥 Head Physio — level {game.staff.physio}/3</h3>
+        <h3 style={{ fontSize: 14 }}>🏥 Head Physio - level {game.staff.physio}/3</h3>
         <div className="meta">
           {game.staff.physio === 0
             ? 'No specialist physio. Injuries run their full course. Hire one from Training → Backroom Staff.'
@@ -54,7 +54,7 @@ export default function Medical() {
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
 
-      {section('Treatment Room', `ruled out — a specialist consult (${fmtMoney(SPECIALIST_FEE)}) can shorten a long lay-off`, injured, p => (
+      {section('Treatment Room', `ruled out - a specialist consult (${fmtMoney(SPECIALIST_FEE)}) can shorten a long lay-off`, injured, p => (
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>
           {p.injury!.desc} · {Math.max(1, p.injury!.until - game.week)}w
           {!p.specialist && p.injury!.until - game.week >= 3 && (
@@ -66,7 +66,7 @@ export default function Medical() {
         </span>
       ))}
 
-      {section('Red Zone — season load', '1,300+ minutes: they break easier and tire faster. Rest them.', loaded, p => (
+      {section('Red Zone - season load', '1,300+ minutes: they break easier and tire faster. Rest them.', loaded, p => (
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>🔋 {p.stats.mins}′ this season</span>
       ))}
 
@@ -86,7 +86,7 @@ export default function Medical() {
         <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>{p.bans} match{p.bans > 1 ? 'es' : ''}</span>
       ))}
 
-      {section('Running on Fumes', 'condition under 62% — consider resting', tired, p => (
+      {section('Running on Fumes', 'condition under 62% - consider resting', tired, p => (
         <span style={{ fontWeight: 700, fontSize: 12 }}>{Math.round(p.cond)}%</span>
       ))}
 

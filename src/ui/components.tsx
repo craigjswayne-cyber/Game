@@ -189,7 +189,7 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
   )
 }
 
-/** Crest by team id — clubs get shields, nations fall back to flags. */
+/** Crest by team id - clubs get shields, nations fall back to flags. */
 export function CrestT({ g, teamId, size = 16 }: { g: GameState; teamId: string; size?: number }) {
   const c = g.clubs[teamId]
   if (!c) return <span style={{ marginRight: 5 }}>{flagOf(teamId)}</span>

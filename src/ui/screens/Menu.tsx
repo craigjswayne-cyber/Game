@@ -22,7 +22,7 @@ export default function Menu() {
       <BrandMark size={60} />
       <hr className="rules" />
       <h1>RUGBY<br />MANAGER</h1>
-      <div className="tagline">Stories, seasons & silverware — the rugby world awaits.</div>
+      <div className="tagline">Stories, seasons & silverware - the rugby world awaits.</div>
       <hr className="rules" />
       <div className="menu-btns">
         <button className="btn gold" style={{ fontSize: 16, padding: '13px' }} onClick={() => go('newgame')}>
@@ -37,7 +37,7 @@ export default function Menu() {
         {showLoad && saves.map(s => (
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>
             <button className="btn" style={{ flex: 1, background: '#2e57ab' }} onClick={() => void load(s.slot)}>
-              {s.managerName} — {s.club}
+              {s.managerName} - {s.club}
               <div style={{ fontSize: 11, opacity: .8 }}>{seasonLabel(s.season)}, week {s.week}</div>
             </button>
             <button className="btn danger" style={{ padding: '0 12px' }}
@@ -46,7 +46,7 @@ export default function Menu() {
         ))}
       </div>
       <div style={{ marginTop: 40, fontSize: 11, opacity: .65 }}>
-        A personal project — real names used for fun, not for sale.
+        A personal project - real names used for fun, not for sale.
       </div>
     </div>
   )

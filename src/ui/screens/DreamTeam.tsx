@@ -4,7 +4,7 @@ import { XV_SLOTS, type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import { Jersey, SectionTitle } from '../components'
 
-/** Magazine-style Dream Team of the round + season leaderboards —
+/** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
 export default function DreamTeam() {
   const game = useStore(s => s.game)!
@@ -49,8 +49,8 @@ export default function DreamTeam() {
     const club = p?.clubId ? game.clubs[p.clubId] : null
     return (
       <div key={i} className="dt-tile" onClick={() => p && go('player', p.id)}>
-        {club ? <Jersey club={club} size={46} /> : <div style={{ width: 46, height: 33, opacity: .2 }}>—</div>}
-        <span className="dt-name">{slot.shirt}. {p ? p.name.split(' ').slice(-1)[0].toUpperCase() : '—'}</span>
+        {club ? <Jersey club={club} size={46} /> : <div style={{ width: 46, height: 33, opacity: .2 }}>-</div>}
+        <span className="dt-name">{slot.shirt}. {p ? p.name.split(' ').slice(-1)[0].toUpperCase() : '-'}</span>
         <span className="dt-score">{p?.lastR?.toFixed(1) ?? ''}</span>
       </div>
     )
@@ -63,7 +63,7 @@ export default function DreamTeam() {
         {rows.map((p, i) => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
-            <td className="name">{p.name} <span className="muted">({p.clubId ? teamShort(game, p.clubId) : '—'})</span></td>
+            <td className="name">{p.name} <span className="muted">({p.clubId ? teamShort(game, p.clubId) : '-'})</span></td>
             <td className="num" style={{ fontWeight: 700 }}>{val(p)}</td>
           </tr>
         ))}
@@ -112,7 +112,7 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
   if (!kids.length) return null
   return (
     <>
-      <SectionTitle sub="U21 ceilings the scouts rave about — free agents included">Ones to Watch</SectionTitle>
+      <SectionTitle sub="U21 ceilings the scouts rave about - free agents included">Ones to Watch</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {kids.map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>

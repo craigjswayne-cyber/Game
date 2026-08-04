@@ -28,8 +28,8 @@ export default function Nations() {
           <h3 style={{ fontSize: 14 }}>🌍 You coach {nationByCode(myNat)?.name ?? myNat}</h3>
           <div className="meta">
             {mySquad.length
-              ? `Test window open — your ${mySquad.length}-man squad is in camp. Pick the 23 from the match preview.`
-              : `Between windows. The likely squad below reflects current club form — call-ups happen automatically when a window opens.`}
+              ? `Test window open - your ${mySquad.length}-man squad is in camp. Pick the 23 from the match preview.`
+              : `Between windows. The likely squad below reflects current club form - call-ups happen automatically when a window opens.`}
           </div>
           <div className="tblwrap" style={{ marginTop: 6 }}><table className="dtable"><tbody>
             {(mySquad.length ? mySquad : myPool).slice(0, 26).map(p => (
@@ -74,7 +74,7 @@ export default function Nations() {
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
             <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name} v {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}</td>
-            <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '—'}</td>
+            <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
           </tr>
         ))}
       </tbody></table></div>

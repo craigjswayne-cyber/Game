@@ -9,7 +9,7 @@ const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
   { id: 'lineout', name: 'Lineout', desc: 'Throwing accuracy, lifting pods, calling.' },
   { id: 'attack', name: 'Attack', desc: 'Handling, shape and support lines.' },
   { id: 'defence', name: 'Defence', desc: 'Tackle technique and line speed.' },
-  { id: 'fitness', name: 'Conditioning', desc: 'Engine building — improves stamina.' },
+  { id: 'fitness', name: 'Conditioning', desc: 'Engine building - improves stamina.' },
   { id: 'kicking', name: 'Kicking', desc: 'Tactical and goal kicking practice.' },
 ]
 
@@ -83,7 +83,7 @@ export default function Training() {
       {ttab === 'club' && <>
       <SectionTitle sub="a senior pro shows an academy kid how it's done (max 3 pairs)">Mentoring</SectionTitle>
       <MentorPanel />
-      <SectionTitle sub="paid from the club balance — bricks outlast squads">Facilities</SectionTitle>
+      <SectionTitle sub="paid from the club balance - bricks outlast squads">Facilities</SectionTitle>
       {(Object.keys(FACILITY_INFO) as FacilityId[]).map(fid => {
         const info = FACILITY_INFO[fid]
         const lvl = game.facilities?.[fid] ?? 0
@@ -160,7 +160,7 @@ function MentorPanel() {
           </div>
         )
       })}
-      {pairs.length === 0 && <div className="meta">No pairs yet. A Leader or Professional rubs off on a kid — faster growth, and his character sticks.</div>}
+      {pairs.length === 0 && <div className="meta">No pairs yet. A Leader or Professional rubs off on a kid - faster growth, and his character sticks.</div>}
       {pairs.length < 3 && seniors.length > 0 && kids.length > 0 && (
         <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}
@@ -180,7 +180,7 @@ function MentorPanel() {
             game.news.push({
               id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
               subject: `${s2.name} takes ${k2.name.split(' ').slice(-1)[0]} under his wing`,
-              body: `The old pro and the academy kid: ${s2.name} will mentor ${k2.name} for the season — extras after training, lifts to the ground, the lot. This is how clubs pass themselves on.`,
+              body: `The old pro and the academy kid: ${s2.name} will mentor ${k2.name} for the season - extras after training, lifts to the ground, the lot. This is how clubs pass themselves on.`,
               playerId: k2.id,
             })
             setSeniorId(''); setKidId(''); touch()

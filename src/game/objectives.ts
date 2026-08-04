@@ -1,4 +1,4 @@
-// The board's secondary season objectives — FM-style side quests with
+// The board's secondary season objectives - FM-style side quests with
 // real consequences at the end-of-season review.
 
 import type { GameState } from './model'

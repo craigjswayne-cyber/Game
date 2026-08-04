@@ -34,7 +34,7 @@ export function generatePress(state: GameState, rng: Rng) {
   if (hot.length && rng() < 0.6) {
     const p = pick(rng, hot)
     candidates.push(mk(state,
-      `${p.name} has been in scintillating form — some are calling him the best ${posNoun(p)} in the competition. Do you agree?`,
+      `${p.name} has been in scintillating form - some are calling him the best ${posNoun(p)} in the competition. Do you agree?`,
       p.id, [
         { label: 'Heap on the praise', morale: 1.2, board: 0, reaction: `${p.name} is reportedly delighted with your public backing.` },
         { label: 'Keep his feet on the ground', morale: -0.3, board: 0.5, reaction: `A measured response. ${p.name} knows there is more to do.` },
@@ -82,7 +82,7 @@ export function generatePress(state: GameState, rng: Rng) {
     candidates.push(mk(state,
       `${derbyName(nextFx.homeId, nextFx.awayId)} this weekend. ${opp?.short ?? 'They'} say the pressure is all on you. Your response?`,
       undefined, [
-        { label: 'Fan the flames', morale: 0, board: 0.4, reaction: 'The back pages love it. The town is at boiling point — your players will feel ten feet tall, or feel the heat.' },
+        { label: 'Fan the flames', morale: 0, board: 0.4, reaction: 'The back pages love it. The town is at boiling point - your players will feel ten feet tall, or feel the heat.' },
         { label: 'Just another game', morale: 0, board: -0.2, reaction: 'Nobody believes you, least of all your own supporters.' },
         { label: 'Praise the rivalry', morale: 0, board: 0.2, reaction: 'A statesmanlike answer. Both sets of fans nod approvingly, then go back to hating each other.' },
       ], rng))
@@ -93,9 +93,9 @@ export function generatePress(state: GameState, rng: Rng) {
   if (kids.length && rng() < 0.4) {
     const p = pick(rng, kids)
     candidates.push(mk(state,
-      `Everyone is talking about ${p.name} — ${p.age} years old and lighting up the league. Is he the future of the club?`,
+      `Everyone is talking about ${p.name} - ${p.age} years old and lighting up the league. Is he the future of the club?`,
       p.id, [
-        { label: 'Crown him now', morale: 1.5, board: 0.2, unsettle: true, reaction: `${p.name} floats out of the press room — and every scout in the hemisphere just circled his name.` },
+        { label: 'Crown him now', morale: 1.5, board: 0.2, unsettle: true, reaction: `${p.name} floats out of the press room - and every scout in the hemisphere just circled his name.` },
         { label: 'Protect the kid', morale: 0.3, board: 0.3, reaction: 'Measured. He keeps developing away from the circus.' },
         { label: 'He plays when he earns it', morale: -0.6, board: 0.4, reaction: `Old school. ${p.name} bristles, but the senior players approve.` },
       ], rng))
@@ -138,7 +138,7 @@ export function generatePress(state: GameState, rng: Rng) {
     candidates.push(mk(state,
       `There are reports this morning that the board has sounded out potential replacements. Are you fighting for your job?`,
       undefined, [
-        { label: `I'll be judged on trophies`, morale: 0.3, board: 0.3, reaction: 'Defiant. The players walk a little taller — now you have to deliver.' },
+        { label: `I'll be judged on trophies`, morale: 0.3, board: 0.3, reaction: 'Defiant. The players walk a little taller - now you have to deliver.' },
         { label: 'That is a question for the board', morale: -0.4, board: -0.3, reaction: 'The vacuum fills with more speculation.' },
         { label: 'Laugh it off', morale: 0.5, board: -0.1, reaction: 'The room chuckles. The chairman, watching the stream, does not.' },
       ], rng))
@@ -165,7 +165,7 @@ export function generatePress(state: GameState, rng: Rng) {
     candidates.push(mk(state,
       `${away} of your players are away on international duty. Should clubs be compensated when the Test windows strip their squads?`,
       undefined, [
-        { label: 'Proud to produce Test players', morale: 0.4, board: 0.3, reaction: 'Gracious — and the academy parents noticed.' },
+        { label: 'Proud to produce Test players', morale: 0.4, board: 0.3, reaction: 'Gracious - and the academy parents noticed.' },
         { label: 'The calendar is broken', morale: 0, board: 0.1, reaction: 'Half the league\'s coaches text you in agreement.' },
         { label: 'We cope. Next question', morale: 0.2, board: 0, reaction: 'Brisk. The fringe players hear the message: their chance is coming.' },
       ], rng))
@@ -184,10 +184,10 @@ export function generatePress(state: GameState, rng: Rng) {
     let reaction: PressItem | null = null
     if (margin >= 25) {
       reaction = mk(state,
-        `${us}-${them}. A statement performance — the best this team can play, or is there more?`,
+        `${us}-${them}. A statement performance - the best this team can play, or is there more?`,
         undefined, [
           { label: 'There is more to come', morale: 0.6, board: 0.3, reaction: 'Ominous for the rest of the league. The players believe it too.' },
-          { label: `Credit ${oppName} — they made it hard`, morale: 0.2, board: 0.2, reaction: 'Gracious in victory. Neutrals approve.' },
+          { label: `Credit ${oppName} - they made it hard`, morale: 0.2, board: 0.2, reaction: 'Gracious in victory. Neutrals approve.' },
           { label: 'We move on immediately', morale: 0, board: 0.2, reaction: 'All business. The standard is the standard.' },
         ], rng)
     } else if (margin <= -25) {
@@ -196,15 +196,15 @@ export function generatePress(state: GameState, rng: Rng) {
         undefined, [
           { label: 'That was on me, not the players', morale: 0.7, board: -0.2, reaction: 'The dressing room notices who took the bullets.' },
           { label: 'Some of that was unacceptable', morale: -0.9, board: 0.4, reaction: 'Hard words, publicly delivered. Training will be spiky this week.' },
-          { label: 'One bad day. No drama', morale: 0.1, board: -0.3, reaction: 'Calm — but the phone-ins want blood, not calm.' },
+          { label: 'One bad day. No drama', morale: 0.1, board: -0.3, reaction: 'Calm - but the phone-ins want blood, not calm.' },
         ], rng)
     } else if (derby && margin > 0) {
       reaction = mk(state,
-        `Derby day belongs to you. The fans are singing your name outside — a message for them?`,
+        `Derby day belongs to you. The fans are singing your name outside - a message for them?`,
         undefined, [
           { label: 'Enjoy every minute of it', morale: 0.5, board: 0.3, reaction: 'The clip of your grin does big numbers. Bragging rights secured.' },
           { label: 'It is only worth four points', morale: -0.2, board: 0.3, reaction: 'True, technically. Nobody outside the building agrees.' },
-          { label: 'This club owns this city', morale: 0.8, board: -0.1, unsettle: false, reaction: 'Front page. Their fans will keep the receipt — mind the return fixture.' },
+          { label: 'This club owns this city', morale: 0.8, board: -0.1, unsettle: false, reaction: 'Front page. Their fans will keep the receipt - mind the return fixture.' },
         ], rng)
     } else if (derby && margin < 0) {
       reaction = mk(state,
@@ -212,7 +212,7 @@ export function generatePress(state: GameState, rng: Rng) {
         undefined, [
           { label: 'We will not hide from this', morale: 0.4, board: 0.3, reaction: 'Straight talk. The fans respect honesty more than excuses.' },
           { label: 'The performance was actually good', morale: 0, board: -0.4, reaction: 'The stats might back you up. Derby crowds do not deal in stats.' },
-          { label: 'Wait for the return fixture', morale: 0.3, board: 0, reaction: 'A promise. It will be remembered — deliver or else.' },
+          { label: 'Wait for the return fixture', morale: 0.3, board: 0, reaction: 'A promise. It will be remembered - deliver or else.' },
         ], rng)
     }
     if (reaction && state.press.filter(p => !p.answered).length < 2) state.press.push(reaction)
@@ -262,7 +262,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
       subject: `Swagger alert: is all that praise going to their heads?`,
-      body: `Your players can't stop telling the press how good they are — because you keep telling the press how good they are. The assistant's note is blunt: "Training tempo has dipped. They think they only need to turn up." Expect flat performances until someone puts a shift in — or until you sharpen your tongue.`,
+      body: `Your players can't stop telling the press how good they are - because you keep telling the press how good they are. The assistant's note is blunt: "Training tempo has dipped. They think they only need to turn up." Expect flat performances until someone puts a shift in - or until you sharpen your tongue.`,
     })
   }
   if (prev > -4 && tone <= -4) {

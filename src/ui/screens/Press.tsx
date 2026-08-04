@@ -45,7 +45,7 @@ export default function Press() {
             <div key={item.id} className="news-item open">
               <div className="when">{item.outlet} · {weekDate(item.season, item.week)}</div>
               <div className="subj" style={{ fontWeight: 400 }}>“{item.question}”</div>
-              <div className="body">You: “{item.answerLabel}” — {item.reaction}</div>
+              <div className="body">You: “{item.answerLabel}” - {item.reaction}</div>
             </div>
           ))}
         </>

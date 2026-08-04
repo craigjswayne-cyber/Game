@@ -64,7 +64,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             )}
           </div>
           <div style={{ textAlign: 'right' }}>
-            <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title="Estimated — scout him for certainty"> ?</span>}
+            <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title="Estimated - scout him for certainty"> ?</span>}
             <div style={{ marginTop: 4 }}><FormPill v={p.form} /></div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div className="fact-label">Compare</div>
             <div className="meta">
               Your best {p.pos}: <b>{rival.name}</b> ({Math.round(rival.ca)} overall, {rival.age} yrs, {fmtMoney(rival.wage)}/wk)
-              {compare ? ' — his numbers shown beside each bar.' : ''}
+              {compare ? ' - his numbers shown beside each bar.' : ''}
             </div>
           </div>
           <button className={`btn ${compare ? 'gold' : 'ghost'}`} onClick={() => setCompare(!compare)}>
@@ -142,7 +142,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       ))}
 
-      <SectionTitle sub={`avg rating ${avg ? avg.toFixed(2) : '—'}`}>This Season</SectionTitle>
+      <SectionTitle sub={`avg rating ${avg ? avg.toFixed(2) : '-'}`}>This Season</SectionTitle>
       <div className="chips">
         <span className="chip">Apps <b>{p.stats.apps}</b> ({p.stats.starts} starts)</span>
         <span className="chip">Tries <b>{p.stats.tries}</b></span>
@@ -213,7 +213,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           game.news.push({
             id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
             subject: `${p.name} heads out on loan`,
-            body: `${p.name} joins a feeder club for the rest of the season. Regular first-team rugby should accelerate his development — expect him back sharper next summer.`,
+            body: `${p.name} joins a feeder club for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
             playerId: p.id,
           })
           setMsg(`${p.name} will spend the season on loan. He returns next summer, better for it.`)
@@ -227,7 +227,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           game.news.push({
             id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
             subject: `${p.name} promoted to the first team`,
-            body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door — his work here is done.`,
+            body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door - his work here is done.`,
             playerId: p.id,
           })
           setMsg(`${p.name} joins first-team training. He'll never forget today.`)
@@ -243,11 +243,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <button className={`btn ${isMarquee ? '' : 'ghost'} block`} onClick={() => {
             club.marquee = isMarquee ? marquee.filter(id => id !== p.id) : [...marquee, p.id]
             setMsg(isMarquee
-              ? `${p.name} loses marquee status — his wage counts against the cap again.`
+              ? `${p.name} loses marquee status - his wage counts against the cap again.`
               : `${p.name} designated a marquee player: his wage now sits outside the salary cap (${2 - marquee.length - 1} slot${2 - marquee.length - 1 === 1 ? '' : 's'} left).`)
             touch()
           }}>
-            {isMarquee ? '⭐ Marquee Player — tap to remove' : `⭐ Designate Marquee (${2 - marquee.length} slot${2 - marquee.length === 1 ? '' : 's'} free)`}
+            {isMarquee ? '⭐ Marquee Player - tap to remove' : `⭐ Designate Marquee (${2 - marquee.length} slot${2 - marquee.length === 1 ? '' : 's'} free)`}
           </button>
         )
       })()}
@@ -300,7 +300,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       ) : club ? (
         <>
           <button className={`btn ${shortlisted ? '' : 'ghost'} block`} onClick={() => toggleShortlist(p.id)}>
-            {shortlisted ? '★ On Shortlist — scouts filing reports' : '☆ Shortlist & Scout'}
+            {shortlisted ? '★ On Shortlist - scouts filing reports' : '☆ Shortlist & Scout'}
           </button>
           {!bidding
             ? <button className="btn gold block" onClick={() => { setBidding(true); setBid(ask) }}>

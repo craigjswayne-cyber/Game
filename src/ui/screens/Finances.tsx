@@ -23,7 +23,7 @@ export default function Finances() {
       const extra = Math.round((club.budget * 0.25 + 400_000) / 50_000) * 50_000
       club.budget += extra
       setAskMsg(game.boardOwed
-        ? `The chairman remembers what you delivered. ${fmtMoney(extra)} added — the favour is spent.`
+        ? `The chairman remembers what you delivered. ${fmtMoney(extra)} added - the favour is spent.`
         : `The board backs you: ${fmtMoney(extra)} added to the transfer budget.`)
       game.boardOwed = false
     } else {
@@ -52,8 +52,8 @@ export default function Finances() {
       <SectionTitle>Matchday</SectionTitle>
       <div className="chips">
         <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
-        <span className="chip">Avg attendance <b>{avgAtt ? avgAtt.toLocaleString() : '—'}</b></span>
-        <span className="chip">Est. gate/game <b>{avgAtt ? fmtMoney(avgAtt * 30) : '—'}</b></span>
+        <span className="chip">Avg attendance <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
+        <span className="chip">Est. gate/game <b>{avgAtt ? fmtMoney(avgAtt * 30) : '-'}</b></span>
         <span className="chip">Weekly commercial <b>{fmtMoney(Math.round(club.rep * 1800 + 40_000))}</b></span>
       </div>
       <SectionTitle>Top Earners</SectionTitle>
@@ -109,7 +109,7 @@ export default function Finances() {
   )
 }
 
-/** Season balance, week by week. Blue above zero, red below — one glance
+/** Season balance, week by week. Blue above zero, red below - one glance
  *  tells you which way the club is heading. */
 function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
   const max = Math.max(...hist.map(h => Math.abs(h.b)), 1)

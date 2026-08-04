@@ -53,7 +53,7 @@ export default function Tactics() {
         className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
-        <td className="name">{p ? p.name : <span className="muted">— tap to select —</span>}
+        <td className="name">{p ? p.name : <span className="muted">- tap to select -</span>}
           {p && club.captain === p.id && <b style={{ color: '#a8841a' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td>{p && <Stars ca={effAt(p, pos)} />}</td>
@@ -120,7 +120,7 @@ export default function Tactics() {
         <span style={{ fontSize: 18 }}>©</span>
         <div style={{ flex: 1 }}>
           <div className="fact-label">Club Captain</div>
-          <div className="meta">A strong leader lifts attack & defence and calms tempers — and his mood colours the whole dressing room.</div>
+          <div className="meta">A strong leader lifts attack & defence and calms tempers - and his mood colours the whole dressing room.</div>
         </div>
         <select className="inline-input" style={{ margin: 0, maxWidth: 210 }}
           value={club.captain ?? ''}
@@ -148,7 +148,7 @@ export default function Tactics() {
             ))}
         </select>
       </div>
-      <SectionTitle sub="a focused edge for the next match — always with a trade-off">Match Preparation</SectionTitle>
+      <SectionTitle sub="a focused edge for the next match - always with a trade-off">Match Preparation</SectionTitle>
       <div className="preset-row oneline" style={{ padding: '0 14px' }}>
         {([
           ['attack', '⚡ Attacking Shapes', 'Sharper attack (−1% defence)'],
@@ -173,7 +173,7 @@ export default function Tactics() {
           recovery: 'Feet up, pool sessions, massage. Everyone recovers extra condition this week.',
         }[game.matchPrep]}
       </div>}
-      <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} — tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Starting XV</SectionTitle>
+      <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Starting XV</SectionTitle>
       <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
       <SectionTitle>Replacements</SectionTitle>
       <table className="dtable"><tbody>{BENCH_SLOTS.map((_, i) => renderSlot(15 + i))}</tbody></table>

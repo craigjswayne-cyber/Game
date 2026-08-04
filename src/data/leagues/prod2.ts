@@ -1,4 +1,4 @@
-// The French second division — real clubs, grounds and colours.
+// The French second division - real clubs, grounds and colours.
 // Squads generated deterministically in the 42-72 band: hardened
 // journeymen, Espoirs graduates and the odd fallen Top 14 star.
 

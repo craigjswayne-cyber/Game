@@ -1,5 +1,5 @@
 // The managerial merry-go-round: vacancies, applications, resignations.
-// FM Mobile format — wait for the right job, or take what's available.
+// FM Mobile format - wait for the right job, or take what's available.
 
 import type { GameState } from './model'
 import { mgrReputation } from './model'
@@ -70,7 +70,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `${club.short} want to talk`,
-        body: `Your phone rings: ${club.name} are keen on you for their vacant post. Apply from the Job Centre — the door is open.`,
+        body: `Your phone rings: ${club.name} are keen on you for their vacant post. Apply from the Job Centre - the door is open.`,
       })
     }
   }
@@ -87,7 +87,7 @@ export function applyForJob(state: GameState, clubId: string): string {
   if (rng() < jobChance(state, clubId)) {
     // hired!
     const oldClubId = state.userClubId
-    // loan-ins belong to the OLD project — send them home
+    // loan-ins belong to the OLD project - send them home
     for (const p of Object.values(state.players)) {
       if (p.loanFrom && p.clubId === oldClubId && state.clubs[p.loanFrom]) {
         const oldClub = state.clubs[oldClubId]
@@ -99,7 +99,7 @@ export function applyForJob(state: GameState, clubId: string): string {
       }
     }
     if (!state.unemployed && oldClubId !== clubId) {
-      // walking out — old club becomes vacant
+      // walking out - old club becomes vacant
       state.vacancies.push({ clubId: oldClubId, week: state.week })
     }
     state.userClubId = clubId
@@ -125,7 +125,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     subject: `${club.short} go in a different direction`,
     body: `${club.name} thank you for your interest but have decided to pursue other candidates.`,
   })
-  return `${club.short} passed. Their loss — probably.`
+  return `${club.short} passed. Their loss - probably.`
 }
 
 /** Walk away from the current job. */
@@ -136,6 +136,6 @@ export function resignJob(state: GameState) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${state.managerName} resigns at ${club.name}`,
-    body: `You clear your desk on your own terms. The rumour mill starts turning immediately — where next?`,
+    body: `You clear your desk on your own terms. The rumour mill starts turning immediately - where next?`,
   })
 }

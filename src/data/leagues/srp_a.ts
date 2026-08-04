@@ -1,4 +1,4 @@
-// Super Rugby Pacific (NZ conference clubs), 2026 season — 2025 squads where 2026 unknown
+// Super Rugby Pacific (NZ conference clubs), 2026 season - 2025 squads where 2026 unknown
 import type { RawClub } from '../types'
 
 export const SRP_A: RawClub[] = [

@@ -1,4 +1,4 @@
-// The English third tier — National League One. Real community clubs,
+// The English third tier - National League One. Real community clubs,
 // real grounds. Semi-pro squads generated deterministically: plumbers
 // with quick feet, students, and old pros winding down. Quality 32-58.
 

@@ -51,13 +51,13 @@ const IcoSun = () => (
   </svg>
 )
 
-/** The game is a landscape experience — nudge portrait users to rotate. */
+/** The game is a landscape experience - nudge portrait users to rotate. */
 function RotateVeil() {
   return (
     <div className="rotate-veil">
       <div className="phone">📱</div>
       <h2>Turn your phone sideways</h2>
-      <p>Rugby Manager plays in landscape — like every good dugout view.</p>
+      <p>Rugby Manager plays in landscape - like every good dugout view.</p>
     </div>
   )
 }
@@ -67,7 +67,7 @@ function useOrientationLock() {
   useEffect(() => {
     const tryLock = () => {
       const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
-      o?.lock?.('landscape').catch(() => { /* browser tabs refuse — the veil handles it */ })
+      o?.lock?.('landscape').catch(() => { /* browser tabs refuse - the veil handles it */ })
     }
     tryLock()
     window.addEventListener('click', tryLock, { once: true })
@@ -108,7 +108,7 @@ export default function App() {
             <div style={{ fontSize: 64, lineHeight: 1 }}>{game.celebration.icon}</div>
             <h1>{game.celebration.headline}</h1>
             <div className="sub">{game.celebration.sub}</div>
-            <div className="muted" style={{ marginTop: 14 }}>Tap anywhere — the party carries on without you.</div>
+            <div className="muted" style={{ marginTop: 14 }}>Tap anywhere - the party carries on without you.</div>
           </div>
         </div>
       )}
@@ -202,17 +202,18 @@ export default function App() {
   }
 
   const navBtn = (s: string, ico: ReactNode, label: string, badge?: number) => (
-    <button className={cur.screen === s ? 'active' : ''}
+    <button className={cur.screen === s ? 'active' : ''} title={label} aria-label={label}
       onClick={() => { setMenu(null); (s === 'home' ? home() : go(s as Screen)) }}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
-      {label}
+      <span className="nlbl">{label}</span>
     </button>
   )
 
   const groupBtn = (id: 'club' | 'world' | 'manager', ico: ReactNode, label: string, badge?: number) => (
-    <button className={menu === id ? 'active' : ''} onClick={() => setMenu(menu === id ? null : id)}>
+    <button className={menu === id ? 'active' : ''} title={label} aria-label={label}
+      onClick={() => setMenu(menu === id ? null : id)}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
-      {label} ▸
+      <span className="nlbl">{label} ▸</span>
     </button>
   )
 

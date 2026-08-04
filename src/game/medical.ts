@@ -12,7 +12,7 @@ export function specialistConsult(state: GameState, pid: number): string {
   const club = state.clubs[state.userClubId]
   if (!p?.injury) return 'He is not injured.'
   if (p.specialist) return 'He has already seen the specialist for this injury.'
-  if (p.injury.until - state.week < 3) return 'He is too close to returning — a consult would change nothing.'
+  if (p.injury.until - state.week < 3) return 'He is too close to returning - a consult would change nothing.'
   if (club.balance < SPECIALIST_FEE) return 'The club cannot afford the consult right now.'
   club.balance -= SPECIALIST_FEE
   p.specialist = true
@@ -26,7 +26,7 @@ export function specialistConsult(state: GameState, pid: number): string {
       body: `The consultant found a better rehab route for ${p.name}'s ${p.injury.desc}. He should be back ${cut} week${cut > 1 ? 's' : ''} earlier than feared.`,
       playerId: p.id,
     })
-    return `${p.name} responds brilliantly — back ${cut} week${cut > 1 ? 's' : ''} earlier.`
+    return `${p.name} responds brilliantly - back ${cut} week${cut > 1 ? 's' : ''} earlier.`
   }
   return 'The specialist confirms the original prognosis. No shortcuts on this one.'
 }
@@ -40,5 +40,5 @@ export function cottonWool(state: GameState, pid: number): string {
   state.cottonWk = abs
   p.rust = Math.max(0, (p.rust ?? 1) - 1)
   p.cond = clamp(p.cond + 12, 20, 100)
-  return `${p.name} spends the week in cotton wool — ${(p.rust ?? 0) === 0 ? 'rust cleared, ' : ''}legs freshened.`
+  return `${p.name} spends the week in cotton wool - ${(p.rust ?? 0) === 0 ? 'rust cleared, ' : ''}legs freshened.`
 }
