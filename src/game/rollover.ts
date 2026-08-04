@@ -581,6 +581,9 @@ export function rebuildSeason(state: GameState) {
       confidence: club0.boardConfidence,
       trophies: state.history.filter(h => h.season === state.season && h.champion === uid).map(h => state.comps[h.compId]?.name ?? h.compId),
     }
+    // the annals: the career chronicle, one entry per season, oldest first
+    ;(state.annals ??= []).push(state.review)
+    if (state.annals.length > 30) state.annals = state.annals.slice(-30)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: `📋 Your ${seasonLabel(state.season)} season in review`,

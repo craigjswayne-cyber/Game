@@ -501,6 +501,9 @@ export interface GameState {
   /** the derby ledger: the user's all-time record against each rival,
    *  keyed by opponent club id - bragging rights, kept forever */
   derbyBook?: Record<string, { w: number; d: number; l: number }>
+  /** the annals: every season review of the career, oldest first - the
+   *  manager's chronicle, carried across clubs */
+  annals?: SeasonReview[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */
