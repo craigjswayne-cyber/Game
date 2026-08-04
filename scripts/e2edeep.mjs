@@ -87,6 +87,8 @@ try {
   await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Manager Profile')
   await page.waitForTimeout(600)
+  // FP surface: the challenge (live or conquered) must show on the profile
+  await page.waitForSelector('text=Sauvez Sapiac', { timeout: 10000 })
   await shotScrolled('deep-06-profile')
   await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Manager Legacy')
