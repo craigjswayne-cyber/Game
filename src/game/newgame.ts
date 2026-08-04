@@ -236,6 +236,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
   buildInternationals(rng, state, isWorldCupSeason(0))
   schedulePreseason(state, rng)
+  seedExClubs(state)
   seedKnowledge(state)
   ensureCaptains(state)
   state.objectives = pickObjectives(state)
@@ -275,4 +276,30 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   punditPredictions(state, rng)
 
   return state
+}
+
+/** Careers did not begin in 2025: roughly one senior player in five arrived
+ *  from another club in the same league. Deterministic per player id, capped
+ *  by his estimated pre-2025 volume, so saves and fresh worlds agree - and
+ *  old-boy reunions exist from the very first fixture list. */
+export function seedExClubs(state: GameState) {
+  const byLeague = new Map<string, Club[]>()
+  for (const c of Object.values(state.clubs)) {
+    const arr = byLeague.get(c.leagueId) ?? []
+    arr.push(c)
+    byLeague.set(c.leagueId, arr)
+  }
+  for (const c of Object.values(state.clubs)) {
+    const peers = (byLeague.get(c.leagueId) ?? []).filter(x => x.id !== c.id)
+    if (!peers.length) continue
+    for (const pid of c.players) {
+      const p = state.players[pid]
+      if (!p || p.exClub !== undefined) continue
+      if (p.age < 25 || p.id % 5 !== 3) { p.exClub = null; continue }
+      const spent = Math.min(30 + ((p.id * 40503) >>> 0) % 65, Math.max(0, (p.hist?.apps ?? 0) - 25))
+      if (spent < 12) { p.exClub = null; continue }
+      p.exClub = peers[((p.id * 2654435761) >>> 0) % peers.length].id
+      p.exApps = spent
+    }
+  }
 }
