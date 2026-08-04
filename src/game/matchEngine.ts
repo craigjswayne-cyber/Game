@@ -1652,7 +1652,11 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         scorers(us) ? `Tries: ${scorers(us)}` : `No tries for ${teamShort(state, us.teamId)} today.`,
         scorers(them) ? `${oppName} tries: ${scorers(them)}` : '',
         motm ? `Man of the match: ${motm.name} (${motmR.toFixed(1)})` : '',
-        fx.att ? `${fx.att.toLocaleString()} at ${state.clubs[fx.homeId]?.stadium ?? 'the ground'} · ${state.comps[fx.compId]?.name ?? ''}${fx.weather && fx.weather !== 'Dry' ? ` · ${fx.weather}` : ''}` : '',
+        fx.att ? [
+          `${fx.att.toLocaleString()} at ${state.clubs[fx.homeId]?.stadium ?? 'the ground'}`,
+          state.comps[fx.compId]?.name ?? (fx.compId === 'fr' ? 'Friendly' : ''),
+          fx.weather && fx.weather !== 'Dry' ? fx.weather : '',
+        ].filter(Boolean).join(' · ') : '',
       ].filter(Boolean).join('\n'),
       playerId: motm?.id,
     })

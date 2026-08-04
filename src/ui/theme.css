@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   Rugby Manager — the magazine theme
+   Rugby Manager - the magazine theme
    Montserrat everywhere (geometric caps with air, like the socials).
    Royal blue chrome, clean white paper, slate pills, club colours.
 ------------------------------------------------------------------- */
@@ -32,7 +32,7 @@
   --cond: 'Montserrat', 'Arial', var(--sans);
   --shadow-1: 0 1px 2px rgba(27, 52, 104, .07), 0 2px 8px rgba(27, 52, 104, .06);
   --shadow-2: 0 2px 4px rgba(27, 52, 104, .09), 0 8px 24px rgba(27, 52, 104, .1);
-  /* club identity — overridden per save on .app */
+  /* club identity - overridden per save on .app */
   --club1: #2e57ab;
   --club2: #ffffff;
   --club1-ink: #ffffff;
@@ -373,7 +373,7 @@ input, select { font: inherit; }
   width: 26px; height: 2.5px; border-radius: 0 0 3px 3px;
   background: var(--gold);
 }
-/* FM-style rail: symbols only — labels live in tooltips/flyouts */
+/* FM-style rail: symbols only - labels live in tooltips/flyouts */
 .bottom-nav .nlbl { display: none; }
 .bottom-nav .ico { width: 32px; height: 32px; display: block; }
 .bottom-nav .ico svg { width: 100%; height: 100%; display: block; }
@@ -693,7 +693,7 @@ input, select { font: inherit; }
 /* stat hero numbers (finances, club) */
 .big-num { font-family: var(--cond); font-weight: 700; font-size: 22px; letter-spacing: .5px; }
 
-/* live match wrapper — portrait/base: stacked column */
+/* live match wrapper - portrait/base: stacked column */
 .live-wrap {
   display: flex;
   flex-direction: column;
@@ -704,7 +704,7 @@ input, select { font: inherit; }
 .live-wrap .ticker { flex: 1; overflow-y: auto; }
 
 /* ================================================================
-   LANDSCAPE — the FM Mobile format: left icon rail, wide content,
+   LANDSCAPE - the FM Mobile format: left icon rail, wide content,
    two-panel live match. Portrait keeps the bottom bar.
 ================================================================ */
 @media (orientation: landscape) and (min-width: 640px) {
@@ -751,7 +751,7 @@ input, select { font: inherit; }
   .title-screen h1 { font-size: 38px; }
   .title-screen .menu-btns { max-width: 340px; }
 
-  /* live match: classic CM — score strip across the top, pitch in the
+  /* live match: classic CM - score strip across the top, pitch in the
      middle, commentary in a long rectangle, controls at the foot */
   .app .live-wrap {
     grid-area: 1 / 1 / -1 / -1;
@@ -1298,7 +1298,7 @@ input, select { font: inherit; }
   box-shadow: inset 3px 0 0 var(--gold);
 }
 
-/* ================= Dream Team of the round — magazine style ================= */
+/* ================= Dream Team of the round - magazine style ================= */
 .dt-board {
   margin: 10px 14px;
   border-radius: 12px;
