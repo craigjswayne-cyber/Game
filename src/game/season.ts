@@ -440,9 +440,12 @@ function weeklyTraining(state: GameState, rng: Rng) {
           })
         }
       }
-      // gentle in-season growth for youngsters, drift for user's training focus
+      // gentle in-season growth for youngsters, drift for user's training
+      // focus. Damped near the top: without it the whole world's best 23
+      // converge on 99 by season 12 and elite means nothing
       const growBoost = isUser ? 1 + state.staff.assistant * 0.25 : 1
-      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost) p.ca += 1
+      const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
+      if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF) p.ca += 1
       if (isUser && state.training !== 'balanced') {
         const coach = coachFor[state.training]
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0

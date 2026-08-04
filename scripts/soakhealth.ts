@@ -30,6 +30,10 @@ function report(label: string) {
 }
 
 report('start')
+let farewells = 0, milestoneNews = 0
+const wcSeedTops: string[] = []
+const milestoneSubjects = new Map<string, number>()
+const seen = new Set<number>()
 for (let season = 0; season < 20; season++) {
   const target = g.season + 1
   let guard = 0
@@ -37,10 +41,30 @@ for (let season = 0; season < 20; season++) {
     const fx = userFixtureThisWeek(g)
     if (fx) simMatch(g, fx, weekRng(g), true)
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, Math.floor(Math.random() * 0) )
+    for (const n of g.news) {
+      if (seen.has(n.id)) continue
+      seen.add(n.id)
+      if (n.subject.includes('The last dance')) farewells++
+      if (n.subject.includes('Career win number') || n.subject.includes('in the dugout')) {
+        milestoneNews++
+        milestoneSubjects.set(n.subject, (milestoneSubjects.get(n.subject) ?? 0) + 1)
+      }
+    }
     processWeekAndAdvance(g)
   }
+  const wc = g.comps['wc']
+  if (wc?.seeds?.length) wcSeedTops.push(wc.seeds[0])
   if ((season + 1) % 5 === 0) report(`s${season + 1}`)
 }
+// natrank long-horizon: watch for Elo compression or bound-pinning
+{
+  const vals = Object.values(g.natRank ?? {})
+  const min = Math.min(...vals), max = Math.max(...vals)
+  const pinned = vals.filter(v => v <= 40.5 || v >= 99.5).length
+  console.log(`natrank after 20 seasons: min ${min.toFixed(1)} max ${max.toFixed(1)} spread ${(max - min).toFixed(1)} pinned-at-bounds ${pinned}`)
+}
+console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length})`)
+console.log(`WC top seeds by cycle: ${wcSeedTops.join(', ') || 'none observed'}`)
 // integrity sweep at the end
 let orphans = 0, badRefs = 0
 for (const c of Object.values(g.clubs)) {
