@@ -100,6 +100,27 @@ export default function SeasonReview() {
           </>
         )}
 
+        {(game.potyRoll ?? []).length > 0 && (
+          <>
+            <SectionTitle sub="World Player of the Year, season by season">Roll of Honour</SectionTitle>
+            <div className="tblwrap"><table className="dtable">
+              <thead><tr><th>Season</th><th>Winner</th><th>Club</th></tr></thead>
+              <tbody>
+                {[...(game.potyRoll ?? [])].reverse().map(w => {
+                  const mine = game.players[w.playerId]?.clubId === game.userClubId
+                  return (
+                    <tr key={w.season}>
+                      <td>{seasonLabel(w.season)}</td>
+                      <td style={mine ? { color: 'var(--accent-ink)', fontWeight: 700 } : undefined}>🏅 {w.name}</td>
+                      <td>{w.clubName}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table></div>
+          </>
+        )}
+
         <button className="btn gold block" style={{ marginTop: 12, fontSize: 15 }} onClick={back}>
           File it away ▸
         </button>

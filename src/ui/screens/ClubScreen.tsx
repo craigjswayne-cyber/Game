@@ -57,7 +57,14 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {club.id !== game.userClubId && (() => {
             const rec = game.vsBook?.[club.id]
             if (!rec || rec.w + rec.d + rec.l === 0) return null
-            return <span className="chip">Your record <b style={{ color: rec.w > rec.l ? '#2f7d4f' : rec.w < rec.l ? '#9b2c2c' : undefined }}>{rec.w}W {rec.d}D {rec.l}L</b></span>
+            return <>
+              <span className="chip">Your record <b style={{ color: rec.w > rec.l ? '#2f7d4f' : rec.w < rec.l ? '#9b2c2c' : undefined }}>{rec.w}W {rec.d}D {rec.l}L</b></span>
+              {Math.abs(rec.run ?? 0) >= 3 && (
+                <span className="chip" style={{ color: (rec.run ?? 0) > 0 ? '#2f7d4f' : '#9b2c2c' }}>
+                  {(rec.run ?? 0) > 0 ? `Won last ${rec.run}` : `Lost last ${-(rec.run ?? 0)}`}
+                </span>
+              )}
+            </>
           })()}
           {players[0] && (() => {
             const stars = starPlayerIds(game, club.id)

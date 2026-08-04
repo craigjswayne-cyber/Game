@@ -134,6 +134,18 @@ function audit(g: GameState, tag: string) {
   for (const [cid, rec] of Object.entries(g.vsBook ?? {})) {
     if (!g.clubs[cid]) bad(`${tag} manager's book vs missing club ${cid}`)
     if (rec.w < 0 || rec.d < 0 || rec.l < 0) bad(`${tag} negative record vs ${cid}`)
+    const run = rec.run ?? 0
+    if (run > rec.w) bad(`${tag} win streak ${run} exceeds total wins ${rec.w} vs ${cid}`)
+    if (-run > rec.l) bad(`${tag} losing streak ${-run} exceeds total losses ${rec.l} vs ${cid}`)
+  }
+  {
+    let prevSeason = -1
+    for (const w of g.potyRoll ?? []) {
+      if (w.season > g.season) bad(`${tag} POTY roll entry from future season ${w.season}`)
+      if (w.season <= prevSeason) bad(`${tag} POTY roll out of order or duplicated at season ${w.season}`)
+      prevSeason = w.season
+      if (!w.name) bad(`${tag} POTY roll entry with no name (season ${w.season})`)
+    }
   }
   if (g.gateRecord) {
     if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)

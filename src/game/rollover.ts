@@ -74,6 +74,10 @@ function worldPlayerOfTheYear(state: GameState) {
   if (cands.length < 3) return
   const [win, second, third] = cands
   win.p.poty = (win.p.poty ?? 0) + 1
+  ;(state.potyRoll ??= []).push({
+    season: state.season, playerId: win.p.id, name: win.p.name,
+    clubName: state.clubs[win.p.clubId!]?.name ?? 'Unknown',
+  })
   const mine = (x: typeof win) => x.p.clubId === state.userClubId
   const line = (x: typeof win) =>
     `${x.p.name} (${x.p.pos}, ${state.clubs[x.p.clubId!]?.short}) - avg ${x.avg.toFixed(2)}, ${x.p.stats.tries} tries`

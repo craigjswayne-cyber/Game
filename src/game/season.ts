@@ -670,9 +670,9 @@ function boardReaction(state: GameState, fx: Fixture) {
     if (state.clubs[oppId]) {
       const book = (state.vsBook ??= {})
       const rec = (book[oppId] ??= { w: 0, d: 0, l: 0 })
-      if (us > them) rec.w += 1
-      else if (us < them) rec.l += 1
-      else rec.d += 1
+      if (us > them) { rec.w += 1; rec.run = (rec.run ?? 0) > 0 ? (rec.run ?? 0) + 1 : 1 }
+      else if (us < them) { rec.l += 1; rec.run = (rec.run ?? 0) < 0 ? (rec.run ?? 0) - 1 : -1 }
+      else { rec.d += 1; rec.run = 0 }
     }
     // the gate record: the first home match sets the bar quietly, and
     // every crowd after that is chasing it
