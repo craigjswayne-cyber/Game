@@ -254,15 +254,19 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     const p = id != null ? state.players[id] : null
     if (p?.trait === 'Hot Head') side.cardRisk += 0.002
   }
-  // a proper captain in the XV steadies the ship and keeps discipline
-  if (club?.captain != null && side.lineup.slice(0, 15).includes(club.captain)) {
-    const cap = state.players[club.captain]
-    if (cap && cap.a.lea >= 12) {
-      const f = 1 + (cap.a.lea - 11) * 0.0022 // up to ~+2% at lea 20
-      side.units.attack *= f
-      side.units.defence *= f
-      side.cardRisk *= 0.93
-    }
+  // a proper captain in the XV steadies the ship and keeps discipline;
+  // when he's missing, the vice-captain leads at half the effect
+  const xvIds = side.lineup.slice(0, 15)
+  const leader = club?.captain != null && xvIds.includes(club.captain)
+    ? { p: state.players[club.captain], f: 1 }
+    : club?.vice != null && xvIds.includes(club.vice)
+      ? { p: state.players[club.vice], f: 0.5 }
+      : null
+  if (leader?.p && leader.p.a.lea >= 12) {
+    const f = 1 + (leader.p.a.lea - 11) * 0.0022 * leader.f // up to ~+2% at lea 20
+    side.units.attack *= f
+    side.units.defence *= f
+    side.cardRisk *= 1 - 0.07 * leader.f
   }
   // your backroom staff sharpen the matchday units (club only — Test
   // weeks mean borrowed players, not your own coaching department)

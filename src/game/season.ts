@@ -345,6 +345,22 @@ function weeklyTraining(state: GameState, rng: Rng) {
   const gapDays = lastFx && nextFx ? 7 + fixtureDayOff(nextFx.id) - fixtureDayOff(lastFx.id) : 7
   const turnF = gapDays / 7 // 5-day turnaround = 71% recovery; 9 days = 128%
 
+  // the skipper's mood is contagious: a happy leader settles the room,
+  // a miserable one drags it down with him
+  if (!state.unemployed) {
+    const capId = state.clubs[state.userClubId].captain
+    const cap = capId != null ? state.players[capId] : null
+    if (cap && cap.a.lea >= 13) {
+      const pull = cap.morale >= 7 ? 0.04 : cap.morale <= 4 ? -0.05 : 0
+      if (pull) {
+        for (const id of state.clubs[state.userClubId].players) {
+          const p = state.players[id]
+          if (p && p.id !== cap.id) p.morale = clamp(p.morale + pull, 1, 10)
+        }
+      }
+    }
+  }
+
   // an agent smells a payday: an underpaid star performer demands new terms
   if (!state.unemployed && rng() < 0.12) {
     const squad = state.clubs[state.userClubId].players.map(id => state.players[id]).filter(Boolean)
