@@ -27,7 +27,7 @@ let userMatches = 0
 let userKO = 0
 let totalPF = 0, totalPA = 0
 let distGames = 0, distPts = 0, distTries = 0, distHomeW = 0, distDraws = 0
-const SEASONS = 10
+const SEASONS = Number(process.argv[2] ?? 10)
 
 for (let season = 0; season < SEASONS; season++) {
   const target = g.season + 1
