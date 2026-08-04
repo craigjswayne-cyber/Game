@@ -8,7 +8,7 @@ import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
-import { regenName } from './nations'
+import { nationByCode, regenName } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 
 const ordinal = (n: number) =>
@@ -96,9 +96,15 @@ function agePlayers(state: GameState, rng: Rng) {
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
     p.age += 1
-    // development / decline
-    if (p.age <= 23 && p.ca < p.pa) p.ca = clamp(p.ca + 2 + Math.floor(rng() * 3), 1, p.pa)
-    else if (p.age <= 27 && p.ca < p.pa) p.ca = clamp(p.ca + 1 + Math.floor(rng() * 2), 1, p.pa)
+    // development / decline. The last few points are the hardest: growth
+    // slows sharply near the top so the world's elite stay rare - without
+    // this, every nation's best 23 converges on 99 by season 12
+    const growth = (base: number) =>
+      p.ca >= 94 ? (rng() < 0.4 ? 1 : 0)
+      : p.ca >= 88 ? Math.max(1, Math.floor(base / 2))
+      : base
+    if (p.age <= 23 && p.ca < p.pa) p.ca = clamp(p.ca + growth(2 + Math.floor(rng() * 3)), 1, p.pa)
+    else if (p.age <= 27 && p.ca < p.pa) p.ca = clamp(p.ca + growth(1 + Math.floor(rng() * 2)), 1, p.pa)
     else if (p.age >= 33) p.ca = clamp(p.ca - (2 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 31) p.ca = clamp(p.ca - (1 + Math.floor(rng() * 2)), 30, 99)
     // attribute drift toward new ca
@@ -324,6 +330,13 @@ function handleContracts(state: GameState, rng: Rng) {
 
 const YOUTH_POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB']
 
+/** Deep rugby nations produce slightly better kids: without this, national
+ *  pecking order converges to who has the most domestic clubs. */
+function natTalentBonus(country: string): number {
+  const rep = nationByCode(country)?.rep ?? 70
+  return Math.floor((rep - 70) / 6)
+}
+
 /** Roll the user's next academy class. Fixed at the week-30 preview so the
  *  coach's forecast and intake day always tell the same story. */
 export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameState['intakeClass']> {
@@ -334,14 +347,14 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
   const out: NonNullable<GameState['intakeClass']> = []
   for (let i = 0; i < n; i++) {
     const pos = pick(rng, YOUTH_POS)
-    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + coe * 2
+    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + coe * 2 + natTalentBonus(club.country)
     // roughly one club a season unearths a genuine wonderkid - a Centre
     // of Excellence tilts the odds your way
     const wonder = rng() < 0.085 + coe * 0.02
     out.push({
       name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
       pos, age: 17 + Math.floor(rng() * 2), q,
-      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 25 + Math.floor(rng() * 30), q, 99),
+      pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 18 + Math.floor(rng() * rng() * 40), q, 99),
       gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       wonder,
     })
@@ -412,7 +425,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const n = 2 + Math.floor(rng() * 3)
     for (let i = 0; i < n; i++) {
       const pos = pick(rng, YOUTH_POS)
-      const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12)
+      const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + natTalentBonus(club.country)
       const raw = {
         name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
@@ -425,7 +438,7 @@ function youthIntake(state: GameState, rng: Rng) {
         name: raw.name, pos, alt: [], age: raw.age, nat: raw.nat, clubId: club.id,
         a,
         ca: wonder ? clamp(q + 8, 1, 78) : q,
-        pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 25 + Math.floor(rng() * 30), q, 99),
+        pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 18 + Math.floor(rng() * rng() * 40), q, 99),
         q0: q,
         intl: false, gk: !!raw.gk,
         form: 6, morale: 7, cond: 100, sharp: 50,
