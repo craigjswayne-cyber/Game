@@ -477,17 +477,27 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 </div>
               )}
-              {meetings.length > 0 && (
-                <div className="card">
-                  <div className="fact-label">Earlier This Season</div>
-                  {meetings.map(m => (
-                    <div key={m.id} className="meta">
-                      {teamShort(game, m.homeId)} {m.homeScore} – {m.awayScore} {teamShort(game, m.awayId)}
-                      {' '}<span className="muted">({game.comps[m.compId]?.short})</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const rec = game.vsBook?.[opp]
+                const total = rec ? rec.w + rec.d + rec.l : 0
+                if (!meetings.length && !total) return null
+                return (
+                  <div className="card">
+                    <div className="fact-label">The Book On Them</div>
+                    {total > 0 && (
+                      <div className="meta">
+                        Under you: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b> against {oppClub?.short ?? 'them'}.
+                      </div>
+                    )}
+                    {meetings.map(m => (
+                      <div key={m.id} className="meta">
+                        {teamShort(game, m.homeId)} {m.homeScore} – {m.awayScore} {teamShort(game, m.awayId)}
+                        {' '}<span className="muted">({game.comps[m.compId]?.short})</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
             </>
           )
         })()}

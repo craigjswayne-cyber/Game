@@ -664,6 +664,17 @@ function boardReaction(state: GameState, fx: Fixture) {
     else if (us < them) rec.l += 1
     else rec.d += 1
   }
+  // the manager's book: every opponent, every meeting, this tenure
+  {
+    const oppId = isHome ? fx.awayId : fx.homeId
+    if (state.clubs[oppId]) {
+      const book = (state.vsBook ??= {})
+      const rec = (book[oppId] ??= { w: 0, d: 0, l: 0 })
+      if (us > them) rec.w += 1
+      else if (us < them) rec.l += 1
+      else rec.d += 1
+    }
+  }
   // manager career record
   state.mgr.m += 1
   if (us > them) state.mgr.w += 1

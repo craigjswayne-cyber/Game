@@ -509,6 +509,8 @@ export interface GameState {
   /** the derby ledger: the user's all-time record against each rival,
    *  keyed by opponent club id - bragging rights, kept forever */
   derbyBook?: Record<string, { w: number; d: number; l: number }>
+  /** the manager's book: tenure record against every club opponent */
+  vsBook?: Record<string, { w: number; d: number; l: number }>
   /** the annals: every season review of the career, oldest first - the
    *  manager's chronicle, carried across clubs */
   annals?: SeasonReview[]
