@@ -168,6 +168,18 @@ export default function Home() {
           </b>
           <span>confidence</span>
         </button>
+        <button className="hub-widget" onClick={() => go('club', club.id)}>
+          <label>Fans</label>
+          {(() => {
+            const m = game.fanMood ?? 60
+            const word = m >= 80 ? '🔥' : m >= 62 ? '😊' : m >= 45 ? '😐' : m >= 30 ? '😠' : '🤬'
+            return <b>{word}</b>
+          })()}
+          <span>{(() => {
+            const m = game.fanMood ?? 60
+            return m >= 80 ? 'bouncing' : m >= 62 ? 'behind you' : m >= 45 ? 'watching' : m >= 30 ? 'restless' : 'mutinous'
+          })()}</span>
+        </button>
       </div>
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
         <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold-bright)' }}

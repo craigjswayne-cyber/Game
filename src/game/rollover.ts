@@ -448,6 +448,13 @@ export function rebuildSeason(state: GameState) {
     const rated0 = squad.filter(p => p.stats.apps >= 8)
       .map(p => ({ p, avg: p.stats.ratingSum / Math.max(1, p.stats.apps) }))
       .sort((a, b) => b.avg - a.avg)[0]
+    // the summer verdict from the terraces: silverware and overachievement
+    // carry into next season's mood; a flop resets the goodwill
+    const trophyCount = state.history.filter(h => h.season === state.season && h.champion === uid).length
+    let moodShift = trophyCount * 18
+    if (predicted && actualPos > 0) moodShift += (predicted - actualPos) * 3
+    state.fanMood = clamp((state.fanMood ?? 60) * 0.6 + 55 * 0.4 + moodShift, 10, 95)
+
     const club0 = state.clubs[uid]
     state.review = {
       season: state.season,
