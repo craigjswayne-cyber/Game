@@ -1029,6 +1029,38 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // giant-killings: a cup upset is the sport's oldest story, and it makes
+  // the back page - one a week, the biggest gap wins the ink
+  {
+    const played = state.fixtures.filter(f => f.played && f.week === state.week && f.stage &&
+      state.clubs[f.homeId] && state.clubs[f.awayId] && f.homeScore !== f.awayScore)
+    let best: { fx: Fixture; gap: number; winId: string; loseId: string } | null = null
+    for (const f of played) {
+      const winId = f.homeScore > f.awayScore ? f.homeId : f.awayId
+      const loseId = winId === f.homeId ? f.awayId : f.homeId
+      const gap = (state.clubs[loseId]?.rep ?? 0) - (state.clubs[winId]?.rep ?? 0)
+      if (gap >= 15 && (!best || gap > best.gap)) best = { fx: f, gap, winId, loseId }
+    }
+    if (best) {
+      const win = state.clubs[best.winId], lose = state.clubs[best.loseId]
+      const youWon = best.winId === state.userClubId
+      const youLost = best.loseId === state.userClubId
+      const score = `${teamShort(state, best.fx.homeId)} ${best.fx.homeScore}-${best.fx.awayScore} ${teamShort(state, best.fx.awayId)}`
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: youLost ? `💀 GIANT-KILLED: ${win?.short} dump you out`
+          : youWon ? `⚔️ GIANT-KILLING: you dump out ${lose?.short}`
+          : `⚔️ GIANT-KILLING: ${win?.short} shock ${lose?.short}`,
+        body: youLost
+          ? `${score}. The ${state.comps[best.fx.compId]?.name ?? 'cup'} run ends at the hands of a side nobody rated - and that is exactly how the papers will write it. Cup rugby forgives nothing.`
+          : youWon
+            ? `${score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; the town will talk about this one for years.`
+            : `${score} in the ${state.comps[best.fx.compId]?.name ?? 'cup'}. ${win?.name} beat a side a class above them on paper, and the whole sport smiles - except in ${lose?.city ?? 'one town'}.`,
+        fixtureId: best.fx.id,
+      })
+    }
+  }
+
   // final week: the moment the semi-final whistle goes, the buildup starts.
   // Knockout finals are only drawn the week they are played, so the beat
   // fires off the semi-final win - which is the sweeter moment anyway
