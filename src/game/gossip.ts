@@ -13,6 +13,11 @@ function wire(state: GameState, subject: string, body: string, playerId?: number
   })
 }
 
+// deterministic voicing: the same story wears different words from week to
+// week without drawing on the shared rng, so the world stream is untouched
+const voice = (state: GameState, salt: number, opts: string[]) =>
+  opts[(state.season * 5 + state.week * 3 + salt) % opts.length]
+
 /** Personality pairs that rub each other the wrong way. */
 const CLASHES: [string, string][] = [
   ['Temperamental', 'Leader'],
@@ -48,12 +53,20 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
       pa.morale = clamp(pa.morale + 0.8, 1, 10)
       pb.morale = clamp(pb.morale + 0.8, 1, 10)
       wire(state, `Peace breaks out: ${pa.name.split(' ').slice(-1)[0]} and ${pb.name.split(' ').slice(-1)[0]}`,
-        `Clear-the-air talks at the training ground this week. ${pa.name} and ${pb.name} trained together on Thursday and the squad say the atmosphere has lifted. One senior player: "It's done. We move."`, pa.id)
+        voice(state, 21, [
+          `Clear-the-air talks at the training ground this week. ${pa.name} and ${pb.name} trained together on Thursday and the squad say the atmosphere has lifted. One senior player: "It's done. We move."`,
+          `Whatever was said between ${pa.name} and ${pb.name}, it worked: the pair ran the same drills all week and shared a bench at lunch. The squad has quietly exhaled.`,
+          `${pa.name} and ${pb.name} shook hands in front of the group on Monday, which is how these things end in rugby: no statement, no ceremony, back to work.`,
+        ]), pa.id)
     } else if (rng() < 0.25) {
       pa.morale = clamp(pa.morale - 0.4, 1, 10)
       pb.morale = clamp(pb.morale - 0.4, 1, 10)
       wire(state, `Still frosty at ${state.clubs[state.userClubId].short}`,
-        `Sources close to the squad say ${pa.name} and ${pb.name} are still not speaking. Team-mates are starting to pick sides - the sort of thing that costs points.`, pa.id)
+        voice(state, 22, [
+          `Sources close to the squad say ${pa.name} and ${pb.name} are still not speaking. Team-mates are starting to pick sides - the sort of thing that costs points.`,
+          `${pa.name} and ${pb.name} warmed up at opposite ends of the pitch again this week. The coaches pretend not to notice. The players notice everything.`,
+          `No thaw yet between ${pa.name} and ${pb.name}: separate gym slots, separate tables, one very tired captain shuttling between them.`,
+        ]), pa.id)
     }
   }
 
@@ -136,21 +149,36 @@ function midweekMoment(state: GameState, rng: Rng) {
   if (roll < 0.3 && !recentCommunity) {
     for (const p of squad) p.morale = clamp(p.morale + 0.15, 1, 10)
     wire(state, `Community day at ${club.short}`,
-      `The whole squad spent Wednesday coaching at local schools and visiting the children's ward. Corny? Maybe. But the group came back closer, and the town noticed.`)
+      voice(state, 27, [
+        `The whole squad spent Wednesday coaching at local schools and visiting the children's ward. Corny? Maybe. But the group came back closer, and the town noticed.`,
+        `School visits, hospital wards, a hundred wonky selfies: the squad gave the town its Wednesday. The bus home was loud in the good way.`,
+      ]))
   } else if (roll < 0.5 && star) {
     star.morale = clamp(star.morale + 0.5, 1, 10)
     wire(state, `${star.name.split(' ').slice(-1)[0]} lands a boot deal`,
-      `${star.name} has signed a personal sponsorship with a boot manufacturer. His locker now contains fourteen boxes of boots and one very smug grin.`, star.id)
+      voice(state, 28, [
+        `${star.name} has signed a personal sponsorship with a boot manufacturer. His locker now contains fourteen boxes of boots and one very smug grin.`,
+        `A boot brand has put ${star.name} on a personal deal. The first shipment arrived in club colours; the second, mysteriously, in gold. The forwards have thoughts.`,
+      ]), star.id)
   } else if (roll < 0.7) {
     wire(state, `Groundsman wars at ${club.stadium}`,
-      `The head groundsman has banned the forwards from 'his' pitch until Thursday after last week's scrummaging session left it looking ploughed. The pack are training on the back field, muttering.`)
+      voice(state, 29, [
+        `The head groundsman has banned the forwards from 'his' pitch until Thursday after last week's scrummaging session left it looking ploughed. The pack are training on the back field, muttering.`,
+        `An uneasy truce at ${club.stadium}: the groundsman has chalked a line beyond which "no scrummaging shall occur". The pack are testing its legal force one metre at a time.`,
+      ]))
   } else if (roll < 0.85 && star) {
     wire(state, `${star.name.split(' ').slice(-1)[0]} spotted filming an advert`,
-      `${star.name} spent his day off filming a regional car dealership advert. Team-mates have already obtained the script. Training may include dramatic readings.`, star.id)
+      voice(state, 30, [
+        `${star.name} spent his day off filming a regional car dealership advert. Team-mates have already obtained the script. Training may include dramatic readings.`,
+        `${star.name} is the new face of a local bathroom showroom. The billboard goes up next month. The dressing room has already ordered a framed print for his locker.`,
+      ]), star.id)
   } else {
     const chef = ['a new nutritionist', 'a sleep consultant', 'a breathing coach', 'an ice-bath guru'][Math.floor(rng() * 4)]
     wire(state, `${club.short} hire ${chef}`,
-      `The performance department has brought in ${chef} for the rest of the season. The senior pros are sceptical. The young lads are all-in. Someone has already broken the new equipment.`)
+      voice(state, 31, [
+        `The performance department has brought in ${chef} for the rest of the season. The senior pros are sceptical. The young lads are all-in. Someone has already broken the new equipment.`,
+        `${club.short} have added ${chef} to the backroom staff. Week one verdict from the front row: "interesting". Week one verdict from the academy: total religious conversion.`,
+      ]))
   }
 }
 
@@ -163,7 +191,11 @@ function sicknessSweep(state: GameState, rng: Rng) {
   const hit = [...squad].sort(() => rng() - 0.5).slice(0, 2 + Math.floor(rng() * 3))
   for (const p of hit) p.cond = clamp(p.cond - (12 + rng() * 10), 20, 100)
   wire(state, `A bug sweeps the camp`,
-    `The medical room is standing-room only: ${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} have all been laid low by a virus doing the rounds. They'll play if picked, but the tanks won't be full this week. The kit man is bleaching everything.`)
+    voice(state, 26, [
+      `The medical room is standing-room only: ${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} have all been laid low by a virus doing the rounds. They'll play if picked, but the tanks won't be full this week. The kit man is bleaching everything.`,
+      `${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} all called in pale and shivering this week. The doctor's diagnosis: "the thing that's going round." They can play, but do not expect eighty full-blooded minutes.`,
+      `A virus has worked through the squad faster than any defensive drill: ${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} are all below par. Training moved outdoors, soup was served, and the physio room smells of eucalyptus.`,
+    ]))
 }
 
 /** Money men circle the modern game - most of it is smoke, occasionally
@@ -263,7 +295,11 @@ function contractSaga(state: GameState, rng: Rng) {
   if (!expiring.length) return
   const p = pick(rng, expiring)!
   wire(state, `Agent talk: ${p.name}'s future`,
-    `${p.name} is out of contract at the end of the season and his agent is doing the media rounds: "My client loves the club, but he wants to feel loved back. We are listening to what's out there." Sort a new deal - or cash in.`, p.id)
+    voice(state, 23, [
+      `${p.name} is out of contract at the end of the season and his agent is doing the media rounds: "My client loves the club, but he wants to feel loved back. We are listening to what's out there." Sort a new deal - or cash in.`,
+      `Six months left on ${p.name}'s deal and his agent has started answering the phone on the first ring. "No comment" has never carried so much comment. Renew him or price him.`,
+      `The contract clock is ticking on ${p.name}, and this week his agent was photographed at lunch with two directors of rugby who were not yours. Draw your own conclusions - everyone else has.`,
+    ]), p.id)
 }
 
 function powerRankings(state: GameState) {
@@ -294,10 +330,18 @@ function streakWatch(state: GameState, rng: Rng) {
   const club = state.clubs[uid]
   if (results.every(r => r === 'W') && rng() < 0.7) {
     wire(state, `Terrace pulse: believers at ${club.short}`,
-      `Three wins on the spin and the ${club.stadium} bars are humming. A supporters' podcast this week: "Whisper it, but this ${state.managerName} side might actually be building something."`)
+      voice(state, 24, [
+        `Three wins on the spin and the ${club.stadium} bars are humming. A supporters' podcast this week: "Whisper it, but this ${state.managerName} side might actually be building something."`,
+        `Three straight wins and the queue at the club shop has opinions about silverware. The older heads keep saying "long season" and grinning while they say it.`,
+        `The terraces have a new song and it has ${state.managerName} in it. Three wins running will do that. Keep winning and they will add verses.`,
+      ]))
   } else if (results.every(r => r === 'L') && rng() < 0.8) {
     wire(state, `Terrace pulse: grumbles at ${club.short}`,
-      `Three straight defeats and the phone-ins have turned. One season-ticket holder of 30 years: "I don't see a plan out there." Win this weekend and it all goes quiet - that's football... no, that's rugby.`)
+      voice(state, 25, [
+        `Three straight defeats and the phone-ins have turned. One season-ticket holder of 30 years: "I don't see a plan out there." Win this weekend and it all goes quiet - that's football... no, that's rugby.`,
+        `Three losses in a row and the fan forum's match thread got locked by midnight. The mood is not mutinous yet, but the mods are stretching.`,
+        `The drive home after a third straight defeat is where seasons are judged, and this week's radio callers judged hard. One result changes the weather. You need it.`,
+      ]))
   }
 }
 
@@ -308,7 +352,11 @@ function wonderkidWatch(state: GameState, rng: Rng) {
   const k = pick(rng, kids)!
   const club = state.clubs[k.clubId!]
   wire(state, `WONDERKID WATCH: ${k.name}`,
-    `Every scout in the league has ${club?.short ?? 'his club'}'s ${k.age}-year-old ${k.pos} ${k.name} in their notebook. Coaches say he's added real polish this season. One director of rugby: "He'll cost a fortune in a year. Move now or regret it."`, k.id)
+    voice(state, 32, [
+      `Every scout in the league has ${club?.short ?? 'his club'}'s ${k.age}-year-old ${k.pos} ${k.name} in their notebook. Coaches say he's added real polish this season. One director of rugby: "He'll cost a fortune in a year. Move now or regret it."`,
+      `${k.name}, ${k.age}, is the name scouts keep writing down twice. ${club?.short ?? 'His club'} know exactly what they have; the question is how long they can keep it quiet.`,
+      `The stopwatch brigade were out in force again for ${club?.short ?? 'his club'}'s ${k.pos} ${k.name}. He is ${k.age}. The men in the stand with clipboards were not there for the tea.`,
+    ]), k.id)
 }
 
 /** Fringe stars want minutes: too good to sit, and they'll say so. */
@@ -324,7 +372,11 @@ function gameTimeGrumbles(state: GameState, rng: Rng) {
   const swing = p.pers === 'Temperamental' ? 1.6 : p.pers === 'Ambitious' ? 1.3 : 1
   p.morale = clamp(p.morale - 0.7 * swing, 1, 10)
   wire(state, `${p.name} frustrated by lack of rugby`,
-    `Sources say ${p.name} (${p.pos}, rated among your best) trained away from the main group on Monday. His camp's message: "He didn't come here to hold tackle bags." Play him, sell him, or watch the mood sour${p.pers === 'Mercenary' ? ' - and his agent is already dialling' : ''}.`, p.id)
+    voice(state, 33, [
+      `Sources say ${p.name} (${p.pos}, rated among your best) trained away from the main group on Monday. His camp's message: "He didn't come here to hold tackle bags." Play him, sell him, or watch the mood sour${p.pers === 'Mercenary' ? ' - and his agent is already dialling' : ''}.`,
+      `${p.name} has started every week the same way: brilliant in training, absent from the team sheet. People around him have begun saying "situation" out loud${p.pers === 'Mercenary' ? ', and his agent says it loudest' : ''}. Minutes or a move - it is heading one way.`,
+      `The cameras caught ${p.name} watching the warm-up from the bench again, jaw set. A ${p.pos} of his standing does not stay quiet forever${p.pers === 'Mercenary' ? ' - and this one pays an agent to be loud' : ''}. The dressing room is watching how you handle it.`,
+    ]), p.id)
 }
 
 /** Fan forums, social posts and pundit columns - cheap talk, every week. */
