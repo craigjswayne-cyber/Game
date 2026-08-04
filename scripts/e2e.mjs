@@ -126,6 +126,10 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForSelector('text=Scout The Market')
   await shot('08-transfers')
+  await page.click('.tab-bar >> text=Deals')
+  await page.waitForSelector('text=Contract Situations')
+  await shot('08b-deals')
+  await page.click('.tab-bar >> text=Market')
 
   // Continue -> match day: swap a player, give a speech, ready check
   await page.click('.continue-btn')
