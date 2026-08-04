@@ -1583,12 +1583,39 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       return [...byName.entries()].map(([n, mins]) => `${n} (${mins.map(m => `${m}'`).join(', ')})`).join(', ')
     }
     const motm = motmId != null ? state.players[motmId] : null
-    const opener = margin >= 20 ? `A statement. ${teamShort(state, us.teamId)} were ruthless from the first whistle.`
-      : margin > 7 ? `A convincing afternoon's work, controlled from the front.`
-      : margin > 0 ? `Tight, tense - and yours. Games like this one win seasons.`
-      : margin === 0 ? `Honours even, and nobody quite sure how to feel about it.`
-      : margin >= -7 ? `The finest of margins, the wrong side of them. It will sting for a few days.`
-      : `A day to forget. The video session on Monday will be a long one.`
+    // the one line the gaffer reads after every match: rotate the phrasing
+    // so twenty seasons of Monday papers do not all start the same way
+    const say = (opts: string[]) => opts[Math.floor(rng() * opts.length)]
+    const opener = margin >= 20 ? say([
+        `A statement. ${teamShort(state, us.teamId)} were ruthless from the first whistle.`,
+        `${oppName} will not want to watch that back. Total control, first minute to last.`,
+        `One of those afternoons when everything you drew on the whiteboard actually happened.`,
+      ])
+      : margin > 7 ? say([
+        `A convincing afternoon's work, controlled from the front.`,
+        `Professional. Ahead early, managed from there, nobody hurt. Take it and move on.`,
+        `The scoreboard says comfortable. The forwards' knuckles say earned.`,
+      ])
+      : margin > 0 ? say([
+        `Tight, tense - and yours. Games like this one win seasons.`,
+        `Ugly wins count double in the dressing room. Nobody sings about the performance; everybody sings.`,
+        `Decided by inches and nerve. Yours held.`,
+      ])
+      : margin === 0 ? say([
+        `Honours even, and nobody quite sure how to feel about it.`,
+        `A draw that will feel like two points dropped or one rescued, depending on the day you had.`,
+        `All square. The handshakes were polite and nobody meant them.`,
+      ])
+      : margin >= -7 ? say([
+        `The finest of margins, the wrong side of them. It will sting for a few days.`,
+        `Close enough to touch, and that is what makes it worse. One moment, either way.`,
+        `Beaten, barely. The review will find three plays that would have flipped it.`,
+      ])
+      : say([
+        `A day to forget. The video session on Monday will be a long one.`,
+        `${oppName} were better in every department, and the score was honest about it.`,
+        `Second to everything, including the excuses. Training just got harder.`,
+      ])
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: true,
       subject: `📰 ${teamShort(state, fx.homeId)} ${home.score}–${away.score} ${teamShort(state, fx.awayId)}`,
