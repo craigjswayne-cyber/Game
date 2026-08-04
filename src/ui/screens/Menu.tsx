@@ -25,7 +25,21 @@ export default function Menu() {
       <div className="tagline">Stories, seasons & silverware - the rugby world awaits.</div>
       <hr className="rules" />
       <div className="menu-btns">
-        <button className="btn gold" style={{ fontSize: 16, padding: '13px' }} onClick={() => go('newgame')}>
+        {(() => {
+          // one tap back into the most recent save - reloads (and the update
+          // pill) should never cost more taps than they save
+          const newest = [...saves].sort((a, b) => b.savedAt - a.savedAt)[0]
+          if (!newest) return null
+          return (
+            <button className="btn gold" style={{ fontSize: 16, padding: '13px' }} onClick={() => void load(newest.slot)}>
+              ▸ Continue - {newest.managerName}, {newest.club}
+              <div style={{ fontSize: 11, opacity: .85 }}>{seasonLabel(newest.season)}, week {newest.week}</div>
+            </button>
+          )
+        })()}
+        <button className={saves.length ? 'btn ghost' : 'btn gold'}
+          style={saves.length ? { color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          onClick={() => go('newgame')}>
           New Career
         </button>
         {saves.length > 0 && (
