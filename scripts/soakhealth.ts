@@ -30,6 +30,20 @@ function report(label: string) {
 }
 
 report('start')
+// economy watch: fee inflation + balance drift over the decades
+const feeBuckets: number[][] = [[], [], [], []]
+const parseFee = (body: string): number | null => {
+  const m = body.match(/for a fee of £([\d.]+)(m|k)/)
+  return m ? parseFloat(m[1]) * (m[2] === 'm' ? 1e6 : 1e3) : null
+}
+function econReport(label: string) {
+  const ai = Object.values(g.clubs).filter(c => c.id !== g.userClubId)
+  const bals = ai.map(c => c.balance).sort((a, b) => a - b)
+  const med = bals[Math.floor(bals.length / 2)]
+  const budget = ai.reduce((s, c) => s + c.budget, 0) / ai.length
+  const mine = g.clubs[g.userClubId]
+  console.log(`${label} econ | user bal ${(mine.balance / 1e6).toFixed(1)}M | AI bal min ${(bals[0] / 1e6).toFixed(1)}M med ${(med / 1e6).toFixed(1)}M max ${(bals[bals.length - 1] / 1e6).toFixed(1)}M | AI budget avg ${(budget / 1e6).toFixed(1)}M`)
+}
 let farewells = 0, milestoneNews = 0
 const wcSeedTops: string[] = []
 const milestoneSubjects = new Map<string, number>()
@@ -45,6 +59,10 @@ for (let season = 0; season < 20; season++) {
       if (seen.has(n.id)) continue
       seen.add(n.id)
       if (n.subject.includes('The last dance')) farewells++
+      {
+        const fee = parseFee(n.body)
+        if (fee != null) feeBuckets[Math.min(3, Math.floor(season / 5))].push(fee)
+      }
       if (n.subject.includes('Career win number') || n.subject.includes('in the dugout')) {
         milestoneNews++
         milestoneSubjects.set(n.subject, (milestoneSubjects.get(n.subject) ?? 0) + 1)
@@ -54,7 +72,14 @@ for (let season = 0; season < 20; season++) {
   }
   const wc = g.comps['wc']
   if (wc?.seeds?.length) wcSeedTops.push(wc.seeds[0])
-  if ((season + 1) % 5 === 0) report(`s${season + 1}`)
+  if ((season + 1) % 5 === 0) { report(`s${season + 1}`); econReport(`s${season + 1}`) }
+}
+// fee inflation: median deal per 5-season era should stay the same order
+{
+  const med = (a: number[]) => a.length ? [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)] : 0
+  console.log(`transfer fees by era: ${feeBuckets.map((b, i) => `s${i * 5 + 1}-${i * 5 + 5}: n${b.length} med ${(med(b) / 1e6).toFixed(2)}M`).join(' | ')}`)
+  const first = med(feeBuckets[0]), last = med(feeBuckets[3])
+  if (first > 0 && last > first * 3) console.log('WARN: fee inflation over 3x across the save')
 }
 // natrank long-horizon: watch for Elo compression or bound-pinning
 {
