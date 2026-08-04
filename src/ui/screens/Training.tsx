@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { FACILITY_INFO, STAFF_INFO, facilityCost, fmtMoney, type FacilityId, type TrainingFocus } from '../../game/model'
-import { requestFacility } from '../../game/season'
+import { STAFF_INFO, fmtMoney, type TrainingFocus } from '../../game/model'
 import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
@@ -19,9 +18,9 @@ const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
 export default function Training() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  const go = useStore(s => s.go)
   const club = game.clubs[game.userClubId]
   const [ttab, setTtab] = useState<'training' | 'staff' | 'club'>('training')
-  const [facMsg, setFacMsg] = useState('')
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
@@ -63,37 +62,12 @@ export default function Training() {
       {ttab === 'club' && <>
       <SectionTitle sub="a senior pro brings a kid through (max 3)">Mentoring</SectionTitle>
       <MentorPanel />
-      <SectionTitle sub="board approval needed">Training Facilities</SectionTitle>
-      {facMsg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px', marginBottom: 6 }}>{facMsg}</div>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
-        {(Object.keys(FACILITY_INFO) as FacilityId[]).map(fid => {
-          const info = FACILITY_INFO[fid]
-          const lvl = game.facilities?.[fid] ?? 0
-          const cost = facilityCost(info, lvl)
-          const building = game.facilityBuild?.id === fid ? game.facilityBuild : null
-          const weeksLeft = building ? Math.max(1, building.done - (game.season * 100 + game.week)) : 0
-          return (
-            <div className="card" key={fid} style={{ margin: 0, padding: '8px 10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                <div style={{ minWidth: 0 }}>
-                  <h3 style={{ fontSize: 13.5, margin: 0 }}>{info.icon} {info.name} <span style={{ color: '#a8841a' }}>{'●'.repeat(lvl)}{'○'.repeat(3 - lvl)}</span></h3>
-                  <div className="meta" style={{ fontSize: 11 }}>{info.desc}</div>
-                  {building && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🏗 Builders on site - opens in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
-                </div>
-                {!building && lvl < 3 && (
-                  <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
-                    disabled={game.facilityBuild != null}
-                    onClick={() => { setFacMsg(requestFacility(game, fid)); touch() }}>
-                    🏛 Ask board<br />
-                    <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(cost)}</span>
-                  </button>
-                )}
-                {lvl >= 3 && <span className="meta" style={{ flexShrink: 0, color: '#a8841a', fontWeight: 700 }}>World class</span>}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <SectionTitle sub="the ground, the pitch, the gym, the shop">Infrastructure</SectionTitle>
+      <button className="club-pick" onClick={() => go('infra')}>
+        <span style={{ fontSize: 16 }}>🏗️</span>
+        <span className="cname">Club Infrastructure</span>
+        <span className="muted">every facility and the board requests to upgrade them ›</span>
+      </button>
       </>}
       {ttab === 'training' && <>
       <SectionTitle sub="worst first">Condition Report</SectionTitle>

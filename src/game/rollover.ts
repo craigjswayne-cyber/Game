@@ -1,5 +1,5 @@
 import type { GameState, Player, Pos } from './model'
-import { boardObjective, emptyStats, fmtMoney, isWorldCupSeason, seasonLabel, XV_SLOTS } from './model'
+import { boardObjective, emptyStats, facLevel, fmtMoney, isWorldCupSeason, seasonLabel, XV_SLOTS } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -384,15 +384,15 @@ function natTalentBonus(country: string): number {
 export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameState['intakeClass']> {
   const club = state.clubs[state.userClubId]
   if (!club) return []
-  const coe = state.facilities?.academy ?? 0
+  const coe = facLevel(state, 'academy')
   const n = 2 + Math.floor(rng() * 3)
   const out: NonNullable<GameState['intakeClass']> = []
   for (let i = 0; i < n; i++) {
     const pos = pick(rng, YOUTH_POS)
-    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + coe * 2 + natTalentBonus(club.country)
+    const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + Math.round(coe * 1.2) + natTalentBonus(club.country)
     // roughly one club a season unearths a genuine wonderkid - a Centre
     // of Excellence tilts the odds your way
-    const wonder = rng() < 0.085 + coe * 0.02
+    const wonder = rng() < 0.085 + coe * 0.012
     out.push({
       name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
       pos, age: 17 + Math.floor(rng() * 2), q,
