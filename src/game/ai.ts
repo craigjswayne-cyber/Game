@@ -56,6 +56,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.clubId = toClubId
   p.morale = clamp(p.morale + 1, 1, 10)
   p.transferListed = false
+  p.debutPending = 'signing'
   if (toClubId === state.userClubId) {
     state.mgr.signings += 1
     state.mgr.spent += fee

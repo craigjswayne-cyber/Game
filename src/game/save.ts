@@ -103,6 +103,7 @@ export function migrate(s: GameState): GameState {
     p.sc ??= p.clubId === s.userClubId ? 100 : 30
     p.onLoan ??= false
     p.retiring ??= false
+    p.debutPending ??= null
     p.ca0 ??= p.ca
     p.rust ??= 0
     p.loanFrom ??= null
