@@ -1098,6 +1098,37 @@ input, select { font: inherit; }
   overflow: visible;
 }
 .momo-fill { position: absolute; inset: 0; border-radius: 4px; opacity: .5; }
+/* FM-style player profile: dense three-column attribute chip grid */
+.fm-attrs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0 16px;
+  padding: 0 14px 6px;
+}
+.fm-col-head {
+  font-family: var(--cond); font-size: 10.5px; font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-faint); padding: 4px 0 2px;
+  border-bottom: 2px solid var(--gold);
+}
+.fm-attr {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 0; border-bottom: 1px solid var(--hairline);
+  font-size: 12px;
+}
+.fm-attr .fm-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-attr .fm-rival { font-family: var(--cond); font-size: 12px; width: 26px; text-align: right; }
+.fm-attr .fm-chip {
+  min-width: 34px; text-align: center; padding: 1px 5px;
+  border-radius: 5px; font-family: var(--cond); font-size: 12.5px; font-weight: 800;
+  color: #fff;
+}
+.fm-attr .fm-chip.hi { background: #2f7d4f; }
+.fm-attr .fm-chip.mid { background: #2c4f80; }
+.fm-attr .fm-chip.lo { background: #6b7280; }
+.fm-attr .fm-chip.rng { background: transparent; color: var(--ink-faint); border: 1px dashed var(--hairline); font-weight: 700; font-size: 11px; }
+@media (max-width: 700px) { .fm-attrs { grid-template-columns: 1fr 1fr; } }
+
 /* FM-style home dashboard: three glanceable panels in a row */
 .dash-row {
   display: grid;
