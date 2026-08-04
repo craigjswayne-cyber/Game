@@ -511,6 +511,10 @@ export interface GameState {
   /** injury-crisis alerts already raised: position group -> week fired,
    *  so the assistant nags once a month, not once a week */
   crisisAt?: Record<string, number>
+  /** world rugby rankings: rating points per nation, exchanged Test by Test */
+  natRank?: Record<string, number>
+  /** last published ranking order (nation codes), for movement arrows */
+  natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
   agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */
