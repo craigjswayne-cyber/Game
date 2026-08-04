@@ -51,7 +51,7 @@ function econReport(label: string) {
 let prevInjured = new Set<number>()
 let newSpells = 0, spellWeeks = 0
 const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
-let farewells = 0, milestoneNews = 0
+let farewells = 0, milestoneNews = 0, totsAwards = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
 let taps = 0, brokenVows = 0, courtPressers = 0
 // selection quality: starters wearing a shirt they cannot naturally cover.
@@ -142,6 +142,7 @@ for (let season = 0; season < 20; season++) {
       prose(`news s${g.season}w${g.week}`, n.subject)
       prose(`news body s${g.season}w${g.week}`, n.body)
       if (n.subject.includes('The last dance')) farewells++
+      if (n.subject.includes('Try of the Season')) totsAwards++
       if (n.subject.includes('Signing off') || n.subject.includes('tells you first')) retireNews++
       if (n.subject.includes('Loan watch')) loanWatch++
       if (n.subject.includes('armband')) armbands++
@@ -212,7 +213,8 @@ for (let season = 0; season < 20; season++) {
   const pinned = vals.filter(v => v <= 40.5 || v >= 99.5).length
   console.log(`natrank after 20 seasons: min ${min.toFixed(1)} max ${max.toFixed(1)} spread ${(max - min).toFixed(1)} pinned-at-bounds ${pinned}`)
 }
-console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length})`)
+console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length}) · try of the season awards: ${totsAwards}`)
+if (totsAwards < 10) console.log('WARN: try of the season fired under 10 times in 20 seasons')
 console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
 console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
 if (courtPressers > taps) console.log('WARN: courtship presser fired without a tap')

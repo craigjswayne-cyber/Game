@@ -142,6 +142,11 @@ function audit(g: GameState, tag: string) {
     if (p.retiring && p.age < 37) bad(`${tag} retiring flag on ${p.name}, only ${p.age}`)
   }
   if ((g.courtedAt ?? 0) > g.season * 100 + g.week) bad(`${tag} courtedAt in the future`)
+  if (g.tryOfSeason) {
+    if (g.tryOfSeason.season !== g.season) bad(`${tag} tryOfSeason from season ${g.tryOfSeason.season}, not cleared at rollover`)
+    if (!(g.tryOfSeason.min >= 1 && g.tryOfSeason.min <= 85)) bad(`${tag} tryOfSeason minute ${g.tryOfSeason.min}`)
+    if (!g.tryOfSeason.name || !g.tryOfSeason.text) bad(`${tag} tryOfSeason missing name/text`)
+  }
   {
     let prevSeason = -1
     for (const w of g.potyRoll ?? []) {

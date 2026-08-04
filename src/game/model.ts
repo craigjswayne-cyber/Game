@@ -551,6 +551,9 @@ export interface GameState {
   /** World Player of the Year roll of honour, oldest first - the sport's
    *  history book, one line per season */
   potyRoll?: { season: number; playerId: number; name: string; clubName: string }[]
+  /** the season's most dramatic try by the user's club, judged live at each
+   *  full-time whistle and honoured at the Annual */
+  tryOfSeason?: { playerId: number; name: string; min: number; opp: string; text: string; drama: number; season: number } | null
   /** absolute week (season*100+week) a bigger club last courted the manager -
    *  the tap on the shoulder comes at most once every 12 weeks */
   courtedAt?: number

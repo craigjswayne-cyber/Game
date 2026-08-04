@@ -1660,6 +1660,29 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       ].filter(Boolean).join('\n'),
       playerId: motm?.id,
     })
+
+    // the season's best try: judged for drama the moment the whistle goes.
+    // Pure bookkeeping over the finished event list - zero draws on the rng
+    if (fx.compId !== 'fr' && us.teamId === state.userClubId) {
+      for (const e of ctx.events) {
+        if (e.type !== 'TRY' || e.teamId !== us.teamId || e.playerId == null) continue
+        const scorer = state.players[e.playerId]
+        if (!scorer) continue
+        const drama =
+          (e.min >= 78 ? 3 : e.min >= 70 ? 2 : e.min >= 60 ? 1 : 0) +
+          (ctx.derby ? 2 : 0) +
+          (margin > 0 && margin <= 5 ? 2 : Math.abs(margin) <= 12 ? 1 : 0) +
+          (scorer.pos === 'WG' || scorer.pos === 'FB' ? 1 : 0) +
+          (fx.stage === 'F' ? 3 : fx.stage ? 1 : 0)
+        const best = state.tryOfSeason
+        if (!best || best.season !== state.season || drama > best.drama) {
+          state.tryOfSeason = {
+            playerId: e.playerId, name: e.playerName ?? scorer.name, min: e.min,
+            opp: oppName, text: e.text, drama, season: state.season,
+          }
+        }
+      }
+    }
   }
 }
 
