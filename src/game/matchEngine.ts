@@ -749,6 +749,22 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       `A familiar face out there: ${returnee.name} lines up against ${oldClub}, where he made ${returneeApps} appearances. ${exSide === home ? 'He knows this opposition inside out.' : 'A polite reception from the home crowd - for now.'}`,
       returnee.id)
   }
+  // a landmark afternoon announced at kickoff: the appearance he is about
+  // to make sits on the salute ladder
+  if (ctx.detail) {
+    for (const side of [home, away]) {
+      if (side.teamId !== state.userClubId) continue
+      for (const id of side.lineup.slice(0, 15)) {
+        const p = id != null ? state.players[id] : null
+        if (!p) continue
+        const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0) + 1
+        if ([50, 100, 150, 200, 250].includes(cApps)) {
+          pushEvent(state, ctx, 1, 'SUB', side,
+            `A milestone afternoon: ${p.name} makes career appearance number ${cApps}. The tunnel applauds him out; the scoreboard will not care.`, p.id)
+        }
+      }
+    }
+  }
   return ctx
 }
 
@@ -820,7 +836,10 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   const derbyTry = ctx.derby && rng() < 0.3
   const tryPool = derbyTry ? TRY_LINES_DERBY : wetTry ? TRY_LINES_WET : TRY_LINES
   pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? tryPool[Math.floor(rng() * tryPool.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
-  if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
+  const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
+  if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
+    pushEvent(state, ctx, min + 1, 'SUB', side, `Career try number ${cTries} for ${scorer.name}! Both sets of supporters know a milestone when they see one - the applause takes a while to die down.`, scorer.id)
+  } else if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} - some campaign he's having.`, scorer.id)
   } else if (scorer && ctx.detail && scorer.id === ctx.fx.testimonial) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `Of all the people. ${scorer.name} scores at his own testimonial and the ground refuses to sit down. Write the script yourself - you could not do better.`, scorer.id)
