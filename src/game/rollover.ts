@@ -720,6 +720,27 @@ export function rebuildSeason(state: GameState) {
   youthIntake(state, rng)
   replenishSquads(state, rng)
 
+  // AI squads shed their surplus every summer: intake adds more bodies
+  // than retirement removes, and without a clear-out the median squad
+  // drifts from 33 to 43+ over a decade. Weakest seniors are released
+  // into the free-agent pool (which is pruned just below).
+  for (const club of Object.values(state.clubs)) {
+    if (club.id === state.userClubId || club.players.length <= 40) continue
+    const releasable = club.players
+      .map(id => state.players[id])
+      .filter((p): p is Player => !!p && !p.acad && p.age >= 21 && !p.onLoan && !p.loanFrom)
+      .sort((a, b) => a.ca - b.ca)
+    for (const p of releasable) {
+      if (club.players.length <= 38) break
+      club.players = club.players.filter(id => id !== p.id)
+      club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
+      if (club.captain === p.id) club.captain = null
+      if (club.vice === p.id) club.vice = null
+      p.clubId = null
+      p.transferListed = false
+    }
+  }
+
   // keep the free-agent pool from growing without bound over long careers
   const fas = Object.values(state.players)
     .filter(p => !p.clubId)
