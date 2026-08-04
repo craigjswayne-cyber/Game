@@ -31,7 +31,7 @@ export default function WeekResults({ param }: { param: string }) {
         )}
       </div>
       {tab === 'results' && (<>
-      <SectionTitle sub={comp?.name}>This Week's Results</SectionTitle>
+      <SectionTitle sub={comp?.name ?? (compId === 'fr' ? 'Pre-season friendlies' : undefined)}>This Week's Results</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {results.map(f => {
           const mine = f.homeId === game.userClubId || f.awayId === game.userClubId

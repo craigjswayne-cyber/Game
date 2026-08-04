@@ -125,7 +125,7 @@ export default function Home() {
           borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? '#c9a227'}`,
         }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
-            Next match · {comp?.name}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
+            Next match · {comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           <h3 style={{ fontSize: 18, margin: '4px 0' }}>
             <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} v <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
