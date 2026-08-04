@@ -181,6 +181,8 @@ export interface Player {
   caps?: number
   /** British & Irish Lions tours made - the honour of a career */
   lions?: number
+  /** World Cups won while in the squad - the other honour of a career */
+  wcWins?: number
   /** pre-2025 former club (same league), for old-boy stories from day one */
   exClub?: string | null
   /** appearances made at that former club before 2025 */

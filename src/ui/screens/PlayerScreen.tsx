@@ -146,6 +146,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip">Cards <b>{p.stats.yc}Y {p.stats.rc}R</b></span>
         {p.stats.motm > 0 && <span className="chip">⭐ MOTM <b>{p.stats.motm}</b></span>}
         {(p.lions ?? 0) > 0 && <span className="chip">🦁 Lions tourist{(p.lions ?? 0) > 1 ? <b> ×{p.lions}</b> : null}</span>}
+        {(p.wcWins ?? 0) > 0 && <span className="chip">🏆 World Cup winner{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}
         {p.lastR != null && <span className="chip">Last match <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
         {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (
           <span className="chip">Development <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? '#2f7d4f' : '#9b2c2c' }}>

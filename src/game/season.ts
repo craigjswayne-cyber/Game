@@ -1148,6 +1148,33 @@ export function processWeekAndAdvance(state: GameState) {
   // tournament say back?
   {
     const wcFinal = state.fixtures.find(f => f.compId === 'wc' && f.stage === 'F' && f.played && f.week === state.week)
+    // world champions in the building: your club's players in the winning
+    // squad get their moment regardless of whether you coach a nation
+    if (wcFinal) {
+      const champ = wcFinal.homeScore > wcFinal.awayScore ? wcFinal.homeId : wcFinal.awayId
+      const winners = (state.natSquads[champ] ?? [])
+        .map(id => state.players[id])
+        .filter((p): p is Player => !!p && p.clubId === state.userClubId)
+      if (winners.length) {
+        for (const p of winners) {
+          p.morale = clamp(p.morale + 1, 1, 10)
+          p.wcWins = (p.wcWins ?? 0) + 1
+        }
+        const champName = nationByCode(champ)?.name ?? champ
+        const names = winners.map(p => p.name).join(', ')
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `🏆 World champion${winners.length > 1 ? 's' : ''} in the building`,
+          body: [
+            (state.season * 5 + state.week * 3) % 2 === 0
+              ? `${champName} are champions of the world, and ${names} ${winners.length === 1 ? 'was' : 'were'} in the squad that did it. The shirt goes in a frame; the aura comes back to training with ${winners.length === 1 ? 'him' : 'them'}.`
+              : `When the confetti settled on the World Cup final, ${names} of ${champName} ${winners.length === 1 ? 'was' : 'were'} under it - your player${winners.length > 1 ? 's' : ''}, world champion${winners.length > 1 ? 's' : ''}.`,
+            `Whatever happens for the rest of ${winners.length === 1 ? 'his' : 'their'} career${winners.length > 1 ? 's' : ''}, nobody can take this away.`,
+          ].join(' '),
+          playerId: winners[0].id,
+        })
+      }
+    }
     const nat = state.natTeam
     if (wcFinal && nat) {
       const seeds = state.comps['wc']?.seeds ?? []
