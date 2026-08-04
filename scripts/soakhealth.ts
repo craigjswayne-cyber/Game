@@ -3,7 +3,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
-import { SEASON_WEEKS } from '../src/game/model'
+import { SEASON_WEEKS, XV_SLOTS } from '../src/game/model'
 
 const g = newGame('leicester', 'Soak Gaffer', 20260804)
 
@@ -50,6 +50,9 @@ let newSpells = 0, spellWeeks = 0
 const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
 let farewells = 0, milestoneNews = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0
+// selection quality: starters wearing a shirt they cannot naturally cover.
+// Nonzero is fine in an injury crisis; a high rate means autoSelect regressed
+let oopStarts = 0, startSamples = 0
 const wcSeedTops: string[] = []
 const milestoneSubjects = new Map<string, number>()
 const seen = new Set<number>()
@@ -58,7 +61,27 @@ for (let season = 0; season < 20; season++) {
   let guard = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {
     const fx = userFixtureThisWeek(g)
-    if (fx) simMatch(g, fx, weekRng(g), true)
+    if (fx) {
+      simMatch(g, fx, weekRng(g), true)
+      const t = g.clubs[g.userClubId].tactic
+      const xv = new Set(t.lineup.slice(0, 15).filter((x): x is number => x != null))
+      const avail = g.clubs[g.userClubId].players
+        .map(id => g.players[id])
+        .filter(p => p && !p.injury && p.bans === 0 && !p.natSquad && !p.onLoan)
+      for (let i = 0; i < 15; i++) {
+        const id = t.lineup[i]
+        const p = id != null ? g.players[id] : null
+        if (!p) continue
+        startSamples++
+        const pos = XV_SLOTS[i].pos
+        if (p.pos !== pos && !p.alt.includes(pos)) {
+          // only a misallocation if a natural fit sat unused - shoehorning
+          // through a genuine positional hole is the right call
+          const naturalBench = avail.some(c => !xv.has(c.id) && (c.pos === pos || c.alt.includes(pos)) && !c.acad)
+          if (naturalBench) oopStarts++
+        }
+      }
+    }
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, Math.floor(Math.random() * 0) )
     for (const n of g.news) {
       if (seen.has(n.id)) continue
@@ -126,6 +149,11 @@ for (let season = 0; season < 20; season++) {
 }
 console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length})`)
 console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews}`)
+{
+  const rate = startSamples ? (oopStarts / startSamples) * 100 : 0
+  console.log(`selection quality: ${oopStarts}/${startSamples} out-of-position starts (${rate.toFixed(1)}%)`)
+  if (rate > 5) console.log('WARN: autoSelect regressing - too many out-of-position starters')
+}
 {
   const stale = Object.values(g.players).filter(p => p.debutPending && p.stats.apps > 0).length
   const youngRetiring = Object.values(g.players).filter(p => p.retiring && p.age < 37).length
