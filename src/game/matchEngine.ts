@@ -210,6 +210,8 @@ export interface SideCtx {
   cardRisk: number
   poss: number // accumulated momentum, for possession stats
   pens: number // penalty goals kicked
+  /** penalties conceded - repeated infringements bring the bin into play */
+  consPens: number
   /** per-player petrol tank, 0-100 - drains with minutes played */
   energy: Map<number, number>
   /** drain multiplier from tempo tactics */
@@ -318,7 +320,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
     teamId, lineup, units,
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), sent: 0,
     cardRisk: 0.012,
-    poss: 0, pens: 0,
+    poss: 0, pens: 0, consPens: 0,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
     isUser: teamId === userTeamId,
   }
@@ -490,6 +492,8 @@ export interface LiveCtx {
   momo: number
   /** live bad blood between the clubs (reason string) - derby-lite heat */
   grudge?: string | null
+  /** per-tick home possession share, for the last-10-minutes graphic */
+  momoHist?: number[]
 }
 
 function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) {
@@ -798,6 +802,21 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       scoreTry(state, ctx, side, min)
     } else if (r < pTry + 0.115) {
       // a kickable penalty: yours is a touchline decision, theirs is automatic
+      opp.consPens += 1
+      // repeated infringements: the count climbs, the referee's patience
+      // runs out, and somebody takes ten in the bin for the team
+      const ref = refFor(ctx.fx.id)
+      const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
+      if ((opp.consPens === binAt || opp.consPens === binAt * 2) && opp.onPitch.size > 13) {
+        const ps = [...opp.onPitch].map(id => state.players[id]).filter(Boolean)
+        if (ps.length) {
+          const p = wpick(rng, ps, ps.map(x => x.a.agg))
+          opp.yellowUntil.set(p.id, min + 10)
+          p.stats.yc += 1
+          opp.ratings.set(p.id, (opp.ratings.get(p.id) ?? 6) - 0.7)
+          pushEvent(state, ctx, min, 'YC', opp, `Repeated infringements! That's ${opp.consPens} penalties against ${teamShort(state, opp.teamId)} and the referee has seen enough - ${p.name} takes ten in the bin for the team.`, p.id)
+        }
+      }
       if (detail && side.isUser && !ctx.decision) {
         ctx.decision = { kind: 'penalty', min }
         pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} - kickable range. The captain looks to the touchline for the call...`)
@@ -962,6 +981,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const dh = home.poss - poss0[0]
   const da = away.poss - poss0[1]
   ctx.momo = clamp(ctx.momo * 0.62 + (dh - da) * 0.55, -1, 1)
+  // rolling possession history: each entry is the home share of one tick,
+  // so the live 'LAST 10 MINUTES' graphic can average the recent window
+  ;(ctx.momoHist ??= []).push(dh + da > 0 ? dh / (dh + da) : 0.5)
 }
 
 /**

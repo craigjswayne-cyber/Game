@@ -1098,6 +1098,25 @@ input, select { font: inherit; }
   overflow: visible;
 }
 .momo-fill { position: absolute; inset: 0; border-radius: 4px; opacity: .5; }
+/* last-10-minutes possession strip with the momentum needle riding it */
+.last10 {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 12px 2px; font-size: 10px;
+}
+.last10 .l10-label {
+  font-family: var(--cond); letter-spacing: 1.2px; font-weight: 700;
+  color: rgba(255, 255, 255, .55); white-space: nowrap;
+}
+.last10 .l10-bar {
+  position: relative; flex: 1; height: 8px; border-radius: 4px;
+  overflow: visible; display: flex;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(0, 0, 0, .25);
+}
+.last10 .l10-home { border-radius: 4px 0 0 4px; transition: width 1s cubic-bezier(.45, .05, .35, 1); opacity: .85; }
+.last10 .l10-away { flex: 1; border-radius: 0 4px 4px 0; opacity: .85; }
+.last10 .l10-pens { color: rgba(255, 255, 255, .7); font-weight: 600; white-space: nowrap; }
+.last10 .l10-pens b { font-family: var(--cond); font-size: 12px; }
 .momo-needle {
   position: absolute; top: -2.5px;
   width: 4px; height: 12px;

@@ -994,14 +994,29 @@ function Live() {
           {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
         </div>
-        {!done && (
-          <div className="momo-bar" title="Momentum">
-            <div className="momo-fill" style={{
-              background: `linear-gradient(90deg, ${homeC[0]}, transparent 50%, ${awayC[0]})`,
-            }} />
-            <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
-          </div>
-        )}
+        {!done && (() => {
+          const win = (ctx.momoHist ?? []).slice(-3)
+          const share = win.length ? win.reduce((s, x) => s + x, 0) / win.length : 0.5
+          const ref = refFor(fixture.id)
+          const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
+          const penC = (n: number) => n >= binAt ? '#e05a4d' : n === binAt - 1 ? '#e0b34d' : undefined
+          return (
+            <div className="last10">
+              <span className="l10-pens" title="Penalties conceded (referee bins repeat offenders)">
+                ⚠ <b style={{ color: penC(ctx.home.consPens) }}>{ctx.home.consPens}</b>
+              </span>
+              <span className="l10-label">POSSESSION · LAST 10'</span>
+              <div className="l10-bar" title="Who has the ball">
+                <div className="l10-home" style={{ width: `${Math.round(share * 100)}%`, background: homeC[0] }} />
+                <div className="l10-away" style={{ background: awayC[0] }} />
+                <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
+              </div>
+              <span className="l10-pens" title="Penalties conceded (referee bins repeat offenders)">
+                <b style={{ color: penC(ctx.away.consPens) }}>{ctx.away.consPens}</b> ⚠
+              </span>
+            </div>
+          )
+        })()}
       </div>
 
       {!panelActive && (
