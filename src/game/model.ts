@@ -100,6 +100,7 @@ export interface SeasonReview {
   topPoints?: { name: string; val: number }
   topTries?: { name: string; val: number }
   bestAvg?: { name: string; val: number }
+  tryOfSeason?: { name: string; min: number; opp: string }
   balanceDelta: number
   confidence: number
   trophies: string[]

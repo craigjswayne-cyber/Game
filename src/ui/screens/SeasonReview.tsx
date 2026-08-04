@@ -70,6 +70,7 @@ export default function SeasonReview() {
           {r.bestAvg ? row('Player of the season', `${r.bestAvg.name} (avg ${r.bestAvg.val.toFixed(2)})`, true) : null}
           {r.topPoints ? row('Top points', `${r.topPoints.name} - ${r.topPoints.val}`) : null}
           {r.topTries ? row('Top tries', `${r.topTries.name} - ${r.topTries.val}`) : null}
+          {r.tryOfSeason ? row('Try of the season', `${r.tryOfSeason.name}, ${r.tryOfSeason.min}' v ${r.tryOfSeason.opp}`) : null}
         </div>
 
         <SectionTitle sub="the ledger and the boardroom">The Business</SectionTitle>

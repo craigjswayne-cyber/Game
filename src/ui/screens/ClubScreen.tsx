@@ -164,7 +164,8 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         const gate = game.gateRecord
         const derbies = Object.entries(game.derbyBook ?? {}).filter(([, r]) => r.w + r.d + r.l > 0)
         const legend = (game.legendOf ?? []).includes(club.id)
-        if (!gate && !derbies.length && !legend) return null
+        const tots = game.tryOfSeason && game.tryOfSeason.season === game.season ? game.tryOfSeason : null
+        if (!gate && !derbies.length && !legend && !tots) return null
         return (
           <>
             <SectionTitle sub="what this era will be remembered for">Era Records</SectionTitle>
@@ -178,6 +179,11 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 <div className="meta" style={{ padding: '3px 0' }}>
                   🎟 Record gate: <b>{gate.att.toLocaleString()}</b> v {game.clubs[gate.oppId]?.short ?? gate.oppId}
                   {' '}<span className="muted">({2025 + gate.season}-{String((gate.season + 26) % 100).padStart(2, '0')})</span>
+                </div>
+              )}
+              {tots && (
+                <div className="meta" style={{ padding: '3px 0' }}>
+                  🏉 Try of the Season so far: <b>{tots.name}</b>, {tots.min}&apos; v {tots.opp}
                 </div>
               )}
               {derbies.map(([cid, r]) => (
