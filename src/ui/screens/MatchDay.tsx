@@ -1186,7 +1186,7 @@ function Live() {
         <button className="btn ghost" onClick={() => setSound(toggleSound())}>
           {sound ? '🔊' : '🔇'}
         </button>
-        {!done && <button className="btn" onClick={() => { setDrawer(false); skipToBreak() }}>⏭</button>}
+        {!done && <button className="btn" onClick={() => { setDrawer(false); skipToBreak() }}>Skip ▸</button>}
       </div>
 
       {!panelActive && (

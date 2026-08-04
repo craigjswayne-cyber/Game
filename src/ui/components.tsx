@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import type { GameState, Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitPattern, type KitPattern } from '../game/kits'
@@ -109,28 +109,13 @@ function CrestField({ pattern, c2 }: { pattern: KitPattern; c2: string }) {
   }
 }
 
-// clubs whose real logo file is known to be missing from public/logos/
-const noLogo = new Set<string>()
-
 /**
- * Club crest. If a real logo has been dropped into public/logos/<id>.png
- * it is used; otherwise a heraldic shield is generated with the club's
- * kit pattern and colours, gold border and condensed monogram.
+ * Club crest: a heraldic shield generated from the club's kit pattern and
+ * colours, gold border and condensed monogram. No PNG lookup - the old
+ * logos/<id>.png attempt 404'd on every club (the folder ships empty) and
+ * left blank crests on slow phones while the error event was pending.
  */
 export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: number; mr?: number }) {
-  const [missing, setMissing] = useState(noLogo.has(club.id))
-  if (!missing) {
-    return (
-      <img
-        src={`${import.meta.env.BASE_URL}logos/${club.id}.png`}
-        width={size}
-        height={Math.round((size * 26) / 24)}
-        style={{ verticalAlign: '-3px', marginRight: mr, flexShrink: 0, objectFit: 'contain' }}
-        onError={() => { noLogo.add(club.id); setMissing(true) }}
-        alt=""
-      />
-    )
-  }
   const pattern = kitPattern(club.id)
   const [c1, c2] = club.colors
   const letter = (club.short.match(/[A-Za-z]/)?.[0] ?? 'R').toUpperCase()

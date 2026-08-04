@@ -157,9 +157,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     for (let i = 0; i < 4; i++) {
       mkExtra(17 + Math.floor(rng() * 3), 38 + Math.floor(rng() * 16) + Math.floor(club.rep / 14), true, i)
     }
-    // senior depth to a full 33-man squad
+    // senior depth to a full 38-man squad: two deep in every shirt with
+    // room for injuries, Tests and suspensions (user feedback: squads
+    // were too thin at 33)
     let guard = 0
-    while (club.players.length < 33 && guard++ < 12) {
+    while (club.players.length < 38 && guard++ < 18) {
       mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, guard + 50)
     }
   }
