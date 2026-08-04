@@ -111,6 +111,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.intakeClass = null // the class previewed at the old club stays there
     state.newOwnerUntil = null // the old club's owner is not your problem now
     state.derbyBook = {} // new town, new rivals, blank ledger
+    state.vsBook = {} // and a blank book against everyone else too
     state.tenureStart = state.season // the clock on your era starts today
     for (const id of club.players) {
       const p = state.players[id]
