@@ -210,12 +210,14 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
-  // the manager's office: players knock on your door
+  // the manager's office: players knock on your door - but a man who has
+  // already signed a pre-contract elsewhere has nothing left to ask you
   const OFFICE = OFFICE_OUTLET
+  const committed = new Set((state.preContracts ?? []).map(pc => pc.playerId))
 
   // a frozen-out senior wants to know where he stands
   const frozen = squad.filter(p => !p.acad && p.age >= 24 && p.ca >= 68 &&
-    p.morale <= 5.5 && p.stats.apps <= 2 && !p.injury &&
+    p.morale <= 5.5 && p.stats.apps <= 2 && !p.injury && !committed.has(p.id) &&
     state.week >= 10 && state.week <= 40)
   if (frozen.length && rng() < 0.35) {
     const p = pick(rng, frozen)
@@ -232,7 +234,8 @@ export function generatePress(state: GameState, rng: Rng) {
 
   // an academy prospect wants a loan
   const restless = squad.filter(p => p.acad && p.age <= 21 && p.pa >= 74 &&
-    p.stats.apps <= 3 && !p.injury && state.week >= 8 && state.week <= 34)
+    p.stats.apps <= 3 && !p.injury && !committed.has(p.id) &&
+    state.week >= 8 && state.week <= 34)
   if (restless.length && rng() < 0.3) {
     const p = pick(rng, restless)
     const item = mk(state,
@@ -248,7 +251,7 @@ export function generatePress(state: GameState, rng: Rng) {
 
   // a veteran on an expiring deal wants to know what happens next
   const fading = squad.filter(p => p.age >= 32 && p.contractEnds <= state.season &&
-    p.stats.apps >= 4 && state.week >= 20 && state.week <= 38)
+    p.stats.apps >= 4 && !committed.has(p.id) && state.week >= 20 && state.week <= 38)
   if (fading.length && rng() < 0.35) {
     const p = pick(rng, fading)
     const item = mk(state,

@@ -781,8 +781,11 @@ export function processWeekAndAdvance(state: GameState) {
     for (const pl of state.pledges) {
       const p = state.players[pl.playerId]
       // void quietly if the season rolled, either of you moved on, or you
-      // were shown the door - a new regime owes the squad nothing
-      if (pl.season !== state.season || !p || p.clubId !== state.userClubId || state.unemployed) continue
+      // were shown the door - a new regime owes the squad nothing. A player
+      // who signed a pre-contract elsewhere made his own choice: no promise
+      // survives his signature on someone else's paper
+      if (pl.season !== state.season || !p || p.clubId !== state.userClubId || state.unemployed ||
+        (state.preContracts ?? []).some(pc => pc.playerId === p.id)) continue
       if (state.week < pl.due) { remain.push(pl); continue }
       const gap = p.stats.apps - pl.baseApps
       const kept = pl.kind === 'plans' ? gap >= 2

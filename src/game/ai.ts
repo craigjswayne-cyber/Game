@@ -315,6 +315,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   if (!p || !p.clubId || !user) return { ok: false, msg: 'Player unavailable.' }
   if (p.clubId === user.id) return { ok: false, msg: 'Already your player.' }
   if (p.contractEnds > state.season) return { ok: false, msg: 'He is under contract beyond this season.' }
+  if (p.loanFrom || p.onLoan) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
   if (state.week < 25) return { ok: false, msg: 'Pre-contract talks open from week 25.' }
   state.preContracts ??= []
   if (state.preContracts.some(pc => pc.playerId === p.id)) return { ok: false, msg: 'A pre-contract is already signed.' }
