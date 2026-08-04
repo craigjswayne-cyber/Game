@@ -57,7 +57,7 @@ export default function Fixtures() {
                 <td className="muted">{fixtureDate(game.season, f.week, f.id).replace(/day /, " ")}</td>
                 <td className="name">{f.homeId === me ? 'v ' : '@ '}<CrestT g={game} teamId={opp} size={16} />{teamShort(game, opp)}
                   {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}> ▸</span> : null}</td>
-                <td className="muted">{game.comps[f.compId]?.short ?? f.compId}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
+                <td className="muted">{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? 'Friendly' : f.compId)}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
                 <td>{res(f)}</td>
               </tr>
             )
