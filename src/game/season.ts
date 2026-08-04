@@ -924,6 +924,42 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // loan watch: the postcard from the feeder club. The verdicts are honest -
+  // tone tracks the same deterministic roll the summer return boost uses
+  if ([10, 18, 26, 34, 42].includes(state.week) && !state.unemployed) {
+    const out = Object.values(state.players)
+      .filter(p => p.onLoan && p.clubId === state.userClubId)
+    if (out.length) {
+      const lrng = mulberry32(state.seed ^ (state.season * 977 + state.week * 31))
+      const BACKS: Pos[] = ['SH', 'FH', 'CE', 'WG', 'FB']
+      const lines = out.map(p => {
+        const apps = 2 + Math.floor(lrng() * 3)
+        const tries = BACKS.includes(p.pos) ? Math.floor(lrng() * 3) : lrng() < 0.25 ? 1 : 0
+        const maxed = p.ca >= p.pa
+        const boost = 2 + Math.floor(mulberry32(state.seed + p.id)() * 3)
+        const verdict = maxed
+          ? `playing every week and doing his job. Their coaches like him; they also quietly think this is his level.`
+          : boost >= 4
+          ? `the first name on their team sheet. Their coach says he is running games at that level - expect a different player back in the summer.`
+          : boost === 3
+          ? `growing into it nicely. Good marks most weeks, and the education is clearly taking.`
+          : `getting the minutes he went for. Steady rather than spectacular, but every week down there is a week he was not carrying tackle bags here.`
+        return `${p.name} (${p.pos}, ${p.age}): ${apps} starts this month${tries ? `, ${tries} ${tries === 1 ? 'try' : 'tries'}` : ''} - ${verdict}`
+      })
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+        subject: out.length === 1
+          ? `🧳 Loan watch: how ${out[0].name} is getting on`
+          : `🧳 Loan watch: news from the feeder clubs`,
+        body: [
+          `The academy manager files his loan report:`,
+          ...lines,
+        ].join('\n'),
+        playerId: out.length === 1 ? out[0].id : undefined,
+      })
+    }
+  }
+
   // Six Nations lore: the Slam and the Spoon are bigger than the table
   {
     const sn = state.comps['sn']
