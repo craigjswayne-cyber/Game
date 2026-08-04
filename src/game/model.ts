@@ -453,6 +453,8 @@ export interface GameState {
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
   /** league the scouting network is assigned to watch weekly */
   scoutFocus?: string | null
+  /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
+  agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
   /** shortlist players already alerted about this season */
   slAlerted?: number[]
   /** absolute week (season*100+week) the cotton-wool pick was last used */

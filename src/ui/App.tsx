@@ -28,9 +28,10 @@ import Saves from './screens/Saves'
 import DreamTeam from './screens/DreamTeam'
 import WeekResults from './screens/WeekResults'
 import SeasonReview from './screens/SeasonReview'
+import Agency from './screens/Agency'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', results: 'Full-Time Round-Up', squad: 'Squad', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -162,6 +163,7 @@ export default function App() {
       case 'dreamteam': return <DreamTeam />
       case 'results': return <WeekResults param={cur.param as string} />
       case 'seasonreview': return <SeasonReview />
+      case 'agency': return <Agency />
       default: return <Home />
     }
   }
@@ -185,6 +187,7 @@ export default function App() {
       items: [
         { ico: '📰', label: 'The Rugby Wire', screen: 'feed', badge: wireUnread },
         { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
+        { ico: '🔭', label: 'Scouting Agency', screen: 'agency' },
         { ico: '🏆', label: 'Competitions', screen: 'tables' },
         { ico: '🌍', label: 'International Rugby', screen: 'nations' },
         { ico: '📜', label: 'Roll of Honour', screen: 'history' },

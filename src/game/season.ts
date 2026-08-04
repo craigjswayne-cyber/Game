@@ -7,6 +7,7 @@ import { generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
 import { scoutOpponent, weeklyScouting } from './scout'
+import { updateAgency } from './agency'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName } from './nations'
 import { STAFF_INFO } from './model'
@@ -719,6 +720,9 @@ export function processWeekAndAdvance(state: GameState) {
       ].join('\n'),
     })
   }
+
+  // the Scouting Agency refreshes its world rankings every four weeks
+  if (state.week % 4 === 2) updateAgency(state)
 
   // monthly awards in the user's league: every four weeks the league names
   // its player and manager of the month - small prizes, big feelings
