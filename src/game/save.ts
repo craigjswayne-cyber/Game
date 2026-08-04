@@ -150,6 +150,33 @@ export function migrate(s: GameState): GameState {
     }
   }
 
+  // squads were raised from 33 to 38 men (user feedback: too thin) - existing
+  // careers get the same depth once, fringe quality, thinnest positions first
+  if (!s.squadDepth) {
+    s.squadDepth = 38
+    const FILL = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
+    for (const club of Object.values(s.clubs)) {
+      let guard = 0
+      while (club.players.length < 38 && guard++ < 10) {
+        const byPos: Record<string, number> = {}
+        for (const id of club.players) {
+          const p = s.players[id]
+          if (p) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
+        }
+        const pos = [...FILL].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
+        const p = buildPlayer(
+          {
+            name: regenName(rng, club.country), pos, age: 21 + Math.floor(rng() * 9),
+            nat: club.country, q: Math.max(42, club.rep - 16 + Math.floor(rng() * 10)),
+            gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3,
+          },
+          club.id, 0xdee9 + club.players.length * 31 + guard, s.season)
+        s.players[p.id] = p
+        club.players.push(p.id)
+      }
+    }
+  }
+
   // pre-2025 former clubs (old-boy stories): fills only players still unset
   seedExClubs(s)
 

@@ -559,6 +559,9 @@ export interface GameState {
   /** absolute week (season*100+week) of the last public loyalty vow -
    *  take another job inside 10 weeks and the quote travels with you */
   vowedAt?: number
+  /** squad-depth standard this save has been topped up to - the one-shot
+   *  migration that grew 33-man squads to 38 stamps this so it never reruns */
+  squadDepth?: number
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
