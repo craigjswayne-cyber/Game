@@ -423,6 +423,24 @@ export interface StaffLevels {
   academyCoach: number // 0-3: academy coach - develops the second squad
 }
 
+/** A named coach with a badge. The level in StaffLevels mirrors his tier. */
+export interface StaffPerson {
+  name: string
+  nat: string
+  age: number
+  /** 1 Bronze, 2 Silver, 3 Gold */
+  tier: number
+  wage: number
+  trait: string
+  since: number
+  /** enrolled on a coaching course: the result lands in absolute week `done` */
+  course?: { done: number; toTier: number } | null
+  passed?: number
+  failed?: number
+  /** absolute week he may sit the exam again after failing it */
+  retakeAt?: number
+}
+
 export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
   assistant: { name: 'Assistant Coach', desc: 'Sharper sessions - bigger training gains, faster youth growth.', wage: 4000 },
   physio: { name: 'Head Physio', desc: 'Shorter injury layoffs and quicker recovery between matches.', wage: 3000 },
@@ -469,6 +487,10 @@ export interface GameState {
   matchPrep?: 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
   shortlist: number[]
   staff: StaffLevels
+  /** the men behind the levels: names, badges and courses in progress */
+  staffPeople?: Partial<Record<keyof StaffLevels, StaffPerson>>
+  /** bumped on every appointment so the candidate market refreshes */
+  staffSalt?: number
   mgr: ManagerStats
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string

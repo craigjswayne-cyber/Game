@@ -7,6 +7,7 @@ import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
 import { FACILITY_INFO, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
+import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
 
 let fails = 0
 function bad(msg: string) {
@@ -172,6 +173,17 @@ function audit(g: GameState, tag: string) {
     if (!(b.level >= 1 && b.level <= 3)) bad(`${tag} facility build to level ${b.level}`)
     if (b.done > g.season * 100 + g.week + 6) bad(`${tag} facility build finishes too far out (${b.done})`)
   }
+  for (const [role, p] of Object.entries(g.staffPeople ?? {})) {
+    if (!p) continue
+    if (!(p.tier >= 1 && p.tier <= 3)) bad(`${tag} ${p.name} holds tier ${p.tier}`)
+    if (g.staff[role as keyof typeof g.staff] !== p.tier) bad(`${tag} ${role} level ${g.staff[role as keyof typeof g.staff]} but ${p.name} is tier ${p.tier}`)
+    if (!(p.wage > 0)) bad(`${tag} ${p.name} works for ${p.wage}`)
+    if (!p.name || !p.trait) bad(`${tag} staff member with no name or trait in ${role}`)
+    if (p.course) {
+      if (p.course.done > g.season * 100 + g.week + 6) bad(`${tag} ${p.name} on a course finishing ${p.course.done}`)
+      if (p.course.toTier !== p.tier + 1) bad(`${tag} ${p.name} sitting a badge that is not his next one`)
+    }
+  }
   for (const [fid, lvl] of Object.entries(g.facilities ?? {})) {
     if (!FACILITY_INFO[fid as FacilityId]) bad(`${tag} unknown facility ${fid}`)
     if (!(lvl >= 0 && lvl <= 3)) bad(`${tag} facility ${fid} at level ${lvl}`)
@@ -248,6 +260,11 @@ for (let season = 0; season < SEASONS; season++) {
       const fids: FacilityId[] = ['gym', 'kicking', 'paddock', 'briefing', 'academy']
       requestFacility(g, fids[(g.week / 5) % 5 | 0])
     }
+    // churn the coaching department: courses and appointments every few weeks
+    const roles: StaffRole[] = ['assistant', 'physio', 'scout', 'attack', 'defence', 'scrumCoach', 'kicking', 'academyCoach']
+    const role = roles[g.week % roles.length]
+    if (g.week % 3 === 0) sendToCourse(g, role)
+    if (g.week % 7 === 0) appointStaff(g, role, g.week % 3)
     // rotate positional roles like a tinkering manager
     const t = g.clubs[g.userClubId].tactic
     t.roles ??= []

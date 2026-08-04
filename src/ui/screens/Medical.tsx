@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
+import { BADGE } from '../../game/staff'
 import { PosBadge, SectionTitle } from '../components'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
@@ -44,9 +45,9 @@ export default function Medical() {
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
         <div className="meta">
-          🏥 <b>Head Physio {game.staff.physio}/3</b>
+          🏥 <b>{game.staffPeople?.physio ? `${game.staffPeople.physio.name} (${BADGE[game.staff.physio].toLowerCase()} badge)` : 'Head Physio'}</b>
           {game.staff.physio === 0
-            ? ' · none hired - injuries run their full course (Training → Backroom Staff)'
+            ? ' · post vacant - injuries run their full course (Training → Backroom Staff)'
             : ` · injuries roughly ${game.staff.physio * 12}% shorter`}
         </div>
       </div>

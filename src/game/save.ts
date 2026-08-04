@@ -6,6 +6,7 @@ import { autoSelect } from './matchEngine'
 import { regenName } from './nations'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
+import { seedStaffPeople } from './staff'
 
 const DB_NAME = 'rugby-manager'
 const STORE = 'saves'
@@ -70,6 +71,10 @@ export function migrate(s: GameState): GameState {
   s.finHist ??= []
   s.boardOwed ??= false
   s.facilities ??= {}
+  s.facilityBuild ??= null
+  s.facilityAskCooldown ??= 0
+  // the backroom staff became people: give every level already paid for a face
+  seedStaffPeople(s)
   s.celebration ??= null
   s.records ??= {}
   s.mentors ??= []
