@@ -109,7 +109,8 @@ function agePlayers(state: GameState, rng: Rng) {
       }
     }
     // retirement
-    const retireChance = p.age >= 38 ? 1 : p.age >= 36 ? 0.6 : p.age >= 34 ? (p.ca < 72 ? 0.45 : 0.2) : p.age >= 33 && p.ca < 60 ? 0.3 : 0
+    const retireChance = p.farewell ? 1 // he said it was the last dance, and he meant it
+      : p.age >= 38 ? 1 : p.age >= 36 ? 0.6 : p.age >= 34 ? (p.ca < 72 ? 0.45 : 0.2) : p.age >= 33 && p.ca < 60 ? 0.3 : 0
     if (rng() < retireChance) retirees.push(p)
     p.value = playerValue(p.ca, p.age, p.pa)
   }
@@ -216,26 +217,46 @@ function agePlayers(state: GameState, rng: Rng) {
       subject: 'Retirements',
       body: `Hanging up the boots: ${userRetirees.map(p => `${p.name} (${p.age})`).join(', ')}. The dressing room won't be the same.`,
     })
-    // a one-club servant gets a testimonial: full house, retired shirt
+    // the send-offs: a farewell-season man gets his shirt retired (his
+    // testimonial already happened in pre-season); a surprise retiree
+    // with the same service gets the one-off ceremony instead
     const legend = userRetirees
-      .map(p => ({ p, apps: p.career.filter(c => c.clubId === state.userClubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps }))
+      .map(p => ({ p, apps: clubServiceApps(state, p) }))
       .filter(x => x.apps >= 150)
       .sort((a, b) => b.apps - a.apps)[0]
     if (legend) {
       const club = state.clubs[state.userClubId]
-      const gate = Math.round(club.capacity * 32)
-      club.balance += gate
       for (const id of club.players) {
         const tm = state.players[id]
         if (tm) tm.morale = clamp(tm.morale + 0.4, 1, 10)
       }
-      state.news.push({
-        id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
-        subject: `🎗 Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
-        body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.`,
-      })
+      if (legend.p.farewell) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
+          subject: `🎗 The shirt goes up: ${legend.p.name} retires`,
+          body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it. The game moves on; days like his are why it matters.`,
+        })
+      } else {
+        const gate = Math.round(club.capacity * 32)
+        club.balance += gate
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
+          subject: `🎗 Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
+          body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.`,
+        })
+      }
     }
   }
+}
+
+/** Appearances in this club's shirt: seasons played here plus current-season
+ *  apps, plus pre-2025 service for men who have never played anywhere else. */
+function clubServiceApps(state: GameState, p: Player): number {
+  const clubId = state.userClubId
+  const here = p.career.filter(c => c.clubId === clubId).reduce((s, c) => s + c.apps, 0) + p.stats.apps
+  const oneClub = p.career.every(c => c.clubId === clubId)
+  const pre = oneClub ? Math.max(0, (p.hist?.apps ?? 0) - (p.exApps ?? 0)) : 0
+  return here + pre
 }
 
 function handleContracts(state: GameState, rng: Rng) {
@@ -837,6 +858,34 @@ export function rebuildSeason(state: GameState) {
   const wcYear = isWorldCupSeason(state.season)
   buildInternationals(rng, state, wcYear)
   schedulePreseason(state, rng)
+
+  // the farewell season: a one-club servant announces his last dance, and
+  // his home pre-season friendly becomes the testimonial he plays in
+  {
+    const club = state.clubs[state.userClubId]
+    if (club && !state.unemployed) {
+      const cand = club.players
+        .map(id => state.players[id])
+        .filter(Boolean)
+        .filter(p => p.age >= 34 && !p.farewell && !p.loanFrom)
+        .map(p => ({ p, apps: clubServiceApps(state, p) }))
+        .filter(x => x.apps >= 150)
+        .sort((a, b) => b.apps - a.apps)[0]
+      const home = cand ? state.fixtures.find(f =>
+        f.compId === 'fr' && !f.played && f.week <= 3 && f.homeId === club.id) : null
+      if (cand && home) {
+        cand.p.farewell = true
+        cand.p.morale = clamp(cand.p.morale + 1, 1, 10)
+        home.testimonial = cand.p.id
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
+          subject: `🎗 The last dance: ${cand.p.name} announces his farewell season`,
+          body: `${cand.p.name} (${cand.p.age}, ${cand.p.pos}) has told the squad this season will be his last. ${cand.apps} appearances in the shirt, and one year left to add to them. His testimonial is set for the pre-season fixture at ${club.stadium} in week ${home.week} - pick him, and give the ground its goodbye.`,
+          playerId: cand.p.id,
+        })
+      }
+    }
+  }
   if (wcYear) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
