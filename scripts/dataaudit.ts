@@ -6,6 +6,7 @@ import { LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { CLUB_CAPTAINS, sameName } from '../src/data/captains'
 import { VERIFIED_CLUB } from '../src/data/verified'
+import { EXTRA_PLAYERS } from '../src/data/additions'
 import { POS_ORDER, type Pos } from '../src/game/model'
 
 let fails = 0
@@ -17,19 +18,56 @@ const defs = LEAGUE_DEFS()
 const allClubs = defs.flatMap(d => d.clubs.map(c => ({ ...c, leagueId: d.id, leagueName: d.short })))
 const repOf = new Map(allClubs.map(c => [c.id, c.rep]))
 
-// 1. every club fields real cover in every specialist shirt
+// The world the game actually builds, alongside the files it builds it from.
+// Both matter, and they answer different questions - the reason this audit read
+// seven "short of cover" warnings through a round that fixed three of them is
+// that it only ever asked the first one.
+const world = newGame('northampton', 'Data Audit', 4242)
+const builtSquad = (clubId: string) =>
+  (world.clubs[clubId]?.players ?? []).map(id => world.players[id]).filter(Boolean)
+
 const NEED: [Pos, number][] = [['LP', 2], ['HK', 2], ['TP', 2], ['LK', 3], ['FL', 3], ['N8', 1], ['SH', 2], ['FH', 2], ['CE', 3], ['WG', 3], ['FB', 1]]
-for (const club of allClubs) {
+const cover = (players: { pos: string; alt?: readonly string[] | string[] }[]) => {
   const byPos = new Map<string, number>()
-  for (const p of club.players) {
+  for (const p of players) {
     byPos.set(p.pos, (byPos.get(p.pos) ?? 0) + 1)
     for (const alt of p.alt ?? []) byPos.set(alt, (byPos.get(alt) ?? 0) + 0.5)
   }
+  return byPos
+}
+
+// 1a. real men only, in the world as built. A club short here still fields
+//     eleven bodies in every shirt, because the top-up fills the thinnest
+//     position first - but the shirt goes to a made-up name. This is a WARNING
+//     and it is the list to work through.
+//
+//     It counts the built squad rather than the raw files on purpose: a man the
+//     relocation table moves here, or the additions table writes in, is as real
+//     as one the file happened to list. Counting files instead is why Leicester
+//     still read "1 loosehead" in the round that signed Nicky Smith for them.
+const authored = new Set(allClubs.flatMap(c => c.players.map(p => p.name.toLowerCase())))
+for (const club of allClubs) {
+  const real = builtSquad(club.id).filter(p => !p.acad && authored.has(p.name.toLowerCase()))
+  const byPos = cover(real)
   for (const [pos, n] of NEED) {
     const have = byPos.get(pos) ?? 0
-    if (have < n) warn(`${club.id} (${club.leagueName}) has ${have} at ${pos}, wants ${n}`)
+    if (have < n) warn(`${club.id} (${club.leagueName}) has ${have} real ${pos}, wants ${n}`)
   }
-  if (!POS_ORDER.every(p => (byPos.get(p) ?? 0) > 0)) bad(`${club.id} has a shirt with nobody in it`)
+}
+
+// 1b. the built world, which is what a manager actually inherits. Nobody should
+//     ever be asked to field a shirt with nobody in it, so this is a FAILURE.
+//     It is close to unfailable while the top-up works, which is the point: if
+//     the top-up ever regresses, this is the tripwire that says so.
+for (const club of allClubs) {
+  const senior = builtSquad(club.id).filter(p => !p.acad)
+  const byPos = cover(senior)
+  if (!POS_ORDER.every(p => (byPos.get(p) ?? 0) > 0)) {
+    bad(`${club.id} has a shirt with nobody in it once the world is built`)
+  }
+  for (const [pos, n] of NEED) {
+    if ((byPos.get(pos) ?? 0) < n) bad(`${club.id} is built with ${byPos.get(pos) ?? 0} at ${pos}, needs ${n}`)
+  }
 }
 
 // 2. the same man listed at two clubs. The world builder keeps the first and
@@ -83,13 +121,35 @@ for (const [name, want] of Object.entries(VERIFIED_CLUB)) {
   if (!listedAt.length) bad(`verified table names ${name}, who is in no squad file - nothing to relocate`)
 }
 {
-  const g = newGame('northampton', 'Data Audit', 4242)
+  const g = world
   for (const [name, want] of Object.entries(VERIFIED_CLUB)) {
     const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === name)
     if (hits.length !== 1) bad(`${name} appears ${hits.length} times in the built world, wants exactly 1`)
     else if (hits[0].clubId !== want) bad(`${name} was built at ${hits[0].clubId}, wants ${want}`)
   }
   console.log(`verified relocations: ${verifiedNames.length} players placed by hand, all landed`)
+
+  // 2c. The additions table closes a gap the files leave open entirely. Its
+  //     rules are auditable: the club must exist, the man must NOT already be
+  //     in a file anywhere (that would be a relocation, and it belongs in
+  //     verified.ts), and he must arrive at the club named and nowhere else.
+  let added = 0
+  for (const [clubId, extras] of Object.entries(EXTRA_PLAYERS)) {
+    if (!clubIds.has(clubId)) bad(`additions table names club ${clubId}, which does not exist`)
+    for (const rp of extras) {
+      added++
+      const key = rp.name.toLowerCase()
+      const already = allClubs.filter(c => c.players.some(p => p.name.toLowerCase() === key)).map(c => c.id)
+      if (already.length) {
+        bad(`additions table adds ${rp.name}, who is already in the files at ${already.join(', ')} - relocate him instead`)
+      }
+      const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === key)
+      if (hits.length !== 1) bad(`${rp.name} appears ${hits.length} times in the built world, wants exactly 1`)
+      else if (hits[0].clubId !== clubId) bad(`${rp.name} was built at ${hits[0].clubId}, wants ${clubId}`)
+      if (!POS_ORDER.includes(rp.pos)) bad(`additions table gives ${rp.name} position ${rp.pos}, which is not a shirt`)
+    }
+  }
+  console.log(`hand-added players: ${added}, all landed`)
 }
 
 // 3. squad quality should track reputation - a rep-90 club with a rep-60 squad
@@ -101,9 +161,11 @@ for (const club of allClubs) {
   if (Math.abs(gap) > 14) warn(`${club.id} rep ${club.rep} but its best XV averages ${avg.toFixed(1)} (gap ${gap.toFixed(1)})`)
 }
 
-// 4. age spread: a real squad has old heads and kids
+// 4. age spread: a real squad has old heads and kids. Judged on the built
+//    senior squad, because that is the dressing room the manager walks into -
+//    the files being thin is check 1a's business, not this one's.
 for (const club of allClubs) {
-  const ages = club.players.map(p => p.age)
+  const ages = builtSquad(club.id).filter(p => !p.acad).map(p => p.age)
   const vets = ages.filter(a => a >= 30).length
   const kids = ages.filter(a => a <= 23).length
   if (vets < 2) warn(`${club.id} has ${vets} players aged 30+`)
@@ -135,13 +197,12 @@ for (const club of Object.values(g.clubs)) {
 
 // 7. how real is the world? filler is fine on the fringes, not in the XV
 let realXV = 0, totalXV = 0
-const realNames = new Set(allClubs.flatMap(c => c.players.map(p => p.name.toLowerCase())))
 for (const club of Object.values(g.clubs)) {
   const xv = club.tactic.lineup.slice(0, 15).map(id => id != null ? g.players[id] : null)
   for (const p of xv) {
     if (!p) continue
     totalXV++
-    if (realNames.has(p.name.toLowerCase())) realXV++
+    if (authored.has(p.name.toLowerCase())) realXV++
   }
 }
 const realPct = (realXV / totalXV) * 100

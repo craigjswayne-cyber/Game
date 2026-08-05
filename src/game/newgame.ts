@@ -1,5 +1,6 @@
 import type { RawClub, RawPlayer } from '../data/types'
 import { verifiedClub } from '../data/verified'
+import { extraPlayers } from '../data/additions'
 import { PREM_A } from '../data/leagues/prem_a'
 import { PREM_B } from '../data/leagues/prem_b'
 import { TOP14_A } from '../data/leagues/top14_a'
@@ -157,6 +158,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       const squad = [...rc.players]
       // men who really play here but are listed elsewhere in the files
       for (const rp of relocate.get(rc.id) ?? []) {
+        if (!squad.some(x => x.name === rp.name)) squad.push(rp)
+      }
+      // men who really play here and are in no file at all
+      for (const rp of extraPlayers(rc.id)) {
         if (!squad.some(x => x.name === rp.name)) squad.push(rp)
       }
       for (const rp of squad) {
