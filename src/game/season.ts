@@ -1709,8 +1709,20 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
-  // career milestone salutes for your own men
-  const MILESTONES = new Set([50, 100, 150, 200, 250, 300, 400, 500])
+  // Career milestone salutes for your own men.
+  //
+  // These used to flood the inbox in the opening weeks (user screenshot: four
+  // guards of honour all dated week 1, identical wording). The cause is that
+  // `total` counts p.hist.apps, the estimated pre-2025 career, so a squad full
+  // of players sitting just under a round number all crossed at once the first
+  // time they played for you. Three changes:
+  //   the ladder only holds the numbers a club actually marks, no 50s or 150s;
+  //   a man must have played 5 games in THIS save before we salute him, so we
+  //   only celebrate what we actually watched happen;
+  //   one appearance salute a week, the biggest number winning, so a genuine
+  //   coincidence still reads as a headline rather than a list.
+  const MILESTONES = new Set([100, 200, 300, 400, 500])
+  const appSalutes: { p: Player; total: number }[] = []
   for (const id of state.clubs[state.userClubId]?.players ?? []) {
     const p = state.players[id]
     if (!p || p.lastWk !== state.week || state.unemployed) continue
@@ -1735,14 +1747,25 @@ export function processWeekAndAdvance(state: GameState) {
         playerId: p.id,
       })
     }
-    if (MILESTONES.has(total)) {
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `👏 ${p.name}: ${total} career appearances`,
-        body: `A guard of honour at training this week - ${p.name} brought up his ${total}th senior appearance at the weekend. ${total >= 200 ? 'A one-club legend in the making.' : 'The first big number of many, the coaches hope.'}`,
-        playerId: p.id,
-      })
-    }
+    // appearances made since this save began - the ones you were there for
+    const inSave = p.stats.apps + p.career.reduce((sum, c) => sum + c.apps, 0)
+    if (MILESTONES.has(total) && inSave >= 5) appSalutes.push({ p, total })
+  }
+  if (appSalutes.length) {
+    const { p, total } = appSalutes.sort((a, b) => b.total - a.total)[0]
+    const bodies = [
+      `A guard of honour at training this week - ${p.name} brought up his ${total}th senior appearance at the weekend.`,
+      `They lined the tunnel for him on Monday morning: ${total} senior appearances for ${p.name}, and he shrugged it off like a man who intends to double it.`,
+      `${p.name} reached ${total} senior appearances at the weekend. The kitman found the old shirts, somebody found the old photographs, and the young lads learned who he used to be.`,
+    ]
+    // deterministic pick: the same week and the same man always read the same
+    const pickIdx = (p.id * 7 + state.week * 13 + state.season * 3) % bodies.length
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `👏 ${p.name}: ${total} career appearances`,
+      body: `${bodies[pickIdx]} ${total >= 300 ? 'They will name something after him one day.' : total >= 200 ? 'A one-club legend in the making.' : 'The first big number of many, the coaches hope.'}`,
+      playerId: p.id,
+    })
   }
 
   // decrement bans for players whose team played
