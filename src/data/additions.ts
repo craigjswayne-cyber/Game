@@ -64,6 +64,12 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   moana: [
     { name: 'Pepesana Patafilo', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
   ],
+  // The Force's outside backs for 2026 are Bridge, Beale, Grealy and Lancaster.
+  // Beale and Grealy are already ours, which makes the list good; Bridge is the
+  // former All Blacks winger, and the Force had two specialists without him.
+  force: [
+    { name: 'George Bridge', pos: 'WG', age: 30, nat: 'NZL', q: 71 },
+  ],
 }
 
 /** Everyone hand-added to this club, or an empty list. */

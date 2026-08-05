@@ -165,6 +165,9 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Bayonne until 2023, Toulon since, where he is a back-row option rather
   // than the lock the files have him down as at his old club.
   'swan rebbadj': 'toulon',
+  // Home from Toulouse for 2026 - the Blues' own squad release leads on his
+  // return. Toulouse keeps enough cover in the midfield without him.
+  'pita ahki': 'blues',
   // A Clermont lock in 2025-26. The files list him at Perpignan AND Vannes,
   // which is neither. Perpignan keeps enough cover without him.
   'tevita ratuva': 'clermont',

@@ -23,11 +23,11 @@ const EXPECTED: string[] = [
   // this file's history has had the same cause, which is worth knowing when one
   // of them does not.
   'northampton 33-19 sale',
-  'exeter 25-30 bath',
-  'leicester 20-14 gloucester',
-  'saracens 16-26 bristol',
-  'newcastle 16-52 harlequins',
-  'bath 30-16 northampton',
+  'bath 34-17 newcastle',
+  'exeter 22-3 leicester',
+  'harlequins 44-38 bristol',
+  'gloucester 49-13 saracens',
+  'newcastle 10-60 northampton',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
