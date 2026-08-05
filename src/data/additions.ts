@@ -32,6 +32,18 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   la_rochelle: [
     { name: 'Teddy Iribaren', pos: 'SH', age: 34, nat: 'FRA', q: 74, gk: true },
   ],
+  // Harlequins lost Joe Marler to retirement and Wyn Jones to the Dragons in
+  // the same year, and signed the Argentina prop to cover it. Without him the
+  // files leave Fin Baxter as the only loosehead at the club.
+  harlequins: [
+    { name: 'Boris Wenger', pos: 'LP', age: 22, nat: 'ARG', q: 65 },
+  ],
+  // Clermont had NO recognised full-back in the files at all - the worst single
+  // gap the audit found. Hamdaoui has been their arriere since 2024, after five
+  // seasons and 120-odd games at Stade Francais, and covers the wing too.
+  clermont: [
+    { name: 'Kylan Hamdaoui', pos: 'FB', alt: ['WG'], age: 32, nat: 'FRA', q: 70 },
+  ],
 }
 
 /** Everyone hand-added to this club, or an empty list. */

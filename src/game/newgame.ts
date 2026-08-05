@@ -173,6 +173,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         if (seenNames.has(key)) continue
         seenNames.add(key)
         const p = buildPlayer(rp, club.id, seed + club.players.length, 0)
+        p.real = true // written by hand in the data, not by the name generator
         state.players[p.id] = p
         club.players.push(p.id)
       }

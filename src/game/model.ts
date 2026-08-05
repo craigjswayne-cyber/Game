@@ -219,6 +219,17 @@ export interface Player {
   acad?: boolean
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
+  /**
+   * Written by hand in the squad data, rather than produced by the name
+   * generator. Set once at world creation and never changed.
+   *
+   * The audit used to work this out by matching names against the data files,
+   * which is wrong in both directions: the generator retries a colliding name
+   * only ten times and then uses it anyway, so a made-up player could be
+   * counted as real, and the count wobbled at clubs nobody had touched. Two
+   * rounds of squad-accuracy work were measured against that.
+   */
+  real?: boolean
 }
 
 export interface Club {

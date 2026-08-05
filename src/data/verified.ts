@@ -151,6 +151,12 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Bayonne until 2023, Toulon since, where he is a back-row option rather
   // than the lock the files have him down as at his old club.
   'swan rebbadj': 'toulon',
+  // A Clermont lock in 2025-26. The files list him at Perpignan AND Vannes,
+  // which is neither. Perpignan keeps enough cover without him.
+  'tevita ratuva': 'clermont',
+  // Left Gloucester for Newcastle, whose other hookers' departure left them
+  // with one in the files. Gloucester keeps enough cover without him.
+  'george mcguigan': 'newcastle',
 
   // These two are not duplicates at all - the files list them at one club
   // each, and it is the wrong one. Found while checking the list above, which
