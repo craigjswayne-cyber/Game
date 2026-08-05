@@ -135,6 +135,23 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Western Force from 2025.
   'brandon paenga-amosa': 'force',
 
+  // ---- third pass: the men behind the squad-shape warnings ----
+  // The data audit flagged seven clubs short of specialist cover. Checking them
+  // one at a time showed the same story as the duplicates: the player who fills
+  // the shirt already exists in the files, at the club he left. Nothing needed
+  // inventing.
+  //
+  // Left Ospreys for Leicester in 2023 and is their first-choice loosehead,
+  // most minutes of any Tigers prop in the run to the final. Leicester had ONE
+  // loosehead in the files because of this.
+  'nicky smith': 'leicester',
+  // Left Bristol for Cardiff and competes for the ten shirt there in 2025-26.
+  // Cardiff had one specialist fly-half without him.
+  'callum sheedy': 'cardiff',
+  // Bayonne until 2023, Toulon since, where he is a back-row option rather
+  // than the lock the files have him down as at his old club.
+  'swan rebbadj': 'toulon',
+
   // These two are not duplicates at all - the files list them at one club
   // each, and it is the wrong one. Found while checking the list above, which
   // says something about how far the problem reaches.
