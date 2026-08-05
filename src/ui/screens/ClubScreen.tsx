@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, POS_ORDER } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
@@ -7,6 +8,8 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
+  // three pages rather than one long scroll (user: fit it into clean screens)
+  const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>('club')
   const club = game.clubs[clubId]
   if (!club) return null
   const league = game.comps[club.leagueId]
@@ -16,7 +19,12 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
 
   return (
     <>
-      <div className="card" style={{ position: 'relative', overflow: 'hidden', paddingTop: 18 }}>
+      <div className="tab-bar">
+        <button className={ctab === 'club' ? 'active' : ''} onClick={() => setCtab('club')}>The Club</button>
+        <button className={ctab === 'squad' ? 'active' : ''} onClick={() => setCtab('squad')}>Squad</button>
+        <button className={ctab === 'story' ? 'active' : ''} onClick={() => setCtab('story')}>History</button>
+      </div>
+      {ctab === 'club' && <div className="card" style={{ position: 'relative', overflow: 'hidden', paddingTop: 18 }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 6,
           background: `linear-gradient(90deg, ${club.colors[0]} 0 65%, ${club.colors[1]} 65% 100%)`,
@@ -72,8 +80,8 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             return star ? <span className="chip">⭐ Star <b>{star.name}</b></span> : null
           })()}
         </div>
-      </div>
-      {(() => {
+      </div>}
+      {ctab === 'story' && (() => {
         // record book: retired legends + serving players with 100+ apps here
         const serving = players
           .map(p => {
@@ -103,7 +111,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </>
         )
       })()}
-      {honours.length > 0 && (
+      {ctab === 'story' && honours.length > 0 && (
         <>
           <SectionTitle>Honours (your era)</SectionTitle>
           <div className="chips">
@@ -113,7 +121,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </div>
         </>
       )}
-      {club.id === game.userClubId && (() => {
+      {ctab === 'club' && club.id === game.userClubId && (() => {
         // the dressing room: who needs attention, and why - a read-only
         // window over every unhappiness the game's systems can produce
         const committed = new Set((game.preContracts ?? []).map(pc => pc.playerId))
@@ -159,7 +167,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </>
         )
       })()}
-      {club.id === game.userClubId && (() => {
+      {ctab === 'story' && club.id === game.userClubId && (() => {
         // the era's numbers: the record gate, the derby ledgers, the statue
         const gate = game.gateRecord
         const derbies = Object.entries(game.derbyBook ?? {}).filter(([, r]) => r.w + r.d + r.l > 0)
@@ -196,7 +204,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </>
         )
       })()}
-      {(() => {
+      {ctab === 'club' && (() => {
         // live feuds involving this club + its strongest partnerships
         const feuds = (game.grudges ?? []).filter(g =>
           (g.a === club.id || g.b === club.id) && g.until >= game.season)
@@ -230,6 +238,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </>
         )
       })()}
+      {ctab === 'squad' && <>
       <SectionTitle sub="tap to scout">Squad</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Name</th><th>Age</th><th>Nat</th><th>Ability</th><th>Form</th><th className="num">Value</th></tr></thead>
@@ -247,6 +256,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           ))}
         </tbody>
       </table></div>
+      </>}
       <div className="spacer" />
     </>
   )

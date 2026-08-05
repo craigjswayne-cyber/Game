@@ -109,6 +109,8 @@ try {
   await page.waitForSelector('.submenu')
   await shot('06b-club-menu')
   await page.click('.submenu-item >> text=Team Report')
+  await page.waitForSelector('text=Where We Stand')
+  await page.click('.tab-bar >> text=Squad Depth')
   await page.waitForSelector('text=Positional Depth')
   await shot('06c-team-report')
 
