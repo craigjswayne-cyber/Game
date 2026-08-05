@@ -143,6 +143,8 @@ export function applyForJob(state: GameState, clubId: string): string {
     // a new club, a new backroom: the department here is what it is
     state.staffSalt = (state.staffSalt ?? 0) + 1
     inheritStaff(state)
+    state.commission = null // the old club's scout finishes his brief for them
+    state.scoutFinds = null
     state.tenureStart = state.season // the clock on your era starts today
     for (const id of club.players) {
       const p = state.players[id]

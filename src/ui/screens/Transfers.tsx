@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, POS_ORDER, type Pos } from '../../game/model'
+import { fmtMoney, POS_NAMES, POS_ORDER, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
+import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
+import { BADGE } from '../../game/staff'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 
 export default function Transfers() {
@@ -157,6 +159,7 @@ export default function Transfers() {
       })()}
 
       {xtab === 'shortlist' && <>
+      <ScoutCommission />
       <div className="card">
         <div className="fact-label">Scouting Assignment</div>
         <div className="meta" style={{ marginBottom: 6 }}>
@@ -318,6 +321,99 @@ export default function Transfers() {
       )}
       </>}
       <div className="spacer" />
+    </>
+  )
+}
+
+/**
+ * Commissioned scouting (8-batch feedback): send the chief scout out for 3, 6
+ * or 9 months and read what he brings back. The report is deliberately mixed -
+ * his verdict on each man is the point, not a list of ready-made signings.
+ */
+function ScoutCommission() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const go = useStore(s => s.go)
+  const [pos, setPos] = useState<Pos | 'any'>('any')
+  const [msg, setMsg] = useState('')
+  const abs = game.season * 100 + game.week
+  const man = game.staffPeople?.scout
+  const tier = game.staff.scout ?? 0
+  const out = game.commission
+  const weeksLeft = out ? Math.max(1, out.done - abs) : 0
+  const finds = game.scoutFinds ?? []
+  return (
+    <>
+      <SectionTitle sub={man ? `${man.name} · ${BADGE[tier].toLowerCase()} badge` : 'no chief scout appointed'}>Commissioned Search</SectionTitle>
+      <div className="card">
+        {!man && (
+          <div className="meta">
+            You have nobody to send. Appoint a chief scout in Training &amp; Coaching, then brief him on a 3, 6 or 9-month search.
+          </div>
+        )}
+        {man && out && (
+          <div className="meta">
+            🔭 <b>{man.name} is on the road</b> - a {out.months}-month brief
+            {out.pos !== 'any' ? ` for a ${POS_NAMES[out.pos].toLowerCase()}` : ' for anyone who can play'}
+            {out.leagueId ? ` in the ${game.comps[out.leagueId]?.short ?? 'focus league'}` : ''}.
+            He reports back in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}.
+          </div>
+        )}
+        {man && !out && (
+          <>
+            <div className="meta" style={{ marginBottom: 6 }}>
+              A longer trip sees more rugby: more names, and more of them worth signing. He watches
+              {game.scoutFocus ? ` the ${game.comps[game.scoutFocus]?.short ?? 'focus league'}` : ' the whole world'} - set the focus league below to narrow it.
+            </div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+              <select className="inline-input" style={{ margin: 0, flex: '0 1 140px' }} value={pos}
+                onChange={e => setPos(e.target.value as Pos | 'any')}>
+                <option value="any">Any position</option>
+                {POS_ORDER.map(p => <option key={p} value={p}>{POS_NAMES[p]}</option>)}
+              </select>
+              {([3, 6, 9] as SearchMonths[]).map(m => (
+                <button key={m} className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
+                  onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
+                  {m} months<br />
+                  <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {msg && <div className="meta" style={{ marginTop: 6, color: '#a8841a', fontWeight: 700 }}>{msg}</div>}
+      </div>
+
+      {finds.length > 0 && (
+        <>
+          <SectionTitle sub="his verdict, in his words - tap a name for the full profile">The Scout's Report</SectionTitle>
+          <div className="tblwrap"><table className="dtable"><tbody>
+            {finds.map(f => {
+              const p = game.players[f.playerId]
+              if (!p) return null
+              const col = f.grade >= 3 ? '#2f7d4f' : f.grade === 2 ? '#6f8f4f' : f.grade === 1 ? '#8a7a3a' : '#9b2c2c'
+              return (
+                <tr key={f.playerId} onClick={() => go('player', f.playerId)}>
+                  <td><PosBadge pos={p.pos} /></td>
+                  <td className="name">
+                    {p.name}
+                    <span className="muted" style={{ fontWeight: 400 }}> {p.age} · {p.clubId ? game.clubs[p.clubId]?.short : 'free'}</span>
+                    <div className="meta" style={{ fontSize: 11 }}>{f.note}</div>
+                  </td>
+                  <td><Stars ca={fuzzedCa(game, p)} /></td>
+                  <td className="num" style={{ color: col, fontWeight: 700, fontSize: 11 }}>{'★'.repeat(f.grade + 1)}</td>
+                  <td>
+                    <button className="btn ghost" style={{ fontSize: 11, padding: '4px 9px' }}
+                      onClick={e => { e.stopPropagation(); useStore.getState().toggleShortlist(f.playerId) }}>
+                      {game.shortlist.includes(f.playerId) ? '✓ Listed' : '+ Shortlist'}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody></table></div>
+        </>
+      )}
     </>
   )
 }

@@ -556,6 +556,10 @@ export interface GameState {
   pressTone?: number
   /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
+  /** the chief scout is away on a commissioned brief */
+  commission?: import('./commission').Commission | null
+  /** the report he filed when he got back */
+  scoutFinds?: import('./commission').ScoutFind[] | null
   /** legacy: facilities now live on the club. Kept so old saves can be
    *  migrated into Club.facilities, then emptied. */
   facilities?: Partial<Record<FacilityId, number>>

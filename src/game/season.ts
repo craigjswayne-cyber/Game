@@ -12,6 +12,7 @@ import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName } from './nations'
 import { resolveCourses, staffWageBill } from './staff'
+import { resolveCommission } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { loanTargets } from './loans'
@@ -1017,6 +1018,9 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the examiners report back on any coach sitting his next badge
   resolveCourses(state)
+
+  // the chief scout comes home and files his report
+  resolveCommission(state)
 
   // the builders finish: a board-funded facility upgrade opens its doors
   if (state.facilityBuild && state.season * 100 + state.week >= state.facilityBuild.done) {
