@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER, POS_NAMES, XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { effAt } from '../../game/attributes'
 import { assistantAdvice, squadValue, starPlayerIds } from '../../game/analysis'
-import { sortTable } from '../../game/schedule'
+import { leaguePos, sortTable } from '../../game/schedule'
 import { PosBadge, SectionTitle, Stars } from '../components'
 
 /** The assistant's full report on the squad, FM Team Report style. */
@@ -21,7 +21,7 @@ export default function TeamReport() {
   const valueRank = [...leagueClubs].sort((a, b) => squadValue(game, b.id) - squadValue(game, a.id))
     .findIndex(c => c.id === club.id) + 1
   const repRank = [...leagueClubs].sort((a, b) => b.rep - a.rep).findIndex(c => c.id === club.id) + 1
-  const pos = sortTable(game.comps[club.leagueId]?.table ?? []).findIndex(r => r.teamId === club.id) + 1
+  const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)
 
   // positional depth
   const depth = POS_ORDER.map(pos => {

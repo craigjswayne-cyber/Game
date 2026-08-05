@@ -121,7 +121,15 @@ function CrestField({ pattern, c2 }: { pattern: KitPattern; c2: string }) {
 export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: number; mr?: number }) {
   const pattern = kitPattern(club.id)
   const [c1, c2] = club.colors
-  const letter = (club.short.match(/[A-Za-z]/)?.[0] ?? 'R').toUpperCase()
+  // A single initial cannot tell sixteen B clubs apart: Bath and Bristol both
+  // read as a navy "B" in the club picker, and Sale and Saracens both as "S".
+  // A three-letter code (BAT, BRI, SAL, SAR) takes the 101 clubs from 20
+  // distinct labels to 89, and matches the touchline codes the pitch already
+  // draws. Only at sizes with room for it: below 30px the crest always sits
+  // beside the club's name in text, where one letter is plenty.
+  const letters = club.short.replace(/[^A-Za-z]/g, '').toUpperCase()
+  const wide = size >= 30
+  const letter = wide ? (letters.slice(0, 3) || 'RUG') : (letters.slice(0, 1) || 'R')
   const clip = `crest-${club.id}`
   const gloss = `gloss-${club.id}`
   const gold = `gold-${club.id}`
@@ -159,8 +167,8 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
       <text
         x="12" y="16.2" textAnchor="middle"
         fontFamily="'PT Sans Narrow', 'Arial Narrow', sans-serif"
-        fontWeight="700" fontSize="11.5" letterSpacing=".2"
-        fill="#f9f5ea" stroke="rgba(0,0,0,.6)" strokeWidth="1.7"
+        fontWeight="700" fontSize={wide ? 7.4 : 11.5} letterSpacing={wide ? '-.1' : '.2'}
+        fill="#f9f5ea" stroke="rgba(0,0,0,.6)" strokeWidth={wide ? 1.2 : 1.7}
         paintOrder="stroke"
       >{letter}</text>
     </svg>

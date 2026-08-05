@@ -860,7 +860,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; left: 0; right: 0; bottom: 0;
   display: flex; gap: 10px;
   padding: 10px 14px calc(env(safe-area-inset-bottom) + 10px);
-  background: linear-gradient(180deg, transparent, var(--cream) 30%);
+  /* Opaque, with a hairline. The old gradient was transparent for its top
+     30%, so the second row of club tiles bled through it and the very first
+     screen of the game looked clipped rather than scrolled. Content passing
+     behind a solid toolbar reads as intentional; content dissolving into one
+     reads as a bug. */
+  background: var(--cream);
+  border-top: 1px solid var(--hairline);
+  box-shadow: 0 -6px 14px rgba(0, 0, 0, .10);
 }
 .action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; }
 
@@ -1709,4 +1716,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   }
   .fin-head .chips { padding: 10px 8px 10px 16px; align-content: flex-start; }
   .fin-chart .card { margin: 4px 12px 4px 0; }
+}
+
+/* Club picker in landscape: a ten-club league has to fit above the action bar
+   without scrolling, because it is the first screen of the game. Five columns
+   makes two even rows of five, and the tiles lose the height they did not need.
+   Bigger leagues (14 to 16 clubs) still scroll, which is unavoidable and fine
+   now that the bar is opaque. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .tile-grid.three { grid-template-columns: repeat(5, 1fr); max-width: 880px; }
+  .tile-grid.three .tile { padding: 6px 5px; gap: 2px; }
 }

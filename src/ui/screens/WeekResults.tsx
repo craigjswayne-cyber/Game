@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { sortTable } from '../../game/schedule'
+import { leaguePos, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { ordinal } from '../../game/gossip'
 import { CrestT, SectionTitle } from '../components'
@@ -17,7 +17,7 @@ export default function WeekResults({ param }: { param: string }) {
     .filter(f => f.compId === compId && f.week === week && f.played)
     .sort((a, b) => (a.homeId === game.userClubId || a.awayId === game.userClubId ? -1 : 0) - (b.homeId === game.userClubId || b.awayId === game.userClubId ? -1 : 0))
   const rows = comp && comp.type === 'league' ? sortTable(comp.table) : []
-  const myPos = rows.findIndex(r => r.teamId === game.userClubId) + 1
+  const myPos = leaguePos(comp?.table, game.userClubId)
   const [tab, setTab] = useState<'results' | 'table'>('results')
 
   return (

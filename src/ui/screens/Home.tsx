@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { SIX_NATIONS_WEEKS } from '../../game/schedule'
 import { nationByCode, flagOf } from '../../game/nations'
-import { sortTable } from '../../game/schedule'
+import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
@@ -59,7 +59,8 @@ export default function Home() {
       return us > them ? 'W' : us < them ? 'L' : 'D'
     })
   const leagueOrder = sortTable(game.comps[club.leagueId]?.table ?? [])
-  const pos = leagueOrder.findIndex(r => r.teamId === club.id) + 1
+  // 0 until a league game is played, so the widget's dash actually shows
+  const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)
   const finState = club.balance >= 3_000_000 ? ['Rich', '#2f7d4f']
     : club.balance >= 500_000 ? ['Secure', '#6f8f4f']
     : club.balance >= 0 ? ['Okay', '#8a7a3a'] : ['In the red', '#9b2c2c']
@@ -298,7 +299,7 @@ export default function Home() {
               const rf = game.fixtures.filter(f => f.played && f.compId !== 'fr' && (f.homeId === rival || f.awayId === rival))
                 .sort((a, b) => b.week - a.week)[0]
               const rComp = game.comps[game.clubs[rival].leagueId]
-              const rPos = rComp ? sortTable(rComp.table).findIndex(r => r.teamId === rival) + 1 : 0
+              const rPos = leaguePos(rComp?.table, rival)
               const rr = rf ? (() => {
                 const us = rf.homeId === rival ? rf.homeScore : rf.awayScore
                 const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
