@@ -130,7 +130,7 @@ export default function NewGame() {
             <div className="tile-grid three">
               {[...league.clubs].sort((a, b) => b.rep - a.rep).map(c => (
                 <button key={c.id} className={`tile${clubId === c.id ? ' sel' : ''}`} onClick={() => setClubId(c.id)}>
-                  <Crest club={c} size={46} mr={0} />
+                  <Crest club={c} size={38} mr={0} />
                   <b style={{ fontSize: 12 }}>{c.short}</b>
                 </button>
               ))}

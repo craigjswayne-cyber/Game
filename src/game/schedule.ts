@@ -385,3 +385,18 @@ export function sortTable(table: TableRow[]): TableRow[] {
   return [...table].sort((a, b) =>
     b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
 }
+
+/**
+ * Where a club sits in a league, or 0 before a ball has been kicked.
+ *
+ * Every tiebreak in sortTable is zero for every club until games are played,
+ * so the sort is stable and returns insertion order - which is how the Home
+ * screen came to tell a brand new manager he was already 6th, and told a side
+ * that had won its only match 70-10 that it was 11th. Callers already handle
+ * 0 by printing a dash; they were simply never given one.
+ */
+export function leaguePos(table: TableRow[] | undefined, clubId: string): number {
+  if (!table?.length) return 0
+  if (table.every(r => r.p === 0)) return 0
+  return sortTable(table).findIndex(r => r.teamId === clubId) + 1
+}
