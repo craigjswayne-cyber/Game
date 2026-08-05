@@ -48,24 +48,28 @@ export default function Finances() {
         <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>Money</button>
         <button className={ftab === 'board' ? 'active' : ''} onClick={() => setFtab('board')}>The Board</button>
       </div>
-      <div className="chips">
-        <span className="chip">Balance <b style={{ color: club.balance < 0 ? '#9b2c2c' : '#2f7d4f' }}>{fmtMoney(club.balance)}</b></span>
-        <span className="chip">Transfer budget <b>{fmtMoney(club.budget)}</b></span>
-        <span className="chip">Wage bill <b>{fmtMoney(wages)}/wk</b></span>
-        <span className="chip">Wage budget <b>{fmtMoney(club.wageBudget)}/wk</b></span>
+      {/* the ledger and the graph sit side by side in landscape: two chip
+          blocks under a full-width chart was a screenful before the table.
+          The chips label themselves, so the Matchday heading was only height. */}
+      <div className="fin-head">
+        <div className="chips">
+          <span className="chip">Balance <b style={{ color: club.balance < 0 ? '#9b2c2c' : '#2f7d4f' }}>{fmtMoney(club.balance)}</b></span>
+          <span className="chip">Transfer budget <b>{fmtMoney(club.budget)}</b></span>
+          <span className="chip">Wage bill <b>{fmtMoney(wages)}/wk</b></span>
+          <span className="chip">Wage budget <b>{fmtMoney(club.wageBudget)}/wk</b></span>
+          {ftab === 'money' && <>
+            <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
+            <span className="chip">Avg attendance <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
+            <span className="chip">Est. gate/game <b>{avgAtt ? fmtMoney(avgAtt * 30) : '-'}</b></span>
+            <span className="chip">Weekly commercial <b>{fmtMoney(Math.round(club.rep * 1800 + 40_000))}</b></span>
+            {/* the ground and the estate cost money every week of the year, and
+                a cost the manager cannot see reads to him as a bug */}
+            <span className="chip">Ground + estate upkeep <b>{fmtMoney(operatingCost(game))}/wk</b></span>
+          </>}
+        </div>
+        {(game.finHist?.length ?? 0) >= 2 && <div className="fin-chart"><BalanceChart hist={game.finHist!} /></div>}
       </div>
-      {(game.finHist?.length ?? 0) >= 2 && <BalanceChart hist={game.finHist!} />}
       {ftab === 'money' && <>
-      <SectionTitle>Matchday</SectionTitle>
-      <div className="chips">
-        <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
-        <span className="chip">Avg attendance <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
-        <span className="chip">Est. gate/game <b>{avgAtt ? fmtMoney(avgAtt * 30) : '-'}</b></span>
-        <span className="chip">Weekly commercial <b>{fmtMoney(Math.round(club.rep * 1800 + 40_000))}</b></span>
-        {/* the ground and the estate cost money every week of the year, and a
-            cost the manager cannot see reads to him as a bug */}
-        <span className="chip">Ground + estate upkeep <b>{fmtMoney(operatingCost(game))}/wk</b></span>
-      </div>
       <SectionTitle>Top Earners</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Name</th><th className="num">Wage</th><th className="num">Until</th><th className="num">Value</th></tr></thead>
