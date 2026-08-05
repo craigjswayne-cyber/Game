@@ -33,10 +33,9 @@ export default function Squad() {
   const [view, setView] = useState<View>('selection')
   const [sort, setSort] = useState<SortKey>('pkd')
   const [desc, setDesc] = useState(false)
-  const [group, setGroup] = useState<'all' | 'fwd' | 'bck' | 'aca'>('all')
+  const [group, setGroup] = useState<'all' | 'aca'>('all')
   const [avail, setAvail] = useState<'any' | 'fit' | 'out' | 'young'>('any')
   const [query, setQuery] = useState('')
-  const FWD = new Set(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
@@ -48,8 +47,6 @@ export default function Squad() {
   const players = useMemo(() => {
     let ps = club.players.map(id => game.players[id]).filter(Boolean)
     ps = group === 'aca' ? ps.filter(p => p.acad) : ps.filter(p => !p.acad)
-    if (group === 'fwd') ps = ps.filter(p => FWD.has(p.pos))
-    if (group === 'bck') ps = ps.filter(p => !FWD.has(p.pos))
     const out = (p: Player) => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
     if (avail === 'fit') ps = ps.filter(p => !out(p))
     if (avail === 'out') ps = ps.filter(out)
@@ -123,7 +120,11 @@ export default function Squad() {
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6, padding: '8px 14px 0', flexWrap: 'wrap', alignItems: 'center' }}>
-        {([['all', 'First Team'], ['fwd', 'Forwards'], ['bck', 'Backs'], ['aca', '🎓 Academy']] as const).map(([k, label]) => (
+        {/* Forwards and Backs are gone (user: "you can remove forwards and backs
+            as a sort here"): the list is ordered by shirt number, so 1 to 8 are
+            already the forwards and 9 to 15 the backs. The chips filtered a
+            list that had grouped itself. */}
+        {([['all', 'First Team'], ['aca', '🎓 Academy']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGroup(k)}>{label}</button>
         ))}
