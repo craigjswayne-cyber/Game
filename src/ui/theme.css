@@ -1669,7 +1669,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    Portrait keeps one column, where two tbody-only tables stack seamlessly. */
 .xv-split { display: block; }
 @media (orientation: landscape) and (min-width: 640px) {
-  .xv-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; align-items: start; }
+  /* minmax(0, 1fr), NOT 1fr. A bare 1fr is minmax(auto, 1fr), and auto refuses
+     to shrink a track below its content's min-content width - so the two team
+     sheet tables kept their full natural width and the right-hand one hung off
+     the screen, clipping the form pill and losing the fitness column entirely
+     (user screenshot). minmax(0, ...) lets the track shrink and the name cell's
+     existing ellipsis takes up the slack. */
+  .xv-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 10px; align-items: start;
+    /* the right column's fitness figure sat flush against the screen edge */
+    padding-right: 5px;
+  }
+  /* and a little tighter, so the fitness column has somewhere to live */
+  .xv-split .dtable td { padding: 7px 4px; }
+  .xv-split .dtable td.name { max-width: 112px; }
 }
 
 /* the handbook is a question list: the heading IS the summary, so a preview
