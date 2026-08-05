@@ -9,6 +9,7 @@ import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
 import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
 import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
 import { commissionScout } from '../src/game/commission'
+import { analystRead } from '../src/game/analyst'
 
 let fails = 0
 function bad(msg: string) {
@@ -168,6 +169,13 @@ function audit(g: GameState, tag: string) {
     if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)
     if (!g.clubs[g.gateRecord.oppId]) bad(`${tag} gate record vs missing club ${g.gateRecord.oppId}`)
   }
+  if (g.analyst) {
+    const r = g.analyst
+    if (!g.clubs[r.oppId]) bad(`${tag} analyst read on missing club ${r.oppId}`)
+    if (r.abs > g.season * 100 + g.week) bad(`${tag} analyst read from the future (${r.abs})`)
+    if (!r.claim) bad(`${tag} analyst read with no words`)
+  }
+  if (g.analystRecord && (g.analystRecord.right < 0 || g.analystRecord.wrong < 0)) bad(`${tag} negative analyst record`)
   if (g.commission) {
     const c = g.commission
     if (![3, 6, 9].includes(c.months)) bad(`${tag} commission of ${c.months} months`)
@@ -292,6 +300,11 @@ for (let season = 0; season < SEASONS; season++) {
     const slot = g.week % 15
     const opts = rolesForSlot(slot)
     t.roles[slot] = g.week % 3 === 0 ? null : opts[g.week % opts.length].id
+    if (fx && g.week % 3 === 0) {
+      const oppId = fx.homeId === g.userClubId ? fx.awayId : fx.homeId
+      const read = analystRead(g, oppId)
+      if (read) g.matchPrep = read.prep
+    }
     if (fx) simMatch(g, fx, weekRng(g), true)
     for (const pi of g.press.filter(p => !p.answered)) answerPress(g, pi.id, 0)
     processWeekAndAdvance(g)

@@ -6,7 +6,9 @@ import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
+import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
+import { userFixtureThisWeek } from '../../game/season'
 
 /** The tactics area, split into proper pages (8C feedback): Selection,
  *  In-Form XV, Tactics (formation & roles), Match Prep and Game Plan. */
@@ -295,6 +297,7 @@ export default function Tactics() {
       </>}
 
       {ttab === 'prep' && <>
+        <AnalystCard />
         <SectionTitle sub="a focused edge for the next match - always with a trade-off">Match Preparation</SectionTitle>
         <div className="preset-row" style={{ padding: '0 14px', flexWrap: 'wrap', gap: 8 }}>
           {([
@@ -345,5 +348,53 @@ export default function Tactics() {
       {roleSheet()}
       <div className="spacer" />
     </>
+  )
+}
+
+/**
+ * The analyst's read on the next opponent (8-batch feedback). He names a soft
+ * spot and the week's work to exploit it. Follow him and a sound read is worth
+ * a few percent on the day; he is right most of the time, not every time, and
+ * his record is on the card so you can judge him yourself.
+ */
+function AnalystCard() {
+  const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const fx = userFixtureThisWeek(game)
+  if (!fx) {
+    return (
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="fact-label">The Analyst</div>
+        <div className="meta">No match this week, so nothing to study. He will have a read on the next opponent as soon as one is in the diary.</div>
+      </div>
+    )
+  }
+  const oppId = fx.homeId === game.userClubId ? fx.awayId : fx.homeId
+  const opp = game.clubs[oppId]
+  const read = analystRead(game, oppId)
+  if (!read || !opp) return null
+  const followed = game.matchPrep === read.prep
+  return (
+    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div className="fact-label">The Analyst on {opp.short}</div>
+        <div className="meta" style={{ fontSize: 11 }}>{analystForm(game)}</div>
+      </div>
+      <div className="meta" style={{ marginTop: 2 }}>
+        <b style={{ color: '#a8841a' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
+        <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5 }}
+          disabled={followed}
+          onClick={() => { game.matchPrep = read.prep; touch() }}>
+          {followed ? `✓ Preparing ${PREP_LABEL[read.prep]}` : `Work on it: ${PREP_LABEL[read.prep]}`}
+        </button>
+        <span className="meta" style={{ fontSize: 11 }}>
+          {followed
+            ? 'The week is his. If he has read them right you will feel it in that area on Saturday.'
+            : 'Ignore him and prepare as you see fit - he is wrong often enough to argue with.'}
+        </span>
+      </div>
+    </div>
   )
 }
