@@ -177,6 +177,39 @@ export default function Home() {
           </div>
         </div>
       )}
+      {/* the objectives, the annual and the press call used to sit in a second
+          grid below the dashboard, where they got a whole row to themselves.
+          In the same grid as the next match they share its row instead. */}
+      {(() => {
+        const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
+        if (!objs.length) return null
+        return (
+          <button className="card" onClick={() => go('finances')}>
+            <div className="fact-label">🎯 Season Objectives · {objs.filter(o => o!.met(game)).length}/{objs.length} on track</div>
+            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
+              {objs.map(o => (
+                <span key={o!.id} style={{ color: o!.met(game) ? '#2f7d4f' : 'var(--ink-soft)' }}>
+                  {o!.met(game) ? '✓' : '○'} {o!.text(game)}
+                </span>
+              ))}
+            </div>
+          </button>
+        )
+      })()}
+      {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
+        <button className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}
+          onClick={() => go('seasonreview')}>
+          <h3>📖 The Annual is out</h3>
+          <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
+        </button>
+      )}
+      {pressOpen > 0 && (
+        <button className="card" style={{ borderLeft: '4px solid #c9a227' }}
+          onClick={() => go('press')}>
+          <h3>🗞️ The press want a word</h3>
+          <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
+        </button>
+      )}
       {!fx && !game.unemployed && (() => {
         const idle = Object.values(game.clubs)
           .filter(c => c.id !== club.id &&
@@ -319,38 +352,6 @@ export default function Home() {
           </div>
         )
       })()}
-      <div className="card-grid">
-      {(() => {
-        const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
-        if (!objs.length) return null
-        return (
-          <button className="card" onClick={() => go('finances')}>
-            <div className="fact-label">🎯 Season Objectives · {objs.filter(o => o!.met(game)).length}/{objs.length} on track</div>
-            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
-              {objs.map(o => (
-                <span key={o!.id} style={{ color: o!.met(game) ? '#2f7d4f' : 'var(--ink-soft)' }}>
-                  {o!.met(game) ? '✓' : '○'} {o!.text(game)}
-                </span>
-              ))}
-            </div>
-          </button>
-        )
-      })()}
-      {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}
-          onClick={() => go('seasonreview')}>
-          <h3>📖 The Annual is out</h3>
-          <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
-        </button>
-      )}
-      {pressOpen > 0 && (
-        <button className="card" style={{ borderLeft: '4px solid #c9a227' }}
-          onClick={() => go('press')}>
-          <h3>🗞️ The press want a word</h3>
-          <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
-        </button>
-      )}
-      </div>
       <SectionTitle sub={`board confidence ${Math.round(club.boardConfidence)}%`}>Inbox</SectionTitle>
       {news.length === 0 && <div className="muted" style={{ padding: 14 }}>Nothing yet. Press Continue to get the season moving.</div>}
       {news.slice(0, 60).map(n => {

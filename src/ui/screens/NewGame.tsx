@@ -127,6 +127,9 @@ export default function NewGame() {
         {step === 1 && league && (
           <>
             <div className="wizard-hint">Choose a club to manage in the {league.name}.</div>
+            {/* the badges and the club's card sit side by side in landscape:
+                stacked, picking a club pushed its own detail below the fold */}
+            <div className="wiz-split">
             <div className="tile-grid three">
               {[...league.clubs].sort((a, b) => b.rep - a.rep).map(c => (
                 <button key={c.id} className={`tile${clubId === c.id ? ' sel' : ''}`} onClick={() => setClubId(c.id)}>
@@ -154,6 +157,7 @@ export default function NewGame() {
                 </div>
               </div>
             )}
+            </div>
           </>
         )}
 
@@ -166,6 +170,9 @@ export default function NewGame() {
                 <div className="meta">{challenge.desc}</div>
               </div>
             )}
+            {/* the name field and the philosophy tiles were one 385px card, so
+                the tiles at the bottom of it sat below the fold on a phone */}
+            <div className="wiz-split narrow-left">
             <div className="card">
               <label className="fact-label">Your Name</label>
               <input className="inline-input" placeholder="e.g. A. Gaffer"
@@ -175,7 +182,13 @@ export default function NewGame() {
                   const el = e.target
                   setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
                 }} />
-              <label className="fact-label" style={{ marginTop: 8, display: 'block' }}>Coaching Philosophy</label>
+              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Reputation</label>
+              <div className="meta">Unknown - you'll earn it on the touchline.</div>
+              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Club</label>
+              <div className="meta">{club.name} · {league?.name}</div>
+            </div>
+            <div className="card">
+              <label className="fact-label">Coaching Philosophy</label>
               <div className="speech-grid" style={{ padding: '6px 0 0' }}>
                 {COACHING_STYLES.map(s => (
                   <button key={s.id} className={`speech-tile${styleId === s.id ? ' sel' : ''}`}
@@ -185,8 +198,7 @@ export default function NewGame() {
                   </button>
                 ))}
               </div>
-              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Reputation</label>
-              <div className="meta">Unknown - you'll earn it on the touchline.</div>
+            </div>
             </div>
           </>
         )}

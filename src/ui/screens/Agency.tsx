@@ -27,7 +27,7 @@ export default function Agency() {
           <button className="active">Test Nations</button>
         </div>
         <SectionTitle sub="rating points move with every Test - upsets and knockouts move them most">Test Rankings: World</SectionTitle>
-        <div className="tblwrap"><table className="dtable">
+        <div className="tblwrap fits"><table className="dtable">
           <thead><tr><th>#</th><th></th><th>Nation</th><th className="num">Pts</th></tr></thead>
           <tbody>
             {order.map((code, i) => {
@@ -70,7 +70,7 @@ export default function Agency() {
       <SectionTitle sub={tab === 'seniors' ? 'the twenty best players on the planet, updated monthly' : 'the ceilings scouts whisper about - 21 and under'}>
         {tab === 'seniors' ? 'Senior Rankings: World' : 'Wonderkid Watch: World'}
       </SectionTitle>
-      <div className="tblwrap"><table className="dtable">
+      <div className="tblwrap fits"><table className="dtable">
         <thead><tr><th>#</th><th></th><th>High</th><th>Name</th><th>Pos</th><th></th><th>Club</th><th className="num">Value</th></tr></thead>
         <tbody>
           {list.map((p, i) => {

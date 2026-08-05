@@ -29,7 +29,16 @@
 //      leaves him alone rather than deleting him.
 //
 // The remaining duplicates are listed by `npx vite-node scripts/dataaudit.ts`,
-// which fails if the count ever rises.
+// which fails if the count ever rises and now prints only the ones nobody has
+// checked yet, so the list is work to do rather than work already done.
+//
+// ONE SENIOR DUPLICATE IS DELIBERATELY LEFT OUT
+//   Danny Toala   listed at Pau and Moana Pasifika
+// The sources contradict each other. Moana Pasifika released fifteen players
+// in June 2025 and his name is on that list; his Wikipedia career line has him
+// at Oyonnax after Moana; and all.rugby lists him as a 2025-26 Moana ARRIVAL
+// from Oyonnax, which cannot both be true. Rule 2 says leave him, so he is
+// left. Arbitrary beats wrong.
 
 export const VERIFIED_CLUB: Record<string, string> = {
   // Back at the Hurricanes for 2025-26 after his season-long Leinster
@@ -66,6 +75,65 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Left Montpellier after 147 games and signed a three-year deal with the
   // Bulls for 2025-26.
   'jan serfontein': 'bulls',
+
+  // ---- second pass: the Top 14 and Pro D2 churn ----
+  // Ten years at Clermont, then Castres from 2024 on a two-year deal, so
+  // 2025-26 is his second season there.
+  'paul jedrasiak': 'castres',
+  // At Castres since 2023. The Bordeaux listing is the stale one.
+  'nathanaël hulleu': 'castres',
+  // Agreed a pre-contract with Bordeaux for summer 2025 and activated his
+  // release clause, then changed his mind when Bayonne extended him to 2030.
+  // Bayonne were fined over it. He stayed.
+  'tevita tatafu': 'bayonne',
+  // Clermont 2019-2023, Bayonne since, and extended there in October 2025.
+  'cheikh tiberghien': 'bayonne',
+  // Twelve years at Racing 92 ended when his contract was terminated in
+  // January 2025. Joined Lyon as a free agent and has since extended.
+  'camille chat': 'lyon',
+  // Joined Clermont for 2024-25 and is their hooker in 2025-26.
+  'barnabé massa': 'clermont',
+  // Arrived at Montpellier from Toulon in spring 2024 as a medical joker and
+  // has been extended twice since.
+  'christopher tolofua': 'montpellier',
+  // Montpellier 2022-2024, Stade Français since.
+  'louis carbonel': 'stade_francais',
+  // Montpellier 2019-2024, Stade Français since. Not to be confused with
+  // Carbonel, who made the same move in the same summer.
+  'louis foursans': 'stade_francais',
+  // A Montpellier player at the start of 2025-26. He was loaned back to
+  // Bordeaux mid-season and signed for Bayonne after that, neither of which
+  // the game's season-start snapshot should show.
+  'madosh tambwe': 'montpellier',
+  // Nine years at Toulon, then Bayonne from summer 2025. Neither of the two
+  // clubs the files list him at is right.
+  'emerick setiano': 'bayonne',
+  // On loan at Pau 2021-2023, back at Racing 92 since.
+  'jordan joseph': 'racing92',
+  // Pau 2021-2023, Stade Français since. His contract there runs to 2026.
+  'zack henry': 'stade_francais',
+  // Benetton 2020-2024, Toulon since, and extended to 2028.
+  'gianmarco lucchesi': 'toulon',
+
+  // ---- second pass: north-south moves ----
+  // Left the Stormers for Exeter in August 2024, so 2025-26 is his second
+  // Premiership season.
+  'kwenzo blose': 'exeter',
+  // Exeter to Cardiff for 2024-25, then a new long-term deal. He has since
+  // made his Wales debut.
+  'danny southworth': 'cardiff',
+  // Released by Moana Pasifika in June 2025 and signed a two-year deal with
+  // the Chiefs that August, so neither listing is right.
+  'kyren taumoefolau': 'chiefs',
+  // Left the Chiefs after the 2025 Super Rugby season for the Reds, on a
+  // three-year deal to 2027.
+  'aidan ross': 'reds',
+  // Three seasons at Clermont to 2023, then home to the Waratahs, who
+  // re-signed him ahead of 2025.
+  'miles amatosero': 'waratahs',
+  // Three seasons at Montpellier including the 2022 Top 14 title, then the
+  // Western Force from 2025.
+  'brandon paenga-amosa': 'force',
 
   // These two are not duplicates at all - the files list them at one club
   // each, and it is the wrong one. Found while checking the list above, which

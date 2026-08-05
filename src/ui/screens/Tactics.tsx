@@ -186,57 +186,72 @@ export default function Tactics() {
       </div>
 
       {ttab === 'xv' && <>
-        <div className="btn-row">
-          <button className="btn gold" onClick={() => {
-            const pool = availablePlayers(game, club.players)
-            club.tactic.lineup = autoSelect(game, pool)
-            touch()
-          }}>Auto-Pick Best XV</button>
-        </div>
-        <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Starting XV</SectionTitle>
+        {/* Auto-Pick rode its own row for one short button. It belongs to the
+            Starting XV, so it sits on the Starting XV's heading. */}
+        <SectionTitle
+          sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}
+          right={
+            <button className="btn gold tiny" onClick={() => {
+              const pool = availablePlayers(game, club.players)
+              club.tactic.lineup = autoSelect(game, pool)
+              touch()
+            }}>Auto-Pick Best XV</button>
+          }>Starting XV</SectionTitle>
         {/* forwards left, backs right in landscape: 23 rows in one column was
             four swipes deep. Two tbody tables stack identically in portrait. */}
         <div className="xv-split">
           <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
           <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
         </div>
+        {/* the bench and the armband sit side by side in landscape: stacked,
+            they were a screenful of scrolling below a team sheet that already
+            filled the screen. Portrait keeps them in order. */}
+        <div className="sel-split">
+        <div>
         <SectionTitle>Replacements</SectionTitle>
         <div className="xv-split">
           <table className="dtable"><tbody>{BENCH_SLOTS.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
           <table className="dtable"><tbody>{BENCH_SLOTS.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
         </div>
-        <div className="card-grid">
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>©</span>
-          <div style={{ flex: 1 }}>
-            <div className="fact-label">Club Captain</div>
-            <div className="meta">A strong leader lifts attack & defence and calms tempers.</div>
-          </div>
-          <select className="inline-input" style={{ margin: 0, maxWidth: 210 }}
-            value={club.captain ?? ''}
-            onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
-            {club.players.map(id => game.players[id]).filter(Boolean)
-              .sort((a, b) => b.a.lea - a.a.lea)
-              .map(p => (
-                <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
-              ))}
-          </select>
         </div>
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 15, fontWeight: 700 }}>VC</span>
-          <div style={{ flex: 1 }}>
-            <div className="fact-label">Vice-Captain</div>
-            <div className="meta">Steps up at half the effect when the skipper is absent.</div>
+        <div>
+        <SectionTitle>Leadership</SectionTitle>
+        {/* one card, two rows. As two cards in a half-width column each one
+            wrapped its select onto a second line and the pair came to 447px,
+            taller than the bench it was meant to sit beside. */}
+        <div className="card-grid one">
+        <div className="card">
+          <div className="lead-row">
+            <span className="lead-tag">©</span>
+            <span className="fact-label">Captain</span>
+            <select className="inline-input"
+              value={club.captain ?? ''}
+              onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
+              {club.players.map(id => game.players[id]).filter(Boolean)
+                .sort((a, b) => b.a.lea - a.a.lea)
+                .map(p => (
+                  <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+                ))}
+            </select>
           </div>
-          <select className="inline-input" style={{ margin: 0, maxWidth: 210 }}
-            value={club.vice ?? ''}
-            onChange={e => { club.vice = e.target.value ? Number(e.target.value) : null; touch() }}>
-            {club.players.map(id => game.players[id]).filter(p => p && p.id !== club.captain)
-              .sort((a, b) => b.a.lea - a.a.lea)
-              .map(p => (
-                <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
-              ))}
-          </select>
+          <div className="lead-row">
+            <span className="lead-tag">VC</span>
+            <span className="fact-label">Vice</span>
+            <select className="inline-input"
+              value={club.vice ?? ''}
+              onChange={e => { club.vice = e.target.value ? Number(e.target.value) : null; touch() }}>
+              {club.players.map(id => game.players[id]).filter(p => p && p.id !== club.captain)
+                .sort((a, b) => b.a.lea - a.a.lea)
+                .map(p => (
+                  <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+                ))}
+            </select>
+          </div>
+          <div className="meta" style={{ marginTop: 5 }}>
+            A strong skipper lifts attack and defence and calms tempers. The vice takes over at half the effect when he is missing.
+          </div>
+        </div>
+        </div>
         </div>
         </div>
       </>}

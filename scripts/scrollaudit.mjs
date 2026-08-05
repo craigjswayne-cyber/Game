@@ -101,10 +101,20 @@ try {
   console.error('SCROLL AUDIT stopped early:', e.message)
 } finally {
   // Long lists are meant to scroll: a 42-man squad, a whole season of
-  // fixtures, every club in the world. They all keep a sticky column header,
-  // so the scroll costs nothing. The screens worth policing are the ones that
-  // present a fixed amount of information and should fit in a glance or two.
-  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby'])
+  // fixtures, every club in the world. The screens worth policing are the ones
+  // that present a fixed amount of information and should fit in a glance or
+  // two.
+  //
+  // This used to add "they all keep a sticky column header, so the scroll costs
+  // nothing", which was an assumption and a wrong one: .tblwrap's overflow-x
+  // made the wrapper the table's scrollport, so the header had nothing to stick
+  // to and scrolled away with the rows. scripts/stickyaudit.mjs now measures it
+  // rather than asserting it in a comment.
+  // 'home' belongs here for the same reason: it is the inbox. Everything above
+  // the feed - the fixture, the hub widgets, the dashboard panels - measures
+  // 1.4 screenfuls, and the rest is however many headlines the week produced.
+  // Policing the total would only ever mean showing fewer of them.
+  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home'])
   rows.sort((a, b) => b.screens - a.screens)
   console.log('\nscreenfuls  screen')
   for (const r of rows) {
