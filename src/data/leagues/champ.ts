@@ -34,18 +34,21 @@ const TEMPLATE: Pos[] = [
   'FL', 'CE', 'LP',
 ]
 
+// one name per man across the whole competition: a duplicate would cost the
+// second club a real shirt, since the world builder keeps only the first
+const usedNames = new Set<string>()
+
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0xc4a2 ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
-  const used = new Set<string>()
   const out: RawPlayer[] = []
   let gkGiven = 0
   for (const pos of TEMPLATE) {
     let name = ''
     for (let tries = 0; tries < 20; tries++) {
       name = `${FIRST[Math.floor(rng() * FIRST.length)]} ${LAST[Math.floor(rng() * LAST.length)]}`
-      if (!used.has(name)) break
+      if (!usedNames.has(name)) break
     }
-    used.add(name)
+    usedNames.add(name)
     const age = 19 + Math.floor(rng() * 15)
     let q = Math.round(rep - 7 + rng() * 14)
     if (rng() < 0.08) q += 6 // the local hero

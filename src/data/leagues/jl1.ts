@@ -27,11 +27,14 @@ const STARS: Record<string, RawPlayer[]> = {
   spears: [{ name: 'Malcolm Marx', pos: 'HK', age: 31, nat: 'RSA', q: 91, intl: true }],
 }
 
+// one name per man across the whole competition: a duplicate would cost the
+// second club a real shirt, since the world builder keeps only the first
+const usedNames = new Set<string>()
+
 function genSquad(clubId: string, rep: number): RawPlayer[] {
   const rng = mulberry32(0xa11e ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
-  const used = new Set<string>()
   const out: RawPlayer[] = [...(STARS[clubId] ?? [])]
-  for (const p of out) used.add(p.name)
+  for (const p of out) usedNames.add(p.name)
   let gkGiven = out.some(p => p.gk) ? 1 : 0
   let imports = out.length
   for (const pos of TEMPLATE) {
@@ -42,9 +45,9 @@ function genSquad(clubId: string, rep: number): RawPlayer[] {
     let name = ''
     for (let tries = 0; tries < 20; tries++) {
       name = `${F[Math.floor(rng() * F.length)]} ${L[Math.floor(rng() * L.length)]}`
-      if (!used.has(name)) break
+      if (!usedNames.has(name)) break
     }
-    used.add(name)
+    usedNames.add(name)
     const age = 20 + Math.floor(rng() * 13)
     let q = Math.round(rep - 8 + rng() * 15) + (isImport ? 5 : 0)
     q = Math.max(48, Math.min(84, q))
