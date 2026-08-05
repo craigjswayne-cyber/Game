@@ -1,7 +1,7 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
 import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
@@ -1477,7 +1477,18 @@ export function processWeekAndAdvance(state: GameState) {
   if (state.week === 24 && !state.unemployed) {
     const club = state.clubs[state.userClubId]
     const comp = state.comps[club.leagueId]
-    const posNow = comp ? sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1 : 0
+    const posNow = leaguePos(comp?.table, club.id)
+    // The board writes a report card at half term, so it should also adjust how
+    // it feels to match the table it is looking at. Without this the boardroom
+    // only ever reacted to individual results, whose wins and losses roughly
+    // cancel - so a side that slid from 1st to 8th kept the confidence it earned
+    // last May. Measured: 8th of 10 with an 88% board. Gentle, because there is
+    // half a season left to put it right.
+    if (posNow > 0 && (comp?.table.length ?? 0) > 1) {
+      const frac = (posNow - 1) / (comp!.table.length - 1)
+      const target = 86 - frac * 54
+      club.boardConfidence = clamp(club.boardConfidence * 0.75 + target * 0.25, 0, 100)
+    }
     const pred = state.preds?.[club.id]
     const diff = pred && posNow ? pred - posNow : 0
     const objs = (state.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
