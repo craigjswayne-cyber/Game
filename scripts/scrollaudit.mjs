@@ -10,6 +10,7 @@ await new Promise(r => setTimeout(r, 2500))
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+
 const rows = []
 
 const measure = async (name) => {

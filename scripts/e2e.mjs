@@ -169,8 +169,9 @@ try {
   await page.click('.continue-btn')
   await page.waitForSelector('text=Kick Off', { timeout: 15000 })
   await shot('09-matchday-preview')
-  await page.click('.tab-bar >> text=Talk')
-  await page.click('.speech-tile >> text=Calm the nerves')
+  // the dressing room opens itself on match day now, so the speech is chosen
+  // in the modal rather than found behind a tab
+  await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
   await playMatch()
   await shot('10-fulltime')
   await page.click('text=Continue to Results')

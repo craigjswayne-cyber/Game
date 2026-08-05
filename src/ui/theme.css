@@ -1,8 +1,36 @@
 /* ------------------------------------------------------------------
-   Rugby Manager - the magazine theme
-   Montserrat everywhere (geometric caps with air, like the socials).
-   Royal blue chrome, clean white paper, slate pills, club colours.
+   Rugby Manager - the tactical-dashboard theme
+   Space Grotesk everywhere: a quirky, clean grotesque with a mono
+   ancestry, which is why it reads like analytics rather than like a
+   word processor. Royal blue chrome, clean paper, club colours.
+
+   It is SELF-HOSTED, one 22KB variable file covering 300-700, because
+   this is an offline-first PWA and a Google Fonts request would break
+   the first launch on a plane.
+
+   It replaces four @fontsource/montserrat imports which were pulling in
+   FORTY font files - four weights across latin, latin-ext, cyrillic,
+   cyrillic-ext and vietnamese, in both woff and woff2 - for a game whose
+   entire text is English and French club names. One variable file does
+   the work of all of them.
+
+   font-variant-numeric: tabular-nums is set on the body, not sprinkled
+   about. Every number in this game sits in a column next to another
+   number - scores, ratings, fitness, money, league tables - and
+   proportional digits make those columns wobble.
 ------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  /* relative, so Vite hashes it and rewrites the URL for the ./ base
+     that GitHub Pages needs - an absolute /fonts/ path 404s under /Game/ */
+  src: url('./fonts/space-grotesk-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
   --green-950: #1b3468;
@@ -27,9 +55,13 @@
   --loss: #c0392f;
   --draw: #8a7a3a;
   --hairline: rgba(29, 39, 51, 0.1);
-  --serif: 'Montserrat', -apple-system, 'Segoe UI', sans-serif;
-  --sans: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --cond: 'Montserrat', 'Arial', var(--sans);
+  /* --serif is the display voice (headlines, club names), --sans is body,
+     --cond is the condensed caps voice for labels and nav. One family with
+     three jobs, separated by weight and letter-spacing rather than by
+     loading three fonts onto a phone. */
+  --serif: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
+  --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cond: 'Space Grotesk', 'Arial Narrow', var(--sans);
   --shadow-1: 0 1px 2px rgba(27, 52, 104, .07), 0 2px 8px rgba(27, 52, 104, .06);
   --shadow-2: 0 2px 4px rgba(27, 52, 104, .09), 0 8px 24px rgba(27, 52, 104, .1);
   /* club identity - overridden per save on .app */
@@ -121,7 +153,9 @@ body {
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'tnum' 1, 'cv05' 1;
+  /* every number in this game sits in a column beside another number */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 button { font: inherit; border: none; background: none; cursor: pointer; color: inherit; }
@@ -1915,5 +1949,71 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* a long club name should truncate, not set the tile's width for everyone */
 .tile b {
   max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---- Space Grotesk, applied by job ----
+   One family, three voices, separated by weight and tracking. Space Grotesk is
+   a wider face than Montserrat at the same size, so the tracking matters more
+   than it used to: left alone, a 44-man squad table would need another 40px it
+   does not have.
+
+   Tables and rosters   medium weight, tight tracking, to buy back landscape
+   Scores and ratings   bold and tabular, so columns of numbers line up
+   Nav and buttons      semi-bold caps, kept short (SQUAD, TACTICS, TRANSFERS) */
+
+/* tables: the tightest thing in the game, and where the space is won */
+.dtable {
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+}
+.dtable td.name, .dtable th { letter-spacing: -0.1px; }
+.dtable td { font-weight: 500; }
+/* a name is the one thing in the row you read rather than scan */
+.dtable td.name { font-weight: 600; letter-spacing: -0.15px; }
+
+/* the numbers that get compared: scores, ratings, form, fitness, money */
+.form-pill, .scoreboard, .hub-widget b, .dash-line b, .fact-grid span,
+.num, .attr-val, .stat-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.scoreboard { letter-spacing: -0.5px; font-weight: 700; }
+.form-pill { font-weight: 700; letter-spacing: -0.3px; }
+
+/* nav and buttons: semi-bold caps. Space Grotesk's caps are wide and want
+   positive tracking to stop them reading as one long word */
+.bottom-nav button, .tab-bar button, .btn, .preset-chip, .submenu-item {
+  font-weight: 600;
+}
+.tab-bar button { letter-spacing: 0.6px; }
+.btn { letter-spacing: 0.7px; font-weight: 700; }
+.section-title { letter-spacing: 1.3px; font-weight: 700; }
+.fact-label, .dash-head { letter-spacing: 0.9px; }
+
+/* headlines: the display voice, tight and heavy, which is where a grotesque
+   earns its keep against a geometric sans */
+.masthead h1 { letter-spacing: -0.8px; font-weight: 700; }
+.card h3, .news-item .subj { letter-spacing: -0.3px; }
+.title-screen h1 { letter-spacing: -1.5px; font-weight: 700; }
+
+/* the dressing room opens itself on match day, so it has to fit a short
+   landscape screen without scrolling: four speeches two-up, not four-up */
+.talk-modal { max-height: 92vh; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .talk-modal .speech-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px; padding: 4px 0 0;
+  }
+  .talk-modal .speech-tile { padding: 7px 9px; gap: 1px; }
+  .talk-modal .speech-tile .d { font-size: 10px; line-height: 1.3; }
+  .talk-modal .section-title { padding: 6px 2px 4px; }
+}
+
+/* the squad summary rides the tab bar, which scrolls horizontally - so it needs
+   its own right margin or the last word sits under the screen edge */
+.tab-bar .filter-note {
+  padding-right: 14px; padding-left: 10px;
+  flex: 0 1 auto; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

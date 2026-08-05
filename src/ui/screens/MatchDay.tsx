@@ -57,6 +57,17 @@ function Preview({ fxId }: { fxId: number }) {
   const [confirm, setConfirm] = useState(false)
   const [planApplied, setPlanApplied] = useState(false)
   const [ptab, setPtab] = useState<'brief' | 'team' | 'talk'>('team')
+  /**
+   * The dressing room comes to you (user: "a pre-game team talk should pop up
+   * before the game starts as you load into the game section").
+   *
+   * It was a tab called Talk, which meant the single most characterful decision
+   * of a match week was opt-in and most weeks nobody opted in - the kick-off
+   * warning "no dressing-room speech chosen" was the game admitting it. Now the
+   * room is the first thing you walk into, once per match, and you can still
+   * shut the door and come back to the tab.
+   */
+  const [talkOpen, setTalkOpen] = useState(true)
 
   const fx = game.fixtures.find(f => f.id === fxId)!
   const comp = game.comps[fx.compId]
@@ -710,6 +721,32 @@ function Preview({ fxId }: { fxId: number }) {
       </main>
       {picker()}
       {readyModal()}
+      {talkOpen && (
+        <div className="modal-veil" onClick={() => setTalkOpen(false)}>
+          <div className="modal talk-modal" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <div style={{ padding: '0 12px 10px' }}>
+              <SectionTitle sub={`${teamShort(game, club.id)} v ${teamShort(game, opp)} · one speech, choose the tone`}>
+                The Dressing Room
+              </SectionTitle>
+              <div className="speech-grid">
+                {SPEECHES.map(sp => (
+                  <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
+                    onClick={() => { setSpeech(sp.id); setTalkOpen(false) }}>
+                    <span className="ico">{sp.icon}</span>
+                    <b>{sp.name}</b>
+                    <span className="d">{sp.desc}</span>
+                  </button>
+                ))}
+              </div>
+              <button className="btn ghost block" style={{ marginTop: 8 }}
+                onClick={() => setTalkOpen(false)}>
+                Say nothing for now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
