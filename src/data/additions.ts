@@ -23,6 +23,13 @@
 //      files: q is his standing in the league he plays in, not a world rating.
 //   4. Never add a name that already exists anywhere in the files. That is a
 //      relocation, and it belongs in verified.ts. The audit fails on it.
+//   5. CORROBORATE THE LIST. This environment cannot fetch pages - every direct
+//      request is refused by the proxy - so the only source is a search engine's
+//      summary of one, and a summary can hallucinate a name. The test that works:
+//      if the squad list it quotes contains men ALREADY in our data at that club,
+//      the list is really that club's squad and the other names in it can be
+//      trusted. Scarlets' prop list named Henry Thomas and Archer Holz, both
+//      already in our Scarlets squad, which is why Hepburn below is in.
 import type { RawPlayer } from './types'
 
 export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
@@ -43,6 +50,19 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // seasons and 120-odd games at Stade Francais, and covers the wing too.
   clermont: [
     { name: 'Kylan Hamdaoui', pos: 'FB', alt: ['WG'], age: 32, nat: 'FRA', q: 70 },
+  ],
+  // Scarlets had one loosehead and two and a half flankers. Both names come off
+  // squad lists corroborated by men already in our Scarlets squad - Henry Thomas
+  // and Archer Holz in the prop list, Josh Macleod and Dan Davis in the back-row
+  // one. Hepburn is the long-serving Exeter and England loosehead.
+  scarlets: [
+    { name: 'Alec Hepburn', pos: 'LP', age: 32, nat: 'ENG', q: 71 },
+    { name: 'Tristan Davies', pos: 'FL', age: 23, nat: 'WAL', q: 63 },
+  ],
+  // From Moana Pasifika's own named 2026 squad, corroborated by Fine Inisi and
+  // Danny Toala already being ours. Patafilo arrived from Kyuden Voltex.
+  moana: [
+    { name: 'Pepesana Patafilo', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
   ],
 }
 
