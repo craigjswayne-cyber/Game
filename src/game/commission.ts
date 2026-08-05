@@ -1,7 +1,7 @@
 // Commissioned scouting (8-batch feedback): send your chief scout out on a
 // 3, 6 or 9-month brief. He comes back with a shortlist of mixed quality - the
 // longer the trip and the better his badge, the more of it is worth signing.
-import { POS_NAMES, fmtMoney, type GameState, type Player, type Pos } from './model'
+import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos } from './model'
 import { mulberry32 } from './rng'
 import { bumpKnowledge } from './scout'
 import { BADGE } from './staff'
@@ -59,6 +59,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
     subject: `🔭 ${man.name} sent out on a ${months}-month brief`,
     body: `${fmtMoney(fee)} of expenses, a hire car and a brief: ${pos === 'any' ? 'anyone who can play' : POS_NAMES[pos].toLowerCase()}, in ${where}. ${man.name} (${BADGE[tier].toLowerCase()} badge) files his report in ${SEARCH_WEEKS[months]} weeks. A longer trip sees more rugby and less of it in the rain.`,
   })
+  logDecision(state, `Sent ${man.name} out on a ${months}-month brief: ${fmtMoney(fee)} of expenses, report in ${SEARCH_WEEKS[months]} weeks.`)
   return `${man.name} is on the road. ${fmtMoney(fee)} spent, report in ${SEARCH_WEEKS[months]} weeks.`
 }
 
@@ -107,6 +108,7 @@ export function resolveCommission(state: GameState) {
   state.scoutFinds = finds
   const best = state.players[finds[0].playerId]
   const good = finds.filter(f => f.grade >= 2).length
+  logDecision(state, `The ${c.months}-month brief came back with ${finds.length} names, ${good} of them worth signing. Best: ${best.name}.`, good > 0)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `🔭 ${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,

@@ -169,6 +169,11 @@ function audit(g: GameState, tag: string) {
     if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)
     if (!g.clubs[g.gateRecord.oppId]) bad(`${tag} gate record vs missing club ${g.gateRecord.oppId}`)
   }
+  for (const d of g.decisions ?? []) {
+    if (!d.text) bad(`${tag} decision with no text`)
+    if (d.abs > g.season * 100 + g.week) bad(`${tag} decision from the future (${d.abs})`)
+  }
+  if ((g.decisions?.length ?? 0) > 40) bad(`${tag} decision ledger unbounded: ${g.decisions!.length}`)
   if (g.analyst) {
     const r = g.analyst
     if (!g.clubs[r.oppId]) bad(`${tag} analyst read on missing club ${r.oppId}`)

@@ -455,6 +455,27 @@ export function estateGrade(club: Club): { label: string; sum: number; max: numb
   }
 }
 
+/** One decision the manager made, and what it actually did. Shown on the
+ *  manager's profile so every move has a visible consequence (8-batch
+ *  feedback: "every manager move has positive/negative effects"). */
+export interface Decision {
+  /** absolute week (season*100+week) */
+  abs: number
+  season: number
+  week: number
+  text: string
+  /** true it went your way, false it cost you, undefined for a cost you chose */
+  good?: boolean
+}
+
+/** Record a decision and its consequence. Newest first, last 40 kept. */
+export function logDecision(state: GameState, text: string, good?: boolean) {
+  state.decisions = [
+    { abs: state.season * 100 + state.week, season: state.season, week: state.week, text, good },
+    ...(state.decisions ?? []),
+  ].slice(0, 40)
+}
+
 /** The week's training focus before a match. */
 export type MatchPrep = 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
 
@@ -561,6 +582,8 @@ export interface GameState {
   boardOwed?: boolean
   /** the season the ground was last extended - one stand a season */
   expandedSeason?: number
+  /** the manager's decisions and what they did */
+  decisions?: Decision[]
   /** the analyst's read on this week's opponent */
   analyst?: import('./analyst').AnalystRead | null
   /** how often following his read has paid off */

@@ -1,4 +1,5 @@
 import type { GameState, Player, PressItem } from './model'
+import { logDecision } from './model'
 import { derbyName, isDerby } from './rivalries'
 import { clamp, pick, type Rng } from './rng'
 
@@ -532,6 +533,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       const upheld = (p.id + state.season * 7 + state.week * 3) % 3 !== 0 // the club wins 2 hearings in 3
       if (upheld && p.bans > 0) {
         p.bans -= 1
+        logDecision(state, `Appealed ${p.name}'s red card: upheld, a match knocked off the ban.`, true)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
           subject: `⚖️ Appeal upheld: ${p.name}'s ban reduced`,
@@ -542,6 +544,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         p.bans += 1
         const c = state.clubs[state.userClubId]
         c.boardConfidence = clamp(c.boardConfidence - 2, 0, 100)
+        logDecision(state, `Appealed ${p.name}'s red card: dismissed, a match added and the board unimpressed.`, false)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
           subject: `⚖️ Appeal dismissed: ${p.name}'s ban extended`,
@@ -574,6 +577,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     if (opt.camp === 'heat') {
       c.balance -= 400_000
       for (const p of squad) { p.sharp = clamp(p.sharp + 12, 0, 100); p.morale = clamp(p.morale + 0.3, 1, 10) }
+      logDecision(state, 'Warm-weather camp: £400k spent, squad sharpness up 12 and a tighter dressing room.', true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `☀️ Camp report: sharp, brown and slightly broken`,
@@ -582,6 +586,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     } else if (opt.camp === 'home') {
       state.fanMood = clamp((state.fanMood ?? 60) + 6, 10, 95)
       for (const p of squad) p.morale = clamp(p.morale + 0.2, 1, 10)
+      logDecision(state, 'Community week at home: nothing spent, the terraces 6 points warmer.', true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🏟 Community week: the town turns out`,
@@ -591,6 +596,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       c.balance += 600_000
       state.fanMood = clamp((state.fanMood ?? 60) - 3, 10, 95)
       for (const p of squad) p.cond = clamp(p.cond - 8, 20, 100)
+      logDecision(state, "Sponsor's tour: £600k banked, the squad 8% flatter and the fans 3 points cooler.", false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `✈️ Exhibition tour: the cheque clears`,
