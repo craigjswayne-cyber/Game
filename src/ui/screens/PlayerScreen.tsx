@@ -5,6 +5,7 @@ import { agreeFee, agreePreContract, askingPrice, offerRenewalAt, personalTermsD
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
+import { loanOut } from '../../game/loans'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -282,14 +283,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
         <button className="btn ghost block" onClick={() => {
-          p.onLoan = true
-          game.news.push({
-            id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
-            subject: `${p.name} heads out on loan`,
-            body: `${p.name} joins a feeder club for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
-            playerId: p.id,
-          })
-          setMsg(`${p.name} will spend the season on loan. He returns next summer, better for it.`)
+          setMsg(loanOut(game, p.id).msg)
           touch()
         }}>Send on Season Loan (develops faster)</button>
       )}

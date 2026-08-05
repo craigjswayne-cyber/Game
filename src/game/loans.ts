@@ -50,3 +50,33 @@ export function loanIn(state: GameState, playerId: number): string {
   parent.tactic.lineup = autoSelect(state, parent.players.map(id => state.players[id]).filter(Boolean))
   return `${p.name} joins on loan for the season.`
 }
+
+/**
+ * Send one of your own young players out for the season.
+ *
+ * This lived inline in PlayerScreen, which meant the engine had no entry point
+ * for it - so the 20-season soak could never loan anyone out, the loan-watch
+ * postcard never fired in any long run, and the release audit read "loan watch
+ * 0" over twenty years for a feature that works fine. A behaviour with no
+ * callable seam has no test.
+ */
+export function loanOut(state: GameState, playerId: number): { ok: boolean; msg: string } {
+  const p = state.players[playerId]
+  if (!p) return { ok: false, msg: 'No such player.' }
+  if (p.clubId !== state.userClubId) return { ok: false, msg: 'He is not yours to send anywhere.' }
+  if (p.onLoan) return { ok: false, msg: `${p.name} is already out on loan.` }
+  if (p.loanFrom) return { ok: false, msg: `${p.name} is here on loan himself.` }
+  if (p.age > 23) return { ok: false, msg: `${p.name} is past the age where a loan teaches him anything.` }
+  const club = state.clubs[state.userClubId]
+  if (club?.tactic.lineup.slice(0, 15).includes(p.id)) {
+    return { ok: false, msg: `${p.name} is in your starting XV. Drop him first if you mean it.` }
+  }
+  p.onLoan = true
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
+    subject: `${p.name} heads out on loan`,
+    body: `${p.name} joins a feeder club for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
+    playerId: p.id,
+  })
+  return { ok: true, msg: `${p.name} will spend the season on loan. He returns next summer, better for it.` }
+}

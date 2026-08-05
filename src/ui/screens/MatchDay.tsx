@@ -905,7 +905,11 @@ function NationPreview({ fxId }: { fxId: number }) {
 // Live match
 // ------------------------------------------------------------------
 
-const SPEEDS = [{ label: '▶', ms: 900 }, { label: '▶▶', ms: 350 }, { label: '▶▶▶', ms: 90 }]
+const SPEEDS = [
+  { label: '▶', ms: 900, name: 'Slow' },
+  { label: '▶▶', ms: 350, name: 'Normal speed' },
+  { label: '▶▶▶', ms: 90, name: 'Fast' },
+]
 
 /** XV formation spots: [x across own half 0-100, y down the pitch 0-100] */
 const SPOTS: [number, number][] = [
@@ -1191,7 +1195,10 @@ function Live() {
         </div>
         {!done && (() => {
           const win = (ctx.momoHist ?? []).slice(-3)
-          const share = win.length ? win.reduce((s, x) => s + x, 0) / win.length : 0.5
+          // no history yet means no measurement: a half-filled bar at 0' reads
+          // as "possession is even" when nothing has happened at all
+          const live = win.length > 0
+          const share = live ? win.reduce((s, x) => s + x, 0) / win.length : 0.5
           const ref = refFor(fixture.id)
           const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
           const penC = (n: number) => n >= binAt ? '#e05a4d' : n === binAt - 1 ? '#e0b34d' : undefined
@@ -1200,8 +1207,10 @@ function Live() {
               <span className="l10-pens" title="Penalties conceded (referee bins repeat offenders)">
                 ⚠ <b style={{ color: penC(ctx.home.consPens) }}>{ctx.home.consPens}</b>
               </span>
-              <span className="l10-label">POSSESSION · LAST 10'</span>
-              <div className="l10-bar" title="Who has the ball">
+              {/* the flanking numbers are penalties conceded, and a phone cannot
+                  hover a tooltip to find that out - so the label says it */}
+              <span className="l10-label">{live ? "PENALTIES · POSSESSION LAST 10'" : 'PENALTIES · AWAITING KICK-OFF'}</span>
+              <div className="l10-bar" title="Who has the ball" style={live ? undefined : { opacity: .35 }}>
                 <div className="l10-home" style={{ width: `${Math.round(share * 100)}%`, background: homeC[0] }} />
                 <div className="l10-away" style={{ background: awayC[0] }} />
                 <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
@@ -1236,21 +1245,27 @@ function Live() {
         {/* the whistle has gone: playback controls make no sense at FT */}
         {!done && SPEEDS.map((s, i) => (
           <button key={i} className={`btn ${i === speedIdx && playing ? 'gold' : 'ghost'}`}
+            title={s.name} aria-label={s.name}
             onClick={() => { setSpeedIdx(i); setDrawer(false); matchCursor(cursor, true) }}>{s.label}</button>
         ))}
         {!done && (
-          <button className="btn ghost" onClick={() => matchCursor(cursor, !playing)}>
-            {playing ? '⏸' : '▶'}
+          <button className="btn ghost" title={playing ? 'Pause' : 'Resume'} aria-label={playing ? 'Pause' : 'Resume'}
+            onClick={() => matchCursor(cursor, !playing)}>
+            {playing ? '❚❚' : '▶'}
           </button>
         )}
         {!done && ctx.seg < 3 && (
           <button className={`btn ${drawer ? 'gold' : 'ghost'}`}
+            title="Touchline: change tactics or make substitutions"
+            aria-label="Touchline: change tactics or make substitutions"
             onClick={() => {
               if (!drawer) matchCursor(cursor, false)
               setDrawer(!drawer)
-            }}>📋</button>
+            }}>📋 <span className="ctrl-cap">Touchline</span></button>
         )}
-        <button className="btn ghost" onClick={() => setSound(toggleSound())}>
+        <button className="btn ghost" title={sound ? 'Sound on' : 'Sound off'}
+          aria-label={sound ? 'Sound on' : 'Sound off'}
+          onClick={() => setSound(toggleSound())}>
           {sound ? '🔊' : '🔇'}
         </button>
         {!done && <button className="btn" onClick={() => { setDrawer(false); skipToBreak() }}>Skip ▸</button>}

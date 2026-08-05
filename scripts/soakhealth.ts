@@ -6,6 +6,9 @@ import { answerPress } from '../src/game/media'
 import { requestExpansion, requestFacility } from '../src/game/season'
 import { appointStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../src/game/staff'
 import { commissionScout } from '../src/game/commission'
+import { signOnTerms, askingPrice, personalTermsDemand, capBill } from '../src/game/ai'
+import { loanOut } from '../src/game/loans'
+import { agreePreContract } from '../src/game/ai'
 import { analystRead } from '../src/game/analyst'
 import type { FacilityId } from '../src/game/model'
 import { SEASON_WEEKS, XV_SLOTS } from '../src/game/model'
@@ -57,6 +60,7 @@ let prevInjured = new Set<number>()
 let newSpells = 0, spellWeeks = 0
 const medBuckets: { yc: number; rc: number; matches: number; spells: number; avgWks: number }[] = []
 let farewells = 0, milestoneNews = 0, totsAwards = 0
+let signings = 0, loansOut = 0, preCs = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0, lionsNews = 0, lionsHomecomings = 0, wcChampBeats = 0
 let taps = 0, brokenVows = 0, courtPressers = 0
 let hearings = 0, appealsWon = 0, appealsLost = 0, campBeats = 0, employedW1 = 0
@@ -120,6 +124,42 @@ for (let season = 0; season < 20; season++) {
         if (i >= 0) appointStaff(g, role, i)
       }
       if (g.week % 15 === 0) commissionScout(g, 'any', ([3, 6, 9] as const)[Math.floor(g.week / 15) % 3])
+      // The audit found four systems with no long-horizon coverage at all,
+      // because this scripted manager never traded: loan watch and debut
+      // headlines both read 0 over twenty seasons for features that work. A
+      // manager who uses everything has to buy, promise, borrow and lend.
+      if (g.week === 5 || g.week === 26) {
+        // a signing with a first-team promise, which also exercises pledges
+        // The wage has to clear what his camp actually opens at, not a markup on
+        // his current deal - a good player at another club always wants a rise,
+        // and the first cut of this probe signed nobody in forty windows
+        // because it offered him 10% more than he was already on.
+        const user = g.clubs[g.userClubId]
+        const room = user.wageBudget - capBill(g, user)
+        const buy = Object.values(g.players)
+          .filter(p => p.clubId && p.clubId !== g.userClubId && p.ca >= 72 && p.age <= 28 &&
+            askingPrice(g, p) <= user.budget && personalTermsDemand(g, p) <= room)
+          .sort((a, b) => b.ca - a.ca)[0]
+        if (buy) {
+          const r = signOnTerms(g, buy.id, askingPrice(g, buy), personalTermsDemand(g, buy), 0, true)
+          if (r.ok) signings++
+        }
+      }
+      if (g.week === 8) {
+        // lend a fringe youngster out: fires the loan-watch postcard
+        const kid = g.clubs[g.userClubId].players
+          .map(id => g.players[id])
+          .find(p => p && p.age <= 22 && !p.onLoan && !p.acad &&
+            !g.clubs[g.userClubId].tactic.lineup.slice(0, 15).includes(p.id))
+        if (kid && loanOut(g, kid.id).ok) loansOut++
+      }
+      if (g.week === 30) {
+        // a free transfer for next summer
+        const free = Object.values(g.players)
+          .filter(p => p.clubId && p.clubId !== g.userClubId && p.contractEnds <= g.season && p.ca >= 68)
+          .sort((a, b) => b.ca - a.ca)[0]
+        if (free && agreePreContract(g, free.id).ok) preCs++
+      }
       const fxNow = userFixtureThisWeek(g)
       if (fxNow && g.week % 2 === 0) {
         const oppId = fxNow.homeId === g.userClubId ? fxNow.awayId : fxNow.homeId
@@ -274,6 +314,7 @@ for (let season = 0; season < 20; season++) {
 }
 console.log(`farewell arcs: ${farewells} · manager milestone news: ${milestoneNews} (dupes: ${[...milestoneSubjects.values()].filter(v => v > 1).length}) · try of the season awards: ${totsAwards}`)
 if (totsAwards < 10) console.log('WARN: try of the season fired under 10 times in 20 seasons')
+console.log(`trading exercised: ${signings} signings with a promise · ${loansOut} loans out · ${preCs} pre-contracts`)
 console.log(`e-round beats over 20 seasons: retirement news ${retireNews} · loan watch ${loanWatch} · armband handovers ${armbands} · debut headlines ${debutNews} · lions call-ups ${lionsNews} · homecomings ${lionsHomecomings} · WC winners in squad ${wcChampBeats}`)
 if (lionsHomecomings > lionsNews) console.log('WARN: Lions homecoming without a call-up')
 if (lionsNews === 0) console.log('WARN: no Lions call-up news in 20 seasons (5 tours)')
@@ -320,7 +361,11 @@ if (brokenVows > 0) console.log('WARN: broken-vow story in a save where the mana
   if (rate > 5) console.log('WARN: autoSelect regressing - too many out-of-position starters')
   const lfl = injSubs ? (likeForLike / injSubs) * 100 : 100
   console.log(`forced-sub quality: ${likeForLike}/${injSubs} like-for-like (${lfl.toFixed(0)}%)`)
-  if (injSubs >= 20 && lfl < 40) console.log('WARN: injury subs regressing - pickBenchSub not respecting the shirt')
+  // 60, not 40. The guard is called like-for-like and it was letting through a
+  // rate where one forced sub in three put a man in the wrong shirt. Measured
+  // range across audits: 65 to 71 percent, so 60 is a real floor rather than a
+  // formality, and it fires before the behaviour has visibly rotted.
+  if (injSubs >= 20 && lfl < 60) console.log(`WARN: injury subs regressing at ${lfl.toFixed(0)}% like-for-like - pickBenchSub not respecting the shirt`)
 }
 {
   const stale = Object.values(g.players).filter(p => p.debutPending && p.stats.apps > 0).length
