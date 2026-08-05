@@ -1,4 +1,5 @@
-import type { RawClub } from '../data/types'
+import type { RawClub, RawPlayer } from '../data/types'
+import { verifiedClub } from '../data/verified'
 import { PREM_A } from '../data/leagues/prem_a'
 import { PREM_B } from '../data/leagues/prem_b'
 import { TOP14_A } from '../data/leagues/top14_a'
@@ -121,6 +122,24 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     }
   }
 
+  // A player the squad files place at the wrong club is moved to the right one,
+  // carrying the entry that was authored for him. Collected in a pre-pass so
+  // the result does not depend on league order, which is the whole bug.
+  const relocate = new Map<string, RawPlayer[]>()
+  const clubIds = new Set(defs.flatMap(d => d.clubs.map(c => c.id)))
+  for (const def of defs) {
+    for (const rc of def.clubs) {
+      for (const rp of rc.players) {
+        const to = verifiedClub(rp.name)
+        if (!to || to === rc.id || !clubIds.has(to)) continue
+        const list = relocate.get(to) ?? []
+        // his old club may list him twice over; he only signs for one of them
+        if (!list.some(x => x.name === rp.name)) list.push(rp)
+        relocate.set(to, list)
+      }
+    }
+  }
+
   for (const def of defs) {
     for (const rc of def.clubs) {
       const club: Club = {
@@ -135,7 +154,15 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       }
       // bricks and mortar sized to the club's standing, before you arrive
       club.facilities = initFacilities(club, seed)
-      for (const rp of rc.players) {
+      const squad = [...rc.players]
+      // men who really play here but are listed elsewhere in the files
+      for (const rp of relocate.get(rc.id) ?? []) {
+        if (!squad.some(x => x.name === rp.name)) squad.push(rp)
+      }
+      for (const rp of squad) {
+        // he is checked, and this is not where he plays
+        const to = verifiedClub(rp.name)
+        if (to && clubIds.has(to) && to !== rc.id) continue
         // same real player supplied by two files (sabbaticals etc) - keep first
         const key = rp.name.toLowerCase()
         if (seenNames.has(key)) continue

@@ -5,6 +5,7 @@
 import { LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { CLUB_CAPTAINS, sameName } from '../src/data/captains'
+import { VERIFIED_CLUB } from '../src/data/verified'
 import { POS_ORDER, type Pos } from '../src/game/model'
 
 let fails = 0
@@ -60,6 +61,29 @@ if (dupes.length > DUPE_BUDGET) {
 if (dupes.length) {
   warn(`${dupes.length} players are listed at two clubs (${seniorDupes.length} of them between senior clubs) - that many shirts go to filler`)
   for (const d of seniorDupes) console.warn(`      ${d}`)
+}
+
+// 2b. The verified relocation table. Checking the first handful of duplicates
+//     by hand showed this is not a tie-break problem: most of them play for a
+//     THIRD club that neither file names, because parts of the squad data are a
+//     season behind. Every entry in src/data/verified.ts must therefore name a
+//     club that exists, must actually be listed somewhere in the files (or the
+//     builder has nothing to relocate), and must land where it says it does.
+const verifiedNames = Object.keys(VERIFIED_CLUB)
+const clubIds = new Set(allClubs.map(c => c.id))
+for (const [name, want] of Object.entries(VERIFIED_CLUB)) {
+  if (!clubIds.has(want)) bad(`verified table sends ${name} to ${want}, which is not a club`)
+  const listedAt = allClubs.filter(c => c.players.some(p => p.name.toLowerCase() === name)).map(c => c.id)
+  if (!listedAt.length) bad(`verified table names ${name}, who is in no squad file - nothing to relocate`)
+}
+{
+  const g = newGame('northampton', 'Data Audit', 4242)
+  for (const [name, want] of Object.entries(VERIFIED_CLUB)) {
+    const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === name)
+    if (hits.length !== 1) bad(`${name} appears ${hits.length} times in the built world, wants exactly 1`)
+    else if (hits[0].clubId !== want) bad(`${name} was built at ${hits[0].clubId}, wants ${want}`)
+  }
+  console.log(`verified relocations: ${verifiedNames.length} players placed by hand, all landed`)
 }
 
 // 3. squad quality should track reputation - a rep-90 club with a rep-60 squad
