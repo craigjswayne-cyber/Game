@@ -229,6 +229,9 @@ export interface Club {
   country: string
   stadium: string
   capacity: number
+  /** the real, opening capacity of the ground - the anchor for demandCeiling,
+   *  so a ground that has been extended cannot justify extending again */
+  capacity0?: number
   colors: [string, string]
   rep: number
   leagueId: string
@@ -422,6 +425,53 @@ export const facilityCost = (info: { base: number }, level: number) => info.base
  *  new job means inheriting that club's buildings, not carrying your own. */
 export function facLevel(state: GameState, fid: FacilityId): number {
   return state.clubs[state.userClubId]?.facilities?.[fid] ?? 0
+}
+
+/**
+ * How many people this club could put in a ground for a good game, concrete
+ * aside. Reputation and standing, not seats.
+ *
+ * Attendance used to be a pure fraction of capacity, which meant a club that
+ * filled its ground qualified to expand it, and then filled the bigger one
+ * too, for ever: a 20-season soak grew Northampton's 15,249 to 64,149 across
+ * thirteen new stands. A catchment does not grow because you laid more
+ * concrete. Once capacity passes this figure the ground stops selling out,
+ * which is what ends the spiral.
+ */
+export function demandCeiling(club: Club): number {
+  // Anchored to the club's own opening capacity, not derived from reputation.
+  // Two attempts at a rep curve both failed on real data, because how big a
+  // ground is relative to its following is a fact about the club, not about
+  // its league: Valence Romans hold 15,000 and draw a few thousand, while
+  // Franklin's Gardens sells out at 15,249. Any curve that let Valence keep
+  // its gate made Welford Road expandable to 60,000.
+  //
+  // So: the real ground is the floor, and a successful club can grow its
+  // following by a further 15% to 40%, deeper for a bigger name. Every club
+  // starts below its own ceiling, which means season one is untouched by this
+  // and only growth is policed.
+  const base = club.capacity0 ?? club.capacity
+  return Math.round(base * (1.15 + Math.max(0, club.rep - 55) / 145))
+}
+
+/** Every facility level the club holds, 0 to 40. */
+export function estateSum(club: Club | undefined): number {
+  if (!club?.facilities) return 0
+  return (Object.keys(FACILITY_INFO) as FacilityId[]).reduce((s, fid) => s + (club.facilities?.[fid] ?? 0), 0)
+}
+
+/**
+ * What it costs to open the doors each week, whether or not there is a match:
+ * the ground itself, and every building on the estate with staff inside it.
+ *
+ * This exists because a 20-season soak ended with the manager's club on £179M
+ * against an AI median of £15M, and a maxed estate (38 of 40) that had cost
+ * nothing to keep. Upgrades have to be a commitment, not a ratchet.
+ */
+export function operatingCost(state: GameState): number {
+  const club = state.clubs[state.userClubId]
+  if (!club) return 0
+  return Math.round(club.capacity * 1.1 + estateSum(club) * 1_400)
 }
 
 /**

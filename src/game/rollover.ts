@@ -1,5 +1,5 @@
 import type { GameState, Player, Pos } from './model'
-import { boardObjective, emptyStats, facLevel, fmtMoney, isWorldCupSeason, seasonLabel, XV_SLOTS } from './model'
+import { boardObjective, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -13,6 +13,53 @@ import { clamp, mulberry32, pick, type Rng } from './rng'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
+
+/**
+ * A board does not sit on cash. Over the summer, anything well beyond a
+ * healthy reserve gets spent on the club: one build on the estate, and the
+ * rest into the debt, the academy and the community programme.
+ *
+ * Written after a 20-season soak finished with the manager's club on £179M
+ * against an AI median of £15M, which makes the transfer market meaningless
+ * from about season eight. The money is not confiscated - it is spent, the
+ * news item says on what, and the terraces notice.
+ *
+ * Deliberately deterministic: no draw from the shared season rng, so adding
+ * this cannot shift any match or transfer that follows it.
+ */
+function boardReinvests(state: GameState) {
+  const club = state.clubs[state.userClubId]
+  if (!club || state.unemployed) return
+  const weekly = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+  // a full season of wages plus a float is a prudent reserve, and the manager
+  // keeps it: a first pass swept 55% above 0.6 of a season and left him poorer
+  // than the AI median, which is its own kind of wrong
+  const reserve = Math.round(weekly * SEASON_WEEKS + 4_000_000)
+  if (club.balance <= reserve * 1.5) return
+  const spend = Math.round((club.balance - reserve) * 0.4)
+  if (spend < 500_000) return
+  club.balance -= spend
+
+  // the board funds one build itself: whatever is weakest on the estate
+  const weakest = (Object.keys(FACILITY_INFO) as FacilityId[])
+    .filter(fid => (club.facilities?.[fid] ?? 0) < MAX_FACILITY)
+    .sort((a, b) => (club.facilities?.[a] ?? 0) - (club.facilities?.[b] ?? 0))[0]
+  let built: string | null = null
+  if (weakest) {
+    const lvl = club.facilities?.[weakest] ?? 0
+    if (spend >= facilityCost(FACILITY_INFO[weakest], lvl)) {
+      club.facilities = { ...(club.facilities ?? {}), [weakest]: lvl + 1 }
+      built = `${FACILITY_INFO[weakest].name} goes to level ${lvl + 1}`
+    }
+  }
+  state.fanMood = clamp((state.fanMood ?? 60) + 2, 0, 100)
+  state.news.push({
+    id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
+    subject: `💼 The board reinvests ${fmtMoney(spend)}`,
+    body: `The accounts closed in rude health, and the board has no intention of letting the money sit in a deposit account while the club stands still. ${fmtMoney(spend)} goes back into ${club.name} over the summer: ${built ? `${built}, ` : ''}the last of the ground debt cleared, the academy funded for another cycle, and the community programme kept in the schools that feed this place. Your reserve stands at ${fmtMoney(club.balance)}, which is a season of wages and change. Spend the transfer budget on players, not on interest.`,
+  })
+  logDecision(state, `Board reinvested ${fmtMoney(spend)} in the club`, true)
+}
 
 function seasonAwards(state: GameState) {
   const userLeague = state.clubs[state.userClubId].leagueId
@@ -867,8 +914,12 @@ export function rebuildSeason(state: GameState) {
     if (home.length < 5 || club.capacity >= 82_000) continue
     const avg = home.reduce((sum, f) => sum + (f.att ?? 0), 0) / home.length
     if (avg / club.capacity < 0.93 || rng() > 0.4) continue // boards dither
+    // a board will not build seats it cannot sell: the catchment is the ceiling
+    if (club.capacity >= demandCeiling(club) * 0.95) continue
     const add = Math.round((club.capacity * (0.04 + rng() * 0.06)) / 100) * 100
-    const cost = add * 1_400
+    // same per-seat curve the manager is quoted in expansionPlan: a big ground
+    // costs more per seat than a small one, which is what a flat 1,400 missed
+    const cost = add * Math.round(1_400 * (1 + club.capacity / 45_000))
     if (add < 100 || club.balance < cost * 2) continue
     club.balance -= cost
     club.capacity += add
@@ -1099,6 +1150,8 @@ export function rebuildSeason(state: GameState) {
       if (!state.players[Number(k)]) delete state.agency.best[Number(k)]
     }
   }
+
+  boardReinvests(state)
 
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {

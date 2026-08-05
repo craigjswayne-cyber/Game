@@ -1,5 +1,5 @@
 import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps } from './model'
 import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
@@ -709,9 +709,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     if (fx.stage) interest = clamp(interest + 0.08, 0.5, 0.99) // knockout fever
     // a live count, never a round sell-out figure twice
     const jitter = Math.floor(rng() * Math.max(60, hostClub.capacity * 0.012))
-    fx.att = Math.max(400, Math.round(hostClub.capacity * interest) - jitter)
+    // seats you can actually shift: the smaller of the ground and the catchment
+    const sellable = Math.min(hostClub.capacity, demandCeiling(hostClub))
+    fx.att = Math.max(400, Math.round(sellable * interest) - jitter)
     // a testimonial packs the ground whatever the fixture list says
-    if (fx.testimonial != null) fx.att = Math.max(fx.att, hostClub.capacity - jitter)
+    if (fx.testimonial != null) fx.att = Math.max(fx.att, sellable - jitter)
   }
 
   // every match started together deepens a partnership (counted at kick-off,
