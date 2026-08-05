@@ -1825,14 +1825,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    so the wrapper became the table's scrollport - and it never scrolls
    vertically, which means `position: sticky` on the th had nothing to stick
    to. Measured: at scrollTop 700 the header's top was -469, i.e. gone. Every
-   table screen has been scrolling its own headings away, and the scroll audit
-   waved the long lists through on the assumption that it did not.
+   table screen in the game had been scrolling its own headings away, and the
+   scroll audit waved the long lists through on the assumption that it did not.
 
-   The fix has to remove the wrapper's scrollport, so it only applies where the
-   table genuinely fits: landscape on a phone-width screen and up, which is how
-   this game is played. Portrait keeps the horizontal scroller, because six
-   columns will not fit 390px and a cut-off column is worse than a heading that
-   scrolls. */
+   The fix removes the wrapper's scrollport in landscape at phone width and up,
+   which is how this game is played. It is the DEFAULT, not an opt-in: a table
+   that keeps its heading is what a reader expects, and the first pass at this
+   only converted six of thirty wrappers, which left the same bug live
+   everywhere else. A table too wide to fit opts out with .wide and gets its
+   sideways scroll back - scripts/stickyaudit.mjs measures every wrapper on
+   every screen and names any that need it.
+
+   Portrait keeps the horizontal scroller throughout: six columns will not fit
+   390px, and a column cut off with no way to reach it is worse than a heading
+   that scrolls. */
 @media (orientation: landscape) and (min-width: 640px) {
-  .tblwrap.fits { overflow: visible; }
+  .tblwrap { overflow: visible; }
+  .tblwrap.wide { overflow-x: auto; }
 }

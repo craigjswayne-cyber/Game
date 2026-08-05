@@ -62,7 +62,7 @@ export default function Fixtures() {
             onClick={() => setOnly(k)}>{label}</button>
         ))}
       </div>
-      <div className="tblwrap fits"><table className="dtable">
+      <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Date</th><th>Opponent</th><th>Comp</th><th>Result</th></tr></thead>
         <tbody>
           {fx.map(f => {

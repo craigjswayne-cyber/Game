@@ -34,7 +34,7 @@ export default function Tables({ initial }: { initial?: string }) {
         <button onClick={() => go('jobs')}>Jobs</button>
       </div>
       <SectionTitle sub={comp.champion ? `Champions: ${teamShort(game, comp.champion)}` : undefined}>{comp.name}</SectionTitle>
-      <div className="tblwrap fits"><table className="dtable">
+      <div className="tblwrap"><table className="dtable">
         <thead>
           <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
             <th className="num">D</th><th className="num">L</th><th className="num">+/-</th>

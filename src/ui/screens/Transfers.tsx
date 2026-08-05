@@ -279,7 +279,7 @@ export default function Transfers() {
         <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
           onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>🏷️ Listed only</button>
       </div>
-      <div className="tblwrap fits"><table className="dtable">
+      <div className="tblwrap"><table className="dtable">
         <thead><tr>
           <th>Pos</th>
           <MTh k="name">Name</MTh>
