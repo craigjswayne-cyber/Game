@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { capBill } from '../../game/ai'
-import { AvailTag, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
 
 // FM Mobile squad layout: Pkd chip, fitness ring, starred names,
 // morale arrows, Av R and Value - with a View switcher.
@@ -112,14 +112,22 @@ export default function Squad() {
 
   return (
     <>
+      {/* the tabs and the chips ride along with the scroll: a 38-man table is
+          four screenfuls, and the controls used to sail off the top of it */}
+      <StickyControls>
       <div className="tab-bar">
         {(['selection', 'general', 'stats'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info' : 'Stats'}
           </button>
         ))}
+        {/* the squad summary rode its own 36px heading row. The tab bar has
+            three short tabs and a lot of empty space to its right. */}
+        <span className="filter-note">
+          {players.length} {group === 'aca' ? 'academy' : 'players'} · cap {fmtMoney(wageBill)}/{fmtMoney(club.wageBudget)}wk · {homegrown} homegrown{(club.marquee?.length ?? 0) ? ` · ${club.marquee!.length}⭐` : ''}
+        </span>
       </div>
-      <div style={{ display: 'flex', gap: 6, padding: '8px 14px 0', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="filter-row">
         {/* Forwards and Backs are gone (user: "you can remove forwards and backs
             as a sort here"): the list is ordered by shirt number, so 1 to 8 are
             already the forwards and 9 to 15 the backs. The chips filtered a
@@ -137,8 +145,8 @@ export default function Squad() {
           onChange={e => setQuery(e.target.value)}
           style={{ margin: 0, flex: '1 1 130px', minWidth: 110, maxWidth: 220, padding: '4px 8px', fontSize: 12 }} />
       </div>
-      <SectionTitle sub={`${players.length} players · cap ${fmtMoney(wageBill)}/${fmtMoney(club.wageBudget)}wk · ${homegrown} homegrown${(club.marquee?.length ?? 0) ? ` · ${club.marquee!.length}⭐` : ''}`}>{group === 'aca' ? 'Academy Squad' : 'Club Squad'}</SectionTitle>
-      <div className="tblwrap"><table className="dtable zebra">
+      </StickyControls>
+      <div className="tblwrap fits"><table className="dtable zebra">
         <thead>
           {view === 'selection' && (
             <tr>

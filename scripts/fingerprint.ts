@@ -16,16 +16,17 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  // Rebaselined in round GW: the verified relocation table now moves fourteen
-  // players to their real 2025-26 clubs, which changes how many men each club
-  // builds and so shifts the world-creation stream and the fixture draw. A
-  // deliberate data change, not a leak.
-  'northampton 46-24 sale',
-  'bath 24-24 newcastle',
-  'exeter 22-3 leicester',
-  'harlequins 44-38 bristol',
-  'gloucester 47-15 saracens',
-  'newcastle 7-54 northampton',
+  // Rebaselined again: the verified relocation table now moves thirty-four
+  // players to their real 2025-26 clubs (twenty added in this round), which
+  // changes how many men each club builds and so shifts the world-creation
+  // stream and the fixture draw. A deliberate data change, not a leak - the
+  // same reason it was rebaselined in round GW at fourteen.
+  'saracens 46-24 bristol',
+  'sale 27-37 gloucester',
+  'newcastle 13-12 northampton',
+  'bath 13-27 leicester',
+  'exeter 38-10 harlequins',
+  'gloucester 30-16 saracens',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

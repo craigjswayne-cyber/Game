@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import type { GameState, Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitPattern, type KitPattern } from '../game/kits'
@@ -21,13 +21,48 @@ export function BrandMark({ size = 64, inverse = false }: { size?: number; inver
   )
 }
 
-export function SectionTitle({ children, sub }: { children: ReactNode; sub?: string }) {
+/**
+ * A section heading, with an optional right-hand slot for the one action that
+ * belongs to the section.
+ *
+ * The slot exists because a lone button on its own row costs 36px of a 390px
+ * screen for a single word. Auto-Pick Best XV belongs to the Starting XV, so
+ * it sits on the Starting XV's heading.
+ */
+export function SectionTitle({ children, sub, right }: { children: ReactNode; sub?: string; right?: ReactNode }) {
   return (
     <div className="section-title">
       <span>{children}</span>
       {sub && <span className="sub">{sub}</span>}
+      {right && <span className="sect-act">{right}</span>}
     </div>
   )
+}
+
+/**
+ * A control block that stays put while a long list scrolls underneath it.
+ *
+ * The squad runs to nearly five screenfuls, so the view tabs and the filter
+ * chips were three flicks away from whoever you were looking at: to switch to
+ * the Stats columns you scrolled back to the top, and to come back you
+ * scrolled down again. The chips wrap on a narrow phone, so the block's height
+ * cannot be a constant - it publishes itself as --stickyh, which the table's
+ * own sticky column header sits directly beneath.
+ */
+export function StickyControls({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const root = document.documentElement
+    const publish = () => root.style.setProperty('--stickyh', `${el.offsetHeight}px`)
+    publish()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => { ro.disconnect(); root.style.removeProperty('--stickyh') }
+  }, [])
+  return <div className="sticky-controls" ref={ref}>{children}</div>
 }
 
 const FORWARD = new Set(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])

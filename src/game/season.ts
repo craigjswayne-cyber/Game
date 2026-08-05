@@ -567,6 +567,10 @@ function weeklyTraining(state: GameState, rng: Rng) {
     }
   }
 
+  // the physio's clean bill of health, one note for the week. Three separate
+  // "back in training" letters in one midwinter inbox told the manager the same
+  // thing three times over, and he still had to open each one to learn who.
+  const returned: Player[] = []
   for (const club of Object.values(state.clubs)) {
     const isUser = club.id === state.userClubId
     for (const id of club.players) {
@@ -587,14 +591,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
         p.rust = weeksOut >= 8 ? 3 : weeksOut >= 3 ? 2 : 1
         // academy returns are the academy coach's business - the first-team
         // inbox only hears about players the gaffer might actually pick
-        if (isUser && !p.acad) {
-          state.news.push({
-            id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-            subject: `${p.name} back in training`,
-            body: `${p.name} has recovered and is available for selection - but the medical team rate him RUSTY for ${p.rust} week${p.rust > 1 ? 's' : ''}. Pick him now and he could break down again; ease him back and he'll be right.`,
-            playerId: p.id,
-          })
-        }
+        if (isUser && !p.acad) returned.push(p)
       }
       // gentle in-season growth for youngsters, drift for user's training
       // focus. Damped near the top: without it the whole world's best 23
@@ -672,6 +669,16 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && state.matchPrep === 'recovery') p.cond = clamp(p.cond + 3.5, 20, 100)
       p.value = playerValue(p.ca, p.age, p.pa)
     }
+  }
+  if (returned.length) {
+    const one = returned.length === 1
+    const line = (p: Player) => `${p.name} (${p.pos}), rusty for ${p.rust} week${(p.rust ?? 1) > 1 ? 's' : ''}`
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+      subject: one ? `${returned[0].name} back in training` : `${returned.length} back in training`,
+      body: `${one ? 'Available for selection again' : 'Available for selection again'}: ${returned.map(line).join(', ')}. Pick a rusty man now and he could break down again; ease him back and he will be right.`,
+      playerId: returned[0].id,
+    })
   }
 }
 
@@ -1122,14 +1129,21 @@ export function processWeekAndAdvance(state: GameState) {
     // number: still-capable, a big Test career, or a POTY on the shelf
     const stars = bowing.filter(p => (p.ca >= 72 || (p.caps ?? 0) >= 25 || (p.poty ?? 0) > 0) && p.clubId !== state.userClubId)
       .sort((a, b) => b.ca - a.ca).slice(0, 2)
-    for (const p of stars) {
-      const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
-      const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
+    // two names, one story. Week 12 is already the heaviest midwinter inbox of
+    // the year and this beat was posting a separate letter for each of them.
+    if (stars.length) {
+      const cv = (p: typeof stars[0]) => {
+        const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
+        const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
+        return `${p.name} (${p.age}, ${state.clubs[p.clubId!]?.name}), ${apps} appearances${tries ? ` and ${tries} tries` : ''}`
+      }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `🎤 Signing off: ${p.name} calls time`,
-        body: `${p.name} (${p.age}, ${state.clubs[p.clubId!]?.name}) has announced this season will be his last. ${apps} appearances${tries ? ` and ${tries} tries` : ''} say everything about the career; the next few months are the farewell tour, and every ground he visits will stand for him. One last shot at silverware first.`,
-        playerId: p.id,
+        subject: stars.length === 1
+          ? `🎤 Signing off: ${stars[0].name} calls time`
+          : `🎤 Signing off: ${stars.map(p => p.name).join(' and ')} call time`,
+        body: `${stars.length === 1 ? 'One of the game\'s great careers ends in the summer' : 'Two of the game\'s great careers end in the summer'}. ${stars.map(cv).join('. ')}. The next few months are the farewell tour, and every ground they visit will stand for them. One last shot at silverware first.`,
+        playerId: stars[0].id,
       })
     }
     for (const p of bowing.filter(p => p.clubId === state.userClubId)) {

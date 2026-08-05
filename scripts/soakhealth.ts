@@ -70,6 +70,9 @@ let coursesSat = 0, coursesPassed = 0, coursesFailed = 0, staffHires = 0
 let briefsSent = 0, reportsFiled = 0, analystFollowed = 0
 // news pressure: how many items land in the inbox per week (EA v2, permanent)
 const weeklyNews: number[] = []
+// the peak week's contents, so a spike warning names the beat instead of just
+// reporting a number nobody can act on
+let peakWeek = { n: -1, label: '', subs: [] as string[] }
 // selection quality: starters wearing a shirt they cannot naturally cover.
 // Nonzero is fine in an injury crisis; a high rate means autoSelect regressed
 let oopStarts = 0, startSamples = 0
@@ -254,6 +257,12 @@ for (let season = 0; season < 20; season++) {
       }
     }
     weeklyNews.push(newThisWeek)
+    if (newThisWeek > peakWeek.n) {
+      peakWeek = {
+        n: newThisWeek, label: `s${season}w${g.week}`,
+        subs: g.news.filter(n => n.season === season && n.week === g.week).map(n => n.subject),
+      }
+    }
     // capture the season's medical/disciplinary totals before rollover wipes stats
     if (g.week === SEASON_WEEKS) {
       const ps = Object.values(g.players)
@@ -349,8 +358,33 @@ if (estate > 40) console.log(`WARN: estate above the cap: ${estate}`)
   const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0
   const max = sorted[sorted.length - 1] ?? 0
   console.log(`news pressure: mean ${mean.toFixed(1)}/wk · p95 ${p95} · max ${max}`)
-  if (mean > 10) console.log('WARN: inbox spam - mean news volume over 10 items a week')
-  if (p95 > 22) console.log('WARN: inbox spike weeks - p95 news volume over 22')
+  // the p95 tripwire sat at 22 against a real p95 of 13, so it could never
+  // fire. With the bulk beats digested (graduations, Hall of Fame inductions,
+  // promotions, free transfers, injury returns) the measured p95 is 12-13 and
+  // the peak week is 17, all of it distinct stories. 16 leaves headroom for a
+  // busy week without leaving room for a regression back to a wall of mail.
+  if (mean > 9) console.log(`WARN: inbox spam - mean news volume ${mean.toFixed(1)} items a week`)
+  if (p95 > 16) console.log(`WARN: inbox spike weeks - p95 news volume ${p95}`)
+  // A big week is not the same as a spammy week. The peak in this save is 28
+  // items and every one of them is a different story - a season kicking off,
+  // the World Cup draw, intake day, the armband changing hands. What was worth
+  // catching is a BEAT that posts one letter per subject, so the tripwire looks
+  // at the shape of the subjects rather than the count: names and numbers
+  // stripped out, three or more identical shapes in one week is a digest that
+  // never got written.
+  const shapes = new Map<string, number>()
+  for (const sub of peakWeek.subs) {
+    const key = sub.replace(/[A-Z][a-z]+(?: [A-Z][a-z']+)*/g, 'X').replace(/\d+/g, 'N').slice(0, 44)
+    shapes.set(key, (shapes.get(key) ?? 0) + 1)
+  }
+  const worst = [...shapes].sort((a, b) => b[1] - a[1])[0]
+  console.log(`peak week ${peakWeek.label}: ${peakWeek.n} items, most-repeated shape ${worst?.[1] ?? 0}x`)
+  if ((worst?.[1] ?? 0) >= 3) {
+    console.log(`WARN: ${worst![1]} near-identical items in ${peakWeek.label} - a bulk beat needs a digest`)
+    for (const [k, v] of [...shapes].sort((a, b) => b[1] - a[1]).slice(0, 6)) {
+      console.log(`        ${String(v).padStart(2)}x  ${k}`)
+    }
+  }
 }
 if (appealsWon + appealsLost > hearings) console.log('WARN: appeal verdicts without a hearing')
 if (courtPressers > taps) console.log('WARN: courtship presser fired without a tap')

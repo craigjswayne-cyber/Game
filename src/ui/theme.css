@@ -1745,3 +1745,94 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    important control in a live match and it was a bare clipboard */
 .speed-controls .ctrl-cap { font-size: 11px; font-weight: 700; letter-spacing: .3px; }
 @media (max-width: 620px) { .speed-controls .ctrl-cap { display: none; } }
+
+/* ---- controls that ride along with a long list ----
+   The squad is a 38-man table, four screenfuls deep. Its view tabs and filter
+   chips used to sail off the top, so switching to the Stats columns meant
+   scrolling up, tapping, and scrolling back down. The block publishes its own
+   height as --stickyh (the chips wrap, so it is not a constant) and the table's
+   sticky column header sits directly beneath it. */
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--paper);
+  box-shadow: 0 4px 8px -7px rgba(0, 0, 0, .55);
+}
+.sticky-controls ~ .tblwrap .dtable th { top: var(--stickyh, 0px); }
+.filter-row {
+  display: flex; gap: 6px; padding: 7px 14px 6px;
+  flex-wrap: wrap; align-items: center;
+}
+.filter-note {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 600;
+  letter-spacing: .2px; color: var(--ink-faint);
+  margin-left: auto; text-align: right;
+}
+
+/* a section's own action, on the section's own heading row */
+.section-title .sect-act { margin-left: auto; }
+.btn.tiny {
+  padding: 3px 9px; font-size: 11px; letter-spacing: .6px;
+  border-radius: 6px; min-height: 0;
+}
+
+/* ---- two columns where one column was two swipes ----
+   Both of these were measured, not guessed: the club picker ran 639px into a
+   288px content area with the badge grid and the club's card stacked, and the
+   Selection tab ran 827px with the bench sitting under a team sheet that had
+   already filled the screen. Portrait keeps the original single column. */
+.wiz-split, .sel-split { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  /* minmax(0, 1fr), never a bare 1fr: a bare 1fr is minmax(auto, 1fr), and
+     auto will not shrink a track below its content's min-content width, so
+     the right-hand column walks off the edge of the screen instead of fitting */
+  .wiz-split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px; align-items: start;
+  }
+  .wiz-split > .card { margin: 0; width: auto; }
+  .sel-split {
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 0 12px; align-items: start;
+  }
+}
+/* one card per row inside a card-grid that shares a column with a table */
+.card-grid.one { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .card-grid.one { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0 14px; }
+  .card-grid.one > .card { margin: 0; width: auto; }
+}
+/* the manager step: a narrow identity card, and the philosophy tiles wide
+   enough to stay three-up. Split 50/50 the tiles dropped to two columns and
+   the card grew taller than the one card it replaced. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wiz-split.narrow-left { grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr); }
+}
+/* captain and vice on one line each, inside one card */
+.lead-row {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0;
+}
+.lead-row .lead-tag {
+  font-family: var(--cond); font-weight: 800; font-size: 13px;
+  min-width: 22px; text-align: center; color: var(--accent-ink);
+}
+.lead-row .fact-label { min-width: 52px; }
+.lead-row .inline-input { margin: 0; flex: 1; min-width: 0; }
+
+/* ---- the sticky column header was never sticky ----
+   .tblwrap sets overflow-x: auto. CSS computes the other axis to auto with it,
+   so the wrapper became the table's scrollport - and it never scrolls
+   vertically, which means `position: sticky` on the th had nothing to stick
+   to. Measured: at scrollTop 700 the header's top was -469, i.e. gone. Every
+   table screen has been scrolling its own headings away, and the scroll audit
+   waved the long lists through on the assumption that it did not.
+
+   The fix has to remove the wrapper's scrollport, so it only applies where the
+   table genuinely fits: landscape on a phone-width screen and up, which is how
+   this game is played. Portrait keeps the horizontal scroller, because six
+   columns will not fit 390px and a cut-off column is worse than a heading that
+   scrolls. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .tblwrap.fits { overflow: visible; }
+}

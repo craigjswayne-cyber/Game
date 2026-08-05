@@ -59,8 +59,14 @@ if (dupes.length > DUPE_BUDGET) {
   bad(`${dupes.length} duplicate names, up from ${DUPE_BUDGET} - new data added a collision`)
 }
 if (dupes.length) {
-  warn(`${dupes.length} players are listed at two clubs (${seniorDupes.length} of them between senior clubs) - that many shirts go to filler`)
-  for (const d of seniorDupes) console.warn(`      ${d}`)
+  // A duplicate already named in the relocation table is not outstanding work:
+  // the builder places him by hand and drops the other listing. Reporting the
+  // raw count hid that, and the 7am audit read 33 senior duplicates when 12 of
+  // them were already resolved. Only the unresolved ones are worth printing.
+  const done = new Set(Object.keys(VERIFIED_CLUB))
+  const open = seniorDupes.filter(d => !done.has(d.slice(0, d.indexOf(':')).toLowerCase()))
+  warn(`${dupes.length} players are listed at two clubs (${seniorDupes.length} between senior clubs, ${open.length} of those not yet resolved by hand)`)
+  for (const d of open) console.warn(`      ${d}`)
 }
 
 // 2b. The verified relocation table. Checking the first handful of duplicates

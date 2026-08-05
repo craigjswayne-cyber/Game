@@ -1,4 +1,4 @@
-import type { GameState, Player, Pos } from './model'
+import type { Club, GameState, Player, Pos } from './model'
 import { boardObjective, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
@@ -209,23 +209,38 @@ function agePlayers(state: GameState, rng: Rng) {
   }
   // graduation: at 22 you're too old for the academy; AI clubs also
   // promote anyone who is clearly ready
+  // one letter for the whole intake, not one per graduate. Week 1 of a new
+  // season is the busiest inbox of the year, and three separate "X graduates"
+  // items were three of the sixteen things the manager had to read past.
+  const grads: Player[] = []
   for (const p of Object.values(state.players)) {
     if (!p.acad) continue
     if (p.age >= 22 || (p.clubId !== state.userClubId && p.ca >= 62)) {
       p.acad = false
       p.debutPending = p.stats.apps === 0 && p.career.length === 0 ? 'academy' : null
-      if (p.clubId === state.userClubId) {
-        state.news.push({
-          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-          subject: `${p.name} graduates to the first-team squad`,
-          body: `Too old for the academy, ready or not: ${p.name} (${p.age}) moves up to full first-team training. Time to sink or swim.`,
-          playerId: p.id,
-        })
-      }
+      if (p.clubId === state.userClubId) grads.push(p)
     }
+  }
+  if (grads.length) {
+    grads.sort((a, b) => b.ca - a.ca)
+    const one = grads.length === 1
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+      subject: one
+        ? `${grads[0].name} graduates to the first-team squad`
+        : `${grads.length} graduate to the first-team squad`,
+      body: one
+        ? `Too old for the academy, ready or not: ${grads[0].name} (${grads[0].age}, ${grads[0].pos}) moves up to full first-team training. Time to sink or swim.`
+        : `Too old for the academy, ready or not. Moving up to full first-team training: ${grads.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Some will sink, some will swim, and the ones you play will tell you which.`,
+      playerId: grads[0].id,
+    })
   }
 
   const userRetirees = retirees.filter(p => p.clubId === state.userClubId)
+  // the induction class arrives together, so it is announced together: four
+  // separate plaque notices were four of the fourteen items in a final week
+  // that already carries the season review, the awards and the play-offs
+  const inductees: { p: Player; apps: number; tries: number; pts: number }[] = []
   for (const p of retirees) {
     // the record book: 100+ appearances for a club earns a page in it
     const byClub = new Map<string, { apps: number; tries: number; pts: number }>()
@@ -253,12 +268,22 @@ function agePlayers(state: GameState, rng: Rng) {
         apps: tApps, tries: tTries, points: tPts,
         season: state.season, club: state.clubs[p.clubId ?? '']?.short ?? '-',
       }].sort((a, b) => score(b) - score(a)).slice(0, 50)
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `🏛 ${p.name} enters the Hall of Fame`,
-        body: `${p.name} retires with numbers that close the argument: ${tApps} appearances, ${tTries} tries, ${tPts} points. ${p.clubId === state.userClubId ? 'He finishes as one of yours - a career your club will claim for generations.' : 'The game stands to applaud one of its greats.'} His plaque goes up alongside the immortals.`,
-      })
+      inductees.push({ p, apps: tApps, tries: tTries, pts: tPts })
     }
+  }
+  if (inductees.length) {
+    const line = (i: typeof inductees[0]) => `${i.p.name} (${i.p.pos}, ${i.apps} apps, ${i.tries} tries, ${i.pts} pts)`
+    const mine = inductees.filter(i => i.p.clubId === state.userClubId)
+    const one = inductees.length === 1
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+      subject: one
+        ? `🏛 ${inductees[0].p.name} enters the Hall of Fame`
+        : `🏛 ${inductees.length} enter the Hall of Fame`,
+      body: one
+        ? `${line(inductees[0])} retires with numbers that close the argument. ${mine.length ? 'He finishes as one of yours - a career your club will claim for generations.' : 'The game stands to applaud one of its greats.'} His plaque goes up alongside the immortals.`
+        : `The class of ${state.season + 1} is confirmed. ${inductees.map(line).join('. ')}. ${mine.length ? `${mine.length === 1 ? `${mine[0].p.name} finishes` : `${mine.length} of them finish`} as ${mine.length === 1 ? 'one of yours' : 'yours'} - careers your club will claim for generations.` : 'The game stands to applaud them all.'} The plaques go up alongside the immortals.`,
+    })
   }
   for (const p of retirees) {
     const clubId = p.clubId
@@ -355,6 +380,7 @@ function clubServiceApps(state: GameState, p: Player): number {
 
 function handleContracts(state: GameState, rng: Rng) {
   // pre-contracts go through first: the moves were agreed in the spring
+  const freeMoves: { p: Player; to: Club; from: Club | null }[] = []
   for (const pc of state.preContracts ?? []) {
     const p = state.players[pc.playerId]
     const to = state.clubs[pc.toClubId]
@@ -375,13 +401,23 @@ function handleContracts(state: GameState, rng: Rng) {
     p.debutPending = 'signing'
     if (to.id === state.userClubId) { p.sc = 100; state.mgr.signings += 1 }
     if (to.id === state.userClubId || from?.id === state.userClubId) {
-      state.news.push({
-        id: state.nextId++, week: 1, season: state.season + 1, type: 'transfer', read: false,
-        subject: `${p.name} joins ${to.name} on a free`,
-        body: `The pre-contract agreed in the spring goes through: ${p.name} arrives at ${to.name} for nothing, on ${fmtMoney(p.wage)}/week until ${2026 + p.contractEnds}. ${from ? `${from.short} watch a ${fmtMoney(p.value)} asset walk out the door.` : ''}`,
-        playerId: p.id,
-      })
+      freeMoves.push({ p, to, from })
     }
+  }
+  // a summer of pre-contract business arrives on one page. Three of these in a
+  // single week-1 inbox were three separate letters saying the same thing.
+  if (freeMoves.length) {
+    const one = freeMoves.length === 1
+    const line = (m: typeof freeMoves[0]) =>
+      `${m.p.name} (${m.p.pos}, ${m.p.age}) to ${m.to.name} on ${fmtMoney(m.p.wage)}/week until ${2026 + m.p.contractEnds}${m.from ? `, leaving ${m.from.short} watching a ${fmtMoney(m.p.value)} asset walk out the door` : ''}`
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'transfer', read: false,
+      subject: one
+        ? `${freeMoves[0].p.name} joins ${freeMoves[0].to.name} on a free`
+        : `${freeMoves.length} free transfers go through`,
+      body: `${one ? 'The pre-contract agreed in the spring goes through' : 'The pre-contracts agreed in the spring go through'}: ${freeMoves.map(line).join('. ')}. Not a penny changed hands.`,
+      playerId: freeMoves[0].p.id,
+    })
   }
   state.preContracts = []
 
@@ -1010,6 +1046,11 @@ export function rebuildSeason(state: GameState) {
     ['champ', 'natl1', 'the Championship'],
     ['top14', 'prod2', 'the Top 14'],
   ]
+  // your own promotion or relegation is the story of the season and keeps its
+  // own headline. The other divisions' movements are one round-up: three
+  // near-identical "X up, Y down" items were three of the fourteen in the
+  // final week of the year.
+  const swaps: string[] = []
   for (const [topId, lowId, topName] of PYRAMID) {
     const topComp = state.comps[topId]
     const lowComp = state.comps[lowId]
@@ -1030,14 +1071,23 @@ export function rebuildSeason(state: GameState) {
       }
     }
     const userInvolved = down === state.userClubId || up === state.userClubId
+    if (!userInvolved) {
+      swaps.push(`${topName}: ${state.clubs[up].name} up, ${state.clubs[down].name} down`)
+      continue
+    }
     state.news.push({
-      id: state.nextId++, week: state.week, season: state.season, type: userInvolved ? 'board' : 'general', read: false,
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: down === state.userClubId
         ? `💔 RELEGATED: ${state.clubs[down].name} go down`
-        : up === state.userClubId
-          ? `🎉 PROMOTED: ${state.clubs[up].name} are going up!`
-          : `Promotion & relegation: ${state.clubs[up].short} up, ${state.clubs[down].short} down`,
+        : `🎉 PROMOTED: ${state.clubs[up].name} are going up!`,
       body: `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`,
+    })
+  }
+  if (swaps.length) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `Up and down: the trapdoors swing across the leagues`,
+      body: `${swaps.join('. ')}. Fortunes made and unmade in a single afternoon, and next season's fixture lists are redrawn accordingly.`,
     })
   }
 
