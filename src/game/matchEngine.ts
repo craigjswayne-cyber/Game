@@ -1427,6 +1427,42 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   return `${pin.name} will come on for ${pout.name}.`
 }
 
+/** Override the man the assistant sent on to cover an injury.
+ *
+ *  The engine has to fill the hole itself the instant a man breaks down: the
+ *  same code runs for the fourteen AI sides and for Instant Result, where
+ *  nobody is watching. So for a serious injury the UI stops the clock, shows the
+ *  match-day squad and lets this undo the assistant's pick.
+ *
+ *  It is free. The injury forced the change, so charging a tactical replacement
+ *  for disagreeing about who covers would be a punishment for paying attention.
+ *  Only legal while the replacement has not yet played a minute, which is why
+ *  the UI only offers it at the moment of the injury. */
+export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, inId: number): string {
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  if (ctx.seg === 3) return 'The match is over.'
+  const slotOn = mine.lineup.indexOf(onId)
+  const slotIn = mine.lineup.indexOf(inId)
+  const pon = state.players[onId]
+  const pin = state.players[inId]
+  if (slotOn < 0 || slotOn > 14 || !pon || !mine.onPitch.has(onId)) return 'He is not on the pitch.'
+  if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId)) return 'He is not available.'
+  mine.lineup[slotOn] = inId
+  if (slotIn >= 0) mine.lineup[slotIn] = onId
+  mine.onPitch.delete(onId)
+  mine.onPitch.add(inId)
+  // He never actually got on, so he goes back to being a bench option rather
+  // than carrying a rating for a cameo that did not happen.
+  mine.ratings.delete(onId)
+  mine.energy.delete(onId)
+  mine.ratings.set(inId, 6)
+  mine.energy.set(inId, Math.max(60, pin.cond))
+  recomputeSideUnits(state, ctx, mine)
+  pushEvent(state, ctx, Math.min(79, Math.max(1, ctx.lastMin)), 'SUB', mine,
+    `Change of plan on the touchline: ${pin.name} goes on instead of ${pon.name}.`, pin.id)
+  return `${pin.name} takes the shirt instead of ${pon.name}.`
+}
+
 /** Rebuild a side's unit strengths from its current lineup, tactics and conditions. */
 export function recomputeSideUnits(state: GameState, ctx: LiveCtx, side: SideCtx) {
   side.units = teamUnits(state, side.lineup)

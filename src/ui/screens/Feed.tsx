@@ -30,10 +30,10 @@ export default function Feed() {
 
   return (
     <>
-      <div className="wire-mast">
-        <span className="wire-brand">THE RUGBY WIRE</span>
-        <span className="wire-sub">rumours · fallouts · terrace talk</span>
-      </div>
+      {/* No masthead here. The top bar already says The Rugby Wire, and saying
+          it again in 21px double-ruled caps cost about a story's worth of a
+          390px-tall phone (user: "do we need the rugby wire twice"). The
+          tagline went with it: nobody needs telling twice what the page is. */}
       <div className="tab-bar">
         {([['all', 'All Stories'], ['rumours', 'Rumour Mill'], ['club', 'Your Club']] as const).map(([k, label]) => (
           <button key={k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>{label}</button>

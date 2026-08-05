@@ -1274,6 +1274,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .form-chip {
   position: absolute;
+  left: var(--fx); top: var(--fy);
   transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center;
   min-width: 64px; padding: 4px 7px;
@@ -2016,4 +2017,91 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding-right: 14px; padding-left: 10px;
   flex: 0 1 auto; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---- Live match settings sheet (feedback 9-4) --------------------------
+   The control row was seven buttons wide, and one of the three speed buttons
+   was labelled '▶' - the same glyph play/pause shows when paused. Speed and
+   sound now live in here, so the row is four buttons and none of them repeat. */
+.set-label {
+  font-family: var(--cond); font-size: 11px; letter-spacing: 1.2px;
+  text-transform: uppercase; opacity: .62; margin: 8px 2px 5px;
+}
+/* four buttons fit their captions at every landscape width we support, so the
+   captions no longer vanish on a narrow phone - that hiding rule existed only
+   because seven buttons could not fit */
+.speed-controls .ctrl-cap { display: inline; }
+
+/* ---- Match-day squad sheet (feedback 9-2) ------------------------------
+   Two columns, the XV and the bench, so a change is two taps and several
+   changes are one visit. Tuned for a 300px-tall landscape phone: the columns
+   scroll, the header and the Done button do not. */
+.squad-sheet { max-height: 94vh; display: flex; flex-direction: column; }
+.sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.sheet-head h3 { font-size: 16px; margin: 2px 0; }
+.sheet-hint { margin: 2px 0 6px; }
+.sheet-cols {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px; flex: 1; min-height: 0;
+}
+.sheet-col { min-width: 0; overflow-y: auto; }
+.sheet-row {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  padding: 5px 7px; margin-bottom: 3px;
+  border: 1px solid var(--cream-3); border-radius: 7px;
+  background: var(--paper); color: inherit;
+  font-size: 12px; text-align: left; cursor: pointer;
+}
+.sheet-row:disabled { opacity: .4; cursor: default; }
+.sheet-row.armed { border-color: var(--gold); box-shadow: inset 0 0 0 2px var(--gold); }
+.sheet-row.cover { border-color: #2f7d4f; }
+.sh-num {
+  flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 11px;
+  letter-spacing: .5px; opacity: .7;
+}
+.sh-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-flag { flex: 0 0 auto; font-size: 11px; }
+.sh-rate { flex: 0 0 26px; text-align: right; font-variant-numeric: tabular-nums; opacity: .75; }
+.sh-nrg { flex: 0 0 32px; text-align: right; font-variant-numeric: tabular-nums; }
+.sh-nrg.amber { color: #c9a227; }
+.sh-nrg.red { color: #e05a4d; font-weight: 700; }
+.sheet-log { margin-top: 4px; }
+.app.night .sheet-row { background: #101c30; border-color: #26374f; }
+
+/* ---- the tactics pitch was the wrong way round (feedback 9-5) ----------
+   A vertical half-pitch, 430px tall, on a phone whose content area is about
+   320px: the pitch filled the whole screenful and every slider on the page -
+   the reason you opened Tactics - sat below the fold. densityaudit measured 12%
+   ink on the first screenful, the lowest score in the game.
+   Landscape has width to spare and no height, so the pitch turns on its side.
+   The SPOTS numbers stay in one orientation and the axes swap here, so there is
+   still only one formation to reason about. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .form-pitch { height: 232px; margin: 6px 14px; }
+  .form-chip { left: var(--fy); top: var(--fx); }
+  /* halfway and the 22 run down the pitch now, not across it */
+  .form-pitch::before {
+    left: 40%; right: auto; top: 0; bottom: 0;
+    border-top: none; border-left: 1px dashed rgba(255, 255, 255, .16);
+  }
+  .form-pitch::after {
+    left: 5%; right: auto; top: 0; bottom: 0;
+    border-top: none; border-left: 1px solid rgba(255, 255, 255, .2);
+  }
+}
+
+/* ---- landscape density trim (feedback 9-5) -----------------------------
+   "i still think there is far too much space wasted in this game with boxes."
+   densityaudit puts the average first-screenful ink at about 50%: half the
+   phone's short side is padding, margin and gap. A card on a 390px-tall screen
+   was paying 9px of margin top and bottom plus 11px of padding, so four stacked
+   cards spent 160px on nothing before a word was written.
+   This is deliberately small and uniform rather than clever. Anything bigger
+   starts breaking the tap targets, and the last four times a layout got smart
+   about landscape it produced a bug the audits had to find. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .card { margin: 6px 12px; padding: 8px 11px; }
+  .card h3 { font-size: 15.5px; margin-bottom: 1px; }
+  .fact-grid label, .fact-label { margin-bottom: 1px; }
+  .section-title { padding-top: 6px; padding-bottom: 4px; }
 }

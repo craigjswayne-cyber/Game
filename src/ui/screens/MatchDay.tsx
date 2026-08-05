@@ -67,7 +67,8 @@ function Preview({ fxId }: { fxId: number }) {
    * room is the first thing you walk into, once per match, and you can still
    * shut the door and come back to the tab.
    */
-  const [talkOpen, setTalkOpen] = useState(true)
+  const [talkOpen, setTalkOpen] = useState(false)
+  const [talkDone, setTalkDone] = useState(false)
 
   const fx = game.fixtures.find(f => f.id === fxId)!
   const comp = game.comps[fx.compId]
@@ -244,10 +245,23 @@ function Preview({ fxId }: { fxId: number }) {
     touch()
   }
 
-  // no warnings, speech chosen: nothing to confirm - straight down the tunnel
-  const tryKickOff = () => {
-    if (warnings.length === 0) kickOff(speech ?? undefined)
+  /**
+   * Kick Off is the moment the dressing room happens (user: "the team talk
+   * should come as you press kick off").
+   *
+   * It used to open on arrival, which put a modal between the manager and the
+   * team sheet he came to look at. Now it is the last thing before the tunnel:
+   * press Kick Off, say your piece, and go. The speech is passed straight
+   * through rather than read back off state, because setState has not landed
+   * by the time we need it.
+   */
+  const goDownTheTunnel = (sp: SpeechId | null) => {
+    if (warnings.length === 0) kickOff(sp ?? undefined)
     else setConfirm(true)
+  }
+  const tryKickOff = () => {
+    if (!talkDone && !speech) { setTalkOpen(true); return }
+    goDownTheTunnel(speech)
   }
 
   const bar = (label: string, mine: number, theirs: number) => {
@@ -732,7 +746,10 @@ function Preview({ fxId }: { fxId: number }) {
               <div className="speech-grid">
                 {SPEECHES.map(sp => (
                   <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
-                    onClick={() => { setSpeech(sp.id); setTalkOpen(false) }}>
+                    onClick={() => {
+                      setSpeech(sp.id); setTalkDone(true); setTalkOpen(false)
+                      goDownTheTunnel(sp.id)
+                    }}>
                     <span className="ico">{sp.icon}</span>
                     <b>{sp.name}</b>
                     <span className="d">{sp.desc}</span>
@@ -740,8 +757,8 @@ function Preview({ fxId }: { fxId: number }) {
                 ))}
               </div>
               <button className="btn ghost block" style={{ marginTop: 8 }}
-                onClick={() => setTalkOpen(false)}>
-                Say nothing for now
+                onClick={() => { setTalkDone(true); setTalkOpen(false); goDownTheTunnel(null) }}>
+                Say nothing - straight out
               </button>
             </div>
           </div>
@@ -942,10 +959,15 @@ function NationPreview({ fxId }: { fxId: number }) {
 // Live match
 // ------------------------------------------------------------------
 
+// Speeds live behind the ⚙ button now. They used to be three buttons on the
+// control row, and the slowest of them was labelled '▶' - the same glyph the
+// play/pause button shows when the match is paused, so the row genuinely had
+// two play buttons on it. Words instead of glyphs, inside a settings sheet:
+// speed is something you set once, not something you reach for every minute.
 const SPEEDS = [
-  { label: '▶', ms: 900, name: 'Slow' },
-  { label: '▶▶', ms: 350, name: 'Normal speed' },
-  { label: '▶▶▶', ms: 90, name: 'Fast' },
+  { label: 'Slow', ms: 900, name: 'Slow - a minute at a time' },
+  { label: 'Normal', ms: 350, name: 'Normal - the default' },
+  { label: 'Fast', ms: 90, name: 'Fast - straight to the incidents' },
 ]
 
 /** XV formation spots: [x across own half 0-100, y down the pitch 0-100] */
@@ -1145,8 +1167,10 @@ function Live() {
   const [speedIdx, setSpeedIdx] = useState(0)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
+  const [settings, setSettings] = useState(false)
   const [showLog, setShowLog] = useState(false)
   const [showRatings, setShowRatings] = useState(false)
+  const [injury, setInjury] = useState<{ hurt: string; desc: string; weeks: number; coverId: number | null } | null>(null)
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -1177,6 +1201,31 @@ function Live() {
   // stadium sound & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
     if (last && speedIdx < 2 && playing) matchSfx(last.type)
+  }, [cursor])
+
+  // A serious injury stops the clock and opens the match-day squad (feedback
+  // 9-3). The engine had to fill the hole the instant he went down - the same
+  // code covers fourteen AI sides and Instant Result - so the assistant's pick
+  // is already on. This hands the decision back: swap the cover for free, and
+  // reshape the rest of the side while the physios are on.
+  //
+  // Only for a lay-off of three weeks or more. A one-week knock happens most
+  // matches and stopping the game for it would be nagging, not managing.
+  const injSeen = useRef<number>(-1)
+  useEffect(() => {
+    if (cursor <= 0 || cursor <= injSeen.current) return
+    const e = events[cursor - 1]
+    if (!e || e.type !== 'INJ' || e.teamId !== ctx.userSideId || e.playerId == null) return
+    const hurt = game.players[e.playerId]
+    const weeks = hurt?.injury?.weeks ?? 0
+    if (!hurt?.injury || weeks < 3) return
+    // whoever the assistant sent on: the SUB the engine pushed alongside it
+    const coverEv = events.slice(cursor - 1, cursor + 3).find(x => x.type === 'SUB' && x.teamId === e.teamId && x.playerId != null)
+    injSeen.current = cursor
+    matchCursor(cursor, false)
+    setDrawer(false)
+    setSettings(false)
+    setInjury({ hurt: hurt.name, desc: hurt.injury.desc, weeks, coverId: coverEv?.playerId ?? null })
   }, [cursor])
 
   useEffect(() => {
@@ -1278,35 +1327,66 @@ function Live() {
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC} />
       )}
 
+      {/* One row, four jobs: play, skip, touchline, settings. Speed and sound
+          moved into the settings sheet - they are set once a season, and having
+          them out here is what put two ▶ buttons side by side. */}
       <div className="speed-controls">
         {/* the whistle has gone: playback controls make no sense at FT */}
-        {!done && SPEEDS.map((s, i) => (
-          <button key={i} className={`btn ${i === speedIdx && playing ? 'gold' : 'ghost'}`}
-            title={s.name} aria-label={s.name}
-            onClick={() => { setSpeedIdx(i); setDrawer(false); matchCursor(cursor, true) }}>{s.label}</button>
-        ))}
         {!done && (
-          <button className="btn ghost" title={playing ? 'Pause' : 'Resume'} aria-label={playing ? 'Pause' : 'Resume'}
+          <button className={`btn ${playing ? 'ghost' : 'gold'}`} style={{ flex: 1.2 }}
+            title={playing ? 'Pause' : 'Resume'} aria-label={playing ? 'Pause' : 'Resume'}
             onClick={() => matchCursor(cursor, !playing)}>
-            {playing ? '❚❚' : '▶'}
+            {playing ? '❚❚' : '▶'} <span className="ctrl-cap">{playing ? 'Pause' : 'Play'}</span>
           </button>
         )}
+        {!done && <button className="btn" style={{ flex: 1.2 }} onClick={() => { setDrawer(false); setSettings(false); skipToBreak() }}>Skip ▸</button>}
         {!done && ctx.seg < 3 && (
-          <button className={`btn ${drawer ? 'gold' : 'ghost'}`}
+          <button className={`btn ${drawer ? 'gold' : 'ghost'}`} style={{ flex: 1.2 }}
             title="Touchline: change tactics or make substitutions"
             aria-label="Touchline: change tactics or make substitutions"
             onClick={() => {
               if (!drawer) matchCursor(cursor, false)
+              setSettings(false)
               setDrawer(!drawer)
             }}>📋 <span className="ctrl-cap">Touchline</span></button>
         )}
-        <button className="btn ghost" title={sound ? 'Sound on' : 'Sound off'}
-          aria-label={sound ? 'Sound on' : 'Sound off'}
-          onClick={() => setSound(toggleSound())}>
-          {sound ? '🔊' : '🔇'}
-        </button>
-        {!done && <button className="btn" onClick={() => { setDrawer(false); skipToBreak() }}>Skip ▸</button>}
+        <button className={`btn ${settings ? 'gold' : 'ghost'}`} style={{ flex: '0 0 46px' }}
+          title="Match settings: speed and sound" aria-label="Match settings: speed and sound"
+          onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
       </div>
+
+      {injury && (
+        <SquadSheet
+          title={`🏥 ${injury.hurt} is off`}
+          note={`${injury.desc} - out for ${injury.weeks} week${injury.weeks === 1 ? '' : 's'}.`}
+          freeCoverId={injury.coverId ?? undefined}
+          onClose={() => { setInjury(null); matchCursor(cursor, true) }}
+        />
+      )}
+
+      {settings && (
+        <div className="modal-veil" onClick={() => setSettings(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="grab" />
+            <h3 style={{ fontSize: 16, margin: '2px 0 8px' }}>Match Settings</h3>
+            <div className="set-label">Commentary speed</div>
+            <div className="btn-row">
+              {SPEEDS.map((s, i) => (
+                <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                  title={s.name} onClick={() => setSpeedIdx(i)}>{s.label}</button>
+              ))}
+            </div>
+            <div className="set-label">Sound</div>
+            <button className="btn ghost block" onClick={() => setSound(toggleSound())}>
+              {sound ? '🔊 Crowd and whistle on' : '🔇 Silent'}
+            </button>
+            <button className="btn gold block" style={{ marginTop: 10 }}
+              onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>
+              {done ? 'Close' : '▸ Back to the Match'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {!panelActive && (
         <div className="now-strip">
@@ -1564,17 +1644,14 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
 }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
-  const { teamTalk, halfTimeSub, liveTactics, touch } = useStore.getState()
-  const [subMsg, setSubMsg] = useState<string | null>(null)
-  const [outId, setOutId] = useState<number | ''>('')
-  const [inId, setInId] = useState<number | ''>('')
+  const { teamTalk, liveTactics, touch } = useStore.getState()
+  const [squadOpen, setSquadOpen] = useState(false)
   const [explain, setExplain] = useState<string | null>(null)
 
   const ctx = live.ctx
   const club = game.clubs[game.userClubId]
   const isClubMatch = ctx.userSideId === game.userClubId
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const starters = mine.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter(Boolean)
   const bench = mine.lineup.slice(15).map(id => id != null ? game.players[id] : null)
     .filter(p => p && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
 
@@ -1673,30 +1750,140 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {explain && <div className="meta" style={{ margin: '6px 0' }}>{explain}</div>}
       </>}
 
-      <div className="fact-label" style={{ marginTop: 12 }}>Substitution ({5 - ctx.subsUsed} left)</div>
-      <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-        <select className="inline-input" style={{ margin: 0 }} value={outId} onChange={e => setOutId(Number(e.target.value))}>
-          <option value="">Off…</option>
-          {starters.map(p => p && mine.onPitch.has(p.id) && (
-            <option key={p.id} value={p.id}>
-              {p.name} · {Math.round(mine.energy.get(p.id) ?? 70)}%
-            </option>
-          ))}
-        </select>
-        <select className="inline-input" style={{ margin: 0 }} value={inId} onChange={e => setInId(Number(e.target.value))}>
-          <option value="">On…</option>
-          {bench.map(p => p && <option key={p.id} value={p.id}>{p.name} ({p.pos})</option>)}
-        </select>
-        <button className="btn" disabled={!outId || !inId || ctx.subsUsed >= 5}
-          onClick={() => { if (outId && inId) { setSubMsg(halfTimeSub(outId, inId)); setOutId(''); setInId('') } }}>
-          Make
-        </button>
-      </div>
+      {/* One button into the match-day squad, where several changes can be made
+          in one visit. This used to be two dropdowns and a Make button: one sub
+          per trip, no shirt numbers, no sight of who was carrying a knock. */}
+      <div className="fact-label" style={{ marginTop: 12 }}>Replacements ({5 - ctx.subsUsed} of 5 left)</div>
+      <button className="btn ghost block" style={{ marginTop: 6 }} disabled={ctx.subsUsed >= 5}
+        onClick={() => setSquadOpen(true)}>
+        🔁 {ctx.subsUsed >= 5 ? 'All five changes used' : 'Match-Day Squad - make replacements'}
+      </button>
       <EnergyBars mine={mine} />
-      {subMsg && <div className="meta" style={{ marginTop: 6 }}>{subMsg}</div>}
+      {squadOpen && <SquadSheet onClose={() => setSquadOpen(false)} />}
       <button className="btn gold block" style={{ margin: '14px 0 2px', width: '100%' }} onClick={onResume}>
         {resumeLabel}
       </button>
+    </div>
+  )
+}
+
+/** The match-day squad, mid-match: the XV on the left, the bench on the right,
+ *  tap one then the other to make a change, and keep going until the five are
+ *  gone or you are happy.
+ *
+ *  It replaces a pair of <select> dropdowns and a Make button. Those could only
+ *  do one change per visit to the panel, showed no shirt number, no rating and
+ *  no sign of who had picked up a knock, and gave the bench in squad order
+ *  rather than telling you who actually covered the shirt you were emptying.
+ *
+ *  `forcedOffId` is the injury flow (feedback 9-3): when a man goes down badly
+ *  the sheet opens with him already armed, so the only decision left is who
+ *  comes on. */
+export function SquadSheet({ onClose, freeCoverId, title, note }: {
+  onClose: () => void
+  /** The man the assistant sent on to cover an injury. Swapping him is free. */
+  freeCoverId?: number
+  title?: string
+  note?: string
+}) {
+  const game = useStore(s => s.game)!
+  const live = useStore(s => s.liveMatch)!
+  const { halfTimeSub, injuryCover } = useStore.getState()
+  const [offId, setOffId] = useState<number | null>(freeCoverId ?? null)
+  const [freeLeft, setFreeLeft] = useState(freeCoverId != null)
+  const [log, setLog] = useState<string[]>([])
+
+  const ctx = live.ctx
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  const left = 5 - ctx.subsUsed
+
+  // The XV in shirt order, because that is how a team sheet reads and how the
+  // man you are looking for is found.
+  const xv = mine.lineup.slice(0, 15).map((id, i) => ({
+    shirt: i + 1,
+    p: id != null ? game.players[id] : null,
+  })).filter((r): r is { shirt: number; p: Player } => !!r.p)
+
+  const bench = mine.lineup.slice(15)
+    .map(id => (id != null ? game.players[id] : null))
+    .filter((p): p is Player => !!p && !p.injury && !mine.onPitch.has(p.id) && !mine.ratings.has(p.id))
+
+  const off = offId != null ? game.players[offId] : null
+  // Natural cover first, same as the engine's own bench discipline, so the
+  // like-for-like choice is the one at the top of the list.
+  const covers = (p: Player) => !!off && (p.pos === off.pos || p.alt.includes(off.pos))
+  const benchSorted = [...bench].sort((a, b) => Number(covers(b)) - Number(covers(a)) || b.ca - a.ca)
+
+  // Swapping the injury cover is free and does not burn one of the five, so it
+  // routes through injuryCover rather than a normal substitution.
+  const isFreeSwap = freeLeft && offId != null && offId === freeCoverId
+  const doSub = (inP: Player) => {
+    if (offId == null) return
+    const msg = isFreeSwap ? injuryCover(offId, inP.id) : halfTimeSub(offId, inP.id)
+    if (isFreeSwap) setFreeLeft(false)
+    setLog(l => [msg, ...l].slice(0, 4))
+    setOffId(null)
+  }
+
+  return (
+    <div className="modal-veil" onClick={onClose}>
+      <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
+        <div className="grab" />
+        <div className="sheet-head">
+          <h3>{title ?? 'Match-Day Squad'}</h3>
+          <span className="meta">{left} change{left === 1 ? '' : 's'} left</span>
+        </div>
+        <div className="meta sheet-hint">
+          {note ? <>{note}{' '}</> : null}
+          {isFreeSwap && off ? `The assistant has sent ${off.name} on. Tap someone else to change it, free of charge, or tap him again to keep him.`
+            : off ? `${off.name} is coming off. Now tap his replacement.`
+            : left <= 0 ? 'No tactical replacements left.'
+            : 'Tap a man on the pitch, then tap who comes on for him.'}
+        </div>
+        <div className="sheet-cols">
+          <div className="sheet-col">
+            <div className="fact-label">On the Pitch</div>
+            {xv.map(({ shirt, p }) => {
+              const on = mine.onPitch.has(p.id)
+              const e = Math.round(mine.energy.get(p.id) ?? 70)
+              const r = mine.ratings.get(p.id)
+              const binned = (mine.yellowUntil.get(p.id) ?? 0) > ctx.tick * 4
+              // the free injury swap stays available even with all five used
+              const canFree = freeLeft && p.id === freeCoverId
+              return (
+                <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
+                  disabled={!on || (left <= 0 && !canFree)}
+                  onClick={() => setOffId(offId === p.id ? null : p.id)}>
+                  <span className="sh-num">{shirt}</span>
+                  <span className="sh-name">{p.name}</span>
+                  {binned && <span className="sh-flag" title="In the bin">🟨</span>}
+                  {p.injury && <span className="sh-flag" title="Injured">🏥</span>}
+                  {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
+                  <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
+                </button>
+              )
+            })}
+          </div>
+          <div className="sheet-col">
+            <div className="fact-label">Bench{off ? ` - cover for ${off.pos}` : ''}</div>
+            {benchSorted.length === 0 && <div className="meta">The bench is empty.</div>}
+            {benchSorted.map(p => (
+              <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
+                disabled={!off || (left <= 0 && !isFreeSwap)}
+                onClick={() => doSub(p)}>
+                <span className="sh-num">{p.pos}</span>
+                <span className="sh-name">{p.name}</span>
+                {off && covers(p) && <span className="sh-flag" title="Natural cover">✓</span>}
+                <span className="sh-rate">{p.ca}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {log.map((m, i) => <div key={i} className="meta sheet-log">{m}</div>)}
+        <button className="btn gold block" style={{ marginTop: 8 }} onClick={onClose}>
+          {log.length ? `▸ Done (${log.length} change${log.length === 1 ? '' : 's'} made)` : '▸ Back to the Match'}
+        </button>
+      </div>
     </div>
   )
 }
