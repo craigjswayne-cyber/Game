@@ -54,6 +54,8 @@ try {
 
   // player profile
   await page.click('.dtable tbody tr >> nth=0')
+  await page.waitForSelector('.tab-bar')
+  await page.click('.tab-bar >> text=Attributes')
   await page.waitForSelector('text=Set Piece & Contact')
   await shot('06b-player')
   await page.click('.back-btn')
@@ -110,7 +112,7 @@ try {
   // club infrastructure: the estate on one page
   await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Club Infrastructure')
-  await page.waitForSelector('text=League Estates')
+  await page.waitForSelector('text=Facilities')
   await shot('06i-infrastructure')
   await page.locator('text=🏛 Ask board').first().click()
   await page.waitForTimeout(300)

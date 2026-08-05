@@ -23,6 +23,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [wageOffer, setWageOffer] = useState(0)
   const [wageCounter, setWageCounter] = useState<number | null>(null)
   const [compare, setCompare] = useState(false)
+  // three pages instead of one long scroll (user: fewer scrolls, more pages)
+  const [ptab, setPtab] = useState<'profile' | 'attrs' | 'career'>('profile')
 
   const p = game.players[playerId]
   if (!p) return <div className="muted" style={{ padding: 14 }}>Player no longer in the game world (retired or released).</div>
@@ -49,6 +51,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
   return (
     <>
+      <div className="tab-bar">
+        <button className={ptab === 'profile' ? 'active' : ''} onClick={() => setPtab('profile')}>Profile</button>
+        <button className={ptab === 'attrs' ? 'active' : ''} onClick={() => setPtab('attrs')}>Attributes</button>
+        <button className={ptab === 'career' ? 'active' : ''} onClick={() => setPtab('career')}>Career</button>
+      </div>
+      {ptab === 'profile' && <>
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
@@ -98,8 +106,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.onLoan && <span className="chip" style={{ color: '#a8841a' }}>Away on season loan</span>}
         {p.transferListed && <span className="chip" style={{ color: '#a8841a' }}>Transfer listed</span>}
       </div>
+      </>}
 
-      {rival && (
+      {ptab === 'attrs' && rival && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ flex: 1 }}>
             <div className="fact-label">Compare</div>
@@ -113,6 +122,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </button>
         </div>
       )}
+      {ptab === 'attrs' && <>
       <SectionTitle sub={compare && rival ? `${rival.name.split(' ').slice(-1)[0]}'s numbers beside each chip` : 'the full picture, FM style · 0-100'}>Attributes</SectionTitle>
       <div className="fm-attrs">
         {groups.map(([title, keys]) => (
@@ -140,6 +150,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         ))}
       </div>
 
+      </>}
+      {ptab === 'profile' && <>
       <SectionTitle sub={`avg rating ${avg ? avg.toFixed(2) : '-'}`}>This Season</SectionTitle>
       <div className="chips">
         <span className="chip">Apps <b>{p.stats.apps}</b> ({p.stats.starts} starts)</span>
@@ -187,7 +199,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         })()}
       </div>
 
-      {(p.career.length > 0 || (p.hist?.apps ?? 0) > 0) && (
+      </>}
+      {ptab === 'career' && (p.career.length > 0 || (p.hist?.apps ?? 0) > 0) && (
         <>
           <SectionTitle>Career</SectionTitle>
           <div className="tblwrap"><table className="dtable">
