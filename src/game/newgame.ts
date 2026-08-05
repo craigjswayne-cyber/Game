@@ -22,6 +22,7 @@ import { punditPredictions } from './gossip'
 import { CHEM_SLOTS, chemKey, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
+import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
 import { mulberry32 } from './rng'
 
@@ -260,6 +261,17 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   schedulePreseason(state, rng)
   seedExClubs(state)
   seedKnowledge(state)
+  // the real 2025-26 skippers wear the armband, and a captain of men is given
+  // the leadership to match. Names that are not in the squad simply pass over,
+  // and ensureCaptains fills every club the list does not cover.
+  for (const [cid, capName] of Object.entries(CLUB_CAPTAINS)) {
+    const club = state.clubs[cid]
+    if (!club) continue
+    const man = club.players.map(id => state.players[id]).find(p => p && sameName(p.name, capName))
+    if (!man) continue
+    club.captain = man.id
+    man.a.lea = Math.max(man.a.lea, 15)
+  }
   ensureCaptains(state, true)
   state.objectives = pickObjectives(state)
   state.tenureStart = 0
