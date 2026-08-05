@@ -146,7 +146,7 @@ export default function Squad() {
           style={{ margin: 0, flex: '1 1 130px', minWidth: 110, maxWidth: 220, padding: '4px 8px', fontSize: 12 }} />
       </div>
       </StickyControls>
-      <div className="tblwrap fits"><table className="dtable zebra">
+      <div className="tblwrap"><table className="dtable zebra">
         <thead>
           {view === 'selection' && (
             <tr>

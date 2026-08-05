@@ -51,7 +51,7 @@ export default function Nations() {
       {comp && comp.table.length > 0 && (
         <>
           <SectionTitle sub={comp.champion ? `Champions: ${nationByCode(comp.champion)?.name}` : undefined}>{comp.name}</SectionTitle>
-          <div className="tblwrap fits"><table className="dtable">
+          <div className="tblwrap"><table className="dtable">
             <thead><tr><th>#</th><th>Nation</th><th className="num">P</th><th className="num">W</th><th className="num">+/-</th><th className="num">Pts</th></tr></thead>
             <tbody>
               {sortTable(comp.table).map((r, i) => (

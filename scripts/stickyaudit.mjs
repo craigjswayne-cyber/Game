@@ -1,15 +1,23 @@
-// Does the column header actually stay put, and does the table still fit?
+// Does every column header stay put, and does every table still fit?
 //
-// .tblwrap sets overflow-x: auto, and CSS computes the other axis to auto with
+// .tblwrap set overflow-x: auto, and CSS computes the other axis to auto with
 // it, so the wrapper became the table's scrollport - which never scrolls
 // vertically, so `position: sticky` on the th had nothing to stick to. Every
-// table screen had been scrolling its own headings away for months and no test
+// table screen in the game had been scrolling its own headings away and no test
 // noticed, because no test had ever scrolled and then looked.
 //
-// The fix is a `.fits` class that drops the wrapper's overflow in landscape.
-// That trades away horizontal scrolling, so this checks both halves of the
-// bargain on every screen that opts in: the heading pins when the list is
-// scrolled, and the table still fits the width without one.
+// Landscape now drops the wrapper's overflow by default, which trades away
+// sideways scrolling. So this walks every screen that has a table and checks
+// both halves of that bargain for EVERY wrapper it finds:
+//
+//   fit      the table is no wider than its box, and the page has not started
+//            scrolling sideways to accommodate it
+//   pinned   the heading is still at or below the top of the scrollport after
+//            the list has been scrolled - as long as its own table is still on
+//            screen, because a heading is meant to leave when its table does
+//
+// A table that genuinely cannot fit opts out with .wide and gets its scroll
+// back; this names the ones that need it rather than leaving it to guesswork.
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
 
@@ -20,67 +28,77 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 let fails = 0
+let wrappers = 0
 
 const check = async (name) => {
-  await page.waitForTimeout(350)
-  const rows = await page.evaluate(() => {
-    const scroller = document.querySelector('main.content')
-    const out = []
-    for (const wrap of document.querySelectorAll('.tblwrap.fits')) {
-      const th = wrap.querySelector('th')
-      out.push({
-        overflowX: getComputedStyle(wrap).overflowX,
-        clipped: wrap.scrollWidth - wrap.clientWidth,
-        hasTh: !!th,
-        pageWide: scroller.scrollWidth - scroller.clientWidth,
-      })
-    }
-    return out
-  })
-  if (!rows.length) { console.log(`  ${name}: no .fits table on screen`); return }
-  // scroll the list a screenful and see whether the heading held its ground
-  const pinned = await page.evaluate(() => {
-    const scroller = document.querySelector('main.content')
-    const before = []
-    for (const wrap of document.querySelectorAll('.tblwrap.fits')) {
-      const th = wrap.querySelector('th')
-      if (th) before.push(Math.round(th.getBoundingClientRect().top))
-    }
-    scroller.scrollTop = Math.min(600, scroller.scrollHeight - scroller.clientHeight)
-    const after = []
-    for (const wrap of document.querySelectorAll('.tblwrap.fits')) {
-      const th = wrap.querySelector('th')
-      if (!th) continue
-      const wr = wrap.getBoundingClientRect()
-      // a sticky heading is only meant to hold while its own table is still on
-      // screen. The Test Nations table is twelve rows above a season of
-      // fixtures, so by 600px it has legitimately left the building - asserting
-      // on it would be asserting the wrong thing.
-      const stillVisible = wr.bottom > scroller.getBoundingClientRect().top + 40
-      after.push({ top: Math.round(th.getBoundingClientRect().top), stillVisible })
-    }
+  await page.waitForTimeout(320)
+  const res = await page.evaluate(() => {
+    const scroller = document.querySelector('main.content') ?? document.scrollingElement
+    const wraps = [...document.querySelectorAll('.tblwrap')]
     const top = Math.round(scroller.getBoundingClientRect().top)
-    return { before, after, top, scrolled: scroller.scrollTop }
-  })
-  for (const [i, r] of rows.entries()) {
-    const tag = `${name}[${i}]`
-    if (r.clipped > 1) { console.log(`FAIL ${tag}: table is ${r.clipped}px wider than its box and can no longer be scrolled to`); fails++ }
-    if (r.pageWide > 1) { console.log(`FAIL ${tag}: the page itself scrolls ${r.pageWide}px sideways`); fails++ }
-  }
-  if (pinned.scrolled > 40 && pinned.after.length) {
-    for (const [i, h] of pinned.after.entries()) {
-      // pinned means the heading is still on screen, at or below the scroller's
-      // own top edge - not carried off with the rows
-      if (h.stillVisible && h.top < pinned.top - 1) {
-        console.log(`FAIL ${name}[${i}]: heading scrolled away (top ${h.top} vs viewport ${pinned.top}) after ${pinned.scrolled}px`)
-        fails++
+    const fit = wraps.map(w => ({
+      wide: w.classList.contains('wide'),
+      clipped: w.scrollWidth - w.clientWidth,
+      hasTh: !!w.querySelector('th'),
+    }))
+    const pageWide = scroller.scrollWidth - scroller.clientWidth
+    // scroll the page and see which headings held their ground
+    const room = scroller.scrollHeight - scroller.clientHeight
+    scroller.scrollTop = Math.min(600, room)
+    const held = wraps.map(w => {
+      const th = w.querySelector('th')
+      if (!th) return null
+      const wr = w.getBoundingClientRect()
+      return {
+        top: Math.round(th.getBoundingClientRect().top),
+        // a heading is only meant to hold while its own table is still visible
+        onScreen: wr.bottom > top + 40 && wr.top < top + scroller.clientHeight,
       }
-    }
-    const held = pinned.after.filter(h => h.stillVisible)
-    console.log(`  ${name}: ${rows.length} table(s), ${held.length} still on screen, headings at ${held.map(h => h.top).join(', ') || 'n/a'} after ${pinned.scrolled}px`)
-  } else {
-    console.log(`  ${name}: ${rows.length} table(s), too short to scroll`)
+    })
+    scroller.scrollTop = 0
+    return { fit, held, top, pageWide, scrolled: Math.min(600, room) }
+  })
+  if (!res.fit.length) { console.log(`  ${name}: no table`); return }
+  wrappers += res.fit.length
+  if (res.pageWide > 1) {
+    console.log(`FAIL ${name}: the page scrolls ${res.pageWide}px sideways - a table has outgrown the screen`)
+    fails++
   }
+  for (const [i, f] of res.fit.entries()) {
+    if (!f.wide && f.clipped > 1) {
+      console.log(`FAIL ${name}[${i}]: table is ${f.clipped}px wider than its box with no way to scroll to it - needs .wide`)
+      fails++
+    }
+  }
+  let pinned = 0, left = 0
+  if (res.scrolled > 40) {
+    for (const [i, h] of res.held.entries()) {
+      if (!h) continue
+      if (!h.onScreen) { left++; continue }
+      if (h.top < res.top - 1) {
+        console.log(`FAIL ${name}[${i}]: heading scrolled away (top ${h.top} vs scrollport ${res.top}) after ${res.scrolled}px`)
+        fails++
+      } else pinned++
+    }
+  }
+  const heads = res.held.filter(Boolean).length
+  console.log(`  ${name}: ${res.fit.length} wrapper(s), ${heads} with a heading, ${pinned} pinned, ${left} scrolled out with their table`)
+}
+
+const club = async (item, label) => {
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click(`.submenu-item >> text=${item}`)
+  await check(label)
+}
+const world = async (item, label) => {
+  await page.click('.bottom-nav button[title="World"]')
+  await page.click(`.submenu-item >> text=${item}`)
+  await check(label)
+}
+const manager = async (item, label) => {
+  await page.click('.bottom-nav button[title="Manager"]')
+  await page.click(`.submenu-item >> text=${item}`)
+  await check(label)
 }
 
 try {
@@ -103,24 +121,80 @@ try {
   await page.click('.bottom-nav button[title="Squad"]')
   await page.waitForSelector('.dtable')
   await check('squad')
+  await page.click('.dtable tbody tr >> nth=0')
+  await page.waitForSelector('text=Attributes')
+  await check('player profile')
+  for (const t of ['Attributes', 'Career']) {
+    await page.click(`.tab-bar >> text=${t}`)
+    await check(`player ${t.toLowerCase()}`)
+  }
+  await page.click('.back-btn')
 
-  for (const [item, label] of [['Fixtures & Results', 'fixtures'], ['Transfer Centre', 'transfers']]) {
-    await page.click('.bottom-nav button[title="Club"]')
-    await page.click(`.submenu-item >> text=${item}`)
-    await check(label)
+  await page.click('.bottom-nav button[title="Tactics"]')
+  await page.waitForSelector('.tab-bar')
+  await check('tactics selection')
+
+  // the widest tables in the game live behind tabs, so the tabs get walked too
+  await club('Team Report', 'team report')
+  for (const t of ['Squad Depth', 'Best XV']) {
+    await page.click(`.tab-bar >> text=${t}`)
+    await check(`team report: ${t.toLowerCase()}`)
   }
-  for (const [item, label] of [['Scouting Agency', 'agency'], ['International Rugby', 'nations']]) {
-    await page.click('.bottom-nav button[title="World"]')
-    await page.click(`.submenu-item >> text=${item}`)
-    await check(label)
+  await club('Transfer Centre', 'transfers: market')
+  for (const t of ['Shortlist', 'Loans', 'Deals']) {
+    await page.click(`.tab-bar >> text=${t}`)
+    await check(`transfers: ${t.toLowerCase()}`)
   }
-  await page.click('.bottom-nav button[title="World"]')
-  await page.click('.submenu-item >> text=Competitions')
-  await check('competitions')
+
+  for (const [item, label] of [
+    ['Training & Coaching', 'training'],
+    ['Medical Centre', 'medical'],
+    ['Fixtures & Results', 'fixtures'],
+    ['Finances', 'finances'],
+    ['Club Infrastructure', 'infrastructure'],
+    ['Club Information', 'club information'],
+  ]) await club(item, label)
+
+  for (const [item, label] of [
+    ['Team of the Week', 'team of the week'],
+    ['Scouting Agency', 'agency'],
+    ['Competitions', 'competitions'],
+    ['International Rugby', 'nations'],
+    ['Roll of Honour', 'roll of honour'],
+  ]) await world(item, label)
+
+  for (const [item, label] of [
+    ['Manager Profile', 'manager profile'],
+    ['Manager Legacy', 'manager legacy'],
+  ]) await manager(item, label)
+
+  // and the two that only exist once a match has been played: the match-day
+  // team sheet, and the week's results table
+  await page.click('.continue-btn')
+  await page.waitForSelector('text=Kick Off', { timeout: 20000 })
+  await check('match day')
+  await page.locator('text=Kick Off ▸').first().click()
+  try {
+    await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
+    await page.click('text=▸ Take the Field')
+  } catch { /* a clean team sheet skips the ready-check */ }
+  await page.waitForSelector('.scoreboard', { timeout: 20000 })
+  for (const next of ['▸ Start Second Half', '▸ Play the Final Quarter']) {
+    await page.click('.speed-controls >> text=Skip')
+    await page.waitForSelector(`text=${next.slice(2)}`, { timeout: 25000 })
+    await page.click(`text=${next}`)
+    await page.waitForTimeout(300)
+  }
+  await page.click('.speed-controls >> text=Skip')
+  await page.waitForSelector('text=Continue to Results', { timeout: 25000 })
+  await page.click('text=Continue to Results')
+  await page.waitForSelector("text=This Week's Results", { timeout: 15000 })
+  await check('week results')
 } catch (e) {
   console.error('STICKY AUDIT stopped early:', e.message)
   fails++
 } finally {
+  console.log(`\n${wrappers} table wrappers checked`)
   console.log(fails ? `STICKY AUDIT FAILED (${fails})` : 'STICKY AUDIT PASSED')
   await browser.close()
   server.kill()
