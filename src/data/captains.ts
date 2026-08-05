@@ -9,7 +9,8 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   exeter: 'Dafydd Jenkins',
   gloucester: 'Lewis Ludlow',
   harlequins: 'Alex Dombrandt',
-  leicester: 'Julian Montoya',
+  // Montoya left for Pau at the end of 2024-25; Chessum leads Leicester now
+  leicester: 'Ollie Chessum',
   northampton: 'Fraser Dingwall',
   sale: 'Ben Curry',
   saracens: 'Maro Itoje',
