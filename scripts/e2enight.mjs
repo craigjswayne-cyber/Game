@@ -98,6 +98,15 @@ try {
   await page.waitForSelector('text=Mentoring')
   await shot('06g-mentoring')
 
+  // the analyst's read lives on the Match Prep page
+  await page.click('.bottom-nav button[title="Tactics"]').catch(() => {})
+  try {
+    await page.waitForSelector('.tab-bar', { timeout: 4000 })
+    await page.click('.tab-bar >> text=Prep')
+    await page.waitForSelector('text=The Analyst')
+    await shot('06h-analyst')
+  } catch { /* no fixture this week */ }
+
   // club infrastructure: the estate on one page
   await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Club Infrastructure')

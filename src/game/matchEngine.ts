@@ -4,6 +4,7 @@ import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
+import { analystEdge, settleAnalyst } from './analyst'
 import { clamp, gauss, wpick, type Rng } from './rng'
 
 /** Seasonal weather: wetter and colder through the winter weeks. */
@@ -192,7 +193,7 @@ export function teamShort(state: GameState, teamId: string): string {
   return state.clubs[teamId]?.short ?? nationByCode(teamId)?.name ?? teamId
 }
 
-function lineupFor(state: GameState, teamId: string): (number | null)[] {
+export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
   const isNation = !club
   if (isNation && state.natLineup && state.natLineup.team === teamId) {
@@ -632,6 +633,23 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     if (ref.style === 'strict') side.cardRisk *= 1.45
     if (ref.style === 'lenient') { side.cardRisk *= 0.62; side.units.attack *= 1.03 }
   }
+  // the analyst's read: if the manager prepared for the weakness he named and
+  // the read was sound, it is worth a few percent in that area. If he called
+  // it wrong, the week was spent on a problem the opposition do not have.
+  if (userTeamId === state.userClubId && (fx.homeId === state.userClubId || fx.awayId === state.userClubId)) {
+    const oppId = fx.homeId === state.userClubId ? fx.awayId : fx.homeId
+    const edge = analystEdge(state, oppId)
+    if (edge) {
+      if (edge.right) {
+        const mine = fx.homeId === state.userClubId ? home : away
+        const theirs = fx.homeId === state.userClubId ? away : home
+        theirs.units[edge.unit] *= 0.955
+        mine.units[edge.unit] *= 1.03
+      }
+      settleAnalyst(state, oppId)
+    }
+  }
+
   // dynamic bad blood: derby-lite heat when there's history between the clubs
   const grudge = !derby ? grudgeBetween(state, fx.homeId, fx.awayId) : null
   if (grudge) { home.cardRisk *= 1.25; away.cardRisk *= 1.25 }

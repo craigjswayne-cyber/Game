@@ -86,6 +86,8 @@ export function migrate(s: GameState): GameState {
     }
     s.facilities = {}
   }
+  s.analyst ??= null
+  s.analystRecord ??= { right: 0, wrong: 0 }
   s.commission ??= null
   s.scoutFinds ??= null
   s.facilityBuild ??= null

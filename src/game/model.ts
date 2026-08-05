@@ -455,6 +455,9 @@ export function estateGrade(club: Club): { label: string; sum: number; max: numb
   }
 }
 
+/** The week's training focus before a match. */
+export type MatchPrep = 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
+
 export interface StaffLevels {
   assistant: number // 0-3: training gains
   physio: number    // 0-3: injury length & recovery
@@ -527,7 +530,7 @@ export interface GameState {
   training: TrainingFocus
   /** this week's match preparation - a short-term matchday emphasis,
    *  distinct from long-term training (which grows attributes) */
-  matchPrep?: 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
+  matchPrep?: MatchPrep
   shortlist: number[]
   staff: StaffLevels
   /** the men behind the levels: names, badges and courses in progress */
@@ -556,6 +559,10 @@ export interface GameState {
   pressTone?: number
   /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
+  /** the analyst's read on this week's opponent */
+  analyst?: import('./analyst').AnalystRead | null
+  /** how often following his read has paid off */
+  analystRecord?: { right: number; wrong: number }
   /** the chief scout is away on a commissioned brief */
   commission?: import('./commission').Commission | null
   /** the report he filed when he got back */
