@@ -3,6 +3,11 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
+import { requestExpansion, requestFacility } from '../src/game/season'
+import { appointStaff, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../src/game/staff'
+import { commissionScout } from '../src/game/commission'
+import { analystRead } from '../src/game/analyst'
+import type { FacilityId } from '../src/game/model'
 import { SEASON_WEEKS, XV_SLOTS } from '../src/game/model'
 
 const g = newGame('leicester', 'Soak Gaffer', 20260804)
@@ -55,6 +60,10 @@ let farewells = 0, milestoneNews = 0, totsAwards = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0, lionsNews = 0, lionsHomecomings = 0, wcChampBeats = 0
 let taps = 0, brokenVows = 0, courtPressers = 0
 let hearings = 0, appealsWon = 0, appealsLost = 0, campBeats = 0, employedW1 = 0
+// the systems added in the 8-batch: facilities, staff courses, commissions, the analyst
+let facApproved = 0, facDenied = 0, facOpened = 0, standsBuilt = 0
+let coursesSat = 0, coursesPassed = 0, coursesFailed = 0, staffHires = 0
+let briefsSent = 0, reportsFiled = 0, analystFollowed = 0
 // news pressure: how many items land in the inbox per week (EA v2, permanent)
 const weeklyNews: number[] = []
 // selection quality: starters wearing a shirt they cannot naturally cover.
@@ -95,6 +104,29 @@ for (let season = 0; season < 20; season++) {
   let guard = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {
     if (g.week === 1 && !g.unemployed) employedW1++
+    if (!g.unemployed) {
+      // a manager who uses everything the game gives him
+      if (g.week % 6 === 0) {
+        const fids: FacilityId[] = ['pitch', 'gym', 'recovery', 'paddock', 'kicking', 'briefing', 'academy', 'shop']
+        requestFacility(g, fids[Math.floor(g.week / 6) % fids.length])
+      }
+      if (g.week % 9 === 0) requestExpansion(g)
+      const roles: StaffRole[] = ['assistant', 'physio', 'scout', 'attack', 'defence', 'scrumCoach', 'kicking', 'academyCoach']
+      const role = roles[g.week % roles.length]
+      if (g.week % 4 === 0) sendToCourse(g, role)
+      if (g.week % 13 === 0) {
+        const cands = staffCandidates(g, role)
+        const i = cands.findIndex(c => staffInterest(g, c) !== 'no')
+        if (i >= 0) appointStaff(g, role, i)
+      }
+      if (g.week % 15 === 0) commissionScout(g, 'any', ([3, 6, 9] as const)[Math.floor(g.week / 15) % 3])
+      const fxNow = userFixtureThisWeek(g)
+      if (fxNow && g.week % 2 === 0) {
+        const oppId = fxNow.homeId === g.userClubId ? fxNow.awayId : fxNow.homeId
+        const read = analystRead(g, oppId)
+        if (read) { g.matchPrep = read.prep; analystFollowed++ }
+      }
+    }
     const fx = userFixtureThisWeek(g)
     if (fx) {
       simMatch(g, fx, weekRng(g), true)
@@ -158,6 +190,16 @@ for (let season = 0; season < 20; season++) {
       if (n.subject.includes('Lions come home')) lionsHomecomings++
       if (n.subject.includes('World champion') && n.subject.includes('building')) wcChampBeats++
       if (n.subject.includes('are watching you')) taps++
+      if (n.subject.startsWith('🏛 Board approves')) facApproved++
+      if (n.subject.startsWith('🏛 Board says no')) facDenied++
+      if (n.subject.startsWith('🏗') && n.subject.includes('opens')) facOpened++
+      if (n.subject.includes('grows by') && n.subject.includes('seats')) standsBuilt++
+      if (n.subject.includes('sits his')) coursesSat++
+      if (n.subject.includes('passes his')) coursesPassed++
+      if (n.subject.includes('falls short of his')) coursesFailed++
+      if (n.subject.includes('appointed') && n.subject.includes('Coach')) staffHires++
+      if (n.subject.includes('sent out on a')) briefsSent++
+      if (n.subject.includes('files his report')) reportsFiled++
       if (n.subject.includes('aged badly')) brokenVows++
       if (n.subject.includes('Appeal upheld')) appealsWon++
       if (n.subject.includes('Appeal dismissed')) appealsLost++
@@ -238,6 +280,28 @@ if (lionsNews === 0) console.log('WARN: no Lions call-up news in 20 seasons (5 t
 console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
 console.log(`disciplinary hearings: ${hearings} · appeals won ${appealsWon} · lost ${appealsLost} · pre-season decisions ${campBeats}/${employedW1} employed week-1s`)
 if (campBeats < employedW1) console.log('WARN: pre-season decision missing in a season where the manager was employed')
+
+// the 8-batch systems over a full career
+console.log(`\nfacilities: ${facApproved} approved, ${facDenied} declined, ${facOpened} opened, ${standsBuilt} new stands`)
+console.log(`staff: ${staffHires} appointments, ${coursesSat} courses sat, ${coursesPassed} passed, ${coursesFailed} failed`)
+console.log(`scouting: ${briefsSent} briefs sent, ${reportsFiled} reports filed`)
+console.log(`analyst: ${analystFollowed} reads followed, record ${g.analystRecord?.right ?? 0} right / ${g.analystRecord?.wrong ?? 0} wrong`)
+const estate = Object.values(g.clubs[g.userClubId]?.facilities ?? {}).reduce((a, b) => a + b, 0)
+console.log(`estate at the end: ${estate}/40, ground ${g.clubs[g.userClubId]?.capacity.toLocaleString()}`)
+if (facOpened === 0) console.log('WARN: no facility ever finished building in 20 seasons')
+if (facApproved > 0 && facOpened < facApproved - 1) console.log(`WARN: ${facApproved} builds approved but only ${facOpened} opened`)
+if (coursesSat === 0) console.log('WARN: no coach ever sat a course')
+if (coursesSat > 8 && coursesPassed === 0) console.log('WARN: every coaching course failed')
+if (coursesSat > 8 && coursesFailed === 0) console.log('WARN: every coaching course passed - the 58% gate is not biting')
+if (coursesSat !== coursesPassed + coursesFailed) console.log(`WARN: ${coursesSat} courses sat but ${coursesPassed + coursesFailed} verdicts`)
+if (briefsSent === 0) console.log('WARN: no scouting brief was ever commissioned')
+if (briefsSent > 2 && reportsFiled === 0) console.log('WARN: briefs sent but no report ever came back')
+if (analystFollowed > 20) {
+  const rec = g.analystRecord ?? { right: 0, wrong: 0 }
+  if (rec.right + rec.wrong === 0) console.log('WARN: reads followed but the analyst has no record')
+  if (rec.wrong === 0) console.log('WARN: the analyst was never wrong across a whole career')
+}
+if (estate > 40) console.log(`WARN: estate above the cap: ${estate}`)
 {
   const sorted = [...weeklyNews].sort((a, b) => a - b)
   const mean = weeklyNews.reduce((s, x) => s + x, 0) / Math.max(1, weeklyNews.length)

@@ -559,6 +559,8 @@ export interface GameState {
   pressTone?: number
   /** the board owes you one (objectives delivered) - spend it on a request */
   boardOwed?: boolean
+  /** the season the ground was last extended - one stand a season */
+  expandedSeason?: number
   /** the analyst's read on this week's opponent */
   analyst?: import('./analyst').AnalystRead | null
   /** how often following his read has paid off */
