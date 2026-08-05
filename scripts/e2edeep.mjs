@@ -110,6 +110,16 @@ try {
   await page.waitForTimeout(600)
   // FP surface: the challenge (live or conquered) must show on the profile
   await page.waitForSelector('text=Sauvez Sapiac', { timeout: 10000 })
+  // Finances with a season's worth of history: the chips and the balance graph
+  // should share a row in landscape, which week one can never show
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Finances')
+  await page.waitForSelector('text=Top Earners', { timeout: 10000 })
+  await shot('deep-10-finances')
+  await page.click('.bottom-nav button[title="Manager"]')
+  await page.click('.submenu-item >> text=Manager Profile')
+  await page.waitForTimeout(600)
+
   const dec = await page.locator('text=what you chose, and what it did').count()
   console.log('decisions card present:', dec > 0)
   if (dec > 0) {

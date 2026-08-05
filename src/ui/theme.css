@@ -1679,3 +1679,20 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .qa-list .news-item.open .body { display: block; margin-top: 5px; }
 .qa-list .news-item { padding: 9px 14px 8px; }
 .qa-list .news-item .subj { font-size: 14px; }
+
+/* Finances in landscape: the ledger chips and the season graph share a row
+   rather than stacking, which is what pushed the top earners table off the
+   first screen. display:contents leaves portrait exactly as it was. */
+.fin-head { display: contents; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .fin-head {
+    /* auto-fit, not two fixed tracks: before week 2 there is no season chart
+       yet, and a fixed 2-column grid squeezed the chips into half the width so
+       they wrapped onto more lines than they had started on. auto-fit collapses
+       the empty track and gives the chips the full row back. */
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 0 6px; align-items: start;
+  }
+  .fin-head .chips { padding: 10px 8px 10px 16px; align-content: flex-start; }
+  .fin-chart .card { margin: 4px 12px 4px 0; }
+}
