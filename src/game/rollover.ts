@@ -1150,6 +1150,19 @@ export function rebuildSeason(state: GameState) {
       if (!state.players[Number(k)]) delete state.agency.best[Number(k)]
     }
   }
+  // The scout's filed report holds player ids too, and it was never pruned -
+  // commissioned scouting arrived after this block was written. Found by the
+  // release audit: "s4w1 scout report names a missing player 1385", a ghost
+  // left behind when the free-agent pool was trimmed. Same treatment as the
+  // agency boards: a report pointing at a deleted player is a broken report.
+  if (state.scoutFinds?.length) {
+    state.scoutFinds = state.scoutFinds.filter(f => state.players[f.playerId])
+    if (!state.scoutFinds.length) state.scoutFinds = null
+  }
+  // the shortlist has the same shape of problem
+  if (state.shortlist?.length) {
+    state.shortlist = state.shortlist.filter(pid => state.players[pid])
+  }
 
   boardReinvests(state)
 

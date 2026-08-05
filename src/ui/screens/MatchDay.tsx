@@ -364,19 +364,24 @@ function Preview({ fxId }: { fxId: number }) {
         </div>
       </header>
       <main className="content">
-        <div className="card center">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
+        {/* landscape splits this: badges left, the fixture's details right. As a
+            centred stack it was 280px tall on a 390px screen, so the XV you came
+            here to pick started below the fold. */}
+        <div className="card center mday-head">
+          <div className="mday-badges" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={38} />
             {game.clubs[fx.homeId] && <Jersey club={game.clubs[fx.homeId]} size={54} />}
             <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--ink-faint)', letterSpacing: 2 }}>VS</span>
             {game.clubs[fx.awayId] && <Jersey club={game.clubs[fx.awayId]} size={54} />}
             <CrestT g={game} teamId={fx.awayId} size={38} />
           </div>
+          <div className="mday-facts">
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
           <div className="meta">🏟️ {home?.stadium ?? 'Neutral venue'}{home ? `, ${home.city}` : ''}</div>
           <div className="meta" style={{ marginTop: 3 }}>
             {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} Forecast: {rollWeather(game.week, weekRng(game))}
             {derbyName(fx.homeId, fx.awayId) && <span style={{ color: '#a12f2f', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} - expect a cauldron</span>}
+          </div>
           </div>
         </div>
 
@@ -665,12 +670,16 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
         )}
         <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
-        <div className="tblwrap">
-          <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
+        {/* forwards left, backs right, exactly as the Tactics team sheet does it.
+            The same information was laid out two different ways one screen apart. */}
+        <div className="xv-split">
+          <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
+          <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
         </div>
         <SectionTitle>Replacements</SectionTitle>
-        <div className="tblwrap">
-          <table className="dtable"><tbody>{BENCH_SLOTS.map((_, i) => renderSlot(15 + i))}</tbody></table>
+        <div className="xv-split">
+          <table className="dtable"><tbody>{BENCH_SLOTS.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+          <table className="dtable"><tbody>{BENCH_SLOTS.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
         </div>
         </>}
 

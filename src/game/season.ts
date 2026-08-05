@@ -839,7 +839,9 @@ function boardReaction(state: GameState, fx: Fixture) {
     }
     // the gate record: the first home match sets the bar quietly, and
     // every crowd after that is chasing it
-    if (isHome && fx.att) {
+    // friendlies do not count: the bar is for competitive rugby, and pre-season
+    // comes first in the calendar so a friendly would otherwise always set it
+    if (isHome && fx.att && fx.compId !== 'fr') {
       const prev = state.gateRecord
       if (!prev) {
         state.gateRecord = { att: fx.att, oppId, season: state.season }
