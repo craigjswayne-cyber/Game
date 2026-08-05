@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import {
-  FACILITY_INFO, MAX_FACILITY, estateGrade, facilityCost, fmtMoney,
+  FACILITY_INFO, MAX_FACILITY, demandCeiling, estateGrade, facilityCost, fmtMoney,
   type Club, type FacilityId,
 } from '../../game/model'
 import { expansionPlan, requestExpansion, requestFacility } from '../../game/season'
@@ -56,6 +56,14 @@ export default function Infrastructure() {
               {club.capacity.toLocaleString()} seats
               {plan.played >= 1 && ` · ${plan.avg.toLocaleString()} average gate (${Math.round(plan.fill * 100)}% full)`}
             </div>
+            {/* the board will not build seats it cannot sell, so say out loud
+                how many this club could shift on its name alone */}
+            <div className="meta" style={{ fontSize: 11 }}>
+              Catchment: about {demandCeiling(club).toLocaleString()} for a good game
+              {club.capacity >= demandCeiling(club) * 0.95
+                ? ' - the ground already holds everyone who would come'
+                : ` - ${(demandCeiling(club) - club.capacity).toLocaleString()} more than the ground holds`}
+            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="fact-label">Estate</div>
@@ -63,7 +71,7 @@ export default function Infrastructure() {
             <div className="meta" style={{ fontSize: 11 }}>{grade.sum}/{grade.max} · {ord} of {peers.length} in the league</div>
           </div>
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
-            disabled={club.capacity >= 82_000 || game.facilityBuild != null}
+            disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || game.facilityBuild != null}
             onClick={() => { setMsg(requestExpansion(game)); touch() }}>
             🏛 Ask to expand<br />
             <span style={{ fontSize: 10, fontWeight: 600 }}>+{plan.seats.toLocaleString()} seats · {fmtMoney(plan.cost)}</span>

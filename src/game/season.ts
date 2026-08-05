@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
-import { addGrudge, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, SEASON_WEEKS, seasonLabel } from './model'
+import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -87,6 +87,11 @@ export function requestExpansion(state: GameState): string {
   const club = state.clubs[state.userClubId]
   const abs = state.season * 100 + state.week
   if (club.capacity >= 82_000) return `${club.stadium} is one of the biggest grounds in the game. There is nowhere left to build.`
+  // the Infrastructure page greys the button out at this point, and the engine
+  // has to agree with it: a board does not lay seats it cannot sell
+  if (club.capacity >= demandCeiling(club) * 0.95) {
+    return `${club.stadium} already holds just about everyone who would come. More seats would be empty seats.`
+  }
   if (state.facilityBuild) return 'The builders are already on site elsewhere. One project at a time.'
   if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
   const { seats, cost, fill, played } = expansionPlan(state)
@@ -689,6 +694,11 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // the club shop: replica shirts shift faster when the terraces are happy
   const shop = facLevel(state, 'shop')
   if (shop > 0) club.balance += Math.round(shop * 9_000 * (0.6 + (state.fanMood ?? 60) / 100))
+  // running the place. A ground has to be heated, mown, stewarded and
+  // insured 52 weeks a year, and every facility level is a building with
+  // staff in it. This is what stops the estate being a free ratchet: going
+  // from a good gym to a great one is a bill that never stops arriving.
+  club.balance -= operatingCost(state)
   // weekly balance snapshot for the season chart
   ;(state.finHist ??= []).push({ w: state.week, b: club.balance })
   if (state.finHist.length > 50) state.finHist = state.finHist.slice(-50)

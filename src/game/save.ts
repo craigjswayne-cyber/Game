@@ -155,7 +155,7 @@ export function migrate(s: GameState): GameState {
       if (s.clubs[rc.id]) continue
       const club: Club = {
         id: rc.id, name: rc.name, short: rc.short, city: rc.city,
-        country: rc.country, stadium: rc.stadium, capacity: rc.capacity,
+        country: rc.country, stadium: rc.stadium, capacity: rc.capacity, capacity0: rc.capacity,
         colors: rc.colors, rep: rc.rep, leagueId: def.id,
         budget: rc.budget, balance: Math.round(rc.budget * 0.6),
         players: [],
@@ -205,6 +205,10 @@ export function migrate(s: GameState): GameState {
 
   // clubs injected by a later build get an estate too
   for (const c of Object.values(s.clubs)) c.facilities ??= initFacilities(c, s.seed)
+  // the catchment anchor. An existing career may already have extended its
+  // ground, and shrinking the anchor retroactively would tell the manager his
+  // own stand should never have been built - so today's capacity is the anchor
+  for (const c of Object.values(s.clubs)) c.capacity0 ??= c.capacity
 
   // pre-2025 former clubs (old-boy stories): fills only players still unset
   seedExClubs(s)

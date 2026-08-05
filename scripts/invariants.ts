@@ -6,7 +6,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { answerPress } from '../src/game/media'
 import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
-import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, demandCeiling, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
 import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
 import { commissionScout } from '../src/game/commission'
 import { analystRead } from '../src/game/analyst'
@@ -207,6 +207,15 @@ function audit(g: GameState, tag: string) {
       if (!(lvl >= 0 && lvl <= MAX_FACILITY)) bad(`${tag} ${c.id} ${fid} at level ${lvl}`)
     }
     if (c.capacity < 1000 || c.capacity > 90_000) bad(`${tag} ${c.id} capacity ${c.capacity}`)
+    // no club builds seats it can never sell: a 20-season soak once grew a
+    // 15,249 ground to 64,149 because attendance was a fraction of capacity,
+    // so filling the ground always justified expanding it
+    // 1.6x, not 1.25x: a real ground is routinely bigger than its average
+    // gate. This tripwire is here for the runaway (64,149 against a catchment
+    // of 26,300), not for an honest half-full Tuesday night.
+    if (c.capacity > demandCeiling(c) * 1.6) {
+      bad(`${tag} ${c.id} holds ${c.capacity} against a catchment of ${demandCeiling(c)}`)
+    }
   }
   for (const [role, p] of Object.entries(g.staffPeople ?? {})) {
     if (!p) continue

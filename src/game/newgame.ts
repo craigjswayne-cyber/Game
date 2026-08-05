@@ -125,7 +125,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     for (const rc of def.clubs) {
       const club: Club = {
         id: rc.id, name: rc.name, short: rc.short, city: rc.city,
-        country: rc.country, stadium: rc.stadium, capacity: rc.capacity,
+        country: rc.country, stadium: rc.stadium, capacity: rc.capacity, capacity0: rc.capacity,
         colors: rc.colors, rep: rc.rep, leagueId: def.id,
         budget: rc.budget, balance: Math.round(rc.budget * 0.6),
         players: [],

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { boardObjective, fmtMoney } from '../../game/model'
+import { boardObjective, fmtMoney, operatingCost } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { SectionTitle } from '../components'
 
@@ -62,6 +62,9 @@ export default function Finances() {
         <span className="chip">Avg attendance <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
         <span className="chip">Est. gate/game <b>{avgAtt ? fmtMoney(avgAtt * 30) : '-'}</b></span>
         <span className="chip">Weekly commercial <b>{fmtMoney(Math.round(club.rep * 1800 + 40_000))}</b></span>
+        {/* the ground and the estate cost money every week of the year, and a
+            cost the manager cannot see reads to him as a bug */}
+        <span className="chip">Ground + estate upkeep <b>{fmtMoney(operatingCost(game))}/wk</b></span>
       </div>
       <SectionTitle>Top Earners</SectionTitle>
       <div className="tblwrap"><table className="dtable">
