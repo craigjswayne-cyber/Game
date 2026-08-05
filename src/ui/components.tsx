@@ -13,7 +13,7 @@ export function BrandMark({ size = 64, inverse = false }: { size?: number; inver
       <circle cx="32" cy="32" r="31" fill={bg} />
       <text
         x="31" y="42.5" textAnchor="middle"
-        fontFamily="'Montserrat', 'Segoe UI', sans-serif"
+        fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
         fontWeight="800" fontSize="26" letterSpacing="-1"
         fill={fg}
       >RM</text>
@@ -178,11 +178,17 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
     >
       <defs>
         <clipPath id={clip}><path d={SHIELD} /></clipPath>
-        <linearGradient id={gloss} x1="0" y1="0" x2="0.35" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity=".26" />
-          <stop offset=".42" stopColor="#fff" stopOpacity=".05" />
-          <stop offset=".62" stopColor="#000" stopOpacity=".04" />
-          <stop offset="1" stopColor="#000" stopOpacity=".26" />
+        {/* Sheen only, no wash. The old gradient laid 26% black over the
+            bottom half of every shield, which took the club's colour and
+            greyed it - Bath's blue and Gloucester's cherry-and-white both
+            arrived at the same muddy middle (user: "the colours should be
+            clearer and more vivid"). A highlight in the top third reads as
+            enamel without costing any saturation. */}
+        <linearGradient id={gloss} x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity=".34" />
+          <stop offset=".3" stopColor="#fff" stopOpacity=".08" />
+          <stop offset=".55" stopColor="#fff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity=".08" />
         </linearGradient>
         <linearGradient id={gold} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#f0dc95" />
@@ -195,16 +201,23 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
         <CrestField pattern={pattern} c2={c2} />
         <rect x="0" y="0" width="24" height="26" fill={`url(#${gloss})`} />
       </g>
-      {/* dark casing under the ring gives the gold an edge on light shields */}
-      <path d={SHIELD} fill="none" stroke="rgba(0,0,0,.42)" strokeWidth="2.6" />
-      <path d={SHIELD} fill="none" stroke={`url(#${gold})`} strokeWidth="1.5" />
-      <path d={SHIELD_IN} fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".6" />
+      {/* A thinner ring and a thinner casing: between them they were eating
+          4px of a 24px shield, so a third of the colour field was frame. */}
+      <path d={SHIELD} fill="none" stroke="rgba(0,0,0,.34)" strokeWidth="1.8" />
+      <path d={SHIELD} fill="none" stroke={`url(#${gold})`} strokeWidth="1.1" />
+      <path d={SHIELD_IN} fill="none" stroke="rgba(255,255,255,.34)" strokeWidth=".55" />
+      {/* The monogram asked for PT Sans Narrow, which this app never loads, so
+          it fell back to whatever narrow face the phone had - one more reason
+          the initials looked soft. It is the theme font now, heavier, larger,
+          pure white, and outlined with a thin stroke rather than the fat one
+          that was closing up the counters at 7px. */}
       <text
-        x="12" y="16.2" textAnchor="middle"
-        fontFamily="'PT Sans Narrow', 'Arial Narrow', sans-serif"
-        fontWeight="700" fontSize={wide ? 7.4 : 11.5} letterSpacing={wide ? '-.1' : '.2'}
-        fill="#f9f5ea" stroke="rgba(0,0,0,.6)" strokeWidth={wide ? 1.2 : 1.7}
+        x="12" y={wide ? 16.6 : 16.4} textAnchor="middle"
+        fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
+        fontWeight="700" fontSize={wide ? 8.6 : 12.4} letterSpacing={wide ? '-.35' : '.1'}
+        fill="#ffffff" stroke="rgba(0,0,0,.55)" strokeWidth={wide ? 0.7 : 1.1}
         paintOrder="stroke"
+        style={{ paintOrder: 'stroke' }}
       >{letter}</text>
     </svg>
   )

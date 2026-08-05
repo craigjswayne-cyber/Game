@@ -16,6 +16,16 @@ await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
+
+/** The dressing room opens itself on match day; close it if it is showing. */
+const clearTalk = async () => {
+  const veil = page.locator('.talk-modal')
+  if (await veil.count()) {
+    await page.click('.talk-modal >> text=Say nothing for now').catch(() => {})
+    await page.waitForTimeout(200)
+  }
+}
+
 const shot = (name) => page.screenshot({ path: `${SHOTS}/night-${name}.png` })
 
 try {

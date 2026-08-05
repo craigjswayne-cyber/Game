@@ -30,6 +30,14 @@ await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 let fails = 0
 let wrappers = 0
 
+/** The dressing room opens itself on match day; close it if it is showing. */
+const clearTalk = async () => {
+  if (await page.locator('.talk-modal').count()) {
+    await page.click('.talk-modal >> text=Say nothing for now').catch(() => {})
+    await page.waitForTimeout(200)
+  }
+}
+
 const check = async (name) => {
   await page.waitForTimeout(320)
   const res = await page.evaluate(() => {
@@ -172,6 +180,7 @@ try {
   // team sheet, and the week's results table
   await page.click('.continue-btn')
   await page.waitForSelector('text=Kick Off', { timeout: 20000 })
+  await clearTalk()
   await check('match day')
   await page.locator('text=Kick Off ▸').first().click()
   try {

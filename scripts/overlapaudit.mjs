@@ -78,6 +78,12 @@ const overlapsOnPage = (page) => page.evaluate((tol) => {
 const run = async (size) => {
   const page = await browser.newPage({ viewport: { width: size.w, height: size.h } })
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+  const clearTalk = async () => {
+    if (await page.locator('.talk-modal').count()) {
+      await page.click('.talk-modal >> text=Say nothing for now').catch(() => {})
+      await page.waitForTimeout(200)
+    }
+  }
   const check = async (name) => {
     await page.waitForTimeout(300)
     checks++
@@ -121,7 +127,9 @@ const run = async (size) => {
     }
     await page.click('.continue-btn')
     await page.waitForSelector('text=Kick Off', { timeout: 20000 })
-    await check('match day')
+    await check('match day')       // with the dressing room open, as it arrives
+    await clearTalk()
+    await check('match day: team sheet')
   } catch (e) {
     console.error(`OVERLAP AUDIT stopped early at ${size.label}:`, e.message)
     fails++
