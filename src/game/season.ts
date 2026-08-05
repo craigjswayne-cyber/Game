@@ -63,7 +63,10 @@ export function expansionPlan(state: GameState) {
   const seats = Math.round((club.capacity * 0.06) / 100) * 100
   const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
   const avg = home.length ? home.reduce((s, f) => s + (f.att ?? 0), 0) / home.length : 0
-  return { seats, cost: seats * 1_400, avg: Math.round(avg), fill: avg ? avg / club.capacity : 0, played: home.length }
+  // steel and concrete cost more the bigger the ground already is: the easy
+  // terrace goes up first, the second tier needs foundations
+  const perSeat = Math.round(1_400 * (1 + club.capacity / 45_000))
+  return { seats, cost: seats * perSeat, perSeat, avg: Math.round(avg), fill: avg ? avg / club.capacity : 0, played: home.length }
 }
 
 /**
@@ -77,12 +80,17 @@ export function requestExpansion(state: GameState): string {
   if (state.facilityBuild) return 'The builders are already on site elsewhere. One project at a time.'
   if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
   const { seats, cost, fill, played } = expansionPlan(state)
-  const enoughDemand = played >= 3 && fill >= 0.86
+  // one stand a season: builders, planning permission and a season ticket
+  // renewal cycle all take their time
+  if (state.expandedSeason === state.season) {
+    return 'The ground has already been extended this season. The next phase waits for the summer.'
+  }
+  const enoughDemand = played >= 3 && fill >= 0.9
   const approve = enoughDemand && club.balance >= cost * 1.3 && club.boardConfidence >= 50
   if (!approve) {
     state.facilityAskCooldown = abs + 8
     const why = played < 3 ? 'there is not enough of a season to judge the demand yet'
-      : fill < 0.86 ? `the ground is only ${Math.round(fill * 100)}% full as it is`
+      : fill < 0.9 ? `the ground is only ${Math.round(fill * 100)}% full as it is`
       : club.balance < cost * 1.3 ? 'the reserves will not carry a build this size'
       : 'the board wants better results before it pours concrete'
     state.news.push({
@@ -94,6 +102,7 @@ export function requestExpansion(state: GameState): string {
   }
   club.balance -= cost
   club.capacity += seats
+  state.expandedSeason = state.season
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏗 ${club.stadium} grows by ${seats.toLocaleString()} seats`,
