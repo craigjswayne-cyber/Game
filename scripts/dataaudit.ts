@@ -45,15 +45,30 @@ const cover = (players: { pos: string; alt?: readonly string[] | string[] }[]) =
 //     relocation table moves here, or the additions table writes in, is as real
 //     as one the file happened to list. Counting files instead is why Leicester
 //     still read "1 loosehead" in the round that signed Nicky Smith for them.
-const authored = new Set(allClubs.flatMap(c => c.players.map(p => p.name.toLowerCase())))
+// Ratcheted, like the duplicate count: 33 today, and it may fall but never
+// rise. New squad data that opens a gap is a regression even if it closes two
+// others somewhere else.
+const GAP_BUDGET = 33
+let gapCount = 0
+const gapsByLeague = new Map<string, number>()
 for (const club of allClubs) {
-  const real = builtSquad(club.id).filter(p => !p.acad && authored.has(p.name.toLowerCase()))
+  const real = builtSquad(club.id).filter(p => !p.acad && p.real)
   const byPos = cover(real)
   for (const [pos, n] of NEED) {
     const have = byPos.get(pos) ?? 0
-    if (have < n) warn(`${club.id} (${club.leagueName}) has ${have} real ${pos}, wants ${n}`)
+    if (have < n) {
+      gapCount++
+      gapsByLeague.set(club.leagueName, (gapsByLeague.get(club.leagueName) ?? 0) + 1)
+      warn(`${club.id} (${club.leagueName}) has ${have} real ${pos}, wants ${n}`)
+    }
   }
 }
+console.log(`real-cover gaps: ${gapCount} of a budget of ${GAP_BUDGET} · ` +
+  [...gapsByLeague].sort((a, b) => b[1] - a[1]).map(([l, n]) => `${l} ${n}`).join(', '))
+if (gapCount > GAP_BUDGET) {
+  bad(`${gapCount} shirts worn by generated names, up from ${GAP_BUDGET} - new data opened a gap`)
+}
+console.log('  (npx vite-node scripts/gapreport.ts lists them with the men already in the shirt)')
 
 // 1b. the built world, which is what a manager actually inherits. Nobody should
 //     ever be asked to field a shirt with nobody in it, so this is a FAILURE.
@@ -202,7 +217,7 @@ for (const club of Object.values(g.clubs)) {
   for (const p of xv) {
     if (!p) continue
     totalXV++
-    if (authored.has(p.name.toLowerCase())) realXV++
+    if (p.real) realXV++
   }
 }
 const realPct = (realXV / totalXV) * 100

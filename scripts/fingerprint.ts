@@ -16,17 +16,17 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  // Rebaselined again: three more relocations (Nicky Smith to Leicester, Sheedy
-  // to Cardiff, Rebbadj to Toulon) and the first hand-added player, La
-  // Rochelle's second scrum-half. Every one changes how many men a club builds,
-  // which shifts the world-creation stream and the fixture draw. A deliberate
-  // data change, not a leak - the same reason as rounds GW and HC.
-  'saracens 68-20 newcastle',
-  'bristol 23-24 northampton',
-  'exeter 22-10 bath',
-  'harlequins 13-28 leicester',
-  'sale 40-29 gloucester',
-  'northampton 30-16 saracens',
+  // Rebaselined again: Ratuva to Clermont, McGuigan to Newcastle, and two more
+  // hand-added men (Harlequins' third loosehead, Clermont's only recognised
+  // full-back). Every squad that changes size shifts the world-creation stream
+  // and the fixture draw. A deliberate data change, not a leak - the fourth
+  // time for the same reason, and the reason is always squad data.
+  'northampton 46-24 sale',
+  'bath 34-17 newcastle',
+  'exeter 22-3 leicester',
+  'harlequins 44-38 bristol',
+  'gloucester 49-13 saracens',
+  'newcastle 10-60 northampton',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
