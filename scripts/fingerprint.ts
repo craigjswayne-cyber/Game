@@ -16,17 +16,18 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  // Rebaselined again: Ratuva to Clermont, McGuigan to Newcastle, and two more
-  // hand-added men (Harlequins' third loosehead, Clermont's only recognised
-  // full-back). Every squad that changes size shifts the world-creation stream
-  // and the fixture draw. A deliberate data change, not a leak - the fourth
-  // time for the same reason, and the reason is always squad data.
-  'northampton 46-24 sale',
-  'bath 34-17 newcastle',
-  'exeter 22-3 leicester',
-  'harlequins 44-38 bristol',
-  'gloucester 49-13 saracens',
-  'newcastle 10-60 northampton',
+  // Rebaselined: Danny Toala resolved to Moana Pasifika, plus three more
+  // hand-added men (Scarlets' second loosehead and third flanker, Moana's third
+  // winger). Squads changing size shifts the world-creation stream and the
+  // fixture draw. A deliberate data change, not a leak - and every rebaseline in
+  // this file's history has had the same cause, which is worth knowing when one
+  // of them does not.
+  'northampton 33-19 sale',
+  'exeter 25-30 bath',
+  'leicester 20-14 gloucester',
+  'saracens 16-26 bristol',
+  'newcastle 16-52 harlequins',
+  'bath 30-16 northampton',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

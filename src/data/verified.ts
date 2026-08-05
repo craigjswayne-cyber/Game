@@ -32,13 +32,27 @@
 // which fails if the count ever rises and now prints only the ones nobody has
 // checked yet, so the list is work to do rather than work already done.
 //
-// ONE SENIOR DUPLICATE IS DELIBERATELY LEFT OUT
-//   Danny Toala   listed at Pau and Moana Pasifika
-// The sources contradict each other. Moana Pasifika released fifteen players
-// in June 2025 and his name is on that list; his Wikipedia career line has him
-// at Oyonnax after Moana; and all.rugby lists him as a 2025-26 Moana ARRIVAL
-// from Oyonnax, which cannot both be true. Rule 2 says leave him, so he is
-// left. Arbitrary beats wrong.
+// EVERY SENIOR DUPLICATE IS NOW RESOLVED. Danny Toala was the last one, and he
+// held out for three rounds: Moana released fifteen players in June 2025 with
+// him on the list, his career line went on to Oyonnax, and all.rugby had him as
+// a Moana ARRIVAL from Oyonnax. Moana's own named 2026 squad settled it - he is
+// in it, described as a centre who came from Oyonnax, so all three sources agree
+// on the sequence and only the instant was ever in doubt.
+//
+// ONE CONFLICT IS STILL OPEN, and it is recorded here rather than acted on:
+// Kyren Taumoefolau is below as a Chiefs player, on a two-year deal signed in
+// August 2025 and eight starts for them in the 2026 season. Moana's 2026 squad
+// release also lists him, "from Chiefs". Those cannot both be true. The Chiefs
+// entry has the concrete appearance count behind it, so it stays until a better
+// source turns up.
+//
+// A NOTE ON THE CALENDAR, since it caused most of the confusion above. The game
+// opens in August 2025, so the northern clubs are on their 2025-26 squads and
+// the southern ones on their 2026 Super Rugby squads - those two seasons overlap
+// inside one save year. When a player moves between the hemispheres mid-window,
+// which listing is "right" depends on the month, and the game has no way to show
+// both. The rule used here: prefer the squad he was named in for the season the
+// game will actually simulate.
 
 export const VERIFIED_CLUB: Record<string, string> = {
   // Back at the Hurricanes for 2025-26 after his season-long Leinster
@@ -157,6 +171,12 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Left Gloucester for Newcastle, whose other hookers' departure left them
   // with one in the files. Gloucester keeps enough cover without him.
   'george mcguigan': 'newcastle',
+  // The one that was deliberately left alone. Moana Pasifika's named 2026 squad
+  // has him in it as "a 26-year-old centre from Oyonnax", which finally makes
+  // the three sources agree on the SEQUENCE - Moana to 2025, Oyonnax, then back
+  // to Moana. The files list him at Pau, which no source supports at all, and
+  // the tie-break was putting him there. Moana it is.
+  'danny toala': 'moana',
 
   // These two are not duplicates at all - the files list them at one club
   // each, and it is the wrong one. Found while checking the list above, which

@@ -45,10 +45,10 @@ const cover = (players: { pos: string; alt?: readonly string[] | string[] }[]) =
 //     relocation table moves here, or the additions table writes in, is as real
 //     as one the file happened to list. Counting files instead is why Leicester
 //     still read "1 loosehead" in the round that signed Nicky Smith for them.
-// Ratcheted, like the duplicate count: 33 today, and it may fall but never
-// rise. New squad data that opens a gap is a regression even if it closes two
+// Ratcheted, like the duplicate count: 29 today, down from 36 when it was first
+// measured properly, and it may fall but never rise. New squad data that opens a gap is a regression even if it closes two
 // others somewhere else.
-const GAP_BUDGET = 33
+const GAP_BUDGET = 29
 let gapCount = 0
 const gapsByLeague = new Map<string, number>()
 for (const club of allClubs) {
