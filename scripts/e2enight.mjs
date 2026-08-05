@@ -66,6 +66,10 @@ try {
   await page.locator('.preset-chip >> text=🏷️ Listed only').click()
   await page.waitForTimeout(300)
   await shot('06c2-transfers-filtered')
+  // commissioned scouting lives on the Shortlist tab
+  await page.click('.tab-bar >> text=Shortlist')
+  await page.waitForSelector('text=Commissioned Search')
+  await shot('06c3-commission')
 
   // tables
   await page.click('.bottom-nav button[title="World"]')

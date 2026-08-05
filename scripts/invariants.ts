@@ -8,6 +8,7 @@ import { cottonWool, specialistConsult } from '../src/game/medical'
 import { ROLE_BY_ID, rolesForSlot } from '../src/game/roles'
 import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, oldBoyApps, type FacilityId, type GameState } from '../src/game/model'
 import { appointStaff, sendToCourse, type StaffRole } from '../src/game/staff'
+import { commissionScout } from '../src/game/commission'
 
 let fails = 0
 function bad(msg: string) {
@@ -167,6 +168,18 @@ function audit(g: GameState, tag: string) {
     if (!(g.gateRecord.att > 0)) bad(`${tag} gate record with non-positive attendance`)
     if (!g.clubs[g.gateRecord.oppId]) bad(`${tag} gate record vs missing club ${g.gateRecord.oppId}`)
   }
+  if (g.commission) {
+    const c = g.commission
+    if (![3, 6, 9].includes(c.months)) bad(`${tag} commission of ${c.months} months`)
+    if (c.done > g.season * 100 + g.week + 40) bad(`${tag} commission finishing too far out (${c.done})`)
+    if (!(c.fee > 0)) bad(`${tag} commission with no fee`)
+    if (c.leagueId && !g.comps[c.leagueId]) bad(`${tag} commission points at missing league ${c.leagueId}`)
+  }
+  for (const f of g.scoutFinds ?? []) {
+    if (!g.players[f.playerId]) bad(`${tag} scout report names a missing player ${f.playerId}`)
+    if (!(f.grade >= 0 && f.grade <= 3)) bad(`${tag} scout grade ${f.grade}`)
+    if (!f.note) bad(`${tag} scout report entry with no verdict`)
+  }
   if (g.facilityBuild) {
     const b = g.facilityBuild
     if (!FACILITY_INFO[b.id]) bad(`${tag} facility build with unknown id ${b.id}`)
@@ -271,6 +284,7 @@ for (let season = 0; season < SEASONS; season++) {
     const roles: StaffRole[] = ['assistant', 'physio', 'scout', 'attack', 'defence', 'scrumCoach', 'kicking', 'academyCoach']
     const role = roles[g.week % roles.length]
     if (g.week % 3 === 0) sendToCourse(g, role)
+    if (g.week % 11 === 0) commissionScout(g, g.week % 22 === 0 ? 'any' : 'FH', ([3, 6, 9] as const)[g.week % 3])
     if (g.week % 7 === 0) appointStaff(g, role, g.week % 3)
     // rotate positional roles like a tinkering manager
     const t = g.clubs[g.userClubId].tactic
