@@ -56,6 +56,29 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Left Northampton at the end of 2024-25 to go home to Fiji, so he is a
   // Fijian Drua player now and not a Lyon one either.
   'temo mayanavanua': 'drua',
+  // At Harlequins since 2024-25. His Montpellier years ended in 2024.
+  'titi lamositele': 'harlequins',
+  // Joined the Sharks from Racing 92 for 2024-25 and is contracted there.
+  'trevor nyakane': 'sharks',
+  // One season at Racing 92 in 2022-23, back at the Stormers since, and
+  // playing for them in 2025-26.
+  'warrick gelant': 'stormers',
+  // Left Montpellier after 147 games and signed a three-year deal with the
+  // Bulls for 2025-26.
+  'jan serfontein': 'bulls',
+
+  // These two are not duplicates at all - the files list them at one club
+  // each, and it is the wrong one. Found while checking the list above, which
+  // says something about how far the problem reaches.
+  //
+  // Three seasons at Leicester, then home to the Bulls on a two-year deal
+  // from 1 July 2025. Leicester signed replacements; this leaves them a man
+  // short until those are entered, which is the honest state of the data.
+  'handré pollard': 'bulls',
+  // Leicester's captain until the end of 2024-25, then Pau in the Top 14.
+  // The hand-written captains list still had him leading Leicester, which the
+  // data audit catches the moment he moves.
+  'julián montoya': 'pau',
 }
 
 /** The club this player really turns out for, or null if nobody has checked. */
