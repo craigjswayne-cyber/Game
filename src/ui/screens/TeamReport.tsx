@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, POS_ORDER, POS_NAMES, XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { effAt } from '../../game/attributes'
@@ -9,6 +10,8 @@ import { PosBadge, SectionTitle, Stars } from '../components'
 export default function TeamReport() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
+  // two pages: where we stand, and how deep we are (user: fewer long scrolls)
+  const [rtab, setRtab] = useState<'standing' | 'depth'>('standing')
   const club = game.clubs[game.userClubId]
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p && !p.onLoan)
   const stars = starPlayerIds(game, club.id)
@@ -46,11 +49,16 @@ export default function TeamReport() {
 
   return (
     <>
+      <div className="tab-bar">
+        <button className={rtab === 'standing' ? 'active' : ''} onClick={() => setRtab('standing')}>Where We Stand</button>
+        <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>Squad Depth</button>
+      </div>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>The Assistant's Verdict</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>
 
+      {rtab === 'standing' && <>
       <SectionTitle>Where We Stand</SectionTitle>
       <div className="chip-row" style={{ padding: '0 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         <span className="chip">League position <b>{pos > 0 ? `${pos} / ${leagueClubs.length}` : '-'}</b></span>
@@ -72,6 +80,8 @@ export default function TeamReport() {
         ))}
       </tbody></table></div>
 
+      </>}
+      {rtab === 'depth' && <>
       <SectionTitle sub="cover for every shirt - red rows need recruits">Positional Depth</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Role</th><th className="num">Cover</th><th>Best option</th></tr></thead>
@@ -100,6 +110,8 @@ export default function TeamReport() {
         ))}
       </div>
 
+      </>}
+      {rtab === 'standing' && <>
       <SectionTitle>Current Best XV</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {bestXi.map(({ slot, p }, i) => (
@@ -111,6 +123,7 @@ export default function TeamReport() {
           </tr>
         ))}
       </tbody></table></div>
+      </>}
       <div className="spacer" />
     </>
   )

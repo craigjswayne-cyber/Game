@@ -20,7 +20,7 @@ export default function Training() {
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
   const club = game.clubs[game.userClubId]
-  const [ttab, setTtab] = useState<'training' | 'staff' | 'club'>('training')
+  const [ttab, setTtab] = useState<'training' | 'staff' | 'club' | 'cond'>('training')
   const players = club.players.map(id => game.players[id]).filter(Boolean)
     .sort((a, b) => a.cond - b.cond)
 
@@ -29,17 +29,21 @@ export default function Training() {
       <div className="tab-bar">
         <button className={ttab === 'training' ? 'active' : ''} onClick={() => setTtab('training')}>Training</button>
         <button className={ttab === 'staff' ? 'active' : ''} onClick={() => setTtab('staff')}>Staff</button>
+        <button className={ttab === 'cond' ? 'active' : ''} onClick={() => setTtab('cond')}>Condition</button>
         <button className={ttab === 'club' ? 'active' : ''} onClick={() => setTtab('club')}>Club</button>
       </div>
       {ttab === 'training' && <>
       <SectionTitle sub="small weekly gains in the focus area">Weekly Focus</SectionTitle>
-      {FOCUSES.map(f => (
-        <button key={f.id} className="club-pick" onClick={() => { game.training = f.id; touch() }}>
-          <span style={{ fontSize: 16 }}>{game.training === f.id ? '●' : '○'}</span>
-          <span className="cname">{f.name}</span>
-          <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{f.desc}</span>
-        </button>
-      ))}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 4, padding: '0 14px' }}>
+        {FOCUSES.map(f => (
+          <button key={f.id} className={`club-pick${game.training === f.id ? ' sel' : ''}`} style={{ margin: 0 }}
+            onClick={() => { game.training = f.id; touch() }}>
+            <span style={{ fontSize: 15 }}>{game.training === f.id ? '●' : '○'}</span>
+            <span className="cname">{f.name}</span>
+            <span className="muted" style={{ maxWidth: '52%', textAlign: 'right', fontSize: 11 }}>{f.desc}</span>
+          </button>
+        ))}
+      </div>
       <SectionTitle sub="up to 3 youngsters, faster growth">Development Focus</SectionTitle>
       <div className="chips">
         {players.filter(p => p.age <= 26).sort((a, b) => b.pa - b.ca - (a.pa - a.ca)).slice(0, 10).map(p => {
@@ -69,7 +73,7 @@ export default function Training() {
         <span className="muted">every facility and the board requests to upgrade them ›</span>
       </button>
       </>}
-      {ttab === 'training' && <>
+      {ttab === 'cond' && <>
       <SectionTitle sub="worst first">Condition Report</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Name</th><th className="num">Fitness</th><th className="num">Sharpness</th><th>Status</th></tr></thead>
