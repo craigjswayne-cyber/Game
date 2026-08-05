@@ -95,14 +95,21 @@ try {
 } catch (e) {
   console.error('SCROLL AUDIT stopped early:', e.message)
 } finally {
+  // Long lists are meant to scroll: a 42-man squad, a whole season of
+  // fixtures, every club in the world. They all keep a sticky column header,
+  // so the scroll costs nothing. The screens worth policing are the ones that
+  // present a fixed amount of information and should fit in a glance or two.
+  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby'])
   rows.sort((a, b) => b.screens - a.screens)
   console.log('\nscreenfuls  screen')
   for (const r of rows) {
-    const flag = r.screens >= 3 ? ' ‼' : r.screens >= 2 ? ' !' : ''
+    const list = LISTS.has(r.name)
+    const flag = list ? ' (list)' : r.screens >= 3 ? ' ‼' : r.screens >= 2 ? ' !' : ''
     console.log(`${r.screens.toFixed(2).padStart(8)}    ${r.name}${flag}`)
   }
-  const over = rows.filter(r => r.screens >= 2)
-  console.log(`\n${rows.length} screens measured, ${over.length} need more than two screenfuls`)
+  const over = rows.filter(r => !LISTS.has(r.name) && r.screens >= 2)
+  console.log(`\n${rows.length} screens measured, ${over.length} page${over.length === 1 ? '' : 's'} over two screenfuls`)
+  if (over.some(r => r.screens >= 3)) console.log('WARN: a fixed-content page is three screenfuls deep')
   await browser.close()
   server.kill()
   process.exit(0)

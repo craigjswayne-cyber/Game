@@ -100,8 +100,14 @@ try {
   await page.waitForSelector('text=Mentoring')
   await shot('06g-mentoring')
 
-  // the analyst's read lives on the Match Prep page
+  // the team sheet: forwards left, backs right in landscape
   await page.click('.bottom-nav button[title="Tactics"]').catch(() => {})
+  try {
+    await page.waitForSelector('.xv-split', { timeout: 4000 })
+    await shot('06g2-team-sheet')
+  } catch { /* no lineup yet */ }
+
+  // the analyst's read lives on the Match Prep page
   try {
     await page.waitForSelector('.tab-bar', { timeout: 4000 })
     await page.click('.tab-bar >> text=Prep')

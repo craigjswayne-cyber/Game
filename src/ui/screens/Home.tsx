@@ -67,7 +67,7 @@ export default function Home() {
   if (game.unemployed) {
     return (
       <>
-        <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('jobs')}>
           <h3>📋 The Job Centre</h3>
           <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open - apply, or press Continue and wait for the right one.</div>
@@ -102,6 +102,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      <div className="card-grid">
       {game.comps['sn'] && game.week >= SIX_NATIONS_WEEKS[0] - 1 && game.week <= SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1] && (() => {
         const rows = sortTable(game.comps['sn'].table).slice(0, 3)
         const thisWk = game.fixtures.filter(f => f.compId === 'sn' && f.week === game.week)
@@ -196,6 +197,7 @@ export default function Home() {
           </div>
         )
       })()}
+      </div>
       <div className="hub-row">
         <button className="hub-widget" onClick={() => go('tables')}>
           <label>League</label>
@@ -314,12 +316,12 @@ export default function Home() {
           </div>
         )
       })()}
+      <div className="card-grid">
       {(() => {
         const objs = (game.objectives ?? []).map(id => OBJECTIVE_DEFS.find(o => o.id === id)).filter(Boolean)
         if (!objs.length) return null
         return (
-          <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left' }}
-            onClick={() => go('finances')}>
+          <button className="card" onClick={() => go('finances')}>
             <div className="fact-label">🎯 Season Objectives · {objs.filter(o => o!.met(game)).length}/{objs.length} on track</div>
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
               {objs.map(o => (
@@ -332,19 +334,20 @@ export default function Home() {
         )
       })()}
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
-        <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid var(--gold-bright)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}
           onClick={() => go('seasonreview')}>
           <h3>📖 The Annual is out</h3>
           <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
         </button>
       )}
       {pressOpen > 0 && (
-        <button className="card" style={{ display: 'block', width: 'calc(100% - 28px)', textAlign: 'left', borderLeft: '4px solid #c9a227' }}
+        <button className="card" style={{ borderLeft: '4px solid #c9a227' }}
           onClick={() => go('press')}>
           <h3>🗞️ The press want a word</h3>
           <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
         </button>
       )}
+      </div>
       <SectionTitle sub={`board confidence ${Math.round(club.boardConfidence)}%`}>Inbox</SectionTitle>
       {news.length === 0 && <div className="muted" style={{ padding: 14 }}>Nothing yet. Press Continue to get the season moving.</div>}
       {news.slice(0, 60).map(n => {

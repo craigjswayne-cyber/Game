@@ -194,9 +194,18 @@ export default function Tactics() {
           }}>Auto-Pick Best XV</button>
         </div>
         <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Starting XV</SectionTitle>
-        <table className="dtable"><tbody>{XV_SLOTS.map((_, i) => renderSlot(i))}</tbody></table>
+        {/* forwards left, backs right in landscape: 23 rows in one column was
+            four swipes deep. Two tbody tables stack identically in portrait. */}
+        <div className="xv-split">
+          <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
+          <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
+        </div>
         <SectionTitle>Replacements</SectionTitle>
-        <table className="dtable"><tbody>{BENCH_SLOTS.map((_, i) => renderSlot(15 + i))}</tbody></table>
+        <div className="xv-split">
+          <table className="dtable"><tbody>{BENCH_SLOTS.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+          <table className="dtable"><tbody>{BENCH_SLOTS.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+        </div>
+        <div className="card-grid">
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>©</span>
           <div style={{ flex: 1 }}>
@@ -229,31 +238,34 @@ export default function Tactics() {
               ))}
           </select>
         </div>
+        </div>
       </>}
 
       {ttab === 'form' && (() => {
         const xv = formXV()
+        const formRow = (pid: number | null, i: number) => {
+          const p = pid != null ? game.players[pid] : null
+          const pos = XV_SLOTS[i].pos
+          const incumbent = t.lineup[i]
+          return (
+            <tr key={i}>
+              <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{XV_SLOTS[i].shirt}</td>
+              <td><PosBadge pos={pos} /></td>
+              <td className="name">{p ? p.name : '-'}
+                {p && incumbent !== p.id && <span style={{ color: '#2f7d4f', fontSize: 10, fontWeight: 800 }}> IN</span>}
+              </td>
+              <td>{p && <FormPill v={p.form} />}</td>
+              <td>{p && <Stars ca={effAt(p, pos)} />}</td>
+            </tr>
+          )
+        }
         return (
           <>
             <SectionTitle sub="natural fits ranked on current form - who has earned the shirt">The In-Form XV</SectionTitle>
-            <table className="dtable"><tbody>
-              {xv.map((pid, i) => {
-                const p = pid != null ? game.players[pid] : null
-                const pos = XV_SLOTS[i].pos
-                const incumbent = t.lineup[i]
-                return (
-                  <tr key={i}>
-                    <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{XV_SLOTS[i].shirt}</td>
-                    <td><PosBadge pos={pos} /></td>
-                    <td className="name">{p ? p.name : '-'}
-                      {p && incumbent !== p.id && <span style={{ color: '#2f7d4f', fontSize: 10, fontWeight: 800 }}> IN</span>}
-                    </td>
-                    <td>{p && <FormPill v={p.form} />}</td>
-                    <td>{p && <Stars ca={effAt(p, pos)} />}</td>
-                  </tr>
-                )
-              })}
-            </tbody></table>
+            <div className="xv-split">
+              <table className="dtable"><tbody>{xv.slice(0, 8).map(formRow)}</tbody></table>
+              <table className="dtable"><tbody>{xv.slice(8).map((pid, i) => formRow(pid, 8 + i))}</tbody></table>
+            </div>
             <div className="btn-row" style={{ marginTop: 8 }}>
               <button className="btn gold" onClick={() => {
                 const xv2 = formXV()
