@@ -84,6 +84,27 @@ try {
   await shotScrolled('deep-05-history')
 
   // manager: profile with 12 seasons of trophies and badges
+  // the systems built in the 8-batch, seen in a twelve-season career
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Club Infrastructure')
+  await page.waitForSelector('text=Facilities', { timeout: 10000 })
+  await shot('deep-06-infrastructure')
+  await page.click('.tab-bar >> text=The League')
+  await page.waitForSelector('text=League Estates')
+  await shot('deep-06b-league-estates')
+
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Training & Coaching')
+  await page.click('.tab-bar >> text=Staff')
+  await page.waitForSelector('text=Backroom Staff', { timeout: 10000 })
+  await shot('deep-07-staff')
+
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Transfer Centre')
+  await page.click('.tab-bar >> text=Shortlist')
+  await page.waitForSelector('text=Commissioned Search', { timeout: 10000 })
+  await shot('deep-08-scout-report')
+
   await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Manager Profile')
   await page.waitForTimeout(600)

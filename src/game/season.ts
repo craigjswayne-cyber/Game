@@ -28,6 +28,13 @@ export function weekRng(state: GameState): Rng {
 export function requestFacility(state: GameState, fid: FacilityId): string {
   const club = state.clubs[state.userClubId]
   const info = FACILITY_INFO[fid]
+  // a corrupted save or a stale screen can name a facility that does not
+  // exist: say so rather than reaching into undefined
+  // (an own-property check, so 'toString' and '__proto__' cannot sneak the
+  // prototype's members in as a facility)
+  if (!club || !Object.prototype.hasOwnProperty.call(FACILITY_INFO, fid) || typeof info?.name !== 'string') {
+    return 'That is not something the club can build.'
+  }
   const lvl = club?.facilities?.[fid] ?? 0
   if (lvl >= MAX_FACILITY) return `The ${info.name.toLowerCase()} is already world class. There is nothing left to build.`
   if (state.facilityBuild) return `The builders are already on site (${FACILITY_INFO[state.facilityBuild.id].name}). One project at a time.`

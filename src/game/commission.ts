@@ -36,6 +36,13 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   const club = state.clubs[state.userClubId]
   const tier = state.staff.scout ?? 0
   const man = state.staffPeople?.scout
+  // only the three briefs on offer, and only positions that exist: a stale
+  // screen or a hand-edited save must not book a trip of NaN weeks
+  if (!SEARCH_WEEKS[months]) return 'The scout takes a three, six or nine-month brief, nothing else.'
+  if (pos !== 'any' && (!Object.prototype.hasOwnProperty.call(POS_NAMES, pos) || typeof POS_NAMES[pos] !== 'string')) {
+    return 'That is not a position anyone plays.'
+  }
+  if (!club) return 'You have no club to scout for.'
   if (tier <= 0 || !man) return 'You have no chief scout to send. Appoint one from Training & Coaching first.'
   if (state.commission) {
     const left = Math.max(1, state.commission.done - (state.season * 100 + state.week))
