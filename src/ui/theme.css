@@ -1671,3 +1671,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @media (orientation: landscape) and (min-width: 640px) {
   .xv-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; align-items: start; }
 }
+
+/* the handbook is a question list: the heading IS the summary, so a preview
+   line of the answer underneath it was pure height. Eleven topics went from
+   2.45 screenfuls to well inside two by dropping it. */
+.qa-list .news-item .body { display: none; }
+.qa-list .news-item.open .body { display: block; margin-top: 5px; }
+.qa-list .news-item { padding: 9px 14px 8px; }
+.qa-list .news-item .subj { font-size: 14px; }

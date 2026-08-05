@@ -14,7 +14,7 @@ export type Screen =
   | 'menu' | 'newgame' | 'home' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
-  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra'
+  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
 
 interface NavEntry {
   screen: Screen
