@@ -272,7 +272,12 @@ export default function Home() {
       {(() => {
         // FM-style one-page dashboard: everything glanceable, everything tappable
         const mine = (f: { homeId: string; awayId: string }) => f.homeId === club.id || f.awayId === club.id
-        const played = game.fixtures.filter(f => f.played && mine(f)).sort((a, b) => b.week - a.week).slice(0, 2)
+        // Chronological, top to bottom. This read wk2, wk1, wk3, wk4, wk6 - the
+        // results descending and the fixtures ascending, because the sort that
+        // picks the LAST two results was also the sort that rendered them. One
+        // reverse after the slice and the panel reads like a fixture list.
+        const played = game.fixtures.filter(f => f.played && mine(f))
+          .sort((a, b) => b.week - a.week).slice(0, 2).reverse()
         const coming = game.fixtures.filter(f => !f.played && mine(f)).sort((a, b) => a.week - b.week).slice(0, 3)
         const out = club.players.map(id => game.players[id]).filter(p => p?.injury)
         const wageRoom = club.wageBudget - club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)

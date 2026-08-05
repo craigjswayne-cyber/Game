@@ -1792,10 +1792,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     gap: 10px; align-items: start;
   }
   .wiz-split > .card { margin: 0; width: auto; }
-  .sel-split {
-    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 0 12px; align-items: start;
-  }
+  /* .sel-split is DELIBERATELY not a grid any more. Putting the bench beside
+     the Leadership card saved 154px of height and broke the bench: .xv-split
+     already splits it two-up, so nesting one inside the other gave four columns
+     of team-sheet data across a 756px content area - 191px each, which is less
+     than the six columns need, so the tables painted over each other. A bench
+     you cannot read is worse than one more swipe. The class stays so the markup
+     and the reasoning stay together. */
+  .sel-split { display: block; }
 }
 /* one card per row inside a card-grid that shares a column with a table */
 .card-grid.one { display: block; }
@@ -1842,4 +1846,74 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @media (orientation: landscape) and (min-width: 640px) {
   .tblwrap { overflow: visible; }
   .tblwrap.wide { overflow-x: auto; }
+}
+
+/* ---- nothing sits on top of anything else ----
+   A device screenshot showed the Replacements bench painted over itself: shirt
+   16's form and fitness drawn across shirt 20's number and name, and 122x154px
+   of it. Measured afterwards, it was happening at every width including the one
+   everything was tuned at, and no test had ever looked - they all measure how
+   TALL a screen is, never whether two things share the same pixels.
+
+   This is the bare-1fr trap for the third time, in its nastiest form.
+   minmax(0, 1fr) lets the grid TRACK shrink, which is what stopped the page
+   scrolling sideways two rounds ago. But a table will not shrink below its
+   min-content width and it does not clip, so it simply paints over its
+   neighbour: the track got smaller and the table did not. Letting the track
+   shrink was half a fix.
+
+   The whole fix has to make the CONTENT shrink too, which for a table means
+   table-layout: fixed and columns that are told what they are worth. Then the
+   name cell's ellipsis takes the strain, which is what it is there for.
+   scripts/overlapaudit.mjs measures it at three widths now. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .xv-split .dtable {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 0;
+  }
+  /* shirt, position, name, stars, form, fitness - the name gets the slack */
+  .xv-split .dtable td:nth-child(1) { width: 26px; }
+  .xv-split .dtable td:nth-child(2) { width: 34px; }
+  .xv-split .dtable td:nth-child(3) { width: auto; }
+  .xv-split .dtable td:nth-child(4) { width: 64px; }
+  .xv-split .dtable td:nth-child(5) { width: 38px; }
+  .xv-split .dtable td:nth-child(6) { width: 40px; }
+  .xv-split .dtable td.name {
+    max-width: none; /* fixed layout owns the width now */
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
+
+/* The club picker's badge grid was five fixed columns. Dropped into half a
+   screen next to the club's detail card it overflowed its own container and slid
+   under it, hiding Leicester and Newcastle behind the panel - 7px past the edge
+   in the harness, 59px on a narrower phone. auto-fit means it reflows into
+   however many columns actually fit, at any width, which is what it should have
+   been all along. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wiz-split .tile-grid.three {
+    grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
+    max-width: none;
+    /* the last dozen pixels: two rows of badges plus their labels have to clear
+       the action bar inside a content area that is only about 165px tall */
+    gap: 6px; padding: 6px 12px;
+  }
+  .wiz-split .tile-grid.three .tile { padding: 5px 4px; gap: 1px; }
+}
+
+/* ---- a selected tile is the same size as an unselected one ----
+   .tile.sel had `box-shadow: 0 0 0 1.5px var(--gold)`, a ring painted OUTSIDE
+   the tile's border. It costs no layout, so the grid stays even, but it reads as
+   a bigger tile than its neighbours - on the night theme it renders as a pale
+   halo and the picked club looks like it belongs to a different row (user:
+   "selection squares arent consistent"). An inset ring says the same thing
+   inside the tile's own edges. */
+.tile.sel {
+  box-shadow: inset 0 0 0 2px var(--gold), var(--shadow-1);
+}
+/* a long club name should truncate, not set the tile's width for everyone */
+.tile b {
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

@@ -126,7 +126,11 @@ export default function NewGame() {
 
         {step === 1 && league && (
           <>
-            <div className="wizard-hint">Choose a club to manage in the {league.name}.</div>
+            {/* No hint line here. The breadcrumb above already reads
+                PREMIERSHIP > CLUB, so the sentence was 38px of a content area
+                that is only about 160px tall once the browser's own toolbar and
+                the action bar have taken their share - which is what clipped the
+                second row of clubs and made the step look broken. */}
             {/* the badges and the club's card sit side by side in landscape:
                 stacked, picking a club pushed its own detail below the fold */}
             <div className="wiz-split">
