@@ -124,6 +124,17 @@ try {
   await page.waitForTimeout(300)
   await shot('06j-infra-ask')
 
+  // the handbook: every system explained, with a search box
+  await page.click('.bottom-nav button[title="Manager"]')
+  await page.click(".submenu-item >> text=The Manager's Handbook")
+  await page.waitForSelector('text=the eighty minutes and the hour before it')
+  await page.locator('.news-item').first().click()
+  await page.waitForTimeout(200)
+  await shot('06k-handbook')
+  await page.fill('input[placeholder="Search the handbook…"]', 'catchment')
+  await page.waitForTimeout(300)
+  await shot('06k2-handbook-search')
+
   // live match: kick off and play a half in the dark
   await page.click('text=MATCHDAY').catch(() => {})
   await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })

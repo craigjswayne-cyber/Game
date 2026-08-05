@@ -78,6 +78,11 @@ try {
     await measure(label)
   }
 
+  await page.click('.bottom-nav button[title="Manager"]')
+  await page.click(".submenu-item >> text=The Manager's Handbook")
+  await page.waitForSelector('text=the eighty minutes and the hour before it')
+  await measure('handbook')
+
   const worldItems = [
     ['The Rugby Wire', 'the wire'],
     ['Team of the Week', 'team of the week'],
