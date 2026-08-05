@@ -195,6 +195,23 @@ export default function Profile() {
         })}
       </div>
 
+      {(game.decisions?.length ?? 0) > 0 && <>
+        <SectionTitle sub="what you chose, and what it did">Decisions</SectionTitle>
+        <div className="card" style={{ padding: '6px 10px' }}>
+          {game.decisions!.slice(0, 12).map((d, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}>
+              <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, minWidth: 62, flexShrink: 0 }}>
+                {seasonLabel(d.season)} w{d.week}
+              </span>
+              <span style={{ flexShrink: 0, color: d.good === true ? '#2f7d4f' : d.good === false ? '#9b2c2c' : '#8a7a3a', fontWeight: 700 }}>
+                {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
+              </span>
+              <span className="meta" style={{ fontSize: 11.5 }}>{d.text}</span>
+            </div>
+          ))}
+        </div>
+      </>}
+
       <SectionTitle>Trophy Cabinet</SectionTitle>
       {m.trophies.length === 0
         ? <div className="meta" style={{ padding: '0 16px 8px' }}>Bare shelves - for now. Go and fill them.</div>

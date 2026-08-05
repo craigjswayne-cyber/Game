@@ -3,7 +3,7 @@
 // their last month of rugby, names the soft spot and recommends a week's work.
 // Follow a correct read and you get a real edge; follow a wrong one and you
 // have spent the week preparing for a problem they do not have.
-import type { GameState, MatchPrep } from './model'
+import { logDecision, type GameState, type MatchPrep } from './model'
 import { teamUnits, lineupFor } from './matchEngine'
 
 export interface AnalystRead {
@@ -127,6 +127,15 @@ export function settleAnalyst(state: GameState, oppId: string) {
   state.analystRecord ??= { right: 0, wrong: 0 }
   if (r.right) state.analystRecord.right++
   else state.analystRecord.wrong++
+  // his week-to-week record lives on the Match Prep card. Only the reads he
+  // sold hardest go in the decisions ledger, or a match every week would
+  // crowd out the boardroom, the market and the courses.
+  if (r.confidence >= 0.85) {
+    const opp = state.clubs[oppId]?.short ?? 'them'
+    logDecision(state, r.right
+      ? `Backed the analyst's strongest read at ${opp} (${UNIT_LABEL[r.unit].toLowerCase()}): he had it right, and it showed.`
+      : `Backed the analyst's strongest read at ${opp} (${UNIT_LABEL[r.unit].toLowerCase()}): he was wrong, and the week was wasted.`, r.right)
+  }
 }
 
 export const analystForm = (state: GameState) => {

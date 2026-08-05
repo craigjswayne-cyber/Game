@@ -1,7 +1,7 @@
 // Backroom staff as people, not sliders (8-batch feedback): every coach is a
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
-import { STAFF_INFO, type GameState, type StaffLevels, type StaffPerson } from './model'
+import { STAFF_INFO, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
 
@@ -118,6 +118,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
     subject: `${c.name} appointed ${info.name}`,
     body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${info.name.toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}`,
   })
+  logDecision(state, `Appointed ${c.name} as ${info.name.toLowerCase()} (${BADGE[c.tier].toLowerCase()} badge): ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} left.` : ''}`, true)
   return `${c.name} is your new ${info.name.toLowerCase()}. ${fmt(c.fee)} compensation paid.`
 }
 
@@ -140,6 +141,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     subject: `${p.name} sits his ${BADGE[p.tier + 1].toLowerCase()} badge`,
     body: `${p.name} has been enrolled on the ${BADGE[p.tier + 1].toLowerCase()} coaching course: ${fmt(fee)}, six weeks of evenings, written work and an assessed session in front of examiners who have seen it all. Most get through it. Not all of them do.`,
   })
+  logDecision(state, `Sent ${p.name} on the ${BADGE[p.tier + 1].toLowerCase()} coaching course: ${fmt(fee)}, six weeks, no guarantees.`)
   return `${p.name} is enrolled. Six weeks, ${fmt(fee)}, and the result comes back either way.`
 }
 
@@ -162,6 +164,7 @@ export function resolveCourses(state: GameState) {
       p.wage = Math.round((p.wage * 1.15) / 100) * 100
       p.passed = (p.passed ?? 0) + 1
       state.staff[key] = p.tier
+      logDecision(state, `${p.name} passed his ${BADGE[p.tier].toLowerCase()} badge: a better ${info.name.toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
@@ -170,6 +173,7 @@ export function resolveCourses(state: GameState) {
     } else {
       p.failed = (p.failed ?? 0) + 1
       p.retakeAt = abs + 10
+      logDecision(state, `${p.name} failed his ${BADGE[toTier].toLowerCase()} badge. The course fee is gone and he resits in ten weeks.`, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${p.name} falls short of his ${BADGE[toTier].toLowerCase()} badge`,
