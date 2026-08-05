@@ -46,8 +46,11 @@ try {
   await page.waitForSelector('.dtable')
   await measure('squad')
   await page.click('.dtable tbody tr >> nth=0')
+  await page.waitForSelector('text=Attributes')
+  await measure('player: profile')
+  await page.click('.tab-bar >> text=Attributes')
   await page.waitForSelector('text=Set Piece & Contact')
-  await measure('player profile')
+  await measure('player: attributes')
   await page.click('.back-btn')
 
   await page.click('.bottom-nav button[title="Tactics"]')

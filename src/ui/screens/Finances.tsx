@@ -5,6 +5,8 @@ import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { SectionTitle } from '../components'
 
 export default function Finances() {
+  // two pages rather than one long scroll
+  const [ftab, setFtab] = useState<'money' | 'board'>('money')
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [askMsg, setAskMsg] = useState<string | null>(null)
@@ -42,6 +44,10 @@ export default function Finances() {
 
   return (
     <>
+      <div className="tab-bar">
+        <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>Money</button>
+        <button className={ftab === 'board' ? 'active' : ''} onClick={() => setFtab('board')}>The Board</button>
+      </div>
       <div className="chips">
         <span className="chip">Balance <b style={{ color: club.balance < 0 ? '#9b2c2c' : '#2f7d4f' }}>{fmtMoney(club.balance)}</b></span>
         <span className="chip">Transfer budget <b>{fmtMoney(club.budget)}</b></span>
@@ -49,6 +55,7 @@ export default function Finances() {
         <span className="chip">Wage budget <b>{fmtMoney(club.wageBudget)}/wk</b></span>
       </div>
       {(game.finHist?.length ?? 0) >= 2 && <BalanceChart hist={game.finHist!} />}
+      {ftab === 'money' && <>
       <SectionTitle>Matchday</SectionTitle>
       <div className="chips">
         <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
@@ -74,6 +81,8 @@ export default function Finances() {
       <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
+      </>}
+      {ftab === 'board' && <>
       <SectionTitle>Season Objectives</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
         <h3 style={{ fontSize: 15 }}>The board expects you to {boardObjective(club.rep).text}.</h3>
@@ -105,6 +114,7 @@ export default function Finances() {
           : club.boardConfidence > 30 ? 'The board expects results to improve.'
           : 'The board is losing patience. Win, and quickly.'}
       </div>
+      </>}
     </>
   )
 }

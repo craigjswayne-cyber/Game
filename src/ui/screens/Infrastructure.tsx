@@ -29,6 +29,7 @@ export default function Infrastructure() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [msg, setMsg] = useState('')
+  const [itab, setItab] = useState<'ours' | 'league'>('ours')
   const club = game.clubs[game.userClubId]
   const abs = game.season * 100 + game.week
   const grade = estateGrade(club)
@@ -43,6 +44,10 @@ export default function Infrastructure() {
 
   return (
     <>
+      <div className="tab-bar">
+        <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>Our Estate</button>
+        <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>The League</button>
+      </div>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
@@ -68,6 +73,7 @@ export default function Infrastructure() {
 
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px' }}>{msg}</div>}
 
+      {itab === 'ours' && <>
       <SectionTitle sub="every upgrade goes through the boardroom">Facilities</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 6 }}>
         {ids.map(fid => {
@@ -104,6 +110,8 @@ export default function Infrastructure() {
         })}
       </div>
 
+      </>}
+      {itab === 'league' && <>
       <SectionTitle sub="what the rest of the league has built">League Estates</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Club</th><th className="num">Estate</th><th>Verdict</th><th className="num">Ground</th></tr></thead>
@@ -121,6 +129,7 @@ export default function Infrastructure() {
           })}
         </tbody>
       </table></div>
+      </>}
       <div className="spacer" />
     </>
   )

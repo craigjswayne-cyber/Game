@@ -86,6 +86,8 @@ try {
 
   // Player profile (first row)
   await page.click('.dtable tbody tr >> nth=0')
+  await page.waitForSelector('.tab-bar')
+  await page.click('.tab-bar >> text=Attributes')
   await page.waitForSelector('text=Set Piece & Contact')
   await shot('05-player')
   await page.click('.back-btn')

@@ -11,7 +11,7 @@ export default function TeamReport() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   // two pages: where we stand, and how deep we are (user: fewer long scrolls)
-  const [rtab, setRtab] = useState<'standing' | 'depth'>('standing')
+  const [rtab, setRtab] = useState<'standing' | 'depth' | 'xv'>('standing')
   const club = game.clubs[game.userClubId]
   const squad = club.players.map(id => game.players[id]).filter((p): p is Player => !!p && !p.onLoan)
   const stars = starPlayerIds(game, club.id)
@@ -52,6 +52,7 @@ export default function TeamReport() {
       <div className="tab-bar">
         <button className={rtab === 'standing' ? 'active' : ''} onClick={() => setRtab('standing')}>Where We Stand</button>
         <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>Squad Depth</button>
+        <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>Best XV</button>
       </div>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>The Assistant's Verdict</h3>
@@ -111,7 +112,7 @@ export default function TeamReport() {
       </div>
 
       </>}
-      {rtab === 'standing' && <>
+      {rtab === 'xv' && <>
       <SectionTitle>Current Best XV</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {bestXi.map(({ slot, p }, i) => (
