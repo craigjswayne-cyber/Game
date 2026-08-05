@@ -897,12 +897,17 @@ export function rebuildSeason(state: GameState) {
   }
 
   // prize money & budget refresh (uses final tables before wipe)
+  // Also records where every club finished, as a 0 (top) to 1 (bottom) share of
+  // its league, because the boardroom reset near the end of this function needs
+  // it and the leagues are rebuilt empty before then.
+  const finishFrac = new Map<string, number>()
   for (const comp of Object.values(state.comps)) {
     if (comp.type !== 'league') continue
     const order = sortTable(comp.table).map(r => r.teamId)
     order.forEach((teamId, idx) => {
       const club = state.clubs[teamId]
       if (!club) return
+      if (order.length > 1) finishFrac.set(teamId, idx / (order.length - 1))
       const prize = Math.max(0, (order.length - idx)) * 120_000 + (comp.champion === teamId ? 1_500_000 : 0)
       club.balance += prize
     })
@@ -1169,7 +1174,23 @@ export function rebuildSeason(state: GameState) {
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
     club.budget = Math.max(200_000, Math.round((club.rep * 45_000 + Math.max(0, club.balance) * 0.15) / 50_000) * 50_000)
-    club.boardConfidence = clamp(club.boardConfidence * 0.6 + 30, 0, 100)
+    // The old reset was confidence * 0.6 + 30, whose fixed point is 75 - so
+    // every board in the game drifted back to comfortable each summer no matter
+    // how the season had gone, and a side that finished 8th of 10 was dragged
+    // back up to about 75%. Measured over 12 seasons with scripts/boardprobe.ts:
+    // board confidence tracked league position at r = -0.23 while the crowd
+    // managed -0.62, and boards in the bottom third of the table averaged 70%.
+    // The attractor now depends on where the club actually finished: top of the
+    // league pulls towards 86, bottom towards 32. The objective verdict above
+    // stays as the expectation layer on top of it.
+    //
+    // Tuned by measurement, not taste. 88 down to 18 at an even split read
+    // r = -0.43 but dropped the mean to 37% and left even top-quarter boards at
+    // 53%, which would sack a manager who was doing well. This range and weight
+    // keep the coupling while leaving a successful side comfortable.
+    const frac = finishFrac.get(club.id)
+    const target = frac == null ? 75 : 86 - frac * 54
+    club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
   }
