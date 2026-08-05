@@ -707,6 +707,10 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       0.24, 0.96)
     if (derby) interest = clamp(interest + 0.16, 0.5, 0.99)
     if (fx.stage) interest = clamp(interest + 0.08, 0.5, 0.99) // knockout fever
+    // Nobody fills a ground for a pre-season friendly. The audit found 24,330
+    // of 25,849 at Welford Road for one, paying £730k at the gate - a bigger
+    // payday than most league Saturdays, for a game that does not count.
+    if (fx.compId === 'fr') interest *= 0.38
     // a live count, never a round sell-out figure twice
     const jitter = Math.floor(rng() * Math.max(60, hostClub.capacity * 0.012))
     // seats you can actually shift: the smaller of the ground and the catchment

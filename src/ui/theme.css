@@ -1727,3 +1727,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .tile-grid.three { grid-template-columns: repeat(5, 1fr); max-width: 880px; }
   .tile-grid.three .tile { padding: 6px 5px; gap: 2px; }
 }
+
+/* MatchDay header in landscape: badges left, fixture details right. Centred and
+   stacked it ran to 280px on a 390px screen, which pushed the team sheet - the
+   thing you opened the screen to do - below the fold. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .mday-head {
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    gap: 0 16px; align-items: center; text-align: left;
+    padding: 8px 14px;
+  }
+  .mday-head .mday-badges { margin-bottom: 0 !important; }
+  .mday-head h3 { margin-bottom: 2px; }
+}
