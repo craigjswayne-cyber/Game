@@ -17,11 +17,15 @@ const errors = []
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
-/** The dressing room opens itself on match day; close it if it is showing. */
+/** The dressing room opens when Kick Off is pressed (feedback 9-1), so this
+ *  should never fire on a plain screen walk - but it stays as a guard, and the
+ *  button text is now the one the modal actually has. The old version looked for
+ *  'Say nothing for now', which the modal has never said, and the click was
+ *  wrapped in .catch() so it failed silently for three rounds. */
 const clearTalk = async () => {
   const veil = page.locator('.talk-modal')
   if (await veil.count()) {
-    await page.click('.talk-modal >> text=Say nothing for now').catch(() => {})
+    await page.click('.talk-modal >> text=Say nothing').catch(() => {})
     await page.waitForTimeout(200)
   }
 }
@@ -150,6 +154,13 @@ try {
   await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })
   await shot('07-matchday')
   await page.locator('text=Kick Off ▸').first().click()
+  // Kick Off opens the dressing room first now, and the speech is what carries
+  // on down the tunnel
+  try {
+    await page.locator('.talk-modal').waitFor({ timeout: 3000 })
+    await shot('07b-dressing-room')
+    await page.click('.talk-modal .speech-tile >> nth=0')
+  } catch { /* no dressing room */ }
   try {
     await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
     await page.click('text=▸ Take the Field')

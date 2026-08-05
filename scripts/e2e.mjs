@@ -36,8 +36,15 @@ const clearWire = async () => {
 }
 
 /** Play a full interactive match from the preview screen. */
-async function playMatch() {
+async function playMatch(speech = 'Calm the nerves') {
   await page.locator('text=Kick Off ▸').first().click()
+  // Kick Off opens the dressing room first now (feedback 9-1: "the team talk
+  // should come as you press kick off"), and choosing a speech in there is what
+  // carries on down the tunnel.
+  try {
+    await page.locator('.talk-modal').waitFor({ timeout: 3000 })
+    await page.click(`.talk-modal .speech-tile >> text=${speech}`)
+  } catch { /* no dressing room - a talk was already given */ }
   // a clean team sheet skips the ready-check modal entirely
   try {
     await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
@@ -138,7 +145,9 @@ try {
   // World submenu -> The Rugby Wire
   await page.click('.bottom-nav button[title="World"]')
   await page.click('.submenu-item >> text=The Rugby Wire')
-  await page.waitForSelector('text=THE RUGBY WIRE')
+  // the in-page masthead is gone (the top bar already names the screen), so wait
+  // on something only this screen has
+  await page.waitForSelector('.tab-bar >> text=Rumour Mill')
   await shot('07b-wire')
 
   // Manager submenu -> Profile
@@ -169,9 +178,6 @@ try {
   await page.click('.continue-btn')
   await page.waitForSelector('text=Kick Off', { timeout: 15000 })
   await shot('09-matchday-preview')
-  // the dressing room opens itself on match day now, so the speech is chosen
-  // in the modal rather than found behind a tab
-  await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
   await playMatch()
   await shot('10-fulltime')
   await page.click('text=Continue to Results')

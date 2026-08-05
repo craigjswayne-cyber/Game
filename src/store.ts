@@ -3,7 +3,7 @@ import type { GameState, MatchEvent, Fixture } from './game/model'
 import { newGame } from './game/newgame'
 import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
-  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
+  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
@@ -61,6 +61,8 @@ interface Store {
   finishMatch: () => void
   teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
   halfTimeSub: (outId: number, inId: number) => string
+  /** Override the assistant's injury replacement. Free, and only at the moment. */
+  injuryCover: (onId: number, inId: number) => string
   liveTactics: () => void
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
@@ -267,7 +269,31 @@ export const useStore = create<Store>((set, get) => ({
   halfTimeSub: (outId, inId) => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    // The cursor has to follow the new commentary line, or the panel you made
+    // the change from disappears underneath you.
+    //
+    // makeSubstitution pushes a "change from the bench" event, and liveMatch.events
+    // IS ctx.events - the same array. So the push made events.length one greater
+    // than the cursor, MatchDay's `caughtUp` went false, and with it atHalfTime,
+    // panelActive and the whole half-time panel: one sub and you were thrown back
+    // to the pitch view with the interval over. That is the bug behind "the quick
+    // sub doesn't work well" - it was never the dropdowns, it was that a second
+    // change was impossible because the room closed after the first.
+    const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
     const msg = makeSubstitution(game, liveMatch.ctx, outId, inId)
+    set(s => ({
+      liveMatch: s.liveMatch && wasCaughtUp
+        ? { ...s.liveMatch, cursor: s.liveMatch.ctx.events.length }
+        : s.liveMatch,
+      tick: s.tick + 1,
+    }))
+    return msg
+  },
+
+  injuryCover: (onId, inId) => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    const msg = swapInjuryCover(game, liveMatch.ctx, onId, inId)
     set(s => ({ tick: s.tick + 1 }))
     return msg
   },

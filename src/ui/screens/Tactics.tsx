@@ -113,6 +113,11 @@ export default function Tactics() {
     </div>
   )
 
+  // The canonical layout is a vertical half-pitch: x across, y up the field.
+  // Landscape swaps the axes in CSS (see .form-chip in theme.css) because a
+  // vertical pitch on an 844x390 phone filled the entire screenful and pushed
+  // every slider on the page below the fold. The numbers stay in one orientation
+  // so there is only ever one formation to reason about.
   const SPOTS: [number, number][] = [
     [30, 10], [50, 8], [70, 10],
     [40, 21], [60, 21],
@@ -309,7 +314,8 @@ export default function Tactics() {
             const p = pid != null ? game.players[pid] : null
             const role = t.roles?.[i] != null ? ROLE_BY_ID[t.roles![i]!] : null
             return (
-              <button key={i} className="form-chip" style={{ left: `${x}%`, top: `${y}%` }}
+              <button key={i} className="form-chip"
+                style={{ '--fx': `${x}%`, '--fy': `${y}%` } as React.CSSProperties}
                 onClick={() => setRoleSlot(i)}>
                 <span className="fc-role">{role ? role.short : XV_SLOTS[i].pos}</span>
                 <span className="fc-name">{p ? p.name.split(' ').slice(-1)[0] : '-'}</span>

@@ -80,7 +80,7 @@ const run = async (size) => {
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   const clearTalk = async () => {
     if (await page.locator('.talk-modal').count()) {
-      await page.click('.talk-modal >> text=Say nothing for now').catch(() => {})
+      await page.click('.talk-modal >> text=Say nothing').catch(() => {})
       await page.waitForTimeout(200)
     }
   }
