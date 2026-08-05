@@ -305,6 +305,9 @@ input, select { font: inherit; }
   padding: 11px 13px;
   box-shadow: var(--shadow-1);
 }
+/* a card that is also a button: the width used to be an inline
+   calc(100% - 28px) on every one of them, which no grid could override */
+button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--green-900); margin-bottom: 3px; letter-spacing: .1px; }
 .card .meta { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
 
@@ -1178,6 +1181,9 @@ input, select { font: inherit; }
 }
 .dash-panel {
   text-align: left;
+  /* a button centres its content box, so a short panel sat its heading
+     halfway down the row while the tall ones started at the top */
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
   background: var(--paper);
   border: 1px solid var(--hairline);
   border-radius: 10px;
@@ -1635,4 +1641,33 @@ input, select { font: inherit; }
   .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 920px; }
   .tile-grid.three { grid-template-columns: repeat(6, 1fr); max-width: 980px; }
   .tile { padding: 9px 6px; gap: 4px; }
+}
+
+/* ---- one clean screen in landscape ----
+   Measured 2.92 screenfuls on a 844x390 phone, which is three swipes before
+   the first headline. The contextual cards sit two-up and the dashboard
+   panels share a single row instead of wrapping a fourth onto its own.
+   display:contents keeps portrait exactly as it was. */
+.card-grid { display: contents; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 8px;
+    padding: 8px 14px 0;
+    align-items: start;
+  }
+  .card-grid > .card { margin: 0; width: auto; }
+  .dash-row { grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); }
+  /* the inbox is the tallest block on Home: one preview line, not two, so
+     three headlines fit where two did. Tapping still opens the full story. */
+  .news-item { padding: 9px 14px 8px; }
+  .news-item .body { -webkit-line-clamp: 1; margin-top: 2px; }
+}
+
+/* the team sheet reads across, not down: forwards left, backs right.
+   Portrait keeps one column, where two tbody-only tables stack seamlessly. */
+.xv-split { display: block; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .xv-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; align-items: start; }
 }

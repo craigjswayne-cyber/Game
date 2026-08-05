@@ -110,6 +110,13 @@ try {
   await page.waitForTimeout(600)
   // FP surface: the challenge (live or conquered) must show on the profile
   await page.waitForSelector('text=Sauvez Sapiac', { timeout: 10000 })
+  const dec = await page.locator('text=what you chose, and what it did').count()
+  console.log('decisions card present:', dec > 0)
+  if (dec > 0) {
+    await page.locator('text=what you chose, and what it did').scrollIntoViewIfNeeded()
+    await page.waitForTimeout(200)
+    await shot('deep-09-decisions')
+  }
   await shotScrolled('deep-06-profile')
   await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Manager Legacy')
