@@ -219,18 +219,114 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
 // Simulation
 // ------------------------------------------------------------------
 
-const REF_NAMES = [
-  'L. Pearce', 'K. Dickson', 'M. Carley', 'C. Ridley', 'A. Gardner', 'N. Amashukeli',
-  'A. Piardi', 'P. Williams', "B. O'Keeffe", 'N. Berry', 'H. Davidson', 'A. Brace', 'P. Brousset',
-]
 export type RefStyle = 'strict' | 'fair' | 'lenient'
+
+/** A referee is four separate opinions, not one dial.
+ *
+ *  The old model was thirteen names and three buckets, and the only thing a
+ *  bucket changed was card risk. So every referee in the game was interchangeable
+ *  except for how often somebody got binned, and there was nothing to select
+ *  around: you could not pick a jackal-heavy back row because the man with the
+ *  whistle was permissive at the tackle, because he had no opinion about it.
+ *
+ *  Each dial is a multiplier on something the engine already weighs:
+ *
+ *    scrum      how much he lets the set piece decide things. A pedant rewards a
+ *               dominant front row and punishes a weak one; a ref who waves it
+ *               away makes your scrum coach's work worth less.
+ *    breakdown  jackal tolerance. Permissive means a strong breakdown wins the
+ *               ball; fussy means the same actions concede penalties instead.
+ *    patience   how many infringements he takes before somebody goes to the bin.
+ *    flow       advantage and materiality. High flow means fewer stoppages and
+ *               more attacking ball for both sides.
+ *
+ *  Profiles are fixed per man, not per fixture, so a name means something after
+ *  a season of watching him.  */
+export interface Referee {
+  name: string
+  style: RefStyle
+  /** 0.85 dismissive of the scrum .. 1.15 pedant */
+  scrum: number
+  /** 0.9 fussy at the tackle .. 1.1 lets the jackal work */
+  breakdown: number
+  /** penalties conceded before a bin */
+  patience: number
+  /** 0.98 stop-start .. 1.04 lets it flow */
+  flow: number
+  /** card risk multiplier */
+  cards: number
+}
+
+/** The panel is deliberately MEAN-NEUTRAL on every dial.
+ *
+ *  The first cut was not, and it cost three and a half points a game: the card
+ *  dial averaged 1.03 against the old three-bucket model's effective 1.018, and
+ *  breakdown averaged 0.99, so simply adding variety quietly taxed every match in
+ *  the world. Scoring came out at 48.9 against a healthy band of 52.5-53.2.
+ *
+ *  So each column averages to what the old model averaged. A referee should
+ *  change WHICH side an afternoon suits, never how much rugby gets played. If you
+ *  edit a number here, re-run simtest: the columns have to stay balanced. */
+const REF_PANEL: Referee[] = [
+  { name: 'L. Pearce', style: 'strict', scrum: 1.10, breakdown: 0.92, patience: 4, flow: 0.99, cards: 1.28 },
+  { name: 'K. Dickson', style: 'fair', scrum: 1.00, breakdown: 1.06, patience: 5, flow: 1.03, cards: 1.00 },
+  { name: 'M. Carley', style: 'fair', scrum: 1.08, breakdown: 0.98, patience: 5, flow: 1.00, cards: 1.05 },
+  { name: 'C. Ridley', style: 'lenient', scrum: 0.90, breakdown: 1.10, patience: 7, flow: 1.04, cards: 0.60 },
+  { name: 'A. Gardner', style: 'strict', scrum: 1.10, breakdown: 0.90, patience: 4, flow: 0.98, cards: 1.30 },
+  { name: 'N. Amashukeli', style: 'fair', scrum: 1.08, breakdown: 1.00, patience: 5, flow: 1.01, cards: 1.02 },
+  { name: 'A. Piardi', style: 'fair', scrum: 0.94, breakdown: 1.04, patience: 6, flow: 1.02, cards: 0.92 },
+  { name: 'P. Williams', style: 'strict', scrum: 1.06, breakdown: 0.94, patience: 4, flow: 0.99, cards: 1.24 },
+  { name: "B. O'Keeffe", style: 'lenient', scrum: 0.92, breakdown: 1.08, patience: 7, flow: 1.04, cards: 0.58 },
+  { name: 'N. Berry', style: 'fair', scrum: 1.02, breakdown: 1.02, patience: 5, flow: 1.01, cards: 0.98 },
+  { name: 'H. Davidson', style: 'fair', scrum: 0.96, breakdown: 0.96, patience: 6, flow: 1.00, cards: 1.06 },
+  { name: 'A. Brace', style: 'lenient', scrum: 0.88, breakdown: 1.06, patience: 7, flow: 1.03, cards: 0.64 },
+  { name: 'P. Brousset', style: 'strict', scrum: 1.10, breakdown: 0.94, patience: 4, flow: 0.98, cards: 1.26 },
+]
+
 /** The man (or woman) in the middle - fixed per fixture, big influence. */
-export function refFor(fxId: number): { name: string; style: RefStyle } {
+export function refFor(fxId: number): Referee {
   const h = (fxId * 2654435761) >>> 0
-  return {
-    name: REF_NAMES[h % REF_NAMES.length],
-    style: h % 4 === 0 ? 'strict' : h % 4 === 3 ? 'lenient' : 'fair',
+  return REF_PANEL[h % REF_PANEL.length]
+}
+
+/** Law 3: a 23 must be able to replace all three front-row positions.
+ *
+ *  Six suitably trained front-rowers, in practice two who can play each of
+ *  loosehead, hooker and tighthead - a man counts for every position he can
+ *  actually cover, so a prop who packs down on both sides is worth two. Come up
+ *  short and the referee orders uncontested scrums, which takes the set piece out
+ *  of the game entirely: no shove, no scrum penalties, nothing for a dominant
+ *  front row to win. That hurts whoever HAD the better scrum, which is why it is
+ *  a genuine selection constraint and, in the real game, a genuine controversy -
+ *  a side with a poor scrum has an incentive to be short. Comment kept rather
+ *  than a sanction built: a front-row shortage already punishes itself when a
+ *  tighthead limps off and the bench has no natural cover. */
+export function frontRowCover(state: GameState, lineup: (number | null)[]): { LP: number; HK: number; TP: number; legal: boolean } {
+  const need = ['LP', 'HK', 'TP'] as const
+  const out = { LP: 0, HK: 0, TP: 0, legal: false }
+  for (const id of lineup.slice(0, 23)) {
+    if (id == null) continue
+    const p = state.players[id]
+    if (!p || p.injury) continue
+    for (const n of need) if (p.pos === n || p.alt.includes(n)) out[n] += 1
   }
+  out.legal = out.LP >= 2 && out.HK >= 2 && out.TP >= 2
+  return out
+}
+
+/** His two loudest opinions, in words, for the pre-match briefing. A tendency
+ *  the manager cannot read is a tendency he cannot select around. */
+export function refNotes(r: Referee): string[] {
+  const out: string[] = []
+  if (r.scrum >= 1.08) out.push('Pedantic at the scrum - the dominant front row gets rewarded.')
+  else if (r.scrum <= 0.94) out.push('Waves the scrum away - your set piece is worth less today.')
+  if (r.breakdown >= 1.05) out.push('Lets the jackal work - a strong breakdown will win turnovers.')
+  else if (r.breakdown <= 0.95) out.push('Fussy at the tackle - hands off, or it is a penalty.')
+  if (r.patience <= 4) out.push(`Short fuse: ${r.patience} penalties and somebody walks.`)
+  else if (r.patience >= 7) out.push(`Patient: he allows ${r.patience} before reaching for a card.`)
+  if (r.flow >= 1.03) out.push('Plays advantage and lets it flow.')
+  else if (r.flow <= 0.99) out.push('Stop-start - he blows for everything.')
+  return out
 }
 
 const INJURIES = [
@@ -629,9 +725,33 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     }
     if (weather === 'Wind') side.units.kicking *= 0.92
     if (derby) side.cardRisk *= 1.35
-    // the whistle sets the tone: strict refs card, lenient refs let it flow
-    if (ref.style === 'strict') side.cardRisk *= 1.45
-    if (ref.style === 'lenient') { side.cardRisk *= 0.62; side.units.attack *= 1.03 }
+    // The whistle sets the tone, and now it sets four of them. Each dial acts on
+    // the unit it is an opinion about, so a scrum pedant makes your front row
+    // matter and a permissive ref makes your jackals matter.
+    side.cardRisk *= ref.cards
+    side.units.attack *= ref.flow
+    side.units.scrum *= ref.scrum
+    side.units.breakdown *= ref.breakdown
+  }
+  // Law 3: if either side cannot cover the front row, nobody contests the scrum.
+  // Both sides lose the weapon, so the side with the better pack pays for the
+  // other's shortage - which is the real law and the real argument about it.
+  const homeFR = frontRowCover(state, home.lineup)
+  const awayFR = frontRowCover(state, away.lineup)
+  const uncontested = !homeFR.legal || !awayFR.legal
+  if (uncontested) {
+    // Uncontested means neither side can WIN the scrum, not that the scrum stops
+    // existing. Both get the average of the two, so the differential vanishes and
+    // the absolute level stays sane.
+    //
+    // The first cut set both to 1, on the assumption these were multipliers around
+    // 1.0. They are not: unit strengths run at 15-20. So instead of neutralising
+    // the set piece it deleted it, and because attack weighs scrum while defence
+    // does not, world scoring fell from 52.4 to 48.8 points a game on the 7% of
+    // matches where a front-row shortage bites. Check the scale before you clamp.
+    const level = (home.units.scrum + away.units.scrum) / 2
+    home.units.scrum = level
+    away.units.scrum = level
   }
   // the analyst's read: if the manager prepared for the weakness he named and
   // the read was sound, it is worth a few percent in that area. If he called
@@ -754,6 +874,13 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air - ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
   } else {
     pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries - proper old-school rugby weather.' : ''}`)
+  }
+  if (uncontested) {
+    const short = !homeFR.legal
+      ? teamShort(state, fx.homeId)
+      : teamShort(state, fx.awayId)
+    pushEvent(state, ctx, 1, 'SUB', null,
+      `The referee has ordered UNCONTESTED SCRUMS - ${short} cannot cover all three front-row positions. No shove, no scrum penalties, and every set piece is a formality.`)
   }
   if (fx.homeId === state.userClubId) {
     const mood = state.fanMood ?? 60
@@ -1020,8 +1147,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       opp.consPens += 1
       // repeated infringements: the count climbs, the referee's patience
       // runs out, and somebody takes ten in the bin for the team
-      const ref = refFor(ctx.fx.id)
-      const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
+      const binAt = refFor(ctx.fx.id).patience
       if ((opp.consPens === binAt || opp.consPens === binAt * 2) && opp.onPitch.size > 13) {
         const ps = [...opp.onPitch].map(id => state.players[id]).filter(Boolean)
         if (ps.length) {
