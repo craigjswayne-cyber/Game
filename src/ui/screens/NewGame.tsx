@@ -71,12 +71,17 @@ export default function NewGame() {
 
   return (
     <>
-      <header className="masthead">
+      {/* The four steps used to sit on their own row under the title, and on a
+          landscape phone that row cost the league list an entry - three leagues
+          showed and the fourth was cut off by the action bar. Landscape now runs
+          them alongside the title instead, where there was nothing but space.
+          The step number drops the step NAME with them: the lit crumb says it. */}
+      <header className="masthead wizard-head">
         <div className="masthead-row">
           <button className="back-btn" onClick={prev}>‹</button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1>New Career</h1>
-            <div className="date">Step {step + 1} of 4 · {STEPS[step]}</div>
+            <div className="date">Step {step + 1} of 4<span className="step-name"> · {STEPS[step]}</span></div>
           </div>
           <div className="step-meter"><i style={{ width: `${((step + 1) / 4) * 100}%` }} /></div>
         </div>
@@ -133,12 +138,19 @@ export default function NewGame() {
                 second row of clubs and made the step look broken. */}
             {/* the badges and the club's card sit side by side in landscape:
                 stacked, picking a club pushed its own detail below the fold */}
-            <div className="wiz-split">
-            <div className="tile-grid three">
+            {/* The split only exists once there is something to put in the other
+                half. Before that it reserved the right-hand column anyway, so the
+                badges were crushed into four columns down the left with half the
+                screen blank - which is why a ten-club league needed a scroll and
+                why "Northampton" came out as "Northamp...". */}
+            <div className={club ? 'wiz-split' : ''}>
+            <div className={`tile-grid club-tiles${club ? '' : ' wide'}`}>
               {[...league.clubs].sort((a, b) => b.rep - a.rep).map(c => (
-                <button key={c.id} className={`tile${clubId === c.id ? ' sel' : ''}`} onClick={() => setClubId(c.id)}>
-                  <Crest club={c} size={38} mr={0} />
-                  <b style={{ fontSize: 12 }}>{c.short}</b>
+                <button key={c.id} className={`tile club-tile${clubId === c.id ? ' sel' : ''}`}
+                  style={{ '--c1': c.colors[0], '--c2': c.colors[1] } as React.CSSProperties}
+                  onClick={() => setClubId(c.id)}>
+                  <Crest club={c} size={34} mr={0} />
+                  <b>{c.short}</b>
                 </button>
               ))}
             </div>

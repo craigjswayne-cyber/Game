@@ -2,10 +2,11 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
 import { natFixtureThisWeek, userFixtureThisWeek } from '../game/season'
 import { weekDate, seasonLabel } from '../game/model'
-import { IcoBall, IcoClipboard, IcoInbox, IcoPress, IcoTransfer, IcoTrophy } from './icons'
+import { IcoBall, IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTransfer, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
+import Inbox from './screens/Inbox'
 import Squad from './screens/Squad'
 import PlayerScreen from './screens/PlayerScreen'
 import Tactics from './screens/Tactics'
@@ -35,7 +36,7 @@ import Agency from './screens/Agency'
 import Infrastructure from './screens/Infrastructure'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', inbox: 'Inbox', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -146,6 +147,7 @@ export default function App() {
   const screen = () => {
     switch (cur.screen) {
       case 'home': return <Home />
+      case 'inbox': return <Inbox />
       case 'squad': return <Squad />
       case 'player': return <PlayerScreen playerId={cur.param as number} />
       case 'tactics': return <Tactics />
@@ -251,15 +253,20 @@ export default function App() {
       </header>
       <main className="content">{screen()}</main>
       <nav className="bottom-nav">
-        {navBtn('home', <IcoInbox />, 'Home', unread)}
+        {/* Order asked for: home (summary), inbox, squad, selection and tactics,
+            then the rest. Home carries no unread badge any more - the inbox is a
+            button of its own and wearing the count itself. */}
+        {navBtn('home', <IcoHome />, 'Home')}
         {game.unemployed ? (
           <>
+            {navBtn('inbox', <IcoInbox />, 'Inbox', unread)}
             {navBtn('jobs', <IcoClipboard />, 'Jobs', game.vacancies.length)}
             {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
             {groupBtn('manager', <IcoBall />, 'Manager')}
           </>
         ) : (
           <>
+            {navBtn('inbox', <IcoInbox />, 'Inbox', unread)}
             {navBtn('squad', <IcoBall />, 'Squad')}
             {navBtn('tactics', <IcoClipboard />, 'Tactics')}
             {groupBtn('club', <IcoTransfer />, 'Club', offersOpen + pressOpen + injuredCount)}

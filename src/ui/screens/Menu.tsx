@@ -31,9 +31,12 @@ export default function Menu() {
           const newest = [...saves].sort((a, b) => b.savedAt - a.savedAt)[0]
           if (!newest) return null
           return (
-            <button className="btn gold" style={{ fontSize: 16, padding: '13px' }} onClick={() => void load(newest.slot)}>
-              ▸ Continue - {newest.managerName}, {newest.club}
-              <div style={{ fontSize: 11, opacity: .85 }}>{seasonLabel(newest.season)}, week {newest.week}</div>
+            <button className="btn gold continue-tile" onClick={() => void load(newest.slot)}>
+              {/* one line, always: the longest club name in the game is
+                  "Montpellier Hérault Rugby" and a manager can be called
+                  anything, so the line ellipsises rather than wrapping */}
+              <div className="ct-line">▸ Continue - {newest.managerName}, {newest.club}</div>
+              <div className="ct-sub">{seasonLabel(newest.season)}, week {newest.week}</div>
             </button>
           )
         })()}

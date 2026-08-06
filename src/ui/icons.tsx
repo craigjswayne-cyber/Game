@@ -8,6 +8,17 @@ const S = {
   strokeLinejoin: 'round' as const,
 }
 
+// Home is the club summary now that the inbox is its own screen (user: "buttons
+// on the left should be home (summary) Inbox, squad, selection and tactics"), so
+// the tray icon moved to Inbox and Home got a roof.
+export const IcoHome = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <path d="M3.5 10.5 12 4l8.5 6.5" />
+    <path d="M5.5 9.6V19h13V9.6" />
+    <path d="M10 19v-5h4v5" />
+  </svg>
+)
+
 export const IcoInbox = () => (
   <svg viewBox="0 0 24 24" {...S}>
     <path d="M4 5h16v14H4z" />

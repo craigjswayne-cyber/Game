@@ -19,7 +19,7 @@ try {
   await page.click('text=New Career')
   await page.waitForSelector('text=National League One', { timeout: 8000 })
   await page.click('text=National League One')
-  await page.waitForSelector('.tile-grid.three')
+  await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Rosslyn Pk')
   log('clicked club')
   await page.waitForTimeout(800)

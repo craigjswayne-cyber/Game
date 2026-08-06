@@ -22,7 +22,7 @@ try {
   await page.click('text=New Career')
   await page.waitForSelector('text=Gallagher Premiership')
   await page.click('text=Gallagher Premiership')
-  await page.waitForSelector('.tile-grid.three')
+  await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Leicester')
   await page.waitForSelector('text=Star Player')
   await page.click('.action-bar >> text=Confirm')
