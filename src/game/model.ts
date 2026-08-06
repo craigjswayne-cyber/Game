@@ -464,6 +464,12 @@ export interface TransferOffer {
   /** offer directed at user needs response */
   forUser: boolean
   status: 'pending' | 'accepted' | 'rejected'
+  /** He has already been asked for more once.
+   *
+   *  Haggling raises the fee 18% on a 55% roll and leaves the bid pending, so an
+   *  unlimited counter is a money printer: keep demanding until the dice land.
+   *  One round of haggling per offer, then you answer it. */
+  countered?: boolean
 }
 
 /** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad. */

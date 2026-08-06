@@ -251,6 +251,10 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
 export function counterIncomingOffer(state: GameState, offerId: number): string {
   const o = state.offers.find(x => x.id === offerId)
   if (!o || o.status !== 'pending') return 'Offer no longer available.'
+  // one round of haggling: the fee rises 18% on a 55% roll and the bid stays
+  // pending, so an unlimited counter would be a money printer
+  if (o.countered) return 'You have already been back to them once. Answer the offer.'
+  o.countered = true
   const p = state.players[o.playerId]
   const bidder = state.clubs[o.fromClubId]
   if (!p || !bidder) { o.status = 'rejected'; return 'Offer withdrawn.' }

@@ -15,6 +15,7 @@ export type Screen =
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
   | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
+  | 'offers'
 
 interface NavEntry {
   screen: Screen
@@ -214,6 +215,17 @@ export const useStore = create<Store>((set, get) => ({
   continueWeek: () => {
     const g = get().game
     if (!g) return
+    // A bid for one of your players cannot be ignored (feedback 10E). Offers used
+    // to sit in a tab and lapse in silence after two weeks, so the biggest
+    // decision of a season could be answered for you by a timeout. The week stops
+    // here until the desk is clear.
+    if (!g.unemployed && g.offers.some(o => o.status === 'pending' && o.forUser)) {
+      set(s => ({
+        nav: s.nav[s.nav.length - 1]?.screen === 'offers' ? s.nav : [...s.nav, { screen: 'offers' as const }],
+        tick: s.tick + 1,
+      }))
+      return
+    }
     const fx = (!g.unemployed && userFixtureThisWeek(g)) || natFixtureThisWeek(g)
     if (fx) {
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))

@@ -4,12 +4,16 @@ import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, POS_ORDER } from '../../game/m
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationByCode } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
+import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
+import { mulberry32 } from '../../game/rng'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   // three pages rather than one long scroll (user: fit it into clean screens)
   const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>('club')
+  const touch = useStore(s => s.touch)
+  const [riftMsg, setRiftMsg] = useState<string | null>(null)
   const club = game.clubs[clubId]
   if (!club) return null
   const league = game.comps[club.leagueId]
@@ -215,12 +219,67 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           const g = game.chem?.[chemKey(a.id, b.id)] ?? 0
           return g >= 25 ? { a, b, g } : null
         }).filter(Boolean) as { a: { name: string }; b: { name: string }; g: number }[]
-        if (!feuds.length && !duos.length) return null
+        // the rifts card stands on its own: a club with no grudges and no settled
+        // partnerships can still have two men who have stopped speaking
+        const rifts = clubId === game.userClubId ? activeFeuds(game) : []
+        if (!feuds.length && !duos.length && !rifts.length) return null
         const surname = (n: string) => n.split(' ').slice(-1)[0]
         return (
           <>
-            <SectionTitle sub="who they hate, who clicks">Feuds & Partnerships</SectionTitle>
-            <div className="card">
+            {/* Dressing-room rifts, and something you can do about them (10H).
+                A fallout used to exist only as a Wire story: two of your men
+                stopped speaking, morale bled every week, and there was nowhere in
+                the game to intervene. Now you can get them in a room - and it can
+                blow up in your face, because whether they do it is about whether
+                they will do it for YOU. */}
+            {rifts.length > 0 && (() => {
+              return (
+                <>
+                  <SectionTitle sub="two of yours are not speaking - and it is costing you">Dressing-Room Rifts</SectionTitle>
+                  <div className="card">
+                    {rifts.map((f, i) => {
+                      const a = game.players[f.a]
+                      const b = game.players[f.b]
+                      if (!a || !b) return null
+                      const pct = Math.round(reconcileChance(game, f) * 100)
+                      const asked = f.tried != null && game.week - f.tried < 1
+                      return (
+                        <div key={`${f.a}_${f.b}`} className="rift-row">
+                          <div className="meta">
+                            <b>{a.name}</b> ({a.pers.toLowerCase()}) and <b>{b.name}</b> ({b.pers.toLowerCase()})
+                            have not spoken since week {f.week}.
+                          </div>
+                          <div className="btn-row" style={{ marginTop: 5 }}>
+                            <button className="btn gold tiny" disabled={asked}
+                              title={asked ? 'You had them in this week already' : 'Get them in a room and shut the door'}
+                              onClick={() => {
+                                const rng = mulberry32(game.seed ^ (f.a * 31 + f.b * 17 + game.week * 7))
+                                setRiftMsg(reconcileFeud(game, i, rng).msg)
+                                touch()
+                              }}>
+                              🤝 Get Them In A Room
+                            </button>
+                            <span className="meta" style={{ alignSelf: 'center' }}>
+                              {asked ? 'asked this week' : `${pct}% they shake on it`}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {riftMsg && <div className="meta sheet-log" style={{ marginTop: 6 }}>{riftMsg}</div>}
+                    <div className="meta" style={{ marginTop: 6 }}>
+                      It comes down to whether these two will do it for you: their mood, their
+                      characters, how you stand at the club, and how long it has festered. Fail and
+                      the squad knows you tried, which costs more than saying nothing.
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
+            {(feuds.length > 0 || duos.length > 0) && (
+              <SectionTitle sub="who they hate, who clicks">Feuds & Partnerships</SectionTitle>
+            )}
+            <div className="card" style={feuds.length || duos.length ? undefined : { display: 'none' }}>
               {feuds.map((g, i) => {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
