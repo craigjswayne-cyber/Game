@@ -7,6 +7,7 @@ import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
 import Inbox from './screens/Inbox'
+import Offers from './screens/Offers'
 import Squad from './screens/Squad'
 import PlayerScreen from './screens/PlayerScreen'
 import Tactics from './screens/Tactics'
@@ -36,7 +37,7 @@ import Agency from './screens/Agency'
 import Infrastructure from './screens/Infrastructure'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', inbox: 'Inbox', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', inbox: 'Inbox', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -148,6 +149,7 @@ export default function App() {
     switch (cur.screen) {
       case 'home': return <Home />
       case 'inbox': return <Inbox />
+      case 'offers': return <Offers />
       case 'squad': return <Squad />
       case 'player': return <PlayerScreen playerId={cur.param as number} />
       case 'tactics': return <Tactics />

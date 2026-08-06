@@ -19,6 +19,29 @@ page.on('pageerror', e => errors.push(String(e)))
 const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
 
 // the Wire interstitial shows this week's stories full screen - step past it
+/** A bid for one of your players blocks Continue (10E), so the walk has to
+ *  answer them like a manager would rather than sitting on a screen it cannot
+ *  leave. Rejects everything: the point of the test is that the gate opens. */
+const clearOffers = async () => {
+  for (let i = 0; i < 12; i++) {
+    if (await page.locator('text=Get On With The Week').count()) {
+      await page.click('text=Get On With The Week')
+      await page.waitForTimeout(300)
+      return true
+    }
+    const rej = page.locator('.btn.danger >> text=Reject')
+    if (await rej.count()) {
+      offersAnswered++
+      await rej.first().click()
+      await page.waitForTimeout(200)
+      continue
+    }
+    return false
+  }
+  return false
+}
+let offersAnswered = 0
+
 const clearWire = async () => {
   for (let i = 0; i < 40; i++) {
     if (await page.locator('text=On to the Week').count()) {
@@ -186,7 +209,8 @@ try {
   await page.click('text=Back to the Dressing Room')
   await page.waitForTimeout(300)
   await shot('11-wire-story')
-  await clearWire()
+  await clearOffers()
+    await clearWire()
   await page.waitForSelector('.continue-btn', { timeout: 15000 })
   await shot('11-after-match')
   // the inbox reads one message at a time now (10D): the mail icon serves the
@@ -215,6 +239,7 @@ try {
   for (let i = 0; i < 8; i++) {
     await page.click('.continue-btn')
     await page.waitForTimeout(500)
+    await clearOffers()
     await clearWire()
     const kick = page.locator('text=Kick Off ▸')
     if (await kick.count()) {
@@ -223,7 +248,8 @@ try {
       await page.waitForSelector("text=This Week's Results", { timeout: 10000 })
       await page.click('text=Back to the Dressing Room')
       await page.waitForTimeout(300)
-      await clearWire()
+      await clearOffers()
+    await clearWire()
     }
   }
   await shot('12-weeks-later')
@@ -284,6 +310,7 @@ try {
   console.log(`continue tile: "${ct.text}" is ${ct.h}px tall (one line is about ${ct.lh}px)`)
   if (ct.h > ct.lh * 1.6) throw new Error(`the Continue tile wrapped (${ct.h}px)`)
 
+  console.log(`offers answered during the walk: ${offersAnswered}`)
   console.log('E2E FLOW COMPLETE')
 } catch (e) {
   await shot('99-failure')

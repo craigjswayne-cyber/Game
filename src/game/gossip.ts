@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import { fmtMoney } from './model'
+import { fmtMoney, mgrReputation } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 
@@ -27,9 +27,82 @@ const CLASHES: [string, string][] = [
   ['Temperamental', 'Temperamental'],
 ]
 
-interface Feud { a: number; b: number; week: number }
+export interface Feud {
+  a: number
+  b: number
+  week: number
+  /** the week the manager last tried to broker peace, if he has */
+  tried?: number
+}
 
 /** Active feuds ride along in state via a soft field. */
+export function activeFeuds(state: GameState): Feud[] {
+  return feuds(state).filter(f => {
+    const a = state.players[f.a]
+    const b = state.players[f.b]
+    return a && b && a.clubId === state.userClubId && b.clubId === state.userClubId
+  })
+}
+
+/** How likely the manager is to broker peace, 0-1.
+ *
+ *  It comes down to whether these two will do it for HIM, which is the whole
+ *  point: a manager the room respects can end a rift with a conversation, and one
+ *  it does not will make it worse by trying. So the odds read the two men's mood,
+ *  their characters, and the manager's standing at the club.
+ *
+ *  Nothing is a certainty. Even at the top of the range it can fail, because a
+ *  guaranteed button is not a decision. */
+export function reconcileChance(state: GameState, f: Feud): number {
+  const a = state.players[f.a]
+  const b = state.players[f.b]
+  const club = state.clubs[state.userClubId]
+  if (!a || !b || !club) return 0
+  const mood = ((a.morale + b.morale) / 2 - 5) * 0.045       // ±0.22 across the range
+  const standing = (club.boardConfidence - 55) * 0.0035      // the room reads the table too
+  // and who is asking: a manager with silverware and a winning record gets the
+  // benefit of the doubt in a room that a novice does not
+  const rep = mgrReputation(state) >= 70 ? 0.07 : mgrReputation(state) >= 55 ? 0.03 : 0
+  const hard = [a, b].filter(p => p.pers === 'Temperamental' || p.pers === 'Mercenary').length * 0.09
+  const easy = [a, b].filter(p => p.pers === 'Professional' || p.pers === 'Leader' || p.pers === 'Loyal').length * 0.07
+  // a rift that has festered for weeks is harder to unpick than a fresh one
+  const stale = Math.min(0.12, Math.max(0, state.week - f.week - 2) * 0.02)
+  return clamp(0.5 + mood + standing + rep + easy - hard - stale, 0.12, 0.88)
+}
+
+/** Get the two of them in a room. Returns what happened, in words.
+ *
+ *  One attempt a week: a manager who calls the same meeting every day is a
+ *  manager nobody listens to, and it would turn a gamble into a grind. */
+export function reconcileFeud(state: GameState, index: number, rng: Rng): { ok: boolean; msg: string } {
+  const list = feuds(state)
+  const f = activeFeuds(state)[index]
+  if (!f) return { ok: false, msg: 'That rift has already settled.' }
+  const a = state.players[f.a]
+  const b = state.players[f.b]
+  if (!a || !b) return { ok: false, msg: 'That rift has already settled.' }
+  if (f.tried != null && state.week - f.tried < 1) {
+    return { ok: false, msg: 'You had them in this week already. Give it seven days.' }
+  }
+  f.tried = state.week
+  const p = reconcileChance(state, f)
+  if (rng() < p) {
+    const i = list.indexOf(f)
+    if (i >= 0) list.splice(i, 1)
+    a.morale = clamp(a.morale + 1.1, 1, 10)
+    b.morale = clamp(b.morale + 1.1, 1, 10)
+    wire(state, `Peace brokered: ${a.name.split(' ').slice(-1)[0]} and ${b.name.split(' ').slice(-1)[0]}`,
+      `The manager got them in a room and shut the door. Both men came out and trained. Nobody is pretending they are friends, but the squad can get on with its week.`, a.id)
+    return { ok: true, msg: `Handshakes. ${a.name} and ${b.name} will play together.` }
+  }
+  // a failed intervention is worse than none: now the room knows he tried
+  a.morale = clamp(a.morale - 0.5, 1, 10)
+  b.morale = clamp(b.morale - 0.5, 1, 10)
+  wire(state, `Clear-the-air talks fail at ${state.clubs[state.userClubId].short}`,
+    `The manager tried to settle it between ${a.name} and ${b.name} and got nowhere. Worse, the squad knows the meeting happened - and that it did not work.`, a.id)
+  return { ok: false, msg: `${a.name} would not shake on it. That has cost you: the room knows you tried and failed.` }
+}
+
 function feuds(state: GameState): Feud[] {
   const s = state as GameState & { feuds?: Feud[] }
   s.feuds ??= []
