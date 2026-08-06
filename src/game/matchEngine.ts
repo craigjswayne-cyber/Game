@@ -219,7 +219,42 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
       id != null && state.players[id] && !state.players[id].injury &&
       state.players[id].bans === 0 && !state.players[id].natSquad &&
       state.players[id].clubId === teamId)
-    if (valid) return lu
+    // A saved team sheet also goes stale. It used to be kept as long as all
+    // fifteen men were merely AVAILABLE, so a shirt filled by a pure shoehorn
+    // during a crisis kept him in it for the rest of the career - the squad could
+    // sign a specialist for that exact position and the sheet would never notice.
+    // Caught by the academy round (10G): giving squads real depth turned a
+    // once-in-a-while annoyance into a flanker wearing 8 for eighteen straight
+    // league games while a 77-rated number eight was not even on the bench.
+    //
+    // Deliberately narrow, so it cannot overrule a manager who meant it: it only
+    // re-picks when a man is in a shirt he can play NEITHER naturally nor as an
+    // alternative, AND natural cover for that shirt is sitting outside the whole
+    // 23. Inside the 23 is a selection call. Outside it is a squad that changed
+    // since the sheet was written.
+    const stale = valid && (() => {
+      const named = new Set(lu.filter((x): x is number => x != null))
+      return lu.slice(0, 15).some((id, i) => {
+        const p = state.players[id!]
+        const pos = XV_SLOTS[i].pos
+        if (p.pos === pos || p.alt.includes(pos)) return false
+        return club.players.some(cid => {
+          const c = state.players[cid]
+          return c && !named.has(c.id) && !c.acad && !c.injury && c.bans === 0 &&
+            !c.natSquad && !c.onLoan && (c.pos === pos || c.alt.includes(pos))
+        })
+      })
+    })()
+    if (valid && !stale) return lu
+    if (stale) {
+      // Write the tidy-up back, so the Selection screen shows the side that
+      // actually played. An INVALID sheet is deliberately not persisted - the
+      // injured man's shirt is held for him and comes back when he is fit - but a
+      // STALE one is a sheet the squad has outgrown, and leaving the manager
+      // looking at a flanker at 8 after he signed a number eight is the bug.
+      club.tactic.lineup = autoSelect(state, availablePlayers(state, club.players, false), splitFor(club))
+      return club.tactic.lineup
+    }
   }
   const pool = availablePlayers(state, rosterOf(state, teamId), isNation)
   return autoSelect(state, pool, splitFor(club))

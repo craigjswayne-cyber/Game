@@ -35,12 +35,35 @@ const EXPECTED: string[] = [
   // intent and reality agree on all 101 clubs (19 six-twos, 68 five-threes, 14
   // four-fours) and every bench covers the front row, so this closed a loophole
   // rather than changing the balance. 52.9 points a game against 52.8.
-  'northampton 33-19 sale',
-  'bath 27-17 newcastle',
-  'exeter 19-3 leicester',
-  'harlequins 24-51 bristol',
-  'gloucester 37-24 saracens',
-  'newcastle 19-52 northampton',
+  //
+  // Rebaselined by feedback 10G, the academy round. TWO deliberate changes to
+  // world generation, neither of them in the match engine:
+  //
+  //   The academy is a 27-man squad rather than four named prospects, so newGame
+  //   draws 27 players per club where it drew 4 - about 2,300 extra rng calls
+  //   before the league draw is even made. That is why the FIXTURES here differ
+  //   and not just the scores: the draw itself sees a different stream.
+  //
+  //   The senior filler now counts SENIOR positions when it looks for the thinnest
+  //   shirt. Counting the whole squad meant 27 academy men made every position
+  //   look three deep, so the fill spread at random instead of covering real gaps.
+  //   Position choice gates a `rng() < 0.3` goal-kicker roll, so fixing it moves
+  //   the stream again.
+  //
+  // Balance verified over four seeds before rebaselining, as always: 52.3 / 52.5 /
+  // 52.6 / 52.9 points a game, 5.9-6.0 tries, 55-56% home, 2.2-2.4% draws, across
+  // 11,110 league games each. The default seed sits 0.2 under the 52.5 band floor
+  // and three of the four sit inside it, so that is seed spread, not a leak - and
+  // reaching for a dial to buy back 0.2 points is how the balance gets broken.
+  //
+  // The A League has its own scoreline model and never enters this stream;
+  // scripts/acadprobe.ts holds its distribution to the same band.
+  'leicester 43-19 newcastle',
+  'northampton 24-24 bath',
+  'bristol 20-6 saracens',
+  'exeter 9-14 harlequins',
+  'sale 42-25 gloucester',
+  'bath 31-10 leicester',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

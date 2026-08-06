@@ -27,6 +27,7 @@ import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
 import { mulberry32 } from './rng'
+import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 
 export interface Challenge {
   id: string
@@ -181,18 +182,24 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     }
   }
 
-  // every club fields a full senior squad plus a real academy:
-  // 4 named prospects (17-19, high ceilings) and squad players to 33
+  // every club fields a full senior squad plus a real academy of 27
   const FILL_POS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB']
   for (const club of Object.values(state.clubs)) {
-    const mkExtra = (age: number, q: number, youth: boolean, i: number) => {
-      // fill the thinnest position first
+    const mkExtra = (age: number, q: number, youth: boolean, i: number, want?: Pos) => {
+      // Fill the thinnest SENIOR position first, unless the caller named the shirt.
+      //
+      // Seniors only, and this is load-bearing. Counting the whole registered squad
+      // meant the 27 academy men (feedback 10G) made every position look two or
+      // three deep before a single senior filler was signed, so the fill spread
+      // itself at random instead of covering real senior gaps - and the soak caught
+      // it as a jump in out-of-position starters, because autoSelect was being
+      // handed squads with no natural hooker behind the two it had.
       const byPos: Record<string, number> = {}
       for (const id of club.players) {
         const p = state.players[id]
-        if (p) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
+        if (p && !p.acad) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
       }
-      const pos = [...FILL_POS].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
+      const pos = want ?? [...FILL_POS].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
       let name = regenName(rng, club.country)
       let guard = 0
       while (seenNames.has(name.toLowerCase()) && guard++ < 10) name = regenName(rng, club.country)
@@ -204,15 +211,20 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       state.players[p.id] = p
       club.players.push(p.id)
     }
-    // academy prospects - the next generation is already in the building
-    for (let i = 0; i < 4; i++) {
-      mkExtra(17 + Math.floor(rng() * 3), 38 + Math.floor(rng() * 16) + Math.floor(club.rep / 14), true, i)
-    }
-    // senior depth to 38 SENIORS (42 with the academy): two deep in every
+    // The academy is a real team, not a shelf of four prospects (feedback 10G):
+    // ACADEMY_SIZE men in the shape of a squad that can field a side every week,
+    // which is why the shirts are named rather than filled thinnest-first - a
+    // thinnest-first academy borrows the seniors' gaps and ends up with six locks
+    // and no scrum-half. They sit outside the senior salary cap, as they do in
+    // the real game: a club is not punished for growing its own.
+    ACAD_SHAPE.forEach((pos, i) => {
+      mkExtra(17 + Math.floor(rng() * 3), acadQuality(club, rng), true, i, pos)
+    })
+    // senior depth to 38 SENIORS (65 with the academy): two deep in every
     // shirt with room for injuries, Tests and suspensions (user feedback:
     // squads were too thin - and the first fix forgot the academy counts)
     let guard = 0
-    while (club.players.length < 42 && guard++ < 22) {
+    while (club.players.length < 38 + ACADEMY_SIZE && guard++ < 40) {
       mkExtra(21 + Math.floor(rng() * 9), Math.max(42, club.rep - 16 + Math.floor(rng() * 10)), false, guard + 50)
     }
   }
@@ -346,6 +358,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   inheritStaff(state)
 
   punditPredictions(state, rng)
+
+  // the A League: the academy sides of the manager's own league, fixtures and
+  // table, played under the academy coach every league week (feedback 10G)
+  ensureAcademyLeague(state)
 
   return state
 }

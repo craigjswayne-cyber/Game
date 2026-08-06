@@ -27,6 +27,14 @@ console.log(`clubs ${before} -> ${after} (expect +24)`)
 if (after - before !== 24) { console.error('BUG: injection count wrong'); process.exit(1) }
 const ross = m.clubs['rosslyn']
 console.log(`rosslyn squad: ${ross.players.length}, XV set: ${ross.tactic.lineup.slice(0,15).every(x => x != null)}`)
+// A club the migration invents needs an academy too (feedback 10G): the first cut
+// stamped the academy top-up per SAVE, so the 24 clubs injected here came into the
+// world with no scholars at all and no way to field an A League side.
+const rossAcad = ross.players.filter(id => m.players[id]?.acad).length
+console.log(`rosslyn academy: ${rossAcad} scholars`)
+if (rossAcad < 27) { console.error('BUG: an injected club got no academy'); process.exit(1) }
+if (!m.academy?.fixtures.length) { console.error('BUG: no A League after migration'); process.exit(1) }
+console.log(`A League after migration: ${m.academy.name}, ${m.academy.fixtures.length} fixtures`)
 // pid counter must be above every existing id
 const maxId = Object.keys(m.players).reduce((x, k) => Math.max(x, Number(k)), 0)
 const fresh = nextPid()

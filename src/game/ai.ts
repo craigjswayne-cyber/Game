@@ -356,7 +356,16 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
 /** The wage bill that counts against the cap - marquee men sit outside it. */
 export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {
   const marquee = new Set((club.marquee ?? []).slice(0, 2))
-  return club.players.reduce((s, id) => s + (marquee.has(id) ? 0 : (state.players[id]?.wage ?? 0)), 0)
+  return club.players.reduce((s, id) => {
+    if (marquee.has(id)) return s
+    const p = state.players[id]
+    // Academy men sit outside the senior cap, as they do in the real game: a
+    // club is not punished for developing its own. It also matters mechanically
+    // now the academy is 27 strong rather than four - counting them would have
+    // put every club in the world over the cap overnight.
+    if (!p || p.acad) return s
+    return s + p.wage
+  }, 0)
 }
 
 /** Agree a pre-contract with an out-of-contract player at another club:

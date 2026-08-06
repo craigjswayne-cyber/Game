@@ -8,6 +8,7 @@ import { regenName } from './nations'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
 import { seedStaffPeople } from './staff'
+import { ensureAcademyLeague, topUpAcademy } from './academy'
 
 const DB_NAME = 'rugby-manager'
 const STORE = 'saves'
@@ -202,6 +203,17 @@ export function migrate(s: GameState): GameState {
       }
     }
   }
+
+  // The academy became a 27-man team with its own A League (feedback 10G), so an
+  // existing career gets the same academy in the same shape.
+  //
+  // PER CLUB, not per save. The first cut stamped s.acadDepth and skipped the work
+  // if the save already carried it - which meant the 24 clubs the natl1/jl1
+  // migration injects a few lines above, and every club a future build adds, came
+  // into the world with no academy at all and no way to field an A League side.
+  // topUpAcademy is a no-op on a full academy, so asking all 101 costs nothing.
+  for (const club of Object.values(s.clubs)) topUpAcademy(s, club, rng, 0xACAD)
+  ensureAcademyLeague(s)
 
   // clubs injected by a later build get an estate too
   for (const c of Object.values(s.clubs)) c.facilities ??= initFacilities(c, s.seed)
