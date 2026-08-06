@@ -20,6 +20,7 @@ import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
+import { playAcademyWeek } from './academy'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -966,6 +967,11 @@ export function processWeekAndAdvance(state: GameState) {
       fx.tableApplied = true
     }
   }
+
+  // The A League runs the same weeks as the senior league, and AFTER it: a lad
+  // called up to the seniors this week has had his senior game and had p.acad
+  // cleared, so he cannot also turn out for the A side (feedback 10G).
+  playAcademyWeek(state, rng)
   // DEADLINE DAY: the last week of each window is a circus - panic
   // listings appear at cut prices and nobody's star is safe
   if ((state.week === 7 || state.week === 27) && !state.unemployed) {

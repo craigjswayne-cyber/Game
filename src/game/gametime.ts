@@ -53,7 +53,17 @@ export const STATUS_BY_ID: Record<string, StatusDef> =
  *  Read off his standing in the squad rather than stored at generation, so an
  *  existing save and a new signing both get a sane answer with no migration. */
 export function defaultStatus(state: GameState, club: Club, p: Player): SquadStatus {
-  const squad = club.players.map(id => state.players[id]).filter(Boolean)
+  // An academy man is not in this queue at all. His rugby is the A League, every
+  // week, under the academy coach (feedback 10G) - he is not sitting at home
+  // counting first-team appearances, so he expects none of them and 'fringe' is
+  // the honest reading. Before this, 27 scholars each quietly demanded a 0.12
+  // share and three of the 23 shirts a week were promised to schoolboys.
+  if (p.acad) return 'fringe'
+  // Ranked against the SENIOR squad, for the same reason. Ranking against all 65
+  // registered players meant the academy's low abilities pushed every senior up
+  // the order: a squad player read as top-35% and became a KEY man, and the
+  // humanprobe caught the club promising 26.8 of its 23 shirts every week.
+  const squad = club.players.map(id => state.players[id]).filter(x => x && !x.acad)
   if (!squad.length) return 'squad'
   const better = squad.filter(x => x.ca > p.ca).length
   const rank = better / squad.length

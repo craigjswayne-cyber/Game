@@ -15,7 +15,7 @@ export type Screen =
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
   | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
-  | 'offers'
+  | 'offers' | 'academy'
 
 interface NavEntry {
   screen: Screen

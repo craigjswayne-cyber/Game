@@ -35,6 +35,7 @@ import WeekResults from './screens/WeekResults'
 import SeasonReview from './screens/SeasonReview'
 import Agency from './screens/Agency'
 import Infrastructure from './screens/Infrastructure'
+import Academy from './screens/Academy'
 
 const TITLES: Record<string, string> = {
   home: 'Home', inbox: 'Inbox', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
@@ -176,6 +177,7 @@ export default function App() {
       case 'seasonreview': return <SeasonReview />
       case 'agency': return <Agency />
       case 'infra': return <Infrastructure />
+      case 'academy': return <Academy />
       default: return <Home />
     }
   }
@@ -191,6 +193,7 @@ export default function App() {
         { ico: '💰', label: 'Finances', screen: 'finances' },
         { ico: '🔁', label: 'Transfer Centre', screen: 'transfers', badge: offersOpen },
         { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
+        { ico: '🎓', label: 'Academy & A League', screen: 'academy' },
         { ico: '🏗️', label: 'Club Infrastructure', screen: 'infra' },
         { ico: '🏟️', label: 'Club Information', screen: 'club' },
       ],

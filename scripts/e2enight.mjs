@@ -129,6 +129,38 @@ try {
     await shot('06h-analyst')
   } catch { /* no fixture this week */ }
 
+  // the academy section: squad, A League table, fixtures (feedback 10G)
+  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.submenu-item >> text=Academy & A League')
+  await page.waitForSelector('text=The Scholars')
+  await shot('06h2-academy-squad')
+  {
+    const rows = await page.locator('.dtable tbody tr').count()
+    console.log(`academy squad rows: ${rows} (should be 27 scholars)`)
+    if (rows < 27) throw new Error(`academy squad shows ${rows} rows, expected 27`)
+  }
+  await page.click('.preset-chip >> text=A League Table')
+  await page.waitForSelector('text=A League')
+  await shot('06h3-academy-table')
+  {
+    const rows = await page.locator('.dtable tbody tr').count()
+    console.log(`A League table rows: ${rows}`)
+    if (rows < 4) throw new Error(`A League table shows ${rows} rows`)
+  }
+  await page.click('.preset-chip >> text=Fixtures & Results')
+  await page.waitForSelector('text=A League Fixtures')
+  await shot('06h4-academy-fixtures')
+  {
+    const rows = await page.locator('.dtable tbody tr').count()
+    console.log(`A League fixtures for the user: ${rows}`)
+    if (rows < 4) throw new Error(`A League fixture list shows ${rows} rows`)
+  }
+  // nothing on this screen may push the page sideways on a phone
+  {
+    const wide = await page.evaluate(() => document.scrollingElement.scrollWidth > document.scrollingElement.clientWidth)
+    if (wide) throw new Error('academy screen scrolls horizontally')
+  }
+
   // club infrastructure: the estate on one page
   await page.click('.bottom-nav button[title="Club"]')
   await page.click('.submenu-item >> text=Club Infrastructure')

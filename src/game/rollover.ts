@@ -11,6 +11,7 @@ import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
 import { nationByCode, regenName } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
+import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -603,27 +604,41 @@ function youthIntake(state: GameState, rng: Rng) {
   }
 }
 
-/** Any club left short of bodies signs free agents (board-driven squad fillers). */
+/** Any club left short of bodies signs free agents (board-driven squad fillers).
+ *
+ *  Counts SENIORS, not the squad list. Once the academy became 27 strong
+ *  (feedback 10G) no club on earth was ever under 26 registered players again,
+ *  so a whole-squad count would have quietly switched this off and let senior
+ *  squads shrivel season by season while the academy stayed full. */
 function replenishSquads(state: GameState, rng: Rng) {
   const freeAgents = () => Object.values(state.players)
     .filter(p => !p.clubId && p.age <= 34)
     .sort((a, b) => b.ca - a.ca)
+  const seniors = (club: Club) =>
+    club.players.reduce((n, id) => n + (state.players[id] && !state.players[id].acad ? 1 : 0), 0)
   for (const club of Object.values(state.clubs)) {
     let guard = 0
-    while (club.players.length < 26 && guard++ < 25) {
+    while (seniors(club) < 26 && guard++ < 25) {
       // biggest positional hole
+      // seniors only, for the same reason the count above is: with 27 academy men
+      // registered, no position is ever under two and this would fall through to a
+      // random shirt every time, filling gaps the club does not have
       const byPos: Record<string, number> = {}
       for (const id of club.players) {
         const p = state.players[id]
-        if (p) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
+        if (p && !p.acad) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
       }
       const need = YOUTH_POS.find(pos => (byPos[pos] ?? 0) < 2) ?? pick(rng, YOUTH_POS)
       const fa = freeAgents().find(p => p.pos === need || p.alt.includes(need)) ?? freeAgents()[0]
       if (!fa) {
-        // the market is bare - register an academy scholar instead
+        // The market is bare - hand a young pro a senior contract instead. He
+        // used to be registered as an academy scholar, which stopped being safe
+        // the moment this loop started counting seniors: an academy signing does
+        // not raise the senior count, so the loop would spin to its guard and
+        // hand the club twenty-five schoolboys it did not need.
         const raw = {
           name: regenName(rng, club.country), pos: need,
-          age: 18 + Math.floor(rng() * 2), nat: club.country,
+          age: 19 + Math.floor(rng() * 2), nat: club.country,
           q: clamp(40 + Math.floor(rng() * 12) + Math.floor(club.rep / 14), 38, 62),
           gk: (need === 'FH' || need === 'FB') && rng() < 0.3,
         }
@@ -633,7 +648,7 @@ function replenishSquads(state: GameState, rng: Rng) {
           clubId: club.id, a: a2, ca: raw.q, pa: clamp(raw.q + 15 + Math.floor(rng() * 20), raw.q, 99),
           q0: raw.q, intl: false, gk: !!raw.gk, form: 6, morale: 7, cond: 100, sharp: 55,
           injury: null, bans: 0, natSquad: false, wage: 600, contractEnds: state.season + 3,
-          value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true, acad: true,
+          value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
           pers: assignPersonality(rng, a2), sc: club.id === state.userClubId ? 100 : 15,
         }
         kid.value = playerValue(kid.ca, kid.age, kid.pa)
@@ -689,6 +704,9 @@ export function rebuildSeason(state: GameState) {
   // the league had worked out is worth calling again.
   for (const club of Object.values(state.clubs)) resetFamiliarity(club)
 
+  // the A League is decided before the season index moves on, so its champion
+  // and the user's finish are stamped in the season they were earned
+  closeAcademySeason(state)
   seasonAwards(state)
   tryOfTheSeason(state)
   worldPlayerOfTheYear(state)
@@ -1016,19 +1034,32 @@ export function rebuildSeason(state: GameState) {
   handleContracts(state, rng)
   youthIntake(state, rng)
   replenishSquads(state, rng)
+  // every academy in the world recruits its next scholarship year, back up to
+  // 27 in shape - see topUpAcademy for why this is not optional (feedback 10G)
+  for (const club of Object.values(state.clubs)) {
+    topUpAcademy(state, club, rng, state.seed + state.season * 977)
+  }
 
   // AI squads shed their surplus every summer: intake adds more bodies
   // than retirement removes, and without a clear-out the median squad
   // drifts from 33 to 43+ over a decade. Weakest seniors are released
   // into the free-agent pool (which is pruned just below).
+  //
+  // Counts SENIORS on both ends. It used to count the whole registered squad,
+  // which the 27-man academy (feedback 10G) turned into a wrecking ball: every
+  // club in the world sat over 46 registered on day one, and since only seniors
+  // are releasable it would have stripped all 101 of them down to seventeen
+  // senior players while the academy sat there untouched.
+  const seniorCount = (club: Club) =>
+    club.players.reduce((n, id) => n + (state.players[id] && !state.players[id].acad ? 1 : 0), 0)
   for (const club of Object.values(state.clubs)) {
-    if (club.id === state.userClubId || club.players.length <= 46) continue
+    if (club.id === state.userClubId || seniorCount(club) <= 46) continue
     const releasable = club.players
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && !p.acad && p.age >= 21 && !p.onLoan && !p.loanFrom)
       .sort((a, b) => a.ca - b.ca)
     for (const p of releasable) {
-      if (club.players.length <= 44) break
+      if (seniorCount(club) <= 44) break
       club.players = club.players.filter(id => id !== p.id)
       club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
       if (club.captain === p.id) club.captain = null
@@ -1145,6 +1176,10 @@ export function rebuildSeason(state: GameState) {
   const wcYear = isWorldCupSeason(state.season)
   buildInternationals(rng, state, wcYear)
   schedulePreseason(state, rng)
+  // and a fresh A League for whichever league the manager is in NOW - a summer
+  // move to the Top 14 gets him the Espoirs rather than last year's Premiership
+  state.academy = undefined
+  ensureAcademyLeague(state)
 
   // the farewell season: a one-club servant announces his last dance, and
   // his home pre-season friendly becomes the testimonial he plays in

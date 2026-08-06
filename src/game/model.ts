@@ -809,6 +809,9 @@ export interface GameState {
   /** squad-depth standard this save has been topped up to - the one-shot
    *  migration that grew 33-man squads to 38 stamps this so it never reruns */
   squadDepth?: number
+  /** the A League: the academy sides of the user's league, with their own
+   *  fixtures and table. Kept outside state.comps deliberately - see academy.ts */
+  academy?: import('./academy').AcadLeague
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
@@ -845,10 +848,13 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
  *
  *  Three-letter days to match the three-letter months. The full words were being
  *  clipped to "Satur" in the fixtures list, which is worse than an abbreviation
- *  because it looks like a bug rather than a shorthand. */
-export function fixtureDate(season: number, week: number, fxId: number): string {
+ *  because it looks like a bug rather than a shorthand.
+ *
+ *  dayOff overrides the per-fixture hash for competitions that always play the
+ *  same day - the A League is every Friday, the night before the first team. */
+export function fixtureDate(season: number, week: number, fxId: number, dayOff?: -1 | 0 | 1): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
-  const d = new Date(start + ((week - 1) * 7 + fixtureDayOff(fxId)) * 86400000)
+  const d = new Date(start + ((week - 1) * 7 + (dayOff ?? fixtureDayOff(fxId))) * 86400000)
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
   return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`

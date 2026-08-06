@@ -140,6 +140,11 @@ export default function Squad() {
           <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGroup(k)}>{label}</button>
         ))}
+        {/* the academy has its own A League now, so the filter hands off to it
+            rather than pretending 27 scholars are a selection problem */}
+        {group === 'aca' && (
+          <button className="preset-chip" onClick={() => go('academy')}>A League ▸</button>
+        )}
         <span style={{ width: 8 }} />
         {([['any', 'Everyone'], ['fit', '✅ Available'], ['out', '🚑 Unavailable'], ['young', 'U23']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip" style={avail === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
