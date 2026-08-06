@@ -8,7 +8,7 @@ import { analystEdge, settleAnalyst } from './analyst'
 import { clamp, gauss, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import {
-  SPLIT_BY_ID, benchSeats, briefForSeat, isForward, seatsFor, splitFor,
+  SPLIT_BY_ID, actualSplit, briefForSeat, isForward, seatsFor, splitFor,
   type BenchSplit,
 } from './bench'
 
@@ -629,7 +629,9 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
     exIds: new Set(),
     isUser: teamId === userTeamId,
     mods: freshMods(),
-    split: splitFor(state.clubs[teamId]),
+    // the split the bench ACTUALLY is, not the one that was chosen: five of the
+    // eight seats take whoever you put in them, so the men in the shirts decide
+    split: actualSplit(state, state.clubs[teamId]),
     benchIds, seatOf,
   }
   applyModifiers(state, side, null)

@@ -27,7 +27,18 @@ import { effAt } from './attributes'
 
 export type BenchSplit = '5-3' | '6-2' | '4-4'
 
-export interface BenchSeat { shirt: number; pos: Pos[] }
+export interface BenchSeat {
+  shirt: number
+  pos: Pos[]
+  /** An OPEN seat takes whoever you put in it and is labelled with HIS position
+   *  rather than the seat's.
+   *
+   *  The first three are never open. Law 3 wants a hooker and both props covered
+   *  or nobody contests the scrum, so 16, 17 and 18 are a standing obligation.
+   *  Everything behind them is the manager's business: put a second scrum-half
+   *  there if you want one, and the shirt says scrum-half. */
+  open?: boolean
+}
 
 export interface SplitDef {
   id: BenchSplit
@@ -54,11 +65,11 @@ export const SPLITS: SplitDef[] = [
       { shirt: 16, pos: ['HK'] },
       { shirt: 17, pos: ['LP', 'TP'] },
       { shirt: 18, pos: ['TP', 'LP'] },
-      { shirt: 19, pos: ['LK', 'FL'] },
-      { shirt: 20, pos: ['FL', 'N8', 'LK'] },
-      { shirt: 21, pos: ['SH'] },
-      { shirt: 22, pos: ['FH', 'CE'] },
-      { shirt: 23, pos: ['CE', 'WG', 'FB', 'FH'] },
+      { shirt: 19, pos: ['LK', 'FL'], open: true },
+      { shirt: 20, pos: ['FL', 'N8', 'LK'], open: true },
+      { shirt: 21, pos: ['SH'], open: true },
+      { shirt: 22, pos: ['FH', 'CE'], open: true },
+      { shirt: 23, pos: ['CE', 'WG', 'FB', 'FH'], open: true },
     ],
     scrum: 1, breakdown: 1, defence: 1, attack: 1,
   },
@@ -69,11 +80,11 @@ export const SPLITS: SplitDef[] = [
       { shirt: 16, pos: ['HK'] },
       { shirt: 17, pos: ['LP', 'TP'] },
       { shirt: 18, pos: ['TP', 'LP'] },
-      { shirt: 19, pos: ['LK', 'FL'] },
-      { shirt: 20, pos: ['FL', 'N8', 'LK'] },
-      { shirt: 21, pos: ['N8', 'FL', 'LK'] },
-      { shirt: 22, pos: ['SH'] },
-      { shirt: 23, pos: ['FH', 'CE'] },
+      { shirt: 19, pos: ['LK', 'FL'], open: true },
+      { shirt: 20, pos: ['FL', 'N8', 'LK'], open: true },
+      { shirt: 21, pos: ['N8', 'FL', 'LK'], open: true },
+      { shirt: 22, pos: ['SH'], open: true },
+      { shirt: 23, pos: ['FH', 'CE'], open: true },
     ],
     scrum: 1.04, breakdown: 1.02, defence: 1.01, attack: 0.965,
   },
@@ -84,11 +95,11 @@ export const SPLITS: SplitDef[] = [
       { shirt: 16, pos: ['HK'] },
       { shirt: 17, pos: ['LP', 'TP'] },
       { shirt: 18, pos: ['TP', 'LP'] },
-      { shirt: 19, pos: ['LK', 'FL', 'N8'] },
-      { shirt: 20, pos: ['SH'] },
-      { shirt: 21, pos: ['FH', 'CE'] },
-      { shirt: 22, pos: ['CE', 'WG'] },
-      { shirt: 23, pos: ['WG', 'FB'] },
+      { shirt: 19, pos: ['LK', 'FL', 'N8'], open: true },
+      { shirt: 20, pos: ['SH'], open: true },
+      { shirt: 21, pos: ['FH', 'CE'], open: true },
+      { shirt: 22, pos: ['CE', 'WG'], open: true },
+      { shirt: 23, pos: ['WG', 'FB'], open: true },
     ],
     scrum: 0.97, breakdown: 0.985, defence: 0.99, attack: 1.03,
   },
@@ -135,6 +146,39 @@ export function benchSeats(club: Club | undefined): BenchSeat[] {
 
 const FORWARDS = new Set<Pos>(['LP', 'HK', 'TP', 'LK', 'FL', 'N8'])
 export const isForward = (pos: Pos) => FORWARDS.has(pos)
+
+/** What the manager has ACTUALLY named, as opposed to what he chose on the page.
+ *
+ *  Five of the eight seats are open, so the split you picked is an intention and
+ *  the men in the shirts are the fact. The engine has to read the fact or naming
+ *  a six-two and then filling it with backs would collect the six-two's set-piece
+ *  reward for a bench that cannot deliver it. */
+export function actualSplit(state: GameState, club: Club | undefined): BenchSplit {
+  if (!club) return DEFAULT_SPLIT
+  let fw = 0, named = 0
+  for (let i = 15; i < 23; i++) {
+    const id = club.tactic.lineup[i]
+    const p = id != null ? state.players[id] : null
+    if (!p) continue
+    named++
+    if (isForward(p.pos)) fw++
+  }
+  // an incomplete bench cannot claim a shape at all
+  if (named < 8) return DEFAULT_SPLIT
+  if (fw >= 6) return '6-2'
+  if (fw <= 4) return '4-4'
+  return DEFAULT_SPLIT
+}
+
+/** Does the bench cover the front row, as Law 3 requires? */
+export function benchFrontRow(state: GameState, club: Club | undefined): boolean {
+  if (!club) return false
+  const bench = club.tactic.lineup.slice(15)
+    .map(id => (id != null ? state.players[id] : null))
+    .filter((p): p is Player => !!p)
+  const can = (pos: Pos) => bench.some(p => p.pos === pos || p.alt.includes(pos))
+  return can('HK') && can('LP') && can('TP')
+}
 
 /** Re-seat the bench after a change of split.
  *

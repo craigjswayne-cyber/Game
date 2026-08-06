@@ -10,7 +10,7 @@ import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/ana
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
-import { BRIEFS, SPLITS, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
+import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 
 const PORTFOLIOS = [
   { id: 'pack' as const, icon: '🐘', name: 'Leads the Pack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
@@ -58,7 +58,20 @@ export default function Tactics() {
 
   // the bench seats depend on the split the manager named (F4)
   const seats = benchSeats(club)
-  const slotPos = (slot: number): Pos => slot < 15 ? XV_SLOTS[slot].pos : seats[slot - 15].pos[0]
+  /** The position a slot is asking for. An open bench seat asks for whatever the
+   *  man in it plays (user: "use players positions"), so a winger in the 21 shirt
+   *  reads WG rather than being mislabelled a scrum-half. The front-row three are
+   *  never open: Law 3 wants them covered. */
+  const slotPos = (slot: number): Pos => {
+    if (slot < 15) return XV_SLOTS[slot].pos
+    const seat = seats[slot - 15]
+    if (seat.open) {
+      const id = t.lineup[slot]
+      const p = id != null ? game.players[id] : null
+      if (p) return p.pos
+    }
+    return seat.pos[0]
+  }
 
   const renderSlot = (slot: number) => {
     const shirt = slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt
@@ -84,15 +97,18 @@ export default function Tactics() {
   const picker = () => {
     if (pickSlot == null) return null
     const pos = slotPos(pickSlot)
+    // an open bench seat will take anybody, so it is ranked on each man's own
+    // best position rather than on a shirt number's opinion
+    const openSeat = pickSlot >= 15 && !!seats[pickSlot - 15].open
     const pool = availablePlayers(game, club.players)
-      .sort((a, b) => effAt(b, pos) - effAt(a, pos))
+      .sort((a, b) => (openSeat ? effAt(b, b.pos) - effAt(a, a.pos) : effAt(b, pos) - effAt(a, pos)))
     return (
       <div className="modal-veil" onClick={() => setPickSlot(null)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 12px 10px' }}>
             <SectionTitle sub={`slot ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt}`}>
-              Pick a {pos}
+              {openSeat ? 'Pick anybody - the shirt takes his position' : `Pick a ${pos}`}
             </SectionTitle>
             <table className="dtable">
               <tbody>
@@ -468,7 +484,23 @@ export default function Tactics() {
         {/* The bench economy (F4). Eight replacements used to be eight fixed
             seats whose only job was replacing tired men. A modern 23 is an
             argument about the last twenty minutes, so it is a page. */}
-        <SectionTitle sub="how you split the eight, and what each man is told">The 23</SectionTitle>
+        {(() => {
+          const want = splitFor(club)
+          const got = actualSplit(game, club)
+          const legal = benchFrontRow(game, club)
+          if (legal && want === got) return null
+          return (
+            <div className="card" style={{ borderLeft: `4px solid ${legal ? 'var(--gold)' : 'var(--red)'}` }}>
+              <div className="meta">
+                {!legal && <b style={{ color: 'var(--red)' }}>No front-row cover on the bench. </b>}
+                {!legal
+                  ? 'Law 3 says the scrum goes uncontested if either side cannot cover hooker and both props, and both teams lose the weapon. The 16, 17 and 18 shirts exist for exactly this.'
+                  : `You named a ${SPLITS.find(x => x.id === want)?.name.toLowerCase()}, and the men in the shirts make it a ${SPLITS.find(x => x.id === got)?.name.toLowerCase()}. The bench you actually pick is the one that plays.`}
+              </div>
+            </div>
+          )
+        })()}
+        <SectionTitle sub="the first three shirts cover the front row - the rest is yours">The 23</SectionTitle>
         <div className="routine-grid">
           {SPLITS.map(sp => {
             const on = splitFor(club) === sp.id
