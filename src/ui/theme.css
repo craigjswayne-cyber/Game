@@ -2240,3 +2240,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @media (orientation: landscape) and (min-width: 640px) {
   .bottom-nav button svg { width: 24px; height: 24px; }
 }
+
+/* ---- the shirts have to read against grass ------------------------------
+   A dot is filled with the club's primary colour, and plenty of clubs play in
+   dark green or black - Northampton's XV was near-invisible on its own pitch.
+   A dark drop shadow plus a hairline of light lifts every kit off the turf
+   without tinting any of them. */
+.pitch .pdot {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .3);
+}
+/* the highlighted man keeps his own halo - it has to beat this one */
+.pitch .pdot.hl {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .6), 0 0 16px rgba(255, 245, 200, .95), 0 2px 5px rgba(0, 0, 0, .6);
+}
