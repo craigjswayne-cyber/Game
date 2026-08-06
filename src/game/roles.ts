@@ -3,9 +3,16 @@
 
 export interface RoleDef { id: string; name: string; short: string; desc: string }
 
-const FRONT_ROW: RoleDef[] = [
+// Props and the hooker were sharing one list, so the game offered to turn your
+// hooker into a Mobile Prop. A hooker's job is the throw and the link play; he
+// gets his own two.
+const PROPS: RoleDef[] = [
   { id: 'scrummager', name: 'Scrummager', short: 'SCR', desc: 'Lives for the set piece. Scrum up, a touch less around the park.' },
   { id: 'mobile', name: 'Mobile Prop', short: 'MOB', desc: 'A front-rower with wheels. Attack up, scrum eases off.' },
+]
+const HOOKER: RoleDef[] = [
+  { id: 'thrower', name: 'Lineout Thrower', short: 'THR', desc: 'The throw is his job and he drills it. Lineout up, scrum eases.' },
+  { id: 'link', name: 'Link Man', short: 'LNK', desc: 'A hooker who plays like a flanker. Attack and breakdown up, scrum eases.' },
 ]
 const LOCKS: RoleDef[] = [
   { id: 'lineout_general', name: 'Lineout General', short: 'LIN', desc: 'Runs the air. Lineout up.' },
@@ -35,7 +42,8 @@ const BACK_THREE: RoleDef[] = [
 
 /** Role options per XV slot (0-14 in lineup order). */
 export function rolesForSlot(slot: number): RoleDef[] {
-  if (slot <= 2) return FRONT_ROW
+  if (slot === 1) return HOOKER
+  if (slot <= 2) return PROPS
   if (slot <= 4) return LOCKS
   if (slot <= 7) return BACK_ROW
   if (slot === 8) return SCRUM_HALF
@@ -45,6 +53,6 @@ export function rolesForSlot(slot: number): RoleDef[] {
 }
 
 export const ROLE_BY_ID: Record<string, RoleDef> = Object.fromEntries(
-  [...FRONT_ROW, ...LOCKS, ...BACK_ROW, ...SCRUM_HALF, ...FLY_HALF, ...CENTRES, ...BACK_THREE]
+  [...PROPS, ...HOOKER, ...LOCKS, ...BACK_ROW, ...SCRUM_HALF, ...FLY_HALF, ...CENTRES, ...BACK_THREE]
     .map(r => [r.id, r]),
 )

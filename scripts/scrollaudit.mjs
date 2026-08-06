@@ -57,7 +57,7 @@ try {
   await page.click('.bottom-nav button[title="Tactics"]')
   await page.waitForSelector('.tab-bar')
   await measure('tactics: selection')
-  for (const [tab, label] of [['In-Form XV', 'in-form xv'], ['Tactics', 'tactics'], ['Prep', 'match prep'], ['Game Plan', 'game plan']]) {
+  for (const [tab, label] of [['Bench', 'tactics: bench'], ['Tactics', 'tactics'], ['Prep', 'match prep'], ['Game Plan', 'game plan']]) {
     await page.click(`.tab-bar >> text=${tab}`)
     await measure(`tactics: ${label}`)
   }

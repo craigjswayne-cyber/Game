@@ -2281,7 +2281,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    Eight seats, each with four possible briefs, on a 390px screen. A row per
    seat with the chips wrapping underneath keeps every man's instruction
    readable without a modal per player. */
-.brief-list { padding: 4px 14px; display: grid; gap: 6px; }
+.brief-list { padding: 3px 14px; display: grid; gap: 4px; }
 .brief-row {
   background: var(--cream-2); border-radius: 8px; padding: 5px 8px;
   box-shadow: var(--shadow-1);
@@ -2290,7 +2290,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
    screen. Portrait falls back to the stack, where there is no room to share. */
 @media (orientation: landscape) and (min-width: 700px) {
-  .brief-row { display: flex; align-items: center; gap: 10px; }
+  .brief-row { display: flex; align-items: center; gap: 10px; padding: 3px 8px; }
   .brief-who { flex: 0 0 190px; min-width: 0; }
   .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
 }
@@ -2314,4 +2314,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 3px 6px; margin: 0;
   font-size: 12px; font-weight: 700;
   border-width: 1px; border-radius: 6px;
+}
+
+/* ---- the leadership card, compacted -------------------------------------
+   Six select rows at .inline-input's 11px padding plus 6px margin is 276px in a
+   card that shares the page with a team sheet and a bench. It pushed Selection
+   to 3.05 screenfuls, which is the "too many squad pages" complaint wearing a
+   different hat. Row-height controls, and the four portfolios two-up where
+   there is width for it. */
+.lead-row .inline-input {
+  width: auto; flex: 1; min-width: 0;
+  padding: 3px 6px; margin: 0;
+  font-size: 12px; border-width: 1px; border-radius: 6px;
+}
+.lead-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.lead-row .fact-label { flex: 0 0 auto; }
+@media (orientation: landscape) and (min-width: 640px) {
+  .lead-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2px 10px; }
 }
