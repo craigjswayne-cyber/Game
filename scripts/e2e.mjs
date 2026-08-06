@@ -72,7 +72,7 @@ try {
   await page.click('text=New Career')
   await page.waitForSelector('text=Gallagher Premiership')
   await page.click('text=Gallagher Premiership')
-  await page.waitForSelector('.tile-grid.three')
+  await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Leicester')
   await page.waitForSelector('text=Star Player')
   await shot('02-newgame')
@@ -186,8 +186,13 @@ try {
   await page.waitForTimeout(300)
   await shot('11-wire-story')
   await clearWire()
-  await page.waitForSelector('.news-item', { timeout: 15000 })
+  await page.waitForSelector('.continue-btn', { timeout: 15000 })
   await shot('11-after-match')
+  // the inbox is its own screen now
+  await page.click('.bottom-nav button[title="Inbox"]')
+  await page.waitForSelector('.news-item', { timeout: 15000 })
+  await shot('11b-inbox')
+  await page.click('.bottom-nav button[title="Home"]')
 
   // burn through several weeks (mix of matchday + blank weeks)
   for (let i = 0; i < 8; i++) {
@@ -234,8 +239,33 @@ try {
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=Load Career')
   await page.click('text=Test Gaffer')
-  await page.waitForSelector('.news-item', { timeout: 15000 })
+  await page.waitForSelector('.continue-btn', { timeout: 15000 })
   await shot('14-loaded-save')
+
+  // ---- the rail is in the order the user asked for: home (summary), inbox,
+  // squad, selection and tactics, then the rest
+  const rail = await page.evaluate(() =>
+    [...document.querySelectorAll('.bottom-nav button')].map(b => b.getAttribute('title')))
+  const wantHead = ['Home', 'Inbox', 'Squad', 'Tactics']
+  const railOk = wantHead.every((t, i) => rail[i] === t)
+  console.log(`rail order: ${rail.join(' > ')}`)
+  if (!railOk) throw new Error(`rail order wrong: expected ${wantHead.join(', ')} first`)
+
+  // ---- and the title screen's Continue tile stays on one line (user:
+  // "'continue - craig, northampton saints' should be on one line").
+  // Height is the honest measure. scrollWidth has a floor of clientWidth, so
+  // comparing the two can only ever catch overflow, never a snug fit - and with
+  // white-space: nowrap there is no overflow to catch. One line of this text is
+  // about 22px; a wrap would be 40-plus.
+  await page.reload()
+  await page.waitForSelector('.continue-tile', { timeout: 15000 })
+  const ct = await page.evaluate(() => {
+    const l = document.querySelector('.ct-line')
+    const lh = parseFloat(getComputedStyle(l).lineHeight) || 20
+    return { text: l.textContent, h: Math.round(l.getBoundingClientRect().height), lh: Math.round(lh) }
+  })
+  console.log(`continue tile: "${ct.text}" is ${ct.h}px tall (one line is about ${ct.lh}px)`)
+  if (ct.h > ct.lh * 1.6) throw new Error(`the Continue tile wrapped (${ct.h}px)`)
 
   console.log('E2E FLOW COMPLETE')
 } catch (e) {

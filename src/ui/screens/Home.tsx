@@ -7,6 +7,7 @@ import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
+import { InboxList } from './Inbox'
 import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { ordinal } from '../../game/gossip'
@@ -18,6 +19,7 @@ const TYPE_ICON: Record<string, string> = {
 
 export default function Home() {
   const game = useStore(s => s.game)!
+  const unread = game.news.filter(n => !n.read && n.type !== 'gossip').length
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
   // FM-style: arriving at the inbox opens your oldest unread message
@@ -73,16 +75,10 @@ export default function Home() {
           <h3>📋 The Job Centre</h3>
           <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open - apply, or press Continue and wait for the right one.</div>
         </button>
+        {/* With no club there is no summary to separate the inbox from, so it
+            stays inline here. */}
         <SectionTitle sub="the rugby world keeps turning">Inbox</SectionTitle>
-        {news.slice(0, 60).map(n => (
-          <button key={n.id}
-            className={`news-item${n.read ? '' : ' unread'}${openId === n.id ? ' open' : ''}`}
-            onClick={() => { n.read = true; setOpenId(openId === n.id ? null : n.id); touch() }}>
-            <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
-            <div className="subj">{n.subject}</div>
-            <div className="body">{n.body}</div>
-          </button>
-        ))}
+        <InboxList compact />
         <div className="spacer" />
       </>
     )
@@ -357,31 +353,15 @@ export default function Home() {
           </div>
         )
       })()}
-      <SectionTitle sub={`board confidence ${Math.round(club.boardConfidence)}%`}>Inbox</SectionTitle>
-      {news.length === 0 && <div className="muted" style={{ padding: 14 }}>Nothing yet. Press Continue to get the season moving.</div>}
-      {news.slice(0, 60).map(n => {
-        const remaining = game.news.filter(x => !x.read && x.type !== 'gossip' && x.id !== n.id).length
-        return (
-          <button key={n.id}
-            className={`news-item${n.read ? '' : ' unread'}${openId === n.id ? ' open' : ''}`}
-            onClick={() => {
-              n.read = true
-              setOpenId(openId === n.id ? null : n.id)
-              touch()
-              if (n.playerId && openId === n.id) go('player', n.playerId)
-            }}>
-            <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
-            <div className="subj">{n.subject}</div>
-            <div className="body">{n.body}</div>
-            {openId === n.id && remaining > 0 && (
-              <span className="next-unread" role="button"
-                onClick={e => { e.stopPropagation(); nextUnread() }}>
-                Next unread ({remaining}) ▸
-              </span>
-            )}
-          </button>
-        )
-      })}
+      {/* The messages live on their own screen now (user: "inbox and summary
+          should be separated"). What stays here is the one line that says whether
+          there is anything to read. */}
+      {unread > 0 && (
+        <button className="card inbox-cue" onClick={() => go('inbox')}>
+          <h3>✉ {unread} unread message{unread === 1 ? '' : 's'}</h3>
+          <div className="meta">{game.news.filter(n => !n.read && n.type !== 'gossip')[0]?.subject ?? ''}</div>
+        </button>
+      )}
       <div className="spacer" />
     </>
   )

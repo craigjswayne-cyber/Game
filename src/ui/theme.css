@@ -785,9 +785,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .attr-grid { grid-template-columns: 1fr 1fr 1fr; max-width: 900px; }
   .fact-grid { grid-template-columns: 1fr 1fr 1fr; }
   .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 900px; }
-  .tile-grid.three { grid-template-columns: repeat(6, 1fr); max-width: 900px; }
   .title-screen h1 { font-size: 38px; }
-  .title-screen .menu-btns { max-width: 340px; }
+  /* the menu column's width now lives with the Continue tile at the end of this
+     file, where it can be reasoned about next to the line it has to fit */
 
   /* live match: classic CM - score strip across the top, pitch in the
      middle, commentary in a long rectangle, controls at the foot */
@@ -849,7 +849,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 
 .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 10px 14px; }
-.tile-grid.three { grid-template-columns: 1fr 1fr 1fr; }
 .tile {
   background: var(--paper);
   border: 1.5px solid var(--hairline);
@@ -1681,7 +1680,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    phones with two giant columns (8-batch feedback screenshot) */
 @media (orientation: landscape) and (min-width: 640px) {
   .tile-grid { grid-template-columns: repeat(4, 1fr); max-width: 920px; }
-  .tile-grid.three { grid-template-columns: repeat(6, 1fr); max-width: 980px; }
   .tile { padding: 9px 6px; gap: 4px; }
 }
 
@@ -1759,8 +1757,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    Bigger leagues (14 to 16 clubs) still scroll, which is unavoidable and fine
    now that the bar is opaque. */
 @media (orientation: landscape) and (min-width: 640px) {
-  .tile-grid.three { grid-template-columns: repeat(5, 1fr); max-width: 880px; }
-  .tile-grid.three .tile { padding: 6px 5px; gap: 2px; }
 }
 
 /* MatchDay header in landscape: badges left, fixture details right. Centred and
@@ -1927,14 +1923,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    however many columns actually fit, at any width, which is what it should have
    been all along. */
 @media (orientation: landscape) and (min-width: 640px) {
-  .wiz-split .tile-grid.three {
-    grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
-    max-width: none;
-    /* the last dozen pixels: two rows of badges plus their labels have to clear
-       the action bar inside a content area that is only about 165px tall */
-    gap: 6px; padding: 6px 12px;
-  }
-  .wiz-split .tile-grid.three .tile { padding: 5px 4px; gap: 1px; }
 }
 
 /* ---- a selected tile is the same size as an unselected one ----
@@ -2104,4 +2092,151 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .card h3 { font-size: 15.5px; margin-bottom: 1px; }
   .fact-grid label, .fact-label { margin-bottom: 1px; }
   .section-title { padding-top: 6px; padding-bottom: 4px; }
+}
+
+/* ---- title screen: the Continue tile fits on one line -------------------
+   "'continue - craig, northampton saints' should be on one line - so widen the
+   box." The column was capped at 300px. The longest club name in the game is
+   "Montpellier Hérault Rugby" at 25 characters and a manager can call himself
+   anything, so widening alone is not a guarantee: the line also refuses to wrap
+   and ellipsises if someone really does type a paragraph. */
+/* 460px fitted "Craig, Northampton Saints" exactly and nothing longer, and the
+   title screen has 844px to play with, so it gets real headroom instead. */
+.title-screen .menu-btns { max-width: 540px; }
+.continue-tile { font-size: 16px; padding: 12px 14px; }
+.ct-line {
+  font-size: 15.5px; letter-spacing: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ct-sub { font-size: 11px; opacity: .85; }
+
+/* ---- new career wizard: the steps ride the title row -------------------
+   "competition, club, manager and summary should be where the green line is.
+   more space for leagues." They were on their own row under the title, and that
+   row was the difference between three leagues visible and four. Landscape puts
+   them beside the title, in the empty half of the header.
+   The step meter goes: four crumbs with the current one lit already IS a
+   progress meter, and its 64px is better spent on the crumbs. */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wizard-head { display: flex; align-items: center; gap: 14px; }
+  .wizard-head .masthead-row { flex: 0 1 auto; min-width: 0; }
+  .wizard-head .crumbs { flex: 1 1 auto; margin-top: 0; min-width: 0; }
+  .wizard-head .step-meter { display: none; }
+  /* the lit crumb names the step, so the title line does not need to as well */
+  .wizard-head .step-name { display: none; }
+}
+
+/* ---- the club picker (feedback: "all teams should be here on two lines,
+   logos and shirts arent as polished like there were") -------------------
+   Three separate faults in one screen.
+
+   Width: the badges sat in a .wiz-split whose right-hand column was reserved for
+   a detail panel that does not exist until you have picked somebody. So four
+   tiles across the left half, half the screen blank, a ten-club league needing a
+   scroll, and "Northampton" ellipsised to "Northamp...". The split is now only
+   applied once there is a panel to put in it.
+
+   Polish: the tile was flat var(--paper) with a crest sitting on it. Every club
+   in the game HAS two colours and they were going unused here of all places -
+   the screen whose entire job is choosing between clubs. The tile now wears them
+   as a deep wash behind its own crest, which is what made the earlier crest work
+   look finished.
+
+   Fit: auto-fit at a width that gives ten clubs two rows and fourteen clubs
+   three, rather than a fixed column count that only suits one league size. */
+.club-tiles.wide { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+.club-tile {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--c1, #1c3f77) 34%, var(--paper)),
+                            color-mix(in srgb, var(--c2, #0b1c33) 22%, var(--paper)));
+  border-color: color-mix(in srgb, var(--c1, #1c3f77) 55%, var(--hairline));
+}
+.club-tile b {
+  font-size: 12px;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.club-tile.sel {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 2px var(--gold), var(--shadow-1);
+}
+@media (orientation: landscape) and (min-width: 640px) {
+  /* short screen: the crest and the name, nothing else, two rows for a league */
+  .club-tiles { padding: 8px 14px; gap: 7px; }
+  .club-tile { padding: 7px 6px; gap: 3px; }
+  /* and once a club IS picked the tiles share the width with its card, so they
+     go narrower rather than dropping to four fat columns */
+  .wiz-split .club-tiles { grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); }
+  .wiz-split .club-tile b { font-size: 11px; }
+}
+
+/* ---- a selection you can actually see (feedback: "when you select one of the
+   boxes it needs to be highlighted as its unclear if you've selected it") ----
+   Every selectable box in the game marks itself with var(--gold), and --gold is
+   #5c6470: a slate grey, left over from when the palette went blue. So "selected"
+   was a grey 1.5px border plus a 10% grey wash over a navy tile - a luminance
+   change of about three percent, which is nothing on a phone in a lit room.
+   --pick is the accent selection actually uses: the theme's bright blue, at a
+   strength you cannot miss. It is a separate name from --gold-bright on purpose,
+   so that the next person to retint the palette can see that selection depends
+   on it. densityaudit's sibling, pickaudit, now measures the difference. */
+:root { --pick: #9fc2e8; --pick-ink: #0b1c33; }
+.tile.sel, .club-tile.sel, .speech-tile.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick), var(--shadow-1);
+}
+.tile.sel, .speech-tile.sel {
+  background: color-mix(in srgb, var(--pick) 26%, var(--paper));
+}
+/* the club tile keeps its own colours and takes the wash on top of them */
+.club-tile.sel {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--pick) 30%, color-mix(in srgb, var(--c1, #1c3f77) 34%, var(--paper))),
+                            color-mix(in srgb, var(--pick) 18%, color-mix(in srgb, var(--c2, #0b1c33) 22%, var(--paper))));
+}
+/* and the words brighten with the box, so the change is legible even to someone
+   who cannot pick the ring out from the border */
+.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--pick); }
+.app.night .tile.sel b, .app.night .club-tile.sel b, .app.night .speech-tile.sel b { color: #ffffff; }
+/* a tick, because a colour change alone is a poor signal if you cannot see the
+   unselected tiles next to it - on a narrow screen the picked one may be alone */
+.tile.sel, .club-tile.sel, .speech-tile.sel { position: relative; }
+.tile.sel::after, .club-tile.sel::after, .speech-tile.sel::after {
+  content: '✓';
+  position: absolute; top: 3px; right: 5px;
+  font-size: 11px; font-weight: 800; line-height: 1;
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-radius: 50%;
+  width: 15px; height: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* the badges get the slightly larger half once a club is picked, so the longest
+   name in the league still fits beside its own detail card */
+@media (orientation: landscape) and (min-width: 640px) {
+  .wiz-split { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  /* "Northampton" is the longest short name that has to fit a tile sharing the
+     screen with a detail card. Measured: it needed 71px in a 68px box, so the
+     tile gives back its side padding and a touch of tracking rather than the
+     label giving up three characters to an ellipsis. */
+  .wiz-split .club-tile { padding: 7px 3px; }
+  .wiz-split .club-tile b { letter-spacing: -0.2px; }
+}
+/* a picked league row was styled exactly like an unpicked one - it advances to
+   the next step immediately, so it was never noticed, but it belongs in the same
+   family as every other selectable box */
+.club-pick.sel {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--pick);
+  background: color-mix(in srgb, var(--pick) 18%, var(--paper));
+}
+
+/* the one line of the inbox that stays on Home: whether there is anything to read */
+.inbox-cue { border-left: 4px solid var(--pick); display: block; width: auto; text-align: left; }
+.inbox-cue h3 { font-size: 15px; }
+/* seven rail buttons instead of six, on a screen that is 390px tall: they still
+   need a thumb-sized target, so the icon gives up two pixels rather than the row
+   giving up a button */
+@media (orientation: landscape) and (min-width: 640px) {
+  .bottom-nav button svg { width: 24px; height: 24px; }
 }

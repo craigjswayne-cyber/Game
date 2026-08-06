@@ -99,7 +99,7 @@ const run = async (size) => {
     await page.waitForSelector('text=Gallagher Premiership')
     await check('wizard: league')
     await page.click('text=Gallagher Premiership')
-    await page.waitForSelector('.tile-grid.three')
+    await page.waitForSelector('.club-tile')
     await page.click('.tile >> text=Northampton')
     await page.waitForSelector('text=Star Player')
     await check('wizard: club')

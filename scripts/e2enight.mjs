@@ -41,7 +41,7 @@ try {
   await page.waitForSelector('text=Gallagher Premiership')
   await shot('02-wizard-league')
   await page.click('text=Gallagher Premiership')
-  await page.waitForSelector('.tile-grid.three')
+  await page.waitForSelector('.club-tile')
   await shot('03-wizard-club')
   await page.click('.tile >> text=Leicester')
   await page.waitForSelector('text=Star Player')
