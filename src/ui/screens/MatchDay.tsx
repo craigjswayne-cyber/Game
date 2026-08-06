@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
-  refFor, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
+  refFor, refNotes, frontRowCover, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
@@ -121,6 +121,20 @@ function Preview({ fxId }: { fxId: number }) {
     if (prob) warnings.push({ level: 'bad', text: `No fit no. ${XV_SLOTS[i].shirt} (${prob === 'EMPTY' ? 'empty slot' : `${p!.name} - ${prob.toLowerCase()}`}) - he'll be auto-replaced at kick-off.` })
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) - high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit - his tank will empty early.` })
+  }
+  // Law 3: without cover at all three front-row positions the referee orders
+  // uncontested scrums, and the set piece leaves the game for both sides. Loud,
+  // because it is the one warning here that voids a whole game plan.
+  const frontRow = frontRowCover(game, t.lineup)
+  if (!frontRow.legal) {
+    const missing = ([['LP', 'loosehead'], ['HK', 'hooker'], ['TP', 'tighthead']] as const)
+      .filter(([k]) => frontRow[k] < 2)
+      .map(([k, word]) => `${word} (${frontRow[k]} of 2)`)
+      .join(', ')
+    warnings.push({
+      level: 'bad',
+      text: `UNCONTESTED SCRUMS: your 23 cannot cover ${missing}. Law 3 needs two men able to play each front-row shirt, and without them nobody contests a scrum all afternoon.`,
+    })
   }
   // milestone watch: pre-announce the numbers worth playing for today
   for (const pid of t.lineup.slice(0, 15)) {
@@ -581,16 +595,19 @@ function Preview({ fxId }: { fxId: number }) {
                 </div>
               )}
               {(() => {
+                // His actual opinions, not a bucket label. This used to read
+                // "a stickler" or "firm but fair", which told you nothing you
+                // could pick a back row around.
                 const ref = refFor(fx.id)
-                const blurb = ref.style === 'strict'
-                  ? 'a stickler - walks the line all game and cards early. Keep the penalty count down or play with 14.'
-                  : ref.style === 'lenient'
-                    ? 'lets the game breathe - advantage over whistle. Expect a fast, open contest.'
-                    : 'firm but fair. The game should be decided by the players.'
+                const notes = refNotes(ref)
                 return (
                   <div className="card">
                     <div className="fact-label">The Whistle</div>
-                    <div className="meta"><b>{ref.name}</b> is {blurb}</div>
+                    <div className="meta" style={{ marginBottom: notes.length ? 4 : 0 }}>
+                      <b>{ref.name}</b> has the appointment.
+                    </div>
+                    {notes.map((n, i) => <div key={i} className="meta">· {n}</div>)}
+                    {notes.length === 0 && <div className="meta">Nothing marked in his book: he lets the players decide it.</div>}
                   </div>
                 )
               })()}

@@ -16,18 +16,19 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  // Rebaselined: Danny Toala resolved to Moana Pasifika, plus three more
-  // hand-added men (Scarlets' second loosehead and third flanker, Moana's third
-  // winger). Squads changing size shifts the world-creation stream and the
-  // fixture draw. A deliberate data change, not a leak - and every rebaseline in
-  // this file's history has had the same cause, which is worth knowing when one
-  // of them does not.
+  // Rebaselined: the referee panel and Law 3. Each referee now carries four
+  // separate opinions (scrum pedantry, jackal tolerance, patience, flow) instead
+  // of one of three buckets, and a 23 without cover at all three front-row
+  // positions gets uncontested scrums. Both change what the engine weighs, so the
+  // scores move. A deliberate mechanical change - and note that the panel was
+  // deliberately balanced mean-neutral first, so world scoring is unchanged at
+  // 52.8 points a game even though every individual result differs.
   'northampton 33-19 sale',
-  'bath 34-17 newcastle',
-  'exeter 22-3 leicester',
-  'harlequins 44-38 bristol',
-  'gloucester 49-13 saracens',
-  'newcastle 10-60 northampton',
+  'bath 27-17 newcastle',
+  'exeter 19-3 leicester',
+  'harlequins 24-51 bristol',
+  'gloucester 37-24 saracens',
+  'newcastle 12-55 northampton',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
