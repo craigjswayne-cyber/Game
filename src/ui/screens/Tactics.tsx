@@ -9,6 +9,7 @@ import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components
 import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
+import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
 
 /** The tactics area, split into proper pages (8C feedback): Selection,
  *  In-Form XV, Tactics (formation & roles), Match Prep and Game Plan. */
@@ -17,7 +18,7 @@ export default function Tactics() {
   const touch = useStore(s => s.touch)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
-  const [ttab, setTtab] = useState<'xv' | 'form' | 'tactics' | 'prep' | 'plan'>('xv')
+  const [ttab, setTtab] = useState<'xv' | 'form' | 'tactics' | 'setp' | 'prep' | 'plan'>('xv')
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
@@ -186,6 +187,7 @@ export default function Tactics() {
         <button className={ttab === 'xv' ? 'active' : ''} onClick={() => setTtab('xv')}>Selection</button>
         <button className={ttab === 'form' ? 'active' : ''} onClick={() => setTtab('form')}>In-Form XV</button>
         <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>Tactics</button>
+        <button className={ttab === 'setp' ? 'active' : ''} onClick={() => setTtab('setp')}>Set Piece</button>
         <button className={ttab === 'prep' ? 'active' : ''} onClick={() => setTtab('prep')}>Prep</button>
         <button className={ttab === 'plan' ? 'active' : ''} onClick={() => setTtab('plan')}>Game Plan</button>
       </div>
@@ -327,6 +329,124 @@ export default function Tactics() {
         <div className="meta" style={{ padding: '4px 16px' }}>
           Tap a shirt to set his role or open his profile. Roles are small, honest edges - the scrummager props up the set piece, the playmaker opens the game.
         </div>
+      </>}
+
+      {ttab === 'setp' && <>
+        {/* The set-piece playbook and the kicking game (F2, F3). Both are weekly
+            decisions the game had no way of expressing: the set piece was two unit
+            numbers, and the tee went to whoever had the best attribute. */}
+        <SectionTitle sub="what you drill is what you own - and what you shelve, you lose">Lineout Call</SectionTitle>
+        <div className="routine-grid">
+          {ROUTINES.filter(r => r.kind === 'lineout').map(r => {
+            const on = (t.lineoutCall ?? DEFAULT_LINEOUT) === r.id
+            const e = routineEffect(club, r.id)
+            return (
+              <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
+                onClick={() => { t.lineoutCall = r.id; touch() }}>
+                <b>{r.name}</b>
+                <span className="d">{r.desc}</span>
+                <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
+                <span className="d">
+                  {Math.round(e.drilled)}% drilled{e.seen > 0 ? ` · called ${e.seen}x this season` : ''}
+                  {' · '}{e.mult >= 1.02 ? `worth +${Math.round((e.mult - 1) * 100)}%` : e.mult <= 0.98 ? `costing ${Math.round((1 - e.mult) * 100)}%` : 'about level'}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        <SectionTitle sub="a shove that comes off wins penalties; one that does not is a mess">Scrum Call</SectionTitle>
+        <div className="routine-grid">
+          {ROUTINES.filter(r => r.kind === 'scrum').map(r => {
+            const on = (t.scrumCall ?? DEFAULT_SCRUM) === r.id
+            const e = routineEffect(club, r.id)
+            return (
+              <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
+                onClick={() => { t.scrumCall = r.id; touch() }}>
+                <b>{r.name}</b>
+                <span className="d">{r.desc}</span>
+                <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
+                <span className="d">
+                  {Math.round(e.drilled)}% drilled{e.seen > 0 ? ` · called ${e.seen}x this season` : ''}
+                  {' · '}{e.mult >= 1.02 ? `worth +${Math.round((e.mult - 1) * 100)}%` : e.mult <= 0.98 ? `costing ${Math.round((1 - e.mult) * 100)}%` : 'about level'}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="meta" style={{ padding: '4px 16px 8px' }}>
+          Drilling only improves what you are calling, and everything else rusts a little each week. Set Piece in Match Prep speeds it up, and your scrum coach decides the ceiling. Call the same move all season and the analysts will have it worked out by spring.
+        </div>
+
+        <SectionTitle sub="who takes the tee, how you get out, and what the captain does with a penalty">The Kicking Game</SectionTitle>
+        <div className="card">
+          <div className="fact-label">Goal Kickers</div>
+          <div className="meta" style={{ marginBottom: 6 }}>
+            First choice takes everything. If he is off the field the second man steps up. Leave both empty and the assistant hands the tee to whoever has the best boot.
+          </div>
+          {[0, 1].map(slot => {
+            const cur = (t.kickers ?? [])[slot] ?? null
+            const xv = t.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((p): p is Player => !!p)
+            return (
+              <div key={slot} className="lead-row">
+                <span className="fact-label">{slot === 0 ? 'First' : 'Second'}</span>
+                <select className="inline-input" value={cur ?? ''}
+                  onChange={ev => {
+                    const v = ev.target.value === '' ? null : Number(ev.target.value)
+                    const ks = [...(t.kickers ?? [null, null])]
+                    ks[slot] = v
+                    t.kickers = ks
+                    touch()
+                  }}>
+                  <option value="">Assistant picks</option>
+                  {[...xv].sort((a, b) => b.a.goa - a.a.goa).map(p => (
+                    <option key={p.id} value={p.id}>{p.name} ({p.pos}) - goal kicking {p.a.goa}</option>
+                  ))}
+                </select>
+              </div>
+            )
+          })}
+        </div>
+        <div className="card">
+          <div className="fact-label">Exit Strategy</div>
+          <div className="preset-row">
+            {([
+              ['box', '📦 Box Kick', 'Territory and a contest in the air. Safe, and it gives the ball away.'],
+              ['long', '🦶 Long Territorial', 'Boot it downfield and squeeze. The old way, and it still works.'],
+              ['counter', '🏃 Run It', 'Play from deep and back your skills. Thrilling and expensive.'],
+              ['fifty22', '🎯 Hunt the 50:22', 'Kick for the corner and the throw. Big reward, fine margins.'],
+            ] as const).map(([id, label, why]) => (
+              <button key={id} className={`preset-chip${(t.exit ?? 'long') === id ? ' on' : ''}`} title={why}
+                onClick={() => { t.exit = id; touch() }}>{label}</button>
+            ))}
+          </div>
+          <div className="meta" style={{ marginTop: 6 }}>
+            {({
+              box: 'Box kick: the safest way out of your 22, at the cost of possession.',
+              long: 'Long territorial: field position first. Solid, unspectacular, hard to punish.',
+              counter: 'Run it: you keep the ball and take the risk in your own half.',
+              fifty22: 'Hunt the 50:22: the best reward in the game if the boot is accurate, and a gift if it is not.',
+            })[t.exit ?? 'long']}
+          </div>
+        </div>
+        <div className="card">
+          <div className="fact-label">Kickable Penalty</div>
+          <div className="preset-row">
+            {([
+              ['ask', '🤔 Ask Me', 'The touchline call is yours every time.'],
+              ['posts', '🥅 Take the Points', 'Three every time. No drama, no big scores.'],
+              ['corner', '🚩 To the Corner', 'Back the maul. Tries win knockouts.'],
+              ['tap', '⚡ Tap and Go', 'Play fast before they set. Chaos, both ways.'],
+            ] as const).map(([id, label, why]) => (
+              <button key={id} className={`preset-chip${(t.penaltyCall ?? 'ask') === id ? ' on' : ''}`} title={why}
+                onClick={() => { t.penaltyCall = id; touch() }}>{label}</button>
+            ))}
+          </div>
+          <div className="meta" style={{ marginTop: 6 }}>
+            A standing instruction saves you being asked nine times on a wet Friday. Ask Me keeps the decision.
+          </div>
+        </div>
+        <div className="spacer" />
       </>}
 
       {ttab === 'prep' && <>
