@@ -108,6 +108,22 @@ export const HANDBOOK: HandbookEntry[] = [
   // ---------------- Squad ----------------
   {
     cat: 'squad',
+    q: 'What is the Game Time page for?',
+    a: 'It is the ledger of what every man at the club has been told against what the team sheets actually say. Set his understanding - key player, rotation, squad player, prospect, or not in the plans - and the page shows the appearances he was entitled to expect, what he has had, and how he feels about the gap. A man short of what he was promised gets restless and eventually wants out; telling him the truth costs nothing but the truth.',
+  },
+  {
+    cat: 'squad',
+    q: 'Does the ledger punish me for leaving players out?',
+    a: 'Only for leaving out men you told otherwise, and only men who are not in the current matchday twenty-three. Nobody in this week squad has a grievance this week. A frozen-out player settles at a grudge rather than sliding to total despair, so the consequence shows up as transfer requests, office visits and contract trouble rather than as a hidden penalty on the side you field.',
+  },
+  {
+    cat: 'squad',
+    q: 'What is the leadership group?',
+    a: 'Four portfolios beyond the armband: who leads the pack, who calls the defensive line, who runs the attack, and who sets the standards. A portfolio does not make the side stronger. It concentrates the leadership you already have onto one area and takes it off the rest, so naming a defensive leader sharpens the defence at the cost of attacking shape. Only men in the starting XV with real authority carry one, and one man can hold one job.',
+  },
+
+  {
+    cat: 'squad',
     q: 'What are all these numbers on a player?',
     a: 'Attributes run on the classic 1 to 20 scale and describe what he can do. Current Ability is a single 1 to 100 summary of how good he is now, Potential is how good he could become, and Potential is hidden until your scouting knowledge of him is good enough. Form is a rolling 1 to 10 on recent performances, morale is how he feels, condition is how fresh he is, and sharpness is how much rugby he has played lately.',
   },

@@ -15,6 +15,7 @@ import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
+import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
@@ -1850,6 +1851,10 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   weeklyTraining(state, rng)
+  // the game-time ledger (F18): what the team sheets say against what each man
+  // was told, settled a little every week rather than in one lump
+  settleGameTime(state)
+  gameTimeReview(state)
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)

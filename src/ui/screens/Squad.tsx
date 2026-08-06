@@ -4,11 +4,12 @@ import { POS_ORDER, fmtMoney, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { capBill } from '../../game/ai'
 import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
+import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 
 // FM Mobile squad layout: Pkd chip, fitness ring, starred names,
 // morale arrows, Av R and Value - with a View switcher.
 
-type View = 'selection' | 'general' | 'stats'
+type View = 'selection' | 'general' | 'stats' | 'gametime'
 type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd'
 
 function FitRing({ v }: { v: number }) {
@@ -30,6 +31,7 @@ function MoraleArrow({ v }: { v: number }) {
 export default function Squad() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
+  const touch = useStore(s => s.touch)
   const [view, setView] = useState<View>('selection')
   const [sort, setSort] = useState<SortKey>('pkd')
   const [desc, setDesc] = useState(false)
@@ -39,6 +41,8 @@ export default function Squad() {
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
+  // the ledger's denominator, computed once for the whole table (F18)
+  const played = useMemo(() => clubMatchesPlayed(game, club.id), [game, club.id, game.week])
   const pkdOf = (p: Player) => {
     const i = club.tactic.lineup.indexOf(p.id)
     return i < 0 ? 99 : i
@@ -116,9 +120,9 @@ export default function Squad() {
           four screenfuls, and the controls used to sail off the top of it */}
       <StickyControls>
       <div className="tab-bar">
-        {(['selection', 'general', 'stats'] as View[]).map(v => (
+        {(['selection', 'general', 'stats', 'gametime'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info' : 'Stats'}
+            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info' : v === 'stats' ? 'Stats' : 'Game Time'}
           </button>
         ))}
         {/* the squad summary rode its own 36px heading row. The tab bar has
@@ -170,6 +174,16 @@ export default function Squad() {
               <Th k="value" right>Value</Th>
             </tr>
           )}
+          {view === 'gametime' && (
+            <tr>
+              <Th k="pkd">Pkd</Th>
+              <Th k="name">Name</Th>
+              <th>He Was Told</th>
+              <Th k="apps" right>Ap</Th>
+              <th className="num">Due</th>
+              <th>Mood</th>
+            </tr>
+          )}
           {view === 'stats' && (
             <tr>
               <Th k="name">Name</Th>
@@ -215,6 +229,32 @@ export default function Squad() {
                   </td>
                   <td className="num" style={{ fontWeight: 700 }}>{fmtMoney(p.value)}</td>
                 </>)}
+                {view === 'gametime' && (() => {
+                  // The ledger (F18). The status select is the whole point of the
+                  // page, so it lives in the row rather than behind a tap: telling
+                  // a man where he stands has to be as cheap as reading that he
+                  // is unhappy about it.
+                  const row = ledgerRow(game, club, p, played)
+                  const cur = statusOf(game, club, p)
+                  const MOOD: Record<string, [string, string]> = {
+                    happy: ['😀', '#2f7d4f'], content: ['🙂', '#2f7d4f'],
+                    restless: ['😐', '#c9a227'], unhappy: ['😠', '#a12f2f'],
+                  }
+                  const [icon, col] = MOOD[row.mood]
+                  return (<>
+                    <td onClick={e => e.stopPropagation()}>
+                      <select className="inline-input gt-sel" value={cur}
+                        onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
+                        {STATUSES.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
+                      </select>
+                    </td>
+                    <td className="num" style={{ fontWeight: 700 }}>{row.actual}</td>
+                    <td className="num" style={{ color: row.gap < -2 ? '#a12f2f' : undefined }}>{row.expected}</td>
+                    <td title={STATUS_BY_ID[cur].desc} style={{ color: col, whiteSpace: 'nowrap' }}>
+                      {icon} {row.gap >= 0 ? `+${row.gap}` : row.gap}
+                    </td>
+                  </>)
+                })()}
                 {view === 'stats' && (<>
                   <td className="num">{p.stats.apps}</td>
                   <td className="num">{p.stats.tries}</td>
