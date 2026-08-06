@@ -2276,3 +2276,30 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--pick); color: var(--pick-ink); font-weight: 800;
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--pick) 60%, #fff);
 }
+
+/* ---- the bench economy (F4) ---------------------------------------------
+   Eight seats, each with four possible briefs, on a 390px screen. A row per
+   seat with the chips wrapping underneath keeps every man's instruction
+   readable without a modal per player. */
+.brief-list { padding: 4px 14px; display: grid; gap: 6px; }
+.brief-row {
+  background: var(--cream-2); border-radius: 8px; padding: 5px 8px;
+  box-shadow: var(--shadow-1);
+}
+/* Landscape has 844px to play with, so the man and his four options share one
+   line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
+   screen. Portrait falls back to the stack, where there is no room to share. */
+@media (orientation: landscape) and (min-width: 700px) {
+  .brief-row { display: flex; align-items: center; gap: 10px; }
+  .brief-who { flex: 0 0 190px; min-width: 0; }
+  .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
+}
+.app.night .brief-row { background: var(--cream-2); }
+.brief-who { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.brief-who .num {
+  font-family: monospace; font-weight: 700; min-width: 18px;
+  color: var(--ink-soft); font-size: 11.5px;
+}
+.brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brief-row .preset-row { margin-top: 5px; gap: 5px; }
+.brief-row .preset-chip { padding: 5px 9px; font-size: 10.5px; }

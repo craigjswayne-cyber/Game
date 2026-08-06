@@ -32,6 +32,9 @@ interface Store {
     cursor: number
     playing: boolean
     speed: number
+    /** how the manager chose to watch this one (F5). 'highlights' runs the
+     *  cursor straight to the next moment that matters. */
+    mode: 'full' | 'highlights'
     done: boolean
     talkMsg: string | null
     preTalkMsg: string | null
@@ -51,13 +54,15 @@ interface Store {
   home: () => void
   touch: () => void
   continueWeek: () => void
-  kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
+  kickOff: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect', mode?: 'full' | 'highlights') => void
   /** the assistant takes over: play the match out instantly with your team */
   instantResult: (preTalk?: 'calm' | 'fire' | 'underdog' | 'expect') => void
   advanceLive: () => void
   skipToBreak: () => void
   decide: (choice: 'posts' | 'corner' | 'tap') => string
   matchCursor: (cursor: number, playing: boolean) => void
+  /** Change how the rest of this match is watched (F5). */
+  matchMode: (mode: 'full' | 'highlights') => void
   finishMatch: () => void
   teamTalk: (kind: 'fire' | 'calm' | 'praise' | 'demand') => void
   halfTimeSub: (outId: number, inId: number) => string
@@ -71,6 +76,24 @@ interface Store {
   resignNat: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
+}
+
+/** The event types worth stopping the ticker for in highlights mode (F5).
+ *
+ *  'SUB' is deliberately not on the list: the engine uses it for substitutions
+ *  but also for atmosphere lines, the half-time numbers and the penalty prompt,
+ *  so treating it as a highlight would stop on almost everything. Touchline
+ *  decisions and intervals still halt play through ctx.decision and ctx.awaiting,
+ *  which is where those stops belong. */
+const HIGHLIGHTS = new Set<MatchEvent['type']>(['TRY', 'CON', 'PEN', 'DG', 'YC', 'RC', 'INJ', 'HT', 'BRK', 'FT'])
+
+/** The cursor position that reveals the next highlight, or the end of what has
+ *  been simulated so far. Always advances by at least one so the ticker can
+ *  never stall on a quiet passage. */
+function nextHighlight(events: MatchEvent[], cursor: number): number {
+  let c = cursor
+  while (c < events.length && !HIGHLIGHTS.has(events[c].type)) c += 1
+  return Math.min(events.length, Math.max(cursor + 1, c + 1))
 }
 
 /** After a tick hits FT: knockout ties are settled in sudden-death extra time. */
@@ -179,7 +202,7 @@ export const useStore = create<Store>((set, get) => ({
     void get().persist()
   },
 
-  kickOff: (preTalk) => {
+  kickOff: (preTalk, mode) => {
     const g = get().game
     if (!g) return
     const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
@@ -196,7 +219,7 @@ export const useStore = create<Store>((set, get) => ({
     set(s => ({
       liveMatch: {
         ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1,
-        done: false, talkMsg: null, preTalkMsg,
+        mode: mode ?? 'full', done: false, talkMsg: null, preTalkMsg,
       },
       tick: s.tick + 1,
     }))
@@ -210,7 +233,14 @@ export const useStore = create<Store>((set, get) => ({
     const { ctx } = liveMatch
     let cursor = liveMatch.cursor
     if (cursor < ctx.events.length) {
-      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: cursor + 1 }, tick: s.tick + 1 } : {})
+      // Highlights mode (F5): run straight to the next moment that matters
+      // rather than reading out every ruck. The filler lines are still in the
+      // log, so the full commentary is there at full-time for anyone who wants
+      // it - this only changes what the ticker stops on.
+      const step = liveMatch.mode === 'highlights'
+        ? nextHighlight(ctx.events, cursor)
+        : cursor + 1
+      set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step }, tick: s.tick + 1 } : {})
       return
     }
     if (ctx.awaiting || ctx.seg === 3 || ctx.decision) {
@@ -321,6 +351,14 @@ export const useStore = create<Store>((set, get) => ({
   matchCursor: (cursor, playing) => set(s => s.liveMatch ? ({
     liveMatch: { ...s.liveMatch, cursor, playing },
   }) : {}),
+
+  matchMode: (mode) => set(s => {
+    if (!s.liveMatch) return {}
+    // remembered for the competition too, so switching mid-match is also a
+    // standing answer for next week rather than a one-off
+    if (s.game) s.game.viewPref = { ...(s.game.viewPref ?? {}), [s.liveMatch.fixture.compId]: mode }
+    return { liveMatch: { ...s.liveMatch, mode }, tick: s.tick + 1 }
+  }),
 
   /** After FT: process the rest of the week and return home. */
   finishMatch: () => {

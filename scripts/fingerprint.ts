@@ -16,19 +16,24 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  // Rebaselined: the referee panel and Law 3. Each referee now carries four
-  // separate opinions (scrum pedantry, jackal tolerance, patience, flow) instead
-  // of one of three buckets, and a 23 without cover at all three front-row
-  // positions gets uncontested scrums. Both change what the engine weighs, so the
-  // scores move. A deliberate mechanical change - and note that the panel was
-  // deliberately balanced mean-neutral first, so world scoring is unchanged at
-  // 52.8 points a game even though every individual result differs.
+  // Rebaselined: the bench economy (F4). Clubs now name a 5-3, 6-2 or 4-4 bench,
+  // the closing quarter takes the shape the 23 was picked for once three
+  // replacements are on, and a side forced to put a forward in a back's shirt
+  // pays for it. All three are deliberate mechanical changes, so individual
+  // results move.
+  //
+  // Balanced first, as always: the two alternative splits are mirror images, and
+  // the cover charge had to be re-derived because the obvious-looking numbers
+  // (attack 0.92, defence 0.96) cost the world 0.4 points a game. Neutrality
+  // needs 0.55 * attackLoss == 0.7 * defenceLoss, because that is how the two
+  // sides of the ratio are weighted. World scoring is 52.7 against a 52.8
+  // baseline, tries and home advantage unmoved.
   'northampton 33-19 sale',
   'bath 27-17 newcastle',
   'exeter 19-3 leicester',
   'harlequins 24-51 bristol',
-  'gloucester 37-24 saracens',
-  'newcastle 12-55 northampton',
+  'gloucester 44-17 saracens',
+  'newcastle 19-52 northampton',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

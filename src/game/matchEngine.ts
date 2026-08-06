@@ -7,6 +7,10 @@ import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
 import { clamp, gauss, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
+import {
+  SPLIT_BY_ID, benchSeats, briefForSeat, isForward, seatsFor, splitFor,
+  type BenchSplit,
+} from './bench'
 
 /** Seasonal weather: wetter and colder through the winter weeks. */
 export function rollWeather(week: number, rng: Rng): Weather {
@@ -33,8 +37,13 @@ export function availablePlayers(state: GameState, ids: number[], forNation = fa
     .filter(p => p && !p.injury && !p.onLoan && p.bans === 0 && (forNation || !p.natSquad))
 }
 
-/** Pick the best legal 23 from a pool. Returns array of 23 player ids (or null). */
-export function autoSelect(state: GameState, pool: Player[]): (number | null)[] {
+/** Pick the best legal 23 from a pool. Returns array of 23 player ids (or null).
+ *
+ *  The bench seats depend on the split (F4): a 6-2 wants a sixth forward where a
+ *  5-3 wants a third back, so the auto-pick has to know which bench it is
+ *  filling or the split would be a label with nothing behind it. */
+export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit): (number | null)[] {
+  const BENCH = seatsFor(split)
   // academy players are a second squad - only raided when the seniors run dry
   const seniors = pool.filter(p => !p.acad)
   if (seniors.length >= 23) pool = seniors
@@ -80,7 +89,7 @@ export function autoSelect(state: GameState, pool: Player[]): (number | null)[] 
   {
     const pairs: { b: number; p: Player; s: number }[] = []
     for (let b = 0; b < 8; b++) {
-      const slots = BENCH_SLOTS[b].pos
+      const slots = BENCH[b].pos
       for (const p of pool) {
         if (slots.includes(p.pos) || p.alt.some(a => slots.includes(a))) {
           pairs.push({ b, p, s: score(p, slots[0]) })
@@ -96,7 +105,7 @@ export function autoSelect(state: GameState, pool: Player[]): (number | null)[] 
   }
   for (let b = 0; b < 8; b++) {
     if (lineup[15 + b] != null) continue
-    const slots = BENCH_SLOTS[b].pos
+    const slots = BENCH[b].pos
     let best: Player | null = null
     let bestS = -1
     for (const p of pool) {
@@ -213,7 +222,7 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
     if (valid) return lu
   }
   const pool = availablePlayers(state, rosterOf(state, teamId), isNation)
-  return autoSelect(state, pool)
+  return autoSelect(state, pool, splitFor(club))
 }
 
 // ------------------------------------------------------------------
@@ -337,6 +346,26 @@ const INJURIES = [
   ['groin strain', 2, 5], ['torn bicep', 8, 14], ['ruptured achilles', 16, 30],
 ] as const
 
+/** In-match multipliers that must outlive a unit recompute. */
+export interface SideMods {
+  scrum: number; lineout: number; breakdown: number
+  attack: number; defence: number; kicking: number
+  tempo: number; card: number
+}
+
+const freshMods = (): SideMods => ({
+  scrum: 1, lineout: 1, breakdown: 1, attack: 1, defence: 1, kicking: 1, tempo: 1, card: 1,
+})
+
+/** Layer a multiplier on a side so that it survives the next substitution. */
+function layer(side: SideCtx, k: keyof SideMods, m: number) {
+  if (m === 1) return
+  side.mods[k] *= m
+  if (k === 'tempo') side.tempoF *= m
+  else if (k === 'card') side.cardRisk *= m
+  else side.units[k] *= m
+}
+
 export interface SideCtx {
   teamId: string
   lineup: (number | null)[]
@@ -367,6 +396,27 @@ export interface SideCtx {
   /** players in this side facing a former club today - the old boys */
   exIds: Set<number>
   isUser: boolean
+
+  // ---- the bench economy (F4) ----------------------------------------------
+  /** Persistent multipliers layered on top of a freshly computed unit set.
+   *
+   *  recomputeSideUnits rebuilds units from the lineup and re-runs the tactic
+   *  modifiers, so anything the match itself layered on gets wiped by the next
+   *  substitution. Bench effects live here and applyModifiers puts them back. */
+  mods: SideMods
+  /** the split this side named its bench under */
+  split: BenchSplit
+  /** who was sitting on the bench at kick-off. The lineup array is mutated by
+   *  every substitution, so this is the only reliable record of the plan. */
+  benchIds: Set<number>
+  /** bench seat (0-7) each replacement sat in, for looking up his brief */
+  seatOf: Map<number, number>
+  /** the last-quarter reshape has been applied */
+  finisherDone?: boolean
+  /** briefed replacements whose instructions have already taken effect */
+  briefsUsed?: number
+  /** a man is playing out of his depth after a forced positional switch */
+  coverBlown?: boolean
 }
 
 /** Tactic + weather + coaching modifiers, applied to freshly computed units. */
@@ -497,6 +547,19 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.breakdown *= 1.04 // wet weather is forward weather
   }
   if (weather === 'Wind') side.units.kicking *= 0.92
+  // Anything the match itself layered on goes back on last. Without this, a
+  // substitution in the 68th minute silently erased the bench plan that had
+  // just been applied at the 64th, because recomputeSideUnits starts over.
+  if (side.mods) {
+    side.units.scrum *= side.mods.scrum
+    side.units.lineout *= side.mods.lineout
+    side.units.breakdown *= side.mods.breakdown
+    side.units.attack *= side.mods.attack
+    side.units.defence *= side.mods.defence
+    side.units.kicking *= side.mods.kicking
+    side.tempoF *= side.mods.tempo
+    side.cardRisk *= side.mods.card
+  }
 }
 
 function mkSide(state: GameState, teamId: string, userTeamId: string | null): SideCtx {
@@ -512,6 +575,11 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
     }
   })
   const units = teamUnits(state, lineup)
+  const benchIds = new Set<number>()
+  const seatOf = new Map<number, number>()
+  lineup.slice(15).forEach((id, seat) => {
+    if (id != null) { benchIds.add(id); seatOf.set(id, seat) }
+  })
   const side: SideCtx = {
     teamId, lineup, units,
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), sent: 0,
@@ -520,6 +588,9 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
     exIds: new Set(),
     isUser: teamId === userTeamId,
+    mods: freshMods(),
+    split: splitFor(state.clubs[teamId]),
+    benchIds, seatOf,
   }
   applyModifiers(state, side, null)
   return side
@@ -1155,7 +1226,114 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
     const benchSlot = side.lineup.indexOf(best.id)
     side.lineup[slot] = best.id
     if (benchSlot >= 0) side.lineup[benchSlot] = outId
+    // the AI coach's bench plan is subject to the same laws (F4)
+    applyBrief(state, side, best.id)
+    forcedSwitchCost(state, ctx, side, outId, best, min)
     made++
+  }
+}
+
+/** The last twenty minutes belong to the bench (F4).
+ *
+ *  A 6-2 reshapes the closing quarter through the middle; a 4-4 reshapes it out
+ *  wide. The two are deliberate mirror images so that a world picking both does
+ *  not drift, and the orthodox 5-3 is exactly neutral so that doing nothing
+ *  costs nothing.
+ *
+ *  It only pays out in proportion to how much of the bench is actually on the
+ *  field. Naming a bomb squad and leaving it sitting changes nothing, which is
+ *  what makes this an economy rather than another slider. */
+function applyFinishers(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
+  if (side.finisherDone) return
+  side.finisherDone = true
+  const def = SPLIT_BY_ID[side.split]
+  if (!def || def.id === '5-3') return
+  const on = [...side.onPitch].filter(id => side.benchIds.has(id)).length
+  const k = Math.min(1, on / 3) // three of the eight is a full commitment
+  if (k <= 0) return
+  const lerp = (m: number) => 1 + (m - 1) * k
+  layer(side, 'scrum', lerp(def.scrum))
+  layer(side, 'breakdown', lerp(def.breakdown))
+  layer(side, 'defence', lerp(def.defence))
+  layer(side, 'attack', lerp(def.attack))
+  // one line, and only when the plan is genuinely on the field. Deterministic:
+  // no roll of the shared match rng decides whether the manager hears about it.
+  if (ctx.detail && side.isUser && on >= 3) {
+    pushEvent(state, ctx, min, 'SUB', side, def.id === '6-2'
+      ? `${teamShort(state, side.teamId)} have emptied a six-two bench. Everything from here goes through the middle.`
+      : `${teamShort(state, side.teamId)} have four fresh backs on. They will try to win this in the wide channels.`)
+  }
+}
+
+/** What the man was told as he pulled the shirt on (F4).
+ *
+ *  Capped at three briefed replacements a side: eight stacking instructions
+ *  would be a bigger swing than any tactic in the game, and a bench is not a
+ *  cheat code. Returns the phrase to hang on the substitution line, or null. */
+function applyBrief(state: GameState, side: SideCtx, inId: number): string | null {
+  const club = state.clubs[side.teamId]
+  const seat = side.seatOf.get(inId)
+  if (!club || seat == null) return null
+  const brief = briefForSeat(club, seat)
+  if (brief === 'orders') return null
+  if ((side.briefsUsed ?? 0) >= 3) return null
+  side.briefsUsed = (side.briefsUsed ?? 0) + 1
+  switch (brief) {
+    case 'impact':
+      layer(side, 'attack', 1.025)
+      layer(side, 'defence', 0.99)
+      side.energy.set(inId, 100)
+      return 'He is on to go through them.'
+    case 'shore':
+      layer(side, 'defence', 1.025)
+      layer(side, 'attack', 0.99)
+      layer(side, 'card', 0.96)
+      return 'He is on to shut the door.'
+    case 'manage':
+      layer(side, 'kicking', 1.03)
+      layer(side, 'attack', 0.995)
+      layer(side, 'tempo', 0.97)
+      return 'He is on to play the corners and kill the clock.'
+    default:
+      return null
+  }
+}
+
+/** The bill for a man in the wrong half of the team, and it has to be paid on
+ *  both sides of the ledger.
+ *
+ *  The first cut charged attack 0.92 and defence 0.96, which read as a fair
+ *  trade and was not: it took 0.4 points a game off the whole world, because
+ *  attack carries weight 0.55 in the attacking ratio while defence carries 0.7
+ *  in the defending one. Neutrality needs 0.55 * attackLoss == 0.7 * defenceLoss,
+ *  so the defensive hole has to be the deeper of the two - which is also the
+ *  truer picture. A flanker at 13 does not stop scoring the same way he stops
+ *  carrying; he leaks. */
+const COVER_ATT = 0.92
+const COVER_DEF = 0.937
+
+/** The cost of a thin bench: a man in the wrong half of the team.
+ *
+ *  This is the bill a 6-2 can be presented with. Lose a centre once both your
+ *  backs have been used and a flanker finishes the game in the 13 shirt, and no
+ *  amount of shove makes up for it. Charged once, to any side, so the risk is
+ *  the same law for everybody. */
+function forcedSwitchCost(state: GameState, ctx: LiveCtx, side: SideCtx, outId: number, inP: Player, min: number) {
+  if (side.coverBlown) return
+  const out = state.players[outId]
+  if (!out) return
+  const slot = side.lineup.indexOf(inP.id)
+  const shirtPos: Pos | null = slot >= 0 && slot < 15 ? XV_SLOTS[slot].pos : null
+  if (!shirtPos) return
+  // a natural fit, or a recognised alternative position, is not a crisis
+  if (inP.pos === shirtPos || inP.alt.includes(shirtPos)) return
+  if (isForward(inP.pos) === isForward(shirtPos)) return
+  side.coverBlown = true
+  layer(side, 'attack', COVER_ATT)
+  layer(side, 'defence', COVER_DEF)
+  if (ctx.detail) {
+    pushEvent(state, ctx, min, 'SUB', side,
+      `${teamShort(state, side.teamId)} are out of cover. ${inP.name}, a ${inP.pos}, finishes the game at ${shirtPos} and both sides know it.`, inP.id)
   }
 }
 
@@ -1163,6 +1341,13 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const { rng, detail, derby, goalPenalty, home, away } = ctx
   const min = tick * 4 + Math.floor(rng() * 4) + 1
   const poss0: [number, number] = [home.poss, away.poss]
+
+  // The bench has been on since the hour mark: the closing quarter takes the
+  // shape the 23 was picked for (F4).
+  if (tick === 16) {
+    applyFinishers(state, ctx, home, min)
+    applyFinishers(state, ctx, away, min)
+  }
 
   drainEnergy(state, ctx, home)
   drainEnergy(state, ctx, away)
@@ -1309,7 +1494,10 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
               side.lineup[slot] = sub.id
               if (bSlot >= 0) side.lineup[bSlot] = p.id
             }
-            pushEvent(state, ctx, min, 'SUB', side, `${sub.name} comes on in his place.`, sub.id)
+            const brief = applyBrief(state, side, sub.id)
+            pushEvent(state, ctx, min, 'SUB', side, `${sub.name} comes on in his place.${brief ? ` ${brief}` : ''}`, sub.id)
+            // and if the bench had nobody who plays there, the side pays (F4)
+            forcedSwitchCost(state, ctx, side, p.id, sub, min)
           }
         }
       }
@@ -1599,7 +1787,11 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   mine.energy.set(inId, Math.max(60, pin.cond))
   ctx.subsUsed += 1
   recomputeSideUnits(state, ctx, mine)
-  pushEvent(state, ctx, Math.min(79, Math.max(1, ctx.lastMin)), 'SUB', mine, `Change from the bench: ${pin.name} replaces ${pout.name}.`, pin.id)
+  const min = Math.min(79, Math.max(1, ctx.lastMin))
+  // the brief he was given, and the bill if the shirt does not fit him (F4)
+  const brief = applyBrief(state, mine, inId)
+  forcedSwitchCost(state, ctx, mine, outId, pin, min)
+  pushEvent(state, ctx, min, 'SUB', mine, `Change from the bench: ${pin.name} replaces ${pout.name}.${brief ? ` ${brief}` : ''}`, pin.id)
   return `${pin.name} will come on for ${pout.name}.`
 }
 
@@ -1634,8 +1826,19 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   mine.ratings.set(inId, 6)
   mine.energy.set(inId, Math.max(60, pin.cond))
   recomputeSideUnits(state, ctx, mine)
-  pushEvent(state, ctx, Math.min(79, Math.max(1, ctx.lastMin)), 'SUB', mine,
-    `Change of plan on the touchline: ${pin.name} goes on instead of ${pon.name}.`, pin.id)
+  const min = Math.min(79, Math.max(1, ctx.lastMin))
+  // A better cover pick can undo the shortage the assistant walked into, so the
+  // bill charged a moment ago is refunded exactly and then re-tested (F4). Only
+  // the cover charge is reversed: briefs and the bench reshape stand.
+  if (mine.coverBlown) {
+    mine.coverBlown = false
+    layer(mine, 'attack', 1 / 0.92)
+    layer(mine, 'defence', 1 / 0.96)
+  }
+  const brief = applyBrief(state, mine, inId)
+  forcedSwitchCost(state, ctx, mine, onId, pin, min)
+  pushEvent(state, ctx, min, 'SUB', mine,
+    `Change of plan on the touchline: ${pin.name} goes on instead of ${pon.name}.${brief ? ` ${brief}` : ''}`, pin.id)
   return `${pin.name} takes the shirt instead of ${pon.name}.`
 }
 

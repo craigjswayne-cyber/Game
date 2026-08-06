@@ -295,6 +295,15 @@ export interface Tactic {
   /** the lineout and scrum routines you are drilling and calling */
   lineoutCall?: string
   scrumCall?: string
+
+  // ---- the bench economy (F4) ---------------------------------------------
+  /** How the eight replacements are split between forwards and backs. Unset
+   *  lets the club's tactical conviction decide, which is how AI sides end up
+   *  with benches that match how they play. */
+  bench?: '5-3' | '6-2' | '4-4'
+  /** What each replacement is told as he pulls his shirt on, by bench seat
+   *  (0-7, aligned to the current split's seats). Sparse. */
+  briefs?: (string | null)[]
 }
 
 /** How well drilled each routine is, and how often the opposition have seen it.
@@ -712,6 +721,11 @@ export interface GameState {
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
   /** league the scouting network is assigned to watch weekly */
   scoutFocus?: string | null
+  /** How the manager watches each competition (F5), keyed by competition id:
+   *  'full' every line of commentary, 'highlights' the moments only, 'instant'
+   *  the assistant takes it. A phone career is 40 matches a season and not all
+   *  of them deserve ninety taps. */
+  viewPref?: Record<string, 'full' | 'highlights' | 'instant'>
   /** open promises made to players in the office, settled at their due week */
   pledges?: Pledge[]
   /** the user's next academy class, fixed at the week-30 preview so intake
