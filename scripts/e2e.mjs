@@ -189,10 +189,26 @@ try {
   await clearWire()
   await page.waitForSelector('.continue-btn', { timeout: 15000 })
   await shot('11-after-match')
-  // the inbox is its own screen now
+  // the inbox reads one message at a time now (10D): the mail icon serves the
+  // next unread, and the arrows recall the last twenty
   await page.click('.bottom-nav button[title="Inbox"]')
-  await page.waitForSelector('.news-item', { timeout: 15000 })
+  await page.waitForSelector('.reader', { timeout: 15000 })
   await shot('11b-inbox')
+  const firstSubject = await page.locator('.reader h2').innerText()
+  await page.click('.bottom-nav button[title="Inbox"]')
+  await page.waitForTimeout(250)
+  const secondSubject = await page.locator('.reader h2').innerText()
+  const posDbg = await page.locator('.reader-pos').innerText()
+  console.log(`inbox queue: "${firstSubject.slice(0, 40)}" then "${secondSubject.slice(0, 40)}" | pos: ${posDbg}`)
+  if (firstSubject === secondSubject) {
+    const pos = await page.locator('.reader-pos').innerText()
+    // .reader-pos is uppercased by CSS, and innerText returns what is rendered
+    if (!/all read/i.test(pos)) throw new Error('the mail icon did not advance to the next unread')
+  }
+  // and back through the recall window
+  await page.click('.reader-bar >> text=◀')
+  await page.waitForTimeout(200)
+  await shot('11c-inbox-recall')
   await page.click('.bottom-nav button[title="Home"]')
 
   // burn through several weeks (mix of matchday + blank weeks)

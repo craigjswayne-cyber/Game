@@ -401,6 +401,10 @@ export interface NewsItem {
   /** multi-name stories: every listed player is tappable in the feed */
   playerIds?: number[]
   fixtureId?: number
+  /** Filed away by the manager. The story stays in state - the Wire, the season
+   *  review and the history all read this list - it simply stops appearing in the
+   *  inbox reader. */
+  cleared?: boolean
 }
 
 export interface PressOption {

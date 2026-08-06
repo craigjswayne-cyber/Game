@@ -94,7 +94,7 @@ export default function App() {
   const game = useStore(s => s.game)
   const night = useStore(s => s.night)
   useStore(s => s.tick)
-  const { back, go, home, continueWeek, toggleNight } = useStore.getState()
+  const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'club' | 'world' | 'manager'>(null)
   useOrientationLock()
 
@@ -218,7 +218,13 @@ export default function App() {
 
   const navBtn = (s: string, ico: ReactNode, label: string, badge?: number) => (
     <button className={cur.screen === s ? 'active' : ''} title={label} aria-label={label}
-      onClick={() => { setMenu(null); (s === 'home' ? home() : go(s as Screen)) }}>
+      onClick={() => {
+        setMenu(null)
+        // the mail icon is a queue, not a link: each tap serves the next unread
+        if (s === 'inbox') { openInbox(); return }
+        if (s === 'home') { home(); return }
+        go(s as Screen)
+      }}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
       <span className="nlbl">{label}</span>
     </button>

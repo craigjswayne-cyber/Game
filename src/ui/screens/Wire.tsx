@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
+import { PeopleChips } from './Inbox'
 import { weekDate } from '../../game/model'
 
 const TYPE_ICON: Record<string, string> = {
@@ -44,17 +45,9 @@ export default function Wire() {
         <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 14, lineHeight: 1.65, flex: 1, overflowY: 'auto' }}>
           {n.body}
         </div>
-        {(n.playerId != null || (n.playerIds ?? []).length > 0) && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-            {[...(n.playerId != null ? [n.playerId] : []), ...(n.playerIds ?? [])]
-              .filter((id, i, a) => game.players[id] && a.indexOf(id) === i)
-              .map(id => (
-                <button key={id} className="btn ghost" style={{ fontSize: 12 }} onClick={() => go('player', id)}>
-                  {game.players[id].name} ▸
-                </button>
-              ))}
-          </div>
-        )}
+        {/* the same chip row the inbox reader uses, so a name looks tappable in
+            the same way wherever the story is being read (10F) */}
+        <PeopleChips n={n} />
       </div>
       <div className="btn-row" style={{ marginTop: 10 }}>
         {!last && (
