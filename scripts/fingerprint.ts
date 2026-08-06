@@ -28,11 +28,18 @@ const EXPECTED: string[] = [
   // needs 0.55 * attackLoss == 0.7 * defenceLoss, because that is how the two
   // sides of the ratio are weighted. World scoring is 52.7 against a 52.8
   // baseline, tries and home advantage unmoved.
+  //
+  // Moved again by feedback 10C: five of the eight bench seats are now OPEN and
+  // take whoever you put in them, so the engine reads the split the bench
+  // ACTUALLY is rather than the one that was chosen. Verified across the world:
+  // intent and reality agree on all 101 clubs (19 six-twos, 68 five-threes, 14
+  // four-fours) and every bench covers the front row, so this closed a loophole
+  // rather than changing the balance. 52.9 points a game against 52.8.
   'northampton 33-19 sale',
   'bath 27-17 newcastle',
   'exeter 19-3 leicester',
   'harlequins 24-51 bristol',
-  'gloucester 44-17 saracens',
+  'gloucester 37-24 saracens',
   'newcastle 19-52 northampton',
 ]
 

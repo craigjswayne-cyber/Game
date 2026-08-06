@@ -128,7 +128,20 @@ function Preview({ fxId }: { fxId: number }) {
 
   // the bench seats are whatever the split says they are (F4)
   const seats = benchSeats(club)
-  const slotPos = (slot: number): Pos => slot < 15 ? XV_SLOTS[slot].pos : seats[slot - 15].pos[0]
+  /** The position a slot is asking for. An open bench seat asks for whatever the
+   *  man in it plays (user: "use players positions"), so a winger in the 21 shirt
+   *  reads WG rather than being mislabelled a scrum-half. The front-row three are
+   *  never open: Law 3 wants them covered. */
+  const slotPos = (slot: number): Pos => {
+    if (slot < 15) return XV_SLOTS[slot].pos
+    const seat = seats[slot - 15]
+    if (seat.open) {
+      const id = t.lineup[slot]
+      const p = id != null ? game.players[id] : null
+      if (p) return p.pos
+    }
+    return seat.pos[0]
+  }
 
   const setSlot = (slot: number, pid: number | null) => {
     if (pid != null) {
@@ -1317,6 +1330,8 @@ function Live() {
   const [showLog, setShowLog] = useState(false)
   const [showRatings, setShowRatings] = useState(false)
   const [injury, setInjury] = useState<{ hurt: string; desc: string; weeks: number; coverId: number | null } | null>(null)
+  /** the match-day squad, opened from the Squad button in the control row */
+  const [sheet, setSheet] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
 
   const { events, cursor, playing, fixture, ctx } = live
@@ -1364,7 +1379,11 @@ function Live() {
     if (!e || e.type !== 'INJ' || e.teamId !== ctx.userSideId || e.playerId == null) return
     const hurt = game.players[e.playerId]
     const weeks = hurt?.injury?.weeks ?? 0
-    if (!hurt?.injury || weeks < 3) return
+    // ANY injury stops the game, not only a three-week one. It used to wave a
+    // one-week knock through on the reasoning that stopping for it would be
+    // nagging; but a man who cannot continue is a man off the pitch, and who
+    // replaces him is the manager's call every single time.
+    if (!hurt?.injury) return
     // whoever the assistant sent on: the SUB the engine pushed alongside it
     const coverEv = events.slice(cursor - 1, cursor + 3).find(x => x.type === 'SUB' && x.teamId === e.teamId && x.playerId != null)
     injSeen.current = cursor
@@ -1523,26 +1542,42 @@ function Live() {
               else skipToBreak()
             }}>Skip ▸</button>
         )}
+        {/* Squad, not "Touchline" (user: "rather than touchline ... have it as
+            squad selection so you click it and can make changes"). The panel it
+            used to open was a tactics drawer with a substitution list buried in
+            it; this goes straight to the match-day squad, which is what anyone
+            pressing it wants. Tactics still live behind the same panel via the
+            drawer button on the squad sheet. */}
         {!done && ctx.seg < 3 && (
-          <button className={`btn ${drawer ? 'gold' : 'ghost'}`} style={{ flex: 1.2 }}
-            title="Touchline: change tactics or make substitutions"
-            aria-label="Touchline: change tactics or make substitutions"
+          <button className={`btn ${sheet ? 'gold' : 'ghost'}`} style={{ flex: 1.2 }}
+            title="Match-day squad: make a substitution"
+            aria-label="Match-day squad: make a substitution"
             onClick={() => {
-              if (!drawer) matchCursor(cursor, false)
+              matchCursor(cursor, false)
               setSettings(false)
-              setDrawer(!drawer)
-            }}>📋 <span className="ctrl-cap">Touchline</span></button>
+              setDrawer(false)
+              setSheet(true)
+            }}>👥 <span className="ctrl-cap">Squad</span></button>
         )}
         <button className={`btn ${settings ? 'gold' : 'ghost'}`} style={{ flex: '0 0 46px' }}
           title="Match settings: speed and sound" aria-label="Match settings: speed and sound"
           onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
       </div>
 
+      {sheet && !injury && (
+        <SquadSheet
+          onClose={() => { setSheet(false); matchCursor(cursor, true) }}
+          onTactics={() => { setSheet(false); setDrawer(true) }}
+        />
+      )}
       {injury && (
         <SquadSheet
           title={`🏥 ${injury.hurt} is off`}
-          note={`${injury.desc} - out for ${injury.weeks} week${injury.weeks === 1 ? '' : 's'}.`}
+          note={`${injury.desc} - out for ${injury.weeks} week${injury.weeks === 1 ? '' : 's'}. Name his replacement before play restarts.`}
           freeCoverId={injury.coverId ?? undefined}
+          /* forced: the physio is on, the clock is stopped, and the only way back
+             to the match is through naming somebody */
+          mustDecide
           onClose={() => { setInjury(null); matchCursor(cursor, true) }}
         />
       )}
@@ -1969,12 +2004,18 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
  *  `forcedOffId` is the injury flow (feedback 9-3): when a man goes down badly
  *  the sheet opens with him already armed, so the only decision left is who
  *  comes on. */
-export function SquadSheet({ onClose, freeCoverId, title, note }: {
+export function SquadSheet({ onClose, freeCoverId, title, note, mustDecide, onTactics }: {
   onClose: () => void
   /** The man the assistant sent on to cover an injury. Swapping him is free. */
   freeCoverId?: number
   title?: string
   note?: string
+  /** A forced stop: the sheet cannot be dismissed until a change is made. Used
+   *  for injuries, where somebody has to come on and the choice is the
+   *  manager's, not the assistant's. */
+  mustDecide?: boolean
+  /** route through to the tactics panel, for the Squad button in the control row */
+  onTactics?: () => void
 }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
@@ -2015,8 +2056,11 @@ export function SquadSheet({ onClose, freeCoverId, title, note }: {
     setOffId(null)
   }
 
+  // a forced stop is satisfied by any change, including keeping the assistant's
+  // man - tapping him again is a decision, it is just the same decision
+  const settled = !mustDecide || log.length > 0 || !freeLeft
   return (
-    <div className="modal-veil" onClick={onClose}>
+    <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
       <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
         <div className="grab" />
         <div className="sheet-head">
@@ -2043,7 +2087,19 @@ export function SquadSheet({ onClose, freeCoverId, title, note }: {
               return (
                 <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
                   disabled={!on || (left <= 0 && !canFree)}
-                  onClick={() => setOffId(offId === p.id ? null : p.id)}>
+                  onClick={() => {
+                    // Re-tapping the man the assistant sent on means "he stays".
+                    // That is a decision, so it settles a forced stop - and it has
+                    // to be answerable here, because he is already on the pitch
+                    // and so never appears in the bench column.
+                    if (canFree && offId === p.id) {
+                      setFreeLeft(false)
+                      setLog(l => [`${p.name} keeps the shirt.`, ...l].slice(0, 4))
+                      setOffId(null)
+                      return
+                    }
+                    setOffId(offId === p.id ? null : p.id)
+                  }}>
                   <span className="sh-num">{shirt}</span>
                   <span className="sh-name">{p.name}</span>
                   {binned && <span className="sh-flag" title="In the bin">🟨</span>}
@@ -2078,9 +2134,21 @@ export function SquadSheet({ onClose, freeCoverId, title, note }: {
           </div>
         </div>
         {log.map((m, i) => <div key={i} className="meta sheet-log">{m}</div>)}
-        <button className="btn gold block" style={{ marginTop: 8 }} onClick={onClose}>
-          {log.length ? `▸ Done (${log.length} change${log.length === 1 ? '' : 's'} made)` : '▸ Back to the Match'}
-        </button>
+        {mustDecide && !settled && (
+          <div className="meta sheet-log" style={{ color: 'var(--red)', fontWeight: 700 }}>
+            Play is stopped until somebody takes his shirt. Tap the man you want on, or tap the
+            assistant's pick again to keep him.
+          </div>
+        )}
+        <div className="btn-row" style={{ marginTop: 8 }}>
+          {onTactics && (
+            <button className="btn ghost" onClick={onTactics}>📋 Tactics</button>
+          )}
+          <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={onClose}>
+            {log.length ? `▸ Done (${log.length} change${log.length === 1 ? '' : 's'} made)`
+              : settled ? '▸ Back to the Match' : '▸ Name a replacement first'}
+          </button>
+        </div>
       </div>
     </div>
   )

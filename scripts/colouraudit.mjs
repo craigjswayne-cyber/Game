@@ -25,12 +25,11 @@ const MEASURE = () => {
     if (a != null && a < 0.35) return null // barely painted
     return [r, g, b]
   }
-  const sat = ([r, g, b]) => {
-    const mx = Math.max(r, g, b) / 255, mn = Math.min(r, g, b) / 255
-    const l = (mx + mn) / 2
-    if (mx === mn) return 0
-    return l > 0.5 ? (mx - mn) / (2 - mx - mn) : (mx - mn) / (mx + mn)
-  }
+  // CHROMA, not HSL saturation. HSL saturation of a near-black navy like #0b1322
+  // is 0.51, which scored the darkest background in the game as half-saturated
+  // when it reads as black. Chroma is max minus min: #0b1322 scores 0.09 and the
+  // slate-grey accent #5c6470 scores 0.08, which is what the eye reports.
+  const sat = ([r, g, b]) => (Math.max(r, g, b) - Math.min(r, g, b)) / 255
   let area = 0, satArea = 0, greyArea = 0, vivid = 0
   for (const el of document.querySelectorAll('*')) {
     const r = el.getBoundingClientRect()
@@ -46,8 +45,8 @@ const MEASURE = () => {
     const s = sat(c)
     area += a
     satArea += s * a
-    if (s < 0.12) greyArea += a
-    if (s > 0.45) vivid += a
+    if (s < 0.10) greyArea += a
+    if (s > 0.30) vivid += a
   }
   if (!area) return null
   return {
@@ -85,11 +84,14 @@ try {
     rows.push([label, await page.evaluate(MEASURE)])
   }
 
-  await page.click('.continue-btn')
-  await page.waitForSelector('.mday-head', { timeout: 15000 })
+  // the club sub-menu can be left open over the masthead, so land on Home first
+  await page.click('.bottom-nav button[title="Home"]').catch(() => {})
+  await page.waitForTimeout(400)
+  await page.click('.continue-btn', { timeout: 8000 }).catch(() => {})
+  await page.waitForSelector('.mday-head', { timeout: 12000 }).catch(() => {})
   rows.push(['matchday', await page.evaluate(MEASURE)])
 
-  console.log('screen        meanSat  grey%   vivid%')
+  console.log('screen        chroma  grey%   vivid%')
   let ms = 0, gs = 0, vs = 0, n = 0
   for (const [name, m] of rows) {
     if (!m) { console.log(`${name.padEnd(13)} (nothing measured)`); continue }
@@ -97,7 +99,7 @@ try {
     ms += m.meanSat; gs += m.greyShare; vs += m.vividShare; n++
   }
   console.log('')
-  console.log(`OVERALL mean saturation ${(ms / n).toFixed(3)}, grey ${((gs / n) * 100).toFixed(0)}% of painted area, vivid ${((vs / n) * 100).toFixed(0)}%`)
+  console.log(`OVERALL mean chroma ${(ms / n).toFixed(3)}, grey ${((gs / n) * 100).toFixed(0)}% of painted area, vivid ${((vs / n) * 100).toFixed(0)}%`)
 } catch (e) {
   console.log('FAILED:', String(e).slice(0, 300))
 } finally {

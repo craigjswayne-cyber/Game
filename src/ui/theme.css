@@ -39,21 +39,28 @@
   --green-700: #3a68c4;
   --green-600: #4a77d0;
   --green-100: #dbe6f6;
-  --cream: #eef3f9;
-  --cream-2: #e2eaf5;
-  --cream-3: #cfdced;
+  --cream: #e9f0fb;
+  --cream-2: #dbe6f7;
+  --cream-3: #c4d6ee;
   --paper: #ffffff;
   --ink: #1d2733;
   --ink-soft: #55616f;
   --ink-faint: #8794a3;
-  --gold: #5c6470;
-  --gold-bright: #9fc2e8;
-  --gold-dark: #47506b;
-  --gold-deep: #38415a;
-  --red: #c0392f;
-  --win: #2f7d4f;
-  --loss: #c0392f;
-  --draw: #8a7a3a;
+  /* THE ACCENT, and it has to actually be one.
+     It was #5c6470 - a slate grey, chroma 0.08 - and it is the token behind the
+     active tab underline, the unread-news bar, focus rings, progress meters, the
+     next-fixture row and the wizard crumbs. Measured with scripts/colouraudit,
+     78% of every painted screen was effectively grey and only 13% carried real
+     colour. That is the "feels greyed out" report, and this is its cause: the one
+     colour meant to carry the interface had no colour in it. */
+  --gold: #dda32a;
+  --gold-bright: #ffd35e;
+  --gold-dark: #a87c18;
+  --gold-deep: #6f5210;
+  --red: #e03b2b;
+  --win: #2fa85f;
+  --loss: #e03b2b;
+  --draw: #c9a227;
   --hairline: rgba(29, 39, 51, 0.1);
   /* --serif is the display voice (headlines, club names), --sans is body,
      --cond is the condensed caps voice for labels and nav. One family with
@@ -76,10 +83,14 @@
 
 /* ============ Floodlit mode (night theme) ============ */
 .app.night {
-  --cream: #0b1322;
-  --cream-2: #101b2e;
-  --cream-3: #1e2c46;
-  --paper: #131f36;
+  /* the night surfaces carried almost no chroma either: a navy this dark reads as
+     black, so the cards, the page and the hairlines were all grey. More blue in
+     the same lightness band keeps the mood and gives the gold something to sit
+     against. */
+  --cream: #08142c;
+  --cream-2: #0e1e3d;
+  --cream-3: #1d3358;
+  --paper: #112544;
   --ink: #e8edf5;
   --ink-soft: #adb9ca;
   --ink-faint: #7c8aa0;
@@ -87,6 +98,9 @@
   --accent-ink: #9fc2e8;
   --title-ink: #eef3fb;
   --star-empty: #2b3a55;
+  /* --gold-dark doubles as a night hairline (tab bar, table headings). Full gold
+     rules across every table would be a lot, so night gets a deep warm instead. */
+  --gold-dark: #5c4718;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
   --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
   background:
