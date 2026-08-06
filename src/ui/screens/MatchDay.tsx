@@ -999,7 +999,6 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['#c9a227', '#082b20']
   const awayC = game!.clubs[fx.awayId]?.colors ?? ['#1a3a5c', '#f0eadc']
   const min = last?.min ?? 0
-  const drift = (ballLeft - 50) * 0.14
   const evType = last?.type
   const towardHome = last?.teamId === fx.homeId
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
@@ -1026,19 +1025,44 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
     sentOffEvts.some(e => e.playerId === id && e.min <= min) ||
     binEvts.some(e => e.playerId === id && min >= e.min && min < e.min + 10)
 
+  // Where the ball is across the field, not just up it. It follows the man in the
+  // commentary when there is one, so the ball is with the carrier instead of
+  // drifting on a sawtooth of its own.
+  const carrierSlotOf = (s: SideCtx) => (last?.playerId != null ? s.lineup.slice(0, 15).indexOf(last.playerId) : -1)
+  const carrierSlot = Math.max(carrierSlotOf(ctx.home), carrierSlotOf(ctx.away))
+  const ballTop = carrierSlot >= 0
+    ? 8 + SPOTS[carrierSlot][1] * 0.84
+    : 38 + ((min * 13) % 25)
+
   const dots = (side: SideCtx, isHome: boolean) => {
     const cols = isHome ? homeC : awayC
     const capId = game!.clubs[side.teamId]?.captain
-    // the side with the ball steps up; the defence holds its line deeper
-    const attacking = last && last.teamId === side.teamId
-    const atk = attacking ? (isHome ? 2.4 : -2.4) : (isHome ? -1.4 : 1.4)
-    const ballTop = 38 + ((min * 13) % 25)
+    const attacking = !!last && last.teamId === side.teamId
+
+    // Both sides live around the BALL, not around their own tryline.
+    //
+    // They used to be pinned to their own half: home spanned 10-40% of the pitch
+    // and away 60-90%, with a twenty-percent dead band down the middle that
+    // neither could enter. Fifteen men in green at one end and fifteen in yellow
+    // at the other never met, so the pitch read as two teams lined up for the
+    // anthems rather than a game - the packs were never in contact and the
+    // defence never faced the attack.
+    //
+    // SPOTS gives each shirt its distance from its own line (sx) and its position
+    // across the field (sy). Read sx as DEPTH BEHIND THE BALL instead and the
+    // whole thing falls out correctly: front rows meet over the ball, back rows
+    // sit deeper, and each side stays on its own side of it. Home defends the
+    // left, so its shape runs leftwards from the ball; away mirrors it.
+    const dir = isHome ? -1 : 1
+    // A defending line is flatter than an attacking shape and sits off the ball,
+    // roughly where the offside line would be.
+    const depthScale = attacking ? 0.34 : 0.26
+    const standOff = attacking ? 1.5 : 5.5
+    const anchor = ballLeft + dir * standOff
+    const baseX = (slot: number) => anchor + dir * (SPOTS[slot][0] - 14) * depthScale
+
     // the two nearest forwards of each side work the breakdown
     const fwdSlots = [0, 1, 2, 3, 4, 5, 6, 7]
-    const baseX = (slot: number) => {
-      const [sx] = SPOTS[slot]
-      return isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift
-    }
     const ruckers = [...fwdSlots]
       .sort((a, b) => Math.abs(baseX(a) - ballLeft) - Math.abs(baseX(b) - ballLeft))
       .slice(0, 2)
@@ -1050,22 +1074,35 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       if (!side.onPitch.has(id) && !sentOffIds.has(id)) return null
       const p = game!.players[id]
       if (!p) return null
-      const [sx, sy] = SPOTS[slot]
+      const [, sy] = SPOTS[slot]
       // every man moves: work-rate wander re-seeded each match minute
       const wx = ((min * 13 + slot * 29 + (isHome ? 0 : 7)) % 9) - 4
       const wy = ((min * 11 + slot * 17 + (isHome ? 3 : 0)) % 7) - 3
       const ruck = ruckers.includes(slot)
-      let x = (isHome ? 5 + sx * 0.40 + drift : 95 - sx * 0.40 + drift) + atk + wx * 0.35
+      let x = baseX(slot) + wx * 0.35
       let y = 8 + sy * 0.84 + wy * 0.9
       if (ruck) {
         // converge on the ball - bodies over the tackle area
-        x = x * 0.45 + (ballLeft + (isHome ? -1.5 : 1.5)) * 0.55
+        x = x * 0.45 + (ballLeft + dir * 1.5) * 0.55
         y = y * 0.5 + ballTop * 0.5
       } else if (attacking && slot >= 8) {
         // backs fan out wider and deeper, looking for space
         y = y + (y > 50 ? 3 : -3)
-        x += isHome ? 1.2 : -1.2
+        x -= dir * 1.2
       }
+      const isCarrier = last?.playerId === id
+      // The man the commentary is talking about has the ball, so he stands where
+      // the ball is. He used to hold his formation spot while the ball sat ten
+      // metres away, which made the one dot you were actually reading the least
+      // convincing thing on the pitch.
+      if (isCarrier && !ruck) {
+        x = x * 0.35 + ballLeft * 0.65
+        y = y * 0.35 + ballTop * 0.65
+      }
+      // the shape follows the ball, so near either tryline it has to be held on
+      // the field rather than running off the end of it
+      x = Math.max(3.5, Math.min(96.5, x))
+      y = Math.max(5, Math.min(95, y))
       const hl = last?.playerId === id
       const scorerRun = hl && evType === 'TRY' && showFx
       return (
