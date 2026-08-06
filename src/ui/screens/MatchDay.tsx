@@ -5,6 +5,7 @@ import {
   refFor, refNotes, frontRowCover, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
@@ -47,6 +48,46 @@ const SPEECHES = [
 ] as const
 type SpeechId = typeof SPEECHES[number]['id']
 
+/** Three ways to spend a match (F5).
+ *
+ *  A season is forty-odd fixtures and a phone is not a sofa. Watching every ruck
+ *  of a pre-season friendly is not immersion, it is a chore, and the game already
+ *  had the two extremes (full commentary, or Instant Result buried under the
+ *  team sheet). The middle one is the useful one, and putting all three in a row
+ *  makes the choice a decision rather than a button nobody finds. */
+const VIEW_MODES = [
+  { id: 'full', icon: '📺', name: 'Every minute', desc: 'The full commentary, ruck by ruck. Every touchline call is yours.' },
+  { id: 'highlights', icon: '🎬', name: 'Highlights', desc: 'The ticker stops for scores, cards and injuries only. Half-time and the hour are still yours.' },
+  { id: 'instant', icon: '⏩', name: 'Assistant', desc: 'He takes the touchline and you read the report. Straight to the result.' },
+] as const
+
+/** Chips on one line with a readout underneath, the same shape as the exit
+ *  strategy and penalty instruction on the Tactics page.
+ *
+ *  It started as three explanatory cards, which is clearer in isolation and cost
+ *  95px in a modal that already filled a 390px-tall screen: the "say nothing"
+ *  button fell off the bottom. One line plus a sentence about the choice you
+ *  have actually made says the same thing in half the room. */
+function ViewPicker({ view, onPick }: {
+  view: 'full' | 'highlights' | 'instant'
+  onPick: (v: 'full' | 'highlights' | 'instant') => void
+}) {
+  return (
+    <>
+      <div className="set-label">How will you watch this one?</div>
+      <div className="preset-row">
+        {VIEW_MODES.map(v => (
+          <button key={v.id} className={`preset-chip${view === v.id ? ' on' : ''}`} title={v.desc}
+            onClick={() => onPick(v.id)}>{v.icon} {v.name}</button>
+        ))}
+      </div>
+      <div className="meta" style={{ marginTop: 4 }}>
+        {VIEW_MODES.find(v => v.id === view)?.desc}
+      </div>
+    </>
+  )
+}
+
 function Preview({ fxId }: { fxId: number }) {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
@@ -85,7 +126,9 @@ function Preview({ fxId }: { fxId: number }) {
   const oppUnits = teamUnits(game, oppLineup)
   const myUnits = teamUnits(game, t.lineup)
 
-  const slotPos = (slot: number): Pos => slot < 15 ? XV_SLOTS[slot].pos : BENCH_SLOTS[slot - 15].pos[0]
+  // the bench seats are whatever the split says they are (F4)
+  const seats = benchSeats(club)
+  const slotPos = (slot: number): Pos => slot < 15 ? XV_SLOTS[slot].pos : seats[slot - 15].pos[0]
 
   const setSlot = (slot: number, pid: number | null) => {
     if (pid != null) {
@@ -269,9 +312,18 @@ function Preview({ fxId }: { fxId: number }) {
    * through rather than read back off state, because setState has not landed
    * by the time we need it.
    */
+  /** How this one gets watched (F5). Remembered per competition, because the
+   *  answer for a Premiership Saturday is rarely the answer for a pre-season
+   *  friendly, and being asked afresh forty times a season is its own tax. */
+  const view = game.viewPref?.[fx.compId] ?? 'full'
+  const setView = (v: 'full' | 'highlights' | 'instant') => {
+    game.viewPref = { ...(game.viewPref ?? {}), [fx.compId]: v }
+    touch()
+  }
   const goDownTheTunnel = (sp: SpeechId | null) => {
-    if (warnings.length === 0) kickOff(sp ?? undefined)
-    else setConfirm(true)
+    if (warnings.length) { setConfirm(true); return }
+    if (view === 'instant') instantResult(sp ?? undefined)
+    else kickOff(sp ?? undefined, view)
   }
   const tryKickOff = () => {
     if (!talkDone && !speech) { setTalkOpen(true); return }
@@ -295,7 +347,7 @@ function Preview({ fxId }: { fxId: number }) {
   }
 
   const renderSlot = (slot: number) => {
-    const shirt = slot < 15 ? XV_SLOTS[slot].shirt : BENCH_SLOTS[slot - 15].shirt
+    const shirt = slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt
     const pos = slotPos(slot)
     const pid = t.lineup[slot]
     const p = pid != null ? game.players[pid] : null
@@ -325,7 +377,7 @@ function Preview({ fxId }: { fxId: number }) {
       <div className="modal-veil" onClick={() => setPickSlot(null)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
-          <SectionTitle sub={`shirt ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : BENCH_SLOTS[pickSlot - 15].shirt}`}>
+          <SectionTitle sub={`shirt ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt}`}>
             Pick a {pos}
           </SectionTitle>
           <table className="dtable"><tbody>
@@ -380,8 +432,12 @@ function Preview({ fxId }: { fxId: number }) {
             <div className="btn-row" style={{ marginTop: 12 }}>
               <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
-                onClick={() => { setConfirm(false); kickOff(speech ?? undefined) }}>
-                ▸ Take the Field
+                onClick={() => {
+                  setConfirm(false)
+                  if (view === 'instant') instantResult(speech ?? undefined)
+                  else kickOff(speech ?? undefined, view)
+                }}>
+                {view === 'instant' ? '⏩ Let Him Take It' : '▸ Take the Field'}
               </button>
             </div>
           </div>
@@ -611,6 +667,31 @@ function Preview({ fxId }: { fxId: number }) {
                   </div>
                 )
               })()}
+              {(() => {
+                // The bench plan, in words, before you go out (F4). The split is
+                // set on the Tactics bench page; this is where you find out what
+                // you actually named without counting shirts.
+                const def = SPLIT_BY_ID[splitFor(club)]
+                const briefed = seats
+                  .map((_, i) => ({ i, b: briefForSeat(club, i), id: t.lineup[15 + i] }))
+                  .filter(x => x.b !== 'orders' && x.id != null)
+                return (
+                  <div className="card">
+                    <div className="fact-label">The Finishers</div>
+                    <div className="meta" style={{ marginBottom: briefed.length ? 4 : 0 }}>
+                      <b>{def.name}.</b> {def.desc}
+                    </div>
+                    {briefed.map(x => (
+                      <div key={x.i} className="meta">
+                        · {game.players[x.id!]?.name}: {BRIEF_BY_ID[x.b].name.toLowerCase()}
+                      </div>
+                    ))}
+                    {briefed.length === 0 && (
+                      <div className="meta">Every replacement is simply covering a shirt. No special instructions.</div>
+                    )}
+                  </div>
+                )
+              })()}
               {oppClub?.coach && (
                 <div className="card">
                   <div className="fact-label">The Opposite Number</div>
@@ -718,10 +799,10 @@ function Preview({ fxId }: { fxId: number }) {
           <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
           <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
         </div>
-        <SectionTitle>Replacements</SectionTitle>
+        <SectionTitle sub={SPLIT_BY_ID[splitFor(club)]?.name.toLowerCase()}>Replacements</SectionTitle>
         <div className="xv-split">
-          <table className="dtable"><tbody>{BENCH_SLOTS.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
-          <table className="dtable"><tbody>{BENCH_SLOTS.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+          <table className="dtable"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+          <table className="dtable"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
         </div>
         </>}
 
@@ -741,13 +822,9 @@ function Preview({ fxId }: { fxId: number }) {
 
         <div className="btn-row" style={{ marginTop: 10 }}>
           <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={tryKickOff}>
-            Kick Off ▸
+            {view === 'instant' ? 'Instant Result ▸' : view === 'highlights' ? 'Kick Off (Highlights) ▸' : 'Kick Off ▸'}
           </button>
         </div>
-        <button className="btn ghost block" style={{ marginTop: 2 }}
-          onClick={() => instantResult(speech ?? undefined)}>
-          ⏩ Instant Result - the assistant takes over
-        </button>
         <div className="spacer" />
       </main>
       {picker()}
@@ -760,7 +837,13 @@ function Preview({ fxId }: { fxId: number }) {
               <SectionTitle sub={`${teamShort(game, club.id)} v ${teamShort(game, opp)} · one speech, choose the tone`}>
                 The Dressing Room
               </SectionTitle>
-              <div className="speech-grid">
+              {/* How you watch it (F5) lives here rather than at the foot of the
+                  page. Measured: below the team sheet it sat 320px under the fold
+                  on a 844x390 phone, which is exactly where Instant Result was
+                  buried and nobody found it. This modal is the last thing before
+                  the tunnel and has nothing above it. */}
+              <ViewPicker view={view} onPick={setView} />
+              <div className="speech-grid" style={{ marginTop: 6 }}>
                 {SPEECHES.map(sp => (
                   <button key={sp.id} className={`speech-tile${speech === sp.id ? ' sel' : ''}`}
                     onClick={() => {
@@ -809,6 +892,13 @@ function NationPreview({ fxId }: { fxId: number }) {
   const myUnits = teamUnits(game, myLineup)
   const oppUnits = teamUnits(game, oppLineup)
   const { touch } = useStore.getState()
+
+  // a Test week gets the same choice as a club week (F5)
+  const view = game.viewPref?.[fx.compId] ?? 'full'
+  const setView = (v: 'full' | 'highlights' | 'instant') => {
+    game.viewPref = { ...(game.viewPref ?? {}), [fx.compId]: v }
+    touch()
+  }
 
   const tapSlot = (slot: number) => {
     if (sel == null) { setSel(slot); return }
@@ -946,10 +1036,6 @@ function NationPreview({ fxId }: { fxId: number }) {
             Kick Off ▸
           </button>
         </div>
-        <button className="btn ghost block" style={{ marginTop: 2 }}
-          onClick={() => instantResult(speech ?? undefined)}>
-          ⏩ Instant Result - the assistant takes over
-        </button>
         <div className="spacer" />
       </main>
       {confirm && (
@@ -958,11 +1044,17 @@ function NationPreview({ fxId }: { fxId: number }) {
             <div className="grab" />
             <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>Ready to lead {nat} out?</h3>
             <div className="meta">Anthems done, jerseys presented. Substitutions and the team talk are yours from the touchline.</div>
+            {/* the viewing choice sits here, not at the foot of a team sheet (F5) */}
+            <ViewPicker view={view} onPick={setView} />
             <div className="btn-row" style={{ marginTop: 12 }}>
               <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
-                onClick={() => { setConfirm(false); kickOff(speech ?? undefined) }}>
-                ▸ Take the Field
+                onClick={() => {
+                  setConfirm(false)
+                  if (view === 'instant') instantResult(speech ?? undefined)
+                  else kickOff(speech ?? undefined, view)
+                }}>
+                {view === 'instant' ? '⏩ Let Him Take It' : '▸ Take the Field'}
               </button>
             </div>
           </div>
@@ -1217,7 +1309,7 @@ function Live() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
   useStore(s => s.tick)
-  const { advanceLive, matchCursor, finishMatch, skipToBreak } = useStore.getState()
+  const { advanceLive, matchCursor, finishMatch, skipToBreak, matchMode } = useStore.getState()
   const [speedIdx, setSpeedIdx] = useState(0)
   const [sound, setSound] = useState(soundOn())
   const [drawer, setDrawer] = useState(false)
@@ -1344,6 +1436,8 @@ function Live() {
           {done ? 'Full Time' : atHalfTime ? 'Half-Time' : atBreak ? "60' Break" : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
           {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
+          {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
+          {live.mode === 'highlights' && !done ? ' · 🎬 HIGHLIGHTS' : ''}
         </div>
         {!done && (() => {
           const win = (ctx.momoHist ?? []).slice(-3)
@@ -1464,6 +1558,13 @@ function Live() {
                 <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
                   title={s.name} onClick={() => setSpeedIdx(i)}>{s.label}</button>
               ))}
+            </div>
+            <div className="set-label">What the ticker stops for</div>
+            <div className="btn-row">
+              <button className={`btn ${live.mode === 'full' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => matchMode('full')}>📺 Every minute</button>
+              <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
+                onClick={() => matchMode('highlights')}>🎬 Highlights</button>
             </div>
             <div className="set-label">Sound</div>
             <button className="btn ghost block" onClick={() => setSound(toggleSound())}>
@@ -1956,16 +2057,24 @@ export function SquadSheet({ onClose, freeCoverId, title, note }: {
           <div className="sheet-col">
             <div className="fact-label">Bench{off ? ` - cover for ${off.pos}` : ''}</div>
             {benchSorted.length === 0 && <div className="meta">The bench is empty.</div>}
-            {benchSorted.map(p => (
-              <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
-                disabled={!off || (left <= 0 && !isFreeSwap)}
-                onClick={() => doSub(p)}>
-                <span className="sh-num">{p.pos}</span>
-                <span className="sh-name">{p.name}</span>
-                {off && covers(p) && <span className="sh-flag" title="Natural cover">✓</span>}
-                <span className="sh-rate">{p.ca}</span>
-              </button>
-            ))}
+            {benchSorted.map(p => {
+              // what he was told before kick-off, so the choice is informed (F4)
+              const seat = mine.seatOf.get(p.id)
+              const brief = seat != null ? briefForSeat(game.clubs[mine.teamId], seat) : 'orders'
+              return (
+                <button key={p.id} className={`sheet-row ${off && covers(p) ? 'cover' : ''}`}
+                  disabled={!off || (left <= 0 && !isFreeSwap)}
+                  onClick={() => doSub(p)}>
+                  <span className="sh-num">{p.pos}</span>
+                  <span className="sh-name">{p.name}</span>
+                  {brief !== 'orders' && (
+                    <span className="sh-flag" title={BRIEF_BY_ID[brief].name}>{BRIEF_BY_ID[brief].icon}</span>
+                  )}
+                  {off && covers(p) && <span className="sh-flag" title="Natural cover">✓</span>}
+                  <span className="sh-rate">{p.ca}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
         {log.map((m, i) => <div key={i} className="meta sheet-log">{m}</div>)}

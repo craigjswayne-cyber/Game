@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { BENCH_SLOTS, XV_SLOTS, type Player, type Pos } from '../../game/model'
+import { XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { autoSelect, availablePlayers } from '../../game/matchEngine'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
@@ -10,6 +10,7 @@ import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/ana
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
+import { BRIEFS, SPLITS, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 
 /** The tactics area, split into proper pages (8C feedback): Selection,
  *  In-Form XV, Tactics (formation & roles), Match Prep and Game Plan. */
@@ -18,7 +19,7 @@ export default function Tactics() {
   const touch = useStore(s => s.touch)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
-  const [ttab, setTtab] = useState<'xv' | 'form' | 'tactics' | 'setp' | 'prep' | 'plan'>('xv')
+  const [ttab, setTtab] = useState<'xv' | 'form' | 'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('xv')
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
@@ -48,10 +49,12 @@ export default function Tactics() {
     touch()
   }
 
-  const slotPos = (slot: number): Pos => slot < 15 ? XV_SLOTS[slot].pos : BENCH_SLOTS[slot - 15].pos[0]
+  // the bench seats depend on the split the manager named (F4)
+  const seats = benchSeats(club)
+  const slotPos = (slot: number): Pos => slot < 15 ? XV_SLOTS[slot].pos : seats[slot - 15].pos[0]
 
   const renderSlot = (slot: number) => {
-    const shirt = slot < 15 ? XV_SLOTS[slot].shirt : BENCH_SLOTS[slot - 15].shirt
+    const shirt = slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt
     const pos = slotPos(slot)
     const pid = t.lineup[slot]
     const p = pid != null ? game.players[pid] : null
@@ -81,7 +84,7 @@ export default function Tactics() {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 12px 10px' }}>
-            <SectionTitle sub={`slot ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : BENCH_SLOTS[pickSlot - 15].shirt}`}>
+            <SectionTitle sub={`slot ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt}`}>
               Pick a {pos}
             </SectionTitle>
             <table className="dtable">
@@ -188,6 +191,7 @@ export default function Tactics() {
         <button className={ttab === 'form' ? 'active' : ''} onClick={() => setTtab('form')}>In-Form XV</button>
         <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>Tactics</button>
         <button className={ttab === 'setp' ? 'active' : ''} onClick={() => setTtab('setp')}>Set Piece</button>
+        <button className={ttab === 'bench' ? 'active' : ''} onClick={() => setTtab('bench')}>Bench</button>
         <button className={ttab === 'prep' ? 'active' : ''} onClick={() => setTtab('prep')}>Prep</button>
         <button className={ttab === 'plan' ? 'active' : ''} onClick={() => setTtab('plan')}>Game Plan</button>
       </div>
@@ -200,7 +204,7 @@ export default function Tactics() {
           right={
             <button className="btn gold tiny" onClick={() => {
               const pool = availablePlayers(game, club.players)
-              club.tactic.lineup = autoSelect(game, pool)
+              club.tactic.lineup = autoSelect(game, pool, splitFor(club))
               touch()
             }}>Auto-Pick Best XV</button>
           }>Starting XV</SectionTitle>
@@ -217,8 +221,8 @@ export default function Tactics() {
         <div>
         <SectionTitle>Replacements</SectionTitle>
         <div className="xv-split">
-          <table className="dtable"><tbody>{BENCH_SLOTS.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
-          <table className="dtable"><tbody>{BENCH_SLOTS.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+          <table className="dtable"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+          <table className="dtable"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
         </div>
         </div>
         <div>
@@ -445,6 +449,71 @@ export default function Tactics() {
           <div className="meta" style={{ marginTop: 6 }}>
             A standing instruction saves you being asked nine times on a wet Friday. Ask Me keeps the decision.
           </div>
+        </div>
+        <div className="spacer" />
+      </>}
+
+
+      {ttab === 'bench' && <>
+        {/* The bench economy (F4). Eight replacements used to be eight fixed
+            seats whose only job was replacing tired men. A modern 23 is an
+            argument about the last twenty minutes, so it is a page. */}
+        <SectionTitle sub="how you split the eight, and what each man is told">The 23</SectionTitle>
+        <div className="routine-grid">
+          {SPLITS.map(sp => {
+            const on = splitFor(club) === sp.id
+            const fw = sp.seats.filter(x => ['LP', 'HK', 'TP', 'LK', 'FL', 'N8'].includes(x.pos[0])).length
+            return (
+              <button key={sp.id} className={`speech-tile${on ? ' sel' : ''}`}
+                onClick={() => {
+                  t.bench = sp.id as BenchSplit
+                  // the seats changed shape, so the men in them are re-chosen
+                  refillBench(game, club)
+                  touch()
+                }}>
+                <b>{sp.name}</b>
+                <span className="d">{sp.desc}</span>
+                <span className="d">{fw} forwards, {8 - fw} backs on the bench</span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="card">
+          <div className="meta">
+            The split only pays if you use it: three replacements on and the closing quarter takes
+            the shape you picked. A thin bench is a gamble, though. Lose a man in the half you have
+            no cover for and somebody finishes the game in the wrong shirt.
+          </div>
+        </div>
+
+        <SectionTitle sub="tap a seat to change what he is told - the first three briefs are the ones that land">Finisher Briefs</SectionTitle>
+        <div className="brief-list">
+          {seats.map((seat, i) => {
+            const pid = t.lineup[15 + i]
+            const p = pid != null ? game.players[pid] : null
+            const cur = briefForSeat(club, i)
+            return (
+              <div className="brief-row" key={i}>
+                <div className="brief-who">
+                  <span className="num">{seat.shirt}</span>
+                  <PosBadge pos={seat.pos[0]} />
+                  <span className="nm">{p ? p.name : <span className="muted">- empty seat -</span>}</span>
+                </div>
+                <div className="preset-row">
+                  {BRIEFS.map(b => (
+                    <button key={b.id} className={`preset-chip${cur === b.id ? ' on' : ''}`} title={b.desc}
+                      onClick={() => {
+                        const arr = [...(t.briefs ?? new Array(8).fill(null))]
+                        while (arr.length < 8) arr.push(null)
+                        arr[i] = b.id as Brief
+                        t.briefs = arr
+                        touch()
+                      }}>{b.icon} {b.name}</button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
         </div>
         <div className="spacer" />
       </>}

@@ -84,6 +84,26 @@ export const HANDBOOK: HandbookEntry[] = [
     q: 'What is Instant Result?',
     a: 'It plays the match out immediately and shows you the full-time score and report, without the tick-by-tick. Useful for a friendly or a week you do not want to sit through. You keep every consequence: injuries, cards, ratings and all.',
   },
+  {
+    cat: 'match',
+    q: 'How do I watch a match without sitting through every minute?',
+    a: 'The dressing room asks you before kick off. Every minute is the full commentary. Highlights runs the ticker straight to the next thing that matters, so you stop for scores, cards and injuries but not for every ruck, and half-time and the hour are still yours. Assistant hands him the touchline and takes you to the report. Your answer is remembered for that competition, so you can watch the league and skip the friendlies, and the cog during a match switches between the first two at any time.',
+  },
+  {
+    cat: 'match',
+    q: 'What is the difference between a 6-2 and a 5-3 bench?',
+    a: 'Five and three is the orthodox 23 and it is exactly neutral: cover everywhere, a weapon nowhere. Six and two is a bomb squad, and once three of your replacements are on it sharpens the scrum, the breakdown and the defence at the cost of attacking shape. Four and four is the reverse bargain: width and insurance, at the cost of the shove. Neither pays if you leave the bench sitting there.',
+  },
+  {
+    cat: 'match',
+    q: 'What is the risk of a thin bench?',
+    a: 'Cover. Name six forwards and you have two backs behind you, so a centre limping off after both have been used leaves a flanker finishing the game at 13. That costs you real attacking shape and leaks more in defence than it loses in attack, and no amount of shove up front makes it back. It is the price of the bomb squad, not a bug.',
+  },
+  {
+    cat: 'match',
+    q: 'What are finisher briefs?',
+    a: 'What you say to a replacement as he pulls his shirt on, set per bench seat on the Tactics bench page. Follow the shirt is neutral. Go through them buys carry and gives up cover. Shut the door buys defence and discipline and gives up attack. Play the corners kicks the clock away. Only the first three briefed men to come on take effect, so a bench is a decision rather than a stack of free upgrades.',
+  },
 
   // ---------------- Squad ----------------
   {
