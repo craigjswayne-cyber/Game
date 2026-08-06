@@ -101,14 +101,44 @@ try {
     ok(stillOpen, `change ${i + 1}: the sheet is still open afterwards`)
     if (!stillOpen) break
   }
-  const after = await subsLeft()
-  ok(after === before - 2, `two changes in one visit spent two of the five (${before} -> ${after})`)
+  // ---- Play at half-time restarts the match, so the resume button at the foot
+  // of the panel is never the only way out (user: "the play buttons should
+  // trigger the start second half. you shouldn't have to scroll"). It used to do
+  // nothing: advanceLive returns early while ctx.awaiting is set, so Play set
+  // playing true and the next tick set it back to false.
+  const beforeExit = await subsLeft()
+  ok(beforeExit === before - 2, `two changes in one visit spent two of the five (${before} -> ${beforeExit})`)
   ok(await page.locator('.sheet-log').count() >= 2, 'both changes are reported in the sheet')
   ok((await page.locator('.squad-sheet .btn.gold').textContent() ?? '').includes('2 changes'), 'the Done button counts the changes')
   await page.click('.squad-sheet .btn.gold')
   await page.waitForTimeout(250)
   ok(await page.locator('.squad-sheet').count() === 0, 'the sheet closes')
   ok((await page.locator('text=Replacements').first().textContent() ?? '').includes('3 of 5'), 'the panel agrees three are left')
+
+  // still at half-time: the control row must say what it will do, and do it
+  const playCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
+  console.log(`  half-time play button reads "${playCap}"`)
+  ok(/Second Half/.test(playCap), 'at half-time the play button names the restart')
+  await page.click('.speed-controls .btn >> nth=0')
+  await page.waitForTimeout(900)
+  const resumed = await page.evaluate(() => (document.querySelector('.minute')?.textContent ?? '').trim())
+  console.log(`  after pressing Play: "${resumed.slice(0, 40)}"`)
+  ok(!/Half-Time/.test(resumed), 'Play restarted the match rather than doing nothing')
+  // Not asserting the panel has gone: this probe set the speed to Fast earlier,
+  // so within a second of restarting the game can legitimately reach a kickable
+  // penalty or the 60' break, both of which put a panel back up. Leaving
+  // half-time is the claim being tested.
+
+  // the 60' break is the same state and must behave the same way
+  if (/60' Break/.test(resumed)) {
+    const brkCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
+    console.log(`  60' break play button reads "${brkCap}"`)
+    ok(/Final Quarter/.test(brkCap), "at the 60' break the play button names the restart")
+    await page.click('.speed-controls .btn >> nth=0')
+    await page.waitForTimeout(900)
+    const after60 = await page.evaluate(() => (document.querySelector('.minute')?.textContent ?? '').trim())
+    ok(!/60' Break/.test(after60), "Play restarted the match from the 60' break")
+  }
 } catch (e) {
   console.error('SUBS PROBE stopped early:', e.message)
   fails++

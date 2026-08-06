@@ -1261,6 +1261,18 @@ function Live() {
 
   const homeC = game.clubs[fixture.homeId]?.colors ?? ['#c9a227', '#082b20']
   const awayC = game.clubs[fixture.awayId]?.colors ?? ['#c9a227', '#082b20']
+  // Half-time and the 60' break are the two states where the match is stopped
+  // waiting for the manager rather than paused. The control row treats them as
+  // one thing: Play means "get back out there".
+  const atInterval = atHalfTime || atBreak
+  const intervalLabel = atHalfTime ? 'Second Half' : 'Final Quarter'
+  /** Restart play, optionally fast-forwarding the period we are restarting. */
+  const leaveInterval = (thenSkip = false) => {
+    setDrawer(false)
+    setSettings(false)
+    useStore.getState().startSecondHalf()
+    if (thenSkip) skipToBreak()
+  }
   const paused = !playing && !done && !atHalfTime && !atBreak
   const lastTeamC = last?.teamId === fixture.awayId ? awayC : homeC
   const showFx = playing && speedIdx < 2
@@ -1332,14 +1344,37 @@ function Live() {
           them out here is what put two ▶ buttons side by side. */}
       <div className="speed-controls">
         {/* the whistle has gone: playback controls make no sense at FT */}
+        {/* At an interval, Play restarts the match (user: "the play buttons
+            should trigger the start second half. you shouldn't have to scroll").
+            It used to do nothing at all: advanceLive returns early while
+            ctx.awaiting is set, so pressing Play set playing true and the very
+            next tick set it straight back to false. The only way out of the
+            interval was the resume button at the foot of the half-time panel,
+            below the team talk and the squad button - so on a 390px screen you
+            had to scroll to find it. Skip was dead for the same reason: its loop
+            is `while (!ctx.awaiting ...)`, which never ran. */}
         {!done && (
-          <button className={`btn ${playing ? 'ghost' : 'gold'}`} style={{ flex: 1.2 }}
-            title={playing ? 'Pause' : 'Resume'} aria-label={playing ? 'Pause' : 'Resume'}
-            onClick={() => matchCursor(cursor, !playing)}>
-            {playing ? '❚❚' : '▶'} <span className="ctrl-cap">{playing ? 'Pause' : 'Play'}</span>
+          <button className={`btn ${playing ? 'ghost' : 'gold'}`} style={{ flex: 1.6 }}
+            disabled={atDecision}
+            title={atInterval ? intervalLabel : atDecision ? 'The touchline call is yours first' : playing ? 'Pause' : 'Resume'}
+            aria-label={atInterval ? intervalLabel : playing ? 'Pause' : 'Resume'}
+            onClick={() => {
+              if (atInterval) { leaveInterval(); return }
+              matchCursor(cursor, !playing)
+            }}>
+            {playing ? '❚❚' : '▶'} <span className="ctrl-cap">{atInterval ? intervalLabel : playing ? 'Pause' : 'Play'}</span>
           </button>
         )}
-        {!done && <button className="btn" style={{ flex: 1.2 }} onClick={() => { setDrawer(false); setSettings(false); skipToBreak() }}>Skip ▸</button>}
+        {!done && (
+          <button className="btn" style={{ flex: 1.2 }} disabled={atDecision}
+            onClick={() => {
+              setDrawer(false)
+              setSettings(false)
+              // out of the interval first, or there is nothing to skip through
+              if (atInterval) leaveInterval(true)
+              else skipToBreak()
+            }}>Skip ▸</button>
+        )}
         {!done && ctx.seg < 3 && (
           <button className={`btn ${drawer ? 'gold' : 'ghost'}`} style={{ flex: 1.2 }}
             title="Touchline: change tactics or make substitutions"
