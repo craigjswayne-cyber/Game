@@ -264,6 +264,8 @@ export interface Club {
   marquee?: number[]
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
+  /** set-piece routines: how well drilled, and how well known */
+  playbook?: Playbook
   /** bricks and mortar: levels 0-5 per facility, set from the club's standing */
   facilities?: Partial<Record<FacilityId, number>>
 }
@@ -276,6 +278,33 @@ export interface Tactic {
   lineup: (number | null)[] // 23 slots: player ids, index 0-14 XV, 15-22 bench
   /** positional role per XV slot (role ids from roles.ts), sparse */
   roles?: (string | null)[]
+
+  // ---- the kicking game (F3) ----------------------------------------------
+  /** Designated goal kickers, in order. The engine used to hand the tee to
+   *  whoever had the best goal-kicking attribute on the pitch, which is not a
+   *  decision and means a slump is never yours to answer. Empty falls back to
+   *  that automatic pick. */
+  kickers?: (number | null)[]
+  /** How you get out of your own 22. */
+  exit?: 'box' | 'long' | 'counter' | 'fifty22'
+  /** Standing instruction on a kickable penalty. 'ask' keeps the touchline
+   *  prompt; anything else answers it for you, which matters on a phone. */
+  penaltyCall?: 'ask' | 'posts' | 'corner' | 'tap'
+
+  // ---- the set-piece playbook (F2) ----------------------------------------
+  /** the lineout and scrum routines you are drilling and calling */
+  lineoutCall?: string
+  scrumCall?: string
+}
+
+/** How well drilled each routine is, and how often the opposition have seen it.
+ *  Lives on the club rather than the tactic because it is the product of months
+ *  of training, not a thing you flip on a Friday. */
+export interface Playbook {
+  /** routine id -> 0-100 drilled quality */
+  drilled: Record<string, number>
+  /** routine id -> times called this season, which is how analysts learn you */
+  used: Record<string, number>
 }
 
 export type CompType = 'league' | 'cup' | 'intl'

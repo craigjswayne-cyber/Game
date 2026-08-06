@@ -16,6 +16,7 @@ import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { rebuildSeason, rollIntakeClass } from './rollover'
+import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 
@@ -940,6 +941,12 @@ export function natFixtureThisWeek(state: GameState): Fixture | undefined {
  */
 export function processWeekAndAdvance(state: GameState) {
   const rng = weekRng(state)
+
+  // The week's set-piece coaching (F2). What you call gets sharper, what you
+  // shelved rusts - which is what stops a club from owning ten world-class moves.
+  for (const club of Object.values(state.clubs)) {
+    drillWeek(state, club, club.id === state.userClubId && state.matchPrep === 'setpiece')
+  }
 
   // internationals squad management happens before matches
   manageInternationals(state, rng)

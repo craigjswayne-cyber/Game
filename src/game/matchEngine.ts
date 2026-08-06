@@ -6,6 +6,7 @@ import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
 import { clamp, gauss, wpick, type Rng } from './rng'
+import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 
 /** Seasonal weather: wetter and colder through the winter weeks. */
 export function rollWeather(week: number, rng: Rng): Weather {
@@ -391,6 +392,35 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.defence *= 1 - f(t.tempo) * 0.03
     side.tempoF = 1 + f(t.tempo) * 0.22
     side.cardRisk = 0.012 + f(t.aggression) * 0.006
+
+    // The called set-piece routines (F2). What you get is the routine's ceiling
+    // scaled by how well drilled it is and how sick of it the analysts are.
+    const lo = routineEffect(club, t.lineoutCall ?? DEFAULT_LINEOUT)
+    const sc = routineEffect(club, t.scrumCall ?? DEFAULT_SCRUM)
+    side.units.lineout *= lo.mult
+    side.units.scrum *= sc.mult
+    for (const [id, e] of [[t.lineoutCall ?? DEFAULT_LINEOUT, lo], [t.scrumCall ?? DEFAULT_SCRUM, sc]] as const) {
+      const r = ROUTINE_BY_ID[id]
+      if (!r) continue
+      // a routine that eats time feeds the forwards and starves the backs
+      // the side effects follow the same competence curve, so a shape you cannot
+      // execute does not hand you its upside either
+      if (r.attack) side.units.attack *= 1 + (r.attack - 1) * Math.max(0, e.q)
+      if (r.tempo) side.tempoF *= r.tempo
+    }
+
+    // The kicking game (F3). A designated kicker is a decision; the automatic
+    // pick of whoever has the best attribute is not.
+    const named = (t.kickers ?? []).find(id => id != null && side.onPitch.has(id) && !state.players[id]?.injury)
+    if (named != null) side.units.kickerId = named
+    // exit strategy: how you play your way out of your own 22
+    switch (t.exit) {
+      case 'box': side.units.kicking *= 1.05; side.units.attack *= 0.985; break
+      case 'long': side.units.kicking *= 1.03; side.units.defence *= 1.01; side.units.attack *= 0.99; break
+      case 'counter': side.units.attack *= 1.03; side.units.defence *= 0.98; break
+      case 'fifty22': side.units.kicking *= 1.06; side.units.attack *= 0.97; break
+      default: break
+    }
   }
   // positional roles: how each shirt is told to play (small, capped edges)
   if (club?.tactic.roles) {
@@ -752,6 +782,16 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const level = (home.units.scrum + away.units.scrum) / 2
     home.units.scrum = level
     away.units.scrum = level
+  }
+  // The analysts were watching. Calling the same move every week is how it stops
+  // working, so the tally is kept here, once per match, for both clubs.
+  for (const id of [fx.homeId, fx.awayId]) {
+    const c = state.clubs[id]
+    if (!c) continue
+    const pb = playbookOf(c)
+    for (const call of [c.tactic.lineoutCall ?? DEFAULT_LINEOUT, c.tactic.scrumCall ?? DEFAULT_SCRUM]) {
+      pb.used[call] = (pb.used[call] ?? 0) + 1
+    }
   }
   // the analyst's read: if the manager prepared for the weakness he named and
   // the read was sound, it is worth a few percent in that area. If he called
@@ -1158,9 +1198,19 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushEvent(state, ctx, min, 'YC', opp, `Repeated infringements! That's ${opp.consPens} penalties against ${teamShort(state, opp.teamId)} and the referee has seen enough - ${p.name} takes ten in the bin for the team.`, p.id)
         }
       }
+      // A standing instruction answers the call for you (F3). Being asked every
+      // time is the right default on a big screen and a nuisance on a phone
+      // during a nine-penalty afternoon, so the choice is the manager's.
+      const standing = state.clubs[side.teamId]?.tactic.penaltyCall ?? 'ask'
       if (detail && side.isUser && !ctx.decision) {
         ctx.decision = { kind: 'penalty', min }
-        pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} - kickable range. The captain looks to the touchline for the call...`)
+        if (standing === 'ask') {
+          pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} - kickable range. The captain looks to the touchline for the call...`)
+        } else {
+          // resolveDecision reads ctx.decision and works out the side itself, so
+          // the instruction goes through exactly the path a tap would take
+          resolveDecision(state, ctx, standing)
+        }
       } else {
         takePenaltyShot(state, ctx, side, min)
       }

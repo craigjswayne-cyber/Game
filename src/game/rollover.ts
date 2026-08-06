@@ -10,6 +10,7 @@ import { objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
 import { nationByCode, regenName } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
+import { resetFamiliarity } from './playbook'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -683,6 +684,10 @@ function tryOfTheSeason(state: GameState) {
 /** Full end-of-season rollover into a fresh campaign. */
 export function rebuildSeason(state: GameState) {
   const rng = mulberry32(state.seed ^ ((state.season + 1) * 60013))
+
+  // A new season wipes the tape: last year's analysis is last year's, so a move
+  // the league had worked out is worth calling again.
+  for (const club of Object.values(state.clubs)) resetFamiliarity(club)
 
   seasonAwards(state)
   tryOfTheSeason(state)
