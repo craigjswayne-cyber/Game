@@ -516,6 +516,43 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.defence *= f
     side.cardRisk *= 1 - 0.07 * leader.f
   }
+  // The leadership group (F11). A portfolio is not extra strength, it is
+  // concentration: the man who has taken the lineout calls or the defensive
+  // system moves a slice of the side's general leadership onto his own area and
+  // off the generic pair. So naming a group is a choice about where
+  // responsibility sits, not a free upgrade, and a world where nobody names one
+  // is exactly where it was.
+  if (club?.leaders) {
+    const onField = new Set(side.lineup.slice(0, 15).filter((x): x is number => x != null))
+    for (const [area, id] of Object.entries(club.leaders)) {
+      if (id == null || !onField.has(id)) continue
+      const h = state.players[id]
+      if (!h || h.a.lea < 12) continue // authority has to be earned
+      const give = 0.009 * clamp((h.a.lea - 11) / 9, 0, 1)
+      switch (area) {
+        case 'pack':
+          side.units.attack *= 1 - give * 0.5
+          side.units.defence *= 1 - give * 0.5
+          side.units.scrum *= 1 + give * 0.6
+          side.units.lineout *= 1 + give * 0.6
+          side.units.breakdown *= 1 + give * 0.5
+          break
+        case 'defence':
+          side.units.attack *= 1 - give
+          side.units.defence *= 1 + give
+          break
+        case 'attack':
+          side.units.defence *= 1 - give
+          side.units.attack *= 1 + give
+          break
+        case 'culture':
+          // no unit moves at all: his portfolio is the room, and it is paid for
+          // in the unit portfolio he is therefore not holding
+          side.cardRisk *= 1 - 0.09 * clamp((h.a.lea - 11) / 9, 0, 1)
+          break
+      }
+    }
+  }
   // your backroom staff sharpen the matchday units (club only - Test
   // weeks mean borrowed players, not your own coaching department)
   if (side.isUser && side.teamId === state.userClubId && state.staff) {

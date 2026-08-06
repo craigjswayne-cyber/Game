@@ -173,6 +173,9 @@ export interface Player {
   youth?: boolean
   /** character type - drives contracts, morale and media reactions */
   pers: Personality
+  /** What he has been told about his place in the squad (F18). Unset falls back
+   *  to his standing in the squad, so old saves need no migration. */
+  status?: 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
   /** signature trait - a defining edge (or flaw) in his game */
   trait?: string | null
   /** estimated career before the game world began (2025-26) */
@@ -258,6 +261,10 @@ export interface Club {
   captain?: number | null
   /** vice-captain: leads at reduced effect when the skipper is missing */
   vice?: number | null
+  /** The leadership group (F11): who has taken responsibility for what. One
+   *  portfolio each, and a portfolio concentrates the skipper's influence on
+   *  that area rather than adding to it. */
+  leaders?: { pack?: number | null; defence?: number | null; attack?: number | null; culture?: number | null }
   /** the record book: 100+ app servants, written in at retirement */
   legends?: { name: string; apps: number; tries: number; pts: number }[]
   /** marquee designations - their wages sit outside the cap (max 2) */

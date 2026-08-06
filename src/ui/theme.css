@@ -2303,3 +2303,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .brief-row .preset-row { margin-top: 5px; gap: 5px; }
 .brief-row .preset-chip { padding: 5px 9px; font-size: 10.5px; }
+
+/* ---- the game-time ledger's status picker (F18) --------------------------
+   .inline-input is a form control built for a card: 11px padding and a 6px
+   margin. Dropped into a table row it made each row 140px tall, which put
+   fewer than three of a 38-man squad on a landscape screen. Inside a row it
+   has to be a row-height control. */
+.gt-sel {
+  width: auto; max-width: 148px;
+  padding: 3px 6px; margin: 0;
+  font-size: 12px; font-weight: 700;
+  border-width: 1px; border-radius: 6px;
+}

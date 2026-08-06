@@ -12,6 +12,13 @@ import { userFixtureThisWeek } from '../../game/season'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
 import { BRIEFS, SPLITS, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 
+const PORTFOLIOS = [
+  { id: 'pack' as const, icon: '🐘', name: 'Leads the Pack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
+  { id: 'defence' as const, icon: '🛡', name: 'Calls the Line', desc: 'The defensive system, taken off attacking shape.' },
+  { id: 'attack' as const, icon: '⚡', name: 'Runs the Attack', desc: 'Attacking shape, taken off the defensive line.' },
+  { id: 'culture' as const, icon: '🤝', name: 'Sets the Standards', desc: 'The room and the discipline. No unit moves.' },
+]
+
 /** The tactics area, split into proper pages (8C feedback): Selection,
  *  In-Form XV, Tactics (formation & roles), Match Prep and Game Plan. */
 export default function Tactics() {
@@ -260,6 +267,48 @@ export default function Tactics() {
           </div>
           <div className="meta" style={{ marginTop: 5 }}>
             A strong skipper lifts attack and defence and calms tempers. The vice takes over at half the effect when he is missing.
+          </div>
+        </div>
+        </div>
+        {/* The leadership group (F11). One skipper was the whole model, which is
+            not how a rugby side is run: somebody calls the lineout, somebody runs
+            the defensive system, somebody sets the standards. A portfolio does
+            not add strength, it concentrates the side's leadership on that area
+            and takes it off the rest, so this is a question about where
+            responsibility sits. */}
+        <SectionTitle sub="a portfolio concentrates the side's leadership, it does not add to it">Leadership Group</SectionTitle>
+        <div className="card-grid one">
+        <div className="card">
+          {PORTFOLIOS.map(pf => {
+            const cur = club.leaders?.[pf.id] ?? null
+            const xv = t.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((x): x is Player => !!x)
+            return (
+              <div className="lead-row" key={pf.id}>
+                <span className="lead-tag">{pf.icon}</span>
+                <span className="fact-label">{pf.name}</span>
+                <select className="inline-input" value={cur ?? ''}
+                  onChange={e => {
+                    club.leaders = { ...(club.leaders ?? {}) }
+                    const v = e.target.value ? Number(e.target.value) : null
+                    // one man, one portfolio: taking a second job is not leadership
+                    for (const k of Object.keys(club.leaders) as (keyof NonNullable<typeof club.leaders>)[]) {
+                      if (v != null && club.leaders[k] === v) club.leaders[k] = null
+                    }
+                    club.leaders[pf.id] = v
+                    touch()
+                  }}>
+                  <option value="">Nobody has it</option>
+                  {[...xv].sort((a, b) => b.a.lea - a.a.lea).map(p => (
+                    <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+                  ))}
+                </select>
+              </div>
+            )
+          })}
+          <div className="meta" style={{ marginTop: 5 }}>
+            Only men in the starting XV with real authority carry it, and one man can hold one
+            portfolio. The culture role moves no unit at all: it buys discipline, and its price is
+            the unit portfolio that man is therefore not holding.
           </div>
         </div>
         </div>
