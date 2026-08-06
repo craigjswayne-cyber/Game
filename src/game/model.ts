@@ -831,12 +831,16 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
   return h % 3 === 0 ? -1 : h % 3 === 2 ? 1 : 0
 }
 
-/** 'Friday 5 Sep' - the real kick-off date for a fixture. */
+/** 'Fri 5 Sep' - the real kick-off date for a fixture.
+ *
+ *  Three-letter days to match the three-letter months. The full words were being
+ *  clipped to "Satur" in the fixtures list, which is worse than an abbreviation
+ *  because it looks like a bug rather than a shorthand. */
 export function fixtureDate(season: number, week: number, fxId: number): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + ((week - 1) * 7 + fixtureDayOff(fxId)) * 86400000)
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
   return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`
 }
 

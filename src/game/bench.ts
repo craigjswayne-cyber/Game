@@ -191,16 +191,18 @@ export type Brief = 'orders' | 'impact' | 'shore' | 'manage'
 export interface BriefDef {
   id: Brief
   name: string
+  /** two words at most, for the chip in a table row */
+  short: string
   /** what you actually say to him */
   desc: string
   icon: string
 }
 
 export const BRIEFS: BriefDef[] = [
-  { id: 'orders', name: 'Follow the shirt', icon: '👕', desc: 'Do the job the man you replaced was doing. No change of plan.' },
-  { id: 'impact', name: 'Go through them', icon: '💥', desc: 'Twenty minutes flat out. More carry, less cover, and he will be empty at the end.' },
-  { id: 'shore', name: 'Shut the door', icon: '🛡', desc: 'Tackles, discipline, no risks. The lead is the only thing that matters.' },
-  { id: 'manage', name: 'Play the corners', icon: '🎯', desc: 'Kick the clock away and keep it in their half. Nothing fancy.' },
+  { id: 'orders', name: 'Follow the shirt', short: 'The Shirt', icon: '👕', desc: 'Do the job the man you replaced was doing. No change of plan.' },
+  { id: 'impact', name: 'Go through them', short: 'Impact', icon: '💥', desc: 'Twenty minutes flat out. More carry, less cover, and he will be empty at the end.' },
+  { id: 'shore', name: 'Shut the door', short: 'Shut Door', icon: '🛡', desc: 'Tackles, discipline, no risks. The lead is the only thing that matters.' },
+  { id: 'manage', name: 'Play the corners', short: 'Corners', icon: '🎯', desc: 'Kick the clock away and keep it in their half. Nothing fancy.' },
 ]
 
 export const BRIEF_BY_ID: Record<string, BriefDef> =

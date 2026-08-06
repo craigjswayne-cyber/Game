@@ -26,7 +26,7 @@ export default function Tactics() {
   const touch = useStore(s => s.touch)
   const [pickSlot, setPickSlot] = useState<number | null>(null)
   const [sel, setSel] = useState<number | null>(null)
-  const [ttab, setTtab] = useState<'xv' | 'form' | 'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('xv')
+  const [ttab, setTtab] = useState<'xv' | 'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('xv')
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
@@ -195,7 +195,6 @@ export default function Tactics() {
     <>
       <div className="tab-bar">
         <button className={ttab === 'xv' ? 'active' : ''} onClick={() => setTtab('xv')}>Selection</button>
-        <button className={ttab === 'form' ? 'active' : ''} onClick={() => setTtab('form')}>In-Form XV</button>
         <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>Tactics</button>
         <button className={ttab === 'setp' ? 'active' : ''} onClick={() => setTtab('setp')}>Set Piece</button>
         <button className={ttab === 'bench' ? 'active' : ''} onClick={() => setTtab('bench')}>Bench</button>
@@ -208,13 +207,29 @@ export default function Tactics() {
             Starting XV, so it sits on the Starting XV's heading. */}
         <SectionTitle
           sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}
-          right={
+          right={<>
+            {/* Two auto-picks, one team sheet. There used to be three squad pages
+                for what is one job: Selection, a whole In-Form XV page, and a
+                best-XV button. The form side is a suggestion, not a screen. */}
             <button className="btn gold tiny" onClick={() => {
               const pool = availablePlayers(game, club.players)
               club.tactic.lineup = autoSelect(game, pool, splitFor(club))
               touch()
-            }}>Auto-Pick Best XV</button>
-          }>Starting XV</SectionTitle>
+            }}>Best XV</button>
+            <button className="btn ghost tiny" style={{ marginLeft: 4 }} onClick={() => {
+              // form first, class second - the same ranking the old In-Form page
+              // used, applied straight to the team sheet instead of to a screen
+              const xv = formXV()
+              for (let i = 0; i < 15; i++) {
+                const pid = xv[i]
+                if (pid == null) continue
+                const other = t.lineup.indexOf(pid)
+                if (other >= 0 && other !== i) t.lineup[other] = t.lineup[i]
+                t.lineup[i] = pid
+              }
+              touch()
+            }}>In-Form XV</button>
+          </>}>Starting XV</SectionTitle>
         {/* forwards left, backs right in landscape: 23 rows in one column was
             four swipes deep. Two tbody tables stack identically in portrait. */}
         <div className="xv-split">
@@ -233,7 +248,7 @@ export default function Tactics() {
         </div>
         </div>
         <div>
-        <SectionTitle>Leadership</SectionTitle>
+        <SectionTitle sub="the armband, and who takes responsibility for what">Leadership</SectionTitle>
         {/* one card, two rows. As two cards in a half-width column each one
             wrapped its select onto a second line and the pair came to 447px,
             taller than the bench it was meant to sit beside. */}
@@ -265,20 +280,11 @@ export default function Tactics() {
                 ))}
             </select>
           </div>
-          <div className="meta" style={{ marginTop: 5 }}>
-            A strong skipper lifts attack and defence and calms tempers. The vice takes over at half the effect when he is missing.
-          </div>
-        </div>
-        </div>
-        {/* The leadership group (F11). One skipper was the whole model, which is
-            not how a rugby side is run: somebody calls the lineout, somebody runs
-            the defensive system, somebody sets the standards. A portfolio does
-            not add strength, it concentrates the side's leadership on that area
-            and takes it off the rest, so this is a question about where
-            responsibility sits. */}
-        <SectionTitle sub="a portfolio concentrates the side's leadership, it does not add to it">Leadership Group</SectionTitle>
-        <div className="card-grid one">
-        <div className="card">
+          {/* The leadership group (F11) shares the skipper's card rather than
+              taking a section of its own. As a separate block below the split it
+              pushed the Selection page to 3.2 screenfuls, which is the same
+              complaint as having too many squad pages. */}
+          <div className="lead-grid">
           {PORTFOLIOS.map(pf => {
             const cur = club.leaders?.[pf.id] ?? null
             const xv = t.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((x): x is Player => !!x)
@@ -305,62 +311,17 @@ export default function Tactics() {
               </div>
             )
           })}
+          </div>
           <div className="meta" style={{ marginTop: 5 }}>
-            Only men in the starting XV with real authority carry it, and one man can hold one
-            portfolio. The culture role moves no unit at all: it buys discipline, and its price is
-            the unit portfolio that man is therefore not holding.
+            The skipper lifts attack and defence and calms tempers; the vice leads at half effect
+            when he is missing. A portfolio below that does not add strength, it concentrates it:
+            only XV men with real authority carry one, and one man holds one job.
           </div>
         </div>
         </div>
         </div>
         </div>
       </>}
-
-      {ttab === 'form' && (() => {
-        const xv = formXV()
-        const formRow = (pid: number | null, i: number) => {
-          const p = pid != null ? game.players[pid] : null
-          const pos = XV_SLOTS[i].pos
-          const incumbent = t.lineup[i]
-          return (
-            <tr key={i}>
-              <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{XV_SLOTS[i].shirt}</td>
-              <td><PosBadge pos={pos} /></td>
-              <td className="name">{p ? p.name : '-'}
-                {p && incumbent !== p.id && <span style={{ color: '#2f7d4f', fontSize: 10, fontWeight: 800 }}> IN</span>}
-              </td>
-              <td>{p && <FormPill v={p.form} />}</td>
-              <td>{p && <Stars ca={effAt(p, pos)} />}</td>
-            </tr>
-          )
-        }
-        return (
-          <>
-            <SectionTitle sub="natural fits ranked on current form - who has earned the shirt">The In-Form XV</SectionTitle>
-            <div className="xv-split">
-              <table className="dtable"><tbody>{xv.slice(0, 8).map(formRow)}</tbody></table>
-              <table className="dtable"><tbody>{xv.slice(8).map((pid, i) => formRow(pid, 8 + i))}</tbody></table>
-            </div>
-            <div className="btn-row" style={{ marginTop: 8 }}>
-              <button className="btn gold" onClick={() => {
-                const xv2 = formXV()
-                for (let i = 0; i < 15; i++) {
-                  const pid = xv2[i]
-                  if (pid == null) continue
-                  const other = t.lineup.indexOf(pid)
-                  if (other >= 0 && other !== i) t.lineup[other] = t.lineup[i]
-                  t.lineup[i] = pid
-                }
-                setTtab('xv')
-                touch()
-              }}>▸ Pick this XV</button>
-            </div>
-            <div className="meta" style={{ padding: '4px 16px' }}>
-              Form first, class second: hot streaks earn starts here. Players marked IN would come into your current side.
-            </div>
-          </>
-        )
-      })()}
 
       {ttab === 'tactics' && <>
         <div className="form-pitch">
@@ -527,15 +488,7 @@ export default function Tactics() {
             )
           })}
         </div>
-        <div className="card">
-          <div className="meta">
-            The split only pays if you use it: three replacements on and the closing quarter takes
-            the shape you picked. A thin bench is a gamble, though. Lose a man in the half you have
-            no cover for and somebody finishes the game in the wrong shirt.
-          </div>
-        </div>
-
-        <SectionTitle sub="tap a seat to change what he is told - the first three briefs are the ones that land">Finisher Briefs</SectionTitle>
+        <SectionTitle sub="the first three briefs to come on are the ones that land">Finisher Briefs</SectionTitle>
         <div className="brief-list">
           {seats.map((seat, i) => {
             const pid = t.lineup[15 + i]
@@ -557,7 +510,7 @@ export default function Tactics() {
                         arr[i] = b.id as Brief
                         t.briefs = arr
                         touch()
-                      }}>{b.icon} {b.name}</button>
+                      }}>{b.icon} {b.short}</button>
                   ))}
                 </div>
               </div>

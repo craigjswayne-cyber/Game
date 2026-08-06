@@ -99,12 +99,13 @@ try {
   await shot('05-player')
   await page.click('.back-btn')
 
-  // Tactics area: five pages (8C restructure)
+  // Tactics area. The In-Form XV page is gone: it was a whole screen for a
+  // suggestion, so it is now a button on the team sheet beside Best XV.
   await page.click('.bottom-nav button[title="Tactics"]')
   await page.waitForSelector('text=Starting XV')
   await shot('06-selection')
-  await page.click('.tab-bar >> text=In-Form XV')
-  await page.waitForSelector('text=The In-Form XV')
+  await page.click('text=In-Form XV')
+  await page.waitForTimeout(200)
   await page.click('.tab-bar >> text=Tactics')
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')

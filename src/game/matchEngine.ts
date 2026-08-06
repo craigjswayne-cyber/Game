@@ -480,6 +480,9 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       switch (r) {
         case 'scrummager': side.units.scrum *= 1.02; side.units.attack *= 0.997; break
         case 'mobile': side.units.attack *= 1.008; side.units.scrum *= 0.988; break
+        // the hooker's own two: the throw, or the link play
+        case 'thrower': side.units.lineout *= 1.03; side.units.scrum *= 0.99; break
+        case 'link': side.units.attack *= 1.01; side.units.breakdown *= 1.008; side.units.scrum *= 0.985; break
         case 'lineout_general': side.units.lineout *= 1.025; break
         case 'enforcer_lock': side.units.breakdown *= 1.012; side.cardRisk *= 1.04; break
         case 'jackal_role': side.units.breakdown *= 1.015; break
