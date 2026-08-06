@@ -44,6 +44,20 @@ interface Store {
   wireQueue: number[]
   night: boolean
   toggleNight: () => void
+  /** The message the inbox reader is showing (news id), or null for none.
+   *
+   *  The inbox reads one at a time (user: "tap the mail symbol it should open the
+   *  unread message, tap again and it opens the next unread"), so which message
+   *  is open has to live above the screen: the rail button advances it from
+   *  outside the component. */
+  inboxId: number | null
+  /** Open the inbox on the oldest unread story, or advance to the next one if it
+   *  is already open. This is what the mail icon does. */
+  openInbox: () => void
+  /** Step through the recall window: -1 older, +1 newer. */
+  inboxStep: (dir: -1 | 1) => void
+  /** File away everything already read. */
+  clearRead: () => void
 
   start: (clubId: string, managerName: string, challengeId?: string) => void
   toggleShortlist: (playerId: number) => void
@@ -117,11 +131,59 @@ export const useStore = create<Store>((set, get) => ({
   liveMatch: null,
   wireQueue: [],
   saveSlot: 'slot1',
+  inboxId: null,
   night: typeof localStorage !== 'undefined' && localStorage.getItem('rm-night') === '1',
   toggleNight: () => set(s => {
     const night = !s.night
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
     return { night }
+  }),
+
+  /** The inbox reader's recall window: the last 20 stories worth reading,
+   *  newest first. Gossip lives in the Wire and cleared stories are filed. */
+  openInbox: () => set(s => {
+    const g = s.game
+    if (!g) return {}
+    const live = g.news.filter(n => n.type !== 'gossip' && !n.cleared)
+    const unread = live.filter(n => !n.read).sort((a, b) => a.id - b.id)
+    const onInbox = s.nav[s.nav.length - 1]?.screen === 'inbox'
+    // oldest unread first: a queue is read front to back
+    const next = unread[0]
+    if (next) {
+      next.read = true
+      return {
+        inboxId: next.id,
+        nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
+        tick: s.tick + 1,
+      }
+    }
+    // nothing unread: open the newest story so the screen is never blank
+    const newest = [...live].sort((a, b) => b.id - a.id)[0]
+    return {
+      inboxId: s.inboxId ?? newest?.id ?? null,
+      nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
+      tick: s.tick + 1,
+    }
+  }),
+
+  inboxStep: (dir) => set(s => {
+    const g = s.game
+    if (!g) return {}
+    const live = g.news.filter(n => n.type !== 'gossip' && !n.cleared).sort((a, b) => b.id - a.id).slice(0, 20)
+    if (!live.length) return {}
+    const i = live.findIndex(n => n.id === s.inboxId)
+    // dir -1 goes back in time, which is FORWARD through a newest-first list
+    const j = Math.max(0, Math.min(live.length - 1, (i < 0 ? 0 : i) + (dir === -1 ? 1 : -1)))
+    live[j].read = true
+    return { inboxId: live[j].id, tick: s.tick + 1 }
+  }),
+
+  clearRead: () => set(s => {
+    const g = s.game
+    if (!g) return {}
+    for (const n of g.news) if (n.read && n.type !== 'gossip') n.cleared = true
+    const left = g.news.filter(n => n.type !== 'gossip' && !n.cleared)
+    return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
   start: (clubId, managerName, challengeId) => {
