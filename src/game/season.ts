@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
-import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel } from './model'
+import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -695,8 +695,10 @@ function weeklyFinance(state: GameState, rng: Rng) {
   club.balance -= wages
   // backroom staff wages - real salaries where a real man holds the job
   club.balance -= staffWageBill(state)
-  // sponsorship + broadcast, weekly share by reputation
-  club.balance += Math.round(club.rep * 1800 + 40_000)
+  // sponsorship, broadcast and the central-distribution top-up for a club whose
+  // ground is smaller than its name (weeklyCentral documents why that top-up
+  // exists and why it is shaped as a gap rather than a flat rise for everyone)
+  club.balance += weeklyCentral(club)
   // gate receipts from this week's home fixture
   const home = state.fixtures.find(f =>
     f.week === state.week && f.played && f.homeId === club.id && f.att)
@@ -713,10 +715,15 @@ function weeklyFinance(state: GameState, rng: Rng) {
   ;(state.finHist ??= []).push({ w: state.week, b: club.balance })
   if (state.finHist.length > 50) state.finHist = state.finHist.slice(-50)
   if (club.balance < -2_000_000 && state.week % 6 === 0) {
-    club.boardConfidence = clamp(club.boardConfidence - 5, 0, 100)
+    // A flat -5 said the same thing about a 2M overdraft and a 20M one, so a
+    // winning side could run a hole of any depth with the board on 100. The
+    // hit now scales with the hole: near the threshold it is what it always
+    // was, and it grows from there.
+    const debtM = Math.abs(club.balance) / 1_000_000
+    club.boardConfidence = clamp(club.boardConfidence - clamp(3 + debtM, 3, 14), 0, 100)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: 'Board concerned by finances',
+      subject: debtM >= 8 ? 'Board demands the books are balanced' : 'Board concerned by finances',
       body: `The club is ${fmtMoney(Math.abs(club.balance))} in the red. The board urges you to balance the books - consider player sales.`,
     })
   }
@@ -826,8 +833,26 @@ function boardReaction(state: GameState, fx: Fixture) {
   const derbyF = fx.derby ? 1.8 : 1 // derbies echo in the boardroom
   // a new owner watches every result like it is a referendum on you
   const ownerF = state.newOwnerUntil != null && state.week <= state.newOwnerUntil ? 1.4 : 1
-  if (us > them) club.boardConfidence = clamp(club.boardConfidence + (2.5 + diff * 2) * derbyF * ownerF, 0, 100)
-  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - (2.5 - diff * 2) * derbyF * ownerF, 0, 100)
+  // The opponent's standing scales the swing: beating a better side is worth more,
+  // losing to one hurts less. Right idea, but it had no floor, so past 1.25 of diff
+  // both terms changed SIGN and the board's opinion inverted. Measured:
+  //
+  //   rep 88 beating rep 55   -0.14   a win that cost you confidence
+  //   rep 92 beating rep 50   -0.86   worse the bigger the gulf
+  //   rep 55 losing to rep 88 +0.14   a defeat that earned you some
+  //
+  // So a big club was punished for winning cup ties against minnows, and a small
+  // club was unsackable: it shed 0.5 a defeat and gained 4.5 a win, which nets
+  // positive winning one in eight. The audit found board confidence bottoming out
+  // at 3.3 and the sack threshold is 3, which is why the doomed-manager test could
+  // never actually get anyone sacked.
+  //
+  // A floor of 0.8 keeps the whole gradient and removes both inversions: a win
+  // always helps a little, a defeat always hurts a little, and how much still
+  // depends on who it was against.
+  const mag = Math.max(0.8, us > them ? 2.5 + diff * 2 : 2.5 - diff * 2)
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF, 0, 100)
   // the derby ledger: every meeting with a rival is written down forever
   if (fx.derby) {
     const oppId = isHome ? fx.awayId : fx.homeId

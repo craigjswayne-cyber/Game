@@ -71,6 +71,20 @@ const EXPECTED: string[] = [
   // registry, so a generated player consumes a different number of rng draws than
   // he used to and every stream downstream of him shifts. Names only: no dial, no
   // rating, no rule. Band held at 52.7 points, 6.0 tries, 55% home, 2.4% draws.
+  // NOT rebaselined in the full-audit round, and worth writing down why. That round
+  // made two engine changes and this file did not move a digit, because neither of
+  // them can reach this stream: the board's per-result swing is applied by
+  // processWeekAndAdvance, which the fingerprint never calls, and the analyst payoff
+  // needs state.matchPrep set, which it never sets. The two fixes were:
+  //   - the board's per-result swing had no floor, so past 1.25 of reputation
+  //     difference it changed sign: a big club LOST confidence for beating a
+  //     minnow and a small one GAINED it for losing to a giant.
+  //   - the analyst's read did nothing. matchPrep gave the same flat bonus
+  //     whether the read was sound or nonsense, so a correctly-read weakness now
+  //     pays a modest extra edge and a wrongly-read one still pays nothing.
+  // Band held: 52.7 points, 6.0 tries, 55% home, 2.4% draws. A test that stays
+  // still when you expected it to move is worth a second look, and this is what
+  // the second look found.
   'gloucester 70-31 newcastle',
   'bristol 25-14 sale',
   'leicester 20-16 northampton',

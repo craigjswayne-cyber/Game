@@ -541,6 +541,30 @@ export function operatingCost(state: GameState): number {
 }
 
 /**
+ * The weekly commercial cheque: the reputation-driven sponsorship and broadcast
+ * share, plus a central-distribution top-up for a club whose ground is smaller
+ * than its name.
+ *
+ * The top-up exists because the wage bill scales with reputation while the gate
+ * scales with the stadium, so a big name in a small ground was structurally
+ * insolvent through nothing the manager did: Northampton (rep 86, 15,249 seats)
+ * fell from +2.4M to -7.3M over four seasons while Leicester (rep 83, 25,849)
+ * banked +17.2M. Paying everyone more would have been the wrong shape - it
+ * would have handed Leicester money it did not need. So pay the gap and only
+ * the gap, capped, because the expectation flattens at the top and an uncapped
+ * slope made Toulouse six times richer than the league it plays in.
+ *
+ * A club whose ground fits its name gets exactly what it always got.
+ */
+export function weeklyCentral(club: Club): number {
+  const commercial = club.rep * 1800 + 40_000
+  const expectedSeats = Math.min(23_000, Math.max(0, club.rep - 45) * 620)
+  const missingSeats = Math.max(0, expectedSeats - club.capacity)
+  // 8.5 per missing seat: 30 a ticket, ~85% full, one home game every three weeks
+  return Math.round(commercial + missingSeats * 8.5)
+}
+
+/**
  * What a club's infrastructure looks like before a manager touches it: sized
  * to its standing, varied per facility, deterministic per club. Ambitious
  * mid-table clubs have a good gym and no megastore; giants have both.

@@ -137,7 +137,7 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-veil')
+  await page.click('.tut-close .btn')
   await page.waitForTimeout(400)
   await measure('home')
 
@@ -162,11 +162,18 @@ try {
   for (const [item, label] of [
     ['Team Report', 'team report'], ['Medical Centre', 'medical centre'],
     ['Fixtures & Results', 'fixtures'], ['Finances', 'finances'],
-    ['Transfer Centre', 'transfers'], ['Press Room', 'press room'],
+    ['Transfer Centre', 'transfers'],
     ['Training & Staff', 'training'], ['Club Infrastructure', 'infrastructure'],
     ['Club Information', 'club information'],
   ]) {
     await page.click('.bottom-nav button[title="Hub"]')
+    await page.click(`.submenu-item >> text=${item}`)
+    await measure(label)
+  }
+
+  // the press room sits under Manager, not the hub
+  for (const [item, label] of [['Press Room', 'press room']]) {
+    await page.click('.bottom-nav button[title="Manager"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
   }

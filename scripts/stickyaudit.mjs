@@ -128,7 +128,7 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-veil')
+  await page.click('.tut-close .btn')
 
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Squad')
@@ -161,7 +161,7 @@ try {
   }
 
   for (const [item, label] of [
-    ['Training & Coaching', 'training'],
+    ['Training & Staff', 'training'],
     ['Medical Centre', 'medical'],
     ['Fixtures & Results', 'fixtures'],
     ['Finances', 'finances'],

@@ -33,7 +33,7 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-veil')
+  await page.click('.tut-close .btn')
 
   await page.click('.continue-btn')
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
@@ -68,7 +68,73 @@ try {
   ok(await page.locator('text=Match Settings').count() === 0, 'settings sheet closes')
 
   // ---- half time: the squad sheet, several changes in one visit
-  await page.click('.speed-controls >> text=Skip')
+  // Both Play and Skip are disabled while the match waits on a touchline call,
+  // and the game is right to disable them: ctx.decision is a kickable penalty
+  // and the DecisionPanel wants posts, corner or tap before anything restarts.
+  // Clicking Skip blind failed about a third of runs and waiting for it to
+  // re-enable waited forever, because nothing was going to answer the question.
+  // So answer it - and in a loop, because a second penalty can arrive in the
+  // seconds between answering the first and reaching the break.
+  const settle = async () => {
+    try {
+      await page.locator('.btn').filter({ hasText: 'Take the Points' }).first().click({ timeout: 1500 })
+      await page.waitForTimeout(300)
+      return true
+    } catch { return false }
+  }
+  // Press a control that a touchline call may have disabled: answer the call
+  // and try again rather than waiting on a button nothing is going to enable.
+  const press = async (loc, tries = 30) => {
+    for (let i = 0; i < tries; i++) {
+      try { await loc.click({ timeout: 1500 }); return true } catch { /* disabled */ }
+      await settle()
+      await page.waitForTimeout(300)
+    }
+    return false
+  }
+  const skip = page.locator('.speed-controls .btn').filter({ hasText: 'Skip' }).first()
+  const atHalfTime = async () => await page.locator('text=Start Second Half').count() > 0
+  let skipped = false
+  for (let attempt = 0; attempt < 40 && !skipped; attempt++) {
+    // Already there? Then do not press Skip. At an interval Skip means
+    // leaveInterval(true) - it restarts and runs on to the *next* break - so a
+    // blind press at half-time skipped the very thing being tested and left
+    // the run waiting for a panel that was already gone.
+    if (await atHalfTime()) { skipped = true; break }
+    // a short timeout inside the loop, not a check-then-act: asking
+    // isEnabled() and then clicking lost the race about one run in eight,
+    // because a call can land in the milliseconds between the two
+    try {
+      await skip.click({ timeout: 1500 })
+      skipped = true
+      break
+    } catch { /* disabled or unreachable: clear whatever is in the way, retry */ }
+    // a penalty is pending: take the points and get on with it
+    await settle()
+    // Or the match is simply paused with a touchline panel open, which on a
+    // 390px-tall landscape screen pushes the control row out of view - Skip is
+    // enabled but nothing can reach it. Scroll to it, and if the button says
+    // Play rather than Pause, press that instead: a moving match reaches the
+    // break on its own.
+    try { await skip.scrollIntoViewIfNeeded({ timeout: 1000 }) } catch { /* not laid out yet */ }
+    const play = page.locator('.speed-controls .btn').first()
+    if ((await play.textContent() ?? '').includes('▶')) {
+      try { await play.click({ timeout: 1500 }) } catch { /* disabled too */ }
+    }
+    await page.waitForTimeout(400)
+  }
+  if (!skipped) {
+    // if this ever fires, say what the screen actually looked like rather than
+    // leaving the next reader to guess at a locator timeout
+    const state = await page.evaluate(() => ({
+      controls: [...document.querySelectorAll('.speed-controls .btn')]
+        .map(b => `${(b.textContent ?? '').trim()}${b.disabled ? '(off)' : ''}`),
+      panels: ['Start Second Half', 'Take the Points', 'Full Time', 'Match Review']
+        .filter(t => document.body.innerText.includes(t)),
+    }))
+    console.log(`  stuck with controls [${state.controls.join(' | ')}] and panels [${state.panels.join(', ')}]`)
+  }
+  ok(skipped, 'the match could be skipped to the break, answering any touchline call on the way')
   await page.waitForSelector('text=Start Second Half', { timeout: 25000 })
   ok(await page.locator('text=Match-Day Squad').count() > 0, 'half-time offers the match-day squad')
   ok(await page.locator('select').count() === 0, 'the quick-sub dropdowns are gone')
@@ -119,7 +185,7 @@ try {
   const playCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
   console.log(`  half-time play button reads "${playCap}"`)
   ok(/Second Half/.test(playCap), 'at half-time the play button names the restart')
-  await page.click('.speed-controls .btn >> nth=0')
+  ok(await press(page.locator('.speed-controls .btn').first()), 'the play button could be pressed, answering any touchline call first')
   await page.waitForTimeout(900)
   const resumed = await page.evaluate(() => (document.querySelector('.minute')?.textContent ?? '').trim())
   console.log(`  after pressing Play: "${resumed.slice(0, 40)}"`)
@@ -134,7 +200,7 @@ try {
     const brkCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
     console.log(`  60' break play button reads "${brkCap}"`)
     ok(/Final Quarter/.test(brkCap), "at the 60' break the play button names the restart")
-    await page.click('.speed-controls .btn >> nth=0')
+    ok(await press(page.locator('.speed-controls .btn').first()), 'the play button could be pressed, answering any touchline call first')
     await page.waitForTimeout(900)
     const after60 = await page.evaluate(() => (document.querySelector('.minute')?.textContent ?? '').trim())
     ok(!/60' Break/.test(after60), "Play restarted the match from the 60' break")

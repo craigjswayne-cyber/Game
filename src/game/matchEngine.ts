@@ -635,6 +635,27 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       case 'fitness': side.drainF = 0.92 - facLevel(state, 'briefing') * 0.006; break
       case 'recovery': break // its work was done in the training week
     }
+    // The analyst's read has to be worth something on the day, or the briefing
+    // room, the assistant, the accuracy model and the followed/right/wrong ledger
+    // are all decoration. It was decoration: matchPrep handed out the same flat
+    // bonus whether the read was sound or nonsense, so the opponent's actual soft
+    // spot never entered the match at all. Measured across forty fixtures before
+    // this existed, following a sound read scored an aggregate margin of 359 and
+    // ignoring it scored 429 - not a small effect, no effect, with the difference
+    // being noise around zero.
+    //
+    // So homework pays, and only when it is right AND acted on. Same week, same
+    // opponent, the recommended prep actually set. Deliberately modest: a good
+    // week's work on top of the prep bonus, not a cheat code, and it does nothing
+    // at all for a manager who follows a read his analyst got wrong.
+    const read = state.analyst
+    if (read && read.right && read.abs === state.season * 100 + state.week &&
+        read.oppId !== side.teamId && state.matchPrep === read.prep) {
+      const homework = 0.03 * prepF
+      if (read.unit === 'defence') side.units.attack *= 1 + homework
+      else if (read.unit === 'attack') side.units.defence *= 1 + homework
+      else side.units[read.unit] *= 1 + homework
+    }
   }
   if (weather === 'Rain' || weather === 'Snow') {
     side.units.attack *= weather === 'Snow' ? 0.86 : 0.90
