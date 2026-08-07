@@ -56,7 +56,8 @@ try {
   await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
   await shot('05-home')
 
-  await page.click('.bottom-nav button[title="Squad"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.dtable')
   await shot('06-squad')
 
@@ -91,7 +92,7 @@ try {
   await page.click('.back-btn')
 
   // transfers (lives under the Club submenu)
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
@@ -110,14 +111,14 @@ try {
   await shot('06d-tables')
 
   // press room
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Press Room')
   await page.waitForTimeout(400)
   await shot('06e-press')
 
   // training: the facilities boardroom flow
-  await page.click('.bottom-nav button[title="Club"]')
-  await page.click('.submenu-item >> text=Training & Coaching')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Training & Staff')
   await page.waitForSelector('.tab-bar')
   await shot('06f-training')
   await page.click('.tab-bar >> text=Staff')
@@ -131,11 +132,30 @@ try {
   await shot('06g-mentoring')
 
   // the team sheet: forwards left, backs right in landscape
-  await page.click('.bottom-nav button[title="Tactics"]').catch(() => {})
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Selection & Tactics').catch(() => {})
   try {
     await page.waitForSelector('.xv-split', { timeout: 4000 })
     await shot('06g2-team-sheet')
-  } catch { /* no lineup yet */ }
+    // Starting XV, its hint and both auto-picks on ONE line (user asked for it).
+    // The row used to be three lines tall because the hint wrapped inside its own
+    // span, which flex cannot prevent without a nowrap rule.
+    const head = await page.evaluate(() => {
+      const t = document.querySelector('.section-title')
+      const kids = [...t.children].map(c => c.getBoundingClientRect())
+      return {
+        h: t.getBoundingClientRect().height,
+        spread: Math.max(...kids.map(r => r.top)) - Math.min(...kids.map(r => r.top)),
+        parts: t.children.length,
+      }
+    })
+    console.log(`selection heading: ${head.parts} parts, ${head.h.toFixed(0)}px tall, ${head.spread.toFixed(1)}px spread`)
+    if (head.spread > 8) throw new Error(`selection heading wrapped (${head.spread.toFixed(0)}px spread)`)
+    if (head.h > 34) throw new Error(`selection heading is ${head.h.toFixed(0)}px tall, so it is more than one line`)
+  } catch (e) {
+    if (String(e).includes('selection heading')) throw e
+    /* no lineup yet */
+  }
 
   // the analyst's read lives on the Match Prep page
   try {
@@ -146,7 +166,7 @@ try {
   } catch { /* no fixture this week */ }
 
   // the academy section: squad, A League table, fixtures (feedback 10G)
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Academy & A League')
   await page.waitForSelector('text=The Scholars')
   await shot('06h2-academy-squad')
@@ -178,7 +198,7 @@ try {
   }
 
   // club infrastructure: the estate on one page
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Club Infrastructure')
   await page.waitForSelector('text=Facilities')
   await shot('06i-infrastructure')

@@ -98,7 +98,7 @@ const check = async (name) => {
 }
 
 const club = async (item, label) => {
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click(`.submenu-item >> text=${item}`)
   await check(label)
 }
@@ -130,7 +130,8 @@ try {
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-veil')
 
-  await page.click('.bottom-nav button[title="Squad"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.dtable')
   await check('squad')
   await page.click('.dtable tbody tr >> nth=0')
@@ -142,7 +143,8 @@ try {
   }
   await page.click('.back-btn')
 
-  await page.click('.bottom-nav button[title="Tactics"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Selection & Tactics')
   await page.waitForSelector('.tab-bar')
   await check('tactics selection')
 

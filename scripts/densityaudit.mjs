@@ -141,7 +141,8 @@ try {
   await page.waitForTimeout(400)
   await measure('home')
 
-  await page.click('.bottom-nav button[title="Squad"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.dtable')
   await measure('squad')
   await page.click('.dtable tbody tr >> nth=0')
@@ -149,7 +150,8 @@ try {
   await measure('player: profile')
   await page.click('.back-btn')
 
-  await page.click('.bottom-nav button[title="Tactics"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Selection & Tactics')
   await page.waitForSelector('.tab-bar')
   await measure('tactics: selection')
   for (const [tab, label] of [['Tactics', 'tactics'], ['Prep', 'match prep'], ['Game Plan', 'game plan']]) {
@@ -161,10 +163,10 @@ try {
     ['Team Report', 'team report'], ['Medical Centre', 'medical centre'],
     ['Fixtures & Results', 'fixtures'], ['Finances', 'finances'],
     ['Transfer Centre', 'transfers'], ['Press Room', 'press room'],
-    ['Training & Coaching', 'training'], ['Club Infrastructure', 'infrastructure'],
+    ['Training & Staff', 'training'], ['Club Infrastructure', 'infrastructure'],
     ['Club Information', 'club information'],
   ]) {
-    await page.click('.bottom-nav button[title="Club"]')
+    await page.click('.bottom-nav button[title="Hub"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
   }
@@ -173,7 +175,6 @@ try {
     ['The Rugby Wire', 'the wire'], ['Team of the Week', 'team of the week'],
     ['Scouting Agency', 'scouting agency'], ['Competitions', 'competitions'],
     ['International Rugby', 'international rugby'], ['Roll of Honour', 'roll of honour'],
-    ['Job Centre', 'job centre'],
   ]) {
     await page.click('.bottom-nav button[title="World"]')
     await page.click(`.submenu-item >> text=${item}`)

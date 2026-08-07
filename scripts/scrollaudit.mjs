@@ -43,7 +43,8 @@ try {
   await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
   await measure('home')
 
-  await page.click('.bottom-nav button[title="Squad"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.dtable')
   await measure('squad')
   await page.click('.dtable tbody tr >> nth=0')
@@ -54,7 +55,8 @@ try {
   await measure('player: attributes')
   await page.click('.back-btn')
 
-  await page.click('.bottom-nav button[title="Tactics"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Selection & Tactics')
   await page.waitForSelector('.tab-bar')
   await measure('tactics: selection')
   for (const [tab, label] of [['Bench', 'tactics: bench'], ['Tactics', 'tactics'], ['Prep', 'match prep'], ['Game Plan', 'game plan']]) {
@@ -74,7 +76,7 @@ try {
     ['Club Information', 'club information'],
   ]
   for (const [item, label] of clubItems) {
-    await page.click('.bottom-nav button[title="Club"]')
+    await page.click('.bottom-nav button[title="Hub"]')
     await page.click(`.submenu-item >> text=${item}`)
     await measure(label)
   }
