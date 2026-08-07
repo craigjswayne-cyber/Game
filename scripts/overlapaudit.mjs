@@ -111,7 +111,7 @@ const run = async (size) => {
     await check('wizard: summary')
     await page.click('text=▸ Start Career')
     await page.waitForSelector('.tut-box', { timeout: 15000 })
-    await page.click('.tut-veil')
+    await page.click('.tut-close .btn')
     await page.waitForTimeout(400)
     await check('home')
     await page.click('.bottom-nav button[title="Hub"]')

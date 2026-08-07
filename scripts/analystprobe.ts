@@ -58,27 +58,59 @@ const rec = t.analystRecord!
 console.log(`record followed: right ${rec.right}, wrong ${rec.wrong}`)
 if (rec.right + rec.wrong !== n) bad(`record counted ${rec.right + rec.wrong} of ${n} followed reads`)
 
-// 4. following a sound read is worth something on the day
-let withEdge = 0, without = 0
-for (let seed = 1; seed <= 40; seed++) {
-  for (const follow of [true, false]) {
-    const w = newGame('leicester', 'Edge', seed)
-    const wc = w.clubs[w.userClubId]
-    wc.facilities = { ...(wc.facilities ?? {}), briefing: 5 }
-    w.staff.assistant = 3
-    const f = w.fixtures.filter(x => x.homeId === w.userClubId || x.awayId === w.userClubId)[0]
-    const opp = f.homeId === w.userClubId ? f.awayId : f.homeId
-    const r = analystRead(w, opp)!
-    if (!r.right) continue
-    w.matchPrep = follow ? r.prep : 'fitness'
-    simMatch(w, f, weekRng(w), false)
-    const mine = f.homeId === w.userClubId ? f.homeScore : f.awayScore
-    const theirs = f.homeId === w.userClubId ? f.awayScore : f.homeScore
-    if (follow) withEdge += mine - theirs; else without += mine - theirs
+// 4. following a sound read is worth something on the day.
+//
+// This used to compare ONE fixture per seed across forty seeds and assert a strict
+// inequality on the aggregate margin. That cannot work: a match margin has a
+// standard deviation around fifteen points, so thirty paired samples cannot resolve
+// an effect worth a couple of points a game. It read 359 against 429 and called it
+// a failure, and it would have read the reverse just as easily on another seed set.
+//
+// Worse, while it was noisy it was also right, and the noise hid why: matchPrep
+// handed out the same flat bonus whether the analyst's read was sound or nonsense,
+// so the opponent's real soft spot never entered the match. The whole system -
+// briefing room, assistant, accuracy model, followed ledger - was decoration.
+//
+// Now it plays a full season in each arm, same seed, same squad, same fixtures:
+// one manager follows every sound read, the other always preps fitness. Twenty-odd
+// fixtures a season across twelve seeds is enough paired evidence to see a real
+// effect of this size, and the assertion is on the SIGN of the mean, not on one
+// aggregate that a single blowout can flip.
+{
+  const seasons: number[] = []
+  for (let seed = 1; seed <= 12; seed++) {
+    const margin: Record<string, number> = {}
+    for (const follow of ['follow', 'ignore']) {
+      const w = newGame('leicester', 'Edge', seed * 31)
+      const wc = w.clubs[w.userClubId]
+      wc.facilities = { ...(wc.facilities ?? {}), briefing: 5 }
+      w.staff.assistant = 3
+      let total = 0
+      for (let i = 0; i < 34; i++) {
+        const f = userFixtureThisWeek(w)
+        if (f) {
+          const opp = f.homeId === w.userClubId ? f.awayId : f.homeId
+          const r = analystRead(w, opp)
+          w.matchPrep = follow === 'follow' && r?.right ? r.prep : 'fitness'
+          simMatch(w, f, weekRng(w), false)
+          const mine = f.homeId === w.userClubId ? f.homeScore : f.awayScore
+          const theirs = f.homeId === w.userClubId ? f.awayScore : f.homeScore
+          total += mine - theirs
+          if (r) settleAnalyst(w, opp)
+        }
+        processWeekAndAdvance(w)
+      }
+      margin[follow] = total
+    }
+    seasons.push(margin.follow - margin.ignore)
   }
+  const mean = seasons.reduce((a, b) => a + b, 0) / seasons.length
+  const better = seasons.filter(d => d > 0).length
+  console.log(`season margin, following sound reads minus ignoring them: mean ${mean.toFixed(1)} ` +
+    `over ${seasons.length} seasons, ahead in ${better} of them`)
+  if (mean <= 0) bad(`following sound reads is worth ${mean.toFixed(1)} points a season - the read does nothing`)
+  if (better <= seasons.length / 2) bad(`following sound reads won only ${better} of ${seasons.length} seasons`)
 }
-console.log(`sound read followed: aggregate margin ${withEdge}; ignored: ${without}`)
-if (!(withEdge > without)) bad('following a sound read did not help at all')
 
 if (fails) { console.error(`ANALYST PROBE: ${fails} failures`); process.exit(1) }
 console.log('ANALYST PROBE PASSED')

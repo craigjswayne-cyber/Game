@@ -39,7 +39,7 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-veil')
+  await page.click('.tut-close .btn')
   await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
   await measure('home')
 
@@ -70,8 +70,7 @@ try {
     ['Fixtures & Results', 'fixtures'],
     ['Finances', 'finances'],
     ['Transfer Centre', 'transfers'],
-    ['Press Room', 'press room'],
-    ['Training & Coaching', 'training'],
+    ['Training & Staff', 'training'],
     ['Club Infrastructure', 'infrastructure'],
     ['Club Information', 'club information'],
   ]
@@ -86,6 +85,14 @@ try {
   await page.waitForSelector('text=the eighty minutes and the hour before it')
   await measure('handbook')
 
+  // the press room and the job centre belong to the manager, not to the team
+  // sheet: he is the one in front of the cameras and the one being courted
+  for (const [item, label] of [['Press Room', 'press room'], ['Job Centre', 'job centre']]) {
+    await page.click('.bottom-nav button[title="Manager"]')
+    await page.click(`.submenu-item >> text=${item}`)
+    await measure(label)
+  }
+
   const worldItems = [
     ['The Rugby Wire', 'the wire'],
     ['Team of the Week', 'team of the week'],
@@ -93,7 +100,6 @@ try {
     ['Competitions', 'competitions'],
     ['International Rugby', 'international rugby'],
     ['Roll of Honour', 'roll of honour'],
-    ['Job Centre', 'job centre'],
   ]
   for (const [item, label] of worldItems) {
     await page.click('.bottom-nav button[title="World"]')
@@ -117,7 +123,9 @@ try {
   // the feed - the fixture, the hub widgets, the dashboard panels - measures
   // 1.4 screenfuls, and the rest is however many headlines the week produced.
   // Policing the total would only ever mean showing fewer of them.
-  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home'])
+  // 'handbook' joins them: it is a searchable index of 49 topics, and the only
+  // way to shorten it is to write about less of the game.
+  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home', 'handbook'])
   rows.sort((a, b) => b.screens - a.screens)
   console.log('\nscreenfuls  screen')
   for (const r of rows) {

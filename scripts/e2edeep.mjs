@@ -54,7 +54,20 @@ try {
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=Load Career')
   await page.click('text=Deep Gaffer')
-  await page.waitForSelector('.news-item', { timeout: 15000 })
+  // Home used to list the headlines, so this waited on .news-item. The inbox
+  // then moved to its own screen (user: "inbox and summary should be
+  // separated") and Home kept only the unread cue, so .news-item can no longer
+  // appear here at all and this probe had been failing on its first step ever
+  // since. The dashboard is the thing to wait for.
+  await page.waitForSelector('.bottom-nav', { timeout: 15000 })
+  // A trophy the save was carrying now raises the celebration veil, which
+  // swallows every click behind it. It used to be an orphaned block statement
+  // that never rendered at all, so no harness had ever met it. Tap it away.
+  for (let i = 0; i < 4 && await page.locator('.celebrate-veil').count() > 0; i++) {
+    await page.locator('.celebrate-veil').click({ position: { x: 5, y: 5 } })
+    await page.waitForTimeout(300)
+  }
+  await page.waitForSelector('.dash-head', { timeout: 15000 })
   await shot('deep-01-home')
 
   // the Annual: annals table + POTY roll of honour, 12 seasons deep
