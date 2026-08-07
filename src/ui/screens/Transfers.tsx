@@ -256,28 +256,36 @@ export default function Transfers() {
           <option value="ALL">All positions</option>
           {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
-        <select className="inline-input" style={{ margin: 0, flex: '0 1 116px' }} value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>Any value</option>
-          <option value={250000}>up to £250k</option>
-          <option value={1000000}>up to £1m</option>
-          <option value={3000000}>up to £3m</option>
-          <option value={8000000}>up to £8m</option>
+      </div>
+      {/* The four filters share one row of their own rather than wrapping into
+          three (user: "any value, any age, every league, listed only should be
+          smaller on one line"). Equal flex with min-width 0 so they divide
+          whatever width there is, and the resting labels are the filter's NAME
+          rather than "Any value" - shorter, and it reads as a placeholder,
+          which is what an unset filter is. */}
+      <div className="filter-line">
+        <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
+          <option value={0}>Value</option>
+          <option value={250000}>to £250k</option>
+          <option value={1000000}>to £1m</option>
+          <option value={3000000}>to £3m</option>
+          <option value={8000000}>to £8m</option>
         </select>
-        <select className="inline-input" style={{ margin: 0, flex: '0 1 106px' }} value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>Any age</option>
-          <option value={21}>21 and under</option>
-          <option value={24}>24 and under</option>
-          <option value={28}>28 and under</option>
-          <option value={32}>32 and under</option>
+        <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
+          <option value={0}>Age</option>
+          <option value={21}>21 or under</option>
+          <option value={24}>24 or under</option>
+          <option value={28}>28 or under</option>
+          <option value={32}>32 or under</option>
         </select>
-        <select className="inline-input" style={{ margin: 0, flex: '0 1 132px' }} value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
-          <option value="ALL">Every league</option>
+        <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
+          <option value="ALL">League</option>
           {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
             <option key={c.id} value={c.id}>{c.short}</option>
           ))}
         </select>
         <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
-          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>🏷️ Listed only</button>
+          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>🏷️ Listed</button>
       </div>
       <div className="tblwrap"><table className="dtable">
         <thead><tr>

@@ -8,8 +8,8 @@ import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type Sq
 // FM Mobile squad layout: Pkd chip, fitness ring, starred names,
 // morale arrows, Av R and Value - with a View switcher.
 
-type View = 'selection' | 'general' | 'stats' | 'gametime'
-type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd'
+type View = 'selection' | 'general' | 'stats' | 'gametime' | 'contracts'
+type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd' | 'wage' | 'until'
 
 function FitRing({ v }: { v: number }) {
   const c = v >= 85 ? '#2f7d4f' : v >= 68 ? '#c9a227' : '#a12f2f'
@@ -72,6 +72,9 @@ export default function Squad() {
         case 'tries': return (b.stats.tries - a.stats.tries) * dir
         case 'points': return (b.stats.points - a.stats.points) * dir
         case 'avr': return (avr(b) - avr(a)) * dir
+        case 'wage': return (b.wage - a.wage) * dir
+        // soonest expiry first, because the men running out are the work
+        case 'until': return (a.contractEnds - b.contractEnds || b.ca - a.ca) * dir
       }
     })
     return ps
@@ -115,9 +118,10 @@ export default function Squad() {
           four screenfuls, and the controls used to sail off the top of it */}
       <StickyControls>
       <div className="tab-bar">
-        {(['selection', 'general', 'stats', 'gametime'] as View[]).map(v => (
+        {(['selection', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info' : v === 'stats' ? 'Stats' : 'Game Time'}
+            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info'
+              : v === 'stats' ? 'Stats' : v === 'gametime' ? 'Game Time' : 'Contracts'}
           </button>
         ))}
         {/* The squad summary used to sit here, sharing the tab row's spare
@@ -200,6 +204,17 @@ export default function Squad() {
               <th className="num">MotM</th>
             </tr>
           )}
+          {view === 'contracts' && (
+            <tr>
+              <Th k="pkd">Pkd</Th>
+              <Th k="name">Name</Th>
+              <Th k="pos">Pos</Th>
+              <Th k="age" right>Age</Th>
+              <Th k="wage" right>Wage</Th>
+              <Th k="until" right>Until</Th>
+              <th>Status</th>
+            </tr>
+          )}
         </thead>
         <tbody>
           {players.length === 0 && (
@@ -260,6 +275,21 @@ export default function Squad() {
                     </td>
                   </>)
                 })()}
+                {view === 'contracts' && (<>
+                  <td><PosBadge pos={p.pos} /></td>
+                  <td className="num">{p.age}</td>
+                  <td className="num">{fmtMoney(p.wage)}</td>
+                  <td className="num" style={{ fontWeight: 700, color: p.contractEnds <= game.season ? '#a12f2f' : p.contractEnds === game.season + 1 ? '#a8841a' : undefined }}>
+                    {2026 + p.contractEnds}
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    {p.contractEnds <= game.season
+                      ? <span style={{ color: '#a12f2f', fontWeight: 700 }}>⏳ expiring</span>
+                      : (p.wantsDeal ?? 0) > 0
+                        ? <span style={{ color: '#a8841a', fontWeight: 700 }}>💼 wants terms</span>
+                        : <span className="muted">under contract</span>}
+                  </td>
+                </>)}
                 {view === 'stats' && (<>
                   <td className="num">{p.stats.apps}</td>
                   <td className="num">{p.stats.tries}</td>

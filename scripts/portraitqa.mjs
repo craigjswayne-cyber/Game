@@ -178,6 +178,78 @@ try {
   await page.click('.submenu-item >> text=Fixtures & Results')
   await page.waitForTimeout(500)
   await report('fixtures')
+
+  // ---- the masthead earns its height: arrow, title and date on one row
+  const mh = await page.evaluate(() => {
+    const head = document.querySelector('.masthead')
+    const back = document.querySelector('.masthead .back-btn')
+    const h1 = document.querySelector('.masthead h1')
+    const date = document.querySelector('.masthead .date')
+    const ctl = document.querySelector('.mast-ctl')
+    const top = e => (e ? Math.round(e.getBoundingClientRect().top) : null)
+    return {
+      h: Math.round(head?.getBoundingClientRect().height ?? 0),
+      back: top(back), h1: top(h1), date: top(date), ctl: top(ctl),
+    }
+  })
+  console.log(`\n--- masthead: ${mh.h}px tall, tops back ${mh.back} title ${mh.h1} date ${mh.date} controls ${mh.ctl}`)
+  // baseline-aligned, so allow a few px between the title and the date
+  ok(mh.h1 != null && mh.date != null && Math.abs(mh.h1 - mh.date) <= 10,
+    'the title and the date share a row')
+  ok(mh.back == null || (mh.h1 != null && Math.abs(mh.back - mh.h1) <= 16),
+    'the back arrow is on that row too, not alone above it')
+  ok(mh.ctl == null || (mh.h1 != null && mh.ctl > mh.h1 + 8), 'the controls take the row below')
+  ok(mh.h <= 118, `the whole masthead is two rows, not four (${mh.h}px)`)
+
+  // ---- the transfer filters on one line
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Transfer Centre')
+  await page.waitForSelector('.filter-line', { timeout: 8000 })
+  const fr = await page.evaluate(() => {
+    const kids = [...document.querySelectorAll('.filter-line > *')]
+    const tops = kids.map(e => Math.round(e.getBoundingClientRect().top))
+    return { n: kids.length, spread: Math.max(...tops) - Math.min(...tops),
+      labels: kids.map(e => (e.tagName === 'SELECT' ? e.options[e.selectedIndex].text : e.textContent.trim())) }
+  })
+  console.log(`\n--- filters: ${fr.n} controls [${fr.labels.join(' | ')}], top spread ${fr.spread}px`)
+  ok(fr.n === 4, `four filters (${fr.n})`)
+  ok(fr.spread <= 2, `all on one line (${fr.spread}px spread)`)
+  await report('transfers')
+
+  // ---- contracts: every man, his wage and his expiry, in one place
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Squad')
+  await page.waitForSelector('.tab-bar', { timeout: 8000 })
+  await page.click('.tab-bar >> text=Contracts')
+  await page.waitForTimeout(400)
+  const con = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('.dtable tbody tr')]
+    const heads = [...document.querySelectorAll('.dtable thead th')].map(e => e.textContent.replace(/[▾▴]/g, '').trim())
+    const yrs = rows.map(r => r.children[5]?.textContent?.trim()).filter(Boolean)
+    return { rows: rows.length, heads, sampleYears: yrs.slice(0, 3), allYears: yrs.every(y => /^20\d\d$/.test(y)) }
+  })
+  console.log(`--- contracts: ${con.rows} men, columns [${con.heads.join(', ')}], years ${con.sampleYears.join('/')}`)
+  ok(con.rows > 20, `the whole squad is listed, not a top-earners sample (${con.rows})`)
+  ok(con.heads.includes('Wage') && con.heads.includes('Until'), 'wage and expiry are both columns')
+  ok(con.allYears, 'every man shows a contract year')
+  await report('squad: contracts')
+
+  // ---- the score column has one axis
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Fixtures & Results')
+  await page.waitForTimeout(400)
+  const sc = await page.evaluate(() => {
+    const d = [...document.querySelectorAll('.rs-d')]
+    if (!d.length) return null
+    const mids = d.map(e => { const r = e.getBoundingClientRect(); return Math.round(r.left + r.width / 2) })
+    return { n: d.length, spread: Math.max(...mids) - Math.min(...mids) }
+  })
+  if (sc) {
+    console.log(`--- scores: ${sc.n} results, dash x spread ${sc.spread}px`)
+    ok(sc.spread <= 1, `every dash sits on the same axis (${sc.spread}px spread)`)
+  } else {
+    console.log('--- scores: no results on this screen to measure')
+  }
 } catch (e) {
   console.error('PORTRAIT QA stopped early:', e.message)
   fails++

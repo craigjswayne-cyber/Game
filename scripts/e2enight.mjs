@@ -117,7 +117,7 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForTimeout(600)
   await shot('06c-transfers')
-  await page.locator('.preset-chip >> text=🏷️ Listed only').click()
+  await page.locator('.preset-chip >> text=🏷️ Listed').click()
   await page.waitForTimeout(300)
   await shot('06c2-transfers-filtered')
   // commissioned scouting lives on the Shortlist tab
