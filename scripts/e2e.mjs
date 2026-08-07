@@ -112,7 +112,8 @@ try {
   await shot('03-inbox')
 
   // Squad
-  await page.click('.bottom-nav button[title="Squad"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.dtable')
   await shot('04-squad')
 
@@ -126,7 +127,8 @@ try {
 
   // Tactics area. The In-Form XV page is gone: it was a whole screen for a
   // suggestion, so it is now a button on the team sheet beside Best XV.
-  await page.click('.bottom-nav button[title="Tactics"]')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Selection & Tactics')
   await page.waitForSelector('text=Starting XV')
   await shot('06-selection')
   await page.click('text=In-Form XV')
@@ -140,7 +142,7 @@ try {
   await page.waitForSelector('text=Quick Game Plans')
 
   // Club submenu -> Team Report
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.waitForSelector('.submenu')
   await shot('06b-club-menu')
   await page.click('.submenu-item >> text=Team Report')
@@ -150,13 +152,13 @@ try {
   await shot('06c-team-report')
 
   // Club submenu -> Medical Centre
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Medical Centre')
   await page.waitForSelector('text=Treatment Room')
   await shot('06d-medical')
 
   // Club submenu -> Club Information (dressing room mood board)
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Club Information')
   await page.waitForSelector('text=Dressing Room')
   await shot('06e-club-info')
@@ -191,7 +193,7 @@ try {
   await shot('07d-saves')
 
   // Club submenu -> Transfers
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForSelector('text=Scout The Market')
   await shot('08-transfers')
@@ -217,11 +219,11 @@ try {
   await shot('11-after-match')
   // the inbox reads one message at a time now (10D): the mail icon serves the
   // next unread, and the arrows recall the last twenty
-  await page.click('.bottom-nav button[title="Inbox"]')
+  await page.click('.bottom-nav button[title="News"]')
   await page.waitForSelector('.reader', { timeout: 15000 })
   await shot('11b-inbox')
   const firstSubject = await page.locator('.reader h2').innerText()
-  await page.click('.bottom-nav button[title="Inbox"]')
+  await page.click('.bottom-nav button[title="News"]')
   await page.waitForTimeout(250)
   const secondSubject = await page.locator('.reader h2').innerText()
   const posDbg = await page.locator('.reader-pos').innerText()
@@ -274,7 +276,7 @@ try {
   await shot('12d-nations')
 
   // press room via Club submenu
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Manager"]')
   await page.click('.submenu-item >> text=Press Room')
   await page.waitForTimeout(400)
   await shot('13-press')
@@ -287,14 +289,15 @@ try {
   await page.waitForSelector('.continue-btn', { timeout: 15000 })
   await shot('14-loaded-save')
 
-  // ---- the rail is in the order the user asked for: home (summary), inbox,
-  // squad, selection and tactics, then the rest
+  // ---- the rail is in the order the user asked for: news first, then home,
+  // then the pre-match hub, the manager, and the wider world
   const rail = await page.evaluate(() =>
     [...document.querySelectorAll('.bottom-nav button')].map(b => b.getAttribute('title')))
-  const wantHead = ['Home', 'Inbox', 'Squad', 'Tactics']
+  const wantHead = ['News', 'Home', 'Hub', 'Manager', 'World']
   const railOk = wantHead.every((t, i) => rail[i] === t)
   console.log(`rail order: ${rail.join(' > ')}`)
-  if (!railOk) throw new Error(`rail order wrong: expected ${wantHead.join(', ')} first`)
+  if (!railOk) throw new Error(`rail order wrong: expected ${wantHead.join(', ')}`)
+  if (rail.length !== wantHead.length) throw new Error(`rail has ${rail.length} buttons, expected ${wantHead.length}`)
 
   // ---- and the title screen's Continue tile stays on one line (user:
   // "'continue - craig, northampton saints' should be on one line").

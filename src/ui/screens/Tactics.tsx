@@ -221,8 +221,14 @@ export default function Tactics() {
       {ttab === 'xv' && <>
         {/* Auto-Pick rode its own row for one short button. It belongs to the
             Starting XV, so it sits on the Starting XV's heading. */}
+        {/* One line, all of it (user: "starting xv and best xv should be all on
+            one line"). The heading, the hint and the two auto-picks were three
+            lines tall on the phone, because the hint was a long sentence in a row
+            with no wrap rule: flex could not put it on one line, so the sentence
+            wrapped inside its own span and pushed the row to 40-odd pixels. Short
+            hint, and .sub now stays on one line and ellipsises. */}
         <SectionTitle
-          sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}
+          sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'}` : 'tap two to swap'}
           right={<>
             {/* Two auto-picks, one team sheet. There used to be three squad pages
                 for what is one job: Selection, a whole In-Form XV page, and a

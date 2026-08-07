@@ -66,7 +66,7 @@ try {
   await page.click('.back-btn')
 
   // club information: era records, dressing room, record books after 12 years
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Club Information')
   await page.waitForSelector('text=DRESSING ROOM', { timeout: 10000 })
   await shotScrolled('deep-03-club')
@@ -85,7 +85,7 @@ try {
 
   // manager: profile with 12 seasons of trophies and badges
   // the systems built in the 8-batch, seen in a twelve-season career
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Club Infrastructure')
   await page.waitForSelector('text=Facilities', { timeout: 10000 })
   await shot('deep-06-infrastructure')
@@ -93,13 +93,13 @@ try {
   await page.waitForSelector('text=League Estates')
   await shot('deep-06b-league-estates')
 
-  await page.click('.bottom-nav button[title="Club"]')
-  await page.click('.submenu-item >> text=Training & Coaching')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Training & Staff')
   await page.click('.tab-bar >> text=Staff')
   await page.waitForSelector('text=Backroom Staff', { timeout: 10000 })
   await shot('deep-07-staff')
 
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.click('.tab-bar >> text=Shortlist')
   await page.waitForSelector('text=Commissioned Search', { timeout: 10000 })
@@ -112,7 +112,7 @@ try {
   await page.waitForSelector('text=Sauvez Sapiac', { timeout: 10000 })
   // Finances with a season's worth of history: the chips and the balance graph
   // should share a row in landscape, which week one can never show
-  await page.click('.bottom-nav button[title="Club"]')
+  await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Finances')
   await page.waitForSelector('text=Top Earners', { timeout: 10000 })
   await shot('deep-10-finances')

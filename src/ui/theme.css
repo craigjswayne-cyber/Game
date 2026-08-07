@@ -275,7 +275,13 @@ input, select { font: inherit; }
   align-items: baseline;
   gap: 10px;
 }
-.section-title > span:first-child { display: flex; align-items: baseline; gap: 8px; }
+.section-title > span:first-child { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
+/* A section heading is one line. .section-title does not wrap, so a long sub
+   could not move to a second line - it wrapped its own text instead and made the
+   row two or three lines tall, which is what pushed Best XV off the Starting XV
+   heading. The hint gives way before the heading or the buttons do. */
+.section-title .sub { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.section-title .sect-act { flex-shrink: 0; white-space: nowrap; }
 .section-title > span:first-child::before {
   content: '';
   width: 16px; height: 3px;

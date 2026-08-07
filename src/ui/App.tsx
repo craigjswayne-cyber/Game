@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
 import { natFixtureThisWeek, userFixtureThisWeek } from '../game/season'
 import { weekDate, seasonLabel } from '../game/model'
-import { IcoBall, IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTransfer, IcoTrophy } from './icons'
+import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
@@ -177,7 +177,7 @@ export default function App() {
   const night = useStore(s => s.night)
   useStore(s => s.tick)
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
-  const [menu, setMenu] = useState<null | 'club' | 'world' | 'manager'>(null)
+  const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
   useOrientationLock()
 
   const cur = nav[nav.length - 1]
@@ -244,43 +244,61 @@ export default function App() {
     }
   }
 
-  const MENUS: Record<'club' | 'world' | 'manager', { title: string; items: MenuItem[] }> = {
-    club: {
-      title: club.short,
+  /** The rail, rebuilt to the shape the user asked for.
+   *
+   *  It used to be seven buttons: Home, Inbox, Squad, Tactics, then Club, World
+   *  and Manager groups. Squad and Tactics had their own rail slots while
+   *  everything else was buried, so the rail was half shortcuts and half
+   *  categories and there was no one place that meant "my team this week".
+   *
+   *  Now it reads top to bottom the way a matchday does: the news first,
+   *  because that is what has happened since you last looked; Home; the
+   *  Pre-Match Hub, which is everything about the team you are about to put out
+   *  - selection, the squad, fitness, fixtures, money, the academy, the staff;
+   *  then the manager, then the wider world. Four groups, in the user's order,
+   *  and nothing lost - the World group keeps the things that are nobody's club
+   *  in particular. */
+  const MENUS: Record<'hub' | 'world' | 'manager', { title: string; items: MenuItem[] }> = {
+    hub: {
+      title: `${club.short} · Pre-Match Hub`,
       items: [
-        { ico: '📋', label: 'Team Report', screen: 'report' },
-        { ico: '🏋️', label: 'Training & Coaching', screen: 'training' },
+        { ico: '📋', label: 'Selection & Tactics', screen: 'tactics' },
+        { ico: '🏉', label: 'Squad', screen: 'squad' },
+        { ico: '📊', label: 'Team Report', screen: 'report' },
+        { ico: '🏋️', label: 'Training & Staff', screen: 'training' },
         { ico: '🏥', label: 'Medical Centre', screen: 'medical', badge: injuredCount },
         { ico: '📅', label: 'Fixtures & Results', screen: 'fixtures' },
         { ico: '💰', label: 'Finances', screen: 'finances' },
         { ico: '🔁', label: 'Transfer Centre', screen: 'transfers', badge: offersOpen },
-        { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
         { ico: '🎓', label: 'Academy & A League', screen: 'academy' },
         { ico: '🏗️', label: 'Club Infrastructure', screen: 'infra' },
         { ico: '🏟️', label: 'Club Information', screen: 'club' },
-      ],
-    },
-    world: {
-      title: 'World',
-      items: [
-        { ico: '📰', label: 'The Rugby Wire', screen: 'feed', badge: wireUnread },
-        { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
-        { ico: '🔭', label: 'Scouting Agency', screen: 'agency' },
-        { ico: '🏆', label: 'Competitions', screen: 'tables' },
-        { ico: '🌍', label: 'International Rugby', screen: 'nations' },
-        { ico: '📜', label: 'Roll of Honour', screen: 'history' },
-        { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.length },
       ],
     },
     manager: {
       title: game.managerName,
       items: [
         { ico: '👤', label: 'Manager Profile', screen: 'profile' },
+        // the manager is the one in front of the cameras, so the press room
+        // belongs to him rather than to the team sheet
+        { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
+        { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.length },
         { ico: '📜', label: 'Manager Legacy', screen: 'legacy' },
         { ico: '📖', label: "The Manager's Handbook", screen: 'handbook' },
         // dismissing the welcome dialog used to be final and irreversible
         { ico: '❓', label: 'How to play', screen: 'home', action: () => useStore.getState().openTut() },
         { ico: '💾', label: 'Save / Load Game', screen: 'saves' },
+      ],
+    },
+    world: {
+      title: 'World',
+      items: [
+        { ico: '📰', label: 'The Rugby Wire', screen: 'feed', badge: wireUnread },
+        { ico: '🏆', label: 'Competitions', screen: 'tables' },
+        { ico: '🌍', label: 'International Rugby', screen: 'nations' },
+        { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
+        { ico: '🔭', label: 'Scouting Agency', screen: 'agency' },
+        { ico: '📜', label: 'Roll of Honour', screen: 'history' },
       ],
     },
   }
@@ -299,7 +317,7 @@ export default function App() {
     </button>
   )
 
-  const groupBtn = (id: 'club' | 'world' | 'manager', ico: ReactNode, label: string, badge?: number) => (
+  const groupBtn = (id: 'hub' | 'world' | 'manager', ico: ReactNode, label: string, badge?: number) => (
     <button className={menu === id ? 'active' : ''} title={label} aria-label={label}
       onClick={() => setMenu(menu === id ? null : id)}>
       <span className="ico nbadge">{ico}{badge ? <span className="dot">{badge > 9 ? '9+' : badge}</span> : null}</span>
@@ -328,25 +346,22 @@ export default function App() {
       </header>
       <main className="content">{screen()}</main>
       <nav className="bottom-nav">
-        {/* Order asked for: home (summary), inbox, squad, selection and tactics,
-            then the rest. Home carries no unread badge any more - the inbox is a
-            button of its own and wearing the count itself. */}
+        {/* The order the user asked for, top to bottom: news, home, the hub,
+            the manager. World comes last because it is the only group that is
+            about somebody else's club. */}
+        {navBtn('inbox', <IcoInbox />, 'News', unread)}
         {navBtn('home', <IcoHome />, 'Home')}
         {game.unemployed ? (
           <>
-            {navBtn('inbox', <IcoInbox />, 'Inbox', unread)}
             {navBtn('jobs', <IcoClipboard />, 'Jobs', game.vacancies.length)}
+            {groupBtn('manager', <IcoPress />, 'Manager')}
             {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
-            {groupBtn('manager', <IcoBall />, 'Manager')}
           </>
         ) : (
           <>
-            {navBtn('inbox', <IcoInbox />, 'Inbox', unread)}
-            {navBtn('squad', <IcoBall />, 'Squad')}
-            {navBtn('tactics', <IcoClipboard />, 'Tactics')}
-            {groupBtn('club', <IcoTransfer />, 'Club', offersOpen + pressOpen + injuredCount)}
-            {groupBtn('world', <IcoTrophy />, 'World', wireUnread + game.vacancies.length)}
-            {groupBtn('manager', <IcoPress />, 'Manager')}
+            {groupBtn('hub', <IcoClipboard />, 'Hub', offersOpen + injuredCount)}
+            {groupBtn('manager', <IcoPress />, 'Manager', pressOpen + game.vacancies.length)}
+            {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
           </>
         )}
       </nav>
