@@ -39,11 +39,21 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   la_rochelle: [
     { name: 'Teddy Iribaren', pos: 'SH', age: 34, nat: 'FRA', q: 74, gk: true },
   ],
-  // Harlequins lost Joe Marler to retirement and Wyn Jones to the Dragons in
-  // the same year, and signed the Argentina prop to cover it. Without him the
-  // files leave Fin Baxter as the only loosehead at the club.
-  harlequins: [
-    { name: 'Boris Wenger', pos: 'LP', age: 22, nat: 'ARG', q: 65 },
+  // Boris Wenger used to be added here to cover Harlequins' loosehead gap. The
+  // 2025/26 squad guide names him in the squad, so the addition became a
+  // duplicate and the guide's entry is the better one. Removed.
+  //
+  // Two men the guide takes OUT of the Premiership, who then belonged nowhere:
+  // relocating them from a Premiership file stopped working once that file no
+  // longer listed them, so they are added at their real clubs instead.
+  cardiff: [
+    // Left Bristol for Cardiff and competes for the ten shirt there in 2025-26.
+    { name: 'Callum Sheedy', pos: 'FH', alt: ['FB'], age: 30, nat: 'WAL', q: 74, gk: true, intl: true },
+  ],
+  bulls: [
+    // Three seasons at Leicester, then home to the Bulls on a two-year deal
+    // from 1 July 2025.
+    { name: 'Handre Pollard', pos: 'FH', age: 31, nat: 'RSA', q: 87, gk: true, intl: true },
   ],
   // Clermont had NO recognised full-back in the files at all - the worst single
   // gap the audit found. Hamdaoui has been their arriere since 2024, after five

@@ -2193,12 +2193,20 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
  *  So the colour moves off the frame and onto a strip along the top: unmistakably
  *  the club's, at full strength rather than washed out, and impossible to read as
  *  a warning. The fill keeps a hint of the primary and the border stays neutral. */
+/*  Second pass. Dropping the coloured border was not enough: the user says "weird
+ *  red thing is back", and it was still there in the FILL. Even a 14% wash of a
+ *  red primary over a near-black paper comes out a dirty maroon, and five of the
+ *  ten Premiership clubs have red in their first two colours. There is no
+ *  percentage of red-over-black that looks deliberate.
+ *
+ *  So the fill is now plain paper, exactly like every other tile in the game, and
+ *  the club's colours live only in the strip along the top where they are shown at
+ *  full strength. A tile that is identical to its neighbours until you look at its
+ *  strip and its crest cannot read as an error state. */
 .club-tile {
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--c1, #1c3f77) 14%, var(--paper)),
-                            color-mix(in srgb, var(--c2, #0b1c33) 9%, var(--paper)));
+  background: var(--paper);
   border-color: var(--hairline);
 }
 .club-tile::before {
@@ -2242,11 +2250,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tile.sel, .speech-tile.sel {
   background: color-mix(in srgb, var(--pick) 26%, var(--paper));
 }
-/* the club tile keeps its colour strip and takes the wash on top of the fill */
+/* selected is the same blue wash every other tile gets: no club colour in it, so
+   picking a red club cannot look like picking a broken one */
 .club-tile.sel {
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--pick) 30%, color-mix(in srgb, var(--c1, #1c3f77) 14%, var(--paper))),
-                            color-mix(in srgb, var(--pick) 18%, color-mix(in srgb, var(--c2, #0b1c33) 9%, var(--paper))));
+  background: color-mix(in srgb, var(--pick) 26%, var(--paper));
 }
 /* and the words brighten with the box, so the change is legible even to someone
    who cannot pick the ring out from the border */

@@ -43,6 +43,27 @@ try {
   await page.click('text=Gallagher Premiership')
   await page.waitForSelector('.club-tile')
   await shot('03-wizard-club')
+  // No club tint on a club tile's fill or frame. The user reported a "weird red"
+  // around some clubs twice: first it was the border, 55% of the club's primary
+  // colour, then it was still a 14% wash in the fill. Five of the ten Premiership
+  // clubs have red in their first two colours and no amount of red over a
+  // near-black paper looks deliberate, so the colour lives only in the top strip
+  // now. Every unselected tile must therefore paint EXACTLY the same background
+  // and border as every other one.
+  const tiles = await page.evaluate(() => {
+    const els = [...document.querySelectorAll('.club-tile:not(.sel)')]
+    const seen = new Map()
+    for (const el of els) {
+      const s = getComputedStyle(el)
+      const k = `${s.backgroundColor}|${s.backgroundImage}|${s.borderTopColor}`
+      seen.set(k, (seen.get(k) ?? 0) + 1)
+    }
+    return { count: els.length, variants: [...seen.keys()] }
+  })
+  console.log(`club tiles: ${tiles.count}, distinct paint jobs ${tiles.variants.length}`)
+  if (tiles.variants.length !== 1) {
+    throw new Error(`club tiles paint ${tiles.variants.length} different ways, so a club colour is back in the fill or the border:\n  ${tiles.variants.join('\n  ')}`)
+  }
   await page.click('.tile >> text=Leicester')
   await page.waitForSelector('text=Star Player')
   await shot('04-wizard-detail')

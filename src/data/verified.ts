@@ -1,3 +1,5 @@
+import { PREM_2526 } from './prem2526'
+
 // Where a player actually plays in 2025-26, when the squad files disagree.
 //
 // The data audit reports 64 players listed at two clubs at once. The world
@@ -159,9 +161,11 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // most minutes of any Tigers prop in the run to the final. Leicester had ONE
   // loosehead in the files because of this.
   'nicky smith': 'leicester',
-  // Left Bristol for Cardiff and competes for the ten shirt there in 2025-26.
-  // Cardiff had one specialist fly-half without him.
-  'callum sheedy': 'cardiff',
+  // Sheedy and Pollard used to be relocated out of the Premiership from here.
+  // The 2025/26 squad guide drops both from their old clubs, so there is nothing
+  // left to relocate and a dead entry is a failure the audit rightly reports.
+  // They are in additions.ts now, which is the table for a man who plays at a
+  // club no file lists him at.
   // Bayonne until 2023, Toulon since, where he is a back-row option rather
   // than the lock the files have him down as at his old club.
   'swan rebbadj': 'toulon',
@@ -185,21 +189,47 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // each, and it is the wrong one. Found while checking the list above, which
   // says something about how far the problem reaches.
   //
-  // Three seasons at Leicester, then home to the Bulls on a two-year deal
-  // from 1 July 2025. Leicester signed replacements; this leaves them a man
-  // short until those are entered, which is the honest state of the data.
-  'handré pollard': 'bulls',
   // Leicester's captain until the end of 2024-25, then Pau in the Top 14.
   // The hand-written captains list still had him leading Leicester, which the
   // data audit catches the moment he moves.
-  'julián montoya': 'pau',
+  //
+  // The 2025/26 squad guide is WRONG here - it lists him in Leicester's hookers.
+  // He signed for Pau in 2024 and that is checked, so the guide loses this one.
+  // Keyed on the guide's spelling (no accent), because the merge took the guide's
+  // spelling for the authored entry and a key that no longer matches any player
+  // is a relocation that quietly never happens.
+  'julian montoya': 'pau',
+  // Listed at Saracens by the 2025/26 guide and still at the Force in the Super
+  // Rugby file, which is a season behind. The guide is the checked source.
+  'sam spink': 'saracens',
 }
+
+/** Every man the 2025/26 Premiership guide names, at the club it names him at.
+ *
+ *  Merging the guide turned twenty-odd names into duplicates, and they all share
+ *  one shape: a player the guide's IN list says moved TO the Premiership, still
+ *  sitting in another league's file that is a season behind. Len Ikitau at the
+ *  Brumbies, Joseph Dweba at the Stormers, Guido Petti at Bordeaux, Owen Farrell
+ *  at Racing, Fergus Burke and Tom Christie at the Crusaders, Danilo Fischetti at
+ *  Zebre, Anthony Belleau at Clermont, and so on.
+ *
+ *  Writing twenty-odd entries by hand would be twenty-odd chances to mistype, and
+ *  they would rot the moment the guide changed. This derives them instead, which
+ *  is legitimate under rule 2 of this file: a name in the guide IS a checked name,
+ *  that being the guide's whole purpose.
+ *
+ *  The hand-written table above still wins. That matters for exactly one man:
+ *  the guide has Julian Montoya in Leicester's hookers and he signed for Pau in
+ *  2024, so the checked entry has to beat the derived one. */
+const FROM_GUIDE: Map<string, string> = new Map(
+  PREM_2526.flatMap(club => club.players.map(p => [p.name.toLowerCase(), club.id] as [string, string])),
+)
 
 /** The club this player really turns out for, or null if nobody has checked. */
 export const verifiedClub = (name: string): string | null => {
   const key = name.toLowerCase()
-  return Object.prototype.hasOwnProperty.call(VERIFIED_CLUB, key) &&
-    typeof VERIFIED_CLUB[key] === 'string'
-    ? VERIFIED_CLUB[key]
-    : null
+  if (Object.prototype.hasOwnProperty.call(VERIFIED_CLUB, key) && typeof VERIFIED_CLUB[key] === 'string') {
+    return VERIFIED_CLUB[key]
+  }
+  return FROM_GUIDE.get(key) ?? null
 }

@@ -28,6 +28,8 @@ const SEEDS = Number(process.env.SEEDS ?? 6)
 const WEEKS = Number(process.env.WEEKS ?? 12)
 
 let xvs = 0
+let soften = 0
+const softEg: string[] = []
 let impossible = 0
 let displaced = 0
 const examples: string[] = []
@@ -48,7 +50,7 @@ function freeNatural(pool: Player[], lineup: (number | null)[], pos: Pos): { p: 
   return null
 }
 
-function check(state: GameState, clubId: string, when: string, lineup: (number | null)[]) {
+function check(state: GameState, clubId: string, when: string, lineup: (number | null)[], soft = false) {
   const club = state.clubs[clubId]
   let pool = availablePlayers(state, club.players, false)
   const seniors = pool.filter(p => !p.acad)
@@ -74,6 +76,7 @@ function check(state: GameState, clubId: string, when: string, lineup: (number |
     // ten is a scrum-half playing centre.
     if (effAt(nat.p, pos) <= effAt(p, pos) + 4) continue
 
+    if (soft) { soften++; if (softEg.length < 4) softEg.push(`${when} ${club.short} shirt ${XV_SLOTS[i].shirt} (${pos}) -> ${p.name}, ${nat.p.name} ${nat.at < 0 ? 'not in the 23' : 'on the bench'}`); continue }
     if (p.alt.includes(pos)) displaced++
     else impossible++
 
@@ -90,7 +93,12 @@ for (let s = 0; s < SEEDS; s++) {
   for (const id of Object.keys(g.clubs)) check(g, id, 'wk1', g.clubs[id].tactic.lineup)
   // and again once the season has bruised everyone
   for (let w = 0; w < WEEKS; w++) processWeekAndAdvance(g)
-  for (const id of Object.keys(g.clubs)) check(g, id, `wk${g.week}`, g.clubs[id].tactic.lineup)
+  // A mid-season SAVED sheet is reported but not failed on. lineupFor deliberately
+  // leaves an invalid sheet alone rather than rewriting it - an injured man's shirt
+  // is held for him and given back when he is fit - so the saved array can hold a
+  // shape that the sheet actually taking the field does not. What the match uses is
+  // the 'auto' pass below, and that is what has to be right.
+  for (const id of Object.keys(g.clubs)) check(g, id, `wk${g.week}`, g.clubs[id].tactic.lineup, true)
   // and the freshly computed sheet, which is what a match actually uses
   for (const id of Object.keys(g.clubs)) {
     const club = g.clubs[id]
@@ -99,6 +107,8 @@ for (let s = 0; s < SEEDS; s++) {
 }
 
 console.log(`${xvs} club XVs across ${SEEDS} worlds (week 1, week ${1 + WEEKS}, and a fresh auto-pick)`)
+console.log(`saved mid-season sheets holding a shirt for someone: ${soften} (reported, not failed - see above)`)
+for (const e of softEg) console.log('  eg ' + e)
 console.log(`impossible: ${impossible}  (a shirt on a man who cannot play it, with a natural free)`)
 console.log(`displaced:  ${displaced}  (a shirt on an alt while its natural wears someone else's)`)
 for (const e of examples) console.log('  eg ' + e)
