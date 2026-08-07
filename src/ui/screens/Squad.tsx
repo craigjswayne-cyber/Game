@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { POS_ORDER, fmtMoney, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
-import { capBill } from '../../game/ai'
 import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 
@@ -36,7 +35,7 @@ export default function Squad() {
   const [sort, setSort] = useState<SortKey>('pkd')
   const [desc, setDesc] = useState(false)
   const [group, setGroup] = useState<'all' | 'aca'>('all')
-  const [avail, setAvail] = useState<'any' | 'fit' | 'out' | 'young'>('any')
+  const [avail, setAvail] = useState<'any' | 'fit' | 'out'>('any')
   const [query, setQuery] = useState('')
 
   const club = game.clubs[game.userClubId]
@@ -54,7 +53,6 @@ export default function Squad() {
     const out = (p: Player) => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
     if (avail === 'fit') ps = ps.filter(p => !out(p))
     if (avail === 'out') ps = ps.filter(out)
-    if (avail === 'young') ps = ps.filter(p => p.age <= 23)
     const q = query.trim().toLowerCase()
     if (q) ps = ps.filter(p => p.name.toLowerCase().includes(q) || p.pos.toLowerCase() === q)
     const dir = desc ? -1 : 1
@@ -111,9 +109,6 @@ export default function Squad() {
     </td>
   )
 
-  const wageBill = capBill(game, club)
-  const homegrown = club.players.map(id => game.players[id]).filter(p => p && (p.youth || p.nat === club.country)).length
-
   return (
     <>
       {/* the tabs and the chips ride along with the scroll: a 38-man table is
@@ -125,11 +120,13 @@ export default function Squad() {
             {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info' : v === 'stats' ? 'Stats' : 'Game Time'}
           </button>
         ))}
-        {/* the squad summary rode its own 36px heading row. The tab bar has
-            three short tabs and a lot of empty space to its right. */}
-        <span className="filter-note">
-          {players.length} {group === 'aca' ? 'academy' : 'players'} · cap {fmtMoney(wageBill)}/{fmtMoney(club.wageBudget)}wk · {homegrown} homegrown{(club.marquee?.length ?? 0) ? ` · ${club.marquee!.length}⭐` : ''}
-        </span>
+        {/* The squad summary used to sit here, sharing the tab row's spare
+            space. On the phone it did not have any: the four tabs plus the
+            Matchday button left it clipped mid-word ("58 hom...") every time.
+            A line you cannot finish reading is worse than no line, and every
+            number in it already has a home - the count is the table's own
+            length, and the wage bill and homegrown count are on Finances and
+            General Info. */}
       </div>
       <div className="filter-row">
         {/* Forwards and Backs are gone (user: "you can remove forwards and backs
@@ -145,14 +142,17 @@ export default function Squad() {
         {group === 'aca' && (
           <button className="preset-chip" onClick={() => go('academy')}>A League ▸</button>
         )}
-        <span style={{ width: 8 }} />
-        {([['any', 'Everyone'], ['fit', '✅ Available'], ['out', '🚑 Unavailable'], ['young', 'U23']] as const).map(([k, label]) => (
+        {/* U23 is gone at the user's request. It was the sixth chip on a row
+            that only fits five, so it pushed the search box onto a line of its
+            own and cost a whole row of table. Age is a sortable column, which is
+            the better way to ask the same question. */}
+        {([['any', 'Everyone'], ['fit', '✅ Available'], ['out', '🚑 Unavailable']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip" style={avail === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setAvail(k)}>{label}</button>
         ))}
         <input className="inline-input" placeholder="Find a player…" value={query}
           onChange={e => setQuery(e.target.value)}
-          style={{ margin: 0, flex: '1 1 130px', minWidth: 110, maxWidth: 220, padding: '4px 8px', fontSize: 12 }} />
+          style={{ margin: 0, flex: '1 1 90px', minWidth: 84, maxWidth: 190, padding: '4px 8px', fontSize: 12 }} />
       </div>
       </StickyControls>
       <div className="tblwrap"><table className="dtable zebra">

@@ -1,11 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './ui/App'
+import ErrorBoundary from './ui/ErrorBoundary'
 import './ui/theme.css'
 
+// the boundary sits outside App on purpose: a boundary can only catch what its
+// children throw, so anything inside App would go down with it.
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 )
 

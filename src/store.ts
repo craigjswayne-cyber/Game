@@ -45,6 +45,29 @@ interface Store {
   wireQueue: number[]
   night: boolean
   toggleNight: () => void
+  /** The portrait nudge has been overruled: play on sideways-up.
+   *
+   *  The rotate veil covers the whole screen, and a phone with its rotation
+   *  lock switched on never leaves portrait, so without an escape hatch the
+   *  game is simply unplayable for that user (blocker A3). */
+  portraitOk: boolean
+  allowPortrait: () => void
+  /** The welcome dialog, hoisted out of Home so any screen can open it and the
+   *  Manager menu can bring it back after it has been dismissed (blocker A2). */
+  tut: boolean
+  openTut: () => void
+  closeTut: () => void
+  /** Consecutive failed writes to IndexedDB, and why the last one failed.
+   *
+   *  Every persist() call site is fire-and-forget, so a rejected write used to
+   *  vanish into a void and the manager found out hours later that nothing had
+   *  been saved. Counted here and shown on screen (blocker A4). */
+  saveFail: number
+  saveFailMsg: string | null
+  /** For the one save that does not go through persist(): the manual
+   *  save-to-slot on the Saves screen. */
+  noteSaveFail: (msg: string) => void
+  dismissSaveFail: () => void
   /** The message the inbox reader is showing (news id), or null for none.
    *
    *  The inbox reads one at a time (user: "tap the mail symbol it should open the
@@ -140,6 +163,26 @@ export const useStore = create<Store>((set, get) => ({
     return { night }
   }),
 
+  // remembered, not session-only: a manager whose rotation lock is always on
+  // should not have to overrule the same nudge every single launch.
+  portraitOk: typeof localStorage !== 'undefined' && localStorage.getItem('rm-portrait') === '1',
+  allowPortrait: () => {
+    try { localStorage.setItem('rm-portrait', '1') } catch { /* private mode */ }
+    set({ portraitOk: true })
+  },
+
+  tut: false,
+  openTut: () => set({ tut: true }),
+  closeTut: () => {
+    try { localStorage.setItem('rm-tut', '1') } catch { /* private mode */ }
+    set({ tut: false })
+  },
+
+  saveFail: 0,
+  saveFailMsg: null,
+  noteSaveFail: (msg) => set(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 })),
+  dismissSaveFail: () => set({ saveFail: 0, saveFailMsg: null }),
+
   /** The inbox reader's recall window: the last 20 stories worth reading,
    *  newest first. Gossip lives in the Wire and cleared stories are filed. */
   openInbox: () => set(s => {
@@ -190,7 +233,12 @@ export const useStore = create<Store>((set, get) => ({
   start: (clubId, managerName, challengeId) => {
     const seed = (Math.random() * 2 ** 31) | 0
     const g = newGame(clubId, managerName, seed, challengeId)
-    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1 })
+    // the welcome dialog belongs to a career starting, not to a screen being
+    // rendered: Home used to decide this from week 1 / season 0, which fired
+    // again every time a brand-new save was re-opened on another device.
+    let firstRun = false
+    try { firstRun = localStorage.getItem('rm-tut') !== '1' } catch { /* private mode */ }
+    set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun })
     void get().persist()
   },
 
@@ -511,8 +559,20 @@ export const useStore = create<Store>((set, get) => ({
     void get().persist()
   },
 
+  /** Never rejects. Every call site is `void get().persist()`, so a thrown
+   *  write would have been an unhandled rejection and nothing more - the game
+   *  carried on looking perfectly healthy while saving nothing. A failure now
+   *  raises a banner instead, and a later success clears it. */
   persist: async () => {
     const { game, saveSlot } = get()
-    if (game) await saveGame(saveSlot, game)
+    if (!game) return
+    try {
+      await saveGame(saveSlot, game)
+      if (get().saveFail) set({ saveFail: 0, saveFailMsg: null })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error('save failed', e)
+      set(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 }))
+    }
   },
 }))

@@ -52,16 +52,27 @@ export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit)
   const score = (p: Player, pos: Pos) =>
     effAt(p, pos) * (0.7 + 0.3 * (p.cond / 100)) * (0.85 + 0.03 * p.form)
 
-  // phase one: players in their own positions, best pairings first. A pure
-  // slot-order greedy burned stars out of position (an 86 hooker at loosehead
-  // for a 0.8 gain, costing 11 points at hooker) because it never weighed
-  // what using a man here costs at his real slot
-  {
+  // phase one: every shirt to a natural first, best men first.
+  //
+  // This used to be one pass over naturals AND alts together, ranked by score,
+  // and that was wrong in a way the user saw immediately: effAt rates an alt at
+  // 0.92 of ability, so an 87 scrum-half scores 80 on the wing and outranks a
+  // natural 78 winger. He took the 11 shirt, and the 9 shirt - with nobody
+  // natural left - fell through to the shoehorn pass and landed on a centre.
+  // Northampton lined up with a centre at 9, a winger at 10 and Alex Mitchell
+  // at 11. Measured across 909 club XVs, it happened 92 times.
+  //
+  // A coach does not do that. He picks his scrum-half at 9 and then works out
+  // who plays on the wing. Two passes, naturals then alts, and the ordering
+  // inside each pass still weighs what a man is worth, so the best available
+  // natural gets the shirt when several can wear it.
+  const fill = (eligible: (p: Player, pos: Pos) => boolean) => {
     const pairs: { slot: number; p: Player; s: number }[] = []
     for (let i = 0; i < 15; i++) {
+      if (lineup[i] != null) continue
       const pos = XV_SLOTS[i].pos
       for (const p of pool) {
-        if (p.pos === pos || p.alt.includes(pos)) pairs.push({ slot: i, p, s: score(p, pos) })
+        if (!used.has(p.id) && eligible(p, pos)) pairs.push({ slot: i, p, s: score(p, pos) })
       }
     }
     pairs.sort((a, b) => b.s - a.s)
@@ -71,6 +82,8 @@ export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit)
       used.add(p.id)
     }
   }
+  fill((p, pos) => p.pos === pos)
+  fill((p, pos) => p.alt.includes(pos))
   // phase two: any shirt nobody natural can wear goes to the best shoehorn
   for (let i = 0; i < 15; i++) {
     if (lineup[i] != null) continue
@@ -227,21 +240,27 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
     // once-in-a-while annoyance into a flanker wearing 8 for eighteen straight
     // league games while a 77-rated number eight was not even on the bench.
     //
-    // Deliberately narrow, so it cannot overrule a manager who meant it: it only
-    // re-picks when a man is in a shirt he can play NEITHER naturally nor as an
-    // alternative, AND natural cover for that shirt is sitting outside the whole
-    // 23. Inside the 23 is a selection call. Outside it is a squad that changed
-    // since the sheet was written.
+    // Narrow enough that it cannot overrule a manager who meant it. A shirt is
+    // stale when its wearer is not a natural for it AND a natural who would be
+    // BETTER in that shirt is available - either left out of the 23 entirely, or
+    // sitting on the bench behind him. The comparison is what keeps it honest:
+    // playing a stronger man out of position is a tactic, and that survives.
+    // Playing a weaker one there while the specialist watches is the bug.
     const stale = valid && (() => {
       const named = new Set(lu.filter((x): x is number => x != null))
+      const onPitch = new Set(lu.slice(0, 15).filter((x): x is number => x != null))
       return lu.slice(0, 15).some((id, i) => {
         const p = state.players[id!]
         const pos = XV_SLOTS[i].pos
-        if (p.pos === pos || p.alt.includes(pos)) return false
+        if (p.pos === pos) return false
+        const mine = effAt(p, pos)
         return club.players.some(cid => {
           const c = state.players[cid]
-          return c && !named.has(c.id) && !c.acad && !c.injury && c.bans === 0 &&
-            !c.natSquad && !c.onLoan && (c.pos === pos || c.alt.includes(pos))
+          if (!c || c.acad || c.injury || c.bans > 0 || c.natSquad || c.onLoan) return false
+          // a man already on the pitch in his own shirt is not cover for another
+          if (onPitch.has(c.id) && c.pos === XV_SLOTS[lu.indexOf(c.id)].pos) return false
+          if (c.pos !== pos && !(c.alt.includes(pos) && !named.has(c.id))) return false
+          return effAt(c, pos) > mine
         })
       })
     })()

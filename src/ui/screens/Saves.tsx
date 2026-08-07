@@ -19,8 +19,18 @@ export default function Saves() {
   const refresh = () => { void listSaves().then(setSaves) }
   useEffect(refresh, [])
 
+  // the one save in the game that does not go through the store's persist(), so
+  // it needs the same treatment: an await with no catch showed neither a
+  // success message nor a failure, and looked exactly like nothing happened
   const doSave = async (slot: string) => {
-    await saveGame(slot, game)
+    try {
+      await saveGame(slot, game)
+    } catch (e) {
+      const why = e instanceof Error ? e.message : String(e)
+      useStore.getState().noteSaveFail(why)
+      setMsg(`Could not save to ${SLOT_NAMES[slot] ?? slot}: ${why}`)
+      return
+    }
     setSlot(slot)
     setMsg(`Career saved to ${SLOT_NAMES[slot] ?? slot}.`)
     refresh()

@@ -105,7 +105,9 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-veil')
+  // the box swallows its own taps now, so a click on the veil's centre lands on
+  // the box and does nothing. Use the button a real thumb would use.
+  await page.click('.tut-close .btn')
   await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
   await shot('03-inbox')
 
