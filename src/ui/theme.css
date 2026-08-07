@@ -216,6 +216,10 @@ input, select { font: inherit; }
   background: linear-gradient(90deg, var(--club1) 0 28%, var(--gold) 28% 72%, var(--club2) 72% 100%);
 }
 .masthead-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+/* The moon and Continue are grouped so portrait can drop them onto their own
+   row. They were direct flex children of .masthead-row before, taking its gap,
+   so the group needs its own or landscape loses the space between them. */
+.mast-ctl { display: flex; align-items: center; gap: 10px; }
 .masthead h1 {
   font-family: var(--sans);
   font-size: 19px;
@@ -2524,11 +2528,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      as "Full-Time Rou..." and "Selection & Tactics" as "Selection & T...".
      Wrapping the row and letting the text take the full width fixes all three
      at once, and it makes Matchday a much bigger target into the bargain. */
-  .masthead-row { flex-wrap: wrap; row-gap: 8px; }
-  .mast-text { flex: 1 1 100%; min-width: 0; order: 1; }
-  .masthead .back-btn { order: 0; }
-  .masthead .night-btn { order: 2; }
-  .masthead .continue-btn { order: 3; flex: 1; }
+  /* Two rows, and no wasted one. Giving the text 100% put the back arrow on a
+     line of its own with the whole width beside it empty (user: "where the arrow
+     is, there's a lot of space to the right of that - put club there as example
+     with date so everything moves up"). The arrow, the title and the date now
+     share row one, and the moon and Matchday take row two. */
+  .masthead-row { flex-wrap: wrap; row-gap: 6px; }
+  .mast-text {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .mast-text h1 { min-width: 0; }
+  /* the date keeps its own width and the title takes the ellipsis if either has
+     to give, because a truncated date tells you nothing */
+  .mast-text .date { flex: 0 0 auto; margin: 0; }
+  .mast-ctl { flex: 1 1 100%; display: flex; gap: 8px; align-items: center; }
+  .mast-ctl .continue-btn { flex: 1; }
   /* and a size down, because a 412px screen is not a 844px one */
   .masthead h1 { font-size: 17px; }
   .masthead .date { font-size: 11px; }
@@ -2582,6 +2597,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      screen. Inset the playing area and let the badges sit inside it. */
   .form-pitch { padding-left: 12px; padding-right: 12px; }
 
+  /* A table that scrolls sideways gets the same fade as the tab strip. On a
+     412px screen the squad and market tables are all wider than the screen, and
+     without an edge there is nothing to say the columns continue. */
+  .tblwrap {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
+  }
+
   /* THE TYPE LADDER, one step down across the board. The user asked for smaller
      text so more of it fits, and every truncation above was a symptom of type
      sized for a 844px-wide screen. */
@@ -2593,3 +2616,35 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .submenu-head { font-size: 12.5px; letter-spacing: 1px; }
   .submenu-item { font-size: 14.5px; padding-top: 11px; padding-bottom: 11px; }
 }
+
+/* The transfer filters on one row of their own. Equal flex with min-width 0 so
+   four controls divide whatever width there is instead of wrapping into three
+   rows and eating a third of a portrait screen before the results start.
+   
+   Its own class name, NOT .filter-row: the Squad screen already owns that one
+   for its six chips and a search box, and forcing equal flex on those crushed
+   every chip to 47px ("🚑 Unavailable" lost 35 characters' worth). Reusing a
+   layout class across two rows that want opposite behaviour is how that breaks. */
+.filter-line {
+  display: flex; gap: 6px; padding: 0 14px 2px; align-items: stretch;
+}
+.filter-line > .inline-input, .filter-line > .preset-chip {
+  flex: 1 1 0; min-width: 0; margin: 0;
+  font-size: 12px; padding-left: 7px; padding-right: 7px;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+@media (orientation: portrait) {
+  .filter-line { gap: 4px; }
+  .filter-line > .inline-input, .filter-line > .preset-chip {
+    font-size: 11px; padding-left: 5px; padding-right: 5px;
+  }
+}
+
+/* Results: a fixed score axis. See WeekResults for why three cells beat one. */
+.rs-h, .rs-a {
+  width: 30px; padding: 0; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.rs-h { text-align: right; }
+.rs-a { text-align: left; }
+.rs-d { width: 14px; padding: 0; text-align: center; color: var(--ink-faint); }

@@ -340,12 +340,16 @@ export default function App() {
             <h1>{cur.screen === 'home' ? (game.unemployed ? 'Unemployed' : club.name) : TITLES[cur.screen] ?? ''}</h1>
             <div className="date">{weekDate(game.season, game.week)} · {seasonLabel(game.season)} · Wk {game.week}</div>
           </div>
-          <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
-            {night ? <IcoSun /> : <IcoMoon />}
-          </button>
-          <button className="continue-btn" onClick={continueWeek}>
-            {(!game.unemployed && userFixtureThisWeek(game)) || natFixtureThisWeek(game) ? 'Matchday ▸' : 'Continue ▸'}
-          </button>
+          {/* grouped, so portrait can drop both onto one row of their own and
+              leave the first row to the back arrow, the title and the date */}
+          <div className="mast-ctl">
+            <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
+              {night ? <IcoSun /> : <IcoMoon />}
+            </button>
+            <button className="continue-btn" onClick={continueWeek}>
+              {(!game.unemployed && userFixtureThisWeek(game)) || natFixtureThisWeek(game) ? 'Matchday ▸' : 'Continue ▸'}
+            </button>
+          </div>
         </div>
       </header>
       <main className="content">{screen()}</main>

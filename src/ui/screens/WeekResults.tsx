@@ -40,7 +40,15 @@ export default function WeekResults({ param }: { param: string }) {
               <td className="name" style={{ textAlign: 'right' }}>
                 {teamShort(game, f.homeId)} <CrestT g={game} teamId={f.homeId} size={15} />
               </td>
-              <td className="num" style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>{f.homeScore} – {f.awayScore}</td>
+              {/* Three cells, not one string. As a single right-aligned cell the
+                  score's width changed with the digits ("7 – 40" against
+                  "42 – 15"), so the dash wandered from row to row and the
+                  column read as ragged (user: "scores arent centralised").
+                  Fixed-width halves either side of a fixed dash put every dash
+                  on the same axis down the page. */}
+              <td className="rs-h">{f.homeScore}</td>
+              <td className="rs-d">–</td>
+              <td className="rs-a">{f.awayScore}</td>
               <td className="name">
                 <CrestT g={game} teamId={f.awayId} size={15} /> {teamShort(game, f.awayId)}
               </td>
