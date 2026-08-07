@@ -58,12 +58,20 @@ const EXPECTED: string[] = [
   //
   // The A League has its own scoreline model and never enters this stream;
   // scripts/acadprobe.ts holds its distribution to the same band.
-  'leicester 43-19 newcastle',
-  'northampton 24-24 bath',
-  'bristol 20-6 saracens',
-  'exeter 9-14 harlequins',
-  'sale 42-25 gloucester',
-  'bath 31-10 leicester',
+  //
+  // REBASELINED for the 2025/26 Premiership squad merge. The whole stream depends
+  // on who is in the ten Premiership squads, and this round rebuilt them from the
+  // user's fact-checked guide: 151 men in, 80 out, and the fixture list itself
+  // therefore falls differently. Nothing mechanical changed - no dial was touched
+  // and the healthy band held at 52.4 points, 5.9 tries, 56% home, 2.1% draws.
+  // A data change of this size cannot leave the fingerprint alone, and pretending
+  // otherwise would mean keeping a baseline that no longer describes the game.
+  'harlequins 30-55 bath',
+  'sale 27-37 exeter',
+  'gloucester 19-3 saracens',
+  'leicester 44-38 bristol',
+  'northampton 62-16 newcastle',
+  'exeter 30-16 harlequins',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

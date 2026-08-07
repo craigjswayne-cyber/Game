@@ -26,11 +26,12 @@ const ALIAS: Record<string, string> = {
   'andy onyeama-christie': 'andy christie',
 }
 
-const key = (n: string) => {
-  const f = fold(n)
-  const a = ALIAS[f] ?? ALIAS[n.toLowerCase()]
-  return a ? fold(a) : f
-}
+// The alias table is written with the hyphens people actually use, so fold its
+// keys once here. Looking up a folded name in an unfolded table silently misses:
+// "Andy Onyeama-Christie" folds to "andy onyeama christie" and never matches an
+// "andy onyeama-christie" key.
+const ALIAS_FOLDED = new Map(Object.entries(ALIAS).map(([k, v]) => [fold(k), fold(v)]))
+const key = (n: string) => ALIAS_FOLDED.get(fold(n)) ?? fold(n)
 
 let add = 0, drop = 0, matched = 0
 const addRows: string[] = []
