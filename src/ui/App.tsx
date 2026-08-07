@@ -36,6 +36,7 @@ import SeasonReview from './screens/SeasonReview'
 import Agency from './screens/Agency'
 import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
+import Tutorial from './Tutorial'
 
 const TITLES: Record<string, string> = {
   home: 'Home', inbox: 'Inbox', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
@@ -60,14 +61,90 @@ const IcoSun = () => (
   </svg>
 )
 
-/** The game is a landscape experience - nudge portrait users to rotate. */
+/** The game is a landscape experience - nudge portrait users to rotate.
+ *
+ *  A nudge, not a wall (blocker A3). This veil covers the entire viewport in
+ *  portrait, and a phone with its rotation lock switched on will never leave
+ *  portrait no matter how it is held, so an escape hatch is the difference
+ *  between a hint and a locked door. */
 function RotateVeil() {
+  const ok = useStore(s => s.portraitOk)
+  if (ok) return null
   return (
     <div className="rotate-veil">
       <div className="phone">📱</div>
       <h2>Turn your phone sideways</h2>
       <p>Rugby Manager plays in landscape - like every good dugout view.</p>
+      <button className="btn ghost" onClick={() => useStore.getState().allowPortrait()}>
+        Play anyway
+      </button>
+      <p style={{ fontSize: 11.5 }}>Tables and the live pitch will be tight, but nothing is off limits.</p>
     </div>
+  )
+}
+
+/** A save that fails in silence is the worst failure a management game has
+ *  (blocker A4): you keep playing for two hours and lose all of it. */
+function SaveWarning() {
+  const fails = useStore(s => s.saveFail)
+  const msg = useStore(s => s.saveFailMsg)
+  if (!fails) return null
+  return (
+    <div className="save-warn">
+      <div>
+        <b>⚠ Save failed{fails > 1 ? ` (${fails} in a row)` : ''}.</b>{' '}
+        Nothing since your last successful save is being written to this phone. Usually this is storage:
+        clear some space, then press Continue. {msg ? <span className="save-warn-why">{msg}</span> : null}
+      </div>
+      <div className="save-warn-btns">
+        <button className="btn tiny gold" onClick={() => void useStore.getState().persist()}>Try again</button>
+        <button className="btn tiny ghost" onClick={() => useStore.getState().dismissSaveFail()}>Hide</button>
+      </div>
+    </div>
+  )
+}
+
+/** The trophy moment, the promotion, the challenge completed.
+ *
+ *  This block used to sit in App's function body as an orphaned statement
+ *  rather than inside the returned tree, so it was parsed, type-checked, and
+ *  never rendered: four systems wrote state.celebration and nothing ever showed
+ *  it or cleared it (blocker A5). */
+function Celebration() {
+  const game = useStore(s => s.game)
+  useStore(s => s.tick)
+  if (!game?.celebration) return null
+  const cel = game.celebration
+  return (
+    <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
+      {Array.from({ length: 26 }).map((_, i) => (
+        <i key={i} className="confetti" style={{
+          left: `${(i * 137) % 100}%`,
+          animationDelay: `${(i * 0.23) % 2.4}s`,
+          animationDuration: `${2.6 + (i % 5) * 0.5}s`,
+          background: ['#e3b92e', '#2e57ab', '#c0392f', '#2f7d4f', '#9fc2e8'][i % 5],
+        }} />
+      ))}
+      <div className="celebrate-box">
+        <div style={{ fontSize: 64, lineHeight: 1 }}>{cel.icon}</div>
+        <h1>{cel.headline}</h1>
+        <div className="sub">{cel.sub}</div>
+        <div className="muted" style={{ marginTop: 14 }}>Tap anywhere - the party carries on without you.</div>
+      </div>
+    </div>
+  )
+}
+
+/** Everything that floats above whatever screen you happen to be on. One
+ *  component so the five return paths through App cannot disagree about it. */
+function Overlays() {
+  return (
+    <>
+      <SaveWarning />
+      <Tutorial />
+      <Celebration />
+      <RotateVeil />
+    </>
   )
 }
 
@@ -87,8 +164,11 @@ function useOrientationLock() {
 interface MenuItem {
   ico: string
   label: string
+  /** doubles as the react key, so it stays required even for action items */
   screen: Screen
   badge?: number
+  /** opens something in place instead of navigating (How to play) */
+  action?: () => void
 }
 
 export default function App() {
@@ -103,34 +183,16 @@ export default function App() {
   const cur = nav[nav.length - 1]
   const appClass = `app${night ? ' night' : ''}`
 
-      {game?.celebration && (
-        <div className="celebrate-veil" onClick={() => { game.celebration = null; useStore.getState().touch() }}>
-          {Array.from({ length: 26 }).map((_, i) => (
-            <i key={i} className="confetti" style={{
-              left: `${(i * 137) % 100}%`,
-              animationDelay: `${(i * 0.23) % 2.4}s`,
-              animationDuration: `${2.6 + (i % 5) * 0.5}s`,
-              background: ['#e3b92e', '#2e57ab', '#c0392f', '#2f7d4f', '#9fc2e8'][i % 5],
-            }} />
-          ))}
-          <div className="celebrate-box">
-            <div style={{ fontSize: 64, lineHeight: 1 }}>{game.celebration.icon}</div>
-            <h1>{game.celebration.headline}</h1>
-            <div className="sub">{game.celebration.sub}</div>
-            <div className="muted" style={{ marginTop: 14 }}>Tap anywhere - the party carries on without you.</div>
-          </div>
-        </div>
-      )}
-  if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><RotateVeil /></div>
-  if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><RotateVeil /></div>
-  if (!game) return <div className={`${appClass} no-rail`}><Menu /><RotateVeil /></div>
+  if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
+  if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><Overlays /></div>
+  if (!game) return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
 
   if (cur.screen === 'matchday') {
     const mdClub = game.clubs[game.userClubId]
     return (
       <div className={`${appClass} no-rail`} style={{ '--club1': mdClub.colors[0], '--club2': mdClub.colors[1] } as CSSProperties}>
         <MatchDay />
-        <RotateVeil />
+        <Overlays />
       </div>
     )
   }
@@ -216,6 +278,8 @@ export default function App() {
         { ico: '👤', label: 'Manager Profile', screen: 'profile' },
         { ico: '📜', label: 'Manager Legacy', screen: 'legacy' },
         { ico: '📖', label: "The Manager's Handbook", screen: 'handbook' },
+        // dismissing the welcome dialog used to be final and irreversible
+        { ico: '❓', label: 'How to play', screen: 'home', action: () => useStore.getState().openTut() },
         { ico: '💾', label: 'Save / Load Game', screen: 'saves' },
       ],
     },
@@ -292,8 +356,8 @@ export default function App() {
           <div className="submenu" onClick={e => e.stopPropagation()}>
             <div className="submenu-head">{MENUS[menu].title}</div>
             {MENUS[menu].items.map(it => (
-              <button key={it.screen} className="submenu-item"
-                onClick={() => { setMenu(null); go(it.screen) }}>
+              <button key={it.label} className="submenu-item"
+                onClick={() => { setMenu(null); if (it.action) it.action(); else go(it.screen) }}>
                 <span className="mico">{it.ico}</span>
                 <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
                 {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
@@ -302,7 +366,7 @@ export default function App() {
           </div>
         </div>
       )}
-      <RotateVeil />
+      <Overlays />
     </div>
   )
 }

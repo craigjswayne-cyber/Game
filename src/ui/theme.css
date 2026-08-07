@@ -928,7 +928,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   max-width: 420px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
   font-size: 14px; line-height: 1.6;
+  /* four paragraphs of prose in a 360px-tall landscape viewport: without a
+     ceiling and a scroller the last two paragraphs and the close button were
+     off the bottom of the screen with no way to reach them (blocker A2). Same
+     pattern .modal has used all along. */
+  max-height: calc(100vh - 44px);
+  max-height: calc(100dvh - 44px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+.tut-close { margin-top: 14px; }
+.tut-close .btn { width: 100%; }
 .tut-box h3 { font-family: var(--sans); font-size: 17px; font-weight: 700; color: var(--gold-bright); margin-bottom: 8px; }
 .tut-box .muted { color: #9fb2a7; margin-top: 12px; }
 
@@ -1029,6 +1039,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   }
   .rotate-veil h2 { font-family: var(--sans); font-size: 19px; color: var(--gold-bright, #e3b92e); }
   .rotate-veil p { font-size: 13px; color: #9fb2a7; max-width: 260px; line-height: 1.5; }
+  /* the base ghost button is dark green ink for a cream card, which on this
+     veil is invisible - the escape hatch has to be seen to be an escape */
+  .rotate-veil .btn.ghost {
+    color: var(--gold-bright, #e3b92e);
+    border-color: rgba(227, 185, 46, .55);
+    padding: 11px 24px; font-size: 13px;
+  }
 }
 @keyframes rotate-hint {
   0%, 20% { transform: rotate(0); }
@@ -2159,11 +2176,29 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    Fit: auto-fit at a width that gives ten clubs two rows and fourteen clubs
    three, rather than a fixed column count that only suits one league size. */
 .club-tiles.wide { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+/* Club identity on the tile, without the tile looking broken.
+ *
+ *  User: "some clubs have a weird red around them". It was literal - the border
+ *  was 55% of the club's primary colour, so Saracens, Exeter, Gloucester and
+ *  Newcastle each sat inside a red ring, and a red ring around a control reads
+ *  as an error everywhere else in software. The 34% fill made it worse on the
+ *  dark theme: red over a near-black paper comes out a muddy maroon.
+ *
+ *  So the colour moves off the frame and onto a strip along the top: unmistakably
+ *  the club's, at full strength rather than washed out, and impossible to read as
+ *  a warning. The fill keeps a hint of the primary and the border stays neutral. */
 .club-tile {
+  position: relative;
+  overflow: hidden;
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--c1, #1c3f77) 34%, var(--paper)),
-                            color-mix(in srgb, var(--c2, #0b1c33) 22%, var(--paper)));
-  border-color: color-mix(in srgb, var(--c1, #1c3f77) 55%, var(--hairline));
+    linear-gradient(160deg, color-mix(in srgb, var(--c1, #1c3f77) 14%, var(--paper)),
+                            color-mix(in srgb, var(--c2, #0b1c33) 9%, var(--paper)));
+  border-color: var(--hairline);
+}
+.club-tile::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3.5px;
+  background: linear-gradient(90deg, var(--c1, #1c3f77) 0%, var(--c1, #1c3f77) 50%, var(--c2, #0b1c33) 50%, var(--c2, #0b1c33) 100%);
 }
 .club-tile b {
   font-size: 12px;
@@ -2201,11 +2236,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tile.sel, .speech-tile.sel {
   background: color-mix(in srgb, var(--pick) 26%, var(--paper));
 }
-/* the club tile keeps its own colours and takes the wash on top of them */
+/* the club tile keeps its colour strip and takes the wash on top of the fill */
 .club-tile.sel {
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--pick) 30%, color-mix(in srgb, var(--c1, #1c3f77) 34%, var(--paper))),
-                            color-mix(in srgb, var(--pick) 18%, color-mix(in srgb, var(--c2, #0b1c33) 22%, var(--paper))));
+    linear-gradient(160deg, color-mix(in srgb, var(--pick) 30%, color-mix(in srgb, var(--c1, #1c3f77) 14%, var(--paper))),
+                            color-mix(in srgb, var(--pick) 18%, color-mix(in srgb, var(--c2, #0b1c33) 9%, var(--paper))));
 }
 /* and the words brighten with the box, so the change is legible even to someone
    who cannot pick the ring out from the border */
@@ -2390,3 +2425,62 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* a dressing-room rift and the button that might end it (10H) */
 .rift-row { padding: 5px 0; border-bottom: 1px solid var(--hairline); }
 .rift-row:last-of-type { border-bottom: 0; }
+
+/* ---- the crash screen (blocker A1) --------------------------------------
+   Deliberately theme-independent: whatever went wrong, this has to render, so
+   it leans on literal colours rather than the custom properties a broken tree
+   might not have applied. */
+.crash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  background: linear-gradient(172deg, #0b3d2e, #071f18);
+  color: #ece7d8;
+  font-family: var(--sans, system-ui, sans-serif);
+  overflow-y: auto;
+}
+.crash-box {
+  max-width: 460px; width: 100%;
+  max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  background: #082b20;
+  border: 2px solid #e3b92e;
+  border-radius: 11px;
+  padding: 18px 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+}
+.crash-box h2 { font-size: 17px; font-weight: 700; color: #f0d98c; margin: 0 0 8px; }
+.crash-box p { font-size: 13px; line-height: 1.55; margin: 0 0 10px; color: #cfdcd4; }
+.crash-err {
+  font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.4;
+  white-space: pre-wrap; word-break: break-word;
+  background: rgba(0, 0, 0, .35); border-radius: 7px;
+  padding: 9px 10px; margin: 0 0 12px; color: #ffbfae;
+  max-height: 28vh; overflow-y: auto;
+}
+.crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
+.crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 13px; }
+.crash-btns .btn.ghost { color: #f0d98c; border-color: rgba(227, 185, 46, .5); }
+.crash-note { font-size: 11.5px; color: #8fa79b; margin-top: 11px; line-height: 1.45; }
+
+/* ---- the save-failed banner (blocker A4) --------------------------------
+   Top of the screen, above everything except the crash screen and the portrait
+   veil: a silent save failure is the one bug that eats a whole evening. */
+.save-warn {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 400;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px) * 0);
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+  background: linear-gradient(180deg, #8f2c22, #6f2019);
+  color: #ffe9e3;
+  font-family: var(--sans, system-ui, sans-serif);
+  font-size: 12px; line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+}
+.save-warn > div:first-child { flex: 1; min-width: 190px; }
+.save-warn b { color: #fff; }
+.save-warn-why { display: block; opacity: .75; font-size: 11px; margin-top: 2px; }
+.save-warn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.save-warn-btns .btn.ghost { color: #ffe9e3; border-color: rgba(255, 233, 227, .45); }

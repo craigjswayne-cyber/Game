@@ -38,9 +38,8 @@ export default function Home() {
     setOpenId(next?.id ?? null)
     touch()
   }
-  const [showTut, setShowTut] = useState(() => {
-    try { return localStorage.getItem('rm-tut') !== '1' && game.week === 1 && game.season === 0 } catch { return false }
-  })
+  // the welcome dialog moved out to App: it is an overlay over the whole game,
+  // not a piece of the Home screen, and it needed to be re-openable (blocker A2)
 
   const club = game.clubs[game.userClubId]
   const fx = userFixtureThisWeek(game) ?? game.fixtures
@@ -86,21 +85,6 @@ export default function Home() {
 
   return (
     <>
-      {showTut && (
-        <div className="tut-veil" onClick={() => { try { localStorage.setItem('rm-tut', '1') } catch { /* ok */ } setShowTut(false) }}>
-          <div className="tut-box">
-            <h3>Welcome to the dugout</h3>
-            Everything runs off <b>Continue</b> in the top corner - it advances the week, plays your match, and brings the world to your inbox.
-            <br /><br />
-            On match day: pick your XV, choose a <b>dressing-room speech</b>, and confirm you're ready. In play you can change tactics or make subs at <b>any stoppage</b> (📋), and when you win a kickable penalty, the call - posts, corner or tap - is yours.
-            <br /><br />
-            Between games: set the week's <b>Match Preparation</b> on the Tactics screen, praise or challenge players one-to-one from their <b>profile</b>, read <b>The Rugby Wire</b> for rumours, and build your coaching staff in <b>Training</b>. Impress, and a <b>national team</b> may come calling.
-            <br /><br />
-            Every system in the game is explained, in plain language and with the real numbers, in <b>The Manager's Handbook</b> under the Manager menu. It has a search box. Nothing here is meant to be a mystery.
-            <div className="muted">Tap anywhere to close.</div>
-          </div>
-        </div>
-      )}
       <div className="card-grid">
       {game.comps['sn'] && game.week >= SIX_NATIONS_WEEKS[0] - 1 && game.week <= SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1] && (() => {
         const rows = sortTable(game.comps['sn'].table).slice(0, 3)

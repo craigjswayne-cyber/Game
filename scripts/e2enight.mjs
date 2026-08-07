@@ -52,13 +52,29 @@ try {
   await page.click('.action-bar >> text=Confirm')
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-veil')
+  await page.click('.tut-close .btn')
   await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
   await shot('05-home')
 
   await page.click('.bottom-nav button[title="Squad"]')
   await page.waitForSelector('.dtable')
   await shot('06-squad')
+
+  // The filter row has to be ONE line. It was two: six chips plus a search box
+  // wrapped, and the search box got a whole row of its own, which on a 390px-tall
+  // phone costs a row of players. U23 came off, so it fits.
+  const filterRow = await page.evaluate(() => {
+    const row = document.querySelector('.filter-row')
+    const tops = [...row.children].map(c => c.getBoundingClientRect().top)
+    // a tolerance, not an equality: the text input sits a pixel lower than the
+    // chips because of its border, and an exact compare read that as a wrap
+    return { spread: Math.max(...tops) - Math.min(...tops), kids: row.children.length }
+  })
+  console.log(`squad filter row: ${filterRow.kids} controls, top spread ${filterRow.spread.toFixed(1)}px`)
+  if (filterRow.spread > 8) throw new Error(`squad filter row wrapped (${filterRow.spread.toFixed(0)}px of vertical spread)`)
+  if (await page.locator('.filter-row >> text=U23').count()) throw new Error('U23 chip is back')
+  // and no clipped summary line riding the tab bar
+  if (await page.locator('.tab-bar .filter-note').count()) throw new Error('the clipped squad summary line is back')
 
   // squad filters: availability chip + search
   await page.locator('.preset-chip >> text=🚑 Unavailable').click()
