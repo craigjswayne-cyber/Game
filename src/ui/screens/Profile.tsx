@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { mgrReputation, seasonLabel, type GameState, type Player } from '../../game/model'
+import { mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
 import { CHALLENGES } from '../../game/newgame'
 import { SectionTitle } from '../components'
 
@@ -86,6 +86,7 @@ export default function Profile() {
   const [confirmResign, setConfirmResign] = useState(false)
   const [confirmNatResign, setConfirmNatResign] = useState(false)
   const rep = mgrReputation(game)
+  const trust = squadTrust(game)
   const badge = badgeOf(rep)
   const club = game.clubs[game.userClubId]
   const m = game.mgr
@@ -101,11 +102,25 @@ export default function Profile() {
           {badge.name}
         </div>
         <div style={{ margin: '8px 30px 2px' }}>
+          {/* from 20, not 30: an unproven manager now starts on 22 and the old
+              floor drew him a negative bar */}
           <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${Math.round(((rep - 30) / 65) * 100)}%`, height: '100%', background: badge.color }} />
+            <div style={{ width: `${Math.max(0, Math.min(100, Math.round(((rep - 20) / 75) * 100)))}%`, height: '100%', background: badge.color }} />
           </div>
           <div className="meta" style={{ marginTop: 4 }}>
             Reputation {rep}{badge.next ? ` · ${badge.at! - rep} more to the ${badge.next} badge` : ' · the summit'}
+          </div>
+          {/* Trust has to be visible or it is just a hidden coefficient - the
+              same mistake the analyst's read made before it paid out. */}
+          <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', marginTop: 8 }}>
+            <div style={{ width: `${Math.round(trust)}%`, height: '100%', background: trust >= 68 ? '#2f7d4f' : trust >= 40 ? 'var(--gold)' : '#a12f2f' }} />
+          </div>
+          <div className="meta" style={{ marginTop: 4 }}>
+            Dressing room {Math.round(trust)}/100 · {trustWord(trust)}
+          </div>
+          <div className="meta" style={{ marginTop: 2, fontSize: 11 }}>
+            A team talk is worth {Math.round(trustFactor(game) * 100)}% of its full effect while they feel like this.
+            Win and it climbs; lose and it slides.
           </div>
         </div>
       </div>

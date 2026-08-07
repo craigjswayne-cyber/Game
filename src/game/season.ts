@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
-import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, weeklyCentral } from './model'
+import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -853,6 +853,14 @@ function boardReaction(state: GameState, fx: Fixture) {
   const mag = Math.max(0.8, us > them ? 2.5 + diff * 2 : 2.5 - diff * 2)
   if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF, 0, 100)
   else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF, 0, 100)
+
+  // The dressing room keeps its own book, and it is slower to move than the
+  // board's. Belief is earned a win at a time and it does not arrive in one
+  // good afternoon: the gains are smaller than the board's and the trust it
+  // takes a season to build can be spent in a bad month, which is the point.
+  // Beating a better side counts for more here too - players know who is good.
+  const trustMag = us > them ? 1.5 + Math.max(0, diff) * 1.6 : -(1.2 + Math.max(0, -diff) * 1.2)
+  state.mgrTrust = clamp(squadTrust(state) + trustMag * derbyF, 0, 100)
   // the derby ledger: every meeting with a rival is written down forever
   if (fx.derby) {
     const oppId = isHome ? fx.awayId : fx.homeId

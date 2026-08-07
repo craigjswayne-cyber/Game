@@ -699,6 +699,8 @@ export interface GameState {
   /** bumped on every appointment so the candidate market refreshes */
   staffSalt?: number
   mgr: ManagerStats
+  /** what the dressing room makes of you, 0-100. Optional so old saves load. */
+  mgrTrust?: number
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /** open managerial vacancies at AI clubs */
@@ -839,11 +841,59 @@ export interface GameState {
 }
 
 /** Managerial reputation earned from results and silverware, 30-95. */
+/**
+ * A name has to be made, not issued with the contract.
+ *
+ * This used to default an unplayed win rate to 0.4, so a manager who had never
+ * taken a training session started on 34 + 18 = 52 out of 95: a mid-career
+ * reputation before kick-off, and enough to be headhunted by two thirds of the
+ * clubs in the game (user: "reputation if starting fresh should take time to
+ * build"). Now nothing is assumed. An unknown starts at 22, and the win-rate
+ * term fades IN as the sample grows, so one lucky afternoon does not make a
+ * name and a bad month does not end one.
+ *
+ * Roughly: 22 cold, ~40 after a decent first season, ~50 after three, and the
+ * seventies need trophies.
+ */
 export function mgrReputation(state: GameState): number {
   const m = state.mgr
-  const winPct = m.m ? m.w / m.m : 0.4
-  const seasons = m.finishes.length
-  return Math.min(95, Math.round(34 + winPct * 46 + m.trophies.length * 7 + seasons * 1.5))
+  const games = m.m
+  const winPct = games ? m.w / games : 0
+  // how much the record counts for: half weight at 20 games, most of it by 60
+  const proven = games / (games + 20)
+  return Math.min(95, Math.round(
+    22 + winPct * 46 * proven + m.trophies.length * 7 + m.finishes.length * 1.5,
+  ))
+}
+
+/**
+ * What the dressing room makes of you, 0 to 100.
+ *
+ * A squad does not hand its belief to a stranger (user: "players take time to
+ * trust you fully, need to build confidence through good management"). Trust
+ * starts low for an unknown, a little higher for someone with a record, and
+ * moves on results and on whether your word turns out to be worth anything. It
+ * is not decoration: it scales how much of a team talk the room actually takes
+ * in, so the same speech is worth more in year three than on day one.
+ */
+export function squadTrust(state: GameState): number {
+  // no clamp import here on purpose: model.ts is a leaf that rng.ts must be
+  // able to stay out of, and Math.min/max says the same thing
+  return Math.max(0, Math.min(100, state.mgrTrust ?? 30))
+}
+
+/** Trust as a multiplier on a dressing-room effect: 0.45 cold, 1.0 fully bought in. */
+export function trustFactor(state: GameState): number {
+  return 0.45 + squadTrust(state) / 100 * 0.55
+}
+
+export function trustWord(v: number): string {
+  return v >= 85 ? 'They would run through a wall'
+    : v >= 68 ? 'The room is with you'
+    : v >= 50 ? 'Warming to you'
+    : v >= 32 ? 'Still making their minds up'
+    : v >= 16 ? 'Not convinced'
+    : 'They do not believe a word'
 }
 
 /** World Cup years: 2027, 2031, ... (in-game season index) */

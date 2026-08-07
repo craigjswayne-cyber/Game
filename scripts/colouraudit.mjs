@@ -16,6 +16,12 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 
+// ONE walk, two numbers. This used to be two separate page.evaluate passes, each
+// iterating document.querySelectorAll('*') and calling getComputedStyle on every
+// element - and getComputedStyle is the expensive part, because it forces style
+// resolution per node. Splitting canvas from content doubled an already slow
+// probe and pushed the whole run past fifteen minutes, which is how a useful
+// audit becomes one nobody waits for. Same data, gathered once.
 const MEASURE = () => {
   // rgb() / rgba() only - that is what getComputedStyle returns
   const parse = (s) => {
@@ -30,74 +36,57 @@ const MEASURE = () => {
   // when it reads as black. Chroma is max minus min: #0b1322 scores 0.09 and the
   // slate-grey accent #5c6470 scores 0.08, which is what the eye reports.
   const sat = ([r, g, b]) => (Math.max(r, g, b) - Math.min(r, g, b)) / 255
+  // area-weighted totals, over everything painted
   let area = 0, satArea = 0, greyArea = 0, vivid = 0
+  // and per-element totals over content only. The area-weighted average is
+  // dominated by the page and its cards, which a night theme paints near-black
+  // on purpose, so it drags toward grey however vivid the content is and the
+  // only way to "improve" it would be to tint the backdrop. The complaint was
+  // never about the backdrop; it was about the club colours, the chips and the
+  // numbers. Anything covering more than an eighth of the screen is canvas.
+  const CANVAS = 844 * 390 * 0.12
+  let cn = 0, cTot = 0, cGrey = 0, cVivid = 0
   for (const el of document.querySelectorAll('*')) {
     const r = el.getBoundingClientRect()
     if (r.width < 6 || r.height < 6 || r.bottom < 0 || r.top > window.innerHeight) continue
     const cs = getComputedStyle(el)
     if (cs.visibility === 'hidden' || cs.display === 'none') continue
-    const a = Math.min(r.width, 844) * Math.min(r.height, 390)
     // background if it paints one, otherwise the text colour it contributes
-    const bg = parse(cs.backgroundColor)
-    const fg = parse(cs.color)
-    const c = bg ?? fg
+    const c = parse(cs.backgroundColor) ?? parse(cs.color)
     if (!c) continue
     const s = sat(c)
+    const a = Math.min(r.width, 844) * Math.min(r.height, 390)
     area += a
     satArea += s * a
     if (s < 0.10) greyArea += a
     if (s > 0.30) vivid += a
+    if (r.width * r.height <= CANVAS) {
+      cn++; cTot += s
+      if (s < 0.10) cGrey++
+      if (s > 0.30) cVivid++
+    }
   }
   if (!area) return null
   return {
-    meanSat: +(satArea / area).toFixed(3),
-    greyShare: +(greyArea / area).toFixed(3),
-    vividShare: +(vivid / area).toFixed(3),
+    all: {
+      meanSat: +(satArea / area).toFixed(3),
+      greyShare: +(greyArea / area).toFixed(3),
+      vividShare: +(vivid / area).toFixed(3),
+    },
+    acc: cn ? { n: cn, mean: +(cTot / cn).toFixed(3), grey: +(cGrey / cn).toFixed(3), vivid: +(cVivid / cn).toFixed(3) } : null,
   }
 }
 
-// The average above is area-weighted, and on any screen the biggest painted
-// areas are the page and its cards. In night mode those are a near-black navy
-// by design, so they drag the mean toward grey no matter how vivid the content
-// is, and the only way to "improve" the number would be to tint the background -
-// which is the opposite of what the theme wants. The complaint was never about
-// the backdrop; it was about the club colours, the chips and the numbers.
-//
-// So measure those separately: elements small enough to be content rather than
-// canvas. This is the number a palette change should actually move.
-const MEASURE_ACCENTS = () => {
-  const parse = (s) => {
-    const m = /rgba?\(([^)]+)\)/.exec(s || '')
-    if (!m) return null
-    const [r, g, b, a] = m[1].split(',').map(x => parseFloat(x))
-    if (a != null && a < 0.35) return null
-    return [r, g, b]
-  }
-  const sat = ([r, g, b]) => (Math.max(r, g, b) - Math.min(r, g, b)) / 255
-  const CANVAS = 844 * 390 * 0.12 // anything covering an eighth of the screen is backdrop
-  let n = 0, tot = 0, grey = 0, vivid = 0
-  for (const el of document.querySelectorAll('*')) {
-    const r = el.getBoundingClientRect()
-    if (r.width < 6 || r.height < 6 || r.bottom < 0 || r.top > window.innerHeight) continue
-    if (r.width * r.height > CANVAS) continue
-    const cs = getComputedStyle(el)
-    if (cs.visibility === 'hidden' || cs.display === 'none') continue
-    const c = parse(cs.backgroundColor) ?? parse(cs.color)
-    if (!c) continue
-    const s = sat(c)
-    n++; tot += s
-    if (s < 0.10) grey++
-    if (s > 0.30) vivid++
-  }
-  if (!n) return null
-  return { n, mean: +(tot / n).toFixed(3), grey: +(grey / n).toFixed(3), vivid: +(vivid / n).toFixed(3) }
-}
-
-const both = async (pg) => ({ all: await pg.evaluate(MEASURE), acc: await pg.evaluate(MEASURE_ACCENTS) })
+const both = async (pg) => await pg.evaluate(MEASURE)
+// progress as it goes: this printed nothing until the very end, so a stall
+// looked identical to a slow run and there was no way to tell which screen ate
+// the clock
+const step = (s) => console.log(`  [${new Date().toISOString().slice(11, 19)}] ${s}`)
 const rows = []
 try {
   await page.goto('http://localhost:4179/')
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
+  step('measuring title')
   rows.push(['title', await both(page)])
 
   await page.click('text=New Career')
@@ -114,6 +103,7 @@ try {
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   await page.waitForSelector('text=Welcome to Northampton', { timeout: 15000 })
+  step('measuring home')
   rows.push(['home', await both(page)])
 
   // These used to click .bottom-nav button[title="Squad"] / "Tactics" / "Club"
@@ -135,6 +125,7 @@ try {
     await page.click(`.submenu-item >> text=${item}`)
     await page.waitForSelector(anchor, { timeout: 12000 })
     await page.waitForTimeout(400)
+    step(`measuring ${label}`)
     rows.push([label, await both(page)])
   }
 
@@ -143,6 +134,7 @@ try {
   await page.waitForTimeout(400)
   await page.click('.continue-btn', { timeout: 8000 }).catch(() => {})
   await page.waitForSelector('.mday-head', { timeout: 12000 }).catch(() => {})
+  step('measuring matchday')
   rows.push(['matchday', await both(page)])
 
   console.log('screen        canvas-weighted        content only')
