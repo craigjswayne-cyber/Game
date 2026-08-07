@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#24478f" />
+    <!-- Without this, Samsung Internet and Chrome for Android decide for
+         themselves that a page declaring --paper: #ffffff is a light page and
+         apply their own algorithmic dark mode ON TOP of night mode. That
+         re-tints the night cards from #112544 navy to mid-grey, which is why
+         the game looked grey on the phone while every headless measurement in
+         scripts/colouraudit.mjs read the real CSS and saw navy. Saying the page
+         handles both schemes itself turns force-dark off. -->
+    <meta name="color-scheme" content="dark light" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />

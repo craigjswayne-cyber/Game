@@ -332,7 +332,11 @@ export default function App() {
           {nav.length > 1
             ? <button className="back-btn" onClick={back}>‹</button>
             : null}
-          <div style={{ flex: 1, minWidth: 0 }}>
+          {/* named, not an inline style, so portrait can give it the whole width
+              and drop the controls onto a second row - at 412px the back button,
+              the moon and Matchday left the title about 200px and every club
+              name and screen title arrived truncated */}
+          <div className="mast-text">
             <h1>{cur.screen === 'home' ? (game.unemployed ? 'Unemployed' : club.name) : TITLES[cur.screen] ?? ''}</h1>
             <div className="date">{weekDate(game.season, game.week)} · {seasonLabel(game.season)} · Wk {game.week}</div>
           </div>

@@ -33,6 +33,11 @@
 }
 
 :root {
+  /* The CSS half of the force-dark fix (the meta tag in index.html is the other
+     half). A mobile browser only leaves a dark page alone if the page says it
+     can handle dark itself; otherwise it inverts and desaturates whatever it
+     finds, which turned every night card grey on the device. */
+  color-scheme: light dark;
   --green-950: #1b3468;
   --green-900: #24478f;
   --green-800: #2e57ab;
@@ -83,6 +88,9 @@
 
 /* ============ Floodlit mode (night theme) ============ */
 .app.night {
+  /* night is committed dark, so say so outright: this is what stops the browser
+     second-guessing the palette and washing the navy out to grey */
+  color-scheme: dark;
   /* the night surfaces carried almost no chroma either: a navy this dark reads as
      black, so the cards, the page and the hairlines were all grey. More blue in
      the same lightness band keeps the mood and gives the gold something to sit
@@ -363,6 +371,7 @@ input, select { font: inherit; }
    calc(100% - 28px) on every one of them, which no grid could override */
 button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--green-900); margin-bottom: 3px; letter-spacing: .1px; }
+.fx-line { font-size: 18px; margin: 4px 0; }
 .card .meta { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
 
 /* ================= News ================= */
@@ -2497,3 +2506,90 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .save-warn-why { display: block; opacity: .75; font-size: 11px; margin-top: 2px; }
 .save-warn-btns { display: flex; gap: 6px; flex-shrink: 0; }
 .save-warn-btns .btn.ghost { color: #ffe9e3; border-color: rgba(255, 233, 227, .45); }
+
+/* ------------------------------------------------------------------
+   PORTRAIT
+   ------------------------------------------------------------------
+   Portrait used to be a blocked orientation with a "play anyway" escape, so the
+   only thing the portrait media query held was the rotate veil and nothing in
+   here had ever been laid out for a tall narrow screen. The user plays in
+   portrait, so it is a real layout now.
+   
+   Everything below is driven by measurements from scripts/portraitqa.mjs at
+   412x915 (a 1080x2340 phone at DPR 2.625) rather than guesswork. */
+@media (orientation: portrait) {
+  /* THE MASTHEAD, two rows. One row gave the back button, the moon and the
+     Matchday button first call on 412px and left the title about 200px, so
+     "Northampton Saints" arrived as "Northampton Sai...", "Full-Time Roundup"
+     as "Full-Time Rou..." and "Selection & Tactics" as "Selection & T...".
+     Wrapping the row and letting the text take the full width fixes all three
+     at once, and it makes Matchday a much bigger target into the bargain. */
+  .masthead-row { flex-wrap: wrap; row-gap: 8px; }
+  .mast-text { flex: 1 1 100%; min-width: 0; order: 1; }
+  .masthead .back-btn { order: 0; }
+  .masthead .night-btn { order: 2; }
+  .masthead .continue-btn { order: 3; flex: 1; }
+  /* and a size down, because a 412px screen is not a 844px one */
+  .masthead h1 { font-size: 17px; }
+  .masthead .date { font-size: 11px; }
+
+  /* THE TAB BAR. Selection/Tactics/Set Piece/Bench/Prep/Game Plan is six tabs;
+     at 412px they do not fit at any legible size, and "Game Plan" sat 126px off
+     the right edge with nothing to say the strip scrolled. So keep the scroll,
+     tighten the type, and put a fade on the edge that is actually scrollable so
+     the gesture is discoverable. */
+  .tab-bar { scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-bar button { padding: 10px 11px 8px; font-size: 12.5px; letter-spacing: .4px; }
+  /* Faded on the right, permanently, because six tabs never fit 412px at any
+     legible size - so the strip is always scrollable and a fade that is always
+     there is telling the truth. A mask rather than an overlay element, so it
+     needs no markup and cannot be scrolled away with the content. */
+  .tab-bar {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+  }
+
+  /* THE CLUB PICKER, two across rather than three. Not a truncation fix - the
+     harness proved the clipped "Northampton" was the wizard breadcrumb, not the
+     tile - but 190px tiles are a better thumb target than 125px ones. */
+  .tile-grid.club-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+  /* THE WIZARD BREADCRUMB. Four equal chips across 412px is 92px each, and the
+     chip carries the choice rather than the step name, so "NORTHAMPTON" arrived
+     as "IORTHAMP...". Smaller, tighter, and the live step gets the extra room
+     because it is the one holding a club name. */
+  .crumb { font-size: 10px; letter-spacing: .2px; padding-left: 4px; padding-right: 4px; }
+  .crumb.on { flex: 1.6; }
+
+  /* THE HOME DASHBOARD. Fixtures / Finances / Medical three-up left the fixture
+     column 43px of text, which is about six characters - "La Rochelle" became
+     "La Ro..." and "MEDICAL CENTRE" wrapped onto two lines. Two up, and the odd
+     panel takes the full width of the last row. */
+  .dash-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+  /* the next-match line, sized here rather than inline so this rule can reach it */
+  .fx-line { font-size: 16px; }
+
+  /* A section title is a heading and a hint competing for one 412px row, and the
+     hint lost ("tap two to swap" was cut). Let it wrap onto its own line: the
+     nowrap that keeps it tidy in landscape is what clips it here. */
+  .section-title { flex-wrap: wrap; }
+  .section-title .sub { flex-basis: 100%; text-align: left; }
+
+  /* THE PITCH. The shirt tiles are absolutely positioned as a percentage of the
+     pitch, so the rightmost winger's shirt number hung off the edge of a narrow
+     screen. Inset the playing area and let the badges sit inside it. */
+  .form-pitch { padding-left: 12px; padding-right: 12px; }
+
+  /* THE TYPE LADDER, one step down across the board. The user asked for smaller
+     text so more of it fits, and every truncation above was a symptom of type
+     sized for a 844px-wide screen. */
+  .section-title { font-size: 13.5px; }
+  .card h3, .news-item .subj { font-size: 15px; }
+  .card .meta, .news-item .body { font-size: 11.5px; }
+  .dtable { font-size: 12px; }
+  .dtable td.name { font-size: 12px; }
+  .submenu-head { font-size: 12.5px; letter-spacing: 1px; }
+  .submenu-item { font-size: 14.5px; padding-top: 11px; padding-bottom: 11px; }
+}
