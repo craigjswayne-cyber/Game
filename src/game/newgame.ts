@@ -102,6 +102,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     shortlist: [],
     staff: { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0, academyCoach: 0 },
     mgr: { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 },
+    // The room has never met you. 26 is "still making their minds up" territory:
+    // they will listen, but a speech from a stranger is only worth half of one
+    // from a manager who has delivered. Earned back through results.
+    mgrTrust: 26,
     challenge: challengeId,
     vacancies: [],
     devFocus: [],

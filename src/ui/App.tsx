@@ -253,14 +253,17 @@ export default function App() {
    *
    *  Now it reads top to bottom the way a matchday does: the news first,
    *  because that is what has happened since you last looked; Home; the
-   *  Pre-Match Hub, which is everything about the team you are about to put out
+   *  Hub, which is everything about the team and the club you run
    *  - selection, the squad, fitness, fixtures, money, the academy, the staff;
    *  then the manager, then the wider world. Four groups, in the user's order,
    *  and nothing lost - the World group keeps the things that are nobody's club
    *  in particular. */
   const MENUS: Record<'hub' | 'world' | 'manager', { title: string; items: MenuItem[] }> = {
     hub: {
-      title: `${club.short} · Pre-Match Hub`,
+      // just "Hub" (user: "scrap the pre match"). It was never only pre-match -
+      // finances, the academy and the infrastructure live here too - and on a
+      // 412px screen the longer name wrapped the menu heading onto two lines.
+      title: `${club.short} · Hub`,
       items: [
         { ico: '📋', label: 'Selection & Tactics', screen: 'tactics' },
         { ico: '🏉', label: 'Squad', screen: 'squad' },
