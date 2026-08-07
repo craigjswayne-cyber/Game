@@ -37,7 +37,7 @@ import { facLevel, XV_SLOTS } from './model'
 // redeclared so the two calendars can never drift apart.
 import { LEAGUE_WEEKS } from './schedule'
 import { buildPlayer } from './attributes'
-import { regenName } from './nations'
+import { regenName, worldNames } from './nations'
 
 /** A senior squad is 38. An academy is 27: a XV, a bench, and cover for the
  *  half of them who are away with age-group sides or carrying something. */
@@ -115,7 +115,7 @@ export function topUpAcademy(state: GameState, club: Club, rng: Rng, seedBase = 
   for (const pos of Object.keys(want) as Pos[]) {
     for (let k = have[pos] ?? 0; k < (want[pos] ?? 0); k++) {
       const p = buildPlayer({
-        name: regenName(rng, club.country === 'EUR' ? 'ENG' : club.country),
+        name: regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, worldNames(state)),
         pos,
         age: 17 + Math.floor(rng() * 3),
         nat: club.country === 'EUR' ? 'ENG' : club.country,

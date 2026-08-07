@@ -4,7 +4,7 @@ import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { autoSelect } from './matchEngine'
-import { regenName } from './nations'
+import { regenName, worldNames } from './nations'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
 import { seedStaffPeople } from './staff'
@@ -164,7 +164,7 @@ export function migrate(s: GameState): GameState {
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
         boardConfidence: 70,
         captain: null,
-        coach: regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country),
+        coach: regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s)),
       }
       for (const rp of rc.players) {
         const p = buildPlayer(rp, club.id, (0xadd1e ^ hashString(rc.id)) + club.players.length * 13, s.season)
@@ -193,7 +193,7 @@ export function migrate(s: GameState): GameState {
         const pos = [...FILL].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
         const p = buildPlayer(
           {
-            name: regenName(rng, club.country), pos, age: 21 + Math.floor(rng() * 9),
+            name: regenName(rng, club.country, worldNames(s)), pos, age: 21 + Math.floor(rng() * 9),
             nat: club.country, q: Math.max(42, club.rep - 16 + Math.floor(rng() * 10)),
             gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3,
           },

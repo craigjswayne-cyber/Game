@@ -66,12 +66,17 @@ const EXPECTED: string[] = [
   // and the healthy band held at 52.4 points, 5.9 tries, 56% home, 2.1% draws.
   // A data change of this size cannot leave the fingerprint alone, and pretending
   // otherwise would mean keeping a baseline that no longer describes the game.
-  'harlequins 30-55 bath',
-  'sale 27-37 exeter',
-  'gloucester 19-3 saracens',
-  'leicester 44-38 bristol',
-  'northampton 62-16 newcastle',
-  'exeter 30-16 harlequins',
+  // REBASELINED again, one round later, for the unique-name work. The name pools
+  // went from twelve of each to thirty-six and regenName now retries against a
+  // registry, so a generated player consumes a different number of rng draws than
+  // he used to and every stream downstream of him shifts. Names only: no dial, no
+  // rating, no rule. Band held at 52.7 points, 6.0 tries, 55% home, 2.4% draws.
+  'gloucester 70-31 newcastle',
+  'bristol 25-14 sale',
+  'leicester 20-16 northampton',
+  'exeter 9-14 bath',
+  'saracens 38-20 harlequins',
+  'sale 30-16 gloucester',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

@@ -200,10 +200,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         if (p && !p.acad) byPos[p.pos] = (byPos[p.pos] ?? 0) + 1
       }
       const pos = want ?? [...FILL_POS].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
-      let name = regenName(rng, club.country)
-      let guard = 0
-      while (seenNames.has(name.toLowerCase()) && guard++ < 10) name = regenName(rng, club.country)
-      seenNames.add(name.toLowerCase())
+      // seenNames already holds every real player in the world, so the guard has
+      // the whole database to avoid and not just the generated men before him.
+      // regenName does the retrying and the registering now.
+      const name = regenName(rng, club.country, seenNames)
       const p = buildPlayer(
         { name, pos, age, nat: club.country, q, gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3 },
         club.id, seed + club.players.length * 31 + i, 0)
@@ -254,7 +254,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     const nat = GEM_NATS[i % GEM_NATS.length]
     const p = buildPlayer(
       {
-        name: regenName(rng, nat), pos: GEM_POS[i % GEM_POS.length],
+        name: regenName(rng, nat, seenNames), pos: GEM_POS[i % GEM_POS.length],
         age: 18 + Math.floor(rng() * 3), nat,
         q: 55 + Math.floor(rng() * 12), gk: rng() < 0.15,
       },
@@ -323,7 +323,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.legendOf = []
   // every dugout has a name in it
   for (const club of Object.values(state.clubs)) {
-    if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country)
+    if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames)
   }
 
   // initial lineups for every club
