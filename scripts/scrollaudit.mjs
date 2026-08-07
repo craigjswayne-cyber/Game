@@ -125,7 +125,19 @@ try {
   // Policing the total would only ever mean showing fewer of them.
   // 'handbook' joins them: it is a searchable index of 49 topics, and the only
   // way to shorten it is to write about less of the game.
-  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home', 'handbook'])
+  //
+  // 'tactics: selection' joins them too, and this one was argued out with the
+  // measurements rather than waved through. It is 816px on a 390px screen:
+  // tab bar 42, heading 34, the starting XV 309 (fifteen men, already two-up at
+  // 38px a row), the bench 182 (eight men, also two-up) and the Leadership card
+  // 225. That is 23 named players plus the armband on one page, and the obvious
+  // compression was tried and reverted: putting the bench beside Leadership
+  // saved 154px but gave four columns of team-sheet data across a 756px content
+  // area, 191px each, and the tables painted over each other (see the .sel-split
+  // note in theme.css). A bench you cannot read is worse than one more swipe.
+  // The only remaining fat is ~50px of static help text, and shaving that to
+  // land at 1.97 would be gaming the threshold, not improving the screen.
+  const LISTS = new Set(['squad', 'fixtures', 'transfers', 'scouting agency', 'international rugby', 'home', 'handbook', 'tactics: selection'])
   rows.sort((a, b) => b.screens - a.screens)
   console.log('\nscreenfuls  screen')
   for (const r of rows) {

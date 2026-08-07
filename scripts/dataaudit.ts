@@ -5,7 +5,7 @@
 import { LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { CLUB_CAPTAINS, sameName } from '../src/data/captains'
-import { VERIFIED_CLUB } from '../src/data/verified'
+import { VERIFIED_CLUB, verifiedClub } from '../src/data/verified'
 import { EXTRA_PLAYERS } from '../src/data/additions'
 import { POS_ORDER, type Pos } from '../src/game/model'
 
@@ -126,14 +126,30 @@ if (dupes.length > DUPE_BUDGET) {
   bad(`${dupes.length} duplicate names, up from ${DUPE_BUDGET} - new data added a collision`)
 }
 if (dupes.length) {
-  // A duplicate already named in the relocation table is not outstanding work:
-  // the builder places him by hand and drops the other listing. Reporting the
-  // raw count hid that, and the 7am audit read 33 senior duplicates when 12 of
-  // them were already resolved. Only the unresolved ones are worth printing.
-  const done = new Set(Object.keys(VERIFIED_CLUB))
-  const open = seniorDupes.filter(d => !done.has(d.slice(0, d.indexOf(':')).toLowerCase()))
-  warn(`${dupes.length} players are listed at two clubs (${seniorDupes.length} between senior clubs, ${open.length} of those not yet resolved by hand)`)
+  // A duplicate already resolved is not outstanding work: the builder places
+  // him at the named club and drops the other listing. Reporting the raw count
+  // hid that, and the 7am audit read 33 senior duplicates when 12 were settled.
+  //
+  // This then made the same mistake one level down. It asked only the
+  // hand-written VERIFIED_CLUB table, but the Premiership guide merge added a
+  // DERIVED resolver on top of it, so fifteen men the guide had already settled
+  // were still being reported as work to do - every one of them built exactly
+  // once, at exactly the right club. Ask the resolver, which is the thing the
+  // builder itself asks.
+  const open = seniorDupes.filter(d => !verifiedClub(d.slice(0, d.indexOf(':'))))
+  warn(`${dupes.length} players are listed at two clubs (${seniorDupes.length} between senior clubs, ${open.length} of those not yet resolved)`)
   for (const d of open) console.warn(`      ${d}`)
+  // and the resolution has to be real, not just present: a senior duplicate the
+  // resolver claims to have settled must be built once and land where it says.
+  for (const d of seniorDupes) {
+    const name = d.slice(0, d.indexOf(':'))
+    const want = verifiedClub(name)
+    if (!want) continue
+    const built = Object.values(world.players).filter(p => p.name === name)
+    if (built.length !== 1) { bad(`${name} is resolved to ${want} but built ${built.length} times`); continue }
+    const at = Object.values(world.clubs).find(c => c.players.includes(built[0].id))?.id
+    if (at !== want) bad(`${name} is resolved to ${want} but landed at ${at}`)
+  }
 }
 
 // 2b. The verified relocation table. Checking the first handful of duplicates
@@ -197,6 +213,13 @@ for (const club of allClubs) {
   const ages = builtSquad(club.id).filter(p => !p.acad).map(p => p.age)
   const vets = ages.filter(a => a >= 30).length
   const kids = ages.filter(a => a <= 23).length
+  // Zebre, the Lions, the Hurricanes and the Drua all top out at exactly 29,
+  // which is reference data entered without its veterans rather than a fact
+  // about those clubs. Measured before deciding whether it mattered: all four
+  // reach the normal band (3 to 7 men aged 30+) inside one season and are
+  // indistinguishable from Leicester by season 2, so the only thing it costs is
+  // the look of four AI squad lists in week 1. Left as a warning rather than
+  // patched, because inventing ages for real people is not a fix.
   if (vets < 2) warn(`${club.id} has ${vets} players aged 30+`)
   if (kids < 3) warn(`${club.id} has ${kids} players aged 23 or under`)
   if (ages.some(a => a < 17 || a > 41)) bad(`${club.id} has an implausible age: ${ages.filter(a => a < 17 || a > 41).join(', ')}`)
