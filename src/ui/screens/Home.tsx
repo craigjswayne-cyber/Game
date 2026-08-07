@@ -143,7 +143,10 @@ export default function Home() {
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
             Next match · {comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
-          <h3 style={{ fontSize: 18, margin: '4px 0' }}>
+          {/* a class, not an inline font-size: inline wins over any media query,
+              so portrait could not shrink this and "Northampton v La Rochelle"
+              lost 20px off the end of the opponent's name at 412px */}
+          <h3 className="fx-line">
             <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} v <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
           </h3>
           <div className="meta">
