@@ -8,7 +8,7 @@ import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
-import { nationByCode, regenName } from './nations'
+import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
@@ -301,7 +301,7 @@ function agePlayers(state: GameState, rng: Rng) {
       const club = state.clubs[clubId]
       const q = 42 + Math.floor(rng() * 14)
       const raw = {
-        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country),
+        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country, worldNames(state)),
         pos: p.pos, age: 17 + Math.floor(rng() * 2), nat: p.nat, q,
         gk: p.gk && rng() < 0.6,
       }
@@ -479,7 +479,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
     // of Excellence tilts the odds your way
     const wonder = rng() < 0.085 + coe * 0.012
     out.push({
-      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
+      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
       pos, age: 17 + Math.floor(rng() * 2), q,
       pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
       gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
@@ -554,7 +554,7 @@ function youthIntake(state: GameState, rng: Rng) {
       const pos = pick(rng, YOUTH_POS)
       const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + natTalentBonus(club.country)
       const raw = {
-        name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country),
+        name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
@@ -586,7 +586,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const nat = pick(rng, nats)
     const pos = pick(rng, YOUTH_POS)
     const q = 54 + Math.floor(rng() * 12)
-    const raw = { name: regenName(rng, nat), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
+    const raw = { name: regenName(rng, nat, worldNames(state)), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
     const a = deriveAttrs(raw, state.seed + state.season * 3011 + i)
     const p: Player = {
       id: nextPid(),
@@ -637,7 +637,7 @@ function replenishSquads(state: GameState, rng: Rng) {
         // not raise the senior count, so the loop would spin to its guard and
         // hand the club twenty-five schoolboys it did not need.
         const raw = {
-          name: regenName(rng, club.country), pos: need,
+          name: regenName(rng, club.country, worldNames(state)), pos: need,
           age: 19 + Math.floor(rng() * 2), nat: club.country,
           q: clamp(40 + Math.floor(rng() * 12) + Math.floor(club.rep / 14), 38, 62),
           gk: (need === 'FH' || need === 'FB') && rng() < 0.3,

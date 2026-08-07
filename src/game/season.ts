@@ -10,7 +10,7 @@ import { scoutOpponent, weeklyScouting } from './scout'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
-import { nationByCode, regenName } from './nations'
+import { nationByCode, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission } from './commission'
@@ -345,7 +345,7 @@ function manageInternationals(state: GameState, rng: Rng) {
             const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
             const hp = buildPlayer(
               {
-                name: regenName(rng, nat), pos: POS_CYCLE[i % POS_CYCLE.length],
+                name: regenName(rng, nat, worldNames(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
                 age: 22 + Math.floor(rng() * 9), nat, q,
                 gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
               },
