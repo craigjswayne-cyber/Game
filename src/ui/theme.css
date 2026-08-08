@@ -181,6 +181,16 @@
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body, #root { height: 100%; }
+/* PULL-TO-REFRESH IS A GAME-LOSING GESTURE HERE.
+   A drag downwards on the phone reloaded the page, and a reload mid-match throws
+   the live match away - the eighty minutes are held in memory, not in the save.
+   The player's word for that was "it restarted the game", which is exactly what
+   it looks like from the outside.
+   body already carried overscroll-behavior: none, and that was not enough:
+   Chrome starts the gesture on the SCROLLING element, so the rule has to be on
+   the scroller as well as on the document. Both, plus every inner scroller, or
+   the chain finds its way back to the document and pulls. */
+html { overscroll-behavior: none; }
 /* mobile browsers: 100% of html can undershoot when the URL bar collapses,
    leaving a dead band below the app - dvh tracks the real visible height */
 @supports (height: 100dvh) {
@@ -291,6 +301,9 @@ input, select { font: inherit; }
 .content {
   flex: 1;
   overflow-y: auto;
+  /* see the note by html: this is the element the drag actually starts on, so
+     this is the one that has to refuse to chain the gesture to the browser */
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 10px;
 }
@@ -774,6 +787,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .modal {
   background: var(--cream); width: 100%; max-width: 560px; max-height: 80vh; overflow-y: auto;
+  overscroll-behavior-y: contain;
   border-radius: 16px 16px 0 0;
   padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
   box-shadow: 0 -12px 40px rgba(0, 0, 0, .35);
@@ -2096,9 +2110,29 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    changes are one visit. Tuned for a 300px-tall landscape phone: the columns
    scroll, the header and the Done button do not. */
 .squad-sheet { max-height: 94vh; display: flex; flex-direction: column; }
-.sheet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+/* STICKY, because the heading is where the injured man's name lives.
+   A phone screenshot showed the sheet scrolled down to reach the bench with the
+   title off the top of the screen: the manager was being asked to replace
+   somebody the screen was no longer naming. "It wasn't clear who it is." */
+.sheet-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  position: sticky; top: 0; z-index: 2;
+  background: var(--cream);
+  padding: 4px 0 3px;
+  box-shadow: 0 6px 8px -6px rgba(0, 0, 0, .35);
+}
 .sheet-head h3 { font-size: 16px; margin: 2px 0; }
 .sheet-hint { margin: 2px 0 6px; }
+/* the casualty, on his own line and impossible to miss */
+.sheet-casualty {
+  font-size: 13px; font-weight: 600;
+  color: var(--ink);
+  background: var(--paper);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin: 2px 0 5px;
+}
 .sheet-cols {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px; flex: 1; min-height: 0;
@@ -2110,13 +2144,39 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    and the bench ratings were cut in half (user screenshot).
 
    One column, and give the modal the padding every other card on the screen has. */
+.sheet-col { min-width: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+
+/* PORTRAIT OVERRIDES SIT HERE, AFTER THE BASE RULES.
+   They were above them, and lost: `.sheet-col { overflow-y: auto }` came later in
+   the file, so at equal specificity the base rule won and the two nested
+   scrollers survived the fix. The probe measured 2 inner scrollers and said so.
+   CSS order is not a detail when the override is the bug fix. */
 @media (orientation: portrait), (max-width: 639px) {
   .sheet-cols { grid-template-columns: minmax(0, 1fr); gap: 4px; }
   .squad-sheet { padding-left: 12px; padding-right: 12px; }
   /* the two column captions become section dividers rather than table headings */
   .sheet-col .fact-label { padding-top: 8px; }
+
+  /* ---- AND IT HAS TO SCROLL AS ONE PAGE ----
+     Reported from a real phone: "when she tried to make subs in game she
+     couldn't scroll". In portrait the two columns stack, and each .sheet-col
+     kept its own overflow-y: auto - so the 23 rows were split across two
+     independent scrollers, each a couple of hundred pixels tall, nested inside
+     a .squad-sheet whose flex column stopped the modal itself from scrolling.
+     The bench was there, and unreachable.
+     Landscape genuinely wants two side-by-side scrollers. Portrait wants one
+     document. So portrait hands the scrolling back to the sheet. */
+  .sheet-cols { display: block; flex: none; min-height: 0; overflow: visible; }
+  .sheet-col { overflow: visible; max-height: none; }
+  .squad-sheet {
+    display: block;
+    max-height: 88vh;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
-.sheet-col { min-width: 0; overflow-y: auto; }
+
 .sheet-row {
   display: flex; align-items: center; gap: 6px; width: 100%;
   padding: 5px 7px; margin-bottom: 3px;

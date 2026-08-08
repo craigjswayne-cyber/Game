@@ -190,6 +190,73 @@ try {
   const beforeExit = await subsLeft()
   ok(beforeExit === before - 2, `two changes in one visit spent two of the five (${before} -> ${beforeExit})`)
   ok(await page.locator('.sheet-log').count() >= 2, 'both changes are reported in the sheet')
+  // ---- CAN A THUMB ACTUALLY REACH THE BENCH? ----
+  //
+  // Reported from a real phone: "when she tried to make subs in game she
+  // couldn't scroll", with a screenshot showing the On The Pitch list cut off at
+  // shirt 7 and the bench cut off mid-row. Everything above passed while that was
+  // true, because counting rows finds elements the eye cannot reach and clicking
+  // the FIRST bench row never needs to scroll at all.
+  //
+  // In portrait the two columns stack, and each .sheet-col kept its own
+  // overflow-y: auto - so 23 rows were split between two nested scrollers a few
+  // hundred pixels tall, inside a .squad-sheet whose flex column stopped the modal
+  // scrolling. Portrait now hands the scrolling back to the sheet.
+  //
+  // MEASURED AT THE HEIGHT A PHONE ACTUALLY HAS. The first cut of this check
+  // asserted the sheet must scroll and failed on its own harness: at 412x915
+  // the whole sheet FITS, so there is nothing to scroll and nothing wrong. The
+  // reporter's screen is a tall Samsung with a browser bar at the top and a
+  // navigation bar at the bottom, which is what makes the content overflow. So
+  // the viewport is shortened here to reproduce that, because the bug only
+  // exists when the sheet is taller than the room it has.
+  await page.setViewportSize({ width: 412, height: 640 })
+  await page.waitForTimeout(350)
+  const reach = await page.evaluate(() => {
+    const sheet = document.querySelector('.squad-sheet')
+    const cols = [...document.querySelectorAll('.sheet-col')]
+    const scrollable = el => el.scrollHeight - el.clientHeight > 4
+    const rows = [...document.querySelectorAll('.sheet-col .sheet-row')]
+    return {
+      rows: rows.length,
+      sheetScrolls: sheet ? scrollable(sheet) : false,
+      innerScrollers: cols.filter(scrollable).length,
+      range: sheet ? sheet.scrollHeight - sheet.clientHeight : 0,
+    }
+  })
+  console.log(`  at 412x640: ${reach.rows} rows, sheet scrolls ${reach.sheetScrolls} (${reach.range}px), ${reach.innerScrollers} inner scroller(s)`)
+  ok(reach.rows >= 20, `the whole 23 is in the sheet (${reach.rows} rows)`)
+  // ONE scroller. Two nested ones is the bug, whatever the other numbers say.
+  ok(reach.innerScrollers === 0,
+    `the columns do not scroll independently in portrait (${reach.innerScrollers} do)`)
+  ok(reach.sheetScrolls, 'on a short phone the sheet itself scrolls, so there is a way to the bench')
+
+  // and prove it: scroll to the bottom and check the last bench man is on screen
+  await page.evaluate(() => {
+    const sheet = document.querySelector('.squad-sheet')
+    if (sheet) sheet.scrollTop = sheet.scrollHeight
+  })
+  await page.waitForTimeout(250)
+  const bottom = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('.sheet-col .sheet-row')]
+    const last = rows[rows.length - 1]
+    if (!last) return { visible: false }
+    const r = last.getBoundingClientRect()
+    // and the head must still name the injured man: it is sticky for exactly
+    // this reason, because his name used to scroll away and leave the manager
+    // guessing who was hurt
+    const head = document.querySelector('.sheet-head')
+    const hr = head?.getBoundingClientRect()
+    return {
+      visible: r.top >= 0 && r.bottom <= window.innerHeight + 1 && r.height > 8,
+      headVisible: !!hr && hr.top >= -1 && hr.bottom <= window.innerHeight,
+    }
+  })
+  ok(bottom.visible, 'scrolling to the bottom brings the last bench man into view')
+  ok(bottom.headVisible, 'the sheet heading stays on screen while the list scrolls')
+  await page.setViewportSize({ width: 412, height: 915 })
+  await page.waitForTimeout(250)
+
   // NOTHING may hang off the side of the phone. This is the check that was missing:
   // the sheet is a two-column grid inside a modal with no side padding, which is
   // fine at 844px and ran off both edges at 412.
@@ -211,8 +278,24 @@ try {
     return out.slice(0, 5)
   })
   ok(spill.length === 0, `the sheet stays inside the phone (${spill.join(' ') || 'nothing past the edge'})`)
-  const cols = await page.evaluate(() => getComputedStyle(document.querySelector('.sheet-cols')).gridTemplateColumns.split(' ').length)
-  ok(cols === 1, `and stacks to one column in portrait (${cols})`)
+  // ONE COLUMN, measured as geometry rather than as a CSS string.
+  //
+  // This used to read gridTemplateColumns and count the spaces in it, which only
+  // worked while the container was a grid. Portrait now makes it a block so the
+  // sheet can scroll as one document, and the computed value stops resolving to
+  // pixel widths: "minmax(0, 1fr)" splits into two words and the check reported
+  // two columns for a layout that has one. Ask the boxes where they are instead.
+  const stack = await page.evaluate(() => {
+    const cols = [...document.querySelectorAll('.sheet-col')]
+    if (cols.length < 2) return { sideBySide: false, n: cols.length }
+    const [a, b] = cols.map(c => c.getBoundingClientRect())
+    return {
+      n: cols.length,
+      // side by side means they share vertical space and sit at different lefts
+      sideBySide: Math.abs(a.left - b.left) > 8 && b.top < a.bottom - 8,
+    }
+  })
+  ok(!stack.sideBySide, `and the two lists stack rather than sitting side by side (${stack.n} panels)`)
 
   ok((await page.locator('.squad-sheet .btn.gold').textContent() ?? '').includes('2 changes'), 'the Done button counts the changes')
   await page.click('.squad-sheet .btn.gold')
