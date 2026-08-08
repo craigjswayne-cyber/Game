@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs, type GameState, type Player } from '../../game/model'
-import { agreeFee, agreePreContract, askingPrice, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { fineAttr } from '../../game/attributes'
@@ -411,6 +411,32 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               }}>
                 ⚡ Offer asking price ({fmtMoney(ask)})
               </button>
+              {/* WHERE THE SELLING CLUB STANDS.
+                  Asked in live play: "would they ever accept under?" They would,
+                  but only when something weakens their hand, and there was no way
+                  to know which players those were without bidding blind. So say
+                  it: how far they might come down, and why. A club with no reason
+                  to sell says so too, which saves a pointless negotiation. */}
+              {(() => {
+                const w = sellerWillingness(game, p)
+                return (
+                  <div className="card" style={{ marginTop: 4 }}>
+                    <div className="fact-label">Where {club.short} Stand</div>
+                    {w.discount > 0 ? (
+                      <>
+                        <div className="meta">
+                          They would listen below the ask, down towards <b>{fmtMoney(floorPrice(game, p))}</b>.
+                        </div>
+                        {w.reasons.map((r, i) => <div className="meta muted" key={i}>· {r.charAt(0).toUpperCase()}{r.slice(1)}</div>)}
+                      </>
+                    ) : (
+                      <div className="meta">
+                        No reason to sell cheap: he is wanted, he is playing, and they are under no pressure. It is the asking price or nothing.
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
               <button className="btn ghost block" style={{ marginTop: 4 }} onClick={() => { setBidding(true); setBid(ask) }}>
                 Haggle a different fee…
               </button>
@@ -419,6 +445,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <div className="card">
                 <h3 style={{ fontSize: 15 }}>Your offer to {club.short}</h3>
                 <div className="meta">Asking price {fmtMoney(ask)} · your budget {fmtMoney(game.clubs[game.userClubId].budget)}</div>
+                {floorPrice(game, p) < ask - 50_000 && (
+                  <div className="meta muted">They may go as low as {fmtMoney(floorPrice(game, p))}.</div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 0' }}>
                   <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 500_000))}>−500k</button>
                   <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 100_000))}>−100k</button>

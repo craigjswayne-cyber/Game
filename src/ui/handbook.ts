@@ -186,6 +186,11 @@ export const HANDBOOK: HandbookEntry[] = [
   // ---------------- Market ----------------
   {
     cat: 'market',
+    q: 'Will a club ever sell under its asking price?',
+    a: 'Yes, but only when something weakens its hand, and the player page tells you what that is before you bid. The strongest card you can hold is a contract running out in the summer, because they would otherwise lose him for nothing. After that: a man who has barely played, one who is unhappy, a club sitting in the red, a squad already well stocked in his position, or a player the wrong side of 33. Those stack, up to about a third off in the worst case for the seller. A wanted man who is playing every week at a solvent club will not move a penny, and the screen says so rather than letting you waste a window finding out.',
+  },
+  {
+    cat: 'market',
     q: 'How do I sign a player?',
     a: 'Two stages. First the fee: the stepper starts at the asking price and you move up or down from there, and a low bid can be refused outright. Then personal terms: weekly wage, a signing-on fee, and perks. His camp will accept, counter or walk. A promise of first-team rugby softens the wage he will take, and it is a real promise that gets remembered.',
   },
