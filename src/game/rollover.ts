@@ -4,6 +4,7 @@ import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
+import { expireDeals } from './commercial'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { objectiveById, pickObjectives } from './objectives'
@@ -1155,6 +1156,11 @@ export function rebuildSeason(state: GameState) {
 
   // wipe season structures & rebuild
   state.season += 1
+  // F30: a deal whose term ran out with the old season is gone, and the manager
+  // is told, because an empty commercial slot pays nothing and that has to be a
+  // decision he knows he is making rather than a quiet hole in the accounts.
+  // AFTER the season bump, so `until >= state.season` reads the new season.
+  expireDeals(state)
   state.week = 1
   state.finHist = []
   state.fixtures = []

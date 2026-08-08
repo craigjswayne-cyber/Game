@@ -281,6 +281,21 @@ export const HANDBOOK: HandbookEntry[] = [
     q: 'What is a takeover?',
     a: 'New owners can arrive at your club. It usually means a war chest and a honeymoon period, and it always means new expectations. Sometimes it means neither and you have simply been sold to someone with less money.',
   },
+  {
+    cat: 'club',
+    q: 'How do commercial deals work?',
+    a: 'You have three things to sell: the front of the shirt, the naming rights to the ground, and the kit supply. Each is a contract with a value and a length, and the Commercial tab on the Finances screen is where you sign them. A long deal pays under the going rate because the sponsor is buying certainty off you. A short one pays over the odds and puts you back in the market sooner, which is where a good season is worth real money. Some offers carry a performance clause and start below market: deliver it and it is the best deal in the building, miss it and you have sold cheap.',
+  },
+  {
+    cat: 'club',
+    q: 'What happens if I ignore the commercial screen?',
+    a: 'Deals run out. When one does you are told, and until you sign somebody that slot pays nothing at all, which is a real hole in a weekly budget. The three you inherit are staggered so they do not all fall due in the same summer, but they do fall due.',
+  },
+  {
+    cat: 'club',
+    q: 'Should I build hospitality boxes?',
+    a: 'Boxes and lounges make every home crowd worth more at the gate, four per cent per level. They also cost more to run than any other building on the estate, because a box needs chefs and hosts whether or not there is a match. Break-even is around a fifteen thousand crowd: worth it if you fill a decent ground or are growing into one, a straight loss if you are not. Expanding the ground adds seats; this makes the seats you have worth more.',
+  },
 
   // ---------------- Career ----------------
   {

@@ -9,6 +9,7 @@ import { rebuildTable } from './season'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
 import { seedPhilosophies } from './philosophy'
+import { seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 
@@ -404,6 +405,11 @@ export function migrate(s: GameState): GameState {
   // choice reads the balance of the squad, so asking before the new clubs have
   // players would hand every one of them the coin-toss fallback.
   seedPhilosophies(s)
+  // F30: a save written before the commercial department existed has no deals at
+  // all. Without this it would lose every penny of sponsorship on load, because
+  // weeklyCentral no longer pays it. Inherited fully sold at market rate, which
+  // is exactly what the flat formula used to pay.
+  seedDeals(s)
 
   // The academy became a 27-man team with its own A League (feedback 10G), so an
   // existing career gets the same academy in the same shape.

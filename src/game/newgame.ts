@@ -19,6 +19,7 @@ import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { seedPhilosophies } from './philosophy'
+import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
@@ -347,6 +348,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames)
   }
   seedPhilosophies(state)
+  // F30: you do not arrive at a club with the front of its shirt blank
+  seedDeals(state)
 
   // initial lineups for every club
   for (const club of Object.values(state.clubs)) {

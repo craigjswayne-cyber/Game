@@ -17,6 +17,7 @@ const EFFECT: Record<FacilityId, (lvl: number) => string> = {
   briefing: l => `match prep ${l * 15}% stronger`,
   academy: l => `better intakes, ${(l * 1.2).toFixed(1)}% more wonderkids`,
   shop: l => `about ${fmtMoney(Math.round(l * 9_000 * 1.2))} a week`,
+  hospitality: l => `+${l * 4}% on every home gate`,
 }
 
 const pips = (lvl: number) => '●'.repeat(lvl) + '○'.repeat(MAX_FACILITY - lvl)
