@@ -109,8 +109,36 @@ const EXPECTED: string[] = [
   // Well inside the healthy band and inside seed-to-seed noise. The world-wide
   // dial averages come out at style 50.4, tempo 50.4, kicking 49.7,
   // aggression 50.1; scripts/philprobe.ts holds them there.
+  //
+  // REBASELINED again for F27, travel and altitude. Home advantage was one flat
+  // number, 1.06, which said a coach up the M1 and a flight to the highveld cost
+  // a visiting side exactly the same. It is now that number times a venue edge
+  // built from distance, body-clock shift, altitude gap and climate gap.
+  //
+  // A REDISTRIBUTION, not an addition, and this is the second half of the trade:
+  // all six fixtures in this stream are short English trips, so every one of them
+  // gets a slightly SMALLER home advantage than before (edge about 0.996). One
+  // result flipped. If travel had simply been added on top, these six would have
+  // been untouched and every long trip in the world would have been made worse -
+  // which is how a calibrated engine gets retuned by accident.
+  //
+  // The constant that makes it neutral was measured, and it was wrong in the file
+  // before it was wired: RAW_MEAN read 0.1235 as an unwired guess against a true
+  // world average of 0.0793 over 6,630 placeable club fixtures. Wiring the guess
+  // would have set the mean edge to 0.9978 and taken home advantage down
+  // everywhere. scripts/venueprobe.ts now holds the mean edge at 1.00000 and also
+  // checks the engine reads it: over 3,240 simmed league fixtures the hardest
+  // quarter of trips is won at home 57.5% of the time against 53.2% for the
+  // easiest quarter.
+  //
+  // Five worlds of ten seasons, F23 and F27 together against the pre-F23 baseline
+  // on the same five seeds:
+  //   points 52.48 -> 52.44    tries 5.94 -> 5.94
+  //   home   55.2% -> 55.0%    draws 2.30% -> 2.44%
+  // Home-win share is printed to whole percentages by simtest, and the movement
+  // was one seed of five reading 55 where it had read 56.
   'gloucester 70-31 newcastle',
-  'bristol 23-24 sale',
+  'bristol 20-21 sale',
   'leicester 20-16 northampton',
   'exeter 9-14 bath',
   'saracens 38-20 harlequins',

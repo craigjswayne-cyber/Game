@@ -29,14 +29,24 @@ import { climateOf, distanceKm, tzShift, venueOf, warmth, type Venue } from './g
 /** The world's mean raw hardship, measured rather than guessed.
  *
  *  scripts/venueprobe.ts walks every fixture of a full season in every
- *  competition and reports the mean. If the fixture list changes shape - a new
- *  league, a competition that crosses hemispheres where none did before - the
- *  probe fails and this constant is what gets corrected. Do not tune it to make
- *  a match feel right; it exists to hold the average still. */
-export const RAW_MEAN = 0.1235
+ *  competition, in five worlds, and reports the mean. If the fixture list changes
+ *  shape - a new league, a competition that crosses hemispheres where none did
+ *  before - the probe fails and this constant is what gets corrected. Do not tune
+ *  it to make a match feel right; it exists to hold the average still.
+ *
+ *  It was 0.1235 when this file was written and unwired, which was a guess, and
+ *  the guess was wrong by more than half. Measured over 6,630 placeable club
+ *  fixtures the world averages 0.0793: the distribution is heavily skewed, with a
+ *  median of 0.018 because most rugby is domestic, and a long tail past 0.85 for
+ *  the transcontinental trips. Wiring the guess in would have set the mean edge
+ *  to 0.9978 and quietly taken home advantage down everywhere, which is the
+ *  seventh time this class of error has been caught. Centring on the MEAN rather
+ *  than the median is what makes the swings cancel. */
+export const RAW_MEAN = 0.0793
 
 /** How far the home edge is allowed to swing either side of its old flat value.
- *  0.05 puts a highveld trip near 11 per cent and a local derby near 5.5. */
+ *  0.05 puts the highveld near 8.9 per cent and a local derby near 5.6, against
+ *  the flat 6 per cent it used to be for both. */
 const SPREAD = 0.05
 
 export interface VenueEffect {

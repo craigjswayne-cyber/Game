@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
+import { venueBadge, venueEffect } from '../../game/venue'
 import { fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { CrestT, Jersey, SectionTitle } from '../components'
 import { stageName } from './Home'
@@ -75,6 +76,13 @@ export default function Fixtures() {
                     <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{f.homeId === me ? 'v' : '@'}</span>
                     <CrestT g={game} teamId={opp} size={16} />
                     {teamShort(game, opp)}
+                    {/* F27: which of these trips are the hard ones. Away rows
+                        only, and only when the ground is high or the journey is
+                        long, so the column stays short in portrait. */}
+                    {f.homeId !== me && (() => {
+                      const b = venueBadge(venueEffect(game, f.homeId, f.awayId, f.week))
+                      return b ? <span className="muted" style={{ fontSize: 10 }}>{b}</span> : null
+                    })()}
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
                   </span>
                 </td>

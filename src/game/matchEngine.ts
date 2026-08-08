@@ -5,6 +5,7 @@ import { effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
+import { venueEffect } from './venue'
 import { clamp, gauss, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import {
@@ -1107,6 +1108,15 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // the terraces are worth points: a bouncing home crowd lifts the side,
   // a mutinous one flattens it (user's club only - the AI crowds average out)
   let hfa = state.clubs[fx.homeId] ? 1.06 : 1.03
+  // F27: and the trip the other lot made. A flat 1.06 said a bus up the M1 and a
+  // flight to the highveld cost a visiting side the same thing, which is nonsense
+  // in a world where Belfast and Pretoria are in the same competition. The edge is
+  // a REDISTRIBUTION with a mean of exactly 1 (scripts/venueprobe.ts holds it
+  // there), so the hard trips take from the easy ones rather than from the away
+  // side everywhere: a local derby is now marginally less of a fortress than it
+  // was, which is the half of the trade that keeps the books balanced.
+  const venue = venueEffect(state, fx.homeId, fx.awayId, fx.week)
+  hfa *= venue.edge
   if (fx.homeId === state.userClubId) hfa += ((state.fanMood ?? 60) - 60) * 0.0006
 
   const ctx: LiveCtx = {

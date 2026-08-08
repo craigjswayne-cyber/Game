@@ -14,6 +14,7 @@ import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { derbyName } from '../../game/rivalries'
 import { dialLine, philosophyOf } from '../../game/philosophy'
+import { venueEffect } from '../../game/venue'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -703,6 +704,24 @@ function Preview({ fxId }: { fxId: number }) {
                     {briefed.length === 0 && (
                       <div className="meta">Every replacement is simply covering a shirt. No special instructions.</div>
                     )}
+                  </div>
+                )
+              })()}
+              {/* F27: the trip itself. Only when WE are the ones travelling - the
+                  home side has no journey to be briefed about - and only when
+                  there is something worth saying, which noteFor decides. */}
+              {!isHome && (() => {
+                const v = venueEffect(game, fx.homeId, fx.awayId, fx.week)
+                if (!v.note) return null
+                return (
+                  <div className="card">
+                    <div className="fact-label">The Trip</div>
+                    <div className="meta">{v.note}</div>
+                    <div className="meta muted">
+                      {v.km.toLocaleString()}km
+                      {v.tz >= 1 ? ` · ${v.tz}h clock change` : ''}
+                      {v.altGap >= 250 ? ` · ${Math.round(v.alt).toLocaleString()}m above sea level` : ''}
+                    </div>
                   </div>
                 )
               })()}
