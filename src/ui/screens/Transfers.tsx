@@ -223,7 +223,7 @@ export default function Transfers() {
       )}
 
       {xtab === 'loans' && <>
-      <SectionTitle sub="big-club benches - borrow a star of tomorrow, parent pays half">Loan Market</SectionTitle>
+      <SectionTitle sub="borrow a star, parent pays half the wage">Loan Market</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {loanTargets(game).map(p => (
           <tr key={p.id}>
@@ -247,7 +247,7 @@ export default function Transfers() {
 
       </>}
       {xtab === 'market' && <>
-      <SectionTitle sub={`${results.length} men match${results.length === 120 ? ' (showing the best 120)' : ''} · tap to scout & bid`}>Scout The Market</SectionTitle>
+      <SectionTitle sub={`${results.length} found${results.length === 120 ? ' (best 120)' : ''} · tap to bid`}>Scout The Market</SectionTitle>
       {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
           These controls were three different sizes: a flex-grow search box, a
           116px select whose label "All positions" did not fit inside it, and

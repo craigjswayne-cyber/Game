@@ -1,3 +1,4 @@
+import { paragraphs } from '../components'
 import { useEffect } from 'react'
 import { useStore } from '../../store'
 import { weekDate, type NewsItem } from '../../game/model'
@@ -123,11 +124,12 @@ export default function Inbox() {
       <article className="reader">
         <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
         <h2>{n.subject}</h2>
-        {n.body.split('\n').map((line, k) => (
-          line.trim() === ''
-            ? <div key={k} style={{ height: 6 }} />
-            : <p key={k}>{line}</p>
-        ))}
+        {/* Real paragraphs, no spacer divs. A blank line in the source used to
+            render an empty 6px div, so the spacing between paragraphs depended on
+            how the engine happened to punctuate the story: some had 6px, some had
+            12, and the result read as a wall with random gaps in it (user: "news
+            graphics seem so messy, tidy them up. use paragraphs"). */}
+        {paragraphs(n.body).map((para, k) => <p key={k}>{para}</p>)}
         <PeopleChips n={n} />
       </article>
       <div className="spacer" />

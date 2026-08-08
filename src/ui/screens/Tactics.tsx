@@ -231,8 +231,10 @@ export default function Tactics() {
               touch()
             }}>Best XV</button>
           }>Starting XV</SectionTitle>
-        {/* forwards left, backs right in landscape: 23 rows in one column was
-            four swipes deep. Two tbody tables stack identically in portrait. */}
+        {/* forwards left, backs right in landscape: 23 rows in one column was four
+            swipes deep. They do NOT "stack identically" in portrait, which is what
+            this comment used to claim: see the fixed .xv-split columns in theme.css
+            for the step that assumption put in the list from number 9 down. */}
         <div className="xv-split">
           <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
           <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
@@ -538,7 +540,7 @@ export default function Tactics() {
 
       {ttab === 'prep' && <>
         <AnalystCard />
-        <SectionTitle sub="a focused edge for the next match - always with a trade-off">Match Preparation</SectionTitle>
+        <SectionTitle sub="an edge next week, always with a cost">Match Preparation</SectionTitle>
         <div className="preset-row" style={{ padding: '0 14px', flexWrap: 'wrap', gap: 8 }}>
           {([
             ['attack', '⚡ Attacking Shapes', 'Sharper attack (−1% defence)'],

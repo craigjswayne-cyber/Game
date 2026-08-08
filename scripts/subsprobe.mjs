@@ -5,6 +5,12 @@
 // shipping UI that no test has ever clicked is how the last four device bugs got
 // out. So this drives them: play to half-time, open the squad, make two changes,
 // check the counter moves, and open the settings sheet and change the speed.
+//
+// AND IT MEASURES THE SHEET IN PORTRAIT, because it did not, and that is how the
+// sheet shipped hanging off the side of a phone. It was built for a 300px-tall
+// landscape screen, and this probe drove it at 844x390 - so two columns of player
+// rows at 412px wide, with no side padding on the modal, was never once looked at.
+// User screenshot: the numbers down the right-hand column were cut in half.
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
 
@@ -12,7 +18,9 @@ const server = spawn('npx', ['vite', 'preview', '--port', '4195', '--strictPort'
 await new Promise(r => setTimeout(r, 2500))
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
+// PORTRAIT, because that is the orientation the game is played in and the one
+// the sheet had never been opened in. It was driven at 844x390 for months.
+const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 
 let fails = 0
@@ -35,7 +43,14 @@ try {
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
 
-  await page.click('.continue-btn')
+  // Continue walks the week a day at a time now, so reaching kick-off is a
+  // handful of taps rather than one. This probe still pressed it once and then
+  // waited twenty seconds for a button that was several days away.
+  for (let tap = 0; tap < 8; tap++) {
+    if (await page.locator('text=Kick Off ▸').count()) break
+    await page.click('.continue-btn')
+    await page.waitForTimeout(450)
+  }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
   await page.locator('text=Kick Off ▸').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
@@ -175,6 +190,30 @@ try {
   const beforeExit = await subsLeft()
   ok(beforeExit === before - 2, `two changes in one visit spent two of the five (${before} -> ${beforeExit})`)
   ok(await page.locator('.sheet-log').count() >= 2, 'both changes are reported in the sheet')
+  // NOTHING may hang off the side of the phone. This is the check that was missing:
+  // the sheet is a two-column grid inside a modal with no side padding, which is
+  // fine at 844px and ran off both edges at 412.
+  const spill = await page.evaluate(() => {
+    const W = window.innerWidth
+    const out = []
+    for (const el of document.querySelectorAll('.squad-sheet *')) {
+      const r = el.getBoundingClientRect()
+      if (r.width < 2 || r.height < 2) continue
+      let sc = el.parentElement, scrolls = false
+      while (sc && sc !== document.body) {
+        const ox = getComputedStyle(sc).overflowX
+        if (ox === 'auto' || ox === 'scroll') { scrolls = true; break }
+        sc = sc.parentElement
+      }
+      if (scrolls) continue
+      if (r.right > W + 1 || r.left < -1) out.push(`${el.className || el.tagName}@${Math.round(r.left)}..${Math.round(r.right)}`)
+    }
+    return out.slice(0, 5)
+  })
+  ok(spill.length === 0, `the sheet stays inside the phone (${spill.join(' ') || 'nothing past the edge'})`)
+  const cols = await page.evaluate(() => getComputedStyle(document.querySelector('.sheet-cols')).gridTemplateColumns.split(' ').length)
+  ok(cols === 1, `and stacks to one column in portrait (${cols})`)
+
   ok((await page.locator('.squad-sheet .btn.gold').textContent() ?? '').includes('2 changes'), 'the Done button counts the changes')
   await page.click('.squad-sheet .btn.gold')
   await page.waitForTimeout(250)

@@ -44,6 +44,45 @@ export function BrandMark({ size = 64, inverse = false }: { size?: number; inver
 }
 
 /**
+ * ---- A STORY, IN PARAGRAPHS ----
+ *
+ * User: "news graphics seem so messy, tidy them up. use paragraphs."
+ *
+ * Splitting on newlines is not enough, because most stories do not have any. The
+ * engine writes them as one block and lets them wrap, so a five-name scouting
+ * round-up arrives as eight unbroken lines. Rendering that as a single <p> is
+ * honest to the source and unreadable on a phone.
+ *
+ * So: honour the newlines where they exist, and where a block is long, break it at
+ * sentence ends into paragraphs of a few sentences each. Splitting on ". " before a
+ * capital keeps initials and abbreviations together, and the grouping means a
+ * two-sentence story is left alone rather than being chopped into stubs.
+ *
+ * This is presentation only. It reads the body and never rewrites it: every
+ * character of the original survives, in order.
+ */
+export function paragraphs(body: string): string[] {
+  const blocks = (body ?? '').split('\n').map(t => t.trim()).filter(Boolean)
+  const out: string[] = []
+  for (const block of blocks) {
+    if (block.length <= 220) { out.push(block); continue }
+    // sentence ends: . ! or ? then a space then something that starts a sentence
+    const parts = block.split(/(?<=[.!?])\s+(?=[A-Z0-9"'\u00c0-\u017f])/)
+    let buf = ''
+    for (const part of parts) {
+      buf = buf ? `${buf} ${part}` : part
+      if (buf.length >= 150) { out.push(buf); buf = '' }
+    }
+    if (buf) {
+      // a short tail joins the paragraph before it rather than sitting alone
+      if (out.length && buf.length < 60) out[out.length - 1] += ` ${buf}`
+      else out.push(buf)
+    }
+  }
+  return out.length ? out : ['']
+}
+
+/**
  * A section heading, with an optional right-hand slot for the one action that
  * belongs to the section.
  *

@@ -315,14 +315,10 @@ input, select { font: inherit; }
    heading. The hint gives way before the heading or the buttons do. */
 .section-title .sub { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .section-title .sect-act { flex-shrink: 0; white-space: nowrap; }
-.section-title > span:first-child::before {
-  content: '';
-  width: 16px; height: 3px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-dark));
-  border-radius: 2px;
-  align-self: center;
-  flex-shrink: 0;
-}
+/* There WAS a 16px gold bar here, before every section heading. Under floodlights
+   it ran into --gold-dark, a deep brown, and the user could not see it at all
+   ("line next to your xv cant be seen so scrap that"). A decoration nobody can
+   see is not a decoration, it is 24px of wasted row. Gone. */
 .section-title .sub {
   font-family: var(--sans);
   font-style: normal;
@@ -1133,6 +1129,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .wire-card { cursor: pointer; }
 .wire-card.unread { border-left: 4px solid var(--gold); }
+/* The body of a story, set as paragraphs. It used to be one pre-line block, which
+   is why the news read as a wall: the engine writes stories in two and three parts
+   and none of them had any air around them. */
+.wire-body { font-family: var(--sans); color: var(--ink-soft); }
+.wire-body p { font-size: 14px; line-height: 1.62; margin: 0 0 10px; }
+.wire-body p:last-child { margin-bottom: 0; }
 .wire-card .wire-date {
   font-family: var(--cond); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
   color: var(--ink-faint); margin-bottom: 3px;
@@ -1757,6 +1759,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* the team sheet reads across, not down: forwards left, backs right.
    Portrait keeps one column, where two tbody-only tables stack seamlessly. */
 .xv-split { display: block; }
+/* The two tables of a team sheet must AGREE on their first two columns.
+   They are separate tables, so auto layout sizes each one from its own contents:
+   the forwards' table sized the shirt column for "1" to "8" and the backs' table
+   sized it for "10" to "15", one character wider. Side by side in landscape nobody
+   noticed. Stacked in portrait it put a visible step in the list from number 9
+   down, which is exactly what the user reported ("numbers and names have shifted
+   to the right from number 9 on team pre match").
+
+   Only these two columns are pinned, deliberately. Fixing the whole table would
+   need a different set of widths per screen - MatchDay's rows have five cells and
+   Selection's have six - and the name column has to stay elastic either way. */
+.xv-split .dtable td:first-child { width: 26px; }
+.xv-split .dtable td:nth-child(2) { width: 40px; }
 @media (orientation: landscape) and (min-width: 640px) {
   /* minmax(0, 1fr), NOT 1fr. A bare 1fr is minmax(auto, 1fr), and auto refuses
      to shrink a track below its content's min-content width - so the two team
@@ -2087,6 +2102,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .sheet-cols {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px; flex: 1; min-height: 0;
+}
+/* PORTRAIT. This whole sheet was built for a 300px-tall landscape phone and the
+   probe that drives it runs at 844x390, so nobody had ever seen it on the screen
+   the game is actually played on: two columns of "Danilo Fis... 6.0 100%" inside
+   412px, in a .modal that has no side padding at all. The rows ran off both edges
+   and the bench ratings were cut in half (user screenshot).
+
+   One column, and give the modal the padding every other card on the screen has. */
+@media (orientation: portrait), (max-width: 639px) {
+  .sheet-cols { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .squad-sheet { padding-left: 12px; padding-right: 12px; }
+  /* the two column captions become section dividers rather than table headings */
+  .sheet-col .fact-label { padding-top: 8px; }
 }
 .sheet-col { min-width: 0; overflow-y: auto; }
 .sheet-row {
@@ -2442,16 +2470,31 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--serif); font-size: 19px; line-height: 1.2;
   margin: 3px 0 7px; color: var(--title-ink, var(--ink));
 }
-.reader p { font-size: 13.5px; line-height: 1.5; margin: 0 0 6px; color: var(--ink); }
+/* Paragraph air, matched to the Wire so a story reads the same in both places. */
+.reader p { font-size: 13.5px; line-height: 1.6; margin: 0 0 10px; color: var(--ink); }
+.reader p:last-of-type { margin-bottom: 2px; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
    A story already knows who it is about; it just never offered them. */
-.who-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+/* The people named in a story, as one row (user: "all clickable names with
+   buttons below should be in one row"). It used to wrap, so eight names became a
+   four-line block of stacked two-line chips underneath every article - the single
+   messiest thing on the news screen. Now the row scrolls sideways and each chip
+   is one line, which fits three or four at a glance and keeps the article the
+   thing you are reading. */
+.who-row {
+  display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 10px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.who-row::-webkit-scrollbar { display: none; }
 .who-chip {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  display: flex; flex-direction: row; align-items: baseline; gap: 5px;
+  flex: 0 0 auto; white-space: nowrap;
   background: var(--cream-2); border: 1px solid var(--cream-3);
   border-left: 3px solid var(--gold);
-  border-radius: 7px; padding: 4px 9px; text-align: left;
+  border-radius: 7px; padding: 6px 10px; text-align: left;
   box-shadow: var(--shadow-1);
 }
 .who-chip b { font-size: 12.5px; color: var(--ink); }
@@ -2598,11 +2641,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   /* the next-match line, sized here rather than inline so this rule can reach it */
   .fx-line { font-size: 16px; }
 
-  /* A section title is a heading and a hint competing for one 412px row, and the
-     hint lost ("tap two to swap" was cut). Let it wrap onto its own line: the
-     nowrap that keeps it tidy in landscape is what clips it here. */
-  .section-title { flex-wrap: wrap; }
-  .section-title .sub { flex-basis: 100%; text-align: left; }
+  /* The heading and its hint stay on ONE line, and the hint ellipsises if it has
+     to (user: "age profile and healthy squad peaks should be on the same line").
+     This used to wrap the hint onto its own row so a long one could not be cut -
+     but that costs a whole line of a 915px screen on every section of every
+     screen, and an ellipsised hint reads fine: the manager is not reading it
+     twice. */
 
   /* THE PITCH. The shirt tiles are absolutely positioned as a percentage of the
      pitch, so the rightmost winger's shirt number hung off the edge of a narrow
