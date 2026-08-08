@@ -84,6 +84,27 @@ export function marketRate(rep: number, slot: SlotId): number {
  *  dealWeekly for why that distinction cost a bug. */
 export const MAX_UPLIFT = 1.32
 
+/**
+ * What the department takes on its own when a deal runs out and you did nothing.
+ *
+ * This exists because the first cut simply emptied the slot, and scripts/econprobe
+ * caught what that meant: a manager who never opens this screen loses his whole
+ * commercial income over four seasons and the club goes structurally insolvent.
+ * "Solvent by playing" is a stated invariant of this game, and a new screen is not
+ * allowed to break it.
+ *
+ * So neglect is a SMALL, PERMANENT DISCOUNT rather than a cliff. At 0.92 a passive
+ * manager gives up about 8% of his commercial income - real money, worth about
+ * £12k a week to a big club, and visible on the ledger - while an engaged one
+ * takes market or beats it. The upside is the reward, rather than the downside
+ * being a punishment, which is the same shape as every other dial in this engine:
+ * neutral against what it replaced, with the manager's judgement as the variance.
+ *
+ * A caretaker is replaceable at any time. Being stuck with a stopgap you never
+ * agreed to would be the cliff again, in slower motion.
+ */
+export const CARETAKER_RATE = 0.92
+
 export type ClauseId = 'none' | 'top4' | 'europe' | 'silverware' | 'crowds'
 
 export interface Clause {
@@ -130,6 +151,9 @@ export interface Deal {
   until: number
   /** the reputation it was signed against, so the UI can show it going stale */
   repAt: number
+  /** true when the department took this itself because you did not act. A
+   *  stopgap rather than a contract: you may replace it whenever you like. */
+  auto?: boolean
 }
 
 // Invented brand names, deliberately. Real sponsors would be putting words in
@@ -182,7 +206,9 @@ export function offersFor(state: GameState, slot: SlotId): Offer[] {
   {
     const h = hash(state.seed, `${slot}|${state.season}|long`)
     const years = 3 + (h % 2)                       // 3 or 4
-    const vs = 0.86 + ((h >> 4) % 5) / 100          // 0.86 to 0.90
+    // above CARETAKER_RATE, or the safe long deal would be worse than doing
+    // nothing at all and the whole offer would be a trap
+    const vs = 0.95 + ((h >> 4) % 5) / 100          // 0.95 to 0.99
     out.push({
       slot, sponsor: names[h % names.length], years,
       weekly: Math.round(mkt * vs), clause: 'none', vsMarket: vs,
@@ -207,7 +233,7 @@ export function offersFor(state: GameState, slot: SlotId): Offer[] {
     // The base is BELOW market, and the clause is what lifts it over. That is
     // the trade: you are selling the sponsor your ambition, at a discount if it
     // turns out to be talk.
-    const vs = 0.86 + ((h >> 4) % 6) / 100          // 0.86 to 0.91
+    const vs = 0.90 + ((h >> 4) % 6) / 100          // 0.90 to 0.95
     out.push({
       slot, sponsor: names[(h + 6) % names.length], years,
       weekly: Math.round(mkt * vs), clause, vsMarket: vs,
@@ -289,7 +315,9 @@ export function signOffer(state: GameState, offer: Offer): string {
   const club = state.clubs[state.userClubId]
   if (!club) return 'No club.'
   const live = state.deals?.[offer.slot]
-  if (live && live.until >= state.season) {
+  // a caretaker the department took on your behalf is a stopgap, not a contract:
+  // replacing it is the whole point of being told about it
+  if (live && live.until >= state.season && !live.auto) {
     return `The ${SLOT_BY_ID[offer.slot].name.toLowerCase()} is already under contract to ${live.sponsor} until the end of ${2026 + live.until}. You cannot sell it twice.`
   }
   state.deals ??= {}
@@ -316,14 +344,26 @@ export function signOffer(state: GameState, offer: Offer): string {
  */
 export function expireDeals(state: GameState) {
   if (!state.deals) return
+  const club = state.clubs[state.userClubId]
+  if (!club) return
   for (const slot of SLOTS) {
     const d = state.deals[slot.id]
     if (!d || d.until >= state.season) continue
-    delete state.deals[slot.id]
+    // The department does not leave the front of the shirt blank. It takes the
+    // best thing on its desk, which is below the going rate because nobody
+    // negotiated it - see CARETAKER_RATE for why this is a discount and not a
+    // cliff.
+    const rate = Math.round(marketRate(club.rep, slot.id) * CARETAKER_RATE)
+    const h = hash(state.seed, `auto|${slot.id}|${state.season}|${club.id}`)
+    const names = NAMES[slot.id]
+    state.deals[slot.id] = {
+      slot: slot.id, sponsor: names[h % names.length], weekly: rate, clause: 'none',
+      from: state.season, until: state.season + 1, repAt: club.rep, auto: true,
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `${slot.icon} ${d.sponsor} deal expires`,
-      body: `The ${slot.name.toLowerCase()} is out of contract: ${d.sponsor} have come to the end of their term. Until you sign somebody the slot pays nothing, and ${fmtMoney(d.weekly)} a week has just left the building. The commercial department has offers waiting.`,
+      body: `The ${slot.name.toLowerCase()} is out of contract: ${d.sponsor} have come to the end of their term. Rather than leave it blank the commercial department has taken a rolling arrangement with ${names[h % names.length]} at ${fmtMoney(rate)} a week, which is under the going rate because nobody argued for you. Better offers are on the table whenever you want them, and you can replace this one at any time.`,
     })
   }
 }
