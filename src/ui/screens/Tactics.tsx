@@ -145,12 +145,18 @@ export default function Tactics() {
   // vertical pitch on an 844x390 phone filled the entire screenful and pushed
   // every slider on the page below the fold. The numbers stay in one orientation
   // so there is only ever one formation to reason about.
+  // Re-spaced because the chips overlapped on a portrait phone (user: "tactics
+  // screen the formation is squashed"). A chip is a fixed 74px wide there, which
+  // is 19% of the pitch, so two chips on the same line need 20% of x between
+  // them and two chips in the same column need 9% of y. The old pairs that
+  // failed both tests were tighthead/hooker (20% apart, and Rakete-Stones is a
+  // wide name) and the two centres (14% and 7%). Every pair below clears both.
   const SPOTS: [number, number][] = [
-    [30, 10], [50, 8], [70, 10],
-    [40, 21], [60, 21],
-    [24, 32], [76, 32], [50, 34],
-    [50, 47], [37, 57],
-    [12, 76], [52, 64], [66, 71], [88, 76], [50, 87],
+    [22, 9], [50, 7], [78, 9],
+    [36, 20], [64, 20],
+    [14, 32], [86, 32], [50, 33],
+    [50, 46], [30, 57],
+    [12, 68], [50, 66], [70, 76], [90, 60], [50, 88],
   ]
   const go = useStore.getState().go
   const roleSheet = () => {
@@ -191,22 +197,6 @@ export default function Tactics() {
     )
   }
 
-  // the in-form XV: natural fits ranked by form first, class second
-  const formXV = (): (number | null)[] => {
-    const pool = availablePlayers(game, club.players)
-    const taken = new Set<number>()
-    const lineup: (number | null)[] = new Array(15).fill(null)
-    for (let i = 0; i < 15; i++) {
-      const pos = XV_SLOTS[i].pos
-      const best = pool
-        .filter(p => !taken.has(p.id) && (p.pos === pos || p.alt.includes(pos)))
-        .sort((a, b) => (b.form * 8 + effAt(b, pos)) - (a.form * 8 + effAt(a, pos)))[0]
-        ?? pool.filter(p => !taken.has(p.id)).sort((a, b) => b.form - a.form)[0]
-      if (best) { lineup[i] = best.id; taken.add(best.id) }
-    }
-    return lineup
-  }
-
   return (
     <>
       <div className="tab-bar">
@@ -229,29 +219,18 @@ export default function Tactics() {
             hint, and .sub now stays on one line and ellipsises. */}
         <SectionTitle
           sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'}` : 'tap two to swap'}
-          right={<>
-            {/* Two auto-picks, one team sheet. There used to be three squad pages
-                for what is one job: Selection, a whole In-Form XV page, and a
-                best-XV button. The form side is a suggestion, not a screen. */}
+          right={
+            /* One auto-pick, not two. In-Form XV is gone at the user's request:
+               two buttons that both silently rewrite the whole team sheet is one
+               too many, and the difference between them (form weighted over
+               class) was never visible on the button. Best XV already weighs
+               form; the Form column is there for anyone who wants to argue. */
             <button className="btn gold tiny" onClick={() => {
               const pool = availablePlayers(game, club.players)
               club.tactic.lineup = autoSelect(game, pool, splitFor(club))
               touch()
             }}>Best XV</button>
-            <button className="btn ghost tiny" style={{ marginLeft: 4 }} onClick={() => {
-              // form first, class second - the same ranking the old In-Form page
-              // used, applied straight to the team sheet instead of to a screen
-              const xv = formXV()
-              for (let i = 0; i < 15; i++) {
-                const pid = xv[i]
-                if (pid == null) continue
-                const other = t.lineup.indexOf(pid)
-                if (other >= 0 && other !== i) t.lineup[other] = t.lineup[i]
-                t.lineup[i] = pid
-              }
-              touch()
-            }}>In-Form XV</button>
-          </>}>Starting XV</SectionTitle>
+          }>Starting XV</SectionTitle>
         {/* forwards left, backs right in landscape: 23 rows in one column was
             four swipes deep. Two tbody tables stack identically in portrait. */}
         <div className="xv-split">
@@ -368,58 +347,49 @@ export default function Tactics() {
       </>}
 
       {ttab === 'setp' && <>
-        {/* The set-piece playbook and the kicking game (F2, F3). Both are weekly
-            decisions the game had no way of expressing: the set piece was two unit
-            numbers, and the tee went to whoever had the best attribute. */}
-        <SectionTitle sub="what you drill is what you own - and what you shelve, you lose">Lineout Call</SectionTitle>
-        <div className="routine-grid">
-          {ROUTINES.filter(r => r.kind === 'lineout').map(r => {
-            const on = (t.lineoutCall ?? DEFAULT_LINEOUT) === r.id
-            const e = routineEffect(club, r.id)
-            return (
-              <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
-                onClick={() => { t.lineoutCall = r.id; touch() }}>
-                <b>{r.name}</b>
-                <span className="d">{r.desc}</span>
-                <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
-                <span className="d">
-                  {Math.round(e.drilled)}% drilled{e.seen > 0 ? ` · called ${e.seen}x this season` : ''}
-                  {' · '}{e.mult >= 1.02 ? `worth +${Math.round((e.mult - 1) * 100)}%` : e.mult <= 0.98 ? `costing ${Math.round((1 - e.mult) * 100)}%` : 'about level'}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-
-        <SectionTitle sub="a shove that comes off wins penalties; one that does not is a mess">Scrum Call</SectionTitle>
-        <div className="routine-grid">
-          {ROUTINES.filter(r => r.kind === 'scrum').map(r => {
-            const on = (t.scrumCall ?? DEFAULT_SCRUM) === r.id
-            const e = routineEffect(club, r.id)
-            return (
-              <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
-                onClick={() => { t.scrumCall = r.id; touch() }}>
-                <b>{r.name}</b>
-                <span className="d">{r.desc}</span>
-                <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
-                <span className="d">
-                  {Math.round(e.drilled)}% drilled{e.seen > 0 ? ` · called ${e.seen}x this season` : ''}
-                  {' · '}{e.mult >= 1.02 ? `worth +${Math.round((e.mult - 1) * 100)}%` : e.mult <= 0.98 ? `costing ${Math.round((1 - e.mult) * 100)}%` : 'about level'}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-        <div className="meta" style={{ padding: '4px 16px 8px' }}>
-          Drilling only improves what you are calling, and everything else rusts a little each week. Set Piece in Match Prep speeds it up, and your scrum coach decides the ceiling. Call the same move all season and the analysts will have it worked out by spring.
-        </div>
-
-        <SectionTitle sub="who takes the tee, how you get out, and what the captain does with a penalty">The Kicking Game</SectionTitle>
-        <div className="card">
-          <div className="fact-label">Goal Kickers</div>
-          <div className="meta" style={{ marginBottom: 6 }}>
-            First choice takes everything. If he is off the field the second man steps up. Leave both empty and the assistant hands the tee to whoever has the best boot.
+        {/* ---- four questions, in the order a coach asks them ----
+            This page had six blocks, two long explainer paragraphs and a stat
+            line on every tile reading "62% drilled · called 4x this season ·
+            worth +3%" (user: "set piece page feels too confusing - simplify").
+            Three of those numbers say the same thing, so each tile now carries
+            one: how well drilled the move is, and what that is worth today. The
+            explainers are gone and the page states its own rule once, at the
+            top. */}
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="meta">
+            <b>One rule runs this page.</b> Whatever you call gets sharper every week and everything
+            else goes rusty, so pick moves you mean to keep calling. Set-Piece Work in Prep speeds it
+            up and your scrum coach sets the ceiling.
           </div>
+        </div>
+        {([['lineout', 'Lineout Call', DEFAULT_LINEOUT, 'lineoutCall'],
+           ['scrum', 'Scrum Call', DEFAULT_SCRUM, 'scrumCall']] as const).map(([kind, heading, dflt, key]) => (
+          <div key={kind}>
+            <SectionTitle>{heading}</SectionTitle>
+            <div className="routine-grid">
+              {ROUTINES.filter(r => r.kind === kind).map(r => {
+                const on = (t[key] ?? dflt) === r.id
+                const e = routineEffect(club, r.id)
+                return (
+                  <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
+                    onClick={() => { t[key] = r.id; touch() }}>
+                    <b>{r.name}</b>
+                    <span className="d">{r.desc}</span>
+                    <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
+                    <span className="d">
+                      {Math.round(e.drilled)}% drilled
+                      {e.mult >= 1.02 ? `, worth +${Math.round((e.mult - 1) * 100)}%`
+                        : e.mult <= 0.98 ? `, costing ${Math.round((1 - e.mult) * 100)}%` : ', about level'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+
+        <SectionTitle>Goal Kickers</SectionTitle>
+        <div className="card">
           {[0, 1].map(slot => {
             const cur = (t.kickers ?? [])[slot] ?? null
             const xv = t.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((p): p is Player => !!p)
@@ -442,44 +412,52 @@ export default function Tactics() {
               </div>
             )
           })}
+          <div className="meta" style={{ marginTop: 5 }}>First choice takes everything; the second man steps up when he is off.</div>
         </div>
+
+        <SectionTitle>Getting Out Of Your 22</SectionTitle>
         <div className="card">
-          <div className="fact-label">Exit Strategy</div>
-          <div className="preset-row">
+          <div className="opt-2x2">
             {([
-              ['box', '📦 Box Kick', 'Territory and a contest in the air. Safe, and it gives the ball away.'],
-              ['long', '🦶 Long Territorial', 'Boot it downfield and squeeze. The old way, and it still works.'],
-              ['counter', '🏃 Run It', 'Play from deep and back your skills. Thrilling and expensive.'],
-              ['fifty22', '🎯 Hunt the 50:22', 'Kick for the corner and the throw. Big reward, fine margins.'],
-            ] as const).map(([id, label, why]) => (
-              <button key={id} className={`preset-chip${(t.exit ?? 'long') === id ? ' on' : ''}`} title={why}
+              ['box', '📦 Box Kick'],
+              ['long', '🦶 Long Kick'],
+              ['counter', '🏃 Run It'],
+              ['fifty22', '🎯 50:22'],
+            ] as const).map(([id, label]) => (
+              <button key={id} className={`preset-chip${(t.exit ?? 'long') === id ? ' on' : ''}`}
                 onClick={() => { t.exit = id; touch() }}>{label}</button>
             ))}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
             {({
-              box: 'Box kick: the safest way out of your 22, at the cost of possession.',
-              long: 'Long territorial: field position first. Solid, unspectacular, hard to punish.',
-              counter: 'Run it: you keep the ball and take the risk in your own half.',
-              fifty22: 'Hunt the 50:22: the best reward in the game if the boot is accurate, and a gift if it is not.',
+              box: 'Safest way out, and it hands the ball back.',
+              long: 'Field position first. Solid and hard to punish.',
+              counter: 'You keep the ball and take the risk in your own half.',
+              fifty22: 'Huge if the boot is accurate, a gift if it is not.',
             })[t.exit ?? 'long']}
           </div>
         </div>
+
+        <SectionTitle>Kickable Penalty</SectionTitle>
         <div className="card">
-          <div className="fact-label">Kickable Penalty</div>
-          <div className="preset-row">
+          <div className="opt-2x2">
             {([
-              ['ask', '🤔 Ask Me', 'The touchline call is yours every time.'],
-              ['posts', '🥅 Take the Points', 'Three every time. No drama, no big scores.'],
-              ['corner', '🚩 To the Corner', 'Back the maul. Tries win knockouts.'],
-              ['tap', '⚡ Tap and Go', 'Play fast before they set. Chaos, both ways.'],
-            ] as const).map(([id, label, why]) => (
-              <button key={id} className={`preset-chip${(t.penaltyCall ?? 'ask') === id ? ' on' : ''}`} title={why}
+              ['ask', '🤔 Ask Me'],
+              ['posts', '🥅 Take Points'],
+              ['corner', '🚩 To the Corner'],
+              ['tap', '⚡ Tap and Go'],
+            ] as const).map(([id, label]) => (
+              <button key={id} className={`preset-chip${(t.penaltyCall ?? 'ask') === id ? ' on' : ''}`}
                 onClick={() => { t.penaltyCall = id; touch() }}>{label}</button>
             ))}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
-            A standing instruction saves you being asked nine times on a wet Friday. Ask Me keeps the decision.
+            {({
+              ask: 'You get asked every time. Fine for a big game, tiring on a wet Friday.',
+              posts: 'Three points, every time. No drama and no big scores.',
+              corner: 'Back the maul. Tries win knockouts.',
+              tap: 'Play before they set. Chaos, in both directions.',
+            })[t.penaltyCall ?? 'ask']}
           </div>
         </div>
         <div className="spacer" />

@@ -248,21 +248,25 @@ export default function Transfers() {
       </>}
       {xtab === 'market' && <>
       <SectionTitle sub={`${results.length} men match${results.length === 120 ? ' (showing the best 120)' : ''} · tap to scout & bid`}>Scout The Market</SectionTitle>
-      <div style={{ padding: '0 14px', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
+          These controls were three different sizes: a flex-grow search box, a
+          116px select whose label "All positions" did not fit inside it, and
+          four equal-flex controls below. Different heights and a clipped label
+          read as boxes overlapping each other (user: "the filters below scout
+          the market are to big in box size that they overlap"). Both rows are
+          .filter-line now, so every control is the same height and divides its
+          row equally, and every resting label is the filter's own name - short
+          enough to fit, and it reads as a placeholder, which is what an unset
+          filter is. */}
+      <div className="filter-line">
         <input className="inline-input" placeholder="Name or club…" value={query}
           onChange={e => { setQuery(e.target.value); setPage(0) }}
-          style={{ margin: 0, flex: '1 1 150px', minWidth: 120 }} />
-        <select className="inline-input" style={{ margin: 0, flex: '0 1 116px' }} value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
-          <option value="ALL">All positions</option>
+          style={{ flex: '2 1 0' }} />
+        <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
+          <option value="ALL">Position</option>
           {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
       </div>
-      {/* The four filters share one row of their own rather than wrapping into
-          three (user: "any value, any age, every league, listed only should be
-          smaller on one line"). Equal flex with min-width 0 so they divide
-          whatever width there is, and the resting labels are the filter's NAME
-          rather than "Any value" - shorter, and it reads as a placeholder,
-          which is what an unset filter is. */}
       <div className="filter-line">
         <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
           <option value={0}>Value</option>

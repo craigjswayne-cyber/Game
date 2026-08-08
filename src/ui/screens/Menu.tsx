@@ -22,7 +22,9 @@ export default function Menu() {
       <BrandMark size={60} />
       <hr className="rules" />
       <h1>RUGBY<br />MANAGER</h1>
-      <div className="tagline">Stories, seasons & silverware - the rugby world awaits.</div>
+      {/* set in caps at the user's request, so it reads as a strapline under the
+          title rather than as a sentence someone left there */}
+      <div className="tagline">STORIES, SEASONS &amp; SILVERWARE</div>
       <hr className="rules" />
       <div className="menu-btns">
         {(() => {

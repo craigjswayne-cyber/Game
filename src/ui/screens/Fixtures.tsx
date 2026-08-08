@@ -9,13 +9,11 @@ export default function Fixtures() {
   const game = useStore(s => s.game)!
   const [replayId, setReplayId] = useState<number | null>(null)
   const [comp, setComp] = useState('ALL')
-  const [only, setOnly] = useState<'all' | 'played' | 'todo'>('all')
   const me = game.userClubId
   const mine = game.fixtures.filter(f => f.homeId === me || f.awayId === me)
   const comps = [...new Set(mine.map(f => f.compId))]
   const fx = mine
     .filter(f => comp === 'ALL' || f.compId === comp)
-    .filter(f => only === 'all' || (only === 'played' ? f.played : !f.played))
     .sort((a, b) => a.week - b.week)
   const replay = replayId != null ? game.fixtures.find(f => f.id === replayId) : null
 
@@ -56,11 +54,10 @@ export default function Fixtures() {
           <button key={cid} className="preset-chip" style={comp === cid ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setComp(cid)}>{game.comps[cid]?.short ?? (cid === 'fr' ? 'Friendly' : cid)}</button>
         ))}
-        <span style={{ width: 8 }} />
-        {([['all', 'Everything'], ['played', 'Played'], ['todo', 'To come']] as const).map(([k, label]) => (
-          <button key={k} className="preset-chip" style={only === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
-            onClick={() => setOnly(k)}>{label}</button>
-        ))}
+        {/* Played and To Come are gone at the user's request. The list is in date
+            order with the next match highlighted, so where you are in the season
+            is already on the screen: the chips split one readable column into two
+            halves of itself and cost a row to do it. */}
       </div>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Date</th><th>Opponent</th><th>Comp</th><th>Result</th></tr></thead>
