@@ -212,7 +212,25 @@ body {
 }
 
 button { font: inherit; border: none; background: none; cursor: pointer; color: inherit; }
-input, select { font: inherit; }
+/* Form controls take the theme's ink, always, explicitly.
+ *
+ * They used to inherit only `font`, which left the text colour to the browser -
+ * and `color-scheme: light dark` above tells the browser it may style native
+ * widgets for the reader's system theme. So a phone in dark mode painted the
+ * text of every input and select light, on the day theme's cream `--paper`
+ * background: invisible. A player could not see his own name as he typed it,
+ * and the leadership dropdowns looked empty with players selected in them.
+ *
+ * Nobody here saw it, because the night theme's `.app.night .inline-input` had
+ * always set a colour of its own, and that is the theme this game is played in.
+ * The lesson: a control that leaves its ink to the user agent is readable by
+ * luck, and the luck runs out on somebody else's phone. Set both halves of
+ * every contrast pair, on the same rule, so neither can go missing. */
+input, select, textarea { font: inherit; color: var(--ink); }
+/* The dropdown list is drawn by the browser, so it gets the pair too: our ink
+ * on a dark system popup would be the same bug wearing the other hat. */
+option { font: inherit; color: var(--ink); background-color: var(--paper); }
+::placeholder { color: var(--ink-faint); opacity: 1; }
 
 .app {
   position: relative;
@@ -732,7 +750,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .inline-input {
   width: 100%; padding: 11px 12px;
   border: 1.5px solid var(--cream-3); border-radius: 8px;
-  background: var(--paper); margin: 6px 0;
+  /* both halves of the pair, on the same rule, so neither can go missing */
+  background: var(--paper); color: var(--ink);
+  margin: 6px 0;
   font-size: 14px;
 }
 .inline-input:focus { outline: none; border-color: var(--gold); }
