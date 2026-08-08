@@ -196,6 +196,20 @@ export function migrate(s: GameState): GameState {
     c.balance = num(c.balance, -1_000_000_000_000, 1_000_000_000_000, 0)
     c.budget = num(c.budget, 0, 1_000_000_000_000, 0)
     c.wageBudget = num(c.wageBudget, 0, 1_000_000_000_000, 100_000)
+    // A WAGE BUDGET THAT IS NOT A WEEKLY FIGURE. Careers started before the fix
+    // carry `transfer budget * 0.9 + 2.5m` in a field the game prints as "/wk"
+    // and compares against a weekly bill - sixteen times the real number at
+    // Harlequins. Recompute it for any save whose budget is wildly out of
+    // proportion to the wages the club actually pays, and leave a sane one alone.
+    {
+      const bill = c.players.reduce((t: number, id: number) => {
+        const p = s.players[id]
+        return p && !p.acad ? t + (Number.isFinite(p.wage) ? p.wage : 0) : t
+      }, 0)
+      if (bill > 0 && c.wageBudget > bill * 4) {
+        c.wageBudget = Math.max(50_000, Math.round((bill * 1.18) / 1_000) * 1_000)
+      }
+    }
     c.boardConfidence = num(c.boardConfidence, 0, 100, 55)
     c.capacity = Math.max(1, int(c.capacity, 1, 10_000_000, 10_000))
   }

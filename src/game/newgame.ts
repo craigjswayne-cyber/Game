@@ -268,6 +268,28 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     }
   }
 
+  // ---- THE WAGE BUDGET IS A WEEKLY FIGURE, SO MEASURE IT WEEKLY ----------
+  //
+  // It was set to `transfer budget * 0.9 + 2.5m`, which is a transfer-scale
+  // number, and then displayed as "Wage budget £5,380k/wk" and compared against a
+  // weekly squad bill. Measured at Harlequins: a bill of £337k/wk against a
+  // "budget" of £5,380k/wk. Sixteen times the wage bill is not a budget, it is a
+  // decoration, and the three screens that print wage room were printing a
+  // number that could never mean anything.
+  //
+  // Derived from the bill the club actually pays, which is the only number in
+  // pounds-per-week this game has. 18% of headroom is a real constraint that a
+  // manager can spend into without it being a wall - and the salary cap, measured
+  // separately from the league's median bill, is usually the tighter of the two,
+  // so this changes what the screen says rather than what the game allows.
+  for (const club of Object.values(state.clubs)) {
+    const bill = club.players.reduce((s, id) => {
+      const p = state.players[id]
+      return p && !p.acad ? s + p.wage : s
+    }, 0)
+    club.wageBudget = Math.max(50_000, Math.round((bill * 1.18) / 1_000) * 1_000)
+  }
+
   // WONDERKIDS: a handful of generational academy talents scattered across
   // the world, plus unattached prodigies from the wider rugby nations
   const academyKids = Object.values(state.players).filter(p => p.youth && p.age <= 19)
