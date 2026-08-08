@@ -701,14 +701,14 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
 }
 
-function mkSide(state: GameState, teamId: string, userTeamId: string | null): SideCtx {
+function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxId: number): SideCtx {
   const lineup = lineupFor(state, teamId)
   const ratings = new Map<number, number>()
   const onPitch = new Set<number>()
   const energy = new Map<number, number>()
   lineup.slice(0, 15).forEach(id => {
     if (id != null) {
-      ratings.set(id, 6 + gaussNoise())
+      ratings.set(id, 6 + ratingJitter(fxId, id))
       onPitch.add(id)
       energy.set(id, Math.max(50, state.players[id]?.cond ?? 85))
     }
@@ -737,8 +737,34 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null): Si
   return side
 }
 
-let _n = 0
-function gaussNoise() { _n = (_n + 1) % 7; return (_n - 3) * 0.05 }
+/**
+ * The little jitter on a player's opening match rating.
+ *
+ * This used to be `let _n = 0; _n = (_n + 1) % 7` - a MODULE-LEVEL COUNTER, and
+ * that made the ratings of a match depend on how many matches had been simulated
+ * before it in the same process. Two consequences, both found by measuring rather
+ * than reading:
+ *
+ *   - the same fixture played twice in one session produced DIFFERENT ratings
+ *     (player 258 opened on 5.90 in one run and 6.00 in the next)
+ *   - so ratings could never be reproduced, which is what makes replaying a match
+ *     after a page reload impossible: the scoreline would come back identical and
+ *     every rating on the page would be subtly wrong
+ *
+ * scripts/fingerprint.ts never saw it, because the fingerprint compares SCORES
+ * and this only reaches ratings. Ratings are not cosmetic though: they feed the
+ * season's ratingSum, the average a player is judged on, and Player of the Month.
+ *
+ * Keyed on the fixture and the man instead, so it is the same every time anybody
+ * asks, and no match can disturb another. Same seven values, same mean of zero.
+ */
+function ratingJitter(fxId: number, pid: number): number {
+  let h = (Math.imul(fxId, 2654435761) ^ Math.imul(pid, 40503)) >>> 0
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b) >>> 0
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35) >>> 0
+  h ^= h >>> 16
+  return ((h >>> 0) % 7 - 3) * 0.05
+}
 
 function tryScorer(state: GameState, side: SideCtx, rng: Rng): Player | null {
   const ids = [...side.onPitch]
@@ -952,8 +978,8 @@ function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent
 }
 
 export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean, userTeamId: string | null = state.userClubId): LiveCtx {
-  const home = mkSide(state, fx.homeId, userTeamId)
-  const away = mkSide(state, fx.awayId, userTeamId)
+  const home = mkSide(state, fx.homeId, userTeamId, fx.id)
+  const away = mkSide(state, fx.awayId, userTeamId, fx.id)
   const weather = rollWeather(state.week, rng)
   fx.weather = weather
   const derby = isDerby(fx.homeId, fx.awayId)
