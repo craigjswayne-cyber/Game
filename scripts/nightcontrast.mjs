@@ -14,12 +14,19 @@
 // broke. Nothing in the game had ever compared a piece of text to the thing
 // painted behind it.
 //
-// So this does. Night mode, portrait, every screen it can reach: for each run of
-// text, find the colour it is painted in and the first real background above it,
-// and work out the contrast ratio the way the accessibility standards do. The
-// threshold is deliberately far below the AA reading standard - this is not a
-// design review, and an argument about whether a caption should be 4.2 or 4.8 is
-// not what this is for. It catches text you cannot read at all.
+// So this does. Portrait, every screen it can reach: for each run of text, find
+// the colour it is painted in and the first real background above it, and work out
+// the contrast ratio the way the accessibility standards do. The threshold is
+// deliberately far below the AA reading standard - this is not a design review,
+// and an argument about whether a caption should be 4.2 or 4.8 is not what this is
+// for. It catches text you cannot read at all.
+//
+// BOTH THEMES, and the day half was added for a reason. The first cut only walked
+// floodlit mode, because that is the theme the bug turned up in and the theme the
+// game is played in. Then the palette changed wholesale for the FAB Rugby rebrand
+// and the ghost stars landed at 1.87:1 in DAYLIGHT - a number this harness would
+// have sailed straight past while reporting the night side clean. A checker that
+// only looks where the last bug was is a checker that finds the last bug.
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
 
@@ -31,12 +38,12 @@ const FLOOR = 2.2
 const server = spawn('npx', ['vite', 'preview', '--port', '4185', '--strictPort'], { stdio: 'pipe' })
 await new Promise(r => setTimeout(r, 2500))
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 1 })
-const page = await ctx.newPage()
-await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 
 const findings = []
 let measured = 0
+/** The page and the theme name for the sweep currently running. */
+let page = null
+let theme = 'floodlit'
 
 /** One pass over the visible text on whatever screen is open. */
 const MEASURE = `(() => {
@@ -103,7 +110,7 @@ async function look(label) {
     const key = `${label}|${b.cls}`
     if (seen.has(key)) continue
     seen.add(key)
-    findings.push({ label, ...b })
+    findings.push({ label: `${theme}/${label}`, ...b })
   }
   if (!rows.length) {
     // a screen painted entirely over a gradient or an image measures nothing, and
@@ -126,88 +133,105 @@ const world = async (item, label) => {
   await look(label)
 }
 
+/** One full pass over the game in one theme. */
+async function sweep(night) {
+  theme = night ? 'floodlit' : 'daylight'
+  console.log(`\n---- ${theme} ----`)
+  const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 1 })
+  page = await ctx.newPage()
+  await page.addInitScript(v => localStorage.setItem('rm-night', v), night ? '1' : '0')
+  try {
+      await page.goto('http://localhost:4185/')
+      await page.waitForSelector('text=RUGBY', { timeout: 15000 })
+      await look('title screen')
+      await page.click('text=New Career')
+      await page.waitForSelector('text=Gallagher Premiership')
+      await look('league picker')
+      await page.click('text=Gallagher Premiership')
+      await page.waitForSelector('.club-tile')
+      await look('club picker')
+      await page.click('.tile >> text=Northampton')
+      await page.waitForSelector('text=Star Player')
+      await look('club brief')
+      await page.click('.action-bar >> text=Confirm')
+      await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Night Reader')
+      await page.click('.speech-tile >> text=Forward Dominance')
+      await page.click('.action-bar >> text=Confirm')
+      await page.click('text=▸ Start Career')
+      await page.waitForSelector('.tut-box', { timeout: 15000 })
+      await look('tutorial')
+      await page.click('.tut-close .btn')
+      await look('home')
+  
+      await page.click('.bottom-nav button[title="News"]')
+      await look('inbox')
+      await page.click('.bottom-nav button[title="Home"]')
+  
+      await hub('Squad', 'squad')
+      await page.click('.tab-bar >> text=Contracts').catch(() => {})
+      await look('squad: contracts')
+      await hub('Team Report', 'team report')
+      await hub('Transfer Centre', 'transfers')
+      await hub('Finances', 'finances')
+      await page.click('.tab-bar >> text=Cap & Squad')
+      await look('finances: cap and squad')
+      await page.click('.tab-bar >> text=The Board')
+      await look('finances: the board')
+      await hub('Training & Staff', 'training')
+      await hub('Medical Centre', 'medical')
+      await hub('Fixtures & Results', 'fixtures')
+      await hub('Club Infrastructure', 'infrastructure')
+      await hub('Club Information', 'club information')
+      await world('Competitions', 'competitions')
+      await world('Scouting Agency', 'agency')
+      await world('International Rugby', 'nations')
+      await world('Roll of Honour', 'roll of honour')
+  
+      // The draw room, which is where this harness came from. It only exists when a
+      // draw is waiting, so one is staged into the live save the same way the draw
+      // probe does it, and the Continue tap that opens the bulletin is also what makes
+      // react notice the write.
+      const staged = await page.evaluate(`(() => {
+        const root = document.getElementById('root')
+        const key = Object.keys(root).find(k => k.startsWith('__reactContainer'))
+        const seen = new Set(); const stack = [root[key]]
+        let g = null
+        while (stack.length && !g) {
+          const f = stack.pop(); if (!f || seen.has(f)) continue; seen.add(f)
+          let h = f.memoizedState, guard = 0
+          while (h && guard++ < 60) {
+            const v = h.memoizedState
+            if (v && typeof v === 'object' && v.userClubId && v.clubs && v.players) { g = v; break }
+            h = h.next
+          }
+          if (f.child) stack.push(f.child); if (f.sibling) stack.push(f.sibling)
+        }
+        if (!g) return false
+        const ids = Object.keys(g.clubs).filter(id => id !== g.userClubId)
+        const comp = Object.values(g.comps)[0]
+        g.draw = { compId: comp.id, stage: 'SF', week: g.week, season: g.season, revealed: 2, ties: [
+          { homeId: ids[0], awayId: g.userClubId }, { homeId: ids[1], awayId: ids[2] },
+        ] }
+        return true
+      })()`)
+      if (!staged) throw new Error('could not stage a draw for the draw room')
+      await page.click('.bottom-nav button[title="Home"]')
+      await page.click('.continue-btn')
+      await look('day bulletin')
+      await page.locator('.day-draw').first().click()
+      await look('the draw room')
+  } catch (e) {
+    findings.push({ label: `the ${theme} sweep itself`, cls: 'threw', text: String(e).slice(0, 120), r: 0 })
+    console.log('THREW', e)
+  }
+  await ctx.close()
+}
+
 try {
-  await page.goto('http://localhost:4185/')
-  await page.waitForSelector('text=RUGBY', { timeout: 15000 })
-  await look('title screen')
-  await page.click('text=New Career')
-  await page.waitForSelector('text=Gallagher Premiership')
-  await look('league picker')
-  await page.click('text=Gallagher Premiership')
-  await page.waitForSelector('.club-tile')
-  await look('club picker')
-  await page.click('.tile >> text=Northampton')
-  await page.waitForSelector('text=Star Player')
-  await look('club brief')
-  await page.click('.action-bar >> text=Confirm')
-  await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Night Reader')
-  await page.click('.speech-tile >> text=Forward Dominance')
-  await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
-  await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await look('tutorial')
-  await page.click('.tut-close .btn')
-  await look('home')
-
-  await page.click('.bottom-nav button[title="News"]')
-  await look('inbox')
-  await page.click('.bottom-nav button[title="Home"]')
-
-  await hub('Squad', 'squad')
-  await page.click('.tab-bar >> text=Contracts').catch(() => {})
-  await look('squad: contracts')
-  await hub('Team Report', 'team report')
-  await hub('Transfer Centre', 'transfers')
-  await hub('Finances', 'finances')
-  await page.click('.tab-bar >> text=Cap & Squad')
-  await look('finances: cap and squad')
-  await page.click('.tab-bar >> text=The Board')
-  await look('finances: the board')
-  await hub('Training & Staff', 'training')
-  await hub('Medical Centre', 'medical')
-  await hub('Fixtures & Results', 'fixtures')
-  await hub('Club Infrastructure', 'infrastructure')
-  await hub('Club Information', 'club information')
-  await world('Competitions', 'competitions')
-  await world('Scouting Agency', 'agency')
-  await world('International Rugby', 'nations')
-  await world('Roll of Honour', 'roll of honour')
-
-  // The draw room, which is where this harness came from. It only exists when a
-  // draw is waiting, so one is staged into the live save the same way the draw
-  // probe does it, and the Continue tap that opens the bulletin is also what makes
-  // react notice the write.
-  const staged = await page.evaluate(`(() => {
-    const root = document.getElementById('root')
-    const key = Object.keys(root).find(k => k.startsWith('__reactContainer'))
-    const seen = new Set(); const stack = [root[key]]
-    let g = null
-    while (stack.length && !g) {
-      const f = stack.pop(); if (!f || seen.has(f)) continue; seen.add(f)
-      let h = f.memoizedState, guard = 0
-      while (h && guard++ < 60) {
-        const v = h.memoizedState
-        if (v && typeof v === 'object' && v.userClubId && v.clubs && v.players) { g = v; break }
-        h = h.next
-      }
-      if (f.child) stack.push(f.child); if (f.sibling) stack.push(f.sibling)
-    }
-    if (!g) return false
-    const ids = Object.keys(g.clubs).filter(id => id !== g.userClubId)
-    const comp = Object.values(g.comps)[0]
-    g.draw = { compId: comp.id, stage: 'SF', week: g.week, season: g.season, revealed: 2, ties: [
-      { homeId: ids[0], awayId: g.userClubId }, { homeId: ids[1], awayId: ids[2] },
-    ] }
-    return true
-  })()`)
-  if (!staged) throw new Error('could not stage a draw for the draw room')
-  await page.click('.bottom-nav button[title="Home"]')
-  await page.click('.continue-btn')
-  await look('day bulletin')
-  await page.locator('.day-draw').first().click()
-  await look('the draw room')
+  await sweep(true)
+  await sweep(false)
 } catch (e) {
-  findings.push({ label: 'the sweep itself', cls: 'threw', text: String(e).slice(0, 120), r: 0 })
+  findings.push({ label: 'the harness itself', cls: 'threw', text: String(e).slice(0, 120), r: 0 })
   console.log('THREW', e)
 } finally {
   await browser.close()
@@ -221,8 +245,8 @@ if (findings.length) {
     if (f.fg) console.log(`     ${f.fg} text on ${f.bg}, painted by .${f.on}`)
   }
 }
-console.log(`\n${measured} runs of text measured against the background painted behind them`)
+console.log(`\n${measured} runs of text measured against the background painted behind them, across both themes`)
 console.log(findings.length
-  ? `NIGHT CONTRAST FOUND ${findings.length} PLACE(S) BELOW ${FLOOR}:1`
-  : `NIGHT CONTRAST PASSED: nothing on any screen falls below ${FLOOR}:1`)
+  ? `CONTRAST FOUND ${findings.length} PLACE(S) BELOW ${FLOOR}:1`
+  : `CONTRAST PASSED: nothing on any screen, in either theme, falls below ${FLOOR}:1`)
 process.exit(findings.length ? 1 : 0)
