@@ -9,6 +9,8 @@
 //       on could not play at all
 //   A4  a failed save was swallowed whole and the manager played on for hours
 //   A5  the celebration overlay was written to but never rendered
+//   A8  opening the game walked straight past the title screen, because the
+//       reload bookmark was being honoured on a cold start too
 //
 // A 390px-tall viewport on purpose: that is the shape the user holds, and it is
 // where the tutorial overflow bit.
@@ -361,6 +363,46 @@ try {
   await page.waitForSelector('.bottom-nav', { timeout: 15000 })
   check(await page.locator('.crash').count() === 0, 'and the save it left behind loads clean')
   await shot('07-recovered')
+
+  // ---------- A8: opening the game asks, refreshing does not ----------
+  //
+  // User: "when loading up it no longer waits for me to select if I want a new
+  // game, load a game or continue with previous."
+  //
+  // He was right, and it was a fix eating its own feature. A reload should not
+  // cost a manager his place, so the app bookmarks the screen he was on. But it
+  // honoured that bookmark on a COLD START too, which walked straight past the
+  // title screen - past New Career, past Load Career, and past the Continue tile
+  // that exists precisely to make this one tap.
+  //
+  // The two cases are told apart by sessionStorage, which survives a refresh of
+  // the same tab and is empty on a fresh launch. So both halves get checked here,
+  // because fixing one by breaking the other is how this arrived in the first
+  // place.
+  console.log('A8 opening the game asks, refreshing does not')
+  // a refresh, with the tab's session marker in place: straight back in
+  await page.reload()
+  await page.waitForTimeout(2500)
+  check(await page.locator('.bottom-nav').count() === 1,
+    'a refresh resumes the career rather than asking again')
+  check(await page.locator('.continue-tile').count() === 0,
+    'and does not show the title screen')
+
+  // a cold launch: same storage, same save, but no session marker
+  await page.evaluate(() => sessionStorage.clear())
+  await page.reload()
+  await page.waitForTimeout(2500)
+  check(await page.locator('.continue-tile').count() === 1,
+    'opening the game cold stops on the title screen, with Continue offered')
+  const titleInk = (await page.textContent('.title-screen').catch(() => '')) ?? ''
+  check(/New Career/.test(titleInk), 'and New Career is on it')
+  check(/Load Career/.test(titleInk), 'and Load Career is on it')
+  check(await page.locator('.bottom-nav').count() === 0,
+    'and it has NOT walked into the save on its own')
+  // and Continue is genuinely one tap back in
+  await page.click('.continue-tile')
+  await page.waitForSelector('.bottom-nav', { timeout: 15000 })
+  check(true, 'and Continue takes one tap to get back in')
 
   const unexpected = errors.filter(e => !EXPECTED.some(x => e.includes(x)))
   check(unexpected.length === 0, `no unexpected console errors (${unexpected.slice(0, 2).join(' | ') || 'none'})`)

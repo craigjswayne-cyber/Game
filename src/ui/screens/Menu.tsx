@@ -12,9 +12,9 @@ export default function Menu() {
 
   useEffect(() => { void listSaves().then(setSaves) }, [])
 
-  const load = async (slot: string) => {
+  const load = async (slot: string, keepPlace = false) => {
     const g = await loadGame(slot)
-    if (g) setGame(g, slot)
+    if (g) setGame(g, slot, keepPlace)
   }
 
   return (
@@ -28,12 +28,15 @@ export default function Menu() {
       <hr className="rules" />
       <div className="menu-btns">
         {(() => {
-          // one tap back into the most recent save - reloads (and the update
-          // pill) should never cost more taps than they save
+          // One tap back into the most recent save, landing on the screen it was
+          // left on. Opening the game asks this question rather than answering it:
+          // for a while the app honoured the same bookmark automatically on a cold
+          // start, which skipped the title screen entirely and made this tile
+          // unreachable. A refresh still resumes in place - see store.resume.
           const newest = [...saves].sort((a, b) => b.savedAt - a.savedAt)[0]
           if (!newest) return null
           return (
-            <button className="btn gold continue-tile" onClick={() => void load(newest.slot)}>
+            <button className="btn gold continue-tile" onClick={() => void load(newest.slot, true)}>
               {/* one line, always: the longest club name in the game is
                   "Montpellier Hérault Rugby" and a manager can be called
                   anything, so the line ellipsises rather than wrapping */}

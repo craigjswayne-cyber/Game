@@ -79,7 +79,9 @@ interface Store {
 
   start: (clubId: string, managerName: string, challengeId?: string) => void
   toggleShortlist: (playerId: number) => void
-  setGame: (g: GameState, slot: string) => void
+  /** Put a loaded save in play. keepPlace is Continue: resume the bookmarked
+   *  screen instead of Home. */
+  setGame: (g: GameState, slot: string, keepPlace?: boolean) => void
   setSlot: (slot: string) => void
   go: (screen: Screen, param?: string | number) => void
   back: () => void
@@ -187,6 +189,20 @@ function noteWhere(slot: string, nav: NavEntry[]) {
     if (!trail.length) localStorage.removeItem(WHERE_KEY)
     else localStorage.setItem(WHERE_KEY, JSON.stringify({ slot, nav: trail }))
   } catch { /* private mode: the bookmark is a nicety, not a feature */ }
+}
+
+/** Has this tab already been running the game?
+ *
+ *  Marked on the first call, so the first call of a launch answers no and every
+ *  call after a refresh answers yes. Private mode with storage disabled answers
+ *  no for ever, which fails the safe way round: the title screen. */
+const SESSION_KEY = 'rm-live'
+function sameSession(): boolean {
+  try {
+    const seen = sessionStorage.getItem(SESSION_KEY) === '1'
+    sessionStorage.setItem(SESSION_KEY, '1')
+    return seen
+  } catch { return false }
 }
 
 function readWhere(): { slot: string; nav: NavEntry[] } | null {
@@ -334,9 +350,14 @@ export const useStore = create<Store>((set, get) => ({
     set(s => ({ tick: s.tick + 1 }))
   },
 
-  setGame: (g, slot) => {
-    noteWhere(slot, [{ screen: 'home' }])
-    set({ game: g, saveSlot: slot, nav: [{ screen: 'home' }], tick: get().tick + 1 })
+  setGame: (g, slot, keepPlace = false) => {
+    // Continue passes keepPlace, so tapping it lands on the screen the manager
+    // was last on rather than dumping him on Home. Load Career deliberately does
+    // not: picking a different save out of a list is a fresh start on that save.
+    const where = keepPlace ? readWhere() : null
+    const nav = where && where.slot === slot ? where.nav : [{ screen: 'home' as const }]
+    noteWhere(slot, nav)
+    set({ game: g, saveSlot: slot, nav, tick: get().tick + 1 })
   },
   setSlot: (slot) => set({ saveSlot: slot }),
 
@@ -358,6 +379,16 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   resume: async () => {
+    // A RELOAD should not cost the manager his place. STARTING THE GAME should
+    // still start at the title screen, because that is where the three decisions
+    // live: new career, load one, or carry on with this one. The bookmark used to
+    // be honoured on both, so opening the app dropped you straight into a save
+    // and the Continue tile built for exactly that choice never got a look.
+    //
+    // sessionStorage is the difference, and it is the only honest one available:
+    // it survives a refresh of the same tab and is empty on a fresh launch. So a
+    // refresh resumes in place, and opening the game asks.
+    if (!sameSession()) return false
     const where = readWhere()
     if (!where) return false
     const g = await loadGame(where.slot).catch(() => null)
