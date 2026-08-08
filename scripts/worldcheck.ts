@@ -45,6 +45,29 @@ export function ok(cond: boolean, what: string) {
 export const finite = (n: unknown) => typeof n === 'number' && Number.isFinite(n)
 
 /**
+ * ---- READING A WORLD THAT MIGHT NOT BE ONE ----
+ *
+ * This checker is handed damaged worlds on purpose (scripts/savefuzz.ts feeds it
+ * saves with whole collections missing), so it cannot assume its own inputs. A
+ * checker that throws on the damage it exists to report tells you nothing at all
+ * - it just dies, and the run stops before the interesting cases.
+ *
+ * So every collection is read through one of these. A missing collection is a
+ * finding, reported once, not an exception.
+ */
+function list<T>(g: GameState, what: string, v: unknown, when: string): T[] {
+  if (Array.isArray(v)) return v as T[]
+  if (v != null) bad('SHAPE', `${what} is ${typeof v}, not a list (${when})`)
+  return []
+}
+function table<T>(g: GameState, what: string, v: unknown, when: string): T[] {
+  if (v && typeof v === 'object' && !Array.isArray(v)) return Object.values(v as Record<string, T>)
+  if (v != null) bad('SHAPE', `${what} is ${Array.isArray(v) ? 'a list' : typeof v}, not a map (${when})`)
+  else bad('SHAPE', `${what} is missing (${when})`)
+  return []
+}
+
+/**
  * Everything that must be true of the world, every week, forever.
  *
  * `abused` says whether the harness has deliberately injected nonsense into the
@@ -56,7 +79,7 @@ export const finite = (n: unknown) => typeof n === 'number' && Number.isFinite(n
  */
 export function checkWorld(g: GameState, when: string, abused = false) {
   // ---- money and the manager's own numbers
-  for (const c of Object.values(g.clubs)) {
+  for (const c of table<GameState['clubs'][string]>(g, 'clubs', g.clubs, when)) {
     if (!finite(c.balance)) bad('MONEY', `${c.id} balance is ${c.balance} (${when})`)
     if (!finite(c.budget) || c.budget < 0) bad('MONEY', `${c.id} budget is ${c.budget} (${when})`)
     if (!finite(c.wageBudget)) bad('MONEY', `${c.id} wage budget is ${c.wageBudget} (${when})`)
@@ -73,7 +96,7 @@ export function checkWorld(g: GameState, when: string, abused = false) {
 
   // ---- players
   const inSquad = new Map<number, string>()
-  for (const c of Object.values(g.clubs)) {
+  for (const c of table<GameState['clubs'][string]>(g, 'clubs', g.clubs, when)) {
     const dupe = new Set<number>()
     for (const id of c.players) {
       const p = g.players[id]
@@ -98,7 +121,7 @@ export function checkWorld(g: GameState, when: string, abused = false) {
       else if (g.players[pid].clubId !== c.id) bad('LINEUP', `${c.id} has picked ${g.players[pid].name}, who plays for ${g.players[pid].clubId} (${when})`)
     })
   }
-  for (const p of Object.values(g.players)) {
+  for (const p of table<GameState['players'][number]>(g, 'players', g.players, when)) {
     if (!finite(p.ca) || p.ca < 1 || p.ca > 100) bad('PLAYER', `${p.name} has ability ${p.ca} (${when})`)
     if (!finite(p.pa) || p.pa < 1 || p.pa > 100) bad('PLAYER', `${p.name} has potential ${p.pa} (${when})`)
     if (!finite(p.age) || p.age < 15 || p.age > 45) bad('PLAYER', `${p.name} is ${p.age} years old (${when})`)
@@ -119,7 +142,8 @@ export function checkWorld(g: GameState, when: string, abused = false) {
 
   // ---- fixtures and tables
   const ids = new Set<number>()
-  for (const f of g.fixtures) {
+  const fixtures = list<GameState['fixtures'][number]>(g, 'the fixture list', g.fixtures, when)
+  for (const f of fixtures) {
     if (ids.has(f.id)) bad('FIXTURE', `two fixtures share id ${f.id} (${when})`)
     ids.add(f.id)
     // a team id is either a club or a nation: internationals are played by
@@ -134,13 +158,13 @@ export function checkWorld(g: GameState, when: string, abused = false) {
       if (f.homeScore > 200 || f.awayScore > 200) bad('FIXTURE', `fixture ${f.id} finished ${f.homeScore}-${f.awayScore}, which is not rugby (${when})`)
     }
   }
-  for (const comp of Object.values(g.comps)) {
+  for (const comp of table<GameState['comps'][string]>(g, 'the competitions', g.comps, when)) {
     if (comp.type !== 'league' || !comp.table) continue
     for (const row of comp.table) {
       if (!finite(row.p) || !finite(row.pts) || row.p < 0 || row.pts < 0) {
         bad('TABLE', `${comp.id}: ${row.teamId} has played ${row.p} for ${row.pts} points (${when})`)
       }
-      const played = g.fixtures.filter(f => f.compId === comp.id && f.played && !f.stage &&
+      const played = fixtures.filter(f => f.compId === comp.id && f.played && !f.stage &&
         (f.homeId === row.teamId || f.awayId === row.teamId)).length
       if (row.p !== played) {
         bad('TABLE', `${comp.id}: ${row.teamId}'s table says ${row.p} played, the fixture list says ${played} (${when})`)
@@ -153,7 +177,7 @@ export function checkWorld(g: GameState, when: string, abused = false) {
 
   // ---- news and press
   const nids = new Set<number>()
-  for (const n of g.news) {
+  for (const n of list<GameState['news'][number]>(g, 'the news list', g.news, when)) {
     if (nids.has(n.id)) bad('NEWS', `two stories share id ${n.id} (${when})`)
     nids.add(n.id)
     if (!n.subject || /undefined|NaN|\[object/.test(n.subject)) bad('NEWS', `a story is headlined "${n.subject}" (${when})`)
@@ -163,13 +187,13 @@ export function checkWorld(g: GameState, when: string, abused = false) {
       bad('NEWS', `"${n.subject}" contains ${m[0]}: ...${n.body.slice(Math.max(0, i - 40), i + 40).replace(/\s+/g, ' ')}...`)
     }
   }
-  for (const pr of g.press) {
+  for (const pr of list<GameState['press'][number]>(g, 'the press list', g.press, when)) {
     if (!pr.question || /undefined|NaN/.test(pr.question)) bad('PRESS', `a question reads "${pr.question}" (${when})`)
     for (const o of pr.options) if (!o.label) bad('PRESS', `a press option has no label (${when})`)
   }
 
   // ---- mentoring pairs point at real people
-  for (const mp of g.mentors ?? []) {
+  for (const mp of list<NonNullable<GameState['mentors']>[number]>(g, 'the mentoring pairs', g.mentors ?? [], when)) {
     const s = g.players[mp.senior]
     const k = g.players[mp.kid]
     if (!s || !k) { bad('MENTOR', `a pairing points at a player who has gone (${when})`); continue }

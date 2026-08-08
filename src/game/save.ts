@@ -1,10 +1,11 @@
 import type { Club, FacilityId, GameState } from './model'
-import { initFacilities } from './model'
+import { ATTR_KEYS, SEASON_WEEKS, emptyStats, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { autoSelect } from './matchEngine'
-import { regenName, worldNames } from './nations'
+import { NATIONS, regenName, worldNames } from './nations'
+import { rebuildTable } from './season'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
 import { seedStaffPeople } from './staff'
@@ -55,8 +56,175 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
 
 /** Backfill fields added since a save was written. */
 export function migrate(s: GameState): GameState {
+  // ---- the collections the game reads without asking whether they are there ----
+  //
+  // A save written by an older build is simply missing the fields that build had
+  // never heard of, and a save mangled by a bad copy can hold the wrong kind of
+  // thing entirely. Either way the game reads state.news.filter(...) on the very
+  // first tick and dies on the way to the title screen - which reads to the
+  // player as "my career is gone", not "one field was absent".
+  //
+  // So every list and map the engine treats as always-present is made so here,
+  // once, at the only gate between the file and the game. Found by
+  // scripts/savefuzz.ts, which deletes each of them in turn.
+  const asList = <T>(v: unknown): T[] => (Array.isArray(v) ? v as T[] : [])
+  const asMap = <T>(v: unknown): Record<string, T> =>
+    (v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, T> : {})
+  s.news = asList(s.news)
+  s.press = asList(s.press)
+  s.offers = asList(s.offers)
+  s.fixtures = asList(s.fixtures)
+  s.history = asList(s.history)
+  s.mentors = asList(s.mentors)
+  s.pledges = asList(s.pledges)
+  s.preContracts = asList(s.preContracts)
+  s.comps = asMap(s.comps)
+  s.natSquads = asMap(s.natSquads)
+  s.players = asMap(s.players)
+  s.clubs = asMap(s.clubs)
+
+  // ---- the scalars the whole calendar hangs off ----
+  //
+  // week and season index into the fixture list and the record books, so a week
+  // of "three", of -5, or of null does not fail politely: it reads undefined out
+  // of an array and throws on the first tick after loading. Coerce them into
+  // range instead. Anything unreadable starts the season at week one, which is a
+  // playable career rather than a dead one.
+  const int = (v: unknown, min: number, max: number, dflt: number) => {
+    const n = typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : Number.NaN
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
+  }
+  s.season = int(s.season, 0, 999, 0)
+  s.week = int(s.week, 1, SEASON_WEEKS, 1)
+  s.day = int(s.day, 0, 5, 0) as GameState['day']
+  if (!Number.isFinite(s.seed)) s.seed = hashString(`${s.userClubId ?? 'rugby'}-${s.season}`)
+
+  // ---- prune the rubbish out of the lists ----
+  //
+  // A story that is not an object at all - a null left by a bad write - throws
+  // the moment anything reads its week. Drop those, and fill the holes in the
+  // half-written ones, so a damaged inbox costs the player some stories rather
+  // than the career.
+  const story = (n: unknown): boolean => !!n && typeof n === 'object'
+  s.news = s.news.filter(story)
+  for (const n of s.news) {
+    n.week = int(n.week, 1, SEASON_WEEKS, 1)
+    n.season = int(n.season, 0, 999, s.season)
+    n.type ??= 'gossip'
+    if (typeof n.subject !== 'string' || !n.subject) n.subject = 'From the archive'
+    if (typeof n.body !== 'string') n.body = ''
+    n.read ??= true
+  }
+  s.press = s.press.filter(p => story(p) && typeof (p as { question?: unknown }).question === 'string')
+  s.offers = s.offers.filter(story)
+  s.fixtures = s.fixtures.filter(story)
+  s.mentors = s.mentors.filter(story)
+  s.pledges = s.pledges.filter(story)
+  s.preContracts = s.preContracts.filter(story)
+
+  // ---- the id counter must clear everything already in the world ----
+  //
+  // nextId is shared by news, fixtures and offers. A save holding a NaN or a
+  // negative there mints duplicate ids for ever afterwards, and two stories with
+  // the same id is an inbox that opens the wrong letter. Take the highest id
+  // actually in use and start above it.
+  const highestId = Math.max(
+    0,
+    ...s.news.map(n => (typeof n.id === 'number' && Number.isFinite(n.id) ? n.id : 0)),
+    ...s.fixtures.map(f => (typeof f.id === 'number' && Number.isFinite(f.id) ? f.id : 0)),
+    ...s.offers.map(o => (typeof o.id === 'number' && Number.isFinite(o.id) ? o.id : 0)),
+  )
+  s.nextId = Math.max(
+    typeof s.nextId === 'number' && Number.isFinite(s.nextId) ? Math.round(s.nextId) : 0,
+    highestId + 1,
+    1,
+  )
+  // and any story still lacking an id gets one now, so nothing shares
+  for (const n of s.news) {
+    if (typeof n.id !== 'number' || !Number.isFinite(n.id)) n.id = s.nextId++
+  }
+
+  // ---- the world has to point at itself ----
+  //
+  // Every one of these is a dangling reference, and a dangling reference in a
+  // save file is not a cosmetic problem: a player with no attributes crashes the
+  // first scrum, a fixture between two clubs that are not in the file cannot be
+  // played or tabulated, and a squad listing a player who is gone shows an empty
+  // row the manager can tap. Repair them here, where there is still a chance to,
+  // rather than discovering each one separately at kick-off.
+  const num = (v: unknown, min: number, max: number, dflt: number) => {
+    const n = typeof v === 'number' && Number.isFinite(v) ? v : Number.NaN
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : dflt
+  }
+  for (const p of Object.values(s.players)) {
+    if (!p || typeof p !== 'object') continue
+    p.ca = int(p.ca, 1, 100, 50)
+    p.pa = int(p.pa, p.ca, 100, p.ca)
+    p.age = int(p.age, 15, 45, 25)
+    p.form = num(p.form, 0, 10, 6)
+    p.morale = num(p.morale, 0, 10, 6)
+    p.cond = num(p.cond, 0, 100, 100)
+    p.sharp = num(p.sharp, 0, 100, 60)
+    p.wage = num(p.wage, 0, 1_000_000_000, 5_000)
+    p.value = num(p.value, 0, 1_000_000_000_000, 100_000)
+    p.bans = int(p.bans, 0, 99, 0)
+    if (typeof p.name !== 'string' || !p.name) p.name = 'Unnamed Player'
+    p.stats ??= emptyStats()
+    // an attribute grid that is missing or not an object: derive a flat set from
+    // his ability rather than crashing the first time the pack engages
+    if (!p.a || typeof p.a !== 'object') {
+      const base = Math.max(1, Math.min(20, Math.round(p.ca / 5)))
+      p.a = Object.fromEntries(ATTR_KEYS.map(k => [k, base])) as typeof p.a
+    } else {
+      for (const k of ATTR_KEYS) p.a[k] = int(p.a[k], 1, 20, 10)
+    }
+    // a club that is not in the file means free agency, not a ghost employer
+    if (p.clubId != null && !s.clubs[p.clubId]) p.clubId = null
+  }
+  for (const c of Object.values(s.clubs)) {
+    if (!c || typeof c !== 'object') continue
+    if (!Array.isArray(c.players)) c.players = []
+    // a roster lists only men who say they play here: an id naming nobody, or
+    // naming somebody whose club is now elsewhere (or nowhere, because the club
+    // in his record does not exist in this file), is dropped
+    c.players = c.players.filter(id => !!s.players[id] && s.players[id].clubId === c.id)
+    c.balance = num(c.balance, -1_000_000_000_000, 1_000_000_000_000, 0)
+    c.budget = num(c.budget, 0, 1_000_000_000_000, 0)
+    c.wageBudget = num(c.wageBudget, 0, 1_000_000_000_000, 100_000)
+    c.boardConfidence = num(c.boardConfidence, 0, 100, 55)
+    c.capacity = Math.max(1, int(c.capacity, 1, 10_000_000, 10_000))
+  }
+  // a fixture needs two sides that exist and a week inside the season
+  const realTeam = (id: unknown) =>
+    typeof id === 'string' && (!!s.clubs[id] || NATIONS.some(n => n.code === id))
+  s.fixtures = s.fixtures.filter(f => realTeam(f.homeId) && realTeam(f.awayId))
+  for (const f of s.fixtures) f.week = int(f.week, 1, SEASON_WEEKS, 1)
+
+  // ---- and the standings have to match the results ----
+  for (const comp of Object.values(s.comps)) {
+    if (!comp || comp.type !== 'league' || !Array.isArray(comp.table)) continue
+    const wrong = comp.table.some(r => {
+      if (!r || typeof r !== 'object') return true
+      if (!Number.isFinite(r.p) || r.w + r.d + r.l !== r.p) return true
+      const played = s.fixtures.filter(f =>
+        f.compId === comp.id && f.played && !f.stage &&
+        (f.homeId === r.teamId || f.awayId === r.teamId)).length
+      return r.p !== played
+    })
+    if (wrong) rebuildTable(comp, s.fixtures)
+  }
+
   s.shortlist ??= []
-  s.staff ??= { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0, academyCoach: 0 }
+  // ??= is not enough here: a save holding a STRING in this field passes the
+  // null check and then throws on the first property assignment, because you
+  // cannot create a property on a primitive. Replace anything that is not an
+  // object outright.
+  if (!s.staff || typeof s.staff !== 'object' || Array.isArray(s.staff)) {
+    s.staff = { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0, academyCoach: 0 }
+  }
+  if (!s.mgr || typeof s.mgr !== 'object' || Array.isArray(s.mgr)) {
+    s.mgr = { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 }
+  }
   s.staff.attack ??= 0
   s.staff.defence ??= 0
   s.staff.scrumCoach ??= 0
@@ -82,6 +250,13 @@ export function migrate(s: GameState): GameState {
   // Found by scripts/sheetfuzz.ts.
   const dial = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 50)
   for (const c of Object.values(s.clubs)) {
+    // a club with no tactic at all - later code reads tactic.roles and threw
+    if (!c.tactic || typeof c.tactic !== 'object') {
+      c.tactic = {
+        style: 50, tempo: 50, kicking: 50, aggression: 50,
+        lineup: Array.from({ length: 23 }, () => null), roles: [],
+      }
+    }
     if (c.tactic) {
       c.tactic.style = dial(c.tactic.style)
       c.tactic.tempo = dial(c.tactic.tempo)
@@ -242,12 +417,47 @@ export function migrate(s: GameState): GameState {
   return s
 }
 
+/**
+ * Is this actually a rugby career, or just a file?
+ *
+ * migrate() heals a great deal - a missing list, a dial that is not a number, a
+ * team sheet that is not an array - because all of those describe a real career
+ * written by an older build. What it cannot invent is the world itself. A save
+ * with no clubs, no players or no competitions in it has nothing to play, and
+ * pretending otherwise produced headlines reading "undefined round-up" and a
+ * career that fell over a few weeks later.
+ *
+ * Refusing it is the honest answer: the slot reads as empty, the title screen
+ * offers a new career, and nothing half-loads. Found by scripts/savefuzz.ts.
+ */
+export function isPlayable(s: GameState | null | undefined): boolean {
+  if (!s || typeof s !== 'object') return false
+  const has = (v: unknown) => !!v && typeof v === 'object' && Object.keys(v as object).length > 0
+  if (!has(s.clubs) || !has(s.players) || !has(s.comps)) return false
+  if (typeof s.userClubId !== 'string' || !s.clubs[s.userClubId]) return false
+  return true
+}
+
 export async function loadGame(slot: string): Promise<GameState | null> {
   const db = await openDb()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readonly')
     const req = tx.objectStore(STORE).get(slot)
-    req.onsuccess = () => { db.close(); resolve(req.result ? migrate(req.result.state as GameState) : null) }
+    req.onsuccess = () => {
+      db.close()
+      if (!req.result) { resolve(null); return }
+      let healed: GameState | null = null
+      try {
+        healed = migrate(req.result.state as GameState)
+      } catch (e) {
+        // a file too damaged even to heal reads as an empty slot rather than
+        // taking the app down on the way to the title screen
+        console.error('save could not be read', e)
+        resolve(null)
+        return
+      }
+      resolve(isPlayable(healed) ? healed : null)
+    }
     req.onerror = () => { db.close(); reject(req.error) }
   })
 }
