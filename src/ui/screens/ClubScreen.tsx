@@ -6,6 +6,7 @@ import { nationByCode } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
+import { dialLine, philosophyOf } from '../../game/philosophy'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -41,6 +42,17 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
         <div className="meta">🏟️ {club.stadium} - {club.capacity.toLocaleString()} capacity</div>
         <div className="meta">🧢 Head coach: {club.id === game.userClubId ? game.managerName : club.coach ?? 'vacant'}</div>
+        {/* F23: how this dugout wants the game played. Yours is not listed here
+            because yours is the four sliders on the tactics screen. */}
+        {(() => {
+          const ph = philosophyOf(club)
+          if (!ph || club.id === game.userClubId) return null
+          return (
+            <div className="meta">
+              📋 {ph.name} <span className="muted">({dialLine(club.tactic)})</span>
+            </div>
+          )
+        })()}
         {(() => {
           const honours = game.history.filter(h => h.champion === club.id)
           if (!honours.length) return null

@@ -8,6 +8,7 @@ import { NATIONS, regenName, worldNames } from './nations'
 import { rebuildTable } from './season'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
+import { seedPhilosophies } from './philosophy'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 
@@ -394,6 +395,15 @@ export function migrate(s: GameState): GameState {
       }
     }
   }
+
+  // F23: a save written before philosophies existed has 96 dugouts sitting on
+  // flat 50s. Give each of them the idea its squad suits. The club you manage is
+  // skipped, so your own dials survive the load untouched.
+  //
+  // AFTER the league injection and the squad top-up above, deliberately: the
+  // choice reads the balance of the squad, so asking before the new clubs have
+  // players would hand every one of them the coin-toss fallback.
+  seedPhilosophies(s)
 
   // The academy became a 27-man team with its own A League (feedback 10G), so an
   // existing career gets the same academy in the same shape.

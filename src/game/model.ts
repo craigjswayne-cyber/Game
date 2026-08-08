@@ -275,6 +275,12 @@ export interface Club {
   marquee?: number[]
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
+  /** the head coach's standing instruction (F23) - an id from philosophy.ts.
+   *  Absent on the club you manage: your dials are yours. */
+  philosophy?: string
+  /** how many head coaches this club has been through, so the next man's ideas
+   *  are drawn afresh rather than inherited */
+  coachGen?: number
   /** set-piece routines: how well drilled, and how well known */
   playbook?: Playbook
   /** bricks and mortar: levels 0-5 per facility, set from the club's standing */

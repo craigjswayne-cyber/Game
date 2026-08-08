@@ -13,6 +13,7 @@ import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { derbyName } from '../../game/rivalries'
+import { dialLine, philosophyOf } from '../../game/philosophy'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -711,6 +712,28 @@ function Preview({ fxId }: { fxId: number }) {
                   <div className="meta">
                     <b>{oppClub.coach}</b> ({oppClub.short} head coach): “{QUOTES[(fx.id + game.week) % QUOTES.length]}”
                   </div>
+                  {/* F23: what he actually asks of them. How a side plays is
+                      public knowledge - you can watch them - so the philosophy
+                      and the dials are always here. Where it leaves them open is
+                      analysis, and analysis needs a briefing suite. */}
+                  {(() => {
+                    const ph = philosophyOf(oppClub)
+                    if (!ph) return null
+                    const suite = game.clubs[game.userClubId]?.facilities?.briefing ?? 0
+                    return (
+                      <>
+                        <div className="meta" style={{ marginTop: 4 }}>
+                          <b>{ph.name}.</b> {ph.blurb}
+                        </div>
+                        <div className="meta muted">{dialLine(oppClub.tactic)}</div>
+                        {suite >= 1 && (
+                          <div className="meta" style={{ marginTop: 4 }}>
+                            <b>The angle:</b> {ph.soft}
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
               )}
               {(() => {
