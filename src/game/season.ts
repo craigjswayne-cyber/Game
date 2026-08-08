@@ -1,6 +1,7 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
+import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
 import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
@@ -1682,31 +1683,31 @@ export function processWeekAndAdvance(state: GameState) {
 
   // monthly awards in the user's league: every four weeks the league names
   // its player and manager of the month - small prizes, big feelings
-  if (state.week % 4 === 0 && !state.unemployed) {
+  if (state.week % AWARD_EVERY === 0 && !state.unemployed) {
     const leagueId = state.clubs[state.userClubId].leagueId
     const comp = state.comps[leagueId]
     if (comp?.type === 'league') {
-      const from = state.week - 3
-      // manager of the month: best league results in the window
-      let bestClub: string | null = null
-      let bestPts = -1
-      for (const r of comp.table) {
-        let pts = 0
-        for (const f of state.fixtures) {
-          if (f.compId !== leagueId || !f.played || f.week < from || f.week > state.week) continue
-          if (f.homeId !== r.teamId && f.awayId !== r.teamId) continue
-          const us = f.homeId === r.teamId ? f.homeScore : f.awayScore
-          const them = f.homeId === r.teamId ? f.awayScore : f.homeScore
-          pts += us > them ? 3 : us === them ? 1 : 0
-        }
-        if (pts > bestPts) { bestPts = pts; bestClub = r.teamId }
-      }
+      const from = state.week - (AWARD_EVERY - 1)
+      // Manager of the Month, earned rather than handed out (see awards.ts for
+      // the measurements that forced this rewrite: 100% of awards were decided
+      // on two league games or fewer, and 12 of 66 went to a manager with zero
+      // points because an international window still crowned somebody).
+      //
+      // Every competitive match counts now, there is a hard gate of two matches
+      // and two wins, and merit decides rather than table position. It can come
+      // back null, and a month where nobody deserved it passes without an award.
+      const best = managerOfMonth(state, leagueId, from, state.week)
       // player of the month: hottest form among men who featured this window
       const cands = comp.table.flatMap(r => (state.clubs[r.teamId]?.players ?? [])
         .map(id => state.players[id])
         .filter(p => p && (p.lastWk ?? -9) >= from))
-      const pom = cands.sort((a, b) => b!.form - a!.form || b!.stats.ratingSum - a!.stats.ratingSum)[0]
-      if (pom && bestClub && bestPts >= 0) {
+      // and a minimum sample for the player too: one appearance on a hot form
+      // figure used to be enough to be named the league's best man of the month
+      const pom = cands
+        .filter(p => (p!.stats.apps ?? 0) >= 3)
+        .sort((a, b) => b!.form - a!.form || b!.stats.ratingSum - a!.stats.ratingSum)[0]
+      if (pom && best) {
+        const bestClub = best.clubId
         pom.morale = clamp(pom.morale + 0.6, 1, 10)
         const userWon = bestClub === state.userClubId
         if (userWon) {
@@ -1723,7 +1724,7 @@ export function processWeekAndAdvance(state: GameState) {
               ? `🥇 ${comp.short} awards: ${pom.name} is Player of the Month`
               : `🥇 ${comp.short} monthly awards`,
           body: [
-            `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`} - ${bestPts} pts from the window.`,
+            `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`}. ${runLine(state, best)}`,
             `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '-'}), form ${pom.form.toFixed(1)}.`,
             userWon ? 'The board notice these things - and so does the crowd.' : pom.clubId === state.userClubId ? 'A proud week for the club and a lift for the man himself.' : '',
           ].filter(Boolean).join('\n'),
