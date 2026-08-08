@@ -2577,10 +2577,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      tile - but 190px tiles are a better thumb target than 125px ones. */
   .tile-grid.club-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 
-  /* THE WIZARD BREADCRUMB. Four equal chips across 412px is 92px each, and the
-     chip carries the choice rather than the step name, so "NORTHAMPTON" arrived
-     as "IORTHAMP...". Smaller, tighter, and the live step gets the extra room
-     because it is the one holding a club name. */
+  /* THE WIZARD BREADCRUMB. Four equal chips across 412px is 92px each, which is
+     76px of usable width once the arrow notches are cut off both ends, and
+     "Northampton" arrived as "IORTHAMP...". Two fixes, in order: the step-name
+     chips came off so a trail is never more than three chips (see NewGame), and
+     the type is smaller and tighter. The extra flex on the live chip stays,
+     because it is usually the one holding a club name. */
   .crumb { font-size: 10px; letter-spacing: .2px; padding-left: 4px; padding-right: 4px; }
   .crumb.on { flex: 1.6; }
 

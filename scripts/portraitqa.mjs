@@ -153,11 +153,36 @@ try {
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Northampton')
   await report('wizard: club pick')
+
+  // ---- the wizard trail must never clip a club name ----
+  // It carries the only information on that row you cannot get anywhere else:
+  // WHICH club you picked. Step names went back to the line above them for
+  // exactly this reason, so the trail is measured at every step from here on.
+  const trailAt = async (where) => {
+    const t = await page.evaluate(() => {
+      const chips = [...document.querySelectorAll('.crumb')]
+      return chips.map(e => ({
+        text: e.textContent.trim(),
+        w: Math.round(e.getBoundingClientRect().width),
+        clipped: e.scrollWidth > e.clientWidth + 1,
+      }))
+    })
+    console.log(`--- trail (${where}): ${t.map(c => `${c.text} ${c.w}px${c.clipped ? ' CLIPPED' : ''}`).join(' | ') || '(none)'}`)
+    ok(t.length <= 3, `never more than three chips (${t.length})`)
+    ok(t.every(c => !c.clipped), `nothing in the trail is truncated${t.some(c => c.clipped) ? ` [${t.filter(c => c.clipped).map(c => c.text).join(', ')}]` : ''}`)
+    ok(!t.some(c => /^(manager|summary|competition|club)$/i.test(c.text)),
+      'the trail holds choices, not step names')
+    return t
+  }
+  await trailAt('after picking a club')
   await page.waitForSelector('text=Star Player')
   await page.click('.action-bar >> text=Confirm')
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Portrait')
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
+  const finalTrail = await trailAt('on the summary')
+  ok(finalTrail.some(c => /Northampton/i.test(c.text)),
+    `the club is named in full on the last step (${finalTrail.map(c => c.text).join(' | ')})`)
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
