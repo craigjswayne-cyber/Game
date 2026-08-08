@@ -75,7 +75,20 @@ export function migrate(s: GameState): GameState {
   // facilities moved onto the clubs (every club in the world has an estate,
   // and taking a new job means inheriting that club's buildings). Levels the
   // manager already paid for at his own club are kept, whichever is higher.
+  // A tactical dial that is absent, null or not a number reads as the middle of
+  // the dial. The match engine clamps these too, but healing them on the way in
+  // means the sliders on the tactics screen have something to point at as well -
+  // a save written before a dial existed used to leave the UI reading NaN.
+  // Found by scripts/sheetfuzz.ts.
+  const dial = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 50)
   for (const c of Object.values(s.clubs)) {
+    if (c.tactic) {
+      c.tactic.style = dial(c.tactic.style)
+      c.tactic.tempo = dial(c.tactic.tempo)
+      c.tactic.kicking = dial(c.tactic.kicking)
+      c.tactic.aggression = dial(c.tactic.aggression)
+      if (!Array.isArray(c.tactic.lineup)) c.tactic.lineup = Array.from({ length: 23 }, () => null)
+    }
     if (!c.facilities) c.facilities = initFacilities(c, s.seed)
   }
   if (s.facilities && Object.keys(s.facilities).length) {

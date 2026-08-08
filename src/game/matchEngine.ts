@@ -218,6 +218,14 @@ export function teamShort(state: GameState, teamId: string): string {
 
 export function lineupFor(state: GameState, teamId: string): (number | null)[] {
   const club = state.clubs[teamId]
+  // A team sheet that is not an array at all - a save from before the field
+  // existed, or one edited by hand - used to throw here on .slice and take the
+  // whole match with it. Loading heals it too (see migrate), but a crash in the
+  // one function every kick-off goes through is worth closing at both ends.
+  // Found by scripts/sheetfuzz.ts.
+  if (club && !Array.isArray(club.tactic?.lineup)) {
+    club.tactic.lineup = Array.from({ length: 23 }, () => null)
+  }
   const isNation = !club
   if (isNation && state.natLineup && state.natLineup.team === teamId) {
     const lu = state.natLineup.lineup
@@ -488,7 +496,22 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
   if (club) {
     const t = club.tactic
-    const f = (v: number) => (v - 50) / 50 // -1..1
+    /**
+     * A dial is a 0-100 number, and every one of them is multiplied into a unit
+     * score, then into tempoF, then into how hard the side runs - which is how
+     * every player's fitness is spent. So a dial that is not a number does not
+     * sit quietly in a field: it turns the whole squad's condition to NaN, for
+     * the rest of the save.
+     *
+     * Two ways to get there, and the second is the one that matters: a corrupted
+     * save, or a save written before the field existed, where the dial is simply
+     * absent. Found by scripts/sheetfuzz.ts, which broke the dials both ways.
+     *
+     * Clamping here, at the one place all four are read, beats trusting a dozen
+     * call sites to have checked. Anything unreadable reads as the middle of the
+     * dial, which is the same as no instruction at all.
+     */
+    const f = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v)) - 50 : 0) / 50 // -1..1
     side.units.attack *= 1 + f(t.style) * 0.06 + f(t.tempo) * 0.05
     side.units.scrum *= 1 - f(t.style) * 0.05
     side.units.breakdown *= 1 + f(t.aggression) * 0.06 - f(t.style) * 0.03
