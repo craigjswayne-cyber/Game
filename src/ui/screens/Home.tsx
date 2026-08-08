@@ -22,22 +22,15 @@ export default function Home() {
   const unread = game.news.filter(n => !n.read && n.type !== 'gossip').length
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
-  // FM-style: arriving at the inbox opens your oldest unread message
-  const [openId, setOpenId] = useState<number | null>(() => {
-    const unread = game.news.filter(n => !n.read && n.type !== 'gossip')
-    const first = unread.length ? unread[0] : null
-    if (first) first.read = true
-    return first?.id ?? null
-  })
-
-  /** Mark the open message read and jump to the next unread one. */
-  const nextUnread = () => {
-    const unread = game.news.filter(n => !n.read && n.type !== 'gossip')
-    const next = unread.length ? unread[0] : null
-    if (next) next.read = true
-    setOpenId(next?.id ?? null)
-    touch()
-  }
+  // ---- Home no longer eats a story on the way past ----
+  //
+  // There used to be an `openId` state here whose initialiser marked the oldest
+  // unread story as READ, left over from when Home was the inbox. Nothing rendered
+  // it any more, so every arrival at Home silently consumed one unread message and
+  // showed it nowhere: on a fresh career that was the letter appointing you, and
+  // the manager's first sight of his own inbox began at story two (user: "it has
+  // already shared a scout report so you wouldnt see it"). Reading is the inbox's
+  // job and the inbox does it on a tap.
   // the welcome dialog moved out to App: it is an overlay over the whole game,
   // not a piece of the Home screen, and it needed to be re-openable (blocker A2)
 

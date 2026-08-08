@@ -179,6 +179,35 @@ try {
   await page.waitForTimeout(500)
   await report('fixtures')
 
+  // ---- the day bulletin, which is where Continue now lands between matches
+  // The day name is the loudest thing on the screen by design, so it is also the
+  // most likely thing to be truncated on 412px. Measured like any other page.
+  let sawBulletin = false
+  for (let tap = 0; tap < 8 && !sawBulletin; tap++) {
+    if (await page.locator('text=Kick Off').count()) break
+    await page.click('.continue-btn')
+    await page.waitForTimeout(450)
+    const head = await page.evaluate(() => {
+      const d = document.querySelector('.day-head')
+      if (!d) return null
+      const day = d.querySelector('.dh-day')
+      return {
+        day: day?.textContent ?? '',
+        clipped: day ? day.scrollWidth > day.clientWidth + 2 : false,
+        theme: d.querySelector('.dh-theme')?.textContent ?? '',
+        date: d.querySelector('.dh-date')?.textContent ?? '',
+        h: Math.round(d.getBoundingClientRect().height),
+      }
+    })
+    if (!head) continue
+    sawBulletin = true
+    console.log(`\n--- bulletin: ${head.day} / ${head.theme} / ${head.date}, header ${head.h}px`)
+    ok(!head.clipped, `the day name fits its own line (${head.day})`)
+    ok(head.h <= 150, `the header is a header, not a screenful (${head.h}px)`)
+    await report(`day: ${head.day.toLowerCase()}`)
+  }
+  ok(sawBulletin, 'Continue reaches a day bulletin in the first week')
+
   // ---- the masthead earns its height: arrow, title and date on one row
   const mh = await page.evaluate(() => {
     const head = document.querySelector('.masthead')

@@ -184,7 +184,13 @@ try {
 
   // and the two that only exist once a match has been played: the match-day
   // team sheet, and the week's results table
-  await page.click('.continue-btn')
+  // Continue walks the week a day at a time now, so getting to kick-off is a few
+  // taps through the day bulletins
+  for (let tap = 0; tap < 8; tap++) {
+    if (await page.locator('text=Kick Off').count()) break
+    await page.click('.continue-btn')
+    await page.waitForTimeout(450)
+  }
   await page.waitForSelector('text=Kick Off', { timeout: 20000 })
   await clearTalk()
   await check('match day')

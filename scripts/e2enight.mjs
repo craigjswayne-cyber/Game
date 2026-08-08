@@ -240,8 +240,17 @@ try {
   await page.waitForTimeout(300)
   await shot('06k2-handbook-search')
 
-  // live match: kick off and play a half in the dark
-  await page.click('text=MATCHDAY').catch(() => {})
+  // live match: kick off and play a half in the dark. Continue walks the week a
+  // day at a time now, so the button reads Continue until the day the game falls
+  // on - tap through the bulletins (in the dark, which is the point of this run)
+  // until Matchday takes over.
+  for (let tap = 0; tap < 8; tap++) {
+    if (await page.locator('text=Kick Off ▸').count()) break
+    await page.click('.continue-btn')
+    await page.waitForTimeout(450)
+    const day = await page.evaluate(() => document.querySelector('.day-head .dh-day')?.textContent ?? null)
+    if (day) await shot(`06z-day-${day.toLowerCase()}`)
+  }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 15000 })
   await shot('07-matchday')
   await page.locator('text=Kick Off ▸').first().click()

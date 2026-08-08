@@ -687,6 +687,20 @@ export interface GameState {
   history: { season: number; compId: string; champion: string; topScorer?: string }[]
   unemployed: boolean
   processedWeek: boolean
+  /** The news id the current week's bulletins start from.
+   *
+   *  processWeekAndAdvance files its stories under the week it just SETTLED and
+   *  then moves the counter on, so "this week's news" cannot be found by matching
+   *  state.week - and a season rollover resets the week to 1, which breaks the
+   *  arithmetic entirely. The id watermark taken before the settlement is exact
+   *  in both cases. See game/days.ts. */
+  newsFrom?: number
+  /** Which day of the current week the manager is standing on, 0 = Monday.
+   *
+   *  Presentation only: the engine still settles a whole week at a time. This is
+   *  how far through the reveal Continue has walked. Optional so saves written
+   *  before the day flow existed load on Monday. See game/days.ts. */
+  day?: number
   managerName: string
   training: TrainingFocus
   /** this week's match preparation - a short-term matchday emphasis,

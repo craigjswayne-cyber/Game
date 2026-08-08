@@ -108,7 +108,28 @@ try {
   // the box swallows its own taps now, so a click on the veil's centre lands on
   // the box and does nothing. Use the button a real thumb would use.
   await page.click('.tut-close .btn')
-  await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
+  // ---- the opening sequence, in order ----
+  // A new manager is introduced by four letters and nothing may jump the queue
+  // (user: "it has already shared a scout report so you wouldnt see it. can we do
+  // a welcome, a fan response, squad assessment, coaching team"). The inbox reads
+  // oldest unread first, so the id order IS the reading order.
+  // the News rail button serves the oldest unread and then the next, so tapping it
+  // four times walks the opening sequence in the order it is meant to be read
+  const opening = []
+  for (let i = 0; i < 4; i++) {
+    await page.click('.bottom-nav button[title="News"]')
+    await page.waitForSelector('.reader', { timeout: 15000 })
+    await page.waitForTimeout(200)
+    opening.push((await page.locator('.reader h2').innerText()).trim())
+  }
+  console.log(`opening inbox: ${opening.map(x => `"${x.slice(0, 34)}"`).join(' > ')}`)
+  const wantOpen = [/Welcome to Leicester/i, /terraces|faithful|support/i, /assistant/i, /backroom staff/i]
+  wantOpen.forEach((re, i) => {
+    if (!opening[i] || !re.test(opening[i])) {
+      throw new Error(`opening letter ${i + 1} should match ${re}, got "${opening[i] ?? '(missing)'}"`)
+    }
+  })
+  await page.click('.back-btn')
   await shot('03-inbox')
 
   // Squad
@@ -204,8 +225,25 @@ try {
   await shot('08b-deals')
   await page.click('.tab-bar >> text=Market')
 
-  // Continue -> match day: swap a player, give a speech, ready check
-  await page.click('.continue-btn')
+  // ---- Continue walks the week a day at a time ----
+  // The button reads Continue on the bulletin days and Matchday on the day the
+  // game actually falls, so the walk to kick-off is a handful of taps, not one.
+  // Bounded so a stuck flow fails the test rather than hanging it.
+  const bulletins = []
+  for (let tap = 0; tap < 8; tap++) {
+    const label = (await page.locator('.continue-btn').innerText()).trim()
+    await page.click('.continue-btn')
+    await page.waitForTimeout(450)
+    await clearOffers()
+    const day = await page.evaluate(() => document.querySelector('.day-head .dh-day')?.textContent ?? null)
+    if (day) { bulletins.push(day); continue }
+    if (await page.locator('text=Kick Off').count()) break
+    // not a bulletin and not the match: something else took the screen
+    if (label === 'Matchday ▸') break
+  }
+  console.log(`walked to kick-off through: ${bulletins.length ? bulletins.join(' > ') : '(no bulletins)'}`)
+  if (!bulletins.length) throw new Error('Continue reached the match without a single day bulletin')
+  if (new Set(bulletins).size !== bulletins.length) throw new Error(`a day repeated itself: ${bulletins.join(', ')}`)
   await page.waitForSelector('text=Kick Off', { timeout: 15000 })
   await shot('09-matchday-preview')
   await playMatch()
