@@ -1,5 +1,6 @@
-import type { GameState, Player, PressItem } from './model'
-import { logDecision } from './model'
+import type { GameState, OfficeTopic, Player, PressItem } from './model'
+import { SEASON_WEEKS, logDecision } from './model'
+import { loanOut } from './loans'
 import { derbyName, isDerby } from './rivalries'
 import { clamp, pick, type Rng } from './rng'
 
@@ -10,6 +11,42 @@ const OUTLETS = [
 
 /** Not an outlet at all: player conversations behind a closed door. */
 export const OFFICE_OUTLET = "The Manager's Office"
+
+/**
+ * How long the office remembers a conversation.
+ *
+ * A live report: a prospect asked to go out on loan, the manager agreed, and
+ * the same lad knocked again with the same speech seven days later. The office
+ * was generating from squad state alone, so any player who still matched the
+ * filter could be picked again the very next week - and agreeing to something
+ * never changed the filter, because agreeing did nothing.
+ *
+ * Fourteen weeks is a third of a season: long enough that the repeat reads as
+ * a man whose patience has run out rather than a bug, and short enough that
+ * he does get to come back if you left him in the stand all year.
+ */
+export const OFFICE_COOLDOWN = 14
+
+const absWeek = (season: number, week: number) => season * SEASON_WEEKS + week
+
+/** Has this player raised this subject recently enough that raising it again
+ *  would read as the game forgetting the last conversation? */
+export function askedRecently(state: GameState, pid: number, topic: OfficeTopic): boolean {
+  const now = absWeek(state.season, state.week)
+  return (state.officeMemo ?? []).some(m =>
+    m.pid === pid && m.topic === topic && now - absWeek(m.season, m.week) < OFFICE_COOLDOWN)
+}
+
+/** Record that he came in about it. Written when the conversation is raised,
+ *  not when it is answered: ignoring a player is also an answer, and it does
+ *  not entitle him to ask again next week. */
+function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
+  ;(state.officeMemo ??= []).push({ pid, topic, season: state.season, week: state.week })
+  // two seasons of memos is far more than the cooldown needs, and keeps the
+  // save from carrying a list that only ever grows
+  const cutoff = absWeek(state.season - 2, state.week)
+  state.officeMemo = state.officeMemo.filter(m => absWeek(m.season, m.week) >= cutoff).slice(-200)
+}
 
 function mk(state: GameState, question: string, playerId: number | undefined, options: PressItem['options'], rng: Rng): PressItem {
   return {
@@ -349,8 +386,8 @@ export function generatePress(state: GameState, rng: Rng) {
 
   // a frozen-out senior wants to know where he stands
   const frozen = squad.filter(p => !p.acad && p.age >= 24 && p.ca >= 68 &&
-    p.morale <= 5.5 && p.stats.apps <= 2 && !p.injury && !committed.has(p.id) &&
-    state.week >= 10 && state.week <= 40)
+    p.morale <= 5.5 && p.stats.apps <= 2 && !p.injury && !p.onLoan && !committed.has(p.id) &&
+    !askedRecently(state, p.id, 'plans') && state.week >= 10 && state.week <= 40)
   if (frozen.length && rng() < 0.35) {
     const p = pick(rng, frozen)
     const item = mk(state,
@@ -374,13 +411,14 @@ export function generatePress(state: GameState, rng: Rng) {
         ]) },
       ], rng)
     item.outlet = OFFICE
+    item.topic = 'plans'
     candidates.push(item)
   }
 
   // an academy prospect wants a loan
   const restless = squad.filter(p => p.acad && p.age <= 21 && p.pa >= 74 &&
-    p.stats.apps <= 3 && !p.injury && !committed.has(p.id) &&
-    state.week >= 8 && state.week <= 34)
+    p.stats.apps <= 3 && !p.injury && !p.onLoan && !committed.has(p.id) &&
+    !askedRecently(state, p.id, 'loan') && state.week >= 8 && state.week <= 34)
   if (restless.length && rng() < 0.3) {
     const p = pick(rng, restless)
     const item = mk(state,
@@ -394,9 +432,9 @@ export function generatePress(state: GameState, rng: Rng) {
           `${p.name} lights up. Play him in the next few weeks or the shine wears off fast.`,
           `He floats out of the office. A first-team promise at his age is rocket fuel - but it burns fast if the team sheet never shows it.`,
         ]) },
-        { label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, reaction: pick(rng, [
-          `A smart development call. List him for loan from the Transfers screen and the offers will come.`,
-          `He grins and shakes your hand twice. The academy coach approves: minutes make players, benches make excuses.`,
+        { label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, loan: true, reaction: pick(rng, [
+          `A smart development call. The loan is agreed the same afternoon, and the reports will come back to you every few weeks.`,
+          `He grins and shakes your hand twice, and the academy coach makes the calls before you have changed your mind: minutes make players, benches make excuses.`,
         ]) },
         { label: 'He is not ready to leave', morale: -0.7, board: 0, reaction: pick(rng, [
           `He trudges out without a word. The academy coach thinks you have just cooled your hottest prospect.`,
@@ -404,12 +442,14 @@ export function generatePress(state: GameState, rng: Rng) {
         ]) },
       ], rng)
     item.outlet = OFFICE
+    item.topic = 'loan'
     candidates.push(item)
   }
 
   // a veteran on an expiring deal wants to know what happens next
   const fading = squad.filter(p => p.age >= 32 && p.contractEnds <= state.season &&
-    p.stats.apps >= 4 && !committed.has(p.id) && state.week >= 20 && state.week <= 38)
+    p.stats.apps >= 4 && !p.onLoan && !committed.has(p.id) &&
+    !askedRecently(state, p.id, 'deal') && state.week >= 20 && state.week <= 38)
   if (fading.length && rng() < 0.35) {
     const p = pick(rng, fading)
     const item = mk(state,
@@ -433,6 +473,7 @@ export function generatePress(state: GameState, rng: Rng) {
         ]) },
       ], rng)
     item.outlet = OFFICE
+    item.topic = 'deal'
     candidates.push(item)
   }
 
@@ -500,7 +541,12 @@ export function generatePress(state: GameState, rng: Rng) {
   }
 
   if (candidates.length && rng() < 0.75) {
-    state.press.push(candidates[Math.floor(rng() * candidates.length)])
+    const chosen = candidates[Math.floor(rng() * candidates.length)]
+    state.press.push(chosen)
+    // the office writes its memo when the man knocks, so that whatever the
+    // manager says - or does not say - he is not back next week with the
+    // same speech
+    if (chosen.topic && chosen.playerId != null) rememberAsk(state, chosen.playerId, chosen.topic)
     // keep press list bounded
     if (state.press.length > 40) state.press = state.press.slice(-40)
   }
@@ -552,6 +598,20 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
           playerId: p.id,
         })
       }
+    }
+  }
+  // "Agree - a loan makes sense" now agrees to a loan. It used to be a mood
+  // adjustment and a note telling the manager to go and do it himself, which is
+  // how a prospect came back the following week asking for the thing his boss
+  // had already said yes to.
+  if (opt.loan && item.playerId != null) {
+    const r = loanOut(state, item.playerId)
+    if (!r.ok) {
+      // he is in the XV, or too old, or already out: say so rather than print a
+      // reaction describing a move that did not happen
+      item.reaction = `Agreed in principle, but it stops there for now. ${r.msg}`
+    } else {
+      logDecision(state, `Agreed to ${state.players[item.playerId]?.name}'s loan request. He goes out for the season.`, true)
     }
   }
   if (item.playerId != null) {

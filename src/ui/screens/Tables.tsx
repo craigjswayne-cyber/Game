@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { weekDate } from '../../game/model'
-import { ordinal } from '../../game/gossip'
 import { CrestT, SectionTitle } from '../components'
+import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 
 export default function Tables({ initial }: { initial?: string }) {
@@ -16,9 +15,7 @@ export default function Tables({ initial }: { initial?: string }) {
   const comp = game.comps[compId]
   if (!comp) return null
 
-  const rows = sortTable(comp.table)
   const ko = game.fixtures.filter(f => f.compId === compId && f.stage).sort((a, b) => a.week - b.week)
-  const playoffLine = comp.playoffTeams
 
   return (
     <>
@@ -34,51 +31,9 @@ export default function Tables({ initial }: { initial?: string }) {
         <button onClick={() => go('jobs')}>Jobs</button>
       </div>
       <SectionTitle sub={comp.champion ? `Champions: ${teamShort(game, comp.champion)}` : undefined}>{comp.name}</SectionTitle>
-      <div className="tblwrap"><table className="dtable">
-        <thead>
-          <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
-            <th className="num">D</th><th className="num">L</th><th className="num">+/-</th>
-            <th className="num">BP</th><th className="num">Pts</th></tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => {
-            const inPlayoffs = !!playoffLine && i < playoffLine
-            const relegates = ['prem', 'champ', 'top14'].includes(compId) && i === rows.length - 1
-            return (
-            <tr key={r.teamId}
-              className={r.teamId === game.userClubId ? 'me' : ''}
-              onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
-              style={{
-                ...(inPlayoffs ? { background: 'color-mix(in srgb, #c9a227 12%, transparent)' } : undefined),
-                ...(relegates ? { background: 'color-mix(in srgb, #9b2c2c 10%, transparent)' } : undefined),
-                ...(playoffLine && i === playoffLine - 1 ? { borderBottom: '2px solid #c9a227' } : undefined),
-              }}>
-              <td className="num muted">{i + 1}</td>
-              <td className="name">
-                <CrestT g={game} teamId={r.teamId} size={17} />{teamShort(game, r.teamId)}
-                {r.teamId === game.userClubId && game.preds?.[r.teamId] != null && (
-                  <span className="muted" style={{ fontSize: 10.5, marginLeft: 5 }}>pred {ordinal(game.preds[r.teamId])}</span>
-                )}
-              </td>
-              <td className="num">{r.p}</td>
-              <td className="num">{r.w}</td>
-              <td className="num">{r.d}</td>
-              <td className="num">{r.l}</td>
-              <td className="num">{r.pf - r.pa}</td>
-              <td className="num">{r.bp}</td>
-              <td className="num" style={{ fontWeight: 700 }}>{r.pts}</td>
-            </tr>
-            )
-          })}
-        </tbody>
-      </table></div>
-      {(playoffLine || ['prem', 'champ', 'top14'].includes(compId)) && (
-        <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-          {playoffLine ? `🟡 Top ${playoffLine}: playoff places` : ''}
-          {playoffLine && ['prem', 'champ', 'top14'].includes(compId) ? ' · ' : ''}
-          {['prem', 'champ', 'top14'].includes(compId) ? '🔻 Bottom: relegation' : ''}
-        </div>
-      )}
+      {/* the table itself lives in ../LeagueTable so that the copy on Fixtures &
+          Results is the same table rather than a second one */}
+      <LeagueTable compId={compId} />
       <Leaders compId={compId} />
       {ko.length > 0 && (
         <>

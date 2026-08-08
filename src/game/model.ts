@@ -436,7 +436,16 @@ export interface PressOption {
   appeal?: boolean
   /** the pre-season decision: one special week, three philosophies */
   camp?: 'heat' | 'home' | 'tour'
+  /** agreeing to a loan actually sends him. Saying yes and then leaving the
+   *  manager to go and find the Transfers screen is how a lad ended up asking
+   *  the same question a week after his boss agreed to it. */
+  loan?: boolean
 }
+
+/** A subject a player can raise behind the office door. The office keeps a
+ *  memo of who asked what and when, so the same man does not knock again
+ *  about the same thing seven days after you answered him. */
+export type OfficeTopic = 'plans' | 'loan' | 'deal'
 
 /** A promise made to a player in the office. The squad keeps the receipts:
  *  at the due week it is settled as kept or broken, with consequences. */
@@ -462,6 +471,8 @@ export interface PressItem {
   answered: boolean
   answerLabel?: string
   reaction?: string
+  /** set on office conversations: what he came in to talk about */
+  topic?: OfficeTopic
 }
 
 export interface TransferOffer {
@@ -848,6 +859,9 @@ export interface GameState {
   viewPref?: Record<string, 'full' | 'highlights' | 'instant'>
   /** open promises made to players in the office, settled at their due week */
   pledges?: Pledge[]
+  /** who has raised what behind the office door, and when. A conversation the
+   *  manager has already had does not repeat itself the following week. */
+  officeMemo?: { pid: number; topic: OfficeTopic; season: number; week: number }[]
   /** the user's next academy class, fixed at the week-30 preview so intake
    *  day delivers exactly what the coach foretold */
   intakeClass?: { name: string; pos: Pos; age: number; q: number; pa: number; gk: boolean; wonder: boolean }[] | null
