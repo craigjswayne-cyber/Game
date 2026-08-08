@@ -8,7 +8,7 @@ import {
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
-import { saveGame } from './game/save'
+import { loadGame, saveGame } from './game/save'
 
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
@@ -114,6 +114,10 @@ interface Store {
   resignNat: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
+  /** Reopen the last save on the screen it was left on. False if there is none. */
+  resume: () => Promise<boolean>
+  /** Back to the title screen on purpose, and forget the resume bookmark. */
+  toTitle: () => void
 }
 
 /** The event types worth stopping the ticker for in highlights mode (F5).
@@ -146,6 +150,41 @@ function settleKnockout(g: GameState, ctx: LiveCtx) {
     })
     fx.events = ctx.events
   }
+}
+
+/** ---- where the manager was when the page went away ----
+ *
+ *  A reload used to drop you on the title screen with a Continue button, which
+ *  is two taps to get back to a screen you never left, and on a phone the tab
+ *  gets reloaded for you all the time. The save itself lives in IndexedDB and is
+ *  already written every week; this is just the bookmark, so it is small enough
+ *  for localStorage and losing it costs nothing.
+ *
+ *  Screens that only make sense mid-flow are not bookmarked. A live match is the
+ *  important one: the ticker's state is in memory and is not saved, so resuming
+ *  onto 'matchday' has to mean the pre-match hub, and resuming onto the Wire or a
+ *  round-up would be a queue that no longer exists. */
+const NO_RESUME = new Set<Screen>(['menu', 'newgame', 'wire', 'results', 'seasonreview'])
+const WHERE_KEY = 'rm-where'
+
+function noteWhere(slot: string, nav: NavEntry[]) {
+  const trail = nav.filter(e => !NO_RESUME.has(e.screen)).slice(-6)
+  try {
+    if (!trail.length) localStorage.removeItem(WHERE_KEY)
+    else localStorage.setItem(WHERE_KEY, JSON.stringify({ slot, nav: trail }))
+  } catch { /* private mode: the bookmark is a nicety, not a feature */ }
+}
+
+function readWhere(): { slot: string; nav: NavEntry[] } | null {
+  try {
+    const raw = localStorage.getItem(WHERE_KEY)
+    if (!raw) return null
+    const v = JSON.parse(raw) as { slot?: unknown; nav?: unknown }
+    if (typeof v.slot !== 'string' || !Array.isArray(v.nav) || !v.nav.length) return null
+    const nav = (v.nav as NavEntry[]).filter(e => e && typeof e.screen === 'string' && !NO_RESUME.has(e.screen))
+    if (!nav.length) return null
+    return { slot: v.slot, nav }
+  } catch { return null }
 }
 
 export const useStore = create<Store>((set, get) => ({
@@ -238,6 +277,7 @@ export const useStore = create<Store>((set, get) => ({
     // again every time a brand-new save was re-opened on another device.
     let firstRun = false
     try { firstRun = localStorage.getItem('rm-tut') !== '1' } catch { /* private mode */ }
+    noteWhere(get().saveSlot, [{ screen: 'home' }])
     set({ game: g, nav: [{ screen: 'home' }], tick: get().tick + 1, tut: firstRun })
     void get().persist()
   },
@@ -251,12 +291,37 @@ export const useStore = create<Store>((set, get) => ({
     set(s => ({ tick: s.tick + 1 }))
   },
 
-  setGame: (g, slot) => set({ game: g, saveSlot: slot, nav: [{ screen: 'home' }], tick: get().tick + 1 }),
+  setGame: (g, slot) => {
+    noteWhere(slot, [{ screen: 'home' }])
+    set({ game: g, saveSlot: slot, nav: [{ screen: 'home' }], tick: get().tick + 1 })
+  },
   setSlot: (slot) => set({ saveSlot: slot }),
 
-  go: (screen, param) => set(s => ({ nav: [...s.nav, { screen, param }] })),
-  back: () => set(s => ({ nav: s.nav.length > 1 ? s.nav.slice(0, -1) : s.nav })),
-  home: () => set({ nav: [{ screen: 'home' }] }),
+  go: (screen, param) => set(s => { const nav = [...s.nav, { screen, param }]; noteWhere(s.saveSlot, nav); return { nav } }),
+  back: () => set(s => {
+    const nav = s.nav.length > 1 ? s.nav.slice(0, -1) : s.nav
+    noteWhere(s.saveSlot, nav)
+    return { nav }
+  }),
+  home: () => set(s => { noteWhere(s.saveSlot, [{ screen: 'home' as const }]); return { nav: [{ screen: 'home' }] } }),
+
+  /** Pick the career back up where the browser left it (user: "when you refresh
+   *  the page it kicks you out to the main menu - dont have it do that, have it
+   *  stay on the page"). Returns false when there is nothing to resume, which is
+   *  the title screen's cue to behave as it always did. */
+  toTitle: () => {
+    try { localStorage.removeItem(WHERE_KEY) } catch { /* private mode */ }
+    set(s => ({ nav: [{ screen: 'menu' as const }], tick: s.tick + 1 }))
+  },
+
+  resume: async () => {
+    const where = readWhere()
+    if (!where) return false
+    const g = await loadGame(where.slot).catch(() => null)
+    if (!g) return false
+    set({ game: g, saveSlot: where.slot, nav: where.nav, tick: get().tick + 1 })
+    return true
+  },
   touch: () => set(s => ({ tick: s.tick + 1 })),
 
   /** CM-style Continue: play user's match if there is one, else process the week. */

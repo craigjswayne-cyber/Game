@@ -206,20 +206,67 @@ try {
   await page.click('.submenu-item >> text=Transfer Centre')
   await page.waitForSelector('.filter-line', { timeout: 8000 })
   const fr = await page.evaluate(() => {
-    const kids = [...document.querySelectorAll('.filter-line > *')]
-    const tops = kids.map(e => Math.round(e.getBoundingClientRect().top))
-    return { n: kids.length, spread: Math.max(...tops) - Math.min(...tops),
-      labels: kids.map(e => (e.tagName === 'SELECT' ? e.options[e.selectedIndex].text : e.textContent.trim())) }
+    const rows = [...document.querySelectorAll('.filter-line')].map(row => {
+      const kids = [...row.children]
+      const tops = kids.map(e => Math.round(e.getBoundingClientRect().top))
+      // a control whose label is clipped is the "boxes overlap" complaint: the
+      // text does not fit the box it is in, so the box looks like it is on top
+      // of its neighbour
+      const clipped = kids.filter(e => e.scrollWidth > e.clientWidth + 2)
+        .map(e => (e.tagName === 'SELECT' ? e.options[e.selectedIndex].text : e.textContent.trim()))
+      return {
+        n: kids.length, spread: Math.max(...tops) - Math.min(...tops), clipped,
+        labels: kids.map(e => (e.tagName === 'SELECT' ? e.options[e.selectedIndex].text : (e.value || e.placeholder || e.textContent).trim())),
+      }
+    })
+    return rows
   })
-  console.log(`\n--- filters: ${fr.n} controls [${fr.labels.join(' | ')}], top spread ${fr.spread}px`)
-  ok(fr.n === 4, `four filters (${fr.n})`)
-  ok(fr.spread <= 2, `all on one line (${fr.spread}px spread)`)
+  for (const row of fr) {
+    console.log(`\n--- filters: ${row.n} controls [${row.labels.join(' | ')}], top spread ${row.spread}px`)
+    ok(row.spread <= 2, `all on one line (${row.spread}px spread)`)
+    ok(row.clipped.length === 0, `no filter label is clipped by its own box${row.clipped.length ? ` [${row.clipped.join(', ')}]` : ''}`)
+  }
+  ok(fr.length === 2 && fr[0].n === 2 && fr[1].n === 4, `two rows of filters, 2 then 4 (${fr.map(r => r.n).join('+')})`)
   await report('transfers')
 
-  // ---- contracts: every man, his wage and his expiry, in one place
+  // ---- every squad table keeps its heading at the top, and fits the screen
+  //
+  // The bug this exists for: .tblwrap declared overflow-x: auto, CSS computed
+  // overflow-y to auto with it, and the wrapper became a scrollport that never
+  // scrolls - so `position: sticky; top: var(--stickyh)` pushed the heading row
+  // --stickyh pixels DOWN from the wrapper's top and parked it among the
+  // players. Two rows of the squad, then the column headings, then the rest
+  // (user: "weird bug on select where the column headers are amongst the players
+  // names so not at the top - same for stats, game time, contracts"). Measured
+  // as a rule rather than a screenshot: no heading may sit below the first row
+  // of the body, on any of the five views.
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.tab-bar', { timeout: 8000 })
+  for (const view of ['Selection', 'General Info', 'Stats', 'Game Time', 'Contracts']) {
+    await page.click(`.tab-bar >> text=${view}`)
+    await page.waitForTimeout(300)
+    const t = await page.evaluate(() => {
+      const th = document.querySelector('.dtable thead th')
+      const tr = document.querySelector('.dtable tbody tr')
+      const tbl = document.querySelector('.dtable')
+      if (!th || !tbl) return null
+      return {
+        head: Math.round(th.getBoundingClientRect().top),
+        firstRow: tr ? Math.round(tr.getBoundingClientRect().top) : null,
+        tblRight: Math.round(tbl.getBoundingClientRect().right),
+        viewport: window.innerWidth,
+      }
+    })
+    if (!t) { console.log(`--- ${view}: no table to measure`); continue }
+    console.log(`--- ${view}: heading at y=${t.head}, first row y=${t.firstRow}, table right edge ${t.tblRight} of ${t.viewport}`)
+    ok(t.firstRow == null || t.head <= t.firstRow,
+      `the column headings are above the players, not among them (${t.head} vs ${t.firstRow})`)
+    ok(t.tblRight <= t.viewport + 1,
+      `the table fits the screen, so no column hides past the right edge (${t.tblRight} of ${t.viewport})`)
+  }
+
+  // ---- contracts: every man, his wage and his expiry, in one place
   await page.click('.tab-bar >> text=Contracts')
   await page.waitForTimeout(400)
   const con = await page.evaluate(() => {

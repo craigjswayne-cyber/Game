@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { boardObjective, fmtMoney, operatingCost, weeklyCentral } from '../../game/model'
+import { boardObjective, facLevel, fmtMoney, operatingCost, weeklyCentral } from '../../game/model'
+import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { SectionTitle } from '../components'
 
@@ -45,7 +46,7 @@ export default function Finances() {
   return (
     <>
       <div className="tab-bar">
-        <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>Money</button>
+        <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>Finances</button>
         <button className={ftab === 'board' ? 'active' : ''} onClick={() => setFtab('board')}>The Board</button>
       </div>
       {/* the ledger and the graph sit side by side in landscape: two chip
@@ -70,6 +71,58 @@ export default function Finances() {
         {(game.finHist?.length ?? 0) >= 2 && <div className="fin-chart"><BalanceChart hist={game.finHist!} /></div>}
       </div>
       {ftab === 'money' && <>
+      {/* ---- where the money actually goes ----
+          The chips above are a set of true numbers that never added up to
+          anything (user: "make it more clear what the balance etc is being spent
+          on"). Every line below is read from the same functions the weekly
+          settlement uses - see weeklyFinance in season.ts - so the bottom line
+          here is the number that will hit the balance on Continue, not an
+          estimate of it. */}
+      <SectionTitle sub="what lands in the account every week">The Weekly Ledger</SectionTitle>
+      <div className="card">
+        {(() => {
+          const staff = staffWageBill(game)
+          const upkeep = operatingCost(game)
+          const commercial = weeklyCentral(club)
+          const shopLvl = facLevel(game, 'shop')
+          const shop = shopLvl > 0 ? Math.round(shopLvl * 9_000 * (0.6 + (game.fanMood ?? 60) / 100)) : 0
+          // a home gate arrives every third week or so, so it is shown as one
+          // and labelled as one rather than smeared across the average
+          const homeGate = avgAtt ? Math.round(avgAtt * 30) : 0
+          const net = commercial + shop - wages - staff - upkeep
+          const line = (label: string, amount: number, note?: string) => (
+            <div className="ledger-row" key={label}>
+              <span className="lg-what">{label}{note ? <span className="muted"> {note}</span> : null}</span>
+              <span className="lg-amt" style={{ color: amount >= 0 ? '#2f7d4f' : '#9b2c2c' }}>
+                {amount >= 0 ? '+' : '−'}{fmtMoney(Math.abs(amount))}
+              </span>
+            </div>
+          )
+          return (
+            <>
+              {line('Sponsorship, broadcast and central funds', commercial)}
+              {shop > 0 && line('Club shop', shop, `level ${shopLvl}`)}
+              {line('Player wages', -wages, `${club.players.length} men`)}
+              {line('Backroom staff', -staff)}
+              {line('Ground and estate upkeep', -upkeep)}
+              <div className="ledger-row total">
+                <span className="lg-what">Every week, before gate receipts</span>
+                <span className="lg-amt" style={{ color: net >= 0 ? '#2f7d4f' : '#9b2c2c' }}>
+                  {net >= 0 ? '+' : '−'}{fmtMoney(Math.abs(net))}
+                </span>
+              </div>
+              <div className="meta" style={{ marginTop: 6 }}>
+                {homeGate > 0
+                  ? `A home match adds about ${fmtMoney(homeGate)} on the gate, and you have one roughly every third week.`
+                  : 'Gate receipts land on the weeks you play at home, at £30 a head.'}
+                {' '}{net >= 0
+                  ? 'The club pays its way as things stand.'
+                  : 'The club loses money on a blank week, so the gate and player sales have to cover the gap.'}
+              </div>
+            </>
+          )
+        })()}
+      </div>
       <SectionTitle>Top Earners</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Name</th><th className="num">Wage</th><th className="num">Until</th><th className="num">Value</th></tr></thead>

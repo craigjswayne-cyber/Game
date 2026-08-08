@@ -181,7 +181,8 @@ export default function Profile() {
         <span className="chip">Drawn <b>{m.d}</b></span>
         <span className="chip">Lost <b>{m.l}</b></span>
         <span className="chip">Win rate <b>{winPct}%</b></span>
-        <span className="chip">Signings <b>{m.signings}</b></span>
+        {/* Signings is gone at the user's request: it counted a number nothing
+            else in the game reads, on the row that is meant to be your record. */}
         {(m.moms ?? 0) > 0 && <span className="chip">🥇 Manager of the Month <b>×{m.moms}</b></span>}
       </div>
       {!game.unemployed && (

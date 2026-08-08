@@ -21,7 +21,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [signOn, setSignOn] = useState(0)
   const [promiseMin, setPromiseMin] = useState(false)
   const [negotiating, setNegotiating] = useState(false)
-  const [wageOffer, setWageOffer] = useState(0)
+  /** The wage box holds TEXT, not a number.
+   *
+   *  As a number it round-tripped through Number(e.target.value) on every
+   *  keystroke, so clearing the box gave Number('') === 0, the input redrew as
+   *  "0", and the next digit landed after it: type 4000 into an empty box and
+   *  you got "04000" (user: "when i manually type a number, i remove the number
+   *  and type and a 0 always comes up first"). Keeping the raw string means an
+   *  empty box stays empty and only the offer button parses it. */
+  const [wageText, setWageText] = useState('0')
+  const wageOffer = Math.max(0, Math.round(Number(wageText) || 0))
   const [wageCounter, setWageCounter] = useState<number | null>(null)
   const [compare, setCompare] = useState(false)
   // three pages instead of one long scroll (user: fewer scrolls, more pages)
@@ -334,8 +343,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <div className="card">
               <h3>Contract talks with {p.name.split(' ').slice(-1)[0]}'s agent</h3>
               <div className="meta">His camp wants {fmtMoney(renewalDemand(p))}/wk (currently {fmtMoney(p.wage)}/wk). Lowball at your peril.</div>
-              <input className="inline-input" type="number" value={wageOffer} step={50} min={0}
-                onChange={e => setWageOffer(Number(e.target.value))} />
+              <input className="inline-input" type="text" inputMode="numeric" value={wageText}
+                onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
               <div className="btn-row" style={{ margin: '10px 0 0' }}>
                 <button className="btn gold" onClick={() => {
                   const r = offerRenewalAt(game, p.id, wageOffer)
@@ -354,7 +363,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <div className="btn-row">
             {!negotiating && (
               <button className="btn" onClick={() => {
-                setNegotiating(true); setWageOffer(Math.round(renewalDemand(p) * 0.9 / 50) * 50); setWageCounter(null)
+                setNegotiating(true); setWageText(String(Math.round(renewalDemand(p) * 0.9 / 50) * 50)); setWageCounter(null)
               }}>Open Contract Talks</button>
             )}
             <button className={`btn ${p.transferListed ? 'ghost' : 'danger'}`} onClick={() => {

@@ -161,6 +161,21 @@ function useOrientationLock() {
   }, [])
 }
 
+/** A reload lands you back where you were, not on the title screen.
+ *
+ *  Runs once, and only from a cold start with no game in memory, so it can never
+ *  interrupt a session in progress. Strict mode double-invokes effects in
+ *  development, which the in-memory guard also covers. */
+let resumeTried = false
+function useResume() {
+  useEffect(() => {
+    if (resumeTried) return
+    resumeTried = true
+    if (useStore.getState().game) return
+    void useStore.getState().resume()
+  }, [])
+}
+
 interface MenuItem {
   ico: string
   label: string
@@ -179,6 +194,7 @@ export default function App() {
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
   useOrientationLock()
+  useResume()
 
   const cur = nav[nav.length - 1]
   const appClass = `app${night ? ' night' : ''}`
@@ -291,6 +307,10 @@ export default function App() {
         // dismissing the welcome dialog used to be final and irreversible
         { ico: '❓', label: 'How to play', screen: 'home', action: () => useStore.getState().openTut() },
         { ico: '💾', label: 'Save / Load Game', screen: 'saves' },
+        // A reload now resumes the career where it was left, so a refresh is no
+        // longer the way back to the title screen - and without a deliberate
+        // route there, starting a second career would be impossible.
+        { ico: '🚪', label: 'Title Screen', screen: 'menu', action: () => useStore.getState().toTitle() },
       ],
     },
     world: {

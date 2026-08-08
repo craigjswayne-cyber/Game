@@ -125,13 +125,15 @@ try {
   await shot('05-player')
   await page.click('.back-btn')
 
-  // Tactics area. The In-Form XV page is gone: it was a whole screen for a
-  // suggestion, so it is now a button on the team sheet beside Best XV.
+  // Tactics area. Selection has one auto-pick now: In-Form XV came off at the
+  // user's request, because two buttons that both rewrite the whole team sheet is
+  // one too many and the difference between them never showed on the button.
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Selection & Tactics')
   await page.waitForSelector('text=Starting XV')
   await shot('06-selection')
-  await page.click('text=In-Form XV')
+  if (await page.locator('text=In-Form XV').count()) throw new Error('In-Form XV button is back')
+  await page.click('text=Best XV')
   await page.waitForTimeout(200)
   await page.click('.tab-bar >> text=Tactics')
   await page.waitForSelector('.form-pitch')
@@ -281,9 +283,22 @@ try {
   await page.waitForTimeout(400)
   await shot('13-press')
 
-  // reload -> save should load via menu
+  // ---- a reload lands back in the career, not on the title screen
+  // (user: "when you refresh the page it kicks you out to the main menu - dont
+  // have it do that, have it stay on the page"). The bookmark is the last screen
+  // visited, so this reload has to come back to the Press Room.
   await page.reload()
-  await page.waitForSelector('text=RUGBY', { timeout: 15000 })
+  await page.waitForSelector('.bottom-nav', { timeout: 15000 })
+  const resumed = await page.evaluate(() => document.querySelector('.masthead h1')?.textContent ?? '')
+  console.log(`reload resumed on: "${resumed}"`)
+  if (/RUGBY MANAGER/i.test(resumed) || !resumed) throw new Error('a reload dropped the manager on the title screen')
+  await shot('14-resumed')
+
+  // ---- and the title screen is still reachable on purpose, which is the only
+  // way to start a second career now that a refresh no longer gets you there
+  await page.click('.bottom-nav button[title="Manager"]')
+  await page.click('.submenu-item >> text=Title Screen')
+  await page.waitForSelector('text=Load Career', { timeout: 15000 })
   await page.click('text=Load Career')
   await page.click('text=Test Gaffer')
   await page.waitForSelector('.continue-btn', { timeout: 15000 })
@@ -305,7 +320,8 @@ try {
   // comparing the two can only ever catch overflow, never a snug fit - and with
   // white-space: nowrap there is no overflow to catch. One line of this text is
   // about 22px; a wrap would be 40-plus.
-  await page.reload()
+  await page.click('.bottom-nav button[title="Manager"]')
+  await page.click('.submenu-item >> text=Title Screen')
   await page.waitForSelector('.continue-tile', { timeout: 15000 })
   const ct = await page.evaluate(() => {
     const l = document.querySelector('.ct-line')

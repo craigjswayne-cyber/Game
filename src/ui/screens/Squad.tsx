@@ -36,7 +36,14 @@ export default function Squad() {
   const [desc, setDesc] = useState(false)
   const [group, setGroup] = useState<'all' | 'aca'>('all')
   const [avail, setAvail] = useState<'any' | 'fit' | 'out'>('any')
-  const [query, setQuery] = useState('')
+  /** Game Time opens on the men who are out of line rather than on all 42.
+   *
+   *  The page's job is "who is unhappy about minutes", and the answer is
+   *  usually three or four names. Listing the whole squad buried them four
+   *  screenfuls deep (user: "game time feels more packed then other pages in
+   *  squad. make it clearer and all on one page - not scroll"), so the default
+   *  view is the shortlist and Everyone is one tap away. */
+  const [gtAll, setGtAll] = useState(false)
 
   const club = game.clubs[game.userClubId]
   const stars = useMemo(() => starPlayerIds(game, club.id), [game, club.id, game.week])
@@ -53,8 +60,12 @@ export default function Squad() {
     const out = (p: Player) => !!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan
     if (avail === 'fit') ps = ps.filter(p => !out(p))
     if (avail === 'out') ps = ps.filter(out)
-    const q = query.trim().toLowerCase()
-    if (q) ps = ps.filter(p => p.name.toLowerCase().includes(q) || p.pos.toLowerCase() === q)
+    if (view === 'gametime' && !gtAll) {
+      ps = ps.filter(p => {
+        const row = ledgerRow(game, club, p, played)
+        return row.gap <= -2 || row.mood === 'restless' || row.mood === 'unhappy'
+      })
+    }
     const dir = desc ? -1 : 1
     const posIdx = (p: Player) => POS_ORDER.indexOf(p.pos)
     const avr = (p: Player) => (p.stats.apps ? p.stats.ratingSum / p.stats.apps : 0)
@@ -78,7 +89,7 @@ export default function Squad() {
       }
     })
     return ps
-  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, query])
+  }, [club.players, game.players, sort, desc, game.week, club.tactic.lineup, group, avail, view, gtAll, game, club, played])
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`th-sort${sort === k ? ' active' : ''}${right ? ' num' : ''}`}
@@ -146,20 +157,48 @@ export default function Squad() {
         {group === 'aca' && (
           <button className="preset-chip" onClick={() => go('academy')}>A League ▸</button>
         )}
-        {/* U23 is gone at the user's request. It was the sixth chip on a row
-            that only fits five, so it pushed the search box onto a line of its
-            own and cost a whole row of table. Age is a sortable column, which is
-            the better way to ask the same question. */}
-        {([['any', 'Everyone'], ['fit', '✅ Available'], ['out', '🚑 Unavailable']] as const).map(([k, label]) => (
-          <button key={k} className="preset-chip" style={avail === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+        {/* U23 is gone at the user's request, and so is the search box: on a
+            portrait phone the two words "Available" and "Unavailable" plus an
+            input took two rows for filters that a squad of 42 barely needs, and
+            Find A Player already exists as a whole screen on the rail. The
+            availability filter is now the two icons it always was really
+            (user: "get unavailable and available as just ✅🚑 icons and on the
+            same line as first team and academy"). */}
+        {([['any', 'Everyone', 'the whole squad'], ['fit', '✅', 'available to pick'], ['out', '🚑', 'injured, banned, away or on loan']] as const).map(([k, label, why]) => (
+          <button key={k} className="preset-chip" title={why} aria-label={why}
+            style={avail === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setAvail(k)}>{label}</button>
         ))}
-        <input className="inline-input" placeholder="Find a player…" value={query}
-          onChange={e => setQuery(e.target.value)}
-          style={{ margin: 0, flex: '1 1 90px', minWidth: 84, maxWidth: 190, padding: '4px 8px', fontSize: 12 }} />
+        {view === 'gametime' && (
+          <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            onClick={() => setGtAll(!gtAll)}>{gtAll ? 'Everyone shown' : 'Needs a word'}</button>
+        )}
       </div>
       </StickyControls>
-      <div className="tblwrap"><table className="dtable zebra">
+      {/* ---- why this table is told its column widths ----
+          .tblwrap sets overflow-x: auto, and CSS computes the other axis to
+          auto with it, so the wrapper became the table's vertical scrollport.
+          It never scrolls vertically, so `position: sticky; top: 210px` on the
+          heading row did not stick to anything - it simply pushed the heading
+          210px DOWN from the wrapper's top and parked it among the players
+          (user: "weird bug on select where the column headers are amongst the
+          players names so not at the top - same for stats, game time,
+          contracts"). The same wrapper was why the Fit column's "100%" sat past
+          the right edge: the table was wider than the phone and the overflow
+          hid it rather than fixing it.
+
+          Both die together. A colgroup plus table-layout: fixed makes the
+          table exactly as wide as the screen, with the name column taking
+          whatever is left and ellipsising, which means the wrapper does not
+          need to scroll and .fitwrap turns the scrollport off. Then .content is
+          the scrollport again and the heading sticks under the controls where
+          it belongs. */}
+      <div className="tblwrap fitwrap"><table className="dtable zebra fit">
+        {view === 'selection' && <colgroup><col width="34" /><col /><col width="36" /><col width="62" /><col width="40" /><col width="42" /></colgroup>}
+        {view === 'general' && <colgroup><col width="32" /><col /><col width="36" /><col width="32" /><col width="28" /><col width="26" /><col width="44" /><col width="56" /></colgroup>}
+        {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
+        {view === 'gametime' && <colgroup><col width="32" /><col /><col width="104" /><col width="30" /><col width="32" /><col width="48" /></colgroup>}
+        {view === 'contracts' && <colgroup><col width="32" /><col /><col width="36" /><col width="30" /><col width="48" /><col width="44" /><col width="36" /></colgroup>}
         <thead>
           {view === 'selection' && (
             <tr>
@@ -212,14 +251,18 @@ export default function Squad() {
               <Th k="age" right>Age</Th>
               <Th k="wage" right>Wage</Th>
               <Th k="until" right>Until</Th>
-              <th>Status</th>
+              {/* an icon, not a phrase: "under contract" is the answer for 38 of
+                  42 men and it was eating 78px of a 412px screen to say so */}
+              <th>?</th>
             </tr>
           )}
         </thead>
         <tbody>
           {players.length === 0 && (
-            <tr><td colSpan={8} className="muted" style={{ padding: 12 }}>
-              Nobody matches that. Clear the filters to see the whole squad.
+            <tr><td colSpan={8} className="muted" style={{ padding: 12, whiteSpace: 'normal' }}>
+              {view === 'gametime' && !gtAll
+                ? 'Nobody is short of the minutes he was promised. Tap Everyone Shown to set what the rest of the squad has been told.'
+                : 'Nobody matches that. Clear the filters to see the whole squad.'}
             </td></tr>
           )}
           {players.map(p => {
@@ -284,10 +327,10 @@ export default function Squad() {
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {p.contractEnds <= game.season
-                      ? <span style={{ color: '#a12f2f', fontWeight: 700 }}>⏳ expiring</span>
+                      ? <span title="deal expires this summer">⏳</span>
                       : (p.wantsDeal ?? 0) > 0
-                        ? <span style={{ color: '#a8841a', fontWeight: 700 }}>💼 wants terms</span>
-                        : <span className="muted">under contract</span>}
+                        ? <span title="his camp wants improved terms">💼</span>
+                        : <span className="muted" title="under contract, nothing to do">·</span>}
                   </td>
                 </>)}
                 {view === 'stats' && (<>
@@ -303,6 +346,16 @@ export default function Squad() {
           })}
         </tbody>
       </table></div>
+      {view === 'contracts' && (
+        <div className="meta" style={{ padding: '6px 14px 0' }}>
+          ⏳ runs out this summer · 💼 his camp wants improved terms · red year expiring, amber next summer. Tap a man to open talks.
+        </div>
+      )}
+      {view === 'gametime' && (
+        <div className="meta" style={{ padding: '6px 14px 0' }}>
+          Ap is what he has played, Due is what a man on that promise should have played by now. Tell a squad man he is a Key Player and he will hold you to it.
+        </div>
+      )}
       <div className="spacer" />
     </>
   )

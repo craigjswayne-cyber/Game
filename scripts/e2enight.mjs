@@ -84,7 +84,8 @@ try {
 
   // The filter row has to be ONE line. It was two: six chips plus a search box
   // wrapped, and the search box got a whole row of its own, which on a 390px-tall
-  // phone costs a row of players. U23 came off, so it fits.
+  // phone costs a row of players. U23 came off, then the search box and the two
+  // availability words, so five short controls now fit with room to spare.
   const filterRow = await page.evaluate(() => {
     const row = document.querySelector('.filter-row')
     const tops = [...row.children].map(c => c.getBoundingClientRect().top)
@@ -98,8 +99,9 @@ try {
   // and no clipped summary line riding the tab bar
   if (await page.locator('.tab-bar .filter-note').count()) throw new Error('the clipped squad summary line is back')
 
-  // squad filters: availability chip + search
-  await page.locator('.preset-chip >> text=🚑 Unavailable').click()
+  // squad filters: availability is two icons now, not two words plus a search box
+  if (await page.locator('.filter-row input').count()) throw new Error('the squad search box is back')
+  await page.locator('.preset-chip >> text=🚑').click()
   await page.waitForTimeout(250)
   await shot('06a2-squad-filtered')
   await page.locator('.preset-chip >> text=Everyone').click()

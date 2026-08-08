@@ -85,6 +85,49 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           })()}
         </div>
       </div>}
+      {/* ---- the History tab is never blank ----
+          Everything on this page was conditional on something a new career does
+          not have yet: no trophies, nobody near 100 appearances, no record gate,
+          no derby ledger. Three `return null`s in a row and the tab rendered
+          literally nothing (user: "history page on Newcastle is blank
+          currently"). This card always has something true to say, and it names
+          what will fill the rest of the page in. */}
+      {ctab === 'story' && (() => {
+        const rec = club.id === game.userClubId ? game.mgr : null
+        const seasons = game.history.filter(h => h.champion === club.id).length
+        const capped = players.filter(p => (p.caps ?? 0) > 0).length
+        return (
+          <>
+            <SectionTitle sub={club.id === game.userClubId ? 'your era at the club' : 'what the record book holds'}>The Story So Far</SectionTitle>
+            <div className="card">
+              <div className="meta" style={{ padding: '2px 0' }}>
+                🏟️ {club.stadium}, {club.city} · {club.capacity.toLocaleString()} capacity
+              </div>
+              <div className="meta" style={{ padding: '2px 0' }}>
+                🏉 {league?.name ?? 'no league'} · reputation {club.rep}
+              </div>
+              {capped > 0 && (
+                <div className="meta" style={{ padding: '2px 0' }}>
+                  🌍 {capped} capped {capped === 1 ? 'international' : 'internationals'} on the books
+                </div>
+              )}
+              {rec && (
+                <div className="meta" style={{ padding: '2px 0' }}>
+                  🧢 {game.managerName}: {rec.m} {rec.m === 1 ? 'match' : 'matches'}, {rec.w}W {rec.d}D {rec.l}L
+                  {rec.trophies.length ? ` · ${rec.trophies.length} ${rec.trophies.length === 1 ? 'trophy' : 'trophies'}` : ''}
+                </div>
+              )}
+              <div className="meta" style={{ padding: '2px 0' }}>
+                🏆 {seasons ? `${seasons} ${seasons === 1 ? 'title' : 'titles'} won since you arrived` : 'No silverware in the book yet. Champions are crowned in May.'}
+              </div>
+              <div className="meta" style={{ marginTop: 6, color: 'var(--ink-faint)' }}>
+                A man joins the Legends list at 100 appearances here, the honours board fills in every
+                May, and record gates and derby ledgers appear the first time you set one.
+              </div>
+            </div>
+          </>
+        )
+      })()}
       {ctab === 'story' && (() => {
         // record book: retired legends + serving players with 100+ apps here
         const serving = players

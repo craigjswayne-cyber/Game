@@ -1841,6 +1841,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   box-shadow: 0 4px 8px -7px rgba(0, 0, 0, .55);
 }
 .sticky-controls ~ .tblwrap .dtable th { top: var(--stickyh, 0px); }
+/* A table that has been told its column widths does not need a scrollport, and
+   must not have one: the wrapper's implied overflow-y made every sticky heading
+   in it park itself --stickyh pixels down the page, among the rows. See the
+   colgroup note in Squad.tsx. */
+.tblwrap.fitwrap { overflow: visible; }
+.dtable.fit { table-layout: fixed; }
+.dtable.fit td.name { max-width: none; }
 .filter-row {
   display: flex; gap: 6px; padding: 7px 14px 6px;
   flex-wrap: wrap; align-items: center;
@@ -2604,6 +2611,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
     mask-image: linear-gradient(90deg, #000 calc(100% - 20px), transparent);
   }
+  /* except the ones that now fit: a fade promising more columns to the right of
+     a table that ends at the screen edge is a lie, and it dimmed the last column
+     for nothing */
+  .tblwrap.fitwrap { -webkit-mask-image: none; mask-image: none; }
+
+  /* THE FORMATION CHIPS. A chip sized itself to the name in it, so "Rakete-
+     Stones" made a 110px tile that painted over the hooker beside it. One fixed
+     width for all fifteen means the spacing in SPOTS is the spacing you see. */
+  .form-chip { width: 74px; min-width: 0; padding: 3px 4px; }
+  .form-chip .fc-name { font-size: 10.5px; max-width: 66px; }
+  .form-chip .fc-role { font-size: 9px; letter-spacing: .6px; }
+  .form-pitch { height: 460px; }
 
   /* THE TYPE LADDER, one step down across the board. The user asked for smaller
      text so more of it fits, and every truncation above was a symptom of type
@@ -2638,6 +2657,36 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .filter-line > .inline-input, .filter-line > .preset-chip {
     font-size: 11px; padding-left: 5px; padding-right: 5px;
   }
+}
+
+/* The weekly ledger on Finances: a what and an amount, right-aligned so the
+   money reads as a column. */
+.ledger-row {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 4px 0; border-top: 1px solid var(--hairline);
+  font-family: var(--sans); font-size: 12.5px;
+}
+.ledger-row:first-child { border-top: none; }
+.ledger-row .lg-what { flex: 1; min-width: 0; color: var(--ink-soft); }
+.ledger-row .lg-amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ledger-row.total {
+  border-top: 2px solid var(--green-800); margin-top: 3px; padding-top: 6px;
+}
+.ledger-row.total .lg-what { color: var(--ink); font-weight: 700; }
+.ledger-row.total .lg-amt { font-size: 14px; }
+
+/* Four standing instructions, two by two (user: "tidy kickable penalty options
+   so its 2 by 2 distributed buttons and do the same for exit strategy"). As a
+   wrapping flex row the four chips broke 3 + 1 or 2 + 2 depending on how long
+   the labels were, so the same card looked different on every screen and the
+   odd chip on its own row read as more important than the rest. A grid says
+   four equal choices and means it. */
+.opt-2x2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;
+}
+.opt-2x2 .preset-chip {
+  border-radius: 8px; padding: 8px 6px; text-align: center;
+  white-space: normal; line-height: 1.25;
 }
 
 /* Results: a fixed score axis. See WeekResults for why three cells beat one. */

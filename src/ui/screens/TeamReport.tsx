@@ -101,7 +101,11 @@ export default function TeamReport() {
       </table></div>
 
       <SectionTitle sub="a healthy squad peaks in the middle">Age Profile</SectionTitle>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 90, padding: '0 24px 4px' }}>
+      {/* 12px of air above the bars. In portrait the section title's hint wraps
+          onto its own line, which put "a healthy squad peaks in the middle"
+          directly against the top of the tallest bar with nothing between them
+          (user: "a healthy squad text is too close to the table chart"). */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 102, padding: '12px 24px 4px' }}>
         {buckets.map(b => (
           <div key={b.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 11, fontWeight: 700 }}>{b.n}</span>
