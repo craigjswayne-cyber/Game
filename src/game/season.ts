@@ -978,6 +978,9 @@ export function natFixtureThisWeek(state: GameState): Fixture | undefined {
     (teams.includes(f.homeId) || teams.includes(f.awayId)))
 }
 
+/** how many stories the inbox keeps on the shelf - older ones fall off the bottom */
+export const NEWS_KEEP = 250
+
 /**
  * Process everything for the current week EXCEPT the user's fixture
  * (which the UI plays via the MatchDay screen first).
@@ -2028,15 +2031,17 @@ export function processWeekAndAdvance(state: GameState) {
   // how the mentoring pairs are getting on, every sixth week
   if (!state.unemployed) mentorReports(state)
 
-  // trim news
-  if (state.news.length > 250) state.news = state.news.slice(-250)
-
   // advance
   if (state.week >= SEASON_WEEKS) {
     rebuildSeason(state)
   } else {
     state.week += 1
   }
+
+  // trim news LAST, so the 250 ceiling holds at the end of every tick - it used
+  // to sit above the advance, which let the season rollover file its honours,
+  // retirements and expiries on top of a list that had already been cut
+  if (state.news.length > NEWS_KEEP) state.news = state.news.slice(-NEWS_KEEP)
 
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)

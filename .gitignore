@@ -4,3 +4,4 @@ shots/
 *.log
 *.tsbuildinfo
 scripts/deepsave.json
+shots-*/
