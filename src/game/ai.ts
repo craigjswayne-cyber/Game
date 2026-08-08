@@ -8,6 +8,30 @@ import { clamp, mulberry32, pick, type Rng } from './rng'
 // Transfer market
 // ------------------------------------------------------------------
 
+/** Past any legitimate figure in the sport, and far short of losing precision. */
+const MONEY_CEILING = 1_000_000_000_000
+
+/**
+ * Is this a figure the club can actually act on?
+ *
+ * Every guard in this file is a comparison, and every comparison with NaN is
+ * false. A wage of NaN therefore walked straight through "exceeds your transfer
+ * budget", "would break your wage budget" AND "below his demands", executed the
+ * transfer, and left both the club balance and the player's wage as NaN for the
+ * rest of the save - a save that can never recover, because NaN spreads through
+ * every sum it touches. It also filed a signing story reading "£NaN/week".
+ *
+ * Found by scripts/marketfuzz.ts. The lesson is not "write the comparisons the
+ * other way round" - there are a dozen of them and one will always get missed.
+ * It is to refuse the figure at the door.
+ */
+function realMoney(...vals: number[]): boolean {
+  return vals.every(v => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= MONEY_CEILING)
+}
+
+/** The refusal a nonsense figure gets, in words a player can read. */
+const NOT_A_FIGURE = { ok: false as const, msg: 'That is not a figure the club can put its name to.' }
+
 /** Asking price for a player from his current club's perspective. */
 export function askingPrice(state: GameState, p: Player): number {
   const club = p.clubId ? state.clubs[p.clubId] : null
@@ -22,6 +46,10 @@ export function askingPrice(state: GameState, p: Player): number {
 }
 
 export function executeTransfer(state: GameState, p: Player, toClubId: string, fee: number) {
+  // the last line of defence: this is what actually moves the money, and it is
+  // reached from the AI paths too, so it refuses a nonsense fee outright rather
+  // than trusting every caller to have checked
+  if (!realMoney(fee)) return
   const from = p.clubId ? state.clubs[p.clubId] : null
   const to = state.clubs[toClubId]
   // losing a star you didn't want to sell leaves a mark on the fixture list
@@ -182,6 +210,7 @@ export function personalTermsDemand(state: GameState, p: Player): number {
 /** Stage 1 of the 8D bid flow: agree the FEE only - nothing is signed
  *  until personal terms are done. */
 export function agreeFee(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
+  if (!realMoney(fee)) return NOT_A_FIGURE
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
@@ -209,6 +238,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
  *  soften the wage his camp will take - the promise is a real pledge and
  *  he will hold you to it. */
 export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean): { ok: boolean; msg: string } {
+  if (!realMoney(fee, wage, signOn)) return NOT_A_FIGURE
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
@@ -445,6 +475,7 @@ export function offerRenewal(state: GameState, playerId: number): { ok: boolean;
 
 /** Haggled renewal: offer any wage; the agent accepts, counters or walks. */
 export function offerRenewalAt(state: GameState, playerId: number, offer: number): { ok: boolean; msg: string; counter?: number } {
+  if (!realMoney(offer)) return NOT_A_FIGURE
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
