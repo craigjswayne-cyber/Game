@@ -180,3 +180,27 @@ export function effAt(p: Player, pos: Pos): number {
   if (fam[pos]?.includes(p.pos)) return p.ca * 0.8
   return p.ca * 0.55
 }
+
+/**
+ * ---- THE 1-100 RATING BEHIND A 1-20 ATTRIBUTE ----
+ *
+ * The engine works in twentieths, which is the classic management-sim scale and
+ * is not changing: every unit calculation, role and comparison in the game is
+ * built on it. But multiplying by five to show a 0-100 figure meant every number
+ * on the attribute grid was a multiple of five - 20, 45, 60, never 37 or 86 - so
+ * a page of eighteen attributes looked like a page of estimates (user: "on
+ * attributes they need to be a bit more random not just 45 or 20 / need to be
+ * like more specific. 37 or 86 etc").
+ *
+ * The finer rating is a stable property of the man, derived from his id and the
+ * attribute, exactly as a fixture's kick-off day is derived from its id. It never
+ * changes, it saves for free because the id is saved, and the engine bands it
+ * back to the twentieth it already used - so this adds precision to what is
+ * shown without moving a single mechanic. The offset spans -2 to +2 over five
+ * hash buckets, so it is mean-zero by construction and a squad's average rating
+ * is exactly five times its average attribute.
+ */
+export function fineAttr(playerId: number, idx: number, coarse: number): number {
+  const h = (((playerId * 2654435761) ^ ((idx + 1) * 1013904223)) >>> 0) % 5
+  return Math.max(1, Math.min(100, coarse * 5 + (h - 2)))
+}

@@ -20,15 +20,25 @@ export default function Tutorial() {
       {/* the box swallows its own taps: with a scrolling panel, closing on any
           touch inside would fire the moment you tried to read past the fold */}
       <div className="tut-box" onClick={e => e.stopPropagation()}>
-        <h3>Welcome to the dugout</h3>
-        Everything runs off <b>Continue</b> in the top corner - it advances the week, plays your match, and brings the world to your inbox.
+        {/* ---- plain words, short sentences, one idea each ----
+            The old version explained four systems at once in sentences with
+            three clauses and five bold phrases, and used shorthand the game had
+            not taught yet: "Match Preparation on the Tactics screen", "at any
+            stoppage (📋)". Somebody opening this on their first minute does not
+            know what any of that means. Rewritten as five plain steps in the
+            order they happen, with the one button named first (user: "check the
+            language on how to play, should be fairly idiot proof"). */}
+        <h3>How this works</h3>
+        <b>1. One button moves the game on.</b> It says <b>Continue</b> at the top of the screen. Press it and a day goes by. Press it again and again and you walk through the week - who is injured, what the press want, who is for sale - until Saturday, when the button says <b>Matchday</b>.
         <br /><br />
-        On match day: pick your XV, choose a <b>dressing-room speech</b>, and confirm you're ready. In play you can change tactics or make subs at <b>any stoppage</b> (📋), and when you win a kickable penalty, the call - posts, corner or tap - is yours.
+        <b>2. Pick your team.</b> Tap the clipboard at the bottom, then <b>Selection &amp; Tactics</b>. Tap two players to swap them, or press <b>Best XV</b> and let the computer pick. You have fifteen starters and eight replacements.
         <br /><br />
-        Between games: set the week's <b>Match Preparation</b> on the Tactics screen, praise or challenge players one-to-one from their <b>profile</b>, read <b>The Rugby Wire</b> for rumours, and build your coaching staff in <b>Training</b>. Impress, and a <b>national team</b> may come calling.
+        <b>3. Play the match.</b> Press <b>Kick Off</b>. You say a few words to the players first - pick whichever one feels right, there is no wrong answer. During the game you can bring on replacements or change how you play. When you win a penalty near their line, you choose: kick at the posts for three points, or go to the corner and try for a try.
         <br /><br />
-        Every system in the game is explained, in plain language and with the real numbers, in <b>The Manager's Handbook</b> under the Manager menu. It has a search box. Nothing here is meant to be a mystery.
-        <div className="muted">You can read this again any time from <b>Manager</b> &gt; <b>How to play</b>.</div>
+        <b>4. Nothing is hidden.</b> Every number in this game has a page explaining it, in plain English, in <b>The Manager's Handbook</b> (bottom right, Manager). It has a search box. If something confuses you, it is in there.
+        <br /><br />
+        <b>5. You will lose games.</b> That is the game working, not you doing it wrong. The board tells you what it expects on the Finances screen, and you have a season to deliver it.
+        <div className="muted">This page is always here: <b>Manager</b> &gt; <b>How to play</b>.</div>
         <div className="tut-close">
           <button className="btn gold" onClick={close}>Got it, let me manage</button>
         </div>

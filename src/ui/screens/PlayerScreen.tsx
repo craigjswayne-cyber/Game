@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs } from '../../game/model'
+import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
+import { fineAttr } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { loanOut } from '../../game/loans'
 
@@ -93,21 +94,33 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       </div>
 
+      {/* ---- what this man is, in one sentence, before any numbers ----
+          The profile opened with a wall of eighteen chips, all the same size and
+          weight, so the two facts that actually decide whether you pick him -
+          how good he is and whether he is fit - had no more prominence than his
+          sign-on perks (user: "player profiles need work. they should be
+          clearer"). The verdict line reads them out loud first, and every chip
+          below now carries a plain-language title so a long-press explains it. */}
+      <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--red)' : p.form >= 7 ? 'var(--win)' : 'var(--gold)'}` }}>
+        <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
+      </div>
+
       <div className="chips">
-        <span className="chip">Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
-        <span className="chip">Character <b>{p.pers}</b></span>
+        <span className="chip" title="his overall standard out of 100, and the one number that decides most matches">
+          Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
+        <span className="chip" title="how he behaves: it drives contract talks, team talks and whether he mentors well">Character <b>{p.pers}</b></span>
         {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> caps</span>}
         {p.trait && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>✨ {p.trait}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
-        <span className="chip">Value <b>{fmtMoney(p.value)}</b></span>
-        <span className="chip">Wage <b>{fmtMoney(p.wage)}/wk</b></span>
-        <span className="chip">Contract to <b>{2026 + p.contractEnds}</b></span>
+        <span className="chip" title="what the market says he is worth, not what a club would accept">Value <b>{fmtMoney(p.value)}</b></span>
+        <span className="chip" title="what he costs you every week of the year">Wage <b>{fmtMoney(p.wage)}/wk</b></span>
+        <span className="chip" title="the summer his deal runs out. Leave it too late and he can sign elsewhere for nothing">Contract to <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: '#a8841a', color: '#a8841a', fontWeight: 700 }}>
           💼 Agent wants new terms</span>}
-        <span className="chip">Morale <b>{moraleWord(p.morale)}</b></span>
-        <span className="chip">Fitness <b>{Math.round(p.cond)}%</b></span>
-        <span className="chip">Sharpness <b>{Math.round(p.sharp)}%</b></span>
+        <span className="chip" title="how happy he is here. Unhappy men play worse and ask to leave">Morale <b>{moraleWord(p.morale)}</b></span>
+        <span className="chip" title="how fresh his legs are. Below 70% he tires badly in the last quarter">Fitness <b>{Math.round(p.cond)}%</b></span>
+        <span className="chip" title="match rhythm. A man back from injury is fit but not sharp, and it shows">Sharpness <b>{Math.round(p.sharp)}%</b></span>
         {p.injury && <span className="chip" style={{ borderColor: '#9b2c2c', color: '#9b2c2c' }}>
           Injured: {p.injury.desc} (~{Math.max(0, p.injury.until - game.week)}w)</span>}
         {p.bans > 0 && <span className="chip" style={{ color: '#9b2c2c' }}>Suspended {p.bans} match{p.bans > 1 ? 'es' : ''}</span>}
@@ -133,7 +146,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </div>
       )}
       {ptab === 'attrs' && <>
-      <SectionTitle sub={compare && rival ? `${rival.name.split(' ').slice(-1)[0]}'s numbers beside each chip` : 'the full picture, FM style · 0-100'}>Attributes</SectionTitle>
+      <SectionTitle sub={compare && rival ? `${rival.name.split(' ').slice(-1)[0]}'s numbers beside each chip` : 'every attribute, rated 1 to 100'}>Attributes</SectionTitle>
       <div className="fm-attrs">
         {groups.map(([title, keys]) => (
           <div className="fm-col" key={title}>
@@ -142,16 +155,19 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               const [lo, hi] = attrRange(game, p, k)
               const exact = lo === hi
               const mid = Math.round((lo + hi) / 2)
-              const v = mid * 5
-              const rv = compare && rival ? rival.a[k] : null
+              const idx = ATTR_KEYS.indexOf(k)
+              // the man's own rating out of 100, not the attribute times five -
+              // see fineAttr for why the fifth is real rather than decoration
+              const v = fineAttr(p.id, idx, mid)
+              const rv = compare && rival ? fineAttr(rival.id, idx, rival.a[k]) : null
               return (
                 <div className="fm-attr" key={k}>
                   <span className="fm-name">{ATTR_NAMES[k]}</span>
                   {rv != null && (
-                    <b className="fm-rival" style={{ color: mid > rv ? '#2f7d4f' : mid < rv ? '#9b2c2c' : 'var(--ink-faint)' }}>{rv * 5}</b>
+                    <b className="fm-rival" style={{ color: v > rv ? '#2f7d4f' : v < rv ? '#9b2c2c' : 'var(--ink-faint)' }}>{rv}</b>
                   )}
                   <b className={`fm-chip ${exact ? (v >= 80 ? 'hi' : v >= 55 ? 'mid' : 'lo') : 'rng'}`}>
-                    {exact ? v : `${lo * 5}-${hi * 5}`}
+                    {exact ? v : `${fineAttr(p.id, idx, lo)}-${fineAttr(p.id, idx, hi)}`}
                   </b>
                 </div>
               )
@@ -444,4 +460,47 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 function moraleWord(m: number): string {
   return m >= 8.5 ? 'Superb' : m >= 7.5 ? 'Very Good' : m >= 6 ? 'Good'
     : m >= 5 ? 'Fair' : m >= 3.5 ? 'Poor' : 'Very Poor'
+}
+
+/**
+ * The one-sentence verdict at the top of a profile.
+ *
+ * Reads the same state the chips below do, but in the order a coach would say it
+ * out loud: what he is, whether you can pick him, and the one thing about him
+ * that matters this week. Nothing here is invented - every clause is a fact from
+ * his own record.
+ */
+function verdictLine(game: GameState, p: Player, mine: boolean): string {
+  const ca = Math.round(fuzzedCa(game, p))
+  const know = knowledge(game, p)
+  const standard = ca >= 85 ? 'a genuine star'
+    : ca >= 75 ? 'a first-choice man at this level'
+    : ca >= 65 ? 'a solid squad player'
+    : ca >= 55 ? 'squad filler who can do a job'
+    : 'one for the future or the second team'
+  const bits: string[] = []
+  bits.push(`${p.age}-year-old ${POS_NAMES[p.pos].toLowerCase()}, ${standard}${!mine && know < 60 ? ' on what little you have seen of him' : ''}.`)
+  if (p.injury) {
+    const wks = Math.max(0, p.injury.until - game.week)
+    bits.push(`Out with ${p.injury.desc.toLowerCase()} for about ${wks} more week${wks === 1 ? '' : 's'}.`)
+  } else if (p.bans > 0) {
+    bits.push(`Suspended for ${p.bans} more match${p.bans > 1 ? 'es' : ''}.`)
+  } else if (p.natSquad) {
+    bits.push('Away with his country, so unavailable to you.')
+  } else if (p.onLoan) {
+    bits.push('Out on loan for the season.')
+  } else if (p.cond < 72) {
+    bits.push(`Available but only ${Math.round(p.cond)}% fit, so he will fade.`)
+  } else {
+    bits.push('Fit and available.')
+  }
+  if (mine) {
+    if (p.contractEnds <= game.season) bits.push('His deal runs out this summer and he can walk for nothing.')
+    else if ((p.wantsDeal ?? 0) > 0) bits.push('His agent is asking for improved terms.')
+    else if (p.morale <= 4) bits.push('He is unhappy, and it will start showing on the pitch.')
+    else if (p.form >= 7.5) bits.push('In the best form of anyone in the building.')
+  } else if (p.transferListed) {
+    bits.push('His club have listed him, so a fair offer would be heard.')
+  }
+  return bits.join(' ')
 }
