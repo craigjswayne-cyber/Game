@@ -103,6 +103,13 @@
      stars actually sit in are a shade darker than the card, which cost 0.3 of a
      ratio point and put the earlier value under the floor. */
   --star-empty: #8d9db8;
+  /* The stripe down the left edge of an accent card: the star player, the
+     highlights, the assistant's note, every "read this one" card in the game.
+     It was gold in both themes, and gold on navy read as a yellow bar rather
+     than a highlight (user, of the full-time review: "the yellow on the side of
+     these - can we use white"). One token, so the answer is in one place.
+     Daylight keeps the gold, where white on cream would be no stripe at all. */
+  --stripe: #c9a227;
 }
 
 /* ============ Floodlit mode (night theme) ============ */
@@ -110,6 +117,8 @@
   /* night is committed dark, so say so outright: this is what stops the browser
      second-guessing the palette and washing the navy out to grey */
   color-scheme: dark;
+  /* white under the floodlights, at the user's request */
+  --stripe: #f4f7fc;
   /* the night surfaces carried almost no chroma either: a navy this dark reads as
      black, so the cards, the page and the hairlines were all grey. More blue in
      the same lightness band keeps the mood and gives the gold something to sit
@@ -1893,6 +1902,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    must not have one: the wrapper's implied overflow-y made every sticky heading
    in it park itself --stickyh pixels down the page, among the rows. See the
    colgroup note in Squad.tsx. */
+/* ---- the league table fits the phone ------------------------------------
+   Nine columns - rank, team, P W D L +/- BP Pts - at the shared .dtable padding
+   comes to more than 412px, and the column that fell off the right-hand edge was
+   POINTS. The one number anybody opens a league table to read, reachable only by
+   dragging the table sideways, on a screen where nothing else scrolls sideways.
+   The numeric columns give up their padding, which is spare: they hold one or two
+   digits and are right-aligned, so they read fine tight. */
+@media (max-width: 560px) {
+  .ltable th, .ltable td { padding-left: 4px; padding-right: 4px; }
+  .ltable td.name { max-width: 120px; }
+  .ltable th:first-child, .ltable td:first-child { padding-left: 8px; }
+  .ltable th:last-child, .ltable td:last-child { padding-right: 9px; }
+}
 .tblwrap.fitwrap { overflow: visible; }
 .dtable.fit { table-layout: fixed; }
 .dtable.fit td.name { max-width: none; }

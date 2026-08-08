@@ -41,7 +41,7 @@ export default function SeasonReview() {
         </div>
       </header>
       <main className="content">
-        <div className="card center" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+        <div className="card center" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <h3 style={{ fontSize: 18 }}>{headline}</h3>
           <div className="meta">
             {r.overall.w}W {r.overall.d}D {r.overall.l}L from {r.overall.m} matches in all competitions

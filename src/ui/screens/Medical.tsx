@@ -46,7 +46,7 @@ export default function Medical() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '8px 14px' }}>
         <div className="meta">
           🏥 <b>{game.staffPeople?.physio ? `${game.staffPeople.physio.name} (${BADGE[game.staff.physio].toLowerCase()} badge)` : 'Head Physio'}</b>
           {game.staff.physio === 0
@@ -55,7 +55,7 @@ export default function Medical() {
         </div>
       </div>
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}
 
       <div style={{ padding: '6px 14px 0' }}>
         <input className="inline-input" placeholder="Find a player…" value={query}

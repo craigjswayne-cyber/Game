@@ -151,7 +151,7 @@ export default function Finances() {
           ))}
         </tbody>
       </table></div>
-      {askMsg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{askMsg}</div>}
+      {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{askMsg}</div>}
       <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
@@ -165,7 +165,7 @@ export default function Finances() {
         <SectionTitle sub={`${fmtMoney(commercialWeekly(game))} a week from ${SLOTS.filter(x => game.deals?.[x.id]).length} of 3 slots`}>
           The Commercial Department
         </SectionTitle>
-        {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}><div className="meta">{dealMsg}</div></div>}
+        {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}><div className="meta">{dealMsg}</div></div>}
         {SLOTS.map(slot => {
           const live = game.deals?.[slot.id]
           const inTerm = !!live && live.until >= game.season

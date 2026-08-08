@@ -126,7 +126,7 @@ export default function Profile() {
       </div>
 
       {game.natOffer && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <h3 style={{ fontSize: 15 }}>🌍 {game.natOffer.nat} want you as national head coach</h3>
           <div className="meta">
             Coach the national side alongside your club. In Test windows you take charge on match day when your
@@ -156,7 +156,7 @@ export default function Profile() {
         </div>
       )}
       {(game.challengesDone ?? []).length > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <h3 style={{ fontSize: 15 }}>🏅 Challenges Conquered</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>

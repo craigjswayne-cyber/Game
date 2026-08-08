@@ -80,7 +80,7 @@ export default function Saves() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
         <h3 style={{ fontSize: 14 }}>Autosave is on</h3>
         <div className="meta">
           Your career autosaves to <b>{SLOT_NAMES[saveSlot] ?? saveSlot}</b> after every match and every few weeks.

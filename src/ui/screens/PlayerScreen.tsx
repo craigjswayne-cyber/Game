@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
@@ -12,7 +12,25 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
-  const [msg, setMsg] = useState<string | null>(null)
+  const [msg, setMsgRaw] = useState<string | null>(null)
+  /**
+   * Say something back, WHERE THE MANAGER IS LOOKING.
+   *
+   * Reported from live play: "there was no conclusion to the negotiations when I
+   * met him at his ask." The engine had concluded it perfectly - the player
+   * signed - and the sentence saying so was rendered in a card near the top of a
+   * page whose contract controls are at the bottom. He tapped Offer, the panel
+   * closed, and nothing within a screenful of his thumb changed. Every action on
+   * this page had the same fault: the answer arrived somewhere he could not see.
+   */
+  const msgRef = useRef<HTMLDivElement>(null)
+  const setMsg = (text: string | null) => {
+    setMsgRaw(text)
+    if (text) requestAnimationFrame(() => msgRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+  }
+  // the conclusion of the contract talks, shown inside the talks card
+  const [talkOutcome, setTalkOutcome] = useState<string | null>(null)
+  const [talkSigned, setTalkSigned] = useState(false)
   const [bidding, setBidding] = useState(false)
   const [bid, setBid] = useState(0)
   const [counter, setCounter] = useState<number | null>(null)
@@ -262,7 +280,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </>
       )}
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>
+      {msg && <div ref={msgRef} className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
         {msg}
         {counter != null && (
           <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
@@ -275,7 +293,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </div>}
 
       {termsFee != null && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <h3 style={{ fontSize: 15 }}>✍️ Personal terms - fee agreed at {fmtMoney(termsFee)}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>His camp opens at <b>£{personalTermsDemand(game, p).toLocaleString()}/wk</b>. A signing bonus or a first-team promise softens the wage.</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
@@ -358,28 +376,57 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           {negotiating && (
             <div className="card">
               <h3>Contract talks with {p.name.split(' ').slice(-1)[0]}'s agent</h3>
-              <div className="meta">His camp wants {fmtWage(renewalDemand(p))}/wk (he is on {fmtWage(p.wage)}). Lowball at your peril.</div>
-              <input className="inline-input" type="text" inputMode="numeric" value={wageText}
-                onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
-              <div className="btn-row" style={{ margin: '10px 0 0' }}>
-                <button className="btn gold" onClick={() => {
-                  const r = offerRenewalAt(game, p.id, wageOffer)
-                  setMsg(r.msg); setWageCounter(r.counter ?? null); if (r.ok) setNegotiating(false); touch()
-                }}>Offer £{wageOffer.toLocaleString()}/wk</button>
-                <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>Walk Away</button>
-              </div>
-              {wageCounter != null && (
-                <button className="btn" style={{ marginTop: 8, width: '100%' }} onClick={() => {
-                  const r = offerRenewalAt(game, p.id, wageCounter)
-                  setMsg(r.msg); setWageCounter(null); if (r.ok) setNegotiating(false); touch()
-                }}>Meet their number (£{wageCounter.toLocaleString()}/wk)</button>
+              {/* THE TALKS ANSWER THEMSELVES, IN THE CARD.
+                  The outcome used to go only to the message card at the top of
+                  this page, so meeting a player's asking wage looked like nothing
+                  at all: the panel closed and the sentence explaining that he had
+                  signed was several screenfuls above the thumb that tapped. */}
+              {talkOutcome ? (
+                <>
+                  <div className="sheet-casualty" style={{ borderLeftColor: talkSigned ? '#2f7d4f' : '#9b2c2c' }}>
+                    {talkSigned ? '🖊 ' : '💬 '}{talkOutcome}
+                  </div>
+                  {talkSigned
+                    ? <div className="meta">He is on {fmtWage(p.wage)}/wk until the summer of {2026 + p.contractEnds}.</div>
+                    : null}
+                  <div className="btn-row" style={{ margin: '10px 0 0' }}>
+                    {!talkSigned && (
+                      <button className="btn" onClick={() => setTalkOutcome(null)}>Keep talking</button>
+                    )}
+                    <button className="btn ghost" onClick={() => {
+                      setNegotiating(false); setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
+                    }}>{talkSigned ? 'Done' : 'Leave it there'}</button>
+                  </div>
+                  {!talkSigned && wageCounter != null && (
+                    <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
+                      const r = offerRenewalAt(game, p.id, wageCounter)
+                      setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
+                      setWageCounter(r.counter ?? null); setWageText(String(wageCounter)); touch()
+                    }}>Meet their number ({fmtWage(wageCounter)}/wk)</button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="meta">His camp wants {fmtWage(renewalDemand(p))}/wk (he is on {fmtWage(p.wage)}). Lowball at your peril.</div>
+                  <input className="inline-input" type="text" inputMode="numeric" value={wageText}
+                    onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
+                  <div className="btn-row" style={{ margin: '10px 0 0' }}>
+                    <button className="btn gold" onClick={() => {
+                      const r = offerRenewalAt(game, p.id, wageOffer)
+                      setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
+                      setWageCounter(r.counter ?? null); touch()
+                    }}>Offer £{wageOffer.toLocaleString()}/wk</button>
+                    <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>Walk Away</button>
+                  </div>
+                </>
               )}
             </div>
           )}
           <div className="btn-row">
             {!negotiating && (
               <button className="btn" onClick={() => {
-                setNegotiating(true); setWageText(String(Math.round(renewalDemand(p) * 0.9 / 50) * 50)); setWageCounter(null)
+                setNegotiating(true); setWageText(String(Math.round(renewalDemand(p) * 0.9 / 50) * 50))
+                setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
               }}>Open Contract Talks</button>
             )}
             <button className={`btn ${p.transferListed ? 'ghost' : 'danger'}`} onClick={() => {

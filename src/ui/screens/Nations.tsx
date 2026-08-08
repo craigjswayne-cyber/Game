@@ -24,7 +24,7 @@ export default function Nations() {
   return (
     <>
       {myNat && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <h3 style={{ fontSize: 14 }}>🌍 You coach {nationByCode(myNat)?.name ?? myNat}</h3>
           <div className="meta">
             {mySquad.length
