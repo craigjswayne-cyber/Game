@@ -1003,7 +1003,19 @@ export function boardObjective(rep: number): { text: string; pos: number } {
 export function fmtMoney(v: number): string {
   const sign = v < 0 ? '-' : ''
   const a = Math.abs(v)
-  if (a >= 1_000_000) return `${sign}£${(a / 1_000_000).toFixed(a >= 10_000_000 ? 0 : 1)}m`
-  if (a >= 1_000) return `${sign}£${Math.round(a / 1000)}k`
+  const K = 1_000, M = 1_000_000, B = 1_000_000_000
+  // Two things, both found by walking this ladder end to end in
+  // scripts/extremes.ts after running a club up to fifty billion on purpose.
+  //
+  // One: there is a billions tier now. The scale stopped at millions, so a very
+  // rich club read "£18015m" - seven digits crammed into a phone table cell.
+  //
+  // Two, and this one bites at ordinary money: the tier is chosen AFTER
+  // rounding, not before. £999,600 used to round up inside the thousands tier
+  // and print "£1000k" rather than "£1.0m", and the same edge printed "£1000m"
+  // just under a billion. Any balance can sit on that edge.
+  if (a >= B || Math.round(a / M) >= 1000) return `${sign}£${(a / B).toFixed(a >= 10 * B ? 0 : 1)}bn`
+  if (a >= M || Math.round(a / K) >= 1000) return `${sign}£${(a / M).toFixed(a >= 10 * M ? 0 : 1)}m`
+  if (a >= K) return `${sign}£${Math.round(a / K)}k`
   return `${sign}£${a}`
 }
