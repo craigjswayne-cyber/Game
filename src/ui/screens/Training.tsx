@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, type TrainingFocus } from '../../game/model'
 import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
+import { fitReason, fitWord, mentorFit } from '../../game/mentoring'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
 
@@ -108,7 +109,7 @@ function StaffPanel() {
   const roles = Object.keys(STAFF_INFO) as StaffRole[]
   return (
     <>
-      <SectionTitle sub={`badges are earned on a course - ${EXAM_PASS_PCT}% of coaches pass`}>Backroom Staff</SectionTitle>
+      <SectionTitle sub={`a badge is one day of assessment - ${EXAM_PASS_PCT}% pass, and a failure waits a month`}>Backroom Staff</SectionTitle>
       {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px', marginBottom: 6 }}>{msg}</div>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 6 }}>
         {roles.map(role => {
@@ -130,7 +131,11 @@ function StaffPanel() {
                         {p.age} · {p.trait} · {fmtMoney(p.wage)}/wk{(p.passed ?? 0) > 0 ? ` · ${p.passed} badge${p.passed === 1 ? '' : 's'} here` : ''}
                       </div>
                       {p.course && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🎓 On the {BADGE[p.course.toTier].toLowerCase()} course - result in {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
-                      {!p.course && (p.retakeAt ?? 0) > abs && <div className="meta" style={{ fontSize: 11 }}>Resit available in {p.retakeAt! - abs} weeks</div>}
+                      {!p.course && (p.retakeAt ?? 0) > abs && (
+                        <div className="meta" style={{ fontSize: 11, color: 'var(--red)' }}>
+                          Failed his last assessment - can sit it again in {p.retakeAt! - abs} week{p.retakeAt! - abs === 1 ? '' : 's'}
+                        </div>
+                      )}
                     </>
                   ) : (
                     <>
@@ -140,10 +145,10 @@ function StaffPanel() {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
-                  {p && p.tier < 3 && !p.course && (
+                  {p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
                     <button className="btn gold" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
                       onClick={() => { setMsg(sendToCourse(game, role)); touch() }}>
-                      🎓 Course<br /><span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
+                      🎓 Assess<br /><span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
                     </button>
                   )}
                   <button className="btn ghost" style={{ padding: '4px 8px', fontSize: 11 }}
@@ -200,15 +205,25 @@ function MentorPanel() {
         const s2 = game.players[mp.senior]
         const k2 = game.players[mp.kid]
         if (!s2 || !k2) return null
+        // how well the two of them actually work together, and why
+        const fit = mentorFit(s2, k2)
+        const col = fit >= 66 ? 'var(--win)' : fit >= 36 ? '#a8841a' : 'var(--red)'
         return (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0' }}>
-            <span className="meta"><b>{s2.name}</b> ({s2.pers}) → 🎓 <b>{k2.name}</b> ({k2.age})</span>
-            <button className="btn ghost" style={{ fontSize: 11, padding: '4px 10px' }}
-              onClick={() => { game.mentors = pairs.filter((_, j) => j !== i); touch() }}>End</button>
+          <div key={i} style={{ padding: '5px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <span className="meta" style={{ flex: 1, minWidth: 0 }}>
+                <b>{s2.name}</b> ({s2.pers}) → 🎓 <b>{k2.name}</b> ({k2.age})
+              </span>
+              <b style={{ color: col, fontSize: 12, whiteSpace: 'nowrap' }}>{fitWord(fit)} {fit}</b>
+              <button className="btn ghost" style={{ fontSize: 11, padding: '4px 10px' }}
+                onClick={() => { game.mentors = pairs.filter((_, j) => j !== i); touch() }}>End</button>
+            </div>
+            <div className="meta" style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{fitReason(s2, k2)}</div>
+            <div className="rt-bar" style={{ margin: '3px 0 0' }}><i style={{ width: `${fit}%`, background: col }} /></div>
           </div>
         )
       })}
-      {pairs.length === 0 && <div className="meta" style={{ fontSize: 11 }}>A Leader or Professional rubs off on a kid - faster growth, and his character sticks.</div>}
+      {pairs.length === 0 && <div className="meta" style={{ fontSize: 11 }}>A Leader or Professional rubs off on a kid - faster growth, and his character sticks. Character decides how well it takes, so pick the pairing rather than the names.</div>}
       {pairs.length < 3 && seniors.length > 0 && kids.length > 0 && (
         <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}

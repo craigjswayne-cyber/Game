@@ -20,6 +20,8 @@ export interface Commission {
   fee: number
   /** league the brief was pointed at, or null for the whole world */
   leagueId: string | null
+  /** men he has already sent word about, so the postcards do not repeat */
+  sent?: number[]
 }
 
 export interface ScoutFind {
@@ -61,6 +63,67 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   })
   logDecision(state, `Sent ${man.name} out on a ${months}-month brief: ${fmtMoney(fee)} of expenses, report in ${SEARCH_WEEKS[months]} weeks.`)
   return `${man.name} is on the road. ${fmtMoney(fee)} spent, report in ${SEARCH_WEEKS[months]} weeks.`
+}
+
+/**
+ * ---- POSTCARDS FROM THE ROAD ----
+ *
+ * A nine-month brief used to be thirty-nine weeks of silence and then a report,
+ * which is a long time to hear nothing about money you have already spent (user:
+ * "when a scout goes on the road - they should drip feed their finds and
+ * suggestions. they should come into the inbox").
+ *
+ * Every fourth week he writes in with one name he has been watching, and that
+ * man becomes properly scouted there and then - so a postcard is worth something
+ * beyond the reading. He never sends the same name twice, and the final report
+ * still lands at the end with the graded shortlist.
+ *
+ * The pick is a deterministic gate on (seed, week, brief) - never the shared
+ * match stream - and it is drawn from the same ranked pool the report uses, so
+ * the names he mentions on the way are the names he is actually looking at.
+ */
+export function scoutPostcard(state: GameState) {
+  const c = state.commission
+  if (!c) return
+  const abs = state.season * 100 + state.week
+  if (abs >= c.done) return
+  // week 4, 8, 12 ... of the trip, and never in its last fortnight - the report
+  // itself is the news by then
+  const weeksIn = SEARCH_WEEKS[c.months] - (c.done - abs)
+  if (weeksIn <= 0 || weeksIn % 4 !== 0) return
+  if (c.done - abs <= 2) return
+  const man = state.staffPeople?.scout
+  if (!man) return
+  const tier = state.staff.scout ?? 1
+  const rng = mulberry32((state.seed ^ Math.imul(abs, 40503) ^ (c.months * 104729)) >>> 0)
+  const pool = Object.values(state.players).filter(p =>
+    p.clubId && p.clubId !== state.userClubId && !p.acad && p.age <= 32 &&
+    (c.pos === 'any' || p.pos === c.pos || p.alt.includes(c.pos)) &&
+    (!c.leagueId || state.clubs[p.clubId]?.leagueId === c.leagueId) &&
+    !(c.sent ?? []).includes(p.id))
+  if (!pool.length) return
+  const worthOf = (p: Player) => (p.ca - 60) * 1.8 + (p.pa - p.ca) * 1.8 + (30 - p.age) * 0.8
+  const ranked = pool.map(p => ({ p, worth: worthOf(p) })).sort((a, b) => b.worth - a.worth)
+  const bias = 1.6 + tier * 0.6
+  const pick = ranked[Math.min(ranked.length - 1, Math.floor(ranked.length * Math.pow(rng(), bias)))]
+  if (!pick) return
+  const p = pick.p
+  c.sent = [...(c.sent ?? []), p.id]
+  // the real payoff: a man he has watched in person is a man you know about
+  bumpKnowledge(p, 26 + tier * 6)
+  const club = state.clubs[p.clubId ?? '']
+  const keen = pick.worth >= 40
+  const weeksLeft = c.done - abs
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `🔭 Word from ${man.name}: ${p.name}`,
+    body: `${weeksIn} weeks into the brief. "${keen
+      ? `Watched ${p.name} twice now and I would put my name to him. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}, and he does the things you cannot teach.`
+      : `${p.name} is worth a mention. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}. Not the answer on his own, but I would not rule him out.`}`
+      + ` I will keep looking - about ${weeksLeft} week${weeksLeft === 1 ? '' : 's'} until I write it all up."\n\n`
+      + `He is properly scouted now, so his page shows what he actually is rather than a range.`,
+    playerId: p.id,
+  })
 }
 
 /** Weekly: a finished brief lands on the desk. */

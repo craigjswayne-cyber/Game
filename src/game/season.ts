@@ -13,7 +13,7 @@ import { derbyName, isDerby } from './rivalries'
 import { nationByCode, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
-import { resolveCommission } from './commission'
+import { resolveCommission, scoutPostcard } from './commission'
 import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
@@ -21,6 +21,7 @@ import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 import { playAcademyWeek } from './academy'
+import { mentorBoost, mentorReports } from './mentoring'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -630,9 +631,17 @@ function weeklyTraining(state: GameState, rng: Rng) {
           })
         }
       }
-      // a good mentor is worth an extra coach: paired kids learn faster
+      // A good mentor is worth an extra coach - and a bad one is worth almost
+      // nothing. The pairing's chance of a bump now scales with how well the two
+      // men actually work together (game/mentoring.ts), so pairing a Mercenary
+      // with a Temperamental kid is the waste of a season it ought to be. The
+      // base rate is unchanged at the mid-fit case, so a squad's average paired
+      // kid develops exactly as before.
       if (isUser && p.acad && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
-        if (rng() < 0.045) {
+        const mpair = (state.mentors ?? []).find(mp => mp.kid === p.id)!
+        const mentor = state.players[mpair.senior]
+        const fitMult = mentor ? mentorBoost(mentor, p) : 1
+        if (rng() < 0.045 * fitMult) {
           const keys = Object.keys(p.a) as (keyof Player['a'])[]
           const k = keys[Math.floor(rng() * keys.length)]
           p.a[k] = clamp(p.a[k] + 1, 1, 20)
@@ -1108,6 +1117,8 @@ export function processWeekAndAdvance(state: GameState) {
 
   // the chief scout comes home and files his report
   resolveCommission(state)
+  // and word from the road while he is still out there
+  scoutPostcard(state)
 
   // the builders finish: a board-funded facility upgrade opens its doors
   if (state.facilityBuild && state.season * 100 + state.week >= state.facilityBuild.done) {
@@ -2013,6 +2024,9 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
   }
+
+  // how the mentoring pairs are getting on, every sixth week
+  if (!state.unemployed) mentorReports(state)
 
   // trim news
   if (state.news.length > 250) state.news = state.news.slice(-250)

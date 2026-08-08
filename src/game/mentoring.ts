@@ -1,0 +1,164 @@
+import type { GameState, Personality, Player } from './model'
+
+/**
+ * ---- HOW WELL THE PAIR ACTUALLY GET ON ----
+ *
+ * Pairing an old pro with an academy kid used to be a switch: the kid grew
+ * faster, the same amount, whoever the two men were, and after the one news item
+ * announcing it nothing was ever said about it again (user: "the mentoring
+ * section - provide updates in inbox and on the mentoring page. updates should be
+ * down to how well they work together so base it on their character").
+ *
+ * Character decides it. A Leader teaching a Professional is a match made at the
+ * training ground; a Mercenary teaching a Temperamental kid is two men who will
+ * not be in the same room by Christmas. The score below is a pure function of
+ * the two personalities plus the senior man's leadership and the age gap, so it
+ * is the same every time it is read - no rng, and no drift between the number on
+ * the page and the number the development code uses.
+ */
+
+/** How much the senior man has to give as a teacher. */
+const TEACHER: Record<Personality, number> = {
+  Leader: 1.0,
+  Professional: 0.85,
+  Loyal: 0.7,
+  Ambitious: 0.5,
+  Temperamental: 0.3,
+  Mercenary: 0.2,
+}
+
+/** How much the kid takes in. */
+const LEARNER: Record<Personality, number> = {
+  Professional: 1.0,
+  Loyal: 0.85,
+  Leader: 0.8,
+  Ambitious: 0.7,
+  Temperamental: 0.4,
+  Mercenary: 0.35,
+}
+
+/** Pairs that spark, and pairs that grate, over and above the two scores. */
+function chemistry(senior: Personality, kid: Personality): number {
+  if (senior === 'Leader' && (kid === 'Ambitious' || kid === 'Temperamental')) return 0.12
+  if (senior === 'Professional' && kid === 'Professional') return 0.1
+  if (senior === 'Loyal' && kid === 'Loyal') return 0.08
+  if (senior === 'Mercenary' && kid === 'Loyal') return -0.12
+  if (senior === 'Temperamental' && kid === 'Temperamental') return -0.15
+  if (senior === 'Ambitious' && kid === 'Ambitious') return -0.08
+  return 0
+}
+
+/**
+ * 0 to 100: how well this pairing works.
+ *
+ * The two character scores carry most of it, the senior man's leadership adds a
+ * little, and a wide age gap costs a little - a 36-year-old and an 18-year-old
+ * have less in common than a 29-year-old and a 20-year-old.
+ */
+export function mentorFit(senior: Player, kid: Player): number {
+  const t = TEACHER[senior.pers] ?? 0.5
+  const l = LEARNER[kid.pers] ?? 0.5
+  const lead = (senior.a.lea - 10) / 10 * 0.08
+  const gap = Math.max(0, (senior.age - kid.age - 10)) * 0.008
+  const raw = (t * 0.55 + l * 0.45) + chemistry(senior.pers, kid.pers) + lead - gap
+  return Math.max(0, Math.min(100, Math.round(raw * 100)))
+}
+
+/**
+ * The fit of an average pairing that actually occurs in the game.
+ *
+ * This constant is the whole reason mentorBoost is not one line, and getting it
+ * from the right place took two goes. The obvious `0.4 + fit / 100 * 1.2` came
+ * out at a mean of 1.152 - a fifteen percent speed-up to every academy in the
+ * game that nobody asked for. Re-centring on the 36-combination character grid
+ * (mean 63) got it to 1.055, still wrong, because a real squad is not a uniform
+ * grid: senior pros skew Professional, Loyal and Leader and carry more
+ * leadership than the grid's fixed 12, so real pairings average 70.5 across
+ * 2,484 of them from six different clubs. That is the number, and
+ * scripts/mentorprobe.ts measures both the grid and a real squad and fails if
+ * either drifts from 1.0.
+ */
+const MEAN_FIT = 70.5
+
+/**
+ * The multiplier on the kid's extra development. 1.0 for an average pairing,
+ * about 0.4 for the worst and about 1.34 for the best.
+ *
+ * ONE straight line through the average, not two meeting at it. Two lines was
+ * the third wrong answer: pinning f(MEAN) = 1 is not the same as E[f] = 1, and
+ * with a steeper slope above the mean than below it (0.020 a point against
+ * 0.0085) the average pairing came out at 1.099 even though the average FIT was
+ * exactly on the anchor. A single slope makes E[boost] = 1 + (E[fit] - MEAN) * k,
+ * which is exactly 1 by construction whatever the shape of the distribution.
+ *
+ * k is set by the floor: the worst pairing in the world sits near 19, which is
+ * 51.5 below the mean, so 0.6 / 51.5 puts it at 0.4.
+ */
+const PER_POINT = 0.6 / 51.5
+
+export function mentorBoost(senior: Player, kid: Player): number {
+  const fit = mentorFit(senior, kid)
+  return Math.max(0.4, Math.min(1.6, 1 + (fit - MEAN_FIT) * PER_POINT))
+}
+
+export function fitWord(fit: number): string {
+  return fit >= 80 ? 'Inseparable'
+    : fit >= 66 ? 'Working well'
+    : fit >= 50 ? 'Coming along'
+    : fit >= 36 ? 'Polite, no more'
+    : fit >= 22 ? 'Not taking'
+    : 'A waste of both their time'
+}
+
+/** One line explaining WHY, so the number is not just a number. */
+export function fitReason(senior: Player, kid: Player): string {
+  const t = TEACHER[senior.pers] ?? 0.5
+  const l = LEARNER[kid.pers] ?? 0.5
+  const chem = chemistry(senior.pers, kid.pers)
+  const gap = senior.age - kid.age
+  if (chem <= -0.1) return `${senior.pers} and ${kid.pers} was never going to work.`
+  if (t >= 0.85 && l >= 0.85) return `A ${senior.pers.toLowerCase()} teaching a ${kid.pers.toLowerCase()}: he could not have picked a better example.`
+  if (t < 0.4) return `${senior.name.split(' ').slice(-1)[0]} is a fine player and an indifferent teacher.`
+  if (l < 0.45) return `The kid is not listening as closely as he might.`
+  if (gap >= 16) return `${gap} years between them, and it shows in what they talk about.`
+  if (senior.a.lea >= 15) return `${senior.name.split(' ').slice(-1)[0]} leads by example and the boy has noticed.`
+  return `Steady enough: extras after training, and the odd word that lands.`
+}
+
+/**
+ * The mentoring beat: a note on how each pairing is going.
+ *
+ * Filed every six weeks so it is a progress report rather than a nag, and only
+ * for pairings that have something to say - a middling one that is neither
+ * working nor failing produces nothing, because "it is fine" is not news.
+ * Deterministic: the week decides when, the fit decides what.
+ */
+export function mentorReports(state: GameState) {
+  const pairs = state.mentors ?? []
+  if (!pairs.length) return
+  if (state.week % 6 !== 0) return
+  for (const mp of pairs) {
+    const s = state.players[mp.senior]
+    const k = state.players[mp.kid]
+    if (!s || !k) continue
+    const fit = mentorFit(s, k)
+    const last = k.name.split(' ').slice(-1)[0]
+    if (fit >= 66) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+        subject: `🎓 ${last} is thriving under ${s.name.split(' ').slice(-1)[0]}`,
+        body: `${fitWord(fit)}. ${fitReason(s, k)} The academy coach says ${k.name} has started doing the unglamorous parts without being asked, `
+          + `which is the bit you cannot coach. He is developing faster for it.`,
+        playerId: k.id,
+      })
+    } else if (fit < 36) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+        subject: `The ${s.name.split(' ').slice(-1)[0]} and ${last} pairing is not taking`,
+        body: `${fitWord(fit)}. ${fitReason(s, k)} ${k.name} is getting very little out of it and it may be worth putting him with somebody else. `
+          + `Nothing has gone wrong between them; it simply is not working.`,
+        playerId: k.id,
+      })
+    }
+  }
+}

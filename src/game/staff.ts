@@ -13,6 +13,8 @@ export const BADGE_COL = ['#8a8a8a', '#b07a4e', '#9aa6b2', '#c9a227']
 /** Pass rate for a coaching course. Hard number, straight from the brief. */
 export const EXAM_PASS_PCT = 58
 export const COURSE_WEEKS = 6
+/** A failed badge cannot be re-sat for four weeks - about a month. */
+export const RETAKE_WEEKS = 4
 export const courseFee = (tier: number) => 60_000 * tier
 
 export interface StaffCandidate {
@@ -122,7 +124,21 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   return `${c.name} is your new ${info.name.toLowerCase()}. ${fmt(c.fee)} compensation paid.`
 }
 
-/** Enrol a coach on the next badge up. Six weeks, then the examiners decide. */
+/**
+ * Put a coach in for his next badge. The examiners decide there and then.
+ *
+ * It used to be a six-week wait for a verdict that arrived as an inbox item,
+ * which meant the one decision on the page had no visible consequence and you
+ * had forgotten you made it by the time it landed (user: "the coaching staff
+ * doing a course - the result should be instant - if they pass upgrade, if they
+ * fail then they cant do it again for another month"). Pass and he is a better
+ * coach before you leave the screen; fail and the fee is gone and he cannot sit
+ * it again for four weeks.
+ *
+ * The roll is a deterministic gate on (seed, week, role) - never the shared rng -
+ * so it cannot be re-rolled by looking at it twice, and the cooldown means it
+ * cannot be re-rolled by trying again either.
+ */
 export function sendToCourse(state: GameState, role: StaffRole): string {
   const club = state.clubs[state.userClubId]
   const p = state.staffPeople?.[role]
@@ -131,23 +147,44 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
   if (p.tier >= 3) return `${p.name} already holds his gold badge. There is nothing left to sit.`
   if (p.course) return `${p.name} is already on a course. The examiners will not be hurried.`
   const abs = state.season * 100 + state.week
-  if ((p.retakeAt ?? 0) > abs) return `${p.name} cannot resit yet. The next intake is a few weeks away.`
+  if ((p.retakeAt ?? 0) > abs) return `${p.name} cannot sit it again yet - he failed recently and the next intake is a few weeks off.`
   const fee = courseFee(p.tier)
   if (club.balance < fee) return `The course costs ${fmt(fee)} and the money is not there.`
   club.balance -= fee
-  p.course = { done: abs + COURSE_WEEKS, toTier: p.tier + 1 }
+  const toTier = p.tier + 1
+  const badge = BADGE[toTier].toLowerCase()
+  const passed = examRoll(state.seed, abs, role) < EXAM_PASS_PCT
+  if (passed) {
+    p.tier = Math.min(3, toTier)
+    p.wage = Math.round((p.wage * 1.15) / 100) * 100
+    p.passed = (p.passed ?? 0) + 1
+    state.staff[role] = p.tier
+    logDecision(state, `${p.name} passed his ${badge} badge: a better ${info.name.toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: `🎓 ${p.name} passes his ${badge} badge`,
+      body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${info.name.toLowerCase()} than the club had this morning. His pay rises to ${fmt(p.wage)} a week.`,
+    })
+    return `${p.name} passed. He is ${badge}-badged from today, and on ${fmt(p.wage)} a week.`
+  }
+  p.failed = (p.failed ?? 0) + 1
+  p.retakeAt = abs + RETAKE_WEEKS
+  logDecision(state, `${p.name} failed his ${badge} badge. The ${fmt(fee)} is gone and he cannot resit for a month.`, false)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject: `${p.name} sits his ${BADGE[p.tier + 1].toLowerCase()} badge`,
-    body: `${p.name} has been enrolled on the ${BADGE[p.tier + 1].toLowerCase()} coaching course: ${fmt(fee)}, six weeks of evenings, written work and an assessed session in front of examiners who have seen it all. Most get through it. Not all of them do.`,
+    subject: `${p.name} falls short of his ${badge} badge`,
+    body: `The examiners wanted more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. The ${fmt(fee)} is spent either way, and the next intake will not take him for a month.`,
   })
-  logDecision(state, `Sent ${p.name} on the ${BADGE[p.tier + 1].toLowerCase()} coaching course: ${fmt(fee)}, six weeks, no guarantees.`)
-  return `${p.name} is enrolled. Six weeks, ${fmt(fee)}, and the result comes back either way.`
+  return `${p.name} fell short. The ${fmt(fee)} is gone and he cannot sit it again for a month.`
 }
 
+
 /**
- * Weekly: any course that has run its six weeks comes back with a verdict.
- * The roll is a deterministic gate on (seed, week, role) - no shared rng.
+ * Weekly: settle any course still in flight.
+ *
+ * Courses resolve instantly now, so nothing new ever sits in p.course - this
+ * exists so a save written while the six-week wait was still a thing does not
+ * strand a coach mid-course forever. It can go once no such saves are in use.
  */
 export function resolveCourses(state: GameState) {
   if (!state.staffPeople) return
@@ -172,7 +209,7 @@ export function resolveCourses(state: GameState) {
       })
     } else {
       p.failed = (p.failed ?? 0) + 1
-      p.retakeAt = abs + 10
+      p.retakeAt = abs + RETAKE_WEEKS
       logDecision(state, `${p.name} failed his ${BADGE[toTier].toLowerCase()} badge. The course fee is gone and he resits in ten weeks.`, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,

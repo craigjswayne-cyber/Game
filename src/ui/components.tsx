@@ -5,17 +5,49 @@ import { kitPattern, type KitPattern } from '../game/kits'
 
 
 /** The brand roundel: white circle, monogram, magazine-style. */
+/**
+ * ---- THE MARK ----
+ *
+ * It used to be the letters RM in a white circle, which is a placeholder rather
+ * than a badge (user: "can you redesign the rugby manager logo on the front
+ * page"). This is a proper crest instead: a shield in the game's own green and
+ * gold, the posts standing in it, a ball across the middle on the seam, and the
+ * two initials small at the base where a founding date would go on a real one.
+ *
+ * All flat shapes and no external assets, because it renders at 60px on a phone
+ * title screen and at 26px in the masthead - anything finer than this turns to
+ * mud at the small size. `inverse` puts it on a dark ground.
+ */
 export function BrandMark({ size = 64, inverse = false }: { size?: number; inverse?: boolean }) {
-  const bg = inverse ? '#2e57ab' : '#ffffff'
-  const fg = inverse ? '#ffffff' : '#2e57ab'
+  const field = inverse ? '#0b3d2e' : '#14543f'
+  const edge = inverse ? '#e3b92e' : '#c9a227'
+  const post = inverse ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.95)'
+  const ball = inverse ? '#f0d98c' : '#e8dcb5'
+  const seam = inverse ? '#0b3d2e' : '#14543f'
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
-      <circle cx="32" cy="32" r="31" fill={bg} />
+      {/* the shield: flat shoulders, a point at the bottom */}
+      <path d="M8 6 H56 V34 C56 46 46 55 32 60 C18 55 8 46 8 34 Z" fill={field} />
+      <path d="M8 6 H56 V34 C56 46 46 55 32 60 C18 55 8 46 8 34 Z"
+        fill="none" stroke={edge} strokeWidth="2.5" />
+      {/* the posts, set back so the ball reads on top of them */}
+      <g fill={post}>
+        <rect x="20" y="14" width="3" height="34" rx="1" />
+        <rect x="41" y="14" width="3" height="34" rx="1" />
+        <rect x="20" y="26" width="24" height="3" rx="1.5" />
+      </g>
+      {/* the ball, sitting on the crossbar line */}
+      <ellipse cx="32" cy="27.5" rx="11" ry="7" fill={ball} />
+      <path d="M25 27.5 H39" stroke={seam} strokeWidth="1.6" strokeLinecap="round" />
+      <g stroke={seam} strokeWidth="1.3" strokeLinecap="round">
+        <path d="M28 25.4 V29.6" /><path d="M32 25 V30" /><path d="M36 25.4 V29.6" />
+      </g>
+      {/* the initials at the base, the size a founding date would be */}
       <text
-        x="31" y="42.5" textAnchor="middle"
+        x="32" y="53" textAnchor="middle"
         fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
-        fontWeight="800" fontSize="26" letterSpacing="-1"
-        fill={fg}
+        fontWeight="800" fontSize="10" letterSpacing="1.5"
+        fill={edge}
       >RM</text>
     </svg>
   )
