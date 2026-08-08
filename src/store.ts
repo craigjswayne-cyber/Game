@@ -16,7 +16,7 @@ export type Screen =
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
   | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
-  | 'offers' | 'academy' | 'day'
+  | 'offers' | 'academy' | 'day' | 'draw'
 
 interface NavEntry {
   screen: Screen
@@ -114,6 +114,10 @@ interface Store {
   toTitle: () => void
   /** Read a set of stories full screen, starting on one of them. */
   openWire: (ids: number[], startId?: number) => void
+  /** Watch the next ball come out of the bag (F19). */
+  revealBall: () => void
+  /** The draw is watched: put it away and carry on. */
+  closeDraw: () => void
 }
 
 /** The event types worth stopping the ticker for in highlights mode (F5).
@@ -414,6 +418,25 @@ export const useStore = create<Store>((set, get) => ({
       ? [...ids.slice(ids.indexOf(startId)), ...ids.slice(0, Math.max(0, ids.indexOf(startId)))]
       : ids
     set(s => ({ wireQueue: queue, nav: [...s.nav.filter(e => e.screen !== 'wire'), { screen: 'wire' as const }], tick: s.tick + 1 }))
+  },
+
+  revealBall: () => {
+    const g = get().game
+    if (!g?.draw) return
+    g.draw.revealed = Math.min(g.draw.ties.length, (g.draw.revealed ?? 0) + 1)
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+  },
+
+  closeDraw: () => {
+    const g = get().game
+    if (!g) return
+    // Watched and put away. The ties themselves live in the fixture list, so
+    // clearing the ceremony loses nothing - and clearing it is what stops the
+    // day bulletin offering the same draw every week for the rest of the season.
+    g.draw = null
+    set(s => ({ nav: s.nav.filter(e => e.screen !== 'draw'), tick: s.tick + 1 }))
+    void get().persist()
   },
 
   /** From the MatchDay preview: take the field. The match simulates

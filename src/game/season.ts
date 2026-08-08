@@ -242,6 +242,8 @@ function poolStandings(state: GameState, comp: Competition): string[][] {
 /** Create knockout fixtures for a competition when the calendar reaches them. */
 function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   if (!comp.playoffTeams) return
+  /** stages whose ties were made on this tick, so the draw can be assembled after */
+  const drawnStages = new Set<string>()
   const cupLike = comp.type === 'cup' || !!comp.pools
   const koFx = (stage: string) => state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
   const mkFx = (stage: string, week: number, home: string, away: string) => {
@@ -251,6 +253,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     })
     // the draw is news when you're in the hat
     const mine = [state.userClubId, state.natTeam].filter(Boolean)
+    drawnStages.add(stage)
     if (mine.includes(home) || mine.includes(away)) {
       const us = mine.includes(home) ? home : away
       const opp = us === home ? away : home
@@ -264,6 +267,32 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       })
     }
   }
+  /**
+   * Hold a freshly drawn round back as a ceremony (F19).
+   *
+   * The ties have to exist the moment the previous round ends, or the manager's
+   * own tie would be simmed before the MatchDay screen ever saw it. But he should
+   * not simply FIND them in his fixture list: a cup draw is a moment, and the
+   * only one in the sport where you watch your season change without playing.
+   *
+   * Assembled after the round is built rather than while it is being built,
+   * because the first ball out is rarely the manager's - collecting as we went
+   * missed every tie drawn before his name came up.
+   */
+  const holdTheDraw = () => {
+    for (const stage of drawnStages) {
+      const ties = state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
+      const mine = [state.userClubId, state.natTeam].filter(Boolean)
+      // a round with only one tie in it is a final: there is nothing to draw
+      if (ties.length < 2) continue
+      if (!ties.some(f => mine.includes(f.homeId) || mine.includes(f.awayId))) continue
+      state.draw = {
+        compId: comp.id, stage, week: state.week, season: state.season, revealed: 0,
+        ties: ties.map(f => ({ homeId: f.homeId, awayId: f.awayId })),
+      }
+    }
+  }
+
   const regularDone = state.fixtures
     .filter(f => f.compId === comp.id && !f.stage)
     .every(f => f.played)
@@ -340,6 +369,9 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       }
     }
   }
+
+  // every tie in this round is drawn now: hold it back as a ceremony
+  holdTheDraw()
 }
 
 const winnerOf = (fx: Fixture) => (fx.homeScore >= fx.awayScore ? fx.homeId : fx.awayId)
