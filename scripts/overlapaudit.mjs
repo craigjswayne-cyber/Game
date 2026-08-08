@@ -127,7 +127,16 @@ const run = async (size) => {
       await page.click(`.submenu-item >> text=${item}`)
       await check(label)
     }
-    await page.click('.continue-btn')
+    // Continue walks the week a day at a time, so kick-off is a handful of taps
+    // away rather than one. This probe pressed it once and then waited twenty
+    // seconds for a button several days out, which is why all three sizes
+    // stopped short of the two match-day views.
+    for (let tap = 0; tap < 10; tap++) {
+      if (await page.locator('text=Kick Off ▸').count()) break
+      if (!(await page.locator('.continue-btn').count())) break
+      await page.click('.continue-btn')
+      await page.waitForTimeout(450)
+    }
     await page.waitForSelector('text=Kick Off', { timeout: 20000 })
     await check('match day')       // with the dressing room open, as it arrives
     await clearTalk()
