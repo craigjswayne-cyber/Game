@@ -18,6 +18,7 @@ import type { Club, GameState, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
+import { seedPhilosophies } from './philosophy'
 import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
@@ -341,10 +342,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.objectives = pickObjectives(state)
   state.tenureStart = 0
   state.legendOf = []
-  // every dugout has a name in it
+  // every dugout has a name in it, and an idea in it (F23)
   for (const club of Object.values(state.clubs)) {
     if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames)
   }
+  seedPhilosophies(state)
 
   // initial lineups for every club
   for (const club of Object.values(state.clubs)) {

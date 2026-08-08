@@ -8,6 +8,7 @@ import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
+import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 
 /** Chance an application succeeds, from reputation vs club stature. */
 export function jobChance(state: GameState, clubId: string): number {
@@ -24,6 +25,9 @@ export function refreshVacancies(state: GameState, rng: Rng) {
     const keep = state.week - v.week < 5 && state.clubs[v.clubId]
     if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
       state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country)
+      // F23: the new man brings his own idea of how to play, which is why a club
+      // you have had the measure of for three seasons can start kicking at you.
+      newCoachPhilosophy(state, state.clubs[v.clubId])
     }
     return keep
   })
@@ -129,6 +133,16 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.userClubId = clubId
     state.unemployed = false
     club.coach = undefined
+    // F23: the previous coach's standing instruction is not yours, so it comes
+    // off the club the moment you walk in and the dials on your tactics screen
+    // are only ever what you set them to.
+    //
+    // The seed call is for the club you have LEFT (or were sacked by, which is
+    // where userClubId sits while you are out of work). It has been carrying
+    // your dials, and nothing else would ever take them off it: refreshVacancies
+    // deliberately does not appoint over the top of userClubId.
+    club.philosophy = undefined
+    seedPhilosophies(state)
     state.vacancies = state.vacancies.filter(x => x.clubId !== clubId)
     club.boardConfidence = 66
     state.devFocus = []

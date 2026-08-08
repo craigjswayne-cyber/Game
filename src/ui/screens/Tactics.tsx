@@ -9,6 +9,7 @@ import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components
 import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
+import { counterTo, dialLine, philosophyOf } from '../../game/philosophy'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 
@@ -573,6 +574,35 @@ export default function Tactics() {
         <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">{assistantAdvice(game)}</div>
         </div>
+        {/* F23: the opposition dugout has a standing instruction now, so the game
+            plan tab is the place to answer it. Reading how they play is free;
+            what to do about it is the assistant's job, and it is advice rather
+            than an answer - he cannot see whether you have the pack to back it. */}
+        {(() => {
+          const fx = userFixtureThisWeek(game)
+          if (!fx) return null
+          const oppId = fx.homeId === game.userClubId ? fx.awayId : fx.homeId
+          const opp = game.clubs[oppId]
+          const ph = philosophyOf(opp)
+          const ctr = counterTo(opp?.philosophy)
+          if (!ph || !ctr) return null
+          return (
+            <>
+              <SectionTitle sub={`${opp.short} play ${ph.name.toLowerCase()}`}>Answering Them</SectionTitle>
+              <div className="card">
+                <div className="meta"><b>{ph.name}.</b> {ph.blurb}</div>
+                <div className="meta muted">{dialLine(opp.tactic)}</div>
+                <div className="meta" style={{ marginTop: 6 }}>
+                  <b>Assistant:</b> {ctr.line}
+                </div>
+                <button className="btn gold block tiny" style={{ marginTop: 6 }}
+                  onClick={() => { Object.assign(t, ctr.dials); touch() }}>
+                  Set the counter plan
+                </button>
+              </div>
+            </>
+          )
+        })()}
         <SectionTitle sub="one tap sets all four sliders">Quick Game Plans</SectionTitle>
         <div className="preset-row" style={{ padding: '0 14px' }}>
           {PRESETS.map(p => (

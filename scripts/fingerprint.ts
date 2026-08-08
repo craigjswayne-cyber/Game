@@ -85,8 +85,32 @@ const EXPECTED: string[] = [
   // Band held: 52.7 points, 6.0 tries, 55% home, 2.4% draws. A test that stays
   // still when you expected it to move is worth a second look, and this is what
   // the second look found.
+  //
+  // REBASELINED for F23, AI coaching philosophies. This is a deliberate
+  // mechanical change: the 100 dugouts you are not sitting in no longer all
+  // hold style 50, tempo 50, kicking 50, aggression 50. Each has a philosophy
+  // that sets all four, so every side in this stream except Leicester (the user
+  // club, whose dials stay yours) now plays to an instruction.
+  //
+  // ONE of the six results moved, which was worth checking rather than
+  // accepting. The dials are genuinely in the stream: slam all eight
+  // philosophies to the 0/100 extremes and four of the six results move. The
+  // other five held at the real settings because a rugby score is coarse - a
+  // few per cent on a unit rating often does not flip a discrete event.
+  //
+  // Mean-neutral, measured rather than argued. The eight philosophies are four
+  // pairs that mirror exactly about 50 on all four dials, and which member of a
+  // pair a club gets is decided by whether its squad leans to the pack compared
+  // with the rest of the world (the world median, NOT zero - see philosophy.ts
+  // for the 67%-pack-heavy measurement that made that necessary). Over nine
+  // worlds of ten seasons each, about 100,000 league games a side:
+  //   points  52.46 -> 52.54     tries   5.92 -> 5.93
+  //   home    55.1% -> 55.2%     draws   2.33% -> 2.37%
+  // Well inside the healthy band and inside seed-to-seed noise. The world-wide
+  // dial averages come out at style 50.4, tempo 50.4, kicking 49.7,
+  // aggression 50.1; scripts/philprobe.ts holds them there.
   'gloucester 70-31 newcastle',
-  'bristol 25-14 sale',
+  'bristol 23-24 sale',
   'leicester 20-16 northampton',
   'exeter 9-14 bath',
   'saracens 38-20 harlequins',
