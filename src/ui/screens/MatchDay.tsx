@@ -1615,7 +1615,9 @@ function Live() {
       {injury && (
         <SquadSheet
           title={`🏥 ${injury.hurt} is off`}
-          note={`${injury.desc} - out for ${injury.weeks} week${injury.weeks === 1 ? '' : 's'}. Name his replacement before play restarts.`}
+          hurtName={injury.hurt}
+          hurtDesc={`${injury.desc}, out for ${injury.weeks} week${injury.weeks === 1 ? '' : 's'}`}
+          note="Name his replacement before play restarts."
           freeCoverId={injury.coverId ?? undefined}
           /* forced: the physio is on, the clock is stopped, and the only way back
              to the match is through naming somebody */
@@ -2046,12 +2048,16 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
  *  `forcedOffId` is the injury flow (feedback 9-3): when a man goes down badly
  *  the sheet opens with him already armed, so the only decision left is who
  *  comes on. */
-export function SquadSheet({ onClose, freeCoverId, title, note, mustDecide, onTactics }: {
+export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDesc, mustDecide, onTactics }: {
   onClose: () => void
   /** The man the assistant sent on to cover an injury. Swapping him is free. */
   freeCoverId?: number
   title?: string
   note?: string
+  /** The injured man, named in the sheet body as well as the heading, because the
+   *  heading scrolls out of reach on a phone once the bench is in view. */
+  hurtName?: string
+  hurtDesc?: string
   /** A forced stop: the sheet cannot be dismissed until a change is made. Used
    *  for injuries, where somebody has to come on and the choice is the
    *  manager's, not the assistant's. */
@@ -2109,6 +2115,17 @@ export function SquadSheet({ onClose, freeCoverId, title, note, mustDecide, onTa
           <h3>{title ?? 'Match-Day Squad'}</h3>
           <span className="meta">{left} change{left === 1 ? '' : 's'} left</span>
         </div>
+        {/* WHO IS HURT, stated where the decision is made.
+            A phone screenshot showed this sheet scrolled down to reach the bench
+            with the heading off the top of the screen, so the manager was being
+            asked to replace a man the screen no longer named. The heading is
+            sticky now, and the casualty is named again here in his own line
+            rather than buried in the middle of a paragraph of instructions. */}
+        {hurtName && (
+          <div className="sheet-casualty">
+            🏥 <b>{hurtName}</b> is off{hurtDesc ? ` - ${hurtDesc}` : ''}
+          </div>
+        )}
         <div className="meta sheet-hint">
           {note ? <>{note}{' '}</> : null}
           {isFreeSwap && off ? `The assistant has sent ${off.name} on. Tap someone else to change it, free of charge, or tap him again to keep him.`
