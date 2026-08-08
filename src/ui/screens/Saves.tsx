@@ -57,7 +57,7 @@ export default function Saves() {
     const blob = new Blob([JSON.stringify(game)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `rugby-manager-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
+    a.download = `fab-rugby-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
     a.click()
     URL.revokeObjectURL(a.href)
     setMsg('Career exported - keep the file safe, import it on any device.')
@@ -67,7 +67,7 @@ export default function Saves() {
     file.text().then(txt => {
       const raw = JSON.parse(txt) as GameState
       if (!raw || !raw.clubs || !raw.players || !raw.userClubId || raw.week == null) {
-        setMsg('That file is not a Rugby Manager save.')
+        setMsg('That file is not a FAB Rugby save.')
         return
       }
       const g = migrate(raw)
@@ -75,7 +75,7 @@ export default function Saves() {
         setGame(g, 'imported')
         setMsg(null)
       })
-    }).catch(() => setMsg('Could not read that file - is it a Rugby Manager save?'))
+    }).catch(() => setMsg('Could not read that file - is it a FAB Rugby save?'))
   }
 
   return (

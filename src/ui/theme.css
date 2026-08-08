@@ -38,19 +38,27 @@
      can handle dark itself; otherwise it inverts and desaturates whatever it
      finds, which turned every night card grey on the device. */
   color-scheme: light dark;
-  --green-950: #1b3468;
-  --green-900: #24478f;
-  --green-800: #2e57ab;
-  --green-700: #3a68c4;
-  --green-600: #4a77d0;
-  --green-100: #dbe6f6;
-  --cream: #e9f0fb;
-  --cream-2: #dbe6f7;
-  --cream-3: #c4d6ee;
+  /* ---- FAB RUGBY ----
+     The brand is the ball: crimson, a gold ring, white leather. So the chrome is
+     crimson and the accent is that gold, and the token family is named --brand-*
+     rather than --green-* because it has been neither green nor honest for a
+     while - it held navy under a green name for months. A palette token that
+     lies about its own colour is how a rule ends up painting the wrong thing. */
+  --brand-950: #6d0f2b;
+  --brand-900: #a3163f;
+  --brand-800: #c92450;
+  --brand-700: #e1325b;
+  --brand-600: #ea506f;
+  --brand-100: #fbdde4;
+  /* The page is a warm off-white rather than the old blue wash: a cool grey-blue
+     under a crimson masthead reads as two brands arguing. */
+  --cream: #fbf4f0;
+  --cream-2: #f5e8e2;
+  --cream-3: #e8d2cc;
   --paper: #ffffff;
-  --ink: #1d2733;
-  --ink-soft: #55616f;
-  --ink-faint: #8794a3;
+  --ink: #23181c;
+  --ink-soft: #6a5860;
+  --ink-faint: #9c8a90;
   /* THE ACCENT, and it has to actually be one.
      It was #5c6470 - a slate grey, chroma 0.08 - and it is the token behind the
      active tab underline, the unread-news bar, focus rings, progress meters, the
@@ -58,10 +66,11 @@
      78% of every painted screen was effectively grey and only 13% carried real
      colour. That is the "feels greyed out" report, and this is its cause: the one
      colour meant to carry the interface had no colour in it. */
-  --gold: #dda32a;
-  --gold-bright: #ffd35e;
-  --gold-dark: #a87c18;
-  --gold-deep: #6f5210;
+  /* the ring around the ball, and the game's one accent */
+  --gold: #f2c81e;
+  --gold-bright: #ffdd57;
+  --gold-dark: #b8900c;
+  --gold-deep: #7a5f06;
   --red: #e03b2b;
   --win: #2fa85f;
   --loss: #e03b2b;
@@ -75,7 +84,7 @@
   --ink-good: #2f7d4f;
   --ink-bad: #9b2c2c;
   --draw: #c9a227;
-  --hairline: rgba(29, 39, 51, 0.1);
+  --hairline: rgba(35, 24, 28, 0.12);
   /* --serif is the display voice (headlines, club names), --sans is body,
      --cond is the condensed caps voice for labels and nav. One family with
      three jobs, separated by weight and letter-spacing rather than by
@@ -83,19 +92,19 @@
   --serif: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
   --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --cond: 'Space Grotesk', 'Arial Narrow', var(--sans);
-  --shadow-1: 0 1px 2px rgba(27, 52, 104, .07), 0 2px 8px rgba(27, 52, 104, .06);
-  --shadow-2: 0 2px 4px rgba(27, 52, 104, .09), 0 8px 24px rgba(27, 52, 104, .1);
+  --shadow-1: 0 1px 2px rgba(109, 15, 43, .08), 0 2px 8px rgba(109, 15, 43, .07);
+  --shadow-2: 0 2px 4px rgba(109, 15, 43, .10), 0 8px 24px rgba(109, 15, 43, .11);
   /* club identity - overridden per save on .app */
-  --club1: #2e57ab;
+  --club1: #c92450;
   --club2: #ffffff;
   --club1-ink: #ffffff;
   /* semantic accents that flip under floodlights */
-  --accent-ink: #24478f;
-  --title-ink: #1b3468;
+  --accent-ink: #c92450;
+  --title-ink: #6d0f2b;
   /* the ghost stars behind a rating: quiet, but a five-star scale you cannot see
      the five of is just a row of stars. Both themes used to sit at 1.5:1 and
      1.3:1, which is not quiet, it is absent. */
-  --star-empty: #9aabc4;
+  --star-empty: #c2a0a0;
 }
 
 /* ============ Floodlit mode (night theme) ============ */
@@ -103,30 +112,31 @@
   /* night is committed dark, so say so outright: this is what stops the browser
      second-guessing the palette and washing the navy out to grey */
   color-scheme: dark;
-  /* the night surfaces carried almost no chroma either: a navy this dark reads as
-     black, so the cards, the page and the hairlines were all grey. More blue in
-     the same lightness band keeps the mood and gives the gold something to sit
-     against. */
-  --cream: #08142c;
-  --cream-2: #0e1e3d;
-  --cream-3: #1d3358;
-  --paper: #112544;
-  --ink: #e8edf5;
-  --ink-soft: #adb9ca;
-  --ink-faint: #7c8aa0;
-  --hairline: rgba(232, 237, 245, 0.09);
-  --accent-ink: #9fc2e8;
-  --title-ink: #eef3fb;
-  --star-empty: #46618a;
+  /* Floodlit FAB: a deep crimson-black rather than a navy one, so the brand still
+     reads at night. It stays a long way from the crimson chrome itself - a card
+     the same hue and half the lightness of the masthead makes both look muddy -
+     and it keeps real chroma, because a surface this dark with none in it reads as
+     grey, which was the original "greyed out" complaint. */
+  --cream: #16070d;
+  --cream-2: #200c15;
+  --cream-3: #3b1a25;
+  --paper: #26101a;
+  --ink: #f6ecef;
+  --ink-soft: #c8b2b9;
+  --ink-faint: #96808a;
+  --hairline: rgba(246, 236, 239, 0.10);
+  --accent-ink: #ffb3c2;
+  --title-ink: #fdf0f3;
+  --star-empty: #86505f;
   --ink-good: #5fc98a;
-  --ink-bad: #ff7a6b;
+  --ink-bad: #ff8f80;
   /* --gold-dark doubles as a night hairline (tab bar, table headings). Full gold
      rules across every table would be a lot, so night gets a deep warm instead. */
-  --gold-dark: #5c4718;
+  --gold-dark: #6b5410;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
   --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
   background:
-    radial-gradient(130% 50% at 50% -8%, rgba(122, 168, 226, .08), transparent 60%),
+    radial-gradient(130% 50% at 50% -8%, rgba(225, 50, 91, .12), transparent 60%),
     var(--cream);
 }
 .app.night .section-title { color: var(--title-ink); }
@@ -181,7 +191,7 @@ html, body, #root { height: 100%; }
 }
 
 body {
-  background: var(--green-950);
+  background: var(--brand-950);
   color: var(--ink);
   font-family: var(--sans);
   font-size: 13.5px;
@@ -219,7 +229,7 @@ input, select { font: inherit; }
   position: relative;
   background:
     radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 32%, transparent), transparent 55%),
-    linear-gradient(168deg, var(--green-800) 0%, var(--green-900) 62%, var(--green-950) 100%);
+    linear-gradient(168deg, var(--brand-800) 0%, var(--brand-900) 62%, var(--brand-950) 100%);
   color: var(--cream);
   padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
   flex-shrink: 0;
@@ -267,7 +277,7 @@ input, select { font: inherit; }
 /* ================= Continue ================= */
 .continue-btn {
   background: linear-gradient(180deg, #ffffff, #eef3f9);
-  color: var(--green-900);
+  color: var(--brand-900);
   font-family: var(--cond);
   font-weight: 700;
   font-size: 16px;
@@ -294,7 +304,7 @@ input, select { font: inherit; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--green-900);
+  color: var(--brand-900);
   padding: 13px 14px 5px;
   display: flex;
   justify-content: space-between;
@@ -344,7 +354,7 @@ input, select { font: inherit; }
   color: var(--ink-faint);
   text-align: left;
   padding: 9px 7px 7px;
-  border-bottom: 2px solid var(--green-800);
+  border-bottom: 2px solid var(--brand-800);
   background: var(--paper);
   position: sticky;
   top: 0;
@@ -374,7 +384,7 @@ input, select { font: inherit; }
 }
 
 .th-sort { cursor: pointer; user-select: none; }
-.th-sort.active { color: var(--green-800); }
+.th-sort.active { color: var(--brand-800); }
 
 /* ================= Cards ================= */
 .card {
@@ -388,7 +398,7 @@ input, select { font: inherit; }
 /* a card that is also a button: the width used to be an inline
    calc(100% - 28px) on every one of them, which no grid could override */
 button.card { display: block; width: calc(100% - 28px); text-align: left; }
-.card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--green-900); margin-bottom: 3px; letter-spacing: .1px; }
+.card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--brand-900); margin-bottom: 3px; letter-spacing: .1px; }
 .fx-line { font-size: 18px; margin: 4px 0; }
 .card .meta { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
 
@@ -403,7 +413,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--sans);
   font-weight: 700;
   font-size: 14.5px;
-  color: var(--green-950);
+  color: var(--brand-950);
   letter-spacing: .1px;
   line-height: 1.3;
 }
@@ -430,7 +440,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* ================= Bottom nav ================= */
 .bottom-nav {
   display: flex;
-  background: linear-gradient(180deg, var(--green-900), var(--green-950));
+  background: linear-gradient(180deg, var(--brand-900), var(--brand-950));
   border-top: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
   padding-bottom: env(safe-area-inset-bottom);
   flex-shrink: 0;
@@ -468,13 +478,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: #fff; font-size: 8.5px; font-weight: 800;
   min-width: 15px; height: 15px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
-  border: 1.5px solid var(--green-950);
+  border: 1.5px solid var(--brand-950);
 }
 
 /* ================= Buttons ================= */
 .btn {
   display: inline-block;
-  background: linear-gradient(180deg, var(--green-700), var(--green-800));
+  background: linear-gradient(180deg, var(--brand-700), var(--brand-800));
   color: var(--cream);
   font-weight: 700;
   font-size: 12.5px;
@@ -484,15 +494,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   text-align: center;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), var(--shadow-1);
 }
+/* The primary button. It has been called .btn.gold since the beginning and has
+   never once been gold - it painted the blue ramp under a gold name. Now that the
+   accent IS the ball's gold, the class tells the truth: gold plate, dark ink,
+   which also reads on the crimson chrome AND on a white page. */
 .btn.gold {
-  background: linear-gradient(180deg, var(--green-600), var(--green-800));
-  color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), var(--shadow-1);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: #241105;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), var(--shadow-1);
 }
 .btn.ghost {
   background: transparent;
-  color: var(--green-800);
-  border: 1.5px solid color-mix(in srgb, var(--green-800) 45%, transparent);
+  color: var(--brand-800);
+  border: 1.5px solid color-mix(in srgb, var(--brand-800) 45%, transparent);
   box-shadow: none;
 }
 .btn.danger { background: linear-gradient(180deg, #b13a34, #96302b); }
@@ -548,7 +562,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: relative;
   background:
     radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 30%, transparent), transparent 60%),
-    linear-gradient(172deg, var(--green-900), var(--green-950));
+    linear-gradient(172deg, var(--brand-900), var(--brand-950));
   color: var(--cream);
   padding: calc(env(safe-area-inset-top) + 14px) 16px 14px;
   text-align: center;
@@ -576,7 +590,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .minute {
   font-family: var(--cond); font-style: normal; font-weight: 700;
   letter-spacing: .8px; text-transform: uppercase;
-  font-size: 12px; color: var(--green-100); margin-top: 6px; letter-spacing: .5px;
+  font-size: 12px; color: var(--brand-100); margin-top: 6px; letter-spacing: .5px;
 }
 
 .pitch {
@@ -612,7 +626,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pitch .ball {
   position: absolute; top: 50%; width: 19px; height: 13px;
   background: radial-gradient(circle at 35% 30%, #fdf9ee, #e4d9bd);
-  border: 2px solid var(--green-950);
+  border: 2px solid var(--brand-950);
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(-25deg);
   transition: left 1.1s cubic-bezier(.45, .05, .35, 1), top .8s ease;
@@ -641,7 +655,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 0 -16px; padding: 11px 16px;
   border-left: 4px solid var(--gold);
 }
-.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14.5px; color: var(--green-950); }
+.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14.5px; color: var(--brand-950); }
 .tick-event.card-y { border-left: 4px solid #d4b106; margin: 0 -16px; padding: 9px 16px; }
 .tick-event.card-r, .tick-event.inj { border-left: 4px solid var(--red); margin: 0 -16px; padding: 9px 16px; }
 
@@ -671,25 +685,26 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* ================= Sliders ================= */
 .slider-row { padding: 11px 16px; }
 .slider-row .lbls { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--ink-faint); margin-bottom: 3px; }
-.slider-row .lbls b { color: var(--green-800); font-family: var(--cond); font-size: 14px; text-transform: uppercase; letter-spacing: .8px; }
-.slider-row input[type=range] { width: 100%; accent-color: var(--green-700); }
+.slider-row .lbls b { color: var(--brand-800); font-family: var(--cond); font-size: 14px; text-transform: uppercase; letter-spacing: .8px; }
+.slider-row input[type=range] { width: 100%; accent-color: var(--brand-700); }
 
 /* ================= Title screen ================= */
 .title-screen {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   background:
-    radial-gradient(120% 90% at 50% -20%, rgba(159, 194, 232, .2), transparent 60%),
-    linear-gradient(180deg, var(--green-900) 0%, var(--green-950) 100%);
+    radial-gradient(120% 90% at 50% -20%, rgba(242, 200, 30, .18), transparent 60%),
+    linear-gradient(180deg, var(--brand-900) 0%, var(--brand-950) 100%);
   color: var(--cream); text-align: center; padding: 24px;
 }
 .title-screen .rules { width: 64px; border: none; border-top: 2px solid #ffffff; margin: 16px auto; }
+.title-screen h1 b { color: var(--gold); font-weight: 900; }
 .title-screen h1 {
   font-family: var(--serif); font-size: 46px; font-weight: 900;
   line-height: 1.02; letter-spacing: 1px;
-  text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
+  text-shadow: 0 3px 22px rgba(0, 0, 0, .35);
   letter-spacing: 4px;
 }
-.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--green-100); margin-top: 8px; font-size: 15px; }
+.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--brand-100); margin-top: 8px; font-size: 15px; }
 .title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
 
 /* ================= Misc ================= */
@@ -702,7 +717,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pos-badge {
   display: inline-block;
   font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: .5px;
-  background: linear-gradient(180deg, var(--green-700), var(--green-800));
+  background: linear-gradient(180deg, var(--brand-700), var(--brand-800));
   color: var(--cream); border-radius: 4px; padding: 1.5px 5.5px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
 }
@@ -743,7 +758,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tab-bar {
   display: flex; overflow-x: auto;
   background: var(--paper);
-  border-bottom: 2px solid var(--green-900);
+  border-bottom: 2px solid var(--brand-900);
   box-shadow: var(--shadow-1);
 }
 .tab-bar button {
@@ -756,7 +771,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   letter-spacing: .2px;
 }
 .tab-bar button.active {
-  color: var(--green-900);
+  color: var(--brand-900);
   box-shadow: inset 0 -3px 0 var(--gold);
 }
 
@@ -886,7 +901,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .crumb:first-child { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); }
-.crumb.on { color: var(--green-950); background: linear-gradient(180deg, var(--gold-bright), var(--gold)); }
+.crumb.on { color: var(--brand-950); background: linear-gradient(180deg, var(--gold-bright), var(--gold)); }
 .crumb.done { color: var(--gold-bright); background: rgba(201, 162, 39, .18); }
 
 .wizard-hint {
@@ -954,7 +969,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* first-run welcome dialog */
 .tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; }
 .tut-box {
-  background: var(--green-950); color: #ece7d8;
+  background: var(--brand-950); color: #ece7d8;
   border: 2px solid var(--gold);
   border-radius: 10px;
   padding: 20px 18px;
@@ -1047,14 +1062,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* one-tap game plans */
 .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .preset-chip {
-  background: var(--green-900);
+  background: var(--brand-900);
   color: #ece7d8;
   border-radius: 15px;
   padding: 6px 11px;
   font-size: 11px; font-weight: 700; font-family: var(--sans);
   box-shadow: var(--shadow-1);
 }
-.preset-chip:active { background: var(--green-700); }
+.preset-chip:active { background: var(--brand-700); }
 
 /* ================= FM-style slide-out sub-menus ================= */
 .submenu-veil {
@@ -1370,14 +1385,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: none;
   margin-top: 8px;
   padding: 7px 12px;
-  background: var(--green-900);
+  background: var(--brand-900);
   color: #ece7d8;
   border-radius: 7px;
   font-size: 12px; font-weight: 700; font-family: var(--sans);
   width: fit-content;
 }
 .news-item.open .next-unread { display: inline-block; }
-.news-item .next-unread:active { background: var(--green-700); }
+.news-item .next-unread:active { background: var(--brand-700); }
 
 /* lineup tap-to-swap: the player you're "holding" */
 .dtable tr.held-row td {
@@ -2247,11 +2262,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    #5c6470: a slate grey, left over from when the palette went blue. So "selected"
    was a grey 1.5px border plus a 10% grey wash over a navy tile - a luminance
    change of about three percent, which is nothing on a phone in a lit room.
-   --pick is the accent selection actually uses: the theme's bright blue, at a
-   strength you cannot miss. It is a separate name from --gold-bright on purpose,
-   so that the next person to retint the palette can see that selection depends
-   on it. densityaudit's sibling, pickaudit, now measures the difference. */
-:root { --pick: #9fc2e8; --pick-ink: #0b1c33; }
+   --pick is the accent selection actually uses: under FAB Rugby that is the
+   ball's gold, at a strength you cannot miss. It is a separate name from
+   --gold-bright on purpose, so that the next person to retint the palette can see
+   that selection depends on it - which is exactly what happened when the game
+   became FAB Rugby, and the reason this comment is worth its space.
+   densityaudit's sibling, pickaudit, measures the difference. */
+:root { --pick: #f2c81e; --pick-ink: #241105; }
 .tile.sel, .club-tile.sel, .speech-tile.sel {
   border-color: var(--pick);
   box-shadow: inset 0 0 0 2px var(--pick), var(--shadow-1);
@@ -2259,14 +2276,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tile.sel, .speech-tile.sel {
   background: color-mix(in srgb, var(--pick) 26%, var(--paper));
 }
-/* selected is the same blue wash every other tile gets: no club colour in it, so
+/* selected is the same gold wash every other tile gets: no club colour in it, so
    picking a red club cannot look like picking a broken one */
 .club-tile.sel {
   background: color-mix(in srgb, var(--pick) 26%, var(--paper));
 }
 /* and the words brighten with the box, so the change is legible even to someone
    who cannot pick the ring out from the border */
-.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--pick); }
+/* The bold line on a selected tile takes the ordinary ink, NOT the pick colour.
+   It used to be var(--pick), which was invisible the moment --pick became the
+   ball's gold: gold text on a gold wash, 1.4:1, found by the daylight half of
+   scripts/nightcontrast.mjs. The ring and the wash are what say "selected"; the
+   name just has to be readable. */
+.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--ink); }
 .app.night .tile.sel b, .app.night .club-tile.sel b, .app.night .speech-tile.sel b { color: #ffffff; }
 /* a tick, because a colour change alone is a poor signal if you cannot see the
    unselected tiles next to it - on a narrow screen the picked one may be alone */
@@ -2718,7 +2740,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .ledger-row .lg-what { flex: 1; min-width: 0; color: var(--ink-soft); }
 .ledger-row .lg-amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ledger-row.total {
-  border-top: 2px solid var(--green-800); margin-top: 3px; padding-top: 6px;
+  border-top: 2px solid var(--brand-800); margin-top: 3px; padding-top: 6px;
 }
 .ledger-row.total .lg-what { color: var(--ink); font-weight: 700; }
 .ledger-row.total .lg-amt { font-size: 14px; }
@@ -2758,7 +2780,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: var(--cream-3); border-radius: 6px; overflow: hidden;
 }
 .app.night .cap-bar { background: #26374f; }
-.cap-fill { height: 100%; background: var(--green-600, #1d7a4c); transition: width .25s ease; }
+.cap-fill { height: 100%; background: var(--brand-600, #1d7a4c); transition: width .25s ease; }
 .cap-fill.tight { background: #b8901c; }
 .cap-fill.over { background: #a12f2f; }
 .cap-mark { position: absolute; top: -2px; bottom: -2px; right: 0; width: 2px; background: var(--ink-soft, #6b7a72); opacity: .7; }
@@ -2783,7 +2805,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .draw-tie.ours { border-color: var(--gold, #c9a227); border-width: 2px; font-weight: 700; }
 .draw-num {
   flex: 0 0 22px; height: 22px; border-radius: 11px;
-  background: var(--green-700, #14603c); color: #f2ede0;
+  background: var(--brand-700, #14603c); color: #f2ede0;
   font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
 .draw-home, .draw-away { flex: 1; }
