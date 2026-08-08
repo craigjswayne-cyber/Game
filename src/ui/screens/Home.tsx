@@ -62,7 +62,7 @@ export default function Home() {
   if (game.unemployed) {
     return (
       <>
-        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--stripe)' }}
           onClick={() => go('jobs')}>
           <h3>📋 The Job Centre</h3>
           <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open - apply, or press Continue and wait for the right one.</div>
@@ -173,14 +173,14 @@ export default function Home() {
         )
       })()}
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--stripe)' }}
           onClick={() => go('seasonreview')}>
           <h3>📖 The Annual is out</h3>
           <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
         </button>
       )}
       {pressOpen > 0 && (
-        <button className="card" style={{ borderLeft: '4px solid #c9a227' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--stripe)' }}
           onClick={() => go('press')}>
           <h3>🗞️ The press want a word</h3>
           <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
@@ -194,7 +194,7 @@ export default function Home() {
           .slice(0, 3)
         if (!idle.length) return null
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
             <div className="fact-label">Blank Weekend</div>
             <div className="meta" style={{ marginBottom: 6 }}>
               No fixture this week. A friendly banks sharpness and combinations for the squad - but injuries in a meaningless game sting twice as much.

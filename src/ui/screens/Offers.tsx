@@ -68,7 +68,7 @@ export default function Offers() {
         </div>
       </div>
       <div style={{ padding: 14 }}>
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <div className="offer-head">
             <CrestT g={game} teamId={bidder.id} size={34} />
             <div>

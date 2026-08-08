@@ -33,6 +33,24 @@ export default function Tactics() {
   const club = game.clubs[game.userClubId]
   const t = club.tactic
 
+  /** This sheet is his now.
+   *
+   *  The engine used to re-pick a "stale" team sheet on the way to the pitch,
+   *  which is how a manager ended up watching a side he had not chosen ("I'm not
+   *  sure if you make changes to the match day 23 it's actually putting those
+   *  players on the pitch"). Every edit on this screen stamps the sheet as the
+   *  manager's, and the engine leaves a manager's sheet alone. */
+  const claim = () => { t.userPicked = true }
+
+  /** Why a man in a leadership list cannot play this week. The armband is a
+   *  season-long appointment, so a captain away with his country stays captain
+   *  and the vice leads in his place - but the list should say so rather than
+   *  leave the manager wondering ("petti hasn't been part of the squad for ages
+   *  because of international duty but still captain"). */
+  const awayNote = (p: Player) =>
+    p.injury ? ' - injured' : p.bans > 0 ? ' - suspended'
+      : p.natSquad ? ' - on Test duty' : p.onLoan ? ' - out on loan' : ''
+
   const setSlot = (slot: number, pid: number | null) => {
     // remove pid from any other slot first
     if (pid != null) {
@@ -40,6 +58,7 @@ export default function Tactics() {
       if (other >= 0) t.lineup[other] = t.lineup[slot]
     }
     t.lineup[slot] = pid
+    claim()
     setPickSlot(null)
     setSel(null)
     touch()
@@ -53,6 +72,7 @@ export default function Tactics() {
     const a = t.lineup[sel]
     t.lineup[sel] = t.lineup[slot]
     t.lineup[slot] = a
+    claim()
     setSel(null)
     touch()
   }
@@ -229,6 +249,9 @@ export default function Tactics() {
             <button className="btn gold tiny" onClick={() => {
               const pool = availablePlayers(game, club.players)
               club.tactic.lineup = autoSelect(game, pool, splitFor(club))
+              // he asked for this side, so it is his: the engine must not
+              // second-guess a sheet the manager put there on purpose
+              claim()
               touch()
             }}>Best XV</button>
           }>Starting XV</SectionTitle>
@@ -267,7 +290,7 @@ export default function Tactics() {
               {club.players.map(id => game.players[id]).filter(Boolean)
                 .sort((a, b) => b.a.lea - a.a.lea)
                 .map(p => (
-                  <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+                  <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea}){awayNote(p)}</option>
                 ))}
             </select>
           </div>
@@ -280,7 +303,7 @@ export default function Tactics() {
               {club.players.map(id => game.players[id]).filter(p => p && p.id !== club.captain)
                 .sort((a, b) => b.a.lea - a.a.lea)
                 .map(p => (
-                  <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
+                  <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea}){awayNote(p)}</option>
                 ))}
             </select>
           </div>
@@ -291,7 +314,24 @@ export default function Tactics() {
           <div className="lead-grid">
           {PORTFOLIOS.map(pf => {
             const cur = club.leaders?.[pf.id] ?? null
-            const xv = t.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((x): x is Player => !!x)
+            /**
+             * The whole senior squad, not this week's XV.
+             *
+             * Reported from live play: "the attack and standards holders reset
+             * each match but the rest don't". Nothing was resetting. The options
+             * were drawn from the starting XV, so when a portfolio holder was left
+             * out - rested, injured, away with his country - the select had no
+             * option matching its own value and the browser drew the first one
+             * instead: "Nobody has it". The appointment was still there; the screen
+             * was lying about it, and only for the men who happened to be out.
+             *
+             * A portfolio is a season-long job in a dressing room, not a match-day
+             * label, so the list is the squad and the men who cannot play this week
+             * are marked rather than hidden.
+             */
+            const squad = club.players
+              .map(id => game.players[id])
+              .filter((x): x is Player => !!x && !x.acad)
             return (
               <div className="lead-row" key={pf.id}>
                 <span className="lead-tag">{pf.icon}</span>
@@ -308,9 +348,15 @@ export default function Tactics() {
                     touch()
                   }}>
                   <option value="">Nobody has it</option>
-                  {[...xv].sort((a, b) => b.a.lea - a.a.lea).map(p => (
-                    <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea})</option>
-                  ))}
+                  {[...squad].sort((a, b) => b.a.lea - a.a.lea).map(p => {
+                    const away = p.injury ? 'injured' : p.bans > 0 ? 'suspended'
+                      : p.natSquad ? 'on Test duty' : p.onLoan ? 'out on loan' : null
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (Ldr {p.a.lea}){away ? ` - ${away}` : ''}
+                      </option>
+                    )
+                  })}
                 </select>
               </div>
             )
@@ -358,7 +404,7 @@ export default function Tactics() {
             one: how well drilled the move is, and what that is worth today. The
             explainers are gone and the page states its own rule once, at the
             top. */}
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <div className="meta">
             <b>One rule runs this page.</b> Whatever you call gets sharper every week and everything
             else goes rusty, so pick moves you mean to keep calling. Set-Piece Work in Prep speeds it
@@ -571,7 +617,7 @@ export default function Tactics() {
       </>}
 
       {ttab === 'plan' && <>
-        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--stripe)' }}>
           <div className="meta">{assistantAdvice(game)}</div>
         </div>
         {/* F23: the opposition dugout has a standing instruction now, so the game
@@ -635,7 +681,7 @@ function AnalystCard() {
   const fx = userFixtureThisWeek(game)
   if (!fx) {
     return (
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
         <div className="fact-label">The Analyst</div>
         <div className="meta">No match this week, so nothing to study. He will have a read on the next opponent as soon as one is in the diary.</div>
       </div>
@@ -647,7 +693,7 @@ function AnalystCard() {
   if (!read || !opp) return null
   const followed = game.matchPrep === read.prep
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+    <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">The Analyst on {opp.short}</div>
         <div className="meta" style={{ fontSize: 11 }}>{analystForm(game)}</div>

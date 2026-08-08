@@ -321,6 +321,24 @@ export interface Tactic {
   /** What each replacement is told as he pulls his shirt on, by bench seat
    *  (0-7, aligned to the current split's seats). Sparse. */
   briefs?: (string | null)[]
+
+  /**
+   * The manager picked this sheet himself.
+   *
+   * Reported from live play: "I'm not sure if you make changes to the match day
+   * 23 it's actually putting those players on the pitch", and "there's players I
+   * can sub in and out that weren't selected". Both were lineupFor's stale-sheet
+   * tidy-up: it fired whenever any of the fifteen was not a natural for his shirt
+   * and a better natural existed anywhere in the squad, and it did not fix that
+   * shirt - it replaced the whole twenty-three with the automatic pick and wrote
+   * that over the manager's sheet.
+   *
+   * With this flag set, the engine leaves the sheet alone. A side the game chose
+   * it may choose again; a side the manager chose is his. Playing a man out of
+   * position is a tactic, and the answer to a specialist left out is to say so on
+   * the Selection screen, not to overrule the team sheet on the way to the pitch.
+   */
+  userPicked?: boolean
 }
 
 /** How well drilled each routine is, and how often the opposition have seen it.

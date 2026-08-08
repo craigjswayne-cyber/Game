@@ -33,7 +33,7 @@ export default function Jobs() {
         )}
       </div>
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}
 
       <SectionTitle sub={`${vacancies.length} open`}>Vacancies</SectionTitle>
       {vacancies.length === 0 && (

@@ -205,7 +205,7 @@ export default function NewGame() {
           <>
             <div className="wizard-hint">Your manager profile at {club.name}.</div>
             {challenge && (
-              <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>
+              <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                 <h3 style={{ fontSize: 15 }}>Challenge accepted: {challenge.title}</h3>
                 <div className="meta">{challenge.desc}</div>
               </div>

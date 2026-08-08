@@ -171,7 +171,7 @@ function TuesdayBlocks() {
   return (
     <>
       {waiting > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <div className="fact-label">🎙 The press are waiting</div>
           <div className="meta">
             {waiting === 1 ? 'One question' : `${waiting} questions`} you have not answered. Say nothing and
@@ -303,7 +303,7 @@ function FridayBlocks() {
         const opp = game.clubs[oppId]
         const read = analystRead(game, oppId)
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
             <div className="fact-label">Tomorrow</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={26} />

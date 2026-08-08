@@ -614,7 +614,15 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
 
 export function renewalDemand(p: Player): number {
   const persF = p.pers === 'Mercenary' ? 1.35 : p.pers === 'Loyal' ? 0.9 : p.pers === 'Ambitious' ? 1.15 : 1
-  return Math.round((playerWage(p.ca, p.age) * 1.1 * persF) / 50) * 50
+  const scale = Math.round((playerWage(p.ca, p.age) * 1.1 * persF) / 50) * 50
+  // NO AGENT OPENS BY ASKING FOR LESS. The figure above is what the wage scale
+  // says a man of his ability and age is worth, and for a loyal young player on
+  // an early big contract, or anyone whose ability has slipped, it can land under
+  // what he is already earning. The contract screen then printed "his camp wants
+  // £9.2k/wk (he is on £9.3k)" and meeting that "demand" cut his pay, which he
+  // cheerfully accepted. Found by scripts/renewprobe.ts.
+  const floor = Math.round((Number.isFinite(p.wage) ? Math.max(0, p.wage) : 0) / 50) * 50
+  return Math.max(scale, floor)
 }
 
 export function offerRenewal(state: GameState, playerId: number): { ok: boolean; msg: string } {
@@ -672,7 +680,12 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   }
   wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
   p.wage = wage
-  p.contractEnds = state.season + (p.age >= 32 ? 1 : 2 + (p.age <= 26 ? 1 : 0))
+  // A NEW DEAL IS NEVER SHORTER THAN THE OLD ONE. The term is counted from now,
+  // so a 27-year-old with three years left was being handed a two-year extension
+  // and losing a year for signing it. Nobody signs that. Found by
+  // scripts/renewprobe.ts.
+  const term = p.age >= 32 ? 1 : 2 + (p.age <= 26 ? 1 : 0)
+  p.contractEnds = Math.max(p.contractEnds, state.season + term)
   p.morale = clamp(p.morale + (wage >= demand * 1.12 ? 1.5 : 1), 1, 10) // generosity is remembered
   if ((p.wantsDeal ?? 0) > 0) { p.wantsDeal = 0; p.morale = clamp(p.morale + 0.5, 1, 10) } // demand settled
   state.news.push({

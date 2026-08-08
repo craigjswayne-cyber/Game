@@ -1,4 +1,4 @@
-import type { Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
+import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps, trustFactor} from './model'
 import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
@@ -132,6 +132,70 @@ export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit)
   return lineup
 }
 
+/**
+ * Repair a team sheet without replacing it.
+ *
+ * ---- the bug this exists to kill ----
+ *
+ * Reported from live play, in two messages: "I'm not sure if you make changes to
+ * the match day 23 it's actually putting those players on the pitch", and "just
+ * made a load of changes in a match and there's players I can sub in and out that
+ * weren't selected".
+ *
+ * A stored sheet was judged valid or invalid as a whole, and an invalid one was
+ * answered by calling autoSelect from scratch. So ONE unavailable man - a Test
+ * call-up, a hamstring on the Thursday - threw away the entire twenty-three.
+ * Measured before this function existed: losing one man left only 13 to 16 of the
+ * other 22 in the shirts their manager gave them, dropped a selected man out of
+ * the squad altogether, and brought in one or two nobody had picked. That is
+ * exactly the two reports, and it had nothing to do with substitutions.
+ *
+ * A repair should cost one shirt. Every named man who can play keeps the number
+ * he was given; only the slots whose occupant cannot play are filled, and they
+ * are filled with the same naturals-first discipline the auto-pick uses, drawn
+ * from the men not already named.
+ */
+export function repairSheet(
+  state: GameState,
+  club: Club,
+  lu: (number | null)[],
+  split?: BenchSplit,
+): (number | null)[] {
+  const canPlay = (id: number) => {
+    const p = state.players[id]
+    return !!p && !p.injury && !p.onLoan && p.bans === 0 && !p.natSquad && p.clubId === club.id
+  }
+  const out: (number | null)[] = new Array(23).fill(null)
+  const used = new Set<number>()
+  for (let i = 0; i < 23; i++) {
+    const id = lu?.[i]
+    if (id != null && !used.has(id) && canPlay(id)) { out[i] = id; used.add(id) }
+  }
+  const holes = out.some(x => x == null)
+  if (!holes) return out
+
+  // the auto-pick's own answer for the shirts still empty, chosen only from the
+  // men the manager did not name, so filling a hole cannot displace anybody
+  const rest = availablePlayers(state, club.players.filter(id => !used.has(id)), false)
+  const filler = autoSelect(state, rest, split)
+  for (let i = 0; i < 23; i++) {
+    if (out[i] != null) continue
+    const cand = filler[i]
+    if (cand != null && !used.has(cand)) { out[i] = cand; used.add(cand); continue }
+    // last resort: the best free man in the building, so no shirt goes empty
+    const pos = i < 15 ? XV_SLOTS[i].pos : null
+    let best: Player | null = null
+    let bestS = -1
+    for (const p of rest) {
+      if (used.has(p.id)) continue
+      const s = pos ? effAt(p, pos) : p.ca
+      if (s > bestS) { bestS = s; best = p }
+    }
+    if (best) { out[i] = best.id; used.add(best.id) }
+  }
+  return out
+}
+
 export interface Units {
   scrum: number; lineout: number; breakdown: number
   attack: number; defence: number; kicking: number
@@ -255,7 +319,13 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
     // sitting on the bench behind him. The comparison is what keeps it honest:
     // playing a stronger man out of position is a tactic, and that survives.
     // Playing a weaker one there while the specialist watches is the bug.
-    const stale = valid && (() => {
+    // A SHEET THE MANAGER PICKED IS NOT STALE. He is allowed to play a man out
+    // of position, and the game is not allowed to disagree by re-picking his side
+    // on the way to the pitch. The tidy-up below exists for sheets the game chose
+    // for him and then outgrew; the answer to a specialist left out of a sheet
+    // somebody wrote on purpose is to say so on the Selection screen.
+    const managerPicked = club.tactic.userPicked === true
+    const stale = !managerPicked && valid && (() => {
       const named = new Set(lu.filter((x): x is number => x != null))
       const onPitch = new Set(lu.slice(0, 15).filter((x): x is number => x != null))
       return lu.slice(0, 15).some((id, i) => {
@@ -276,13 +346,16 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
     if (valid && !stale) return lu
     if (stale) {
       // Write the tidy-up back, so the Selection screen shows the side that
-      // actually played. An INVALID sheet is deliberately not persisted - the
-      // injured man's shirt is held for him and comes back when he is fit - but a
-      // STALE one is a sheet the squad has outgrown, and leaving the manager
-      // looking at a flanker at 8 after he signed a number eight is the bug.
+      // actually played. Only ever reached for a sheet the game itself picked.
       club.tactic.lineup = autoSelect(state, availablePlayers(state, club.players, false), splitFor(club))
       return club.tactic.lineup
     }
+    // INVALID: somebody in it cannot play. Repair the shirts that need repairing
+    // and hand back the rest of his side exactly as he wrote it. Not persisted,
+    // deliberately: the injured man's shirt is held for him and comes back when he
+    // is fit. It used to call autoSelect on the whole squad here, which is how one
+    // hamstring rewrote a manager's entire twenty-three.
+    return repairSheet(state, club, lu, splitFor(club))
   }
   const pool = availablePlayers(state, rosterOf(state, teamId), isNation)
   return autoSelect(state, pool, splitFor(club))

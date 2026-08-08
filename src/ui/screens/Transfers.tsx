@@ -79,7 +79,7 @@ export default function Transfers() {
         </span>
       </div>
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227' }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}
 
       <div className="tab-bar">
         <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>Market</button>

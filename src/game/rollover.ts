@@ -1289,6 +1289,11 @@ export function rebuildSeason(state: GameState) {
     club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
+    // The sheet this line just wrote is the game's, not the manager's, so the
+    // engine's tidy-up may look at it again. userPicked survives a season
+    // otherwise, and a team sheet from last summer - men sold, men signed, men
+    // retired - is exactly the case the tidy-up was built for.
+    club.tactic.userPicked = false
   }
   ensureCaptains(state)
 

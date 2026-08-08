@@ -49,7 +49,7 @@ export default function Infrastructure() {
         <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>Our Estate</button>
         <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>The League</button>
       </div>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
@@ -80,7 +80,7 @@ export default function Infrastructure() {
         </div>
       </div>
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px' }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '7px 10px' }}>{msg}</div>}
 
       {itab === 'ours' && <>
       <SectionTitle sub="every upgrade goes through the boardroom">Facilities</SectionTitle>

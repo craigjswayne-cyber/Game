@@ -110,7 +110,7 @@ function StaffPanel() {
   return (
     <>
       <SectionTitle sub={`a badge is one day of assessment - ${EXAM_PASS_PCT}% pass, and a failure waits a month`}>Backroom Staff</SectionTitle>
-      {msg && <div className="card" style={{ borderLeft: '4px solid #c9a227', padding: '7px 10px', marginBottom: 6 }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '7px 10px', marginBottom: 6 }}>{msg}</div>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 6 }}>
         {roles.map(role => {
           const info = STAFF_INFO[role]

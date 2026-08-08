@@ -40,7 +40,7 @@ export default function Academy() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
         <h3 style={{ margin: 0 }}>🎓 {club.short} Academy</h3>
         <div className="meta">
           {squad.length} of {ACADEMY_SIZE} registered ·{' '}

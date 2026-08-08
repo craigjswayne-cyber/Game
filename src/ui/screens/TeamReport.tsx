@@ -54,7 +54,7 @@ export default function TeamReport() {
         <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>Squad Depth</button>
         <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>Best XV</button>
       </div>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
         <h3 style={{ fontSize: 14 }}>The Assistant's Verdict</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>

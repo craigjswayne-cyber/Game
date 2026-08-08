@@ -145,12 +145,17 @@ function Preview({ fxId }: { fxId: number }) {
     return seat.pos[0]
   }
 
+  /** A sheet edited here is the manager's, same as on the Selection screen:
+   *  the engine must not re-pick it on the way out of the tunnel. */
+  const claim = () => { t.userPicked = true }
+
   const setSlot = (slot: number, pid: number | null) => {
     if (pid != null) {
       const other = t.lineup.indexOf(pid)
       if (other >= 0) t.lineup[other] = t.lineup[slot]
     }
     t.lineup[slot] = pid
+    claim()
     setPickSlot(null)
     setSel(null)
     touch()
@@ -163,6 +168,7 @@ function Preview({ fxId }: { fxId: number }) {
     const a = t.lineup[sel]
     t.lineup[sel] = t.lineup[slot]
     t.lineup[slot] = a
+    claim()
     setSel(null)
     touch()
   }
@@ -520,7 +526,7 @@ function Preview({ fxId }: { fxId: number }) {
           return (
             <>
               {game.matchPrep && (
-                <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                   <div className="fact-label">This Week's Preparation</div>
                   <div className="meta">
                     {{
@@ -534,7 +540,7 @@ function Preview({ fxId }: { fxId: number }) {
                 </div>
               )}
               {fx.stage === 'F' && (
-                <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+                <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                   <div className="fact-label">🏆 THE FINAL</div>
                   <div className="meta">
                     Eighty minutes from the {game.comps[fx.compId]?.name ?? 'trophy'}. Everything the
@@ -584,7 +590,7 @@ function Preview({ fxId }: { fxId: number }) {
                   .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
                 if (!theirs.length && !ours.length) return null
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                     <div className="fact-label">Old Boys</div>
                     {theirs.slice(0, 3).map(p => (
                       <div key={p.id} className="meta">
@@ -609,7 +615,7 @@ function Preview({ fxId }: { fxId: number }) {
                 if (!bowing) return null
                 const home = fx.homeId === game.userClubId
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                     <div className="fact-label">The Farewell Tour</div>
                     <div className="meta">
                       <b>{bowing.name}</b> ({bowing.age}, {bowing.pos}) has announced this season is his last.
@@ -646,7 +652,7 @@ function Preview({ fxId }: { fxId: number }) {
                 }
                 if (!lines.length) return null
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                     <div className="fact-label">On The Brink</div>
                     {lines.slice(0, 3).map(({ p, text }) => (
                       <div key={p.id} className="meta">
@@ -791,7 +797,7 @@ function Preview({ fxId }: { fxId: number }) {
         {bar('Defence', myUnits.defence, oppUnits.defence)}
 
         {gamePlan.length > 0 && (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)', marginTop: 8 }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--stripe)', marginTop: 8 }}>
             <div className="fact-label">Assistant's Game Plan</div>
             {gamePlan.map((p, i) => (
               <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
@@ -833,7 +839,7 @@ function Preview({ fxId }: { fxId: number }) {
 
         {ptab === 'team' && <>
         {rotWindow && rotFlagged.length >= 2 && (
-          <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
             <div className="fact-label">Assistant's Rotation Plan</div>
             <div className="meta">
               {comp?.type !== 'league'
@@ -1789,7 +1795,7 @@ function MatchVerdict() {
         : margin <= -20 ? 'Beaten in every collision. The review will be honest, and it will sting.'
         : 'Fine margins. Fix two moments and that is our game.')
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--gold-bright)' }}>
+    <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
       {star && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -1838,7 +1844,7 @@ function Highlights() {
     .sort((a, b) => a.min - b.min)
   if (!picks.length) return null
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold-bright)' }}>
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--stripe)' }}>
       <h3 style={{ fontSize: 14 }}>🎬 The Highlights</h3>
       {picks.map((e, i) => (
         <div key={i} className="meta" style={{ padding: '3px 0' }}>
@@ -1969,7 +1975,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
   }
 
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--stripe)' }}>
       <h3 style={{ fontSize: 15 }}>{title}</h3>
       {advice.length > 0 && (
         <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold-bright) 14%, var(--paper))', borderRadius: 8 }}>

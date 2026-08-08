@@ -28,7 +28,7 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
 
   return (
     <>
-      <div className="tblwrap"><table className="dtable">
+      <div className="tblwrap"><table className="dtable ltable">
         <thead>
           <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
             <th className="num">D</th><th className="num">L</th><th className="num">+/-</th>
