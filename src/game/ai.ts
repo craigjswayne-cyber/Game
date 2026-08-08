@@ -32,6 +32,35 @@ function realMoney(...vals: number[]): boolean {
 /** The refusal a nonsense figure gets, in words a player can read. */
 const NOT_A_FIGURE = { ok: false as const, msg: 'That is not a figure the club can put its name to.' }
 
+/**
+ * The division's weekly wage ceiling, or null where there is none.
+ *
+ * Read straight off the state rather than through game/cap.ts, because that
+ * module reads capBill() from here and importing it back would be a cycle. The
+ * ceiling itself is measured and stored there; this is only the lookup.
+ */
+function capOf(state: GameState, clubId: string): number | null {
+  const lg = state.clubs[clubId]?.leagueId
+  const cap = lg ? state.caps?.[lg] : null
+  return typeof cap === 'number' && Number.isFinite(cap) && cap > 0 ? cap : null
+}
+
+/** Would this weekly wage break the cap? The sentence to show, or null. */
+function capBreak(state: GameState, clubId: string, wage: number, replacing = 0): string | null {
+  const cap = capOf(state, clubId)
+  if (cap == null) return null
+  const club = state.clubs[clubId]
+  const after = capBill(state, club) - replacing + wage
+  if (after <= cap) return null
+  return `Those terms would put the club ${fmtMoney(after - cap)}/wk over the ${fmtMoney(cap)}/wk salary cap. Free up room, or name him a marquee player.`
+}
+
+/** Is the club barred from signing anybody for a cap breach? */
+function embargoed(state: GameState, clubId: string): boolean {
+  const until = state.clubs[clubId]?.capEmbargoUntil
+  return typeof until === 'number' && state.season <= until
+}
+
 /** Asking price for a player from his current club's perspective. */
 export function askingPrice(state: GameState, p: Player): number {
   const club = p.clubId ? state.clubs[p.clubId] : null
@@ -244,6 +273,11 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
   const seller = state.clubs[p.clubId]
   if (fee + signOn > user.budget) return { ok: false, msg: 'Fee plus signing bonus exceeds your transfer budget.' }
+  if (embargoed(state, user.id)) {
+    return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. Nobody can be signed until it is served.' }
+  }
+  const capMsg = capBreak(state, user.id, wage)
+  if (capMsg) return { ok: false, msg: capMsg }
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
   if (squadWages + wage > user.wageBudget) {
@@ -403,6 +437,9 @@ export function capBill(state: GameState, club: { players: number[]; marquee?: n
 export function agreePreContract(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
+  if (embargoed(state, state.userClubId)) {
+    return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. No pre-contracts either.' }
+  }
   if (!p || !p.clubId || !user) return { ok: false, msg: 'Player unavailable.' }
   if (p.clubId === user.id) return { ok: false, msg: 'Already your player.' }
   if (p.contractEnds > state.season) return { ok: false, msg: 'He is under contract beyond this season.' }
@@ -484,6 +521,8 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
     return { ok: false, msg: `Too late - ${p.name} has already signed a pre-contract elsewhere. The deal is binding.` }
   }
+  const capMsgR = (user.marquee ?? []).includes(p.id) ? null : capBreak(state, user.id, offer, p.wage)
+  if (capMsgR) return { ok: false, msg: capMsgR }
   const demand = renewalDemand(p)
   const marqueed = (user.marquee ?? []).includes(p.id)
   const squadWages = capBill(state, user)

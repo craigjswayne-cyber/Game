@@ -2727,3 +2727,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .rs-h { text-align: right; }
 .rs-a { text-align: left; }
 .rs-d { width: 14px; padding: 0; text-align: center; color: var(--ink-faint); }
+
+/* ================= Salary cap bar (F6) ================= */
+/* The bar can overfill: being over the cap is a state the manager must be able
+   to see at a glance, so the fill is allowed to reach the end and turn red
+   rather than silently clamping and looking compliant. */
+.cap-line { font-size: 17px; }
+.cap-bar {
+  position: relative; height: 12px; margin-top: 8px;
+  background: var(--rule, rgba(0,0,0,.12)); border-radius: 6px; overflow: hidden;
+}
+.cap-fill { height: 100%; background: var(--green-600, #1d7a4c); transition: width .25s ease; }
+.cap-fill.tight { background: #b8901c; }
+.cap-fill.over { background: #a12f2f; }
+.cap-mark { position: absolute; top: -2px; bottom: -2px; right: 0; width: 2px; background: var(--ink-soft, #6b7a72); opacity: .7; }

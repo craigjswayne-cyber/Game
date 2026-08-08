@@ -257,6 +257,10 @@ export interface Club {
   // finance
   wageBudget: number
   boardConfidence: number // 0-100
+  /** consecutive summers finishing over the salary cap (F6) */
+  capBreaches?: number
+  /** season index up to and including which no signings are allowed (F6) */
+  capEmbargoUntil?: number
   /** club captain - a real leader on the pitch steadies the whole side */
   captain?: number | null
   /** vice-captain: leads at reduced effect when the skipper is missing */
@@ -773,6 +777,8 @@ export interface GameState {
   review?: SeasonReview | null
   /** terrace mood at the user's club, 5-98 - swings with results, colours
    *  the matchday atmosphere and nudges home advantage */
+  /** the weekly wage ceiling per division, measured from the league itself (F6) */
+  caps?: Record<string, number>
   fanMood?: number
   /** the game's Hall of Fame: careers immortalised at retirement */
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]

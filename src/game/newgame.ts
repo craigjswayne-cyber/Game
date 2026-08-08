@@ -1,4 +1,5 @@
 import type { RawClub, RawPlayer } from '../data/types'
+import { refreshCaps } from './cap'
 import { verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
 import { PREM_A } from '../data/leagues/prem_a'
@@ -403,6 +404,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the A League: the academy sides of the manager's own league, fixtures and
   // table, played under the academy coach every league week (feedback 10G)
   ensureAcademyLeague(state)
+
+  // the salary cap for every division, measured from the division itself (F6)
+  refreshCaps(state, true)
 
   return state
 }

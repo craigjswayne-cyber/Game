@@ -1,4 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
+import { auditCaps, refreshCaps } from './cap'
 import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
@@ -2086,7 +2087,12 @@ export function processWeekAndAdvance(state: GameState) {
 
   // advance
   if (state.week >= SEASON_WEEKS) {
+    // the summer cap audit happens on the old season's wage bill, before the
+    // rollover moves anybody on (F6)
+    auditCaps(state)
     rebuildSeason(state)
+    // and the new season's ceiling is measured from the league as it now stands
+    refreshCaps(state)
   } else {
     state.week += 1
   }
