@@ -41,6 +41,12 @@ export default function DayRoom() {
         <div className="dh-sub">{DAY_SUB[day]}</div>
       </div>
 
+      {/* A draw waiting to be watched comes before anything else in the week:
+          it is the one thing on the page that changes what the season looks
+          like, and it goes stale the moment the manager sees the fixture
+          somewhere else (F19). */}
+      <DrawWaiting />
+
       {day === 0 && <MondayBlocks />}
       {day === 1 && <TuesdayBlocks />}
       {day === 2 && <WednesdayBlocks />}
@@ -70,6 +76,27 @@ export default function DayRoom() {
       <button className="btn gold block day-next" onClick={continueWeek}>Continue ▸</button>
       <div className="spacer" />
     </>
+  )
+}
+
+/** The cup draw, held back until the manager has watched it (F19). */
+function DrawWaiting() {
+  const game = useStore(s => s.game)!
+  const go = useStore(s => s.go)
+  const draw = game.draw
+  if (!draw || !draw.ties.length) return null
+  const comp = game.comps[draw.compId]
+  const stage = { R16: 'last sixteen', QF: 'quarter-final', SF: 'semi-final', F: 'final', BAR: 'barrage' }[draw.stage] ?? draw.stage
+  const watched = draw.revealed >= draw.ties.length
+  return (
+    <button className="card day-draw" onClick={() => go('draw')}>
+      <div className="day-draw-top">🎟 The {comp?.short ?? 'cup'} {stage} draw</div>
+      <div className="meta">
+        {watched
+          ? 'You have seen the balls come out. Tap to look again.'
+          : `${draw.ties.length} ties in the hat, and one of them is yours. Tap to watch the draw.`}
+      </div>
+    </button>
   )
 }
 

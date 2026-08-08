@@ -95,7 +95,7 @@ export default function Finances() {
           const line = (label: string, amount: number, note?: string) => (
             <div className="ledger-row" key={label}>
               <span className="lg-what">{label}{note ? <span className="muted"> {note}</span> : null}</span>
-              <span className="lg-amt" style={{ color: amount >= 0 ? '#2f7d4f' : '#9b2c2c' }}>
+              <span className="lg-amt" style={{ color: amount >= 0 ? 'var(--ink-good)' : 'var(--ink-bad)' }}>
                 {amount >= 0 ? '+' : '−'}{fmtMoney(Math.abs(amount))}
               </span>
             </div>
@@ -109,7 +109,7 @@ export default function Finances() {
               {line('Ground and estate upkeep', -upkeep)}
               <div className="ledger-row total">
                 <span className="lg-what">Every week, before gate receipts</span>
-                <span className="lg-amt" style={{ color: net >= 0 ? '#2f7d4f' : '#9b2c2c' }}>
+                <span className="lg-amt" style={{ color: net >= 0 ? 'var(--ink-good)' : 'var(--ink-bad)' }}>
                   {net >= 0 ? '+' : '−'}{fmtMoney(Math.abs(net))}
                 </span>
               </div>

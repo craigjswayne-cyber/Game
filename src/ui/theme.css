@@ -65,6 +65,15 @@
   --red: #e03b2b;
   --win: #2fa85f;
   --loss: #e03b2b;
+  /* --win and --loss are chosen to be painted AS a surface: a pip, a chip, a
+     fill with light text on top. These two are the same idea for text sitting ON
+     a surface, which is a different problem, because a green dark enough to read
+     on white paper is too dark to read on a night card. The finances ledger used
+     a literal #9b2c2c and scored 2:1 at night - the figure the manager looks at
+     most, on the screen he checks every week, and not readable. Day keeps exactly
+     the colours it had. See scripts/nightcontrast.mjs. */
+  --ink-good: #2f7d4f;
+  --ink-bad: #9b2c2c;
   --draw: #c9a227;
   --hairline: rgba(29, 39, 51, 0.1);
   /* --serif is the display voice (headlines, club names), --sans is body,
@@ -83,7 +92,10 @@
   /* semantic accents that flip under floodlights */
   --accent-ink: #24478f;
   --title-ink: #1b3468;
-  --star-empty: #c8d4e4;
+  /* the ghost stars behind a rating: quiet, but a five-star scale you cannot see
+     the five of is just a row of stars. Both themes used to sit at 1.5:1 and
+     1.3:1, which is not quiet, it is absent. */
+  --star-empty: #9aabc4;
 }
 
 /* ============ Floodlit mode (night theme) ============ */
@@ -105,7 +117,9 @@
   --hairline: rgba(232, 237, 245, 0.09);
   --accent-ink: #9fc2e8;
   --title-ink: #eef3fb;
-  --star-empty: #2b3a55;
+  --star-empty: #46618a;
+  --ink-good: #5fc98a;
+  --ink-bad: #ff7a6b;
   /* --gold-dark doubles as a night hairline (tab bar, table headings). Full gold
      rules across every table would be a lot, so night gets a deep warm instead. */
   --gold-dark: #5c4718;
@@ -1090,7 +1104,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .wire-mast {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 12px 14px 8px;
-  border-bottom: 3px double var(--hairline-2, #c9bfa8);
+  /* the warm cream stays warm cream in both themes, and deliberately: the wire is
+     a newspaper, and a masthead rule that flips with the theme stops looking like
+     newsprint. Written as a literal because there was no --hairline-2 token behind
+     it - the fallback was doing all the work and nobody could tell. */
+  border-bottom: 3px double #c9bfa8;
   margin: 0 14px;
 }
 .wire-brand {
@@ -1192,8 +1210,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin-top: 10px; font-family: var(--cond); font-size: 26px; font-weight: 800;
   color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
 }
-.ft-stamp.w b { color: #2f7d4f; }
-.ft-stamp.l b { color: #9b2c2c; }
+.ft-stamp.w b { color: var(--ink-good); }
+.ft-stamp.l b { color: var(--ink-bad); }
 .ft-stamp.d b { color: #6b7280; }
 @keyframes ftstamp {
   0% { opacity: 0; transform: scale(1.9); }
@@ -2735,9 +2753,43 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .cap-line { font-size: 17px; }
 .cap-bar {
   position: relative; height: 12px; margin-top: 8px;
-  background: var(--rule, rgba(0,0,0,.12)); border-radius: 6px; overflow: hidden;
+  /* the same track the rating bars use: a dark wash on a dark ground would leave
+     the empty part of the bar invisible, so the theme has to say it outright */
+  background: var(--cream-3); border-radius: 6px; overflow: hidden;
 }
+.app.night .cap-bar { background: #26374f; }
 .cap-fill { height: 100%; background: var(--green-600, #1d7a4c); transition: width .25s ease; }
 .cap-fill.tight { background: #b8901c; }
 .cap-fill.over { background: #a12f2f; }
 .cap-mark { position: absolute; top: -2px; bottom: -2px; right: 0; width: 2px; background: var(--ink-soft, #6b7a72); opacity: .7; }
+
+/* ================= The draw room (F19) ================= */
+.draw-room { padding: 4px 14px 12px; }
+.day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; border-left: 4px solid var(--gold, #c9a227); }
+.day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 14.5px; margin-bottom: 2px; }
+.draw-balls { margin: 6px 0 10px; }
+.draw-tie {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; margin-bottom: 6px;
+  /* --paper, not a hard-coded white: the first cut of this reached for a --card
+     token that does not exist in this stylesheet, so the fallback white was
+     painted in both themes while the names followed --ink and went pale at
+     night. See scripts/cssaudit.mjs, which now refuses a token nobody defines. */
+  background: var(--paper); border: 1px solid var(--hairline); border-radius: 10px;
+  font-size: 14.5px;
+  /* each ball arrives rather than appearing: the reveal is the point of the room */
+  animation: draw-in .28s ease;
+}
+.draw-tie.ours { border-color: var(--gold, #c9a227); border-width: 2px; font-weight: 700; }
+.draw-num {
+  flex: 0 0 22px; height: 22px; border-radius: 11px;
+  background: var(--green-700, #14603c); color: #f2ede0;
+  font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.draw-home, .draw-away { flex: 1; }
+.draw-away { text-align: right; }
+.draw-v { color: var(--ink-soft, #6b7a72); font-size: 12px; }
+.draw-waiting { text-align: center; padding: 8px 0; }
+.draw-verdict { border-left: 4px solid var(--gold, #c9a227); }
+.draw-next { margin-top: 10px; font-size: 15px; }
+@keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }

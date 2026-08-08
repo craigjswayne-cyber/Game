@@ -779,6 +779,21 @@ export interface GameState {
    *  the matchday atmosphere and nudges home advantage */
   /** the weekly wage ceiling per division, measured from the league itself (F6) */
   caps?: Record<string, number>
+  /** A cup round that has been drawn but not yet watched (F19).
+   *
+   *  The ties exist as fixtures the moment the previous round finishes - they
+   *  have to, or the user's tie would be simmed before the MatchDay screen saw
+   *  it. This is the same draw held back as a moment: every ball in the round,
+   *  in the order it came out, waiting to be revealed one at a time. */
+  draw?: {
+    compId: string
+    stage: string
+    week: number
+    season: number
+    ties: { homeId: string; awayId: string }[]
+    /** how many balls the manager has watched come out so far */
+    revealed: number
+  } | null
   fanMood?: number
   /** the game's Hall of Fame: careers immortalised at retirement */
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
