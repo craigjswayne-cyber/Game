@@ -2,6 +2,7 @@ import type { RawClub, RawPlayer } from '../data/types'
 import { refreshCaps } from './cap'
 import { verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
+import { prospectsFor } from '../data/prospects'
 import { PREM_A } from '../data/leagues/prem_a'
 import { PREM_B } from '../data/leagues/prem_b'
 import { TOP14_A } from '../data/leagues/top14_a'
@@ -226,8 +227,37 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // thinnest-first academy borrows the seniors' gaps and ends up with six locks
     // and no scrum-half. They sit outside the senior salary cap, as they do in
     // the real game: a club is not punished for growing its own.
+    //
+    // A few academies carry a planted name (src/data/prospects.ts). He takes an
+    // academy shirt his position asks for rather than an extra one, so every
+    // squad is still ACADEMY_SIZE and the shape is unchanged.
+    const planted = [...prospectsFor(club.id)]
     ACAD_SHAPE.forEach((pos, i) => {
-      mkExtra(17 + Math.floor(rng() * 3), acadQuality(club, rng), true, i, pos)
+      // Roll first, use or discard after. A planted man needs none of these
+      // draws, but skipping them would shift the shared rng for every club
+      // generated after this one and rebuild the whole world around five names -
+      // a different fixture list, different regens, different everything. Draw
+      // exactly what a generated man would have drawn, then throw it away: same
+      // world, five different men in it. Verified by the fingerprint.
+      const rolledAge = 17 + Math.floor(rng() * 3)
+      const rolledQ = acadQuality(club, rng)
+      const k = planted.findIndex(x => x.pos === pos)
+      if (k >= 0) {
+        const pr = planted.splice(k, 1)[0]
+        regenName(rng, club.country, seenNames) // the name he replaces, burned
+        // and the goal-kicker roll, which mkExtra only draws for a 10 or a 15
+        if (pos === 'FH' || pos === 'FB') rng()
+        seenNames.add(pr.name)
+        const p = buildPlayer(
+          { name: pr.name, pos: pr.pos, age: pr.age, nat: club.country, q: pr.q, gk: pr.gk },
+          club.id, seed + club.players.length * 31 + i, 0)
+        p.youth = true
+        p.acad = true
+        state.players[p.id] = p
+        club.players.push(p.id)
+        return
+      }
+      mkExtra(rolledAge, rolledQ, true, i, pos)
     })
     // senior depth to 38 SENIORS (65 with the academy): two deep in every
     // shirt with room for injuries, Tests and suspensions (user feedback:
