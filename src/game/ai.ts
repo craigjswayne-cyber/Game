@@ -74,6 +74,89 @@ export function askingPrice(state: GameState, p: Player): number {
   return Math.round((p.value * f) / 10_000) * 10_000
 }
 
+/**
+ * How badly does his club want him off the wage bill, and why?
+ *
+ * Asked because of a live report: "trying to haggle with a team for a signing but
+ * they keep saying asking price. Would they ever accept under?" They would not,
+ * in any meaningful sense. The accept threshold was `counterPrice - 50_000` - a
+ * FLAT fifty grand, whatever the size of the deal. That is 2.5% off a two-million
+ * bid and 0.25% off a twenty-million one, so haggling was theatre.
+ *
+ * Circumstances did feed into the ASKING price already (transfer-listed knocked
+ * 20% off, a miserable player 15%), but nothing fed into what a club would
+ * SETTLE for. A man rotting in the reserves in the last year of his contract cost
+ * the same to prise out as a happy first-choice starter.
+ *
+ * So: a discount a selling club will actually take, built from the things that
+ * genuinely weaken a seller's hand, and REPORTED so haggling is informed rather
+ * than a guessing game. The base case - a wanted man, playing, under contract, at
+ * a solvent club - still gets you nothing off, which is what keeps the market and
+ * the salary cap where they were calibrated.
+ */
+export interface Willingness {
+  /** fraction off the asking price the club would accept, 0 to MAX_HAGGLE */
+  discount: number
+  /** why, in the manager's language, most persuasive first */
+  reasons: string[]
+}
+
+/** The most any club will ever come down, however desperate. A club that would
+ *  take a third off is a club giving players away, and the squad you could
+ *  assemble on those terms is not the squad the cap was balanced against. */
+export const MAX_HAGGLE = 0.3
+
+export function sellerWillingness(state: GameState, p: Player): Willingness {
+  const club = p.clubId ? state.clubs[p.clubId] : null
+  if (!club) return { discount: 0, reasons: [] }
+  let d = 0
+  const reasons: string[] = []
+
+  // OUT OF CONTRACT is the strongest hand a buyer has: lose him in the summer
+  // and they get nothing at all, so a fee now is a fee they nearly lost.
+  const yearsLeft = (p.contractEnds ?? state.season) - state.season
+  if (yearsLeft <= 0) { d += 0.18; reasons.push('he is out of contract in the summer and they would lose him for nothing') }
+  else if (yearsLeft === 1) { d += 0.07; reasons.push('he has a year left, and they know it') }
+
+  // NOT PLAYING. Compared with the rest of the senior squad rather than an
+  // absolute, because a bit-part player at Toulouse still plays more rugby than
+  // a starter in the Championship.
+  const mins = p.stats.mins ?? 0
+  const squad = club.players.map(id => state.players[id]).filter(x => x && !x.youth)
+  const played = squad.map(x => x!.stats.mins ?? 0).sort((a, b) => b - a)
+  const median = played.length ? played[Math.floor(played.length / 2)] : 0
+  if (median > 200 && mins < median * 0.4) {
+    d += 0.09
+    reasons.push('he has barely played this season')
+  }
+
+  // HE WANTS OUT, or at least is not enjoying himself
+  if (p.transferListed) { d += 0.06; reasons.push('they have already listed him') }
+  if (p.morale <= 3.5) { d += 0.06; reasons.push('he is unhappy and the dressing room knows') }
+
+  // THE CLUB NEEDS THE MONEY. A club in the red will take a deal it would
+  // otherwise refuse, which is the oldest transfer-market truth there is.
+  if (club.balance < 0) { d += 0.08; reasons.push(`${club.short} are in the red and need the cash`) }
+
+  // THEY HAVE PLENTY MORE. Three better men in his position and he is surplus.
+  const better = squad.filter(x => x!.id !== p.id && x!.pos === p.pos && x!.ca >= p.ca).length
+  if (better >= 3) { d += 0.06; reasons.push('they are well stocked in his position') }
+
+  // AN AGEING ASSET is worth less to them next year than this year
+  if (p.age >= 33) { d += 0.05; reasons.push('he is the wrong side of 33 and they know the value only falls') }
+
+  return { discount: Math.min(MAX_HAGGLE, d), reasons }
+}
+
+/** The lowest fee his club would shake hands on. */
+export function floorPrice(state: GameState, p: Player): number {
+  const ask = askingPrice(state, p)
+  const { discount } = sellerWillingness(state, p)
+  // still rounded to a clean figure, because a counter of £1,847,300 reads like
+  // a spreadsheet rather than a negotiation
+  return Math.round((ask * (1 - discount)) / 50_000) * 50_000
+}
+
 export function executeTransfer(state: GameState, p: Player, toClubId: string, fee: number) {
   // the last line of defence: this is what actually moves the money, and it is
   // reached from the AI paths too, so it refuses a nonsense fee outright rather
@@ -247,20 +330,50 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   if (fee > user.budget) return { ok: false, msg: 'That bid exceeds your transfer budget.' }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
-  // counters land on clean £100k steps, and a bid within £50k of the
-  // counter shakes hands - otherwise rounding lets the game say
-  // "reject £1.7m, but they'd do business at £1.7m"
-  const counterPrice = Math.min(ask, Math.ceil((ask * 0.97) / 100_000) * 100_000)
-  if (fee >= Math.min(ask, counterPrice - 50_000)) {
+  // WHAT WILL THEY ACTUALLY TAKE?
+  //
+  // This used to be `counterPrice - 50_000`, a flat fifty grand off whatever the
+  // asking price was - 2.5% of a two-million deal and 0.25% of a twenty-million
+  // one. Haggling could not work because there was nothing to haggle over, and a
+  // man rotting in the reserves out of contract cost the same as a happy starter.
+  //
+  // Now the floor comes from the seller's actual position (sellerWillingness),
+  // and the reasons are quoted back so a rejection teaches you something. A club
+  // with no reason to sell still holds out for the full ask, which is what keeps
+  // the market where the salary cap was calibrated against it.
+  const { discount, reasons } = sellerWillingness(state, p)
+  const floor = floorPrice(state, p)
+  // the counter sits between the floor and the ask: they will not open at their
+  // own worst price, but they will not pretend the floor does not exist either
+  const counterPrice = Math.max(floor, Math.round((floor + (ask - floor) * 0.45) / 50_000) * 50_000)
+  if (fee >= floor) {
     if (user.rep < seller.rep - 12 && p.morale > 5 && !p.transferListed) {
       return { ok: false, msg: `${seller.short} accepted your bid, but ${p.name} won't discuss terms - the club couldn't convince him.` }
     }
-    return { ok: true, msg: `Fee agreed at ${fmtMoney(fee)}. Now agree personal terms with ${p.name}'s camp.` }
+    const under = ask - fee
+    return {
+      ok: true,
+      msg: under >= 50_000
+        ? `Fee agreed at ${fmtMoney(fee)}, ${fmtMoney(under)} under their asking price. Now agree personal terms with ${p.name}'s camp.`
+        : `Fee agreed at ${fmtMoney(fee)}. Now agree personal terms with ${p.name}'s camp.`,
+    }
   }
-  if (fee >= ask * 0.78) {
-    return { ok: false, msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.`, counter: counterPrice }
+  // A near miss names the number that would do it, and says what is weakening
+  // their hand, so the next bid is judgement rather than guesswork.
+  const why = reasons.length ? ` They are open to less than the ask: ${reasons[0]}.` : ''
+  if (fee >= floor * 0.8) {
+    return {
+      ok: false,
+      msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.${why}`,
+      counter: counterPrice,
+    }
   }
-  return { ok: false, msg: `${seller.short} reject the bid. They value ${p.name} at around ${fmtMoney(ask)}.` }
+  return {
+    ok: false,
+    msg: discount > 0
+      ? `${seller.short} reject the bid out of hand. They want nearer ${fmtMoney(ask)}, though they would listen below it:${why.replace(' They are open to less than the ask:', '')}`
+      : `${seller.short} reject the bid. They value ${p.name} at ${fmtMoney(ask)} and have no reason to take less.`,
+  }
 }
 
 /** Stage 2: personal terms. A signing bonus and a first-team promise both
