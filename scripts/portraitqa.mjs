@@ -330,7 +330,13 @@ try {
   })
   console.log(`--- contracts: ${con.rows} men, columns [${con.heads.join(', ')}], years ${con.sampleYears.join('/')}`)
   ok(con.rows > 20, `the whole squad is listed, not a top-earners sample (${con.rows})`)
-  ok(con.heads.includes('Wage') && con.heads.includes('Until'), 'wage and expiry are both columns')
+  // Matched on a prefix, not the exact string. The header used to read "Wage"
+  // and now reads "Wage /wk", because the per-week unit moved out of every single
+  // row and into the column heading once (user: "we dont need /wk next to every
+  // one"). An exact-match assertion on a label is a test of the wording rather
+  // than of the layout, and it failed on a rename that fixed what it was for.
+  ok(con.heads.some(h => h.startsWith('Wage')) && con.heads.includes('Until'),
+    `wage and expiry are both columns [${con.heads.join(', ')}]`)
   ok(con.allYears, 'every man shows a contract year')
   await report('squad: contracts')
 

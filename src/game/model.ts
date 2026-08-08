@@ -1063,6 +1063,32 @@ export function boardObjective(rep: number): { text: string; pos: number } {
   return { text: 'stay clear of the bottom two', pos: 12 }
 }
 
+/**
+ * A WAGE, at a precision a manager can actually use.
+ *
+ * fmtMoney rounds to the nearest thousand, which is right for fees and balances
+ * and wrong for wages: it printed £8,600 and £9,400 as the same "£9k", so two
+ * players on visibly different money looked identical in a squad list, and a
+ * camp asking £12,500 was quoted back as "£13k" by the row underneath. Reported
+ * as "wages should be clearer on the players".
+ *
+ * One decimal below £100k is enough to separate anybody in this game, and it
+ * stays within six characters, so no table column has to grow to carry it.
+ */
+export function fmtWage(v: number): string {
+  if (!Number.isFinite(v)) return '-'
+  const sign = v < 0 ? '-' : ''
+  const a = Math.abs(v)
+  if (a < 1_000) return `${sign}£${Math.round(a)}`
+  if (a < 100_000) {
+    const k = a / 1_000
+    // one decimal, but never a pointless ".0"
+    const t = k >= 99.95 ? '100' : k.toFixed(1).replace(/\.0$/, '')
+    return `${sign}£${t}k`
+  }
+  return `${sign}£${Math.round(a / 1_000).toLocaleString()}k`
+}
+
 export function fmtMoney(v: number): string {
   const sign = v < 0 ? '-' : ''
   const a = Math.abs(v)

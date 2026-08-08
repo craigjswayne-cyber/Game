@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { boardObjective, facLevel, fmtMoney, operatingCost, weeklyCentral } from '../../game/model'
+import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
@@ -139,12 +139,12 @@ export default function Finances() {
       </div>
       <SectionTitle>Top Earners</SectionTitle>
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>Name</th><th className="num">Wage</th><th className="num">Until</th><th className="num">Value</th></tr></thead>
+        <thead><tr><th>Name</th><th className="num">Wage /wk</th><th className="num">Until</th><th className="num">Value</th></tr></thead>
         <tbody>
           {topEarners.map(p => (
             <tr key={p.id}>
               <td className="name">{p.name}</td>
-              <td className="num">{fmtMoney(p.wage)}/wk</td>
+              <td className="num">{fmtWage(p.wage)}</td>
               <td className="num">{2026 + p.contractEnds}</td>
               <td className="num">{fmtMoney(p.value)}</td>
             </tr>
@@ -269,7 +269,7 @@ export default function Finances() {
                 : marquee.map(p => (
                   <div key={p.id} className="ledger-row">
                     <span>{p.name}</span>
-                    <span className="num">{fmtMoney(p.wage)}/wk</span>
+                    <span className="num">{fmtWage(p.wage)}</span>
                   </div>
                 ))}
             </div>

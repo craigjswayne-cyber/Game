@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { STAFF_INFO, fmtMoney, type TrainingFocus } from '../../game/model'
+import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
 import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import { fitReason, fitWord, mentorFit } from '../../game/mentoring'
 import { flagOf } from '../../game/nations'
@@ -128,7 +128,7 @@ function StaffPanel() {
                         {flagOf(p.nat)} {p.name} <b style={{ color: BADGE_COL[p.tier], fontSize: 11.5 }}>{BADGE[p.tier].toUpperCase()}</b>
                       </h3>
                       <div className="meta" style={{ fontSize: 11 }}>
-                        {p.age} · {p.trait} · {fmtMoney(p.wage)}/wk{(p.passed ?? 0) > 0 ? ` · ${p.passed} badge${p.passed === 1 ? '' : 's'} here` : ''}
+                        {p.age} · {p.trait} · {fmtWage(p.wage)}{(p.passed ?? 0) > 0 ? ` · ${p.passed} badge${p.passed === 1 ? '' : 's'} here` : ''}
                       </div>
                       {p.course && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🎓 On the {BADGE[p.course.toTier].toLowerCase()} course - result in {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
                       {!p.course && (p.retakeAt ?? 0) > abs && (
@@ -166,7 +166,7 @@ function StaffPanel() {
                         {flagOf(c.nat)} {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 10.5 }}>{BADGE[c.tier].toUpperCase()}</span>
                       </div>
                       <div className="meta" style={{ fontSize: 10.5 }}>
-                        {c.age} · {c.trait} · {fmtMoney(c.wage)}/wk · {fmtMoney(c.fee)} compensation
+                        {c.age} · {c.trait} · {fmtWage(c.wage)}/wk · {fmtMoney(c.fee)} compensation
                       </div>
                     </div>
                     <span className="meta" style={{ fontSize: 10.5, color: keen === 'keen' ? '#2f7d4f' : keen === 'persuadable' ? '#8a7a3a' : '#9b2c2c', fontWeight: 700, flexShrink: 0 }}>
