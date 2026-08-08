@@ -300,6 +300,11 @@ export const HANDBOOK: HandbookEntry[] = [
   // ---------------- Career ----------------
   {
     cat: 'career',
+    q: 'How is Manager of the Month decided?',
+    a: 'Every six weeks the league looks at what every club actually did across that window, counting league, cup and European matches alike. To be in the running at all a manager needs three matches and two wins from them, so a single good afternoon wins nothing. Beyond the bar it is merit: beating a better side counts for more than beating a worse one, winning away counts for more than winning at home, and the size of the win matters. If nobody in the league did enough, the award is not given that month.',
+  },
+  {
+    cat: 'career',
     q: 'How do I get a better job?',
     a: 'Build a reputation, then apply from the Job Centre when a vacancy that suits you appears. Your chances depend on your reputation against the club\'s standing. If you are doing well somewhere, bigger clubs will come to you: a tap on the shoulder arrives in your inbox, and it does not stay open long.',
   },
