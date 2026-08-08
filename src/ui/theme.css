@@ -38,27 +38,23 @@
      can handle dark itself; otherwise it inverts and desaturates whatever it
      finds, which turned every night card grey on the device. */
   color-scheme: light dark;
-  /* ---- FAB RUGBY ----
-     The brand is the ball: crimson, a gold ring, white leather. So the chrome is
-     crimson and the accent is that gold, and the token family is named --brand-*
-     rather than --green-* because it has been neither green nor honest for a
-     while - it held navy under a green name for months. A palette token that
-     lies about its own colour is how a rule ends up painting the wrong thing. */
-  --brand-950: #6d0f2b;
-  --brand-900: #a3163f;
-  --brand-800: #c92450;
-  --brand-700: #e1325b;
-  --brand-600: #ea506f;
-  --brand-100: #fbdde4;
-  /* The page is a warm off-white rather than the old blue wash: a cool grey-blue
-     under a crimson masthead reads as two brands arguing. */
-  --cream: #fbf4f0;
-  --cream-2: #f5e8e2;
-  --cream-3: #e8d2cc;
+  /* The chrome family. Named --brand-* rather than --green-*, which is what it was
+     called for months while holding navy: a palette token that lies about its own
+     colour is how a rule ends up painting the wrong thing. Blue, white and grey,
+     at the user's request, after a crimson-and-gold pass was tried and dropped. */
+  --brand-950: #1b3468;
+  --brand-900: #24478f;
+  --brand-800: #2e57ab;
+  --brand-700: #3a68c4;
+  --brand-600: #4a77d0;
+  --brand-100: #dbe6f6;
+  --cream: #e9f0fb;
+  --cream-2: #dbe6f7;
+  --cream-3: #c4d6ee;
   --paper: #ffffff;
-  --ink: #23181c;
-  --ink-soft: #6f525f;
-  --ink-faint: #a3838f;
+  --ink: #1d2733;
+  --ink-soft: #55616f;
+  --ink-faint: #8794a3;
   /* THE ACCENT, and it has to actually be one.
      It was #5c6470 - a slate grey, chroma 0.08 - and it is the token behind the
      active tab underline, the unread-news bar, focus rings, progress meters, the
@@ -66,11 +62,10 @@
      78% of every painted screen was effectively grey and only 13% carried real
      colour. That is the "feels greyed out" report, and this is its cause: the one
      colour meant to carry the interface had no colour in it. */
-  /* the ring around the ball, and the game's one accent */
-  --gold: #f2c81e;
-  --gold-bright: #ffdd57;
-  --gold-dark: #b8900c;
-  --gold-deep: #7a5f06;
+  --gold: #dda32a;
+  --gold-bright: #ffd35e;
+  --gold-dark: #a87c18;
+  --gold-deep: #6f5210;
   --red: #e03b2b;
   --win: #2fa85f;
   --loss: #e03b2b;
@@ -84,7 +79,7 @@
   --ink-good: #2f7d4f;
   --ink-bad: #9b2c2c;
   --draw: #c9a227;
-  --hairline: rgba(35, 24, 28, 0.12);
+  --hairline: rgba(29, 39, 51, 0.1);
   /* --serif is the display voice (headlines, club names), --sans is body,
      --cond is the condensed caps voice for labels and nav. One family with
      three jobs, separated by weight and letter-spacing rather than by
@@ -92,19 +87,22 @@
   --serif: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
   --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --cond: 'Space Grotesk', 'Arial Narrow', var(--sans);
-  --shadow-1: 0 1px 2px rgba(109, 15, 43, .08), 0 2px 8px rgba(109, 15, 43, .07);
-  --shadow-2: 0 2px 4px rgba(109, 15, 43, .10), 0 8px 24px rgba(109, 15, 43, .11);
+  --shadow-1: 0 1px 2px rgba(27, 52, 104, .07), 0 2px 8px rgba(27, 52, 104, .06);
+  --shadow-2: 0 2px 4px rgba(27, 52, 104, .09), 0 8px 24px rgba(27, 52, 104, .1);
   /* club identity - overridden per save on .app */
-  --club1: #c92450;
+  --club1: #2e57ab;
   --club2: #ffffff;
   --club1-ink: #ffffff;
   /* semantic accents that flip under floodlights */
-  --accent-ink: #c92450;
-  --title-ink: #6d0f2b;
+  --accent-ink: #24478f;
+  --title-ink: #1b3468;
   /* the ghost stars behind a rating: quiet, but a five-star scale you cannot see
      the five of is just a row of stars. Both themes used to sit at 1.5:1 and
      1.3:1, which is not quiet, it is absent. */
-  --star-empty: #c2a0a0;
+  /* Measured against a STRIPED table row, not against white paper: the rows the
+     stars actually sit in are a shade darker than the card, which cost 0.3 of a
+     ratio point and put the earlier value under the floor. */
+  --star-empty: #8d9db8;
 }
 
 /* ============ Floodlit mode (night theme) ============ */
@@ -112,31 +110,30 @@
   /* night is committed dark, so say so outright: this is what stops the browser
      second-guessing the palette and washing the navy out to grey */
   color-scheme: dark;
-  /* Floodlit FAB: a deep crimson-black rather than a navy one, so the brand still
-     reads at night. It stays a long way from the crimson chrome itself - a card
-     the same hue and half the lightness of the masthead makes both look muddy -
-     and it keeps real chroma, because a surface this dark with none in it reads as
-     grey, which was the original "greyed out" complaint. */
-  --cream: #16070d;
-  --cream-2: #200c15;
-  --cream-3: #3b1a25;
-  --paper: #26101a;
-  --ink: #f6ecef;
-  --ink-soft: #cdaeb8;
-  --ink-faint: #9d7b88;
-  --hairline: rgba(246, 236, 239, 0.10);
-  --accent-ink: #ffb3c2;
-  --title-ink: #fdf0f3;
-  --star-empty: #86505f;
+  /* the night surfaces carried almost no chroma either: a navy this dark reads as
+     black, so the cards, the page and the hairlines were all grey. More blue in
+     the same lightness band keeps the mood and gives the gold something to sit
+     against. */
+  --cream: #08142c;
+  --cream-2: #0e1e3d;
+  --cream-3: #1d3358;
+  --paper: #112544;
+  --ink: #e8edf5;
+  --ink-soft: #adb9ca;
+  --ink-faint: #7c8aa0;
+  --hairline: rgba(232, 237, 245, 0.09);
+  --accent-ink: #9fc2e8;
+  --title-ink: #eef3fb;
+  --star-empty: #46618a;
   --ink-good: #5fc98a;
-  --ink-bad: #ff8f80;
+  --ink-bad: #ff7a6b;
   /* --gold-dark doubles as a night hairline (tab bar, table headings). Full gold
      rules across every table would be a lot, so night gets a deep warm instead. */
-  --gold-dark: #6b5410;
+  --gold-dark: #5c4718;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
   --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
   background:
-    radial-gradient(130% 50% at 50% -8%, rgba(225, 50, 91, .12), transparent 60%),
+    radial-gradient(130% 50% at 50% -8%, rgba(122, 168, 226, .08), transparent 60%),
     var(--cream);
 }
 .app.night .section-title { color: var(--title-ink); }
@@ -494,14 +491,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   text-align: center;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), var(--shadow-1);
 }
-/* The primary button. It has been called .btn.gold since the beginning and has
-   never once been gold - it painted the blue ramp under a gold name. Now that the
-   accent IS the ball's gold, the class tells the truth: gold plate, dark ink,
-   which also reads on the crimson chrome AND on a white page. */
 .btn.gold {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  color: #241105;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), var(--shadow-1);
+  background: linear-gradient(180deg, var(--brand-600), var(--brand-800));
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), var(--shadow-1);
 }
 .btn.ghost {
   background: transparent;
@@ -692,16 +685,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .title-screen {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   background:
-    radial-gradient(120% 90% at 50% -20%, rgba(242, 200, 30, .18), transparent 60%),
+    radial-gradient(120% 90% at 50% -20%, rgba(159, 194, 232, .2), transparent 60%),
     linear-gradient(180deg, var(--brand-900) 0%, var(--brand-950) 100%);
   color: var(--cream); text-align: center; padding: 24px;
 }
 .title-screen .rules { width: 64px; border: none; border-top: 2px solid #ffffff; margin: 16px auto; }
-.title-screen h1 b { color: var(--gold); font-weight: 900; }
+/* FAB takes the pale tint, RUGBY the white: a two-tone wordmark rather than one
+   flat block of text. */
+.title-screen h1 b { color: var(--brand-100); font-weight: 900; }
 .title-screen h1 {
   font-family: var(--serif); font-size: 46px; font-weight: 900;
   line-height: 1.02; letter-spacing: 1px;
-  text-shadow: 0 3px 22px rgba(0, 0, 0, .35);
+  text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
   letter-spacing: 4px;
 }
 .title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--brand-100); margin-top: 8px; font-size: 15px; }
@@ -2262,13 +2257,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    #5c6470: a slate grey, left over from when the palette went blue. So "selected"
    was a grey 1.5px border plus a 10% grey wash over a navy tile - a luminance
    change of about three percent, which is nothing on a phone in a lit room.
-   --pick is the accent selection actually uses: under FAB Rugby that is the
-   ball's gold, at a strength you cannot miss. It is a separate name from
-   --gold-bright on purpose, so that the next person to retint the palette can see
-   that selection depends on it - which is exactly what happened when the game
-   became FAB Rugby, and the reason this comment is worth its space.
-   densityaudit's sibling, pickaudit, measures the difference. */
-:root { --pick: #f2c81e; --pick-ink: #241105; }
+   --pick is the accent selection actually uses: the theme's bright blue, at a
+   strength you cannot miss. It is a separate name from --gold-bright on purpose,
+   so that the next person to retint the palette can see that selection depends
+   on it. densityaudit's sibling, pickaudit, now measures the difference. */
+:root { --pick: #9fc2e8; --pick-ink: #0b1c33; }
 .tile.sel, .club-tile.sel, .speech-tile.sel {
   border-color: var(--pick);
   box-shadow: inset 0 0 0 2px var(--pick), var(--shadow-1);
@@ -2276,7 +2269,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tile.sel, .speech-tile.sel {
   background: color-mix(in srgb, var(--pick) 26%, var(--paper));
 }
-/* selected is the same gold wash every other tile gets: no club colour in it, so
+/* selected is the same blue wash every other tile gets: no club colour in it, so
    picking a red club cannot look like picking a broken one */
 .club-tile.sel {
   background: color-mix(in srgb, var(--pick) 26%, var(--paper));
@@ -2284,10 +2277,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* and the words brighten with the box, so the change is legible even to someone
    who cannot pick the ring out from the border */
 /* The bold line on a selected tile takes the ordinary ink, NOT the pick colour.
-   It used to be var(--pick), which was invisible the moment --pick became the
-   ball's gold: gold text on a gold wash, 1.4:1, found by the daylight half of
-   scripts/nightcontrast.mjs. The ring and the wash are what say "selected"; the
-   name just has to be readable. */
+   As var(--pick) it was accent-on-accent-wash, which measured 1.4:1 the moment the
+   accent changed. The ring and the wash are what say "selected"; the name just has
+   to be readable. Kept from the crimson pass because it is true in any palette. */
 .tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--ink); }
 .app.night .tile.sel b, .app.night .club-tile.sel b, .app.night .speech-tile.sel b { color: #ffffff; }
 /* a tick, because a colour change alone is a poor signal if you cannot see the

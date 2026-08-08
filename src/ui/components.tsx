@@ -7,9 +7,14 @@ import { kitPattern, type KitPattern } from '../game/kits'
 /**
  * ---- THE FAB RUGBY BALL ----
  *
- * The mark is the ball, tilted, white leather with a heavy black keyline, sitting
- * inside a gold ring on crimson. It replaced a shield with goalposts and initials
+ * The mark is the ball, tilted, white leather with a heavy keyline, sitting inside
+ * a pale ring on the brand blue. It replaced a shield with goalposts and initials
  * on it, which was three ideas fighting for 64 pixels and unreadable at rail size.
+ *
+ * It was crimson and gold for one afternoon, matching the artwork it came from,
+ * until the user asked for blue, white and grey back. The SHAPE is the logo; the
+ * colours belong to the palette, and a crimson roundel on a navy masthead is two
+ * brands arguing.
  *
  * Drawn rather than shipped as an image, for two reasons that both matter on a
  * phone: it is a few hundred bytes inside the bundle instead of a request, and it
@@ -19,19 +24,20 @@ import { kitPattern, type KitPattern } from '../game/kits'
  * They are what makes it read as a ball at 20px, where actual lacing turns to mud.
  */
 export function BrandMark({ size = 64, inverse = false }: { size?: number; inverse?: boolean }) {
-  const disc = inverse ? '#c92450' : '#e1325b'
-  const ring = inverse ? '#ffdd57' : '#f2c81e'
+  const disc = inverse ? '#1b3468' : '#2e57ab'
+  const ring = inverse ? '#eef3fb' : '#dbe6f6'
+  const line = inverse ? '#0d1f3f' : '#1b3468'
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
       <circle cx="32" cy="32" r="32" fill={disc} />
       <circle cx="32" cy="32" r="26" fill="none" stroke={ring} strokeWidth="3.4" />
-      {/* the ball: an ellipse rotated off the horizontal, keylined in black */}
+      {/* the ball: an ellipse rotated off the horizontal, keylined in deep navy */}
       <g transform="rotate(-32 32 32)">
-        <ellipse cx="32" cy="32" rx="16.2" ry="22.6" fill="#0e0e0e" />
+        <ellipse cx="32" cy="32" rx="16.2" ry="22.6" fill={line} />
         <ellipse cx="32" cy="32" rx="13.6" ry="20.0" fill="#ffffff" />
         {/* the light on the leather: one hook top-left, one bottom-right */}
-        <path d="M31.4 12.4 C24.4 18.6 22.0 25.8 22.6 33.6 C24.4 26.6 26.4 20.4 33.2 13.8 Z" fill="#0e0e0e" />
-        <path d="M32.6 51.6 C39.6 45.4 42.0 38.2 41.4 30.4 C39.6 37.4 37.6 43.6 30.8 50.2 Z" fill="#0e0e0e" />
+        <path d="M31.4 12.4 C24.4 18.6 22.0 25.8 22.6 33.6 C24.4 26.6 26.4 20.4 33.2 13.8 Z" fill={line} />
+        <path d="M32.6 51.6 C39.6 45.4 42.0 38.2 41.4 30.4 C39.6 37.4 37.6 43.6 30.8 50.2 Z" fill={line} />
       </g>
     </svg>
   )
@@ -102,7 +108,7 @@ export function Stars({ ca }: { ca: number }) {
   const full = Math.max(0, Math.floor(n))
   const half = n - full >= 0.5
   return (
-    <span style={{ color: 'var(--gold-dark)', fontSize: 11, letterSpacing: 1 }}>
+    <span style={{ color: '#a8841a', fontSize: 11, letterSpacing: 1 }}>
       {'★'.repeat(Math.min(5, full))}{half && full < 5 ? '½' : ''}
       <span style={{ color: 'var(--star-empty)' }}>{'★'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}</span>
     </span>

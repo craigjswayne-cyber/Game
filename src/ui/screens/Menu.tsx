@@ -46,12 +46,12 @@ export default function Menu() {
           )
         })()}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
-          style={saves.length ? { color: '#ffffff', borderColor: 'var(--gold)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          style={saves.length ? { color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>
           New Career
         </button>
         {saves.length > 0 && (
-          <button className="btn ghost" style={{ color: '#ffffff', borderColor: 'var(--gold)', fontSize: 15 }}
+          <button className="btn ghost" style={{ color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 }}
             onClick={() => setShowLoad(!showLoad)}>
             Load Career
           </button>
