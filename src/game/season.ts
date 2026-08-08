@@ -46,11 +46,33 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   const abs = state.season * 100 + state.week
   if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
   const cost = facilityCost(info, lvl)
-  const approve = (club.balance >= cost * 1.4 && club.boardConfidence >= 45) || (club.boardConfidence >= 70 && club.balance >= cost)
+  /**
+   * The board underwrites capital projects when it believes in you. That is what
+   * board backing MEANS, and it is how a stand actually gets built in the real
+   * game: the club does not pay for it out of the current account.
+   *
+   * It used to require the club's own reserves to cover 140% of the bill, and a
+   * fifty-season audit approved 0 of 124 requests - at a club that won its league
+   * in twenty of twenty-four seasons. The weekly ledger runs close to
+   * break-even by design, so it never accumulates a million pounds spare, and the
+   * upper levels cost more than a million. The whole estate was therefore inert
+   * after the first season: a system the manager can see, ask about, and never
+   * once complete. Found by scripts/soakhealth.ts at fifty seasons.
+   *
+   * So confidence buys backing. A board that rates you at seventy carries most of
+   * it; one that merely tolerates you carries none, and the answer is still no if
+   * results have not earned it. Winning is the way in.
+   */
+  const backing = club.boardConfidence >= 78 ? 0.7
+    : club.boardConfidence >= 70 ? 0.55
+    : club.boardConfidence >= 58 ? 0.3
+    : 0
+  const clubShare = Math.round(cost * (1 - backing))
+  const approve = club.boardConfidence >= 45 && club.balance >= clubShare * 1.25
   if (!approve) {
     state.facilityAskCooldown = abs + 8
-    const why = club.balance < cost ? 'the money simply is not there'
-      : club.boardConfidence < 45 ? 'results have not earned a project like this'
+    const why = club.boardConfidence < 45 ? 'results have not earned a project like this'
+      : club.balance < clubShare ? 'the club cannot find its share'
       : 'the reserves are too thin for a project this size'
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -60,15 +82,20 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     logDecision(state, `Asked the board for a level ${lvl + 1} ${info.name.toLowerCase()}: declined, ${why}.`, false)
     return `Declined - ${why}.`
   }
-  club.balance -= cost
+  club.balance -= clubShare
   state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
+  const boardPut = cost - clubShare
   logDecision(state, `Won board backing for a level ${lvl + 1} ${info.name.toLowerCase()}: ${fmtMoney(cost)}, open in five weeks.`, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏛 Board approves: ${info.name} to level ${lvl + 1}`,
-    body: `${fmtMoney(cost)} released from club funds. The builders move in on Monday and the new ${info.name.toLowerCase()} opens in about five weeks. ${info.desc}`,
+    body: `${fmtMoney(cost)} signed off on a level ${lvl + 1} ${info.name.toLowerCase()}${boardPut > 0
+      ? ` - the board underwrite ${fmtMoney(boardPut)} of it and the club funds the remaining ${fmtMoney(clubShare)}`
+      : `, all of it from club funds`}. The builders move in on Monday and it opens in about five weeks. ${info.desc}`,
   })
-  return `Approved. ${fmtMoney(cost)} released - about five weeks to build.`
+  return boardPut > 0
+    ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about five weeks to build.`
+    : `Approved. ${fmtMoney(clubShare)} released - about five weeks to build.`
 }
 
 /** Cost of the next stand: seats added, at the same rate the board pays. */
