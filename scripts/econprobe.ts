@@ -7,6 +7,7 @@ import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game
 import { simMatch } from '../src/game/matchEngine'
 import { staffWageBill } from '../src/game/staff'
 import { facLevel, FACILITY_INFO, operatingCost, weeklyCentral, type FacilityId } from '../src/game/model'
+import { commercialWeekly } from '../src/game/commercial'
 
 const SEASONS = Number(process.argv[2] ?? 4)
 const CLUB = process.argv[3] ?? 'northampton'
@@ -25,10 +26,17 @@ for (let s = 0; s < SEASONS; s++) {
     const club = uc()
     const wages = club.players.reduce((sum, id) => sum + (g.players[id]?.wage ?? 0), 0)
     const staff = staffWageBill(g)
-    // the engine's own figure, not a copy of it: a hand-rolled mirror here
+    // the engine's own figures, not copies of them: a hand-rolled mirror here
     // drifted from weeklyFinance the moment the formula changed and made the
-    // probe report a deficit that existed only in its own arithmetic
-    const sponsor = weeklyCentral(club)
+    // probe report a deficit that existed only in its own arithmetic.
+    //
+    // It happened AGAIN with F30, which is why both halves are named here now.
+    // Sponsorship moved out of weeklyCentral into three signable deals, so
+    // reading only the central money under-counted the ledger by about £150k a
+    // week and this probe reported the economy as broken when nothing had
+    // changed about it. If weeklyFinance gains another income line, it belongs
+    // here the same day.
+    const sponsor = weeklyCentral(club) + commercialWeekly(g)
     const shopLvl = facLevel(g, 'shop')
     const shop = shopLvl > 0 ? Math.round(shopLvl * 9_000 * (0.6 + (g.fanMood ?? 60) / 100)) : 0
     const upkeep = operatingCost(g)
@@ -38,7 +46,8 @@ for (let s = 0; s < SEASONS; s++) {
     // the gate is the residual we cannot read before the fixture is played
     const home = g.fixtures.find(f => f.week === g.week - 1 && f.played && f.homeId === club.id && f.att)
     wagesOut += wages; staffOut += staff; sponsorIn += sponsor; shopIn += shop; upkeepOut += upkeep
-    if (home?.att) gateIn += Math.round(home.att * 30)
+    // F31: boxes lift the take per head, so the gate line has to as well
+    if (home?.att) gateIn += Math.round(home.att * 30 * (1 + facLevel(g, 'hospitality') * 0.04))
     weeks++
     prevBal = club.balance
     if (g.season >= SEASONS) break
@@ -51,7 +60,7 @@ const club = uc()
 const per = (n: number) => `£${Math.round(n / weeks / 1000)}k/wk`
 console.log(`club ${club.name} rep ${club.rep} capacity ${club.capacity.toLocaleString()} squad ${club.players.length}`)
 const estate = (Object.keys(FACILITY_INFO) as FacilityId[]).reduce((s, fid) => s + facLevel(g, fid), 0)
-console.log(`estate ${estate}/40 after ${SEASONS} seasons`)
+console.log(`estate ${estate}/${Object.keys(FACILITY_INFO).length * 5} after ${SEASONS} seasons`)
 console.log(`weeks measured ${weeks}`)
 console.log(`  in  commercial + central ${per(sponsorIn)}`)
 console.log(`  in  gate receipts     ${per(gateIn)}`)

@@ -15,7 +15,7 @@ import { newGame } from '../src/game/newgame'
 import { migrate } from '../src/game/save'
 import { fmtMoney, weeklyCentral, operatingCost, type GameState } from '../src/game/model'
 import {
-  CLAUSES, MAX_UPLIFT, SLOTS, commercialWeekly, dealWeekly,
+  CARETAKER_RATE, CLAUSES, MAX_UPLIFT, SLOTS, commercialWeekly, dealWeekly,
   expireDeals, marketRate, offersFor, seedDeals, signOffer,
 } from '../src/game/commercial'
 
@@ -95,6 +95,11 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
     const [long, short, clause] = offers
     console.log(`${slot.id}: ${long.sponsor} ${long.years}yr ${(long.vsMarket * 100).toFixed(0)}% | ${short.sponsor} ${short.years}yr ${(short.vsMarket * 100).toFixed(0)}% | ${clause.sponsor} ${clause.years}yr ${(clause.vsMarket * 100).toFixed(0)}% + ${clause.clause}`)
     if (long.vsMarket >= 1) bad(`${slot.id}: the long deal is not below market`)
+    // and every offer has to beat doing nothing, or the board is a trap
+    for (const o of offers) {
+      const best = o.vsMarket * (1 + CLAUSES[o.clause].bonus)
+      if (best <= CARETAKER_RATE) bad(`${slot.id}: ${o.sponsor} cannot beat the caretaker rate even at its best (${best.toFixed(2)}x)`)
+    }
     if (short.vsMarket <= 1) bad(`${slot.id}: the short deal is not above market`)
     if (long.years <= short.years) bad(`${slot.id}: the long deal is not longer than the short one`)
     if (clause.clause === 'none') bad(`${slot.id}: the third offer carries no clause`)
@@ -178,8 +183,27 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   expireDeals(g)
   const after = commercialWeekly(g)
   console.log(`kit deal expiring: ${fmtMoney(before)} becomes ${fmtMoney(after)}`)
-  if (g.deals!.kit) bad('an expired deal is still in the slot')
-  if (after >= before) bad('an expired deal still paid')
+  // The slot does NOT empty. econprobe proved that a passive manager who never
+  // opens this screen would lose his whole commercial income and the club would
+  // go structurally insolvent, which breaks "solvent by playing". So the
+  // department takes a caretaker at a discount instead: neglect costs real money
+  // every week without being a cliff.
+  const care = g.deals!.kit
+  if (!care) bad('an expired deal left the slot empty, which is the insolvency cliff again')
+  if (care && !care.auto) bad('the replacement was not marked as a caretaker')
+  if (care && care.weekly >= marketRate(g.clubs[g.userClubId].rep, 'kit')) {
+    bad('the caretaker deal is not below the going rate, so neglect costs nothing')
+  }
+  if (after >= before) bad('an expired deal was replaced at no cost at all')
+  // and a caretaker must be replaceable, or being stuck with it is the cliff in
+  // slower motion
+  const better = offersFor(g, 'kit')[1]
+  const msg = signOffer(g, better)
+  if (!/^Done/.test(msg)) bad(`a caretaker could not be replaced: ${msg}`)
+  if (g.deals!.kit?.auto) bad('signing over a caretaker left it in place')
+  // a REAL contract still cannot be sold twice
+  const twice = signOffer(g, offersFor(g, 'kit')[0])
+  if (!/already under contract/i.test(twice)) bad(`a signed contract was overwritten: ${twice}`)
   const letters = g.news.filter(n => n.subject.includes('deal expires')).length
   if (!letters) bad('a deal expired without telling the manager')
   expireDeals(g)
@@ -228,7 +252,11 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   const weekly = extra / 3
   const ratio = weekly / upkeep
   console.log(`  weekly-equivalent income / upkeep at ${att.toLocaleString()}: ${ratio.toFixed(2)}x`)
+  // A guard on both tails. Too high is a printer; too low and nobody should ever
+  // build it, which is how the first cut came out when econprobe measured it over
+  // four real seasons rather than a hand estimate.
   if (ratio > 2.5) bad(`hospitality returns ${ratio.toFixed(2)}x its upkeep at an ordinary crowd, which is a printer rather than a decision`)
+  if (ratio < 1.15) bad(`hospitality returns only ${ratio.toFixed(2)}x at an ordinary crowd, so building it is close to a mistake`)
   if (ratio < 0.5) bad(`hospitality returns only ${ratio.toFixed(2)}x its upkeep, so nobody would ever build it`)
 }
 

@@ -54,7 +54,7 @@ processWeekAndAdvance(g)
 console.log(`deep save: season ${g.season} week ${g.week} · annals ${(g.annals ?? []).length} · potyRoll ${(g.potyRoll ?? []).length} · hof ${(g.hof ?? []).length}`)
 const uc = g.clubs[g.userClubId]
 const estate = Object.values(uc.facilities ?? {}).reduce((a, b) => a + b, 0)
-console.log(`estate ${estate}/40 · ground ${uc.capacity.toLocaleString()} · staff ${(Object.keys(g.staffPeople ?? {})).length} men · report ${(g.scoutFinds ?? []).length} names · analyst ${g.analystRecord?.right ?? 0}/${(g.analystRecord?.right ?? 0) + (g.analystRecord?.wrong ?? 0)}`)
+console.log(`estate ${estate}/45 · ground ${uc.capacity.toLocaleString()} · staff ${(Object.keys(g.staffPeople ?? {})).length} men · report ${(g.scoutFinds ?? []).length} names · analyst ${g.analystRecord?.right ?? 0}/${(g.analystRecord?.right ?? 0) + (g.analystRecord?.wrong ?? 0)}`)
 console.log(`challenge: live=${g.challenge ?? 'none'} · done=${JSON.stringify(g.challengesDone ?? [])} · league=${g.clubs[g.userClubId].leagueId}`)
 const record = {
   meta: {

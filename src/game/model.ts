@@ -537,7 +537,7 @@ export function demandCeiling(club: Club): number {
   return Math.round(base * (1.15 + Math.max(0, club.rep - 55) / 145))
 }
 
-/** Every facility level the club holds, 0 to 40. */
+/** Every facility level the club holds, 0 to 45 across the nine buildings. */
 export function estateSum(club: Club | undefined): number {
   if (!club?.facilities) return 0
   return (Object.keys(FACILITY_INFO) as FacilityId[]).reduce((s, fid) => s + (club.facilities?.[fid] ?? 0), 0)
@@ -556,16 +556,23 @@ export function operatingCost(state: GameState): number {
   if (!club) return 0
   // Hospitality (F31) carries a second bill on top of the flat per-level cost,
   // and it has to, because it earns a PERCENTAGE OF THE GATE and the gate is
-  // large next to £1,400 a week. At 4% a level against a 15,000 crowd, a maxed
-  // block brings in roughly £30k a week; at £1,400 a level it would have cost
-  // £7k, and a building that returns four times its upkeep in every world is not
-  // a decision, it is a printer.
+  // large next to £1,400 a week. At £1,400 a level a maxed block returned four
+  // times its upkeep in every world, which is not a decision, it is a printer.
+  // Boxes need chefs, hosts and cleaners whether or not there is a match, so a
+  // second charge is honest as well as necessary.
   //
-  // Boxes need chefs, hosts and cleaners whether or not there is a match, so the
-  // extra £4,500 a level is honest as well as necessary. It puts the break-even
-  // at about a 15,000 crowd: worth building if you fill a decent ground or are
-  // growing into one, a straight loss if you do not.
-  const boxes = (club.facilities?.hospitality ?? 0) * 4_500
+  // £2,800 is MEASURED, not estimated. The first figure was £4,500, derived by
+  // hand from "one home game every three weeks", and scripts/econprobe walked
+  // four real seasons and showed what that actually did: +£20k a week on the gate
+  // against +£23k of upkeep, so a manager who built boxes was slightly worse off
+  // than one who did not. A building nobody should build is not a decision
+  // either. At £2,800 it returns about 1.4x its upkeep at Northampton's crowd.
+  //
+  // It scales with the gate, so it is worth more at a big ground than a small
+  // one. That is correct rather than a flaw - boxes at a 40,000 stadium really
+  // are better business - but it does mean the ratio is nearer 3x for a giant,
+  // and anybody raising the 4% should re-read that sentence first.
+  const boxes = (club.facilities?.hospitality ?? 0) * 2_800
   return Math.round(club.capacity * 1.1 + estateSum(club) * 1_400 + boxes)
 }
 
