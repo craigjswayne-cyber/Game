@@ -106,7 +106,7 @@ const prose = (where: string, text: string | undefined | null) => {
   if (/–/.test(text.replace(/[\d%]\s?–\s?\d/g, ''))) flag('en dash outside scoreline')
   if (/ {2}/.test(text)) flag('double space')
 }
-for (let season = 0; season < 20; season++) {
+for (let season = 0; season < Number(process.env.SOAK_SEASONS ?? 20); season++) {
   const target = g.season + 1
   let guard = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {
@@ -237,9 +237,14 @@ for (let season = 0; season < 20; season++) {
       if (n.subject.startsWith('🏛 Board says no')) facDenied++
       if (n.subject.startsWith('🏗') && n.subject.includes('opens')) facOpened++
       if (n.subject.includes('grows by') && n.subject.includes('seats')) standsBuilt++
-      if (n.subject.includes('sits his')) coursesSat++
-      if (n.subject.includes('passes his')) coursesPassed++
-      if (n.subject.includes('falls short of his')) coursesFailed++
+      // A course used to be announced when the coach went off to sit it, and
+      // settled weeks later. It resolves in front of the examiners the same day
+      // now (the manager asked for the result to be instant), so there is no
+      // "sits his" headline any more and a sat course is simply one with a
+      // verdict. Counting the old headline left this audit warning that no coach
+      // ever sat a course while also reporting three verdicts.
+      if (n.subject.includes('passes his')) { coursesSat++; coursesPassed++ }
+      if (n.subject.includes('falls short of his')) { coursesSat++; coursesFailed++ }
       if (n.subject.includes('appointed') && n.subject.includes('Coach')) staffHires++
       if (n.subject.includes('sent out on a')) briefsSent++
       if (n.subject.includes('files his report')) reportsFiled++
