@@ -3,11 +3,12 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, operatingCost, weeklyCentral } from '../../game/model'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
+import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle } from '../components'
 
 export default function Finances() {
   // two pages rather than one long scroll
-  const [ftab, setFtab] = useState<'money' | 'board'>('money')
+  const [ftab, setFtab] = useState<'money' | 'cap' | 'board'>('money')
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [askMsg, setAskMsg] = useState<string | null>(null)
@@ -47,6 +48,7 @@ export default function Finances() {
     <>
       <div className="tab-bar">
         <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>Finances</button>
+        <button className={ftab === 'cap' ? 'active' : ''} onClick={() => setFtab('cap')}>Cap & Squad</button>
         <button className={ftab === 'board' ? 'active' : ''} onClick={() => setFtab('board')}>The Board</button>
       </div>
       {/* the ledger and the graph sit side by side in landscape: two chip
@@ -142,6 +144,83 @@ export default function Finances() {
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
       </>}
+      {ftab === 'cap' && (() => {
+        const pos = capPosition(game, club.id)
+        const grid = rosterGrid(game, club.id)
+        const warn = rosterWarnings(game, club.id)
+        const marquee = pos.marquee.map(id => game.players[id]).filter(Boolean)
+        return (
+          <>
+            <SectionTitle sub="The wage ceiling for your division, and what is left of it">
+              Salary Cap
+            </SectionTitle>
+            <div className="card">
+              {pos.cap == null ? (
+                <div className="meta">This division does not run a salary cap. Your wage budget is the only ceiling.</div>
+              ) : (
+                <>
+                  <div className="cap-line">
+                    <b>{fmtMoney(pos.bill)}/wk</b>
+                    <span className="meta"> of {fmtMoney(pos.cap)}/wk</span>
+                  </div>
+                  <div className="cap-bar">
+                    <div className={`cap-fill${pos.over ? ' over' : pos.used > 0.9 ? ' tight' : ''}`}
+                      style={{ width: `${Math.min(100, Math.round(pos.used * 100))}%` }} />
+                    <div className="cap-mark" />
+                  </div>
+                  <div className="meta" style={{ marginTop: 6 }}>{capWord(pos)}</div>
+                  {pos.embargo > 0 && (
+                    <div className="meta" style={{ marginTop: 6, color: '#a12f2f', fontWeight: 700 }}>
+                      No signings until the embargo is served.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <SectionTitle sub={`${MARQUEE_SLOTS} men can sit outside the cap. Academy players never count`}>
+              Marquee Players
+            </SectionTitle>
+            <div className="card">
+              {marquee.length === 0
+                ? <div className="meta">No marquee players named. Open a player and use the marquee button to take his wage out of the calculation.</div>
+                : marquee.map(p => (
+                  <div key={p.id} className="ledger-row">
+                    <span>{p.name}</span>
+                    <span className="num">{fmtMoney(p.wage)}/wk</span>
+                  </div>
+                ))}
+            </div>
+            <SectionTitle sub="Men under contract by unit, this season and the next three">
+              Squad Cover
+            </SectionTitle>
+            <div className="tblwrap fitwrap"><table className="dtable fit">
+              <colgroup><col style={{ width: '34%' }} />{grid.seasons.map(sn => <col key={sn} />)}</colgroup>
+              <thead><tr><th>Unit</th>{grid.seasons.map(sn => <th key={sn} className="num">{2026 + sn}</th>)}</tr></thead>
+              <tbody>
+                {grid.rows.map(row => (
+                  <tr key={row.label}>
+                    <td className="name">{row.label}</td>
+                    {row.cells.map((cell, i) => (
+                      <td key={i} className="num" style={{
+                        fontWeight: cell.count < cell.need ? 700 : 400,
+                        color: cell.count < cell.need ? '#a12f2f' : cell.count === cell.need ? '#a8841a' : undefined,
+                      }}>{cell.count}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table></div>
+            <div className="card">
+              {warn.length === 0
+                ? <div className="meta">Every unit is covered for the next three summers.</div>
+                : <>
+                  <div className="meta" style={{ fontWeight: 700, marginBottom: 4 }}>Holes to fill</div>
+                  {warn.map(w => <div key={w} className="meta">{w}</div>)}
+                </>}
+            </div>
+          </>
+        )
+      })()}
       {ftab === 'board' && <>
       <SectionTitle>Season Objectives</SectionTitle>
       <div className="card" style={{ marginTop: 6 }}>
