@@ -300,6 +300,47 @@ try {
   await page.waitForSelector('.save-warn', { state: 'detached', timeout: 10000 })
   check(true, 'and a successful write clears it')
 
+  // ---------- A7: the sacked manager still has a game ----------
+  //
+  // Found by the five-season playthrough, which lost its job in season five and
+  // then reported all ten Hub screens as broken. They were not: the rail swaps
+  // the Hub button for Jobs when there is no club, which is right. But nothing
+  // had ever LOOKED at that rail, so this does - because being sacked is a state
+  // a five-season career reaches by itself, not an edge case.
+  console.log('A7 the sacked manager still has a game')
+  const sacked = await mutate(g => { g.unemployed = true })
+  check(sacked === 'ok', `the manager can be put out of work for the test (${sacked})`)
+  await page.click('.bottom-nav button[title="Home"]').catch(() => {})
+  await page.waitForTimeout(300)
+  check(await page.locator('.bottom-nav button[title="Hub"]').count() === 0,
+    'the Hub button goes, because there is no squad behind it')
+  check(await page.locator('.bottom-nav button[title="Jobs"]').count() === 1,
+    'and a Jobs button takes its place')
+  const homeInk = (await page.textContent('.content').catch(() => '')) ?? ''
+  check(homeInk.trim().length > 12, `Home still says something with no club (${homeInk.trim().length} chars)`)
+  check(!/NaN|undefined|\[object Object\]|Infinity/.test(homeInk),
+    'and it says it without a NaN or an undefined in it')
+  await page.click('.bottom-nav button[title="Jobs"]')
+  await page.waitForTimeout(300)
+  const jobInk = (await page.textContent('.content').catch(() => '')) ?? ''
+  check(jobInk.trim().length > 12, `the Job Centre renders (${jobInk.trim().length} chars)`)
+  for (const group of ['Manager', 'World']) {
+    await page.click(`.bottom-nav button[title="${group}"]`).catch(() => {})
+    const items = await page.locator('.submenu-item').count()
+    check(items > 0, `${group} still opens with ${items} item(s) for a manager with no club`)
+    // The sub-menu closes on a tap outside it, not on Escape. Aiming a real
+    // click at the veil is unreliable because the panel covers most of it and
+    // swallows the pointer, so fire the veil's own handler - the same one a tap
+    // reaches. Left open, it eats the next click at the rail and the failure
+    // surfaces three blocks later as an unrelated timeout.
+    await page.evaluate(() => document.querySelector('.submenu-veil')?.click())
+    await page.waitForTimeout(200)
+  }
+  await shot('07-unemployed')
+  await mutate(g => { g.unemployed = false })
+  await page.click('.bottom-nav button[title="Home"]').catch(() => {})
+  await page.waitForTimeout(250)
+
   // ---------- A1: the crash screen ----------
   console.log('A1 the crash screen')
   // point the save at a club that does not exist: App reads club.players on the

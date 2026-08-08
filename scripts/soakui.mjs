@@ -224,13 +224,34 @@ try {
   const WORLD = ['The Rugby Wire', 'Competitions', 'International Rugby', 'Team of the Week', 'Scouting Agency', 'Roll of Honour']
 
   async function sweepScreens(tag) {
-    for (const [group, items] of [['Hub', HUB], ['Manager', MANAGER], ['World', WORLD]]) {
+    // A manager can be sacked, and this run's fifth season is where that first
+    // happened: the board went, the fixtures stopped, and the rail swapped the
+    // Hub button for a Jobs button - correctly, because there is no squad to
+    // look at any more. The sweep did not know that and reported all ten Hub
+    // screens as unreachable. Read the rail instead of assuming a club.
+    const employed = await page.locator('.bottom-nav button[title="Hub"]').count() > 0
+    if (!employed) {
+      console.log(`  .. ${tag}: out of work, sweeping the rail a sacked manager actually has`)
+      screenVisits++
+      await page.click('.bottom-nav button[title="Jobs"]', { timeout: 4000 }).catch(() => {})
+      await page.waitForTimeout(250)
+      const jv = await look()
+      if (!await audit(jv, `${tag} / Job Centre (unemployed)`)) return false
+      if (jv.contentLen < 12) flaw('BLANK', `the Jobs screen rendered ${jv.contentLen} characters with no club`, tag)
+    }
+    const groups = employed
+      ? [['Hub', HUB], ['Manager', MANAGER], ['World', WORLD]]
+      : [['Manager', MANAGER], ['World', WORLD]]
+    for (const [group, items] of groups) {
       for (const item of items) {
         try {
           await page.click(`.bottom-nav button[title="${group}"]`, { timeout: 4000 })
           await page.waitForSelector('.submenu-item', { timeout: 4000 })
           const has = await page.locator(`.submenu-item >> text=${item}`).count()
-          if (!has) { await page.keyboard.press('Escape').catch(() => {}); continue }
+          // Escape does not shut the sub-menu, and aiming a click at its veil is
+          // unreliable because the panel covers most of it - fire the veil's own
+          // handler, which is what a tap outside the panel reaches
+          if (!has) { await page.evaluate(() => document.querySelector('.submenu-veil')?.click()); continue }
           await page.click(`.submenu-item >> text=${item}`, { timeout: 4000 })
           await page.waitForTimeout(220)
           screenVisits++
