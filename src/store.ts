@@ -8,6 +8,7 @@ import {
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
+import { firstStepOfWeek, matchDayIndex, nextStep } from './game/days'
 import { loadGame, saveGame } from './game/save'
 
 export type Screen =
@@ -15,7 +16,7 @@ export type Screen =
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
   | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
-  | 'offers' | 'academy'
+  | 'offers' | 'academy' | 'day'
 
 interface NavEntry {
   screen: Screen
@@ -118,6 +119,8 @@ interface Store {
   resume: () => Promise<boolean>
   /** Back to the title screen on purpose, and forget the resume bookmark. */
   toTitle: () => void
+  /** Read a set of stories full screen, starting on one of them. */
+  openWire: (ids: number[], startId?: number) => void
 }
 
 /** The event types worth stopping the ticker for in highlights mode (F5).
@@ -185,6 +188,43 @@ function readWhere(): { slot: string; nav: NavEntry[] } | null {
     if (!nav.length) return null
     return { slot: v.slot, nav }
   } catch { return null }
+}
+
+/** Push the day bulletin, replacing one that is already open.
+ *
+ *  Continue is pressed from the bulletin itself, so without the filter the back
+ *  stack would grow one entry per day and the back arrow would walk the manager
+ *  backwards through a week that has already happened. */
+function openDay(nav: NavEntry[]): NavEntry[] {
+  return [...nav.filter(e => e.screen !== 'day' && e.screen !== 'wire'), { screen: 'day' as const }]
+}
+
+/** Land on the first day of a freshly settled week.
+ *
+ *  Monday first, because that is where the results and the treatment room are.
+ *  If the whole week is somehow empty this falls through to the round-up screen,
+ *  which is what a blank week used to show.
+ *
+ *  Split out of continueWeek because finishMatch needs exactly the same landing:
+ *  a week that ended in a match and a week that ended in a blank Saturday should
+ *  resume on the same footing. */
+function landOnNextWeek(
+  g: GameState,
+  set: (fn: (s: Store) => Partial<Store>) => void,
+  get: () => Store,
+  extra: NavEntry[] = [],
+) {
+  const step = firstStepOfWeek(g)
+  g.day = step.kind === 'day' ? step.day : step.kind === 'match' ? (matchDayIndex(g) ?? 0) : 0
+  const dayEntry: NavEntry[] = step.kind === 'day' ? [{ screen: 'day' }] : []
+  // `extra` goes on TOP: after your own final whistle the round-up is the screen
+  // you want, and the new week's Monday sits underneath it, so backing out of the
+  // round-up puts you at the start of the week rather than nowhere.
+  set(s => ({
+    nav: [{ screen: 'home' }, ...dayEntry, ...extra],
+    tick: s.tick + 1,
+  }))
+  void get().persist()
 }
 
 export const useStore = create<Store>((set, get) => ({
@@ -339,23 +379,42 @@ export const useStore = create<Store>((set, get) => ({
       }))
       return
     }
-    const fx = (!g.unemployed && userFixtureThisWeek(g)) || natFixtureThisWeek(g)
-    if (fx) {
+    // ---- Continue walks the week a day at a time ----
+    //
+    // See game/days.ts for why. nextStep is the single decision point: the
+    // masthead's label, this handler and the day bulletin all read it, so they
+    // can never disagree about what day it is or what happens next.
+    const step = nextStep(g)
+    if (step.kind === 'match') {
+      // stand the manager on the day the match actually falls, so the masthead
+      // reads Friday for a Friday night game
+      const md = matchDayIndex(g)
+      if (md != null) g.day = md
       set(s => ({ nav: [...s.nav, { screen: 'matchday' }], tick: s.tick + 1 }))
       return
     }
-    const sinceId = g.nextId
+    if (step.kind === 'day') {
+      g.day = step.day
+      set(s => ({ nav: openDay(s.nav), tick: s.tick + 1 }))
+      void get().persist()
+      return
+    }
+    // the week is spent: settle it, then start the new Monday. The watermark is
+    // what tells the bulletins which stories are new.
+    g.newsFrom = g.nextId
     processWeekAndAdvance(g)
-    // the Wire takes over: this week's stories fill the screen one by one
-    const wire = g.news.filter(n => !n.read && n.id >= sinceId).map(n => n.id)
-    set(s => ({
-      wireQueue: wire,
-      nav: wire.length ? [...s.nav.filter(e => e.screen !== 'wire'), { screen: 'wire' as const }] : s.nav,
-      tick: s.tick + 1,
-    }))
-    // autosave every advance: serialization is ~40ms even in deep saves,
-    // and a phone tab eviction should never cost more than one week
-    void get().persist()
+    landOnNextWeek(g, set, get)
+  },
+
+  /** After a week has been settled, show the first day of the new one.
+   *
+   *  Shared by Continue and finishMatch so a week that ends in a match and a week
+   *  that ends in a blank Saturday both resume on the same footing. */
+  openWire: (ids, startId) => {
+    const queue = startId != null
+      ? [...ids.slice(ids.indexOf(startId)), ...ids.slice(0, Math.max(0, ids.indexOf(startId)))]
+      : ids
+    set(s => ({ wireQueue: queue, nav: [...s.nav.filter(e => e.screen !== 'wire'), { screen: 'wire' as const }], tick: s.tick + 1 }))
   },
 
   /** From the MatchDay preview: take the field. The match simulates
@@ -553,18 +612,14 @@ export const useStore = create<Store>((set, get) => ({
     const live = get().liveMatch
     if (!g) return
     const resultsKey = live ? `${live.fixture.compId}:${g.week}` : null
-    const sinceId = g.nextId
+    g.newsFrom = g.nextId
     processWeekAndAdvance(g)
-    const wire = g.news.filter(n => !n.read && n.id >= sinceId).map(n => n.id)
-    set(s => ({
-      liveMatch: null,
-      wireQueue: wire,
-      nav: [{ screen: 'home' },
-        ...(wire.length ? [{ screen: 'wire' as const }] : []),
-        ...(resultsKey ? [{ screen: 'results' as const, param: resultsKey }] : [])],
-      tick: s.tick + 1,
-    }))
-    void get().persist()
+    set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+    // The full-time round-up still comes first - that is the moment you want
+    // straight after your own final whistle - and Monday's bulletin sits under
+    // it, so backing out of the round-up puts you at the start of the new week
+    // rather than nowhere.
+    landOnNextWeek(g, set, get, resultsKey ? [{ screen: 'results', param: resultsKey }] : [])
   },
 
   answerPressOption: (pressId, optionIndex) => {

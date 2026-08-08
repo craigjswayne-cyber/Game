@@ -13,7 +13,7 @@ import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
 import { NATL1 } from '../data/leagues/natl1'
-import type { Club, GameState, Pos } from './model'
+import type { Club, GameState, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
@@ -21,7 +21,7 @@ import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
-import { CHEM_SLOTS, chemKey, initFacilities, isWorldCupSeason } from './model'
+import { CHEM_SLOTS, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -106,6 +106,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // they will listen, but a speech from a stranger is only worth half of one
     // from a manager who has delivered. Earned back through results.
     mgrTrust: 26,
+    // Monday of week 1. Continue walks the week a day at a time (game/days.ts).
+    day: 0,
     challenge: challengeId,
     vacancies: [],
     devFocus: [],
@@ -269,14 +271,27 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     p.value = playerValue(p.ca, p.age, p.pa)
     state.players[p.id] = p
   }
-  if (watchList.length) {
-    state.news.push({
-      id: state.nextId++, week: 1, season: 0, type: 'youth', read: false,
-      subject: `🌟 The scouts' ones to watch`,
-      body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market - first club to move wins. Tap a name below to open his profile, or browse the full list: World ▸ Team of the Season ▸ Ones to Watch.`,
-      playerIds: watchIds,
-    })
-  }
+  // Held back rather than filed here. The inbox reads oldest unread first, so
+  // pushing the scouting circular during academy generation gave it the lowest id
+  // in the game and it arrived ahead of the manager's own appointment (user: "it
+  // has already shared a scout report so you wouldnt see it"). It is filed after
+  // the four letters that introduce the job - see the opening sequence below.
+  //
+  // The id counter is still ADVANCED here, where it always was, and the advance is
+  // then thrown away. Fixture ids come out of the same nextId counter, so taking
+  // one news id later than before shifted every fixture id in the game by one -
+  // and the sim hashes fixture ids for the kick-off day and the referee. The
+  // fingerprint test caught it: three detailed matches identical, the fourth
+  // 19-14 instead of 9-14. Burning the slot keeps the world identical while the
+  // story itself gets a later id, which is what puts it behind the four letters
+  // in an inbox that reads oldest first. One unused id in a counter that only
+  // ever goes up costs nothing.
+  state.nextId++
+  const scoutCircular = watchList.length ? {
+    subject: `🌟 The scouts' ones to watch`,
+    body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market - first club to move wins. Tap a name below to open his profile, or browse the full list: World ▸ Team of the Season ▸ Ones to Watch.`,
+    playerIds: watchIds,
+  } : null
 
   // competitions (same defs as above so a challenge swap carries through)
   for (const def of defs) {
@@ -349,17 +364,39 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     }
   }
 
-  // welcome news
+  // ---- THE OPENING SEQUENCE ----
+  //
+  // Four letters, in this order, because this is the order a new man actually
+  // finds things out (user: "can we do a welcome, a fan response, squad
+  // assessment, coaching team so you get a decent amount of information"). The
+  // inbox reads oldest unread first, so the order here IS the order they open in,
+  // and nothing else may be filed before them.
   const uc = state.clubs[userClubId]
   const challenge = challengeId ? CHALLENGES.find(c => c.id === challengeId) : null
+
+  // 1. the appointment
   state.news.push({
     id: state.nextId++, week: 1, season: 0, type: 'board', read: false,
     subject: challenge ? `THE CHALLENGE: ${challenge.title}` : `Welcome to ${uc.name}`,
     body: `${challenge ? challenge.desc + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
   })
 
-  // the coaching department you walk into, sized to the club's standing
+  // 2. what the terraces made of it
+  // its own stream, NOT the shared world rng: three draws for three terrace
+  // voices would otherwise shift every draw taken after this point and quietly
+  // change the generated world. The fingerprint test caught exactly that.
+  state.news.push(fanReaction(state, managerName, mulberry32(seed ^ 0x5FA17A11)))
+
+  // 3. the assistant's honest read on what you have inherited
+  state.news.push(squadAssessment(state))
+
+  // 4. the coaching department you walk into, sized to the club's standing
   inheritStaff(state)
+
+  // and only then the circulars
+  if (scoutCircular) {
+    state.news.push({ id: state.nextId++, week: 1, season: 0, type: 'youth', read: false, ...scoutCircular })
+  }
 
   punditPredictions(state, rng)
 
@@ -393,5 +430,112 @@ export function seedExClubs(state: GameState) {
       p.exClub = peers[((p.id * 2654435761) >>> 0) % peers.length].id
       p.exApps = spent
     }
+  }
+}
+
+/**
+ * Letter 2 of the opening sequence: what the terraces made of the appointment.
+ *
+ * A brand new manager is nobody, and the fans say so. This is where the low
+ * starting reputation is first felt as words rather than as a number on a bar:
+ * an unproven name at a big club gets scepticism, the same name at a struggling
+ * one gets relief that somebody has taken the job. Nothing here is invented
+ * about a real person - the manager is the player's own.
+ */
+function fanReaction(state: GameState, managerName: string, rng: () => number): NewsItem {
+  const uc = state.clubs[state.userClubId]
+  const mood = state.fanMood ?? 60
+  const big = uc.rep >= 80
+  const mid = uc.rep >= 68
+  // three voices, so the card reads like a message board rather than a verdict
+  const sceptics = [
+    'Never heard of him. Hope the board know something we do not.',
+    'An unproven appointment at a club this size. That is a gamble with our season.',
+    'I will judge him in May, not August. Prove it on the pitch.',
+  ]
+  const hopefuls = [
+    'Fresh ideas, finally. Anything is better than what we had.',
+    'Give him two seasons and a bit of money and see what happens.',
+    'He has said the right things. Now let him pick a team.',
+  ]
+  const patient = [
+    'Steady on. New man, new voice, same old fixture list.',
+    'The squad is the squad. He can only work with what is in the building.',
+    'First home game will tell us plenty about how he wants to play.',
+  ]
+  const pick = (xs: string[]) => xs[Math.floor(rng() * xs.length)]
+  const voices = big
+    ? [pick(sceptics), pick(patient), pick(hopefuls)]
+    : mood >= 62
+      ? [pick(hopefuls), pick(patient), pick(sceptics)]
+      : [pick(hopefuls), pick(hopefuls), pick(patient)]
+  const headline = big
+    ? `The terraces are not convinced yet`
+    : mid ? `Cautious welcome from the ${uc.short} faithful`
+    : `The ${uc.short} support are ready to get behind you`
+  const opener = big
+    ? `A crowd used to winning has been handed a manager nobody has heard of, and the supporters' forums have noticed.`
+    : mid
+      ? `The reaction around ${uc.city} is wait-and-see. Nobody is thrilled, nobody is furious.`
+      : `There is genuine relief around ${uc.city} that somebody has taken the job, and a fair amount of goodwill going with it.`
+  return {
+    id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
+    subject: `🗣 ${headline}`,
+    body: `${opener}\n\n"${voices[0]}"\n\n"${voices[1]}"\n\n"${voices[2]}"\n\n`
+      + `Terrace mood is ${mood >= 80 ? 'bouncing' : mood >= 62 ? 'behind you' : mood >= 45 ? 'watching' : mood >= 30 ? 'restless' : 'mutinous'}.`
+      + ` It moves with results, and it moves faster after a derby. ${managerName} has a season to make them believe it.`,
+  }
+}
+
+/**
+ * Letter 3 of the opening sequence: the assistant's honest read on the squad.
+ *
+ * Everything in it is measured from the squad itself rather than asserted, so it
+ * is true for any club the player picks - including the four challenge starts,
+ * where the whole point is that the squad is not good enough yet.
+ */
+function squadAssessment(state: GameState): NewsItem {
+  const uc = state.clubs[state.userClubId]
+  const squad = uc.players.map(id => state.players[id]).filter(p => p && !p.acad)
+  const senior = squad.length
+  const avgAge = senior ? squad.reduce((s, p) => s + p.age, 0) / senior : 0
+  const avgCa = senior ? squad.reduce((s, p) => s + p.ca, 0) / senior : 0
+  const best = [...squad].sort((a, b) => b.ca - a.ca).slice(0, 3)
+  const under23 = squad.filter(p => p.age <= 22).length
+  const over32 = squad.filter(p => p.age >= 32).length
+  // the thin shirts: any position with fewer than two men who can play it
+  const FORWARDS: Pos[] = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
+  const BACKS: Pos[] = ['SH', 'FH', 'CE', 'WG', 'FB']
+  const depth = (pos: Pos) => squad.filter(p => p.pos === pos || p.alt.includes(pos)).length
+  const thin = [...FORWARDS, ...BACKS].filter(pos => depth(pos) < 2)
+  const packCa = (() => {
+    const f = squad.filter(p => FORWARDS.includes(p.pos))
+    return f.length ? f.reduce((s, p) => s + p.ca, 0) / f.length : 0
+  })()
+  const backsCa = (() => {
+    const b = squad.filter(p => BACKS.includes(p.pos))
+    return b.length ? b.reduce((s, p) => s + p.ca, 0) / b.length : 0
+  })()
+  const lean = packCa - backsCa >= 3 ? 'the pack is the stronger half of this side'
+    : backsCa - packCa >= 3 ? 'the strength is out wide, not up front'
+    : 'the two halves of the side are about level'
+  const ageWord = avgAge >= 28.5 ? 'an experienced group nearing the end of a cycle'
+    : avgAge >= 26.5 ? 'a settled group in its prime years'
+    : avgAge >= 24.5 ? 'a young squad with room to grow'
+    : 'a very young squad that will need patience'
+  return {
+    id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
+    subject: `📋 Your assistant's read on the squad`,
+    body: `"Sat down with the numbers before you arrived. Here is where we are.\n\n`
+      + `We have ${senior} senior men, average age ${avgAge.toFixed(1)} - ${ageWord}. `
+      + `${under23} of them ${under23 === 1 ? 'is' : 'are'} 22 or under and ${over32} ${over32 === 1 ? 'is' : 'are'} 32 or over.\n\n`
+      + `Average ability across the group is ${Math.round(avgCa)} out of 100, and ${lean}. `
+      + `Your best three on paper are ${best.map(p => `${p.name} (${p.pos}, ${Math.round(p.ca)})`).join(', ')}.\n\n`
+      + (thin.length
+        ? `Where we are short: ${thin.join(', ')}. One injury in those shirts and we are picking somebody out of position.\n\n`
+        : `Every position has cover, which is more than most clubs can say.\n\n`)
+      + `Board expects you to ${boardObjective(uc.rep).text}. Transfer budget is ${fmtMoney(uc.budget)} and the wage bill is `
+      + `${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
+      + `Selection and the game plan are yours whenever you want them. I will have a read on the first opponent by Friday."`,
   }
 }

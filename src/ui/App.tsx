@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
-import { natFixtureThisWeek, userFixtureThisWeek } from '../game/season'
-import { weekDate, seasonLabel } from '../game/model'
+import { seasonLabel } from '../game/model'
+import { dayLine, nextStep } from '../game/days'
 import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -30,6 +30,7 @@ import Medical from './screens/Medical'
 import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
 import Saves from './screens/Saves'
+import DayRoom from './screens/DayRoom'
 import DreamTeam from './screens/DreamTeam'
 import WeekResults from './screens/WeekResults'
 import SeasonReview from './screens/SeasonReview'
@@ -44,7 +45,7 @@ const TITLES: Record<string, string> = {
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
   jobs: 'Job Centre', feed: 'The Rugby Wire', medical: 'Medical Centre',
-  report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status',
+  report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status', day: 'The Week',
   dreamteam: 'Team of the Week', wire: 'The Rugby Wire', infra: 'Club Infrastructure',
   handbook: "The Manager's Handbook",
 }
@@ -250,6 +251,7 @@ export default function App() {
       case 'report': return <TeamReport />
       case 'profile': return <Profile />
       case 'saves': return <Saves />
+      case 'day': return <DayRoom />
       case 'dreamteam': return <DreamTeam />
       case 'results': return <WeekResults param={cur.param as string} />
       case 'seasonreview': return <SeasonReview />
@@ -361,7 +363,9 @@ export default function App() {
               name and screen title arrived truncated */}
           <div className="mast-text">
             <h1>{cur.screen === 'home' ? (game.unemployed ? 'Unemployed' : club.name) : TITLES[cur.screen] ?? ''}</h1>
-            <div className="date">{weekDate(game.season, game.week)} · {seasonLabel(game.season)} · Wk {game.week}</div>
+            {/* the real day, not the week's Saturday shown seven times. Continue
+                walks Monday to Saturday now, so the date has to move with it. */}
+            <div className="date">{dayLine(game).toUpperCase()} · {seasonLabel(game.season)} · Wk {game.week}</div>
           </div>
           {/* grouped, so portrait can drop both onto one row of their own and
               leave the first row to the back arrow, the title and the date */}
@@ -369,8 +373,11 @@ export default function App() {
             <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
               {night ? <IcoSun /> : <IcoMoon />}
             </button>
+            {/* One button, one label, one decision function. It used to read
+                Matchday for the whole week of a match, so Monday's button
+                promised a game that was five days away. */}
             <button className="continue-btn" onClick={continueWeek}>
-              {(!game.unemployed && userFixtureThisWeek(game)) || natFixtureThisWeek(game) ? 'Matchday ▸' : 'Continue ▸'}
+              {nextStep(game).kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
             </button>
           </div>
         </div>
