@@ -483,7 +483,7 @@ export interface TransferOffer {
 }
 
 /** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad. */
-export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy' | 'pitch' | 'recovery' | 'shop'
+export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy' | 'pitch' | 'recovery' | 'shop' | 'hospitality'
 export const MAX_FACILITY = 5
 export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
   pitch: { name: 'Playing Surface', icon: '🏉', desc: 'A true pitch: fewer breakdowns in home matches.', base: 260_000 },
@@ -494,6 +494,13 @@ export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; des
   briefing: { name: 'Analysis & Briefing Suite', icon: '📽️', desc: 'Match preparation lands harder.', base: 380_000 },
   academy: { name: 'Centre of Excellence', icon: '🎓', desc: 'Better academy intakes, more wonderkids.', base: 500_000 },
   shop: { name: 'Club Shop & Megastore', icon: '🛍️', desc: 'Retail income every week, bigger when the fans are happy.', base: 240_000 },
+  // F31: ground development past the turnstile. Capacity expansion already
+  // exists (requestExpansion) and adds SEATS; this adds what each seat is
+  // worth. Boxes, a members' lounge, a decent kitchen: the same crowd spends
+  // more. Built as a facility rather than a new system because the estate
+  // already handles levels, costs, board requests and weekly upkeep, and a
+  // second parallel mechanism for buildings would be the same thing twice.
+  hospitality: { name: 'Hospitality & Boxes', icon: '🥂', desc: 'Corporate boxes and lounges: every home crowd is worth more at the gate.', base: 460_000 },
 }
 export const facilityCost = (info: { base: number }, level: number) => info.base * (level + 1)
 
@@ -547,7 +554,19 @@ export function estateSum(club: Club | undefined): number {
 export function operatingCost(state: GameState): number {
   const club = state.clubs[state.userClubId]
   if (!club) return 0
-  return Math.round(club.capacity * 1.1 + estateSum(club) * 1_400)
+  // Hospitality (F31) carries a second bill on top of the flat per-level cost,
+  // and it has to, because it earns a PERCENTAGE OF THE GATE and the gate is
+  // large next to £1,400 a week. At 4% a level against a 15,000 crowd, a maxed
+  // block brings in roughly £30k a week; at £1,400 a level it would have cost
+  // £7k, and a building that returns four times its upkeep in every world is not
+  // a decision, it is a printer.
+  //
+  // Boxes need chefs, hosts and cleaners whether or not there is a match, so the
+  // extra £4,500 a level is honest as well as necessary. It puts the break-even
+  // at about a 15,000 crowd: worth building if you fill a decent ground or are
+  // growing into one, a straight loss if you do not.
+  const boxes = (club.facilities?.hospitality ?? 0) * 4_500
+  return Math.round(club.capacity * 1.1 + estateSum(club) * 1_400 + boxes)
 }
 
 /**
@@ -567,7 +586,14 @@ export function operatingCost(state: GameState): number {
  * A club whose ground fits its name gets exactly what it always got.
  */
 export function weeklyCentral(club: Club): number {
-  const commercial = club.rep * 1800 + 40_000
+  // F30 moved the reputation-driven sponsorship out of here and into three
+  // signable deals (commercial.ts). What is left is the money that arrives
+  // whether or not anybody wants their name on your shirt: the broadcast and
+  // central-distribution share, plus the small-ground top-up documented below.
+  // The two halves together still pay what this one line used to, so long as the
+  // three slots are sold at market rate - which is what makes the split neutral
+  // against a calibrated economy, and what scripts/dealprobe.ts checks.
+  const commercial = 40_000
   const expectedSeats = Math.min(23_000, Math.max(0, club.rep - 45) * 620)
   const missingSeats = Math.max(0, expectedSeats - club.capacity)
   // 8.5 per missing seat: 30 a ticket, ~85% full, one home game every three weeks
@@ -723,6 +749,9 @@ export interface GameState {
   /** bumped on every appointment so the candidate market refreshes */
   staffSalt?: number
   mgr: ManagerStats
+  /** the three commercial slots and what is signed in them (F30). Absent on a
+   *  save written before the department existed; seedDeals fills it. */
+  deals?: Partial<Record<'shirt' | 'naming' | 'kit', import('./commercial').Deal>>
   /** what the dressing room makes of you, 0-100. Optional so old saves load. */
   mgrTrust?: number
   /** the scripted challenge this career started as - cleared when conquered */

@@ -1,5 +1,6 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
 import { auditCaps, refreshCaps } from './cap'
+import { commercialWeekly, expireDeals } from './commercial'
 import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
@@ -794,10 +795,17 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // ground is smaller than its name (weeklyCentral documents why that top-up
   // exists and why it is shaped as a gap rather than a flat rise for everyone)
   club.balance += weeklyCentral(club)
+  // and the commercial department: whatever the three deals are worth this week,
+  // clauses included. An empty slot pays nothing, which is the point of it (F30).
+  club.balance += commercialWeekly(state)
   // gate receipts from this week's home fixture
   const home = state.fixtures.find(f =>
     f.week === state.week && f.played && f.homeId === club.id && f.att)
-  if (home?.att) club.balance += Math.round(home.att * 30)
+  // F31: boxes and lounges mean the same crowd is worth more. 4% a level, so a
+  // maxed block lifts a £30 head to £36. operatingCost documents why this one
+  // facility carries an extra weekly bill.
+  const hosp = 1 + facLevel(state, 'hospitality') * 0.04
+  if (home?.att) club.balance += Math.round(home.att * 30 * hosp)
   // the club shop: replica shirts shift faster when the terraces are happy
   const shop = facLevel(state, 'shop')
   if (shop > 0) club.balance += Math.round(shop * 9_000 * (0.6 + (state.fanMood ?? 60) / 100))

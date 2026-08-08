@@ -5,10 +5,15 @@ import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle } from '../components'
+import {
+  CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, marketRate,
+  offersFor, signOffer,
+} from '../../game/commercial'
 
 export default function Finances() {
   // two pages rather than one long scroll
-  const [ftab, setFtab] = useState<'money' | 'cap' | 'board'>('money')
+  const [ftab, setFtab] = useState<'money' | 'deals' | 'cap' | 'board'>('money')
+  const [dealMsg, setDealMsg] = useState<string | null>(null)
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [askMsg, setAskMsg] = useState<string | null>(null)
@@ -48,6 +53,7 @@ export default function Finances() {
     <>
       <div className="tab-bar">
         <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>Finances</button>
+        <button className={ftab === 'deals' ? 'active' : ''} onClick={() => setFtab('deals')}>Commercial</button>
         <button className={ftab === 'cap' ? 'active' : ''} onClick={() => setFtab('cap')}>Cap & Squad</button>
         <button className={ftab === 'board' ? 'active' : ''} onClick={() => setFtab('board')}>The Board</button>
       </div>
@@ -64,7 +70,7 @@ export default function Finances() {
             <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
             <span className="chip">Avg attendance <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
             <span className="chip">Est. gate/game <b>{avgAtt ? fmtMoney(avgAtt * 30) : '-'}</b></span>
-            <span className="chip">Weekly commercial <b>{fmtMoney(weeklyCentral(club))}</b></span>
+            <span className="chip">Weekly commercial <b>{fmtMoney(weeklyCentral(club) + commercialWeekly(game))}</b></span>
             {/* the ground and the estate cost money every week of the year, and
                 a cost the manager cannot see reads to him as a bug */}
             <span className="chip">Ground + estate upkeep <b>{fmtMoney(operatingCost(game))}/wk</b></span>
@@ -85,7 +91,9 @@ export default function Finances() {
         {(() => {
           const staff = staffWageBill(game)
           const upkeep = operatingCost(game)
-          const commercial = weeklyCentral(club)
+          const central = weeklyCentral(club)
+          const deals = commercialWeekly(game)
+          const commercial = central + deals
           const shopLvl = facLevel(game, 'shop')
           const shop = shopLvl > 0 ? Math.round(shopLvl * 9_000 * (0.6 + (game.fanMood ?? 60) / 100)) : 0
           // a home gate arrives every third week or so, so it is shown as one
@@ -102,7 +110,11 @@ export default function Finances() {
           )
           return (
             <>
-              {line('Sponsorship, broadcast and central funds', commercial)}
+              {/* F30 split these: the deals are yours to sell, the central money
+                  arrives regardless, and showing them as one line again would
+                  hide the hole an unsold slot leaves. */}
+              {line('Commercial deals', deals, `${SLOTS.filter(x => game.deals?.[x.id]).length} of 3 sold`)}
+              {line('Broadcast and central funds', central)}
               {shop > 0 && line('Club shop', shop, `level ${shopLvl}`)}
               {line('Player wages', -wages, `${club.players.length} men`)}
               {line('Backroom staff', -staff)}
@@ -144,6 +156,77 @@ export default function Finances() {
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
       </>}
+      {/* ---- the commercial department (F30) ----
+          Three things to sell, and what is in each slot right now. The offers
+          are deliberately shown with their multiple of market rate on them: the
+          judgement is meant to be about YOUR season, not about decoding whether
+          a number is good. */}
+      {ftab === 'deals' && <>
+        <SectionTitle sub={`${fmtMoney(commercialWeekly(game))} a week from ${SLOTS.filter(x => game.deals?.[x.id]).length} of 3 slots`}>
+          The Commercial Department
+        </SectionTitle>
+        {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}><div className="meta">{dealMsg}</div></div>}
+        {SLOTS.map(slot => {
+          const live = game.deals?.[slot.id]
+          const inTerm = !!live && live.until >= game.season
+          const mkt = marketRate(club.rep, slot.id)
+          return (
+            <div className="card" key={slot.id}>
+              <div className="fact-label">{slot.icon} {slot.name}</div>
+              <div className="meta muted">{slot.desc}</div>
+              {inTerm ? (
+                <>
+                  <div className="meta" style={{ marginTop: 4 }}>
+                    <b>{live!.sponsor}</b> · {fmtMoney(dealWeekly(game, live!))}/wk · to the end of {2026 + live!.until}
+                  </div>
+                  {live!.clause !== 'none' && (
+                    <div className="meta muted">
+                      {CLAUSES[live!.clause].text}{' '}
+                      <b style={{ color: clauseActive(game, live!.clause) ? 'var(--ink-good)' : undefined }}>
+                        {clauseActive(game, live!.clause) ? 'Paying now.' : 'Not paying.'}
+                      </b>
+                    </div>
+                  )}
+                  {/* a deal signed years ago against a smaller name is worth
+                      knowing about, because it is the cost of having taken the
+                      safe money */}
+                  {live!.weekly < mkt * 0.92 && (
+                    <div className="meta muted">
+                      Signed when you were worth less. The going rate for this slot is now {fmtMoney(mkt)}/wk.
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="meta" style={{ marginTop: 4 }}>
+                    <b>Unsold.</b> This slot is paying nothing. The going rate is {fmtMoney(mkt)}/wk.
+                  </div>
+                  {offersFor(game, slot.id).map((o, i) => (
+                    <div className="ledger-row" key={i} style={{ alignItems: 'center' }}>
+                      <span className="lg-what">
+                        <b>{o.sponsor}</b>{' '}
+                        <span className="muted">
+                          {fmtMoney(o.weekly)}/wk · {o.years === 1 ? '1 season' : `${o.years} seasons`} · {Math.round(o.vsMarket * 100)}% of market
+                        </span>
+                        {o.clause !== 'none' && <div className="meta muted">{CLAUSES[o.clause].text}</div>}
+                      </span>
+                      <button className="btn gold tiny" onClick={() => { setDealMsg(signOffer(game, o)); touch() }}>Sign</button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )
+        })}
+        <div className="card">
+          <div className="meta muted">
+            A long deal is safe money and pays under the going rate, because the sponsor is buying certainty off you.
+            A short one pays over the odds and sends you back to the market sooner, which is where a good season is worth something.
+            A clause pays best of all, if you deliver it.
+          </div>
+        </div>
+      </>}
+
       {ftab === 'cap' && (() => {
         const pos = capPosition(game, club.id)
         const grid = rosterGrid(game, club.id)
