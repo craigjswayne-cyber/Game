@@ -112,7 +112,7 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
   if (!kids.length) return null
   return (
     <>
-      <SectionTitle sub="U21 ceilings the scouts rave about - free agents included">Ones to Watch</SectionTitle>
+      <SectionTitle sub="U21 ceilings, free agents included">Ones to Watch</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {kids.map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>

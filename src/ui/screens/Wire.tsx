@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { PeopleChips } from './Inbox'
+import { paragraphs } from '../components'
 import { weekDate } from '../../game/model'
 
 const TYPE_ICON: Record<string, string> = {
@@ -42,8 +43,13 @@ export default function Wire() {
         <h2 style={{ fontSize: 19, lineHeight: 1.3, margin: '8px 0 10px' }}>
           {TYPE_ICON[n.type] ?? '📰'} {n.subject}
         </h2>
-        <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 14, lineHeight: 1.65, flex: 1, overflowY: 'auto' }}>
-          {n.body}
+        {/* PARAGRAPHS, not a wall (user: "news graphics seem so messy, tidy them
+            up. use paragraphs"). pre-line honours the newlines the engine writes
+            but gives them no space, so a three-part story read as one block with
+            odd gaps in it. Real paragraphs get real air between them, and a blank
+            line in the source no longer produces an empty one on screen. */}
+        <div className="wire-body" style={{ flex: 1, overflowY: 'auto' }}>
+          {paragraphs(n.body).map((para, i) => <p key={i}>{para}</p>)}
         </div>
         {/* the same chip row the inbox reader uses, so a name looks tappable in
             the same way wherever the story is being read (10F) */}

@@ -151,7 +151,7 @@ export default function Finances() {
         const marquee = pos.marquee.map(id => game.players[id]).filter(Boolean)
         return (
           <>
-            <SectionTitle sub="The wage ceiling for your division, and what is left of it">
+            <SectionTitle sub="Your division's ceiling, and the room left">
               Salary Cap
             </SectionTitle>
             <div className="card">
@@ -190,7 +190,7 @@ export default function Finances() {
                   </div>
                 ))}
             </div>
-            <SectionTitle sub="Men under contract by unit, this season and the next three">
+            <SectionTitle sub="Under contract, by unit, four seasons out">
               Squad Cover
             </SectionTitle>
             <div className="tblwrap fitwrap"><table className="dtable fit">

@@ -41,7 +41,7 @@ export default function Menu() {
                   "Montpellier Hérault Rugby" and a manager can be called
                   anything, so the line ellipsises rather than wrapping */}
               <div className="ct-line">▸ Continue - {newest.managerName}, {newest.club}</div>
-              <div className="ct-sub">{seasonLabel(newest.season)}, week {newest.week}</div>
+              <div className="ct-sub">{seasonLabel(newest.season)}, Week {newest.week}</div>
             </button>
           )
         })()}
@@ -60,7 +60,7 @@ export default function Menu() {
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>
             <button className="btn" style={{ flex: 1, background: 'var(--brand-800)' }} onClick={() => void load(s.slot)}>
               {s.managerName} - {s.club}
-              <div style={{ fontSize: 11, opacity: .8 }}>{seasonLabel(s.season)}, week {s.week}</div>
+              <div style={{ fontSize: 11, opacity: .8 }}>{seasonLabel(s.season)}, Week {s.week}</div>
             </button>
             <button className="btn danger" style={{ padding: '0 12px' }}
               onClick={() => void deleteSave(s.slot).then(() => listSaves().then(setSaves))}>✕</button>

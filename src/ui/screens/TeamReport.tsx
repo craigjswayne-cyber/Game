@@ -70,7 +70,16 @@ export default function TeamReport() {
       </div>
 
       <SectionTitle sub="⭐ = the men opponents fear">Star Players</SectionTitle>
-      <div className="tblwrap"><table className="dtable"><tbody>
+      {/* Fixed columns, because auto layout let the name take what it wanted and
+          pushed the value off the right-hand edge of the phone (user: "star player
+          money doesnt stay within phone boundaries"). The name is the only thing
+          here that can afford to ellipsise, so it gets the elastic column and
+          everything else gets a width. */}
+      <div className="tblwrap"><table className="dtable fit">
+        <colgroup>
+          <col style={{ width: 42 }} /><col /><col style={{ width: 74 }} /><col style={{ width: 62 }} />
+        </colgroup>
+        <tbody>
         {squad.filter(p => stars.has(p.id)).map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td><PosBadge pos={p.pos} /></td>
@@ -79,11 +88,12 @@ export default function TeamReport() {
             <td className="num">{fmtMoney(p.value)}</td>
           </tr>
         ))}
-      </tbody></table></div>
+        </tbody>
+      </table></div>
 
       </>}
       {rtab === 'depth' && <>
-      <SectionTitle sub="cover for every shirt - red rows need recruits">Positional Depth</SectionTitle>
+      <SectionTitle sub="cover per shirt - red needs recruits">Positional Depth</SectionTitle>
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Role</th><th className="num">Cover</th><th>Best option</th></tr></thead>
         <tbody>
