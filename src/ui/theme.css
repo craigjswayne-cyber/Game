@@ -57,8 +57,8 @@
   --cream-3: #e8d2cc;
   --paper: #ffffff;
   --ink: #23181c;
-  --ink-soft: #6a5860;
-  --ink-faint: #9c8a90;
+  --ink-soft: #6f525f;
+  --ink-faint: #a3838f;
   /* THE ACCENT, and it has to actually be one.
      It was #5c6470 - a slate grey, chroma 0.08 - and it is the token behind the
      active tab underline, the unread-news bar, focus rings, progress meters, the
@@ -122,8 +122,8 @@
   --cream-3: #3b1a25;
   --paper: #26101a;
   --ink: #f6ecef;
-  --ink-soft: #c8b2b9;
-  --ink-faint: #96808a;
+  --ink-soft: #cdaeb8;
+  --ink-faint: #9d7b88;
   --hairline: rgba(246, 236, 239, 0.10);
   --accent-ink: #ffb3c2;
   --title-ink: #fdf0f3;
