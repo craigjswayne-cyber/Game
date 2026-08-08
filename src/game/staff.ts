@@ -12,7 +12,10 @@ export const BADGE_COL = ['#8a8a8a', '#b07a4e', '#9aa6b2', '#c9a227']
 
 /** Pass rate for a coaching course. Hard number, straight from the brief. */
 export const EXAM_PASS_PCT = 58
-export const COURSE_WEEKS = 6
+// There was a COURSE_WEEKS = 6 here. Nothing read it: courses resolve the day
+// they are sat. A constant nobody uses, sitting next to a live one, is how the
+// next reader concludes that a course still takes six weeks - which is exactly
+// what staffprobe was still asserting.
 /** A failed badge cannot be re-sat for four weeks - about a month. */
 export const RETAKE_WEEKS = 4
 export const courseFee = (tier: number) => 60_000 * tier
