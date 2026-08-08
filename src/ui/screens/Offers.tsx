@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney } from '../../game/model'
+import { fmtMoney, fmtWage } from '../../game/model'
 import { counterIncomingOffer, respondToOffer } from '../../game/ai'
 import { CrestT, PosBadge, Stars } from '../components'
 import { statusOf, STATUS_BY_ID } from '../../game/gametime'
@@ -90,7 +90,7 @@ export default function Offers() {
             Valued at {fmtMoney(p.value)}, so this is{' '}
             <b style={{ color: over > 0 ? 'var(--win)' : 'var(--red)' }}>
               {over > 0 ? `${fmtMoney(over)} over` : over < 0 ? `${fmtMoney(-over)} under` : 'exactly'}
-            </b>{' '}the valuation. He is a <b>{STATUS_BY_ID[st].name.toLowerCase()}</b>, on {fmtMoney(p.wage)}/wk
+            </b>{' '}the valuation. He is a <b>{STATUS_BY_ID[st].name.toLowerCase()}</b>, on {fmtWage(p.wage)}/wk
             until the end of {2026 + p.contractEnds - game.season - 1}.
           </div>
           <div className="meta">

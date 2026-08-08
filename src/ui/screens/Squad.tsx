@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { POS_ORDER, fmtMoney, type Player } from '../../game/model'
+import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
@@ -249,7 +249,7 @@ export default function Squad() {
               <Th k="name">Name</Th>
               <Th k="pos">Pos</Th>
               <Th k="age" right>Age</Th>
-              <Th k="wage" right>Wage</Th>
+              <Th k="wage" right>Wage /wk</Th>
               <Th k="until" right>Until</Th>
               {/* an icon, not a phrase: "under contract" is the answer for 38 of
                   42 men and it was eating 78px of a 412px screen to say so */}
@@ -321,7 +321,7 @@ export default function Squad() {
                 {view === 'contracts' && (<>
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="num">{p.age}</td>
-                  <td className="num">{fmtMoney(p.wage)}</td>
+                  <td className="num">{fmtWage(p.wage)}</td>
                   <td className="num" style={{ fontWeight: 700, color: p.contractEnds <= game.season ? '#a12f2f' : p.contractEnds === game.season + 1 ? '#a8841a' : undefined }}>
                     {2026 + p.contractEnds}
                   </td>

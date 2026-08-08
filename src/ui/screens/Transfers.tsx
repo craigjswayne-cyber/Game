@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, POS_NAMES, POS_ORDER, type Pos } from '../../game/model'
+import { fmtMoney, fmtWage, POS_NAMES, POS_ORDER, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
@@ -117,7 +117,7 @@ export default function Transfers() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700 }}>{p.name}</div>
                     <div className="muted" style={{ fontSize: 12 }}>
-                      {p.age} yrs · {fmtMoney(p.wage)}/wk now · asks {fmtMoney(demand)}/wk · morale {p.morale.toFixed(0)}/10
+                      {p.age} yrs · on {fmtWage(p.wage)}, asks {fmtWage(demand)} /wk · morale {p.morale.toFixed(0)}/10
                     </div>
                   </div>
                   {p.retiring

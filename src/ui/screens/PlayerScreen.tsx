@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, type Attrs, type GameState, type Player } from '../../game/model'
+import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
@@ -114,7 +114,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
         <span className="chip" title="what the market says he is worth, not what a club would accept">Value <b>{fmtMoney(p.value)}</b></span>
-        <span className="chip" title="what he costs you every week of the year">Wage <b>{fmtMoney(p.wage)}/wk</b></span>
+        <span className="chip" title="what he costs you every week of the year">Wage <b>{fmtWage(p.wage)}/wk</b></span>
         <span className="chip" title="the summer his deal runs out. Leave it too late and he can sign elsewhere for nothing">Contract to <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: '#a8841a', color: '#a8841a', fontWeight: 700 }}>
           💼 Agent wants new terms</span>}
@@ -136,7 +136,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <div style={{ flex: 1 }}>
             <div className="fact-label">Compare</div>
             <div className="meta">
-              Your best {p.pos}: <b>{rival.name}</b> ({Math.round(rival.ca)} overall, {rival.age} yrs, {fmtMoney(rival.wage)}/wk)
+              Your best {p.pos}: <b>{rival.name}</b> ({Math.round(rival.ca)} overall, {rival.age} yrs, {fmtWage(rival.wage)}/wk)
               {compare ? ' - his numbers shown beside each bar.' : ''}
             </div>
           </div>
@@ -358,21 +358,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           {negotiating && (
             <div className="card">
               <h3>Contract talks with {p.name.split(' ').slice(-1)[0]}'s agent</h3>
-              <div className="meta">His camp wants {fmtMoney(renewalDemand(p))}/wk (currently {fmtMoney(p.wage)}/wk). Lowball at your peril.</div>
+              <div className="meta">His camp wants {fmtWage(renewalDemand(p))}/wk (he is on {fmtWage(p.wage)}). Lowball at your peril.</div>
               <input className="inline-input" type="text" inputMode="numeric" value={wageText}
                 onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
               <div className="btn-row" style={{ margin: '10px 0 0' }}>
                 <button className="btn gold" onClick={() => {
                   const r = offerRenewalAt(game, p.id, wageOffer)
                   setMsg(r.msg); setWageCounter(r.counter ?? null); if (r.ok) setNegotiating(false); touch()
-                }}>Offer {fmtMoney(wageOffer)}/wk</button>
+                }}>Offer £{wageOffer.toLocaleString()}/wk</button>
                 <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>Walk Away</button>
               </div>
               {wageCounter != null && (
                 <button className="btn" style={{ marginTop: 8, width: '100%' }} onClick={() => {
                   const r = offerRenewalAt(game, p.id, wageCounter)
                   setMsg(r.msg); setWageCounter(null); if (r.ok) setNegotiating(false); touch()
-                }}>Meet their number ({fmtMoney(wageCounter)}/wk)</button>
+                }}>Meet their number (£{wageCounter.toLocaleString()}/wk)</button>
               )}
             </div>
           )}
@@ -477,7 +477,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           user.players.push(p.id)
           p.wage = wage
           p.contractEnds = game.season + 2
-          setMsg(`${p.name} signs on a free transfer (${fmtMoney(wage)}/wk).`)
+          setMsg(`${p.name} signs on a free transfer (£${wage.toLocaleString()}/wk).`)
           touch()
         }}>Sign Free Agent</button>
       )}
