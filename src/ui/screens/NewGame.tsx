@@ -85,14 +85,38 @@ export default function NewGame() {
           </div>
           <div className="step-meter"><i style={{ width: `${((step + 1) / 4) * 100}%` }} /></div>
         </div>
-        <div className="crumbs">
-          {STEPS.map((s, i) => (
-            <span key={s} className={`crumb${i === step ? ' on' : i < step ? ' done' : ''}`}
-              onClick={() => i < step && setStep(i)}>
-              {i === 0 && league ? league.short : i === 1 && club ? club.short : s}
-            </span>
-          ))}
-        </div>
+        {/* ---- the trail is what you have CHOSEN, not where you are ----
+            It used to be four equal crumbs holding two different kinds of thing:
+            the league and club you had picked, then the words MANAGER and
+            SUMMARY, which are step names the line above already gives you. Four
+            crumbs on 412px is about 76px each once the arrow notches are cut off
+            them, and "Northampton" does not fit in 76px - so the one crumb
+            carrying information you cannot get anywhere else was the one being
+            truncated (user: "the team name dissapears at the top ... maybe remove
+            the words manager from the list as not sure its needed. the step is").
+
+            So the step names are gone. Step 3 of 4 - Manager and the meter beside
+            it say where you are; these say what you have decided, and there are
+            never more than three of them, which is what gives the club its room.
+            Each one steps back to the screen that set it. */}
+        {(() => {
+          const trail = [
+            league ? { label: league.short, at: 0 } : null,
+            club ? { label: club.short, at: 1 } : null,
+            name.trim() ? { label: name.trim(), at: 2 } : null,
+          ].filter((x): x is { label: string; at: number } => !!x)
+          if (!trail.length) return null
+          return (
+            <div className="crumbs">
+              {trail.map((c, i) => (
+                <span key={c.at} className={`crumb${i === trail.length - 1 ? ' on' : ' done'}`}
+                  onClick={() => setStep(c.at)}>
+                  {c.label}
+                </span>
+              ))}
+            </div>
+          )
+        })()}
       </header>
 
       <main className="content" style={{ paddingBottom: 150 }}>
