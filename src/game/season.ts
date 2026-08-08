@@ -156,6 +156,32 @@ function applyToTable(comp: Competition, fx: Fixture) {
   if (fx.awayScore < fx.homeScore && fx.homeScore - fx.awayScore <= 7) { a.bp++; a.pts++ }
 }
 
+/**
+ * Recompute a league table from the fixtures that have actually been played.
+ *
+ * A save can arrive holding a table that disagrees with its own fixture list -
+ * a bad write, a hand edit, or fixtures pruned on load because they named clubs
+ * the file no longer contains. The standings are what a whole season is read
+ * through, so a table saying forty-one games played in a league that has played
+ * one is not cosmetic: every objective, every board judgement and every headline
+ * about the title race is drawn from it.
+ *
+ * This replays the real fixtures through the real points rules rather than
+ * inventing a correction, so the repaired table is the one the engine would have
+ * produced. Found by scripts/savefuzz.ts.
+ */
+export function rebuildTable(comp: Competition, fixtures: Fixture[]) {
+  if (comp.type !== 'league' || !Array.isArray(comp.table)) return
+  for (const r of comp.table) {
+    r.p = 0; r.w = 0; r.d = 0; r.l = 0
+    r.pf = 0; r.pa = 0; r.tf = 0; r.ta = 0; r.bp = 0; r.pts = 0
+  }
+  for (const fx of fixtures) {
+    if (fx.compId !== comp.id || !fx.played || fx.stage) continue
+    applyToTable(comp, fx)
+  }
+}
+
 /** In knockout rugby there are no draws - nudge a golden-point winner. */
 export function resolveKnockoutDraw(state: GameState, fx: Fixture, rng: Rng) {
   if (fx.homeScore !== fx.awayScore) return
