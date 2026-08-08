@@ -46,13 +46,6 @@ interface Store {
   wireQueue: number[]
   night: boolean
   toggleNight: () => void
-  /** The portrait nudge has been overruled: play on sideways-up.
-   *
-   *  The rotate veil covers the whole screen, and a phone with its rotation
-   *  lock switched on never leaves portrait, so without an escape hatch the
-   *  game is simply unplayable for that user (blocker A3). */
-  portraitOk: boolean
-  allowPortrait: () => void
   /** The welcome dialog, hoisted out of Home so any screen can open it and the
    *  Manager menu can bring it back after it has been dismissed (blocker A2). */
   tut: boolean
@@ -170,6 +163,20 @@ function settleKnockout(g: GameState, ctx: LiveCtx) {
 const NO_RESUME = new Set<Screen>(['menu', 'newgame', 'wire', 'results', 'seasonreview'])
 const WHERE_KEY = 'rm-where'
 
+/** Is the pre-match hub still the screen on top?
+ *
+ *  Kicking off and taking the assistant's instant result are both MatchDay
+ *  buttons, and both settle the whole week before returning. A thumb that taps
+ *  twice quickly can land the second tap after the first has already been
+ *  honoured and the screen has moved on to the round-up - at which point the
+ *  week has advanced, so the handler would happily find NEXT week's fixture and
+ *  play it with no preview, no selection and no team talk. Refusing a call that
+ *  arrives when MatchDay is no longer on top costs nothing and closes that. */
+function onMatchDay(get: () => Store): boolean {
+  const nav = get().nav
+  return nav[nav.length - 1]?.screen === 'matchday'
+}
+
 function noteWhere(slot: string, nav: NavEntry[]) {
   const trail = nav.filter(e => !NO_RESUME.has(e.screen)).slice(-6)
   try {
@@ -241,14 +248,6 @@ export const useStore = create<Store>((set, get) => ({
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
     return { night }
   }),
-
-  // remembered, not session-only: a manager whose rotation lock is always on
-  // should not have to overrule the same nudge every single launch.
-  portraitOk: typeof localStorage !== 'undefined' && localStorage.getItem('rm-portrait') === '1',
-  allowPortrait: () => {
-    try { localStorage.setItem('rm-portrait', '1') } catch { /* private mode */ }
-    set({ portraitOk: true })
-  },
 
   tut: false,
   openTut: () => set({ tut: true }),
@@ -422,6 +421,7 @@ export const useStore = create<Store>((set, get) => ({
   instantResult: (preTalk) => {
     const g = get().game
     if (!g) return
+    if (!onMatchDay(get)) return
     const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
     const fx = clubFx ?? natFixtureThisWeek(g)
     if (!fx) return
@@ -435,22 +435,24 @@ export const useStore = create<Store>((set, get) => ({
     playHalf(g, ctx)
     playHalf(g, ctx)
     const resultsKey = `${fx.compId}:${g.week}`
-    const sinceId = g.nextId
+    // Exactly what finishMatch does, and for the same reason. This used to set
+    // its own watermark aside and then push every new story of the week into the
+    // Wire in one go, which meant a week played through the assistant was
+    // revealed all at once while the same week watched on the pitch was revealed
+    // a day at a time. Measured over a season of instant results: 30 bulletins
+    // across 36 weeks, because the Wire had already read and cleared the stories
+    // Monday to Friday were meant to carry. The day walk is the reveal now, both
+    // ways round; the round-up still comes first, with Monday under it.
+    g.newsFrom = g.nextId
     processWeekAndAdvance(g)
-    const wire = g.news.filter(n => !n.read && n.id >= sinceId).map(n => n.id)
-    set(s => ({
-      liveMatch: null,
-      wireQueue: wire,
-      // results on top; backing out of them lands on the Wire stories
-      nav: [{ screen: 'home' }, ...(wire.length ? [{ screen: 'wire' as const }] : []), { screen: 'results' as const, param: resultsKey }],
-      tick: s.tick + 1,
-    }))
-    void get().persist()
+    set(s => ({ liveMatch: null, tick: s.tick + 1 }))
+    landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
   },
 
   kickOff: (preTalk, mode) => {
     const g = get().game
     if (!g) return
+    if (!onMatchDay(get)) return
     const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
     const fx = clubFx ?? natFixtureThisWeek(g)
     if (!fx) return

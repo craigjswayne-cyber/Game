@@ -15,7 +15,6 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
 await page.addInitScript(() => {
   localStorage.setItem('rm-night', '1')
-  localStorage.setItem('rm-portrait', '1') // past the rotate veil
 })
 
 let fails = 0

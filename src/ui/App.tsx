@@ -62,27 +62,15 @@ const IcoSun = () => (
   </svg>
 )
 
-/** The game is a landscape experience - nudge portrait users to rotate.
- *
- *  A nudge, not a wall (blocker A3). This veil covers the entire viewport in
- *  portrait, and a phone with its rotation lock switched on will never leave
- *  portrait no matter how it is held, so an escape hatch is the difference
- *  between a hint and a locked door. */
-function RotateVeil() {
-  const ok = useStore(s => s.portraitOk)
-  if (ok) return null
-  return (
-    <div className="rotate-veil">
-      <div className="phone">📱</div>
-      <h2>Turn your phone sideways</h2>
-      <p>Rugby Manager plays in landscape - like every good dugout view.</p>
-      <button className="btn ghost" onClick={() => useStore.getState().allowPortrait()}>
-        Play anyway
-      </button>
-      <p style={{ fontSize: 11.5 }}>Tables and the live pitch will be tight, but nothing is off limits.</p>
-    </div>
-  )
-}
+/* There used to be a "turn your phone sideways" veil here, softened to a nudge
+ * with a Play anyway escape (blocker A3). It is gone, because it was telling a
+ * lie: portrait is now the orientation this game is designed and tuned for -
+ * every table has a fitted colgroup, the headings pin properly, the masthead
+ * drops its controls onto a second row, and there is a portrait QA harness that
+ * fails the build if any of that regresses. A first-time player in portrait was
+ * being met by a full-screen wall instructing them away from the layout that
+ * actually gets the attention. Landscape still works; neither needs asking for.
+ */
 
 /** A save that fails in silence is the worst failure a management game has
  *  (blocker A4): you keep playing for two hours and lose all of it. */
@@ -144,7 +132,6 @@ function Overlays() {
       <SaveWarning />
       <Tutorial />
       <Celebration />
-      <RotateVeil />
     </>
   )
 }

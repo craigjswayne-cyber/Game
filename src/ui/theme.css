@@ -1042,35 +1042,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .preset-chip:active { background: var(--green-700); }
 
-/* ================= Landscape lock ================= */
-.rotate-veil { display: none; }
-@media (orientation: portrait) {
-  .rotate-veil {
-    position: fixed; inset: 0; z-index: 999;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-    background: linear-gradient(172deg, var(--green-900, #0b3d2e), var(--green-950, #082b20));
-    color: #ece7d8;
-    text-align: center; padding: 30px;
-  }
-  .rotate-veil .phone {
-    font-size: 52px;
-    animation: rotate-hint 1.6s ease infinite;
-  }
-  .rotate-veil h2 { font-family: var(--sans); font-size: 19px; color: var(--gold-bright, #e3b92e); }
-  .rotate-veil p { font-size: 13px; color: #9fb2a7; max-width: 260px; line-height: 1.5; }
-  /* the base ghost button is dark green ink for a cream card, which on this
-     veil is invisible - the escape hatch has to be seen to be an escape */
-  .rotate-veil .btn.ghost {
-    color: var(--gold-bright, #e3b92e);
-    border-color: rgba(227, 185, 46, .55);
-    padding: 11px 24px; font-size: 13px;
-  }
-}
-@keyframes rotate-hint {
-  0%, 20% { transform: rotate(0); }
-  55%, 100% { transform: rotate(90deg); }
-}
-
 /* ================= FM-style slide-out sub-menus ================= */
 .submenu-veil {
   position: fixed; inset: 0; z-index: 120;

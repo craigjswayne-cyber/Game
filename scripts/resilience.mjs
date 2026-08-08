@@ -156,28 +156,115 @@ try {
   await page.waitForSelector('.celebrate-veil', { state: 'detached', timeout: 5000 })
   check(true, 'and a tap clears it, so it cannot get stuck on screen')
 
-  // ---------- A3: the portrait wall ----------
-  console.log('A3 the portrait wall')
-  await page.setViewportSize({ width: 390, height: 844 })
-  await page.waitForSelector('.rotate-veil', { state: 'visible', timeout: 5000 })
-  check(true, 'portrait raises the rotate nudge')
+  // ---------- A3: portrait is not walled off ----------
+  //
+  // This used to check that the "turn your phone sideways" veil covered the
+  // screen and had a way out of it. The veil is gone: portrait is the tuned
+  // orientation now, so the check is that nothing stands in front of it at all,
+  // on a cold profile that has never been asked and never answered.
+  console.log('A3 portrait is not walled off')
+  await page.setViewportSize({ width: 412, height: 915 })
+  await page.waitForTimeout(300)
+  check(await page.locator('.rotate-veil').count() === 0, 'portrait raises no rotate wall')
+  const covered = await page.evaluate(() => {
+    // whatever sits at the middle of the screen should be the game, not a veil
+    const el = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2)
+    return !!el?.closest('.rotate-veil')
+  })
+  check(!covered, 'and nothing full-screen is sitting on top of the game')
   await shot('03-portrait')
-  check(await page.evaluate(() => {
-    const r = document.querySelector('.rotate-veil').getBoundingClientRect()
-    return r.width >= window.innerWidth && r.height >= window.innerHeight
-  }), 'and it covers the whole screen, which is why it needs a way out')
-  await page.click('.rotate-veil >> text=Play anyway')
-  await page.waitForSelector('.rotate-veil', { state: 'detached', timeout: 5000 })
-  check(true, 'Play anyway dismisses it')
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Squad')
   await page.waitForSelector('.dtable', { timeout: 8000 })
-  check(true, 'and the game underneath answers taps in portrait')
+  check(true, 'and the game answers taps in portrait straight away')
   await shot('04-portrait-playing')
   await page.reload()
-  await page.waitForSelector('text=RUGBY', { timeout: 15000 })
-  check(await page.locator('.rotate-veil').count() === 0, 'and the choice survives a reload, so it is not a toll gate')
+  await page.waitForSelector('.app', { timeout: 15000 })
+  await page.waitForTimeout(600)
+  check(await page.locator('.rotate-veil').count() === 0, 'and a reload in portrait still asks for nothing')
   await page.setViewportSize({ width: 844, height: 390 })
+
+  // ---------- A6: the fat-thumb double tap on the assistant ----------
+  //
+  // Kicking off settles the entire week and lands on the round-up. A second tap
+  // that arrives after the first has been honoured used to be free to run the
+  // handler again - and by then the week had advanced, so it would find NEXT
+  // week's fixture and play it with no preview, no selection and no team talk.
+  // The store now refuses any kick-off that arrives when MatchDay is no longer
+  // the screen on top. One tap, one match.
+  console.log('A6 a double tap plays one match, not two')
+  // the reload bookmark would otherwise drop us straight back into the career
+  // above, and this block needs a career of its own from week one
+  await page.evaluate(() => localStorage.removeItem('rm-where'))
+  await newCareer('Twin Tap')
+  await page.waitForSelector('.bottom-nav', { timeout: 20000 })
+  // the welcome box only shows once a profile, and A2 above already saw it off
+  if (await page.locator('.tut-box').count()) {
+    await page.click('.tut-close .btn').catch(() => {})
+    await page.waitForTimeout(200)
+  }
+
+  const weekNow = async () => {
+    const d = await page.textContent('.masthead .date').catch(() => '')
+    const m = /WK\s*(\d+)/i.exec(d ?? '')
+    return m ? Number(m[1]) : null
+  }
+  // walk the days until the masthead offers the match itself
+  let reachedMatch = false
+  for (let i = 0; i < 20; i++) {
+    const label = (await page.textContent('.continue-btn').catch(() => '')) ?? ''
+    if (/Matchday/i.test(label)) { reachedMatch = true; break }
+    await page.click('.continue-btn').catch(() => {})
+    await page.waitForTimeout(220)
+  }
+  check(reachedMatch, 'the week walks as far as a matchday')
+  const weekBefore = await weekNow()
+  await page.click('.continue-btn')          // into the pre-match hub
+  await page.waitForTimeout(350)
+  await page.click('.continue-btn')          // Kick Off: opens the dressing room
+  await page.waitForSelector('.talk-modal', { timeout: 8000 })
+  // hand it to the assistant so the match resolves in one go
+  const chip = page.locator('.preset-chip', { hasText: 'Assistant' }).first()
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(150) }
+  // Two clicks dispatched in ONE task, which is the only way to reproduce this.
+  // Playwright's dblclick does not: react commits between the two, the button
+  // unmounts, and the second click lands on nothing - so a dblclick test passes
+  // whether the guard is there or not, which is worse than no test at all
+  // (measured: it passed with the guard deliberately removed). Dispatching both
+  // synchronously is what a fat thumb does to a phone that is mid-frame.
+  const twin = await page.evaluate(() => {
+    const b = document.querySelector('.talk-modal .speech-tile')
+    if (!b) return 'no speech tile'
+    b.click()
+    b.click()
+    return 'both dispatched'
+  })
+  check(twin === 'both dispatched', `two clicks landed in one task (${twin})`)
+  await page.waitForTimeout(1200)
+  // the ready check only appears when the sheet has warnings on it; same trick
+  const twin2 = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')]
+      .find(x => /Let Him Take It|Take the Field/.test(x.innerText))
+    if (!b) return 'no ready check'
+    b.click()
+    b.click()
+    return 'both dispatched'
+  })
+  console.log(`  .. ready check: ${twin2}`)
+  await page.waitForTimeout(1200)
+  const weekAfter = await weekNow()
+  check(weekBefore != null && weekAfter === weekBefore + 1,
+    `two taps advanced exactly one week (${weekBefore} to ${weekAfter})`)
+  const played = await page.evaluate(`(() => {
+    const g = ${REACH_GAME}
+    return g && g.mgr ? g.mgr.m : null
+  })()`)
+  check(played === 1, `and the manager's record shows one match played (${played})`)
+  await shot('06-double-tap')
+  // hand A4 the title screen it expects, with a save sitting behind it
+  await page.evaluate(() => localStorage.removeItem('rm-where'))
+  await page.goto('http://localhost:4177/')
+  await page.waitForSelector('.continue-tile', { timeout: 15000 })
 
   // ---------- A4: a save that fails ----------
   console.log('A4 a failed save')
