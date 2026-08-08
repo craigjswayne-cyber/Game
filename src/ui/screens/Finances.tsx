@@ -278,7 +278,7 @@ function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
                 <i style={{
                   position: 'absolute', left: 0, right: 0,
                   ...(h.b >= 0 ? { bottom: 36, height: bar } : { top: 36, height: bar }),
-                  background: h.b >= 0 ? 'var(--green-800)' : 'var(--red)',
+                  background: h.b >= 0 ? 'var(--brand-800)' : 'var(--red)',
                   borderRadius: 2.5,
                 }} />
               </span>

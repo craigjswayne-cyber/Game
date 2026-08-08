@@ -1,12 +1,12 @@
 {
-  "name": "Rugby Manager",
-  "short_name": "RugbyMgr",
-  "description": "A classic-style rugby union management game \u2014 real clubs, real players, deep seasons.",
+  "name": "FAB Rugby",
+  "short_name": "FAB Rugby",
+  "description": "A classic-style rugby union management game: real clubs, real players, deep seasons.",
   "start_url": "./",
   "display": "standalone",
   "orientation": "landscape",
-  "background_color": "#eef3f9",
-  "theme_color": "#24478f",
+  "background_color": "#16070d",
+  "theme_color": "#c92450",
   "icons": [
     {
       "src": "./icon-192.png",

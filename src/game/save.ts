@@ -11,6 +11,9 @@ import { seedNatRank } from './natrank'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 
+// NOT renamed with the game. This string is the key every existing save lives
+// under, so changing it to 'fab-rugby' would not rename anything - it would point
+// the game at an empty database and every career would appear to have vanished.
 const DB_NAME = 'rugby-manager'
 const STORE = 'saves'
 

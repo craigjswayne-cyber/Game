@@ -4,51 +4,35 @@ import { flagOf } from '../game/nations'
 import { kitPattern, type KitPattern } from '../game/kits'
 
 
-/** The brand roundel: white circle, monogram, magazine-style. */
 /**
- * ---- THE MARK ----
+ * ---- THE FAB RUGBY BALL ----
  *
- * It used to be the letters RM in a white circle, which is a placeholder rather
- * than a badge (user: "can you redesign the rugby manager logo on the front
- * page"). This is a proper crest instead: a shield in the game's own green and
- * gold, the posts standing in it, a ball across the middle on the seam, and the
- * two initials small at the base where a founding date would go on a real one.
+ * The mark is the ball, tilted, white leather with a heavy black keyline, sitting
+ * inside a gold ring on crimson. It replaced a shield with goalposts and initials
+ * on it, which was three ideas fighting for 64 pixels and unreadable at rail size.
  *
- * All flat shapes and no external assets, because it renders at 60px on a phone
- * title screen and at 26px in the masthead - anything finer than this turns to
- * mud at the small size. `inverse` puts it on a dark ground.
+ * Drawn rather than shipped as an image, for two reasons that both matter on a
+ * phone: it is a few hundred bytes inside the bundle instead of a request, and it
+ * stays sharp at every size from the 20px masthead to the 512px install icon.
+ *
+ * The two hooks inside the ball are the light catching the leather, not seams.
+ * They are what makes it read as a ball at 20px, where actual lacing turns to mud.
  */
 export function BrandMark({ size = 64, inverse = false }: { size?: number; inverse?: boolean }) {
-  const field = inverse ? '#0b3d2e' : '#14543f'
-  const edge = inverse ? '#e3b92e' : '#c9a227'
-  const post = inverse ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.95)'
-  const ball = inverse ? '#f0d98c' : '#e8dcb5'
-  const seam = inverse ? '#0b3d2e' : '#14543f'
+  const disc = inverse ? '#c92450' : '#e1325b'
+  const ring = inverse ? '#ffdd57' : '#f2c81e'
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
-      {/* the shield: flat shoulders, a point at the bottom */}
-      <path d="M8 6 H56 V34 C56 46 46 55 32 60 C18 55 8 46 8 34 Z" fill={field} />
-      <path d="M8 6 H56 V34 C56 46 46 55 32 60 C18 55 8 46 8 34 Z"
-        fill="none" stroke={edge} strokeWidth="2.5" />
-      {/* the posts, set back so the ball reads on top of them */}
-      <g fill={post}>
-        <rect x="20" y="14" width="3" height="34" rx="1" />
-        <rect x="41" y="14" width="3" height="34" rx="1" />
-        <rect x="20" y="26" width="24" height="3" rx="1.5" />
+      <circle cx="32" cy="32" r="32" fill={disc} />
+      <circle cx="32" cy="32" r="26" fill="none" stroke={ring} strokeWidth="3.4" />
+      {/* the ball: an ellipse rotated off the horizontal, keylined in black */}
+      <g transform="rotate(-32 32 32)">
+        <ellipse cx="32" cy="32" rx="16.2" ry="22.6" fill="#0e0e0e" />
+        <ellipse cx="32" cy="32" rx="13.6" ry="20.0" fill="#ffffff" />
+        {/* the light on the leather: one hook top-left, one bottom-right */}
+        <path d="M31.4 12.4 C24.4 18.6 22.0 25.8 22.6 33.6 C24.4 26.6 26.4 20.4 33.2 13.8 Z" fill="#0e0e0e" />
+        <path d="M32.6 51.6 C39.6 45.4 42.0 38.2 41.4 30.4 C39.6 37.4 37.6 43.6 30.8 50.2 Z" fill="#0e0e0e" />
       </g>
-      {/* the ball, sitting on the crossbar line */}
-      <ellipse cx="32" cy="27.5" rx="11" ry="7" fill={ball} />
-      <path d="M25 27.5 H39" stroke={seam} strokeWidth="1.6" strokeLinecap="round" />
-      <g stroke={seam} strokeWidth="1.3" strokeLinecap="round">
-        <path d="M28 25.4 V29.6" /><path d="M32 25 V30" /><path d="M36 25.4 V29.6" />
-      </g>
-      {/* the initials at the base, the size a founding date would be */}
-      <text
-        x="32" y="53" textAnchor="middle"
-        fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
-        fontWeight="800" fontSize="10" letterSpacing="1.5"
-        fill={edge}
-      >RM</text>
     </svg>
   )
 }
@@ -118,9 +102,9 @@ export function Stars({ ca }: { ca: number }) {
   const full = Math.max(0, Math.floor(n))
   const half = n - full >= 0.5
   return (
-    <span style={{ color: '#a8841a', fontSize: 11, letterSpacing: 1 }}>
+    <span style={{ color: 'var(--gold-dark)', fontSize: 11, letterSpacing: 1 }}>
       {'★'.repeat(Math.min(5, full))}{half && full < 5 ? '½' : ''}
-      <span style={{ color: 'var(--star-empty, #cfc4a9)' }}>{'★'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}</span>
+      <span style={{ color: 'var(--star-empty)' }}>{'★'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}</span>
     </span>
   )
 }

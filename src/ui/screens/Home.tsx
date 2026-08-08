@@ -84,7 +84,7 @@ export default function Home() {
         const thisWk = game.fixtures.filter(f => f.compId === 'sn' && f.week === game.week)
         return (
           <div className="card" onClick={() => go('nations')}
-            style={{ background: 'linear-gradient(135deg, var(--green-900), var(--green-950))', color: '#eef3fb', cursor: 'pointer' }}>
+            style={{ background: 'linear-gradient(135deg, var(--brand-900), var(--brand-950))', color: '#eef3fb', cursor: 'pointer' }}>
             <div className="fact-label" style={{ color: 'var(--gold-bright)' }}>🏆 SIX NATIONS - THE GREATEST CHAMPIONSHIP</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>

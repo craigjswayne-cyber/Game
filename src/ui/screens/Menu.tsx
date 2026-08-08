@@ -21,7 +21,7 @@ export default function Menu() {
     <div className="title-screen">
       <BrandMark size={60} />
       <hr className="rules" />
-      <h1>RUGBY<br />MANAGER</h1>
+      <h1><b>FAB</b><br />RUGBY</h1>
       {/* set in caps at the user's request, so it reads as a strapline under the
           title rather than as a sentence someone left there */}
       <div className="tagline">STORIES, SEASONS &amp; SILVERWARE</div>
@@ -46,19 +46,19 @@ export default function Menu() {
           )
         })()}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
-          style={saves.length ? { color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          style={saves.length ? { color: '#ffffff', borderColor: 'var(--gold)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>
           New Career
         </button>
         {saves.length > 0 && (
-          <button className="btn ghost" style={{ color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 }}
+          <button className="btn ghost" style={{ color: '#ffffff', borderColor: 'var(--gold)', fontSize: 15 }}
             onClick={() => setShowLoad(!showLoad)}>
             Load Career
           </button>
         )}
         {showLoad && saves.map(s => (
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>
-            <button className="btn" style={{ flex: 1, background: '#2e57ab' }} onClick={() => void load(s.slot)}>
+            <button className="btn" style={{ flex: 1, background: 'var(--brand-800)' }} onClick={() => void load(s.slot)}>
               {s.managerName} - {s.club}
               <div style={{ fontSize: 11, opacity: .8 }}>{seasonLabel(s.season)}, week {s.week}</div>
             </button>

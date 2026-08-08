@@ -943,7 +943,7 @@ function NationPreview({ fxId }: { fxId: number }) {
           <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
         </div>
         <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
-          <div style={{ width: `${pct}%`, background: 'var(--green-700)' }} />
+          <div style={{ width: `${pct}%`, background: 'var(--brand-700)' }} />
           <div style={{ flex: 1, background: 'var(--gold)', opacity: .7 }} />
         </div>
       </div>
@@ -1968,7 +1968,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
             onClick={() => setExplain(`${s.label}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
             {s.label}
           </span>
-          <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--green-700)' }}
+          <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--brand-700)' }}
             onChange={e => { club.tactic[s.key] = Number(e.target.value); liveTactics(); touch() }} />
         </div>
       ))}
