@@ -20,9 +20,19 @@ while (g.week < 10) {
   if (fx0) simMatch(g, fx0, weekRng(g), false)
   processWeekAndAdvance(g)
 }
-g.clubs[g.userClubId].boardConfidence = 2
+// ON THE FLOOR MEANS ON THE FLOOR, not "two". This was pinned at 2, which a
+// single win can rescue: boardReaction adds about 1.7 for a victory, so 2 becomes
+// 3.7 and clears the threshold of 3. That is the game behaving correctly - a win
+// buys a week - but it makes the test a coin toss on that week's result, and it
+// duly failed the moment an unrelated content change moved the world rng stream.
+// Zero is below anything one result can lift clear, so the assertion is now about
+// the sack mechanism rather than about Montauban's Saturday.
+g.clubs[g.userClubId].boardConfidence = 0
 processWeekAndAdvance(g)
-if (!g.unemployed) { console.error('BUG: confidence on the floor past week 8 did not end the job'); process.exit(1) }
+if (!g.unemployed) {
+  console.error(`BUG: confidence on the floor past week 8 did not end the job (now ${g.clubs[g.userClubId].boardConfidence.toFixed(1)})`)
+  process.exit(1)
+}
 
 // And the grace period has to be real: the same collapse before week 8 must not
 // sack anyone, or a bad pre-season would end a career before it started.
