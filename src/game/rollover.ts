@@ -1,5 +1,6 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { aiBoardsReinvest } from './aiecon'
+import { rivalVerdict } from './boss'
 import { boardObjective, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
@@ -712,6 +713,19 @@ export function rebuildSeason(state: GameState) {
 
   // the A League is decided before the season index moves on, so its champion
   // and the user's finish are stamped in the season they were earned
+  // THE RIVAL'S YEAR, SETTLED (C3). Read HERE, at the top, because the leagues are
+  // rebuilt empty further down and a verdict computed after that would find no
+  // table, no positions and nothing to say - silently, forever.
+  {
+    const v = rivalVerdict(state)
+    if (v) {
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'general', read: false,
+        subject: v.subject, body: v.body,
+      })
+    }
+  }
+
   closeAcademySeason(state)
   seasonAwards(state)
   tryOfTheSeason(state)

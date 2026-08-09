@@ -276,6 +276,10 @@ export interface Club {
   capacity0?: number
   colors: [string, string]
   rep: number
+  /** Which of the fictional bosses is in charge (game/boss.ts). Absent means the
+   *  first one: identity is a pure function of the club id and this number, so
+   *  every save ever written already has a named manager at every club. */
+  bossSalt?: number
   leagueId: string
   budget: number
   balance: number
