@@ -292,7 +292,10 @@ export default function App() {
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
         { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
-        { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.length },
+        // Only the jobs he has not answered. It used to be vacancies.length, so
+        // the red dot appeared because somebody somewhere got sacked and nothing
+        // he could do would clear it (see GameState.vacancies).
+        { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
         { ico: '📜', label: 'Manager Legacy', screen: 'legacy' },
         { ico: '📖', label: "The Manager's Handbook", screen: 'handbook' },
         // dismissing the welcome dialog used to be final and irreversible

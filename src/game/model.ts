@@ -805,7 +805,17 @@ export interface GameState {
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /** open managerial vacancies at AI clubs */
-  vacancies: { clubId: string; week: number; applied?: boolean }[]
+  /**
+   * `passed` is the manager saying he is not interested.
+   *
+   * The Job Centre badge used to count vacancies.length, which is world state
+   * wearing a notification's clothes: a red dot that appears because somebody
+   * somewhere got sacked, and that NOTHING the manager does can clear. Reported
+   * live: "reject available jobs to clear notifications - you should be able to."
+   * Turning it down is now a real answer, and the badge counts only the jobs he
+   * has not answered, so a new one still gets his attention.
+   */
+  vacancies: { clubId: string; week: number; applied?: boolean; passed?: boolean }[]
   /** up to 3 young players given individual development attention */
   devFocus: number[]
   /** national side the manager also coaches (FM-style dual role) */

@@ -113,6 +113,8 @@ interface Store {
   resumeLiveMatch: () => Promise<boolean>
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
+  /** Say no to a vacancy so it stops asking. Pass false to undo it. */
+  passJob: (clubId: string, passed?: boolean) => void
   resign: () => void
   answerNatOffer: (accept: boolean) => void
   resignNat: () => void
@@ -807,6 +809,18 @@ export const useStore = create<Store>((set, get) => ({
     set(s => ({ tick: s.tick + 1 }))
     void get().persist()
     return msg
+  },
+
+  /** Turn a vacancy down, or change your mind about having turned it down. */
+  passJob: (clubId, passed = true) => {
+    const g = get().game
+    if (!g) return
+    const v = g.vacancies.find(x => x.clubId === clubId)
+    // an application already lodged is not something to quietly un-say
+    if (!v || v.applied) return
+    v.passed = passed
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
   },
 
   resign: () => {
