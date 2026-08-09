@@ -1050,6 +1050,18 @@ export function isWorldCupSeason(season: number): boolean {
 
 export const SEASON_WEEKS = 45
 
+/**
+ * Possessive for a name that may already end in s.
+ *
+ * Found by reading the wire probe's sample output: "Crusaders's media team have
+ * posted it", "Saracens's head coach has made him his number one target". Rugby
+ * club names are overwhelmingly plural in form - Saracens, Harlequins, Crusaders,
+ * Brumbies, Ospreys, Scarlets, Hurricanes, Falcons - so the naive apostrophe-s
+ * hits a large fraction of the league and reads as a typo rather than as a style
+ * choice. A plural takes the bare apostrophe.
+ */
+export const poss = (name: string) => name.endsWith('s') ? `${name}'` : `${name}'s`
+
 /** Convert (season, week) to a display date. Season 0 week 1 = Sat 6 Sep 2025. */
 export function weekDate(season: number, week: number): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season

@@ -20,6 +20,7 @@
 // on the day.
 import { newGame } from '../src/game/newgame'
 import { useStore } from '../src/store'
+import { RECALL_DAYS, inInbox } from '../src/game/days'
 
 let fails = 0
 const ok = (cond: boolean, what: string) => {
@@ -122,6 +123,44 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
   ok(!gg.news.find(n => n.id === 3)!.cleared, 'gossip is untouched - it was never in this queue')
   const shown = gg.news.filter(n => n.type !== 'gossip' && !n.cleared)
   ok(shown.length === 1 && shown[0].id === 2, 'and the reader is left holding only what is left to read')
+}
+
+// ---- the five-day recall window (13C) ------------------------------------
+//
+// User: "when you've read them they should be viewable to look back but only for
+// 5 days maximum." Two things have to be true at once, and the second is the one
+// worth guarding: read mail ages out, and UNREAD mail never does. Ageing out
+// something the manager has not seen is losing his post, not tidying it.
+{
+  const gg = newGame('northampton', 'Inbox', 7)
+  gg.season = 0
+  gg.week = 20
+  gg.day = 5
+  const at = (week: number, read: boolean, id: number) => ({
+    id, week, season: 0, type: 'general' as const,
+    subject: `Week ${week} ${read ? 'read' : 'unread'}`, body: '.', read,
+  })
+  gg.news = [
+    at(20, true, 10),   // today
+    at(19, true, 11),   // seven days back: outside the window
+    at(19, false, 12),  // same age, never opened: must stay
+    at(12, false, 13),  // eight weeks old and never opened: must still stay
+  ]
+  st.setState({ game: gg, inboxId: null })
+  const live = gg.news.filter(n => inInbox(gg, n))
+  const has = (id: number) => live.some(n => n.id === id)
+  ok(has(10), "a story read today is still in the reader")
+  ok(!has(11), `a read story seven days old has moved on (window is ${RECALL_DAYS} days)`)
+  ok(has(12), 'an unread story of the same age is untouched')
+  ok(has(13), 'and an unread story from two months ago is still waiting')
+  ok(gg.news.length === 4, 'nothing was deleted to achieve any of that')
+
+  // and the store's queue agrees with the screen, which is the bug that would
+  // actually be reported: the reader showing one count and the arrows another
+  st.getState().openInbox()
+  const walked = new Set<number>()
+  for (let i = 0; i < 8; i++) { walked.add(st.getState().inboxId!); st.getState().inboxStep(-1) }
+  ok(!walked.has(11), 'the step arrows cannot reach an expired story either')
 }
 
 console.log(fails ? `INBOX PROBE FAILED (${fails})` : 'INBOX PROBE PASSED')
