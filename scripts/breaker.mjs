@@ -25,11 +25,10 @@
 // It is deliberately noisy about what it did. When it finds something, the log
 // says which attack found it.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { done, startPreview } from './lib/preview.mjs'
 
 const PORT = 4181
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 3000))
+const server = await startPreview(PORT, 3000)
 
 /** What the script is doing, for tagging any error the page throws. */
 let phase = 'boot'
@@ -352,7 +351,7 @@ try {
   ok(false, `the harness itself threw during "${phase}": ${String(e).slice(0, 200)}`)
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
 }
 
 console.log(`\n---- what it did ----`)
@@ -384,3 +383,4 @@ if (errors.some(e => e.kind === 'uncaught' || e.kind === 'crash')) {
 
 if (fails) { console.error(`\nBREAKER: ${fails} failures`); process.exit(1) }
 console.log('\nBREAKER PASSED: it would not break')
+done(0)
