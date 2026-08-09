@@ -17,6 +17,12 @@ const scan = (file: string) => {
     if (line.includes('—')) flag(file, i + 1, 'em dash', line)
     if (line.includes('―')) flag(file, i + 1, 'horizontal bar', line)
     if (line.includes('â€') || line.includes('�')) flag(file, i + 1, 'mojibake', line)
+    // A club's possessive built with a bare apostrophe-s. Rugby club names are
+    // overwhelmingly plural in form - Saracens, Harlequins, Crusaders, Ospreys,
+    // Brumbies - so this produces "Crusaders's media team" for a large slice of
+    // the league. Found live in the wire probe's sample output. model.poss()
+    // handles both cases; .short is always a club, so it is safe to demand it.
+    if (/\.short *(\?\?[^}]*)?\}.s/.test(line)) flag(file, i + 1, "club possessive - use poss()", line)
   })
 }
 

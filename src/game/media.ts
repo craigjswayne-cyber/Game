@@ -1,5 +1,5 @@
 import type { GameState, OfficeTopic, Player, PressItem } from './model'
-import { SEASON_WEEKS, logDecision } from './model'
+import { SEASON_WEEKS, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { derbyName, isDerby } from './rivalries'
 import { clamp, pick, type Rng } from './rng'
@@ -101,7 +101,7 @@ export function generatePress(state: GameState, rng: Rng) {
         voice(1, [
           `Every outlet leads with the same story: ${suitor.name} have you on their shortlist. The room goes quiet. Are you staying?`,
           `The first hand up does not bother with the rugby. "${suitor.name} want you, and everyone in this room knows it. Are you staying?"`,
-          `${suitor.name}'s interest in you is on every back page this morning. The room leans forward as one. What is your answer?`,
+          `${poss(suitor.name)} interest in you is on every back page this morning. The room leans forward as one. What is your answer?`,
         ]),
         undefined, [
           { label: `'I am going nowhere'`, morale: 0.5, board: 0.8, vow: true, reaction: `The clip runs on every channel by teatime. The chairman texts a thumbs up; the squad trains like a weight came off. ${suitor.short} move down their list.` },

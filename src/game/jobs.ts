@@ -2,7 +2,7 @@
 // FM Mobile format - wait for the right job, or take what's available.
 
 import type { GameState } from './model'
-import { mgrReputation } from './model'
+import { mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
@@ -97,7 +97,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🤝 ${suitor.short} are watching you`,
-          body: `The back pages have put your name at the top of ${suitor.name}'s shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.`,
+          body: `The back pages have put your name at the top of ${poss(suitor.name)} shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.`,
         })
       }
     }

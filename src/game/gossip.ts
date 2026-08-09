@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import { fmtMoney, mgrReputation } from './model'
+import { fmtMoney, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 
@@ -350,10 +350,10 @@ function transferRumour(state: GameState, rng: Rng) {
   const owner = state.clubs[t.clubId!]
   const fee = Math.round(t.value * (1.1 + rng() * 0.5) / 100_000) * 100_000
   const line = pick(rng, [
-    `${buyer.name} have sent scouts to ${owner.short}'s last three matches - the man they're watching is ${t.name}.`,
+    `${buyer.name} have sent scouts to ${poss(owner.short)} last three matches - the man they're watching is ${t.name}.`,
     `Agents claim ${buyer.short} are readying a ${fmtMoney(fee)} bid for ${t.name}. ${owner.short} insist he is going nowhere.`,
     `${t.name} to ${buyer.short}? A source at the player's management agency says "there is interest, and it's serious."`,
-    `Whispers from ${buyer.city}: ${buyer.short}'s head coach has made ${t.name} his number one target.`,
+    `Whispers from ${buyer.city}: ${poss(buyer.short)} head coach has made ${t.name} his number one target.`,
   ])
   wire(state, `RUMOUR MILL: ${t.name} linked with ${buyer.short}`, line, t.id)
   // being talked about turns some heads
@@ -426,9 +426,9 @@ function wonderkidWatch(state: GameState, rng: Rng) {
   const club = state.clubs[k.clubId!]
   wire(state, `WONDERKID WATCH: ${k.name}`,
     voice(state, 32, [
-      `Every scout in the league has ${club?.short ?? 'his club'}'s ${k.age}-year-old ${k.pos} ${k.name} in their notebook. Coaches say he's added real polish this season. One director of rugby: "He'll cost a fortune in a year. Move now or regret it."`,
+      `Every scout in the league has ${poss(club?.short ?? 'his club')} ${k.age}-year-old ${k.pos} ${k.name} in their notebook. Coaches say he's added real polish this season. One director of rugby: "He'll cost a fortune in a year. Move now or regret it."`,
       `${k.name}, ${k.age}, is the name scouts keep writing down twice. ${club?.short ?? 'His club'} know exactly what they have; the question is how long they can keep it quiet.`,
-      `The stopwatch brigade were out in force again for ${club?.short ?? 'his club'}'s ${k.pos} ${k.name}. He is ${k.age}. The men in the stand with clipboards were not there for the tea.`,
+      `The stopwatch brigade were out in force again for ${poss(club?.short ?? 'his club')} ${k.pos} ${k.name}. He is ${k.age}. The men in the stand with clipboards were not there for the tea.`,
     ]), k.id)
 }
 
@@ -452,7 +452,39 @@ function gameTimeGrumbles(state: GameState, rng: Rng) {
     ]), p.id)
 }
 
-/** Fan forums, social posts and pundit columns - cheap talk, every week. */
+interface Take { id: string; subject: string; body: string; who?: number }
+
+/**
+ * Which wire takes have been used, and when.
+ *
+ * Reported live, with a screenshot of the REF MIC story: "ive seen this a few
+ * times - needs to be funnier messages - more humour for it to be a viral
+ * sensation style thing."
+ *
+ * Both halves of that are real. The pool was nine items and the pick was
+ * rng() * length, so the birthday problem did the rest: on a column that fires
+ * four weeks in five, the same story came round inside a month and sometimes
+ * twice in three weeks. A bigger pool alone would not fix it, because random
+ * choice over any pool repeats. So the choice is now LEAST RECENTLY USED - every
+ * take in the pool is spent before any is spent twice - and the pool is three
+ * times the size.
+ *
+ * Keyed by a stable template id rather than by the finished subject line, because
+ * the subject has a club and a player name baked into it and the same joke about
+ * a different club is still the same joke.
+ */
+function wireLog(state: GameState): Record<string, number> {
+  const s = state as GameState & { wireLog?: Record<string, number> }
+  s.wireLog ??= {}
+  return s.wireLog
+}
+
+/** Fan forums, social posts and pundit columns - cheap talk, every week.
+ *
+ *  The brief is the internet on a Monday: the sport is enormous and serious, and
+ *  everything AROUND it is ridiculous. So every item has a turn in it. A story
+ *  that only reports a thing is a filler item; a story where the last sentence
+ *  undercuts the first is one somebody screenshots. */
 function socialBuzz(state: GameState, rng: Rng) {
   const clubs = Object.values(state.clubs)
   const club = pick(rng, clubs)
@@ -460,42 +492,141 @@ function socialBuzz(state: GameState, rng: Rng) {
   const squad = club.players.map(id => state.players[id]).filter((p): p is Player => !!p)
   const star = [...squad].sort((a, b) => b.ca - a.ca)[0]
   const kid = squad.filter(p => p.age <= 21).sort((a, b) => b.ca - a.ca)[0]
+  const prop = squad.find(p => p.pos === 'LP' || p.pos === 'TP')
+  const nine = squad.find(p => p.pos === 'SH')
   const other = pick(rng, clubs.filter(c => c.id !== club.id && c.rep >= club.rep - 8))
   const target = other ? [...other.players.map(id => state.players[id]).filter(Boolean)].sort((a, b) => b!.ca - a!.ca)[0] : null
-  const takes: [string, string, number?][] = []
+  const last = (p: Player) => p.name.split(' ').slice(-1)[0]
+  const takes: Take[] = []
+
   if (star) takes.push(
-    [`FAN FORUM: "${star.name.split(' ').slice(-1)[0]} to leave?" - ${club.short} board melts down`,
-      `A single unsourced post claiming ${star.name} has "told friends he wants out" hit 400 replies overnight on the ${club.short} fan forum. No agent, no journalist, no evidence - but try telling the replies that. One mod: "Every year, same thread."`, star.id],
-    [`SOCIAL: training-ground clip of ${star.name} goes viral`,
-      `Eleven seconds of ${star.name} doing something outrageous in ${club.short} training is doing the rounds - two million views and counting. Opposition analysts have watched it more than anyone.`, star.id],
+    { id: 'forum-exit', who: star.id,
+      subject: `FAN FORUM: "${last(star)} to leave?" thread hits 400 replies in a night`,
+      body: `One unsourced post claiming ${star.name} has "told friends he wants out" has produced four hundred replies, two spin-off threads and a poll. There is no agent, no journalist and no evidence. Page nine is arguing about the stadium car park. One moderator: "Every year. Same thread. Same fella posting it."` },
+    { id: 'social-clip', who: star.id,
+      subject: `SOCIAL: eleven seconds of ${star.name} in training breaks containment`,
+      body: `Two million views and counting for a clip of ${star.name} doing something that should not be physically available to a man that size. The comments are split between awe and accusations of a smaller pitch. ${poss(club.short)} media team have posted it, deleted it, and posted it again with worse music.` },
+    { id: 'podcast-kebab', who: star.id,
+      subject: `PODCAST: ${star.name}'s cheat meal confession divides the nation`,
+      body: `Forty minutes of genuinely excellent lineout detail earned nothing. One sentence about a Friday kebab has produced eight hundred quote tweets and a statement from a rival takeaway offering him a sponsorship. The ${club.short} nutritionist has requested a right of reply and has been told the slot is full.` },
+    { id: 'ai-graphic', who: star.id,
+      subject: `BROADCAST: graphics package gives ${last(star)} six fingers and a new name`,
+      body: `The pre-match player card rendered ${star.name} with an extra finger, a surname spelled two different ways in the same graphic, and a career-tries figure that would make him the leading scorer in the sport's history. The broadcaster has apologised. The screenshot is already a profile picture.` },
+    { id: 'stat-account',
+      subject: `STATS ACCOUNT: ${club.short} are top of a table nobody asked for`,
+      body: `A popular numbers account has crunched carries into contact per phase in the opposition 22 on grounds above sea level and declared ${club.short} the best team in the league. Fans of ${club.short} have adopted the metric as gospel. Everyone else has pointed out that it also ranks a pub side above the world champions.` },
   )
-  if (kid && target) takes.push(
-    [`PUNDIT COLUMN: "${club.short} have unearthed a gem"`,
-      `This week's big read claims ${kid.name} (${kid.age}) is "the most natural ${kid.pos} of his generation" - and that half the league knows it. ${club.short} supporters would rather the column had stayed unwritten.`, kid.id],
-  )
-  if (target && other) takes.push(
-    [`AGENT TALK: ${target!.name} "flattered" by interest`,
-      `${target!.name}'s representatives did nothing to hose down speculation this week: "My client is very happy at ${other.short}. But every player listens." Fan forums across the league did the rest.`, target!.id],
-    [`FAN FORUM: dream signing thread - ${club.short}`,
-      `"Realistic transfer targets" is the thread title; ${target!.name} is the name on every page. The finances make no sense, the fit is debatable, the enthusiasm is total.`, target!.id],
-  )
-  if (star) takes.push(
-    [`SOCIAL: ${club.short} kit day photos leak a day early`,
-      `Next season's shirt appeared on a reseller feed before the official launch, modelled badly by a mannequin. The club is furious; the fans have already voted on the collar. Verdict: divisive.`],
-    [`REF MIC: the clip every group chat is quoting`,
-      `A referee's exchange with a front row from the weekend ("You are not bound. You have never been bound.") has escaped containment. Refereeing socials call it a teaching moment; props call it slander.`],
-    [`PODCAST: ${star.name}'s cheat-meal confession divides the nation`,
-      `Forty minutes on lineout detail earned no headlines; one sentence about a Friday kebab did. The nutritionist at ${club.short} has requested a right of reply.`, star.id],
-    [`GROUNDSMAN WATCH: visiting coach calls ${club.short} pitch "a ploughed field"`,
-      `The head groundsman has responded through gritted teeth: "The surface rewards a team that keeps the ball in hand." The visiting coach kept his boots as evidence.`],
-  )
+
   if (kid) takes.push(
-    [`COMMUNITY: ${kid.name} turns up at a school assembly unannounced`,
-      `A teacher at a local primary asked the ${club.short} academy if someone could present a reading prize. ${kid.name} came, stayed two hours, and signed everything including the lectern. Wholesome content has now entered the group chats.`, kid.id],
+    { id: 'pundit-gem', who: kid.id,
+      subject: `PUNDIT COLUMN: "${club.short} have unearthed a gem"`,
+      body: `This week's big read calls ${kid.name}, ${kid.age}, "the most natural ${kid.pos} of his generation" and notes that half the league already knows. ${club.short} supporters have spent the day politely asking the columnist to be quiet, delete it, and consider a career in something else. The columnist has replied to eleven of them individually. He is enjoying this enormously.` },
+    { id: 'school-visit', who: kid.id,
+      subject: `WHOLESOME: ${kid.name} shows up to a school assembly and stays two hours`,
+      body: `A local primary asked the ${club.short} academy whether anyone could hand out a reading prize. ${kid.name} arrived early, stayed two hours and signed everything put in front of him including the lectern and one teacher's laptop lid. The video has more views than the club's last three tries combined.` },
+    { id: 'kid-fifa', who: kid.id,
+      subject: `SOCIAL: ${last(kid)} discovers his own rating and takes it personally`,
+      body: `${kid.name} has found out what a video game thinks of his acceleration and has posted a screenshot with no caption, which on the internet counts as a declaration of war. The developers have replied with a shrug emoji. Three teammates have replied agreeing with the game.` },
   )
+
+  if (target && other) takes.push(
+    { id: 'agent-flattered', who: target!.id,
+      subject: `AGENT TALK: ${target!.name} "flattered" by the interest, says everyone`,
+      body: `${target!.name}'s representatives declined every opportunity to hose this down: "My client is very happy at ${other.short}. But every player listens." Rugby's translation service has been working overtime. The fan forums did the rest before lunch.` },
+    { id: 'forum-dream', who: target!.id,
+      subject: `FAN FORUM: the "realistic transfer targets" thread is anything but`,
+      body: `The ${club.short} thread is titled "realistic targets" and ${target!.name} appears on every page of it. The finances are impossible, the positional fit is questionable and the enthusiasm is absolute. Somebody has made a graphic. Somebody else has made a better one.` },
+  )
+
+  if (prop) takes.push(
+    { id: 'ref-mic',
+      subject: `REF MIC: the clip every group chat is quoting`,
+      body: `A referee's exchange with a front row from the weekend has escaped containment: "You are not bound. You have never been bound." Refereeing socials are calling it a masterclass in communication. Props are calling it slander and have opened a group chat of their own.` },
+    { id: 'prop-gym', who: prop.id,
+      subject: `SOCIAL: ${last(prop)} lifts something he should not have lifted`,
+      body: `${prop.name} has posted a gym clip that the strength coach describes, on the record, as "not a programmed movement". It has a hundred thousand views and a duet from a professional strongman who appears genuinely concerned. The ${club.short} physio has commented on it too. His comment is one full stop.` },
+    { id: 'prop-marathon', who: prop.id,
+      subject: `CHARITY: ${last(prop)} agrees to a half marathon before reading the word half`,
+      body: `A supporters' club raffle has committed ${prop.name} to thirteen miles for charity. He accepted on camera, confidently, then asked a follow-up question that revealed he had heard "half an hour". The fundraising total has tripled since the clip went up.` },
+  )
+
+  if (nine) takes.push(
+    { id: 'nine-mic', who: nine.id,
+      subject: `REF MIC: ${last(nine)} spends eighty minutes coaching the referee`,
+      body: `The audio from the weekend has ${nine.name} offering the official guidance on the offside line, the tackle height, the clock and, at one point, the official's own positioning. The referee's reply has been turned into a ringtone. Nobody involved regrets anything.` },
+  )
+
+  // and the ones that need nothing but a club
+  takes.push(
+    { id: 'kit-leak',
+      subject: `SOCIAL: ${poss(club.short)} new shirt leaks a day early, on a bad mannequin`,
+      body: `Next season's kit appeared on a reseller feed before the launch, photographed on a mannequin with one arm and a haunted expression. The club is furious. The fans have moved past the club's feelings and are now conducting a full referendum on the collar. Verdict: divisive.` },
+    { id: 'groundsman',
+      subject: `GROUNDSMAN WATCH: visiting coach calls the ${club.stadium} pitch "a ploughed field"`,
+      body: `The head groundsman has responded through visibly gritted teeth that "the surface rewards a team willing to keep the ball in hand". The visiting coach has kept a boot as evidence and photographed it next to a ruler. The groundsman has photographed the ruler.` },
+    { id: 'mascot',
+      subject: `MASCOT INCIDENT: the ${club.short} mascot is trending for all the wrong reasons`,
+      body: `A half-time penalty shootout ended with the mascot taking out a nine-year-old at the knees and celebrating in front of the family stand. The club has issued an apology. The mascot has issued nothing, because the mascot is committed to the bit, and gained forty thousand followers overnight.` },
+    { id: 'announcer',
+      subject: `STADIUM PA: announcer reads out the wrong team, then doubles down`,
+      body: `The ${club.stadium} announcer named the entire opposition XV as the home side, realised at fifteen, and elected to finish the list anyway "for consistency". The crowd applauded every name. Away supporters have started a petition to have him do their team sheet every week.` },
+    { id: 'pie',
+      subject: `CATERING: the ${club.short} pie has been reviewed, and the review is 900 words`,
+      body: `A widely followed food account has awarded the ground's steak pie a mark of 6.4 with the note "structurally ambitious, emotionally cold". The club has responded by putting the score on a chalkboard outside the kiosk. Sales are up thirty per cent. The pie has not changed.` },
+    { id: 'drone',
+      subject: `TRAINING LEAK: a drone over ${club.short} training gets exactly nothing`,
+      body: `Somebody flew a drone over a closed session hoping for the team sheet and captured forty minutes of a squad doing a passing drill in complete silence, plus one man tying a lace for nine of them. The footage has been posted anyway. It has done numbers.` },
+    { id: 'seagull',
+      subject: `WILDLIFE: a seagull holds up play at ${club.stadium} for two minutes`,
+      body: `A single gull occupied the 22 and declined every invitation to leave, including one from a second row who tried reasoning. Play resumed when the bird took a pie from row three and departed on its own terms. It now has a fan account with more followers than two of the players.` },
+    { id: 'merch-typo',
+      subject: `MERCH: ${club.short} sell out of a shirt with a spelling mistake on it`,
+      body: `A print run went out with the club motto missing a letter, which the club discovered from a supporter's post rather than from the supplier. The recall lasted ninety minutes before somebody noticed the mistaken ones were reselling for triple. The recall has been quietly cancelled.` },
+    { id: 'banner',
+      subject: `TERRACES: ${club.short} fans unveil a banner nobody can read`,
+      body: `Months of planning went into a full-length tifo for the weekend, and it went up upside down and back to front. From the far stand it appears to say something rude about ${club.short} themselves. The group behind it has declared this "the intended reading all along" and is taking commissions.` },
+    { id: 'stream',
+      subject: `BROADCAST: the ${club.short} stream cuts to a fixed shot of a car park for six minutes`,
+      body: `A gallery mix-up sent the live feed to an unmanned camera pointed at the players' entrance during the busiest passage of the match. Nineteen thousand people watched a car park and, by minute four, were commentating on it. The clip has outperformed the highlights.` },
+    { id: 'sponsor',
+      subject: `SPONSORS: ${poss(club.short)} new partner is a funeral director and the fans love it`,
+      body: `The commercial team expected a mild reaction to the sleeve deal and instead got the best day their social accounts have ever had. Suggested slogans have flooded in, most unprintable, one genuinely brilliant. The funeral director has said yes to the brilliant one.` },
+    { id: 'weather',
+      subject: `WEATHER: hail stops the ${club.short} warm-up and starts a snowball fight`,
+      body: `Sixty seconds of freak hail emptied the pitch and produced footage of two professional squads abandoning their preparation to pelt each other in front of an empty stand. Both head coaches have described it as "not ideal". Both clubs' accounts have posted it.` },
+    { id: 'bus',
+      subject: `LOGISTICS: the ${club.short} team bus takes a wrong turn into a wedding`,
+      body: `A satnav sent the coach down a lane and into the car park of a hotel mid-reception. The squad were applauded in, photographed with the couple, and applauded out. The bride's cousin has since been photographed at ${club.stadium} in a replica shirt.` },
+    { id: 'quiz',
+      subject: `SOCIAL: ${club.short} players fail a quiz about their own club, publicly`,
+      body: `The media team filmed a light-hearted club history quiz and released it without watching it back. Nobody named the ground's record attendance, one man guessed the club was founded in 1998, and the captain named a competition that has never existed. It is the club's most watched video of the season.` },
+    { id: 'cat',
+      subject: `WILDLIFE: a cat is now a member of the ${club.short} coaching staff`,
+      body: `A stray that adopted the training ground gates has been photographed sitting in on the forwards' meeting, on the whiteboard side of the room. The club has given it a name, a bowl and, this week, a squad number in the region of 47. The kit man is drafting a shirt.` },
+    { id: 'tmo',
+      subject: `TMO: eight minutes to decide something everybody in the ground had decided`,
+      body: `The weekend's showpiece stopped for eight minutes while officials examined a grounding from eleven angles, four of them worse than the naked eye. The eventual decision matched the first replay. Broadcasters have cut it into a montage with a ticking clock and it is doing very well.` },
+    { id: 'kicker-net',
+      subject: `SOCIAL: a supporter lands a halfway kick and the internet demands a contract`,
+      body: `A half-time competition entrant in jeans and work boots struck one from inside his own half and straight through. He then did it again for the cameras. Two clubs have posted the clip. One head coach has been asked about it in a press conference and did not entirely rule it out.` },
+  )
+
   if (!takes.length) return
-  const t = takes[Math.floor(rng() * takes.length)]
-  wire(state, t[0], t[1], t[2])
+
+  // LEAST RECENTLY USED, not random. Everything in the pool gets spent before
+  // anything is spent twice, which is the only way "I have seen this a few times"
+  // stops being true on a column that runs most weeks. Ties among the never-used
+  // break on a rotation rather than a hash: a hash over a small candidate set
+  // repeats back to back and a rotation cannot.
+  const log = wireLog(state)
+  const stamp = state.season * 100 + state.week
+  const rot = (state.season * 7 + state.week) % takes.length
+  const order = (i: number) => (i - rot + takes.length) % takes.length
+  const chosen = takes
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) => ((log[a.t.id] ?? -1) - (log[b.t.id] ?? -1)) || (order(a.i) - order(b.i)))[0].t
+  log[chosen.id] = stamp
+  wire(state, chosen.subject, chosen.body, chosen.who)
 }
 
 /** Clubhouse tales: warm, daft, deeply rugby stories with no losers.
@@ -531,7 +662,7 @@ function clubhouseTales(state: GameState, rng: Rng) {
   )
   tales.push(
     [`CLUBHOUSE: team-room quiz night ends in googling scandal`,
-      `Wednesday's quiz night was abandoned at the sports round when one table - all forwards - answered a question about 1987 with suspicious speed and full sentences. Phones are now surrendered at the door, and the quizmaster (the physio) has been given "full disciplinary powers", which everyone already regrets.`],
+      `Wednesday's quiz night was abandoned at the sports round when one table of forwards answered a question about 1987 with suspicious speed and in full sentences. Phones are now surrendered at the door, and the quizmaster (the physio) has been given "full disciplinary powers". He has had a lanyard made. Nobody knows how to tell him it has gone too far.`],
     [`CLUBHOUSE: the kit man's biannual sock audit strikes fear into all`,
       `It is sock audit week. The kit man has counted out, counted back, and found the squad collectively nine pairs short. An amnesty box has appeared outside the changing room with a sign reading "NO QUESTIONS ASKED (THIS TIME)". Three pairs have already been returned under cover of darkness.`],
     [`CLUBHOUSE: bus driver gets a guard of honour for his 200th away trip`,
