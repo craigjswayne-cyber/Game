@@ -9,7 +9,8 @@ import {
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
 import { firstStepOfWeek, matchDayIndex, nextStep } from './game/days'
-import { loadGame, saveGame } from './game/save'
+import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
+import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
@@ -42,6 +43,8 @@ interface Store {
     preTalkMsg: string | null
   } | null
   saveSlot: string
+  /** the record that lets a live match survive a reload (game/resume.ts) */
+  matchRec: MatchResume | null
   /** unread stories queued for the full-screen Wire flow after Continue */
   wireQueue: number[]
   night: boolean
@@ -103,6 +106,11 @@ interface Store {
   /** Override the assistant's injury replacement. Free, and only at the moment. */
   injuryCover: (onId: number, inId: number) => string
   liveTactics: () => void
+  noteCmd: (cmd: MatchCmdBody) => void
+  noteProgress: () => void
+  dropResume: () => void
+  /** rebuild a match that was in progress when the page went away */
+  resumeLiveMatch: () => Promise<boolean>
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
   resign: () => void
@@ -259,6 +267,7 @@ export const useStore = create<Store>((set, get) => ({
   tick: 0,
   nav: [{ screen: 'menu' }],
   liveMatch: null,
+  matchRec: null,
   wireQueue: [],
   saveSlot: 'slot1',
   inboxId: null,
@@ -373,6 +382,39 @@ export const useStore = create<Store>((set, get) => ({
    *  the page it kicks you out to the main menu - dont have it do that, have it
    *  stay on the page"). Returns false when there is nothing to resume, which is
    *  the title screen's cue to behave as it always did. */
+  /**
+   * Rebuild a match that was in progress when the page went away.
+   *
+   * Replays the recorded match on top of its own pre-match save, so the tries,
+   * the cards and the injuries come back because they happen again. Returns true
+   * if a match was restored.
+   */
+  resumeLiveMatch: async () => {
+    const slot = get().saveSlot
+    const rec = await getResume<MatchResume>(slot).catch(() => null)
+    const g = get().game
+    if (!rec || !g || !resumeFits(rec, g)) {
+      if (rec) void clearResume(slot).catch(() => {})
+      return false
+    }
+    const pre = migrate(rec.pre)
+    const out = replayMatch(pre, rec)
+    if (!out) { void clearResume(slot).catch(() => {}); return false }
+    set(s => ({
+      game: pre,
+      matchRec: rec,
+      liveMatch: {
+        ctx: out.ctx, fixture: out.fixture, events: out.ctx.events,
+        cursor: Math.max(0, Math.min(rec.cursor, out.ctx.events.length)),
+        playing: false, speed: 1, mode: rec.mode,
+        done: out.ctx.seg === 3, talkMsg: out.talkMsg, preTalkMsg: out.preTalkMsg,
+      },
+      nav: [{ screen: 'matchday' as const }],
+      tick: s.tick + 1,
+    }))
+    return true
+  },
+
   toTitle: () => {
     try { localStorage.removeItem(WHERE_KEY) } catch { /* private mode */ }
     set(s => ({ nav: [{ screen: 'menu' as const }], tick: s.tick + 1 }))
@@ -394,6 +436,10 @@ export const useStore = create<Store>((set, get) => ({
     const g = await loadGame(where.slot).catch(() => null)
     if (!g) return false
     set({ game: g, saveSlot: where.slot, nav: where.nav, tick: get().tick + 1 })
+    // AND THE MATCH HE WAS WATCHING. A refresh mid-match used to drop the manager
+    // back into the week with the game gone; the record written at kick-off lets it
+    // be played back to the same minute (game/resume.ts).
+    await get().resumeLiveMatch().catch(() => false)
     return true
   },
   touch: () => set(s => ({ tick: s.tick + 1 })),
@@ -499,6 +545,7 @@ export const useStore = create<Store>((set, get) => ({
     // ways round; the round-up still comes first, with Monday under it.
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
+    get().dropResume()
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
     landOnNextWeek(g, set, get, [{ screen: 'results', param: resultsKey }])
   },
@@ -515,16 +562,64 @@ export const useStore = create<Store>((set, get) => ({
       : (fx.homeId === g.natTeam || fx.awayId === g.natTeam) ? g.natTeam!
       : (fx.homeId === 'LIO' || fx.awayId === 'LIO') ? 'LIO'
       : g.userClubId
+    // THE PRE-MATCH SAVE, TAKEN BEFORE THE ENGINE TOUCHES ANYTHING.
+    //
+    // beginMatch mutates: it may tidy a team sheet, and from the first tick the
+    // engine writes tries, cards, bans and injuries onto the players. A resume
+    // replays the match from here rather than trying to serialise it half-played
+    // (see game/resume.ts). This is the one 7MB write per match; everything after
+    // it is a short command list.
+    const pre = JSON.parse(JSON.stringify(g)) as GameState
     const ctx = beginMatch(g, fx, weekRng(g), true, userTeamId)
     let preTalkMsg: string | null = null
     if (preTalk) preTalkMsg = applyPreTalk(g, ctx, preTalk)
+    const rec: MatchResume = {
+      v: 1, pre, fxId: fx.id, userSideId: userTeamId, preTalk: preTalk ?? null,
+      mode: mode ?? 'full', tick: 0, cursor: 0, cmds: [],
+      season: g.season, week: g.week, savedAt: Date.now(),
+    }
     set(s => ({
       liveMatch: {
         ctx, fixture: fx, events: ctx.events, cursor: 0, playing: true, speed: 1,
         mode: mode ?? 'full', done: false, talkMsg: null, preTalkMsg,
       },
+      matchRec: rec,
       tick: s.tick + 1,
     }))
+    void putResume(get().saveSlot, rec).catch(() => {})
+  },
+
+  /** Note a decision the manager made, against the tick he made it on, and put
+   *  the short record back on disk. Never writes the 7MB half. */
+  noteCmd: (cmd: MatchCmdBody) => {
+    const { matchRec: resume, liveMatch, saveSlot } = get()
+    if (!resume || !liveMatch) return
+    const rec: MatchResume = {
+      ...resume,
+      tick: liveMatch.ctx.tick,
+      cursor: liveMatch.cursor,
+      cmds: [...resume.cmds, { ...cmd, at: liveMatch.ctx.tick }],
+    }
+    set({ matchRec: rec })
+    void putResume(saveSlot, rec).catch(() => {})
+  },
+
+  /** How far the match has got. Called as the clock moves, so it writes only the
+   *  small record and never more than once a tick. */
+  noteProgress: () => {
+    const { matchRec: resume, liveMatch, saveSlot } = get()
+    if (!resume || !liveMatch) return
+    if (resume.tick === liveMatch.ctx.tick && resume.cursor === liveMatch.cursor) return
+    const rec: MatchResume = { ...resume, tick: liveMatch.ctx.tick, cursor: liveMatch.cursor }
+    set({ matchRec: rec })
+    void putResume(saveSlot, rec).catch(() => {})
+  },
+
+  /** The match is over, or abandoned: the record must not outlive it. */
+  dropResume: () => {
+    const slot = get().saveSlot
+    set({ matchRec: null })
+    void clearResume(slot).catch(() => {})
   },
 
   /** One heartbeat of the live match: reveal the next event, or simulate
@@ -557,6 +652,8 @@ export const useStore = create<Store>((set, get) => ({
     if (r === 'FT') settleKnockout(game, ctx)
     if (ctx.events.length > cursor) cursor += 1
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
+    // where the match has got to, so a reload comes back to the same minute
+    get().noteProgress()
   },
 
   /** Fast-forward the rest of the current period (to HT, 60' or FT).
@@ -566,10 +663,15 @@ export const useStore = create<Store>((set, get) => ({
     if (!game || !liveMatch) return
     const { ctx } = liveMatch
     let r: ReturnType<typeof stepTick> = 'play'
+    // EVERY DECISION THIS TAKES ON THE MANAGER'S BEHALF IS STILL A DECISION, and a
+    // resume has to make the same ones. Skipping ahead answers each kickable
+    // penalty with 'posts'; if those went unrecorded the replay would stop at the
+    // first one waiting for an answer that never came, and the match would drift.
+    const noted = (choice: 'posts') => { get().noteCmd({ kind: 'decide', choice }) }
     while (!ctx.awaiting && ctx.seg < 3) {
-      if (ctx.decision) resolveDecision(game, ctx, 'posts')
+      if (ctx.decision) { noted('posts'); resolveDecision(game, ctx, 'posts') }
       r = stepTick(game, ctx)
-      if (ctx.decision) resolveDecision(game, ctx, 'posts')
+      if (ctx.decision) { noted('posts'); resolveDecision(game, ctx, 'posts') }
       if (r !== 'play') break
     }
     if (r === 'FT') settleKnockout(game, ctx)
@@ -577,12 +679,14 @@ export const useStore = create<Store>((set, get) => ({
       liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3 },
       tick: s.tick + 1,
     } : {})
+    get().noteProgress()
   },
 
   /** The touchline call on a kickable penalty. */
   decide: (choice) => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || !liveMatch.ctx.decision) return ''
+    get().noteCmd({ kind: 'decide', choice })
     const msg = resolveDecision(game, liveMatch.ctx, choice)
     set(s => s.liveMatch ? {
       liveMatch: { ...s.liveMatch, playing: true },
@@ -594,6 +698,7 @@ export const useStore = create<Store>((set, get) => ({
   teamTalk: (kind) => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.awaiting !== 'HT') return
+    get().noteCmd({ kind: 'talk', talk: kind })
     const msg = applyTeamTalk(game, liveMatch.ctx, kind)
     set(s => ({ liveMatch: s.liveMatch ? { ...s.liveMatch, talkMsg: msg } : null, tick: s.tick + 1 }))
   },
@@ -612,6 +717,7 @@ export const useStore = create<Store>((set, get) => ({
     // sub doesn't work well" - it was never the dropdowns, it was that a second
     // change was impossible because the room closed after the first.
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
+    get().noteCmd({ kind: 'sub', outId, inId })
     const msg = makeSubstitution(game, liveMatch.ctx, outId, inId)
     set(s => ({
       liveMatch: s.liveMatch && wasCaughtUp
@@ -625,6 +731,7 @@ export const useStore = create<Store>((set, get) => ({
   injuryCover: (onId, inId) => {
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    get().noteCmd({ kind: 'cover', onId, inId })
     const msg = swapInjuryCover(game, liveMatch.ctx, onId, inId)
     set(s => ({ tick: s.tick + 1 }))
     return msg
@@ -635,6 +742,10 @@ export const useStore = create<Store>((set, get) => ({
     const { game, liveMatch } = get()
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
     if (liveMatch.ctx.userSideId !== game.userClubId) return // Test match: no club tactic board
+    // the dial VALUES, not the fact that he opened the board: the pre-match save
+    // still holds whatever they were before he moved them
+    const t = game.clubs[game.userClubId].tactic
+    get().noteCmd({ kind: 'dials', style: t.style, tempo: t.tempo, kicking: t.kicking, aggression: t.aggression })
     applyTacticsChange(game, liveMatch.ctx)
     set(s => ({ tick: s.tick + 1 }))
   },
@@ -650,9 +761,12 @@ export const useStore = create<Store>((set, get) => ({
     }))
   },
 
-  matchCursor: (cursor, playing) => set(s => s.liveMatch ? ({
-    liveMatch: { ...s.liveMatch, cursor, playing },
-  }) : {}),
+  matchCursor: (cursor, playing) => {
+    set(s => s.liveMatch ? ({ liveMatch: { ...s.liveMatch, cursor, playing } }) : {})
+    // the ticker can move without the clock moving, and a reload should come back
+    // to the line he had read, not just the minute
+    get().noteProgress()
+  },
 
   matchMode: (mode) => set(s => {
     if (!s.liveMatch) return {}
@@ -670,6 +784,7 @@ export const useStore = create<Store>((set, get) => ({
     const resultsKey = live ? `${live.fixture.compId}:${g.week}` : null
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
+    get().dropResume()
     set(s => ({ liveMatch: null, tick: s.tick + 1 }))
     // The full-time round-up still comes first - that is the moment you want
     // straight after your own final whistle - and Monday's bulletin sits under
