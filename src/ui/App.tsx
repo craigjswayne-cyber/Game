@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
 import { seasonLabel } from '../game/model'
-import { dayLine, nextStep } from '../game/days'
+import { dayLine, inInbox, nextStep } from '../game/days'
 import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -212,10 +212,21 @@ export default function App() {
   }
 
   const club = game.clubs[game.userClubId]
-  const unread = game.news.filter(n => !n.read && n.type !== 'gossip').length
+  // THE BADGE MUST COUNT WHAT THE SCREEN WILL SHOW.
+  //
+  // Reported from a first-ever session: "the inbox was blank, she went forward and
+  // back and it was sorted". This counted every unread non-gossip story; the reader
+  // shows days.inInbox, which also drops cleared stories and applies the five-day
+  // recall window. So the rail could promise mail the reader had already filtered
+  // out, and the reader fell through to its own "nothing in the inbox" text - which
+  // on a phone reads as a blank screen, because you came here for something.
+  //
+  // One predicate now, in one place, for the dot and for the reader.
+  const unread = game.news.filter(n => inInbox(game, n) && !n.read).length
   const wireUnread = game.news.filter(n => !n.read && n.type === 'gossip').length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
+  const openJobs = game.vacancies.filter(v => !v.passed && !v.applied).length
   // GATED ON THE FIRST MATCH, NOT ON A WEEK COUNT.
   //
   // This was `week <= 3`, and the user was still being told "before your first
@@ -425,7 +436,13 @@ export default function App() {
         ) : (
           <>
             {groupBtn('hub', <IcoClipboard />, 'Hub', offersOpen + injuredCount)}
-            {groupBtn('manager', <IcoPress />, 'Manager', pressOpen + game.vacancies.length)}
+            {/* Vacancies the manager can still do something about, matching the Job
+                Centre item's own count. Raw vacancies.length lit this dot because
+                somebody somewhere had been sacked, and nothing he could do would
+                clear it: the same bug the Job Centre item already fixed for itself,
+                still living in the group badge above it. Reported as "says there is
+                a notification but doesn't show anything". */}
+            {groupBtn('manager', <IcoPress />, 'Manager', pressOpen + openJobs)}
             {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
           </>
         )}

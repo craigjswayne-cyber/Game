@@ -42,7 +42,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'match',
     q: 'Can I change things once the match has started?',
-    a: 'Yes, at any stoppage. The clipboard button opens tactics and substitutions mid-match, so you can shut a game down, chase one, or get a tiring front row off. Eight men sit on the bench but you get five tactical changes, so the eighth seat is cover rather than a sixth swap. The game suggests natural cover first rather than putting a winger in the second row.',
+    a: 'Yes, at any stoppage. The clipboard button opens tactics and substitutions mid-match, so you can shut a game down, chase one, or get a tiring front row off. Eight men sit on the bench and you can use all eight, which is what the laws allow: front-row cover included. A man who has come off does not come back, other than the front-row and blood exceptions the referee panel already applies. The game suggests natural cover first rather than putting a winger in the second row.',
   },
   {
     cat: 'match',
