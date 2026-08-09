@@ -1668,9 +1668,11 @@ function Live() {
               <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
                 onClick={() => matchMode('highlights')}>🎬 Highlights</button>
             </div>
-            <div className="set-label">Sound</div>
+            {/* One switch, and it has to name everything it turns off. The buzz
+                used to survive Silent, so the label lied by omission. */}
+            <div className="set-label">Sound and buzz</div>
             <button className="btn ghost block" onClick={() => setSound(toggleSound())}>
-              {sound ? '🔊 Crowd and whistle on' : '🔇 Silent'}
+              {sound ? '🔊 Crowd, whistle and buzz on' : '🔇 Silent, and no buzz'}
             </button>
             <button className="btn gold block" style={{ marginTop: 10 }}
               onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>
