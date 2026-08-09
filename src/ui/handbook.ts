@@ -42,7 +42,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'match',
     q: 'Can I change things once the match has started?',
-    a: 'Yes, at any stoppage. The clipboard button opens tactics and substitutions mid-match, so you can shut a game down, chase one, or get a tiring front row off. You have eight replacements and the game will suggest natural cover first rather than putting a winger in the second row.',
+    a: 'Yes, at any stoppage. The clipboard button opens tactics and substitutions mid-match, so you can shut a game down, chase one, or get a tiring front row off. Eight men sit on the bench but you get five tactical changes, so the eighth seat is cover rather than a sixth swap. The game suggests natural cover first rather than putting a winger in the second row.',
   },
   {
     cat: 'match',
@@ -72,7 +72,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'match',
     q: 'Can I appeal a red card?',
-    a: 'Yes. A hearing follows a red, and a case can be won. Roughly two in three appeals succeed, which is worth the trouble when the player is one you need next week.',
+    a: 'Yes, and it is a gamble rather than a free go. A hearing follows a red and roughly two in three appeals succeed, knocking a match off the ban. The third that fail add a match instead, and the board notes that you wasted everyone\'s afternoon. Worth it for a player you need next week; not worth it on a three-match ban you were going to sit out anyway.',
   },
   {
     cat: 'match',
@@ -155,7 +155,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'What do the coaching badges mean?',
-    a: 'Your backroom staff are named people, each holding an Unbadged, Bronze, Silver or Gold badge. The badge is what he is worth to you. You can send a coach on a course to try for the next one: it takes six weeks, costs sixty thousand pounds per tier, and about 58 in every 100 pass. He is still doing his job while he studies, and if he fails he can retake later.',
+    a: 'Your backroom staff are named people, each holding an Unbadged, Bronze, Silver or Gold badge. The badge is what he is worth to you. You can send a coach on a course to try for the next one: sixty thousand pounds per tier, and about 58 in every 100 pass. The examiners decide the same day, so you know before the weekend. The fee is spent either way, and a coach who fails cannot sit it again for four weeks.',
   },
   {
     cat: 'squad',
@@ -249,12 +249,12 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'club',
     q: 'How do facility upgrades work?',
-    a: 'There are eight facilities and each runs from level 0 to level 5. You cannot buy them: you ask the board, on the Club Infrastructure page, and the board weighs the price against the reserves and its confidence in you. Approved work takes five weeks. Only one project runs at a time, and a refusal puts you on a cooling-off period before you can ask again.',
+    a: 'There are nine facilities and each runs from level 0 to level 5. You cannot buy them: you ask the board, on the Club Infrastructure page, and the board weighs the price against the reserves and its confidence in you. Confidence buys backing too: a board that rates you at seventy or better underwrites most of the bill, one that merely tolerates you underwrites none of it, and below forty-five the answer is no whatever the balance says. Approved work takes five weeks. Only one project runs at a time, and a refusal puts you on a two-month cooling-off period before you can ask again.',
   },
   {
     cat: 'club',
     q: 'What does each facility actually do?',
-    a: 'Playing Surface: fewer breakdowns and fewer injuries in home matches. Gym: condition recovered every week. Recovery Centre: shorter layoffs. Training Paddock: attribute training bites more often. Kicking Enclosure: sharper goal kicking. Briefing Suite: match preparation and the analyst both land harder. Centre of Excellence: better academy intakes. Club Shop: retail income every week, more when the fans are happy. Each card on the Infrastructure page states its current effect in plain numbers.',
+    a: 'Playing Surface: fewer breakdowns and fewer injuries in home matches. Gym: condition recovered every week. Recovery Centre: shorter layoffs. Training Paddock: attribute training bites more often. Kicking Enclosure: sharper goal kicking. Briefing Suite: match preparation and the analyst both land harder. Centre of Excellence: better academy intakes. Club Shop: retail income every week, more when the fans are happy. Hospitality and Boxes: every home gate is worth 4 per cent more per level. Each card on the Infrastructure page states its current effect in plain numbers.',
   },
   {
     cat: 'club',
@@ -299,7 +299,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'club',
     q: 'Should I build hospitality boxes?',
-    a: 'Boxes and lounges make every home crowd worth more at the gate, four per cent per level. They also cost more to run than any other building on the estate, because a box needs chefs and hosts whether or not there is a match. Break-even is around a fifteen thousand crowd: worth it if you fill a decent ground or are growing into one, a straight loss if you are not. Expanding the ground adds seats; this makes the seats you have worth more.',
+    a: 'Boxes and lounges make every home crowd worth more at the gate, four per cent per level. They also cost more to run than any other building on the estate, because a box needs chefs and hosts whether or not there is a match. Break-even is an average home crowd of about nine thousand across a season of roughly fourteen home gates, so at a full Premiership ground a level returns about one and a half times its upkeep, and more again at a big one. Below that it is a straight loss. Expanding the ground adds seats; this makes the seats you have worth more.',
   },
 
   // ---------------- Career ----------------
