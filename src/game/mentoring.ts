@@ -27,6 +27,36 @@ const TEACHER: Record<Personality, number> = {
   Mercenary: 0.2,
 }
 
+/**
+ * Who can be taken under a wing.
+ *
+ * User: "all players under 21 can have a mentor to learn from." It used to be
+ * academy men only, which meant promoting a prospect to the senior squad quietly
+ * ended his education - the reward for progress was losing the thing that caused
+ * it.
+ *
+ * ONE PREDICATE, USED BY BOTH SIDES. This is the whole reason it lives here
+ * rather than being written twice. The Training screen decided who appeared in the
+ * dropdown and season.ts decided who actually got the development bump, and they
+ * were separate expressions of the same idea. Widening only the dropdown would
+ * have produced a pairing the game displays, reports on every eight weeks, and
+ * silently does nothing for.
+ *
+ * Academy men are 17-19, so the age test already covers all of them; the acad
+ * clause is belt and braces against a future intake that arrives older.
+ */
+export const MENTEE_MAX_AGE = 20
+export const canBeMentored = (p: { age: number; acad?: boolean }) =>
+  p.age <= MENTEE_MAX_AGE || !!p.acad
+
+/** A senior pro has to have been round the block. */
+export const MENTOR_MIN_AGE = 28
+export const canMentor = (p: { age: number; acad?: boolean }) =>
+  !p.acad && p.age >= MENTOR_MIN_AGE
+
+/** How often the pairing files a progress note (user: "every 8 weeks"). */
+export const REPORT_EVERY = 8
+
 /** How much the kid takes in. */
 const LEARNER: Record<Personality, number> = {
   Professional: 1.0,
@@ -128,15 +158,19 @@ export function fitReason(senior: Player, kid: Player): string {
 /**
  * The mentoring beat: a note on how each pairing is going.
  *
- * Filed every six weeks so it is a progress report rather than a nag, and only
- * for pairings that have something to say - a middling one that is neither
- * working nor failing produces nothing, because "it is fine" is not news.
+ * Filed every REPORT_EVERY weeks so it is a progress report rather than a nag,
+ * and only for pairings that have something to say - a middling one that is
+ * neither working nor failing produces nothing, because "it is fine" is not news.
  * Deterministic: the week decides when, the fit decides what.
+ *
+ * A failing pairing names the way out. The End button has always been on the
+ * pairing row, but a manager who is told "this is not working" and not told what
+ * to do about it has been given a problem rather than a decision.
  */
 export function mentorReports(state: GameState) {
   const pairs = state.mentors ?? []
   if (!pairs.length) return
-  if (state.week % 6 !== 0) return
+  if (state.week % REPORT_EVERY !== 0) return
   for (const mp of pairs) {
     const s = state.players[mp.senior]
     const k = state.players[mp.kid]
@@ -155,8 +189,9 @@ export function mentorReports(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: `The ${s.name.split(' ').slice(-1)[0]} and ${last} pairing is not taking`,
-        body: `${fitWord(fit)}. ${fitReason(s, k)} ${k.name} is getting very little out of it and it may be worth putting him with somebody else. `
-          + `Nothing has gone wrong between them; it simply is not working.`,
+        body: `${fitWord(fit)}. ${fitReason(s, k)} ${k.name} is getting very little out of it. `
+          + `Nothing has gone wrong between them; it simply is not working. `
+          + `End the pairing on the Training and Staff screen and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
         playerId: k.id,
       })
     }

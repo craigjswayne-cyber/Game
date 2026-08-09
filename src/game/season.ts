@@ -25,7 +25,7 @@ import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 import { playAcademyWeek } from './academy'
-import { mentorBoost, mentorReports } from './mentoring'
+import { canBeMentored, mentorBoost, mentorReports } from './mentoring'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -726,7 +726,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // with a Temperamental kid is the waste of a season it ought to be. The
       // base rate is unchanged at the mid-fit case, so a squad's average paired
       // kid develops exactly as before.
-      if (isUser && p.acad && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
+      // canBeMentored rather than p.acad (user: "all players under 21 can have a
+      // mentor"). This gate and the Training screen's dropdown are the same rule
+      // and now read the same function: widening one without the other would
+      // produce a pairing the game shows, reports on, and does nothing for.
+      if (isUser && canBeMentored(p) && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
         const mpair = (state.mentors ?? []).find(mp => mp.kid === p.id)!
         const mentor = state.players[mpair.senior]
         const fitMult = mentor ? mentorBoost(mentor, p) : 1
