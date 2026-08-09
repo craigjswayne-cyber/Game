@@ -1,4 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
+import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
@@ -2096,6 +2097,10 @@ export function processWeekAndAdvance(state: GameState) {
   // was told, settled a little every week rather than in one lump
   settleGameTime(state)
   gameTimeReview(state)
+  // The other hundred clubs, whether or not the manager currently has a job:
+  // the world's books do not stop because he is between posts.
+  aiWeeklyFinance(state)
+  aiFireSale(state)
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
