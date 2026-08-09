@@ -175,7 +175,7 @@ try {
   check(!covered, 'and nothing full-screen is sitting on top of the game')
   await shot('03-portrait')
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Squad')
+  await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable', { timeout: 8000 })
   check(true, 'and the game answers taps in portrait straight away')
   await shot('04-portrait-playing')

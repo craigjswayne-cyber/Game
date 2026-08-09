@@ -130,7 +130,7 @@ try {
   await page.click('.tut-close .btn')
 
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Squad')
+  await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
   await check('squad')
   await page.click('.dtable tbody tr >> nth=0')

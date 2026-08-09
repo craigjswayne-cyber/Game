@@ -51,7 +51,7 @@ try {
   await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
   await dump('home')
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Squad')
+  await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
   await dump('squad')
   await page.click('.bottom-nav button[title="Hub"]')

@@ -271,7 +271,7 @@ try {
 
   // and the same treatment on one of your OWN men, where the wage box lives
   await tap('.bottom-nav button[title="Hub"]')
-  await tap('.submenu-item >> text=Squad')
+  await tap('.submenu-item >> text="Team"')
   await page.waitForTimeout(700)
   const mine = page.locator('.dtable tbody tr').first()
   if (await mine.count()) {

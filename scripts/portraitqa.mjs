@@ -293,7 +293,7 @@ try {
   // as a rule rather than a screenshot: no heading may sit below the first row
   // of the body, on any of the five views.
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Squad')
+  await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.tab-bar', { timeout: 8000 })
   for (const view of ['Selection', 'General Info', 'Stats', 'Game Time', 'Contracts']) {
     await page.click(`.tab-bar >> text=${view}`)

@@ -118,7 +118,7 @@ const run = async (size) => {
     await page.waitForSelector('.xv-split')
     await check('tactics: selection')
     await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Squad')
+  await page.click('.submenu-item >> text="Team"')
     await page.waitForSelector('.dtable')
     await check('squad')
     for (const [item, label] of [['Team Report', 'team report'], ['Finances', 'finances'], ['Club Infrastructure', 'infrastructure']]) {
