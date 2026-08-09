@@ -28,6 +28,12 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 // the user's phone, in portrait, in night mode
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+// Playwright's default action timeout is 30 seconds, and this walk taps buttons
+// speculatively inside bounded loops with .catch() on each. Ten speculative taps
+// against a button that never becomes clickable is five minutes of silence, which
+// is how a probe ends up looking hung instead of failing. Four seconds is plenty
+// for a local preview and turns every dead end into a fast, visible failure.
+page.setDefaultTimeout(4000)
 
 const WANT = [
   'Selection & Tactics', 'Team', 'Team Report', 'Academy', 'Training & Staff',
@@ -73,18 +79,41 @@ try {
   ok(!labels.some(l => /A League/.test(l)), 'and the Academy item does not mention the A League')
 
   // ---- a real match, to full time -----------------------------------------
-  await page.click('.bottom-nav button[title="Home"]').catch(() => {})
-  for (let i = 0; i < 12; i++) {
-    const onMatch = await page.evaluate(() => !!document.querySelector('.scoreboard'))
-    if (onMatch) break
-    const btn = page.locator('.continue-btn, .action-bar button').first()
-    if (await btn.count()) await btn.click().catch(() => {})
+  //
+  // Continue walks the week a day at a time, so reaching Saturday is a handful of
+  // taps rather than one, and Kick Off opens the dressing room before the tunnel.
+  // The first version of this probe tapped a generic ".action-bar button" and got
+  // nowhere near a pitch.
+  // Leave the menu by USING it. Tapping the rail's Home button while the submenu
+  // is open lands on the overlay, the .catch() swallows the miss, and the walk
+  // then hunts for a Continue button on a screen that is still the menu.
+  await page.click('.submenu-item >> text=Fixtures & Results')
+  await page.waitForSelector('.tblwrap, .dtable', { timeout: 10000 })
+  await page.click('.bottom-nav button[title="Home"]')
+  await page.waitForSelector('.continue-btn', { timeout: 15000 })
+
+  const walk = []
+  for (let tap = 0; tap < 10; tap++) {
+    if (await page.locator('text=Kick Off').count()) break
+    walk.push((await page.locator('.continue-btn').innerText().catch(() => '?')).trim())
+    await page.click('.continue-btn').catch(() => {})
     await page.waitForTimeout(500)
   }
-  ok(await page.evaluate(() => !!document.querySelector('.scoreboard')), 'Continue reached a matchday')
+  say(`\nContinue taps: ${walk.join(' > ') || '(none)'}`)
+  ok(await page.locator('text=Kick Off').count() > 0, 'Continue walked the week to a matchday')
 
-  // drive to full time, answering the touchline and the intervals
-  for (let i = 0; i < 240; i++) {
+  await page.locator('text=Kick Off ▸').first().click().catch(() => {})
+  // the dressing room, then the ready check: both optional depending on the sheet
+  await page.locator('.talk-modal').waitFor({ timeout: 3000 })
+    .then(() => page.click('.talk-modal .speech-tile >> text=Calm the nerves')).catch(() => {})
+  await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
+    .then(() => page.click('text=▸ Take the Field')).catch(() => {})
+  await page.waitForSelector('.scoreboard', { timeout: 20000 })
+  ok(true, 'reached the pitch')
+
+  // Drive to full time. The clock stops dead for a touchline call, and Skip is
+  // disabled while one is waiting, so those are answered first or the walk hangs.
+  for (let i = 0; i < 200; i++) {
     const s = await page.evaluate(() => {
       const body = document.body.textContent ?? ''
       return {
@@ -94,13 +123,12 @@ try {
       }
     })
     if (s.ft) break
-    if (s.call) { await page.click('text=Take the Points').catch(() => {}) }
+    if (s.call) await page.click('text=Take the Points').catch(() => {})
     else if (s.interval) {
-      await page.click('text=Start Second Half').catch(async () => {
-        await page.click('text=Play the Final Quarter').catch(() => {})
-      })
+      await page.click('text=▸ Start Second Half')
+        .catch(() => page.click('text=▸ Play the Final Quarter').catch(() => {}))
     } else {
-      await page.locator('.skip-btn, button:has-text("Skip")').first().click().catch(() => {})
+      await page.click('.speed-controls >> text=Skip').catch(() => {})
     }
     await page.waitForTimeout(250)
   }
