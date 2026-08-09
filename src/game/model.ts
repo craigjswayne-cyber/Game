@@ -145,6 +145,22 @@ export interface Injury {
   until: number
   /** total weeks out (severity), used to size the rusty spell afterwards */
   weeks?: number
+  /**
+   * The manager has been to the Medical Centre since this happened.
+   *
+   * User: "red dot notification for injury should clear once ive clicked it and
+   * viewed the page. it shouldn't stay there." The rail badge counted injured
+   * players, which makes it a STATUS rather than a NOTIFICATION: a ten-week
+   * ligament means a red dot for ten weeks and nothing the manager does clears
+   * it, so the dot stops meaning anything and he stops looking.
+   *
+   * The flag lives on the injury rather than on the player, which is what makes
+   * it honest without any bookkeeping: a fresh injury is a fresh object, so it
+   * arrives unseen even for a man who has been hurt twice this season, and
+   * nothing has to remember to reset it. Absent means unseen, which is the safe
+   * default for every save written before this existed.
+   */
+  seen?: boolean
 }
 
 export type Personality =

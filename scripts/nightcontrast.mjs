@@ -166,7 +166,7 @@ async function sweep(night) {
       await look('inbox')
       await page.click('.bottom-nav button[title="Home"]')
   
-      await hub('Squad', 'squad')
+      await hub('Team', 'squad')
       await page.click('.tab-bar >> text=Contracts').catch(() => {})
       await look('squad: contracts')
       await hub('Team Report', 'team report')

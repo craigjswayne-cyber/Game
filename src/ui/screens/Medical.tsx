@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
@@ -23,6 +23,19 @@ export default function Medical() {
   const tired = squad.filter(p => !p.injury && p.cond < 62).sort((a, b) => a.cond - b.cond)
   const loaded = squad.filter(p => !p.injury && inRedZone(p)).sort((a, b) => b.stats.mins - a.stats.mins)
   const away = squad.filter(p => p.natSquad || p.onLoan)
+
+  // Standing on this page IS reading the notification (13E), so the rail badge
+  // clears here rather than counting injured men forever. Not filtered by the
+  // search box: the badge is about the treatment room, not about whatever is
+  // currently typed into it.
+  useEffect(() => {
+    let fresh = 0
+    for (const id of club.players) {
+      const inj = game.players[id]?.injury
+      if (inj && !inj.seen) { inj.seen = true; fresh++ }
+    }
+    if (fresh) touch()
+  })
 
   // empty sections say nothing at all - six headers of "nobody" was noise
   const section = (title: string, sub: string, rows: Player[], render: (p: Player) => React.ReactNode) =>

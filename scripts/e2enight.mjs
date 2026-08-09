@@ -189,7 +189,7 @@ try {
 
   // the academy section: squad, A League table, fixtures (feedback 10G)
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Academy & A League')
+  await page.click('.submenu-item >> text=Academy')
   await page.waitForSelector('text=The Scholars')
   await shot('06h2-academy-squad')
   {

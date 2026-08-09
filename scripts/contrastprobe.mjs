@@ -148,7 +148,7 @@ async function sweep(label, { night, systemScheme }) {
     // first, and it is on the Selection page.
     for (const [where, menu, item] of [
       ['the leadership card and selection', 'Hub', 'Selection & Tactics'],
-      ['the game-time ledger', 'Hub', 'Squad'],
+      ['the game-time ledger', 'Hub', 'Team'],
       ['the mentoring picker', 'Hub', 'Training & Staff'],
       ['the medical search', 'Hub', 'Medical Centre'],
       ['the transfer filters', 'Hub', 'Transfer Centre'],
