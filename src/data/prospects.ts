@@ -24,21 +24,39 @@ export interface Prospect {
   q: number
   /** goal kicker */
   gk?: boolean
+  /**
+   * A floor on potential, for a genuine prospect rather than a solid academy man.
+   *
+   * buildPlayer gives an 18-year-old q + 12 to 25, so a q of 52 lands somewhere in
+   * the mid 60s to mid 70s depending on the name's own hash. That is a good
+   * academy player. A rising star is a different claim, and the honest way to make
+   * it is a high ceiling on a modest current ability rather than a high current
+   * ability - a boy who is already the finished article is not rising.
+   *
+   * Applied as a floor, not an assignment, so a lucky roll is never taken away.
+   */
+  pa?: number
 }
 
 export const ACADEMY_PROSPECTS: Record<string, Prospect[]> = {
   bath: [
     { name: 'Harry Logan', pos: 'FL', age: 18, q: 52 },
     { name: 'Alex Logan', pos: 'CE', age: 19, q: 50 },
+    // a 10 and a rising star: modest now, a ceiling worth clearing a shirt for
+    { name: 'Mark Dunkley', pos: 'FH', age: 18, q: 54, gk: true, pa: 88 },
   ],
   harlequins: [
     { name: 'Christian Kinchin', pos: 'FH', age: 18, q: 53, gk: true },
   ],
   northampton: [
     { name: 'James Fitchew', pos: 'N8', age: 19, q: 52 },
+    // ACAD_SHAPE asks for two N8s, so this one sits alongside Fitchew rather
+    // than taking his place
+    { name: 'Duncan Swayne', pos: 'N8', age: 18, q: 52 },
   ],
   saracens: [
     { name: 'Will Roberts', pos: 'SH', age: 18, q: 51 },
+    { name: 'Shaun Little', pos: 'WG', age: 19, q: 51 },
   ],
 }
 

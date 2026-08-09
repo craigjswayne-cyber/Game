@@ -253,6 +253,13 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
           club.id, seed + club.players.length * 31 + i, 0)
         p.youth = true
         p.acad = true
+        // a named rising star gets a floor under his ceiling. A floor rather than
+        // an assignment, so a lucky hash is never taken away, and it draws nothing
+        // from the shared rng so the world around him is still identical.
+        if (pr.pa) {
+          p.pa = Math.max(p.pa, pr.pa)
+          p.value = playerValue(p.ca, p.age, p.pa)
+        }
         state.players[p.id] = p
         club.players.push(p.id)
         return
