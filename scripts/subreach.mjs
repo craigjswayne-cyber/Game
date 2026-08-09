@@ -22,11 +22,10 @@
 //     not blocked off
 //   - and the bench is still reachable, so fixing the top does not lose the end
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { done, startPreview } from './lib/preview.mjs'
 import { writeSync } from 'node:fs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4193', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview(4193, 2500)
 
 // UNBUFFERED, ON PURPOSE. Piped to a file, node buffers stdout in blocks, so the
 // two runs of this probe that were killed by a timeout left a log containing the
@@ -227,8 +226,9 @@ try {
   await sweep('the break, tall phone', 915, 'BRK')
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
 }
 
 if (fails) { say(`\nSUB REACH PROBE: ${fails} failures`); process.exit(1) }
 say('\nSUB REACH PROBE PASSED')
+done(0)

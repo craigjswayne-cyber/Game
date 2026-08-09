@@ -22,11 +22,10 @@
 //   the clock STOPS for a touchline call and for each interval, and waits for
 //   the manager. A harness that only sleeps sits at 1' forever.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { done, startPreview } from './lib/preview.mjs'
 
 const PORT = 4179
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 3000))
+const server = await startPreview(PORT, 3000)
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -151,7 +150,7 @@ try {
   ok(false, `the harness threw: ${String(e).split('\n')[0].slice(0, 180)}`)
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
 }
 
 if (errors.length) {
@@ -162,3 +161,4 @@ if (errors.length) {
 
 if (fails) { console.error(`\nRELOAD PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nRELOAD PROBE PASSED: a live match survives a reload')
+done(0)
