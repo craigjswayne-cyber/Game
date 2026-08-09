@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
-  refFor, refNotes, frontRowCover, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
+  refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
@@ -189,7 +189,23 @@ function Preview({ fxId }: { fxId: number }) {
   // Law 3: without cover at all three front-row positions the referee orders
   // uncontested scrums, and the set piece leaves the game for both sides. Loud,
   // because it is the one warning here that voids a whole game plan.
-  const frontRow = frontRowCover(game, t.lineup)
+  //
+  // JUDGED ON THE SHEET THAT WILL PLAY, NOT THE SHEET AS SAVED. Reported from a
+  // live game: "my wife had props on the bench and a hooker but the game flashed
+  // up this message." She was right and the warning was wrong. It used to read
+  // t.lineup, the sheet exactly as she left it, and frontRowCover does not count a
+  // man who is injured - so a tighthead who picked up a knock during the week and
+  // was still named at 3 took the count from two to one, and the warning shouted
+  // about uncontested scrums while a tighthead sat on the bench she was looking at.
+  //
+  // The engine never had this bug: beginMatch feeds it the repaired sheet, so the
+  // scrum WAS contested. The warning was the only thing that was wrong, which is
+  // the worst version of it - it told her to fix a side that needed no fixing.
+  //
+  // repairSheet is the right thing to ask because it is what kick-off does and it
+  // is pure: every named man who can play keeps his own shirt, and only the broken
+  // slots are filled, from the men she did not name.
+  const frontRow = frontRowCover(game, repairSheet(game, club, t.lineup, splitFor(club)))
   if (!frontRow.legal) {
     const missing = ([['LP', 'loosehead'], ['HK', 'hooker'], ['TP', 'tighthead']] as const)
       .filter(([k]) => frontRow[k] < 2)

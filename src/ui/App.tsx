@@ -301,7 +301,7 @@ export default function App() {
         // A reload now resumes the career where it was left, so a refresh is no
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
-        { ico: '🚪', label: 'Title Screen', screen: 'menu', action: () => useStore.getState().toTitle() },
+        { ico: '🚪', label: 'Main Menu', screen: 'menu', action: () => useStore.getState().toTitle() },
       ],
     },
     world: {
