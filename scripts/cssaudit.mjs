@@ -64,9 +64,54 @@ for (const { token, line } of missing) {
   console.log(`       ${lines[line - 1].trim().slice(0, 110)}`)
 }
 
+// ---- and the unit that lies on a phone ----
+//
+// A second silent failure, from the same family: valid CSS, clean build, and a
+// bug you can only see on a real handset.
+//
+// On mobile Chrome `vh` measures the LARGE viewport - the height the page would
+// have if the browser chrome were hidden. So a bottom-anchored sheet at 94vh is
+// taller than what the manager can actually see, and its top sits underneath the
+// URL bar where nothing can scroll to it. Reported live: "you cant scroll up on
+// the team and its half way down the page."
+//
+// A BROWSER PROBE CANNOT CATCH THIS. Playwright's viewport has no chrome, so vh
+// and dvh are identical there, and shrinking the viewport shrinks both together -
+// subreach.mjs measured that sheet at 412x640, found it opened at its top with
+// shirt 1 on screen, and passed, because in a chromeless window it genuinely did.
+// The only place the discrepancy exists is a device with browser furniture, so the
+// only honest guard is to require the dvh companion in the stylesheet itself.
+//
+// Transforms are exempt: a confetti animation travelling 106vh is not a box that
+// can clip its own top.
+const vhFails = []
+let inComment = false
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i]
+  // Comment lines are prose, not rules. Skipped because the first run of this
+  // check reported the comment that explains the rule as a violation of it.
+  const opens = line.lastIndexOf('/*'), closes = line.lastIndexOf('*/')
+  const wasInComment = inComment
+  if (opens > closes) inComment = true
+  else if (closes > opens) inComment = false
+  if (wasInComment || /^\s*(\/\*|\*)/.test(line)) continue
+  if (!/\b\d+(\.\d+)?vh\b/.test(line)) continue
+  if (/dvh/.test(line)) continue
+  if (/transform|translate|@keyframes|^\s*(0%|100%|from|to)\b/.test(line)) continue
+  // the pattern is two declarations, vh then dvh, so look at the next line too
+  if (/dvh/.test(lines[i + 1] ?? '')) continue
+  vhFails.push({ line: i + 1, text: line.trim().slice(0, 100) })
+}
+for (const f of vhFails) {
+  console.log(`  FAIL ${CSS}:${f.line} sizes a box in vh with no dvh companion`)
+  console.log(`       ${f.text}`)
+}
+console.log(`${vhFails.length ? vhFails.length : 'no'} viewport-height rule(s) without a dvh fallback`)
+
 const inline = [...reads.keys()].filter(t => !defined.has(t)).length - missing.length
 console.log(`${reads.size} tokens read, ${defined.size} defined in the theme, ${inline} set from a component`)
-console.log(missing.length
-  ? `\nCSS AUDIT FOUND ${missing.length} TOKEN(S) THAT RESOLVE TO NOTHING`
-  : '\nCSS AUDIT PASSED: every token a rule reads is a token something defines')
-process.exit(missing.length ? 1 : 0)
+const fails = missing.length + vhFails.length
+console.log(fails
+  ? `\nCSS AUDIT FOUND ${missing.length} DEAD TOKEN(S) AND ${vhFails.length} vh RULE(S) WITHOUT dvh`
+  : '\nCSS AUDIT PASSED: every token resolves, and every sized box measures the viewport you can see')
+process.exit(fails ? 1 : 0)

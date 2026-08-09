@@ -810,12 +810,28 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 .modal-veil {
   position: fixed; inset: 0; background: rgba(6, 35, 26, .6);
+  /* and the veil itself, because a bottom sheet is anchored to ITS bottom. If the
+     veil is a large-viewport tall, flex-end puts the sheet's foot below the fold
+     and its head above it, whatever the sheet's own max-height says. */
+  max-height: 100vh;
+  max-height: 100dvh;
   z-index: 50;
   display: flex; align-items: flex-end; justify-content: center;
   backdrop-filter: blur(2px);
 }
 .modal {
-  background: var(--cream); width: 100%; max-width: 560px; max-height: 80vh; overflow-y: auto;
+  background: var(--cream); width: 100%; max-width: 560px; overflow-y: auto;
+  /* vh THEN dvh, and the second line is the one that matters on a phone.
+     On mobile Chrome `vh` measures the LARGE viewport - the height the page
+     would have if the browser chrome were hidden - so a sheet anchored to the
+     bottom at 80vh is taller than what you can actually see, and its top ends
+     up underneath the URL bar where no amount of scrolling reaches it. Reported
+     from a live game: "when clicking make replacements during a game at half
+     time or 60 minute break you cant scroll up on the team and its half way
+     down the page." dvh is the viewport as it really is right now.
+     The vh line stays first as the fallback for anything without dvh. */
+  max-height: 80vh;
+  max-height: 80dvh;
   overscroll-behavior-y: contain;
   border-radius: 16px 16px 0 0;
   padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
@@ -2115,7 +2131,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 /* the dressing room opens itself on match day, so it has to fit a short
    landscape screen without scrolling: four speeches two-up, not four-up */
-.talk-modal { max-height: 92vh; }
+.talk-modal { max-height: 92vh; max-height: 92dvh; }
 @media (orientation: landscape) and (min-width: 640px) {
   .talk-modal .speech-grid {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2151,7 +2167,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    Two columns, the XV and the bench, so a change is two taps and several
    changes are one visit. Tuned for a 300px-tall landscape phone: the columns
    scroll, the header and the Done button do not. */
-.squad-sheet { max-height: 94vh; display: flex; flex-direction: column; }
+.squad-sheet { max-height: 94vh; max-height: 94dvh; display: flex; flex-direction: column; }
 /* STICKY, because the heading is where the injured man's name lives.
    A phone screenshot showed the sheet scrolled down to reach the bench with the
    title off the top of the screen: the manager was being asked to replace
@@ -2212,7 +2228,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .sheet-col { overflow: visible; max-height: none; }
   .squad-sheet {
     display: block;
+    /* the portrait sheet is the one the bug was reported against */
     max-height: 88vh;
+    max-height: 88dvh;
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
@@ -2638,7 +2656,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   white-space: pre-wrap; word-break: break-word;
   background: rgba(0, 0, 0, .35); border-radius: 7px;
   padding: 9px 10px; margin: 0 0 12px; color: #ffbfae;
-  max-height: 28vh; overflow-y: auto;
+  max-height: 28vh; max-height: 28dvh; overflow-y: auto;
 }
 .crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
 .crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 13px; }
