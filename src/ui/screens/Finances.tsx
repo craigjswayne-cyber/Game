@@ -313,11 +313,16 @@ export default function Finances() {
           const def = OBJECTIVE_DEFS.find(o => o.id === id)
           if (!def || !def.applies(game)) return null
           const ok = def.met(game)
+          // banked means it cannot be lost, so a tick is honest. A standing
+          // condition only settles in May (see ObjectiveDef.banked and the
+          // Bedford report behind it), so it reads as on course until then.
+          const done = ok && def.banked
           return (
             <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 12.5, alignItems: 'flex-start' }}>
-              <span>{ok ? '✅' : '⬜'}</span>
-              <span style={{ color: ok ? 'var(--win)' : 'var(--ink-soft)' }}>
-                {def.text(game)} <b style={{ color: 'var(--ink-faint)' }}>· +£250k & board favour if met</b>
+              <span>{done ? '✅' : ok ? '🕗' : '⬜'}</span>
+              <span style={{ color: done ? 'var(--win)' : 'var(--ink-soft)' }}>
+                {def.text(game)}{ok && !def.banked ? ' - on course, settled at the final whistle' : ''}
+                {' '}<b style={{ color: 'var(--ink-faint)' }}>· +£250k & board favour if met</b>
               </span>
             </div>
           )
