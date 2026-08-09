@@ -78,6 +78,18 @@ export default function Home() {
 
   return (
     <>
+      {/* THE FIRST THREE WEEKS TELL YOU WHAT THE GAME IS.
+          Found in the studio audit: nothing teaches the core loop. The tutorial
+          is one dismissible panel, and a new manager lands on a dashboard of
+          board confidence, fan mood, objectives, money and mail with no way to
+          know which of it is a job and which is a readout. One line, for three
+          weeks of a first season, then it is gone for good. */}
+      {game.season === 0 && game.week <= 3 && (
+        <div className="first-hint">
+          <b>Continue is the game.</b> It moves the week on and brings the next
+          thing to you. Everything else on this screen can wait until you want it.
+        </div>
+      )}
       <div className="card-grid">
       {game.comps['sn'] && game.week >= SIX_NATIONS_WEEKS[0] - 1 && game.week <= SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1] && (() => {
         const rows = sortTable(game.comps['sn'].table).slice(0, 3)

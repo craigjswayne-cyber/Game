@@ -306,7 +306,13 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   line-height: 1;
   padding: 2px 10px 6px 0;
   opacity: .9;
+  position: relative;
 }
+/* 22x34 of chevron, and back is the second most used control in the app. The
+   expander reaches 44x44 without moving the title: there is masthead padding to
+   its left and a 10px flex gap to its right, and the thing on the other side of
+   that gap is a text block, not a control. Measured by scripts/tapsize.mjs. */
+.back-btn::after { content: ''; position: absolute; inset: -5px -11px; }
 
 /* ================= Continue ================= */
 .continue-btn {
@@ -318,6 +324,8 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   letter-spacing: 1.4px;
   text-transform: uppercase;
   padding: 8px 16px 9px;
+  /* the button the whole game runs through, and it was 40px */
+  min-height: 44px;
   border-radius: 6px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 6px rgba(0, 0, 0, .35);
   white-space: nowrap;
@@ -539,7 +547,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   box-shadow: none;
 }
 .btn.danger { background: linear-gradient(180deg, #b13a34, #96302b); }
-.btn.block { display: block; width: calc(100% - 28px); margin: 12px 14px; }
+/* A full-width button is always a primary action, so it gets the full target.
+   Deliberately not put on .btn itself: nineteen small buttons live inside live
+   table rows, and growing those to 44px would both undo the density pass and
+   push the row they sit in around. Those are covered by an explicit, narrower
+   floor in scripts/tapsize.mjs instead. */
+.btn.block { display: block; width: calc(100% - 28px); margin: 12px 14px; min-height: 44px; }
 .btn:disabled { opacity: .4; }
 .btn:active { transform: translateY(1px); }
 .btn-row { display: flex; gap: 10px; margin: 12px 14px; }
@@ -795,6 +808,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   box-shadow: var(--shadow-1);
 }
 .tab-bar button {
+  /* six tabs on Selection, four on Finances, and every one of them was 36px.
+     A button centres its own content, so the floor costs nothing but height. */
+  min-height: 44px;
   padding: 11px 14px 9px;
   font-family: var(--cond);
   font-size: 14px; font-weight: 700;
@@ -1014,7 +1030,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-top: 1px solid var(--hairline);
   box-shadow: 0 -6px 14px rgba(0, 0, 0, .10);
 }
-.action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; }
+.action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; min-height: 44px; }
 
 /* first-run welcome dialog */
 .tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; }
@@ -1042,6 +1058,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 /* floodlit toggle in masthead */
 .night-btn {
+  position: relative;
   width: 34px; height: 34px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   color: var(--cream);
@@ -1050,6 +1067,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   flex-shrink: 0;
 }
 .night-btn svg { width: 18px; height: 18px; }
+/* 34px of tile, 44px of target. It grows 5px into the 10px .mast-ctl gap on the
+   Continue side and 5px into dead masthead space on the other, so it reaches the
+   guideline without taking a pixel off the button next to it. */
+.night-btn::after { content: ''; position: absolute; inset: -5px; }
 
 /* ================= Live pitch: the two XVs ================= */
 .pitch .pdot {
@@ -1116,6 +1137,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: #ece7d8;
   border-radius: 15px;
   padding: 6px 11px;
+  /* 28px before. The full 44px is not available to a chip in either axis: six of
+     them go across a 412px filter row, and a wrapped row has a live row of chips
+     above and below it, so widening steals from the neighbour and an invisible
+     expander would overlap the row it wrapped from. 36px is what a segmented
+     control gets on iOS, and scripts/tapsize.mjs holds chips to exactly that
+     rather than pretending they meet the 44px rule. */
+  min-height: 36px;
   font-size: 11px; font-weight: 700; font-family: var(--sans);
   box-shadow: var(--shadow-1);
 }
@@ -1946,9 +1974,29 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 /* a section's own action, on the section's own heading row */
 .section-title .sect-act { margin-left: auto; }
+/* A tiny button looks tiny and TAPS BIG.
+ *
+ * Found in the studio audit: at 11px text with 3px padding these render about
+ * 19px tall, against a 44pt iOS / 48dp Android guideline, and they carry the
+ * inbox reader's older/newer arrows - the control used most often outside a
+ * match. Growing the box would wreck the density the whole UI is tuned for.
+ *
+ * So the visual box is untouched and an invisible ::after extends the hit area
+ * past it. The pseudo-element belongs to the button, so a tap anywhere in it
+ * counts as a tap on the button, and because it is absolutely positioned it
+ * changes no layout at all. Vertical expansion is generous because toolbar rows
+ * have space above and below; horizontal is deliberately small so two adjacent
+ * tiny buttons cannot steal each other's taps.
+ *
+ * scripts/tapsize.mjs measures the result in a real browser and fails the build
+ * on anything under 44px, which is the tripwire that did not exist before. */
 .btn.tiny {
   padding: 3px 9px; font-size: 11px; letter-spacing: .6px;
   border-radius: 6px; min-height: 0;
+  position: relative;
+}
+.btn.tiny::after {
+  content: ''; position: absolute; inset: -13px -3px;
 }
 
 /* ---- two columns where one column was two swipes ----
@@ -2574,7 +2622,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-bottom: 1px solid var(--hairline);
 }
-.reader-bar .btn.tiny { padding: 3px 9px; min-width: 30px; }
+/* The older/newer arrows are the control a manager uses most often outside a
+   match, and they were 30x24. Here they get real size rather than an invisible
+   expander: the bar's siblings are 6px away, so an expander big enough to reach
+   44px would have been reaching into the button next to it. */
+.reader-bar .btn.tiny { padding: 3px 9px; min-width: 44px; min-height: 44px; }
+.reader-bar .btn.tiny::after { content: none; }
 .reader-bar .btn.tiny:disabled { opacity: .35; }
 .reader-pos {
   flex: 1; font-family: var(--cond); font-size: 11px; font-weight: 700;
@@ -2620,6 +2673,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .who-chip b { font-size: 12.5px; color: var(--ink); }
 .who-chip span { font-size: 10.5px; color: var(--ink-faint); font-weight: 700; }
 .who-chip:active { background: var(--cream-3); }
+
+/* The one-line core-loop hint, first three weeks of a first career only. Sized
+   to read as guidance rather than as an alert: no icon, no border, no dismiss
+   button, because a thing that disappears on its own does not need one. */
+.first-hint {
+  margin: 8px 14px 2px;
+  padding: 9px 12px;
+  border-left: 3px solid var(--gold);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--gold) 10%, var(--paper));
+  font-size: 12.5px; line-height: 1.45; color: var(--ink-soft);
+}
+.first-hint b { color: var(--ink); }
 
 /* The two fixes on the full-time verdict (13A). A numbered list rather than a
    paragraph, because the point is that these are two discrete jobs. */

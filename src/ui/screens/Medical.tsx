@@ -28,6 +28,10 @@ export default function Medical() {
   // clears here rather than counting injured men forever. Not filtered by the
   // search box: the badge is about the treatment room, not about whatever is
   // currently typed into it.
+  // Runs once per visit, not once per render. Written without a dependency array
+  // first, which self-terminated only because the second pass found nothing fresh
+  // to mark - the next person to add a condition inside it would have got an
+  // infinite render loop for free. Flagged in the studio audit as my own trap.
   useEffect(() => {
     let fresh = 0
     for (const id of club.players) {
@@ -35,7 +39,8 @@ export default function Medical() {
       if (inj && !inj.seen) { inj.seen = true; fresh++ }
     }
     if (fresh) touch()
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // empty sections say nothing at all - six headers of "nobody" was noise
   const section = (title: string, sub: string, rows: Player[], render: (p: Player) => React.ReactNode) =>
