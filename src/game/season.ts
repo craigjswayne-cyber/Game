@@ -1,5 +1,6 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
+import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
@@ -2101,6 +2102,19 @@ export function processWeekAndAdvance(state: GameState) {
   // the world's books do not stop because he is between posts.
   aiWeeklyFinance(state)
   aiFireSale(state)
+  // THE MAN IN THE OTHER DUGOUT (C3). One voice, once a month at most, and a
+  // sacking when his season collapses. Gated on the calendar and the table, never
+  // on the shared rng - a quote that moved the sim stream would change results by
+  // being generated.
+  if (!state.unemployed) {
+    const beat = rivalBeat(state)
+    if (beat) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+        subject: beat.subject, body: beat.body,
+      })
+    }
+  }
   if (!state.unemployed) {
     weeklyFinance(state, rng)
     weeklyScouting(state)
