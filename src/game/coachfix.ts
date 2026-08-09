@@ -65,10 +65,79 @@ export interface CoachFix {
   head: string
   /** the change, naming a real control */
   how: string
+  /** which subject it belongs to, so the next verdict can mark the homework */
+  tag: FixTag
 }
 
-type Tag = 'setpiece' | 'discipline' | 'attack' | 'territory' | 'kicking' | 'fitness' | 'admin'
-interface Cand extends CoachFix { tag: Tag; score: number }
+export type FixTag = 'setpiece' | 'discipline' | 'attack' | 'territory' | 'kicking' | 'fitness' | 'admin'
+type Tag = FixTag
+interface Cand extends CoachFix { score: number }
+
+/**
+ * What to call each subject in a sentence.
+ *
+ * Deliberately the thing that was WRONG rather than the dial that fixes it: a
+ * manager remembers being told his lineout was a shambles, not that candidate
+ * tag 'setpiece' scored 4.4.
+ */
+export const FIX_LABEL: Record<FixTag, string> = {
+  setpiece: 'the set piece',
+  discipline: 'the discipline',
+  attack: 'turning possession into points',
+  territory: 'where the game was played',
+  kicking: 'the goal kicking',
+  fitness: 'using the bench',
+  admin: 'sticking to one plan',
+}
+
+/**
+ * Mark last week's homework.
+ *
+ * The audit's read was that the two fixes were a lecture rather than a loop: the
+ * coach names two jobs, the manager does them or does not, and nothing ever
+ * mentions it again. This is the other half. A subject the coach raised last time
+ * and cannot raise now is FIXED - not because the manager necessarily did the
+ * thing suggested, but because whatever he did, the number stopped screaming.
+ * A subject still on the list is not.
+ *
+ * Never a reward or a penalty in the engine. The manager's league position is the
+ * reward, and a board that hands out confidence for obeying its own coach would be
+ * marking its own homework twice.
+ */
+export function gradeFixes(prev: readonly FixTag[], now: readonly FixTag[]): {
+  fixed: FixTag[]
+  missed: FixTag[]
+} {
+  const open = new Set(now)
+  return {
+    // 'admin' is the coach saying nothing broke, so it is never homework
+    fixed: prev.filter(t => t !== 'admin' && !open.has(t)),
+    missed: prev.filter(t => t !== 'admin' && open.has(t)),
+  }
+}
+
+/** One line of English for a grade, or null when there is nothing to report. */
+export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): string | null {
+  const list = (ts: readonly FixTag[]) => ts.map(t => FIX_LABEL[t]).join(' and ')
+  // the labels are written to sit mid-sentence ("we asked about the set piece"),
+  // so one that opens a sentence needs its capital. Caught by fixprobe reading
+  // its own output: "two things. the set piece is sorted."
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+  if (fixed.length && missed.length) {
+    return `Last time we asked for two things. ${cap(list(fixed))} is sorted. ${cap(list(missed))} is not.`
+  }
+  if (fixed.length) {
+    return fixed.length > 1
+      ? `Both jobs from last time are done: ${list(fixed)}. That is a side that listens.`
+      : `${cap(list(fixed))} is sorted since last time. Keep doing whatever that was.`
+  }
+  if (missed.length) {
+    return missed.length > 1
+      ? `${cap(list(missed))} were the jobs last time, and neither has moved.`
+      : `We asked about ${list(missed)} last time, and here it is again.`
+  }
+  return null
+}
 
 /** The opposition's score at the hour, for spotting a side that empties. */
 function scoreAt(ctx: LiveCtx, min: number, home: boolean): number {
@@ -267,5 +336,5 @@ export function coachFixes(
   return [...byTag.values()]
     .sort((a, b) => b.score - a.score)
     .slice(0, want)
-    .map(({ head, how }) => ({ head, how }))
+    .map(({ head, how, tag }) => ({ head, how, tag }))
 }

@@ -961,6 +961,8 @@ export interface GameState {
   slAlerted?: number[]
   /** absolute week (season*100+week) the cotton-wool pick was last used */
   cottonWk?: number
+  /** Last full time's two fixes, so the next one can mark the homework (C2). */
+  fixHw?: { fxId: number; season: number; week: number; tags: string[] }
   /** the user's hand-picked Test 23 for the current window */
   natLineup?: { team: string; lineup: (number | null)[] } | null
   /** World Player of the Year roll of honour, oldest first - the sport's
