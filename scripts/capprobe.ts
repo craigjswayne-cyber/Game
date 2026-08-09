@@ -38,14 +38,28 @@ console.log('--- the ceiling is measured from each division')
   ok(!pos.over, `and the manager starts inside it (${capWord(pos)})`)
   ok(pos.marquee.length === MARQUEE_SLOTS,
     `with ${pos.marquee.length} marquee men already filed, as an inherited squad would be`)
-  // the cap has to be somewhere useful: a ceiling nobody can approach is not a
-  // rule, and one nobody can meet is a punishment
+  // The cap has to be somewhere useful: a ceiling nobody can approach is not a
+  // rule, and one nobody can meet is a punishment.
+  //
+  // NOBODY STARTS IN BREACH, and this assertion used to say the opposite - it
+  // required at least one club over the line on day one, because that was the
+  // design. It changed for a measured reason: the one club it caught on the 2025/26
+  // data was Bath, at 103%, and Bath is one of the two clubs being played in this
+  // house. A manager who picked the most famous squad in the game was refused every
+  // signing from her first week, for a squad she inherited. The cap is now floored
+  // at world creation so the richest club sits at 98% (see cap.ts) - pressed right
+  // up against it, which is the point, but not serving a sentence.
   const bills = Object.values(g.clubs)
     .filter(c => c.leagueId === club.leagueId)
     .map(c => capPosition(g, c.id))
   const over = bills.filter(p => p.over).length
-  ok(over >= 1 && over <= bills.length / 2,
-    `${over} of ${bills.length} in the division are over it on day one, which is a rule with teeth and a rule that can be met`)
+  ok(over === 0, `no club in the division starts in breach (${over} over the line)`)
+  // and it still has to BITE: the top of the league must have effectively no room
+  const pcts = bills.filter(p => p.cap).map(p => (p.bill / p.cap!) * 100).sort((a, b) => b - a)
+  ok(pcts[0] >= 95,
+    `the biggest spender is at ${pcts[0].toFixed(0)}% of it, so the ceiling is real`)
+  ok(pcts[Math.floor(pcts.length / 2)] <= 90,
+    `and the middle of the division has room (median ${pcts[Math.floor(pcts.length / 2)].toFixed(0)}%)`)
 }
 
 console.log('\n--- a deal that would breach it is refused')
@@ -124,7 +138,16 @@ console.log('\n--- the AI trims to comply rather than being fined for ever')
     for (let w = 0; w < SEASON_WEEKS; w++) { g3.newsFrom = g3.nextId; processWeekAndAdvance(g3) }
   }
   const later = overAt()
-  ok(opening > later, `clubs over the cap fell from ${opening} to ${later} as the AI trimmed`)
+  // This used to read `opening > later`, which only worked while the world began
+  // with clubs in breach. Nobody starts in breach now (cap.ts), so `opening` is
+  // zero and the old assertion was arithmetically impossible rather than wrong.
+  //
+  // What it was really testing is that breaches do not ACCUMULATE: wage inflation
+  // pushes clubs over across five seasons, and the AI has to trim rather than sit
+  // there being fined for ever. So the test is that the number stays small.
+  const capped = Object.values(g3.clubs).filter(c => capPosition(g3, c.id).cap).length
+  ok(later <= Math.max(2, Math.round(capped * 0.1)),
+    `after five seasons ${later} of ${capped} capped clubs are over the line (opened at ${opening}), so the AI is trimming rather than living in breach`)
   const embargoed = Object.values(g3.clubs).filter(c => (c.capEmbargoUntil ?? -1) >= g3.season).length
   ok(embargoed <= Object.keys(g3.clubs).length / 8,
     `only ${embargoed} clubs are serving an embargo, so the market is not frozen`)

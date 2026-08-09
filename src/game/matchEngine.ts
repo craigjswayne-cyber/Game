@@ -2232,6 +2232,10 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         if (started) p.stats.starts += 1
         p.stats.mins += started ? 75 : 25
         p.stats.ratingSum += r
+        // and the same rating against the award window, which is cleared every
+        // time a Player of the Month is named (see SeasonStats.mSum)
+        p.stats.mSum = (p.stats.mSum ?? 0) + r
+        p.stats.mApps = (p.stats.mApps ?? 0) + 1
         p.lastR = r
         p.lastWk = state.week
         p.form = clamp(p.form * 0.65 + r * 0.35, 1, 10)

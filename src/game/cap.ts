@@ -23,10 +23,31 @@ import { fmtMoney, type Club, type GameState } from './model'
  *
  * So the cap is derived from the league it governs: a shade above the median club.
  * That gives it the shape a cap is supposed to have - most of the division has
- * room, the biggest spenders are pressed right up against it, and one or two are
- * over on day one and have to do something about it. It calibrates itself for
- * every division, including the ones nobody measured, and it survives the squad
- * data being updated.
+ * room and the biggest spenders are pressed right up against it. It calibrates
+ * itself for every division, including the ones nobody measured, and it survives
+ * the squad data being updated.
+ *
+ * ---- but NOBODY STARTS IN BREACH ----
+ *
+ * This used to read "one or two are over on day one and have to do something about
+ * it", and that was the deliberate intent. It is not any more, and the reason is a
+ * measurement rather than a preference. On the 2025/26 data the median rule put the
+ * Premiership cap at £283k, and exactly one club was over it: Bath, at £292k, 103%.
+ * Bath is one of the two clubs actually being played in this house. So a new
+ * manager picked the most famous squad in the game and was refused every signing
+ * from her first week, for a squad she inherited, before she had been told a cap
+ * existed.
+ *
+ * That is the same trap the marquee designation below already avoids, and for the
+ * same reason: a rule you are in breach of on arrival is not a decision, it is a
+ * wall. So at world creation only, the cap is floored so the richest club in each
+ * division starts at OPENING_HEADROOM of it - tight, no room to spend, one
+ * departure away from comfort, but not blocked.
+ *
+ * It costs the cap about 5% of its bite for the whole save, because the cap never
+ * falls. That is the price, it is known, and it buys a first season that punishes
+ * ambition rather than inheritance. Every summer after this one uses the median
+ * rule untouched, so the constraint tightens against wage inflation as designed.
  *
  * ---- and it never falls ----
  *
@@ -38,6 +59,14 @@ import { fmtMoney, type Club, type GameState } from './model'
 
 /** A shade above the median club: most have room, the top of the league does not. */
 const CAP_OVER_MEDIAN = 1.16
+
+/**
+ * At world creation, the richest club in a division sits at most this far up its
+ * cap. 0.98 is deliberately mean: no room to sign anybody, one wage off the line,
+ * and every refusal it hands out is honest - but it is a squad to manage rather
+ * than a breach to serve. See the header for what this costs and why.
+ */
+const OPENING_HEADROOM = 0.98
 
 /** Two marquee men sit outside it, as they do in the real game. */
 export const MARQUEE_SLOTS = 2
@@ -90,7 +119,15 @@ export function refreshCaps(state: GameState, includeUser = false) {
   }
   for (const [leagueId, bills] of byLeague) {
     if (bills.length < 4) continue
-    const fresh = Math.round((median(bills) * CAP_OVER_MEDIAN) / 1_000) * 1_000
+    let fresh = Math.round((median(bills) * CAP_OVER_MEDIAN) / 1_000) * 1_000
+    // AT CREATION ONLY: lift the line clear of the division's biggest spender, so
+    // no club begins the game in breach of a rule it has not yet been told about.
+    // `includeUser` is the creation flag; every later summer keeps the median rule
+    // exactly as it was.
+    if (includeUser) {
+      const top = Math.max(...bills)
+      fresh = Math.max(fresh, Math.ceil((top / OPENING_HEADROOM) / 1_000) * 1_000)
+    }
     // never downward: a club must not fall into breach because the league got
     // poorer around it
     state.caps[leagueId] = Math.max(state.caps[leagueId] ?? 0, fresh)

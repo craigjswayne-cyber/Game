@@ -383,6 +383,11 @@ export function migrate(s: GameState): GameState {
     p.loanFrom ??= null
     p.acad ??= false
     p.stats.mins ??= 0
+    // the Player of the Month window (SeasonStats.mSum). Starting an old save at
+    // zero costs at most one award decided on a short window, which is a great
+    // deal better than the old one decided on rolling season form.
+    p.stats.mSum ??= 0
+    p.stats.mApps ??= 0
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)
