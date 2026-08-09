@@ -1697,38 +1697,63 @@ export function processWeekAndAdvance(state: GameState) {
       // and two wins, and merit decides rather than table position. It can come
       // back null, and a month where nobody deserved it passes without an award.
       const best = managerOfMonth(state, leagueId, from, state.week)
-      // player of the month: hottest form among men who featured this window
+      // Player of the Month: hottest form among men who featured this window.
+      //
+      // `!p.acad` is not belt and braces, it is the fix for a measured bug. The A
+      // League bumps stats.apps and adds 0.35 of form for every win (academy.ts),
+      // and it never writes lastWk. So an academy lad who kept winning A League
+      // games sat on a form figure of 8.9 with thirteen "appearances", and the old
+      // duplicate of this award - which filtered on apps and form alone - handed
+      // him the senior league's Player of the Month at weeks 16, 20, 24, 28, 32
+      // and 36 of the same season. Measured over three careers: 22 of 42 awards
+      // went to a man who had not played a senior minute in the window.
       const cands = comp.table.flatMap(r => (state.clubs[r.teamId]?.players ?? [])
         .map(id => state.players[id])
-        .filter(p => p && (p.lastWk ?? -9) >= from))
+        .filter(p => p && !p.acad && (p.lastWk ?? -9) >= from))
       // and a minimum sample for the player too: one appearance on a hot form
       // figure used to be enough to be named the league's best man of the month
       const pom = cands
         .filter(p => (p!.stats.apps ?? 0) >= 3)
         .sort((a, b) => b!.form - a!.form || b!.stats.ratingSum - a!.stats.ratingSum)[0]
-      if (pom && best) {
-        const bestClub = best.clubId
-        pom.morale = clamp(pom.morale + 0.6, 1, 10)
-        const userWon = bestClub === state.userClubId
+      // THE TWO AWARDS ARE SEPARATE AWARDS. This used to read `if (pom && best)`,
+      // so a month where no manager cleared the three-match, two-win gate took the
+      // player's award away with it, and he earned his on the pitch.
+      //
+      // Honesty about this one: it is a coupling removed, not a bug caught.
+      // Measured over 5 careers and 15 seasons, 105 award windows: 90 had both a
+      // worthy manager and a worthy player, 15 had neither, and NOT ONE had only
+      // one of them. The calendar is why - a six-week block either holds three or
+      // four league rounds or it holds none - so the old condition never actually
+      // cost anybody an award. It would the moment the gate or the calendar moved,
+      // and the two prizes have no business depending on each other regardless.
+      if (pom || best) {
+        const bestClub = best?.clubId
+        if (pom) pom.morale = clamp(pom.morale + 0.6, 1, 10)
+        const userWon = !!bestClub && bestClub === state.userClubId
         if (userWon) {
           state.mgr.moms = (state.mgr.moms ?? 0) + 1
           const club = state.clubs[state.userClubId]
           club.boardConfidence = clamp(club.boardConfidence + 4, 0, 100)
           state.fanMood = clamp((state.fanMood ?? 60) + 4, 5, 98)
         }
+        const ourMan = pom?.clubId === state.userClubId
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
           subject: userWon
             ? `🥇 Manager of the Month: YOU`
-            : pom.clubId === state.userClubId
-              ? `🥇 ${comp.short} awards: ${pom.name} is Player of the Month`
+            : ourMan
+              ? `🥇 ${comp.short} awards: ${pom!.name} is Player of the Month`
               : `🥇 ${comp.short} monthly awards`,
           body: [
-            `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`}. ${runLine(state, best)}`,
-            `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '-'}), form ${pom.form.toFixed(1)}.`,
-            userWon ? 'The board notice these things - and so does the crowd.' : pom.clubId === state.userClubId ? 'A proud week for the club and a lift for the man himself.' : '',
+            best && bestClub
+              ? `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`}. ${runLine(state, best)}`
+              : 'Manager of the Month: not awarded. Nobody put together a month worth the trophy.',
+            pom
+              ? `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '-'}), form ${pom.form.toFixed(1)}.`
+              : 'Player of the Month: not awarded.',
+            userWon ? 'The board notice these things - and so does the crowd.' : ourMan ? 'A proud week for the club and a lift for the man himself.' : '',
           ].filter(Boolean).join('\n'),
-          playerId: pom.id,
+          playerId: pom?.id,
         })
       }
     }
@@ -2084,23 +2109,22 @@ export function processWeekAndAdvance(state: GameState) {
   }
   generateGossip(state, rng)
 
-  // Player of the Month in the user's league - a form king gets his gong
-  if (state.week % 4 === 0 && state.week <= 36 && !state.unemployed) {
-    const leagueId = state.clubs[state.userClubId].leagueId
-    const cands = Object.values(state.players).filter(p =>
-      p.clubId && state.clubs[p.clubId]?.leagueId === leagueId && p.stats.apps >= 3)
-    const best = [...cands].sort((a, b) => b.form - a.form)[0]
-    if (best && best.form >= 7) {
-      best.morale = clamp(best.morale + 0.6, 1, 10)
-      const ours = best.clubId === state.userClubId
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: `Player of the Month: ${best.name}${ours ? ' 🏅' : ''}`,
-        body: `${best.name} (${teamShort(state, best.clubId!)}) takes the ${state.comps[leagueId]?.short ?? 'league'} Player of the Month award${ours ? ' - one of yours! The dressing room applauds him in, and his chest is a little bigger for it.' : '.'}`,
-        playerId: best.id,
-      })
-    }
-  }
+  // THE SECOND PLAYER OF THE MONTH USED TO LIVE HERE, AND IT HAD TO GO.
+  //
+  // It predated the measured monthly-awards block above (awards.ts) and was never
+  // removed when that landed, so the league handed out two Players of the Month:
+  // this one every four weeks, that one every six, and both on weeks 12, 24 and
+  // 36 - usually to two different men in the same bulletin.
+  //
+  // It was also the worse of the two. It had no window at all: any man with three
+  // appearances at any point in the season and a hot form figure TODAY. That let
+  // it crown a man who had not played for a month, whose rolling form had simply
+  // not decayed, and - because the A League bumps apps and form without ever
+  // writing lastWk - it repeatedly gave the senior league's award to an academy
+  // teenager. Measured over three careers, two seasons each: 9 double awards, 22
+  // of 42 winners with no senior minutes in the window.
+  //
+  // scripts/potmprobe.ts holds all of that at zero now.
   aiTransfers(state, rng)
   aiRenewals(state, rng)
   if (!state.unemployed) aiPreContractPoach(state, rng)
