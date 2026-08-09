@@ -48,6 +48,13 @@ const snapshot = () => page.evaluate(() => {
     nowMin: now?.querySelector('.min')?.textContent?.trim() ?? '',
     nowTxt: now?.querySelector('.txt')?.textContent?.trim() ?? '',
     decision: body.includes('your call from the touchline'),
+    // A SERIOUS INJURY STOPS THE CLOCK (feedback 9-3): the match-day squad opens
+    // and will not close until somebody is named. This probe used to have no idea
+    // that screen existed, so a match that produced a bad injury simply stopped -
+    // and the failure read as "the match never reached the second half", which
+    // sounds like a resume bug and is not one. It surfaced when the AI economy
+    // changed which players AI clubs were carrying, and so which men got hurt.
+    hurt: body.includes('Name his replacement before play restarts'),
     interval: /Start Second Half|Play the Final Quarter/.test(body),
     finished: !!document.querySelector('.ft-stamp') || body.includes('Continue to Results'),
   }
@@ -68,7 +75,17 @@ const drive = async (wants, ms, what) => {
     last = s
     if (wants(s)) return s
     if (Date.now() > stop) { ok(false, `timed out waiting for ${what} (at ${s.clock || 'no match'})`); return s }
-    if (s.decision) {
+    if (s.hurt) {
+      // Arm a man who is on, then take a bench option: the two taps subsprobe
+      // uses, because a forced stop wants a real change and blind clicking on the
+      // sheet got past one injury and stalled on the next.
+      await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])')
+        .first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])')
+        .first().click({ timeout: 3000 }).catch(() => {})
+      await page.locator('.btn', { hasText: /Back to the Match|Done|Close/ })
+        .first().click({ timeout: 3000 }).catch(() => {})
+    } else if (s.decision) {
       await page.locator('.btn', { hasText: 'Take the Points' }).first().click().catch(() => {})
     } else if (s.interval) {
       await page.locator('.btn', { hasText: /Start Second Half|Play the Final Quarter/ })

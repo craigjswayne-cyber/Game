@@ -42,7 +42,7 @@ const FLOOR = [
   { cls: 'preset-chip', min: 36, why: 'six across a 412px filter row, live chip rows above and below' },
 ]
 
-const server = await startPreview('4191', 3000)
+const server = await startPreview('4196', 3000)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 page.setDefaultTimeout(6000)
@@ -118,7 +118,7 @@ const check = async (name) => {
 }
 
 try {
-  await page.goto('http://localhost:4191/')
+  await page.goto('http://localhost:4196/')
   await page.waitForSelector('text=RUGBY')
   await page.click('text=New Career')
   await page.waitForSelector('text=Gallagher Premiership')
