@@ -252,13 +252,25 @@ try {
     // guessing who was hurt
     const head = document.querySelector('.sheet-head')
     const hr = head?.getBoundingClientRect()
+    // AND THE INSTRUCTION. Reported from a real phone: "she could see the team xv
+    // but couldnt see the text above it". The heading was sticky; the line that
+    // says what to do next was not, so once the list was scrolled the sheet
+    // stopped telling her whose replacement she was picking. The hint is the one
+    // element that CHANGES when a man is armed, which makes it the one that must
+    // not be off screen.
+    const hint = document.querySelector('.sheet-hint')
+    const nr = hint?.getBoundingClientRect()
+    const on = b => !!b && b.top >= -1 && b.bottom <= window.innerHeight && b.height > 4
     return {
       visible: r.top >= 0 && r.bottom <= window.innerHeight + 1 && r.height > 8,
-      headVisible: !!hr && hr.top >= -1 && hr.bottom <= window.innerHeight,
+      headVisible: on(hr),
+      hintVisible: on(nr),
+      hintTop: nr ? Math.round(nr.top) : null,
     }
   })
   ok(bottom.visible, 'scrolling to the bottom brings the last bench man into view')
   ok(bottom.headVisible, 'the sheet heading stays on screen while the list scrolls')
+  ok(bottom.hintVisible, `and so does the line telling you what to tap next (top ${bottom.hintTop})`)
   await page.setViewportSize({ width: 412, height: 915 })
   await page.waitForTimeout(250)
 

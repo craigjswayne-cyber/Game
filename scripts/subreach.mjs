@@ -207,13 +207,20 @@ async function sweep(label, height, stopAt) {
       const r = last.getBoundingClientRect(), s = sheet.getBoundingClientRect()
       const head = document.querySelector('.squad-sheet .sheet-head')
       const hr = head?.getBoundingClientRect()
+      // and the instruction, which used to scroll away with the list: "she could
+      // see the team xv but couldnt see the text above it"
+      const hint = document.querySelector('.squad-sheet .sheet-hint')
+      const nr = hint?.getBoundingClientRect()
+      const pinned = b => !!b && b.top >= s.top - 2 && b.bottom <= window.innerHeight
       return {
         ok: r.top >= s.top - 1 && r.bottom <= s.bottom + 1 && r.bottom <= window.innerHeight + 1,
-        headVisible: !!hr && hr.top >= s.top - 2 && hr.bottom <= window.innerHeight,
+        headVisible: pinned(hr),
+        hintVisible: pinned(nr),
       }
     })
     ok(tail.ok, 'scrolled to the end, the last bench man is fully on screen')
     ok(tail.headVisible, 'and the sticky heading is still naming the casualty')
+    ok(tail.hintVisible, 'and the line telling you what to tap next is still on screen')
   } finally {
     await page.close()
   }

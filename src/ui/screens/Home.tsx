@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
-import { canInstall, hideCue, install, ios, onInstallChange, showInstallCue } from '../install'
 import { SIX_NATIONS_WEEKS } from '../../game/schedule'
 import { nationByCode, flagOf } from '../../game/nations'
 import { leaguePos, sortTable } from '../../game/schedule'
@@ -35,12 +34,12 @@ export default function Home() {
   // the welcome dialog moved out to App: it is an overlay over the whole game,
   // not a piece of the Home screen, and it needed to be re-openable (blocker A2)
 
-  // The install cue re-checks itself when the browser hands over a prompt, which
-  // can happen a beat after the screen has already rendered.
-  const [, bumpInstall] = useState(0)
-  useEffect(() => onInstallChange(() => bumpInstall(t => t + 1)), [])
-  const [cueGone, setCueGone] = useState(false)
-  const wantInstall = !cueGone && showInstallCue()
+  // There was a "keep this career safe" cue here with a one-tap Install button.
+  // The install did not work on the phones this game is played on, so the whole
+  // card is gone (user: "the install to your device doesnt work, remove this from
+  // the game"). Save durability still has its route: Game Status exports the
+  // career to a file, and the handbook's save entry says why that matters on
+  // Safari.
 
   const club = game.clubs[game.userClubId]
   const fx = userFixtureThisWeek(game) ?? game.fixtures
@@ -96,30 +95,6 @@ export default function Home() {
         <div className="first-hint">
           <b>Continue is the game.</b> It moves the week on and brings the next
           thing to you. Everything else on this screen can wait until you want it.
-        </div>
-      )}
-      {/* KEEPING THE CAREER. Not a nag to install an app: on an iPhone this is
-          the difference between a career surviving a fortnight away from the game
-          and being wiped by WebKit's storage cap. So it says why, it offers the
-          one-tap route where the browser has one and the real instructions where
-          it does not, and it points at the export either way. */}
-      {wantInstall && (
-        <div className="card install-cue">
-          <h3 style={{ fontSize: 14 }}>📲 Keep this career safe</h3>
-          <div className="meta">
-            {ios()
-              ? 'Your save lives in this browser, and Safari clears the storage of sites it has not seen for a week or so. Add FAB Rugby to your home screen and it stops doing that: tap Share at the bottom of Safari, then Add to Home Screen, then open the game from the new icon.'
-              : 'Your save lives in this browser. Installing the game gives it its own icon, its own window, and storage the browser will not tidy away.'}
-          </div>
-          <div className="btn-row" style={{ margin: '8px 0 0' }}>
-            {canInstall() && (
-              <button className="btn gold" onClick={() => void install().then(done => { if (done) setCueGone(true) })}>
-                ▸ Install
-              </button>
-            )}
-            <button className="btn ghost" onClick={() => go('saves')}>⬇️ Export a backup</button>
-            <button className="btn ghost" onClick={() => { hideCue(); setCueGone(true) }}>Not now</button>
-          </div>
         </div>
       )}
       <div className="card-grid">

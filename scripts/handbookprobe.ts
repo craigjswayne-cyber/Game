@@ -30,6 +30,7 @@ import { MARQUEE_SLOTS } from '../src/game/cap'
 import { EXAM_PASS_PCT, RETAKE_WEEKS, courseFee } from '../src/game/staff'
 import { AWARD_EVERY, MIN_MATCHES, MIN_WINS } from '../src/game/awards'
 import { MAX_HAGGLE } from '../src/game/ai'
+import { MAX_SUBS } from '../src/game/matchEngine'
 import { CHEM_SLOTS } from '../src/game/model'
 
 let fails = 0
@@ -84,12 +85,21 @@ console.log('')
 
 // ---- the numbers, each pinned to the constant the engine reads -------------
 
-// The bench is eight men; the LAW is five tactical changes. matchEngine gates on
-// subsUsed >= 5 and MatchDay renders "of 5 left".
-says('once the match has started', ['eight men', 'five tactical changes'],
-  'the substitution cap is stated as five changes off an eight-man bench')
-avoids('once the match has started', ['you have eight replacements'],
-  'and it no longer promises eight replacements')
+// The bench is eight men and all eight can be used, which is what the union laws
+// allow. The handbook said five tactical changes for a while and this probe pinned
+// that number - correctly, while the engine agreed. It stopped agreeing when the
+// cap went to MAX_SUBS = 8 at the user's request ("all 8 subs should be able to be
+// used"), and the probe caught its own entry going stale, which is the job.
+//
+// Derived from MAX_SUBS rather than typed out, so the next change to the cap fails
+// here with the word it wants rather than needing this comment read again.
+const CAP_WORD: Record<number, string> = { 5: 'five', 6: 'six', 7: 'seven', 8: 'eight' }
+const capWord = CAP_WORD[MAX_SUBS] ?? String(MAX_SUBS)
+says('once the match has started', ['eight men', `use all ${capWord}`],
+  `the substitution cap is stated as all ${capWord} off an eight-man bench`)
+// the old cap, by name: the wrong number is worse than a vague one
+avoids('once the match has started', ['five tactical changes', 'five of them'],
+  'and the old five-change cap is gone from the prose')
 
 const facCount = Object.keys(FACILITY_INFO).length
 says('facility upgrades work', [facCount === 9 ? 'nine facilities' : `${facCount} facilities`, `level ${MAX_FACILITY}`],

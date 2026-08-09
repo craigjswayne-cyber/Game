@@ -70,6 +70,11 @@ export default function Menu() {
       <div style={{ marginTop: 40, fontSize: 11, opacity: .65 }}>
         A personal project - real names used for fun, not for sale.
       </div>
+      {/* WHICH BUILD IS THIS? Two phones, two people, and no way to tell a stale
+          tab from a fresh deploy except by hunting for a feature. Stamped in at
+          build time by vite.config.ts, and deliberately the quietest thing on
+          the screen. */}
+      <div className="build-tag">{__BUILD_TAG__}</div>
     </div>
   )
 }

@@ -19,19 +19,12 @@
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <title>FAB Rugby</title>
-    <!-- Catch beforeinstallprompt HERE, not in the bundle. The browser can fire
-         it before a module script has finished evaluating, and the event cannot
-         be replayed: miss it and the one-tap install is gone for the whole
-         session, which on a phone is the difference between a career surviving a
-         fortnight away and being wiped by the browser's storage cap. Held on
-         window and picked up by src/ui/install.ts whenever it loads. -->
-    <script>
-      window.addEventListener('beforeinstallprompt', function (e) {
-        e.preventDefault()
-        window.__fabInstall = e
-        window.dispatchEvent(new Event('fab-install'))
-      })
-    </script>
+    <!-- There was a beforeinstallprompt capture here, feeding an in-game Install
+         button. It did not work on the phones this game is played on, so the
+         button and the cue that carried it are gone (user: "the install to your
+         device doesnt work, remove this from the game"). Adding the game to a
+         home screen from the browser's own Share menu still works and the
+         handbook still says so. -->
   </head>
   <body>
     <div id="root"></div>
