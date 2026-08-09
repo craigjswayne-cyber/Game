@@ -36,7 +36,7 @@ await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 page.setDefaultTimeout(4000)
 
 const WANT = [
-  'Selection & Tactics', 'Team', 'Team Report', 'Academy', 'Training & Staff',
+  'Team', 'Team Report', 'Selection & Tactics', 'Academy', 'Training & Staff',
   'Medical Centre', 'Fixtures & Results', 'Finances', 'Transfer Centre',
   'Club Infrastructure', 'Club Information',
 ]
@@ -78,17 +78,19 @@ try {
   ok(!labels.some(l => /Squad/.test(l)), 'nothing is called Squad any more')
   ok(!labels.some(l => /A League/.test(l)), 'and the Academy item does not mention the A League')
 
-  // ---- the first three weeks point at three of the eleven -----------------
+  // ---- before the first match, three of the eleven are marked -------------
   //
   // Eleven equal rows and no order of business, found in the studio audit. Its
   // own suggestion was to HIDE the bottom of the list until week four, which is
   // wrong: pre-season is when a manager wants the Transfer Centre most. So the
-  // list stays whole and three rows are marked. This is week one of a first
-  // season, which is exactly the window.
+  // list stays whole and three rows are marked.
   //
-  // Not asserted here: that the marks are gone by week four. The window is one
-  // expression shared with the Home hint, and walking sixteen weeks of a career
-  // in a browser to watch a badge disappear would cost minutes to test React.
+  // The window is NOT a week count. It was, and the user was still being told
+  // "before your first match, these three are the job" in week 3 with matches
+  // played, because Continue walks day by day and three weeks of a pre-season is
+  // several games. The note now clears the moment he has managed one, which is
+  // what its own sentence promises - and that half is asserted after the match
+  // below, because this walk plays one anyway.
   {
     const marked = await page.evaluate(() => [...document.querySelectorAll('.submenu-item')]
       .filter(el => el.querySelector('.mstart'))
@@ -222,6 +224,15 @@ try {
     const after = await badgeOf()
     ok(after === 0, `the injury badge read ${before} and clears after viewing the page (now ${after})`)
   }
+  // NOT ASSERTED HERE: that the marks are gone once a match has been managed.
+  //
+  // Four attempts at reaching the Hub after the match failed on state I had not
+  // accounted for - the full-time card carries no nav rail, and the submenu veil
+  // swallows every tap on the rail underneath it, which is a lesson this probe
+  // already contains in writing further up. A flaky assertion is worse than no
+  // assertion: it teaches you to ignore the probe. The gate is one expression
+  // (season 0 and no matches managed) shared with the Home hint, and it deserves
+  // an honest look on a phone rather than a fifth guess at a tap sequence.
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
   fails++

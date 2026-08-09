@@ -216,9 +216,14 @@ export default function App() {
   const wireUnread = game.news.filter(n => !n.read && n.type === 'gossip').length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
-  // Same window as the Continue hint on Home, deliberately: one first-three-weeks
-  // voice, on for a first career only, and gone for good after that.
-  const firstWeeks = game.season === 0 && game.week <= 3
+  // GATED ON THE FIRST MATCH, NOT ON A WEEK COUNT.
+  //
+  // This was `week <= 3`, and the user was still being told "before your first
+  // match, these three are the job" in week 3 with matches already played. The
+  // note was lying about its own subject, which is worse than being unhelpful.
+  // A manager who has taken charge of a game does not need to be told what to do
+  // before his first one, so the marks now clear the moment he has.
+  const firstWeeks = game.season === 0 && game.mgr.m === 0
   // NEW injuries, not injured men (13E). A ten-week layoff used to hold the red
   // dot for ten weeks, which trains the manager to ignore it. Medical.tsx marks
   // them seen when he stands on the page.
@@ -296,9 +301,12 @@ export default function App() {
       // and Academy loses "& A League" because the A League is a thing on that
       // page rather than a second destination.
       items: [
-        { ico: '📋', label: 'Selection & Tactics', screen: 'tactics' },
+        // Team, the report on it, then the sheet you pick from it: the user's
+        // order, corrected on sight of it on a phone ("selection and tactics
+        // should be below team report").
         { ico: '🏉', label: 'Team', screen: 'squad' },
         { ico: '📊', label: 'Team Report', screen: 'report' },
+        { ico: '📋', label: 'Selection & Tactics', screen: 'tactics' },
         { ico: '🎓', label: 'Academy', screen: 'academy' },
         { ico: '🏋️', label: 'Training & Staff', screen: 'training' },
         { ico: '🏥', label: 'Medical Centre', screen: 'medical', badge: injuredCount },
