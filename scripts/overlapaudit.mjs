@@ -16,10 +16,9 @@
 // it was tuned at: the nav rail and the browser's own chrome eat more of a real
 // phone than they did in the harness.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4187', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4187', 2500)
 
 // 844x390 is what everything was tuned at. The other two are the same phone with
 // a browser toolbar and a narrower reported width, which is what it really is.
@@ -152,5 +151,5 @@ for (const size of SIZES) await run(size)
 console.log(`\n${checks} screen views checked at ${SIZES.length} sizes`)
 console.log(fails ? `OVERLAP AUDIT FAILED (${fails})` : 'OVERLAP AUDIT PASSED')
 await browser.close()
-server.kill()
+server.stop()
 process.exit(fails ? 1 : 0)

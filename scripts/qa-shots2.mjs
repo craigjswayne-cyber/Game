@@ -1,12 +1,11 @@
 // QA sweep 2: today's UI — match prep chips, chc/natl1 tabs, pnc tab.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
 const SHOTS = '/tmp/claude-0/-home-user-Game/3407727b-220d-5fa6-b2ad-b15e5ff93514/scratchpad/qa2'
 mkdirSync(SHOTS, { recursive: true })
-const server = spawn('npx', ['vite', 'preview', '--port', '4176', '--strictPort'], { stdio: 'pipe', cwd: '/home/user/Game' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview(4176, 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
 const errors = []
@@ -59,6 +58,6 @@ try {
 } finally {
   console.log('errors:', errors.length ? errors : 'none')
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(0)
 }

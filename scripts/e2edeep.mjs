@@ -2,15 +2,14 @@
 // and screenshot the late-game screens a fresh-game e2e can never reach.
 // Prereq: npx vite-node scripts/deepsave.ts (writes scripts/deepsave.json)
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync, readFileSync } from 'node:fs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 const record = JSON.parse(readFileSync('scripts/deepsave.json', 'utf8'))
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4174', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4174', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -153,6 +152,6 @@ try {
 } finally {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(0)
 }

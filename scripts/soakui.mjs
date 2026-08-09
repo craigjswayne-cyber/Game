@@ -20,15 +20,14 @@
 // It is deliberately not a script of steps. It is a loop that looks at what is in
 // front of it, and the only thing it insists on is that the week keeps advancing.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync, writeFileSync } from 'node:fs'
 
 const SEASONS = Number(process.env.SOAK_SEASONS ?? 5)
 const SHOTS = process.env.SHOTS_DIR || 'shots-soak'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4191', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4191', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 // the phone he plays on, in the orientation he plays in
@@ -489,7 +488,7 @@ try {
   for (const e of consoleErrors.splice(0)) flaw('CONSOLE', e.slice(0, 200), 'end of run')
   writeFileSync(`${SHOTS}/findings.json`, JSON.stringify(findings, null, 2))
   await browser.close()
-  server.kill()
+  server.stop()
 }
 
 console.log(`\n${'='.repeat(64)}`)

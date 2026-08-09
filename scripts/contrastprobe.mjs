@@ -31,10 +31,9 @@
 // background actually painted behind it. It also runs night mode with a light
 // phone, because the mirror image of a bug is a bug.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4199', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4199', 2500)
 
 let fails = 0
 const ok = (cond, what) => { console.log(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
@@ -193,7 +192,7 @@ try {
   await sweep('night theme on a dark phone', { night: true, systemScheme: 'dark' })
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
 }
 
 if (fails) { console.error(`\nCONTRAST PROBE: ${fails} failures`); process.exit(1) }

@@ -1,14 +1,13 @@
 // Night-mode visual QA: the theme the user actually plays in.
 // Forces rm-night=1 before the app boots, then screenshots the key screens.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4175', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4175', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -276,6 +275,6 @@ try {
 } finally {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(0)
 }

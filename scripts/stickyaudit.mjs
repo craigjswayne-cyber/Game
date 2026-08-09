@@ -19,10 +19,9 @@
 // A table that genuinely cannot fit opts out with .wide and gets its scroll
 // back; this names the ones that need it rather than leaving it to guesswork.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4185', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4185', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
@@ -223,6 +222,6 @@ try {
   console.log(`\n${wrappers} table wrappers checked`)
   console.log(fails ? `STICKY AUDIT FAILED (${fails})` : 'STICKY AUDIT PASSED')
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(fails ? 1 : 0)
 }

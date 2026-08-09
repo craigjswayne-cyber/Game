@@ -12,10 +12,9 @@
 // rows at 412px wide, with no side padding on the modal, was never once looked at.
 // User screenshot: the numbers down the right-hand column were cut in half.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4195', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4195', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 // PORTRAIT, because that is the orientation the game is played in and the one
@@ -334,5 +333,5 @@ try {
 
 console.log(fails ? `\nSUBS PROBE FAILED (${fails})` : '\nSUBS PROBE PASSED')
 await browser.close()
-server.kill()
+server.stop()
 process.exit(fails ? 1 : 0)
