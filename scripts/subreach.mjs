@@ -23,12 +23,20 @@
 //   - and the bench is still reachable, so fixing the top does not lose the end
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
+import { writeSync } from 'node:fs'
 
 const server = spawn('npx', ['vite', 'preview', '--port', '4193', '--strictPort'], { stdio: 'pipe' })
 await new Promise(r => setTimeout(r, 2500))
 
+// UNBUFFERED, ON PURPOSE. Piped to a file, node buffers stdout in blocks, so the
+// two runs of this probe that were killed by a timeout left a log containing the
+// single word "Terminated" and nothing else - three sweeps' worth of findings lost
+// because the process never got to flush. writeSync to fd 1 goes straight out, so
+// a probe that dies half way still says what it had learned.
+const say = s => writeSync(1, s + '\n')
+
 let fails = 0
-const ok = (cond, what) => { console.log(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
+const ok = (cond, what) => { say(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 
@@ -41,7 +49,7 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
  * @param stopAt  'HT' for half-time, 'BRK' for the 60' break
  */
 async function sweep(label, height, stopAt) {
-  console.log(`\n=== ${label}: 412x${height}, ${stopAt === 'HT' ? 'half-time' : "the 60' break"} ===`)
+  say(`\n=== ${label}: 412x${height}, ${stopAt === 'HT' ? 'half-time' : "the 60' break"} ===`)
   const page = await browser.newPage({ viewport: { width: 412, height } })
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   try {
@@ -79,7 +87,17 @@ async function sweep(label, height, stopAt) {
     // Play forward until the touchline panel we want is on screen. Half-time
     // comes first; the break is one resume further on.
     const reachPanel = async want => {
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < 120; i++) {
+        // A TOUCHLINE CALL STOPS EVERYTHING, INCLUDING SKIP. The Skip button is
+        // disabled while a penalty decision is unanswered ("The touchline call is
+        // yours first"), so a loop that only presses Skip sits at the same minute
+        // until it gives up - which is why this probe timed out twice without
+        // ever reporting anything. Answer the call, then carry on.
+        if (await page.locator('.btn', { hasText: 'Take the Points' }).count()) {
+          await page.locator('.btn', { hasText: 'Take the Points' }).first().click().catch(() => {})
+          await page.waitForTimeout(300)
+          continue
+        }
         const panel = page.locator('.ticker.panel-area .card h3')
         if (await panel.count()) {
           const t = (await panel.first().textContent()) ?? ''
@@ -149,11 +167,11 @@ async function sweep(label, height, stopAt) {
             ['auto', 'scroll'].includes(getComputedStyle(e).overflowY)).length,
       }
     })
-    console.log(`  sheet ${geo.sheet?.h}px tall at top ${geo.sheet?.top} in a ${geo.viewportH}px window, ` +
+    say(`  sheet ${geo.sheet?.h}px tall at top ${geo.sheet?.top} in a ${geo.viewportH}px window, ` +
       `content ${geo.scrollH}px, scrolled to ${geo.scrollTop}`)
-    console.log(`  head "${geo.headText}" visible: ${geo.headVisible}`)
-    console.log(`  XV shirts in the sheet: [${geo.shirts.join(' ')}]`)
-    console.log(`  bench rows: ${geo.benchCount}, inner scrollers: ${geo.innerScrollers}`)
+    say(`  head "${geo.headText}" visible: ${geo.headVisible}`)
+    say(`  XV shirts in the sheet: [${geo.shirts.join(' ')}]`)
+    say(`  bench rows: ${geo.benchCount}, inner scrollers: ${geo.innerScrollers}`)
 
     ok(geo.shirts.length === 15, `all fifteen shirts are in the sheet (found ${geo.shirts.length})`)
     ok(geo.shirts[0] === '1', `the list starts at shirt 1 (starts at ${geo.shirts[0]})`)
@@ -172,7 +190,7 @@ async function sweep(label, height, stopAt) {
       const r = document.querySelector('.squad-sheet .sheet-col .sheet-row')
       return { armed: !!r && r.className.includes('armed'), hint: document.querySelector('.sheet-hint')?.textContent?.trim().slice(0, 60) ?? '' }
     })
-    console.log(`  after tapping shirt 1: armed ${armed.armed}, hint "${armed.hint}"`)
+    say(`  after tapping shirt 1: armed ${armed.armed}, hint "${armed.hint}"`)
     ok(armed.armed, 'tapping shirt 1 arms him for replacement')
 
     // ---- the bench end still reachable after scrolling down
@@ -212,5 +230,5 @@ try {
   server.kill()
 }
 
-if (fails) { console.error(`\nSUB REACH PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nSUB REACH PROBE PASSED')
+if (fails) { say(`\nSUB REACH PROBE: ${fails} failures`); process.exit(1) }
+say('\nSUB REACH PROBE PASSED')
