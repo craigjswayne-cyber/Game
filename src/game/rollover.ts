@@ -220,6 +220,10 @@ function agePlayers(state: GameState, rng: Rng) {
     if (!p.acad) continue
     if (p.age >= 22 || (p.clubId !== state.userClubId && p.ca >= 62)) {
       p.acad = false
+      // HE SIGNS HIS FIRST PROFESSIONAL CONTRACT. He was on a development deal
+      // (see playerWage), and graduating without re-pricing him would leave a
+      // senior squad man on academy money for the rest of his career.
+      p.wage = playerWage(p.ca, p.age)
       p.debutPending = p.stats.apps === 0 && p.career.length === 0 ? 'academy' : null
       if (p.clubId === state.userClubId) grads.push(p)
     }

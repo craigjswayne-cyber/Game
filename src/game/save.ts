@@ -1,7 +1,7 @@
 import type { Club, FacilityId, GameState } from './model'
 import { ATTR_KEYS, SEASON_WEEKS, emptyStats, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
-import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds } from './attributes'
+import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
 import { autoSelect } from './matchEngine'
 import { NATIONS, regenName, worldNames } from './nations'
@@ -388,6 +388,10 @@ export function migrate(s: GameState): GameState {
     // deal better than the old one decided on rolling season form.
     p.stats.mSum ??= 0
     p.stats.mApps ??= 0
+    // academy men move onto development deals. A live save was carrying a whole
+    // academy on first-team money, which is what made the user's club insolvent
+    // by simply playing its fixtures (see playerWage).
+    if (p.acad) p.wage = playerWage(p.ca, p.age, true)
     if (p.trait === undefined) p.trait = deriveTrait(p)
     p.hist ??= deriveHist(p)
     p.caps ??= deriveCaps(p)

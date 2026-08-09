@@ -1097,9 +1097,35 @@ export function processWeekAndAdvance(state: GameState) {
   // knockout creation for this week (before playing)
   for (const comp of Object.values(state.comps)) maybeCreateKnockouts(state, comp, rng)
 
-  // play all unplayed fixtures for this week (user's should already be played)
+  // Play all unplayed fixtures for this week. The user's is USUALLY already
+  // played, by the MatchDay screen, but it is not always - and when this loop
+  // plays it instead, it used to swallow the whole post-match reaction with it.
+  //
+  // The block below finds the user's fixture with `played && !tableApplied`,
+  // which is true after MatchDay (which sets played and leaves the table alone)
+  // and FALSE after this loop (which sets both). So on any week the user did not
+  // watch his own match, boardReaction, matchReport, milestones, the league
+  // round-up, the opponent scouting report and the manager's own win-loss record
+  // were all skipped in silence.
+  //
+  // Measured before this fix, one Bath season played headless: 30 club matches,
+  // and state.mgr.m read 4 - the four pre-season friendlies, which are counted on
+  // a different path. Squad trust sat at its opening 26 for three whole seasons
+  // across every seed, because the only code that moves it lives in boardReaction.
+  // Board confidence still climbed, which is what hid this: it has other sources
+  // (the half-term recompute from league position, award bonuses), so the number
+  // moved and nobody looked closer.
+  //
+  // Every simtest, soak and audit runs headless, so the entire long-horizon test
+  // suite has been measuring a world where the manager's club never had a board
+  // reaction. Remembering the fixture here is the fix; the check below no longer
+  // depends on who happened to play it.
   const thisWeek = state.fixtures.filter(f => f.week === state.week && !f.played)
+  let simmedUserFx: Fixture | null = null
   for (const fx of thisWeek) {
+    const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId ||
+      (state.natTeam != null && (fx.homeId === state.natTeam || fx.awayId === state.natTeam ||
+        (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (fx.homeId === 'LIO' || fx.awayId === 'LIO'))))
     simMatch(state, fx, rng, false)
     const comp = state.comps[fx.compId]
     if (comp) {
@@ -1107,6 +1133,7 @@ export function processWeekAndAdvance(state: GameState) {
       applyToTable(comp, fx)
       fx.tableApplied = true
     }
+    if (mine) simmedUserFx = fx
   }
 
   // The A League runs the same weeks as the senior league, and AFTER it: a lad
@@ -1801,17 +1828,24 @@ export function processWeekAndAdvance(state: GameState) {
       `they broke our hearts in the ${comp?.short ?? 'cup'} ${fx.stage === 'F' ? 'final' : 'semi-final'}`)
   }
 
-  // the user's fixture was played in detail by the MatchDay screen -
-  // apply its table effects exactly once here (club match or Test match)
+  // The user's match, whoever played it.
+  //
+  // Watched through MatchDay it arrives here `played && !tableApplied`, so the
+  // table is applied below. Simmed by the loop above it is already on the table,
+  // and `simmedUserFx` is how we still know it happened - see the long note up
+  // there for what silently went missing before.
   const userFx = state.fixtures.find(f =>
     f.week === state.week && f.played && !f.tableApplied &&
     (f.homeId === state.userClubId || f.awayId === state.userClubId ||
      (state.natTeam != null && (f.homeId === state.natTeam || f.awayId === state.natTeam ||
        (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (f.homeId === 'LIO' || f.awayId === 'LIO'))))))
+    ?? simmedUserFx
   if (userFx) {
     const isClubMatch = userFx.homeId === state.userClubId || userFx.awayId === state.userClubId
     const comp = state.comps[userFx.compId]
-    if (comp) {
+    // only if the loop above has not already done it: applying a result to the
+    // table twice would double every point the club won
+    if (comp && !userFx.tableApplied) {
       if (userFx.stage) resolveKnockoutDraw(state, userFx, rng)
       applyToTable(comp, userFx)
       userFx.tableApplied = true

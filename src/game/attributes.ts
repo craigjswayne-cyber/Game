@@ -69,10 +69,55 @@ export function playerValue(ca: number, age: number, pa: number): number {
 }
 
 /** Weekly wage expectation in £. */
-export function playerWage(ca: number, age: number): number {
+/**
+ * ACADEMY MEN ARE ON DEVELOPMENT DEALS, not professional ones.
+ *
+ * This was the whole of a structural insolvency. Every player was priced by
+ * ability alone, so a 27-strong academy of 17 to 19 year olds rated 44-57 was
+ * costing Northampton £79k a week - £3.6m a year, an average of £2,915 each,
+ * about 40% of a first-team squad wage for a teenager who has never played a
+ * senior minute. Real academies run on a fraction of that.
+ *
+ * It mattered because the weekly ledger is charged to the USER'S CLUB ONLY
+ * (season.ts, weeklyFinance): AI clubs have no upkeep, no staff bill and no wage
+ * run, so nothing about the world flagged it. Measured for Northampton before
+ * this: £416k a week in, £478k out, and the club drifted to -2.3M in four
+ * seasons by simply playing its fixtures - which scripts/econprobe.ts exists to
+ * forbid. Academy wages were £63k of the £62k gap.
+ *
+ * Bounded rather than proportional, because a development deal is a development
+ * deal: a wonderkid is worth a little more than a squad filler and neither is on
+ * first-team money. Graduation re-prices him to the professional figure
+ * (rollover.ts), which is what signing a first senior contract means.
+ */
+const ACADEMY_MIN = 400
+const ACADEMY_MAX = 900
+
+/**
+ * Put every academy man in the world on a development deal.
+ *
+ * A sweep rather than a flag threaded through construction, because academy
+ * players are minted in five places (the opening squads, the youth intake, and
+ * three regen paths) and a flag missed at any one of them would leave a pocket of
+ * teenagers on first-team money that nothing would ever notice. Idempotent, so
+ * calling it again costs nothing.
+ */
+export function repriceAcademies(players: { acad?: boolean; wage: number; ca: number; age: number }[]): number {
+  let moved = 0
+  for (const p of players) {
+    if (!p.acad) continue
+    const want = playerWage(p.ca, p.age, true)
+    if (p.wage !== want) { p.wage = want; moved++ }
+  }
+  return moved
+}
+
+export function playerWage(ca: number, age: number, acad = false): number {
   const base = Math.pow(ca / 100, 2.6) * 16_000
   const f = age >= 33 ? 0.8 : 1
-  return Math.max(400, Math.round((base * f) / 50) * 50)
+  const pro = Math.max(400, Math.round((base * f) / 50) * 50)
+  if (!acad) return pro
+  return Math.max(ACADEMY_MIN, Math.min(ACADEMY_MAX, Math.round(pro * 0.15 / 50) * 50))
 }
 
 let idCounter = 1
