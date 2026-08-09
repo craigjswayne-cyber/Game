@@ -81,6 +81,34 @@ ok(verdicts.length >= 2, 'and the season closes with an accounting of who finish
   ok(all.every(n => /[A-Z][a-z]+ [A-Z]/.test(n.body)), 'every one of them names a person')
 }
 
+// ---- the season card has something to draw (C4) ----------------------------
+//
+// The card at the top of the annual is the one block in the game meant to leave
+// the game, and no browser probe reaches that screen: it only exists after a
+// rollover, which is forty-odd weeks of tapping. This walk has just played three
+// seasons, so it is the cheapest honest place to check the CARD'S DATA CONTRACT -
+// the fields it reads, present and sane. A card drawing "undefined" is the one
+// failure mode that would be screenshotted and sent to somebody.
+{
+  const r = g.review
+  ok(!!r, 'a season review exists after a rollover')
+  if (r) {
+    ok(typeof r.clubName === 'string' && r.clubName.length > 0, 'the card has a club name to print')
+    ok(r.league.pos >= 0, `and a league position (${r.league.pos})`)
+    ok(r.overall.m > 0, `and a match count to take a percentage of (${r.overall.m})`)
+    ok(r.overall.w + r.overall.d + r.overall.l === r.overall.m,
+      'and its W/D/L adds up to that count')
+    ok(Array.isArray(r.trophies), 'trophies is a list, so the cup line can be skipped rather than undefined')
+    const pct = Math.round((r.overall.w / r.overall.m) * 100)
+    ok(Number.isFinite(pct) && pct >= 0 && pct <= 100, `the win percentage is printable (${pct}%)`)
+    for (const s of [r.topTries, r.topPoints]) {
+      ok(!s || (typeof s.name === 'string' && Number.isFinite(s.val)),
+        'a named star, if there is one, has both a name and a number')
+    }
+    console.log(`  season card: ${r.clubName}, ${r.league.pos}, ${r.overall.w}W ${r.overall.d}D ${r.overall.l}L, ${pct}%`)
+  }
+}
+
 // ---- and a club between coaches is nobody's rival --------------------------
 //
 // jobs.ts clears club.coach the moment a club sacks him, and a quote from a man

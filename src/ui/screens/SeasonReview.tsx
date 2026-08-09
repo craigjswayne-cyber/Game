@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { ordinal } from '../../game/gossip'
-import { SectionTitle } from '../components'
+import { Crest, SectionTitle } from '../components'
 
 /** The annual: last season on one page - the league, the cups, the
  *  stars, the money and the board's mood. */
@@ -17,6 +17,7 @@ export default function SeasonReview() {
       </div>
     )
   }
+  const club = game.clubs[game.userClubId]
   const headline = r.trophies.length
     ? `🏆 ${r.trophies.join(' · ')}`
     : r.league.pos === 1 ? '🏆 League leaders'
@@ -41,6 +42,45 @@ export default function SeasonReview() {
         </div>
       </header>
       <main className="content">
+        {/* THE SEASON CARD (C4).
+            The review is nine sections long and reads beautifully on the sofa,
+            which is not the same thing as being showable. This is the year in one
+            screenshot: club, finish, record, the man who scored the most, and the
+            trophy if there is one. It exists because the thing a manager actually
+            wants to send somebody is a picture, and a nine-section page is not one.
+            Deliberately no share button: the browser's own screenshot is a better
+            share sheet than anything a PWA can offer, and a button that opens a
+            half-working native dialog is worse than no button. */}
+        <div className="season-card">
+          <div className="sc-top">
+            <Crest club={club} size={30} mr={8} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <b>{r.clubName}</b>
+              <div className="sc-sub">{seasonLabel(r.season)}</div>
+            </div>
+            <div className="sc-pos">
+              {r.league.pos > 0 ? ordinal(r.league.pos) : '-'}
+              <span>{r.league.pos === 1 ? 'CHAMPIONS' : 'in the league'}</span>
+            </div>
+          </div>
+          <div className="sc-row">
+            <span><b>{r.overall.w}</b>W</span>
+            <span><b>{r.overall.d}</b>D</span>
+            <span><b>{r.overall.l}</b>L</span>
+            <span className="sc-pct"><b>{r.overall.m ? Math.round((r.overall.w / r.overall.m) * 100) : 0}%</b> won</span>
+          </div>
+          {(r.topTries || r.topPoints) && (
+            <div className="sc-star">
+              {r.topTries ? `🏉 ${r.topTries.name}, ${r.topTries.val} tries` : ''}
+              {r.topTries && r.topPoints ? ' · ' : ''}
+              {r.topPoints ? `🎯 ${r.topPoints.name}, ${r.topPoints.val} pts` : ''}
+            </div>
+          )}
+          {r.trophies.length > 0 && (
+            <div className="sc-cup">🏆 {r.trophies.join(' · ')}</div>
+          )}
+        </div>
+
         <div className="card center" style={{ borderLeft: '4px solid var(--stripe)' }}>
           <h3 style={{ fontSize: 18 }}>{headline}</h3>
           <div className="meta">
