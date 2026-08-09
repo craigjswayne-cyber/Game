@@ -1327,6 +1327,20 @@ export function rebuildSeason(state: GameState) {
     body: `Pre-season is over. Your transfer budget has been set at ${fmtMoney(state.clubs[state.userClubId].budget)}. Bring us silverware.`,
   })
 
+  // A SEASON IS WORTH BACKING UP, and the rollover is the one moment in the year
+  // when a manager is between jobs rather than mid-week. The save lives in this
+  // browser's storage and nowhere else: a cleared browser, a full disk or an iPhone
+  // that has not seen the game for a week can all take it, and none of them ask
+  // first. Once a season, in the same breath as the budget, is not nagging.
+  state.news.push({
+    id: state.nextId++, week: 1, season: state.season, type: 'general', read: false,
+    subject: `📦 ${seasonLabel(state.season - 1)} is in the books: back it up`,
+    body: `A whole season done, and every minute of it lives in this browser's storage and nowhere else. `
+      + `Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust `
+      + `and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. `
+      + `Takes one tap. Worth doing at every rollover.`,
+  })
+
   punditPredictions(state, rng)
   state.tryOfSeason = null // the new season starts its own reel
   challengeCheck(state)
