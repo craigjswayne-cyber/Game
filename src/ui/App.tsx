@@ -380,6 +380,9 @@ export default function App() {
             {/* One button, one label, one decision function. It used to read
                 Matchday for the whole week of a match, so Monday's button
                 promised a game that was five days away. */}
+            {/* Not disabled while settling, deliberately: the main thread is busy
+                for the whole settle so a disabled attribute never gets a chance to
+                render. The guard is a debounce in continueWeek instead. */}
             <button className="continue-btn" onClick={continueWeek}>
               {nextStep(game).kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
             </button>

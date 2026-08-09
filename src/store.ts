@@ -12,6 +12,16 @@ import { firstStepOfWeek, inInbox, matchDayIndex, nextStep } from './game/days'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
+/**
+ * How close together two Continue taps have to be before the second is treated as
+ * a slip rather than an instruction.
+ *
+ * 220ms is above the 120-200ms a double tap lands in and below the ~300ms at which
+ * a deliberate second tap starts to feel ignored. Exported so tapprobe can test
+ * both sides of it rather than sleeping.
+ */
+export const TAP_GUARD_MS = 220
+
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
@@ -79,6 +89,10 @@ interface Store {
   inboxStep: (dir: -1 | 1) => void
   /** File away everything already read. */
   clearRead: () => void
+
+  /** When Continue was last honoured, for the double-tap guard. See
+   *  continueWeek and TAP_GUARD_MS. */
+  lastAdvanceAt: number
 
   start: (clubId: string, managerName: string, challengeId?: string) => void
   toggleShortlist: (playerId: number) => void
@@ -267,6 +281,7 @@ function landOnNextWeek(
 export const useStore = create<Store>((set, get) => ({
   game: null,
   tick: 0,
+  lastAdvanceAt: 0,
   nav: [{ screen: 'menu' }],
   liveMatch: null,
   matchRec: null,
@@ -451,6 +466,30 @@ export const useStore = create<Store>((set, get) => ({
   continueWeek: () => {
     const g = get().game
     if (!g) return
+    /**
+     * ONE TAP IS ONE WEEK.
+     *
+     * A week settle measures 34ms median and 48ms at worst on a two-season save
+     * and grows with the save, which is comfortably inside a human double tap. A
+     * player who taps again because nothing has visibly happened yet was
+     * advancing two days, or skipping a day bulletin, or going straight through a
+     * matchday without seeing it.
+     *
+     * WHY THIS IS A TIMESTAMP AND NOT A BOOLEAN, which is the whole lesson: the
+     * first attempt set an `advancing` flag on entry and cleared it on every exit
+     * path, and rendered the button disabled while it was set. scripts/tapprobe.ts
+     * failed it immediately. JavaScript is single threaded, so the handler runs to
+     * completion - INCLUDING clearing the flag - before the queued second touch is
+     * dispatched. A flag that is set and cleared inside one synchronous call
+     * cannot block the next call, and the disabled attribute never renders because
+     * the main thread is busy for the whole settle. Both defences were theatre.
+     *
+     * A debounce is the only thing that works, because the thing being defended
+     * against is two events arriving faster than a human meant them.
+     */
+    const now = Date.now()
+    if (now - get().lastAdvanceAt < TAP_GUARD_MS) return
+    set(() => ({ lastAdvanceAt: now }))
     // A bid for one of your players cannot be ignored (feedback 10E). Offers used
     // to sit in a tab and lapse in silence after two weeks, so the biggest
     // decision of a season could be answered for you by a timeout. The week stops
