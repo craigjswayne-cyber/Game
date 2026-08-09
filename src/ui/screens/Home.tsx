@@ -92,7 +92,7 @@ export default function Home() {
           board confidence, fan mood, objectives, money and mail with no way to
           know which of it is a job and which is a readout. One line, for three
           weeks of a first season, then it is gone for good. */}
-      {game.season === 0 && game.week <= 3 && (
+      {game.season === 0 && game.mgr.m === 0 && (
         <div className="first-hint">
           <b>Continue is the game.</b> It moves the week on and brings the next
           thing to you. Everything else on this screen can wait until you want it.
