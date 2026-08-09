@@ -1,13 +1,12 @@
 // End-to-end smoke test: drive the built app in mobile Chromium (landscape).
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4173', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4173', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
@@ -335,7 +334,7 @@ try {
   // ---- and the title screen is still reachable on purpose, which is the only
   // way to start a second career now that a refresh no longer gets you there
   await page.click('.bottom-nav button[title="Manager"]')
-  await page.click('.submenu-item >> text=Title Screen')
+  await page.click('.submenu-item >> text=Main Menu')
   await page.waitForSelector('text=Load Career', { timeout: 15000 })
   await page.click('text=Load Career')
   await page.click('text=Test Gaffer')
@@ -359,7 +358,7 @@ try {
   // white-space: nowrap there is no overflow to catch. One line of this text is
   // about 22px; a wrap would be 40-plus.
   await page.click('.bottom-nav button[title="Manager"]')
-  await page.click('.submenu-item >> text=Title Screen')
+  await page.click('.submenu-item >> text=Main Menu')
   await page.waitForSelector('.continue-tile', { timeout: 15000 })
   const ct = await page.evaluate(() => {
     const l = document.querySelector('.ct-line')
@@ -377,6 +376,6 @@ try {
 } finally {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(0)
 }

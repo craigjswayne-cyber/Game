@@ -2,10 +2,9 @@
 // fit stuff into one clean screen"). Walks every screen at the phone's
 // landscape size and measures how many screenfuls each one is.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4177', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4177', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
@@ -149,6 +148,6 @@ try {
   console.log(`\n${rows.length} screens measured, ${over.length} page${over.length === 1 ? '' : 's'} over two screenfuls`)
   if (over.some(r => r.screens >= 3)) console.log('WARN: a fixed-content page is three screenfuls deep')
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(0)
 }

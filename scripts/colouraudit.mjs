@@ -8,10 +8,9 @@
 // The point is a before-and-after. A palette change that does not move these
 // numbers did not do anything, whatever it looks like in a screenshot.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4179', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4179', 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
@@ -175,5 +174,5 @@ try {
   process.exitCode = 1
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
 }

@@ -7,11 +7,10 @@
 // phone held upright in the dark, and that closing it puts the draw away for
 // good. So the draw is staged into a live save and watched.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 const SHOTS = 'shots'; mkdirSync(SHOTS, { recursive: true })
-const server = spawn('npx', ['vite', 'preview', '--port', '4182', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4182', 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, colorScheme: 'dark' })
 const page = await ctx.newPage()
@@ -122,7 +121,7 @@ try {
   fails.push(String(e))
   console.log('THREW', e)
 } finally {
-  await browser.close(); server.kill()
+  await browser.close(); server.stop()
 }
 console.log(fails.length ? `\nDRAW UI FOUND ${fails.length} PROBLEM(S)` : '\nDRAW UI PASSED')
 process.exit(fails.length ? 1 : 0)

@@ -7,10 +7,9 @@
 // masthead titles, text hidden behind the fixed bottom nav, rows running off
 // the right edge, and font sizes.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4233', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4233', 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625 })
 await page.addInitScript(() => {
@@ -362,5 +361,5 @@ try {
 }
 console.log(`\n${fails ? `PORTRAIT QA FAILED (${fails})` : 'PORTRAIT QA PASSED'}`)
 await browser.close()
-server.kill()
+server.stop()
 process.exit(fails ? 1 : 0)

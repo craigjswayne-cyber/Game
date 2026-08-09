@@ -28,15 +28,14 @@
 // have sailed straight past while reporting the night side clean. A checker that
 // only looks where the last bug was is a checker that finds the last bug.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
 // AA for body text is 4.5. This fires at 2.2, which is the "something is wrong"
 // line rather than the "could be better" line: the ghosted draw names scored 1.3,
 // and the softest legitimate caption in the game sits above 3.
 const FLOOR = 2.2
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4185', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4185', 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 
 const findings = []
@@ -235,7 +234,7 @@ try {
   console.log('THREW', e)
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
 }
 
 if (findings.length) {

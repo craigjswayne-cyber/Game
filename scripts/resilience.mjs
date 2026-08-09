@@ -15,14 +15,13 @@
 // A 390px-tall viewport on purpose: that is the shape the user holds, and it is
 // where the tutorial overflow bit.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 
 const SHOTS = process.env.SHOTS_DIR || 'shots'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4177', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4177', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 // one context throughout: a second page would get its own storage partition and
@@ -416,6 +415,6 @@ try {
 } finally {
   await shot('99-final').catch(() => {})
   await browser.close()
-  server.kill()
+  server.stop()
 }
 process.exit(fails.length ? 1 : 0)

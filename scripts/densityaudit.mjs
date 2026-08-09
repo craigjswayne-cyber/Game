@@ -22,10 +22,9 @@
 // A screen with too little content to judge is marked ~ and left out of the
 // average: no amount of tightening fills a Press Room nobody has visited yet.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4191', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4191', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
@@ -212,5 +211,5 @@ console.log(`${nested.length} nest padded boxes ${BOX_LIMIT} deep or more`)
 if (dups.length) console.log('DENSITY AUDIT FAILED: a screen states its own name twice')
 else console.log('DENSITY AUDIT PASSED (no duplicate titles)')
 await browser.close()
-server.kill()
+server.stop()
 process.exit(dups.length ? 1 : 0)

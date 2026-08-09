@@ -5,10 +5,9 @@
 // top-level block inside main.content, so the density work aims at the tallest
 // thing rather than at whatever looks suspicious in the JSX.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4179', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4179', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 } })
@@ -63,6 +62,6 @@ try {
   console.error('BLOCK PROBE stopped early:', e.message)
 } finally {
   await browser.close()
-  server.kill()
+  server.stop()
   process.exit(0)
 }

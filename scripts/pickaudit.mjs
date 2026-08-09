@@ -14,10 +14,9 @@
 // for each family of selectable boxes, pick one, and measure how far the picked
 // one has moved away from its neighbours.
 import { chromium } from 'playwright-core'
-import { spawn } from 'node:child_process'
+import { startPreview } from './lib/preview.mjs'
 
-const server = spawn('npx', ['vite', 'preview', '--port', '4199', '--strictPort'], { stdio: 'pipe' })
-await new Promise(r => setTimeout(r, 2500))
+const server = await startPreview('4199', 2500)
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 
@@ -127,5 +126,5 @@ try {
 
 console.log(fails ? `\nPICK AUDIT FAILED (${fails})` : '\nPICK AUDIT PASSED')
 await browser.close()
-server.kill()
+server.stop()
 process.exit(fails ? 1 : 0)
