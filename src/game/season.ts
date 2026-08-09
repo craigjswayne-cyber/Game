@@ -913,10 +913,21 @@ function leagueRoundUp(state: GameState) {
 /** The dugout counts too: round numbers on the manager's own record.
  *  The win check only fires on a win, or it would repeat while the
  *  counter sits on the mark through defeats. */
+/**
+ * The career marks that get saluted, exported so the Legacy screen can show what
+ * you are chasing rather than only what you have already passed.
+ *
+ * They were local arrays here, which meant the game celebrated a threshold it had
+ * never mentioned: your 250th win arrived as a surprise, and nothing anywhere said
+ * a 250th win was a thing.
+ */
+export const WIN_MARKS = [50, 100, 250, 500, 750, 1000]
+export const GAME_MARKS = [100, 250, 500, 750, 1000]
+
 function mgrMilestones(state: GameState, won: boolean) {
   const m = state.mgr
-  const winMarks = [50, 100, 250, 500, 750, 1000]
-  const gameMarks = [100, 250, 500, 750, 1000]
+  const winMarks = WIN_MARKS
+  const gameMarks = GAME_MARKS
   const pct = m.m > 0 ? Math.round((m.w / m.m) * 100) : 0
   if (won && winMarks.includes(m.w)) {
     state.news.push({
