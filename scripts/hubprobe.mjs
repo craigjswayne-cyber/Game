@@ -78,6 +78,35 @@ try {
   ok(!labels.some(l => /Squad/.test(l)), 'nothing is called Squad any more')
   ok(!labels.some(l => /A League/.test(l)), 'and the Academy item does not mention the A League')
 
+  // ---- the first three weeks point at three of the eleven -----------------
+  //
+  // Eleven equal rows and no order of business, found in the studio audit. Its
+  // own suggestion was to HIDE the bottom of the list until week four, which is
+  // wrong: pre-season is when a manager wants the Transfer Centre most. So the
+  // list stays whole and three rows are marked. This is week one of a first
+  // season, which is exactly the window.
+  //
+  // Not asserted here: that the marks are gone by week four. The window is one
+  // expression shared with the Home hint, and walking sixteen weeks of a career
+  // in a browser to watch a badge disappear would cost minutes to test React.
+  {
+    const marked = await page.evaluate(() => [...document.querySelectorAll('.submenu-item')]
+      .filter(el => el.querySelector('.mstart'))
+      .map(el => (el.textContent ?? '').replace(/\s+/g, ' ').replace('start here', '').trim()))
+    say(`  marked as the first jobs: ${marked.join(', ') || '(none)'}`)
+    ok(marked.length === 3, `exactly three rows are marked (found ${marked.length})`)
+    for (const want of ['Selection & Tactics', 'Team', 'Training & Staff']) {
+      ok(marked.some(m => m.includes(want)), `${want} is one of them`)
+    }
+    ok(!marked.some(m => /Team Report/.test(m)), 'and Team Report is not, despite sharing a word with Team')
+    ok(await page.locator('.submenu-note').count() === 1, 'with one line above the list saying what the marks mean')
+    // a badge on the longest label is the case that overflows
+    const over = await page.evaluate(() => [...document.querySelectorAll('.submenu-item')]
+      .filter(el => el.scrollWidth > el.clientWidth + 1)
+      .map(el => (el.textContent ?? '').replace(/\s+/g, ' ').trim()))
+    ok(over.length === 0, `no row is pushed past its own width by the mark${over.length ? ': ' + over.join(', ') : ''}`)
+  }
+
   // ---- a real match, to full time -----------------------------------------
   //
   // Continue walks the week a day at a time, so reaching Saturday is a handful of
