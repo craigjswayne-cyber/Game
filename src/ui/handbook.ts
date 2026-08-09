@@ -341,7 +341,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'career',
     q: 'How does saving work?',
-    a: 'The game saves itself every week, so you cannot lose a season to a closed tab. The Save and Load screen has slots for manual backups and for running parallel careers. It all lives on this device.',
+    a: 'The game saves itself every week, so you cannot lose a season to a closed tab. Game Status has four slots for manual backups or parallel careers, and an Export Career button that writes the whole save to one file you can keep or carry to another device. It all lives in this browser\'s storage, which is why the export matters: clearing your browsing data takes the career with it, and on an iPhone Safari clears the storage of sites it has not seen for a week or so unless the game is on your home screen.',
   },
   {
     cat: 'career',

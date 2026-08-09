@@ -3078,3 +3078,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .ev-banner { animation: rm-hold 1.6s linear forwards !important; }
   @keyframes rm-hold { 0%, 86% { opacity: 1; } 100% { opacity: 0; } }
 }
+
+/* The keep-your-career cue. Gold left edge like the other pieces of guidance,
+   because it is guidance: it is not an error, and it is not an advert for an app
+   store. Three buttons at most and they wrap on a narrow phone. */
+.install-cue { border-left: 4px solid var(--gold); }
+.install-cue .btn-row { flex-wrap: wrap; }
+.install-cue .btn { flex: 1 1 auto; }

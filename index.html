@@ -19,6 +19,19 @@
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <title>FAB Rugby</title>
+    <!-- Catch beforeinstallprompt HERE, not in the bundle. The browser can fire
+         it before a module script has finished evaluating, and the event cannot
+         be replayed: miss it and the one-tap install is gone for the whole
+         session, which on a phone is the difference between a career surviving a
+         fortnight away and being wiped by the browser's storage cap. Held on
+         window and picked up by src/ui/install.ts whenever it loads. -->
+    <script>
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault()
+        window.__fabInstall = e
+        window.dispatchEvent(new Event('fab-install'))
+      })
+    </script>
   </head>
   <body>
     <div id="root"></div>
