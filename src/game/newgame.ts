@@ -16,7 +16,7 @@ import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
 import { NATL1 } from '../data/leagues/natl1'
 import type { Club, GameState, NewsItem, Pos } from './model'
-import { buildPlayer, playerValue, resetIds } from './attributes'
+import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { seedPhilosophies } from './philosophy'
@@ -461,6 +461,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the A League: the academy sides of the manager's own league, fixtures and
   // table, played under the academy coach every league week (feedback 10G)
   ensureAcademyLeague(state)
+
+  // every academy man on a development deal, BEFORE the cap is measured so the
+  // cap is taken from a bill that is actually true (see repriceAcademies)
+  repriceAcademies(Object.values(state.players))
 
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)
