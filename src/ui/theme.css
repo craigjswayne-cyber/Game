@@ -3085,3 +3085,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .install-cue { border-left: 4px solid var(--gold); }
 .install-cue .btn-row { flex-wrap: wrap; }
 .install-cue .btn { flex: 1 1 auto; }
+
+/* First-three-weeks marks in the Hub. Quiet: they are pointing, not shouting,
+   and they sit in the same gold family as the Home hint so the two read as one
+   voice. Both are gone by week four and never come back. */
+.submenu-note {
+  padding: 7px 14px 8px;
+  font-size: 11.5px; line-height: 1.4;
+  color: var(--gold-bright);
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+.mstart {
+  font-family: var(--cond);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--brand-950);
+  background: var(--gold);
+  border-radius: 3px; padding: 2px 5px;
+  flex-shrink: 0;
+}

@@ -175,6 +175,15 @@ interface MenuItem {
   action?: () => void
 }
 
+/**
+ * The only three Hub screens a manager has to visit before a first match.
+ *
+ * Pick a side, know who is in it, tell the coaches what to work on. Everything
+ * else in the Hub is either a readout or a job for a week when there is one, and
+ * a first-timer cannot tell which from a list of eleven equal rows.
+ */
+const FIRST_JOBS = new Set<Screen>(['tactics', 'squad', 'training'])
+
 export default function App() {
   const nav = useStore(s => s.nav)
   const game = useStore(s => s.game)
@@ -207,6 +216,9 @@ export default function App() {
   const wireUnread = game.news.filter(n => !n.read && n.type === 'gossip').length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
+  // Same window as the Continue hint on Home, deliberately: one first-three-weeks
+  // voice, on for a first career only, and gone for good after that.
+  const firstWeeks = game.season === 0 && game.week <= 3
   // NEW injuries, not injured men (13E). A ten-week layoff used to hold the red
   // dot for ten weeks, which trains the manager to ignore it. Medical.tsx marks
   // them seen when he stands on the page.
@@ -415,11 +427,25 @@ export default function App() {
         <div className="submenu-veil" onClick={() => setMenu(null)}>
           <div className="submenu" onClick={e => e.stopPropagation()}>
             <div className="submenu-head">{MENUS[menu].title}</div>
+            {/* ELEVEN ITEMS AND NO ORDER OF BUSINESS.
+                The audit's read was that a new manager opens the Hub, finds
+                eleven destinations and no clue which of them is a job this week.
+                Its suggestion was to hide the bottom of the list until week four,
+                and that is the wrong fix: pre-season is exactly when a manager
+                wants the Transfer Centre, and a menu that grows behind your back
+                is worse than a long one. So nothing is taken away. Three items
+                are marked instead, for the same three weeks as the Home hint, and
+                then the marks go. */}
+            {menu === 'hub' && firstWeeks && (
+              <div className="submenu-note">Before your first match, these three are the job.</div>
+            )}
             {MENUS[menu].items.map(it => (
               <button key={it.label} className="submenu-item"
                 onClick={() => { setMenu(null); if (it.action) it.action(); else go(it.screen) }}>
                 <span className="mico">{it.ico}</span>
                 <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
+                {menu === 'hub' && firstWeeks && FIRST_JOBS.has(it.screen)
+                  ? <span className="mstart">start here</span> : null}
                 {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
               </button>
             ))}
