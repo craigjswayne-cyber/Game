@@ -59,6 +59,44 @@ export async function saveGame(slot: string, state: GameState): Promise<void> {
   })
 }
 
+// ---- the live match in progress ------------------------------------------
+//
+// Its own key, one per slot, so writing it never touches the 7MB career save.
+// The record itself carries a copy of the pre-match state (see resume.ts for why
+// replay beats serialising), which is why it is written ONCE at kick-off and only
+// its short command list is updated after that.
+const resumeKey = (slot: string) => `${slot}::live`
+
+export async function putResume(slot: string, rec: unknown): Promise<void> {
+  const db = await openDb()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).put(JSON.parse(JSON.stringify(rec)), resumeKey(slot))
+    tx.oncomplete = () => { db.close(); resolve() }
+    tx.onerror = () => { db.close(); reject(tx.error) }
+  })
+}
+
+export async function getResume<T>(slot: string): Promise<T | null> {
+  const db = await openDb()
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readonly')
+    const req = tx.objectStore(STORE).get(resumeKey(slot))
+    req.onsuccess = () => { db.close(); resolve((req.result as T) ?? null) }
+    req.onerror = () => { db.close(); resolve(null) }
+  })
+}
+
+export async function clearResume(slot: string): Promise<void> {
+  const db = await openDb()
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    tx.objectStore(STORE).delete(resumeKey(slot))
+    tx.oncomplete = () => { db.close(); resolve() }
+    tx.onerror = () => { db.close(); resolve() }
+  })
+}
+
 /** Backfill fields added since a save was written. */
 export function migrate(s: GameState): GameState {
   // ---- the collections the game reads without asking whether they are there ----
@@ -502,7 +540,13 @@ export async function listSaves(): Promise<SaveMeta[]> {
     const req = tx.objectStore(STORE).getAll()
     req.onsuccess = () => {
       db.close()
-      resolve((req.result ?? []).map((r: { meta: SaveMeta }) => r.meta).sort((a, b) => b.savedAt - a.savedAt))
+      // The store also holds the live-match records now (slot::live), which are
+      // not saves and have no meta. Without this filter the Load screen would
+      // list an undefined row for every career with a match in progress.
+      resolve((req.result ?? [])
+        .filter((r: { meta?: SaveMeta }) => !!r && !!r.meta && typeof r.meta.slot === 'string')
+        .map((r: { meta: SaveMeta }) => r.meta)
+        .sort((a, b) => b.savedAt - a.savedAt))
     }
     req.onerror = () => { db.close(); reject(req.error) }
   })
