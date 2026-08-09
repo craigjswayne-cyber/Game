@@ -8,7 +8,7 @@ import {
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
-import { firstStepOfWeek, matchDayIndex, nextStep } from './game/days'
+import { firstStepOfWeek, inInbox, matchDayIndex, nextStep } from './game/days'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
@@ -292,12 +292,13 @@ export const useStore = create<Store>((set, get) => ({
   noteSaveFail: (msg) => set(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 })),
   dismissSaveFail: () => set({ saveFail: 0, saveFailMsg: null }),
 
-  /** The inbox reader's recall window: the last 20 stories worth reading,
-   *  newest first. Gossip lives in the Wire and cleared stories are filed. */
+  /** The inbox reader's recall window: everything unread, plus what you have
+   *  read in the last five days. Gossip lives in the Wire, cleared stories are
+   *  filed, and days.inInbox is the one place that decides. */
   openInbox: () => set(s => {
     const g = s.game
     if (!g) return {}
-    const live = g.news.filter(n => n.type !== 'gossip' && !n.cleared)
+    const live = g.news.filter(n => inInbox(g, n))
     const unread = live.filter(n => !n.read).sort((a, b) => a.id - b.id)
     const onInbox = s.nav[s.nav.length - 1]?.screen === 'inbox'
     // oldest unread first: a queue is read front to back
@@ -322,7 +323,7 @@ export const useStore = create<Store>((set, get) => ({
   inboxStep: (dir) => set(s => {
     const g = s.game
     if (!g) return {}
-    const live = g.news.filter(n => n.type !== 'gossip' && !n.cleared).sort((a, b) => b.id - a.id).slice(0, 20)
+    const live = g.news.filter(n => inInbox(g, n)).sort((a, b) => b.id - a.id).slice(0, 20)
     if (!live.length) return {}
     const i = live.findIndex(n => n.id === s.inboxId)
     // dir -1 goes back in time, which is FORWARD through a newest-first list
@@ -335,7 +336,7 @@ export const useStore = create<Store>((set, get) => ({
     const g = s.game
     if (!g) return {}
     for (const n of g.news) if (n.read && n.type !== 'gossip') n.cleared = true
-    const left = g.news.filter(n => n.type !== 'gossip' && !n.cleared)
+    const left = g.news.filter(n => inInbox(g, n))
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 

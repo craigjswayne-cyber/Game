@@ -106,6 +106,53 @@ export function dayDate(season: number, week: number, day: DayIndex): string {
   return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`
 }
 
+/**
+ * ---- THE RECALL WINDOW ----
+ *
+ * User: "on inbox, when you've read them they should be viewable to look back
+ * but only for 5 days maximum."
+ *
+ * The reader used to hold the last twenty stories regardless of age, which meant
+ * a busy fortnight buried this morning's team news behind results from three
+ * weeks ago. Five days is the manager's own working memory: long enough to go
+ * back and check what the board actually said, short enough that the reader is
+ * always about now.
+ *
+ * Two rules, and the second is the one that matters:
+ *
+ *   an UNREAD story never expires. Ageing something out before it has been seen
+ *     is losing the manager's mail, not tidying it.
+ *   nothing is deleted. The Wire, the season review and the club history all read
+ *     state.news; a story that leaves the reader is still on the record.
+ */
+export const RECALL_DAYS = 5
+
+/** Days since the start of career - a single axis for anything that ages.
+ *
+ *  Built on the same calendar weekDate prints, so the arithmetic agrees with the
+ *  dates on screen and crossing a season boundary needs no special case. */
+export function absDay(season: number, week: number, day: DayIndex = MATCH_DAY): number {
+  const start = Date.UTC(2025 + season, 7, 16)
+  return Math.round((start + ((week - 1) * 7 + (day - MATCH_DAY)) * 86400000) / 86400000)
+}
+
+/** How many days ago this story landed, from where the manager is standing. */
+export function storyAge(state: GameState, n: NewsItem): number {
+  const now = absDay(state.season, state.week, today(state))
+  return Math.max(0, now - absDay(n.season, n.week, dayOfStory(n)))
+}
+
+/** Should this story still be in the inbox reader?
+ *
+ *  The single predicate behind every inbox filter - the screen, the queue, the
+ *  step arrows and Clear read. They disagreed once already (the reader showed
+ *  thirty, the arrows walked twenty) and that is the kind of bug that reads as
+ *  the game losing mail. */
+export function inInbox(state: GameState, n: NewsItem): boolean {
+  if (n.type === 'gossip' || n.cleared) return false
+  return !n.read || storyAge(state, n) <= RECALL_DAYS
+}
+
 /** The id the current week's bulletins start from.
  *
  *  Defaults to "nothing yet" rather than "everything": a save written before the

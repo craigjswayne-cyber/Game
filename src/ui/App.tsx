@@ -41,7 +41,7 @@ import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', inbox: 'Inbox', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Squad', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', inbox: 'Inbox', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -207,7 +207,13 @@ export default function App() {
   const wireUnread = game.news.filter(n => !n.read && n.type === 'gossip').length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
-  const injuredCount = club.players.filter(id => game.players[id]?.injury).length
+  // NEW injuries, not injured men (13E). A ten-week layoff used to hold the red
+  // dot for ten weeks, which trains the manager to ignore it. Medical.tsx marks
+  // them seen when he stands on the page.
+  const injuredCount = club.players.filter(id => {
+    const inj = game.players[id]?.injury
+    return inj && !inj.seen
+  }).length
   const clubVars = {
     '--club1': club.colors[0],
     '--club2': club.colors[1],
@@ -271,16 +277,22 @@ export default function App() {
       // finances, the academy and the infrastructure live here too - and on a
       // 412px screen the longer name wrapped the menu heading onto two lines.
       title: `${club.short} · Hub`,
+      // The user's own order, given as a list (13D). It groups the three squad
+      // pages together at the top - the team, the report on it, the academy
+      // feeding it - then the weekly work, then the money, then the bricks. Squad
+      // is "Team" because the page is the whole team including the academy men,
+      // and Academy loses "& A League" because the A League is a thing on that
+      // page rather than a second destination.
       items: [
         { ico: '📋', label: 'Selection & Tactics', screen: 'tactics' },
-        { ico: '🏉', label: 'Squad', screen: 'squad' },
+        { ico: '🏉', label: 'Team', screen: 'squad' },
         { ico: '📊', label: 'Team Report', screen: 'report' },
+        { ico: '🎓', label: 'Academy', screen: 'academy' },
         { ico: '🏋️', label: 'Training & Staff', screen: 'training' },
         { ico: '🏥', label: 'Medical Centre', screen: 'medical', badge: injuredCount },
         { ico: '📅', label: 'Fixtures & Results', screen: 'fixtures' },
         { ico: '💰', label: 'Finances', screen: 'finances' },
         { ico: '🔁', label: 'Transfer Centre', screen: 'transfers', badge: offersOpen },
-        { ico: '🎓', label: 'Academy & A League', screen: 'academy' },
         { ico: '🏗️', label: 'Club Infrastructure', screen: 'infra' },
         { ico: '🏟️', label: 'Club Information', screen: 'club' },
       ],

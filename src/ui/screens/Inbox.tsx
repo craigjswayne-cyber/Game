@@ -2,6 +2,7 @@ import { paragraphs } from '../components'
 import { useEffect } from 'react'
 import { useStore } from '../../store'
 import { weekDate, type NewsItem } from '../../game/model'
+import { RECALL_DAYS, inInbox, storyAge } from '../../game/days'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -16,7 +17,12 @@ import { weekDate, type NewsItem } from '../../game/model'
  *  not read, front to back, and the message fills the screen. When the queue is
  *  empty the arrows walk back through the last twenty, and Clear files the lot.
  *  Nothing is deleted - the Wire, the season review and the club history all read
- *  the same list - stories are only marked filed. */
+ *  the same list - stories are only marked filed.
+ *
+ *  The recall window is five days (user: "when you've read them they should be
+ *  viewable to look back but only for 5 days maximum"). An unread story never
+ *  ages out; days.inInbox is the one predicate that decides, and the store's
+ *  queue and step arrows read the same one. */
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -57,7 +63,7 @@ export function PeopleChips({ n }: { n: NewsItem }) {
 export function InboxList({ compact }: { compact?: boolean }) {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
-  const news = [...game.news].filter(n => n.type !== 'gossip' && !n.cleared).sort((a, b) => b.id - a.id)
+  const news = [...game.news].filter(n => inInbox(game, n)).sort((a, b) => b.id - a.id)
   if (news.length === 0) {
     return <div className="muted" style={{ padding: 14 }}>Nothing yet. Press Continue to get the season moving.</div>
   }
@@ -81,7 +87,7 @@ export default function Inbox() {
   const inboxId = useStore(s => s.inboxId)
   const { openInbox, inboxStep, clearRead } = useStore.getState()
 
-  const live = [...game.news].filter(n => n.type !== 'gossip' && !n.cleared).sort((a, b) => b.id - a.id)
+  const live = [...game.news].filter(n => inInbox(game, n)).sort((a, b) => b.id - a.id)
   const window20 = live.slice(0, 20)
   const unread = live.filter(n => !n.read).length
 
@@ -97,10 +103,18 @@ export default function Inbox() {
   if (!n) {
     return (
       <div className="muted" style={{ padding: 14 }}>
-        Nothing in the inbox. Press Continue to get the season moving.
+        Nothing in the inbox. Read mail stays here for {RECALL_DAYS} days and then moves on,
+        so an empty screen means you are up to date. Press Continue to get the season moving.
       </div>
     )
   }
+
+  // How long this one has left, so the window is visible rather than a surprise.
+  // Only ever shown on something already read: an unread story does not expire.
+  const age = storyAge(game, n)
+  const left = RECALL_DAYS - age
+  const shelf = !n.read ? '' : left <= 0 ? ' · last day in the inbox'
+    : left === 1 ? ' · one more day' : ` · ${left} days left`
 
   return (
     <>
@@ -122,7 +136,7 @@ export default function Inbox() {
       </div>
 
       <article className="reader">
-        <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
+        <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}{shelf}</div>
         <h2>{n.subject}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
             render an empty 6px div, so the spacing between paragraphs depended on

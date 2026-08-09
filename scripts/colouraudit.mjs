@@ -116,7 +116,7 @@ try {
   // before measuring it. A navigation click that misses is a failure, not a
   // shrug.
   for (const [item, label, anchor] of [
-    ['Squad', 'squad', '.dtable'],
+    ['Team', 'squad', '.dtable'],
     ['Selection & Tactics', 'tactics', '.tab-bar'],
     ['Club Information', 'club', 'text=DRESSING ROOM'],
   ]) {

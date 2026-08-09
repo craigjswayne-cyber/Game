@@ -9,6 +9,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
+import { coachFixes, unitBattles } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
@@ -1809,7 +1810,14 @@ function MatchVerdict() {
       ? 'A draw that will feel like a loss or a win by Tuesday, depending on the video.'
       : (myPoss >= 55 ? 'All that ball and nothing to show for it - the assistant circles our finishing in red.'
         : margin <= -20 ? 'Beaten in every collision. The review will be honest, and it will sting.'
-        : 'Fine margins. Fix two moments and that is our game.')
+        : 'Fine margins. Fix the two below and that is our game.')
+  // The verdict used to stop at the sentence above, which names nothing (user:
+  // "it should outline what the two fixes would be etc so the player can keep
+  // tweaking the tactics"). game/coachfix reads the same match data and turns it
+  // into two instructions that each point at a real control.
+  const myClub = game.clubs[mine.teamId]
+  const fixes = coachFixes(game, ctx, mine, opp, myClub?.tactic ?? null, 2)
+  const units = unitBattles(ctx, mine, opp)
   return (
     <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
       {star && (
@@ -1825,16 +1833,26 @@ function MatchVerdict() {
       )}
       <div className="fact-label" style={{ marginTop: 8 }}>Coach's Verdict</div>
       <div className="meta">{feedback}</div>
+
+      {fixes.length > 0 && (
+        <>
+          <div className="fact-label" style={{ marginTop: 8 }}>
+            {fixes.length === 1 ? 'The Fix' : 'The Two Fixes'} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>- before next Saturday</span>
+          </div>
+          {fixes.map((f, i) => (
+            <div key={i} className="fix-row">
+              <span className="fix-no">{i + 1}</span>
+              <span>
+                <b style={{ display: 'block', fontSize: 12.5 }}>{f.head}</b>
+                <span className="muted" style={{ fontSize: 11.5 }}>{f.how}</span>
+              </span>
+            </div>
+          ))}
+        </>
+      )}
+
       <div className="fact-label" style={{ marginTop: 8 }}>The Unit Battles</div>
-      {([
-        ['Scrum', mine.units.scrum, opp.units.scrum, 1],
-        ['Lineout', mine.units.lineout, opp.units.lineout, 2],
-        ['Breakdown', mine.units.breakdown, opp.units.breakdown, 3],
-      ] as const).map(([label, m, o, salt]) => {
-        // deterministic per-fixture wobble so the same edge reads differently week to week
-        const jit = ((((ctx.fx.id * 2654435761) >>> 0) + salt * 977) % 9) - 4
-        const pct = Math.max(22, Math.min(78, Math.round(50 + (m - o) * 5.5 + jit)))
-        const verdict = pct >= 57 ? 'dominated' : pct >= 52 ? 'edged it' : pct > 48 ? 'broke even' : pct > 43 ? 'shaded' : 'bullied'
+      {units.map(({ label, pct, verdict }) => {
         const color = pct >= 52 ? '#2f7d4f' : pct <= 48 ? '#9b2c2c' : undefined
         return (
           <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--hairline)', fontSize: 12.5 }}>

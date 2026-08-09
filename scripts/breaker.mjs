@@ -306,8 +306,8 @@ try {
   // ---- 8. every screen, twice, both orientations -------------------------
   await step('navigation', async () => {
   const MENUS = [
-    ['Hub', ['Selection & Tactics', 'Squad', 'Team Report', 'Training & Staff', 'Medical Centre',
-      'Fixtures & Results', 'Finances', 'Transfer Centre', 'Academy & A League',
+    ['Hub', ['Selection & Tactics', 'Team', 'Team Report', 'Training & Staff', 'Medical Centre',
+      'Fixtures & Results', 'Finances', 'Transfer Centre', 'Academy',
       'Club Infrastructure', 'Club Information']],
     ['Manager', ['Manager Profile', 'Press Room', 'Job Centre', 'Manager Legacy',
       "The Manager's Handbook", 'Save / Load Game']],
