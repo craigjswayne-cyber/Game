@@ -68,13 +68,40 @@ const mins = s => { const m = /^(\d+)'/.exec(s.clock); return m ? Number(m[1]) :
  * stop when `wants` is satisfied. This is the manager's thumb, nothing more.
  */
 const drive = async (wants, ms, what) => {
-  const stop = Date.now() + ms
+  let stop = Date.now() + ms
   let last = null
+  // A TIMEOUT IS NOT A DIAGNOSIS. This probe has now failed three times in a full
+  // suite run and passed every time on its own, and each failure read as "the match
+  // never reached the second half" - which sounds like the resume bug this probe
+  // exists to catch and was not. Twice it was a screen the walk did not know how to
+  // clear; once it was simply a loaded machine, because a browser probe that starts
+  // while the previous one's Chromium is still tearing down gets a fraction of the
+  // CPU it expects.
+  //
+  // So the two are now told apart. If the clock has MOVED inside the window, the
+  // match is fine and the machine is slow: extend once and say so. If it has not
+  // moved at all, that is a genuine stall and the failure means something.
+  let mark = -2
+  let extended = false
   for (;;) {
     const s = await snapshot()
     last = s
     if (wants(s)) return s
-    if (Date.now() > stop) { ok(false, `timed out waiting for ${what} (at ${s.clock || 'no match'})`); return s }
+    if (Date.now() > stop) {
+      const moved = mins(s) !== mark
+      if (moved && !extended) {
+        extended = true
+        mark = mins(s)
+        stop = Date.now() + ms
+        say(`  (still moving at ${s.clock}, machine is slow - one extension)`)
+        continue
+      }
+      ok(false, moved
+        ? `${what}: still progressing at ${s.clock} after two full windows, so this is slowness, not a stall`
+        : `STALLED waiting for ${what} - the clock has not moved from ${s.clock || 'no match'}`)
+      return s
+    }
+    mark = mins(s)
     if (s.hurt) {
       // Arm a man who is on, then take a bench option: the two taps subsprobe
       // uses, because a forced stop wants a real change and blind clicking on the
