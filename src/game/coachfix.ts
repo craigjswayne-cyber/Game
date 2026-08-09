@@ -272,6 +272,9 @@ export function coachFixes(
   }
   const tank = tankOf(mine)
   const theirTank = tankOf(opp)
+  // Three or more used, against a bench of eight rather than the old five: the
+  // complaint is about a manager who HAS gone to his bench and is still being
+  // out-run, not about one who has barely started.
   if (ctx.subsUsed >= 3 && theirTank - tank >= 20) {
     c.push({
       tag: 'fitness', score: (theirTank - tank) * 1.1,

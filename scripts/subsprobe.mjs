@@ -22,6 +22,8 @@ const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromi
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 
+// mirrors MAX_SUBS in game/matchEngine.ts, which a browser probe cannot import
+const MAX_SUBS = 8
 let fails = 0
 const ok = (cond, what) => { console.log(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
 
@@ -164,7 +166,11 @@ try {
     return parseInt(t ?? '0', 10)
   }
   const before = await subsLeft()
-  ok(before === 5, `five changes available at half-time (${before})`)
+  // THE BENCH, not a number. Five was the old cap; union lets a side use all eight
+  // and the user asked for that ("all 8 subs should be able to be used"). Asserting
+  // the rule rather than the digit means the next change to the cap does not need a
+  // probe edit, only a passing one.
+  ok(before === MAX_SUBS, `the whole bench is available at half-time (${before} of ${MAX_SUBS})`)
 
   // two changes without leaving the sheet, which is the whole point of it
   for (let i = 0; i < 2; i++) {
@@ -300,7 +306,8 @@ try {
   await page.click('.squad-sheet .btn.gold')
   await page.waitForTimeout(250)
   ok(await page.locator('.squad-sheet').count() === 0, 'the sheet closes')
-  ok((await page.locator('text=Replacements').first().textContent() ?? '').includes('3 of 5'), 'the panel agrees three are left')
+  ok((await page.locator('text=Replacements').first().textContent() ?? '')
+    .includes(`${MAX_SUBS - 2} of ${MAX_SUBS}`), `the panel agrees ${MAX_SUBS - 2} are left after two changes`)
 
   // still at half-time: the control row must say what it will do, and do it
   const playCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()

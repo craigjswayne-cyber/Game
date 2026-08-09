@@ -9,9 +9,26 @@ import { venueEffect } from './venue'
 import { clamp, gauss, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import {
+
+
   SPLIT_BY_ID, actualSplit, briefForSeat, isForward, seatsFor, splitFor,
   type BenchSplit,
 } from './bench'
+
+/**
+ * How many replacements a side may make in a match.
+ *
+ * Five was wrong. Union allows a side to use its whole bench: eight replacements
+ * from a 23, front-row cover included, and the only real limits are the Law 3
+ * front-row rules the engine already models and the fact that a man who comes off
+ * cannot come back (except for blood and front-row cover). Reported from live play:
+ * "all 8 subs should be able to be used in a match, dont limit it to 5."
+ *
+ * This is a BALANCE change as well as a rules fix - three more sets of fresh legs
+ * in the last quarter is more late scoring - so it is one number, in one place,
+ * and simtest is the check on what it does to the game.
+ */
+export const MAX_SUBS = 8
 
 /** Seasonal weather: wetter and colder through the winter weeks. */
 export function rollWeather(week: number, rng: Rng): Weather {
@@ -2033,7 +2050,7 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
 export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, inId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   if (ctx.seg === 3) return 'The match is over.'
-  if (ctx.subsUsed >= 5) return 'All five tactical replacements used.'
+  if (ctx.subsUsed >= MAX_SUBS) return `All ${MAX_SUBS} replacements used.`
   const slotOut = mine.lineup.indexOf(outId)
   const slotIn = mine.lineup.indexOf(inId)
   const pin = state.players[inId]

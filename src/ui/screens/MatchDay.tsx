@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
-  refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, type LiveCtx, type SideCtx,
+  refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
@@ -2095,10 +2095,10 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {/* One button into the match-day squad, where several changes can be made
           in one visit. This used to be two dropdowns and a Make button: one sub
           per trip, no shirt numbers, no sight of who was carrying a knock. */}
-      <div className="fact-label" style={{ marginTop: 12 }}>Replacements ({5 - ctx.subsUsed} of 5 left)</div>
-      <button className="btn ghost block" style={{ marginTop: 6 }} disabled={ctx.subsUsed >= 5}
+      <div className="fact-label" style={{ marginTop: 12 }}>Replacements ({MAX_SUBS - ctx.subsUsed} of {MAX_SUBS} left)</div>
+      <button className="btn ghost block" style={{ marginTop: 6 }} disabled={ctx.subsUsed >= MAX_SUBS}
         onClick={() => setSquadOpen(true)}>
-        🔁 {ctx.subsUsed >= 5 ? 'All five changes used' : 'Match-Day Squad - make replacements'}
+        🔁 {ctx.subsUsed >= MAX_SUBS ? 'All changes used' : 'Match-Day Squad - make replacements'}
       </button>
       <EnergyBars mine={mine} />
       {squadOpen && <SquadSheet onClose={() => setSquadOpen(false)} />}
@@ -2110,7 +2110,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
 }
 
 /** The match-day squad, mid-match: the XV on the left, the bench on the right,
- *  tap one then the other to make a change, and keep going until the five are
+ *  tap one then the other to make a change, and keep going until the bench is
  *  gone or you are happy.
  *
  *  It replaces a pair of <select> dropdowns and a Make button. Those could only
@@ -2147,7 +2147,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
 
   const ctx = live.ctx
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  const left = 5 - ctx.subsUsed
+  const left = MAX_SUBS - ctx.subsUsed
 
   // The XV in shirt order, because that is how a team sheet reads and how the
   // man you are looking for is found.
@@ -2166,7 +2166,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const covers = (p: Player) => !!off && (p.pos === off.pos || p.alt.includes(off.pos))
   const benchSorted = [...bench].sort((a, b) => Number(covers(b)) - Number(covers(a)) || b.ca - a.ca)
 
-  // Swapping the injury cover is free and does not burn one of the five, so it
+  // Swapping the injury cover is free and does not burn one of them, so it
   // routes through injuryCover rather than a normal substitution.
   const isFreeSwap = freeLeft && offId != null && offId === freeCoverId
   const doSub = (inP: Player) => {
@@ -2214,7 +2214,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
               const e = Math.round(mine.energy.get(p.id) ?? 70)
               const r = mine.ratings.get(p.id)
               const binned = (mine.yellowUntil.get(p.id) ?? 0) > ctx.tick * 4
-              // the free injury swap stays available even with all five used
+              // the free injury swap stays available even with the bench emptied
               const canFree = freeLeft && p.id === freeCoverId
               return (
                 <button key={p.id} className={`sheet-row ${offId === p.id ? 'armed' : ''}`}
