@@ -77,7 +77,20 @@ function thud() {
   o.start(t); o.stop(t + 0.35)
 }
 
+/**
+ * Buzz the phone, unless the phone's owner has said no twice over.
+ *
+ * This used to fire whatever the settings said. Silent mode killed the crowd and
+ * the whistle and left the handset buzzing in your palm, which is the one thing
+ * someone reaching for a mute toggle in a quiet room is trying to stop. Reduced
+ * motion is the other half: it is the closest thing a browser offers to "stop
+ * shaking things at me", and a phone that jumps in your hand is motion.
+ */
 function vibrate(pattern: number | number[]) {
+  if (muted) return
+  try {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+  } catch { /* no matchMedia: fall through and buzz */ }
   try { navigator.vibrate?.(pattern) } catch { /* unsupported */ }
 }
 
@@ -85,8 +98,13 @@ function vibrate(pattern: number | number[]) {
 export function matchSfx(type: string) {
   switch (type) {
     case 'TRY': crowd(1.4, 0.6, 800); vibrate([30, 40, 60]); break
+    // The strike, not the result. A kick that goes over gets one short tick, the
+    // length of a keyboard tap - enough to feel the contact without competing
+    // with the try. A miss is pushed as a plain commentary line by the engine and
+    // reaches no case here, so nothing buzzes when the kick drifts wide, which is
+    // exactly right: you do not want the phone celebrating a miss.
     case 'CON':
-    case 'PEN': crowd(0.6, 0.25, 1100); break
+    case 'PEN': crowd(0.6, 0.25, 1100); vibrate(12); break
     case 'DG': crowd(1.0, 0.45, 900); vibrate(30); break
     case 'YC': whistle(1); thud(); vibrate(60); break
     case 'RC': whistle(1); thud(); vibrate([80, 60, 80]); break

@@ -3051,3 +3051,30 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .draw-verdict { border-left: 4px solid var(--gold, #c9a227); }
 .draw-next { margin-top: 10px; font-size: 15px; }
 @keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* ================= Reduced motion =================
+   Twenty-five animations, a live match that flashes try zones and sweeps
+   banners across the pitch, and no answer at all for a phone whose owner has
+   asked the OS to calm things down. Flagged in the studio audit.
+
+   The standard recipe - collapse every duration to nothing - is right for
+   twenty-three of them: a score pop, a dot pulse, a pack shove and a ball arc
+   all end where they started or end visible, so finishing instantly means the
+   information arrives without the movement.
+
+   It is WRONG for the two that carry the message themselves. The full-time
+   stamp and the live event banner both END at opacity 0 and hold it forwards,
+   because that is how they clear themselves. Collapse those and the moment is
+   not calmed, it is deleted: no full-time stamp, no try banner, no card
+   banner. So those two keep their full length and lose only the travel. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ft-stamp { animation: rm-hold 2.8s linear forwards !important; }
+  .ev-banner { animation: rm-hold 1.6s linear forwards !important; }
+  @keyframes rm-hold { 0%, 86% { opacity: 1; } 100% { opacity: 0; } }
+}
