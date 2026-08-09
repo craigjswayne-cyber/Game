@@ -1,4 +1,5 @@
 import type { Club, GameState, Player, Pos } from './model'
+import { aiBoardsReinvest } from './aiecon'
 import { boardObjective, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
@@ -1270,6 +1271,10 @@ export function rebuildSeason(state: GameState) {
   }
 
   boardReinvests(state)
+  // and the other hundred boards, for the same reason his does it: money sitting
+  // in a deposit account while the club stands still is money the board would
+  // rather see in the academy and the training ground (aiecon.ts).
+  aiBoardsReinvest(state)
 
   // budgets: base by rep + carryover health
   for (const club of Object.values(state.clubs)) {
