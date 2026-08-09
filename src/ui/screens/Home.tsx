@@ -161,13 +161,27 @@ export default function Home() {
         if (!objs.length) return null
         return (
           <button className="card" onClick={() => go('finances')}>
+            {/* A TICK MEANS DONE, AND DONE HAS TO MEAN DONE.
+                Reported from a new Bedford save: "one of the season objectives
+                had been completed without a game being played." It had. The brief
+                was to finish the season in the black, the club opens with £240k in
+                the bank, so met() was true in week 1 and the screen said so.
+                An objective that is banked once achieved (six starts given, a
+                derby won) is ticked the moment it happens, because it cannot be
+                lost. One that is merely TRUE TODAY reads as on course until the
+                season is actually over - see ObjectiveDef.banked. */}
             <div className="fact-label">🎯 Season Objectives · {objs.filter(o => o!.met(game)).length}/{objs.length} on track</div>
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
-              {objs.map(o => (
-                <span key={o!.id} style={{ color: o!.met(game) ? '#2f7d4f' : 'var(--ink-soft)' }}>
-                  {o!.met(game) ? '✓' : '○'} {o!.text(game)}
-                </span>
-              ))}
+              {objs.map(o => {
+                const met = o!.met(game)
+                const done = met && o!.banked
+                return (
+                  <span key={o!.id} style={{ color: done ? '#2f7d4f' : met ? 'var(--accent-ink)' : 'var(--ink-soft)' }}>
+                    {done ? '✓' : met ? '◍' : '○'} {o!.text(game)}
+                    {met && !o!.banked ? ' (on course)' : ''}
+                  </span>
+                )
+              })}
             </div>
           </button>
         )
