@@ -2,6 +2,7 @@ import { useStore } from '../../store'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { CHALLENGES } from '../../game/newgame'
+import { horizon, horizonPct } from '../../game/legacy'
 
 const ord = (n: number) =>
   `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -31,6 +32,27 @@ export default function Legacy() {
         <span className="chip">Win rate <b>{winPct}%</b></span>
         <span className="chip">Signings <b>{m.signings}</b></span>
         <span className="chip">Spent <b>{fmtMoney(m.spent)}</b></span>
+      </div>
+
+      {/* WHAT YOU ARE CHASING (C4).
+          The audit's read was that this screen is an obituary: every number on it
+          is something that has already happened, so there is nothing on it to play
+          towards. The marks were already in the engine and already celebrated -
+          your 250th win arrives with a salute - but nothing anywhere had ever
+          mentioned that a 250th win was a thing, so the salute was a surprise
+          rather than an arrival. Same numbers, shown before they land. */}
+      <SectionTitle sub="the next four things this career is working towards">On the Horizon</SectionTitle>
+      <div className="card">
+        {horizon(game).map((h, i, all) => (
+          <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5 }}>
+              <b>{h.label}</b>
+              <span className="muted">{h.note}</span>
+            </div>
+            {/* the same bar the tactics screen uses, so it is night-aware already */}
+            <span className="rt-bar"><i style={{ width: `${horizonPct(h)}%` }} /></span>
+          </div>
+        ))}
       </div>
 
       <SectionTitle sub={m.trophies.length ? undefined : 'the cabinet awaits'}>Trophy Cabinet</SectionTitle>
