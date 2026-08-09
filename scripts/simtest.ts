@@ -1,3 +1,17 @@
+// READ THE BANDS ACROSS SEEDS, NOT ON THIS ONE.
+//
+// state.nextId is shared between news items and PLAYER ids, and several rngs are
+// seeded off a player id (mulberry32(state.seed + p.id)). So adding one news story
+// anywhere in the engine shifts every id minted afterwards, which shifts those
+// draws, which produces a DIFFERENT world - not a worse one, but not the same one.
+//
+// Measured: adding the rival manager's beats (C3) moved this seed from 52.7 pts /
+// 55% home to 53.0 / 54%, and it reads exactly like a balance regression until you
+// run seeds 777 and 4242, which both still say 55%. The fingerprint stays green
+// throughout, because it holds a fixed match stream rather than a whole world.
+//
+// So: a single seed drifting a point out of band after a content round is expected.
+// Two or three seeds drifting the same way is a regression.
 // Headless engine smoke test: build a game world and simulate seasons.
 import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
