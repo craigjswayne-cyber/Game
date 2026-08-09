@@ -35,6 +35,16 @@ run() {
     printf 'PASS  %-16s %s\n' "$name" "$last"
   else
     printf 'FAIL  %-16s %s\n' "$name" "$last"
+    # SAY WHAT FAILED, not just that something did. This threw the whole of $out
+    # away and printed the summary line, so "FAIL subsprobe SUBS PROBE FAILED (2)"
+    # meant re-running the probe by hand to find out which two - and a probe that
+    # only fails under the suite does not always fail again on its own. The
+    # harnesses all mark their own failures with a FAIL prefix, so those lines and
+    # anything the probe threw come through here, indented, capped so one broken
+    # harness cannot bury the rest of the report.
+    printf '%s' "$out" \
+      | grep -E '^(FAIL|PROBE THREW|.*(stopped early|stuck with))' \
+      | head -12 | sed 's/^/        /'
     FAILS=$((FAILS + 1))
   fi
 }
