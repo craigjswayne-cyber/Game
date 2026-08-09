@@ -1,6 +1,6 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { fitWord, mentorBoost, mentorFit } from '../src/game/mentoring'
+import { MENTEE_MAX_AGE, MENTOR_MIN_AGE, REPORT_EVERY, canBeMentored, canMentor, fitWord, mentorReports, mentorBoost, mentorFit } from '../src/game/mentoring'
 import { EXAM_PASS_PCT, RETAKE_WEEKS, sendToCourse } from '../src/game/staff'
 import { fineAttr } from '../src/game/attributes'
 import { ATTR_KEYS, type Personality, type Player } from '../src/game/model'
@@ -83,8 +83,8 @@ console.log('--- 1. character decides the mentoring pairing')
     const g0 = newGame(cid, 'Pairer', seed)
     const c0 = g0.clubs[g0.userClubId]
     const sq = c0.players.map(id => g0.players[id]).filter(Boolean)
-    const olds = sq.filter(x => !x.acad && x.age >= 28)
-    const kids = sq.filter(x => x.acad)
+    const olds = sq.filter(canMentor)
+    const kids = sq.filter(canBeMentored)
     const bs: number[] = []
     for (const s2 of olds) for (const k2 of kids) bs.push(mentorBoost(s2, k2))
     if (!bs.length) continue
@@ -181,6 +181,73 @@ console.log('\n--- 3. the 1-100 attribute rating is finer than a multiple of fiv
   // stable: the same man reads the same twice
   const p0 = squad[0]
   ok(fineAttr(p0.id, 0, p0.a.tac) === fineAttr(p0.id, 0, p0.a.tac), 'a rating is stable, not re-rolled on every read')
+}
+
+
+// ---- eligibility and cadence (live feedback) --------------------------------
+//
+// User: "all players under 21 can have a mentor to learn from - reports should
+// come in every 8 weeks on how its going, if its not working the option to
+// terminate the mentoring should be an option."
+//
+// The trap here was that eligibility was written TWICE: the Training screen's
+// dropdown and the development loop in season.ts. Widening one and not the other
+// gives a pairing the game displays, files reports on, and does nothing for. Both
+// now call canBeMentored, and this asserts the rule reaches a real squad.
+{
+  console.log('\n---- who can be mentored ----')
+  const g2 = newGame('northampton', 'Eligibility', 5)
+  const sq = g2.clubs[g2.userClubId].players.map(id => g2.players[id]!)
+  const eligible = sq.filter(canBeMentored)
+  const acad = sq.filter(p => p.acad)
+  const seniorKids = sq.filter(p => !p.acad && p.age <= MENTEE_MAX_AGE)
+  console.log(`  squad ${sq.length}: ${acad.length} academy, ${seniorKids.length} senior under-${MENTEE_MAX_AGE + 1}, ${eligible.length} eligible`)
+  ok(eligible.length === acad.length + seniorKids.length,
+    'every academy man and every senior under-21 is eligible, and nobody else')
+  ok(seniorKids.length > 0,
+    `the widening is not theoretical: ${seniorKids.length} senior men qualify who did not before`)
+  ok(!sq.some(p => canBeMentored(p) && p.age > MENTEE_MAX_AGE && !p.acad),
+    'nobody over the age limit slips in')
+  ok(sq.filter(canMentor).every(p => p.age >= MENTOR_MIN_AGE && !p.acad),
+    `every mentor is a senior pro of ${MENTOR_MIN_AGE} or more`)
+
+  // and the boost really lands on a senior under-21, which is the half that was
+  // gated on p.acad and would have silently done nothing
+  const kid = seniorKids[0]
+  const mentor = sq.filter(canMentor).sort((a, b) => b.a.lea - a.a.lea)[0]
+  ok(!!kid && !!mentor, 'a senior under-21 and a senior pro both exist to pair')
+  if (kid && mentor) {
+    g2.mentors = [{ senior: mentor.id, kid: kid.id }]
+    const before = Object.values(kid.a).reduce((s, v) => s + v, 0)
+    for (let i = 0; i < 30; i++) processWeekAndAdvance(g2)
+    const after = Object.values(g2.players[kid.id]!.a).reduce((s, v) => s + v, 0)
+    console.log(`  ${kid.name} (${kid.age}, senior squad) attributes ${before} -> ${after} over 30 weeks with ${mentor.name}`)
+    ok(after >= before, 'a senior under-21 develops under a mentor rather than being ignored')
+  }
+
+  ok(REPORT_EVERY === 8, `progress reports are filed every ${REPORT_EVERY} weeks`)
+}
+
+// ---- a failing pairing offers the way out ----------------------------------
+{
+  const g3 = newGame('bath', 'Terminate', 11)
+  const sq = g3.clubs[g3.userClubId].players.map(id => g3.players[id]!)
+  const kid = sq.filter(canBeMentored)[0]
+  const mentor = sq.filter(canMentor)[0]
+  if (kid && mentor) {
+    // force the worst case so the "not taking" branch fires
+    mentor.pers = 'Temperamental'
+    kid.pers = 'Temperamental'
+    g3.mentors = [{ senior: mentor.id, kid: kid.id }]
+    g3.week = REPORT_EVERY
+    mentorReports(g3)
+    const note = g3.news.find(n => n.subject.includes('is not taking'))
+    ok(!!note, 'a failing pairing files a report')
+    ok(!!note && /End button/.test(note.body),
+      'and the report names the End button rather than leaving the manager stuck')
+  } else {
+    ok(false, 'could not build a failing pairing to test')
+  }
 }
 
 console.log(fails ? `\nMENTOR PROBE FAILED (${fails})` : '\nMENTOR PROBE PASSED')

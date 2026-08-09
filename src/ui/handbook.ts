@@ -145,7 +145,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'What is mentoring?',
-    a: 'Pair a young player with an experienced one on the Training screen and the older man passes something on: faster development, and personality rubbing off. A professional veteran is the one you want doing it. A mercenary is not.',
+    a: 'Pair any player aged 20 or under with a senior pro of 28 or more, on the Club tab of the Training and Staff screen. Three pairings at a time. The older man passes on faster development and, slowly, his personality: a mentored kid has roughly a one in three chance across a season of taking on his mentor\'s character for good, which is usually the bigger prize. Character decides how well it takes, so pick the pairing rather than the names: a Leader teaching an Ambitious or Temperamental kid is the best combination in the game, two Temperamentals together the worst, and a Mercenary teaches almost nothing. A report lands every eight weeks when there is something to say, and a pairing that is not working can be ended on the row and the kid put with somebody else.',
   },
   {
     cat: 'squad',

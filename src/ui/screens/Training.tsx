@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
 import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
-import { fitReason, fitWord, mentorFit } from '../../game/mentoring'
+import { MENTEE_MAX_AGE, canBeMentored, canMentor, fitReason, fitWord, mentorFit } from '../../game/mentoring'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
 
@@ -65,7 +65,7 @@ export default function Training() {
       </>}
       {ttab === 'staff' && <StaffPanel />}
       {ttab === 'club' && <>
-      <SectionTitle sub="a senior pro brings a kid through (max 3)">Mentoring</SectionTitle>
+      <SectionTitle sub={`a senior pro brings an under-${MENTEE_MAX_AGE + 1} through (max 3)`}>Mentoring</SectionTitle>
       <MentorPanel />
       <SectionTitle sub="the ground, the pitch, the gym, the shop">Infrastructure</SectionTitle>
       <button className="club-pick" onClick={() => go('infra')}>
@@ -195,9 +195,11 @@ function MentorPanel() {
   const club = game.clubs[game.userClubId]
   const pairs = game.mentors ?? []
   const squad = club.players.map(id => game.players[id]).filter(Boolean)
-  const seniors = squad.filter(p => !p.acad && p.age >= 28 && !pairs.some(mp => mp.senior === p.id))
+  // canMentor and canBeMentored live in game/mentoring so this screen and the
+  // development loop cannot drift apart about who is eligible
+  const seniors = squad.filter(p => canMentor(p) && !pairs.some(mp => mp.senior === p.id))
     .sort((a, b) => b.a.lea - a.a.lea)
-  const kids = squad.filter(p => p.acad && !pairs.some(mp => mp.kid === p.id))
+  const kids = squad.filter(p => canBeMentored(p) && !pairs.some(mp => mp.kid === p.id))
     .sort((a, b) => b.pa - a.pa)
   return (
     <div className="card" style={{ padding: '8px 10px' }}>
@@ -233,7 +235,7 @@ function MentorPanel() {
           </select>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={kidId}
             onChange={e => setKidId(e.target.value ? Number(e.target.value) : '')}>
-            <option value="">Academy kid…</option>
+            <option value="">Under-{MENTEE_MAX_AGE + 1}…</option>
             {kids.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pos}, {p.age})</option>)}
           </select>
           <button className="btn" disabled={!seniorId || !kidId} onClick={() => {
