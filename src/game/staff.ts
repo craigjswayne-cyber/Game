@@ -213,11 +213,11 @@ export function resolveCourses(state: GameState) {
     } else {
       p.failed = (p.failed ?? 0) + 1
       p.retakeAt = abs + RETAKE_WEEKS
-      logDecision(state, `${p.name} failed his ${BADGE[toTier].toLowerCase()} badge. The course fee is gone and he resits in ten weeks.`, false)
+      logDecision(state, `${p.name} failed his ${BADGE[toTier].toLowerCase()} badge. The course fee is gone and he resits in four weeks.`, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${p.name} falls short of his ${BADGE[toTier].toLowerCase()} badge`,
-        body: `The examiners want more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. He can sit it again in ten weeks.`,
+        body: `The examiners want more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. He can sit it again in four weeks.`,
       })
     }
   }
