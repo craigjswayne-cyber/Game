@@ -429,7 +429,11 @@ export default function App() {
         {navBtn('home', <IcoHome />, 'Home')}
         {game.unemployed ? (
           <>
-            {navBtn('jobs', <IcoClipboard />, 'Jobs', game.vacancies.length)}
+            {/* openJobs, not vacancies.length: the same fix the Manager group badge
+                got in 14B, and it matters more now that turning a job down takes it
+                off the pile. A badge counting jobs that are no longer in the list is
+                a red dot with nothing behind it. */}
+            {navBtn('jobs', <IcoClipboard />, 'Jobs', openJobs)}
             {groupBtn('manager', <IcoPress />, 'Manager')}
             {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
           </>

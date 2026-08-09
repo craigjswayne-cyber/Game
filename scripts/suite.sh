@@ -57,7 +57,7 @@ if [ "$MODE" != fast ]; then
   echo
   echo "=== build, then the browser ==="
   run build npm run build
-  for n in e2e e2enight resilience reloadprobe subsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach; do
+  for n in e2e e2enight resilience reloadprobe subsprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach; do
     [ -f "scripts/$n.mjs" ] || continue
     run "$n" timeout 1200 node "scripts/$n.mjs"
   done
