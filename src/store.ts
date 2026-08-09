@@ -75,6 +75,10 @@ interface Store {
    *  save-to-slot on the Saves screen. */
   noteSaveFail: (msg: string) => void
   dismissSaveFail: () => void
+  /** Record the two fixes a full-time verdict just gave, so the NEXT one can
+   *  mark them (C2). Idempotent per fixture: the full-time card re-renders on
+   *  every tick and a live match can be resumed from its log. */
+  noteFixes: (fxId: number, tags: string[]) => void
   /** The message the inbox reader is showing (news id), or null for none.
    *
    *  The inbox reads one at a time (user: "tap the mail symbol it should open the
@@ -306,6 +310,14 @@ export const useStore = create<Store>((set, get) => ({
   saveFailMsg: null,
   noteSaveFail: (msg) => set(s => ({ saveFail: s.saveFail + 1, saveFailMsg: msg, tick: s.tick + 1 })),
   dismissSaveFail: () => set({ saveFail: 0, saveFailMsg: null }),
+
+  noteFixes: (fxId, tags) => {
+    const g = get().game
+    if (!g || g.fixHw?.fxId === fxId) return
+    g.fixHw = { fxId, season: g.season, week: g.week, tags }
+    // no touch(): nothing on screen reads this until the next full time, and a
+    // re-render from inside a full-time effect would loop
+  },
 
   /** The inbox reader's recall window: everything unread, plus what you have
    *  read in the last five days. Gossip lives in the Wire, cleared stories are

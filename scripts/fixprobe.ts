@@ -21,7 +21,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { beginMatch, makeSubstitution, playSegment } from '../src/game/matchEngine'
-import { coachFixes, unitBattles } from '../src/game/coachfix'
+import { coachFixes, gradeFixes, gradeLine, unitBattles } from '../src/game/coachfix'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState, Fixture } from '../src/game/model'
 
@@ -141,5 +141,48 @@ ok(hog[1] <= Math.ceil(seen.length * 0.6),
 const dashes = seen.flatMap(s => s.fixes).filter(f => (f.head + f.how).includes('—'))
 ok(dashes.length === 0, 'no em dashes in the advice')
 
+// ---- AND THE NEXT VERDICT MARKS THEM (C2) ---------------------------------
+//
+// The fixes were a lecture, not a loop: two jobs named, and nothing ever
+// mentioned again whether they got done. gradeFixes is the other half. What it
+// must never do is congratulate a manager for something still broken, or nag
+// about something that has gone away, and 'admin' - the coach saying nothing
+// broke - must never be marked at all, or a winning side gets told off for
+// homework it was never set.
+{
+  const g1 = gradeFixes(['setpiece', 'discipline'], ['discipline', 'attack'])
+  ok(g1.fixed.join() === 'setpiece', 'a complaint the coach can no longer make is marked done')
+  ok(g1.missed.join() === 'discipline', 'and one he can still make is not')
+
+  const both = gradeFixes(['setpiece', 'kicking'], ['attack', 'fitness'])
+  ok(both.fixed.length === 2 && both.missed.length === 0, 'two out of two reads as two out of two')
+
+  const neither = gradeFixes(['setpiece', 'kicking'], ['setpiece', 'kicking'])
+  ok(neither.fixed.length === 0 && neither.missed.length === 2, 'and nothing done reads as nothing done')
+
+  const admin = gradeFixes(['admin', 'setpiece'], ['attack'])
+  ok(!admin.fixed.includes('admin') && !admin.missed.includes('admin'),
+    '"nothing broke" is never homework, so it is never graded')
+  ok(admin.fixed.join() === 'setpiece', 'but the real job alongside it still is')
+
+  ok(gradeLine([], []) === null, 'a first match has nothing to grade and says nothing')
+  const line = gradeLine(g1.fixed, g1.missed) ?? ''
+  console.log(`\n  grade line: "${line}"`)
+  ok(/is sorted/.test(line) && /is not/.test(line), 'the mixed verdict says which is which')
+  // NOT a check for the absence of the tag words: FIX_LABEL.discipline is "the
+  // discipline", so that assertion failed on a line that was perfectly good. What
+  // matters is that the joined tag forms never reach a screen.
+  ok(!/setpiece|admin/.test(line), 'and no raw tag name reaches the screen')
+  ok(/^[A-Z]/.test(line) && !/\. [a-z]/.test(line), 'every sentence in it starts with a capital')
+  const allLines = [
+    gradeLine(['setpiece'], []), gradeLine(['setpiece', 'kicking'], []),
+    gradeLine([], ['attack']), gradeLine([], ['attack', 'fitness']),
+    gradeLine(['setpiece'], ['attack']),
+  ].filter((l): l is string => !!l)
+  ok(allLines.length === 5, 'every combination has words for it')
+  ok(allLines.every(l => !l.includes('—')), 'no em dashes in the grades')
+  ok(new Set(allLines).size === 5, 'and one match does not get another match\'s sentence')
+}
+
 if (fails) { console.error(`\nFIX PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nFIX PROBE PASSED: the verdict names two jobs, and they are real ones')
+console.log('\nFIX PROBE PASSED: two jobs named, and the next verdict marks them')

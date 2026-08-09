@@ -9,7 +9,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
-import { coachFixes, unitBattles } from '../../game/coachfix'
+import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
@@ -1820,6 +1820,31 @@ function MatchVerdict() {
   const myClub = game.clubs[mine.teamId]
   const fixes = coachFixes(game, ctx, mine, opp, myClub?.tactic ?? null, 2)
   const units = unitBattles(ctx, mine, opp)
+
+  // ---- MARKING LAST WEEK'S HOMEWORK (C2) ----------------------------------
+  //
+  // The audit's read was that the two fixes were a lecture rather than a loop:
+  // the coach names two jobs, the manager does them or ignores them, and nothing
+  // ever refers to it again. So the tags from the last full time are kept on the
+  // save, and this compares them with what the coach can still complain about.
+  //
+  // Read BEFORE the effect below overwrites it, and stale records are dropped: a
+  // grade against a game six weeks and a transfer window ago is not a grade, it
+  // is a non sequitur. Cup runs and international weeks mean "next match" is not
+  // always next week, hence four rather than one.
+  const hw = game.fixHw
+  const fresh = !!hw && hw.fxId !== live.fixture.id && hw.season === game.season && game.week - hw.week <= 4
+  const grade = fresh && hw
+    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag))
+    : { fixed: [], missed: [] }
+  const verdictOnLast = gradeLine(grade.fixed, grade.missed)
+
+  // and then this match's two become the homework. Written once per fixture by
+  // the store, because this card re-renders on every tick.
+  const noteFixes = useStore.getState().noteFixes
+  const fxId = live.fixture.id
+  const tags = fixes.map(f => f.tag).join(',')
+  useEffect(() => { noteFixes(fxId, tags ? tags.split(',') as FixTag[] : []) }, [fxId, tags, noteFixes])
   return (
     <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
       {star && (
@@ -1835,6 +1860,12 @@ function MatchVerdict() {
       )}
       <div className="fact-label" style={{ marginTop: 8 }}>Coach's Verdict</div>
       <div className="meta">{feedback}</div>
+
+      {verdictOnLast && (
+        <div className={`fix-grade${grade.missed.length === 0 ? ' good' : ''}`}>
+          {grade.missed.length === 0 ? '✅ ' : '📋 '}{verdictOnLast}
+        </div>
+      )}
 
       {fixes.length > 0 && (
         <>

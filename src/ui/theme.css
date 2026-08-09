@@ -3103,3 +3103,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 3px; padding: 2px 5px;
   flex-shrink: 0;
 }
+
+/* Marking last week's homework on the full-time card (C2). Sits between the
+   verdict and the new fixes, because that is the order it is read in: what you
+   were asked, whether you did it, what is next. */
+.fix-grade {
+  margin: 7px 0 0;
+  padding: 6px 9px;
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--gold) 9%, var(--paper));
+  font-size: 12px; line-height: 1.4; color: var(--ink-soft);
+}
+.fix-grade.good {
+  border-left-color: #2f7d4f;
+  background: color-mix(in srgb, #2f7d4f 9%, var(--paper));
+}
