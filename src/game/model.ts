@@ -51,11 +51,23 @@ export interface SeasonStats {
   motm: number
   /** cumulative minutes this season - the load that wears bodies out */
   mins: number
+  /**
+   * THE AWARD WINDOW ONLY: ratings and appearances since the last monthly award,
+   * zeroed the moment one is handed out (season.ts, at AWARD_EVERY).
+   *
+   * Player of the Month used to be decided on `form`, which is a rolling average
+   * carrying weight from long before the window - a man who was superb in
+   * September and merely decent in October could still outrank the man who was
+   * actually best in October. These two numbers are what the month is worth, and
+   * nothing else. They live in stats so the season rollover clears them for free.
+   */
+  mSum: number
+  mApps: number
 }
 
 export const emptyStats = (): SeasonStats => ({
   apps: 0, starts: 0, tries: 0, points: 0, cons: 0, pens: 0, drops: 0,
-  yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0,
+  yc: 0, rc: 0, ratingSum: 0, motm: 0, mins: 0, mSum: 0, mApps: 0,
 })
 
 /** 1,300+ minutes (~17 full games) is the red zone: tired bodies break. */

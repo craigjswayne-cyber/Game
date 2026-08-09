@@ -1710,11 +1710,26 @@ export function processWeekAndAdvance(state: GameState) {
       const cands = comp.table.flatMap(r => (state.clubs[r.teamId]?.players ?? [])
         .map(id => state.players[id])
         .filter(p => p && !p.acad && (p.lastWk ?? -9) >= from))
-      // and a minimum sample for the player too: one appearance on a hot form
-      // figure used to be enough to be named the league's best man of the month
+      // JUDGED ON THE MONTH, NOT ON FORM.
+      //
+      // This used to sort on p.form, and form is a rolling average: each match
+      // moves it by only 35% (form * 0.65 + rating * 0.35), so it carries weight
+      // from long before the window. A man who was superb in September and merely
+      // decent in October could still outrank the man who was actually best in
+      // October, and the award said "Player of the Month" while measuring the
+      // season. mSum/mApps are the window and nothing but the window, cleared
+      // every time an award is given (matchEngine writes them beside ratingSum).
+      //
+      // Two appearances is the sample gate. Three would match the manager's, but
+      // this is one man rather than a whole club: a six-week window holds three or
+      // four matches, and a squad rotates, so demanding three would quietly
+      // restrict the award to the never-rested. Two games at 8.5 is a month.
+      const MIN_POM_APPS = 2
+      const monthAvg = (p: Player) => (p.stats.mApps ?? 0) > 0 ? (p.stats.mSum ?? 0) / p.stats.mApps : 0
       const pom = cands
-        .filter(p => (p!.stats.apps ?? 0) >= 3)
-        .sort((a, b) => b!.form - a!.form || b!.stats.ratingSum - a!.stats.ratingSum)[0]
+        .filter(p => (p!.stats.mApps ?? 0) >= MIN_POM_APPS)
+        // best average in the window; a tie goes to the man who played more of it
+        .sort((a, b) => monthAvg(b!) - monthAvg(a!) || (b!.stats.mApps ?? 0) - (a!.stats.mApps ?? 0))[0]
       // THE TWO AWARDS ARE SEPARATE AWARDS. This used to read `if (pom && best)`,
       // so a month where no manager cleared the three-match, two-win gate took the
       // player's award away with it, and he earned his on the pitch.
@@ -1749,13 +1764,27 @@ export function processWeekAndAdvance(state: GameState) {
               ? `Manager of the Month: ${userWon ? `${state.managerName} (${state.clubs[state.userClubId].short})` : `${state.clubs[bestClub]?.coach ?? 'The coach'} (${state.clubs[bestClub]?.short})`}. ${runLine(state, best)}`
               : 'Manager of the Month: not awarded. Nobody put together a month worth the trophy.',
             pom
-              ? `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '-'}), form ${pom.form.toFixed(1)}.`
+              // the number he actually won it on, not his season form
+              ? `Player of the Month: ${pom.name} (${state.clubs[pom.clubId!]?.short ?? '-'}), ${monthAvg(pom).toFixed(1)} across ${pom.stats.mApps} ${pom.stats.mApps === 1 ? 'game' : 'games'} this month.`
               : 'Player of the Month: not awarded.',
             userWon ? 'The board notice these things - and so does the crowd.' : ourMan ? 'A proud week for the club and a lift for the man himself.' : '',
           ].filter(Boolean).join('\n'),
           playerId: pom?.id,
         })
       }
+    }
+  }
+
+  // THE WINDOW CLOSES HERE, for everybody.
+  //
+  // Outside the award block on purpose: it has to happen at the boundary whether
+  // or not an award was given, whether or not the manager has a job, and for every
+  // league rather than only his. If the reset lived inside that block, a spell out
+  // of work or a month nobody deserved would leave the counters running and the
+  // next award would be judged on ten weeks of rugby called a month.
+  if (state.week % AWARD_EVERY === 0) {
+    for (const p of Object.values(state.players)) {
+      if (p.stats.mApps || p.stats.mSum) { p.stats.mApps = 0; p.stats.mSum = 0 }
     }
   }
 

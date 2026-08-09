@@ -31,7 +31,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { AWARD_EVERY, managerOfMonth } from '../src/game/awards'
-import type { GameState, NewsItem } from '../src/game/model'
+import type { GameState, NewsItem, Player } from '../src/game/model'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -61,6 +61,7 @@ function potmWinners(news: NewsItem[]): { id: number; name: string }[] {
 let doubles = 0
 let stale = 0
 let orphaned = 0
+let ranked = 0
 let awarded = 0
 let windows = 0
 let withMgr = 0
@@ -70,6 +71,7 @@ const seeds = [2024, 8181, 55555]
 
 for (const seed of seeds) {
   const g: GameState = newGame('northampton', 'Awards Probe', seed)
+  const win = new Map<number, { sum: number; apps: number }>()
   for (let s = 0; s < seasons; s++) {
     // walk a whole season a week at a time, reading the news each week
     const startSeason = g.season
@@ -79,9 +81,41 @@ for (const seed of seeds) {
       // who could possibly deserve it, measured BEFORE the week is processed so
       // the window is the same one the award uses
       const wk = g.week
+      // appearances before the week, so the tally below can tell a COMPETITIVE
+      // match from a friendly. lastWk alone cannot: a friendly sets lastWk and
+      // deliberately banks no apps, no minutes and no rating, so reading lastR
+      // after one gives a stale number from whenever he last played properly.
+      // That is what made the first run of this check accuse week 6 of crowning
+      // the wrong man - four "games", two of them pre-season friendlies.
+      const appsBefore = new Map<number, number>()
+      for (const p of Object.values(g.players)) appsBefore.set(p.id, p.stats.apps)
       processWeekAndAdvance(g)
       const fresh = g.news.slice(before)
       const named = potmWinners(fresh)
+
+      // MY OWN TALLY OF THE WINDOW, kept independently of the game's mSum/mApps.
+      // Trusting the counter to check the award that reads the counter would prove
+      // nothing; this reads lastR off every man who played this week and adds it up
+      // in the probe. (One rating per player per week: a club plays once a week, so
+      // a second match in the same week would be missed here, and that is the one
+      // known limit of this measurement.)
+      for (const p of Object.values(g.players)) {
+        if (p.lastR == null) continue
+        if (p.stats.apps <= (appsBefore.get(p.id) ?? 0)) continue
+        const e = win.get(p.id) ?? { sum: 0, apps: 0 }
+        e.sum += p.lastR; e.apps += 1
+        win.set(p.id, e)
+      }
+      // who deserved it, by my numbers, using the game's own eligibility rules
+      const leagueNow = g.clubs[g.userClubId]?.leagueId
+      const compNow = leagueNow ? g.comps[leagueNow] : null
+      const winFrom = wk - (AWARD_EVERY - 1)
+      const pool = (compNow?.type === 'league' ? compNow.table : []).flatMap(r =>
+        (g.clubs[r.teamId]?.players ?? []).map(id => g.players[id]))
+        .filter((p): p is Player => !!p && !p.acad && (p.lastWk ?? -9) >= winFrom)
+        .map(p => { const e = win.get(p.id); return { id: p.id, name: p.name, avg: e && e.apps ? e.sum / e.apps : 0, apps: e?.apps ?? 0 } })
+        .filter(x => x.apps >= 2)
+        .sort((a, b) => b.avg - a.avg || b.apps - a.apps)
       if (named.length > 1) {
         doubles++
         bad(`seed ${seed}, week ${wk}: ${named.length} Players of the Month in one week (${named.map(w => w.name).join(' and ')})`)
@@ -95,12 +129,28 @@ for (const seed of seeds) {
           stale++
           bad(`seed ${seed}, week ${wk}: ${man.name} took Player of the Month but last played in week ${man.lastWk ?? -9} (window opened at ${from})`)
         }
+        // AND HE HAS TO BE THE BEST MAN IN THE WINDOW BY THE WINDOW'S OWN NUMBERS.
+        // Measured against the pool snapshotted before the counters were cleared:
+        // nobody eligible may have had a better month than the winner.
+        if (man && pool.length) {
+          const mine = pool.find(x => x.id === man.id)
+          const top = pool[0]
+          if (!mine) {
+            ranked++
+            bad(`seed ${seed}, week ${wk}: ${man.name} won it but was not in the eligible pool at all`)
+          } else if (mine.avg < top.avg - 1e-9) {
+            ranked++
+            bad(`seed ${seed}, week ${wk}: ${man.name} won on ${mine.avg.toFixed(2)} from ${mine.apps} games, ` +
+              `but ${top.name} had ${top.avg.toFixed(2)} from ${top.apps}`)
+          }
+        }
       }
       if (wk % AWARD_EVERY === 0 && !g.unemployed) {
         windows++
         if (fresh.some(n => /^Manager of the Month: (?!not awarded)/m.test(n.body ?? ''))) withMgr++
         if (named.length) withPlayer++
       }
+      if (wk % AWARD_EVERY === 0) win.clear()
       // and the orphan case: a month with a worthy player and no worthy manager
       if (wk % AWARD_EVERY === 0 && !g.unemployed && named.length === 0) {
         const leagueId = g.clubs[g.userClubId]?.leagueId
@@ -128,6 +178,7 @@ console.log(`\n${seeds.length} careers, ${seasons} seasons each: ${awarded} Play
 console.log(`  weeks with more than one award: ${doubles}`)
 console.log(`  awards to a man who did not play in the window: ${stale}`)
 console.log(`  months where a worthy player lost his award to an unworthy dugout: ${orphaned}`)
+console.log(`  awards to a man who was not the best in the window: ${ranked}`)
 console.log(`\nfor scale: ${windows} award windows, ${withMgr} named a manager, ${withPlayer} named a player`)
 
 if (fails) { console.error(`\nPOTM PROBE: ${fails} failures`); process.exit(1) }
