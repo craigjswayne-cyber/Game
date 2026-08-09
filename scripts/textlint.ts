@@ -22,7 +22,7 @@ const scan = (file: string) => {
     // Brumbies - so this produces "Crusaders's media team" for a large slice of
     // the league. Found live in the wire probe's sample output. model.poss()
     // handles both cases; .short is always a club, so it is safe to demand it.
-    if (/\.short *(\?\?[^}]*)?\}.s/.test(line)) flag(file, i + 1, "club possessive - use poss()", line)
+    if (/\.short *(\?\?[^}]*)?\}'s/.test(line)) flag(file, i + 1, 'club possessive - use poss()', line)
   })
 }
 

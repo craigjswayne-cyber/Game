@@ -41,7 +41,7 @@ try {
   await page.waitForTimeout(700)
   await shot('n4-inbox')
   log('inbox')
-  await page.click('text=Squad').catch(() => {})
+  await page.click('text="Team"').catch(() => {})
   await page.waitForTimeout(700)
   await shot('n5-squad')
   await page.click('.dtable tbody tr >> nth=2').catch(() => {})

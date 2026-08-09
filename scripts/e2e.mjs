@@ -133,7 +133,7 @@ try {
 
   // Squad
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Squad')
+  await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
   await shot('04-squad')
 
