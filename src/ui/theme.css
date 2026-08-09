@@ -2216,19 +2216,28 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    changes are one visit. Tuned for a 300px-tall landscape phone: the columns
    scroll, the header and the Done button do not. */
 .squad-sheet { max-height: 94vh; max-height: 94dvh; display: flex; flex-direction: column; }
-/* STICKY, because the heading is where the injured man's name lives.
+/* STICKY, and it is the whole brief that sticks: the title, the casualty and the
+   line telling you what to tap next.
    A phone screenshot showed the sheet scrolled down to reach the bench with the
    title off the top of the screen: the manager was being asked to replace
-   somebody the screen was no longer naming. "It wasn't clear who it is." */
-.sheet-head {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+   somebody the screen was no longer naming. "It wasn't clear who it is." So the
+   title was pinned - and only the title, which left the instruction to scroll
+   away with the list. Reported from a live game: "she could see the team xv but
+   couldnt see the text above it". The hint is the line that changes when a man is
+   armed, so losing it means tapping a shirt and getting no answer at all.
+   The block is 3 short lines at most, and it earns every one of them. */
+.sheet-top {
   position: sticky; top: 0; z-index: 2;
   background: var(--cream);
-  padding: 4px 0 3px;
+  padding-bottom: 2px;
   box-shadow: 0 6px 8px -6px rgba(0, 0, 0, .35);
 }
+.sheet-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  padding: 4px 0 3px;
+}
 .sheet-head h3 { font-size: 16px; margin: 2px 0; }
-.sheet-hint { margin: 2px 0 6px; }
+.sheet-hint { margin: 2px 0 4px; }
 /* the casualty, on his own line and impossible to miss */
 .sheet-casualty {
   font-size: 13px; font-weight: 600;
@@ -3079,12 +3088,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   @keyframes rm-hold { 0%, 86% { opacity: 1; } 100% { opacity: 0; } }
 }
 
-/* The keep-your-career cue. Gold left edge like the other pieces of guidance,
-   because it is guidance: it is not an error, and it is not an advert for an app
-   store. Three buttons at most and they wrap on a narrow phone. */
-.install-cue { border-left: 4px solid var(--gold); }
-.install-cue .btn-row { flex-wrap: wrap; }
-.install-cue .btn { flex: 1 1 auto; }
+/* The build stamp, bottom of the title screen. Small and grey on purpose: it is
+   for telling one build from another, not for reading. */
+.build-tag {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: .4px;
+  color: #9fb0c6;
+  opacity: .8;
+  font-variant-numeric: tabular-nums;
+}
 
 /* First-three-weeks marks in the Hub. Quiet: they are pointing, not shouting,
    and they sit in the same gold family as the Home hint so the two read as one

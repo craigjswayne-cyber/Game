@@ -2184,27 +2184,37 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
     <div className="modal-veil" onClick={() => { if (settled) onClose() }}>
       <div className="modal squad-sheet" onClick={e => e.stopPropagation()}>
         <div className="grab" />
-        <div className="sheet-head">
-          <h3>{title ?? 'Match-Day Squad'}</h3>
-          <span className="meta">{left} change{left === 1 ? '' : 's'} left</span>
-        </div>
-        {/* WHO IS HURT, stated where the decision is made.
-            A phone screenshot showed this sheet scrolled down to reach the bench
-            with the heading off the top of the screen, so the manager was being
-            asked to replace a man the screen no longer named. The heading is
-            sticky now, and the casualty is named again here in his own line
-            rather than buried in the middle of a paragraph of instructions. */}
-        {hurtName && (
-          <div className="sheet-casualty">
-            🏥 <b>{hurtName}</b> is off{hurtDesc ? ` - ${hurtDesc}` : ''}
+        {/* THE WHOLE BRIEF STICKS, not just the title.
+            The title was made sticky on its own after a screenshot showed the
+            sheet scrolled down to the bench with the heading off the top, so the
+            manager was being asked to replace a man the screen no longer named.
+            That fixed the name and left the instruction behind: reported from a
+            live game, "she could see the team xv but couldnt see the text above
+            it". Measured at 412x640 the hint sat 215px above the top of the
+            screen once the list was scrolled far enough to reach the bench.
+            The hint is the one line that CHANGES as you tap - it goes from "tap a
+            man on the pitch" to "Ollie Sleightholme is coming off, now tap his
+            replacement" - so it is the one line that must never be off screen.
+            All three ride together in one sticky block. */}
+        <div className="sheet-top">
+          <div className="sheet-head">
+            <h3>{title ?? 'Match-Day Squad'}</h3>
+            <span className="meta">{left} change{left === 1 ? '' : 's'} left</span>
           </div>
-        )}
-        <div className="meta sheet-hint">
-          {note ? <>{note}{' '}</> : null}
-          {isFreeSwap && off ? `The assistant has sent ${off.name} on. Tap someone else to change it, free of charge, or tap him again to keep him.`
-            : off ? `${off.name} is coming off. Now tap his replacement.`
-            : left <= 0 ? 'No tactical replacements left.'
-            : 'Tap a man on the pitch, then tap who comes on for him.'}
+          {/* who is hurt, named in his own line rather than buried in a
+              paragraph of instructions */}
+          {hurtName && (
+            <div className="sheet-casualty">
+              🏥 <b>{hurtName}</b> is off{hurtDesc ? ` - ${hurtDesc}` : ''}
+            </div>
+          )}
+          <div className="meta sheet-hint">
+            {note ? <>{note}{' '}</> : null}
+            {isFreeSwap && off ? `The assistant has sent ${off.name} on. Tap someone else to change it, free of charge, or tap him again to keep him.`
+              : off ? `${off.name} is coming off. Now tap his replacement.`
+              : left <= 0 ? 'No tactical replacements left.'
+              : 'Tap a man on the pitch, then tap who comes on for him.'}
+          </div>
         </div>
         <div className="sheet-cols">
           <div className="sheet-col">
