@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import type { GameState, Player } from '../game/model'
+import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitPattern, type KitPattern } from '../game/kits'
 
@@ -225,7 +225,9 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
   // beside the club's name in text, where one letter is plenty.
   const letters = club.short.replace(/[^A-Za-z]/g, '').toUpperCase()
   const wide = size >= 30
-  const letter = wide ? (letters.slice(0, 3) || 'RUG') : (letters.slice(0, 1) || 'R')
+  // clubCode for the three-letter form, so the badge, the touchline and the team
+  // sheet all show the same NOR
+  const letter = wide ? clubCode(club.short) : (letters.slice(0, 1) || 'R')
   const clip = `crest-${club.id}`
   const gloss = `gloss-${club.id}`
   const gold = `gold-${club.id}`
