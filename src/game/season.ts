@@ -981,7 +981,25 @@ function boardReaction(state: GameState, fx: Fixture) {
   // good afternoon: the gains are smaller than the board's and the trust it
   // takes a season to build can be spent in a bad month, which is the point.
   // Beating a better side counts for more here too - players know who is good.
-  const trustMag = us > them ? 1.5 + Math.max(0, diff) * 1.6 : -(1.2 + Math.max(0, -diff) * 1.2)
+  // A RUN COMPOUNDS (user: "im unbeaten in the game, top of the league mood is
+  // positive but the team are still making their mind up"). Win by win the gain
+  // was flat, so eight straight wins read the same as eight scattered ones and
+  // an unbeaten side's room was still "making its mind up" in November. Each
+  // consecutive win now adds a little more belief than the last, capped at +2 a
+  // match so a long streak is conviction, not worship - and one defeat still
+  // spends it the old way.
+  let streak = 0
+  {
+    const mine = state.fixtures
+      .filter(f => f.played && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
+      .sort((a, b) => a.week - b.week)
+    for (let i = mine.length - 1; i >= 0; i--) {
+      const f = mine[i]
+      if (f.homeId === club.id ? f.homeScore > f.awayScore : f.awayScore > f.homeScore) streak++
+      else break
+    }
+  }
+  const trustMag = us > them ? 1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25) : -(1.2 + Math.max(0, -diff) * 1.2)
   state.mgrTrust = clamp(squadTrust(state) + trustMag * derbyF, 0, 100)
   // the derby ledger: every meeting with a rival is written down forever
   if (fx.derby) {

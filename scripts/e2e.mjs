@@ -155,7 +155,7 @@ try {
   if (await page.locator('text=In-Form XV').count()) throw new Error('In-Form XV button is back')
   await page.click('text=Best XV')
   await page.waitForTimeout(200)
-  await page.click('.tab-bar >> text=Tactics')
+  await page.click('.tab-bar >> text=Roles')
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
   await page.click('.tab-bar >> text=Prep')

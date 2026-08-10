@@ -170,7 +170,7 @@ export function coachFixes(
   const worst = [...units].sort((a, b) => a.pct - b.pct)[0]
   if (worst && worst.pct < 49) {
     const how: Record<UnitKey, string> = {
-      scrum: 'Pick a heavier front row on Selection, or give a prop the scrummager role on Tactics. A dial cannot lift a light tight five.',
+      scrum: 'Pick a heavier front row on Selection, or give a prop the scrummager role on the Roles tab. A dial cannot lift a light tight five.',
       lineout: 'Get a second genuine jumper into the back five on Selection, and change the lineout call on Set Piece so they stop reading it.',
       breakdown: 'A jackal flanker on Selection, or push Physicality up. Contested ball is won by bodies arriving, not by shape.',
     }
@@ -210,7 +210,7 @@ export function coachFixes(
       head: `${poss}% of the ball and ${mine.tries === 1 ? 'one try' : 'no tries'}.`,
       how: tactic && tactic.style <= 45
         ? `Style is at ${tactic.style}, which keeps it in the pack. Push it past sixty and the backs will see it.`
-        : 'Give the 10 the playmaker role on Tactics and drill a different attacking call. Possession without width is just carrying.',
+        : 'Give the 10 the playmaker role on the Roles tab and drill a different attacking call. Possession without width is just carrying.',
     })
   }
 
@@ -300,7 +300,7 @@ export function coachFixes(
         tag: 'admin', score: 9 - roles,
         head: roles === 0 ? 'Not one shirt has a role set.'
           : `Only ${roles} shirt${roles === 1 ? ' has' : 's have'} a role set.`,
-        how: 'Tap a shirt on Tactics. A scrummager, a jackal and a playmaker are three small edges you are currently not taking.',
+        how: 'Tap a shirt on the Roles tab. A scrummager, a jackal and a playmaker are three small edges you are currently not taking.',
       })
     }
     if (!(tactic.kickers ?? []).filter(Boolean).length) {

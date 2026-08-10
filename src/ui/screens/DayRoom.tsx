@@ -5,6 +5,8 @@ import {
   DAY_NAMES, DAY_SUB, DAY_THEME, dayDate, medicalNews, pressWaiting, storiesForDay, today,
 } from '../../game/days'
 import { userFixtureThisWeek } from '../../game/season'
+import { leaguePos } from '../../game/schedule'
+import { ordinal } from '../../game/gossip'
 import { analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
 
@@ -312,6 +314,37 @@ function FridayBlocks() {
             <div className="meta" style={{ marginTop: 3 }}>
               {game.comps[fx.compId]?.name ?? 'Friendly'} · {home ? `${club?.stadium}` : `${opp?.stadium ?? 'away'}`}
             </div>
+            {/* WHO ARE THEY, RIGHT NOW (user: "it would be good to see A teams
+                position in the league if its not a cup game and their last 5
+                form guide so do they have momentum"). League games only - a cup
+                tie's table place is noise. Momentum already reaches the pitch:
+                every player carries a form rating that moves with results and
+                feeds his match output, so a side on a run really is harder to
+                beat - and an upset stays possible because form is one dial
+                among many. */}
+            {(() => {
+              const lg = opp ? game.comps[opp.leagueId] : null
+              if (!fx || !opp || fx.compId !== opp.leagueId || !lg) return null
+              const pos = leaguePos(lg.table, oppId)
+              const last5 = game.fixtures
+                .filter(f => f.played && (f.homeId === oppId || f.awayId === oppId) && f.compId !== 'fr')
+                .sort((a, b) => a.week - b.week).slice(-5)
+                .map(f => {
+                  const us = f.homeId === oppId ? f.homeScore : f.awayScore
+                  const them = f.homeId === oppId ? f.awayScore : f.homeScore
+                  return us > them ? 'W' : us < them ? 'L' : 'D'
+                })
+              if (!pos && !last5.length) return null
+              return (
+                <div className="meta" style={{ marginTop: 3 }}>
+                  {pos ? `${ordinal(pos)} in the ${lg.short}` : ''}
+                  {pos && last5.length ? ' · ' : ''}
+                  {last5.length ? <>form {last5.map((r, i) => (
+                    <b key={i} style={{ color: r === 'W' ? '#2f7d4f' : r === 'L' ? '#a12f2f' : '#a8841a', marginLeft: i ? 3 : 4 }}>{r}</b>
+                  ))}</> : ''}
+                </div>
+              )
+            })()}
             {read && (
               <div className="meta" style={{ marginTop: 6 }}>
                 <b style={{ color: '#a8841a' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}

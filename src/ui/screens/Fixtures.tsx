@@ -92,10 +92,14 @@ export default function Fixtures() {
           <h3 style={{ textAlign: 'center', fontFamily: 'var(--cond)', letterSpacing: 3, fontSize: 15 }}>THIS WEEKEND</h3>
           <div className="meta" style={{ textAlign: 'center', marginBottom: 4 }}>{weekDate(game.season, game.week)} · {game.comps[leagueId!]?.short}</div>
           {weekend.map(f => (
-            <div key={f.id} className="wknd-row">
-              <span className="side">{game.clubs[f.homeId] && <Jersey club={game.clubs[f.homeId]} size={36} />} {teamShort(game, f.homeId)}</span>
-              <span className="vs">{f.homeId === me || f.awayId === me ? 'YOUR MATCH' : 'V'}</span>
-              <span className="side right">{teamShort(game, f.awayId)} {game.clubs[f.awayId] && <Jersey club={game.clubs[f.awayId]} size={36} />}</span>
+            /* YOUR game is marked by tinting the row and bolding YOUR name, and the V
+               stays in the middle like every other row (user: "highlight the team
+               name in a colour and keep the v in the middle"). The YOUR MATCH pill
+               replaced the V, so your row was the one row with no v in it. */
+            <div key={f.id} className={`wknd-row${f.homeId === me || f.awayId === me ? ' yours' : ''}`}>
+              <span className={`side${f.homeId === me ? ' mine' : ''}`}>{game.clubs[f.homeId] && <Jersey club={game.clubs[f.homeId]} size={36} />} {teamShort(game, f.homeId)}</span>
+              <span className="vs">V</span>
+              <span className={`side right${f.awayId === me ? ' mine' : ''}`}>{teamShort(game, f.awayId)} {game.clubs[f.awayId] && <Jersey club={game.clubs[f.awayId]} size={36} />}</span>
             </div>
           ))}
         </div>
@@ -118,13 +122,10 @@ export default function Fixtures() {
                     <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{f.homeId === me ? 'v' : '@'}</span>
                     <CrestT g={game} teamId={opp} size={16} />
                     {teamShort(game, opp)}
-                    {/* F27: which of these trips are the hard ones. Away rows
-                        only, and only when the ground is high or the journey is
-                        long, so the column stays short in portrait. */}
-                    {f.homeId !== me && (() => {
-                      const b = venueBadge(venueEffect(game, f.homeId, f.awayId, f.week))
-                      return b ? <span className="muted" style={{ fontSize: 10 }}>{b}</span> : null
-                    })()}
+                    {/* The altitude/travel badge lived here (F27) and is gone
+                        (user: "on the fixture graphic the sea level isnt
+                        needed"). The trip's difficulty still shows where the
+                        decision is made: the match-day venue panel. */}
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
                   </span>
                 </td>
