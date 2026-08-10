@@ -4,7 +4,7 @@ import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, fmtWage, type A
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
-import { fineAttr } from '../../game/attributes'
+import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { loanOut } from '../../game/loans'
 
@@ -333,6 +333,10 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {mine && p.acad && (
         <button className="btn gold block" onClick={() => {
           p.acad = false
+          // a first-team player is paid like one: the rollover graduation path
+          // has always re-priced the development deal, and this button did not,
+          // which made hand-promotion a free-labour loophole (audit 16D)
+          p.wage = playerWage(p.ca, p.age)
           p.morale = Math.min(10, p.morale + 1)
           game.news.push({
             id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,

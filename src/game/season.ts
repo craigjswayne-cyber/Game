@@ -795,7 +795,14 @@ function weeklyTraining(state: GameState, rng: Rng) {
 
 function weeklyFinance(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
-  const wages = club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+  // A LOAN COSTS WHAT THE LETTER SAID IT COSTS (audit 16D). The signing news
+  // has always promised the parent club "will cover half his wage", and this
+  // line charged the full amount anyway. Half for a borrowed man, as promised.
+  const wages = club.players.reduce((s, id) => {
+    const p = state.players[id]
+    if (!p) return s
+    return s + (p.loanFrom ? Math.round(p.wage / 2) : p.wage)
+  }, 0)
   club.balance -= wages
   // backroom staff wages - real salaries where a real man holds the job
   club.balance -= staffWageBill(state)
