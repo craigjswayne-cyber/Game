@@ -151,7 +151,9 @@ try {
     console.log(`  stuck with controls [${state.controls.join(' | ')}] and panels [${state.panels.join(', ')}]`)
   }
   ok(skipped, 'the match could be skipped to the break, answering any touchline call on the way')
-  await page.waitForSelector('text=Start Second Half', { timeout: 25000 })
+  // a full half has to play out here: generous, because under whole-suite CPU
+  // load 25s was not enough and the probe died as a false alarm (16D)
+  await page.waitForSelector('text=Start Second Half', { timeout: 60000 })
   ok(await page.locator('text=Match-Day Squad').count() > 0, 'half-time offers the match-day squad')
   ok(await page.locator('select').count() === 0, 'the quick-sub dropdowns are gone')
 

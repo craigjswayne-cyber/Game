@@ -128,6 +128,11 @@ for (const sp of SPLITS) {
     const fx = gg.fixtures.find(f => gg.clubs[f.homeId] && gg.clubs[f.awayId] && f.homeId === c.id)!
     const ctx = beginMatch(gg, fx, weekRng(gg), false, c.id)
     const mine = ctx.home.teamId === c.id ? ctx.home : ctx.away
+    // mods is no longer a bench-only ledger: since audit 16D the referee's
+    // dials (and any uncontested-scrum levelling) are layered into it at
+    // kick-off so they survive substitutions. Measure the bench's own
+    // contribution as a DELTA against the kick-off baseline.
+    const base = mine.mods.scrum
     // run to the hour, then either empty the bench or leave it sitting
     while (ctx.tick < 15) { ctx.awaiting = null; stepTick(gg, ctx) }
     if (emptyBench) {
@@ -141,7 +146,7 @@ for (const sp of SPLITS) {
       }
     }
     while (ctx.tick < 17) { ctx.awaiting = null; stepTick(gg, ctx) }
-    return mine.mods.scrum
+    return mine.mods.scrum / base
   }
   const sitting = measure(false)
   const emptied = measure(true)
@@ -159,6 +164,9 @@ for (const sp of SPLITS) {
     const fx = gg.fixtures.find(f => gg.clubs[f.homeId] && gg.clubs[f.awayId] && f.homeId === c.id)!
     const ctx = beginMatch(gg, fx, weekRng(gg), false, c.id)
     const mine = ctx.home.teamId === c.id ? ctx.home : ctx.away
+    // same baseline discipline as above: the referee lives in mods now,
+    // so the briefs are judged by what they ADD to the kick-off state
+    const base = { ...mine.mods }
     while (ctx.tick < 12) { ctx.awaiting = null; stepTick(gg, ctx) }
     let made = 0
     for (let slot = 0; slot < 15 && made < 5; slot++) {
@@ -170,19 +178,20 @@ for (const sp of SPLITS) {
       made++
     }
     const m = mine.mods
-    const up = (['scrum', 'breakdown', 'attack', 'defence', 'kicking'] as const).filter(k => m[k] > 1.0005)
-    const down = (['scrum', 'breakdown', 'attack', 'defence', 'kicking'] as const).filter(k => m[k] < 0.9995)
-    console.log(`  ${b.name}: up [${up.join(',')}] down [${down.join(',')}] tempo ${m.tempo.toFixed(3)}`)
+    const rel = (k: keyof typeof m) => m[k] / base[k]
+    const up = (['scrum', 'breakdown', 'attack', 'defence', 'kicking'] as const).filter(k => rel(k) > 1.0005)
+    const down = (['scrum', 'breakdown', 'attack', 'defence', 'kicking'] as const).filter(k => rel(k) < 0.9995)
+    console.log(`  ${b.name}: up [${up.join(',')}] down [${down.join(',')}] tempo ${rel('tempo').toFixed(3)}`)
     if (b.id === 'orders') {
-      ok(up.length === 0 && down.length === 0 && m.tempo === 1, 'following the shirt is exactly neutral')
+      ok(up.length === 0 && down.length === 0 && rel('tempo') === 1, 'following the shirt is exactly neutral')
     } else {
       ok(up.length > 0, `${b.name} does something`)
-      ok(down.length > 0 || m.tempo !== 1, `${b.name} costs something`)
+      ok(down.length > 0 || rel('tempo') !== 1, `${b.name} costs something`)
       // Capped: eight men cannot stack eight instructions. Three briefs at 3%
       // is the ceiling, which lands at 9.3% on the compounding kicking dial -
       // in the same range as the kicking slider's own 10%, and reached only by
       // giving three separate replacements the same job.
-      const biggest = Math.max(...(['attack', 'defence', 'kicking'] as const).map(k => Math.abs(m[k] - 1)))
+      const biggest = Math.max(...(['attack', 'defence', 'kicking'] as const).map(k => Math.abs(rel(k) - 1)))
       ok(biggest < 0.10, `${b.name} is capped at ${(biggest * 100).toFixed(1)}% however many come on`)
     }
   }
@@ -198,6 +207,7 @@ for (const sp of SPLITS) {
   const fx = gg.fixtures.find(f => gg.clubs[f.homeId] && gg.clubs[f.awayId] && f.homeId === c.id)!
   const ctx = beginMatch(gg, fx, weekRng(gg), false, c.id)
   const mine = ctx.home.teamId === c.id ? ctx.home : ctx.away
+  const baseAtk = mine.mods.attack // the referee lives in mods since audit 16D
   while (ctx.tick < 12) { ctx.awaiting = null; stepTick(gg, ctx) }
   const seat0 = mine.lineup[15]!
   const hooker = mine.lineup[1]!
@@ -209,8 +219,8 @@ for (const sp of SPLITS) {
     const someone = mine.lineup.slice(0, 15).find(id => id != null && mine.onPitch.has(id))!
     makeSubstitution(gg, ctx, someone, other)
   }
-  console.log(`  impact brief: mods.attack ${mine.mods.attack.toFixed(4)} after two changes`)
-  ok(mine.mods.attack > 1.02, 'the brief given to the 16 shirt survives the next substitution')
+  console.log(`  impact brief: mods.attack ${(mine.mods.attack / baseAtk).toFixed(4)} of baseline after two changes`)
+  ok(mine.mods.attack / baseAtk > 1.02, 'the brief given to the 16 shirt survives the next substitution')
   ok(afterFirst > 0, 'units stayed sane through the change')
 }
 
