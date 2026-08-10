@@ -62,7 +62,16 @@ export default function WeekResults({ param }: { param: string }) {
       {tab === 'table' && rows.length > 0 && (
         <>
           <SectionTitle sub={myPos > 0 ? `you are ${ordinal(myPos)}` : undefined}>How The Table Stands</SectionTitle>
-          <div className="tblwrap"><table className="dtable">
+          {/* FIXED LAYOUT, because auto layout sized Team off the longest name and
+              pushed Pts past the right edge of the phone (user screenshot: the
+              points column half off screen, the whole table reading as shoved
+              right). Fixed widths always sum to 100%. */}
+          <div className="tblwrap"><table className="dtable" style={{ tableLayout: 'fixed', width: '100%' }}>
+            <colgroup>
+              <col style={{ width: '9%' }} /><col />
+              <col style={{ width: '11%' }} /><col style={{ width: '11%' }} />
+              <col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
+            </colgroup>
             <thead>
               <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
                 <th className="num">+/-</th><th className="num">Pts</th></tr>

@@ -379,6 +379,29 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
+  // THE RUN GETS ASKED ABOUT (user: "no questions on how we are unbeaten this
+  // season"). Five league wins from five is the only story in town; a press
+  // room that ignores it while asking about the Test calendar reads as deaf.
+  {
+    const lg = state.fixtures.filter(f => f.compId === club.leagueId && f.played &&
+      (f.homeId === club.id || f.awayId === club.id))
+    const allWon = lg.length >= 5 && lg.every(f =>
+      f.homeId === club.id ? f.homeScore > f.awayScore : f.awayScore > f.homeScore)
+    if (allWon && rng() < 0.55) {
+      candidates.push(mk(state,
+        voice(31, [
+          `${lg.length} league games, ${lg.length} wins. Nobody has laid a glove on you. Go on - say the word.`,
+          `Still unbeaten in the league. What is the secret, and when does the weight of the run start to tell?`,
+          `An unbeaten season is quietly becoming a real conversation. Is it on?`,
+        ]),
+        undefined, [
+          { label: 'We have won nothing yet', morale: 0.2, board: 0.3, reaction: 'Straight bat. The senior players nod along.' },
+          { label: 'Say it: the title', morale: 0.5, board: -0.1, reaction: 'The town roars. The board swallows hard - that quote will follow you into every ground.' },
+          { label: 'The run will end. The standard will not', morale: 0.3, board: 0.3, reaction: 'Composed and quotable. Both rooms are happy.' },
+        ], rng))
+    }
+  }
+
   // the manager's office: players knock on your door - but a man who has
   // already signed a pre-contract elsewhere has nothing left to ask you
   const OFFICE = OFFICE_OUTLET
@@ -549,6 +572,17 @@ export function generatePress(state: GameState, rng: Rng) {
     if (chosen.topic && chosen.playerId != null) rememberAsk(state, chosen.playerId, chosen.topic)
     // keep press list bounded
     if (state.press.length > 40) state.press = state.press.slice(-40)
+  }
+
+  // ONE ROOM, ONE QUESTION. A live screenshot showed two outlets asking the
+  // word-for-word same question in the same week. Whatever pushed it twice,
+  // the room must never print it twice: the first unanswered copy of any
+  // wording survives, the rest are dropped. Answered questions are history
+  // and stay untouched.
+  {
+    const seen = new Set<string>()
+    state.press = state.press.filter(q =>
+      q.answered || (seen.has(q.question) ? false : (seen.add(q.question), true)))
   }
 }
 

@@ -227,7 +227,10 @@ export default function Tactics() {
     <>
       <div className="tab-bar">
         <button className={ttab === 'xv' ? 'active' : ''} onClick={() => setTtab('xv')}>Selection</button>
-        <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>Tactics</button>
+        {/* named for what is on it: role chips on a pitch (user: "change the
+            tactics to roles"). The screen is already called Selection & Tactics,
+            so a tab called Tactics inside it said nothing. */}
+        <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>Roles</button>
         <button className={ttab === 'setp' ? 'active' : ''} onClick={() => setTtab('setp')}>Set Piece</button>
         <button className={ttab === 'bench' ? 'active' : ''} onClick={() => setTtab('bench')}>Bench</button>
         <button className={ttab === 'prep' ? 'active' : ''} onClick={() => setTtab('prep')}>Prep</button>

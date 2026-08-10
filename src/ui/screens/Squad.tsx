@@ -119,7 +119,10 @@ export default function Squad() {
   const NameCell = ({ p }: { p: Player }) => (
     <td className="name">
       <FitRing v={p.cond} />{' '}
-      {p.name}{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: '#a8841a' }}> (C)</b> : ''}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
+      {/* red while he is away with his country (user: "if a player is on
+          International duty they should have a red colour for their name") -
+          one glance down the list shows who the Test window has taken */}
+      <span style={p.natSquad ? { color: '#d4574e', fontWeight: 700 } : undefined}>{p.name}</span>{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: '#a8841a' }}> (C)</b> : ''}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
     </td>
   )
 
@@ -282,15 +285,23 @@ export default function Squad() {
                   <td className="num">{p.age}</td>
                   <td><Nat code={p.nat} /></td>
                   <td><MoraleArrow v={p.morale} /></td>
-                  <td className="num">
+                  {/* JUST THE RATING. The ability-trend arrow (ca vs season start)
+                      used to render inside this cell, so a man with no apps showed
+                      an up arrow next to a dash and it read as his average rating
+                      rising without playing (user: "how have these players average
+                      rating gone up when they haven't played"). The arrow is real
+                      information - he has developed - so it moves to the Value
+                      cell, which is the number that actually moves with ability. */}
+                  <td className="num">{avr ? avr.toFixed(2) : '-'}</td>
+                  <td className="num" style={{ fontWeight: 700 }}>
                     {(p.ca0 != null && p.ca !== p.ca0) && (
-                      <span style={{ color: p.ca > p.ca0 ? '#2f7d4f' : '#a12f2f', marginRight: 3 }}>
+                      <span style={{ color: p.ca > p.ca0 ? '#2f7d4f' : '#a12f2f', marginRight: 3, fontWeight: 400 }}
+                        title={p.ca > p.ca0 ? 'Ability has grown this season' : 'Ability has slipped this season'}>
                         {p.ca > p.ca0 ? '▲' : '▼'}
                       </span>
                     )}
-                    {avr ? avr.toFixed(2) : '-'}
+                    {fmtMoney(p.value)}
                   </td>
-                  <td className="num" style={{ fontWeight: 700 }}>{fmtMoney(p.value)}</td>
                 </>)}
                 {view === 'gametime' && (() => {
                   // The ledger (F18). The status select is the whole point of the

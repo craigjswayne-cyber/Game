@@ -146,10 +146,23 @@ export function Stars({ ca }: { ca: number }) {
   const n = Math.round(((ca - 40) / 60) * 10) / 2
   const full = Math.max(0, Math.floor(n))
   const half = n - full >= 0.5
+  // FIXED-WIDTH CELLS. The half glyph is narrower than the star, so a rating
+  // with a half in it rendered a narrower block and the column's edge wandered
+  // row to row (user screenshot: "the stars have gone out of alignment at
+  // number 20" - row 20 was the one three-star man in a list of halves).
+  // Every glyph gets the same 1em cell, so five cells is five ems on every row.
   return (
-    <span style={{ color: '#a8841a', fontSize: 11, letterSpacing: 1 }}>
-      {'★'.repeat(Math.min(5, full))}{half && full < 5 ? '½' : ''}
-      <span style={{ color: 'var(--star-empty)' }}>{'★'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}</span>
+    <span style={{ color: '#a8841a', fontSize: 11 }}>
+      {Array.from({ length: 5 }, (_, i) => {
+        const lit = i < full
+        const isHalf = i === full && half
+        return (
+          <span key={i} style={{ display: 'inline-block', width: '1em', textAlign: 'center',
+            color: lit || isHalf ? undefined : 'var(--star-empty)' }}>
+            {isHalf ? '½' : '★'}
+          </span>
+        )
+      })}
     </span>
   )
 }

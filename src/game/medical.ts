@@ -6,7 +6,7 @@ import { clamp, mulberry32 } from './rng'
 
 export const SPECIALIST_FEE = 50_000
 
-/** One-time paid consult per injury: 55% chance to shorten it. */
+/** One-time paid consult per injury: always cuts a fifth off the remaining lay-off. */
 export function specialistConsult(state: GameState, pid: number): string {
   const p = state.players[pid]
   const club = state.clubs[state.userClubId]
@@ -16,9 +16,15 @@ export function specialistConsult(state: GameState, pid: number): string {
   if (club.balance < SPECIALIST_FEE) return 'The club cannot afford the consult right now.'
   club.balance -= SPECIALIST_FEE
   p.specialist = true
-  const rng = mulberry32(state.seed ^ (pid * 37 + state.week * 11 + state.season * 401))
-  if (rng() < 0.55) {
-    const cut = 1 + (rng() < 0.4 ? 1 : 0)
+  // A PAID CONSULT DOES SOMETHING, EVERY TIME (user: "if you hit specialist
+  // button it should speed up the recovery by 20%"). It was a 55% coin flip
+  // for one or two weeks, which meant paying six figures for "no shortcuts on
+  // this one" nearly half the time - a button that sometimes does nothing
+  // teaches you not to press it. A fifth off the REMAINING lay-off, at least
+  // a week, always.
+  {
+    const left = p.injury.until - state.week
+    const cut = Math.max(1, Math.round(left * 0.2))
     p.injury.until = Math.max(state.week + 1, p.injury.until - cut)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
@@ -28,7 +34,6 @@ export function specialistConsult(state: GameState, pid: number): string {
     })
     return `${p.name} responds brilliantly - back ${cut} week${cut > 1 ? 's' : ''} earlier.`
   }
-  return 'The specialist confirms the original prognosis. No shortcuts on this one.'
 }
 
 /** One player per week can be rested through his rust safely. */

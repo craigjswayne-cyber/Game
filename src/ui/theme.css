@@ -1542,6 +1542,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .wknd-row .side { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; }
 .wknd-row .side.right { justify-content: flex-end; }
+/* your fixture: the row is tinted and YOUR name is bolded, the V stays put */
+.wknd-row.yours { background: rgba(201, 162, 39, .12); border-radius: 8px; }
+.wknd-row .side.mine, .wknd-row .side.mine b { font-weight: 800; }
+.wknd-row .side.mine { text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
 .wknd-row .vs {
   background: #5c6a63; color: #fff;
   font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 1px;

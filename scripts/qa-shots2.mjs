@@ -30,7 +30,7 @@ try {
   const veil = page.locator('.tut-veil')
   if (await veil.count()) { await shot('t0-tutorial'); await veil.click() }
   // tactics: match prep
-  await page.click('text=Tactics')
+  await page.click('text=Roles')
   await page.waitForSelector('text=Match Preparation', { timeout: 8000 })
   await page.click('text=Set-Piece Work')
   await page.waitForTimeout(400)

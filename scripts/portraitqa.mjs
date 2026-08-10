@@ -193,7 +193,7 @@ try {
   await page.click('.submenu-item >> text=Selection & Tactics')
   await page.waitForSelector('.tab-bar', { timeout: 8000 })
   await report('tactics: selection')
-  await page.click('.tab-bar >> text=Tactics')
+  await page.click('.tab-bar >> text=Roles')
   await page.waitForTimeout(400)
   await report('tactics: pitch')
 
