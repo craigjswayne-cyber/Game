@@ -2144,6 +2144,15 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   const [offId, setOffId] = useState<number | null>(freeCoverId ?? null)
   const [freeLeft, setFreeLeft] = useState(freeCoverId != null)
   const [log, setLog] = useState<string[]>([])
+  // COUNT THE CHANGES, do not count the lines about them. The Done button used to
+  // read log.length, and log is a display list capped with .slice(0, 4) - so a
+  // fifth change still said "4 changes made" (user: "when you make more than 4
+  // substitution it says you've made 4 subs"). It was wrong in the other direction
+  // too: "keeps the shirt" goes in the log and is not a change. A number the player
+  // reads has to come from the thing itself, not from a list that was trimmed to
+  // fit. Per visit, so it is not derivable from ctx.subsUsed - that counts the
+  // whole match, and a free injury swap does not burn one at all.
+  const [made, setMade] = useState(0)
 
   const ctx = live.ctx
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
@@ -2173,7 +2182,10 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
     if (offId == null) return
     const msg = isFreeSwap ? injuryCover(offId, inP.id) : halfTimeSub(offId, inP.id)
     if (isFreeSwap) setFreeLeft(false)
-    setLog(l => [msg, ...l].slice(0, 4))
+    // the display list holds the whole bench now rather than four of it, because a
+    // log that quietly drops entries is what made the count wrong in the first place
+    setLog(l => [msg, ...l].slice(0, MAX_SUBS))
+    setMade(n => n + 1)
     setOffId(null)
   }
 
@@ -2236,7 +2248,9 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                     // and so never appears in the bench column.
                     if (canFree && offId === p.id) {
                       setFreeLeft(false)
-                      setLog(l => [`${p.name} keeps the shirt.`, ...l].slice(0, 4))
+                      // no setMade here on purpose: keeping the assistant's man is a
+                      // decision, which settles the forced stop, but it is not a change
+                      setLog(l => [`${p.name} keeps the shirt.`, ...l].slice(0, MAX_SUBS))
                       setOffId(null)
                       return
                     }
@@ -2287,7 +2301,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
             <button className="btn ghost" onClick={onTactics}>📋 Tactics</button>
           )}
           <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={onClose}>
-            {log.length ? `▸ Done (${log.length} change${log.length === 1 ? '' : 's'} made)`
+            {made ? `▸ Done (${made} change${made === 1 ? '' : 's'} made)`
               : settled ? '▸ Back to the Match' : '▸ Name a replacement first'}
           </button>
         </div>
