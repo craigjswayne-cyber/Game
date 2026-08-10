@@ -590,7 +590,10 @@ function socialBuzz(state: GameState, rng: Rng) {
       body: `A gallery mix-up sent the live feed to an unmanned camera pointed at the players' entrance during the busiest passage of the match. Nineteen thousand people watched a car park and, by minute four, were commentating on it. The clip has outperformed the highlights.` },
     { id: 'sponsor',
       subject: `SPONSORS: ${poss(club.short)} new partner is a funeral director and the fans love it`,
-      body: `The commercial team expected a mild reaction to the sleeve deal and instead got the best day their social accounts have ever had. Suggested slogans have flooded in, most unprintable, one genuinely brilliant. The funeral director has said yes to the brilliant one.` },
+      // A JOKE HAS TO LAND (user: "what is the funny line? the game needs
+      // humour"). The first cut teased "one genuinely brilliant" slogan and
+      // never printed it, which is a setup with the punchline torn off.
+      body: `The commercial team expected a mild reaction to the sleeve deal and instead got the best day their social accounts have ever had. Supporters were asked for a slogan and thousands answered, most unprintable. The winner goes on the sleeve next week: "With you at the death."` },
     { id: 'weather',
       subject: `WEATHER: hail stops the ${club.short} warm-up and starts a snowball fight`,
       body: `Sixty seconds of freak hail emptied the pitch and produced footage of two professional squads abandoning their preparation to pelt each other in front of an empty stand. Both head coaches have described it as "not ideal". Both clubs' accounts have posted it.` },
