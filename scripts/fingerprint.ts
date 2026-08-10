@@ -137,11 +137,36 @@ const EXPECTED: string[] = [
   //   home   55.2% -> 55.0%    draws 2.30% -> 2.44%
   // Home-win share is printed to whole percentages by simtest, and the movement
   // was one seed of five reading 55 where it had read 56.
+  // REBASELINED for audit 16D, four deliberate mechanical changes in one round:
+  //
+  //   - Sin-binned players leave the pitch pools for their ten minutes, so a
+  //     man in the bin can no longer score, take a second card or pull an
+  //     injury while he sits. Scorer and card picks draw from a smaller set
+  //     whenever a yellow is live, which shifts the stream.
+  //   - The penalty stream reads the game: a side's kickable-penalty concession
+  //     is 0.115 scaled by its Physicality dial (up to a fifth either way) and
+  //     by the referee's tackle tolerance (2 - ref.breakdown, panel mean
+  //     exactly 1.0). It was a flat constant that made max aggression a free
+  //     lunch - measured 1.57 / 2.17 / 2.48 penalty goals conceded per game at
+  //     dial 0 / 50 / 100 after the change, against a flat 2.2 before.
+  //   - units.kicking finally enters resolution, as a symmetric territory
+  //     ratio (kicking/oppKicking)^0.10 on the possession ratio. The home and
+  //     away factors are exact reciprocals, so the world mean cannot move.
+  //     The Kicking dial, the exits' kicking halves, two roles, the kicking
+  //     coach and the wind stop being placebos.
+  //   - The last quarter opens up: from tick 15 the SHARED fatigue of both
+  //     sides raises the try chance, funded by TRY_BASE 0.115 -> 0.108.
+  //     Measured try timing went from dead flat (23.7% of tries after the
+  //     hour) to a real arc (29.4%), matching professional rugby's ~30%.
+  //
+  // Bands verified across four seeds (12345 / 777 / 4242 / 9), 11,110 league
+  // games each: 52.9 / 53.1 / 52.7 / 52.9 points, 6.0 tries everywhere, 55%
+  // home on all four, draws 2.2-2.3%. All inside the healthy band.
   'gloucester 70-31 newcastle',
-  'bristol 20-21 sale',
-  'leicester 20-16 northampton',
+  'bristol 34-17 sale',
+  'leicester 27-23 northampton',
   'exeter 9-14 bath',
-  'saracens 38-20 harlequins',
+  'saracens 43-7 harlequins',
   'sale 30-16 gloucester',
 ]
 

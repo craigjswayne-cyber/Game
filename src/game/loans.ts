@@ -28,7 +28,14 @@ export function loanIn(state: GameState, playerId: number): string {
   if (!p || !p.clubId || p.clubId === user.id) return 'Unavailable.'
   const parent = state.clubs[p.clubId]
   if (!parent) return 'Unavailable.'
-  if (user.players.length >= 40) return 'Your squad is full.'
+  // SENIORS, not the whole list, and a cap the world can actually live under
+  // (audit 16D). Counting every id meant the 27 academy players pushed every
+  // club past the old 40 the day the academy became a real squad - so this
+  // line refused every loan the game has offered since, and the injury-crisis
+  // letter was advertising players nobody could sign. A fresh world carries
+  // 41 seniors; the AI summer cull tolerates 46, so 46 is the hoarding line.
+  const seniors = user.players.filter(id => state.players[id] && !state.players[id].acad).length
+  if (seniors >= 46) return 'Your senior squad is full.'
   if (!loanTargets(state).some(t => t.id === playerId)) return `${parent.short} won't loan him right now.`
   // sulky stars want a transfer, not a loan
   if (p.pers === 'Mercenary' && p.morale < 5) return `${p.name}'s agent wants a permanent move, not a loan.`

@@ -528,8 +528,20 @@ export interface SideCtx {
   ratings: Map<number, number>
   onPitch: Set<number>
   yellowUntil: Map<number, number>
+  /** players currently sitting out a yellow - off the pitch, back in ten.
+   *  Before this existed a sin-binned man stayed in onPitch and could score
+   *  a try from inside the bin (audit 16D). */
+  binned: Set<number>
   sent: number // players lost to RC
   cardRisk: number
+  /** per-tick chance of conceding a kickable penalty. Was a flat 0.115 for
+   *  every side in the world, which made Physicality a free lunch: the dial
+   *  bought breakdown and its only cost was the (6x smaller) card roll. Now
+   *  aggression and the referee's tackle tolerance set the rate (audit 16D). */
+  penRisk: number
+  /** the referee's contribution to penRisk, locked in at kick-off so a unit
+   *  recompute can rebuild the dial part without losing the whistle */
+  refPenF?: number
   poss: number // accumulated momentum, for possession stats
   pens: number // penalty goals kicked
   /** penalties conceded - repeated infringements bring the bin into play */
@@ -610,6 +622,12 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     side.units.defence *= 1 - f(t.tempo) * 0.03
     side.tempoF = 1 + f(t.tempo) * 0.22
     side.cardRisk = 0.012 + f(t.aggression) * 0.006
+    // a physical side gives the referee more to look at: up to a fifth more
+    // kickable penalties at the top of the dial, a fifth fewer at the bottom.
+    // refPenF (the whistle's own tolerance) is locked in at kick-off and
+    // survives the recompute; the panel's tolerances mean exactly 1.0 so the
+    // world average concedes what it always conceded (audit 16D)
+    side.penRisk = 0.115 * (1 + f(t.aggression) * 0.2) * (side.refPenF ?? 1)
 
     // The called set-piece routines (F2). What you get is the routine's ceiling
     // scaled by how well drilled it is and how sick of it the analysts are.
@@ -811,8 +829,8 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
   })
   const side: SideCtx = {
     teamId, lineup, units,
-    score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), sent: 0,
-    cardRisk: 0.012,
+    score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), binned: new Set(), sent: 0,
+    cardRisk: 0.012, penRisk: 0.115,
     poss: 0, pens: 0, consPens: 0,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
     exIds: new Set(),
@@ -1095,6 +1113,12 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     layer(side, 'attack', ref.flow)
     layer(side, 'scrum', ref.scrum)
     layer(side, 'breakdown', ref.breakdown)
+    // "fussy at the tackle - hands off, or it is a penalty": the briefing has
+    // claimed this since the panel shipped, and the penalty rate never read
+    // the referee at all. A fussy whistle (breakdown 0.90) now blows a tenth
+    // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
+    side.refPenF = 2 - ref.breakdown
+    side.penRisk *= side.refPenF
   }
   // Law 3: if either side cannot cover the front row, nobody contests the scrum.
   // Both sides lose the weapon, so the side with the better pack pays for the
@@ -1588,6 +1612,11 @@ function applyBrief(state: GameState, side: SideCtx, inId: number): string | nul
 const COVER_ATT = 0.92
 const COVER_DEF = 0.937
 
+/** Base try chance per tick at ratio 1. Was a flat 0.115 for the whole match;
+ *  the last-quarter surge in simTick spends the difference, so the season's
+ *  scoring totals stay on the measured band while the tries move later. */
+const TRY_BASE = 0.108
+
 /** The cost of a thin bench: a man in the wrong half of the team.
  *
  *  This is the bill a 6-2 can be presented with. Lose a centre once both your
@@ -1618,6 +1647,18 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const min = tick * 4 + Math.floor(rng() * 4) + 1
   const poss0: [number, number] = [home.poss, away.poss]
 
+  // the bin empties: ten minutes served and the man comes back on, unless he
+  // was replaced while he sat (his shirt no longer names him) or broke down
+  for (const s of [home, away]) {
+    if (!s.binned.size) continue
+    for (const id of [...s.binned]) {
+      if ((s.yellowUntil.get(id) ?? 0) > min) continue
+      s.binned.delete(id)
+      const p = state.players[id]
+      if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
+    }
+  }
+
   // The bench has been on since the hour mark: the closing quarter takes the
   // shape the 23 was picked for (F4).
   if (tick === 16) {
@@ -1635,15 +1676,32 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent)
     const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
     const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3) * eF(opp)
-    let ratio = ((att * adv * numF) / Math.max(1, def * oppNumF))
+    // THE BOOT IS TERRITORY (audit 16D). units.kicking was written by the dial,
+    // the exits, two roles, the coach and the wind, and read by nothing - a
+    // placebo control. It now tilts where the game is played: a ratio of the
+    // two kicking games, symmetric so the world mean cannot move (the home
+    // factor and the away factor are exact reciprocals).
+    const terr = Math.pow(side.units.kicking / Math.max(1, opp.units.kicking), 0.10)
+    let ratio = ((att * adv * numF * terr) / Math.max(1, def * oppNumF))
     if (derby) ratio = Math.pow(ratio, 0.72) // form book out the window
     else if (ctx.grudge) ratio = Math.pow(ratio, 0.85) // needle levels the contest
     side.poss += ratio
-    const pTry = clamp(0.115 * Math.pow(ratio, 2.6), 0.01, 0.42)
+    let pTry = clamp(TRY_BASE * Math.pow(ratio, 2.6), 0.01, 0.42)
+    // THE LAST QUARTER OPENS UP (audit 16D). Measured before this existed:
+    // tries were dead flat across the 80 (11.6-14.0% per ten-minute bucket)
+    // because both sides drain together and the mutual exhaustion cancels in
+    // eF. Real rugby scores roughly a third of its tries after the hour -
+    // tired defences miss first. So from tick 15 the shared fatigue itself
+    // raises the try chance for BOTH sides; TRY_BASE is set below what the
+    // old flat constant was so the season's totals stay on the band.
+    if (tick >= 15) {
+      const tired = 1 - (sideEnergy(side) + sideEnergy(opp)) / 200
+      if (tired > 0) pTry = Math.min(0.42, pTry * (1 + tired * 0.5))
+    }
     const r = rng()
     if (r < pTry) {
       scoreTry(state, ctx, side, min)
-    } else if (r < pTry + 0.115) {
+    } else if (r < pTry + opp.penRisk) {
       // a kickable penalty: yours is a touchline decision, theirs is automatic
       opp.consPens += 1
       // repeated infringements: the count climbs, the referee's patience
@@ -1654,6 +1712,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         if (ps.length) {
           const p = wpick(rng, ps, ps.map(x => x.a.agg))
           opp.yellowUntil.set(p.id, min + 10)
+          opp.onPitch.delete(p.id)
+          opp.binned.add(p.id)
           p.stats.yc += 1
           opp.ratings.set(p.id, (opp.ratings.get(p.id) ?? 6) - 0.7)
           pushEvent(state, ctx, min, 'YC', opp, `Repeated infringements! That's ${opp.consPens} penalties against ${teamShort(state, opp.teamId)} and the referee has seen enough - ${p.name} takes ten in the bin for the team.`, p.id)
@@ -1675,7 +1735,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       } else {
         takePenaltyShot(state, ctx, side, min)
       }
-    } else if (r < pTry + 0.115 + 0.006) {
+    } else if (r < pTry + opp.penRisk + 0.006) {
       const fh = side.lineup[9] != null ? state.players[side.lineup[9]!] : null
       if (fh && rng() < 0.3 + fh.a.kic / 40) {
         side.score += 3
@@ -1722,6 +1782,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           pushEvent(state, ctx, min, 'RC', side, `RED CARD! ${p.name} is sent off!`, p.id)
         } else {
           side.yellowUntil.set(p.id, min + 10)
+          // he SITS the ten minutes: off the pitch pools, so a man in the bin
+          // cannot score a try, take another card or pull an injury while he
+          // sits (audit 16D). numF still charges the missing man's strength.
+          side.onPitch.delete(p.id)
+          side.binned.add(p.id)
           p.stats.yc += 1
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
           pushEvent(state, ctx, min, 'YC', side, `Yellow card - ${p.name} to the bin for ten.`, p.id)
@@ -2066,6 +2131,8 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   const pin = state.players[inId]
   const pout = state.players[outId]
   if (slotOut < 0 || slotOut > 14 || !pout) return 'That player is not in the starting side.'
+  // Law 3: a side may not replace a sin-binned player during his ten minutes
+  if (mine.binned.has(outId)) return 'He is in the sin bin - the ten minutes must be served before that shirt can change.'
   if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return 'He is not available.'
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
