@@ -502,7 +502,15 @@ export function migrate(s: GameState): GameState {
   // own stand should never have been built - so today's capacity is the anchor
   for (const c of Object.values(s.clubs)) c.capacity0 ??= c.capacity
 
-  // pre-2025 former clubs (old-boy stories): fills only players still unset
+  // pre-2025 former clubs (old-boy stories): fills only players still unset.
+  // First, take back the ones the seeder should never have written: exClub is
+  // only ever set by seedExClubs, so on a hand-written player it is always an
+  // invented history (the briefing claimed Nick David left Northampton and
+  // Ollie Sleightholme left Harlequins - neither happened). Strip it; moves
+  // made inside this career live in p.career and are untouched.
+  for (const p of Object.values(s.players)) {
+    if (p?.real && p.exClub) { p.exClub = null; delete p.exApps }
+  }
   seedExClubs(s)
 
   ensureCaptains(s, true)
