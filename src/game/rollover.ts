@@ -15,6 +15,7 @@ import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
+import { mentorBoost } from './mentoring'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -184,6 +185,49 @@ function settleRecords(state: GameState) {
   }
 }
 
+/**
+ * How fast this player develops, as a multiplier on the annual growth roll.
+ *
+ * The user's ask, verbatim: "whether they get better or not is down to the
+ * facilities, coaching, mentorship and work ethics." The weekly layer already
+ * had three of those for the user's club (assistant and specialist coaches,
+ * mentor fit, the paddock) - but the ANNUAL roll in agePlayers, which is the
+ * dominant term at roughly two thirds of a young player's growth, was pure age
+ * and dice. A wonderkid in a tin shack with a mercenary's attitude grew exactly
+ * as fast as one at a level-5 academy under a Leader's wing.
+ *
+ * MEAN-NEUTRAL BY MEASUREMENT, not by hope. Each term is centred so the world's
+ * average u23 grows at the same rate as before:
+ *   facilities - paddock+gym (academy kids add the Centre of Excellence),
+ *     centred on the measured world mean level of 1.9;
+ *   work ethic - Professional and Leader up, Mercenary and Temperamental down,
+ *     centred with -0.009, measured rather than derived: the base weights say
+ *     -0.017 but assignPersonality boosts Temperamental for aggressive players
+ *     and Leader for born leaders, and the pa clamp eats a little growth at the
+ *     top, so the constant was tuned until two-seed world means matched;
+ *   mentoring - an active pair helps the kid, scaled by how well the two men
+ *     fit (game/mentoring.ts), user club only;
+ *   coaching - the assistant's level, user club only.
+ * The user-club terms are one club in 101, so they cannot move the world mean.
+ * Verified by scripts/growthprobe.ts and a before/after world-mean run.
+ */
+export function devFactor(state: GameState, p: Player): number {
+  const club = p.clubId ? state.clubs[p.clubId] : null
+  const fac = club
+    ? ((club.facilities?.paddock ?? 0) + (club.facilities?.gym ?? 0) + (p.acad ? (club.facilities?.academy ?? 0) : 0)) / (p.acad ? 3 : 2)
+    : 1.9
+  let f = 1 + (fac - 1.9) * 0.07 - 0.009
+  if (p.pers === 'Professional' || p.pers === 'Leader') f += 0.10
+  else if (p.pers === 'Mercenary' || p.pers === 'Temperamental') f -= 0.12
+  if (p.clubId === state.userClubId) {
+    const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)
+    const senior = pair ? state.players[pair.senior] : null
+    if (senior) f += 0.06 * mentorBoost(senior, p)
+    f += (state.staff?.assistant ?? 0) * 0.03
+  }
+  return clamp(f, 0.65, 1.4)
+}
+
 function agePlayers(state: GameState, rng: Rng) {
   const retirees: Player[] = []
   for (const p of Object.values(state.players)) {
@@ -195,8 +239,13 @@ function agePlayers(state: GameState, rng: Rng) {
       p.ca >= 94 ? (rng() < 0.4 ? 1 : 0)
       : p.ca >= 88 ? Math.max(1, Math.floor(base / 2))
       : base
-    if (p.age <= 23 && p.ca < p.pa) p.ca = clamp(p.ca + growth(2 + Math.floor(rng() * 3)), 1, p.pa)
-    else if (p.age <= 27 && p.ca < p.pa) p.ca = clamp(p.ca + growth(1 + Math.floor(rng() * 2)), 1, p.pa)
+    // the dev factor scales the roll; the fraction is settled by a second
+    // roll so a 1.1x factor means 10% more growth on average, not rounding
+    // noise (probabilistic rounding keeps the world mean exactly scaled)
+    const dev = devFactor(state, p)
+    const scaled = (b: number) => { const r = b * dev; const n = Math.floor(r); return n + (rng() < r - n ? 1 : 0) }
+    if (p.age <= 23 && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(2 + Math.floor(rng() * 3))), 1, p.pa)
+    else if (p.age <= 27 && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(1 + Math.floor(rng() * 2))), 1, p.pa)
     else if (p.age >= 33) p.ca = clamp(p.ca - (2 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 31) p.ca = clamp(p.ca - (1 + Math.floor(rng() * 2)), 30, 99)
     // attribute drift toward new ca
@@ -482,9 +531,12 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
   for (let i = 0; i < n; i++) {
     const pos = pick(rng, YOUTH_POS)
     const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + Math.round(coe * 1.2) + natTalentBonus(club.country)
-    // roughly one club a season unearths a genuine wonderkid - a Centre
-    // of Excellence tilts the odds your way
-    const wonder = rng() < 0.085 + coe * 0.012
+    // A wonderkid every couple of seasons rather than every four (user: "there
+    // should be more wonderkids in academy's"). The balance holds because the
+    // flag is only a CEILING: whether he ever reaches it is now down to the
+    // facilities, the coaching, a mentor and his own character (devFactor), so
+    // a more generous intake makes more stories, not more free superstars.
+    const wonder = rng() < 0.13 + coe * 0.02
     out.push({
       name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
       pos, age: 17 + Math.floor(rng() * 2), q,

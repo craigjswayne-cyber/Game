@@ -435,11 +435,25 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
   const p = state.players[o.playerId]
   const bidder = state.clubs[o.fromClubId]
   if (!p || !bidder) { o.status = 'rejected'; return 'Offer withdrawn.' }
-  const newFee = Math.round((o.fee * 1.18) / 10_000) * 10_000
+  // THE RAISE IS ANCHORED TO THE PLAYER, NOT TO THE BID (user: "sometimes they
+  // offer more... but it should be balanced so not crazy that it makes the game
+  // easy"). A flat +18% rewarded holding out on a bid that was already generous
+  // exactly as much as on a cheeky one. Now the further under his value they
+  // opened, the more road they have: a lowball comes back up to 22% higher, a
+  // full-price bid barely moves, and NOTHING goes past 140% of his value or
+  // their budget. Selling well stays possible; printing money does not.
+  const rich = o.fee / Math.max(1, p.value)
+  const uplift = clamp(1.26 - rich * 0.16, 1.06, 1.22)
+  const ceiling = Math.round((p.value * 1.4) / 10_000) * 10_000
+  const newFee = Math.min(Math.round((o.fee * uplift) / 10_000) * 10_000, ceiling, bidder.budget)
   const rng = mulberry32(state.seed ^ (o.id * 17))
-  if (newFee <= bidder.budget && rng() < 0.55) {
+  if (newFee <= o.fee) {
+    o.status = 'rejected'
+    return `${bidder.short} take offence - the bid was already above the odds. They walk, and the offer is gone.`
+  }
+  if (rng() < 0.55) {
     o.fee = newFee
-    return `${bidder.short} grumble... then agree to ${fmtMoney(newFee)}. Accept while it lasts.`
+    return `${bidder.short} grumble... then agree to ${fmtMoney(newFee)}. Accept while it lasts - and know that ${p.name.split(' ').slice(-1)[0]} will hear a bid this size was on the table.`
   }
   o.status = 'rejected'
   return `${bidder.short} walk away from the table. The offer is gone.`
@@ -458,6 +472,15 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   }
   o.status = 'rejected'
   const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
+  // THE OTHER HALF OF THE HAGGLE. If you went back for more, got it, and then
+  // turned the raised bid down anyway, the player knows a club valued him well
+  // above his market price and his own manager used him to run up the number.
+  // That is the dilemma the raise is meant to create: the money is real, and so
+  // is the cost of refusing it.
+  if (o.countered && o.fee >= p.value * 1.2) {
+    p.morale = clamp(p.morale - (sulky ? 1.8 : 0.9), 1, 10)
+    return `Bid rejected. ${p.name} knows ${bidder.short} came back with more and you still said no - ${sulky ? 'he is furious, and his agent is already on the phone' : 'he accepts it, but something has soured'}.`
+  }
   if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
     p.morale = clamp(p.morale - (sulky ? 1.4 : 0.5), 1, 10)
     return `Bid rejected. ${p.name} (${p.pers.toLowerCase()}) is frustrated the move was blocked.`
