@@ -35,7 +35,7 @@ const ok = (c: boolean, what: string) => {
 // names something else is fine, but it has to be added here too, which is the
 // moment to check the thing is really called that.
 const CONTROLS = [
-  'Selection', 'Tactics', 'Set Piece', 'Bench', 'Prep', 'Game Plan',
+  'Selection', 'Tactics', 'Roles tab', 'Set Piece', 'Bench', 'Prep', 'Game Plan',
   'Match-Day Squad', 'Style', 'Tempo', 'Kicking', 'Physicality',
   'leadership group', 'preset', 'Club Infrastructure',
 ]
