@@ -172,12 +172,17 @@ export default function Tactics() {
   // them and two chips in the same column need 9% of y. The old pairs that
   // failed both tests were tighthead/hooker (20% apart, and Rakete-Stones is a
   // wide name) and the two centres (14% and 7%). Every pair below clears both.
+  // The back line reads as an attack shape: 10 flattest, the centres one deeper
+  // each, the WINGS deeper and wider than both, fullback last. It used to put
+  // the right wing at y=60 - shallower than either centre - so 14 floated above
+  // 13 on the chart (user: "the right wing should be below the outside centre").
+  // No real backline stands with a wing in front of his centres.
   const SPOTS: [number, number][] = [
     [22, 9], [50, 7], [78, 9],
     [36, 20], [64, 20],
     [14, 32], [86, 32], [50, 33],
     [50, 46], [30, 57],
-    [12, 68], [50, 66], [70, 76], [90, 60], [50, 88],
+    [12, 78], [46, 64], [66, 72], [88, 80], [50, 90],
   ]
   const go = useStore.getState().go
   const roleSheet = () => {
@@ -340,10 +345,12 @@ export default function Tactics() {
                   onChange={e => {
                     club.leaders = { ...(club.leaders ?? {}) }
                     const v = e.target.value ? Number(e.target.value) : null
-                    // one man, one portfolio: taking a second job is not leadership
-                    for (const k of Object.keys(club.leaders) as (keyof NonNullable<typeof club.leaders>)[]) {
-                      if (v != null && club.leaders[k] === v) club.leaders[k] = null
-                    }
+                    // A MAN CAN HOLD MORE THAN ONE JOB (user: "players can play
+                    // multiple roles"). This used to clear his other portfolio on
+                    // appointment. There is no exploit in allowing it: each
+                    // portfolio is a trade in the engine - it lifts one unit and
+                    // taxes another - so a second job is a second trade, not a
+                    // second helping.
                     club.leaders[pf.id] = v
                     touch()
                   }}>
@@ -365,7 +372,7 @@ export default function Tactics() {
           <div className="meta" style={{ marginTop: 5 }}>
             The skipper lifts attack and defence and calms tempers; the vice leads at half effect
             when he is missing. A portfolio below that does not add strength, it concentrates it:
-            only XV men with real authority carry one, and one man holds one job.
+            only XV men with real authority carry one, and a real leader can carry more than one.
           </div>
         </div>
         </div>

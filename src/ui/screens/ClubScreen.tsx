@@ -13,6 +13,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   const go = useStore(s => s.go)
   // three pages rather than one long scroll (user: fit it into clean screens)
   const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>('club')
+  const [sqTab, setSqTab] = useState<'first' | 'acad'>('first')
   const touch = useStore(s => s.touch)
   const [riftMsg, setRiftMsg] = useState<string | null>(null)
   const club = game.clubs[clubId]
@@ -352,12 +353,26 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           </>
         )
       })()}
-      {ctab === 'squad' && <>
+      {ctab === 'squad' && (() => {
+      // FIRST TEAM AND ACADEMY, SEPARATED (user: "when you click on another teams
+      // squad - there should be a filter for academy and first team"). The one
+      // list mixed 17-year-old academy kids in with the senior squad, which made
+      // another club's real strength hard to read and buried the very prospects
+      // worth scouting.
+      const firsts = players.filter(p => !p.acad)
+      const acads = players.filter(p => p.acad)
+      const shown = sqTab === 'acad' ? acads : firsts
+      return <>
       <SectionTitle sub="tap to scout">Squad</SectionTitle>
+      <div className="tab-bar">
+        <button className={sqTab === 'first' ? 'active' : ''} onClick={() => setSqTab('first')}>First Team ({firsts.length})</button>
+        <button className={sqTab === 'acad' ? 'active' : ''} onClick={() => setSqTab('acad')}>Academy ({acads.length})</button>
+      </div>
+      {shown.length === 0 && <div className="muted" style={{ padding: '4px 16px 10px' }}>Nobody on the books here.</div>}
       <div className="tblwrap"><table className="dtable">
         <thead><tr><th>Pos</th><th>Name</th><th>Age</th><th>Nat</th><th>Ability</th><th>Form</th><th className="num">Value</th></tr></thead>
         <tbody>
-          {players.map(p => (
+          {shown.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>
               <td><PosBadge pos={p.pos} /></td>
               <td className="name">{p.name}{starPlayerIds(game, club.id).has(p.id) ? ' ⭐' : ''}</td>
@@ -370,7 +385,8 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           ))}
         </tbody>
       </table></div>
-      </>}
+      </>
+      })()}
       <div className="spacer" />
     </>
   )

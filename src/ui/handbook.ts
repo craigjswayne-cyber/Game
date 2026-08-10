@@ -119,7 +119,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'What is the leadership group?',
-    a: 'Four portfolios beyond the armband: who leads the pack, who calls the defensive line, who runs the attack, and who sets the standards. A portfolio does not make the side stronger. It concentrates the leadership you already have onto one area and takes it off the rest, so naming a defensive leader sharpens the defence at the cost of attacking shape. Only men in the starting XV with real authority carry one, and one man can hold one job.',
+    a: 'Four portfolios beyond the armband: who leads the pack, who calls the defensive line, who runs the attack, and who sets the standards. A portfolio does not make the side stronger. It concentrates the leadership you already have onto one area and takes it off the rest, so naming a defensive leader sharpens the defence at the cost of attacking shape. Only men in the starting XV with real authority carry one, and a real leader can carry more than one: each portfolio is its own trade, so a second job concentrates more of the side onto his areas rather than stacking a bonus.',
   },
 
   {
