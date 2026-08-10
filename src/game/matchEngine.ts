@@ -1086,10 +1086,15 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // The whistle sets the tone, and now it sets four of them. Each dial acts on
     // the unit it is an opinion about, so a scrum pedant makes your front row
     // matter and a permissive ref makes your jackals matter.
-    side.cardRisk *= ref.cards
-    side.units.attack *= ref.flow
-    side.units.scrum *= ref.scrum
-    side.units.breakdown *= ref.breakdown
+    //
+    // LAYERED, NOT WRITTEN STRAIGHT ONTO THE UNITS (audit 16D). A substitution
+    // rebuilds the units from scratch and re-applies only side.mods, so a direct
+    // write here survived exactly until the user's first sub or slider touch -
+    // while every AI side, which never recomputes, kept its referee all match.
+    layer(side, 'card', ref.cards)
+    layer(side, 'attack', ref.flow)
+    layer(side, 'scrum', ref.scrum)
+    layer(side, 'breakdown', ref.breakdown)
   }
   // Law 3: if either side cannot cover the front row, nobody contests the scrum.
   // Both sides lose the weapon, so the side with the better pack pays for the
@@ -1107,9 +1112,14 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // the set piece it deleted it, and because attack weighs scrum while defence
     // does not, world scoring fell from 52.4 to 48.8 points a game on the 7% of
     // matches where a front-row shortage bites. Check the scale before you clamp.
+    // Applied as a layered ratio so a substitution does not silently restore a
+    // contested scrum (audit 16D): the factors lock the levelling in at kick-off
+    // and survive every recompute.
     const level = (home.units.scrum + away.units.scrum) / 2
-    home.units.scrum = level
-    away.units.scrum = level
+    const homeF = level / Math.max(1, home.units.scrum)
+    const awayF = level / Math.max(1, away.units.scrum)
+    layer(home, 'scrum', homeF)
+    layer(away, 'scrum', awayF)
   }
   // The analysts were watching. Calling the same move every week is how it stops
   // working, so the tally is kept here, once per match, for both clubs.
@@ -1131,8 +1141,8 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       if (edge.right) {
         const mine = fx.homeId === state.userClubId ? home : away
         const theirs = fx.homeId === state.userClubId ? away : home
-        theirs.units[edge.unit] *= 0.955
-        mine.units[edge.unit] *= 1.03
+        layer(theirs, edge.unit, 0.955)
+        layer(mine, edge.unit, 1.03)
       }
       settleAnalyst(state, oppId)
     }
@@ -1140,7 +1150,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 
   // dynamic bad blood: derby-lite heat when there's history between the clubs
   const grudge = !derby ? grudgeBetween(state, fx.homeId, fx.awayId) : null
-  if (grudge) { home.cardRisk *= 1.25; away.cardRisk *= 1.25 }
+  if (grudge) { layer(home, 'card', 1.25); layer(away, 'card', 1.25) }
   // old boys: a man facing his former club plays the game of his life
   // (club matches only - career rows never reference national sides)
   let returnee: Player | null = null
@@ -1167,7 +1177,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
         const p = id != null ? state.players[id] : null
         if (p?.trait === 'Big-Game Player') { n++; side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) + 0.3) }
       }
-      side.units.attack *= 1 + Math.min(n, 3) * 0.008
+      layer(side, 'attack', 1 + Math.min(n, 3) * 0.008)
     }
   }
   if (weather === 'Rain') goalPenalty = 0.09
@@ -1880,17 +1890,17 @@ function aiTacticShift(state: GameState, ctx: LiveCtx) {
     const who = coach ?? `The ${teamShort(state, side.teamId)} coach`
     if (ctx.tick >= 12 && diff <= -10) {
       side.shifted = true
-      side.units.attack *= 1.06
-      side.units.defence *= 0.95
-      side.tempoF *= 1.14
-      side.cardRisk *= 1.15
+      layer(side, 'attack', 1.06)
+      layer(side, 'defence', 0.95)
+      layer(side, 'tempo', 1.14)
+      layer(side, 'card', 1.15)
       pushEvent(state, ctx, min, 'SUB', side,
         `${who} has seen enough - shackles off, bench emptied. ${teamShort(state, side.teamId)} will run everything as they chase the game.`)
     } else if (ctx.tick >= 16 && diff >= 10) {
       side.shifted = true
-      side.units.defence *= 1.05
-      side.units.attack *= 0.94
-      side.tempoF *= 0.88
+      layer(side, 'defence', 1.05)
+      layer(side, 'attack', 0.94)
+      layer(side, 'tempo', 0.88)
       pushEvent(state, ctx, min, 'SUB', side,
         `${who} signals to the corners: game management time. ${teamShort(state, side.teamId)} will strangle the clock from here.`)
     }
@@ -1937,17 +1947,17 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
   const scale = (m: number) => 1 + (m - 1) * tf
   switch (kind) {
     case 'calm':
-      mine.units.defence *= scale(1.06)
-      mine.cardRisk *= scale(0.78)
+      layer(mine, 'defence', scale(1.06))
+      layer(mine, 'card', scale(0.78))
       return say([
         'Cool heads. You walk them through the first twenty minutes - no panic, no cheap penalties.',
         'Quiet voice, slow words. By the end the room is breathing at your pace. First twenty on our terms.',
         'You put the game plan on one whiteboard line and cap the pen. "Do the simple things forever." Nods all round.',
       ])
     case 'fire':
-      mine.units.attack *= scale(1.07)
-      mine.units.breakdown *= scale(1.05)
-      mine.cardRisk *= scale(1.28)
+      layer(mine, 'attack', scale(1.07))
+      layer(mine, 'breakdown', scale(1.05))
+      layer(mine, 'card', scale(1.28))
       return say([
         'The door rattles on its hinges. They leave the shed snorting - expect fireworks, and watch the referee.',
         'You knock a water bottle across the room on the way out. The studs in the tunnel sound like a drumroll.',
@@ -1955,23 +1965,23 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
       ])
     case 'underdog':
       if (!favourites) {
-        mine.units.attack *= scale(1.07)
-        mine.units.defence *= scale(1.05)
+        layer(mine, 'attack', scale(1.07))
+        layer(mine, 'defence', scale(1.05))
         return say([
           `"Nobody gives us a prayer out there. Perfect." The room tightens - shackles off, nothing to lose.`,
           `You read their team sheet out loud, name by name, then bin it. "Now let's ruin their afternoon." Grins everywhere.`,
           `"They have already written their headlines. Make the editors start again." The room hums.`,
         ])
       }
-      mine.units.attack *= scale(0.98)
+      layer(mine, 'attack', scale(0.98))
       return say([
         'You talk them down as underdogs... but everyone in the room knows you should win this. A few puzzled looks.',
         'The siege mentality does not fit a side this good, and the room knows it. The captain frowns at his boots.',
       ])
     case 'expect':
       if (favourites) {
-        mine.units.attack *= scale(1.04)
-        mine.units.defence *= scale(1.03)
+        layer(mine, 'attack', scale(1.04))
+        layer(mine, 'defence', scale(1.03))
         return say([
           'Standards. You expect a professional performance and the senior men nod - this is what we do.',
           '"Win, and win properly." Nothing else needs saying. The leaders take it from there.',
@@ -1979,13 +1989,13 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
         ])
       }
       if (ctx.rng() < 0.45) {
-        mine.units.attack *= scale(1.06)
+        layer(mine, 'attack', scale(1.06))
         return say([
           'A big call against stronger opposition - but they respond. Chests out.',
           'You demand it anyway, and the room decides to believe you. Dangerous men, believers.',
         ])
       }
-      mine.units.defence *= scale(0.96)
+      layer(mine, 'defence', scale(0.96))
       return say([
         'You demand a win few expect. One or two shoulders tighten - the pressure lands badly.',
         'The words hang wrong in the air. Young eyes find the floor - that was a speech for a different team.',
@@ -2004,21 +2014,21 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
   const say = (opts: string[]) => opts[(mine.score + opp.score + ctx.tick) % opts.length]
   switch (kind) {
     case 'fire':
-      mine.units.attack *= 1.07; mine.units.breakdown *= 1.05; mine.cardRisk *= 1.3
+      layer(mine, 'attack', 1.07); layer(mine, 'breakdown', 1.05); layer(mine, 'card', 1.3)
       return say([
         'The shouting rattles the door on its hinges. They leave snorting - expect fire, and watch the referee.',
         'A cup of tea goes flying. Forty minutes of everything, you tell them, or explain yourselves to the fans outside. They leave at a jog.',
         'You go through the pack man by man, voice up, collar loose. The room is silent, then very loud. Watch the penalty count.',
       ])
     case 'calm':
-      mine.units.defence *= 1.06; mine.cardRisk *= 0.8
+      layer(mine, 'defence', 1.06); layer(mine, 'card', 0.8)
       return say([
         'Calm, clear, matter-of-fact. The defensive shape gets one more walk-through before they head out.',
         'No theatre. Two fixes on the whiteboard, one reminder about discipline, handshakes on the way out. Grown-up rugby.',
         'You lower the temperature of the room by ten degrees. The message: trust the system, make the tackle in front of you.',
       ])
     case 'praise':
-      if (winning) { mine.units.attack *= 1.04; mine.units.defence *= 1.03 }
+      if (winning) { layer(mine, 'attack', 1.04); layer(mine, 'defence', 1.03) }
       return winning
         ? say([
           'You are delighted and you tell them so. Confidence flows - keep doing exactly this.',
@@ -2031,13 +2041,13 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
     case 'demand': {
       const roll = ctx.rng()
       if (roll < 0.5) {
-        mine.units.attack *= 1.08; mine.units.defence *= 1.04
+        layer(mine, 'attack', 1.08); layer(mine, 'defence', 1.04)
         return say([
           'Encouraging, positive, believing - and the senior players nod along. They look ready to empty the tank.',
           'More, you ask - not different, just more. The captain answers for the room: they have more.',
         ])
       }
-      mine.units.attack *= 0.97
+      layer(mine, 'attack', 0.97)
       return say([
         'You gee them up, but a couple of heads stay down. The message floats past them.',
         'You ask for more and the room hears criticism. Two players study their bootlaces. Wrong crowd, wrong day.',
@@ -2110,8 +2120,11 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   // the cover charge is reversed: briefs and the bench reshape stand.
   if (mine.coverBlown) {
     mine.coverBlown = false
-    layer(mine, 'attack', 1 / 0.92)
-    layer(mine, 'defence', 1 / 0.96)
+    // 1/0.96 here for months against a 0.937 charge: every refund left a
+    // permanent 2.4% defensive hole the comment above swore did not exist.
+    // The constants are the single source of truth now (audit 16D).
+    layer(mine, 'attack', 1 / COVER_ATT)
+    layer(mine, 'defence', 1 / COVER_DEF)
   }
   const brief = applyBrief(state, mine, inId)
   forcedSwitchCost(state, ctx, mine, onId, pin, min)
