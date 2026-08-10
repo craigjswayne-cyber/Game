@@ -24,7 +24,6 @@ import History from './screens/History'
 import Legacy from './screens/Legacy'
 import Handbook from './screens/Handbook'
 import Jobs from './screens/Jobs'
-import Feed from './screens/Feed'
 import Wire from './screens/Wire'
 import Medical from './screens/Medical'
 import TeamReport from './screens/TeamReport'
@@ -41,13 +40,13 @@ import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', inbox: 'Inbox', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', inbox: 'News', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
-  jobs: 'Job Centre', feed: 'The Rugby Wire', medical: 'Medical Centre',
+  jobs: 'Job Centre', medical: 'Medical Centre',
   report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status', day: 'The Week', draw: 'The Draw',
-  dreamteam: 'Team of the Week', wire: 'The Rugby Wire', infra: 'Club Infrastructure',
+  dreamteam: 'Team of the Week', wire: 'News', infra: 'Club Infrastructure',
   handbook: "The Manager's Handbook",
 }
 
@@ -223,7 +222,6 @@ export default function App() {
   //
   // One predicate now, in one place, for the dot and for the reader.
   const unread = game.news.filter(n => inInbox(game, n) && !n.read).length
-  const wireUnread = game.news.filter(n => !n.read && n.type === 'gossip').length
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
   const openJobs = game.vacancies.filter(v => !v.passed && !v.applied).length
@@ -267,7 +265,6 @@ export default function App() {
       case 'legacy': return <Legacy />
       case 'handbook': return <Handbook />
       case 'jobs': return <Jobs />
-      case 'feed': return <Feed />
       case 'wire': return <Wire />
       case 'medical': return <Medical />
       case 'report': return <TeamReport />
@@ -353,7 +350,6 @@ export default function App() {
     world: {
       title: 'World',
       items: [
-        { ico: '📰', label: 'The Rugby Wire', screen: 'feed', badge: wireUnread },
         { ico: '🏆', label: 'Competitions', screen: 'tables' },
         { ico: '🌍', label: 'International Rugby', screen: 'nations' },
         { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
@@ -435,7 +431,7 @@ export default function App() {
                 a red dot with nothing behind it. */}
             {navBtn('jobs', <IcoClipboard />, 'Jobs', openJobs)}
             {groupBtn('manager', <IcoPress />, 'Manager')}
-            {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
+            {groupBtn('world', <IcoTrophy />, 'World')}
           </>
         ) : (
           <>
@@ -447,7 +443,7 @@ export default function App() {
                 still living in the group badge above it. Reported as "says there is
                 a notification but doesn't show anything". */}
             {groupBtn('manager', <IcoPress />, 'Manager', pressOpen + openJobs)}
-            {groupBtn('world', <IcoTrophy />, 'World', wireUnread)}
+            {groupBtn('world', <IcoTrophy />, 'World')}
           </>
         )}
       </nav>

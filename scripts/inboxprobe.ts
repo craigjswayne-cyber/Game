@@ -12,8 +12,15 @@
 //   The recall window walks BOTH ways over the last twenty, and stops at each end
 //   rather than falling off it.
 //
-//   Clearing files, it does not delete. The Wire, the season review and the club
-//   history all read the same news list, so a cleared story has to still be there.
+//   Clearing files, it does not delete. The season review and the club history
+//   read the same news list, so a cleared story has to still be there.
+//
+//   AND GOSSIP IS IN THE QUEUE. It used to be excluded, and this probe guarded
+//   that: two of its assertions said a rumour must never be served here, because
+//   rumours lived on a separate Rugby Wire screen. The two screens were one array
+//   split on a field the player cannot see and they are now one screen (user:
+//   "merge the rugby wire and news, its the same thing"), so the assertions are
+//   inverted rather than deleted - a rumour is served, and cleared, like post.
 //
 // The store is tested directly rather than through a browser: this is queue
 // arithmetic, and a Playwright walk can only reach whatever happens to be unread
@@ -35,7 +42,8 @@ g.news = subjects.map((s, i) => ({
   id: 1000 + i, week: 1, season: 0, type: 'general' as const,
   subject: s, body: `Body ${s}`, read: false,
 }))
-// plus a rumour, which belongs to the Wire and must never enter the queue
+// plus a rumour, which is part of the same queue now and is served last because
+// it is the newest thing in the list
 g.news.push({ id: 2000, week: 1, season: 0, type: 'gossip', subject: 'Rumour', body: '...', read: false })
 
 const st = useStore
@@ -44,15 +52,16 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
 // ---- the icon serves the oldest unread, in order ---------------------------
 {
   const seen: string[] = []
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     st.getState().openInbox()
     const id = st.getState().inboxId
     seen.push(g.news.find(n => n.id === id)?.subject ?? '?')
   }
-  console.log(`  five taps served: ${seen.join(', ')}`)
-  ok(seen.join(',') === 'One,Two,Three,Four,Five', 'each tap serves the next unread, oldest first')
-  ok(g.news.filter(n => n.type !== 'gossip').every(n => n.read), 'and every one it served is marked read')
-  ok(!g.news.find(n => n.id === 2000)!.read, 'a rumour is left for the Wire, not served here')
+  console.log(`  six taps served: ${seen.join(', ')}`)
+  ok(seen.join(',') === 'One,Two,Three,Four,Five,Rumour',
+    'each tap serves the next unread, oldest first, and the rumour is one of them')
+  ok(g.news.every(n => n.read), 'and every one it served is marked read')
+  ok(g.news.find(n => n.id === 2000)!.read, 'a rumour is served here: the wire and the news are one list')
 }
 
 // ---- the first tap also opens the screen ----------------------------------
@@ -75,16 +84,24 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
 
 // ---- the recall window walks both ways and stops at the ends --------------
 {
+  // THE ENDS ARE DERIVED, not typed. This block used to start at 1004 with the
+  // comment "'Five', the newest" and assert forward could not pass it - true only
+  // while gossip was excluded. Once the rumour joined the queue, 2000 became the
+  // newest and the probe failed on its own stale fixture rather than on a bug.
+  const ids = [...g.news].filter(n => inInbox(g, n)).map(n => n.id).sort((a, b) => a - b)
+  const oldest = ids[0], newest = ids[ids.length - 1]
+  const secondNewest = ids[ids.length - 2]
+  console.log(`  window runs ${oldest}..${newest} (${ids.length} stories)`)
   // newest first, so back (-1) goes older
-  st.setState({ inboxId: 1004 }) // 'Five', the newest
+  st.setState({ inboxId: newest })
   st.getState().inboxStep(-1)
-  ok(st.getState().inboxId === 1003, 'back goes one story older')
+  ok(st.getState().inboxId === secondNewest, 'back goes one story older')
   st.getState().inboxStep(1)
-  ok(st.getState().inboxId === 1004, 'forward comes back again')
+  ok(st.getState().inboxId === newest, 'forward comes back again')
   for (let i = 0; i < 10; i++) st.getState().inboxStep(1)
-  ok(st.getState().inboxId === 1004, 'forward stops at the newest rather than running off the end')
+  ok(st.getState().inboxId === newest, 'forward stops at the newest rather than running off the end')
   for (let i = 0; i < 10; i++) st.getState().inboxStep(-1)
-  ok(st.getState().inboxId === 1000, 'back stops at the oldest in the window')
+  ok(st.getState().inboxId === oldest, 'back stops at the oldest in the window')
 }
 
 // ---- the window is twenty deep -------------------------------------------
@@ -117,11 +134,12 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
   st.setState({ game: gg, inboxId: 1 })
   const before = gg.news.length
   st.getState().clearRead()
-  ok(gg.news.length === before, 'nothing is deleted: the Wire and the history read the same list')
+  ok(gg.news.length === before, 'nothing is deleted: the review and the history read the same list')
   ok(gg.news.find(n => n.id === 1)!.cleared === true, 'a read story is filed')
   ok(!gg.news.find(n => n.id === 2)!.cleared, 'an unread story survives the clear')
-  ok(!gg.news.find(n => n.id === 3)!.cleared, 'gossip is untouched - it was never in this queue')
-  const shown = gg.news.filter(n => n.type !== 'gossip' && !n.cleared)
+  ok(gg.news.find(n => n.id === 3)!.cleared === true,
+    'and a read rumour is filed with it, rather than being left behind on screen')
+  const shown = gg.news.filter(n => !n.cleared)
   ok(shown.length === 1 && shown[0].id === 2, 'and the reader is left holding only what is left to read')
 }
 

@@ -9,8 +9,15 @@ const TYPE_ICON: Record<string, string> = {
   award: '🏅', contract: '✍️', general: '📰', youth: '🌱', gossip: '🎙',
 }
 
-/** The Wire, full screen: this week's stories one page at a time - the
- *  breath between matches (8H feedback). */
+/** This week's stories, full screen, one page at a time - the breath between
+ *  matches (8H feedback).
+ *
+ *  This is a reading FLOW, not a destination: it is entered from Continue with a
+ *  queue of ids and it ends on "On to the Week". The browsable news list is the
+ *  News screen, which is now the only one - the separate Rugby Wire screen was a
+ *  second browser over the same array and has been merged in (user: "merge the
+ *  rugby wire and news, its the same thing"). So this no longer bills itself as
+ *  The Rugby Wire either; there is one name for news in the game. */
 export default function Wire() {
   const game = useStore(s => s.game)!
   const queue = useStore(s => s.wireQueue)
@@ -26,7 +33,7 @@ export default function Wire() {
   if (!n) {
     return (
       <div className="card center" style={{ margin: '20vh 16px' }}>
-        <div className="meta">A quiet week on the wire.</div>
+        <div className="meta">A quiet week. It never lasts.</div>
         <button className="btn gold block" style={{ marginTop: 10 }} onClick={home}>Continue ▸</button>
       </div>
     )
@@ -37,7 +44,7 @@ export default function Wire() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', padding: '6px 14px 12px' }}>
       <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: 0 }}>
         <div className="wire-date" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{weekDate(n.season, n.week)} · The Rugby Wire</span>
+          <span>{weekDate(n.season, n.week)} · News</span>
           <span>{idx + 1} / {items.length}</span>
         </div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, margin: '8px 0 10px' }}>

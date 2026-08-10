@@ -92,8 +92,9 @@ try {
     await measure(label)
   }
 
+  // 'The Rugby Wire' was here: merged into the News screen, which the rail
+  // reaches directly, so the World group no longer carries a news item.
   const worldItems = [
-    ['The Rugby Wire', 'the wire'],
     ['Team of the Week', 'team of the week'],
     ['Scouting Agency', 'scouting agency'],
     ['Competitions', 'competitions'],

@@ -142,14 +142,22 @@ export function storyAge(state: GameState, n: NewsItem): number {
   return Math.max(0, now - absDay(n.season, n.week, dayOfStory(n)))
 }
 
-/** Should this story still be in the inbox reader?
+/** Should this story still be in the news reader?
  *
- *  The single predicate behind every inbox filter - the screen, the queue, the
+ *  The single predicate behind every news filter - the screen, the queue, the
  *  step arrows and Clear read. They disagreed once already (the reader showed
  *  thirty, the arrows walked twenty) and that is the kind of bug that reads as
- *  the game losing mail. */
+ *  the game losing mail.
+ *
+ *  GOSSIP BELONGS HERE TOO. It used to be excluded, which is what gave the game
+ *  two news screens: the inbox for everything except gossip, and The Rugby Wire
+ *  for gossip. Two browsers over one array, split on a field the player cannot
+ *  see (user: "merge the rugby wire and news, its the same thing"). One list, one
+ *  set of rules: a rumour ages out of the reader on the same five-day shelf as a
+ *  board memo, and Clear read files it like anything else. Nothing is deleted -
+ *  the season review and club history still read the whole of state.news. */
 export function inInbox(state: GameState, n: NewsItem): boolean {
-  if (n.type === 'gossip' || n.cleared) return false
+  if (n.cleared) return false
   return !n.read || storyAge(state, n) <= RECALL_DAYS
 }
 

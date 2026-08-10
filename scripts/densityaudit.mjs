@@ -178,7 +178,8 @@ try {
   }
 
   for (const [item, label] of [
-    ['The Rugby Wire', 'the wire'], ['Team of the Week', 'team of the week'],
+    // The Rugby Wire is merged into News and off this menu now
+    ['Team of the Week', 'team of the week'],
     ['Scouting Agency', 'scouting agency'], ['Competitions', 'competitions'],
     ['International Rugby', 'international rugby'], ['Roll of Honour', 'roll of honour'],
   ]) {

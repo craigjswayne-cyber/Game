@@ -8,6 +8,7 @@ import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
+import { inInbox } from '../../game/days'
 import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { ordinal } from '../../game/gossip'
@@ -19,7 +20,16 @@ const TYPE_ICON: Record<string, string> = {
 
 export default function Home() {
   const game = useStore(s => s.game)!
-  const unread = game.news.filter(n => !n.read && n.type !== 'gossip').length
+  // The same predicate the reader uses, for the same reason the rail's badge was
+  // fixed in 14B: a cue that counts a different set from the screen it opens sends
+  // you to a blank page. This one excluded gossip and ignored the five-day window,
+  // so it did both at once.
+  //
+  // Oldest first, because that is the one a tap opens: store.openInbox serves the
+  // queue front to back, so sorting newest-first here would put a different
+  // headline under the count from the story the cue leads to.
+  const unreadItems = game.news.filter(n => inInbox(game, n) && !n.read).sort((a, b) => a.id - b.id)
+  const unread = unreadItems.length
   const touch = useStore(s => s.touch)
   const go = useStore(s => s.go)
   // ---- Home no longer eats a story on the way past ----
@@ -48,7 +58,6 @@ export default function Home() {
   const comp = fx ? game.comps[fx.compId] : null
   const isThisWeek = fx && fx.week === game.week
   const pressOpen = game.press.filter(p => !p.answered).length
-  const news = [...game.news].filter(n => n.type !== 'gossip').reverse()
 
   // hub widgets: form pips, league position, money
   const recent = game.fixtures
@@ -372,7 +381,7 @@ export default function Home() {
       {unread > 0 && (
         <button className="card inbox-cue" onClick={() => go('inbox')}>
           <h3>✉ {unread} unread message{unread === 1 ? '' : 's'}</h3>
-          <div className="meta">{game.news.filter(n => !n.read && n.type !== 'gossip')[0]?.subject ?? ''}</div>
+          <div className="meta">{unreadItems[0]?.subject ?? ''}</div>
         </button>
       )}
       <div className="spacer" />
