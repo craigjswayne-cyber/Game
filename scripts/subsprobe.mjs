@@ -172,8 +172,15 @@ try {
   // probe edit, only a passing one.
   ok(before === MAX_SUBS, `the whole bench is available at half-time (${before} of ${MAX_SUBS})`)
 
-  // two changes without leaving the sheet, which is the whole point of it
-  for (let i = 0; i < 2; i++) {
+  // FIVE changes without leaving the sheet, not two.
+  //
+  // Two was enough to prove several changes work in one visit, and two is below
+  // every off-by-one this panel has had. The Done button counted a display list
+  // capped at four entries, so the fifth change still read "4 changes made" and
+  // this probe sailed past it (user: "when you make more than 4 substitution it
+  // says you've made 4 subs"). Five crosses that cap; the cap was four.
+  const CHANGES = 5
+  for (let i = 0; i < CHANGES; i++) {
     // arm a man who is on, then take the first bench option offered
     await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click()
     await page.waitForTimeout(150)
@@ -193,8 +200,11 @@ try {
   // nothing: advanceLive returns early while ctx.awaiting is set, so Play set
   // playing true and the next tick set it back to false.
   const beforeExit = await subsLeft()
-  ok(beforeExit === before - 2, `two changes in one visit spent two of the five (${before} -> ${beforeExit})`)
-  ok(await page.locator('.sheet-log').count() >= 2, 'both changes are reported in the sheet')
+  ok(beforeExit === before - CHANGES,
+    `${CHANGES} changes in one visit spent ${CHANGES} of the ${MAX_SUBS} (${before} -> ${beforeExit})`)
+  // every one of them reported, not four of them: the log used to trim itself
+  const logged = await page.locator('.sheet-log').count()
+  ok(logged >= CHANGES, `all ${CHANGES} changes are reported in the sheet (${logged} lines)`)
   // ---- CAN A THUMB ACTUALLY REACH THE BENCH? ----
   //
   // Reported from a real phone: "when she tried to make subs in game she
@@ -230,7 +240,13 @@ try {
     }
   })
   console.log(`  at 412x640: ${reach.rows} rows, sheet scrolls ${reach.sheetScrolls} (${reach.range}px), ${reach.innerScrollers} inner scroller(s)`)
-  ok(reach.rows >= 20, `the whole 23 is in the sheet (${reach.rows} rows)`)
+  // The XV plus whoever is still sitting down. A flat ">= 20" was written when this
+  // probe made two changes: every man who comes on leaves the bench column, so five
+  // changes legitimately leaves 15 + 3, and the old number would have read as a
+  // missing-rows bug. Derived, so the count of changes above can move again.
+  const wantRows = 15 + (MAX_SUBS - CHANGES)
+  ok(reach.rows === wantRows,
+    `the XV and the rest of the bench are in the sheet (${reach.rows} rows, wanted ${wantRows})`)
   // ONE scroller. Two nested ones is the bug, whatever the other numbers say.
   ok(reach.innerScrollers === 0,
     `the columns do not scroll independently in portrait (${reach.innerScrollers} do)`)
@@ -314,12 +330,17 @@ try {
   })
   ok(!stack.sideBySide, `and the two lists stack rather than sitting side by side (${stack.n} panels)`)
 
-  ok((await page.locator('.squad-sheet .btn.gold').textContent() ?? '').includes('2 changes'), 'the Done button counts the changes')
+  // THE NUMBER ON THE BUTTON, past the point where the log stops growing
+  const doneCap = (await page.locator('.squad-sheet .btn.gold').textContent() ?? '').trim()
+  console.log(`  Done button reads "${doneCap}"`)
+  ok(doneCap.includes(`${CHANGES} changes`),
+    `the Done button counts every change, not the lines it can show (wanted "${CHANGES} changes")`)
   await page.click('.squad-sheet .btn.gold')
   await page.waitForTimeout(250)
   ok(await page.locator('.squad-sheet').count() === 0, 'the sheet closes')
   ok((await page.locator('text=Replacements').first().textContent() ?? '')
-    .includes(`${MAX_SUBS - 2} of ${MAX_SUBS}`), `the panel agrees ${MAX_SUBS - 2} are left after two changes`)
+    .includes(`${MAX_SUBS - CHANGES} of ${MAX_SUBS}`),
+    `the panel agrees ${MAX_SUBS - CHANGES} are left after ${CHANGES} changes`)
 
   // still at half-time: the control row must say what it will do, and do it
   const playCap = (await page.locator('.speed-controls .btn').first().textContent() ?? '').trim()
