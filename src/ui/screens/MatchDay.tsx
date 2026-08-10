@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
   refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
@@ -1316,8 +1316,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       {[36, 64].map(x => <div key={x} className="line dashed" style={{ left: `${x}%` }} />)}
       <div className="posts" style={{ left: '7%' }} />
       <div className="posts" style={{ right: '7%' }} />
-      <div className="zone-label" style={{ left: '2.5%' }}>{teamShort(game!, fx.homeId).slice(0, 3).toUpperCase()}</div>
-      <div className="zone-label" style={{ right: '2.5%' }}>{teamShort(game!, fx.awayId).slice(0, 3).toUpperCase()}</div>
+      <div className="zone-label" style={{ left: '2.5%' }}>{clubCode(teamShort(game!, fx.homeId))}</div>
+      <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, fx.awayId))}</div>
       {dots(ctx.home, true)}
       {dots(ctx.away, false)}
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
@@ -1851,7 +1851,13 @@ function MatchVerdict() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div className="fact-label">Star Player</div>
-            <b>{star.name}</b> <span className="muted">({starMine ? 'yours' : teamShort(game, opp.teamId)})</span>
+            {/* THE CLUB CODE, both sides. It read "(yours)" for your own man and the
+                opponent's full short name for theirs, so the same slot carried two
+                different kinds of thing (user: "next to sleightholme (yours) should
+                be team unitials so NOR"). NOR and NEW, the same codes the crest and
+                the touchline use. */}
+            <b>{star.name}</b>{' '}
+            <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
           </div>
           <span className="form-pill" style={{ background: '#2f7d4f', fontSize: 15 }}>
             {ctx.motmId != null ? (mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}

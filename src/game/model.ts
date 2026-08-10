@@ -1177,6 +1177,20 @@ export function fmtWage(v: number): string {
   return `${sign}£${Math.round(a / 1_000).toLocaleString()}k`
 }
 
+/**
+ * The three-letter club code: NOR, BAT, SAR.
+ *
+ * One derivation, because there were two and they disagreed. The crest stripped
+ * non-letters before taking three (`short.replace(/[^A-Za-z]/g, '')`), the pitch's
+ * zone labels did not (`teamShort(...).slice(0, 3)`), so a club whose short name
+ * carries a space or a full stop in its first three characters got one code on its
+ * badge and a different one on the touchline. A code the player is meant to
+ * recognise has to be the same code everywhere it appears.
+ */
+export function clubCode(short: string): string {
+  return short.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'RUG'
+}
+
 export function fmtMoney(v: number): string {
   const sign = v < 0 ? '-' : ''
   const a = Math.abs(v)
