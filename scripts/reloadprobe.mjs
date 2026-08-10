@@ -56,6 +56,10 @@ const snapshot = () => page.evaluate(() => {
     // changed which players AI clubs were carrying, and so which men got hurt.
     hurt: body.includes('Name his replacement before play restarts'),
     interval: /Start Second Half|Play the Final Quarter/.test(body),
+    // IS IT PAUSED? The first control is Play/Pause and it carries a play glyph
+    // only when the match is stopped. Read rather than assumed, because pressing
+    // it while the match is running would pause the thing this probe is driving.
+    paused: (document.querySelector('.speed-controls .btn')?.textContent ?? '').includes('\u25B6'),
     finished: !!document.querySelector('.ft-stamp') || body.includes('Continue to Results'),
   }
 })
@@ -81,27 +85,40 @@ const drive = async (wants, ms, what) => {
   // So the two are now told apart. If the clock has MOVED inside the window, the
   // match is fine and the machine is slow: extend once and say so. If it has not
   // moved at all, that is a genuine stall and the failure means something.
-  let mark = -2
+  //
+  // AND THE MARK IS TAKEN ONCE PER WINDOW, which is the whole point and is not what
+  // this did. `mark = mins(s)` sat at the bottom of the loop, so it was refreshed
+  // every pass and the comparison at the timeout asked "did the clock move in the
+  // last 250ms?" rather than "did it move during the window". A match ticking slower
+  // than one game-minute per 250ms of wall clock - which is exactly what a loaded
+  // machine produces - therefore reported STALLED while advancing normally. That is
+  // the flake: it failed inside full suite runs and passed on its own, and the
+  // detector built to tell slowness from a stall was itself measuring 250ms.
+  let windowMark = null
   let extended = false
   for (;;) {
     const s = await snapshot()
     last = s
     if (wants(s)) return s
+    if (windowMark === null) windowMark = mins(s)
     if (Date.now() > stop) {
-      const moved = mins(s) !== mark
+      const moved = mins(s) !== windowMark
       if (moved && !extended) {
         extended = true
-        mark = mins(s)
+        windowMark = mins(s)
         stop = Date.now() + ms
-        say(`  (still moving at ${s.clock}, machine is slow - one extension)`)
+        // console.log, not say(): `say` was never defined anywhere in this file, so
+        // the one branch that exists to tell slowness from a stall threw a
+        // ReferenceError the moment it fired and took the whole probe into its
+        // catch as "the harness threw". A safety valve nobody had ever seen open.
+        console.log(`  (still moving at ${s.clock}, machine is slow - one extension)`)
         continue
       }
       ok(false, moved
         ? `${what}: still progressing at ${s.clock} after two full windows, so this is slowness, not a stall`
-        : `STALLED waiting for ${what} - the clock has not moved from ${s.clock || 'no match'}`)
+        : `STALLED waiting for ${what} - the clock has not moved from ${s.clock || 'no match'} in a full window`)
       return s
     }
-    mark = mins(s)
     if (s.hurt) {
       // Arm a man who is on, then take a bench option: the two taps subsprobe
       // uses, because a forced stop wants a real change and blind clicking on the
@@ -117,6 +134,16 @@ const drive = async (wants, ms, what) => {
     } else if (s.interval) {
       await page.locator('.btn', { hasText: /Start Second Half|Play the Final Quarter/ })
         .first().click().catch(() => {})
+    } else if (s.paused) {
+      // PRESS PLAY, because a resumed match comes back paused and that is correct:
+      // store.resumeLiveMatch sets playing false on purpose, so a reload does not
+      // drop you into a match already running away from you. This walker never
+      // pressed it, so after the reload it sat waiting for a paused match to
+      // advance on its own and reported a stall - at 26', 47', 48', 49', 52',
+      // wherever the pause happened to land. That is the flake that has been
+      // blamed on a loaded machine three times: the machine was slow, but the
+      // reason nothing moved is that nobody had told it to start.
+      await page.locator('.speed-controls .btn').first().click({ timeout: 2000 }).catch(() => {})
     }
     await page.waitForTimeout(250)
   }
