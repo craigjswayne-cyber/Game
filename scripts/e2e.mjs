@@ -192,13 +192,12 @@ try {
   await page.waitForSelector('.dtable')
   await shot('07-tables')
 
-  // World submenu -> The Rugby Wire
-  await page.click('.bottom-nav button[title="World"]')
-  await page.click('.submenu-item >> text=The Rugby Wire')
-  // the in-page masthead is gone (the top bar already names the screen), so wait
-  // on something only this screen has
-  await page.waitForSelector('.tab-bar >> text=Rumour Mill')
-  await shot('07b-wire')
+  // The news reader, from the rail. There was a separate World > The Rugby Wire
+  // screen here; it was a second browser over the same news array and has been
+  // merged into this one, so gossip arrives in the same queue as everything else.
+  await page.click('.bottom-nav button[title="News"]')
+  await page.waitForSelector('.reader')
+  await shot('07b-news')
 
   // Manager submenu -> Profile
   await page.click('.bottom-nav button[title="Manager"]')

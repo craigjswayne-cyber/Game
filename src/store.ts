@@ -26,7 +26,10 @@ export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
   | 'press' | 'comp' | 'history' | 'nations' | 'legacy' | 'jobs'
-  | 'feed' | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
+  // 'feed' was The Rugby Wire, a second news browser over the same array. Merged
+  // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
+  // you navigate to.
+  | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
   | 'offers' | 'academy' | 'day' | 'draw'
 
 interface NavEntry {
@@ -319,9 +322,10 @@ export const useStore = create<Store>((set, get) => ({
     // re-render from inside a full-time effect would loop
   },
 
-  /** The inbox reader's recall window: everything unread, plus what you have
-   *  read in the last five days. Gossip lives in the Wire, cleared stories are
-   *  filed, and days.inInbox is the one place that decides. */
+  /** The news reader's recall window: everything unread, plus what you have read
+   *  in the last five days. Gossip is in this list too now that the wire and the
+   *  news are one screen, cleared stories are filed, and days.inInbox is the one
+   *  place that decides. */
   openInbox: () => set(s => {
     const g = s.game
     if (!g) return {}
@@ -362,7 +366,9 @@ export const useStore = create<Store>((set, get) => ({
   clearRead: () => set(s => {
     const g = s.game
     if (!g) return {}
-    for (const n of g.news) if (n.read && n.type !== 'gossip') n.cleared = true
+    // gossip clears like everything else now that the wire and the news are one
+    // list: exempting it meant Clear read left a screenful behind
+    for (const n of g.news) if (n.read) n.cleared = true
     const left = g.news.filter(n => inInbox(g, n))
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
