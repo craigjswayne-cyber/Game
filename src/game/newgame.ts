@@ -482,7 +482,14 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 /** Careers did not begin in 2025: roughly one senior player in five arrived
  *  from another club in the same league. Deterministic per player id, capped
  *  by his estimated pre-2025 volume, so saves and fresh worlds agree - and
- *  old-boy reunions exist from the very first fixture list. */
+ *  old-boy reunions exist from the very first fixture list.
+ *
+ *  GENERATED PLAYERS ONLY. A hand-written name carries a real man's real
+ *  history, and hashing him an ex-club invents one: the briefing told a
+ *  Northampton manager that Harlequins' Nick David once made 39 appearances
+ *  in his colours, which never happened. A real player's pre-2025 past stays
+ *  blank; the old-boy beat still finds him the honest way, through transfers
+ *  made inside the career (p.career). */
 export function seedExClubs(state: GameState) {
   const byLeague = new Map<string, Club[]>()
   for (const c of Object.values(state.clubs)) {
@@ -496,7 +503,7 @@ export function seedExClubs(state: GameState) {
     for (const pid of c.players) {
       const p = state.players[pid]
       if (!p || p.exClub !== undefined) continue
-      if (p.age < 25 || p.id % 5 !== 3) { p.exClub = null; continue }
+      if (p.real || p.age < 25 || p.id % 5 !== 3) { p.exClub = null; continue }
       const spent = Math.min(30 + ((p.id * 40503) >>> 0) % 65, Math.max(0, (p.hist?.apps ?? 0) - 25))
       if (spent < 12) { p.exClub = null; continue }
       p.exClub = peers[((p.id * 2654435761) >>> 0) % peers.length].id

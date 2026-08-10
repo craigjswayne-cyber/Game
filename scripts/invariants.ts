@@ -111,6 +111,11 @@ function audit(g: GameState, tag: string) {
   for (const p of Object.values(g.players)) {
     if (p.exClub && !g.clubs[p.exClub]) bad(`${tag} ${p.name} ex-club ${p.exClub} does not exist`)
     if (p.exClub && p.exClub === p.clubId && (p.exApps ?? 0) > 0 && oldBoyApps(p, p.exClub) > 0) bad(`${tag} ${p.name} counts old-boy apps at his own club`)
+    // a hand-written player's pre-2025 past is a real man's history, and the
+    // seeder must never invent one (user: "did nick david play for
+    // Northampton? ... dont just make it up"). In-career moves live in
+    // p.career and are fine; exClub on a real player is always fiction.
+    if (p.real && p.exClub) bad(`${tag} ${p.name} is a real player with an invented pre-2025 ex-club (${p.exClub})`)
   }
   for (const pl of g.pledges ?? []) {
     if (!g.players[pl.playerId]) bad(`${tag} pledge for missing player ${pl.playerId}`)
