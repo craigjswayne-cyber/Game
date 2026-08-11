@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
 import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, canBeMentored, canMentor, fitReason, fitWord, mentorFit } from '../../game/mentoring'
+import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
 
@@ -61,6 +62,37 @@ export default function Training() {
             </button>
           )
         })}
+      </div>
+      {/* Personal plans (18A): individual programmes on top of the squad
+          session - the one mechanic the competition had over us. The
+          assistant's level is the department's bandwidth, and a planned man
+          works his programme INSTEAD of the squad session, so this is a
+          choice rather than a stack. Tap a name to cycle what he works on. */}
+      <SectionTitle sub={`individual programmes - up to ${planCap(game)}, tap a name to cycle`}>Personal Plans</SectionTitle>
+      <div className="chips">
+        {(() => {
+          const KINDS = FOCUSES.filter(f => f.id !== 'balanced')
+          const seniors = players.filter(p => !p.acad).sort((a, b) => b.ca - a.ca)
+          const planned = new Set((game.plans ?? []).slice(-planCap(game)).map(x => x.id))
+          const shown = [...seniors.slice(0, 12), ...seniors.slice(12).filter(p => planned.has(p.id))]
+          return shown.map(p => {
+            const cur = activePlan(game, p.id)
+            const curName = cur ? KINDS.find(k => k.id === cur)?.name : null
+            return (
+              <button key={p.id} className="chip" style={cur ? { borderColor: '#c9a227', background: 'color-mix(in srgb, var(--gold) 14%, var(--paper))' } : undefined}
+                onClick={() => {
+                  const idx = cur == null ? 0 : KINDS.findIndex(k => k.id === cur) + 1
+                  const rest = (game.plans ?? []).filter(x => x.id !== p.id)
+                  game.plans = idx >= KINDS.length
+                    ? rest
+                    : [...rest, { id: p.id, plan: KINDS[idx].id }].slice(-planCap(game))
+                  touch()
+                }}>
+                {cur ? '● ' : '○ '}{p.name}{curName ? <b> · {curName}</b> : ''}
+              </button>
+            )
+          })
+        })()}
       </div>
       </>}
       {ttab === 'staff' && <StaffPanel />}

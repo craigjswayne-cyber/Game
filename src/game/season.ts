@@ -1,4 +1,4 @@
-import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow } from './model'
+import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
@@ -593,16 +593,49 @@ function manageInternationals(state: GameState, rng: Rng) {
 // Training & recovery
 // ------------------------------------------------------------------
 
+/** Which attributes a training focus works on - the squad session and the
+ *  personal plans (18A) speak the same vocabulary. */
+export const FOCUS_ATTRS: Record<string, (keyof Player['a'])[]> = {
+  balanced: [], scrum: ['scr', 'str'], lineout: ['lin'], attack: ['han', 'pas', 'vis'],
+  defence: ['tac', 'pos'], fitness: ['sta'], kicking: ['kic', 'goa'],
+}
+/** Which specialist coach amplifies which training focus. */
+export const FOCUS_COACH: Record<string, keyof GameState['staff'] | null> = {
+  balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
+  defence: 'defence', fitness: 'assistant', kicking: 'kicking',
+}
+
+/** How many personal plans the department can run at once: the assistant's
+ *  level is the bandwidth. */
+export function planCap(state: GameState): number {
+  return 2 + (state.staff?.assistant ?? 0)
+}
+
+/** The plan a man is actually on, cap enforced at read time: newest
+ *  assignments win a full book, same idiom as devFocus. */
+export function activePlan(state: GameState, playerId: number): TrainingFocus | null {
+  return (state.plans ?? []).slice(-planCap(state)).find(x => x.id === playerId)?.plan ?? null
+}
+
+/** One week of a personal training programme (18A, from the Rugby Manager
+ *  assessment: "advanced individual training" was the one mechanic ahead of
+ *  ours). A planned man works HIS programme instead of the squad session, so
+ *  the plan is a choice, not a stack: the specialist coach and the paddock
+ *  set the ceiling, and older men absorb less of it. Returns true on a bump. */
+export function rollPlan(state: GameState, p: Player, rng: Rng): boolean {
+  const plan = activePlan(state, p.id)
+  if (!plan) return false
+  const coach = FOCUS_COACH[plan]
+  const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
+  const ageF = p.age <= 23 ? 1.3 : p.age <= 28 ? 1 : 0.6
+  if (rng() >= 0.055 * (1 + coachLvl * 0.5 + facLevel(state, 'paddock') * 0.2) * ageF) return false
+  for (const k of FOCUS_ATTRS[plan]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
+  return true
+}
+
 function weeklyTraining(state: GameState, rng: Rng) {
-  const focusMap: Record<string, (keyof Player['a'])[]> = {
-    balanced: [], scrum: ['scr', 'str'], lineout: ['lin'], attack: ['han', 'pas', 'vis'],
-    defence: ['tac', 'pos'], fitness: ['sta'], kicking: ['kic', 'goa'],
-  }
-  // which specialist coach amplifies which training focus
-  const coachFor: Record<string, keyof GameState['staff'] | null> = {
-    balanced: null, scrum: 'scrumCoach', lineout: 'scrumCoach', attack: 'attack',
-    defence: 'defence', fitness: 'assistant', kicking: 'kicking',
-  }
+  const focusMap = FOCUS_ATTRS
+  const coachFor = FOCUS_COACH
   // a winning run carries a dressing room; a losing one drags it under
   {
     const uid = state.userClubId
@@ -719,7 +752,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       const growBoost = isUser ? 1 + state.staff.assistant * 0.25 : 1
       const eliteF = p.ca >= 94 ? 0.15 : p.ca >= 88 ? 0.5 : 1
       if (p.age <= 24 && p.ca < p.pa && rng() < 0.06 * growBoost * eliteF) p.ca += 1
-      if (isUser && state.training !== 'balanced') {
+      // a man on a personal plan works his own programme this week (18A);
+      // everyone else takes the squad session
+      if (isUser && activePlan(state, p.id)) {
+        rollPlan(state, p, rng)
+      } else if (isUser && state.training !== 'balanced') {
         const coach = coachFor[state.training]
         const coachLvl = coach ? (state.staff[coach] ?? 0) : 0
         if (rng() < 0.03 * (1 + state.staff.assistant * 0.5 + coachLvl * 0.45 + facLevel(state, 'paddock') * 0.2)) {

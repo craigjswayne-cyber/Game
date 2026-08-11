@@ -150,7 +150,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'How does training work?',
-    a: 'Two layers. The whole squad has a weekly emphasis, and individual players can be given a development focus on a specific attribute. Better coaches and a better Training Paddock make the focus bite more often. Progress is slow and unglamorous, which is how it should be.',
+    a: 'Three layers. The whole squad has a weekly emphasis; up to three youngsters can carry a development focus for faster growth; and a handful of men can be put on personal plans, individual programmes in a chosen area. Your assistant\'s badge sets how many plans the department can run at once, the matching specialist coach and the Training Paddock make a plan bite more often, and younger men absorb more of it. A man on a plan works his programme instead of the squad session, so it is a choice, not a stack. Progress is slow and unglamorous, which is how it should be.',
   },
   {
     cat: 'squad',
