@@ -1,5 +1,5 @@
 import type { GameState, OfficeTopic, Player, PressItem } from './model'
-import { SEASON_WEEKS, logDecision, poss } from './model'
+import { SEASON_WEEKS, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { derbyName, isDerby } from './rivalries'
 import { clamp, pick, type Rng } from './rng'
@@ -274,12 +274,10 @@ export function generatePress(state: GameState, rng: Rng) {
       ], rng))
   }
 
-  // results pressure
-  const recent = state.fixtures.filter(f =>
-    f.played && (f.homeId === club.id || f.awayId === club.id)).slice(-4)
-  const losses = recent.filter(f =>
-    (f.homeId === club.id && f.homeScore < f.awayScore) ||
-    (f.awayId === club.id && f.awayScore < f.homeScore)).length
+  // results pressure. formGuide sorts by week; a raw slice of the fixtures
+  // array reads appended cup rounds out of calendar order (the Home pips bug).
+  const recent = formGuide(state, club.id, 4)
+  const losses = recent.filter(r => r === 'L').length
   if (losses >= 3) {
     candidates.push(mk(state,
       voice(9, [

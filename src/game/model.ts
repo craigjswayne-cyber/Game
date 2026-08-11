@@ -109,6 +109,27 @@ export function unbeatenRun(state: GameState, clubId: string): number {
   return run
 }
 
+/** The Home hub's form pips: the last n played fixtures in WEEK order, oldest
+ *  first. Reported live with two screenshots: the fixture list showed a loss
+ *  away at Sale inside the last five, the hub said W W W W W. The hub was
+ *  slicing the last five played fixtures in ARRAY order, and the fixtures
+ *  array is not week order: cup rounds and arranged friendlies are appended
+ *  to the end as they are drawn, so once a knockout round is played the slice
+ *  reads the array tail and a by-date result falls out. The dash panel one
+ *  card below learned this exact lesson (see its comment); the pips never
+ *  got the sort. */
+export function formGuide(state: GameState, clubId: string, n = 5): ('W' | 'L' | 'D')[] {
+  return state.fixtures
+    .filter(f => f.played && (f.homeId === clubId || f.awayId === clubId))
+    .sort((a, b) => a.week - b.week)
+    .slice(-n)
+    .map(f => {
+      const us = f.homeId === clubId ? f.homeScore : f.awayScore
+      const them = f.homeId === clubId ? f.awayScore : f.homeScore
+      return us > them ? 'W' : us < them ? 'L' : 'D'
+    })
+}
+
 /** Signature traits and what they do, for player pages and scouting. */
 export const TRAIT_INFO: Record<string, string> = {
   'The Step': 'Feet like a dancer - defenders grasp at air. Scores more tries.',
