@@ -6,7 +6,8 @@ import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
-import { loanOut } from '../../game/loans'
+import { loanOut, loanRecall } from '../../game/loans'
+import { mulberry32 } from '../../game/rng'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -330,6 +331,34 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           touch()
         }}>Send on Season Loan (develops faster)</button>
       )}
+      {/* the loan is visible from here too (16B, user: "there should be a
+          report on how they are doing... they should also be able to be
+          recalled at any point"). The verdict mirrors the loan-watch postcard's
+          own deterministic roll, so the page and the letters agree. */}
+      {mine && p.onLoan && (() => {
+        const boost = 2 + Math.floor(mulberry32(game.seed + p.id)() * 3)
+        const verdict = p.ca >= p.pa
+          ? 'Playing every week and doing his job. Their coaches like him; they also quietly think this is his level.'
+          : boost >= 4
+          ? 'The first name on their team sheet. Their coach says he is running games at that level.'
+          : boost === 3
+          ? 'Growing into it nicely. Good marks most weeks, and the education is clearly taking.'
+          : 'Getting the minutes he went for. Steady rather than spectacular.'
+        return (
+          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+            <div className="fact-label">🧳 Out on loan</div>
+            <div className="meta" style={{ marginTop: 4 }}>{verdict}</div>
+            <div className="meta" style={{ marginTop: 4 }}>
+              He is due back next summer. Recall him early and he returns match-fit,
+              but a cut-short season pays less of the development the loan promised.
+            </div>
+            <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => {
+              setMsg(loanRecall(game, p.id).msg)
+              touch()
+            }}>↩ Recall from Loan</button>
+          </div>
+        )
+      })()}
       {mine && p.acad && (
         <button className="btn gold block" onClick={() => {
           p.acad = false

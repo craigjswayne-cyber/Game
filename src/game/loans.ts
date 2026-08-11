@@ -87,3 +87,35 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
   })
   return { ok: true, msg: `${p.name} will spend the season on loan. He returns next summer, better for it.` }
 }
+
+/**
+ * Bring a loaned-out player home early (16B, user: "they should also be able
+ * to be recalled at any point").
+ *
+ * He comes back match-fit - he has been playing every week - but the education
+ * is cut short: the full summer development bonus only pays for a full season
+ * served. Half a season or more earns a single point of it now; less earns
+ * nothing but the body. Deterministic, no rng.
+ */
+export function loanRecall(state: GameState, playerId: number): { ok: boolean; msg: string } {
+  const p = state.players[playerId]
+  if (!p) return { ok: false, msg: 'No such player.' }
+  if (p.clubId !== state.userClubId) return { ok: false, msg: 'He is not yours to recall.' }
+  if (!p.onLoan) return { ok: false, msg: `${p.name} is not out on loan.` }
+  p.onLoan = false
+  // playing every week: he arrives fit and sharp, not rusty
+  p.cond = Math.max(p.cond, 90)
+  p.sharp = Math.max(p.sharp ?? 60, 85)
+  p.rust = 0
+  const halfServed = state.week >= 20
+  if (halfServed && p.ca < p.pa) p.ca += 1
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
+    subject: `🧳 ${p.name} recalled from loan`,
+    body: halfServed
+      ? `${p.name} (${p.pos}, ${p.age}) is back in the building, match-fit from weekly rugby and visibly improved by the months away. The feeder club are sorry to lose him, which is the best reference there is.`
+      : `${p.name} (${p.pos}, ${p.age}) is back in the building, match-fit from weekly rugby. The move home this early cuts the education short - the development the loan promised needed the season to pay in full.`,
+    playerId: p.id,
+  })
+  return { ok: true, msg: `${p.name} reports back to training in the morning.` }
+}

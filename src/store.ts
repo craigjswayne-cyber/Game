@@ -3,7 +3,7 @@ import type { GameState, MatchEvent, Fixture } from './game/model'
 import { newGame } from './game/newgame'
 import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
-  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover,
+  applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
@@ -126,6 +126,10 @@ interface Store {
   halfTimeSub: (outId: number, inId: number) => string
   /** Override the assistant's injury replacement. Free, and only at the moment. */
   injuryCover: (onId: number, inId: number) => string
+  /** Take back the last substitution, before play resumes (16B). */
+  undoSub: () => string
+  /** Swap two on-pitch men's shirts - a positional switch, free (16B). */
+  swapPositions: (aId: number, bId: number) => string
   liveTactics: () => void
   noteCmd: (cmd: MatchCmdBody) => void
   noteProgress: () => void
@@ -794,6 +798,37 @@ export const useStore = create<Store>((set, get) => ({
     get().noteCmd({ kind: 'cover', onId, inId })
     const msg = swapInjuryCover(game, liveMatch.ctx, onId, inId)
     set(s => ({ tick: s.tick + 1 }))
+    return msg
+  },
+
+  undoSub: () => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    // same cursor discipline as halfTimeSub: the undo pushes its own line
+    const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
+    get().noteCmd({ kind: 'undo' })
+    const msg = undoSubstitution(game, liveMatch.ctx)
+    set(s => ({
+      liveMatch: s.liveMatch && wasCaughtUp
+        ? { ...s.liveMatch, cursor: s.liveMatch.ctx.events.length }
+        : s.liveMatch,
+      tick: s.tick + 1,
+    }))
+    return msg
+  },
+
+  swapPositions: (aId, bId) => {
+    const { game, liveMatch } = get()
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
+    get().noteCmd({ kind: 'swap', aId, bId })
+    const msg = swapShirts(game, liveMatch.ctx, aId, bId)
+    set(s => ({
+      liveMatch: s.liveMatch && wasCaughtUp
+        ? { ...s.liveMatch, cursor: s.liveMatch.ctx.events.length }
+        : s.liveMatch,
+      tick: s.tick + 1,
+    }))
     return msg
   },
 

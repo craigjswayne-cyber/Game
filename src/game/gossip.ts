@@ -612,6 +612,33 @@ function socialBuzz(state: GameState, rng: Rng) {
     { id: 'kicker-net',
       subject: `SOCIAL: a supporter lands a halfway kick and the internet demands a contract`,
       body: `A half-time competition entrant in jeans and work boots struck one from inside his own half and straight through. He then did it again for the cameras. Two clubs have posted the clip. One head coach has been asked about it in a press conference and did not entirely rule it out.` },
+    // THE WILD ONES (16B, user: "weird and wonderful local rugby stories -
+    // made up. just for fun. think wild"). House rule from the funeral
+    // sponsor: every joke lands its punchline on the page.
+    { id: 'sheep',
+      subject: `VILLAGE RUGBY: match abandoned when forty sheep occupy the home 22`,
+      body: `A gate left open at a sixth-tier fixture admitted an entire flock at a penalty advantage. The referee consulted both captains, consulted the sheep, and abandoned the game with the immortal full-time line: "Gentlemen, they have more numbers and better shape than either defence." The league has ordered a replay. The farmer has ordered a season ticket.` },
+    { id: 'trophy-lost',
+      subject: `SILVERWARE: a village club has been polishing the wrong trophy for 41 years`,
+      body: `During an insurance valuation, the county junior cup a village side has displayed since 1984 turned out to be a regional best-kept-allotment award with a rugby ball soldered on. Nobody knows where the real cup went. The club has voted unanimously to keep the allotment one, on the grounds that "we definitely won something, and this is shinier."` },
+    { id: 'postman',
+      subject: `GRASSROOTS: fourth-tier club discovers their postman has been at every away game for 20 years`,
+      body: `A club historian assembling an anniversary album noticed the same man at the edge of every away photograph since 2006. It is their postman. He has never mentioned it once on his round. Asked why, he said he did not want to make it about him. The club has retired the number 24 in his honour: one for every away shirt he never asked for.` },
+    { id: 'dog-try',
+      subject: `VILLAGE RUGBY: a dog scores the decisive try and the league has to rule on it`,
+      body: `A spaniel invaded a promotion decider, intercepted a flat pass and crossed the line to what witnesses describe as the loudest cheer in the ground's history. The referee disallowed it for offside, reasoning the dog "entered from in front of the kicker". The league has upheld the decision but named the spaniel in its team of the week, at openside.` },
+    { id: 'anthem',
+      subject: `MATCHDAY: the wrong anthem plays and both teams commit to it completely`,
+      body: `An admin error at a cup tie played the theme from a daytime antiques programme instead of the national anthem. Neither side broke formation. Thirty professional rugby players stood at full attention through ninety seconds of light harpsichord, hands on hearts, and the crowd joined in humming. The clip has more views than the match.` },
+    { id: 'scrum-cafe',
+      subject: `COMMUNITY: a front row opens a coffee shop where everything is scrum-named and nothing is explained`,
+      body: `Three retired props have opened a cafe with a menu that includes the Loosehead Latte, the Tighthead Flat White and a pastry called the Collapsed Maul, which arrives deliberately flattened. Tourists keep asking why the sugar sachets say "BIND" on them. The owners refuse to say. It is the best-reviewed coffee shop in the county.` },
+    { id: 'lineout-ladder',
+      subject: `GRASSROOTS: club banned from using their new lineout tactic involving an actual stepladder`,
+      body: `An eighth-tier side unveiled a routine in which the hooker threw to a jumper standing on a stepladder painted in club colours. It worked three times before the referee found the relevant law, which took eleven minutes, because nobody had ever needed it before. The league's written ruling begins "with reluctant admiration" and the ladder now hangs in the clubhouse.` },
+    { id: 'fog-match',
+      subject: `WEATHER: two teams play twelve minutes in fog before discovering the ball went home`,
+      body: `A cup tie in dense fog continued in fine spirit until both packs converged on a ruck that turned out to be a training bag. Investigation revealed a clearing kick in the third minute had left the ground entirely, and a spectator, believing the game over, had taken the ball home for his son. The league has ordered a replay. The son is keeping the ball.` },
   )
 
   if (!takes.length) return

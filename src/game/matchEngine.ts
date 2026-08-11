@@ -1068,6 +1068,12 @@ export interface LiveCtx {
   motmId: number | null
   talkUsed: boolean
   subsUsed: number
+  /** The last tactical substitution, kept only until play resumes, so a wrong
+   *  tap can be taken back at the same stoppage it was made (16B, user: "i
+   *  made a substitution but selected the wrong player, i couldnt undo it").
+   *  Records whether that change spent a brief or blew the cover charge, so
+   *  the undo can give back exactly what the change took. */
+  lastSub?: { outId: number; inId: number; blewCover: boolean; briefed: boolean } | null
   preTalk: string | null
   /** a touchline call waiting on the user (kickable penalty etc) */
   decision: { kind: 'penalty'; min: number } | null
@@ -1951,6 +1957,9 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
  */
 export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' | 'FT' {
   if (ctx.tick >= 20) return 'FT'
+  // play has resumed: the last substitution has now been played and cannot be
+  // taken back (16B)
+  ctx.lastSub = null
   simTick(state, ctx, ctx.tick)
   ctx.tick += 1
   aiTacticShift(state, ctx)
@@ -2178,8 +2187,16 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   recomputeSideUnits(state, ctx, mine)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   // the brief he was given, and the bill if the shirt does not fit him (F4)
+  const briefsBefore = mine.briefsUsed ?? 0
+  const coverBefore = !!mine.coverBlown
   const brief = applyBrief(state, mine, inId)
   forcedSwitchCost(state, ctx, mine, outId, pin, min)
+  // remembered until play resumes, so this exact change can be taken back
+  ctx.lastSub = {
+    outId, inId,
+    briefed: (mine.briefsUsed ?? 0) > briefsBefore,
+    blewCover: !coverBefore && !!mine.coverBlown,
+  }
   pushEvent(state, ctx, min, 'SUB', mine, `Change from the bench: ${pin.name} replaces ${pout.name}.${brief ? ` ${brief}` : ''}`, pin.id)
   return `${pin.name} will come on for ${pout.name}.`
 }
@@ -2232,6 +2249,79 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   pushEvent(state, ctx, min, 'SUB', mine,
     `Change of plan on the touchline: ${pin.name} goes on instead of ${pon.name}.${brief ? ` ${brief}` : ''}`, pin.id)
   return `${pin.name} takes the shirt instead of ${pon.name}.`
+}
+
+/** Take back the last tactical substitution, at the same stoppage it was made
+ *  (16B, user: "i made a substitution but selected the wrong player, i couldnt
+ *  undo it and I lost the player"). The replacement never played a second, so
+ *  he goes back to being a bench option - same treatment as swapping injury
+ *  cover - and the change gives back everything it took: the replacement slot,
+ *  the brief it spent, the cover charge it blew. Play resuming closes the
+ *  window: a man who has played a tick cannot be un-played. */
+export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  const u = ctx.lastSub
+  if (!u) return 'Nothing to take back.'
+  if (ctx.seg === 3) return 'The match is over.'
+  const { outId, inId } = u
+  const slotIn = mine.lineup.indexOf(inId)
+  const slotOut = mine.lineup.indexOf(outId)
+  const pout = state.players[outId]
+  const pin = state.players[inId]
+  if (slotIn < 0 || slotIn > 14 || !pout || pout.injury) { ctx.lastSub = null; return 'Too late to take that back.' }
+  mine.lineup[slotIn] = outId
+  if (slotOut >= 0) mine.lineup[slotOut] = inId
+  mine.onPitch.delete(inId)
+  mine.onPitch.add(outId)
+  // he never actually got on, so he carries no rating for a cameo that did
+  // not happen and burns no replacement
+  mine.ratings.delete(inId)
+  mine.energy.delete(inId)
+  ctx.subsUsed -= 1
+  if (u.briefed) {
+    const club = state.clubs[mine.teamId]
+    const seat = mine.seatOf.get(inId)
+    const b = club && seat != null ? briefForSeat(club, seat) : 'orders'
+    if (b === 'impact') { layer(mine, 'attack', 1 / 1.025); layer(mine, 'defence', 1 / 0.99) }
+    else if (b === 'shore') { layer(mine, 'defence', 1 / 1.025); layer(mine, 'attack', 1 / 0.99); layer(mine, 'card', 1 / 0.96) }
+    else if (b === 'manage') { layer(mine, 'kicking', 1 / 1.03); layer(mine, 'attack', 1 / 0.995); layer(mine, 'tempo', 1 / 0.97) }
+    mine.briefsUsed = Math.max(0, (mine.briefsUsed ?? 1) - 1)
+  }
+  if (u.blewCover && mine.coverBlown) {
+    mine.coverBlown = false
+    layer(mine, 'attack', 1 / COVER_ATT)
+    layer(mine, 'defence', 1 / COVER_DEF)
+  }
+  recomputeSideUnits(state, ctx, mine)
+  ctx.lastSub = null
+  const min = Math.min(79, Math.max(1, ctx.lastMin))
+  pushEvent(state, ctx, min, 'SUB', mine,
+    `Change of heart on the touchline: ${pout.name} stays on and ${pin?.name ?? 'the replacement'} sits back down.`, pout.id)
+  return `${pout.name} stays on.`
+}
+
+/** Swap two on-pitch men's shirts (16B, user: "i want to be able to swap
+ *  players positions if they are in the 15. so swap the 12 and 13 over").
+ *  A positional switch, not a replacement: costs nothing, burns nothing, and
+ *  the units are rebuilt so the shape change genuinely reaches the pitch. */
+export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: number): string {
+  const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+  if (ctx.seg === 3) return 'The match is over.'
+  const ai = mine.lineup.indexOf(aId)
+  const bi = mine.lineup.indexOf(bId)
+  const pa = state.players[aId]
+  const pb = state.players[bId]
+  if (ai < 0 || ai > 14 || bi < 0 || bi > 14 || !pa || !pb) return 'Both men must be in the XV.'
+  if (!mine.onPitch.has(aId) || !mine.onPitch.has(bId)) return 'Both men must be on the pitch.'
+  mine.lineup[ai] = bId
+  mine.lineup[bi] = aId
+  // a switch after an undo would otherwise resurrect a stale record
+  ctx.lastSub = null
+  recomputeSideUnits(state, ctx, mine)
+  const min = Math.min(79, Math.max(1, ctx.lastMin))
+  pushEvent(state, ctx, min, 'SUB', mine,
+    `Positional switch for ${teamShort(state, mine.teamId)}: ${pa.name} and ${pb.name} swap shirts.`, pa.id)
+  return `${pa.name} and ${pb.name} swap positions.`
 }
 
 /** Rebuild a side's unit strengths from its current lineup, tactics and conditions. */

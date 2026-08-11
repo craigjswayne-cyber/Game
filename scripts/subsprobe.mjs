@@ -208,6 +208,29 @@ try {
   const beforeExit = await subsLeft()
   ok(beforeExit === before - CHANGES,
     `${CHANGES} changes in one visit spent ${CHANGES} of the ${MAX_SUBS} (${before} -> ${beforeExit})`)
+
+  // ---- the wrong tap can be taken back at the same stoppage (16B) ----
+  const undoBtn = page.locator('text=Take back the last change')
+  ok(await undoBtn.count() === 1, 'the last change offers an undo at the same stoppage')
+  await undoBtn.click()
+  await page.waitForTimeout(300)
+  ok(await subsLeft() === before - CHANGES + 1,
+    `taking it back refunds the replacement (${await subsLeft()} left)`)
+  // make the change again so every count below stays honest
+  await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').first().click()
+  await page.waitForTimeout(150)
+  await page.locator('.sheet-col >> nth=1').locator('.sheet-row:not([disabled])').first().click()
+  await page.waitForTimeout(300)
+  ok(await subsLeft() === before - CHANGES, 'and the change can be made again')
+
+  // ---- two on-pitch taps swap shirts, free (16B) ----
+  await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').nth(0).click()
+  await page.waitForTimeout(150)
+  await page.locator('.sheet-col >> nth=0').locator('.sheet-row:not([disabled])').nth(1).click()
+  await page.waitForTimeout(300)
+  ok((await page.locator('.sheet-log').first().textContent() ?? '').includes('swap positions'),
+    'tapping a second man on the pitch swaps their positions')
+  ok(await subsLeft() === before - CHANGES, 'and a positional switch costs no replacement')
   // every one of them reported, not four of them: the log used to trim itself
   const logged = await page.locator('.sheet-log').count()
   ok(logged >= CHANGES, `all ${CHANGES} changes are reported in the sheet (${logged} lines)`)
