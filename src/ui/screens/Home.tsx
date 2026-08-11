@@ -307,7 +307,7 @@ export default function Home() {
                 const r = resStr(f)
                 return (
                   <div key={f.id} className="dash-line">
-                    <span className="muted">wk{f.week}</span>
+                    <span className="muted dl-wk">wk{f.week}</span>
                     <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
                     <span>{f.homeId === club.id ? 'H' : 'A'}</span>
                     <b style={{ color: r.c }}>{r.txt}</b>
@@ -316,7 +316,7 @@ export default function Home() {
               })}
               {coming.map(f => (
                 <div key={f.id} className="dash-line">
-                  <span className="muted">wk{f.week}</span>
+                  <span className="muted dl-wk">wk{f.week}</span>
                   <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
                   <span>{f.homeId === club.id ? 'H' : 'A'}</span>
                   <span className="muted">{game.comps[f.compId]?.short ?? 'FR'}</span>

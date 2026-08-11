@@ -16,6 +16,7 @@ import { matchSfx, soundOn, toggleSound } from '../audio'
 import { derbyName } from '../../game/rivalries'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
+import { sortTable } from '../../game/schedule'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -561,6 +562,61 @@ function Preview({ fxId }: { fxId: number }) {
         </div>
 
         {ptab === 'brief' && <>
+        {(() => {
+          // THE STAKES (audit 20A). The preview told you the matchup, the
+          // weather and the milestones, but never what the result DOES - the
+          // one line a supporter asks first. Everything here is read straight
+          // off the live table, deterministically: position, the sides one
+          // place either way with real point gaps, and late in the season the
+          // lines that matter (playoffs, the bottom two). Knockout ties get
+          // the only stake they have. Finals keep their own card below.
+          const comp = game.comps[fx.compId]
+          const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][Math.min(n % 10, 4)] ?? 'th'}`
+          if (fx.stage && fx.stage !== 'F' && comp) {
+            return (
+              <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+                <div className="fact-label">The Stakes</div>
+                <div className="meta">Knockout rugby. Win and the {comp.short} run goes on; lose and it ends this afternoon.</div>
+              </div>
+            )
+          }
+          if (fx.stage || !comp || comp.type !== 'league' || comp.id !== game.clubs[game.userClubId]?.leagueId) return null
+          const order = sortTable(comp.table)
+          const me = order.findIndex(r => r.teamId === game.userClubId)
+          if (me < 0) return null
+          const mine = order[me]
+          if (mine.p < 2) return null
+          const pos = me + 1
+          const above = me > 0 ? order[me - 1] : null
+          const below = me < order.length - 1 ? order[me + 1] : null
+          const gapUp = above ? above.pts - mine.pts : 0
+          const gapDown = below ? mine.pts - below.pts : 0
+          const cutoff = comp.playoffTeams ?? 4
+          const late = game.week >= 30
+          const bits: string[] = []
+          bits.push(pos === 1
+            ? `Top of the ${comp.short} on ${mine.pts} points${below ? `, ${gapDown} clear of ${teamShort(game, below.teamId)}` : ''}.`
+            : `${ord(pos)} in the ${comp.short} on ${mine.pts} points - ${teamShort(game, above!.teamId)} above by ${gapUp}${below ? `, ${teamShort(game, below.teamId)} below by ${gapDown}` : ''}.`)
+          if (pos > 1 && gapUp <= 4) bits.push(`A win is worth at least four: close enough to climb today.`)
+          else if (pos === 1 && gapDown <= 4) bits.push(`Slip up and the top spot is there to be taken.`)
+          if (late) {
+            if (pos > cutoff && order[cutoff - 1]) {
+              bits.push(`The playoff line: ${order[cutoff - 1].pts - mine.pts} points to make up on ${ord(cutoff)}.`)
+            } else if (pos <= cutoff && order[cutoff]) {
+              bits.push(`You hold a playoff place, ${mine.pts - order[cutoff].pts} points inside the line.`)
+            }
+            if (pos >= order.length - 1) bits.push(`You are in the bottom two. Every point is survival.`)
+            else if (pos >= order.length - 3 && order[order.length - 2]) {
+              bits.push(`${mine.pts - order[order.length - 2].pts} points above the bottom two.`)
+            }
+          }
+          return (
+            <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+              <div className="fact-label">The Stakes</div>
+              <div className="meta">{bits.join(' ')}</div>
+            </div>
+          )
+        })()}
         {(() => {
           const danger = oppLineup.slice(0, 15)
             .map(id => id != null ? game.players[id] : null)
@@ -1742,6 +1798,54 @@ function Live() {
             resumeLabel={atBreak ? '▸ Play the Final Quarter' : '▸ Start Second Half'}
           />
         )}
+        {/* THE STORY SO FAR (audit 20E). A touchline decision or the interval
+            used to leave two-thirds of the screen empty while the game stood
+            still - the one moment a manager actually has time to read. So the
+            stoppage tells the story: every score so far with the running
+            total, and for a league afternoon the table around you as it stood
+            at kick-off. All of it is read from state already on this screen -
+            no rng, no engine. */}
+        {(atDecision || atHalfTime || atBreak) && (() => {
+          const scores = shown.filter(e => e.type === 'TRY' || e.type === 'PEN' || e.type === 'DG')
+          const comp = game.comps[fixture.compId]
+          const order = comp?.type === 'league' && comp.id === game.clubs[game.userClubId]?.leagueId
+            ? sortTable(comp.table) : null
+          const me = order ? order.findIndex(r => r.teamId === game.userClubId) : -1
+          const slice = order && me >= 0 && order[me].p > 0
+            ? order.slice(Math.max(0, Math.min(me - 1, order.length - 4)), Math.max(0, Math.min(me - 1, order.length - 4)) + 4)
+            : null
+          return (
+            <>
+              <div className="card" style={{ margin: '8px 14px' }}>
+                <div className="fact-label">The Story So Far</div>
+                {scores.length === 0 && <div className="meta muted">No scores yet. Somebody has to blink first.</div>}
+                {scores.map((e, i) => (
+                  <div key={i} className="meta" style={{ display: 'flex', gap: 8 }}>
+                    <span className="muted" style={{ flex: '0 0 26px' }}>{Math.min(80, e.min)}'</span>
+                    <span style={{ flex: 1 }}>{icon(e)} {e.playerId != null ? game.players[e.playerId]?.name ?? teamShort(game, e.teamId ?? '') : teamShort(game, e.teamId ?? '')}</span>
+                    <b>{e.homeScore}-{e.awayScore}</b>
+                  </div>
+                ))}
+              </div>
+              {slice && (
+                <div className="card" style={{ margin: '8px 14px' }}>
+                  <div className="fact-label">As It Stood At Kick-Off</div>
+                  {slice.map(r => {
+                    const p = order!.indexOf(r) + 1
+                    const usRow = r.teamId === game.userClubId
+                    return (
+                      <div key={r.teamId} className="meta" style={{ display: 'flex', gap: 8, fontWeight: usRow ? 700 : 400 }}>
+                        <span className="muted" style={{ flex: '0 0 22px' }}>{p}</span>
+                        <span style={{ flex: 1 }}>{teamShort(game, r.teamId)}</span>
+                        <b>{r.pts} pts</b>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          )
+        })()}
         {done && (
           <>
             <div className="review-grid">
