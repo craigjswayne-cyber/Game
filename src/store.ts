@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, MatchEvent, Fixture } from './game/model'
+import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { newGame } from './game/newgame'
 import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
 import {
@@ -103,7 +103,7 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
   toggleShortlist: (playerId: number) => void
   /** Put a loaded save in play. keepPlace is Continue: resume the bookmarked
    *  screen instead of Home. */
@@ -395,9 +395,9 @@ export const useStore = create<Store>((set, get) => ({
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
-  start: (clubId, managerName, challengeId) => {
+  start: (clubId, managerName, challengeId, origin) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId)
+    const g = newGame(clubId, managerName, seed, challengeId, origin)
     // the welcome dialog belongs to a career starting, not to a screen being
     // rendered: Home used to decide this from week 1 / season 0, which fired
     // again every time a brand-new save was re-opened on another device.

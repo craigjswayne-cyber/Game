@@ -524,6 +524,18 @@ export interface Competition {
 
 export type TrainingFocus = 'balanced' | 'scrum' | 'lineout' | 'attack' | 'defence' | 'fitness' | 'kicking'
 
+/** Where the manager came from (18B, from the FM26 assessment: the story
+ *  begins before the first whistle). Each origin front-loads a different
+ *  advantage; none of them survives a bad season.
+ *    player - a former international: the room believes from day one and the
+ *      name opens doors, but the badges are not there yet
+ *    coach  - the coaching route (the default, and what every save made
+ *      before origins existed is migrated to): the department runs one extra
+ *      personal training plan
+ *    local  - the local hero at the FIRST club: the board and the terraces
+ *      start warm; walk somewhere else and the warmth stays behind */
+export type MgrOrigin = 'player' | 'coach' | 'local'
+
 export interface MatchEvent {
   min: number
   type: 'TRY' | 'CON' | 'PEN' | 'DG' | 'YC' | 'RC' | 'INJ' | 'SUB' | 'HT' | 'FT' | 'KO' | 'BRK'
@@ -915,6 +927,8 @@ export interface GameState {
   deals?: Partial<Record<'shirt' | 'naming' | 'kit', import('./commercial').Deal>>
   /** what the dressing room makes of you, 0-100. Optional so old saves load. */
   mgrTrust?: number
+  /** the manager's backstory, chosen at career creation (18B) */
+  mgrOrigin?: MgrOrigin
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /** open managerial vacancies at AI clubs */
@@ -1113,8 +1127,11 @@ export function mgrReputation(state: GameState): number {
   const winPct = games ? m.w / games : 0
   // how much the record counts for: half weight at 20 games, most of it by 60
   const proven = games / (games + 20)
+  // a former international's name opens doors before a single result (18B) -
+  // worth six points of standing, forever, which a bad record soon dwarfs
+  const name = state.mgrOrigin === 'player' ? 6 : 0
   return Math.min(95, Math.round(
-    22 + winPct * 46 * proven + m.trophies.length * 7 + m.finishes.length * 1.5,
+    22 + name + winPct * 46 * proven + m.trophies.length * 7 + m.finishes.length * 1.5,
   ))
 }
 

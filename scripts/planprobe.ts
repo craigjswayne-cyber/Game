@@ -35,13 +35,17 @@ const rate = (p: Player, seed: number, weeks = 4000) => {
   return hits / weeks
 }
 
-// ---- the cap is the assistant's badge --------------------------------------
+// ---- the cap is the assistant's badge (and the manager's route, 18B) -------
 {
+  g.mgrOrigin = 'player'
   g.staff.assistant = 0
   ok(planCap(g) === 2, `an unbadged assistant runs 2 plans (${planCap(g)})`)
   g.staff.assistant = 3
   ok(planCap(g) === 5, `a gold assistant runs 5 (${planCap(g)})`)
+  g.mgrOrigin = 'coach'
+  ok(planCap(g) === 6, `and a coaching-route manager runs one more himself (${planCap(g)})`)
 
+  g.mgrOrigin = 'player' // cap back to 5 so the overflow below has to bite
   g.plans = seniors.slice(0, 6).map(p => ({ id: p.id, plan: 'scrum' as const }))
   ok(activePlan(g, seniors[0].id) == null, 'a sixth assignment quietly retires the oldest')
   ok(activePlan(g, seniors[5].id) === 'scrum', 'and the newest five all hold')
