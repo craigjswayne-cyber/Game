@@ -1,5 +1,5 @@
 import { SectionTitle, paragraphs } from '../components'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useStore } from '../../store'
 import { weekDate, type NewsItem } from '../../game/model'
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
@@ -93,8 +93,18 @@ export default function Inbox() {
 
   // Arriving on the screen by any route - the rail, a Back, a deep link - should
   // open something. A reader with nothing in it is a bug, not a state.
+  //
+  // THE LOOP BREAKER. This rescue once chain-reacted with the shelf bug that
+  // expired a story the moment it was marked read: serve, vanish, notice the
+  // open story is gone, serve the next, vanish... until React killed the page
+  // with error #185 (maximum update depth) on a phone with a 9+ backlog. The
+  // shelf is fixed (days.markRead / readAt), and this counter makes the whole
+  // class of bug survivable: if rescuing ever stops making progress, the
+  // reader settles for its empty state instead of taking the app down.
+  const rescues = useRef(0)
   useEffect(() => {
-    if (inboxId == null || !live.some(n => n.id === inboxId)) openInbox()
+    if (inboxId != null && live.some(n => n.id === inboxId)) { rescues.current = 0; return }
+    if (rescues.current++ < 25) openInbox()
   }, [inboxId, live.length])
 
   const i = window20.findIndex(n => n.id === inboxId)
