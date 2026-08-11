@@ -237,6 +237,16 @@ export const HANDBOOK: HandbookEntry[] = [
 
   // ---------------- The Club ----------------
   {
+    cat: 'squad',
+    q: 'Can I talk to a player myself?',
+    a: 'Yes. On his profile, The Office card lets you praise his form or have a quiet word - two conversations a week across the squad, one per man. His personality decides how it lands: a professional answers a warning with work, a mercenary shrugs, and praising a struggling hothead reads as sarcasm. Warning a man who is playing well insults him, and the dressing room hears about it.',
+  },
+  {
+    cat: 'market',
+    q: 'What is the recruitment meeting?',
+    a: 'Twice a season, at the top of each window, the scouting department puts up to three names on the board - aimed at your thinnest positions and ageing shirts, every one inside your budget and wage room. The names come from your scouts\' own view of the market, so a better-run department proposes better players. Tap a name in the memo to open his profile and bid.',
+  },
+  {
     cat: 'club',
     q: 'What is board confidence and what moves it?',
     a: 'A 0 to 100 reading of how safe your job is. Results move it most, then the objectives you were set, then how you handle the press and whether you keep your promises. It appears on the Home dashboard, and a half-term report card spells out where you stand. Let it fall far enough and you will be sacked.',
