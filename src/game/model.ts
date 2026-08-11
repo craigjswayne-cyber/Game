@@ -931,6 +931,12 @@ export interface GameState {
   vacancies: { clubId: string; week: number; applied?: boolean; passed?: boolean }[]
   /** up to 3 young players given individual development attention */
   devFocus: number[]
+  /** Personal training plans (18A): a handful of men on individual
+   *  programmes, the assistant's level setting the handful (2 + level).
+   *  Newest assignment wins a full book, same idiom as devFocus. A planned
+   *  man trains his programme INSTEAD of the squad session that week, so a
+   *  plan is a choice rather than a stack. */
+  plans?: { id: number; plan: TrainingFocus }[]
   /** national side the manager also coaches (FM-style dual role) */
   natTeam?: string | null
   /** a country wants you - pending offer from a union */
