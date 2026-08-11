@@ -313,6 +313,10 @@ export interface Player {
    *  absent means no request. Cleared when the team sheets make it right,
    *  and moot when he is sold. */
   wantsOut?: number
+  /** absolute week (season * SEASON_WEEKS + week) of the manager's last
+   *  office chat with him (20D) - one conversation per man per week, or
+   *  praise stops meaning anything */
+  lastChatWk?: number
   /** the current injury has already had its specialist consult */
   specialist?: boolean
   /** waiting on his first competitive appearance - 'signing' for a new
@@ -963,6 +967,11 @@ export interface GameState {
    *  man trains his programme INSTEAD of the squad session that week, so a
    *  plan is a choice rather than a stack. */
   plans?: { id: number; plan: TrainingFocus }[]
+  /** The office chat budget (20D): absolute week stamp and how many of the
+   *  week's two manager-initiated conversations are spent. A manager who
+   *  praises everybody praises nobody. */
+  chatWk?: number
+  chatsUsed?: number
   /** national side the manager also coaches (FM-style dual role) */
   natTeam?: string | null
   /** a country wants you - pending offer from a union */

@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, TRAIT_INFO, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
+import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, SEASON_WEEKS, TRAIT_INFO, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
 import { loanOut, loanRecall } from '../../game/loans'
+import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
@@ -31,6 +32,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   }
   // the conclusion of the contract talks, shown inside the talks card
   const [talkOutcome, setTalkOutcome] = useState<string | null>(null)
+  const [chatMsg, setChatMsg] = useState<string | null>(null)
   const [talkSigned, setTalkSigned] = useState(false)
   const [bidding, setBidding] = useState(false)
   const [bid, setBid] = useState(0)
@@ -151,6 +153,31 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {p.onLoan && <span className="chip" style={{ color: '#a8841a' }}>Away on season loan</span>}
         {p.transferListed && <span className="chip" style={{ color: '#a8841a' }}>Transfer listed</span>}
       </div>
+
+      {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
+          the manager could never knock back. Two conversations a week, one per
+          man: praise the form or have the quiet word. The outcome is his
+          personality's, not a dice roll - see chats.ts. */}
+      {mine && !p.onLoan && (
+        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+          <div className="fact-label">The Office</div>
+          {chatMsg
+            ? <div className="meta" style={{ fontStyle: 'italic' }}>{chatMsg}</div>
+            : canChat(game, p)
+              ? <div className="meta muted">Call him in. {chatBudget(game)} conversation{chatBudget(game) === 1 ? '' : 's'} left this week.</div>
+              : <div className="meta muted">{p.lastChatWk === game.season * SEASON_WEEKS + game.week ? 'You have spoken to him this week already.' : 'No conversations left this week - the words have to keep their value.'}</div>}
+          {!chatMsg && canChat(game, p) && (
+            <div className="btn-row" style={{ marginTop: 6 }}>
+              <button className="btn ghost" style={{ flex: 1 }}
+                title={p.form >= 6.8 ? 'tell him his form has been noticed' : 'careful: praising a man out of form can read as sarcasm'}
+                onClick={() => { setChatMsg(praisePlayer(game, p)); touch() }}>👏 Praise his form</button>
+              <button className="btn ghost" style={{ flex: 1 }}
+                title={p.form < 6.8 ? 'a quiet word about his standards' : 'careful: warning a man in form insults him'}
+                onClick={() => { setChatMsg(warnPlayer(game, p)); touch() }}>⚠️ A quiet word</button>
+            </div>
+          )}
+        </div>
+      )}
       </>}
 
       {ptab === 'attrs' && rival && (

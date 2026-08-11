@@ -12,7 +12,7 @@ import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
-import { scoutOpponent, weeklyScouting } from './scout'
+import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
@@ -2269,6 +2269,11 @@ export function processWeekAndAdvance(state: GameState) {
   for (const p of Object.values(state.players)) {
     if (p.bans > 0 && p.clubId && playedTeams.has(p.clubId)) p.bans--
   }
+
+  // the recruitment meeting (audit 20B): at the top of each window the
+  // scouting department puts names on the board. Week 2 so the opening-week
+  // letters have cleared; week 21 ahead of the mid-season deadline at 27.
+  if (state.week === 2 || state.week === 21) recruitmentMeeting(state)
 
   // contract expiry warnings for the user's squad
   if (state.week === 20 || state.week === 31) {

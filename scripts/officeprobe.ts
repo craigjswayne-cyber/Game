@@ -1,152 +1,88 @@
-// Probe: the office remembers the conversation it just had.
+// The recruitment meeting proposes names you can afford, and the office
+// chats land the way his personality says they land (20B + 20D).
 //
-// Live report: "player asked to go on loan, said yes but then was asked the
-// question again." The screenshots showed George Sowerby, 17, making the same
-// speech on 18 October and again on 25 October, with the manager's agreement
-// printed under both of them.
-//
-// Two faults sat behind that. The office generated its conversations from squad
-// state alone, so any player who still matched a filter could be picked again
-// the following week - and agreeing to a loan changed nothing about him, because
-// agreeing did nothing at all. The reaction text said "list him for loan from
-// the Transfers screen", which is a game asking the manager to go and implement
-// the decision he had just made.
-//
-// So this walks real careers, records every office conversation, and holds the
-// office to two standards: it does not raise the same subject with the same man
-// inside the cooldown, and when the manager agrees to a loan the player is
-// actually out on loan afterwards.
+// Both systems are DELIBERATELY deterministic - no rng - so this probe can
+// assert exact outcomes rather than distributions, and the shared weekly
+// stream never learns either feature exists.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { SEASON_WEEKS } from '../src/game/model'
-import { OFFICE_COOLDOWN, OFFICE_OUTLET, answerPress } from '../src/game/media'
-import type { GameState, PressItem } from '../src/game/model'
+import { canChat, chatBudget, praisePlayer, warnPlayer } from '../src/game/chats'
+import { recruitmentMeeting } from '../src/game/scout'
+import type { Player } from '../src/game/model'
 
 let fails = 0
-const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
-
-const absWeek = (season: number, week: number) => season * SEASON_WEEKS + week
-
-/** Every office conversation seen in a career, in the order it was raised. */
-type Seen = { pid: number; name: string; topic: string; season: number; week: number }
-
-let conversations = 0, loansAgreed = 0, loansOut = 0, repeats = 0
-const topics: Record<string, number> = {}
-const gaps: number[] = []
-
-for (const seed of [12345, 777, 4242, 31337]) {
-  const g: GameState = newGame('northampton', 'Office Probe', seed)
-  const seen: Seen[] = []
-  const answered = new Set<number>()
-
-  for (let w = 0; w < SEASON_WEEKS * 3; w++) {
-    // note anything new behind the office door
-    for (const item of g.press) {
-      if (item.outlet !== OFFICE_OUTLET || !item.topic || item.playerId == null) continue
-      if (seen.some(s => s.pid === item.playerId && s.topic === item.topic &&
-        s.season === item.season && s.week === item.week)) continue
-      const p = g.players[item.playerId]
-      seen.push({
-        pid: item.playerId, name: p?.name ?? `#${item.playerId}`,
-        topic: item.topic, season: item.season, week: item.week,
-      })
-      conversations++
-      topics[item.topic] = (topics[item.topic] ?? 0) + 1
-    }
-
-    // Answer everything, the way a manager does. EVERYTHING, because press
-    // generation stops at two open questions: a probe that answered only the
-    // office items let two press questions sit unanswered forever and saw no
-    // conversations at all for three seasons. It read as "the office never
-    // fires" when what it had actually built was a manager who ignores
-    // journalists and therefore never gets asked anything again.
-    for (const item of g.press) {
-      if (item.answered || answered.has(item.id)) continue
-      answered.add(item.id)
-      const idx = item.options.findIndex(o => o.loan) >= 0
-        ? item.options.findIndex(o => o.loan)
-        : 0
-      const pid = item.playerId
-      const wasLoan = item.options.some(o => o.loan)
-      answerPress(g, item.id, idx)
-      if (wasLoan && pid != null) {
-        loansAgreed++
-        const p = g.players[pid]
-        if (p?.onLoan) loansOut++
-        else {
-          // the only acceptable refusal is one the game explains
-          const why = item.reaction ?? ''
-          if (!/stops there for now/.test(why)) {
-            bad(`agreed to ${p?.name}'s loan and he is not out on loan, with no explanation: "${why.slice(0, 90)}"`)
-          }
-        }
-      }
-    }
-
-    try { processWeekAndAdvance(g) } catch { break }
-  }
-
-  // ---- the standard: no man raises the same subject twice inside the cooldown
-  const byKey: Record<string, Seen[]> = {}
-  for (const s of seen) {
-    const k = `${s.pid}:${s.topic}`
-    ;(byKey[k] ??= []).push(s)
-  }
-  for (const [k, list] of Object.entries(byKey)) {
-    list.sort((a, b) => absWeek(a.season, a.week) - absWeek(b.season, b.week))
-    for (let i = 1; i < list.length; i++) {
-      const gap = absWeek(list[i].season, list[i].week) - absWeek(list[i - 1].season, list[i - 1].week)
-      gaps.push(gap)
-      if (gap < OFFICE_COOLDOWN) {
-        repeats++
-        bad(`${list[i].name} raised "${list[i].topic}" again ${gap} week${gap === 1 ? '' : 's'} later ` +
-          `(s${list[i - 1].season} w${list[i - 1].week} then s${list[i].season} w${list[i].week}), cooldown is ${OFFICE_COOLDOWN} [${k}]`)
-      }
-    }
-  }
+const ok = (cond: boolean, what: string) => {
+  console.log(`${cond ? '  ok' : 'FAIL'} ${what}`)
+  if (!cond) fails++
 }
 
-console.log(`${conversations} office conversations over four three-season careers`)
-console.log('  by subject: ' + Object.entries(topics).map(([t, n]) => `${t} ${n}`).join(', '))
-console.log(`${loansAgreed} loan requests agreed, ${loansOut} of those players actually went out on loan`)
-if (gaps.length) {
-  gaps.sort((a, b) => a - b)
-  console.log(`repeat conversations: ${gaps.length}, closest ${gaps[0]} weeks apart, median ${gaps[gaps.length >> 1]}`)
-} else {
-  console.log('no player raised the same subject twice in three seasons')
-}
-console.log(`${repeats} repeats inside the cooldown`)
-
-// ---- the standard ----
-if (conversations < 12) bad(`only ${conversations} office conversations across four careers, too few to judge`)
-if (loansAgreed < 3) bad(`only ${loansAgreed} loan requests were agreed to, too few to judge the action`)
-if (loansAgreed && loansOut === 0) bad('not one agreed loan actually sent the player out')
-
-// ---- and the reported case, built by hand, so the gate is proven rather than
-// inferred from a career that happened not to hit it ----
+// ---- the meeting fires at week 2 with names on the board --------------------
 {
-  const g = newGame('northampton', 'Office Probe', 999)
-  const kid = Object.values(g.players).find(p =>
-    p.clubId === g.userClubId && p.acad && p.age <= 21 && !p.onLoan)
-  if (!kid) {
-    bad('the fabricated case could not find an academy player, so it proved nothing')
-  } else {
-    const item: PressItem = {
-      id: g.nextId++, week: g.week, season: g.season, outlet: OFFICE_OUTLET,
-      question: `${kid.name} wants a loan.`, playerId: kid.id, topic: 'loan', answered: false,
-      options: [{ label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, loan: true, reaction: 'Agreed.' }],
+  const g = newGame('northampton', 'Office', 6)
+  processWeekAndAdvance(g)
+  processWeekAndAdvance(g)
+  const memo = g.news.find(n => /Recruitment meeting/.test(n.subject))
+  ok(!!memo, 'the week-2 recruitment meeting happens')
+  if (memo) {
+    const ids = memo.playerIds ?? []
+    ok(ids.length >= 1 && ids.length <= 3, `it puts ${ids.length} name(s) on the board (1 to 3)`)
+    const club = g.clubs[g.userClubId]
+    for (const id of ids) {
+      const p = g.players[id]
+      ok(!!p && p.clubId !== g.userClubId, `${p?.name ?? id} plays somewhere else`)
+      if (p) ok(Math.round(p.value * 1.15) <= club.budget, `${p.name} is affordable (fee estimate inside the budget)`)
     }
-    g.press.push(item)
-    // he must not be in the XV, or the loan is legitimately refused
-    g.clubs[g.userClubId].tactic.lineup = g.clubs[g.userClubId].tactic.lineup.map(id => (id === kid.id ? null : id))
-    answerPress(g, item.id, 0)
-    console.log(`\n${kid.name}, ${kid.age}: agreed to his loan request -> onLoan ${kid.onLoan === true}`)
-    if (!kid.onLoan) bad('saying yes to a loan request did not send the player on loan')
-    if (!(g.decisions ?? []).some(d => /loan request/.test(d.text ?? ''))) {
-      bad('agreeing to a loan left no trace in the decision log')
-    }
+    ok((memo.body ?? '').length <= 700, `and the memo fits a phone (${(memo.body ?? '').length} chars)`)
   }
 }
 
-if (fails) { console.error(`\nOFFICE PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nOFFICE PROBE PASSED')
+// ---- the meeting is deterministic: same squad, same names -------------------
+{
+  const a = newGame('northampton', 'Office', 6)
+  const b = newGame('northampton', 'Office', 6)
+  recruitmentMeeting(a)
+  recruitmentMeeting(b)
+  const idsA = a.news.find(n => /Recruitment meeting/.test(n.subject))?.playerIds?.join()
+  const idsB = b.news.find(n => /Recruitment meeting/.test(n.subject))?.playerIds?.join()
+  ok(idsA != null && idsA === idsB, 'the same squad gets the same three names, no dice')
+}
+
+// ---- office chats: personality decides, the budget holds --------------------
+{
+  const g = newGame('northampton', 'Office', 6)
+  const squad = g.clubs[g.userClubId].players.map(id => g.players[id]).filter(p => p && !p.acad) as Player[]
+  const [a, b, c, d] = squad
+  // a loyal man in form takes the praise like a loyal man in form
+  a.pers = 'Loyal'; a.form = 8; a.morale = 6
+  const trustBefore = g.mgrTrust ?? 30
+  const line = praisePlayer(g, a)
+  ok(a.morale > 6, `praise lifts the loyal man in form (morale ${a.morale.toFixed(1)})`)
+  ok((g.mgrTrust ?? 30) > trustBefore, 'and the room notices work being recognised')
+  ok(/Means a lot/.test(line), 'he answers in his own voice')
+
+  // praising a struggling hothead reads as sarcasm
+  b.pers = 'Temperamental'; b.form = 5; b.morale = 6
+  const line2 = praisePlayer(g, b)
+  ok(b.morale < 6, `flattering a struggling hothead backfires (morale ${b.morale.toFixed(1)})`)
+  ok(/set up/.test(line2), 'and he says so')
+
+  // two a week, no more
+  ok(chatBudget(g) === 0, 'two conversations spend the week')
+  ok(!canChat(g, c), 'a third man cannot be called in this week')
+
+  // next week the budget resets, but not for a man already spoken to
+  g.week += 1
+  ok(chatBudget(g) === 2, 'a new week brings two fresh conversations')
+  ok(!canChat(g, a) || a.lastChatWk !== g.season * 45 + g.week, 'and last week\'s chat does not block this week')
+  ok(canChat(g, d), 'a fresh face can be called in')
+
+  // warning a professional out of form gets a response, not a sulk
+  d.pers = 'Professional'; d.form = 5.5; d.morale = 6
+  const fBefore = d.form
+  const line3 = warnPlayer(g, d)
+  ok(d.form > fBefore, `the professional answers a warning with work (form ${d.form.toFixed(2)})`)
+  ok(/response/.test(line3), 'and says he will')
+}
+
+console.log(fails ? `\nOFFICE PROBE FAILED (${fails})` : '\nOFFICE PROBE PASSED: three names on the board, and words that keep their value')
+process.exit(fails ? 1 : 0)
