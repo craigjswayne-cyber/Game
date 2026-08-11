@@ -510,7 +510,7 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
           <div className="mday-facts">
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
-          <div className="meta">🏟️ {home?.stadium ?? 'Neutral venue'}{home ? `, ${home.city}` : ''}</div>
+          <div className="meta">🏟️ {fx.venue ? `${fx.venue.name}, ${fx.venue.city} · neutral ground` : `${home?.stadium ?? 'Neutral venue'}${home ? `, ${home.city}` : ''}`}</div>
           <div className="meta" style={{ marginTop: 3 }}>
             {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} Forecast: {rollWeather(game.week, weekRng(game))}
             {derbyName(fx.homeId, fx.awayId) && <span style={{ color: '#a12f2f', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} - expect a cauldron</span>}

@@ -142,7 +142,7 @@ export default function Fixtures() {
         <div className="modal-veil" onClick={() => setReplayId(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <SectionTitle sub={`${weekDate(game.season, replay.week)}${replay.att ? ` · ${replay.att.toLocaleString()} at ${game.clubs[replay.homeId]?.stadium ?? 'a neutral venue'}` : ''}`}>
+            <SectionTitle sub={`${weekDate(game.season, replay.week)}${replay.att ? ` · ${replay.att.toLocaleString()} at ${replay.venue?.name ?? game.clubs[replay.homeId]?.stadium ?? 'a neutral venue'}` : ''}`}>
               {teamShort(game, replay.homeId)} {replay.homeScore} – {replay.awayScore} {teamShort(game, replay.awayId)}
             </SectionTitle>
             <div style={{ padding: '0 4px' }}>

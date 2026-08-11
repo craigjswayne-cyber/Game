@@ -166,8 +166,8 @@ export default function Home() {
             <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} v <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
           </h3>
           <div className="meta">
-            {game.clubs[fx.homeId]?.stadium ?? 'Neutral venue'} · {weekDate(game.season, fx.week)}
-            {fx.homeId === club.id ? ' · Home' : ' · Away'}
+            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? 'Neutral venue'} · {weekDate(game.season, fx.week)}
+            {fx.venue ? ' · Neutral ground' : fx.homeId === club.id ? ' · Home' : ' · Away'}
           </div>
           <div className="muted" style={{ marginTop: 6 }}>
             {isThisWeek

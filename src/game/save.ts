@@ -1,5 +1,5 @@
 import type { Club, FacilityId, GameState } from './model'
-import { ATTR_KEYS, SEASON_WEEKS, emptyStats, initFacilities } from './model'
+import { ATTR_KEYS, SEASON_WEEKS, emptyStats, finalVenue, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
@@ -512,6 +512,17 @@ export function migrate(s: GameState): GameState {
     if (p?.real && p.exClub) { p.exClub = null; delete p.exApps }
   }
   seedExClubs(s)
+
+  // showpiece finals moved to neutral grounds: a save carrying an unplayed
+  // final from an older build still has it at the higher seed's place, so
+  // stamp the venue now. finalVenue is a pure function of seed and season,
+  // which is what lets a mid-season save agree with a fresh one.
+  for (const f of s.fixtures) {
+    if (f.stage === 'F' && !f.played && !f.venue && s.clubs[f.homeId]) {
+      const v = finalVenue(s, f.compId)
+      if (v) f.venue = v
+    }
+  }
 
   ensureCaptains(s, true)
   return s
