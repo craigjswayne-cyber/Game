@@ -183,7 +183,7 @@ function Preview({ fxId }: { fxId: number }) {
     const pid = t.lineup[i]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
-    if (prob) warnings.push({ level: 'bad', text: `No fit no. ${XV_SLOTS[i].shirt} (${prob === 'EMPTY' ? 'empty slot' : `${p!.name} - ${prob.toLowerCase()}`}) - he'll be auto-replaced at kick-off.` })
+    if (prob) warnings.push({ level: 'bad', text: `No fit no. ${XV_SLOTS[i].shirt} (${prob === 'EMPTY' ? 'empty slot' : `${p!.name} - ${prob.toLowerCase()}`}) - an unfit shirt cannot be sent out.` })
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) - high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit - his tank will empty early.` })
   }
@@ -250,6 +250,27 @@ function Preview({ fxId }: { fxId: number }) {
   const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
   if (gapDays <= 5) warnings.push({ level: 'warn', text: `Only a ${gapDays}-day turnaround since the last match - the squad recovered slower this week. Watch the tanks.` })
   if (!speech) warnings.push({ level: 'note', text: 'No dressing-room speech chosen - the players will make their own minds up.' })
+
+  // THE HARD GATE (user: "when a player is injured you shouldn't be able to
+  // process the game without making changes"). A bad warning used to be
+  // confirmable: the modal said the man would be auto-replaced and let you
+  // wave the team through blind. Now an unfit shirt blocks the tunnel: the
+  // one button that proceeds APPLIES the assistant's re-pick first, so the
+  // change is made in front of you, or Not Yet takes you back to do it by
+  // hand. Only a genuine crisis (no fit XV in the whole squad) falls back to
+  // patching at kick-off, because refusing to play at all is not an option
+  // the fixture list offers.
+  const hasBad = warnings.some(w => w.level === 'bad')
+  const fixedLineup = useMemo(() => {
+    if (!confirm || !hasBad) return null
+    const picked = autoSelect(game, availablePlayers(game, club.players), splitFor(club))
+    for (let i = 0; i < 15; i++) {
+      const p = picked[i] != null ? game.players[picked[i]!] : null
+      if (problem(p)) return null // crisis: even the assistant cannot field 15 fit men
+    }
+    return picked
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirm, hasBad])
 
   // rotation dilemma: before a cup tie or on a quick turnaround, the
   // assistant flags overloaded/underdone legs and offers a one-tap rotation
@@ -467,15 +488,30 @@ function Preview({ fxId }: { fxId: number }) {
                 Speech: <b>{SPEECHES.find(s => s.id === speech)?.name}</b>
               </div>
             )}
+            {hasBad && fixedLineup && (
+              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: '#9b2c2c', fontWeight: 600 }}>
+                An unfit shirt cannot be sent out. Take the field and the assistant
+                re-picks around the problem first - or Not Yet to fix it yourself.
+              </div>
+            )}
+            {hasBad && !fixedLineup && (
+              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: '#9b2c2c', fontWeight: 600 }}>
+                A full-blown crisis: the squad cannot field fifteen fit men. The
+                assistant will patch the gaps with whoever can stand.
+              </div>
+            )}
             <div className="btn-row" style={{ marginTop: 12 }}>
               <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
+              {/* the gold button's label keeps the exact 'Take the Field' text
+                  inside it because that substring is what a tap looks for */}
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
                 onClick={() => {
+                  if (hasBad && fixedLineup) { t.lineup = fixedLineup; touch() }
                   setConfirm(false)
                   if (view === 'instant') instantResult(speech ?? undefined)
                   else kickOff(speech ?? undefined, view)
                 }}>
-                {view === 'instant' ? '⏩ Let Him Take It' : '▸ Take the Field'}
+                {hasBad && fixedLineup ? '🩺 Fix It & ' : ''}{view === 'instant' ? '⏩ Let Him Take It' : '▸ Take the Field'}
               </button>
             </div>
           </div>

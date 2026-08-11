@@ -992,3 +992,11 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
 }))
+
+// Browser probes stage the states a natural walk cannot reach on demand - an
+// injured starter on match morning, a specific inbox backlog - through this
+// handle. It is the same store the app runs on; nothing ships differently for
+// it, and a player poking it in devtools can only cheat at their own save.
+if (typeof window !== 'undefined') {
+  ;(window as unknown as { rugbyStore?: typeof useStore }).rugbyStore = useStore
+}
