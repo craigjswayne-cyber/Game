@@ -158,6 +158,11 @@ async function sweep(label, height, stopAt) {
         shirts,
         firstShirtVisible: rows.length ? inSheet(rows[0]) : false,
         firstShirtDisabled: rows.length ? rows[0].disabled === true : null,
+        // a disabled shirt 1 is legitimate when the man is visibly OFF - in
+        // the bin or injured, both flagged on the row. The sim runs while the
+        // probe navigates, so whether shirt 1 is in the bin when the sheet
+        // opens is a coin toss per run; one suite run failed exactly there.
+        firstShirtFlagged: rows.length ? !!rows[0].querySelector('.sh-flag') : false,
         lastShirtVisible: rows.length ? inSheet(rows[rows.length - 1]) : false,
         benchCount: bench.length,
         // a nested scroller inside the sheet is the first report's bug
@@ -177,16 +182,18 @@ async function sweep(label, height, stopAt) {
     ok(geo.scrollTop === 0, `the sheet opens at its top, not part-way down (scrollTop ${geo.scrollTop})`)
     ok(geo.headVisible, 'the heading is on screen when the sheet opens')
     ok(geo.firstShirtVisible, 'shirt 1 is on screen when the sheet opens, with no scrolling')
-    ok(geo.firstShirtDisabled === false, 'shirt 1 can be tapped: the top of the sheet is not blocked off')
+    ok(geo.firstShirtDisabled === false || geo.firstShirtFlagged,
+      `shirt 1 is tappable or visibly off (${geo.firstShirtDisabled ? 'off, flagged' : 'tappable'}): the top of the sheet is not blocked off`)
     ok(geo.innerScrollers === 0, `the sheet is one scrolling page, not nested scrollers (${geo.innerScrollers})`)
     ok(geo.benchCount > 0, `the bench is in the sheet (${geo.benchCount} rows)`)
 
     // ---- and tapping shirt 1 actually arms him
-    const row1 = page.locator('.squad-sheet .sheet-col').first().locator('.sheet-row').first()
+    // the first ENABLED shirt: shirt 1 himself may legitimately be in the bin
+    const row1 = page.locator('.squad-sheet .sheet-col').first().locator('.sheet-row:not([disabled])').first()
     await row1.click()
     await page.waitForTimeout(200)
     const armed = await page.evaluate(() => {
-      const r = document.querySelector('.squad-sheet .sheet-col .sheet-row')
+      const r = document.querySelector('.squad-sheet .sheet-col .sheet-row:not([disabled])')
       return { armed: !!r && r.className.includes('armed'), hint: document.querySelector('.sheet-hint')?.textContent?.trim().slice(0, 60) ?? '' }
     })
     say(`  after tapping shirt 1: armed ${armed.armed}, hint "${armed.hint}"`)
