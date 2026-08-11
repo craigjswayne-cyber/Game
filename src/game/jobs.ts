@@ -10,12 +10,40 @@ import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 
-/** Chance an application succeeds, from reputation vs club stature. */
+/** Chance an application succeeds, from reputation vs club stature.
+ *
+ *  THE SECOND CHANCE. Reputation alone made the market a snob: a manager who
+ *  resigned early carried a reputation near the floor, so even a modest second
+ *  division board rolled him at twenty percent and the Job Centre read Long
+ *  shot on every card (user: "ive resigned from a job and trying to get a job
+ *  but no-one is interested - we need to make it so a lower level team will
+ *  give a second chance"). An out-of-work manager is also a bargain, and a
+ *  club with little standing is buying experience, not a name. So while
+ *  unemployed, matches managed substitute for reputation and the smaller the
+ *  club the more they substitute, with a floor so even a rookie gets a fair
+ *  hearing from a modest board. Big clubs are unmoved: the floor and the
+ *  bonus both scale to nothing as club stature rises, so a giant still says
+ *  no politely. */
 export function jobChance(state: GameState, clubId: string): number {
   const club = state.clubs[clubId]
   if (!club) return 0
   const rep = mgrReputation(state)
-  return clamp(0.92 - (club.rep - rep) / 32, 0.05, 0.95)
+  let c = 0.92 - (club.rep - rep) / 32
+  if (state.unemployed) {
+    // rep 70+ boards unmoved; rep 30 boards fully receptive
+    const modesty = clamp((70 - club.rep) / 40, 0, 1)
+    // two seasons in a dugout is proven enough for the lower leagues,
+    // whatever the win rate was
+    const experience = Math.min(1, state.mgr.m / 80)
+    c += 0.35 * experience * modesty
+    // the floor scales entirely with modesty: a rep 30 board takes the flyer
+    // more often than not, a rep 50 second division board is a real chance
+    // rather than a Long shot, and at rep 70+ the floor is zero so the giants
+    // keep their cold shoulder (the probe caught a flat +0.18 leaking to
+    // Leinster before the scaling)
+    c = Math.max(c, modesty * 0.62)
+  }
+  return clamp(c, 0.05, 0.95)
 }
 
 /** Keep a rolling set of 2-4 vacancies, biased towards struggling clubs. */

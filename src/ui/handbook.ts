@@ -311,7 +311,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'career',
     q: 'How do I get a better job?',
-    a: 'Build a reputation, then apply from the Job Centre when a vacancy that suits you appears. Your chances depend on your reputation against the club\'s standing. If you are doing well somewhere, bigger clubs will come to you: a tap on the shoulder arrives in your inbox, and it does not stay open long.',
+    a: 'Build a reputation, then apply from the Job Centre when a vacancy that suits you appears. Your chances depend on your reputation against the club\'s standing. If you are doing well somewhere, bigger clubs will come to you: a tap on the shoulder arrives in your inbox, and it does not stay open long. And if you are out of work, modest clubs will give a second chance: experience in the dugout counts for more the further down you look, so the way back in is usually a rung or two below the job you left.',
   },
   {
     cat: 'career',
