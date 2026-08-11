@@ -15,7 +15,7 @@ import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
 import { NATL1 } from '../data/leagues/natl1'
-import type { Club, GameState, NewsItem, Pos } from './model'
+import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
@@ -79,7 +79,7 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'natl1', name: 'National League One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
-export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string): GameState {
+export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
 
@@ -108,8 +108,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     mgr: { m: 0, w: 0, d: 0, l: 0, trophies: [], finishes: [], signings: 0, spent: 0 },
     // The room has never met you. 26 is "still making their minds up" territory:
     // they will listen, but a speech from a stranger is only worth half of one
-    // from a manager who has delivered. Earned back through results.
-    mgrTrust: 26,
+    // from a manager who has delivered. Earned back through results. A former
+    // international walks in with the room already half-sold (18B): they have
+    // seen him play, and that buys a hearing no certificate can.
+    mgrTrust: origin === 'player' ? 45 : 26,
+    mgrOrigin: origin,
     // Monday of week 1. Continue walks the week a day at a time (game/days.ts).
     day: 0,
     challenge: challengeId,
@@ -416,8 +419,16 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     club.tactic.lineup = autoSelect(state, pool)
   }
 
-  // a new manager starts with the benefit of the doubt from the terraces
-  state.fanMood = 60
+  // a new manager starts with the benefit of the doubt from the terraces -
+  // and the local hero (18B) starts with more than that at HIS club: the
+  // board gave the job to one of their own and the town approves. The warmth
+  // is front-loaded only; it does not survive a bad season, and it does not
+  // travel to the next job.
+  state.fanMood = origin === 'local' ? 72 : 60
+  if (origin === 'local') {
+    const home = state.clubs[state.userClubId]
+    if (home) home.boardConfidence = Math.min(100, home.boardConfidence + 12)
+  }
 
   // established squads don't start as strangers: seed the first-choice
   // partnerships with a history so season one has settled combinations

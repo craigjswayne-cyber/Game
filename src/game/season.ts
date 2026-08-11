@@ -606,9 +606,10 @@ export const FOCUS_COACH: Record<string, keyof GameState['staff'] | null> = {
 }
 
 /** How many personal plans the department can run at once: the assistant's
- *  level is the bandwidth. */
+ *  level is the bandwidth, and a manager who came up through the coaching
+ *  route (18B) runs one more himself. */
 export function planCap(state: GameState): number {
-  return 2 + (state.staff?.assistant ?? 0)
+  return 2 + (state.staff?.assistant ?? 0) + (state.mgrOrigin === 'coach' ? 1 : 0)
 }
 
 /** The plan a man is actually on, cap enforced at read time: newest
