@@ -296,6 +296,43 @@ export function aiTransfers(state: GameState, rng: Rng) {
     })
   }
 
+  // THE BIDDING WAR (18C, from the competitor assessment: their live
+  // bidding is a monetisation loop, but the kernel - watching the price
+  // climb while you hold the ball - is real drama). A pending bid for one
+  // of the user's players can be topped by a rival before it is answered:
+  // the new club takes over the offer at 8 to 15 percent more, at most
+  // three raises, and the ousted bidder can rejoin next week if the money
+  // is still there. Selling becomes as dramatic as buying.
+  for (const o of state.offers) {
+    if (!o.forUser || o.status !== 'pending') continue
+    if ((o.raises ?? 0) >= 3) continue
+    if (state.week - o.week < 1) continue // the opening bid gets its week on the table
+    if (rng() > 0.3) continue
+    const p = state.players[o.playerId]
+    const user = state.clubs[state.userClubId]
+    if (!p || !user) continue
+    // the budget test is deliberately soft: stated transfer budgets in this
+    // economy sit well under marquee fees (the top budget in a fresh world is
+    // 6.5m against 9m stars), and the original bid generator already prices
+    // at 1.2 to 1.6 times value - a club that wants a war finds the money
+    const rivals = clubs.filter(c => c.id !== user.id && c.id !== o.fromClubId &&
+      c.rep >= user.rep - 15 && c.budget >= o.fee * 0.25)
+    if (!rivals.length) continue
+    const rival = pick(rng, rivals)
+    const ousted = state.clubs[o.fromClubId]?.name ?? 'the first bidder'
+    o.fromClubId = rival.id
+    o.fee = Math.round((o.fee * (1.08 + rng() * 0.07)) / 10_000) * 10_000
+    o.week = state.week
+    o.raises = (o.raises ?? 0) + 1
+    o.countered = false // a fresh bidder can still be haggled once
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+      subject: `💰 Bidding war: ${rival.short} top the offer for ${p.name}`,
+      body: `${rival.name} have gazumped ${ousted}: the bid on your desk for ${p.name} now reads ${fmtMoney(o.fee)}${(o.raises ?? 0) >= 3 ? ', and that is the market done bidding - answer it' : '. Hold your nerve and the price may climb again; wait too long and the window does what windows do'}. Respond from the Transfers screen.`,
+      playerId: p.id,
+    })
+  }
+
   // expire stale offers
   for (const o of state.offers) {
     if (o.status === 'pending' && state.week - o.week >= 2) o.status = 'rejected'
