@@ -1334,7 +1334,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (deals.length >= 2) {
       const TIMES = ['08:10', '09:45', '11:30', '13:05', '14:40', '16:15', '18:00', '19:35', '21:10', '22:55']
       const lines: string[] = []
-      deals.slice(0, 8).forEach((n, i) => {
+      deals.slice(0, 5).forEach((n, i) => {
         const p = state.players[n.playerId!]
         const to = p?.clubId ? state.clubs[p.clubId] : null
         if (!p || !to) return
@@ -1349,10 +1349,10 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
         subject: `📻 Deadline day, as it happened`,
         body: [
-          `The window is shut. ${deals.length} deals crossed the line on the final day - the rundown:`,
+          `The window is shut. ${deals.length} deals crossed the line on the final day${deals.length > 5 ? ', the biggest of them' : ''}:`,
           ...lines,
           ...(flop ? [`23:40 - COLLAPSED: ${flop.name}'s move fell apart at the medical. He stays at ${state.clubs[flop.clubId!]?.short} - for now.`] : []),
-          `Business is done until the window reopens. Back to rugby.`,
+          `Back to rugby.`,
         ].join('\n'),
       })
     }
@@ -2110,9 +2110,9 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🗞️ THE BIG ONE: ${a.short} v ${b.short} for the ${comp.short}`,
         body: [
-          `${comp.name} final, ${where}, Saturday. The two best sides of the season, one trophy between them.`,
-          `${a.short} arrive on ${formGuide(state, a.id).join(' ') || 'no form to speak of'}${sa ? `, with ${sa.name} the man the neutrals are paying to watch` : ''}. ${b.short} answer with ${formGuide(state, b.id).join(' ') || 'nothing played'}${sb ? ` and ${sb.name} in the form of his life` : ''}.`,
-          usIn ? `The papers can pick whoever they like. Finals are won by the side that handles the day - and the day starts now.` : `The neutrals cannot lose. Somebody in that stadium is going to remember Saturday forever.`,
+          `${comp.name} final, ${where}, Saturday.`,
+          `${a.short} arrive on ${formGuide(state, a.id).join(' ') || 'no form to speak of'}${sa ? `, ${sa.name} the man to watch` : ''}. ${b.short} answer with ${formGuide(state, b.id).join(' ') || 'nothing played'}${sb ? ` and ${sb.name} in the form of his life` : ''}.`,
+          usIn ? `Finals are won by the side that handles the day - and the day starts now.` : `Somebody in that stadium is going to remember Saturday forever.`,
         ].join('\n'),
         fixtureId: fx.id,
       })
@@ -2276,10 +2276,16 @@ export function processWeekAndAdvance(state: GameState) {
       .map(id => state.players[id])
       .filter(p => p && p.contractEnds <= state.season)
     if (expiring.length) {
+      // Name the three biggest and count the rest: a 25-man comma list was the
+      // single longest message in the game (1,181 characters, brevity pass 19A),
+      // and the full list already lives on Team > Contracts.
+      const named = [...expiring].sort((a, b) => b.ca - a.ca).slice(0, 3)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring`,
-        body: `Out of contract at the end of the season: ${expiring.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}. Offer new deals from their profile pages or they will walk for free.`,
+        body: `Out of contract in the summer: ${named.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}`
+          + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more - full list on Team ▸ Contracts` : ''}.`
+          + ` Offer new deals from their profiles or they walk for free.`,
       })
     }
   }

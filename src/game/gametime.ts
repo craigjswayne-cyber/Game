@@ -239,23 +239,26 @@ export function gameTimeReview(state: GameState): void {
   const rows = ledger(state, club).filter(r => r.status !== 'fringe' && r.gap <= -3).slice(0, 5)
   if (!rows.length) return
   const asst = state.staffPeople?.assistant?.name ?? 'Your assistant'
-  const lines = rows.map(r => {
+  // Three named men and a count is enough to act on: the five-line version ran
+  // to 819 characters of paragraph (brevity pass 19A). The subject still counts
+  // everyone the ledger flagged.
+  const lines = rows.slice(0, 3).map(r => {
     const d = STATUS_BY_ID[r.status]
-    return `${r.p.name} (${d.name.toLowerCase()}, ${r.p.pers.toLowerCase()}): ${r.actual} appearance${r.actual === 1 ? '' : 's'} against ${r.expected} he was led to expect.`
+    return `${r.p.name} (${d.name.toLowerCase()}): ${r.actual} of the ${r.expected} games he was promised.`
   })
+  if (rows.length > 3) lines.push(`...and ${rows.length - 3} more on the ledger.`)
   const worst = rows[0]
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
     subject: `📋 Game time: ${rows.length} men are not getting what they were told`,
     body: [
-      `${asst} has been through the team sheets, and there is a conversation coming whether you have it or not.`,
+      `${asst} has been through the team sheets:`,
       '',
       ...lines,
       '',
       worst.mood === 'unhappy'
-        ? `${worst.p.name} is the one to watch. Another month of this and he will be knocking on your door, or his agent will be knocking on somebody else's.`
-        : `None of them has downed tools yet. Selection or an honest word about where they stand will settle it.`,
-      `You can change what a man is told on the Squad page under Game Time. Telling him the truth costs less than letting him find out.`,
+        ? `${worst.p.name} is the one to watch - another month of this and his agent starts dialling.`
+        : `Nobody has downed tools yet. Fix it with selection, or an honest word on Team ▸ Game Time.`,
     ].join('\n'),
     playerId: worst.p.id,
   })

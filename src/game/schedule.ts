@@ -131,11 +131,26 @@ export function schedulePreseason(state: GameState, rng: Rng) {
   const usedByUser = new Set<string>()
   for (const week of PRESEASON_WEEKS) {
     const used = new Set<string>([state.userClubId])
-    // the user's opponent: another league, similar level, no repeats
+    // The user's opponent: another league, never his own, and DRAWN rather than
+    // computed. The old pick was the single closest club by reputation, which
+    // is a deterministic function of the club - every Northampton career opened
+    // against the same three sides (user: "change up who we play in pre seasons
+    // so its not all the same three"). Now a hat holds the ten nearest peers
+    // from other leagues plus the four best sides from lower-tier leagues (a
+    // trip to a Championship ground is a proper pre-season tradition), and the
+    // rng draws one per week. New career, new seed, new fixtures.
     if (user) {
-      const opp = Object.values(state.clubs)
+      const pool = Object.values(state.clubs)
         .filter(c => c.leagueId !== user.leagueId && !usedByUser.has(c.id))
-        .sort((a, b) => Math.abs(a.rep - user.rep) - Math.abs(b.rep - user.rep))[0]
+      const peers = [...pool]
+        .sort((a, b) => Math.abs(a.rep - user.rep) - Math.abs(b.rep - user.rep))
+        .slice(0, 10)
+      const lower = pool
+        .filter(c => c.rep <= user.rep - 12)
+        .sort((a, b) => b.rep - a.rep)
+        .slice(0, 4)
+      const hat = [...new Set([...peers, ...lower])]
+      const opp = hat.length ? hat[Math.floor(rng() * hat.length)] : null
       if (opp) {
         usedByUser.add(opp.id)
         used.add(opp.id)

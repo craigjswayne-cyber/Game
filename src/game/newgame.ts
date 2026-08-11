@@ -354,7 +354,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.nextId++
   const scoutCircular = watchList.length ? {
     subject: `🌟 The scouts' ones to watch`,
-    body: `Every pre-season, the scouting network circulates its list of academy talents with genuinely special ceilings. This year's names: ${watchList.join('; ')}. There are also whispers of unattached prodigies from the island and emerging nations drifting around the free-agent market - first club to move wins. Tap a name below to open his profile, or browse the full list: World ▸ Team of the Season ▸ Ones to Watch.`,
+    body: `The pre-season list of academy talents with genuinely special ceilings: ${watchList.join('; ')}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.`,
     playerIds: watchIds,
   } : null
 
@@ -568,12 +568,17 @@ function fanReaction(state: GameState, managerName: string, rng: () => number): 
     : mid
       ? `The reaction around ${uc.city} is wait-and-see. Nobody is thrilled, nobody is furious.`
       : `There is genuine relief around ${uc.city} that somebody has taken the job, and a fair amount of goodwill going with it.`
+  // Three voices are still DRAWN (the pick count feeds the shared rng stream,
+  // and one draw fewer shifts every fixture id in the world), but only two are
+  // printed: the user's brevity pass (19A) cut every letter to what a phone
+  // screen wants to hold.
+  void voices[2]
+  void managerName
   return {
     id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
     subject: `🗣 ${headline}`,
-    body: `${opener}\n\n"${voices[0]}"\n\n"${voices[1]}"\n\n"${voices[2]}"\n\n`
-      + `Terrace mood is ${mood >= 80 ? 'bouncing' : mood >= 62 ? 'behind you' : mood >= 45 ? 'watching' : mood >= 30 ? 'restless' : 'mutinous'}.`
-      + ` It moves with results, and it moves faster after a derby. ${managerName} has a season to make them believe it.`,
+    body: `${opener}\n\n"${voices[0]}"\n\n"${voices[1]}"\n\n`
+      + `Terrace mood is ${mood >= 80 ? 'bouncing' : mood >= 62 ? 'behind you' : mood >= 45 ? 'watching' : mood >= 30 ? 'restless' : 'mutinous'}. Results will move it.`,
   }
 }
 
@@ -616,16 +621,16 @@ function squadAssessment(state: GameState): NewsItem {
   return {
     id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
     subject: `📋 Your assistant's read on the squad`,
-    body: `"Sat down with the numbers before you arrived. Here is where we are.\n\n`
-      + `We have ${senior} senior men, average age ${avgAge.toFixed(1)} - ${ageWord}. `
-      + `${under23} of them ${under23 === 1 ? 'is' : 'are'} 22 or under and ${over32} ${over32 === 1 ? 'is' : 'are'} 32 or over.\n\n`
-      + `Average ability across the group is ${Math.round(avgCa)} out of 100, and ${lean}. `
-      + `Your best three on paper are ${best.map(p => `${p.name} (${p.pos}, ${Math.round(p.ca)})`).join(', ')}.\n\n`
+    // One fact per line, no throat-clearing: the user's brevity pass (19A)
+    // found the original at 669 characters of paragraphs on a phone screen.
+    body: `"The numbers, before anything else.\n\n`
+      + `${senior} senior men, average age ${avgAge.toFixed(1)} - ${ageWord}.\n`
+      + `Average ability ${Math.round(avgCa)}/100, and ${lean}.\n`
+      + `Best on paper: ${best.map(p => `${p.name} (${p.pos}, ${Math.round(p.ca)})`).join(', ')}.\n`
       + (thin.length
-        ? `Where we are short: ${thin.join(', ')}. One injury in those shirts and we are picking somebody out of position.\n\n`
-        : `Every position has cover, which is more than most clubs can say.\n\n`)
-      + `Board expects you to ${boardObjective(uc.rep).text}. Transfer budget is ${fmtMoney(uc.budget)} and the wage bill is `
-      + `${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
-      + `Selection and the game plan are yours whenever you want them. I will have a read on the first opponent by Friday."`,
+        ? `Short at ${thin.join(', ')} - one injury there and someone plays out of position.\n`
+        : `Every position has cover.\n`)
+      + `Board expects you to ${boardObjective(uc.rep).text}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
+      + `I will have a read on the first opponent by Friday."`,
   }
 }

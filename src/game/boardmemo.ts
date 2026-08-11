@@ -224,7 +224,7 @@ export function boardMemo(state: GameState): void {
       // "monthly review" and a six-week window were the same mismatch in miniature:
       // the memo fires every AWARD_EVERY weeks and six weeks is not a month. It
       // names its own window now, once, and no line below has to imply a timeframe.
-      `${club.name} board, review for the manager, covering the last ${weeks} weeks.`,
+      `The last ${weeks} weeks, as the board sees them.`,
       '',
       results,
       ...(tableLine ? [tableLine] : []),

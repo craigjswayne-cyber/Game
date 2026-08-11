@@ -104,8 +104,10 @@ function seasonAwards(state: GameState) {
       biggest ? `Biggest win: ${state.clubs[biggest.homeId]?.short} ${biggest.homeScore}-${biggest.awayScore} ${state.clubs[biggest.awayId]?.short}` : '',
       bestAtt?.att ? `Best attendance: ${bestAtt.att.toLocaleString()} at ${state.clubs[bestAtt.homeId]?.stadium}` : '',
       '',
-      `TEAM OF THE SEASON`,
-      ...tots,
+      // two packed lines instead of fifteen numbered ones (brevity pass 19A):
+      // the phone-screen version of a back-page graphic
+      `Team of the Season - Pack: ${tots.slice(0, 8).map(t => t.replace(/^\d+\. /, '')).join(', ')}.`,
+      `Backs: ${tots.slice(8).map(t => t.replace(/^\d+\. /, '')).join(', ')}.`,
     ].filter(Boolean).join('\n'),
   })
 }
