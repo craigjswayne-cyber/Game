@@ -216,7 +216,19 @@ export function devFactor(state: GameState, p: Player): number {
   const fac = club
     ? ((club.facilities?.paddock ?? 0) + (club.facilities?.gym ?? 0) + (p.acad ? (club.facilities?.academy ?? 0) : 0)) / (p.acad ? 3 : 2)
     : 1.9
-  let f = 1 + (fac - 1.9) * 0.07 - 0.009
+  // THE ACADEMY SLOPE IS STEEPER (user: "academy players should improve
+  // quickly in good facilities, better facilities mean they improve faster").
+  // A kid lives in the building in a way a senior does not, so each facility
+  // level is worth double to him - still centred on the measured world mean
+  // (re-measured at 1.901 across 2,727 academy players in a fresh world), so
+  // the average kid grows exactly as before: the tin shacks now pay for what
+  // the palaces buy. The clamp ceiling rises with it or a level-5 Centre of
+  // Excellence would be cut off at the knees.
+  // The +0.004 is measured, not derived, same as the -0.009 below it: a wider
+  // spread under the pa ceiling loses a little mean (the fastest growers cap
+  // out and waste roll), and two seeds drifted -0.02 the same way until the
+  // constant put it back.
+  let f = 1 + (fac - 1.9) * (p.acad ? 0.14 : 0.07) + (p.acad ? 0.004 : 0) - 0.009
   if (p.pers === 'Professional' || p.pers === 'Leader') f += 0.10
   else if (p.pers === 'Mercenary' || p.pers === 'Temperamental') f -= 0.12
   if (p.clubId === state.userClubId) {
@@ -225,7 +237,7 @@ export function devFactor(state: GameState, p: Player): number {
     if (senior) f += 0.06 * mentorBoost(senior, p)
     f += (state.staff?.assistant ?? 0) * 0.03
   }
-  return clamp(f, 0.65, 1.4)
+  return clamp(f, p.acad ? 0.6 : 0.65, p.acad ? 1.65 : 1.4)
 }
 
 function agePlayers(state: GameState, rng: Rng) {

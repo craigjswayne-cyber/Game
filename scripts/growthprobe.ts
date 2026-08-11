@@ -66,6 +66,23 @@ const g = newGame('northampton', 'Growth', 9)
   const lo = at({ pers: 'Mercenary' }, clubs[0].id)
   const hi = at({ pers: 'Professional' }, clubs[clubs.length - 1].id)
   ok(lo >= 0.65 && hi <= 1.4, `the band holds (${lo.toFixed(3)}..${hi.toFixed(3)} within 0.65..1.4)`)
+
+  // ---- the academy slope is steeper (17D) -----------------------------------
+  // User: "academy players should improve quickly in good facilities, better
+  // facilities mean they improve faster." Same kid, tin shack vs palace: the
+  // palace must be worth at least 1.7x. The old 0.07 slope managed 1.4x,
+  // which read as a rounding error across a season. Measured mean-neutral
+  // across two seeds when the 0.14 slope shipped: 5.980/5.970 before,
+  // 5.977/5.960 after, one season of world academy growth.
+  const acadRank = Object.values(g.clubs).sort((a, b) =>
+    ((a.facilities?.paddock ?? 0) + (a.facilities?.gym ?? 0) + (a.facilities?.academy ?? 0)) -
+    ((b.facilities?.paddock ?? 0) + (b.facilities?.gym ?? 0) + (b.facilities?.academy ?? 0)))
+  const kidShack = at({ pers: 'Loyal', acad: true }, acadRank[0].id)
+  const kidPalace = at({ pers: 'Loyal', acad: true }, acadRank[acadRank.length - 1].id)
+  ok(kidPalace / kidShack >= 1.7,
+    `an academy palace is worth 1.7x a tin shack to a kid (${kidPalace.toFixed(3)} vs ${kidShack.toFixed(3)} = ${(kidPalace / kidShack).toFixed(2)}x)`)
+  ok(kidPalace <= 1.65 && kidShack >= 0.6, `and the academy band holds (${kidShack.toFixed(3)}..${kidPalace.toFixed(3)} within 0.6..1.65)`)
+  ok(hi <= 1.4, `while a senior at the same palace is priced as before (${hi.toFixed(3)})`)
 }
 
 console.log(fails ? `\nGROWTH PROBE FAILED (${fails})` : '\nGROWTH PROBE PASSED: development follows the inputs and the world mean stays put')
