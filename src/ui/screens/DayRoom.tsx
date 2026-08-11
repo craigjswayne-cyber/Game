@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { fmtMoney } from '../../game/model'
+import { fmtMoney, unbeatenRun } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import {
   DAY_NAMES, DAY_SUB, DAY_THEME, dayDate, medicalNews, pressWaiting, storiesForDay, today,
@@ -342,6 +342,17 @@ function FridayBlocks() {
                   {last5.length ? <>form {last5.map((r, i) => (
                     <b key={i} style={{ color: r === 'W' ? '#2f7d4f' : r === 'L' ? '#a12f2f' : '#a8841a', marginLeft: i ? 3 : 4 }}>{r}</b>
                   ))}</> : ''}
+                </div>
+              )
+            })()}
+            {/* the weight of the run, named on the eve (16C): once you are 8+
+                unbeaten every opponent plays their cup final against you */}
+            {(() => {
+              const run = unbeatenRun(game, game.userClubId)
+              if (run < 8 || fx.compId === 'fr') return null
+              return (
+                <div className="meta" style={{ marginTop: 3 }}>
+                  🛡️ <b>Unbeaten in {run}.</b> This is their cup final now: expect their best eighty, and keep the room calm.
                 </div>
               )
             })()}
