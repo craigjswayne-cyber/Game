@@ -76,8 +76,11 @@ try {
   fails++
 } finally {
   await browser.close()
-  done(server)
+  server.stop()
 }
 
+// done() takes the FAILURE COUNT - the first draft passed it the server
+// object, which is always truthy, so a probe whose every assertion held
+// exited 1 with its verdict unprinted and the suite recorded a phantom FAIL.
 say(fails ? `\nUNEMPLOYED PROBE FAILED (${fails})` : '\nUNEMPLOYED PROBE PASSED: no desk, no desk screens')
-process.exit(fails ? 1 : 0)
+done(fails)
