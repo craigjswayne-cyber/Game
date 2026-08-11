@@ -298,11 +298,8 @@ try {
 
   // ---- the inbox cue serves, and the reader has a table of contents ----
   // (user: "it often says 9 messages in inbox, click on it and nothing shows
-  // up ... this is confusing - list below where there is a lot of info to
-  // share"). Two contracts. Tapping the Home cue must open an UNREAD story -
-  // it used to navigate bare and land on whatever old story the reader last
-  // held. And below the open message the rest of the recall window is a list,
-  // so a heavy week is scannable instead of a blind Next-unread crawl.
+  // up"). Tapping the Home cue must open an UNREAD story - it used to
+  // navigate bare and land on whatever old story the reader last held.
   await page.click('.bottom-nav button[title="Home"]')
   await page.waitForTimeout(300)
   const cue = page.locator('.inbox-cue')
@@ -327,17 +324,11 @@ try {
     if (promised > 0 && leftBehind !== promised - 1) {
       throw new Error(`the cue promised ${promised} unread but the tap served none of them (reader says ${leftBehind})`)
     }
-    // the table of contents: every other story in the window, tappable
-    const rows = page.locator('.news-item')
-    const rowCount = await rows.count()
-    console.log(`reader list below the message: ${rowCount} rows`)
-    if (rowCount < 1) throw new Error('the reader has no list below the open message')
-    const rowSubj = (await rows.first().locator('.subj').innerText()).trim()
-    await rows.first().click()
-    await page.waitForTimeout(250)
-    const opened = (await page.locator('.reader h2').innerText()).trim()
-    if (opened !== rowSubj) throw new Error(`tapping a listed story opened "${opened}" instead of "${rowSubj}"`)
-    await shot('12z-inbox-list')
+    // The table-of-contents list under the reader was removed at the user's
+    // request (19D: "remove also in your inbox too") - the reader is one
+    // story and its arrows again, so the only thing to hold here is that the
+    // cue actually served the queue, asserted above.
+    await shot('12z-inbox-reader')
     await page.click('.bottom-nav button[title="Home"]')
     await page.waitForTimeout(200)
   } else {

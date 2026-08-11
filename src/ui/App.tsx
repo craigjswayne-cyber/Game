@@ -196,6 +196,23 @@ export default function App() {
   const cur = nav[nav.length - 1]
   const appClass = `app${night ? ' night' : ''}`
 
+  // NO DESK, NO DESK SCREENS (19E). Resigning or getting sacked sets
+  // unemployed but leaves the nav trail - and the resume-where feature
+  // deliberately restores it - so the back arrow could walk a manager with no
+  // job straight into his old club's Team and Fixtures pages, all still
+  // wearing his ex-employer's data (user: "when ive resigned or fired from a
+  // team i still see team information like fictures etc"). One guard at the
+  // door: any club-desk screen redirects to the unemployed Home. World
+  // screens stay open - the tables, other clubs, the scouting agency are
+  // about the world, not his desk - and the day room stays because the
+  // between-jobs week still walks through it.
+  useEffect(() => {
+    if (!game?.unemployed) return
+    const DESK: Set<string> = new Set(['squad', 'report', 'tactics', 'academy',
+      'training', 'medical', 'fixtures', 'finances', 'transfers', 'infra', 'matchday', 'offers'])
+    if (DESK.has(cur.screen)) home()
+  }, [game?.unemployed, cur.screen, home])
+
   if (cur.screen === 'menu') return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
   if (cur.screen === 'newgame') return <div className={`${appClass} no-rail`}><NewGame /><Overlays /></div>
   if (!game) return <div className={`${appClass} no-rail`}><Menu /><Overlays /></div>
