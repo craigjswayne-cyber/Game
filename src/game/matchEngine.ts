@@ -783,7 +783,14 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     const read = state.analyst
     if (read && read.right && read.abs === state.season * 100 + state.week &&
         read.oppId !== side.teamId && state.matchPrep === read.prep) {
-      const homework = 0.03 * prepF
+      // 0.03 until 16D, when the last-quarter surge quietly raised what a
+      // fitness week is worth (fresher legs meet a bigger late-game pot) and
+      // the analystprobe measured the homework edge collapsing to +0.9 points
+      // a SEASON against always-prep-fitness. Homework has to beat the safe
+      // default when the read is sound, or the whole analyst chain is
+      // decoration again. Re-measured at 0.045: +36.9 points a season, ahead
+      // in 10 of 12 paired seasons.
+      const homework = 0.045 * prepF
       if (read.unit === 'defence') side.units.attack *= 1 + homework
       else if (read.unit === 'attack') side.units.defence *= 1 + homework
       else side.units[read.unit] *= 1 + homework

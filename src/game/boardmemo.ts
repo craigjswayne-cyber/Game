@@ -77,6 +77,14 @@ function pick<T>(list: T[], season: number, week: number, salt: number): T {
   //
   // The salt is now folded in per season only, so within a season consecutive memos
   // always step to the next line, and two saves do not open on the same one.
+  //
+  // FOURTH LESSON, same shape as the third: the caller passed confidence and
+  // this folded in floor(conf / 100) - which is 0 for any confidence up to 99
+  // and 1 at exactly 100. A delighted board crossing 100 between memos moved
+  // the offset by one at the same moment memoIndex moved by one, and the two
+  // cancelled: seed 19 printed "the boardroom is delighted" twice running.
+  // The salt has to be something that CANNOT move during a save. It is the
+  // save's seed now, and nothing else may ever be passed here.
   const memoIndex = Math.floor(week / AWARD_EVERY)
   const offset = (season * 5 + Math.floor(salt / 100)) % list.length
   return list[(memoIndex + offset) % list.length]
@@ -206,7 +214,7 @@ export function boardMemo(state: GameState): void {
     'Verdict: the directors have lost patience. Results now, or a decision gets made for you.',
     'Verdict: your position is under review. There is no gentler way to put it.',
   ]
-  const verdict = pick(verdicts, state.season, state.week, conf)
+  const verdict = pick(verdicts, state.season, state.week, Math.abs(state.seed))
 
   const kind = conf >= 62 ? '👔' : conf >= 45 ? '👔' : '⚠️'
   state.news.push({

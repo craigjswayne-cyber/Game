@@ -161,7 +161,11 @@ try {
   await page.waitForSelector('.squad-sheet', { timeout: 5000 })
   const rows = await page.locator('.sheet-col >> nth=0').locator('.sheet-row').count()
   ok(rows === 15, `the XV is listed in full (${rows} rows)`)
-  ok(await page.locator('.sheet-col >> nth=1').locator('.sheet-row').count() > 0, 'the bench is listed')
+  // captured, not assumed: a first-half injury legitimately spends a bench man
+  // before this sheet ever opens, so the row arithmetic below has to start
+  // from the bench the sheet actually shows (16C: a fixed 8 read as a bug)
+  const benchBefore = await page.locator('.sheet-col >> nth=1').locator('.sheet-row').count()
+  ok(benchBefore > 0, `the bench is listed (${benchBefore} available)`)
 
   const subsLeft = async () => {
     const t = await page.locator('.sheet-head .meta').textContent()
@@ -246,7 +250,7 @@ try {
   // probe made two changes: every man who comes on leaves the bench column, so five
   // changes legitimately leaves 15 + 3, and the old number would have read as a
   // missing-rows bug. Derived, so the count of changes above can move again.
-  const wantRows = 15 + (MAX_SUBS - CHANGES)
+  const wantRows = 15 + (benchBefore - CHANGES)
   ok(reach.rows === wantRows,
     `the XV and the rest of the bench are in the sheet (${reach.rows} rows, wanted ${wantRows})`)
   // ONE scroller. Two nested ones is the bug, whatever the other numbers say.
