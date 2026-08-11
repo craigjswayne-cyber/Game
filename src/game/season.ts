@@ -1039,17 +1039,30 @@ function boardReaction(state: GameState, fx: Fixture) {
   // match so a long streak is conviction, not worship - and one defeat still
   // spends it the old way.
   let streak = 0
+  let slump = 0
   {
     const mine = state.fixtures
       .filter(f => f.played && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
       .sort((a, b) => a.week - b.week)
     for (let i = mine.length - 1; i >= 0; i--) {
       const f = mine[i]
-      if (f.homeId === club.id ? f.homeScore > f.awayScore : f.awayScore > f.homeScore) streak++
+      if (f.homeId === club.id ? f.homeScore > f.awayScore : f.awayScore > f.homeScore) { if (slump) break; streak++ }
+      else if (f.homeId === club.id ? f.homeScore < f.awayScore : f.awayScore < f.homeScore) { if (streak) break; slump++ }
       else break
     }
   }
-  const trustMag = us > them ? 1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25) : -(1.2 + Math.max(0, -diff) * 1.2)
+  // SYMMETRIC AT THE BASE (16C hardening). The loss base sat at 1.2 against a
+  // win base of 1.5, which let a plainly losing season NET GAIN belief: the
+  // trustprobe caught a 12W-16L year finishing +5. Wins still pay extra for
+  // beating better sides and for streaks - quality is rewarded - but an equal
+  // record against equal opposition must not manufacture conviction.
+  // ...and the mirror holds on the way down: a slump spends belief faster
+  // with every consecutive defeat, exactly as a run compounds it. Without the
+  // mirror, twelve underdog wins papered over sixteen losses and the season
+  // finished level - a losing year has to end with less belief than it began.
+  const trustMag = us > them
+    ? 1.5 + Math.max(0, diff) * 1.6 + Math.min(2, streak * 0.25)
+    : -(1.5 + Math.max(0, -diff) * 1.2 + Math.min(2, slump * 0.25))
   state.mgrTrust = clamp(squadTrust(state) + trustMag * derbyF, 0, 100)
   // the derby ledger: every meeting with a rival is written down forever
   if (fx.derby) {
