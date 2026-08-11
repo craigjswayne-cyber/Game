@@ -5,7 +5,7 @@ import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
 import { boardMemo } from './boardmemo'
-import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
+import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -581,14 +581,9 @@ function weeklyTraining(state: GameState, rng: Rng) {
   // a winning run carries a dressing room; a losing one drags it under
   {
     const uid = state.userClubId
-    const last3 = state.fixtures
-      .filter(f => f.played && (f.homeId === uid || f.awayId === uid))
-      .slice(-3)
-      .map(f => {
-        const us = f.homeId === uid ? f.homeScore : f.awayScore
-        const them = f.homeId === uid ? f.awayScore : f.homeScore
-        return us > them ? 'W' : us < them ? 'L' : 'D'
-      })
+    // formGuide sorts by week; a raw slice reads appended cup rounds out of
+    // calendar order (the Home pips bug)
+    const last3 = formGuide(state, uid, 3)
     if (last3.length === 3 && (last3.every(r => r === 'W') || last3.every(r => r === 'L'))) {
       const up = last3[0] === 'W'
       for (const id of state.clubs[uid].players) {

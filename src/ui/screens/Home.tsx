@@ -9,7 +9,7 @@ import { derbyName, rivalsOf } from '../../game/rivalries'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
-import { fmtMoney, grudgeBetween, weekDate } from '../../game/model'
+import { fmtMoney, formGuide, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { ordinal } from '../../game/gossip'
 
@@ -59,15 +59,10 @@ export default function Home() {
   const isThisWeek = fx && fx.week === game.week
   const pressOpen = game.press.filter(p => !p.answered).length
 
-  // hub widgets: form pips, league position, money
-  const recent = game.fixtures
-    .filter(f => f.played && (f.homeId === club.id || f.awayId === club.id))
-    .slice(-5)
-    .map(f => {
-      const us = f.homeId === club.id ? f.homeScore : f.awayScore
-      const them = f.homeId === club.id ? f.awayScore : f.homeScore
-      return us > them ? 'W' : us < them ? 'L' : 'D'
-    })
+  // hub widgets: form pips, league position, money. The pips sort by week
+  // inside formGuide - see its comment for the W W W W W screenshot this
+  // array-order slice put on the Home screen.
+  const recent = formGuide(game, club.id)
   const leagueOrder = sortTable(game.comps[club.leagueId]?.table ?? [])
   // 0 until a league game is played, so the widget's dash actually shows
   const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)

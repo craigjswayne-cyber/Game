@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import { fmtMoney, mgrReputation, poss } from './model'
+import { fmtMoney, formGuide, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 
@@ -391,15 +391,10 @@ function powerRankings(state: GameState) {
 
 function streakWatch(state: GameState, rng: Rng) {
   const uid = state.userClubId
-  const recent = state.fixtures
-    .filter(f => f.played && (f.homeId === uid || f.awayId === uid))
-    .slice(-3)
-  if (recent.length < 3) return
-  const results = recent.map(f => {
-    const us = f.homeId === uid ? f.homeScore : f.awayScore
-    const them = f.homeId === uid ? f.awayScore : f.homeScore
-    return us > them ? 'W' : us < them ? 'L' : 'D'
-  })
+  // formGuide sorts by week, so the streak is the real last three and not the
+  // last three in array order (appended cup rounds broke that on the Home pips)
+  const results = formGuide(state, uid, 3)
+  if (results.length < 3) return
   const club = state.clubs[uid]
   if (results.every(r => r === 'W') && rng() < 0.7) {
     wire(state, `Terrace pulse: believers at ${club.short}`,

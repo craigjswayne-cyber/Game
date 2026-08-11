@@ -1,5 +1,5 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
@@ -1252,15 +1252,12 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   // struggling ones see gaps - and no two gates are ever identical.
   const hostClub = state.clubs[fx.homeId]
   if (hostClub) {
-    const recent = state.fixtures
-      .filter(f => f.played && (f.homeId === hostClub.id || f.awayId === hostClub.id))
-      .slice(-4)
+    // formGuide sorts by week; a raw slice of the fixtures array reads appended
+    // cup rounds out of calendar order (the Home pips bug). No rng is drawn
+    // here, so the stream and the fingerprint are untouched.
+    const recent = formGuide(state, hostClub.id, 4)
     let formPts = 0
-    for (const f of recent) {
-      const us = f.homeId === hostClub.id ? f.homeScore : f.awayScore
-      const them = f.homeId === hostClub.id ? f.awayScore : f.homeScore
-      formPts += us > them ? 1 : us === them ? 0.5 : 0
-    }
+    for (const r of recent) formPts += r === 'W' ? 1 : r === 'D' ? 0.5 : 0
     const formF = recent.length ? (formPts / recent.length - 0.5) * 0.16 : 0 // hot streak ±8%
     const confF = (hostClub.boardConfidence - 55) / 800                       // mood around the club
     const fanF = hostClub.id === state.userClubId ? ((state.fanMood ?? 60) - 60) / 900 : 0
