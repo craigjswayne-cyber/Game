@@ -278,7 +278,10 @@ export default function Finances() {
             </SectionTitle>
             <div className="tblwrap fitwrap"><table className="dtable fit">
               <colgroup><col style={{ width: '34%' }} />{grid.seasons.map(sn => <col key={sn} />)}</colgroup>
-              <thead><tr><th>Unit</th>{grid.seasons.map(sn => <th key={sn} className="num">{2026 + sn}</th>)}</tr></thead>
+              {/* two-digit years: four full ones jammed the last column against
+                  the screen edge in portrait (user: "squad cover needs to be
+                  better fitted") */}
+              <thead><tr><th>Unit</th>{grid.seasons.map(sn => <th key={sn} className="num">{`'${String(26 + sn).padStart(2, '0')}`}</th>)}</tr></thead>
               <tbody>
                 {grid.rows.map(row => (
                   <tr key={row.label}>

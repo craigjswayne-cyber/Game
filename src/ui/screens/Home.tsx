@@ -372,9 +372,16 @@ export default function Home() {
       })()}
       {/* The messages live on their own screen now (user: "inbox and summary
           should be separated"). What stays here is the one line that says whether
-          there is anything to read. */}
+          there is anything to read.
+
+          The tap SERVES, it does not just navigate. It used to go('inbox') bare,
+          which left the reader on whatever inboxId last pointed at - usually a
+          story already read - so a cue promising nine unread opened onto none of
+          them (user: "it often says 9 messages in inbox, click on it and nothing
+          shows up"). openInbox is what the rail's mail icon does: oldest unread,
+          served and marked. */}
       {unread > 0 && (
-        <button className="card inbox-cue" onClick={() => go('inbox')}>
+        <button className="card inbox-cue" onClick={() => useStore.getState().openInbox()}>
           <h3>✉ {unread} unread message{unread === 1 ? '' : 's'}</h3>
           <div className="meta">{unreadItems[0]?.subject ?? ''}</div>
         </button>

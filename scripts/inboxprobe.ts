@@ -181,5 +181,77 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
   ok(!walked.has(11), 'the step arrows cannot reach an expired story either')
 }
 
+// ---- the table of contents opens the story you tapped ----------------------
+//
+// User: "it often says 9 messages in inbox, click on it and nothing shows up ...
+// this is confusing - list below where there is a lot of info to share." Two
+// halves. The reader grew a list, and tapping a line has to open THAT story and
+// file it - openStory is the store action behind the rows. And the Home cue has
+// to SERVE the queue rather than just navigate: go('inbox') left the reader on
+// whatever inboxId last pointed at, which on a nine-unread morning was a story
+// already read. That is the cue tap opening onto none of the nine.
+{
+  const gg = newGame('northampton', 'Inbox', 8)
+  gg.news = [
+    { id: 50, week: 1, season: 0, type: 'general', subject: 'Old and read', body: '.', read: true },
+    { id: 51, week: 1, season: 0, type: 'general', subject: 'First unread', body: '.', read: false },
+    { id: 52, week: 1, season: 0, type: 'general', subject: 'Second unread', body: '.', read: false },
+    { id: 53, week: 1, season: 0, type: 'general', subject: 'Third unread', body: '.', read: false },
+  ]
+  // the reader is parked on the read story, exactly the state the cue bug needs
+  st.setState({ game: gg, nav: [{ screen: 'home' }], inboxId: 50 })
+
+  // the cue's tap is openInbox: it must serve an unread, not re-show id 50
+  st.getState().openInbox()
+  const served = st.getState().inboxId
+  ok(served === 51, `the cue serves the oldest unread (opened ${served}, wanted 51)`)
+  ok(gg.news.find(n => n.id === 51)!.read, 'and marks it read on the way past')
+
+  // tapping a line in the list opens that exact story
+  st.getState().openStory(53)
+  ok(st.getState().inboxId === 53, 'a tapped line opens that story, not the queue head')
+  ok(gg.news.find(n => n.id === 53)!.read, 'and it is filed as read')
+  ok(!gg.news.find(n => n.id === 52)!.read, 'without touching anything it skipped over')
+  const nav = st.getState().nav
+  ok(nav.filter(e => e.screen === 'inbox').length <= 1, 'and the screen never stacks on itself')
+
+  // a dead id is a no-op, not a blank reader
+  const before = st.getState().inboxId
+  st.getState().openStory(9999)
+  ok(st.getState().inboxId === before, 'an unknown id changes nothing')
+}
+
+// ---- serving an OLD unread story must not vaporise it ----------------------
+//
+// The wood chipper. The shelf used to age a read story from the day it was
+// WRITTEN, so an unread story more than five days old expired the instant the
+// queue marked it read: served straight into the void, never rendered, and the
+// reader's catch-up effect asked for the next one, which followed it. A tap on
+// "9 unread messages" devoured all nine and showed an empty screen (user: "it
+// often says 9 messages in inbox, click on it and nothing shows up"). Read
+// mail now gets its five days from the moment it is opened - readAt.
+{
+  const gg = newGame('northampton', 'Inbox', 9)
+  gg.season = 0
+  gg.week = 20
+  gg.day = 5
+  // nine unread stories from six weeks ago: the backlog of a manager who
+  // pressed Continue through a busy month
+  gg.news = Array.from({ length: 9 }, (_, i) => ({
+    id: 700 + i, week: 14, season: 0, type: 'general' as const,
+    subject: `Backlog ${i}`, body: '.', read: false,
+  }))
+  st.setState({ game: gg, nav: [{ screen: 'home' }], inboxId: null })
+
+  st.getState().openInbox()
+  const servedId = st.getState().inboxId!
+  const served = gg.news.find(n => n.id === servedId)!
+  ok(served.read, 'the oldest backlog story is served and marked read')
+  ok(inInbox(gg, served), 'and it is STILL IN THE READER after being served, old as it is')
+  ok(served.readAt != null, 'because reading stamped when (readAt)')
+  const live = gg.news.filter(n => inInbox(gg, n))
+  ok(live.length === 9, `nothing was devoured: all 9 are still on screen (${live.length})`)
+}
+
 console.log(fails ? `INBOX PROBE FAILED (${fails})` : 'INBOX PROBE PASSED')
 process.exit(fails ? 1 : 0)

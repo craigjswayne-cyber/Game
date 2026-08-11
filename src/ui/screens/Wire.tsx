@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { PeopleChips } from './Inbox'
 import { paragraphs } from '../components'
 import { weekDate } from '../../game/model'
+import { markRead } from '../../game/days'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
@@ -28,7 +29,8 @@ export default function Wire() {
   const items = queue.map(id => game.news.find(n => n.id === id)).filter((n): n is NonNullable<typeof n> => !!n)
   const n = items[Math.min(idx, Math.max(0, items.length - 1))]
 
-  useEffect(() => { if (n) { n.read = true } }, [n])
+  // markRead stamps WHEN, so the inbox's five-day shelf starts from the reading
+  useEffect(() => { if (n) { markRead(game, n) } }, [n])
 
   if (!n) {
     return (
@@ -64,7 +66,7 @@ export default function Wire() {
       </div>
       <div className="btn-row" style={{ marginTop: 10 }}>
         {!last && (
-          <button className="btn ghost" onClick={() => { for (const it of items) it.read = true; home() }}>
+          <button className="btn ghost" onClick={() => { for (const it of items) markRead(game, it); home() }}>
             Skip the rest
           </button>
         )}

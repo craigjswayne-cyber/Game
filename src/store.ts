@@ -8,7 +8,7 @@ import {
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
-import { firstStepOfWeek, inInbox, matchDayIndex, nextStep } from './game/days'
+import { firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep } from './game/days'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
@@ -92,6 +92,8 @@ interface Store {
   /** Open the inbox on the oldest unread story, or advance to the next one if it
    *  is already open. This is what the mail icon does. */
   openInbox: () => void
+  /** Open one specific story from the reader's list, marking it read. */
+  openStory: (id: number) => void
   /** Step through the recall window: -1 older, +1 newer. */
   inboxStep: (dir: -1 | 1) => void
   /** File away everything already read. */
@@ -339,7 +341,7 @@ export const useStore = create<Store>((set, get) => ({
     // oldest unread first: a queue is read front to back
     const next = unread[0]
     if (next) {
-      next.read = true
+      markRead(g, next)
       return {
         inboxId: next.id,
         nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
@@ -355,6 +357,22 @@ export const useStore = create<Store>((set, get) => ({
     }
   }),
 
+  /** The reader's list is a table of contents: tapping a line opens that story
+   *  rather than the queue's choice, and reading it files it like any other. */
+  openStory: (id) => set(s => {
+    const g = s.game
+    if (!g) return {}
+    const n = g.news.find(x => x.id === id)
+    if (!n) return {}
+    markRead(g, n)
+    const onInbox = s.nav[s.nav.length - 1]?.screen === 'inbox'
+    return {
+      inboxId: id,
+      nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
+      tick: s.tick + 1,
+    }
+  }),
+
   inboxStep: (dir) => set(s => {
     const g = s.game
     if (!g) return {}
@@ -363,7 +381,7 @@ export const useStore = create<Store>((set, get) => ({
     const i = live.findIndex(n => n.id === s.inboxId)
     // dir -1 goes back in time, which is FORWARD through a newest-first list
     const j = Math.max(0, Math.min(live.length - 1, (i < 0 ? 0 : i) + (dir === -1 ? 1 : -1)))
-    live[j].read = true
+    markRead(g, live[j])
     return { inboxId: live[j].id, tick: s.tick + 1 }
   }),
 

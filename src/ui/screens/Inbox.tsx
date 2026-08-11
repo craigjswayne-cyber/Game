@@ -1,8 +1,8 @@
-import { paragraphs } from '../components'
+import { SectionTitle, paragraphs } from '../components'
 import { useEffect } from 'react'
 import { useStore } from '../../store'
 import { weekDate, type NewsItem } from '../../game/model'
-import { RECALL_DAYS, inInbox, storyAge } from '../../game/days'
+import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -71,7 +71,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
     <>
       {news.slice(0, compact ? 12 : 30).map(n => (
         <button key={n.id} className={`news-item${n.read ? '' : ' unread'}`}
-          onClick={() => { n.read = true; touch() }}>
+          onClick={() => { markRead(game, n); touch() }}>
           <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
           <div className="subj">{n.subject}</div>
           <div className="body">{n.body}</div>
@@ -85,7 +85,7 @@ export default function Inbox() {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
   const inboxId = useStore(s => s.inboxId)
-  const { openInbox, inboxStep, clearRead } = useStore.getState()
+  const { openInbox, openStory, inboxStep, clearRead } = useStore.getState()
 
   const live = [...game.news].filter(n => inInbox(game, n)).sort((a, b) => b.id - a.id)
   const window20 = live.slice(0, 20)
@@ -110,9 +110,9 @@ export default function Inbox() {
   }
 
   // How long this one has left, so the window is visible rather than a surprise.
-  // Only ever shown on something already read: an unread story does not expire.
-  const age = storyAge(game, n)
-  const left = RECALL_DAYS - age
+  // Only ever shown on something already read: an unread story does not expire,
+  // and the countdown runs from when it was READ (see days.inInbox).
+  const left = daysLeft(game, n)
   const shelf = !n.read ? '' : left <= 0 ? ' · last day in the inbox'
     : left === 1 ? ' · one more day' : ` · ${left} days left`
 
@@ -146,6 +146,28 @@ export default function Inbox() {
         {paragraphs(n.body).map((para, k) => <p key={k}>{para}</p>)}
         <PeopleChips n={n} />
       </article>
+
+      {/* The table of contents. One message at a time was the ask in 10D, but
+          on a heavy morning it turned the other eight messages invisible: the
+          cue said nine, the reader showed one, and stepping blind through the
+          rest is not reading, it is archaeology (user: "it often says 9
+          messages in inbox, click on it and nothing shows up ... list below
+          where there is a lot of info to share"). So the open message keeps
+          the screen and the rest of the window sits under it as a tappable
+          list - the same rows the unemployed Home uses, unread dot and all. */}
+      {window20.length > 1 && (
+        <>
+          <SectionTitle sub="tap a story to read it now">Also In The Inbox</SectionTitle>
+          {window20.filter(m => m.id !== n.id).map(m => (
+            <button key={m.id} className={`news-item${m.read ? '' : ' unread'}`}
+              onClick={() => openStory(m.id)}>
+              <div className="when">{TYPE_ICON[m.type] ?? '📰'} {weekDate(m.season, m.week)}</div>
+              <div className="subj">{m.subject}</div>
+              <div className="body">{m.body}</div>
+            </button>
+          ))}
+        </>
+      )}
       <div className="spacer" />
     </>
   )

@@ -1966,6 +1966,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .tblwrap.fitwrap { overflow: visible; }
 .dtable.fit { table-layout: fixed; }
 .dtable.fit td.name { max-width: none; }
+/* the last column breathes: flush against the bezel it read as cut off
+   (user: "squad cover needs to be better fitted") */
+.dtable.fit th:last-child, .dtable.fit td:last-child { padding-right: 16px; }
 .filter-row {
   display: flex; gap: 6px; padding: 7px 14px 6px;
   flex-wrap: wrap; align-items: center;
