@@ -14,7 +14,6 @@ export default function Agency() {
 
   const list = tab === 'seniors' ? agencySeniors(game) : agencyKids(game)
   const prev = tab === 'seniors' ? (game.agency?.seniors ?? []) : (game.agency?.kids ?? [])
-  const best = game.agency?.best ?? {}
 
   if (tab === 'nations') {
     const order = natRankOrder(game)
@@ -71,7 +70,10 @@ export default function Agency() {
         {tab === 'seniors' ? 'Senior Rankings: World' : 'Wonderkid Watch: World'}
       </SectionTitle>
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>#</th><th></th><th>High</th><th>Name</th><th>Pos</th><th></th><th>Club</th><th className="num">Value</th></tr></thead>
+        {/* No High column. It shadowed the rank number one cell to its left and
+            cost the width that pushed Club off a portrait screen (user: "we dont
+            want a high column"). The movement arrow already tells the story. */}
+        <thead><tr><th>#</th><th></th><th>Name</th><th>Pos</th><th></th><th>Club</th><th className="num">Value</th></tr></thead>
         <tbody>
           {list.map((p, i) => {
             const prevIdx = prev.indexOf(p.id)
@@ -87,7 +89,6 @@ export default function Agency() {
                     : move === 'new' ? <span style={{ color: 'var(--accent-ink)' }}>★</span>
                     : <span className="muted">·</span>}
                 </td>
-                <td className="num muted">{best[p.id] != null ? Math.min(best[p.id], i + 1) : i + 1}</td>
                 <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
                   {p.name}{tab === 'kids' ? ` (${p.age})` : ''}
                 </td>
@@ -101,7 +102,7 @@ export default function Agency() {
         </tbody>
       </table></div>
       <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-        ▲▼ movement since last month · High: best rank held · your players highlighted · tap a name to scout him
+        ▲▼ movement since last month · your players highlighted · tap a name to scout him
       </div>
       <div className="spacer" />
     </>

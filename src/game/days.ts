@@ -158,7 +158,32 @@ export function storyAge(state: GameState, n: NewsItem): number {
  *  the season review and club history still read the whole of state.news. */
 export function inInbox(state: GameState, n: NewsItem): boolean {
   if (n.cleared) return false
-  return !n.read || storyAge(state, n) <= RECALL_DAYS
+  if (!n.read) return true
+  // THE SHELF COUNTS FROM THE READING, NOT THE WRITING. It used to age a read
+  // story from the day it was published, which made the queue a wood chipper:
+  // an unread story more than five days old expired the INSTANT openInbox
+  // marked it read, so it was served straight into the void, the reader's
+  // catch-up effect asked for the next one, and a tap on "9 unread messages"
+  // silently devoured all nine and landed on an empty screen (user: "it often
+  // says 9 messages in inbox, click on it and nothing shows up"). Read mail
+  // now gets its five days on the shelf from the moment it is opened. Stories
+  // read before readAt existed keep the written-day axis.
+  return daysLeft(state, n) >= 0
+}
+
+/** How many more days a READ story has in the reader. Negative means gone. */
+export function daysLeft(state: GameState, n: NewsItem): number {
+  const now = absDay(state.season, state.week, today(state))
+  const readAt = n.readAt ?? absDay(n.season, n.week, dayOfStory(n))
+  return RECALL_DAYS - (now - readAt)
+}
+
+/** The one way to mark a story read: stamps when, so the shelf is honest. */
+export function markRead(state: GameState, n: NewsItem): void {
+  if (!n.read) {
+    n.read = true
+    n.readAt = absDay(state.season, state.week, today(state))
+  }
 }
 
 /** The id the current week's bulletins start from.

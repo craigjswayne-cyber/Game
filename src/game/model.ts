@@ -547,6 +547,12 @@ export interface NewsItem {
    *  review and the history all read this list - it simply stops appearing in the
    *  inbox reader. */
   cleared?: boolean
+  /** The absolute day (days.absDay) the manager actually read it. The recall
+   *  window counts from HERE, not from when the story was written: an old
+   *  unread story used to expire the instant the queue marked it read, so the
+   *  mail icon served it straight into the void. Absent on stories read before
+   *  this field existed - inInbox falls back to the written day for those. */
+  readAt?: number
 }
 
 export interface PressOption {

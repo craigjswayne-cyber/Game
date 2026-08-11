@@ -296,6 +296,54 @@ try {
   }
   await shot('12-weeks-later')
 
+  // ---- the inbox cue serves, and the reader has a table of contents ----
+  // (user: "it often says 9 messages in inbox, click on it and nothing shows
+  // up ... this is confusing - list below where there is a lot of info to
+  // share"). Two contracts. Tapping the Home cue must open an UNREAD story -
+  // it used to navigate bare and land on whatever old story the reader last
+  // held. And below the open message the rest of the recall window is a list,
+  // so a heavy week is scannable instead of a blind Next-unread crawl.
+  await page.click('.bottom-nav button[title="Home"]')
+  await page.waitForTimeout(300)
+  const cue = page.locator('.inbox-cue')
+  if (await cue.count()) {
+    const cueText = await cue.innerText()
+    const promised = parseInt(/(\d+) unread/i.exec(cueText)?.[1] ?? '0', 10)
+    await cue.click()
+    try {
+      await page.waitForSelector('.reader', { timeout: 10000 })
+    } catch (e) {
+      const mast = await page.evaluate(() => document.querySelector('.masthead h1')?.textContent ?? '(no masthead)')
+      const bodyTop = await page.evaluate(() => document.body.innerText.slice(0, 400))
+      console.log(`CUE DEBUG: after tap, screen is "${mast}"; page starts:\n${bodyTop}`)
+      await shot('12z-cue-debug')
+      throw e
+    }
+    const pos = await page.locator('.reader-pos').innerText()
+    console.log(`inbox cue promised ${promised} unread; reader header: "${pos}"`)
+    // serving the first one leaves promised-1 behind; a stale already-read
+    // story leaves all of them and this line still says the full count
+    const leftBehind = parseInt(/(\d+) unread/i.exec(pos)?.[1] ?? '0', 10)
+    if (promised > 0 && leftBehind !== promised - 1) {
+      throw new Error(`the cue promised ${promised} unread but the tap served none of them (reader says ${leftBehind})`)
+    }
+    // the table of contents: every other story in the window, tappable
+    const rows = page.locator('.news-item')
+    const rowCount = await rows.count()
+    console.log(`reader list below the message: ${rowCount} rows`)
+    if (rowCount < 1) throw new Error('the reader has no list below the open message')
+    const rowSubj = (await rows.first().locator('.subj').innerText()).trim()
+    await rows.first().click()
+    await page.waitForTimeout(250)
+    const opened = (await page.locator('.reader h2').innerText()).trim()
+    if (opened !== rowSubj) throw new Error(`tapping a listed story opened "${opened}" instead of "${rowSubj}"`)
+    await shot('12z-inbox-list')
+    await page.click('.bottom-nav button[title="Home"]')
+    await page.waitForTimeout(200)
+  } else {
+    console.log('inbox cue not on screen this run (all read) - list checked via inboxprobe')
+  }
+
   // Team of the Week (magazine dream team)
   await page.click('.bottom-nav button[title="World"]')
   await page.click('.submenu-item >> text=Team of the Week')
