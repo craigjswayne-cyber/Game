@@ -77,7 +77,13 @@ for (const seed of seeds) {
     const startSeason = g.season
     let guard = 0
     while (g.season === startSeason && guard++ < 60) {
-      const before = g.news.length
+      // BY ID, NOT BY INDEX. The settle trims the news array (slice(-NEWS_KEEP))
+      // whenever it grows past the cap, so an index captured before the week is
+      // meaningless after it: in a news-heavy world g.news.slice(before) missed
+      // the very award it was looking for, the probe read "no award given", and
+      // it accused the ceremony of withholding a trophy that is sitting right
+      // there in the feed. Ids are monotonic and survive the trim.
+      const beforeId = g.nextId
       // who could possibly deserve it, measured BEFORE the week is processed so
       // the window is the same one the award uses
       const wk = g.week
@@ -90,7 +96,7 @@ for (const seed of seeds) {
       const appsBefore = new Map<number, number>()
       for (const p of Object.values(g.players)) appsBefore.set(p.id, p.stats.apps)
       processWeekAndAdvance(g)
-      const fresh = g.news.slice(before)
+      const fresh = g.news.filter(n => n.id >= beforeId)
       const named = potmWinners(fresh)
 
       // MY OWN TALLY OF THE WINDOW, kept independently of the game's mSum/mApps.
@@ -151,24 +157,19 @@ for (const seed of seeds) {
         if (named.length) withPlayer++
       }
       if (wk % AWARD_EVERY === 0) win.clear()
-      // and the orphan case: a month with a worthy player and no worthy manager
-      if (wk % AWARD_EVERY === 0 && !g.unemployed && named.length === 0) {
-        const leagueId = g.clubs[g.userClubId]?.leagueId
-        const comp = leagueId ? g.comps[leagueId] : null
-        if (comp?.type === 'league') {
-          const from = wk - (AWARD_EVERY - 1)
-          // the same pool the award uses, academy men and all. An earlier draft
-          // left `!p.acad` out here and then accused the game of withholding an
-          // award from players the award is not for.
-          const cands = comp.table.flatMap(r => (g.clubs[r.teamId]?.players ?? [])
-            .map(id => g.players[id]).filter(p => p && !p.acad && (p.lastWk ?? -9) >= from))
-          const worthy = cands.filter(p => (p!.stats.apps ?? 0) >= 3).length > 0
-          const mgr = managerOfMonth(g, leagueId!, from, wk)
-          if (worthy && !mgr) {
-            orphaned++
-            bad(`seed ${seed}, week ${wk}: players deserved the award and none was given, because no manager earned his`)
-          }
-        }
+      // and the orphan case: the two awards must not depend on each other.
+      // The probe's own window ledger (pool, built before the counters were
+      // cleared) applies the game's exact eligibility - two window
+      // appearances among the league clubs' senior men - so if it holds
+      // anyone and no player award came, one was genuinely withheld. Earlier
+      // drafts guessed eligibility from lastWk and season apps, and accused
+      // the game over windows where nobody truly qualified: a summer window
+      // puts lastWk on tourists whose only rugby was a Test, and a playoff
+      // month can end with two league rounds and still no double-appearing
+      // eligible man once the beaten sides go to the beach.
+      if (wk % AWARD_EVERY === 0 && !g.unemployed && named.length === 0 && pool.length > 0) {
+        orphaned++
+        bad(`seed ${seed}, week ${wk}: ${pool[0].name} (${pool[0].avg.toFixed(2)} from ${pool[0].apps}) deserved Player of the Month and none was given`)
       }
     }
   }
