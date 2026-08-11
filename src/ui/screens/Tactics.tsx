@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { autoSelect, availablePlayers } from '../../game/matchEngine'
 import { effAt } from '../../game/attributes'
-import { PRESETS, SLIDER_INFO, sliderReadout } from '../../game/tactics'
+import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, defSliderReadout, sliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
 import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
@@ -158,6 +158,17 @@ export default function Tactics() {
       <input type="range" min={0} max={100} value={t[info.key]}
         onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, t[info.key])}</div>
+    </div>
+  )
+
+  // The without-ball dials (18D). Same row shell, but these live off the
+  // preset system and default to 50 when a save predates them.
+  const defSlider = (info: typeof DEF_SLIDER_INFO[number]) => (
+    <div className="slider-row" key={info.key}>
+      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--accent-ink)' }}>{info.label}</b><span>{info.hi}</span></div>
+      <input type="range" min={0} max={100} value={t[info.key] ?? 50}
+        onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
+      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, t[info.key] ?? 50)}</div>
     </div>
   )
 
@@ -668,8 +679,10 @@ export default function Tactics() {
             </button>
           ))}
         </div>
-        <SectionTitle>Game Plan</SectionTitle>
+        <SectionTitle sub="how you attack when your fifteen have the ball">With the Ball</SectionTitle>
         {SLIDER_INFO.map(slider)}
+        <SectionTitle sub="how the line defends when they have it">Without the Ball</SectionTitle>
+        {DEF_SLIDER_INFO.map(defSlider)}
       </>}
 
       {picker()}
