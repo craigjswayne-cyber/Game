@@ -5,7 +5,7 @@ import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
 import { boardMemo } from './boardmemo'
-import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
+import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -252,10 +252,19 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   const cupLike = comp.type === 'cup' || !!comp.pools
   const koFx = (stage: string) => state.fixtures.filter(f => f.compId === comp.id && f.stage === stage)
   const mkFx = (stage: string, week: number, home: string, away: string) => {
-    state.fixtures.push({
+    const fx: Fixture = {
       id: state.nextId++, compId: comp.id, round: 99, week, homeId: home, awayId: away,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
-    })
+    }
+    // a showpiece final leaves home: the Premiership final is always
+    // Twickenham, the Top 14 final always the Stade de France, and the
+    // European finals go to whichever great ground won this season's bid.
+    // Only club finals - a World Cup final has its own host nation.
+    if (stage === 'F' && state.clubs[home]) {
+      const v = finalVenue(state, comp.id)
+      if (v) fx.venue = v
+    }
+    state.fixtures.push(fx)
     // the draw is news when you're in the hat
     const mine = [state.userClubId, state.natTeam].filter(Boolean)
     drawnStages.add(stage)
@@ -266,9 +275,11 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎟 The ${comp.short} ${stg} draw: ${teamShort(state, opp)}`,
-        body: us === home
-          ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} - win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
-          : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
+        body: fx.venue
+          ? `It is settled. ${teamShort(state, opp)} in the ${comp.name} FINAL, at ${fx.venue.name} in ${fx.venue.city} - ${fx.venue.capacity.toLocaleString()} seats and both towns emptying to fill them. One match. Everything on it.`
+          : us === home
+            ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} - win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
+            : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
       })
     }
   }
@@ -318,6 +329,20 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       mkFx('QF', ko[0], seeds[3], seeds[4])
       mkFx('QF', ko[0], seeds[1], seeds[6])
       mkFx('QF', ko[0], seeds[2], seeds[5])
+      // the host city is announced with the quarter-final draw. Both European
+      // finals share one great ground on one weekend, so the story runs once,
+      // off the Champions Cup, and covers the pair of them.
+      if (comp.id === 'cc') {
+        const v = finalVenue(state, 'cc')
+        if (v) state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+          subject: `🏟️ FINALS WEEKEND: ${v.city} gets Europe's showpiece`,
+          body: [
+            `${v.name} will stage both European finals this season: the Challenge Cup under Friday lights, the Champions Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
+            `Eight quarter-finalists still stand in each competition, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
+          ].join('\n'),
+        })
+      }
     }
     const qf = koFx('QF')
     if (koFx('SF').length === 0 && qf.length === 4 && qf.every(f => f.played)) {
@@ -900,7 +925,7 @@ function matchReport(state: GameState, fx: Fixture) {
   const motm = fx.motm != null ? state.players[fx.motm] : null
   const lines = [
     `${teamShort(state, fx.homeId)} ${fx.homeScore} - ${fx.awayScore} ${teamShort(state, fx.awayId)}`,
-    fx.att ? `Att: ${fx.att.toLocaleString()} at ${state.clubs[fx.homeId]?.stadium ?? 'a neutral venue'}` : '',
+    fx.att ? `Att: ${fx.att.toLocaleString()} at ${fx.venue?.name ?? state.clubs[fx.homeId]?.stadium ?? 'a neutral venue'}` : '',
     scorers.length ? `Tries: ${scorers.join(', ')}` : 'No tries scored.',
     motm ? `Player of the match: ${motm.name}` : '',
   ].filter(Boolean)
@@ -1697,13 +1722,15 @@ export function processWeekAndAdvance(state: GameState) {
         ? (otherSf.homeScore > otherSf.awayScore ? otherSf.homeId : otherSf.awayId)
         : null
       const oppName = oppId ? (state.clubs[oppId]?.name ?? nationByCode(oppId)?.name ?? oppId) : null
+      const v = state.clubs[mine] ? finalVenue(state, sf.compId) : null
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🏆 YOU ARE IN THE FINAL: ${compName}`,
         body: [
           `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
+          v ? `And it is at ${v.name}. ${v.capacity.toLocaleString()} people in ${v.city}, half of them yours. Days like this are why anybody does this job.` : '',
           `Nobody remembers a beaten finalist. Pick the team that wins it.`,
-        ].join('\n'),
+        ].filter(Boolean).join('\n'),
         fixtureId: sf.id,
       })
     }
@@ -2012,6 +2039,59 @@ export function processWeekAndAdvance(state: GameState) {
   // rounds completed this week may unlock the next knockout stage -
   // create those ties NOW so the user's match exists before its week starts
   for (const comp of Object.values(state.comps)) maybeCreateKnockouts(state, comp, rng)
+
+  // FINALS WEEK (the buildup the biggest game deserves, part two). A final
+  // seven days out gets the full circus: the back-page comparison of the two
+  // clubs, and - when the final is yours - the adverts. Runs here, directly
+  // after knockout creation, because a final drawn tonight is next week's
+  // match and the buildup must start the moment the semi-final whistle goes.
+  {
+    const finals = state.fixtures.filter(f => !f.played && f.week === state.week + 1 &&
+      f.stage === 'F' && state.clubs[f.homeId] && state.clubs[f.awayId])
+    const userLeague = !state.unemployed ? state.clubs[state.userClubId]?.leagueId : null
+    for (const fx of finals) {
+      const comp = state.comps[fx.compId]
+      if (!comp) continue
+      const usIn = !state.unemployed && (fx.homeId === state.userClubId || fx.awayId === state.userClubId)
+      // the back page covers the finals the user's world watches: his own,
+      // his league's, and the two European showpieces
+      if (!usIn && fx.compId !== 'cc' && fx.compId !== 'chc' && fx.compId !== userLeague) continue
+      const a = state.clubs[fx.homeId], b = state.clubs[fx.awayId]
+      const star = (clubId: string) => {
+        const men = state.clubs[clubId].players.map(id => state.players[id]).filter(p => p && !p.acad)
+        return men.length ? men.reduce((x, y) => (y.form > x.form ? y : x)) : null
+      }
+      const sa = star(fx.homeId), sb = star(fx.awayId)
+      const where = fx.venue ? `${fx.venue.name}, ${fx.venue.city}` : `${a.stadium}, ${a.city}`
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `🗞️ THE BIG ONE: ${a.short} v ${b.short} for the ${comp.short}`,
+        body: [
+          `${comp.name} final, ${where}, Saturday. The two best sides of the season, one trophy between them.`,
+          `${a.short} arrive on ${formGuide(state, a.id).join(' ') || 'no form to speak of'}${sa ? `, with ${sa.name} the man the neutrals are paying to watch` : ''}. ${b.short} answer with ${formGuide(state, b.id).join(' ') || 'nothing played'}${sb ? ` and ${sb.name} in the form of his life` : ''}.`,
+          usIn ? `The papers can pick whoever they like. Finals are won by the side that handles the day - and the day starts now.` : `The neutrals cannot lose. Somebody in that stadium is going to remember Saturday forever.`,
+        ].join('\n'),
+        fixtureId: fx.id,
+      })
+      // the adverts (finals week is the one week the sport buys the town):
+      // user's final only, and the pick is salted by the calendar so it does
+      // not lean on any rng stream
+      if (usIn) {
+        const v = fx.venue
+        const ads = [
+          `You cannot move for it. The final is on the side of every bus${v ? ` in ${v.city}` : ' in town'}, the kit sponsor has taken out a full page in the nationals, and the club shop sold out of scarves by Tuesday lunchtime. A TV advert runs your captain's face in slow motion over a drumbeat. The players pretend not to have seen it. They have all seen it.`,
+          `The broadcaster's trailer dropped this morning: thunder, mud, your crest filling the screen${v ? `, then ${v.name} rising out of the dark` : ''}. The lads played it in the team room eleven times. The kit man has ironed everything twice. Finals week does something to a building.`,
+          `Sponsors' week: the shirt partner wants the squad for a photo shoot, the brewery has renamed a beer after the back row, and there is a countdown clock in the town square${v ? ` with a coach ready for ${v.city}` : ''}. Keep the schedule tight and the eyes on Saturday - the noise is the reward for getting here, not the job.`,
+        ]
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+          subject: `📺 Finals week: the adverts have landed`,
+          body: ads[(state.season * 7 + state.week) % ads.length],
+          fixtureId: fx.id,
+        })
+      }
+    }
+  }
 
   // finals crown champions
   for (const comp of Object.values(state.comps)) {

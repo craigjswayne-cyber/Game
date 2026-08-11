@@ -136,6 +136,31 @@ export function generatePress(state: GameState, rng: Rng) {
     }
   }
 
+  // finals week: the biggest press room of the season is not a lottery
+  // entry - if the final is this week, this question is asked
+  {
+    const fin = state.fixtures.find(f => !f.played && f.week === state.week && f.stage === 'F' &&
+      f.compId !== 'fr' && (f.homeId === club.id || f.awayId === club.id))
+    if (fin && state.clubs[fin.homeId] && state.clubs[fin.awayId]) {
+      const oppId = fin.homeId === club.id ? fin.awayId : fin.homeId
+      const opp = state.clubs[oppId]
+      const compName = state.comps[fin.compId]?.name ?? 'the cup'
+      const where = fin.venue ? fin.venue.name : state.clubs[fin.homeId].stadium
+      state.press.push(mk(state,
+        voice(26, [
+          `Finals week. The room is three deep, half of them faces you have never seen. ${compName}, ${where}, ${opp.short} on the other side. The first question is the only one they all came for: can you win it?`,
+          `The camera count has tripled and there is a national broadcaster's anchor in the front row. One game, at ${where}, against ${opp.short}, for the ${compName}. How do you handle a week like this?`,
+          `Every seat taken, standing at the back - finals week does this. ${opp.short} at ${where} for the ${compName}. They want a headline. What do you give them?`,
+        ]),
+        undefined, [
+          { label: `'We are ready. We will win it'`, morale: 0.8, board: -0.3, reaction: `The back pages have their headline and the dressing room walks taller all week. If Saturday goes wrong, that sentence will be read back to you for years.` },
+          { label: 'Respect them, back ourselves', morale: 0.3, board: 0.4, reaction: `Measured and confident. The board approves, the players nod along, and nobody has been handed a team-talk quote.` },
+          { label: `'The occasion is the trap - it is just rugby'`, morale: -0.2, board: 0.2, reaction: `You talk the week down to protect the group. Sensible - though one or two of the younger lads wanted to hear the fire.` },
+        ], rng))
+      return
+    }
+  }
+
   const candidates: PressItem[] = []
 
   // hot streak player

@@ -312,7 +312,7 @@ function FridayBlocks() {
               <b style={{ fontSize: 16 }}>{home ? 'v' : 'at'} {opp?.name ?? teamShort(game, oppId)}</b>
             </div>
             <div className="meta" style={{ marginTop: 3 }}>
-              {game.comps[fx.compId]?.name ?? 'Friendly'} · {home ? `${club?.stadium}` : `${opp?.stadium ?? 'away'}`}
+              {game.comps[fx.compId]?.name ?? 'Friendly'} · {fx.venue ? `${fx.venue.name}, ${fx.venue.city}` : home ? `${club?.stadium}` : `${opp?.stadium ?? 'away'}`}
             </div>
             {/* WHO ARE THEY, RIGHT NOW (user: "it would be good to see A teams
                 position in the league if its not a cup game and their last 5
@@ -345,6 +345,13 @@ function FridayBlocks() {
                 </div>
               )
             })()}
+            {/* the eve of a final gets its own line: the one night of the
+                season when the fixture card is not just a fixture card */}
+            {fx.stage === 'F' && fx.compId !== 'fr' && (
+              <div className="meta" style={{ marginTop: 3 }}>
+                🏆 <b>THE FINAL.</b> {fx.venue ? `${fx.venue.capacity.toLocaleString()} inside ${fx.venue.name} tomorrow. ` : ''}Eighty minutes for the whole season. Nobody at the club sleeps well tonight.
+              </div>
+            )}
             {/* the weight of the run, named on the eve (16C): once you are 8+
                 unbeaten every opponent plays their cup final against you */}
             {(() => {

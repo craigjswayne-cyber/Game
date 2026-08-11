@@ -1,4 +1,5 @@
 import type { Pos } from '../data/types'
+import { mulberry32 } from './rng'
 
 export type { Pos }
 
@@ -128,6 +129,40 @@ export function formGuide(state: GameState, clubId: string, n = 5): ('W' | 'L' |
       const them = f.homeId === clubId ? f.awayScore : f.homeScore
       return us > them ? 'W' : us < them ? 'L' : 'D'
     })
+}
+
+/** The grounds big enough to host a European final: every one of them 60,000
+ *  seats or more, and every one of them has actually staged top-flight rugby.
+ *  Both European finals share the venue on the same weekend, as in life. */
+export const EURO_FINAL_VENUES: FinalVenue[] = [
+  { name: 'Twickenham', city: 'London', capacity: 82000 },
+  { name: 'Stade de France', city: 'Paris', capacity: 80698 },
+  { name: 'Principality Stadium', city: 'Cardiff', capacity: 74500 },
+  { name: 'Stade Velodrome', city: 'Marseille', capacity: 67394 },
+  { name: 'Murrayfield', city: 'Edinburgh', capacity: 67144 },
+  { name: 'Croke Park', city: 'Dublin', capacity: 82300 },
+  { name: 'Wembley Stadium', city: 'London', capacity: 90000 },
+]
+
+/** Where a competition's final is played, or null for finals that stay at the
+ *  higher seed's ground (URC, Championship, the southern leagues - which is
+ *  how those competitions actually do it).
+ *
+ *  The Premiership final is ALWAYS Twickenham and the Top 14 final is always
+ *  the Stade de France. The European finals rotate: a deterministic pick from
+ *  the save's seed and the season, so the announcement, the fixture and any
+ *  reload all agree without storing anything - and never the same city two
+ *  seasons running. NO shared rng is drawn: venue choice must not move a
+ *  match stream. */
+export function finalVenue(state: GameState, compId: string): FinalVenue | null {
+  if (compId === 'prem') return EURO_FINAL_VENUES[0]
+  if (compId === 'top14') return EURO_FINAL_VENUES[1]
+  if (compId !== 'cc' && compId !== 'chc') return null
+  const idx = (season: number) =>
+    Math.floor(mulberry32(Math.abs(state.seed) * 7919 + season * 104729)() * EURO_FINAL_VENUES.length)
+  let i = idx(state.season)
+  if (state.season > 0 && i === idx(state.season - 1)) i = (i + 1) % EURO_FINAL_VENUES.length
+  return EURO_FINAL_VENUES[i]
 }
 
 /** Signature traits and what they do, for player pages and scouting. */
@@ -446,7 +481,14 @@ export interface Fixture {
   derby?: boolean
   /** this friendly is a testimonial for the named player - his day */
   testimonial?: number
+  /** a showpiece final is played at a neutral ground, not the higher seed's
+   *  place: set at creation by finalVenue(), it overrides the stadium line,
+   *  the gate and home advantage */
+  venue?: FinalVenue
 }
+
+/** A neutral showpiece ground for a final. */
+export interface FinalVenue { name: string; city: string; capacity: number }
 
 export interface TableRow {
   teamId: string

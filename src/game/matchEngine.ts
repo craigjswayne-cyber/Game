@@ -1273,7 +1273,15 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // a live count, never a round sell-out figure twice
     const jitter = Math.floor(rng() * Math.max(60, hostClub.capacity * 0.012))
     // seats you can actually shift: the smaller of the ground and the catchment
-    const sellable = Math.min(hostClub.capacity, demandCeiling(hostClub))
+    let sellable = Math.min(hostClub.capacity, demandCeiling(hostClub))
+    // a showpiece final at a neutral ground: two travelling supports plus the
+    // neutrals fill a stadium no catchment model applies to. The gauss above
+    // is still drawn and folded in, so the rng stream is identical - a final
+    // just reads it as the difference between 88% and 99% of Twickenham.
+    if (fx.venue) {
+      sellable = fx.venue.capacity
+      interest = clamp(0.93 + (interest - 0.6) * 0.15, 0.88, 0.99)
+    }
     fx.att = Math.max(400, Math.round(sellable * interest) - jitter)
     // a testimonial packs the ground whatever the fixture list says
     if (fx.testimonial != null) fx.att = Math.max(fx.att, sellable - jitter)
@@ -1305,6 +1313,10 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
   const venue = venueEffect(state, fx.homeId, fx.awayId, fx.week)
   hfa *= venue.edge
   if (fx.homeId === state.userClubId) hfa += ((state.fanMood ?? 60) - 60) * 0.0006
+  // a final at a neutral ground has no host: the side listed as home is only
+  // the winner of the first semi-final, and Twickenham does not sing for him.
+  // Exactly 1.0 - a deterministic gate, no rng consulted, so only finals move.
+  if (fx.venue) hfa = 1
 
   const ctx: LiveCtx = {
     fx, home, away, rng, detail, weather, derby, goalPenalty,
@@ -1316,7 +1328,9 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
 
-  if (derby) {
+  if (fx.venue) {
+    pushEvent(state, ctx, 0, 'KO', home, `FINAL DAY at ${fx.venue.name}. ${fx.att ? `${fx.att.toLocaleString()} inside and` : 'A full house and'} the noise rolling around ${fx.venue.city} - two sets of supporters, one trophy. Kick-off!`)
+  } else if (derby) {
     pushEvent(state, ctx, 0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
   } else if (grudge) {
     pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air - ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
