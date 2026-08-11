@@ -5,7 +5,7 @@ import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
 import { boardMemo } from './boardmemo'
-import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, weeklyCentral } from './model'
+import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, fixtureDayOff, fmtMoney, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -789,6 +789,49 @@ function weeklyTraining(state: GameState, rng: Rng) {
   }
 }
 
+/** The spotlight follows an unbeaten run (16C). Milestone letters at 8, 12
+ *  and 16 competitive games without defeat, and an honest obituary when the
+ *  run dies. Deterministic - phrasing keys off the milestone, never the rng.
+ *  Exported so scripts/unbeatenprobe.ts can drive it directly. */
+export function runSpotlight(state: GameState, fx: Fixture, us: number, them: number) {
+  const club = state.clubs[state.userClubId]
+  if (!club) return
+  const run = unbeatenRun(state, club.id) // includes the match just played
+  const push = (subject: string, body: string) => state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject, body, fixtureId: fx.id,
+  })
+  if (us < them) {
+    // the run that just ended is everything unbeaten BEFORE this fixture
+    const before = state.fixtures
+      .filter(f => f.played && f.compId !== 'fr' && f.id !== fx.id && (f.homeId === club.id || f.awayId === club.id))
+      .sort((a, b) => a.week - b.week)
+    let ended = 0
+    for (let i = before.length - 1; i >= 0; i--) {
+      const f = before[i]
+      const u = f.homeId === club.id ? f.homeScore : f.awayScore
+      const t = f.homeId === club.id ? f.awayScore : f.homeScore
+      if (u < t) break
+      ended++
+    }
+    if (ended >= 8) {
+      push(`💔 The run dies at ${ended}`,
+        `${ended} competitive games unbeaten, and it ends here. The dressing room is silent; the phone-ins are not. Runs like that are not replaced, they are rebuilt, one week at a time - and every side in the league sleeps a little easier tonight.`)
+    }
+    return
+  }
+  if (run === 8) {
+    push(`📈 Eight unbeaten: the league has noticed`,
+      `${club.name} have not lost a competitive game in two months, and the fixture list changes character from here: nobody circles a mid-table trip, everybody circles the unbeaten side. Expect every opponent to play their cup final against you. The old heads in your squad will carry the weight; watch the young ones.`)
+  } else if (run === 12) {
+    push(`🎯 Twelve unbeaten: the target on the shirt is real`,
+      `A dozen without defeat. Opposition coaches now plan their whole week around you, and the neutrals have started turning up to watch the run end. Pressure is a tax the well-led pay at a discount: keep the room right and the run breathes; let it wobble and the weight does the opposition's work for them.`)
+  } else if (run === 16) {
+    push(`🛡️ Sixteen unbeaten: say the word`,
+      `Nobody at the club is allowed to say it, so everybody outside it is saying it for them: invincible. Sixteen competitive matches without defeat is the kind of season grandchildren get told about. Every week from here is a final, for both teams on the pitch.`)
+  }
+}
+
 // ------------------------------------------------------------------
 // Finances & board
 // ------------------------------------------------------------------
@@ -1046,6 +1089,8 @@ function boardReaction(state: GameState, fx: Fixture) {
       }
     }
   }
+  // the spotlight follows an unbeaten run (16C)
+  if (fx.compId !== 'fr') runSpotlight(state, fx, us, them)
   // manager career record
   state.mgr.m += 1
   if (us > them) state.mgr.w += 1

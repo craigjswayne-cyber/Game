@@ -1225,6 +1225,11 @@ export function rebuildSeason(state: GameState) {
     while (chcSlots.length < 16 && rest.length) chcSlots.push(rest.shift()!.id)
   }
 
+  // THE INVINCIBLES (16C): a whole competitive season without defeat is the
+  // rarest thing in the sport, and the moment it deserves has to be claimed
+  // here, while the season's fixtures still exist to prove it.
+  invinciblesCheck(state)
+
   // wipe season structures & rebuild
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
@@ -1450,5 +1455,29 @@ function challengeCheck(state: GameState) {
     headline: 'CHALLENGE COMPLETE',
     sub: `${title} · ${state.managerName}`,
     icon: '🏅',
+  }
+}
+
+/** A whole competitive season unbeaten (16C). Checked at rollover while the
+ *  fixtures still exist; at least 15 competitive games so a cup-only stub or
+ *  a half-imported save cannot claim it. Exported for scripts/unbeatenprobe. */
+export function invinciblesCheck(state: GameState) {
+  const club = state.clubs[state.userClubId]
+  if (!club) return
+  const mine = state.fixtures.filter(f =>
+    f.played && f.compId !== 'fr' && (f.homeId === club.id || f.awayId === club.id))
+  if (mine.length < 15) return
+  const losses = mine.filter(f =>
+    (f.homeId === club.id ? f.homeScore < f.awayScore : f.awayScore < f.homeScore)).length
+  if (losses > 0) return
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+    subject: `🛡️ THE INVINCIBLES: ${club.name} finish the season unbeaten`,
+    body: `${mine.length} competitive matches. Zero defeats. Whatever else this club ever does, this season now lives outside the record books, in the place where the game keeps its legends. They will name teams after this side. ${state.managerName} built the team nobody could beat.`,
+  })
+  state.celebration = {
+    headline: 'THE INVINCIBLES',
+    sub: `${club.name} · a whole season unbeaten · ${state.managerName}`,
+    icon: '🛡️',
   }
 }

@@ -1,5 +1,5 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps, trustFactor} from './model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { updateNatRank } from './natrank'
 import { effAt } from './attributes'
 import { nationByCode } from './nations'
@@ -1202,6 +1202,33 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
         if (p?.trait === 'Big-Game Player') { n++; side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) + 0.3) }
       }
       layer(side, 'attack', 1 + Math.min(n, 3) * 0.008)
+    }
+  }
+  // THE SCALP (16C, user: "the pressure should be building on the squad...
+  // spotlight should be on us and only a good manager should stay unbeaten").
+  // A side 8+ competitive games unbeaten this season is everyone's cup final:
+  // the chaser lifts, flat, and the holder tightens under the weight - but the
+  // nerves tax is discounted by what the manager built. An experienced XV with
+  // a good room plays through the noise almost untouched; a young side with a
+  // wobbling one feels all of it. Applies to ANY club on a run, both ways in
+  // the same match, so it is a law of the world rather than a tax on the user.
+  // Deterministic from state like every pre-match dial - no rng is drawn.
+  if (state.clubs[fx.homeId] && state.clubs[fx.awayId] && fx.compId !== 'fr') {
+    for (const [id, holder, chaser] of [[fx.homeId, home, away], [fx.awayId, away, home]] as [string, SideCtx, SideCtx][]) {
+      const run = unbeatenRun(state, id)
+      if (run < 8) continue
+      const heat = Math.min(run - 7, 9) // grows to a cap at 16 unbeaten
+      layer(chaser, 'attack', 1 + heat * 0.004)
+      let age = 0, morale = 0, n = 0
+      for (const pid of holder.lineup.slice(0, 15)) {
+        const p = pid != null ? state.players[pid] : null
+        if (!p) continue
+        age += p.age; morale += p.morale; n++
+      }
+      const calm = n
+        ? Math.max(0, Math.min(1, ((age / n - 25) / 6) * 0.5 + ((morale / n - 5) / 4) * 0.5))
+        : 0.5
+      layer(holder, 'attack', 1 - heat * 0.004 * (1 - calm))
     }
   }
   if (weather === 'Rain') goalPenalty = 0.09

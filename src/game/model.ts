@@ -90,6 +90,25 @@ export function oldBoyApps(p: Player, clubId: string): number {
   return apps
 }
 
+/** Consecutive competitive games without defeat this season, newest backwards.
+ *  A loss ends it; a draw extends it; friendlies are wind, not weather - they
+ *  neither extend nor break the run. Feeds The Scalp (16C): a long unbeaten
+ *  season paints a target on the shirt. */
+export function unbeatenRun(state: GameState, clubId: string): number {
+  let run = 0
+  const mine = state.fixtures
+    .filter(f => f.played && f.compId !== 'fr' && (f.homeId === clubId || f.awayId === clubId))
+    .sort((a, b) => a.week - b.week)
+  for (let i = mine.length - 1; i >= 0; i--) {
+    const f = mine[i]
+    const us = f.homeId === clubId ? f.homeScore : f.awayScore
+    const them = f.homeId === clubId ? f.awayScore : f.homeScore
+    if (us < them) break
+    run++
+  }
+  return run
+}
+
 /** Signature traits and what they do, for player pages and scouting. */
 export const TRAIT_INFO: Record<string, string> = {
   'The Step': 'Feet like a dancer - defenders grasp at air. Scores more tries.',
