@@ -47,7 +47,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'match',
     q: 'What are the Without the Ball dials?',
-    a: 'The Game Plan tab splits into two halves: With the Ball is the four attacking sliders, Without the Ball is how the fifteen defend. Line Speed trades defensive muscle for discipline - a blitz makes more tackles and more turnovers but gives away more penalties and cards, a drift stays clean and gives them room. Width is a matchup call read at kick-off: a wide defensive line smothers an expansive attack but a tight pick-and-go side runs through the middle of it, and a narrow line does the reverse. Both dials start at the balanced midpoint, where they cost and buy nothing.',
+    a: 'The Game Plan tab splits into two halves: With the Ball is the four attacking sliders, Without the Ball is how the fifteen defend. Line Speed trades defensive muscle for discipline - a blitz makes more tackles and more turnovers but gives away more penalties and cards, a drift stays clean and gives them room. Width is a matchup call read at kick-off: a wide defensive line smothers an expansive attack but a tight pick-and-go side runs through the middle of it, and a narrow line does the reverse. Both dials start at the balanced midpoint, where they cost and buy nothing. Every other dugout sets them too - a Blitz Defence coach flies off the line, a Counter-Punch side soaks - and the briefing card names the opponent\'s defensive shape so your attack can answer it.',
   },
   {
     cat: 'match',

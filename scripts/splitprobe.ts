@@ -38,15 +38,30 @@ const mySide = (g: GameState, ctx: ReturnType<typeof beginMatch>) =>
   ctx.home.teamId === g.userClubId ? ctx.home : ctx.away
 
 // ---- absent and 50 are the same game, bit for bit --------------------------
+// Since 20C the AI philosophies SET these dials, so "the untouched world" has
+// to be manufactured: world A has the dials deleted outright, world B holds
+// them at 50. The engine must not be able to tell the two apart.
 for (const seed of [7, 31]) {
   const a = newGame('northampton', 'Split', seed)
   const b = newGame('northampton', 'Split', seed)
+  for (const c of Object.values(a.clubs)) { delete c.tactic.defLine; delete c.tactic.defWidth }
   for (const c of Object.values(b.clubs)) { c.tactic.defLine = 50; c.tactic.defWidth = 50 }
   const fa = userFixture(a), fb = userFixture(b)
   const ra = simMatch(a, fa, weekRng(a), false)
   const rb = simMatch(b, fb, weekRng(b), false)
   ok(fa.homeScore === fb.homeScore && fa.awayScore === fb.awayScore && ra.events.length === rb.events.length,
-    `seed ${seed}: a world with every dial at 50 replays the untouched world exactly (${fa.homeScore}-${fa.awayScore})`)
+    `seed ${seed}: absent dials and dials at 50 are the same game (${fa.homeScore}-${fa.awayScore})`)
+}
+
+// ---- and the dugouts now defend with an identity (20C) ----------------------
+{
+  const g = newGame('northampton', 'Split', 7)
+  const ai = Object.values(g.clubs).filter(c => c.id !== g.userClubId && c.philosophy)
+  const withDials = ai.filter(c => c.tactic.defLine != null && c.tactic.defWidth != null)
+  ok(withDials.length === ai.length, `every AI philosophy carries the without-ball dials (${withDials.length}/${ai.length})`)
+  const spread = new Set(ai.map(c => c.tactic.defLine)).size
+  ok(spread >= 4, `and they differ from dugout to dugout (${spread} distinct line speeds)`)
+  ok((g.clubs[g.userClubId].tactic.defLine ?? 50) === 50, 'while your own dials stay yours')
 }
 
 // and a dial-less save produces finite numbers everywhere it is read

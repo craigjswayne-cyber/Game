@@ -31,32 +31,35 @@ if (missing) bad(`${missing} clubs still sit on the flat middle with no idea at 
 // 2. the dials, world-wide, still average 50 on all four axes
 function means(state: GameState) {
   const ai = Object.values(state.clubs).filter(c => c.id !== state.userClubId)
-  const sum = { style: 0, tempo: 0, kicking: 0, aggression: 0 }
+  const sum = { style: 0, tempo: 0, kicking: 0, aggression: 0, defLine: 0, defWidth: 0 }
   for (const c of ai) {
     sum.style += c.tactic.style; sum.tempo += c.tactic.tempo
     sum.kicking += c.tactic.kicking; sum.aggression += c.tactic.aggression
+    sum.defLine += c.tactic.defLine ?? 50; sum.defWidth += c.tactic.defWidth ?? 50
   }
   const n = ai.length || 1
-  return { n, style: sum.style / n, tempo: sum.tempo / n, kicking: sum.kicking / n, aggression: sum.aggression / n }
+  return { n, style: sum.style / n, tempo: sum.tempo / n, kicking: sum.kicking / n, aggression: sum.aggression / n, defLine: sum.defLine / n, defWidth: sum.defWidth / n }
 }
 
 // Averaged over ten worlds, because one world is one draw of the hash and a
 // couple of points either way on a single seed means nothing.
 const TOL = 2.5
-const acc = { style: 0, tempo: 0, kicking: 0, aggression: 0 }
+const acc = { style: 0, tempo: 0, kicking: 0, aggression: 0, defLine: 0, defWidth: 0 }
 const counts: Record<string, number> = {}
 const SEEDS = 10
 for (let seed = 1; seed <= SEEDS; seed++) {
   const w = newGame('leicester', 'Probe', seed * 977)
   const m = means(w)
   acc.style += m.style; acc.tempo += m.tempo; acc.kicking += m.kicking; acc.aggression += m.aggression
+  acc.defLine += m.defLine; acc.defWidth += m.defWidth
   for (const c of Object.values(w.clubs)) {
     if (c.id === w.userClubId || !c.philosophy) continue
     counts[c.philosophy] = (counts[c.philosophy] ?? 0) + 1
   }
   if (seed === 1) console.log(`world size: ${m.n} AI clubs`)
 }
-for (const k of ['style', 'tempo', 'kicking', 'aggression'] as const) {
+// the without-ball pair (20C) obeys the same law as the attacking four
+for (const k of ['style', 'tempo', 'kicking', 'aggression', 'defLine', 'defWidth'] as const) {
   const mean = acc[k] / SEEDS
   console.log(`${k.padEnd(11)} world mean ${mean.toFixed(2)} (target 50)`)
   if (Math.abs(mean - 50) > TOL) {

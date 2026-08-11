@@ -163,6 +163,16 @@ const EXPECTED: string[] = [
   // games each: 52.9 / 53.1 / 52.7 / 52.9 points, 6.0 tries everywhere, 55%
   // home on all four, draws 2.2-2.3%. All inside the healthy band.
   //
+  // NOT rebaselined for 20C (AI defensive identities), and worth writing down
+  // why, because movement was EXPECTED: every philosophy now sets defLine and
+  // defWidth, and all six fixtures in this stream have a side off 50. Checked
+  // rather than shrugged at: the dials are genuinely live (home defence in
+  // fixture one reads 13.6493 against 13.6233 with the dials deleted), but a
+  // fraction of a percent on a unit rating flips no discrete event in these
+  // six - the same coarseness that held five of six through F23. Four seeds
+  // read 53.2/54.3/53.4/54.1 points against 53.6/53.5/53.8/53.6 before, and
+  // philprobe holds all SIX dial averages at 50.
+  //
   // REBASELINED for 19C, pre-season friendly variety. The user's three
   // friendly opponents are now DRAWN from a hat (ten cross-league peers plus
   // the four best lower-tier sides) instead of computed as the closest club

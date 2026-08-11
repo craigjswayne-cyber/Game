@@ -49,7 +49,14 @@ export interface Philosophy {
   blurb: string
   /** what it leaves open - the analyst's angle */
   soft: string
-  dials: { style: number; tempo: number; kicking: number; aggression: number }
+  /** All six dials the engine reads (20C added the without-ball pair). The
+   *  defensive two obey the same law as the attacking four: each pair mirrors
+   *  exactly about 50, so the world's average stays where the engine was
+   *  calibrated. defLine is linear in the engine exactly like the attack
+   *  dials; defWidth is a kick-off matchup against the OPPONENT'S style, and
+   *  its world mean holds because who you play is uncorrelated with your own
+   *  width - measured, not assumed (see the 20C fingerprint note). */
+  dials: { style: number; tempo: number; kicking: number; aggression: number; defLine: number; defWidth: number }
   /** true if this member of the pair suits a forward-heavy squad */
   packSide: boolean
 }
@@ -59,49 +66,49 @@ export const PHILOSOPHIES: Philosophy[] = [
     id: 'pack', pair: 'A', name: 'Forward Dominance', packSide: true,
     blurb: 'They want a shoving match. Maul off the lineout, pick and go, squeeze at the scrum.',
     soft: 'Slow their ball down and the width outside them is decoration.',
-    dials: { style: 26, tempo: 42, kicking: 60, aggression: 62 },
+    dials: { style: 26, tempo: 42, kicking: 60, aggression: 62, defLine: 56, defWidth: 38 },
   },
   {
     id: 'width', pair: 'A', name: 'Width and Offloads', packSide: false,
     blurb: 'Ball to the edges early and often, with the offload always on in contact.',
     soft: 'Front up in the collisions and their handling starts costing them.',
-    dials: { style: 74, tempo: 58, kicking: 40, aggression: 38 },
+    dials: { style: 74, tempo: 58, kicking: 40, aggression: 38, defLine: 44, defWidth: 62 },
   },
   {
     id: 'tempo', pair: 'B', name: 'Fast Hands, Fast Feet', packSide: false,
     blurb: 'Tap and go, quick rucks, no time to reset. They want you out of breath by fifty.',
     soft: 'Keep your shape for an hour and the pace they set is the pace they die at.',
-    dials: { style: 62, tempo: 78, kicking: 38, aggression: 50 },
+    dials: { style: 62, tempo: 78, kicking: 38, aggression: 50, defLine: 58, defWidth: 56 },
   },
   {
     id: 'squeeze', pair: 'B', name: 'Territory and Squeeze', packSide: true,
     blurb: 'Field position first. Long kicks, corner pins, and pressure on your exits.',
     soft: 'Beat the first chaser and there is acres behind their kicking game.',
-    dials: { style: 38, tempo: 22, kicking: 62, aggression: 50 },
+    dials: { style: 38, tempo: 22, kicking: 62, aggression: 50, defLine: 42, defWidth: 44 },
   },
   {
     id: 'blitz', pair: 'C', name: 'Blitz Defence', packSide: true,
     blurb: 'Up and at you off the line, then kick the turnover long. Built to strangle.',
     soft: 'Go behind the rush rather than into it and the line is stretched thin.',
-    dials: { style: 42, tempo: 40, kicking: 66, aggression: 58 },
+    dials: { style: 42, tempo: 40, kicking: 66, aggression: 58, defLine: 72, defWidth: 46 },
   },
   {
     id: 'counter', pair: 'C', name: 'Counter-Punch', packSide: false,
     blurb: 'Happy without the ball. They soak it up and strike the moment it breaks loose.',
     soft: 'Hold on to it, build phases, and give them nothing to run at.',
-    dials: { style: 58, tempo: 60, kicking: 34, aggression: 42 },
+    dials: { style: 58, tempo: 60, kicking: 34, aggression: 42, defLine: 28, defWidth: 54 },
   },
   {
     id: 'chaos', pair: 'D', name: 'Controlled Chaos', packSide: true,
     blurb: 'Fast, physical and loose on purpose. They back themselves in a scramble.',
     soft: 'Discipline. They give away more than they win when it gets messy.',
-    dials: { style: 66, tempo: 70, kicking: 44, aggression: 66 },
+    dials: { style: 66, tempo: 70, kicking: 44, aggression: 66, defLine: 62, defWidth: 60 },
   },
   {
     id: 'structure', pair: 'D', name: 'Structure and Discipline', packSide: false,
     blurb: 'Patient phase play off a set plan, and they will not hand you penalties.',
     soft: 'Force them off script early. Improvising is not what they practise.',
-    dials: { style: 34, tempo: 30, kicking: 56, aggression: 34 },
+    dials: { style: 34, tempo: 30, kicking: 56, aggression: 34, defLine: 38, defWidth: 40 },
   },
 ]
 
@@ -204,6 +211,8 @@ export function applyPhilosophy(club: Club, id: string) {
   club.tactic.tempo = ph.dials.tempo
   club.tactic.kicking = ph.dials.kicking
   club.tactic.aggression = ph.dials.aggression
+  club.tactic.defLine = ph.dials.defLine
+  club.tactic.defWidth = ph.dials.defWidth
 }
 
 /** Give every dugout but yours an idea. Used at kickoff of a career and on load. */
@@ -211,7 +220,13 @@ export function seedPhilosophies(state: GameState) {
   const median = worldTiltMedian(state)   // measured once, not once per club
   for (const club of Object.values(state.clubs)) {
     if (club.id === state.userClubId) continue
-    if (club.philosophy && PHILOSOPHY_BY_ID[club.philosophy]) continue
+    if (club.philosophy && PHILOSOPHY_BY_ID[club.philosophy]) {
+      // a save from before 20C has the coach's attacking idea but not his
+      // defensive one: re-applying is idempotent on the four old dials and
+      // fills in the two new ones, so old saves defend with an identity too
+      if (club.tactic.defLine == null) applyPhilosophy(club, club.philosophy)
+      continue
+    }
     applyPhilosophy(club, pickPhilosophy(state, club, club.coachGen ?? 0, median))
   }
 }
@@ -279,7 +294,8 @@ export const COUNTER: Record<string, Counter> = {
 
 export const counterTo = (id: string | undefined): Counter | null => (id ? COUNTER[id] ?? null : null)
 
-/** The dials as a one-line readout, for the briefing card. */
+/** The dials as a one-line readout, for the briefing card. All six now: how
+ *  a side defends is public knowledge too - you can watch them (20C). */
 export function dialLine(t: Tactic): string {
   const band = (v: number, lo: string, mid: string, hi: string) => (v >= 62 ? hi : v <= 38 ? lo : mid)
   return [
@@ -287,5 +303,7 @@ export function dialLine(t: Tactic): string {
     band(t.tempo, 'slow', 'steady', 'quick'),
     band(t.kicking, 'ball in hand', 'mixed', 'kick-heavy'),
     band(t.aggression, 'clean', 'firm', 'abrasive'),
+    band(t.defLine ?? 50, 'passive line', 'measured line', 'blitzing line'),
+    band(t.defWidth ?? 50, 'narrow defence', 'balanced defence', 'spread defence'),
   ].join(' · ')
 }
