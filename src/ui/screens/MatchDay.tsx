@@ -2146,7 +2146,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
 }) {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)!
-  const { halfTimeSub, injuryCover } = useStore.getState()
+  const { halfTimeSub, injuryCover, undoSub, swapPositions } = useStore.getState()
   const [offId, setOffId] = useState<number | null>(freeCoverId ?? null)
   const [freeLeft, setFreeLeft] = useState(freeCoverId != null)
   const [log, setLog] = useState<string[]>([])
@@ -2229,9 +2229,9 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
           <div className="meta sheet-hint">
             {note ? <>{note}{' '}</> : null}
             {isFreeSwap && off ? `The assistant has sent ${off.name} on. Tap someone else to change it, free of charge, or tap him again to keep him.`
-              : off ? `${off.name} is coming off. Now tap his replacement.`
-              : left <= 0 ? 'No tactical replacements left.'
-              : 'Tap a man on the pitch, then tap who comes on for him.'}
+              : off ? `${off.name} is armed. Tap his replacement on the bench, or tap a team-mate on the pitch to swap their positions.`
+              : left <= 0 ? 'No tactical replacements left. You can still tap two men on the pitch to swap their positions.'
+              : 'Tap a man on the pitch, then tap who comes on for him. Tapping a second man on the pitch swaps their positions instead.'}
           </div>
         </div>
         <div className="sheet-cols">
@@ -2257,6 +2257,14 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                       // no setMade here on purpose: keeping the assistant's man is a
                       // decision, which settles the forced stop, but it is not a change
                       setLog(l => [`${p.name} keeps the shirt.`, ...l].slice(0, MAX_SUBS))
+                      setOffId(null)
+                      return
+                    }
+                    // a second on-pitch tap is a positional switch (16B, user:
+                    // "swap the 12 and 13 over"): free, burns nothing
+                    if (offId != null && offId !== p.id && !isFreeSwap && mine.onPitch.has(offId) && on) {
+                      const msg = swapPositions(offId, p.id)
+                      setLog(l => [msg, ...l].slice(0, MAX_SUBS))
                       setOffId(null)
                       return
                     }
@@ -2296,6 +2304,17 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
           </div>
         </div>
         {log.map((m, i) => <div key={i} className="meta sheet-log">{m}</div>)}
+        {/* the wrong tap can be taken back at the same stoppage (16B, user:
+            "i made a substitution but selected the wrong player, i couldnt
+            undo it"). Only the LAST change, and only until play resumes. */}
+        {ctx.lastSub && (
+          <button className="btn ghost block" onClick={() => {
+            const msg = undoSub()
+            setLog(l => [msg, ...l].slice(0, MAX_SUBS))
+            setMade(n => Math.max(0, n - 1))
+            setOffId(null)
+          }}>↩ Take back the last change</button>
+        )}
         {mustDecide && !settled && (
           <div className="meta sheet-log" style={{ color: 'var(--red)', fontWeight: 700 }}>
             Play is stopped until somebody takes his shirt. Tap the man you want on, or tap the

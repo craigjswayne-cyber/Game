@@ -93,7 +93,9 @@ ok(worst >= 12, `the closest a story came to repeating itself was ${worst === In
 const COLOUR = new Set(['FAN FORUM', 'SOCIAL', 'PODCAST', 'BROADCAST', 'STATS ACCOUNT',
   'PUNDIT COLUMN', 'WHOLESOME', 'AGENT TALK', 'REF MIC', 'CHARITY', 'MERCH', 'TERRACES',
   'GROUNDSMAN WATCH', 'MASCOT INCIDENT', 'STADIUM PA', 'CATERING', 'TRAINING LEAK',
-  'WILDLIFE', 'SPONSORS', 'WEATHER', 'LOGISTICS', 'TMO', 'CLUBHOUSE', 'LAW WATCH'])
+  'WILDLIFE', 'SPONSORS', 'WEATHER', 'LOGISTICS', 'TMO', 'CLUBHOUSE', 'LAW WATCH',
+  // the wild ones (16B): held to the same joke-structure standard as the rest
+  'VILLAGE RUGBY', 'SILVERWARE', 'GRASSROOTS', 'MATCHDAY', 'COMMUNITY'])
 const colour = seen.filter(s => COLOUR.has(s.key))
 ok(colour.length >= 25, `enough colour stories to judge the writing (${colour.length})`)
 const flat = colour.filter(s => s.body.split(/[.!?] /).length < 3)

@@ -1317,9 +1317,12 @@ export function processWeekAndAdvance(state: GameState) {
         p.morale = clamp(p.morale + 1.1, 1, 10)
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+          // THE PLAYER SAYS IT HIMSELF (16B, user: "if a player moans about
+          // playing time and then are rewarded playing time they should thank
+          // the coach for keeping their word")
           subject: `🤝 Word kept: ${p.name}`,
-          body: pl.kind === 'plans' ? `You told ${p.name} he was in your plans, and the team sheets backed it up. He has not forgotten the conversation - and neither has the dressing room. Trust like that is worth points.`
-            : pl.kind === 'minutes' ? `${p.name} got the minutes you promised him. The academy coach is purring: "That is how you grow one." The kid would run through a wall for you now.`
+          body: pl.kind === 'plans' ? `You told ${p.name} he was in your plans, and the team sheets backed it up. He knocks on your door after training: "You did not have to promise me anything, and you kept it anyway. Thank you, coach." The dressing room has not forgotten the conversation either. Trust like that is worth points.`
+            : pl.kind === 'minutes' ? `${p.name} got the minutes you promised him. He finds you in the corridor after the session: "You said I would get my chance and you kept your word. I will not forget that, coach." The academy coach is purring too: "That is how you grow one." The kid would run through a wall for you now.`
             : `${p.name} has his new deal, just as you said he would. The senior pros noticed: this is a club where a handshake still means something.`,
           playerId: p.id,
         })

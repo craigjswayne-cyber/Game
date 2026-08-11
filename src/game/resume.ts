@@ -44,7 +44,7 @@
 import type { Fixture, GameState } from './model'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution,
-  resolveDecision, stepTick, swapInjuryCover, type LiveCtx,
+  resolveDecision, stepTick, swapInjuryCover, swapShirts, undoSubstitution, type LiveCtx,
 } from './matchEngine'
 import { weekRng } from './season'
 
@@ -60,6 +60,8 @@ export type MatchCmdBody =
   | { kind: 'talk'; talk: 'fire' | 'calm' | 'praise' | 'demand' }
   | { kind: 'sub'; outId: number; inId: number }
   | { kind: 'cover'; onId: number; inId: number }
+  | { kind: 'undo' }
+  | { kind: 'swap'; aId: number; bId: number }
   /** the tactic dials AS THEY WERE when he changed them: the pre-match save holds
    *  the old values, so replaying "he opened the tactics board" is not enough */
   | { kind: 'dials'; style: number; tempo: number; kicking: number; aggression: number }
@@ -129,6 +131,12 @@ export function replayMatch(state: GameState, rec: MatchResume): Resumed | null 
           break
         case 'cover':
           swapInjuryCover(state, ctx, c.onId, c.inId)
+          break
+        case 'undo':
+          undoSubstitution(state, ctx)
+          break
+        case 'swap':
+          swapShirts(state, ctx, c.aId, c.bId)
           break
         case 'dials': {
           const club = state.clubs[state.userClubId]
