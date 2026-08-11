@@ -51,6 +51,22 @@ for (let i = 0; i < WEEKS_PER * 3; i++) {
   seenIds = Object.keys((g as GameState & { wireLog?: Record<string, number> }).wireLog ?? {}).length
 }
 
+// The COLOUR set is the LRU-managed pool this probe was written about. It has
+// to be defined before the repeat metrics because the repeat metrics must be
+// SCOPED TO IT: rumours and the other separate beats also carry a CAPS-colon
+// subject, and a rumour body is formulaic ON PURPOSE (its freshness rule is
+// per-player, not per-template), so name-stripping two different rumours a
+// fortnight apart produces the same fingerprint and a false "repeat". That
+// collision sat latent until a world-stream shift aired two close together
+// and the gap assertion accused the colour column of a rumour's rhythm.
+const COLOUR = new Set(['FAN FORUM', 'SOCIAL', 'PODCAST', 'BROADCAST', 'STATS ACCOUNT',
+  'PUNDIT COLUMN', 'WHOLESOME', 'AGENT TALK', 'REF MIC', 'CHARITY', 'MERCH', 'TERRACES',
+  'GROUNDSMAN WATCH', 'MASCOT INCIDENT', 'STADIUM PA', 'CATERING', 'TRAINING LEAK',
+  'WILDLIFE', 'SPONSORS', 'WEATHER', 'LOGISTICS', 'TMO', 'CLUBHOUSE', 'LAW WATCH',
+  // the wild ones (16B): held to the same joke-structure standard as the rest
+  'VILLAGE RUGBY', 'SILVERWARE', 'GRASSROOTS', 'MATCHDAY', 'COMMUNITY'])
+const colour = seen.filter(s => COLOUR.has(s.key))
+
 // The log is the ground truth for WHICH template fired; the subject line carries a
 // club and a player name, so two airings of the same joke do not look alike.
 // Re-derive the template from the log by replaying: simpler and more honest is to
@@ -60,7 +76,7 @@ const fingerprint = (body: string) => body.replace(/[A-Z][a-z]+ [A-Z][a-z']+/g, 
 const gaps: number[] = []
 const lastAt = new Map<string, number>()
 const uses = new Map<string, number>()
-for (const s of seen) {
+for (const s of colour) {
   const fp = fingerprint(s.body)
   uses.set(fp, (uses.get(fp) ?? 0) + 1)
   const prev = lastAt.get(fp)
@@ -74,7 +90,7 @@ console.log('a sample, to be read rather than counted:\n')
 for (const s of seen.slice(0, 4)) console.log(`  ${s.subject}\n    ${s.body.slice(0, 150)}...\n`)
 
 ok(seen.length >= 40, `enough stories to judge (${seen.length})`)
-ok(uses.size >= 20, `the pool is deep: ${uses.size} distinct stories`)
+ok(uses.size >= 18, `the pool is deep: ${uses.size} distinct colour stories`)
 
 // THE LEAST-RECENTLY-USED PROPERTY. Nothing may go round twice while something is
 // still waiting for its first airing, so the count spread must be at most one.
@@ -90,13 +106,6 @@ ok(worst >= 12, `the closest a story came to repeating itself was ${worst === In
 // transfer whisper is deliberately one line - "Whispers from London: Saracens have
 // made him their number one target" is doing its whole job in that sentence - and
 // holding a rumour to a joke's structure would make the feed worse, not better.
-const COLOUR = new Set(['FAN FORUM', 'SOCIAL', 'PODCAST', 'BROADCAST', 'STATS ACCOUNT',
-  'PUNDIT COLUMN', 'WHOLESOME', 'AGENT TALK', 'REF MIC', 'CHARITY', 'MERCH', 'TERRACES',
-  'GROUNDSMAN WATCH', 'MASCOT INCIDENT', 'STADIUM PA', 'CATERING', 'TRAINING LEAK',
-  'WILDLIFE', 'SPONSORS', 'WEATHER', 'LOGISTICS', 'TMO', 'CLUBHOUSE', 'LAW WATCH',
-  // the wild ones (16B): held to the same joke-structure standard as the rest
-  'VILLAGE RUGBY', 'SILVERWARE', 'GRASSROOTS', 'MATCHDAY', 'COMMUNITY'])
-const colour = seen.filter(s => COLOUR.has(s.key))
 ok(colour.length >= 25, `enough colour stories to judge the writing (${colour.length})`)
 const flat = colour.filter(s => s.body.split(/[.!?] /).length < 3)
 for (const f of flat) console.log(`    FLAT: ${f.subject}`)
