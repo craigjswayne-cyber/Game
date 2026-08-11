@@ -46,6 +46,11 @@ export const HANDBOOK: HandbookEntry[] = [
   },
   {
     cat: 'match',
+    q: 'What are the Without the Ball dials?',
+    a: 'The Game Plan tab splits into two halves: With the Ball is the four attacking sliders, Without the Ball is how the fifteen defend. Line Speed trades defensive muscle for discipline - a blitz makes more tackles and more turnovers but gives away more penalties and cards, a drift stays clean and gives them room. Width is a matchup call read at kick-off: a wide defensive line smothers an expansive attack but a tight pick-and-go side runs through the middle of it, and a narrow line does the reverse. Both dials start at the balanced midpoint, where they cost and buy nothing.',
+  },
+  {
+    cat: 'match',
     q: 'Who decides what to do with a kickable penalty?',
     a: 'You do. When your side wins a penalty in range, the game stops and asks: posts, corner, or tap and go. Your kicker\'s goal kicking and the angle both matter, and so does the scoreboard. Taking three when you need seven is how games get lost.',
   },

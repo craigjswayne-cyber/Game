@@ -47,6 +47,34 @@ export function sliderReadout(key: SliderKey, v: number): string {
   return 'Balanced - no bonus, no cost.'
 }
 
+// ---- the without-ball system (18D) ----------------------------------------
+// FM26 splits the tactic screen into with-ball and without-ball shapes; ours
+// does the same with two dials that default to 50 (which the engine treats as
+// literally absent, so old saves and the sim fingerprint are untouched).
+
+export type DefSliderKey = 'defLine' | 'defWidth'
+
+export const DEF_SLIDER_INFO: { key: DefSliderKey; label: string; lo: string; hi: string; up: string; down: string }[] = [
+  {
+    key: 'defLine', label: 'Line Speed', lo: 'Passive drift', hi: 'All-out blitz',
+    up: 'Fly off the line: harder tackles and turnovers (defence ↑), but offside pings and cards climb with it.',
+    down: 'Drift and contain: cleaner discipline, but you give their attack time and space to work.',
+  },
+  {
+    key: 'defWidth', label: 'Width', lo: 'Narrow / ruck guard', hi: 'Spread wide',
+    up: 'String the line to the touchlines: smothers a wide attack, but a tight pick-and-go side runs through the middle.',
+    down: 'Pack the fringes: shuts down a forward-first side, but a wide attack finds grass out there.',
+  },
+]
+
+/** Plain-English readout of a without-ball dial, for the UI. */
+export function defSliderReadout(key: DefSliderKey, v: number): string {
+  const info = DEF_SLIDER_INFO.find(s => s.key === key)!
+  if (v >= 66) return info.up
+  if (v <= 34) return info.down
+  return 'Balanced - no bonus, no cost.'
+}
+
 export interface Preset {
   id: string
   name: string

@@ -628,6 +628,19 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     // survives the recompute; the panel's tolerances mean exactly 1.0 so the
     // world average concedes what it always conceded (audit 16D)
     side.penRisk = 0.115 * (1 + f(t.aggression) * 0.2) * (side.refPenF ?? 1)
+    // THE WITHOUT-BALL SYSTEM (18D, FM26's split shapes translated). Line
+    // speed is a trade priced in the engine's own currencies: a blitz brings
+    // pressure (defence up) and gives the referee offside creep to look at
+    // (penalties up, a touch more card risk); a passive drift concedes the
+    // gain line quietly and keeps the penalty count down. 50 is literally
+    // absent - f(50) is zero on every term - so a save that has never touched
+    // the dial plays the old game bit for bit, and the fingerprint holds it
+    // there. Defensive WIDTH is the other half and lives in beginMatch,
+    // because it is a matchup read against the opponent's attacking shape.
+    const dl = f(t.defLine ?? 50)
+    side.units.defence *= 1 + dl * 0.04
+    side.penRisk *= 1 + dl * 0.12
+    side.cardRisk += dl * 0.002
 
     // The called set-piece routines (F2). What you get is the routine's ceiling
     // scaled by how well drilled it is and how sick of it the analysts are.
@@ -1244,6 +1257,25 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
       layer(holder, 'attack', 1 - heat * 0.004 * (1 - calm))
     }
   }
+
+  // THE WIDTH MATCHUP (18D). Defensive width is read against the opponent's
+  // attacking shape at kick-off: a spread line blunts an expansive attack, a
+  // narrow one blunts a forward assault, and the WRONG call pays the other
+  // way in equal measure - rock, paper, scissors rather than a free dial.
+  // Through layer() so it survives recomputes; 50 (or a save without the
+  // dial) multiplies by exactly 1.0 and the fingerprint holds.
+  {
+    const fT = (v: number | undefined) =>
+      (Number.isFinite(v as number) ? Math.max(0, Math.min(100, v as number)) - 50 : 0) / 50
+    for (const [mine, theirs] of [[home, away], [away, home]] as const) {
+      const myT = state.clubs[mine.teamId]?.tactic
+      const oppT = state.clubs[theirs.teamId]?.tactic
+      if (!myT || !oppT) continue
+      const w = 1 + 0.05 * fT(myT.defWidth) * fT(oppT.style)
+      if (w !== 1) layer(mine, 'defence', w)
+    }
+  }
+
   if (weather === 'Rain') goalPenalty = 0.09
   if (weather === 'Wind') goalPenalty = 0.09
   if (weather === 'Snow') goalPenalty = 0.1

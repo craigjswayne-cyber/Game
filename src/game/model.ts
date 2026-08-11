@@ -404,6 +404,15 @@ export interface Tactic {
   tempo: number      // 0 slow .. 100 fast
   kicking: number    // 0 keep in hand .. 100 kick heavy
   aggression: number // 0 clean .. 100 physical
+
+  // ---- the without-ball system (18D, FM26's split shapes) ------------------
+  /** defensive line speed: 0 passive drift .. 100 all-out blitz. Absent or 50
+   *  is exactly the old engine - the dial only exists once you move it. */
+  defLine?: number
+  /** defensive width: 0 narrow around the ruck .. 100 spread to the touchlines.
+   *  A matchup dial: spreading blunts an expansive attack and narrowness
+   *  blunts a forward assault - set it wrong and it pays the other way. */
+  defWidth?: number
   lineup: (number | null)[] // 23 slots: player ids, index 0-14 XV, 15-22 bench
   /** positional role per XV slot (role ids from roles.ts), sparse */
   roles?: (string | null)[]
