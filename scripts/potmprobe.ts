@@ -157,6 +157,16 @@ for (const seed of seeds) {
         if (named.length) withPlayer++
       }
       if (wk % AWARD_EVERY === 0) win.clear()
+      // AND AT THE SEASON BOUNDARY. The game wipes every player's stats at
+      // rollover (rollover.ts, p.stats = emptyStats()), so its season-2 week-6
+      // window is weeks 1-6 and nothing else. This ledger's last in-season
+      // clear is week 42, which left the playoff and final ratings of weeks
+      // 43-44 in the map across the rollover - and a finals star who then
+      // played one friendly passed the lastWk filter carrying last season's
+      // numbers. Two seeds' worth of stream shuffle (19C) put such a man on
+      // top of the probe's polluted table and the probe accused a correct
+      // ceremony. The game was right; the ledger now resets when it does.
+      if (g.season !== startSeason) win.clear()
       // and the orphan case: the two awards must not depend on each other.
       // The probe's own window ledger (pool, built before the counters were
       // cleared) applies the game's exact eligibility - two window
