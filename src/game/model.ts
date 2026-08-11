@@ -646,6 +646,9 @@ export interface TransferOffer {
    *  unlimited counter is a money printer: keep demanding until the dice land.
    *  One round of haggling per offer, then you answer it. */
   countered?: boolean
+  /** How many times a rival has topped this bid (18C). A war runs three
+   *  raises at most, then whoever holds the ball has to hear an answer. */
+  raises?: number
 }
 
 /** Club infrastructure, levels 0-5 - bricks and mortar that outlast any squad. */
