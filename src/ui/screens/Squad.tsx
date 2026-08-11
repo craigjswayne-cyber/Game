@@ -137,7 +137,7 @@ export default function Squad() {
             name, one showing the pick and one making it (user: "there's two
             selection pages which are confusing"). This one is the overview
             table with the Pkd chips, so it says so; picking happens in one
-            place only, behind the Pick the Team button below. */}
+            place only, on Selection & Tactics via the hub. */}
         {(['selection', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
             {v === 'selection' ? 'Overview' : v === 'general' ? 'General Info'
@@ -181,11 +181,6 @@ export default function Squad() {
         {view === 'gametime' && (
           <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGtAll(!gtAll)}>{gtAll ? 'Everyone shown' : 'Needs a word'}</button>
-        )}
-        {/* the one road to the one picker: this table SHOWS the pick (Pkd
-            chips), Selection & Tactics MAKES it */}
-        {view === 'selection' && (
-          <button className="preset-chip" onClick={() => go('tactics')}>📋 Pick the Team ▸</button>
         )}
       </div>
       </StickyControls>

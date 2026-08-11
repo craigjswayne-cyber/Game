@@ -119,7 +119,8 @@ const claimed = (n: NewsItem): number | null => {
       ok(memo.body.includes(label), `the memo has a ${label.replace(':', '')} line`)
     }
     // the window is named once at the top so no line has to imply a timeframe
-    ok(/covering the last \d+ weeks\./.test(memo.body), 'and it says up front what window it covers')
+    // (wording shortened in the 19A brevity pass; the requirement is the window)
+    ok(/The last \d+ weeks, as the board sees them\./.test(memo.body), 'and it says up front what window it covers')
     // the old ambiguity: "points to the good" next to a league points column
     ok(!/points to the good|down on aggregate/.test(memo.body),
       'the scoring difference is not called "points" any more')

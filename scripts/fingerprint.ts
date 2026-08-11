@@ -162,11 +162,23 @@ const EXPECTED: string[] = [
   // Bands verified across four seeds (12345 / 777 / 4242 / 9), 11,110 league
   // games each: 52.9 / 53.1 / 52.7 / 52.9 points, 6.0 tries everywhere, 55%
   // home on all four, draws 2.2-2.3%. All inside the healthy band.
+  //
+  // REBASELINED for 19C, pre-season friendly variety. The user's three
+  // friendly opponents are now DRAWN from a hat (ten cross-league peers plus
+  // the four best lower-tier sides) instead of computed as the closest club
+  // by reputation - "its not all the same three" every career. That is three
+  // extra rng() calls inside schedulePreseason, so everything downstream of
+  // it in the newGame stream shifts. The fixture pairings in this stream are
+  // drawn BEFORE pre-season and did not move; exactly one score did.
+  // Balance is untouched by construction (no engine change; text-only edits
+  // elsewhere in the round): four seeds at HEAD read 53.6/53.5/53.8/53.6
+  // points against 53.8/55.3 on two of the same seeds before the change -
+  // inside seed noise, and scripts/brevityprobe.ts holds the friendly rules.
   'gloucester 70-31 newcastle',
   'bristol 34-17 sale',
   'leicester 27-23 northampton',
   'exeter 9-14 bath',
-  'saracens 43-7 harlequins',
+  'saracens 43-14 harlequins',
   'sale 30-16 gloucester',
 ]
 

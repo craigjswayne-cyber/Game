@@ -253,7 +253,7 @@ export function inheritStaff(state: GameState, quiet = false) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: 'The backroom staff you have inherited',
-    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${STAFF_INFO[k].name.toLowerCase()}, ${BADGE[state.staff[k]].toLowerCase()})`).join(', ')}.${vacant.length ? ` Nobody holds the ${vacant.map(k => STAFF_INFO[k].name.toLowerCase()).join(' or ')} job - the market is open, and badges can be earned on a course.` : ' A full department, and every man in it can still go up a badge.'}`,
+    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${STAFF_INFO[k].name.toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => STAFF_INFO[k].name.toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''} Badges and hiring are on the Coaching page.`,
   })
 }
 
