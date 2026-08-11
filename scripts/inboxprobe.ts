@@ -181,15 +181,15 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
   ok(!walked.has(11), 'the step arrows cannot reach an expired story either')
 }
 
-// ---- the table of contents opens the story you tapped ----------------------
+// ---- the cue serves the queue ----------------------------------------------
 //
-// User: "it often says 9 messages in inbox, click on it and nothing shows up ...
-// this is confusing - list below where there is a lot of info to share." Two
-// halves. The reader grew a list, and tapping a line has to open THAT story and
-// file it - openStory is the store action behind the rows. And the Home cue has
-// to SERVE the queue rather than just navigate: go('inbox') left the reader on
-// whatever inboxId last pointed at, which on a nine-unread morning was a story
-// already read. That is the cue tap opening onto none of the nine.
+// User: "it often says 9 messages in inbox, click on it and nothing shows up."
+// The Home cue has to SERVE the queue rather than just navigate: go('inbox')
+// left the reader on whatever inboxId last pointed at, which on a nine-unread
+// morning was a story already read. That is the cue tap opening onto none of
+// the nine. (The reader briefly grew a table-of-contents list with an
+// openStory action behind it; both were removed at the user's request in 19D,
+// so this block now checks only the serving half, which survives.)
 {
   const gg = newGame('northampton', 'Inbox', 8)
   gg.news = [
@@ -207,18 +207,11 @@ st.setState({ game: g, nav: [{ screen: 'home' }], inboxId: null })
   ok(served === 51, `the cue serves the oldest unread (opened ${served}, wanted 51)`)
   ok(gg.news.find(n => n.id === 51)!.read, 'and marks it read on the way past')
 
-  // tapping a line in the list opens that exact story
-  st.getState().openStory(53)
-  ok(st.getState().inboxId === 53, 'a tapped line opens that story, not the queue head')
-  ok(gg.news.find(n => n.id === 53)!.read, 'and it is filed as read')
-  ok(!gg.news.find(n => n.id === 52)!.read, 'without touching anything it skipped over')
+  // serving again advances the queue without stacking the screen
+  st.getState().openInbox()
+  ok(st.getState().inboxId === 52, 'a second tap serves the next unread in order')
   const nav = st.getState().nav
   ok(nav.filter(e => e.screen === 'inbox').length <= 1, 'and the screen never stacks on itself')
-
-  // a dead id is a no-op, not a blank reader
-  const before = st.getState().inboxId
-  st.getState().openStory(9999)
-  ok(st.getState().inboxId === before, 'an unknown id changes nothing')
 }
 
 // ---- serving an OLD unread story must not vaporise it ----------------------

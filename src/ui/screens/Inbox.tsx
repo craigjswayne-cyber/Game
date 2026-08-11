@@ -1,4 +1,4 @@
-import { SectionTitle, paragraphs } from '../components'
+import { paragraphs } from '../components'
 import { useEffect, useRef } from 'react'
 import { useStore } from '../../store'
 import { weekDate, type NewsItem } from '../../game/model'
@@ -85,7 +85,7 @@ export default function Inbox() {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
   const inboxId = useStore(s => s.inboxId)
-  const { openInbox, openStory, inboxStep, clearRead } = useStore.getState()
+  const { openInbox, inboxStep, clearRead } = useStore.getState()
 
   const live = [...game.news].filter(n => inInbox(game, n)).sort((a, b) => b.id - a.id)
   const window20 = live.slice(0, 20)
@@ -157,27 +157,11 @@ export default function Inbox() {
         <PeopleChips n={n} />
       </article>
 
-      {/* The table of contents. One message at a time was the ask in 10D, but
-          on a heavy morning it turned the other eight messages invisible: the
-          cue said nine, the reader showed one, and stepping blind through the
-          rest is not reading, it is archaeology (user: "it often says 9
-          messages in inbox, click on it and nothing shows up ... list below
-          where there is a lot of info to share"). So the open message keeps
-          the screen and the rest of the window sits under it as a tappable
-          list - the same rows the unemployed Home uses, unread dot and all. */}
-      {window20.length > 1 && (
-        <>
-          <SectionTitle sub="tap a story to read it now">Also In The Inbox</SectionTitle>
-          {window20.filter(m => m.id !== n.id).map(m => (
-            <button key={m.id} className={`news-item${m.read ? '' : ' unread'}`}
-              onClick={() => openStory(m.id)}>
-              <div className="when">{TYPE_ICON[m.type] ?? '📰'} {weekDate(m.season, m.week)}</div>
-              <div className="subj">{m.subject}</div>
-              <div className="body">{m.body}</div>
-            </button>
-          ))}
-        </>
-      )}
+      {/* The "Also In The Inbox" table of contents lived here for one round
+          (the 10D one-at-a-time reader made a heavy morning invisible), and
+          was cut at the user's request in 19D: "remove also in your inbox
+          too". The reader is one story and its arrows again; the cue still
+          serves the unread queue in order. */}
       <div className="spacer" />
     </>
   )

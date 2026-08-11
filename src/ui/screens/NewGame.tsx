@@ -5,16 +5,7 @@ import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
-import { fmtMoney, type MgrOrigin } from '../../game/model'
-
-/** Your story begins before the first whistle (18B, with a nod to FM26).
- *  Each origin front-loads a different edge; none of them survives a bad
- *  season, and only the coaching route travels to the next job. */
-const ORIGINS: { id: MgrOrigin; name: string; desc: string }[] = [
-  { id: 'coach', name: 'The Coaching Route', desc: 'Badges earned the long way. The department runs one extra personal training plan.' },
-  { id: 'player', name: 'Former International', desc: 'The room has seen you play: they believe from day one, and your name opens doors.' },
-  { id: 'local', name: 'Local Hero', desc: 'One of their own. The board and the terraces start warm - at this club only.' },
-]
+import { fmtMoney } from '../../game/model'
 
 // FM Mobile-style guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
@@ -40,7 +31,6 @@ export default function NewGame() {
   const [clubId, setClubId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [styleId, setStyleId] = useState('balanced')
-  const [origin, setOrigin] = useState<MgrOrigin>('coach')
   const [challengeId, setChallengeId] = useState<string | null>(null)
 
   const league = leagueIdx != null ? defs[leagueIdx] : null
@@ -63,7 +53,10 @@ export default function NewGame() {
   const next = () => {
     if (step < 3) { setStep(step + 1); return }
     if (!club) return
-    start(club.id, name.trim(), challengeId ?? undefined, origin)
+    // The origin tiles (18B's "Your Story") were cut at the user's request:
+    // "this feature isnt too much of interest". Every career takes the
+    // engine's default coach background.
+    start(club.id, name.trim(), challengeId ?? undefined)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -232,18 +225,6 @@ export default function NewGame() {
                   const el = e.target
                   setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
                 }} />
-              {/* 18B: your story begins before the first whistle. Each origin
-                  front-loads a different advantage; none survives a bad season. */}
-              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Your Story</label>
-              <div className="speech-grid" style={{ padding: '6px 0 0' }}>
-                {ORIGINS.map(o => (
-                  <button key={o.id} className={`speech-tile${origin === o.id ? ' sel' : ''}`}
-                    onClick={() => setOrigin(o.id)}>
-                    <b>{o.name}</b>
-                    <span className="d">{o.desc}</span>
-                  </button>
-                ))}
-              </div>
               <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Club</label>
               <div className="meta">{club.name} · {league?.name}</div>
             </div>
@@ -274,7 +255,6 @@ export default function NewGame() {
                 <div><label>Manager</label><span>{name.trim()}</span></div>
                 <div><label>Competition</label><span>{league.name}</span></div>
                 <div><label>Philosophy</label><span>{COACHING_STYLES.find(s => s.id === styleId)?.name}</span></div>
-                <div><label>Your Story</label><span>{ORIGINS.find(o => o.id === origin)?.name}</span></div>
                 <div><label>Season</label><span>2025-26</span></div>
                 {challenge && <div><label>Challenge</label><span>{challenge.title}</span></div>}
                 <div><label>Board Objective</label><span>{club.rep >= 87 ? 'Win the title' : club.rep >= 80 ? 'Reach the playoffs' : club.rep >= 72 ? 'Top half' : 'Avoid the bottom two'}</span></div>

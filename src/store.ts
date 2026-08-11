@@ -92,8 +92,6 @@ interface Store {
   /** Open the inbox on the oldest unread story, or advance to the next one if it
    *  is already open. This is what the mail icon does. */
   openInbox: () => void
-  /** Open one specific story from the reader's list, marking it read. */
-  openStory: (id: number) => void
   /** Step through the recall window: -1 older, +1 newer. */
   inboxStep: (dir: -1 | 1) => void
   /** File away everything already read. */
@@ -352,22 +350,6 @@ export const useStore = create<Store>((set, get) => ({
     const newest = [...live].sort((a, b) => b.id - a.id)[0]
     return {
       inboxId: s.inboxId ?? newest?.id ?? null,
-      nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
-      tick: s.tick + 1,
-    }
-  }),
-
-  /** The reader's list is a table of contents: tapping a line opens that story
-   *  rather than the queue's choice, and reading it files it like any other. */
-  openStory: (id) => set(s => {
-    const g = s.game
-    if (!g) return {}
-    const n = g.news.find(x => x.id === id)
-    if (!n) return {}
-    markRead(g, n)
-    const onInbox = s.nav[s.nav.length - 1]?.screen === 'inbox'
-    return {
-      inboxId: id,
       nav: onInbox ? s.nav : [...s.nav, { screen: 'inbox' as const }],
       tick: s.tick + 1,
     }
