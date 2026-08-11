@@ -178,5 +178,47 @@ const club = g.clubs[g.userClubId]
   }
 }
 
+// ---- the gap has a voice: the transfer request (17A) -----------------------
+//
+// User: "players request moves if they say they want more games and the coach
+// doesnt give them game time." A key man badly short-changed and ground down
+// does not just settle at a low morale: a formal request lands in the inbox,
+// suitors treat him as gettable, and minutes actually given withdraw it.
+{
+  const gg = newGame('northampton', 'Human', 23)
+  const c = gg.clubs[gg.userClubId]
+  // enough season played for the ledger to bite, and a key man frozen out
+  for (const fx of gg.fixtures) {
+    if (fx.week <= 20 && (fx.homeId === c.id || fx.awayId === c.id) && fx.compId !== 'fr') fx.played = true
+  }
+  gg.week = 21
+  const victim = c.players.map(id => gg.players[id])
+    .find(p => p && !p.acad && !c.tactic.lineup.includes(p.id) && p.age <= 30)!
+  victim.status = 'key'
+  victim.stats.apps = 0
+  victim.morale = 3.5
+  const before = gg.news.length
+  settleGameTime(gg)
+  ok((victim.wantsOut ?? 0) > 0, `a frozen-out key man hands in a transfer request (morale ${victim.morale.toFixed(1)})`)
+  const letter = gg.news.slice(before).find(n => n.subject.includes('transfer request'))
+  ok(!!letter, `and the letter lands: "${letter?.subject ?? 'MISSING'}"`)
+
+  // the road back: give him the minutes and the request is withdrawn
+  victim.stats.apps = 9
+  const before2 = gg.news.length
+  settleGameTime(gg)
+  ok((victim.wantsOut ?? 0) === 0, 'minutes actually given withdraw the request')
+  ok(gg.news.slice(before2).some(n => n.subject.includes('withdraws')), 'and the withdrawal is announced, not silent')
+
+  // a man who was told he is not in the plans does not get to demand a move
+  const told = c.players.map(id => gg.players[id])
+    .find(p => p && !p.acad && !c.tactic.lineup.includes(p.id) && p.id !== victim.id)!
+  told.status = 'fringe'
+  told.stats.apps = 0
+  told.morale = 3
+  settleGameTime(gg)
+  ok(!(told.wantsOut ?? 0), 'a fringe man was told where he stands: no request from him')
+}
+
 console.log(fails ? `HUMAN PROBE FAILED (${fails})` : 'HUMAN PROBE PASSED')
 process.exit(fails ? 1 : 0)

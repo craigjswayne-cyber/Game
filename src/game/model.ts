@@ -308,6 +308,11 @@ export interface Player {
   talkWk?: number // absolute week (season*100+week) of the manager's last word with him
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number
+  /** week a formal transfer request landed (17A): the game-time ledger's
+   *  escalation when a key or rotation man is badly short-changed. 0 or
+   *  absent means no request. Cleared when the team sheets make it right,
+   *  and moot when he is sold. */
+  wantsOut?: number
   /** the current injury has already had its specialist consult */
   specialist?: boolean
   /** waiting on his first competitive appearance - 'signing' for a new
