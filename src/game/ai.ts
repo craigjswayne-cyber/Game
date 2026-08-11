@@ -268,6 +268,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const user = state.clubs[state.userClubId]
     const squad = user.players.map(id => state.players[id]).filter(Boolean)
     const wanted = squad.filter(p => !p.loanFrom).filter(p => p.transferListed || p.morale <= 4 ||
+      // a handed-in transfer request is a flare over the training ground:
+      // every agent in the league knows he is gettable (gametime.ts, 17A)
+      (p.wantsOut ?? 0) > 0 ||
       ((p.wantsDeal ?? 0) > 0 && state.week - (p.wantsDeal ?? 0) >= 4 && rng() < 0.3) ||
       (p.ca >= 82 && rng() < (p.pers === 'Ambitious' || p.pers === 'Mercenary' ? 0.4 : 0.2)))
     if (!wanted.length) continue
@@ -276,7 +279,9 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const bidders = clubs.filter(c => c.id !== user.id && c.rep >= user.rep - 15 && c.budget >= p.value * 0.8)
     if (!bidders.length) continue
     const bidder = pick(rng, bidders)
-    const fee = Math.round((p.value * (p.transferListed ? 0.95 : 1.2 + rng() * 0.4) * (deadline ? 1.15 : 1)) / 10_000) * 10_000
+    // a transfer request costs the seller the premium: the buyer knows the
+    // player wants it, so the bid comes in near value rather than over it
+    const fee = Math.round((p.value * (p.transferListed ? 0.95 : (p.wantsOut ?? 0) > 0 ? 1.05 : 1.2 + rng() * 0.4) * (deadline ? 1.15 : 1)) / 10_000) * 10_000
     state.offers.push({
       id: state.nextId++, playerId: p.id, fromClubId: bidder.id, toClubId: user.id,
       fee, week: state.week, forUser: true, status: 'pending',

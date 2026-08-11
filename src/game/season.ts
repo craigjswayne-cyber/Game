@@ -662,14 +662,19 @@ function weeklyTraining(state: GameState, rng: Rng) {
     }
   }
 
-  // an agent smells a payday: an underpaid star performer demands new terms
-  if (!state.unemployed && rng() < 0.12) {
+  // an agent smells a payday: an underpaid performer demands new terms.
+  // Two doors in (17A, user: "players request pay rises" as part of "there
+  // needs to be more going on"): the star playing the house down on small
+  // money, and the honest regular whose wage has drifted far under the market
+  // for what he now is. The rate rises with the second pool, so a season
+  // brings a handful of these conversations rather than one or two.
+  if (!state.unemployed && rng() < 0.2) {
     const squad = state.clubs[state.userClubId].players.map(id => state.players[id]).filter(Boolean)
     const cands = squad.filter(p =>
-      !p.acad && !p.loanFrom && p.stats.apps >= 8 &&
-      p.stats.ratingSum / Math.max(1, p.stats.apps) >= 7.15 &&
-      p.wage < playerWage(p.ca, p.age) * 0.85 &&
-      !(p.wantsDeal ?? 0) && p.contractEnds > state.season && p.age <= 32)
+      !p.acad && !p.loanFrom &&
+      !(p.wantsDeal ?? 0) && p.contractEnds > state.season && p.age <= 32 &&
+      ((p.stats.apps >= 8 && p.stats.ratingSum / Math.max(1, p.stats.apps) >= 7.15 && p.wage < playerWage(p.ca, p.age) * 0.85) ||
+        (p.stats.apps >= 10 && p.stats.ratingSum / Math.max(1, p.stats.apps) >= 6.6 && p.wage < playerWage(p.ca, p.age) * 0.7)))
     if (cands.length) {
       const p = cands[Math.floor(rng() * cands.length)]
       p.wantsDeal = state.week

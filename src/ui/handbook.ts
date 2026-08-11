@@ -130,7 +130,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'How do I pick the side quickly?',
-    a: 'Auto-Pick Best XV on the Selection tab fills every shirt with the best natural fit available. The In-Form XV tab does the same thing on current form rather than raw ability, and picking it is one tap. Then adjust by hand: tap a player, tap another, and they swap.',
+    a: 'Auto-Pick Best XV on the Selection tab fills every shirt with the best natural fit available, quietly weighing form. Then adjust by hand: tap a player, tap another, and they swap. The Team screen shows who is picked (the Pkd chips on its Overview); the picking itself all happens here.',
   },
   {
     cat: 'squad',

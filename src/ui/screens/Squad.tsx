@@ -132,9 +132,15 @@ export default function Squad() {
           four screenfuls, and the controls used to sail off the top of it */}
       <StickyControls>
       <div className="tab-bar">
+        {/* The first view was labelled Selection, and the game ALSO has a
+            Selection tab on Selection & Tactics - two pages wearing the same
+            name, one showing the pick and one making it (user: "there's two
+            selection pages which are confusing"). This one is the overview
+            table with the Pkd chips, so it says so; picking happens in one
+            place only, behind the Pick the Team button below. */}
         {(['selection', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info'
+            {v === 'selection' ? 'Overview' : v === 'general' ? 'General Info'
               : v === 'stats' ? 'Stats' : v === 'gametime' ? 'Game Time' : 'Contracts'}
           </button>
         ))}
@@ -175,6 +181,11 @@ export default function Squad() {
         {view === 'gametime' && (
           <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGtAll(!gtAll)}>{gtAll ? 'Everyone shown' : 'Needs a word'}</button>
+        )}
+        {/* the one road to the one picker: this table SHOWS the pick (Pkd
+            chips), Selection & Tactics MAKES it */}
+        {view === 'selection' && (
+          <button className="preset-chip" onClick={() => go('tactics')}>📋 Pick the Team ▸</button>
         )}
       </div>
       </StickyControls>

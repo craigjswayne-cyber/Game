@@ -175,6 +175,35 @@ export function settleGameTime(state: GameState) {
     // form rather than as a hidden penalty on the team you actually field.
     const row = ledgerRow(state, club, p, played)
     if (row.status === 'fringe') continue // he was told, and he expects nothing
+
+    // THE TRANSFER REQUEST. The gap has a voice now (user: "players request
+    // moves if they say they want more games and the coach doesnt give them
+    // game time"). A key or rotation man who is badly short-changed, and whom
+    // the pull below has already ground down, stops sulking and formally asks
+    // to leave: the letter lands, suitors hear about it (ai.ts treats him as
+    // gettable), and his mood stays on the floor until the team sheets change
+    // or the van arrives. Deterministic on purpose: the moment is earned over
+    // weeks, not rolled.
+    if ((row.status === 'key' || row.status === 'rotation') && row.gap <= -6 &&
+        p.morale <= 4.2 && !(p.wantsOut ?? 0) && !p.transferListed && p.age <= 33) {
+      p.wantsOut = state.week
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+        subject: `🚪 ${p.name} hands in a transfer request`,
+        body: `He was told where he stood - ${STATUS_BY_ID[row.status].name.toLowerCase()} - and the team sheets say ${row.actual} appearance${row.actual === 1 ? '' : 's'} from ${played} matches. This morning a formal transfer request landed on your desk. Pick him and he may yet be talked round; leave it and every agent in the league will know he is gettable.`,
+        playerId: p.id,
+      })
+    }
+    // and the road back: minutes, actually given, withdraw the request
+    if ((p.wantsOut ?? 0) > 0 && row.gap >= -2) {
+      p.wantsOut = 0
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
+        subject: `🤝 ${p.name} withdraws his transfer request`,
+        body: `The team sheets did the talking: the minutes came, and the grievance went with them. The request is withdrawn - quietly, the way these things end when they end well.`,
+        playerId: p.id,
+      })
+    }
     // A LEVEL he settles at, not a slope he slides down.
     //
     // Every accumulating version of this failed measurement, and the reason is

@@ -137,6 +137,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip" title="the summer his deal runs out. Leave it too late and he can sign elsewhere for nothing">Contract to <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: '#a8841a', color: '#a8841a', fontWeight: 700 }}>
           💼 Agent wants new terms</span>}
+        {(p.wantsOut ?? 0) > 0 && <span className="chip" style={{ borderColor: '#9b2c2c', color: '#9b2c2c', fontWeight: 700 }}
+          title="he asked to leave over game time - pick him and he may withdraw it">
+          🚪 Transfer request in</span>}
         <span className="chip" title="how happy he is here. Unhappy men play worse and ask to leave">Morale <b>{moraleWord(p.morale)}</b></span>
         <span className="chip" title="how fresh his legs are. Below 70% he tires badly in the last quarter">Fitness <b>{Math.round(p.cond)}%</b></span>
         <span className="chip" title="match rhythm. A man back from injury is fit but not sharp, and it shows">Sharpness <b>{Math.round(p.sharp)}%</b></span>
@@ -605,6 +608,7 @@ function verdictLine(game: GameState, p: Player, mine: boolean): string {
   }
   if (mine) {
     if (p.contractEnds <= game.season) bits.push('His deal runs out this summer and he can walk for nothing.')
+    else if ((p.wantsOut ?? 0) > 0) bits.push('A transfer request is on your desk. Minutes would talk him round; nothing else will.')
     else if ((p.wantsDeal ?? 0) > 0) bits.push('His agent is asking for improved terms.')
     else if (p.morale <= 4) bits.push('He is unhappy, and it will start showing on the pitch.')
     else if (p.form >= 7.5) bits.push('In the best form of anyone in the building.')
