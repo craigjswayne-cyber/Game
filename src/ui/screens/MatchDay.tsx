@@ -184,7 +184,16 @@ function Preview({ fxId }: { fxId: number }) {
     const pid = t.lineup[i]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
-    if (prob) warnings.push({ level: 'bad', text: `No fit no. ${XV_SLOTS[i].shirt} (${prob === 'EMPTY' ? 'empty slot' : `${p!.name} - ${prob.toLowerCase()}`}) - an unfit shirt cannot be sent out.` })
+    // Plain words, one line each (user: "can we make this easier to
+    // understand?"). "No fit no. 3 (Smith - intl duty) - an unfit shirt cannot
+    // be sent out" made the reader decode three abbreviations to learn one
+    // thing: this man cannot play today.
+    const PROB_WORD: Record<string, string> = {
+      INJURED: 'is injured', SUSPENDED: 'is suspended',
+      'INTL DUTY': 'is away with his country', GONE: 'has left the club',
+    }
+    if (prob === 'EMPTY') warnings.push({ level: 'bad', text: `The no. ${XV_SLOTS[i].shirt} shirt is empty - nobody is picked in it.` })
+    else if (prob) warnings.push({ level: 'bad', text: `${p!.name} (no. ${XV_SLOTS[i].shirt}) ${PROB_WORD[prob]} - he cannot start today.` })
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) - high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit - his tank will empty early.` })
   }
@@ -209,13 +218,16 @@ function Preview({ fxId }: { fxId: number }) {
   // slots are filled, from the men she did not name.
   const frontRow = frontRowCover(game, repairSheet(game, club, t.lineup, splitFor(club)))
   if (!frontRow.legal) {
-    const missing = ([['LP', 'loosehead'], ['HK', 'hooker'], ['TP', 'tighthead']] as const)
+    // Plain words here too: "Law 3", "your 23" and "(1 of 2)" is how the
+    // laws describe the problem, not how a player hears it. Say what is
+    // short, what the referee will do about it, and what fixes it.
+    const missing = ([['LP', 'loosehead prop'], ['HK', 'hooker'], ['TP', 'tighthead prop']] as const)
       .filter(([k]) => frontRow[k] < 2)
-      .map(([k, word]) => `${word} (${frontRow[k]} of 2)`)
-      .join(', ')
+      .map(([k, word]) => frontRow[k] === 0 ? `nobody else who can play ${word}` : `only ${frontRow[k]} who can play ${word}`)
+      .join(' and ')
     warnings.push({
       level: 'bad',
-      text: `UNCONTESTED SCRUMS: your 23 cannot cover ${missing}. Law 3 needs two men able to play each front-row shirt, and without them nobody contests a scrum all afternoon.`,
+      text: `Scrum problem: in your whole matchday squad you have ${missing}. The referee needs 2 for each front-row shirt, or he makes every scrum uncontested - no pushing, and a strong pack counts for nothing. Put more front-row cover on the bench.`,
     })
   }
   // milestone watch: pre-announce the numbers worth playing for today
@@ -491,8 +503,9 @@ function Preview({ fxId }: { fxId: number }) {
             )}
             {hasBad && fixedLineup && (
               <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: '#9b2c2c', fontWeight: 600 }}>
-                An unfit shirt cannot be sent out. Take the field and the assistant
-                re-picks around the problem first - or Not Yet to fix it yourself.
+                The team cannot kick off as it is. Fix It lets the assistant repair
+                the team sheet and start the match. Not Yet goes back so you can
+                sort it yourself.
               </div>
             )}
             {hasBad && !fixedLineup && (

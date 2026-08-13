@@ -12,7 +12,8 @@
 // handle (match morning, no natural walk can stage this on demand), press
 // Kick Off, and hold the modal to account:
 //
-//   it says an unfit shirt cannot be sent out
+//   it says the team cannot kick off as it is (plain words since round 23 -
+//     the old line was "an unfit shirt cannot be sent out")
 //   the only way forward carries the fix ("Fix It &" on the button)
 //   taking it CHANGES THE TEAM SHEET: the injured man is out of the lineup
 //     before the scoreboard exists, not silently patched inside the engine
@@ -73,7 +74,7 @@ try {
   await page.locator('.modal .btn.gold').waitFor({ timeout: 5000 })
 
   const modalText = await page.locator('.modal').innerText()
-  ok(/unfit shirt cannot be sent out/i.test(modalText), 'the modal says an unfit shirt cannot be sent out')
+  ok(/cannot kick off as it is/i.test(modalText), 'the modal says the team cannot kick off as it is')
   const goldLabel = await page.locator('.modal .btn.gold').innerText()
   say(`  the way forward reads: "${goldLabel.trim()}"`)
   ok(/Fix It &/i.test(goldLabel), 'the only way forward carries the fix')
