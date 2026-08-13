@@ -1387,9 +1387,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* The week label is three characters, and first-child's flex: 1 (which exists
    for the label-value panels like Finances) handed it half the row - so the
    club name next to it arrived as "Montpelli..." (audit 20A). Fixed width for
-   the week, the name gets the room. */
-.dash-line .dl-wk { flex: 0 0 32px; }
+   the week, the name gets the room. 28px, not 32: "wk44" needs 24, and the
+   spare 4px belong to the club name, which is the thing that gets cut. */
+.dash-line .dl-wk { flex: 0 0 28px; }
 .dash-line b { margin-left: auto; }
+/* Two-up starves the fixture line below 400px: the device matrix (round 22)
+   measured the club name at 50px on a 360px Android and 54px on an iPhone SE,
+   which is "La Ro..." all over again - the same failure the two-up rule at the
+   foot of this file fixed for 412px. On the narrowest phones the panels stack,
+   and every name gets the full row. */
+@media (max-width: 400px) {
+  .dash-row { grid-template-columns: minmax(0, 1fr) !important; }
+}
 
 /* tactics formation pitch: vertical half-pitch with tappable shirt chips */
 .form-pitch {

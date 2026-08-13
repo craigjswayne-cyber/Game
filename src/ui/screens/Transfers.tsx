@@ -247,7 +247,9 @@ export default function Transfers() {
 
       </>}
       {xtab === 'market' && <>
-      <SectionTitle sub={`${results.length} found${results.length === 120 ? ' (best 120)' : ''} · tap to bid`}>Scout The Market</SectionTitle>
+      {/* "120 found (best 120)" said the cap twice and paid for it in width:
+          the device matrix clipped "tap to bid" clean off at 360px. Once. */}
+      <SectionTitle sub={`${results.length === 120 ? 'best 120' : results.length} found · tap to bid`}>Scout The Market</SectionTitle>
       {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
           These controls were three different sizes: a flex-grow search box, a
           116px select whose label "All positions" did not fit inside it, and
