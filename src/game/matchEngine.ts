@@ -2207,7 +2207,7 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
   }
 }
 
-/** Substitution for the user's side (max 5 tactical subs), any time play is stopped. */
+/** Substitution for the user's side (MAX_SUBS tactical subs), any time play is stopped. */
 export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, inId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   if (ctx.seg === 3) return 'The match is over.'

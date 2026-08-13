@@ -5,7 +5,7 @@ import { newGame } from '../src/game/newgame'
 import { userFixtureThisWeek, weekRng, processWeekAndAdvance } from '../src/game/season'
 import {
   applyPreTalk, applyTeamTalk, applyTacticsChange, beginMatch, makeSubstitution,
-  resolveDecision, stepTick, sideEnergy,
+  resolveDecision, stepTick, sideEnergy, MAX_SUBS,
 } from '../src/game/matchEngine'
 import { mulberry32 } from '../src/game/rng'
 
@@ -58,7 +58,11 @@ for (let match = 0; match < 60; match++) {
     }
     const both = [...ctx.home.onPitch].filter(id => ctx.away.onPitch.has(id))
     if (both.length) fail(`player on both teams: ${both.length}`)
-    if (ctx.subsUsed > 5) fail(`subsUsed ${ctx.subsUsed}`)
+    // against the engine's own cap, not a remembered number: this said `> 5`
+    // after the bench grew to eight, and every sixth legal change was reported
+    // as an invariant failure (round 22 found it, along with the exit-code bug
+    // below that had kept the false alarm quiet)
+    if (ctx.subsUsed > MAX_SUBS) fail(`subsUsed ${ctx.subsUsed}`)
     let lastMin = 0
     for (const e of ctx.events) {
       if (e.type !== 'HT' && e.type !== 'FT' && e.type !== 'BRK') {
@@ -73,3 +77,6 @@ for (let match = 0; match < 60; match++) {
   processWeekAndAdvance(g)
 }
 console.log(bugs === 0 ? `FUZZ CLEAN: 60 chaotic interactive matches, all invariants held` : `${bugs} INVARIANT FAILURES`)
+// the verdict has to reach the exit code, or `suite.sh all` reads a red run as
+// green: it did, for as long as the stale invariant above was firing
+process.exit(bugs ? 1 : 0)
