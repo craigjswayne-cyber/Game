@@ -28,7 +28,13 @@
  *     Candidates carry a tag and the best of each tag survives.
  */
 import type { GameState, Tactic } from './model'
+import { MAX_SUBS } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
+
+/** MAX_SUBS as a word for prose, so the advice can never disagree with the
+ *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
+const CAP_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+  'nine', 'ten'][MAX_SUBS] ?? String(MAX_SUBS)
 
 export type UnitKey = 'scrum' | 'lineout' | 'breakdown'
 
@@ -284,11 +290,16 @@ export function coachFixes(
   }
 
   // ---- the bench you paid for -----------------------------------------------
+  // The count comes from MAX_SUBS, not prose. This line said "out of five" for
+  // two rounds after the bench grew to eight (F4), because the number lived in a
+  // sentence where no compiler could see it. Found by the RC battery, not a
+  // player, which is pure luck: the advice was telling a manager he had five
+  // changes when three more sat behind them.
   if (ctx.subsUsed <= 1) {
     c.push({
       tag: 'fitness', score: 16 - ctx.subsUsed * 5,
-      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used out of five.`,
-      how: 'Tap Match-Day Squad at the hour. Five changes are free and a fresh front row in the last twenty wins tight games on its own.',
+      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used out of ${CAP_WORD}.`,
+      how: `Tap Match-Day Squad at the hour. All ${CAP_WORD} changes are free and a fresh front row in the last twenty wins tight games on its own.`,
     })
   }
 

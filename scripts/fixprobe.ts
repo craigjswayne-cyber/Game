@@ -20,7 +20,7 @@
 //     out from under the text is worse than vague advice.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { beginMatch, makeSubstitution, playSegment } from '../src/game/matchEngine'
+import { beginMatch, makeSubstitution, playSegment, MAX_SUBS } from '../src/game/matchEngine'
 import { coachFixes, gradeFixes, gradeLine, unitBattles } from '../src/game/coachfix'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState, Fixture } from '../src/game/model'
@@ -182,6 +182,43 @@ ok(dashes.length === 0, 'no em dashes in the advice')
   ok(allLines.length === 5, 'every combination has words for it')
   ok(allLines.every(l => !l.includes('—')), 'no em dashes in the grades')
   ok(new Set(allLines).size === 5, 'and one match does not get another match\'s sentence')
+}
+
+// ---- THE BENCH LINE QUOTES THE REAL CAP (round 22, the RC battery) ---------
+//
+// "One replacement used out of five" survived two rounds after the bench grew
+// to eight (F4), because the number lived in prose where no compiler could see
+// it. The count now derives from MAX_SUBS, and this holds it there: play with
+// an untouched bench and read the complaint back. The bench candidate shares
+// its 'fitness' tag with the late-points complaint and loses the seat whenever
+// the opposition scored 10+ after the hour, so it can take a few matches to
+// surface - hence the loop rather than one shot.
+{
+  const CAP_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+    'nine', 'ten'][MAX_SUBS] ?? String(MAX_SUBS)
+  let benchLine: { head: string; how: string } | null = null
+  let tried = 0
+  let guard2 = 0
+  while (!benchLine && tried < 8 && guard2++ < 40) {
+    const mine = g.fixtures.find(f =>
+      f.week === g.week && !f.played && (f.homeId === g.userClubId || f.awayId === g.userClubId))
+    if (mine) {
+      tried++
+      const ctx = beginMatch(g, mine, mulberry32(mine.id * 7919 + 13), true, g.userClubId)
+      while (ctx.seg !== 3) playSegment(g, ctx)
+      const me = ctx.home.teamId === g.userClubId ? ctx.home : ctx.away
+      const them = me === ctx.home ? ctx.away : ctx.home
+      benchLine = coachFixes(g, ctx, me, them, club.tactic, 12).find(f => /used out of/.test(f.head)) ?? null
+    }
+    processWeekAndAdvance(g)
+  }
+  ok(!!benchLine, `an untouched bench surfaces the complaint (${tried} matches tried)`)
+  if (benchLine) {
+    ok(benchLine.head.includes(`out of ${CAP_WORD}`),
+      `and it quotes the engine's cap, not a remembered one: "${benchLine.head}"`)
+    ok(benchLine.how.includes(`${CAP_WORD} changes`),
+      'the advice under it agrees with the headline')
+  }
 }
 
 if (fails) { console.error(`\nFIX PROBE: ${fails} failures`); process.exit(1) }
