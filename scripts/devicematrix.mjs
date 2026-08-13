@@ -26,7 +26,10 @@ const server = await startPreview('4237', 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 
 let fails = 0
-const ok = (cond, what) => { console.log(`${cond ? '  ok  ' : ' FAIL '} ${what}`); if (!cond) fails++ }
+// FAIL starts the line: suite.sh surfaces a failed probe's detail by grepping
+// ^FAIL, and a leading space kept these lines out of the suite report - the
+// first flake showed up as "DEVICE MATRIX FAILED (1)" with nothing under it.
+const ok = (cond, what) => { console.log(`${cond ? '  ok  ' : 'FAIL  '} ${what}`); if (!cond) fails++ }
 
 // The measurements are portraitqa's, verbatim where possible, so a failure
 // here reads the same as a failure there.
@@ -97,9 +100,20 @@ const clipped = (page) => page.evaluate(() => {
 })
 
 const report = async (page, dev, label) => {
-  const nav = await unreachableAtBottom(page)
-  const mh = await mastheadCollisions(page)
-  const clip = await clipped(page)
+  let nav = await unreachableAtBottom(page)
+  let mh = await mastheadCollisions(page)
+  let clip = await clipped(page)
+  // A reading taken mid-render is not a layout verdict. Under the full suite
+  // this probe shares the CPU with a build and a dozen harnesses, and a fixed
+  // 300ms wait can measure a screen that has not settled - the first suite run
+  // flaked exactly once this way while every by-hand run passed. A real layout
+  // bug survives a second look 700ms later; a half-rendered screen does not.
+  if (nav.covered.length || mh.length || clip.trunc.length || clip.over.length || clip.mute.length) {
+    await page.waitForTimeout(700)
+    nav = await unreachableAtBottom(page)
+    mh = await mastheadCollisions(page)
+    clip = await clipped(page)
+  }
   console.log(`--- ${dev} / ${label}`)
   ok(mh.length === 0, `masthead controls do not collide${mh.length ? `: ${mh.join('; ')}` : ''}`)
   ok(nav.covered.length === 0, `the end of the page is reachable${nav.covered.length ? `: ${nav.covered.join('; ')}` : ''}`)
@@ -143,7 +157,7 @@ for (const dev of DEVICES) {
     for (const view of ['Stats', 'Contracts']) {
       await page.click(`.tab-bar >> text=${view}`)
       await page.waitForTimeout(300)
-      const t = await page.evaluate(() => {
+      const measure = () => page.evaluate(() => {
         const th = document.querySelector('.dtable thead th')
         const tr = document.querySelector('.dtable tbody tr')
         const tbl = document.querySelector('.dtable')
@@ -155,6 +169,12 @@ for (const dev of DEVICES) {
           viewport: window.innerWidth,
         }
       })
+      let t = await measure()
+      // same second look as report(): a mid-render reading is not a verdict
+      if (!t || (t.firstRow != null && t.head > t.firstRow) || t.tblRight > t.viewport + 1) {
+        await page.waitForTimeout(700)
+        t = await measure()
+      }
       if (!t) { console.log(`--- ${dev.name} / ${view}: no table to measure`); continue }
       ok(t.firstRow == null || t.head <= t.firstRow,
         `${view}: headings above the players (${t.head} vs ${t.firstRow})`)
@@ -170,11 +190,16 @@ for (const dev of DEVICES) {
     await page.click('.bottom-nav button[title="Hub"]')
     await page.click('.submenu-item >> text=Transfer Centre')
     await page.waitForSelector('.filter-line', { timeout: 8000 })
-    const spread = await page.evaluate(() =>
+    const measureSpread = () => page.evaluate(() =>
       [...document.querySelectorAll('.filter-line')].map(row => {
         const tops = [...row.children].map(e => Math.round(e.getBoundingClientRect().top))
         return Math.max(...tops) - Math.min(...tops)
       }))
+    let spread = await measureSpread()
+    if (!spread.every(s => s <= 2)) {
+      await page.waitForTimeout(700)
+      spread = await measureSpread()
+    }
     ok(spread.every(s => s <= 2), `transfer filters hold their lines at ${dev.w}px (spreads ${spread.join('/')})`)
     await report(page, dev.name, 'transfers')
   } catch (e) {
