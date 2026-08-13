@@ -134,6 +134,10 @@ export function migrate(s: GameState): GameState {
   s.pledges = asList(s.pledges)
   s.preContracts = asList(s.preContracts)
   s.comps = asMap(s.comps)
+  // the cup dropped a word from its name (user: "remove the word continental -
+  // can just be the champions cup"); a mid-season save carries the old one
+  // until rollover rebuilds the comp, so it is healed here instead
+  if (s.comps['cc']?.name === 'Continental Champions Cup') s.comps['cc'].name = 'Champions Cup'
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
   s.clubs = asMap(s.clubs)

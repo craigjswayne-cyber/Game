@@ -173,7 +173,8 @@ export function schedulePreseason(state: GameState, rng: Rng) {
 }
 
 export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
-  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Continental Champions Cup', short: 'Champions Cup' },
+  // just "Champions Cup" (user: "remove the word continental")
+  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Champions Cup', short: 'Champions Cup' },
 ): Competition {
   const teams = shuffled(rng, clubIds.slice(0, 16))
   const comp: Competition = {
