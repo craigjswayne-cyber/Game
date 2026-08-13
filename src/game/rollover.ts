@@ -1181,6 +1181,32 @@ export function rebuildSeason(state: GameState) {
     const down = topOrder[topOrder.length - 1]
     const up = lowComp.champion ?? sortTable(lowComp.table)[0]?.teamId
     if (!down || !up || down === up || !state.clubs[down] || !state.clubs[up]) continue
+    // THE ENGLISH TRAPDOOR IS A GAME NOW (21A). Week 44's playoff decided
+    // this pair on the pitch: the swap only happens if the Championship
+    // winner actually won it. A save that rolled over without the fixture
+    // (or a playoff that somehow never played) falls back to the automatic
+    // swap, which is what the game always did.
+    if (topId === 'prem') {
+      const bar = state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played)
+      if (bar) {
+        const winner = bar.homeScore > bar.awayScore ? bar.homeId : bar.awayId
+        if (winner === down) {
+          const line = `${state.clubs[down].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} and keep their Premiership place; ${state.clubs[up].name} stay down`
+          if (down === state.userClubId || up === state.userClubId) {
+            state.news.push({
+              id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+              subject: down === state.userClubId
+                ? `😅 SURVIVED: ${state.clubs[down].short} win the playoff`
+                : `💔 SO CLOSE: ${state.clubs[up].short} lose the playoff`,
+              body: `${line}.${down === state.userClubId ? ' The great escape, done on your own patch. The board exhales - now never come this close again.' : ' Champions of the second tier, beaten in one game for everything. The board keeps faith: win the league again and finish the job.'}`,
+            })
+          } else {
+            swaps.push(line)
+          }
+          continue
+        }
+      }
+    }
     state.clubs[down].leagueId = lowId
     state.clubs[down].rep = Math.max(44, state.clubs[down].rep - 4)
     state.clubs[up].leagueId = topId
@@ -1202,7 +1228,13 @@ export function rebuildSeason(state: GameState) {
       subject: down === state.userClubId
         ? `💔 RELEGATED: ${state.clubs[down].name} go down`
         : `🎉 PROMOTED: ${state.clubs[up].name} are going up!`,
-      body: `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`,
+      body: (() => {
+        const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
+        const how = bar
+          ? `${state.clubs[up].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} away from home and take the Premiership place. ${state.clubs[down].name} lose it on their own ground and drop into the second tier.`
+          : `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
+        return `${how}${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`
+      })(),
     })
   }
   if (swaps.length) {

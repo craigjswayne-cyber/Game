@@ -346,7 +346,12 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'career',
     q: 'Can I manage a country?',
-    a: 'Yes, if one asks. Do well enough at club level and a union may offer you their side alongside the job you have. You pick the squad, you take the Six Nations or the Rugby Championship, and the union keeps score. A World Cup is the biggest thing in the game.',
+    a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: you pick the squad, you take the Six Nations or the Rugby Championship, and the union keeps score. A World Cup is the biggest thing in the game. The Job Centre shows how close your reputation is.',
+  },
+  {
+    cat: 'career',
+    q: 'How does promotion and relegation work?',
+    a: 'In England the trapdoor is a game: the Premiership\'s bottom club hosts the Championship winner in a one-off playoff after the finals, and the winner plays top-flight rugby next season. Everywhere else the swap is automatic - bottom of the top flight down, champion of the second tier up. European places come from final league standings: the top five of the Premiership, six of the Top 14 and five of the URC make the Champions Cup, and the band below each of them goes into the Challenge Cup.',
   },
   {
     cat: 'career',
