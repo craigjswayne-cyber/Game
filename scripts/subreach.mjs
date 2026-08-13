@@ -247,7 +247,10 @@ async function sweep(label, height, stopAt) {
       if (id == null) return null
       mine.onPitch.delete(id)
       mine.sent += 1
-      window.rugbyStore.setState({})
+      // a fresh liveMatch reference, or nothing repaints: zustand skips
+      // subscribers whose selected value is identical, and ctx is mutated
+      // in place - the same trick every store action uses (store.ts)
+      window.rugbyStore.setState(s => ({ liveMatch: { ...s.liveMatch }, tick: s.tick + 1 }))
       return { id, shirtIdx: mine.lineup.indexOf(id) }
     })
     await page.waitForTimeout(300)
@@ -269,7 +272,7 @@ async function sweep(label, height, stopAt) {
         const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
         mine.onPitch.add(id)
         mine.sent -= 1
-        window.rugbyStore.setState({})
+        window.rugbyStore.setState(s => ({ liveMatch: { ...s.liveMatch }, tick: s.tick + 1 }))
       }, red.id)
     } else {
       ok(false, 'a red card could be staged through the live ctx')
