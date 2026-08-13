@@ -314,12 +314,17 @@ export default function Home() {
                   </div>
                 )
               })}
+              {/* The comp tag is the compId, not comp.short: "Champions Cup"
+                  muted at the end of a half-width row cost 72px and the club
+                  name beside it arrived as "Highlande..." (device matrix,
+                  round 23). PREM/CC/TOP14 says which shirt the week is about
+                  in the space a glance panel actually has. */}
               {coming.map(f => (
                 <div key={f.id} className="dash-line">
                   <span className="muted dl-wk">wk{f.week}</span>
                   <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
                   <span>{f.homeId === club.id ? 'H' : 'A'}</span>
-                  <span className="muted">{game.comps[f.compId]?.short ?? 'FR'}</span>
+                  <span className="muted">{game.comps[f.compId] ? f.compId.toUpperCase() : 'FR'}</span>
                 </div>
               ))}
             </button>
@@ -354,13 +359,15 @@ export default function Home() {
               const rr = rf ? (() => {
                 const us = rf.homeId === rival ? rf.homeScore : rf.awayScore
                 const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
-                return { txt: `${us > them ? 'won' : us < them ? 'LOST' : 'drew'} ${us}-${them}`, c: us < them ? '#2f7d4f' : us > them ? '#9b2c2c' : undefined }
+                // W/L/D, not won/LOST/drew: the words plus the eyes emoji cost
+                // this half-width row 40px and the rival's name paid for it
+                return { txt: `${us > them ? 'W' : us < them ? 'L' : 'D'} ${us}-${them}`, c: us < them ? '#2f7d4f' : us > them ? '#9b2c2c' : undefined }
               })() : null
               return (
                 <button className="dash-panel" onClick={() => go('club', rival)}>
                   <div className="dash-head">Rival Watch</div>
                   <div className="dash-line">
-                    <span className="dl-t">👀 {teamShort(game, rival)}</span>
+                    <span className="dl-t">{teamShort(game, rival)}</span>
                     {rr && <b style={{ color: rr.c }}>{rr.txt}</b>}
                     {rPos > 0 && <span className="muted">{ordinal(rPos)}</span>}
                   </div>
