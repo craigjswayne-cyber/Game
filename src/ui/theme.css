@@ -1383,7 +1383,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-bottom: 1px solid var(--hairline);
 }
 .dash-line .dl-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.dash-line span:first-child:not(.dl-t) { flex: 1; text-align: left; }
+/* :not(.dl-wk) is the whole fix, and it earns its comment. The rule below
+   exists for the label-value panels (Finances: "Balance ... £2.4m"), but
+   :first-child:not(.dl-t) outranks .dl-wk's fixed width on specificity, so
+   the three-character week label ALSO took flex: 1 - half the free space of
+   every fixture row, silently, since the day it was written. The 20A "fixed
+   width for the week" rule never applied once; the club name beside it lived
+   on whatever was left and the device matrix caught it clipping "Highlanders"
+   only when the friendly hat drew a long name. Measured, not deduced:
+   scratchpad dashmeasure showed wk3 at 63px against a declared 28. */
+.dash-line span:first-child:not(.dl-t):not(.dl-wk) { flex: 1; text-align: left; }
 /* The week label is three characters, and first-child's flex: 1 (which exists
    for the label-value panels like Finances) handed it half the row - so the
    club name next to it arrived as "Montpelli..." (audit 20A). Fixed width for
