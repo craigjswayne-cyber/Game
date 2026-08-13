@@ -92,6 +92,18 @@ export default function Jobs() {
             Press Continue to let the weeks pass - boards lose patience with strugglers, and new vacancies appear.
           </div>
         )}
+        {/* The international route existed and was invisible (user: "you cant
+            manage international sides?" - you can, the phone just had not
+            rung). The rule is now on the page it belongs to. */}
+        {!game.natTeam && (
+          <div className="meta" style={{ marginTop: 4 }}>
+            🌍 The unions watch this page too: managers with a reputation of <b>64</b> or
+            better get national-team offers alongside the club job, the biggest nations
+            holding out for the mid-80s.{rep >= 64
+              ? ' You qualify - the call can come any time.'
+              : ` ${64 - rep} more to reach the threshold.`}
+          </div>
+        )}
       </div>
 
       {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}

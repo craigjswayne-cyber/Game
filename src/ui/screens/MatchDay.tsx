@@ -573,10 +573,15 @@ function Preview({ fxId }: { fxId: number }) {
           const comp = game.comps[fx.compId]
           const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][Math.min(n % 10, 4)] ?? 'th'}`
           if (fx.stage && fx.stage !== 'F' && comp) {
+            // the relegation playoff (21A) is knockout rugby with a whole
+            // season's status on it, and the card should say exactly that
+            const relBar = fx.stage === 'BAR' && comp.id === 'prem'
             return (
               <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
                 <div className="fact-label">The Stakes</div>
-                <div className="meta">Knockout rugby. Win and the {comp.short} run goes on; lose and it ends this afternoon.</div>
+                <div className="meta">{relBar
+                  ? 'The relegation playoff. Eighty minutes for a Premiership place: the winner plays top-flight rugby next season, the loser spends a year in the Championship.'
+                  : `Knockout rugby. Win and the ${comp.short} run goes on; lose and it ends this afternoon.`}</div>
               </div>
             )
           }

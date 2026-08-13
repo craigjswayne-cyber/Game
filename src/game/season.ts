@@ -2202,6 +2202,36 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
+  // THE RELEGATION PLAYOFF (21A). In England the trapdoor is no longer
+  // automatic: once week 43 has crowned both champions, the Premiership's
+  // bottom club hosts the Championship winner in week 44 - eighty minutes
+  // for a place in the top flight, playable like any other fixture when it
+  // is yours. The rollover reads this game's result instead of swapping the
+  // two clubs blind; the other pyramids keep the automatic trapdoor.
+  if (state.week === 43) {
+    const prem = state.comps['prem']
+    const champ = state.comps['champ']
+    const already = state.fixtures.some(f => f.compId === 'prem' && f.stage === 'BAR')
+    if (prem && champ && !already) {
+      const bottom = sortTable(prem.table).map(r => r.teamId).pop()
+      const up = champ.champion ?? sortTable(champ.table)[0]?.teamId
+      if (bottom && up && bottom !== up && state.clubs[bottom] && state.clubs[up]) {
+        const fx: Fixture = {
+          id: state.nextId++, compId: 'prem', round: 99, week: 44,
+          homeId: bottom, awayId: up, played: false,
+          homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage: 'BAR',
+        }
+        state.fixtures.push(fx)
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+          subject: `⚔️ The relegation playoff: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
+          body: `One game for a Premiership place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
+          fixtureId: fx.id,
+        })
+      }
+    }
+  }
+
   // Career milestone salutes for your own men.
   //
   // These used to flood the inbox in the opening weeks (user screenshot: four
