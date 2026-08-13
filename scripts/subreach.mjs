@@ -228,6 +228,52 @@ async function sweep(label, height, stopAt) {
     ok(tail.ok, 'scrolled to the end, the last bench man is fully on screen')
     ok(tail.headVisible, 'and the sticky heading is still naming the casualty')
     ok(tail.hintVisible, 'and the line telling you what to tap next is still on screen')
+
+    // ---- a sent-off man says so (round 23). Staged, not waited for: a red
+    // card landing on the exact XV this probe is watching is a once-in-many-
+    // suites event, which is precisely how the gap survived until one suite
+    // run found shirt 1 dead grey with no reason on it. Substituted men leave
+    // the lineup, binned men show the yellow, injured men the cross - so a
+    // man off the pitch with none of those is sent off, and the row must say
+    // so. Take a man off through the store exactly the way a red does.
+    const red = await page.evaluate(() => {
+      const st = window.rugbyStore.getState()
+      const ctx = st.liveMatch?.ctx
+      if (!ctx) return null
+      const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+      const id = mine.lineup.slice(0, 15).find(pid => pid != null &&
+        mine.onPitch.has(pid) && !((mine.yellowUntil.get(pid) ?? 0) > ctx.tick * 4) &&
+        !st.game.players[pid]?.injury)
+      if (id == null) return null
+      mine.onPitch.delete(id)
+      mine.sent += 1
+      window.rugbyStore.setState({})
+      return { id, shirtIdx: mine.lineup.indexOf(id) }
+    })
+    await page.waitForTimeout(300)
+    if (red) {
+      const row = await page.evaluate((idx) => {
+        const col = document.querySelector('.squad-sheet .sheet-col')
+        const r = col ? [...col.querySelectorAll('.sheet-row')][idx] : null
+        return {
+          disabled: r?.disabled === true,
+          flagged: r?.querySelector('.sh-flag[title="Sent off"]') != null,
+        }
+      }, red.shirtIdx)
+      ok(row.disabled, 'the sent-off man cannot be tapped')
+      ok(row.flagged, 'and his row says why: the red-card flag is on it')
+      // put him back, so the rest of the probe plays a fifteen-man game
+      await page.evaluate((id) => {
+        const st = window.rugbyStore.getState()
+        const ctx = st.liveMatch?.ctx
+        const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
+        mine.onPitch.add(id)
+        mine.sent -= 1
+        window.rugbyStore.setState({})
+      }, red.id)
+    } else {
+      ok(false, 'a red card could be staged through the live ctx')
+    }
   } finally {
     await page.close()
   }

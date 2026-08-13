@@ -2432,6 +2432,13 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                   <span className="sh-name">{p.name}</span>
                   {binned && <span className="sh-flag" title="In the bin">🟨</span>}
                   {p.injury && <span className="sh-flag" title="Injured">🏥</span>}
+                  {/* A man off the pitch who is neither binned nor hurt was sent
+                      off - a substituted man leaves the lineup entirely, so this
+                      is the only remaining way to be gone. Without the flag his
+                      row was just dead grey with no reason on it, which is how
+                      subreach failed one suite run and taught the sheet to say
+                      why (round 23). */}
+                  {!on && !binned && !p.injury && <span className="sh-flag" title="Sent off">🟥</span>}
                   {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
                   <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
                 </button>
