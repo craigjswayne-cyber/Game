@@ -264,7 +264,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'club',
     q: 'How do facility upgrades work?',
-    a: 'There are nine facilities and each runs from level 0 to level 5. You cannot buy them: you ask the board, on the Club Infrastructure page, and the board weighs the price against the reserves and its confidence in you. Confidence buys backing too: a board that rates you at seventy or better underwrites most of the bill, one that merely tolerates you underwrites none of it, and below forty-five the answer is no whatever the balance says. Approved work takes five weeks. Only one project runs at a time, and a refusal puts you on a two-month cooling-off period before you can ask again.',
+    a: 'There are nine facilities and each runs from level 0 to level 5. You cannot buy them: you ask the board, on the Club Infrastructure page, and the board weighs the price against the reserves and its confidence in you. Confidence buys backing too: a board that rates you in the high seventies underwrites seventy per cent of the bill, seventy or better more than half, one just warming to you about a third, one that merely tolerates you nothing at all, and below forty-five the answer is no whatever the balance says. Approved work takes five weeks. Only one project runs at a time, and a refusal puts you on a two-month cooling-off period before you can ask again.',
   },
   {
     cat: 'club',
@@ -347,6 +347,11 @@ export const HANDBOOK: HandbookEntry[] = [
     cat: 'career',
     q: 'Can I manage a country?',
     a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: you pick the squad, you take the Six Nations or the Rugby Championship, and the union keeps score. A World Cup is the biggest thing in the game. The Job Centre shows how close your reputation is.',
+  },
+  {
+    cat: 'career',
+    q: 'Is there a World Cup?',
+    a: 'Every four years - 2027, 2031 and on. Twenty nations in four pools of five, seeded from the live world rankings so four years of Test results decide who lands the kind pool and who gets the group of death, then quarter-finals, semis and a final. It runs in the opening weeks of the season and your internationals are away with their countries until it is decided, so plan the early club rounds around the gaps. There is no Rugby Championship and no autumn series that year: the World Cup is the Test calendar. Hold a national job when one comes around and you coach every match of it - your seeding sets the bar, the union marks you against it, and the post-mortem lands either way. A World Cup won stays on a player\'s honours for good, and on yours.',
   },
   {
     cat: 'career',
