@@ -77,7 +77,10 @@ const clipped = (page) => page.evaluate(() => {
       const t = (el.textContent ?? '').trim()
       const sel = el.tagName.toLowerCase() + (el.className && typeof el.className === 'string'
         ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : '')
-      if (t) trunc.push(`${t.slice(0, 24)} [${sel} ${Math.round(el.clientWidth)}px] (${el.scrollWidth - el.clientWidth}px cut)`)
+      // the whole row, not just the clipped span: "Wild Knights 63px" alone
+      // cost three diagnosis runs because four different rows share that class
+      const row = (el.parentElement?.textContent ?? '').trim().slice(0, 60)
+      if (t) trunc.push(`${t.slice(0, 24)} [${sel} ${Math.round(el.clientWidth)}px, row "${row}"] (${el.scrollWidth - el.clientWidth}px cut)`)
     }
     if (r.right > window.innerWidth + 1 && (el.textContent ?? '').trim() && !el.querySelector('*')) {
       let inScroller = false
