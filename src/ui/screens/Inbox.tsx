@@ -107,8 +107,14 @@ export default function Inbox() {
     if (rescues.current++ < 25) openInbox()
   }, [inboxId, live.length])
 
+  // THE 34-UNREAD LOOP (round 25, from a screenshot reading "0 of 20 · 34
+  // unread"). The unread queue serves oldest first, but with more than 20
+  // stories pending the oldest sits outside the 20-story browse window - and
+  // the fallback here rendered window20[0], the SAME newest story, on every
+  // tap of Next unread while the count dutifully fell. The story being READ
+  // comes from the full recall list; the 20-window is only for ◀ ▶ browsing.
   const i = window20.findIndex(n => n.id === inboxId)
-  const n = i >= 0 ? window20[i] : window20[0]
+  const n = live.find(x => x.id === inboxId) ?? window20[0]
 
   if (!n) {
     return (
@@ -134,7 +140,8 @@ export default function Inbox() {
           title="Older message" aria-label="Older message"
           onClick={() => inboxStep(-1)}>◀</button>
         <span className="reader-pos">
-          {i + 1} of {window20.length}
+          {/* a story older than the browse window has no position in it */}
+          {i >= 0 ? `${i + 1} of ${window20.length}` : 'backlog'}
           {unread > 0 ? ` · ${unread} unread` : ' · all read'}
         </span>
         <button className="btn ghost tiny" disabled={i <= 0}
@@ -153,7 +160,12 @@ export default function Inbox() {
             how the engine happened to punctuate the story: some had 6px, some had
             12, and the result read as a wall with random gaps in it (user: "news
             graphics seem so messy, tidy them up. use paragraphs"). */}
-        {paragraphs(n.body).map((para, k) => <p key={k}>{para}</p>)}
+        {/* **name** renders bold: the loan postcards mark the player names so a
+            five-man report can be scanned (round 25). Odd segments of the split
+            are the marked ones; a body with no markers passes through intact. */}
+        {paragraphs(n.body).map((para, k) => (
+          <p key={k}>{para.split(/\*\*(.+?)\*\*/g).map((seg, j) => j % 2 === 1 ? <b key={j}>{seg}</b> : seg)}</p>
+        ))}
         <PeopleChips n={n} />
       </article>
 

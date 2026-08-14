@@ -27,7 +27,7 @@ export default function Agency() {
         </div>
         <SectionTitle sub="rating points move with every Test - upsets and knockouts move them most">Test Rankings: World</SectionTitle>
         <div className="tblwrap"><table className="dtable">
-          <thead><tr><th>#</th><th></th><th>Nation</th><th className="num">Pts</th></tr></thead>
+          <thead><tr><th>#</th><th></th><th>Nation</th><th className="num" style={{ paddingRight: 14 }}>Pts</th></tr></thead>
           <tbody>
             {order.map((code, i) => {
               const n = nationByCode(code)
@@ -45,7 +45,9 @@ export default function Agency() {
                   <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
                     {n?.flag ?? ''} {n?.name ?? code}{mine ? ' (you)' : ''}
                   </td>
-                  <td className="num">{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
+                  {/* breathing room on the table's outer edge - the points sat
+                      flush against the screen (round 25, from a screenshot) */}
+                  <td className="num" style={{ paddingRight: 14 }}>{(game.natRank?.[code] ?? 0).toFixed(2)}</td>
                 </tr>
               )
             })}

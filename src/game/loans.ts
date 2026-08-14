@@ -2,7 +2,7 @@
 
 import type { GameState, Player } from './model'
 import { autoSelect } from './matchEngine'
-import { clamp } from './rng'
+import { clamp, mulberry32 } from './rng'
 
 /** Young talent parked on big-club benches, available for a season's loan. */
 export function loanTargets(state: GameState): Player[] {
@@ -79,13 +79,22 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     return { ok: false, msg: `${p.name} is in your starting XV. Drop him first if you mean it.` }
   }
   p.onLoan = true
+  // a NAMED feeder club (round 25, user: "say what club they are playing
+  // for"): a real lower-tier side, picked deterministically per player, so
+  // every postcard about him can say where he is. Cosmetic - he does not
+  // appear in their fixtures - but a loan to Bedford reads like a loan.
+  const feeders = Object.values(state.clubs)
+    .filter(c => c.rep <= (club?.rep ?? 60) - 15 && c.id !== state.userClubId)
+    .sort((a, b) => a.id.localeCompare(b.id))
+  const feeder = feeders.length ? feeders[Math.floor(mulberry32(state.seed + p.id * 7)() * feeders.length)] : null
+  p.loanClub = feeder?.id
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
     subject: `${p.name} heads out on loan`,
-    body: `${p.name} joins a feeder club for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
+    body: `${p.name} joins ${feeder ? feeder.name : 'a feeder club'} for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} will spend the season on loan. He returns next summer, better for it.` }
+  return { ok: true, msg: `${p.name} will spend the season on loan${feeder ? ` at ${feeder.name}` : ''}. He returns next summer, better for it.` }
 }
 
 /**
@@ -103,6 +112,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
   if (p.clubId !== state.userClubId) return { ok: false, msg: 'He is not yours to recall.' }
   if (!p.onLoan) return { ok: false, msg: `${p.name} is not out on loan.` }
   p.onLoan = false
+  p.loanClub = undefined
   // playing every week: he arrives fit and sharp, not rusty
   p.cond = Math.max(p.cond, 90)
   p.sharp = Math.max(p.sharp ?? 60, 85)

@@ -55,7 +55,10 @@ try {
   }
   await page.waitForSelector('text=Kick Off ▸', { timeout: 20000 })
 
-  // match morning: the starting loosehead pulls up in the warm-up
+  // match morning: the starting loosehead pulls up in the warm-up - and so
+  // does a man on the bench, because the gate has to hold for all 23 (round
+  // 25, user: "I had an injured player on the bench and the game play
+  // continued. All 23 should be fit and ready to play")
   const hurt = await page.evaluate(() => {
     const st = window.rugbyStore.getState()
     const g = st.game
@@ -63,10 +66,13 @@ try {
     const pid = club.tactic.lineup[0]
     const p = g.players[pid]
     p.injury = { desc: 'hamstring (warm-up)', until: g.week + 3, weeks: 3 }
+    const bid = club.tactic.lineup[16]
+    const b = bid != null ? g.players[bid] : null
+    if (b) b.injury = { desc: 'calf (warm-up)', until: g.week + 2, weeks: 2 }
     st.touch()
-    return { id: pid, name: p.name }
+    return { id: pid, name: p.name, benchId: bid, benchName: b?.name ?? null }
   })
-  say(`  injured the starting loosehead: ${hurt.name}`)
+  say(`  injured the starting loosehead: ${hurt.name}, and on the bench: ${hurt.benchName}`)
 
   await page.locator('text=Kick Off ▸').first().click()
   await page.locator('.talk-modal').waitFor({ timeout: 5000 })
@@ -75,6 +81,8 @@ try {
 
   const modalText = await page.locator('.modal').innerText()
   ok(/cannot kick off as it is/i.test(modalText), 'the modal says the team cannot kick off as it is')
+  ok(/all twenty-three must be fit/i.test(modalText),
+    'the injured BENCH man is flagged too: all twenty-three must be fit')
   const goldLabel = await page.locator('.modal .btn.gold').innerText()
   say(`  the way forward reads: "${goldLabel.trim()}"`)
   ok(/Fix It &/i.test(goldLabel), 'the only way forward carries the fix')
@@ -87,13 +95,13 @@ try {
     const club = g.clubs[g.userClubId]
     return {
       inXV: club.tactic.lineup.slice(0, 15).includes(hurtId),
-      anyInjuredStarting: club.tactic.lineup.slice(0, 15)
+      anyInjuredIn23: club.tactic.lineup
         .some(id => id != null && g.players[id]?.injury),
     }
   }, hurt.id)
   ok(!after.inXV, `${hurt.name} is out of the team sheet, visibly, not patched in the engine`)
-  ok(!after.anyInjuredStarting, 'and nobody injured starts in his place')
-  say('  the match is under way with a fit XV')
+  ok(!after.anyInjuredIn23, 'and nobody injured is anywhere in the repaired 23, bench included')
+  say('  the match is under way with a fit twenty-three')
 } finally {
   await browser.close()
   server.stop()

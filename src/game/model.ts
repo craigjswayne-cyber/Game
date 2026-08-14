@@ -297,6 +297,9 @@ export interface Player {
   sc: number
   /** away on a season loan */
   onLoan?: boolean
+  /** where a loaned-out man is spending the season - a real lower-tier club,
+   *  picked at loan time, so the postcards can say where he is (round 25) */
+  loanClub?: string
   /** ability at the start of the season, for development arrows */
   ca0?: number
   /** weeks of match rust remaining after an injury - playable, but a

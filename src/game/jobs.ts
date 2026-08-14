@@ -143,6 +143,8 @@ export function applyForJob(state: GameState, clubId: string): string {
   if (rng() < jobChance(state, clubId)) {
     // hired!
     const oldClubId = state.userClubId
+    // any bid still waiting on the old desk is not this manager's to answer
+    state.offers = []
     // loan-ins belong to the OLD project - send them home
     for (const p of Object.values(state.players)) {
       if (p.loanFrom && p.clubId === oldClubId && state.clubs[p.loanFrom]) {
@@ -248,6 +250,11 @@ export function eraSummary(state: GameState): string {
 export function resignJob(state: GameState) {
   const club = state.clubs[state.userClubId]
   state.unemployed = true
+  // bids for the old club's players die with the job - they were addressed to
+  // the manager of that club, and answering one from a new desk sold Alex
+  // Mitchell out of Northampton while the user managed somewhere else
+  // (round 25, from a screenshot)
+  state.offers = []
   state.vacancies.push({ clubId: club.id, week: state.week })
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
