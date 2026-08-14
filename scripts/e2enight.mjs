@@ -79,6 +79,8 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
+  await page.click('.tab-bar >> text=General Info')
+  await page.waitForTimeout(300)
   await shot('06-squad')
 
   // The filter row has to be ONE line. It was two: six chips plus a search box
@@ -155,7 +157,7 @@ try {
 
   // the team sheet: forwards left, backs right in landscape
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics').catch(() => {})
+  await page.click('.submenu-item >> text="Team"').catch(() => {})
   try {
     await page.waitForSelector('.xv-split', { timeout: 4000 })
     await shot('06g2-team-sheet')

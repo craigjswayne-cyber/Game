@@ -36,7 +36,7 @@ await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 page.setDefaultTimeout(4000)
 
 const WANT = [
-  'Team', 'Team Report', 'Selection & Tactics', 'Academy', 'Training & Staff',
+  'Team', 'Team Report', 'Tactics', 'Academy', 'Training & Staff',
   'Medical Centre', 'Fixtures & Results', 'Finances', 'Transfer Centre',
   'Club Infrastructure', 'Club Information',
 ]
@@ -97,7 +97,7 @@ try {
       .map(el => (el.textContent ?? '').replace(/\s+/g, ' ').replace('start here', '').trim()))
     say(`  marked as the first jobs: ${marked.join(', ') || '(none)'}`)
     ok(marked.length === 3, `exactly three rows are marked (found ${marked.length})`)
-    for (const want of ['Selection & Tactics', 'Team', 'Training & Staff']) {
+    for (const want of ['Tactics', 'Team', 'Training & Staff']) {
       ok(marked.some(m => m.includes(want)), `${want} is one of them`)
     }
     ok(!marked.some(m => /Team Report/.test(m)), 'and Team Report is not, despite sharing a word with Team')

@@ -217,7 +217,7 @@ try {
   let livePatience = 0
 
   // every screen the rail can reach, checked periodically
-  const HUB = ['Team', 'Selection & Tactics', 'Fixtures & Results', 'Finances', 'Transfer Centre',
+  const HUB = ['Team', 'Tactics', 'Fixtures & Results', 'Finances', 'Transfer Centre',
     'Medical Centre', 'Academy', 'Training & Staff', 'Club Infrastructure', 'Team Report']
   const MANAGER = ['Manager Profile', 'Press Room', 'Job Centre', 'Manager Legacy', "The Manager's Handbook", 'Save / Load Game']
   const WORLD = ['Competitions', 'International Rugby', 'Team of the Week', 'Scouting Agency', 'Roll of Honour']

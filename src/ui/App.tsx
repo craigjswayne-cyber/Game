@@ -40,7 +40,7 @@ import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 
 const TITLES: Record<string, string> = {
-  home: 'Home', inbox: 'News', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Selection & Tactics', fixtures: 'Fixtures',
+  home: 'Home', inbox: 'News', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
   nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
@@ -326,12 +326,12 @@ export default function App() {
       // and Academy loses "& A League" because the A League is a thing on that
       // page rather than a second destination.
       items: [
-        // Team, the report on it, then the sheet you pick from it: the user's
-        // order, corrected on sight of it on a phone ("selection and tactics
-        // should be below team report").
+        // Team opens on the team sheet now (user: "Selection should be the
+        // team section"), so the tactics screen is just Tactics - the how,
+        // not the who.
         { ico: '🏉', label: 'Team', screen: 'squad' },
         { ico: '📊', label: 'Team Report', screen: 'report' },
-        { ico: '📋', label: 'Selection & Tactics', screen: 'tactics' },
+        { ico: '📋', label: 'Tactics', screen: 'tactics' },
         { ico: '🎓', label: 'Academy', screen: 'academy' },
         { ico: '🏋️', label: 'Training & Staff', screen: 'training' },
         { ico: '🏥', label: 'Medical Centre', screen: 'medical', badge: injuredCount },

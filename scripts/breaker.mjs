@@ -147,8 +147,8 @@ try {
   // ---- 2. an empty team sheet, then kick off ------------------------------
   await step('empty sheet', async () => {
   await tap('.bottom-nav button[title="Hub"]')
-  await tap('.submenu-item >> text=Selection & Tactics')
-  await page.waitForSelector('.tab-bar', { timeout: 8000 })
+  await tap('.submenu-item >> text="Team"')
+  await page.waitForSelector('.xv-split', { timeout: 8000 })
   // tap a slot twice to open the picker, then Clear Slot, for every XV row
   let cleared = 0
   for (let i = 0; i < 15; i++) {
@@ -273,6 +273,8 @@ try {
   await tap('.bottom-nav button[title="Hub"]')
   await tap('.submenu-item >> text="Team"')
   await page.waitForTimeout(700)
+  await tap('.tab-bar >> text=General Info')
+  await page.waitForTimeout(400)
   const mine = page.locator('.dtable tbody tr').first()
   if (await mine.count()) {
     await mine.click().catch(() => {})
@@ -306,7 +308,7 @@ try {
   // ---- 8. every screen, twice, both orientations -------------------------
   await step('navigation', async () => {
   const MENUS = [
-    ['Hub', ['Selection & Tactics', 'Team', 'Team Report', 'Training & Staff', 'Medical Centre',
+    ['Hub', ['Tactics', 'Team', 'Team Report', 'Training & Staff', 'Medical Centre',
       'Fixtures & Results', 'Finances', 'Transfer Centre', 'Academy',
       'Club Infrastructure', 'Club Information']],
     ['Manager', ['Manager Profile', 'Press Room', 'Job Centre', 'Manager Legacy',

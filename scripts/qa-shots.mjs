@@ -43,6 +43,8 @@ try {
   log('inbox')
   await page.click('text="Team"').catch(() => {})
   await page.waitForTimeout(700)
+  await page.click('.tab-bar >> text=General Info').catch(() => {})
+  await page.waitForTimeout(400)
   await shot('n5-squad')
   await page.click('.dtable tbody tr >> nth=2').catch(() => {})
   await page.waitForTimeout(700)

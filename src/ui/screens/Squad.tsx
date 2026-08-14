@@ -4,9 +4,10 @@ import { POS_ORDER, fmtMoney, fmtWage, type Player } from '../../game/model'
 import { starPlayerIds } from '../../game/analysis'
 import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
+import SelectionPane from './Selection'
 
-// FM Mobile squad layout: Pkd chip, fitness ring, starred names,
-// morale arrows, Av R and Value - with a View switcher.
+// FM Mobile squad layout: the team sheet first, then the tables - Pkd chip,
+// fitness ring, starred names, morale arrows, Av R and Value.
 
 type View = 'selection' | 'general' | 'stats' | 'gametime' | 'contracts'
 type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd' | 'wage' | 'until'
@@ -132,15 +133,18 @@ export default function Squad() {
           four screenfuls, and the controls used to sail off the top of it */}
       <StickyControls>
       <div className="tab-bar">
-        {/* The first view was labelled Selection, and the game ALSO has a
-            Selection tab on Selection & Tactics - two pages wearing the same
-            name, one showing the pick and one making it (user: "there's two
-            selection pages which are confusing"). This one is the overview
-            table with the Pkd chips, so it says so; picking happens in one
-            place only, on Selection & Tactics via the hub. */}
+        {/* THE PICK COMES FIRST. This tab spent one era as "Selection" (a
+            read-only table that shared its name with the real picker on
+            another screen) and one as "Overview" (the same table,
+            disambiguated). Both eras made the manager cross the app to
+            actually pick a side (user: "Selection should be the team section
+            and replace overview"). Now tapping Team lands on the team sheet
+            itself - the pane from screens/Selection.tsx - and the old
+            overview table is gone: everything it showed lives on the pane or
+            on General Info. */}
         {(['selection', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {v === 'selection' ? 'Overview' : v === 'general' ? 'General Info'
+            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info'
               : v === 'stats' ? 'Stats' : v === 'gametime' ? 'Game Time' : 'Contracts'}
           </button>
         ))}
@@ -152,7 +156,8 @@ export default function Squad() {
             length, and the wage bill and homegrown count are on Finances and
             General Info. */}
       </div>
-      <div className="filter-row">
+      {/* the chips filter the tables; the team sheet pane has no use for them */}
+      {view !== 'selection' && <div className="filter-row">
         {/* Forwards and Backs are gone (user: "you can remove forwards and backs
             as a sort here"): the list is ordered by shirt number, so 1 to 8 are
             already the forwards and 9 to 15 the backs. The chips filtered a
@@ -182,8 +187,10 @@ export default function Squad() {
           <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
             onClick={() => setGtAll(!gtAll)}>{gtAll ? 'Everyone shown' : 'Needs a word'}</button>
         )}
-      </div>
+      </div>}
       </StickyControls>
+
+      {view === 'selection' && <SelectionPane />}
       {/* ---- why this table is told its column widths ----
           .tblwrap sets overflow-x: auto, and CSS computes the other axis to
           auto with it, so the wrapper became the table's vertical scrollport.
@@ -202,23 +209,12 @@ export default function Squad() {
           need to scroll and .fitwrap turns the scrollport off. Then .content is
           the scrollport again and the heading sticks under the controls where
           it belongs. */}
-      <div className="tblwrap fitwrap"><table className="dtable zebra fit">
-        {view === 'selection' && <colgroup><col width="34" /><col /><col width="36" /><col width="62" /><col width="40" /><col width="42" /></colgroup>}
+      {view !== 'selection' && <div className="tblwrap fitwrap"><table className="dtable zebra fit">
         {view === 'general' && <colgroup><col width="32" /><col /><col width="36" /><col width="32" /><col width="28" /><col width="26" /><col width="44" /><col width="56" /></colgroup>}
         {view === 'stats' && <colgroup><col /><col width="34" /><col width="30" /><col width="38" /><col width="32" /><col width="32" /><col width="44" /></colgroup>}
         {view === 'gametime' && <colgroup><col width="32" /><col /><col width="104" /><col width="30" /><col width="32" /><col width="48" /></colgroup>}
         {view === 'contracts' && <colgroup><col width="32" /><col /><col width="36" /><col width="30" /><col width="48" /><col width="44" /><col width="36" /></colgroup>}
         <thead>
-          {view === 'selection' && (
-            <tr>
-              <Th k="pkd">Pkd</Th>
-              <Th k="name">Name</Th>
-              <Th k="pos">Pos</Th>
-              <Th k="ca">Ability</Th>
-              <Th k="form" right>Form</Th>
-              <Th k="cond" right>Fit</Th>
-            </tr>
-          )}
           {view === 'general' && (
             <tr>
               <Th k="pkd">Pkd</Th>
@@ -280,12 +276,6 @@ export default function Squad() {
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 {view !== 'stats' && <Pkd p={p} />}
                 <NameCell p={p} />
-                {view === 'selection' && (<>
-                  <td><PosBadge pos={p.pos} /></td>
-                  <td><Stars ca={p.ca} /></td>
-                  <td className="num" style={{ fontWeight: 700, color: p.form >= 7 ? '#2f7d4f' : p.form < 4.5 ? '#a12f2f' : undefined }}>{p.form.toFixed(1)}</td>
-                  <td className="num" style={{ color: p.cond < 70 ? '#a12f2f' : undefined }}>{Math.round(p.cond)}%</td>
-                </>)}
                 {view === 'general' && (<>
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="num">{p.age}</td>
@@ -362,7 +352,7 @@ export default function Squad() {
             )
           })}
         </tbody>
-      </table></div>
+      </table></div>}
       {view === 'contracts' && (
         <div className="meta" style={{ padding: '6px 14px 0' }}>
           ⏳ runs out this summer · 💼 his camp wants improved terms · red year expiring, amber next summer. Tap a man to open talks.

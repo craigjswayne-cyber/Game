@@ -154,7 +154,7 @@ for (const dev of DEVICES) {
     await page.waitForSelector('.submenu-item', { timeout: 8000 })
     await page.click('.submenu-item >> text="Team"')
     await page.waitForSelector('.tab-bar', { timeout: 8000 })
-    await report(page, dev.name, 'team: overview')
+    await report(page, dev.name, 'team: selection')
     // the squad tables are the widest thing in the game, so they carry the
     // per-device fit check: no heading among the players, no column past the edge
     for (const view of ['Stats', 'Contracts']) {

@@ -190,11 +190,12 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.waitForSelector('.submenu-item', { timeout: 8000 })
   await report('hub menu')
-  await page.click('.submenu-item >> text=Selection & Tactics')
-  await page.waitForSelector('.tab-bar', { timeout: 8000 })
-  await report('tactics: selection')
-  await page.click('.tab-bar >> text=Roles')
-  await page.waitForTimeout(400)
+  await page.click('.submenu-item >> text="Team"')
+  await page.waitForSelector('.xv-split', { timeout: 8000 })
+  await report('team: selection')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Tactics')
+  await page.waitForSelector('.form-pitch', { timeout: 8000 })
   await report('tactics: pitch')
 
   await page.click('.bottom-nav button[title="Hub"]')
@@ -295,9 +296,9 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.tab-bar', { timeout: 8000 })
-  // 'Overview', formerly 'Selection': the Team screen stopped sharing a name
-  // with the Selection & Tactics picker (17B)
-  for (const view of ['Overview', 'General Info', 'Stats', 'Game Time', 'Contracts']) {
+  // 'Selection' is the team sheet pane (25B) - it has no thead, so the
+  // heading law skips it and the four tables carry the check
+  for (const view of ['Selection', 'General Info', 'Stats', 'Game Time', 'Contracts']) {
     await page.click(`.tab-bar >> text=${view}`)
     await page.waitForTimeout(300)
     const t = await page.evaluate(() => {

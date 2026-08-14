@@ -143,6 +143,8 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
+  await page.click('.tab-bar >> text=General Info')
+  await page.waitForTimeout(300)
   await measure('squad')
   await page.click('.dtable tbody tr >> nth=0')
   await page.waitForSelector('text=Attributes')
@@ -150,10 +152,10 @@ try {
   await page.click('.back-btn')
 
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics')
+  await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
-  await measure('tactics: selection')
-  for (const [tab, label] of [['Tactics', 'tactics'], ['Prep', 'match prep'], ['Game Plan', 'game plan']]) {
+  await measure('tactics: roles')
+  for (const [tab, label] of [['Prep', 'match prep'], ['Game Plan', 'game plan']]) {
     await page.click(`.tab-bar >> text=${tab}`)
     await measure(`tactics: ${label}`)
   }
