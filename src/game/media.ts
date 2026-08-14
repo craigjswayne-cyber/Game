@@ -1,6 +1,7 @@
 import type { GameState, OfficeTopic, Player, PressItem } from './model'
 import { SEASON_WEEKS, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
+import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
 import { clamp, pick, type Rng } from './rng'
 
@@ -720,6 +721,15 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         body: `Two exhibition matches, three time zones, one very happy sponsor and £600k in the bank. The supporters grumble about a pre-season spent in departure lounges, and the squad starts the year with heavy legs.`,
       })
     }
+  }
+  // the summer sponsorship decision (25C): the option IS the signature.
+  // offersFor is deterministic on (seed, season, slot), so the deal named on
+  // the button is exactly the deal that lands; 'keep' leaves the stopgap the
+  // department already took, which signOffer would let you replace any time.
+  if (opt.deal && opt.deal.kind !== 'keep') {
+    const offers = offersFor(state, opt.deal.slot as SlotId)
+    const idx = { long: 0, short: 1, clause: 2 }[opt.deal.kind]
+    if (idx != null && offers[idx]) signOffer(state, offers[idx])
   }
   const club = state.clubs[state.userClubId]
   club.boardConfidence = clamp(club.boardConfidence + opt.board * 5, 0, 100)

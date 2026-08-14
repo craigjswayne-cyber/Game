@@ -617,6 +617,11 @@ export interface PressOption {
    *  manager to go and find the Transfers screen is how a lad ended up asking
    *  the same question a week after his boss agreed to it. */
   loan?: boolean
+  /** the summer sponsorship decision (25C): choosing an option SIGNS the deal
+   *  there and then, via commercial.offersFor - which is deterministic on
+   *  (seed, season, slot), so the offer named on the button is the offer
+   *  signed. kind 'keep' stays with the department's stopgap. */
+  deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep' }
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
@@ -1026,6 +1031,10 @@ export interface GameState {
    *  Professional teaching a Professional is the second-best pairing in the
    *  game and must not end at birth. Absent on pairs made before it existed. */
   mentors?: { senior: number; kid: number; pers0?: Personality }[]
+  /** banked objectives already celebrated in the news this season, so hitting
+   *  one makes the inbox exactly once (user: "get achievements into the news").
+   *  Reset with the objectives themselves at rollover. */
+  objDone?: string[]
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
   /** games played together by key partnerships (front row, locks, halfbacks,

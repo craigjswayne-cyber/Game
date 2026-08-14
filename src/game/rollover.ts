@@ -6,7 +6,8 @@ import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
-import { expireDeals } from './commercial'
+import { SLOTS, expireDeals, offersFor } from './commercial'
+import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { objectiveById, pickObjectives } from './objectives'
@@ -1297,6 +1298,52 @@ export function rebuildSeason(state: GameState) {
   state.vacancies = []
   state.devFocus = state.devFocus.filter(id => state.players[id]?.clubId === state.userClubId)
   state.press = state.press.filter(p => !p.answered).slice(-5)
+
+  // ---- THE SPONSORSHIP DECISION (25C) ----
+  // expireDeals just installed a below-market caretaker in any slot whose
+  // contract ran out (user: "You should be able to choose between deals...
+  // short term for lower amounts or bigger deals for longer"). The market
+  // already offers exactly that choice on the Finances screen; what was
+  // missing was the moment - so the summer a deal lapses, the commercial
+  // director walks into the office with the three offers and asks. Choosing
+  // one signs it (media.answerPress, opt.deal); staying with the stopgap is a
+  // real answer too. Internal decision, so the press-expiry sweep leaves it.
+  if (!state.unemployed) {
+    for (const slot of SLOTS) {
+      const d = state.deals?.[slot.id]
+      if (!d || !d.auto || d.from !== state.season) continue
+      const offers = offersFor(state, slot.id)
+      if (offers.length < 3) continue
+      const [lng, sht, cls] = offers
+      state.press.push({
+        id: state.nextId++, week: 1, season: state.season, outlet: OFFICE_OUTLET,
+        question: `The ${slot.name.toLowerCase()} is on a stopgap arrangement at ${fmtMoney(d.weekly)} a week - under the going rate. The commercial director has three offers on the desk. Which way do we go?`,
+        options: [
+          {
+            label: `${lng.sponsor}: ${fmtMoney(lng.weekly)}/wk, ${lng.years} years`, morale: 0, board: 0,
+            deal: { slot: slot.id, kind: 'long' },
+            reaction: `Signed. Safe money for ${lng.years} years - a touch under market, because the sponsor is buying certainty off you.`,
+          },
+          {
+            label: `${sht.sponsor}: ${fmtMoney(sht.weekly)}/wk, ${sht.years} ${sht.years === 1 ? 'year' : 'years'}`, morale: 0, board: 0,
+            deal: { slot: slot.id, kind: 'short' },
+            reaction: `Signed. Over the market rate, and you are back at this desk in ${sht.years === 1 ? 'a year' : 'two years'} - which is the bet: your reputation will have grown by then.`,
+          },
+          {
+            label: `${cls.sponsor}: ${fmtMoney(cls.weekly)}/wk + clause, ${cls.years} yrs`, morale: 0, board: 0,
+            deal: { slot: slot.id, kind: 'clause' },
+            reaction: `Signed, with the clause. Deliver on the pitch and it is the best deal in the building; fall short and you sold cheap.`,
+          },
+          {
+            label: 'Stay with the stopgap for now', morale: 0, board: 0,
+            deal: { slot: slot.id, kind: 'keep' },
+            reaction: `The stopgap rolls on at a discount. The offers stay on the Finances screen whenever you want them.`,
+          },
+        ],
+        answered: false,
+      })
+    }
+  }
   state.comps = {}
 
   for (const def of LEAGUE_DEFS()) {
@@ -1449,6 +1496,8 @@ export function rebuildSeason(state: GameState) {
     }
   }
   state.objectives = pickObjectives(state)
+  // the achievement ledger belongs to the objectives it tracked
+  state.objDone = []
 
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
