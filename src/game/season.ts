@@ -2580,6 +2580,28 @@ export function processWeekAndAdvance(state: GameState) {
     mentorReports(state)
   }
 
+  // ---- OBJECTIVES LAND IN THE NEWS ----
+  // The board's briefs were checked twice a season, quietly (the half-term
+  // card and the review), so hitting one mid-March made no sound (user: "when
+  // achieved it should def be in the news"). A BANKED objective is a fact the
+  // moment it happens, so the week it comes true it gets its headline - once,
+  // the objDone ledger holds the once. The unbanked ones only mean anything
+  // at the final whistle of the season and stay out of this.
+  if (!state.unemployed) {
+    state.objDone ??= []
+    for (const id of state.objectives ?? []) {
+      const def = OBJECTIVE_DEFS.find(o => o.id === id)
+      if (!def || !def.banked || state.objDone.includes(id)) continue
+      if (!def.met(state)) continue
+      state.objDone.push(id)
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: `✅ Board objective met: ${def.text(state).split(':')[0]}`,
+        body: `One of the season's briefs is in the bank: "${def.text(state)}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
+      })
+    }
+  }
+
   // ---- THE DESK CLEARS ITSELF ----
   // Two piles used to grow without limit and the user noticed both (user:
   // "press questions should be forced to be cleared before each next match"

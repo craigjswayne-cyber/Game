@@ -6,6 +6,14 @@ import { nationByCode } from './nations'
 const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th'}`
 
 // ---- Season calendar (week indices 1..45) ----
+// Week N's date is its Saturday, anchored to 16 August: week 34 is early
+// April, 38 early May, 41 the end of May, 43 the first Saturday of June.
+// The European rounds moved to match the real rhythm (user: "European qtr
+// finals are usually early april. Semis early may and final end of may.
+// The final of the premiership is usually in june"): the quarters land the
+// week after the pools close, the league plays on between the knockout
+// rounds the way the Premiership does, and the showpieces stack up in
+// May and June.
 // 1-3    PRE-SEASON friendlies (cross-league, every club)
 // 4-17   league rounds (autumn tests overlay weeks 13-15)
 // 18,19  Champions Cup pool 1-2 (leagues pause)
@@ -13,22 +21,23 @@ const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' 
 // 22,23  Champions Cup pool 3-4
 // 24-31  league (Six Nations overlay 25-29)
 // 32,33  Champions Cup pool 5-6
-// 34-37  league
-// 38     CC quarter-finals
-// 39     CC semi-finals
+// 34     CC quarter-finals (early April)
+// 35-37  league
+// 38     CC semi-finals (early May)
+// 39     league
 // 40     league playoff round 1 (QF / barrage)
-// 41     CC FINAL
+// 41     CC FINAL (end of May)
 // 42     league semi-finals
-// 43     league FINALS
+// 43     league FINALS (June)
 // 44-45  end of season processing
 
 export const PRESEASON_WEEKS = [1, 2, 3]
 export const LEAGUE_WEEKS = [
   4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-  20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 37,
+  20, 21, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 39,
 ]
 export const CC_POOL_WEEKS = [18, 19, 22, 23, 32, 33]
-export const CC_KO_WEEKS = [38, 39, 41]
+export const CC_KO_WEEKS = [34, 38, 41]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
