@@ -53,11 +53,14 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
+  await dump('team: selection')
+  await page.click('.tab-bar >> text=General Info')
+  await page.waitForTimeout(300)
   await dump('squad')
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics')
+  await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
-  await dump('tactics: selection')
+  await dump('tactics: roles')
 } catch (e) {
   console.error('BLOCK PROBE stopped early:', e.message)
 } finally {

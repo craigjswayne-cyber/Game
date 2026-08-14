@@ -117,7 +117,7 @@ try {
   // shrug.
   for (const [item, label, anchor] of [
     ['Team', 'squad', '.dtable'],
-    ['Selection & Tactics', 'tactics', '.tab-bar'],
+    ['Tactics', 'tactics', '.tab-bar'],
     ['Club Information', 'club', 'text=DRESSING ROOM'],
   ]) {
     await page.click('.bottom-nav button[title="Hub"]')

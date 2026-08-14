@@ -112,7 +112,7 @@ try {
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics')
+  await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
   await page.waitForTimeout(400)
   const tabs = await compare(page, '.tab-bar button')

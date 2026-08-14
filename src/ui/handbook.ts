@@ -135,7 +135,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'How do I pick the side quickly?',
-    a: 'Auto-Pick Best XV on the Selection tab fills every shirt with the best natural fit available, quietly weighing form. Then adjust by hand: tap a player, tap another, and they swap. The Team screen shows who is picked (the Pkd chips on its Overview); the picking itself all happens here.',
+    a: 'Tap Team and you land on the team sheet. Best XV fills every shirt with the best natural fit available, quietly weighing form; then adjust by hand - tap a player, tap another, and they swap. Tap the same slot twice for the full squad picker. How the side plays (roles, set piece, bench shape, prep, game plan) lives on the Tactics screen.',
   },
   {
     cat: 'squad',
@@ -180,7 +180,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'Who should be captain?',
-    a: 'Leadership is the attribute that matters, and the Selection tab lists your squad sorted by it. A strong captain lifts attack and defence and keeps tempers in check. Name a vice-captain too: he steps up at half the effect when the skipper is missing, and one day he will take the armband for good.',
+    a: 'Leadership is the attribute that matters, and the Leadership card on the Team screen\'s Selection tab lists your squad sorted by it. A strong captain lifts attack and defence and keeps tempers in check. Name a vice-captain too: he steps up at half the effect when the skipper is missing, and one day he will take the armband for good.',
   },
   {
     cat: 'squad',

@@ -31,15 +31,20 @@ const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fail
 const MIN = 44
 
 /**
- * The one documented exception, and the reason it is one.
+ * The documented exceptions, and the reason each is one.
  *
- * A floor list is how a probe like this gets quietly neutered, so there is
- * exactly one entry, it names a class rather than a screen, and it is a floor
- * rather than a skip - a chip that shrinks back to 28px still fails. Anything
- * NEW answers to MIN.
+ * A floor list is how a probe like this gets quietly neutered, so every entry
+ * names a class rather than a screen, carries its geometry argument, and is a
+ * floor rather than a skip - a chip that shrinks back to 28px still fails.
+ * Anything NEW answers to MIN.
  */
 const FLOOR = [
   { cls: 'preset-chip', min: 36, why: 'six across a 412px filter row, live chip rows above and below' },
+  // measured for the first time when Roles became the Tactics screen's opening
+  // tab (25B): the 15 chips sit on a pitch whose tightest pairs are ~41px apart
+  // centre to centre vertically, so growing the hit area to 44px would overlap
+  // the neighbour's and turn a tap into a coin flip between two shirts
+  { cls: 'form-chip', min: 36, why: 'fifteen chips on one half-pitch; 44px hit areas would overlap the closest pairs' },
 ]
 
 const server = await startPreview('4196', 3000)
@@ -149,9 +154,9 @@ try {
   await check('Team')
 
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics')
+  await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
-  await check('Selection & Tactics')
+  await check('Tactics')
 
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Finances')

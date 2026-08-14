@@ -147,7 +147,7 @@ async function sweep(label, { night, systemScheme }) {
     // reaches it. The leadership card is the one in the report, so it goes
     // first, and it is on the Selection page.
     for (const [where, menu, item] of [
-      ['the leadership card and selection', 'Hub', 'Selection & Tactics'],
+      ['the leadership card and selection', 'Hub', 'Team'],
       ['the game-time ledger', 'Hub', 'Team'],
       ['the mentoring picker', 'Hub', 'Training & Staff'],
       ['the medical search', 'Hub', 'Medical Centre'],
@@ -163,9 +163,9 @@ async function sweep(label, { night, systemScheme }) {
 
     // and the tactics dropdowns, a tab across from Selection
     await page.click('.bottom-nav button[title="Hub"]')
-    await page.click('.submenu-item >> text=Selection & Tactics')
+    await page.click('.submenu-item >> text=Tactics')
     await page.waitForSelector('.tab-bar', { timeout: 8000 })
-    for (const tab of ['Tactics', 'Set Piece']) {
+    for (const tab of ['Roles', 'Set Piece']) {
       if (!(await page.locator(`.tab-bar >> text=${tab}`).count())) continue
       await page.click(`.tab-bar >> text=${tab}`)
       await page.waitForTimeout(450)

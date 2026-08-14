@@ -135,6 +135,8 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
+  await page.click('.tab-bar >> text=General Info')
+  await page.waitForTimeout(300)
   await shot('04-squad')
 
   // Player profile (first row)
@@ -145,17 +147,17 @@ try {
   await shot('05-player')
   await page.click('.back-btn')
 
-  // Tactics area. Selection has one auto-pick now: In-Form XV came off at the
-  // user's request, because two buttons that both rewrite the whole team sheet is
-  // one too many and the difference between them never showed on the button.
+  // Team opens on the team sheet now (25B: "Selection should be the team
+  // section"), and the how-we-play screen is plain Tactics.
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics')
+  await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('text=Starting XV')
   await shot('06-selection')
   if (await page.locator('text=In-Form XV').count()) throw new Error('In-Form XV button is back')
   await page.click('text=Best XV')
   await page.waitForTimeout(200)
-  await page.click('.tab-bar >> text=Roles')
+  await page.click('.bottom-nav button[title="Hub"]')
+  await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.form-pitch')
   await shot('06-tactics')
   await page.click('.tab-bar >> text=Prep')

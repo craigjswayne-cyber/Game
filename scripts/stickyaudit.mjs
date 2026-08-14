@@ -132,6 +132,8 @@ try {
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
   await page.waitForSelector('.dtable')
+  await page.click('.tab-bar >> text=General Info')
+  await page.waitForTimeout(300)
   await check('squad')
   await page.click('.dtable tbody tr >> nth=0')
   await page.waitForSelector('text=Attributes')
@@ -143,9 +145,9 @@ try {
   await page.click('.back-btn')
 
   await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Selection & Tactics')
+  await page.click('.submenu-item >> text=Tactics')
   await page.waitForSelector('.tab-bar')
-  await check('tactics selection')
+  await check('tactics roles')
 
   // the widest tables in the game live behind tabs, so the tabs get walked too
   await club('Team Report', 'team report')
