@@ -482,13 +482,19 @@ function handleContracts(state: GameState, rng: Rng) {
     const one = freeMoves.length === 1
     const line = (m: typeof freeMoves[0]) =>
       `${m.p.name} (${m.p.pos}, ${m.p.age}) to ${m.to.name} on ${fmtMoney(m.p.wage)}/week until ${2026 + m.p.contractEnds}${m.from ? `, leaving ${m.from.short} watching a ${fmtMoney(m.p.value)} asset walk out the door` : ''}`
+    // the three biggest moves in full, the rest counted: a six-deal summer at
+    // 130 characters a deal blew straight through the 800-character inbox
+    // ceiling (19A) the first time the world dealt one - caught by
+    // brevityprobe after the Bath data refresh re-dealt the stream (round 24)
+    const shown = [...freeMoves].sort((a, b) => b.p.ca - a.p.ca).slice(0, 3)
+    const rest = freeMoves.length - shown.length
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'transfer', read: false,
       subject: one
         ? `${freeMoves[0].p.name} joins ${freeMoves[0].to.name} on a free`
         : `${freeMoves.length} free transfers go through`,
-      body: `${one ? 'The pre-contract agreed in the spring goes through' : 'The pre-contracts agreed in the spring go through'}: ${freeMoves.map(line).join('. ')}. Not a penny changed hands.`,
-      playerId: freeMoves[0].p.id,
+      body: `${one ? 'The pre-contract agreed in the spring goes through' : 'The pre-contracts agreed in the spring go through'}: ${shown.map(line).join('. ')}.${rest > 0 ? ` And ${rest} more deal${rest === 1 ? '' : 's'} of the same kind, done quietly.` : ''} Not a penny changed hands.`,
+      playerId: shown[0].p.id,
     })
   }
   state.preContracts = []
