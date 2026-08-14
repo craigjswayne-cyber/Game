@@ -9,7 +9,7 @@ import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalV
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
-import { generatePress } from './media'
+import { OFFICE_OUTLET, generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
@@ -27,7 +27,7 @@ import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 import { playAcademyWeek } from './academy'
-import { canBeMentored, mentorBoost, mentorReports } from './mentoring'
+import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -324,7 +324,28 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       const pools = poolStandings(state, comp)
       const winners = pools.map(p => p[0])
       const runners = pools.map(p => p[1])
-      const seeds = [...winners, ...shuffled(rng, runners)]
+      // NO POOL REMATCH IN THE QUARTERS (user: "If you qualify from the cup -
+      // you should not play a team from the group you played next"). The
+      // shuffle can hand a runner straight back to his own pool winner, so:
+      // keep the shuffled order when it is clean, otherwise walk the runner
+      // permutations in a fixed order and take the first with no rematch.
+      // Winner i came from pool i; runner slot order below pairs slots
+      // [0,1,2,3] with winners [3,2,1,0] (the mkFx lines). Deterministic
+      // repair, zero extra rng draws, so the match stream never moves.
+      const rs = shuffled(rng, runners)
+      const poolOf = new Map(runners.map((t, i) => [t, i]))
+      const PARTNER = [3, 2, 1, 0] // runner slot -> winner index it will play
+      const clean = (a: string[]) => a.every((t, slot) => poolOf.get(t) !== PARTNER[slot])
+      let picked = rs
+      if (!clean(rs)) {
+        const perms = (xs: number[]): number[][] => xs.length <= 1 ? [xs]
+          : xs.flatMap((x, i) => perms([...xs.slice(0, i), ...xs.slice(i + 1)]).map(p2 => [x, ...p2]))
+        for (const perm of perms([0, 1, 2, 3])) {
+          const cand = perm.map(i => rs[i])
+          if (clean(cand)) { picked = cand; break }
+        }
+      }
+      const seeds = [...winners, ...picked]
       mkFx('QF', ko[0], seeds[0], seeds[7])
       mkFx('QF', ko[0], seeds[3], seeds[4])
       mkFx('QF', ko[0], seeds[1], seeds[6])
@@ -798,7 +819,10 @@ function weeklyTraining(state: GameState, rng: Rng) {
       if (isUser && canBeMentored(p) && (state.mentors ?? []).some(mp => mp.kid === p.id)) {
         const mpair = (state.mentors ?? []).find(mp => mp.kid === p.id)!
         const mentor = state.players[mpair.senior]
-        const fitMult = mentor ? mentorBoost(mentor, p) : 1
+        // a senior with two kids splits his attention: mentorLoad is 1 for one
+        // kid, so every pairing that existed before multi-mentee arrived
+        // develops exactly as it did
+        const fitMult = mentor ? mentorBoost(mentor, p) * mentorLoad(state, mpair.senior) : 1
         if (rng() < 0.045 * fitMult) {
           const keys = Object.keys(p.a) as (keyof Player['a'])[]
           const k = keys[Math.floor(rng() * keys.length)]
@@ -1297,6 +1321,50 @@ export function processWeekAndAdvance(state: GameState) {
       fx.tableApplied = true
     }
     if (mine) simmedUserFx = fx
+  }
+
+  // ---- WORD FROM CAMP ----
+  // An international week used to be a scoreline in the round-up with your own
+  // men invisible inside it (user: "when players are away with international
+  // teams - we should get a match report on the score and how your players
+  // played"). One report per Test that used your players, covering both sides
+  // of it - so when two of your men face each other it is one story, not two
+  // (user: "if two players from your club are playing against each other, you
+  // should get one report"). Ratings are a deterministic gate on (seed,
+  // fixture, player) - never the weekly stream, so the sim is untouched.
+  if (!state.unemployed) {
+    for (const fx of thisWeek) {
+      const icomp = state.comps[fx.compId]
+      if (!icomp || icomp.type !== 'intl') continue
+      // the nat coach lives his own Test from the dugout - this beat is the
+      // club manager hearing from camp about everyone else's
+      if (state.natTeam && (fx.homeId === state.natTeam || fx.awayId === state.natTeam)) continue
+      const away = [fx.homeId, fx.awayId].flatMap(nat =>
+        (state.natSquads[nat] ?? [])
+          .map(id => state.players[id])
+          .filter((p): p is Player => !!p && p.clubId === state.userClubId)
+          .map(p => ({ p, nat })))
+      if (!away.length) continue
+      const hName = nationByCode(fx.homeId)?.name ?? fx.homeId
+      const aName = nationByCode(fx.awayId)?.name ?? fx.awayId
+      const lines = away.map(({ p, nat }) => {
+        const rr = mulberry32((state.seed ^ Math.imul(fx.id, 31) ^ Math.imul(p.id, 2654435761)) >>> 0)
+        const won = nat === fx.homeId ? fx.homeScore > fx.awayScore : fx.awayScore > fx.homeScore
+        const rating = Math.min(9.4, 6 + rr() * 2.6 + (won ? 0.3 : 0))
+        const word = rating >= 8.4 ? 'ran the game' : rating >= 7.6 ? 'excellent'
+          : rating >= 6.9 ? 'did his job well' : rating >= 6.3 ? 'steady enough' : 'quiet by his standards'
+        return { rating, text: `**${p.name}** (${nat}) ${rating.toFixed(1)} - ${word}.` }
+      }).sort((a, b) => b.rating - a.rating)
+      const shown = lines.slice(0, 4).map(l => l.text)
+      const more = lines.length - shown.length
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+        subject: `🌍 ${hName} ${fx.homeScore}-${fx.awayScore} ${aName}: how your men got on`,
+        body: shown.join('\n') + (more > 0 ? `\nAnd ${more} more of yours came through it fine.` : ''),
+        playerIds: away.slice(0, 6).map(x => x.p.id),
+        fixtureId: fx.id,
+      })
+    }
   }
 
   // The A League runs the same weeks as the senior league, and AFTER it: a lad
@@ -2504,8 +2572,44 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
-  // how the mentoring pairs are getting on, every sixth week
-  if (!state.unemployed) mentorReports(state)
+  // how the mentoring pairs are getting on, every sixth week - after the
+  // graduation sweep, so a finished pairing gets its send-off rather than one
+  // more progress note about a course that is over
+  if (!state.unemployed) {
+    mentorGraduations(state)
+    mentorReports(state)
+  }
+
+  // ---- THE DESK CLEARS ITSELF ----
+  // Two piles used to grow without limit and the user noticed both (user:
+  // "press questions should be forced to be cleared before each next match"
+  // and "24 unread messages from weeks ago. These should clear"). The hard
+  // continue-gate is a bigger rework of every walk flow; what ships now is
+  // the honest half: a press question you did not answer this week does not
+  // follow you into the next one - the moment passed, the room moved on -
+  // and a story unread for three weeks is filed by the club secretary. The
+  // filed stories stay on the record (the Wire and season review read the
+  // whole list); they simply stop counting against the mail icon.
+  // STRICTLY OLDER THAN THIS WEEK. A question is stamped with the week being
+  // settled when it is written (media.mk), and the manager answers it during
+  // the FOLLOWING week's walk - so `<` gives every question exactly one full
+  // week on the desk, and `<=` would gag the press room for good by expiring
+  // each question in the same settlement that asked it. Office conversations
+  // and internal staff decisions (the pre-season camp) are not press and keep
+  // their own clock.
+  for (const q of state.press) {
+    if (q.answered || q.topic || q.outlet === OFFICE_OUTLET) continue
+    if (q.season < state.season || (q.season === state.season && q.week < state.week)) {
+      q.answered = true
+      q.answerLabel = 'No comment'
+      q.reaction = 'The moment passed. The outlet ran the piece without you, and next week brings new questions.'
+    }
+  }
+  for (const n of state.news) {
+    if (n.read || n.cleared) continue
+    const age = (state.season - n.season) * 100 + (state.week - n.week)
+    if (age >= 3) { n.read = true; n.cleared = true }
+  }
 
   // advance
   if (state.week >= SEASON_WEEKS) {

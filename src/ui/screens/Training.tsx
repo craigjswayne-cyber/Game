@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
 import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
-import { MENTEE_MAX_AGE, canBeMentored, canMentor, fitReason, fitWord, mentorFit } from '../../game/mentoring'
+import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
@@ -228,8 +228,11 @@ function MentorPanel() {
   const pairs = game.mentors ?? []
   const squad = club.players.map(id => game.players[id]).filter(Boolean)
   // canMentor and canBeMentored live in game/mentoring so this screen and the
-  // development loop cannot drift apart about who is eligible
-  const seniors = squad.filter(p => canMentor(p) && !pairs.some(mp => mp.senior === p.id))
+  // development loop cannot drift apart about who is eligible. A senior stays
+  // in the dropdown until he holds MENTOR_MAX_KIDS kids - a second one is
+  // allowed, at the attention cost the row below spells out.
+  const kidCount = (id: number) => pairs.filter(mp => mp.senior === id).length
+  const seniors = squad.filter(p => canMentor(p) && kidCount(p.id) < MENTOR_MAX_KIDS)
     .sort((a, b) => b.a.lea - a.a.lea)
   const kids = squad.filter(p => canBeMentored(p) && !pairs.some(mp => mp.kid === p.id))
     .sort((a, b) => b.pa - a.pa)
@@ -252,18 +255,23 @@ function MentorPanel() {
               <button className="btn ghost" style={{ fontSize: 11, padding: '4px 10px' }}
                 onClick={() => { game.mentors = pairs.filter((_, j) => j !== i); touch() }}>End</button>
             </div>
-            <div className="meta" style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{fitReason(s2, k2)}</div>
+            <div className="meta" style={{ fontSize: 11, color: 'var(--ink-faint)' }}>
+              {fitReason(s2, k2)}
+              {kidCount(mp.senior) >= 2 ? ' Two kids on his wing: each learns at three-quarter speed, and he will say so.' : ''}
+            </div>
             <div className="rt-bar" style={{ margin: '3px 0 0' }}><i style={{ width: `${fit}%`, background: col }} /></div>
           </div>
         )
       })}
-      {pairs.length === 0 && <div className="meta" style={{ fontSize: 11 }}>A Leader or Professional rubs off on a kid - faster growth, and his character sticks. Character decides how well it takes, so pick the pairing rather than the names.</div>}
-      {pairs.length < 3 && seniors.length > 0 && kids.length > 0 && (
+      {pairs.length === 0 && <div className="meta" style={{ fontSize: 11 }}>A Leader or Professional rubs off on a kid - faster growth, and his character sticks. Character decides how well it takes, so pick the pairing rather than the names. A pairing ends itself when the kid has nothing left to learn.</div>}
+      {/* cap lives in game/mentoring (four slots, five with a Centre of
+          Excellence at level 3+) so this screen and the handbook agree */}
+      {pairs.length < mentorCap(game) && seniors.length > 0 && kids.length > 0 && (
         <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}
             onChange={e => setSeniorId(e.target.value ? Number(e.target.value) : '')}>
             <option value="">Senior pro…</option>
-            {seniors.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pers}, {p.age})</option>)}
+            {seniors.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pers}, {p.age}){kidCount(p.id) > 0 ? ' - one kid already' : ''}</option>)}
           </select>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={kidId}
             onChange={e => setKidId(e.target.value ? Number(e.target.value) : '')}>
@@ -272,8 +280,10 @@ function MentorPanel() {
           </select>
           <button className="btn" disabled={!seniorId || !kidId} onClick={() => {
             if (!seniorId || !kidId) return
-            game.mentors = [...pairs, { senior: seniorId, kid: kidId }]
             const s2 = game.players[seniorId]; const k2 = game.players[kidId]
+            // pers0: what he was when the pairing began, so graduation can see
+            // him change (mentoring.mentorGraduations)
+            game.mentors = [...pairs, { senior: seniorId, kid: kidId, pers0: k2.pers }]
             game.news.push({
               id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
               subject: `${s2.name} takes ${k2.name.split(' ').slice(-1)[0]} under his wing`,

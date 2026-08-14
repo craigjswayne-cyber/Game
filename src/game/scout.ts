@@ -162,7 +162,7 @@ export function recruitmentMeeting(state: GameState): void {
   }
   if (!picks.length) return
   state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
+    id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false, tag: 'scout',
     subject: `🤝 Recruitment meeting: ${picks.length === 1 ? 'one name' : picks.length === 2 ? 'two names' : 'three names'} on the board`,
     body: picks.map(x =>
       `${x.p.name} (${x.p.pos}, ${x.p.age}, ${state.clubs[x.p.clubId!]?.short ?? 'abroad'}) - ${x.why}. About ${fmtMoney(x.fee)}, ${fmtMoney(x.p.wage)}/wk.`,

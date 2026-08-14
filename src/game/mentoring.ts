@@ -1,4 +1,5 @@
 import type { GameState, Personality, Player } from './model'
+import { facLevel } from './model'
 
 /**
  * ---- HOW WELL THE PAIR ACTUALLY GET ON ----
@@ -56,6 +57,73 @@ export const canMentor = (p: { age: number; acad?: boolean }) =>
 
 /** How often the pairing files a progress note (user: "every 8 weeks"). */
 export const REPORT_EVERY = 8
+
+/**
+ * How many pairings the club can run at once (user: "More than 3 mentoring
+ * slots should be available"). Four as standard, five with a Centre of
+ * Excellence at level 3 or better - the building whose whole job is passing
+ * the club on to the next lot.
+ */
+export function mentorCap(state: GameState): number {
+  return 4 + (facLevel(state, 'academy') >= 3 ? 1 : 0)
+}
+
+/** How many kids one senior can take before he is spread too thin. Two is
+ *  fine; there is no third slot, because two is already a stretch. */
+export const MENTOR_MAX_KIDS = 2
+
+/**
+ * The attention tax on a senior with more than one kid (user: "Players can
+ * mentor more than one player but dont overload then or they will moan").
+ * One kid gets the man's full attention; two kids split the extras after
+ * training between them, so each learns at three quarters speed. The moan
+ * arrives with the eight-week reports below.
+ */
+export function mentorLoad(state: GameState, seniorId: number): number {
+  const kids = (state.mentors ?? []).filter(mp => mp.senior === seniorId).length
+  return kids >= 2 ? 0.75 : 1
+}
+
+/**
+ * A pairing that has given everything it has to give ends itself (user:
+ * "Mentoring should end if the player has achieved everything they can").
+ * Three ways out, all deterministic and checked weekly:
+ *
+ *   - the kid has aged past the mentee window: he is a senior pro now
+ *   - his ability has reached his ceiling: nothing left to teach
+ *   - he has taken on his mentor's personality: the bigger prize, banked
+ *
+ * Each graduation is one news item, and the slot opens for the next kid.
+ */
+export function mentorGraduations(state: GameState) {
+  const pairs = state.mentors ?? []
+  if (!pairs.length) return
+  const keep: typeof pairs = []
+  for (const mp of pairs) {
+    const s = state.players[mp.senior]
+    const k = state.players[mp.kid]
+    // a missing man (sold, retired) just quietly frees the slot
+    if (!s || !k) continue
+    const aged = !canBeMentored(k)
+    const ceiling = k.ca >= k.pa
+    // pers0 guards the like-teaches-like pairings: adoption means he CHANGED
+    // into his mentor, not that the two were always cut from the same cloth
+    const adopted = mp.pers0 != null && k.pers === s.pers && k.pers !== mp.pers0
+    if (!aged && !ceiling && !adopted) { keep.push(mp); continue }
+    const why = adopted
+      ? `He carries himself like ${s.name} now, which was the whole point.`
+      : ceiling
+        ? `The coaches agree there is nothing left on the syllabus - he is the player he was going to be.`
+        : `At ${k.age} he is a senior pro in his own right, and senior pros do not get lifts to the ground.`
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+      subject: `🎓 ${k.name.split(' ').slice(-1)[0]} graduates from ${s.name.split(' ').slice(-1)[0]}'s wing`,
+      body: `The pairing has run its course. ${why} ${s.name} shook his hand after training and the mentoring slot is free for the next one.`,
+      playerId: k.id,
+    })
+  }
+  if (keep.length !== pairs.length) state.mentors = keep
+}
 
 /** How much the kid takes in. */
 const LEARNER: Record<Personality, number> = {
@@ -195,5 +263,24 @@ export function mentorReports(state: GameState) {
         playerId: k.id,
       })
     }
+  }
+  // THE MOAN. A senior with two kids is doing two men's unpaid work, and every
+  // report day he says so - not mutiny, just the truth about the arithmetic.
+  // The manager who wants full-speed mentoring gives one kid to somebody else.
+  const kidsOf = new Map<number, number>()
+  for (const mp of pairs) kidsOf.set(mp.senior, (kidsOf.get(mp.senior) ?? 0) + 1)
+  for (const [sid, n] of kidsOf) {
+    if (n < 2) continue
+    const s = state.players[sid]
+    if (!s) continue
+    const last = s.name.split(' ').slice(-1)[0]
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
+      subject: `${last} is spread a bit thin`,
+      body: `${s.name} has two kids under his wing and he mentioned it after training - politely, but he mentioned it. `
+        + `The extras get split two ways, so each lad is learning at about three-quarter speed. `
+        + `Move one of them to another senior pro on the Training and Staff screen, or accept the slower pace.`,
+      playerId: s.id,
+    })
   }
 }

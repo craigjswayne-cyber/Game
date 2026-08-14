@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, fmtWage, POS_NAMES, POS_ORDER, type Pos } from '../../game/model'
+import { fmtMoney, fmtWage, POS_NAMES, POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
@@ -428,6 +428,40 @@ function ScoutCommission() {
           </tbody></table></div>
         </>
       )}
+
+      <ScoutReports />
+    </>
+  )
+}
+
+/** Everything the department has ever written home, in one pile.
+ *
+ *  The postcards and reports land in the inbox and then age off its five-day
+ *  shelf, which left the manager asking a fair question (user: "when you hit
+ *  scout on a player ... where do those reports go? They should appear in news
+ *  and a section called scout reports"). They still arrive as news; this is the
+ *  filing cabinet copy, read straight off the same list by its scout tag, so
+ *  nothing here can drift from what the inbox said. */
+function ScoutReports() {
+  const game = useStore(s => s.game)!
+  const [openId, setOpenId] = useState<number | null>(null)
+  const reports = [...game.news].filter(n => n.tag === 'scout').sort((a, b) => b.id - a.id).slice(0, 10)
+  if (!reports.length) return null
+  return (
+    <>
+      <SectionTitle sub="every postcard and report the department has filed - tap one to read it again">Scout Reports</SectionTitle>
+      <div className="card" style={{ padding: '2px 10px' }}>
+        {reports.map((n, i) => (
+          <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}
+            onClick={() => setOpenId(openId === n.id ? null : n.id)}>
+            <div className="meta" style={{ fontSize: 10.5 }}>{weekDate(n.season, n.week)}</div>
+            <div style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{n.subject}</div>
+            {openId === n.id && (
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 11.5, marginTop: 3 }}>{n.body}</div>
+            )}
+          </div>
+        ))}
+      </div>
     </>
   )
 }
