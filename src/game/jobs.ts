@@ -29,6 +29,14 @@ export function jobChance(state: GameState, clubId: string): number {
   if (!club) return 0
   const rep = mgrReputation(state)
   let c = 0.92 - (club.rep - rep) / 32
+  // FRESH SILVERWARE IS ITS OWN CV (user: "Ive just won the double with
+  // Northampton - I shouldn't be a long shot for jobs like la rochelle").
+  // Reputation already counts trophies, but slowly and forever; a board
+  // filling a dugout TODAY cares most about what you lifted this season and
+  // last. Each recent pot is worth thirteen points of chance, capped at two
+  // pots - a double-winner walks into most interviews as the favourite.
+  const fresh = state.mgr.trophies.filter(t => t.season >= state.season - 1).length
+  c += Math.min(0.26, fresh * 0.13)
   if (state.unemployed) {
     // rep 70+ boards unmoved; rep 30 boards fully receptive
     const modesty = clamp((70 - club.rep) / 40, 0, 1)

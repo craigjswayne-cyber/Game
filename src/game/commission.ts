@@ -57,7 +57,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   state.commission = { pos, months, done: abs + SEARCH_WEEKS[months], fee, leagueId: state.scoutFocus ?? null }
   const where = state.commission.leagueId ? state.comps[state.commission.leagueId]?.short ?? 'the focus league' : 'wherever the game is played'
   state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man.name} sent out on a ${months}-month brief`,
     body: `${fmtMoney(fee)} of expenses, a hire car and a brief: ${pos === 'any' ? 'anyone who can play' : POS_NAMES[pos].toLowerCase()}, in ${where}. ${man.name} (${BADGE[tier].toLowerCase()} badge) files his report in ${SEARCH_WEEKS[months]} weeks. A longer trip sees more rugby and less of it in the rain.`,
   })
@@ -115,7 +115,7 @@ export function scoutPostcard(state: GameState) {
   const keen = pick.worth >= 40
   const weeksLeft = c.done - abs
   state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 Word from ${man.name}: ${p.name}`,
     body: `${weeksIn} weeks into the brief. "${keen
       ? `Watched ${p.name} twice now and I would put my name to him. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}, and he does the things you cannot teach.`
@@ -173,7 +173,7 @@ export function resolveCommission(state: GameState) {
   const good = finds.filter(f => f.grade >= 2).length
   logDecision(state, `The ${c.months}-month brief came back with ${finds.length} names, ${good} of them worth signing. Best: ${best.name}.`, good > 0)
   state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,
     body: `${c.months} months, ${finds.length} names, ${good} of them he would sign tomorrow. Top of the list: ${best.name}, ${best.age}, ${POS_NAMES[best.pos].toLowerCase()} at ${state.clubs[best.clubId ?? '']?.name ?? 'a club abroad'} - ${finds[0].note} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.`,
     playerIds: finds.slice(0, 6).map(f => f.playerId),

@@ -586,6 +586,12 @@ export interface NewsItem {
    *  mail icon served it straight into the void. Absent on stories read before
    *  this field existed - inInbox falls back to the written day for those. */
   readAt?: number
+  /** Everything the scouting department writes home - postcards, briefs,
+   *  the final report, the recruitment meeting - carries this tag so the
+   *  Transfer Centre can gather it into one Scout Reports pile (user: "where
+   *  do those reports go? They should appear in news and a section called
+   *  scout reports"). */
+  tag?: 'scout'
 }
 
 export interface PressOption {
@@ -1013,8 +1019,13 @@ export interface GameState {
   facilityAskCooldown?: number
   /** a trophy moment waiting to be celebrated full-screen */
   celebration?: { headline: string; sub: string; icon: string } | null
-  /** senior pros paired with academy kids - wisdom rubs off (max 3) */
-  mentors?: { senior: number; kid: number }[]
+  /** senior pros paired with academy kids - wisdom rubs off. Capped by
+   *  mentoring.mentorCap (four, five with a strong Centre of Excellence).
+   *  pers0 is the kid's personality when the pairing was made, so graduation
+   *  can tell "he BECAME his mentor" from "they always matched" - a
+   *  Professional teaching a Professional is the second-best pairing in the
+   *  game and must not end at birth. Absent on pairs made before it existed. */
+  mentors?: { senior: number; kid: number; pers0?: Personality }[]
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
   /** games played together by key partnerships (front row, locks, halfbacks,

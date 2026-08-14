@@ -396,20 +396,61 @@ function streakWatch(state: GameState, rng: Rng) {
   const results = formGuide(state, uid, 3)
   if (results.length < 3) return
   const club = state.clubs[uid]
-  if (results.every(r => r === 'W') && rng() < 0.7) {
-    wire(state, `Terrace pulse: believers at ${club.short}`,
-      voice(state, 24, [
-        `Three wins on the spin and the ${club.stadium} bars are humming. A supporters' podcast this week: "Whisper it, but this ${state.managerName} side might actually be building something."`,
-        `Three straight wins and the queue at the club shop has opinions about silverware. The older heads keep saying "long season" and grinning while they say it.`,
-        `The terraces have a new song and it has ${state.managerName} in it. Three wins running will do that. Keep winning and they will add verses.`,
-      ]))
-  } else if (results.every(r => r === 'L') && rng() < 0.8) {
-    wire(state, `Terrace pulse: grumbles at ${club.short}`,
-      voice(state, 25, [
-        `Three straight defeats and the phone-ins have turned. One season-ticket holder of 30 years: "I don't see a plan out there." Win this weekend and it all goes quiet - that's football... no, that's rugby.`,
-        `Three losses in a row and the fan forum's match thread got locked by midnight. The mood is not mutinous yet, but the mods are stretching.`,
-        `The drive home after a third straight defeat is where seasons are judged, and this week's radio callers judged hard. One result changes the weather. You need it.`,
-      ]))
+  // ONE PULSE PER STREAK, NOT ONE PER WEEK OF IT (user: "the message about
+  // belief from the terrace keeps coming up"). The beat used to fire on every
+  // week of a run, so a seven-match streak read the same sermon five times.
+  //
+  // Two ways in, both deterministic on the stream:
+  //   - the week the run BECOMES three (the result four games back is the
+  //     other colour), with the three-on-the-spin voice;
+  //   - a longer run that has gone unmentioned for four weeks - the first
+  //     draft fired ONLY on the becoming-three week, and on a seed where the
+  //     70% roll missed that one window a five-win streak passed in total
+  //     silence, which is the opposite failure.
+  // The rng draws below still happen exactly when they did - the gates read
+  // state.news and the form guide, never the stream, so every match after
+  // this week plays out identically.
+  const four = formGuide(state, uid, 4)
+  const quietFor = (subj: string) => !state.news.some(n =>
+    n.subject === subj && (state.season * 100 + state.week) - (n.season * 100 + n.week) < 4)
+  if (results.every(r => r === 'W')) {
+    const fire = rng() < 0.7
+    const fresh = !(four.length === 4 && four[0] === 'W')
+    const subj = `Terrace pulse: believers at ${club.short}`
+    if (fire && (fresh || quietFor(subj))) {
+      wire(state, subj, fresh
+        ? voice(state, 24, [
+          `Three wins on the spin and the ${club.stadium} bars are humming. A supporters' podcast this week: "Whisper it, but this ${state.managerName} side might actually be building something."`,
+          `Three straight wins and the queue at the club shop has opinions about silverware. The older heads keep saying "long season" and grinning while they say it.`,
+          `The terraces have a new song and it has ${state.managerName} in it. Three wins running will do that. Keep winning and they will add verses.`,
+          `Three on the bounce, and the man who runs the burger van says takings are up - "winning makes them hungry." The most honest economic indicator in rugby.`,
+          `A lad in the family stand has started bringing a homemade cardboard trophy. Three straight wins. His dad keeps apologising to the row behind and nobody minds.`,
+        ])
+        : voice(state, 26, [
+          `The winning run rolls on and the ground has stopped whispering about it. Away fans arrive expecting the worst now, which is the highest compliment a terrace can pay.`,
+          `Still winning. The older heads have given up saying "long season" and started asking about final tickets, quietly, in case saying it out loud breaks something.`,
+          `The run goes on, and the club shop has sold out of scarves in October. Somebody in the sponsors' lounge used the word "era". Nobody laughed.`,
+        ]))
+    }
+  } else if (results.every(r => r === 'L')) {
+    const fire = rng() < 0.8
+    const fresh = !(four.length === 4 && four[0] === 'L')
+    const subj = `Terrace pulse: grumbles at ${club.short}`
+    if (fire && (fresh || quietFor(subj))) {
+      wire(state, subj, fresh
+        ? voice(state, 25, [
+          `Three straight defeats and the phone-ins have turned. One season-ticket holder of 30 years: "I don't see a plan out there." Win this weekend and it all goes quiet - that's football... no, that's rugby.`,
+          `Three losses in a row and the fan forum's match thread got locked by midnight. The mood is not mutinous yet, but the mods are stretching.`,
+          `The drive home after a third straight defeat is where seasons are judged, and this week's radio callers judged hard. One result changes the weather. You need it.`,
+          `Third defeat running and the club shop has quietly moved the replica shirts away from the window. Nobody ordered that. Everybody understood it.`,
+          `After a third straight loss the fanzine ran a blank page with the caption "analysis". Cruel, brief, and pinned up in three pubs by Sunday lunchtime.`,
+        ])
+        : voice(state, 27, [
+          `The losing run has outlasted the anger. The phone-ins have gone quiet, which every manager knows is worse: nobody argues about a side they have given up on.`,
+          `Still no win. The terraces have moved from fury to gallows humour, and the away end knows all the punchlines. One result would change everything, and everyone knows which result.`,
+          `The slump goes on and the man with the flask in row F has started bringing a book. He has renewed every year since 1987. He will renew again. He would just like a reason.`,
+        ]))
+    }
   }
 }
 
