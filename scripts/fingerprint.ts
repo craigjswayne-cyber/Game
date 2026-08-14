@@ -184,11 +184,17 @@ const EXPECTED: string[] = [
   // elsewhere in the round): four seeds at HEAD read 53.6/53.5/53.8/53.6
   // points against 53.8/55.3 on two of the same seeds before the change -
   // inside seed noise, and scripts/brevityprobe.ts holds the friendly rules.
-  'gloucester 70-31 newcastle',
-  'bristol 34-17 sale',
-  'leicester 27-23 northampton',
-  'exeter 9-14 bath',
-  'saracens 43-14 harlequins',
+  // Rebaselined: Bath's announced 2026/27 squad went into the data (round 24).
+  // Three more authored men than before shift every rng draw the world builder
+  // makes after Bath, so the schedule itself re-deals and all six results move,
+  // fixture pairings included. Not an engine change: the four-seed band check
+  // read 53.7-54.7 points against the historical 52.5-55.3, and disttest sits
+  // at 54.0 points, 6.31 tries, 56% home, 1.6% draws.
+  'gloucester 57-38 exeter',
+  'bath 27-37 sale',
+  'northampton 9-20 leicester',
+  'newcastle 9-14 saracens',
+  'harlequins 41-22 bristol',
   'sale 30-16 gloucester',
 ]
 

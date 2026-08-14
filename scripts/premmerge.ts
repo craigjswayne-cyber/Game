@@ -26,6 +26,22 @@ interface New { pos: Pos; alt?: Pos[]; age: number; nat: string; q: number; intl
 
 /** The 151. Keyed on the guide's spelling of the name. */
 const NEW: Record<string, New> = {
+  // ---- Bath 2026/27 refresh (club announcement). Bhatti and du Preez are not
+  // new men - their attributes are copied from urc_a and prem_b so the guide
+  // can list them at Bath, and verified.ts drops the old listings at build.
+  'Kepueli Tuipulotu': { pos: 'HK', age: 20, nat: 'ENG', q: 64 },
+  'Jamie Bhatti': { pos: 'LP', age: 32, nat: 'SCO', q: 70, intl: true },
+  'Ioan Emanuel': { pos: 'LP', age: 21, nat: 'WAL', q: 62 },
+  'Vilikesa Sela': { pos: 'TP', alt: ['LP'], age: 21, nat: 'FIJ', q: 62 },
+  'Tom Hilton': { pos: 'LK', age: 21, nat: 'ENG', q: 62 },
+  'Dan du Preez': { pos: 'N8', age: 30, nat: 'RSA', q: 78, intl: true },
+  'Fred Kempton': { pos: 'FL', alt: ['N8'], age: 20, nat: 'ENG', q: 63 },
+  'Ieuan Davies': { pos: 'SH', age: 21, nat: 'WAL', q: 62 },
+  'Isaac Mears': { pos: 'SH', age: 20, nat: 'ENG', q: 63 },
+  'Max Hooper': { pos: 'FH', age: 20, nat: 'ENG', q: 61, gk: true },
+  'Cam Ward': { pos: 'CE', age: 20, nat: 'ENG', q: 62 },
+  'Tyler Offiah': { pos: 'WG', age: 21, nat: 'ENG', q: 64 },
+
   // ---- Bath
   'Dan Frost': { pos: 'HK', age: 30, nat: 'ENG', q: 73 },
   'Jasper Spandler': { pos: 'HK', age: 21, nat: 'ENG', q: 62 },
