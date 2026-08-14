@@ -179,23 +179,34 @@ function Preview({ fxId }: { fxId: number }) {
     p ? (p.injury ? 'INJURED' : p.bans > 0 ? 'SUSPENDED' : p.natSquad ? 'INTL DUTY' : p.clubId !== club.id ? 'GONE' : null) : 'EMPTY'
 
   // pre-flight warnings for the ready check
+  // Plain words, one line each (user: "can we make this easier to
+  // understand?"). "No fit no. 3 (Smith - intl duty) - an unfit shirt cannot
+  // be sent out" made the reader decode three abbreviations to learn one
+  // thing: this man cannot play today.
+  const PROB_WORD: Record<string, string> = {
+    INJURED: 'is injured', SUSPENDED: 'is suspended',
+    'INTL DUTY': 'is away with his country', GONE: 'has left the club',
+  }
   const warnings: { level: 'bad' | 'warn' | 'note'; text: string }[] = []
   for (let i = 0; i < 15; i++) {
     const pid = t.lineup[i]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
-    // Plain words, one line each (user: "can we make this easier to
-    // understand?"). "No fit no. 3 (Smith - intl duty) - an unfit shirt cannot
-    // be sent out" made the reader decode three abbreviations to learn one
-    // thing: this man cannot play today.
-    const PROB_WORD: Record<string, string> = {
-      INJURED: 'is injured', SUSPENDED: 'is suspended',
-      'INTL DUTY': 'is away with his country', GONE: 'has left the club',
-    }
     if (prob === 'EMPTY') warnings.push({ level: 'bad', text: `The no. ${XV_SLOTS[i].shirt} shirt is empty - nobody is picked in it.` })
     else if (prob) warnings.push({ level: 'bad', text: `${p!.name} (no. ${XV_SLOTS[i].shirt}) ${PROB_WORD[prob]} - he cannot start today.` })
     else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) - high re-injury risk if he plays.` })
     else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit - his tank will empty early.` })
+  }
+  // The bench answers to the same rule as the XV (round 25, user: "I had an
+  // injured player on the bench and the game play continued. All 23 should be
+  // fit and ready to play"). An empty bench seat is a choice; a broken man in
+  // one is a dead replacement the game would happily count all afternoon.
+  for (let i = 15; i < t.lineup.length; i++) {
+    const pid = t.lineup[i]
+    if (pid == null) continue
+    const p = game.players[pid] ?? null
+    const prob = problem(p)
+    if (prob && prob !== 'EMPTY') warnings.push({ level: 'bad', text: `${p!.name} (bench, no. ${i + 1}) ${PROB_WORD[prob]} - all twenty-three must be fit.` })
   }
   // Law 3: without cover at all three front-row positions the referee orders
   // uncontested scrums, and the set piece leaves the game for both sides. Loud,

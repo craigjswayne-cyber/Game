@@ -1107,6 +1107,7 @@ export function rebuildSeason(state: GameState) {
     if (p.onLoan) {
       // back from a season of first-team rugby elsewhere
       p.onLoan = false
+      p.loanClub = undefined
       if (p.ca < p.pa) p.ca = clamp(p.ca + 2 + Math.floor(mulberry32(state.seed + p.id)() * 3), 1, p.pa)
       if (p.clubId === state.userClubId) {
         state.news.push({

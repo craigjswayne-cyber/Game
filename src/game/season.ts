@@ -1537,8 +1537,16 @@ export function processWeekAndAdvance(state: GameState) {
           : boost === 3
           ? `growing into it nicely. Good marks most weeks, and the education is clearly taking.`
           : `getting the minutes he went for. Steady rather than spectacular, but every week down there is a week he was not carrying tackle bags here.`
-        return `${p.name} (${p.pos}, ${p.age}): ${apps} starts this month${tries ? `, ${tries} ${tries === 1 ? 'try' : 'tries'}` : ''} - ${verdict}`
+        // **name** renders bold in the reader, and the club he is at is named
+        // (round 25, user: "bold the names ... say what club they are playing
+        // for") - loanClub is set at loan time; older loans fall back gracefully
+        const at = p.loanClub && state.clubs[p.loanClub] ? ` at ${state.clubs[p.loanClub].name}` : ''
+        return `**${p.name}** (${p.pos}, ${p.age}${at}): ${apps} starts this month${tries ? `, ${tries} ${tries === 1 ? 'try' : 'tries'}` : ''} - ${verdict}`
       })
+      // four in full, the rest counted: club names made each line ~20
+      // characters longer, and five would breach the 800-character ceiling
+      const shown = lines.slice(0, 4)
+      const rest = out.length - shown.length
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: out.length === 1
@@ -1546,7 +1554,8 @@ export function processWeekAndAdvance(state: GameState) {
           : `🧳 Loan watch: news from the feeder clubs`,
         body: [
           `The academy manager files his loan report:`,
-          ...lines,
+          ...shown,
+          ...(rest > 0 ? [`And ${rest} more out getting their minutes.`] : []),
         ].join('\n'),
         playerId: out.length === 1 ? out[0].id : undefined,
       })
@@ -2070,6 +2079,8 @@ export function processWeekAndAdvance(state: GameState) {
     }
     if (club.boardConfidence <= 3 && state.week > 8) {
       state.unemployed = true
+      // bids for the old club's players go with the job (see resignJob)
+      state.offers = []
       state.vacancies.push({ clubId: club.id, week: state.week })
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

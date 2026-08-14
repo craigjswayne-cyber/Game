@@ -71,6 +71,15 @@ try {
   await page.waitForTimeout(400)
   mast = await page.locator('.masthead h1').innerText()
   ok(!/unemployed/i.test(mast), `Competitions still opens while unemployed (masthead: "${mast}")`)
+
+  // the day room stays open between jobs, but the desk furniture inside it
+  // goes: an unemployed manager was still shown his OLD club's treatment room
+  // in the Monday review (round 25, from a screenshot)
+  await page.evaluate(() => window.rugbyStore.getState().go('day'))
+  await page.waitForTimeout(400)
+  const dayText = await page.locator('.content').innerText()
+  ok(!/Treatment Room/i.test(dayText), 'the day room shows no old-club treatment room while unemployed')
+  ok(/Between jobs/i.test(dayText), 'and says plainly why the desk furniture is gone')
 } catch (e) {
   say(`FAIL  ${e.message}`)
   fails++

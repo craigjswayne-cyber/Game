@@ -49,11 +49,29 @@ export default function DayRoom() {
           somewhere else (F19). */}
       <DrawWaiting />
 
-      {day === 0 && <MondayBlocks />}
-      {day === 1 && <TuesdayBlocks />}
-      {day === 2 && <WednesdayBlocks />}
-      {day === 3 && <ThursdayBlocks />}
-      {day === 4 && <FridayBlocks />}
+      {/* The between-jobs week keeps the day room but not the desk: the
+          physio's list, the press queue and Saturday-reviewed all belong to a
+          club, and an unemployed manager was still being shown his old club's
+          treatment room (round 25, from a screenshot). The papers below stay -
+          they are about the world. */}
+      {game.unemployed ? (
+        <div className="card">
+          <div className="fact-label">Between jobs</div>
+          <div className="meta">
+            No training ground, no physio's list, no press to face - all of that
+            belongs to a club. The Job Centre has the vacancies, and the papers
+            keep you honest about the rugby you are missing.
+          </div>
+        </div>
+      ) : (
+        <>
+          {day === 0 && <MondayBlocks />}
+          {day === 1 && <TuesdayBlocks />}
+          {day === 2 && <WednesdayBlocks />}
+          {day === 3 && <ThursdayBlocks />}
+          {day === 4 && <FridayBlocks />}
+        </>
+      )}
 
       {stories.length > 0 && (
         <>
