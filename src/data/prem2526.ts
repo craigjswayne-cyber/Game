@@ -70,16 +70,24 @@ export interface GuideClub { id: string; coach: string; captain: string; players
 
 export const PREM_2526: GuideClub[] = [
   {
+    // Bath run a season ahead of the rest of the guide: the club announced its
+    // 2026/27 squad (official Instagram, Aug 2026) and the user asked for it.
+    // Same editorial line as the original merge - the senior squad plus the
+    // academy names with a senior profile; the deepest academy kids stay with
+    // the game's own academy rather than bloating one club to 76 men. Bhatti
+    // (from Glasgow) and du Preez (from Sale) arrive via verified.ts so their
+    // old listings drop. Out: du Toit, van Wyk, Summerfield, Barbeary,
+    // Staddon, Le Roux, Sam Harris, Butt, Chris Harris.
     id: 'bath', coach: 'Johann van Graan', captain: 'Ben Spencer',
     players: [
-      ...unit('hookers', 'Tom Dunn; Dan Frost; Jasper Spandler'),
-      ...unit('props', 'Thomas du Toit; Archie Griffin; Beno Obano; Will Stuart; Mikey Summerfield; Francois van Wyk; Kieran Verden'),
-      ...unit('locks', 'Charlie Ewels; Ross Molony; Quinn Roux'),
-      ...unit('backrow', 'Alfie Barbeary; Josh Bayliss; Jaco Coetzee; Thompson Cowan; Ted Hill; Guy Pepper; Miles Reid; Ewan Richards; Ethan Staddon; Sam Underhill'),
-      ...unit('sh', 'Tom Carr-Smith; Neil Le Roux; Ben Spencer; Bernard van der Linde'),
-      ...unit('fh', 'Ciaran Donoghue; Sam Harris; Finn Russell'),
-      ...unit('centre', 'Will Butt; Chris Harris; Louie Hennessey; Ollie Lawrence; Max Ojomoh; Cameron Redpath'),
-      ...unit('backthree', 'Henry Arundell; Joe Cokanasiga; Will Muir; Santiago Carreras; Tom de Glanville; Austin Emens'),
+      ...unit('hookers', 'Tom Dunn; Dan Frost; Jasper Spandler; Kepueli Tuipulotu'),
+      ...unit('props', 'Jamie Bhatti; Ioan Emanuel; Archie Griffin; Beno Obano; Vilikesa Sela; Will Stuart; Kieran Verden'),
+      ...unit('locks', 'Charlie Ewels; Tom Hilton; Ross Molony; Quinn Roux; Ewan Richards'),
+      ...unit('backrow', 'Josh Bayliss; Jaco Coetzee; Thompson Cowan; Dan du Preez; Ted Hill; Fred Kempton; Guy Pepper; Miles Reid; Sam Underhill'),
+      ...unit('sh', 'Tom Carr-Smith; Ieuan Davies; Isaac Mears; Ben Spencer; Bernard van der Linde'),
+      ...unit('fh', 'Ciaran Donoghue; Max Hooper; Finn Russell'),
+      ...unit('centre', 'Louie Hennessey; Ollie Lawrence; Max Ojomoh; Cameron Redpath; Cam Ward'),
+      ...unit('backthree', 'Henry Arundell; Santiago Carreras; Joe Cokanasiga; Tom de Glanville; Austin Emens; Will Muir; Tyler Offiah'),
     ],
   },
   {

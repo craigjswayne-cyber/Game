@@ -202,6 +202,12 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Listed at Saracens by the 2025/26 guide and still at the Force in the Super
   // Rugby file, which is a season behind. The guide is the checked source.
   'sam spink': 'saracens',
+  // Bath's announced 2026/27 squad (official club Instagram, Aug 2026) - the
+  // one club running a season ahead of the guide, at the user's request. Both
+  // men keep their authored entries; the old listings (Glasgow's urc_a and
+  // Sale's prem_b/guide) drop here rather than by editing other clubs' files.
+  'jamie bhatti': 'bath',
+  'dan du preez': 'bath',
 }
 
 /** Every man the 2025/26 Premiership guide names, at the club it names him at.
