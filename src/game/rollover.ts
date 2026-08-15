@@ -17,6 +17,7 @@ import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
 import { mentorBoost } from './mentoring'
+import { staffChem } from './staff'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -252,6 +253,11 @@ export function devFactor(state: GameState, p: Player): number {
     const senior = pair ? state.players[pair.senior] : null
     if (senior) f += 0.06 * mentorBoost(senior, p)
     f += (state.staff?.assistant ?? 0) * 0.03
+    // the weather in the staff room (25D-3): a coaching team that clicks
+    // teaches better than the sum of its badges, one that feuds teaches
+    // worse. Deterministic, small, and entirely the manager's own doing -
+    // he hired them
+    f += clamp(staffChem(state) * 0.01, -0.03, 0.03)
   }
   return clamp(f, p.acad ? 0.6 : 0.65, p.acad ? 1.65 : 1.4)
 }
