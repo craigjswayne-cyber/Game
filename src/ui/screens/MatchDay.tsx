@@ -2440,6 +2440,11 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                     setOffId(offId === p.id ? null : p.id)
                   }}>
                   <span className="sh-num">{shirt}</span>
+                  {/* the position, not just the shirt (Round 27, user: "it
+                      should have their positions"). The bench column has always
+                      said what a man is; the pitch column made you know the
+                      numbering by heart to work out who you were taking off. */}
+                  <span className="sh-pos">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>
                   {binned && <span className="sh-flag" title="In the bin">🟨</span>}
                   {p.injury && <span className="sh-flag" title="Injured">🏥</span>}
@@ -2451,7 +2456,16 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                       why (round 23). */}
                   {!on && !binned && !p.injury && <span className="sh-flag" title="Sent off">🟥</span>}
                   {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
-                  <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{condWord(e)}</span>
+                  {/* THE NUMBER, NOT THE WORD (Round 27, user: "percentage
+                      rather than words"). 25D-2 put the assistant's phrasing in
+                      here for the fog of war and it was wrong twice over: this
+                      column is 32px, built for "43%", so "out on his feet"
+                      wrapped to four lines and tore the row open; and this is
+                      the screen where the substitution is actually decided, so
+                      it is the one place that wants a hard number rather than a
+                      feel. The words keep their home in the assistant's read
+                      below, where they are commentary rather than an input. */}
+                  <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
                 </button>
               )
             })}
@@ -2538,10 +2552,13 @@ function EnergyBars({ mine }: { mine: SideCtx }) {
         <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 11.5 }}>
           <span style={{ width: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
           <div style={{ flex: 1, height: 7, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
-            {/* banded on purpose: the gauge shows what the eye can see, in fifths */}
-            <div style={{ width: `${Math.max(10, Math.round(e / 20) * 20)}%`, height: '100%', background: e < 25 ? '#9b2c2c' : e < 50 ? '#c9a227' : '#2f7d4f' }} />
+            {/* the true width, not a banded one: a gauge that rounds to fifths
+                is a gauge that quietly lies, and the number sits beside it */}
+            <div style={{ width: `${e}%`, height: '100%', background: e < 25 ? '#9b2c2c' : e < 50 ? '#c9a227' : '#2f7d4f' }} />
           </div>
-          <span style={{ width: 96, textAlign: 'right', fontStyle: 'italic' }}>{condWord(e)}</span>
+          <span style={{ width: 118, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+            <b>{Math.round(e)}%</b> <span style={{ opacity: .7, fontStyle: 'italic' }}>{condWord(e)}</span>
+          </span>
         </div>
       ))}
     </div>

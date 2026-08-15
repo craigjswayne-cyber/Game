@@ -156,6 +156,14 @@ async function sweep(label, height, stopAt) {
         headVisible: inSheet(head),
         headText: head?.textContent?.trim().slice(0, 40) ?? '',
         shirts,
+        // EVERY ROW IS ONE LINE. A row is number, position, name, rating and
+        // condition on a single line; anything that wraps has torn it open.
+        // 25D-2 put "out on his feet" into a 32px column and every tiring man
+        // became a four-line row - reported from real play, invisible to every
+        // probe here because none of them measured a row's height.
+        rowHs: rows.map(r => Math.round(r.getBoundingClientRect().height)),
+        posLabels: rows.map(r => (r.querySelector('.sh-pos')?.textContent ?? '').trim()),
+        nrgLabels: rows.map(r => (r.querySelector('.sh-nrg')?.textContent ?? '').trim()),
         firstShirtVisible: rows.length ? inSheet(rows[0]) : false,
         firstShirtDisabled: rows.length ? rows[0].disabled === true : null,
         // a disabled shirt 1 is legitimate when the man is visibly OFF - in
@@ -186,6 +194,17 @@ async function sweep(label, height, stopAt) {
       `shirt 1 is tappable or visibly off (${geo.firstShirtDisabled ? 'off, flagged' : 'tappable'}): the top of the sheet is not blocked off`)
     ok(geo.innerScrollers === 0, `the sheet is one scrolling page, not nested scrollers (${geo.innerScrollers})`)
     ok(geo.benchCount > 0, `the bench is in the sheet (${geo.benchCount} rows)`)
+
+    // ---- the row is one line, and it says what a man is and how he is
+    {
+      const tallest = Math.max(...geo.rowHs)
+      say(`  row heights ${Math.min(...geo.rowHs)}-${tallest}px · positions [${geo.posLabels.slice(0, 4).join(' ')}] · condition [${geo.nrgLabels.slice(0, 3).join(' ')}]`)
+      ok(tallest < 46, `no row has wrapped: the tallest is ${tallest}px, which is still one line`)
+      ok(geo.posLabels.every(t => t.length > 0 && t.length <= 3),
+        `every man on the pitch says what he is (e.g. ${geo.posLabels.slice(0, 3).join(', ')})`)
+      ok(geo.nrgLabels.every(t => /^\d{1,3}%$/.test(t)),
+        `and how much petrol he has left, as a number (e.g. ${geo.nrgLabels.slice(0, 3).join(', ')})`)
+    }
 
     // ---- and tapping shirt 1 actually arms him
     // the first ENABLED shirt: shirt 1 himself may legitimately be in the bin
