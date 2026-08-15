@@ -261,7 +261,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // from the shared rng so the world around him is still identical.
         if (pr.pa) {
           p.pa = Math.max(p.pa, pr.pa)
-          p.value = playerValue(p.ca, p.age, p.pa)
+          p.value = playerValue(p.ca, p.age, p.pa, p.pos)
         }
         state.players[p.id] = p
         club.players.push(p.id)
@@ -313,7 +313,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     k.ca = clamp(k.ca + 7 + Math.floor(rng() * 6), 1, 80)
     k.pa = clamp(88 + Math.floor(rng() * 12), k.ca + 15, 99)
     k.q0 = k.ca
-    k.value = playerValue(k.ca, k.age, k.pa)
+    k.value = playerValue(k.ca, k.age, k.pa, k.pos)
     if (watchList.length < 5) {
       watchList.push(`${k.name} (${k.age}, ${k.pos} - ${state.clubs[k.clubId!]?.short})`)
       watchIds.push(k.id)
@@ -333,7 +333,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     p.youth = true
     p.acad = true
     p.pa = clamp(84 + Math.floor(rng() * 14), p.ca + 12, 99)
-    p.value = playerValue(p.ca, p.age, p.pa)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos)
     state.players[p.id] = p
   }
   // Held back rather than filed here. The inbox reads oldest unread first, so

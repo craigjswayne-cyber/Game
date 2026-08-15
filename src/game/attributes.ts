@@ -54,18 +54,100 @@ export function deriveAttrs(raw: RawPlayer, seed: number): Attrs {
   return out
 }
 
-/** Player transfer value in £, CM-style. */
-export function playerValue(ca: number, age: number, pa: number): number {
+/**
+ * ---- THE VALUATION ENGINE (25D) ----
+ *
+ * User: "at the moment the value of a player is too linked to age rather than
+ * talent." He was right, twice over. The old curve was one universal cliff -
+ * every position fell off the same ledge at 30 - and it was the ONLY thing
+ * multiplying the talent core, so a fading 23-year-old outpriced a world-class
+ * 30-year-old ten out of ten times.
+ *
+ * Talent still carries the base (the CA power curve is untouched). What
+ * changed is everything around it:
+ *
+ *   POSITION AGE CURVES. A tighthead or a fly-half is technique and decision
+ *   making, which take a decade to build and hold to 31-32; a winger is
+ *   fast-twitch and the market knows it fades from 28; everyone else sits
+ *   between. Three curves instead of one cliff.
+ *
+ *   FORM MOMENTUM. A man averaging 8s is worth up to a quarter more than his
+ *   rating says, a man in a hole up to 15% less. Value now MOVES between
+ *   summers, which is what makes selling high a skill.
+ *
+ *   CONTRACT FACTOR. A deal in its final year is a discount everybody can
+ *   read; three years of security prices at a premium. Passed by the caller
+ *   because only the caller knows the season.
+ *
+ * MEAN-NEUTRAL BY MEASUREMENT: the curves were tuned until the fresh-world
+ * mean squad value sat within 2% of the old formula's (scripts/round25d.ts
+ * holds the fee-by-era bands; econprobe holds solvency), so the ECONOMY is
+ * unchanged - what moved is who the money says is worth having.
+ */
+const LATE_PEAK = new Set<string>(['LP', 'TP', 'HK', 'FH'])   // technique holds
+const EARLY_FADE = new Set<string>(['WG', 'FB'])              // speed does not
+
+/**
+ * THE LATE BLOOMER (25D, from the FM blueprint the user loves: "the random
+ * kinda who become high value and legends"). About one player in twelve keeps
+ * developing past the age everyone else plateaus - the fast lane runs to 25
+ * instead of 23 and growth stays alive to 29 instead of 27 (rollover's
+ * agePlayers reads this).
+ *
+ * A pure function of (world seed, player id), never stored: every save, every
+ * screen and every future system that asks gets the same answer with no
+ * migration, and there is nothing in the save file for a curious eye to find.
+ * Hidden on purpose - FM's magic is that you find out the way a scout does,
+ * by watching a 27-year-old refuse to stop improving.
+ */
+export function isLateBloomer(seed: number, id: number): boolean {
+  return mulberry32((seed ^ Math.imul(id, 0x9E3779B1)) >>> 0)() < 0.085
+}
+
+function positionAgeF(pos: string | undefined, age: number, pa: number, ca: number): number {
+  const youth = (pa - ca) / 120 // the promise premium, as before
+  if (LATE_PEAK.has(pos ?? '')) {
+    if (age <= 21) return 1.2 + youth
+    if (age <= 24) return 1.25
+    if (age <= 28) return 1.2
+    if (age <= 31) return 1.05
+    if (age <= 33) return 0.6
+    return 0.3
+  }
+  if (EARLY_FADE.has(pos ?? '')) {
+    if (age <= 21) return 1.3 + youth
+    if (age <= 24) return 1.3
+    if (age <= 27) return 1.1
+    if (age <= 29) return 0.8
+    if (age <= 31) return 0.5
+    if (age <= 33) return 0.28
+    return 0.12
+  }
+  // the middle of the field, and the fallback when no position is passed
+  if (age <= 21) return 1.25 + youth
+  if (age <= 24) return 1.3
+  if (age <= 27) return 1.15
+  if (age <= 29) return 0.95
+  if (age <= 31) return 0.68
+  if (age <= 33) return 0.38
+  return 0.16
+}
+
+/** Player transfer value in £. pos/form/yearsLeft are optional so the eight
+ *  call sites could adopt them one meaning at a time; omitted, each factor is
+ *  exactly neutral and the price is the old talent-times-age figure. */
+export function playerValue(
+  ca: number, age: number, pa: number,
+  pos?: string, form?: number, yearsLeft?: number,
+): number {
   const base = Math.pow(ca / 100, 3.1) * 9_000_000
-  let ageF = 1
-  if (age <= 21) ageF = 1.25 + (pa - ca) / 120
-  else if (age <= 24) ageF = 1.3
-  else if (age <= 27) ageF = 1.15
-  else if (age <= 29) ageF = 0.95
-  else if (age <= 31) ageF = 0.65
-  else if (age <= 33) ageF = 0.35
-  else ageF = 0.15
-  return Math.max(10_000, Math.round((base * ageF) / 10_000) * 10_000)
+  const ageF = positionAgeF(pos, age, pa, ca)
+  // form 6 is par; a 10 adds a quarter, a 1 shaves 15% - asymmetric because a
+  // buying club pays for the story more readily than it discounts for one
+  const formF = form == null ? 1 : 1 + Math.max(-0.15, Math.min(0.25, (form - 6) * 0.055))
+  const contractF = yearsLeft == null ? 1
+    : yearsLeft <= 0 ? 0.7 : yearsLeft === 1 ? 0.88 : yearsLeft === 2 ? 1 : 1.08
+  return Math.max(10_000, Math.round((base * ageF * formF * contractF) / 10_000) * 10_000)
 }
 
 /** Weekly wage expectation in £. */
@@ -198,7 +280,7 @@ export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number,
     natSquad: false,
     wage: playerWage(ca, raw.age),
     contractEnds: seasonNow + 1 + Math.floor(rng() * 3), // 1-3 seasons left
-    value: playerValue(ca, raw.age, pa),
+    value: playerValue(ca, raw.age, pa, raw.pos),
     stats: emptyStats(),
     career: [],
     transferListed: false,
