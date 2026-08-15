@@ -429,9 +429,21 @@ export default function App() {
             {/* Not disabled while settling, deliberately: the main thread is busy
                 for the whole settle so a disabled attribute never gets a chance to
                 render. The guard is a debounce in continueWeek instead. */}
-            <button className="continue-btn" onClick={continueWeek}>
-              {nextStep(game).kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
-            </button>
+            {/* THE ANNUAL HAS ITS OWN DOOR, AND ONLY ONE (Round 26, found by
+                scripts/soakui.mjs: 60 taps without the week moving). While the
+                between-seasons page is up, continueWeek early-returns - so this
+                button sat there, in the place a thumb has pressed a thousand
+                times, doing precisely nothing. A control that does nothing does
+                not read as a gate; it reads as a frozen game.
+                It is hidden rather than wired up, because wiring it up would
+                hand the gate back its original problem: two quick taps at the
+                end of a season would show the Annual and dismiss it in the same
+                gesture, which is the accident the page exists to prevent. */}
+            {cur.screen !== 'annual' && (
+              <button className="continue-btn" onClick={continueWeek}>
+                {nextStep(game).kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
+              </button>
+            )}
           </div>
         </div>
       </header>

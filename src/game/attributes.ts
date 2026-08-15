@@ -161,13 +161,33 @@ export function playerValue(
   ca: number, age: number, pa: number,
   pos?: string, form?: number, yearsLeft?: number,
 ): number {
+  /**
+   * A PRICE IS NOT A PLACE TO PUT A NaN (Round 26, found by scripts/fuzz25d.ts).
+   *
+   * Math.max(10_000, NaN) is NaN, so an unreadable rating used to walk straight
+   * out of here as a price - and a price does not sit quietly in a field. The
+   * weekly reprice writes it to p.value, and p.value is what asking prices,
+   * bids, budgets and the squad-value column are all built on: one bad rating
+   * would have quietly poisoned the market for the rest of the save, exactly
+   * the way an unreadable tactic dial once turned a squad's condition to NaN
+   * (matchEngine's `f`, audit 16D).
+   *
+   * Same answer as there: read anything unreadable as the middle of its range,
+   * clamp at the one place all six arguments arrive, and let the caller be as
+   * wrong as it likes without taking the economy with it.
+   */
+  const num = (v: unknown, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
+  ca = Math.max(1, Math.min(99, num(ca, 50)))
+  age = Math.max(15, Math.min(45, num(age, 26)))
+  pa = Math.max(ca, Math.min(99, num(pa, ca)))
   const base = Math.pow(ca / 100, 3.1) * 9_000_000
   const ageF = positionAgeF(pos, age, pa, ca)
   // form 6 is par; a 10 adds a quarter, a 1 shaves 15% - asymmetric because a
   // buying club pays for the story more readily than it discounts for one
-  const formF = form == null ? 1 : 1 + Math.max(-0.15, Math.min(0.25, (form - 6) * 0.055))
-  const contractF = yearsLeft == null ? 1
-    : yearsLeft <= 0 ? 0.7 : yearsLeft === 1 ? 0.88 : yearsLeft === 2 ? 1 : 1.08
+  const formF = form == null ? 1 : 1 + Math.max(-0.15, Math.min(0.25, (num(form, 6) - 6) * 0.055))
+  const yrs = yearsLeft == null ? null : num(yearsLeft, 2)
+  const contractF = yrs == null ? 1
+    : yrs <= 0 ? 0.7 : yrs === 1 ? 0.88 : yrs === 2 ? 1 : 1.08
   return Math.max(10_000, Math.round((base * ageF * formF * contractF) / 10_000) * 10_000)
 }
 
@@ -216,6 +236,10 @@ export function repriceAcademies(players: { acad?: boolean; wage: number; ca: nu
 }
 
 export function playerWage(ca: number, age: number, acad = false): number {
+  // same guard, same reason as playerValue: Math.max(400, NaN) is NaN, and a
+  // NaN wage reaches the salary cap and the weekly ledger (Round 26)
+  ca = typeof ca === 'number' && Number.isFinite(ca) ? Math.max(1, Math.min(99, ca)) : 50
+  age = typeof age === 'number' && Number.isFinite(age) ? Math.max(15, Math.min(45, age)) : 26
   const base = Math.pow(ca / 100, 2.6) * 16_000
   const f = age >= 33 ? 0.8 : 1
   const pro = Math.max(400, Math.round((base * f) / 50) * 50)

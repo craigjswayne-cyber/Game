@@ -401,7 +401,17 @@ try {
       await cb.click({ timeout: 5000 }).catch(() => {})
       await page.waitForTimeout(190)
     } else {
-      // no Continue anywhere: this is the shape of a dead end
+      // SOME SCREENS PUT THE DOOR ON THE PAGE, not in the masthead: the Annual
+      // is held open by its own gold button, deliberately, so that finishing a
+      // season is a decision rather than a reflex. A driver that only knows
+      // .continue-btn is not modelling a player, it is modelling a thumb with
+      // its eyes shut - and it reported the Annual as STUCK for that reason.
+      const door = page.locator('.content .btn.gold').first()
+      if (await door.count()) {
+        await door.click({ timeout: 5000 }).catch(() => {})
+        await page.waitForTimeout(190)
+      } else {
+      // no Continue and no page door: this is the shape of a dead end
       const back = page.locator('.back-btn')
       if (await back.count()) { await back.click().catch(() => {}); await page.waitForTimeout(150) }
       else {
@@ -410,6 +420,7 @@ try {
         await shot(`deadend-s${seasonsDone + 1}-w${lastWeek}`)
         await page.click('.bottom-nav button[title="Home"]').catch(() => {})
         await page.waitForTimeout(200)
+      }
       }
     }
     }
