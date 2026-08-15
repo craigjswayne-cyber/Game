@@ -148,7 +148,10 @@ console.log('\nthe expectations decision and the annual stamp:\n')
     const clubHi = hi.clubs[hi.userClubId]
     const fx = base.fixtures.find(f => f.played && f.week === base.week - 1 &&
       (f.homeId === club.id || f.awayId === club.id))
-    if (!fx || fx.homeScore === fx.awayScore) continue
+    // skip friendlies: 'fr' results bank sharpness but never reach the
+    // boardroom, so both forks read identically off one (surfaced when the
+    // 25D-2 match-day wobble turned the week-3 friendly decisive)
+    if (!fx || fx.homeScore === fx.awayScore || fx.compId === 'fr') continue
     const won = fx.homeId === club.id ? fx.homeScore > fx.awayScore : fx.awayScore > fx.homeScore
     compared = true
     if (won) ok(clubHi.boardConfidence > club.boardConfidence,

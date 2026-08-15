@@ -2181,7 +2181,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       .sort((a, b) => a.e - b.e)
     for (const { p, e } of tired.slice(0, 2)) {
       const cover = bench.find(b => b && (b.pos === p!.pos || b.alt.includes(p!.pos)))
-      advice.push(`🔋 ${p!.name} is running on fumes (${Math.round(e)}%)${cover ? ` - ${cover.name} covers ${p!.pos} from the bench` : ''}.`)
+      advice.push(`🔋 ${p!.name} is ${condWord(e)}${cover ? ` - ${cover.name} covers ${p!.pos} from the bench` : ''}.`)
     }
   }
   const min = ctx.tick * 4
@@ -2451,7 +2451,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                       why (round 23). */}
                   {!on && !binned && !p.injury && <span className="sh-flag" title="Sent off">🟥</span>}
                   {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
-                  <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{e}%</span>
+                  <span className={`sh-nrg ${e < 25 ? 'red' : e < 50 ? 'amber' : ''}`}>{condWord(e)}</span>
                 </button>
               )
             })}
@@ -2511,7 +2511,18 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
   )
 }
 
-/** Tiny petrol gauges for the XV, most tired first. */
+/**
+ * THE ASSISTANT'S EYE, NOT A TELEMETRY FEED (25D-2, from the fog-of-war idea
+ * the user liked: reports instead of exact bars). A coach on the touchline
+ * does not know a man is at 43% - he knows he is tiring. The exact number is
+ * gone from every per-player readout: the word and a five-band gauge are what
+ * the assistant can honestly tell you. Deterministic bands, no rng.
+ */
+export function condWord(e: number): string {
+  return e >= 85 ? 'fresh' : e >= 70 ? 'going well' : e >= 55 ? 'blowing' : e >= 40 ? 'tiring' : e >= 25 ? 'running on empty' : 'out on his feet'
+}
+
+/** The assistant's condition report on the XV, most worrying first. */
 function EnergyBars({ mine }: { mine: SideCtx }) {
   const game = useStore(s => s.game)!
   const rows = mine.lineup.slice(0, 15)
@@ -2522,14 +2533,15 @@ function EnergyBars({ mine }: { mine: SideCtx }) {
     .slice(0, 6)
   return (
     <div style={{ marginTop: 8 }}>
-      <div className="fact-label">Emptiest Tanks</div>
+      <div className="fact-label">Assistant's Eye</div>
       {rows.map(({ p, e }) => (
         <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 11.5 }}>
           <span style={{ width: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
           <div style={{ flex: 1, height: 7, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${e}%`, height: '100%', background: e < 25 ? '#9b2c2c' : e < 50 ? '#c9a227' : '#2f7d4f' }} />
+            {/* banded on purpose: the gauge shows what the eye can see, in fifths */}
+            <div style={{ width: `${Math.max(10, Math.round(e / 20) * 20)}%`, height: '100%', background: e < 25 ? '#9b2c2c' : e < 50 ? '#c9a227' : '#2f7d4f' }} />
           </div>
-          <span style={{ width: 32, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{Math.round(e)}%</span>
+          <span style={{ width: 96, textAlign: 'right', fontStyle: 'italic' }}>{condWord(e)}</span>
         </div>
       ))}
     </div>

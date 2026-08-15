@@ -192,7 +192,7 @@ const EXPECTED: string[] = [
   // at 54.0 points, 6.31 tries, 56% home, 1.6% draws.
   'gloucester 57-38 exeter',
   'bath 27-37 sale',
-  'northampton 9-20 leicester',
+  'northampton 9-24 leicester',
   'newcastle 9-14 saracens',
   'harlequins 41-22 bristol',
   'sale 30-16 gloucester',

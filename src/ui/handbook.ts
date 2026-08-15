@@ -106,6 +106,11 @@ export const HANDBOOK: HandbookEntry[] = [
   },
   {
     cat: 'match',
+    q: 'Why did my best player go missing today?',
+    a: 'Because players are people. Every man carries two things the game never shows you as a number: how consistent he is week to week, and what a big occasion does to him. A metronome turns up every Saturday; a mood player is capable of anything and its opposite; some grow an inch walking out for a final or a derby and some freeze. Favourites feel the weight too - on the big day the gap between the teams closes a touch, which is why cup upsets happen. None of it is on any screen: you learn who is who the way a real coach does, by watching a season of ratings. And during a match your assistant reports condition the same way - "blowing", "tiring", "out on his feet" - because nobody on a touchline knows a man is at exactly 43%.',
+  },
+  {
+    cat: 'match',
     q: 'What are finisher briefs?',
     a: 'What you say to a replacement as he pulls his shirt on, set per bench seat on the Tactics bench page. Follow the shirt is neutral. Go through them buys carry and gives up cover. Shut the door buys defence and discipline and gives up attack. Play the corners kicks the clock away. Only the first three briefed men to come on take effect, so a bench is a decision rather than a stack of free upgrades.',
   },
