@@ -41,6 +41,56 @@ const TRAITS = [
 
 const NATS = ['ENG', 'WAL', 'IRE', 'SCO', 'FRA', 'NZL', 'AUS', 'RSA', 'ARG', 'ITA', 'FIJ']
 
+/**
+ * STAFF CHEMISTRY (25D-3, the Motorsport Manager idea the user picked out:
+ * staff whose philosophies click or clash). Coaching is a room of strong
+ * opinions, and some combinations feed each other while some fight:
+ *
+ *   CLICK: the numbers men sharpen each other, the people men make a dressing
+ *   room hum, the forwards men build one programme instead of two, and kids
+ *   listen harder to a man with caps when a youth specialist points them at
+ *   him.
+ *
+ *   CLASH: GPS vests against hill runs, laptops against been-there-done-that,
+ *   and a hype man against death-by-video-session.
+ *
+ * The score is a small, DETERMINISTIC development effect at the user's club
+ * (devFactor reads it, like the assistant and the mentors) and a line of
+ * colour on hire day. No rng anywhere: the same staff room always has the
+ * same weather.
+ */
+const CLICKS: [string, string, string][] = [
+  ['Analyst at heart', 'Detail merchant', 'two numbers men who finish each other\'s spreadsheets'],
+  ['Man-manager', 'Motivator', 'the dressing room has never hummed like this'],
+  ['Set-piece obsessive', 'Old-school hard yards', 'one programme, built entirely of scrummaging'],
+  ['Youth whisperer', 'Ex-international', 'the kids listen harder when the man pointing has caps'],
+]
+const CLASHES: [string, string, string][] = [
+  ['Old-school hard yards', 'Sports scientist', 'GPS vests against hill runs, daily'],
+  ['Analyst at heart', 'Ex-international', 'the laptop and the caps disagree about everything'],
+  ['Detail merchant', 'Motivator', 'the video sessions are killing the mood in the room'],
+]
+
+function relation(a: string, b: string): { kind: 'click' | 'clash'; note: string } | null {
+  for (const [x, y, note] of CLICKS) if ((a === x && b === y) || (a === y && b === x)) return { kind: 'click', note }
+  for (const [x, y, note] of CLASHES) if ((a === x && b === y) || (a === y && b === x)) return { kind: 'clash', note }
+  return null
+}
+
+/** Net chemistry of the user's staff room: +1 per click, -1 per clash,
+ *  counted over every pair of appointed coaches. */
+export function staffChem(state: GameState): number {
+  const people = Object.values(state.staffPeople ?? {}).filter((p): p is StaffPerson => !!p)
+  let score = 0
+  for (let i = 0; i < people.length; i++) {
+    for (let j = i + 1; j < people.length; j++) {
+      const r = relation(people[i].trait, people[j].trait)
+      if (r) score += r.kind === 'click' ? 1 : -1
+    }
+  }
+  return score
+}
+
 function roleHash(role: string): number {
   let h = 2166136261
   for (let i = 0; i < role.length; i++) h = ((h ^ role.charCodeAt(i)) * 16777619) >>> 0
@@ -118,10 +168,22 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
       trait: c.trait, since: state.season, course: null,
     } as StaffPerson,
   }
+  // hire-day chemistry beat: does the new man click or clash with anyone
+  // already in the room? One line each, and the manager learns the pairs
+  // the way MSM taught them - by reading the news, not a tooltip
+  const chemLines: string[] = []
+  for (const [otherRole, other] of Object.entries(state.staffPeople)) {
+    if (otherRole === role || !other) continue
+    const r = relation(c.trait, other.trait)
+    if (!r) continue
+    chemLines.push(r.kind === 'click'
+      ? `The staff room approves: he and ${other.name} click - ${r.note}.`
+      : `One cloud on the horizon: he and ${other.name} see the game very differently - ${r.note}.`)
+  }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${c.name} appointed ${info.name}`,
-    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${info.name.toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}`,
+    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${info.name.toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
   })
   logDecision(state, `Appointed ${c.name} as ${info.name.toLowerCase()} (${BADGE[c.tier].toLowerCase()} badge): ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} left.` : ''}`, true)
   return `${c.name} is your new ${info.name.toLowerCase()}. ${fmt(c.fee)} compensation paid.`
