@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
-import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffInterest, type StaffRole } from '../../game/staff'
+import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
@@ -143,6 +143,31 @@ function StaffPanel() {
     <>
       <SectionTitle sub={`a badge is one day of assessment - ${EXAM_PASS_PCT}% pass, and a failure waits a month`}>Backroom Staff</SectionTitle>
       {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '7px 10px', marginBottom: 6 }}>{msg}</div>}
+      {/* the weather in the room (25D-3): who feeds off whom and who cannot
+          stand whom. Without this the chemistry is invisible three seasons
+          after the hire-day letter, and the manager has no way to know why
+          his kids are or are not coming on */}
+      {(() => {
+        const pairs = staffChemPairs(game)
+        if (!pairs.length) return null
+        const net = pairs.reduce((s, r) => s + (r.kind === 'click' ? 1 : -1), 0)
+        return (
+          <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: `4px solid ${net > 0 ? '#2f7d4f' : net < 0 ? '#9b2c2c' : 'var(--stripe)'}` }}>
+            <div className="fact-label">The Staff Room</div>
+            <div className="meta" style={{ fontSize: 11.5, marginBottom: 3 }}>
+              {net > 0 ? 'A coaching team pulling the same way. Your youngsters feel it.'
+                : net < 0 ? 'This room does not agree with itself, and the development work suffers for it.'
+                : 'Strong opinions in both directions, cancelling each other out.'}
+            </div>
+            {pairs.map((r, i) => (
+              <div key={i} className="meta" style={{ fontSize: 11, padding: '1px 0' }}>
+                <b style={{ color: r.kind === 'click' ? '#2f7d4f' : '#9b2c2c' }}>{r.kind === 'click' ? '✓' : '✗'}</b>{' '}
+                {r.a} and {r.b} - {r.note}
+              </div>
+            ))}
+          </div>
+        )
+      })()}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: 6 }}>
         {roles.map(role => {
           const info = STAFF_INFO[role]
