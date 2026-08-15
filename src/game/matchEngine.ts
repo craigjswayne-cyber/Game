@@ -1,12 +1,12 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { updateNatRank } from './natrank'
-import { effAt } from './attributes'
+import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
 import { venueEffect } from './venue'
-import { clamp, gauss, wpick, type Rng } from './rng'
+import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
 import {
 
@@ -222,9 +222,27 @@ export interface Units {
 
 const avg = (ns: number[]) => ns.length ? ns.reduce((a, b) => a + b, 0) / ns.length : 8
 
-export function teamUnits(state: GameState, lineup: (number | null)[]): Units {
+export function teamUnits(state: GameState, lineup: (number | null)[], day?: { fxId: number; big: boolean }): Units {
   const xv = lineup.slice(0, 15).map(id => (id != null ? state.players[id] : null))
   const P = (i: number) => xv[i]
+  // THE MATCH-DAY WOBBLE (25D-2). With `day` set - only ever by the live sim,
+  // never by a preview, which is the fog of war - each man gets one hidden
+  // multiplier for THIS fixture: zero-mean noise whose width is his hidden
+  // consistency, plus a big-match temperament shift on finals and derbies.
+  // Keyed on (seed, fixture, player) like ratingJitter, so a replayed or
+  // resumed match gets identical numbers and no rng draw is spent.
+  const dayCache = new Map<number, number>()
+  const df = (p: Player) => {
+    if (!day) return 1
+    let f = dayCache.get(p.id)
+    if (f == null) {
+      const u = mulberry32((state.seed ^ Math.imul(day.fxId, 2654435761) ^ Math.imul(p.id, 40503)) >>> 0)()
+      f = 1 + consistency(state.seed, p.id) * (u - 0.5) * 2
+        + (day.big ? bigMatchTemper(state.seed, p.id) * 0.015 : 0)
+      dayCache.set(p.id, f)
+    }
+    return f
+  }
   const at = (i: number, k: keyof Player['a']) => {
     const p = P(i)
     if (!p) return 5
@@ -232,7 +250,7 @@ export function teamUnits(state: GameState, lineup: (number | null)[]): Units {
     const frm = 0.9 + 0.02 * p.form
     // match sharpness: a player eased back after a layoff is a touch off the pace
     const shp = 0.945 + 0.055 * ((p.sharp ?? 70) / 100)
-    return p.a[k] * fit * frm * shp
+    return p.a[k] * fit * frm * shp * df(p)
   }
   const fw = [0, 1, 2, 3, 4, 5, 6, 7]
   const bk = [8, 9, 10, 11, 12, 13, 14]
@@ -829,7 +847,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   }
 }
 
-function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxId: number): SideCtx {
+function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxId: number, big: boolean): SideCtx {
   const lineup = lineupFor(state, teamId)
   const ratings = new Map<number, number>()
   const onPitch = new Set<number>()
@@ -841,7 +859,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
       energy.set(id, Math.max(50, state.players[id]?.cond ?? 85))
     }
   })
-  const units = teamUnits(state, lineup)
+  const units = teamUnits(state, lineup, { fxId, big })
   const benchIds = new Set<number>()
   const seatOf = new Map<number, number>()
   lineup.slice(15).forEach((id, seat) => {
@@ -1112,11 +1130,14 @@ function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent
 }
 
 export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: boolean, userTeamId: string | null = state.userClubId): LiveCtx {
-  const home = mkSide(state, fx.homeId, userTeamId, fx.id)
-  const away = mkSide(state, fx.awayId, userTeamId, fx.id)
+  const derby = isDerby(fx.homeId, fx.awayId)
+  // a big day: a knockout tie or a derby - the matches with an atmosphere
+  // that gets inside players' heads (25D-2)
+  const big = !!fx.stage || derby
+  const home = mkSide(state, fx.homeId, userTeamId, fx.id, big)
+  const away = mkSide(state, fx.awayId, userTeamId, fx.id, big)
   const weather = rollWeather(state.week, rng)
   fx.weather = weather
-  const derby = isDerby(fx.homeId, fx.awayId)
   fx.derby = derby
   let goalPenalty = 0
   const ref = refFor(fx.id)
@@ -1145,6 +1166,23 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
     side.refPenF = 2 - ref.breakdown
     side.penRisk *= side.refPenF
+  }
+  // FAVOURITE PRESSURE (25D-2). On the big day the stronger side carries the
+  // weight of expectation and the underdog plays with nothing to lose: the
+  // gap closes a touch, scaled to how wide it was (up to 3% each way). Applied
+  // as layered ratios so a substitution cannot silently restore the full gap,
+  // and zero-sum by construction - one side gives exactly what the other gets.
+  if (big) {
+    const fav = home.units.overall >= away.units.overall ? home : away
+    const dog = fav === home ? away : home
+    const gapR = (fav.units.overall - dog.units.overall) / Math.max(1, dog.units.overall)
+    const squeeze = Math.min(0.03, gapR * 0.35)
+    if (squeeze > 0.001) {
+      layer(fav, 'attack', 1 - squeeze)
+      layer(fav, 'defence', 1 - squeeze)
+      layer(dog, 'attack', 1 + squeeze)
+      layer(dog, 'defence', 1 + squeeze)
+    }
   }
   // Law 3: if either side cannot cover the front row, nobody contests the scrum.
   // Both sides lose the weapon, so the side with the better pack pays for the
@@ -2369,7 +2407,9 @@ export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: num
 
 /** Rebuild a side's unit strengths from its current lineup, tactics and conditions. */
 export function recomputeSideUnits(state: GameState, ctx: LiveCtx, side: SideCtx) {
-  side.units = teamUnits(state, side.lineup)
+  // same fixture, same day: the match-day wobble a recompute rebuilds is the
+  // one kick-off dealt, because it is keyed on (seed, fixture, player)
+  side.units = teamUnits(state, side.lineup, { fxId: ctx.fx.id, big: !!ctx.fx.stage || ctx.derby })
   applyModifiers(state, side, ctx.weather)
   if (ctx.derby) side.cardRisk *= 1.35
 }

@@ -104,6 +104,27 @@ export function isLateBloomer(seed: number, id: number): boolean {
   return mulberry32((seed ^ Math.imul(id, 0x9E3779B1)) >>> 0)() < 0.085
 }
 
+/**
+ * HIDDEN CONSISTENCY (25D-2, the second FM blueprint idea: "hidden attributes
+ * like consistency and big match temperament"). How wide a player's match-day
+ * wobble runs: 0.02 is a metronome who turns up every week, 0.07 is a mood
+ * player capable of anything and its opposite. Pure function of (seed, id),
+ * never stored, never shown - the scout's eye and a season of ratings are the
+ * only way to learn who is which, exactly as it should be.
+ */
+export function consistency(seed: number, id: number): number {
+  return 0.02 + mulberry32((seed ^ Math.imul(id, 0x85EBCA6B)) >>> 0)() * 0.05
+}
+
+/**
+ * BIG MATCH TEMPERAMENT (25D-2). -1 freezes on the big day, +1 grows an inch
+ * walking out for a final. Uniform and symmetric, so the world's mean is zero
+ * and finals stay fair in aggregate - what changes is WHO wins them.
+ */
+export function bigMatchTemper(seed: number, id: number): number {
+  return mulberry32((seed ^ Math.imul(id, 0xC2B2AE35)) >>> 0)() * 2 - 1
+}
+
 function positionAgeF(pos: string | undefined, age: number, pa: number, ca: number): number {
   const youth = (pa - ca) / 120 // the promise premium, as before
   if (LATE_PEAK.has(pos ?? '')) {
