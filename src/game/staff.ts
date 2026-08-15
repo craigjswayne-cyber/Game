@@ -77,18 +77,26 @@ function relation(a: string, b: string): { kind: 'click' | 'clash'; note: string
   return null
 }
 
-/** Net chemistry of the user's staff room: +1 per click, -1 per clash,
- *  counted over every pair of appointed coaches. */
-export function staffChem(state: GameState): number {
+/** Every click and clash in the user's staff room, named. The Coaching page
+ *  reads this: without it the system is invisible the moment the hire-day
+ *  letter scrolls out of the inbox, and a manager three seasons in has no
+ *  way to know why his kids are coming on. */
+export function staffChemPairs(state: GameState): { a: string; b: string; kind: 'click' | 'clash'; note: string }[] {
   const people = Object.values(state.staffPeople ?? {}).filter((p): p is StaffPerson => !!p)
-  let score = 0
+  const out: { a: string; b: string; kind: 'click' | 'clash'; note: string }[] = []
   for (let i = 0; i < people.length; i++) {
     for (let j = i + 1; j < people.length; j++) {
       const r = relation(people[i].trait, people[j].trait)
-      if (r) score += r.kind === 'click' ? 1 : -1
+      if (r) out.push({ a: people[i].name, b: people[j].name, kind: r.kind, note: r.note })
     }
   }
-  return score
+  return out
+}
+
+/** Net chemistry of the user's staff room: +1 per click, -1 per clash,
+ *  counted over every pair of appointed coaches. */
+export function staffChem(state: GameState): number {
+  return staffChemPairs(state).reduce((s, r) => s + (r.kind === 'click' ? 1 : -1), 0)
 }
 
 function roleHash(role: string): number {
