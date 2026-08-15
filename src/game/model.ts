@@ -302,6 +302,10 @@ export interface Player {
   loanClub?: string
   /** ability at the start of the season, for development arrows */
   ca0?: number
+  /** starts made LAST season, stashed before the summer stats wipe so the
+   *  development roll can ask how much rugby the year actually held (25D:
+   *  a 20-year-old parked on the bench stops growing) */
+  lastStarts?: number
   /** weeks of match rust remaining after an injury - playable, but a
    *  rushed return carries a much higher re-injury risk */
   rust?: number

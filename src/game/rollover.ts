@@ -11,7 +11,7 @@ import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { objectiveById, pickObjectives } from './objectives'
-import { deriveAttrs, nextPid, playerValue, playerWage } from './attributes'
+import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 import { resetFamiliarity } from './playbook'
@@ -234,6 +234,19 @@ export function devFactor(state: GameState, p: Player): number {
   let f = 1 + (fac - 1.9) * (p.acad ? 0.14 : 0.07) + (p.acad ? 0.004 : 0) - 0.009
   if (p.pers === 'Professional' || p.pers === 'Leader') f += 0.10
   else if (p.pers === 'Mercenary' || p.pers === 'Temperamental') f -= 0.12
+  // MINUTES MATTER (25D, from the FM blueprint: "a 20-year-old sitting on
+  // your bench will stop developing"). A young senior's growth now reads his
+  // actual rugby: ten starts and the season taught him something, two or
+  // fewer and it did not. Academy men are exempt - the A League is their
+  // rugby and it books no senior starts. lastStarts is stashed at the summer
+  // stats wipe; a fresh world has none, so world generation is untouched.
+  // The -0.012 middle band is the measured mean-neutrality correction:
+  // slightly more young pros clear ten starts than sit under three (about
+  // 35% vs 33% on three seeded seasons), so the middle carries a small drag
+  // to keep the u24 growth mean where it was (held by scripts/round25d.ts).
+  if (!p.acad && p.age <= 23 && p.lastStarts != null) {
+    f += p.lastStarts >= 10 ? 0.10 : p.lastStarts <= 2 ? -0.10 : -0.012
+  }
   if (p.clubId === state.userClubId) {
     const pair = (state.mentors ?? []).find(mp => mp.kid === p.id)
     const senior = pair ? state.players[pair.senior] : null
@@ -259,8 +272,13 @@ function agePlayers(state: GameState, rng: Rng) {
     // noise (probabilistic rounding keeps the world mean exactly scaled)
     const dev = devFactor(state, p)
     const scaled = (b: number) => { const r = b * dev; const n = Math.floor(r); return n + (rng() < r - n ? 1 : 0) }
-    if (p.age <= 23 && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(2 + Math.floor(rng() * 3))), 1, p.pa)
-    else if (p.age <= 27 && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(1 + Math.floor(rng() * 2))), 1, p.pa)
+    // the late bloomer's clock runs slow (25D): his fast lane reaches 25 and
+    // growth stays alive to 29 - the hidden flag is a pure function of
+    // (seed, id), so it costs the save nothing and the scout finds out the
+    // honest way, by watching a 27-year-old refuse to plateau
+    const bloom = isLateBloomer(state.seed, p.id)
+    if (p.age <= (bloom ? 25 : 23) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(2 + Math.floor(rng() * 3))), 1, p.pa)
+    else if (p.age <= (bloom ? 29 : 27) && p.ca < p.pa) p.ca = clamp(p.ca + growth(scaled(1 + Math.floor(rng() * 2))), 1, p.pa)
     else if (p.age >= 33) p.ca = clamp(p.ca - (2 + Math.floor(rng() * 3)), 30, 99)
     else if (p.age >= 31) p.ca = clamp(p.ca - (1 + Math.floor(rng() * 2)), 30, 99)
     // attribute drift toward new ca
@@ -274,7 +292,9 @@ function agePlayers(state: GameState, rng: Rng) {
     const retireChance = p.farewell || p.retiring ? 1 // he said it was the last dance, and he meant it
       : p.age >= 38 ? 1 : p.age >= 36 ? 0.6 : p.age >= 34 ? (p.ca < 72 ? 0.45 : 0.2) : p.age >= 33 && p.ca < 60 ? 0.3 : 0
     if (rng() < retireChance) retirees.push(p)
-    p.value = playerValue(p.ca, p.age, p.pa)
+    // the summer price: position curve and contract length, form left to
+    // the season to write
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, p.contractEnds - state.season)
   }
   // graduation: at 22 you're too old for the academy; AI clubs also
   // promote anyone who is clearly ready
@@ -390,7 +410,7 @@ function agePlayers(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: clubId === state.userClubId ? 100 : 15,
       }
-      heir.value = playerValue(heir.ca, heir.age, heir.pa)
+      heir.value = playerValue(heir.ca, heir.age, heir.pa, heir.pos)
       state.players[heir.id] = heir
       club.players.push(heir.id)
       if (clubId === state.userClubId) {
@@ -596,7 +616,7 @@ function youthIntake(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: 100,
       }
-      p.value = playerValue(p.ca, p.age, p.pa)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos)
       state.players[p.id] = p
       userClub.players.push(p.id)
       report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
@@ -655,7 +675,7 @@ function youthIntake(state: GameState, rng: Rng) {
         pers: assignPersonality(rng, a),
         sc: 15,
       }
-      p.value = playerValue(p.ca, p.age, p.pa)
+      p.value = playerValue(p.ca, p.age, p.pa, p.pos)
       state.players[p.id] = p
       club.players.push(p.id)
     }
@@ -679,7 +699,7 @@ function youthIntake(state: GameState, rng: Rng) {
       stats: emptyStats(), career: [], transferListed: false, youth: true,
       pers: assignPersonality(rng, a), sc: 10,
     }
-    p.value = playerValue(p.ca, p.age, p.pa)
+    p.value = playerValue(p.ca, p.age, p.pa, p.pos)
     state.players[p.id] = p
   }
 }
@@ -731,7 +751,7 @@ function replenishSquads(state: GameState, rng: Rng) {
           value: 0, stats: emptyStats(), career: [], transferListed: false, youth: true,
           pers: assignPersonality(rng, a2), sc: club.id === state.userClubId ? 100 : 15,
         }
-        kid.value = playerValue(kid.ca, kid.age, kid.pa)
+        kid.value = playerValue(kid.ca, kid.age, kid.pa, kid.pos)
         state.players[kid.id] = kid
         club.players.push(kid.id)
         continue
@@ -1095,6 +1115,9 @@ export function rebuildSeason(state: GameState) {
       p.career.push({ season: state.season, clubId: p.clubId, apps: p.stats.apps, tries: p.stats.tries, points: p.stats.points })
       if (p.career.length > 20) p.career = p.career.slice(-20)
     }
+    // remembered across the wipe so devFactor can ask how much rugby the
+    // season actually held (25D: minutes-gated growth)
+    p.lastStarts = p.stats.starts
     p.stats = emptyStats()
     p.form = 6
     p.morale = clamp(p.morale, 5, 10)
