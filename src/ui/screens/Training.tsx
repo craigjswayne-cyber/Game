@@ -274,7 +274,7 @@ function MentorPanel() {
           <div key={i} style={{ padding: '5px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
               <span className="meta" style={{ flex: 1, minWidth: 0 }}>
-                <b>{s2.name}</b> ({s2.pers}) → 🎓 <b>{k2.name}</b> ({k2.age})
+                <b>{s2.name}</b> ({s2.pos}, {s2.pers}) → 🎓 <b>{k2.name}</b> ({k2.pos}, {k2.pers}, {k2.age})
               </span>
               <b style={{ color: col, fontSize: 12, whiteSpace: 'nowrap' }}>{fitWord(fit)} {fit}</b>
               <button className="btn ghost" style={{ fontSize: 11, padding: '4px 10px' }}
@@ -296,12 +296,20 @@ function MentorPanel() {
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}
             onChange={e => setSeniorId(e.target.value ? Number(e.target.value) : '')}>
             <option value="">Senior pro…</option>
-            {seniors.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pers}, {p.age}){kidCount(p.id) > 0 ? ' - one kid already' : ''}</option>)}
+            {/* position, character, age - the same three facts in the same
+                order in both pickers and in the pairs above (Round 27, user:
+                "on the mentoring tab it doesnt have players positions"). This
+                screen used to give three different combinations: the senior
+                picker said character and age, the kid picker said position and
+                age, and the pairs row said the senior's character and the
+                kid's age. Character is what the fit is actually built on, so
+                it stays; position is what a manager thinks in. */}
+            {seniors.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pos}, {p.pers}, {p.age}){kidCount(p.id) > 0 ? ' - one kid already' : ''}</option>)}
           </select>
           <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={kidId}
             onChange={e => setKidId(e.target.value ? Number(e.target.value) : '')}>
             <option value="">Under-{MENTEE_MAX_AGE + 1}…</option>
-            {kids.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pos}, {p.age})</option>)}
+            {kids.map(p => <option key={p.id} value={p.id}>{p.name} ({p.pos}, {p.pers}, {p.age})</option>)}
           </select>
           <button className="btn" disabled={!seniorId || !kidId} onClick={() => {
             if (!seniorId || !kidId) return
