@@ -120,5 +120,51 @@ console.log('\nobjectives, ageing, and two full seasons watched:\n')
   }
 }
 
+console.log('\nthe expectations decision and the annual stamp:\n')
+{
+  const g: GameState = newGame('northampton', 'Probe', 606)
+  processWeekAndAdvance(g)
+  processWeekAndAdvance(g) // the launch decision is asked as week 2 settles
+  const launch = g.press.find(p => p.options.some(o => o.stance))
+  ok(!!launch, 'the office asks how to pitch the season')
+  if (launch) {
+    answerPress(g, launch.id, 0) // aim high
+    ok(g.stance === 'high', `answering set the stance (${g.stance})`)
+  }
+
+  // the stance moves the boardroom needle: same world, same results, but the
+  // aim-high manager swings harder. structuredClone forks the save; the weekly
+  // rng derives from (seed, week), so both forks play identical fixtures.
+  const base = structuredClone(g)
+  base.stance = undefined
+  base.press = base.press.map(p => ({ ...p, answered: true }))
+  const hi = structuredClone(base)
+  hi.stance = 'high'
+  let compared = false
+  for (let w = 0; w < 10 && !compared; w++) {
+    processWeekAndAdvance(base)
+    processWeekAndAdvance(hi)
+    const club = base.clubs[base.userClubId]
+    const clubHi = hi.clubs[hi.userClubId]
+    const fx = base.fixtures.find(f => f.played && f.week === base.week - 1 &&
+      (f.homeId === club.id || f.awayId === club.id))
+    if (!fx || fx.homeScore === fx.awayScore) continue
+    const won = fx.homeId === club.id ? fx.homeScore > fx.awayScore : fx.awayScore > fx.homeScore
+    compared = true
+    if (won) ok(clubHi.boardConfidence > club.boardConfidence,
+      `a win under aim-high earns more credit (${clubHi.boardConfidence.toFixed(1)} v ${club.boardConfidence.toFixed(1)})`)
+    else ok(clubHi.boardConfidence < club.boardConfidence,
+      `a defeat under aim-high costs more (${clubHi.boardConfidence.toFixed(1)} v ${club.boardConfidence.toFixed(1)})`)
+  }
+  ok(compared, 'a decisive result was found to compare the stances on')
+
+  // ...and the annual stamp waits at the end of the season
+  const start = g.season
+  let guard = 0
+  while (g.season === start && guard++ < 60) processWeekAndAdvance(g)
+  ok(g.annual?.season === start, `the rollover stamped the Annual for season ${start} (got ${JSON.stringify(g.annual)})`)
+  ok(g.stance === undefined, 'and the stance died with the old season')
+}
+
 if (fails) { console.error(`\nROUND 25C PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nROUND 25C PROBE PASSED: the season has its real shape')

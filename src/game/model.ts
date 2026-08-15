@@ -622,6 +622,10 @@ export interface PressOption {
    *  (seed, season, slot), so the offer named on the button is the offer
    *  signed. kind 'keep' stays with the department's stopgap. */
   deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep' }
+  /** the season-expectations decision (25C, FM Mobile style): choosing sets
+   *  state.stance for the year, which scales how hard the boardroom needle
+   *  swings on every result - see boardReaction. */
+  stance?: 'safe' | 'board' | 'high'
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
@@ -1035,6 +1039,18 @@ export interface GameState {
    *  one makes the inbox exactly once (user: "get achievements into the news").
    *  Reset with the objectives themselves at rollover. */
   objDone?: string[]
+  /** How the manager pitched THIS season to the room and the board (user: "at
+   *  the start of the season the manager should set the expectations for the
+   *  club... if the manager is losing then pressure should build"). Set by the
+   *  week-2 office decision, cleared each summer. 'high' makes every win worth
+   *  more boardroom credit and every defeat cost noticeably more; 'safe' mutes
+   *  both; unset or 'board' is exactly the old behaviour. */
+  stance?: 'safe' | 'board' | 'high'
+  /** THE ANNUAL (user: "there should be a forced page that says 'ready for a
+   *  new season?'"). Stamped by the rollover with the season just finished;
+   *  the UI routes Continue to the Annual page until its button clears it.
+   *  Engine-only careers ignore it entirely. */
+  annual?: { season: number }
   /** all-time single-season records per league (points / tries) */
   records?: Record<string, { pts: { name: string; val: number; season: number }; tries: { name: string; val: number; season: number } }>
   /** games played together by key partnerships (front row, locks, halfbacks,

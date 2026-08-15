@@ -91,6 +91,41 @@ export function generatePress(state: GameState, rng: Rng) {
     return
   }
 
+  // THE EXPECTATIONS DECISION (25C, user: "at the start of the season the
+  // manager should set the expectations for the club" - the FM Mobile beat).
+  // Week 2, after the camp call and before the league starts: the pundits'
+  // predicted finish is on the table and the manager decides how to pitch the
+  // year. The answer sets state.stance, which boardReaction reads all season -
+  // aim high and every result swings the boardroom harder, keep heads down
+  // and the needle is muted both ways. An internal staff call like the camp,
+  // so it fires past the spam gate and survives the press-expiry sweep.
+  if (state.week === 2 && !state.press.some(p => p.season === state.season && p.options.some(o => o.stance))) {
+    const pred = state.preds?.[state.userClubId]
+    const predWord = pred ? `The pundits have you ${pred}${pred === 1 ? 'st' : pred === 2 ? 'nd' : pred === 3 ? 'rd' : 'th'}.` : 'The pundits are split on you.'
+    const item = mk(state,
+      voice(21, [
+        `Season launch day, and the room wants a number. ${predWord} Where are you telling this club it is going?`,
+        `The chairman, the sponsors and the season-ticket renewal letter all want the same sentence from you. ${predWord} How do you pitch the year?`,
+      ]),
+      undefined, [
+        {
+          label: `'Judge us in May - aim high'`, morale: 0.5, board: 0.3, stance: 'high',
+          reaction: `The headline writes itself and the dressing room walks taller. From here every win is proof and every defeat is a broken promise: the boardroom needle will swing hard, both ways, all season.`,
+        },
+        {
+          label: `'The board's targets are fair'`, morale: 0.1, board: 0.2, stance: 'board',
+          reaction: `Steady. You and the board are reading from the same page, and results will be judged the way they always were.`,
+        },
+        {
+          label: `'Quiet season - heads down'`, morale: -0.2, board: 0, stance: 'safe',
+          reaction: `You talk the year down to take the heat off the group. The boardroom needle is muted both ways: defeats cost less, but so does winning - credit is thin for a man who promised nothing.`,
+        },
+      ], rng)
+    item.outlet = OFFICE_OUTLET
+    state.press.push(item)
+    return
+  }
+
   if (open >= 2) return // don't spam
 
   // the morning after a bigger club's interest breaks, the first question
@@ -177,6 +212,8 @@ export function generatePress(state: GameState, rng: Rng) {
       p.id, [
         { label: 'Heap on the praise', morale: 1.2, board: 0, reaction: `${p.name} is reportedly delighted with your public backing.` },
         { label: 'Keep his feet on the ground', morale: -0.3, board: 0.5, reaction: `A measured response. ${p.name} knows there is more to do.` },
+        // a fourth way to play it (user: "a bit more variety in press replies")
+        { label: 'Credit the men around him', morale: 0.6, board: 0.2, reaction: `You spread the praise across the whole side. ${p.name} nods along, and the pack notes the mention of the men who win him his ball.` },
         { label: 'No comment', morale: 0, board: -0.2, reaction: 'The press pack grumbles and moves on.' },
       ], rng))
   }
@@ -194,6 +231,7 @@ export function generatePress(state: GameState, rng: Rng) {
       p.id, [
         { label: 'Back him publicly', morale: 1.4, board: -0.3, reaction: `${p.name} appreciates the show of faith and vows to repay it.` },
         { label: 'Admit he must improve', morale: -1.2, board: 0.6, reaction: `Honest, but ${p.name} is stung by the criticism.` },
+        { label: 'Take the blame yourself', morale: 0.9, board: -0.5, reaction: `"If he is short of form, look at how I am using him." The room did not expect that. ${p.name} did not either - and he trains like a man with a debt to repay.` },
         { label: 'Refuse to single anyone out', morale: 0.2, board: 0, reaction: 'You deflect the question with a straight bat.' },
       ], rng))
   }
@@ -214,6 +252,7 @@ export function generatePress(state: GameState, rng: Rng) {
         p.id, [
           { label: `He's untouchable`, morale: 0.8, board: 0.3, reaction: `A firm line. ${p.name} feels wanted; ${suitor.short} are said to be undeterred.` },
           { label: 'Everyone has a price', morale: -1.5, board: 0, unsettle: true, reaction: `${p.name}'s agent has taken note. Expect the phone to ring.` },
+          { label: `'Ask him - he is happy here'`, morale: 0.4, board: 0.1, reaction: `You hand the question to the player, publicly and warmly. ${p.name} obliges with a straight answer about loving the club, which buries the story better than any denial of yours could.` },
           { label: 'Rumours are rumours', morale: 0, board: 0, reaction: 'You wave the question away.' },
         ], rng))
     }
@@ -730,6 +769,15 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     const offers = offersFor(state, opt.deal.slot as SlotId)
     const idx = { long: 0, short: 1, clause: 2 }[opt.deal.kind]
     if (idx != null && offers[idx]) signOffer(state, offers[idx])
+  }
+  // the expectations decision: the stance stands for the season and
+  // boardReaction reads it on every result
+  if (opt.stance) {
+    state.stance = opt.stance
+    logDecision(state,
+      opt.stance === 'high' ? 'Set the bar high at the season launch: judge us in May.'
+        : opt.stance === 'safe' ? 'Talked the season down at the launch: heads down, no promises.'
+        : "Backed the board's targets at the season launch.", opt.stance !== 'safe')
   }
   const club = state.clubs[state.userClubId]
   club.boardConfidence = clamp(club.boardConfidence + opt.board * 5, 0, 100)
