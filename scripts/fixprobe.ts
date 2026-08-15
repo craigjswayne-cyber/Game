@@ -23,6 +23,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { beginMatch, makeSubstitution, playSegment, MAX_SUBS } from '../src/game/matchEngine'
 import { coachFixes, gradeFixes, gradeLine, unitBattles } from '../src/game/coachfix'
 import { mulberry32 } from '../src/game/rng'
+import { rolesForSlot } from '../src/game/roles'
 import type { GameState, Fixture } from '../src/game/model'
 
 let fails = 0
@@ -42,6 +43,14 @@ const CONTROLS = [
 
 const g: GameState = newGame('northampton', 'Fix Probe', 1717)
 const club = g.clubs[g.userClubId]
+
+// The probe has to manage competently before it can judge the advice (same
+// lesson as the substitutions below): a manager who never touches the Roles
+// tab or names a kicker DESERVES the same nag every week, so the admin fixes
+// drowned the panel - the 25D-2 wobble tipped it past the dominance line.
+// Do the admin once, like a real manager, and judge the variety that remains.
+club.tactic.roles = Array.from({ length: 15 }, (_, i) => rolesForSlot(i)[0]?.id ?? null)
+club.tactic.kickers = club.players.slice(0, 2)
 
 // Play the user's league fixtures out for real, tick by tick, so the numbers the
 // verdict reads are the numbers a live match produces.
