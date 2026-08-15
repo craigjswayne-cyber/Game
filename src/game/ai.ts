@@ -490,8 +490,13 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
   const newFee = Math.min(Math.round((o.fee * uplift) / 10_000) * 10_000, ceiling, bidder.budget)
   const rng = mulberry32(state.seed ^ (o.id * 17))
   if (newFee <= o.fee) {
-    o.status = 'rejected'
-    return `${bidder.short} take offence - the bid was already above the odds. They walk, and the offer is gone.`
+    // BEST AND FINAL, NOT A FLOUNCE (25D, live feedback: "they always walk
+    // away"). Spontaneous bids for stars open at 1.2 to 1.6x value, so most
+    // of the offers worth haggling were already past the 1.4x ceiling - and
+    // the old code walked them 100% of the time, without even rolling. A
+    // club that tabled big money does not tear the cheque up because you
+    // asked; it just stops moving. Greed now costs the raise, not the sale.
+    return `${bidder.short} do not blink - the money is already above the odds, and ${fmtMoney(o.fee)} is their best and final. Answer the offer.`
   }
   if (rng() < 0.55) {
     o.fee = newFee

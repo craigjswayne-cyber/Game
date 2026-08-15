@@ -24,8 +24,9 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { isLateBloomer, playerValue } from '../src/game/attributes'
 import { devFactor } from '../src/game/rollover'
+import { counterIncomingOffer } from '../src/game/ai'
 import { SEASON_WEEKS } from '../src/game/model'
-import type { Player } from '../src/game/model'
+import type { Player, TransferOffer } from '../src/game/model'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -141,6 +142,48 @@ for (const seed of [9, 777]) {
   const m = mean(pop.map(p => term(p.lastStarts!)))
   ok(pop.length > 300, `the gate population is real: ${pop.length} young pros carried starts through the summer`)
   ok(Math.abs(m) < 0.01, `the minutes term is mean-neutral over them (${m.toFixed(4)})`)
+}
+
+// ---- demand more is a gamble, not a guaranteed walk -------------------------
+// Live feedback: "they always walk away." Spontaneous bids open at 1.2-1.6x
+// value while the haggle ceiling is 1.4x, so most star offers had no road and
+// the old code walked them 100% of the time without rolling. Now a bid with no
+// road left stays on the table as best and final; only a bid with room to rise
+// can be gambled away on the roll.
+{
+  const g = newGame('northampton', 'Counter', 9)
+  const user = g.clubs[g.userClubId]
+  const star = user.players.map(id => g.players[id]).filter(Boolean)
+    .reduce((a, b) => (b!.value > a!.value ? b : a))!
+  const bidder = Object.values(g.clubs).find(c => c.id !== user.id)!
+  bidder.budget = 1_000_000_000
+  const tender = (fee: number): TransferOffer => {
+    const o: TransferOffer = {
+      id: g.nextId++, playerId: star.id, fromClubId: bidder.id, toClubId: user.id,
+      fee: Math.round(fee / 10_000) * 10_000, week: g.week, forUser: true, status: 'pending',
+    }
+    g.offers.push(o)
+    return o
+  }
+  // a bid already past the ceiling: best and final, never a walk
+  const big = tender(star.value * 1.5)
+  const fee0 = big.fee
+  const msg = counterIncomingOffer(g, big.id)
+  ok(big.status === 'pending' && big.fee === fee0, `a bid above the odds survives the counter (${big.status}, fee held)`)
+  ok(msg.includes('best and final'), 'and the message says so plainly')
+  ok(counterIncomingOffer(g, big.id).includes('already'), 'but there is no second bite at the same offer')
+  // a lowball has road: sometimes they pay up, sometimes they walk - a real roll
+  let raised = 0, walked = 0
+  for (let i = 0; i < 200; i++) {
+    const o = tender(star.value * 0.9)
+    const before = o.fee
+    counterIncomingOffer(g, o.id)
+    if (o.status === 'pending' && o.fee > before) raised++
+    else if (o.status === 'rejected') walked++
+  }
+  ok(raised + walked === 200, `every lowball counter resolves one way or the other (${raised} raised, ${walked} walked)`)
+  ok(raised >= 80 && raised <= 140, `the 55% roll is real: ${raised}/200 paid up (expected about 110)`)
+  ok(walked > 0, `and walking away still happens (${walked}/200) - the gamble has teeth`)
 }
 
 console.log(fails ? `\n${fails} FAILURES` : '\nROUND 25D PROBE PASSED')
