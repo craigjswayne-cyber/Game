@@ -30,7 +30,7 @@ export type Screen =
   // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
   // you navigate to.
   | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
-  | 'offers' | 'academy' | 'day' | 'draw'
+  | 'offers' | 'academy' | 'day' | 'draw' | 'annual'
 
 interface NavEntry {
   screen: Screen
@@ -279,11 +279,16 @@ function landOnNextWeek(
   const step = firstStepOfWeek(g)
   g.day = step.kind === 'day' ? step.day : step.kind === 'match' ? (matchDayIndex(g) ?? 0) : 0
   const dayEntry: NavEntry[] = step.kind === 'day' ? [{ screen: 'day' }] : []
+  // THE ANNUAL GATE (25C): a rollover just happened, so before anything else
+  // the manager gets the "ready for a new season?" page. It rides on TOP of
+  // the normal landing, so its one button simply pops back into the new
+  // season's Monday.
+  const annualEntry: NavEntry[] = g.annual ? [{ screen: 'annual' }] : []
   // `extra` goes on TOP: after your own final whistle the round-up is the screen
   // you want, and the new week's Monday sits underneath it, so backing out of the
   // round-up puts you at the start of the week rather than nowhere.
   set(s => ({
-    nav: [{ screen: 'home' }, ...dayEntry, ...extra],
+    nav: [{ screen: 'home' }, ...dayEntry, ...extra, ...annualEntry],
     tick: s.tick + 1,
   }))
   void get().persist()
@@ -512,6 +517,17 @@ export const useStore = create<Store>((set, get) => ({
     const now = Date.now()
     if (now - get().lastAdvanceAt < TAP_GUARD_MS) return
     set(() => ({ lastAdvanceAt: now }))
+    // THE ANNUAL GATE (25C). A season just closed and its page has not been
+    // dismissed - wherever the manager has wandered, Continue leads back to
+    // it, and only its button opens the new season. Forced, as asked
+    // (user: "a forced page that says 'ready for a new season?'").
+    if (g.annual) {
+      set(s => ({
+        nav: s.nav[s.nav.length - 1]?.screen === 'annual' ? s.nav : [...s.nav, { screen: 'annual' as const }],
+        tick: s.tick + 1,
+      }))
+      return
+    }
     // A bid for one of your players cannot be ignored (feedback 10E). Offers used
     // to sit in a tab and lapse in silence after two weeks, so the biggest
     // decision of a season could be answered for you by a timeout. The week stops

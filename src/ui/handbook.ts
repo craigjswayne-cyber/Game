@@ -183,6 +183,16 @@ export const HANDBOOK: HandbookEntry[] = [
     a: 'Leadership is the attribute that matters, and the Leadership card on the Team screen\'s Selection tab lists your squad sorted by it. A strong captain lifts attack and defence and keeps tempers in check. Name a vice-captain too: he steps up at half the effect when the skipper is missing, and one day he will take the armband for good.',
   },
   {
+    cat: 'club',
+    q: 'What does setting expectations do?',
+    a: 'In week 2 of every season the office asks how you want to pitch the year against the pundits\' predicted finish, and your answer stands until the summer. Aim high and every result is measured against your own words: wins earn about 15 percent more boardroom credit, defeats cost about 30 percent more - the pressure is the price of the promise. Keep heads down and the boardroom needle is muted 15 percent in both directions: safer when losing, thinner credit when winning. Back the board\'s targets and results are judged the way they always were. There is no secretly correct answer - it is a bet on your own season.',
+  },
+  {
+    cat: 'career',
+    q: 'What is the Annual?',
+    a: 'The forced page between seasons. When the final whistle of a campaign has gone and the summer has been processed, Continue lands on the Annual: the year\'s champions, your silverware if there was any, and confirmation that the season is filed - the Roll of Honour, your Annals on the Manager Legacy screen and the record books are all written up before you see it. One button starts the new season, and nothing advances until you press it.',
+  },
+  {
     cat: 'squad',
     q: 'What is the academy for?',
     a: 'A youth intake arrives every season. Your academy coach and the Centre of Excellence both raise the quality of what comes through, and the better your setup the more likely a genuine prospect appears. You get an honest preview before intake day and a graded report afterwards. Promote the ones worth promoting.',

@@ -1110,8 +1110,16 @@ function boardReaction(state: GameState, fx: Fixture) {
   // always helps a little, a defeat always hurts a little, and how much still
   // depends on who it was against.
   const mag = Math.max(0.8, us > them ? 2.5 + diff * 2 : 2.5 - diff * 2)
-  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF, 0, 100)
-  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF, 0, 100)
+  // THE STANCE (25C, user: "the manager should set the expectations... if the
+  // manager is losing then pressure should build"). Aim high at the season
+  // launch and every result is measured against your own words: wins earn a
+  // little more credit, defeats cost noticeably more - the asymmetry IS the
+  // pressure the manager signed up for. Heads-down mutes the needle both
+  // ways. Unset (never asked, old save, AI career) is exactly the old maths.
+  const stanceF = state.stance === 'high' ? (us > them ? 1.15 : 1.3)
+    : state.stance === 'safe' ? 0.85 : 1
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF, 0, 100)
 
   // The dressing room keeps its own book, and it is slower to move than the
   // board's. Belief is earned a win at a time and it does not arrive in one

@@ -1498,6 +1498,14 @@ export function rebuildSeason(state: GameState) {
   state.objectives = pickObjectives(state)
   // the achievement ledger belongs to the objectives it tracked
   state.objDone = []
+  // last season's stance died with last season - the launch decision comes
+  // round again in week 2
+  state.stance = undefined
+  // THE ANNUAL (user: "a forced page that says 'ready for a new season?' with
+  // records backed up"). The rollover has just filed the honours, the annals
+  // and the record books; the stamp routes Continue to the Annual page, whose
+  // one button starts the campaign. Engine careers never read it.
+  if (!state.unemployed) state.annual = { season: state.season - 1 }
 
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
