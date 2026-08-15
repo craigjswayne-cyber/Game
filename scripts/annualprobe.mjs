@@ -27,9 +27,18 @@ try {
   await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Star Player')
   await page.click('.action-bar >> text=Confirm')
+  // WAIT FOR EACH SCREEN, do not assume it. These four clicks were the only
+  // unguarded ones in the wizard, and under a loaded suite box the screen
+  // behind them can be slower to settle than Playwright's auto-wait allows -
+  // which is how this probe failed two suite runs with a bare "page.click:
+  // Timeout 30000ms exceeded" while passing every time it was run alone. A
+  // gate that cries wolf is how a real failure gets waved through.
+  await page.waitForSelector('input[placeholder="e.g. A. Gaffer"]', { timeout: 15000 })
   await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Annual')
+  await page.waitForSelector('.speech-tile >> text=Forward Dominance', { timeout: 15000 })
   await page.click('.speech-tile >> text=Forward Dominance')
   await page.click('.action-bar >> text=Confirm')
+  await page.waitForSelector('text=▸ Start Career', { timeout: 15000 })
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
@@ -84,6 +93,7 @@ try {
     'a second Continue stays on the Annual - the gate holds')
 
   // the one door out
+  await page.waitForSelector('text=Ready for a new season', { timeout: 15000 })
   await page.click('text=Ready for a new season')
   await page.waitForTimeout(500)
   const after = await page.evaluate(() => {
