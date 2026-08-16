@@ -220,7 +220,13 @@ const EXPECTED: string[] = [
   'gloucester 46-24 exeter',
   'bath 27-37 sale',
   'northampton 9-24 leicester',
-  'newcastle 9-17 saracens',
+  // Moved once more, by the splitprobe fix in the following commit: restoring the
+  // defensive line's penalty cost (which an assignment had been wiping) changes
+  // what every AI side concedes, because philosophy.ts sets defLine away from 50
+  // for most of them. One result of the six moved back to where it was before
+  // this round started, which is the shape you would expect from putting a term
+  // back rather than adding a new one.
+  'newcastle 9-14 saracens',
   'harlequins 41-22 bristol',
   'sale 30-16 gloucester',
 ]

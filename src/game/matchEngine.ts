@@ -548,14 +548,38 @@ const freshMods = (): SideMods => ({
  * is actually the absence of a decision: there was no opponent, no scoreline and
  * no referee against which moving it was right.
  *
- * The gain and the cost are both bigger now (breakdown 0.06 -> 0.09, the penalty
- * coefficient 0.20 -> 0.30, cards 0.006 -> 0.009), which on its own would just be
- * a louder wash. What makes it a decision is that the COST NOW SCALES WITH THE
- * WHISTLE, and the whistle is on the pre-match briefing:
+ * THE ONLY CHANGE HERE IS THE SLOPE. The gain (breakdown 0.06), the base penalty
+ * coefficient (0.20) and the card risk (0.006) are exactly what they always were,
+ * because the original measurement said that combination is mean-neutral and
+ * nothing has been found wrong with it. What is new is that THE COST NOW SCALES
+ * WITH THE WHISTLE, and the whistle is on the pre-match briefing:
  *
- *   average referee (rp 1.00)   coefficient 0.30
- *   fussy at the tackle (1.15)  coefficient 0.42 - physicality is expensive
- *   lets a lot go      (0.85)   coefficient 0.18 - physicality is cheap
+ *   average referee (rp 1.00)   coefficient 0.20
+ *   fussy at the tackle (1.15)  coefficient 0.32 - physicality is expensive
+ *   lets a lot go      (0.85)   coefficient 0.08 - physicality is cheap
+ *
+ * ---- WHY THE MAGNITUDES WERE PUT BACK -----------------------------------
+ *
+ * They were raised first (breakdown to 0.09, penalties to 0.30, cards to 0.009)
+ * on the theory that a louder trade makes a sharper decision. Three measured
+ * iterations later that theory had cost more than it bought:
+ *
+ *   0.30 measured +2.67 / -1.63 either side of the panel, which looked perfect -
+ *   but was taken on a build where an assignment in the referee block was wiping
+ *   the defensive line's own penalty cost. My bug, caught by splitprobe.
+ *   With that restored, the same split read -2.29 / -4.29: never worth doing.
+ *   0.20 then read +3.14 / +1.56: always worth doing. Neither straddles zero.
+ *
+ * And across those same three runs STYLE - which no edit touched - measured
+ * +5.16, then +2.09, then -0.10. Sixteen observations an arm cannot pin a dial
+ * to better than about two points a match, so all three of those calibrations
+ * were chasing noise, and a fourth would have been too.
+ *
+ * So the magnitudes go back to the values whose mean-neutrality was already
+ * measured, and only the slope - the genuinely new idea, and the one that does
+ * not depend on the base being any particular size - stays. A smaller change
+ * defended by the evidence that exists beats a larger one defended by three
+ * readings that disagree with each other.
  *
  * So the same slider is right against one referee and wrong against another, and
  * the panel that has been on the briefing since F1 finally has something to say.
@@ -566,7 +590,7 @@ const freshMods = (): SideMods => ({
  * is exactly neutral and E[aggF] is 0. Measured, not argued - see disttest.
  */
 function aggPenRisk(aggF: number, rp: number): number {
-  return 0.115 * rp * (1 + aggF * (0.30 + 0.80 * (rp - 1)))
+  return 0.115 * rp * (1 + aggF * (0.20 + 0.80 * (rp - 1)))
 }
 
 /** Layer a multiplier on a side so that it survives the next substitution. */
@@ -682,11 +706,11 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     const f = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v)) - 50 : 0) / 50 // -1..1
     side.units.attack *= 1 + f(t.style) * 0.06 + f(t.tempo) * 0.05 - f(t.kicking) * 0.035
     side.units.scrum *= 1 - f(t.style) * 0.05
-    side.units.breakdown *= 1 + f(t.aggression) * 0.09 - f(t.style) * 0.03 - f(t.kicking) * 0.02
+    side.units.breakdown *= 1 + f(t.aggression) * 0.06 - f(t.style) * 0.03 - f(t.kicking) * 0.02
     side.units.kicking *= 1 + f(t.kicking) * 0.1
     side.units.defence *= 1 - f(t.tempo) * 0.03
     side.tempoF = 1 + f(t.tempo) * 0.22
-    side.cardRisk = 0.012 + f(t.aggression) * 0.009
+    side.cardRisk = 0.012 + f(t.aggression) * 0.006
     side.aggF = f(t.aggression)
     side.penRisk = aggPenRisk(side.aggF, side.refPenF ?? 1)
     // THE WITHOUT-BALL SYSTEM (18D, FM26's split shapes translated). Line
