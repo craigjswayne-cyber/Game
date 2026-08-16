@@ -120,10 +120,10 @@ for (const sp of SPLITS) {
 
 // ---- the split only pays once the bench is on -----------------------------
 {
-  const measure = (emptyBench: boolean) => {
+  const measure = (emptyBench: boolean, split: '6-2' | '5-3' = '6-2') => {
     const gg = newGame('northampton', 'Bench', 9)
     const c = gg.clubs[gg.userClubId]
-    c.tactic.bench = '6-2'
+    c.tactic.bench = split
     refillBench(gg, c)
     const fx = gg.fixtures.find(f => gg.clubs[f.homeId] && gg.clubs[f.awayId] && f.homeId === c.id)!
     const ctx = beginMatch(gg, fx, weekRng(gg), false, c.id)
@@ -146,13 +146,39 @@ for (const sp of SPLITS) {
       }
     }
     while (ctx.tick < 17) { ctx.awaiting = null; stepTick(gg, ctx) }
-    return mine.mods.scrum / base
+    // How many of the bench are ACTUALLY on, which is the quantity the payout is
+    // proportional to - and not the same thing as how many this probe chose to
+    // send on.
+    const on = [...mine.onPitch].filter(id => mine.benchIds.has(id)).length
+    return { mult: mine.mods.scrum / base, on }
   }
   const sitting = measure(false)
   const emptied = measure(true)
-  console.log(`  6-2 scrum multiplier: bench sitting ${sitting.toFixed(3)}, bench emptied ${emptied.toFixed(3)}`)
-  ok(Math.abs(sitting - 1) < 0.001, 'a bomb squad left on the bench changes nothing')
-  ok(emptied > 1.02, 'a bomb squad that is used shows up in the scrum')
+  // "SITTING" MEANT "I MADE NO SUBSTITUTIONS", WHICH IS NOT THE SAME THING.
+  //
+  // This asserted the 6-2's multiplier was exactly 1 whenever the probe sent
+  // nobody on. It read 1.013 as soon as a card-rate change altered this seed, and
+  // the reason is in applyFinishers: the payout is proportional to how many of
+  // the bench are ON THE FIELD, however they got there. An injury in the first
+  // fifteen ticks puts a replacement on, and a third of the bomb squad on the
+  // field earns a third of the bonus. That is the design working exactly as its
+  // own comment describes, and the probe was calling it a bug.
+  //
+  // So the assertion is now the rule itself - the multiplier matches the number
+  // of bench men actually on - which holds whether they were sent on by the
+  // manager, by an injury, or not at all.
+  const expected = (on: number) => {
+    const def = SPLIT_BY_ID['6-2']
+    const k = Math.min(1, on / 3)
+    return k <= 0 ? 1 : 1 + (def.scrum - 1) * k
+  }
+  console.log(`  6-2 scrum multiplier: ${sitting.on} of the bench on -> ${sitting.mult.toFixed(3)} (rule says ${expected(sitting.on).toFixed(3)}), ` +
+    `emptied ${emptied.on} on -> ${emptied.mult.toFixed(3)} (rule says ${expected(emptied.on).toFixed(3)})`)
+  ok(Math.abs(sitting.mult - expected(sitting.on)) < 0.002,
+    `the bomb squad pays exactly in proportion to how much of it is on the field (${sitting.on} on)`)
+  ok(emptied.on > sitting.on && emptied.mult > sitting.mult,
+    'and emptying the bench pays more than leaving it alone')
+  ok(emptied.mult > 1.02, 'a bomb squad that is used shows up in the scrum')
 }
 
 // ---- briefs: every one is a trade, none is free ---------------------------
