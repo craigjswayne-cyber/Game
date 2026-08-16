@@ -609,6 +609,21 @@ export interface SideCtx {
   score: number
   tries: number
   ratings: Map<number, number>
+  /** the SETTLED marks, written once at full time.
+   *
+   *  `ratings` above is the raw in-match accumulator - a try here, a card
+   *  there - and MatchDay's full-time panel used to render it straight, so the
+   *  mark on screen was missing the result, the margin and the spread that
+   *  finalizeMatch adds. A manager saw 6.0 while 6.6 went into the season
+   *  average, his form and Player of the Month.
+   *
+   *  A SECOND MAP RATHER THAN OVERWRITING THE FIRST, deliberately: settling in
+   *  place would make finalizeMatch destructive, and a second run over the same
+   *  ctx would then feed a settled mark back through the formula and compound
+   *  it. This way the operation is idempotent whatever the resume path does.
+   *  Absent until full time, which is also what lets the panel show live marks
+   *  at half time and settled ones after. */
+  finalR?: Map<number, number>
   onPitch: Set<number>
   yellowUntil: Map<number, number>
   /** players currently sitting out a yellow - off the pitch, back in ten.
@@ -1528,6 +1543,59 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     }
   }
   return ctx
+}
+
+/**
+ * ---- WHAT THE EIGHTY MINUTES WERE WORTH TO EVERYONE WHO PLAYED ----
+ *
+ * User, after winning 75-7: "this was the player rating - feels off?" Nine of
+ * his fifteen sat on 6.0 while the wing who scored took 9.6.
+ *
+ * He was right, and the measurement was worse than the impression. Over four
+ * seasons at Northampton the banked ratings read:
+ *
+ *   won by 15-39   mean 6.73   26% rated 7+
+ *   won by 1-14    mean 6.68   23% rated 7+
+ *   lost by 1-14   mean 5.82    3% rated 7+
+ *   lost by 15+    mean 5.81    3% rated 7+
+ *
+ * A thirty-point win and a one-point win were 0.05 apart. Losing by three and
+ * losing by forty were identical. The scoreboard was a win/loss SWITCH and
+ * nothing more, because the only thing that meaningfully moved a mark was
+ * scoring a try (+0.9) with a trickle for the goal kicker (+0.15). Nothing in
+ * the model knew the difference between a hammering and a scrap.
+ *
+ * Two terms, both shared by every man who got on the pitch:
+ *
+ *   THE RESULT, which is symmetric. A win is +0.45 and a defeat -0.45, where it
+ *   used to be +0.5 against -0.3 with a draw punished as a non-win. Symmetric
+ *   means the two sides of any fixture cancel, so the world's mean rating is
+ *   held by construction rather than by hoping - and a draw is now neutral,
+ *   which is what a draw is.
+ *
+ *   THE MARGIN, also symmetric, capped so that a cricket score cannot hand out
+ *   nines. 28 points is the divisor because that is roughly the gap at which a
+ *   game stops being a contest; the cap lands 75-7 on the ceiling, which is
+ *   where the manager who asked would put it.
+ *
+ * WHAT IS DELIBERATELY NOT HERE. A term for winning the scrum or the breakdown
+ * was drafted and cut. The unit figures it would read carry the tactical dials,
+ * so a rating built on them could be farmed by a slider - and ratings feed form,
+ * which feeds selection. That is the free-lunch shape the kicking dial had, and
+ * dialweight cannot currently resolve effects that small (docs/audit-handoff).
+ * The forwards/backs gap is real and measured (7% of forwards rated 7+ against
+ * 18% of backs); it is not closed here, because closing it with a number nobody
+ * can validate is how the last three calibrations got reverted.
+ */
+const RATING_RESULT = 0.45
+const RATING_MARGIN_DIV = 28
+const RATING_MARGIN_CAP = 0.9
+
+export function teamRatingTerm(side: SideCtx, other: SideCtx): number {
+  const margin = side.score - other.score
+  const result = margin > 0 ? RATING_RESULT : margin < 0 ? -RATING_RESULT : 0
+  const by = Math.max(-RATING_MARGIN_CAP, Math.min(RATING_MARGIN_CAP, margin / RATING_MARGIN_DIV))
+  return result + by
 }
 
 /** Average remaining energy of a side's on-pitch players, 0-100. */
@@ -2612,13 +2680,37 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   let motmId: number | null = null
   let motmR = -1
   const debutants: { p: Player; r: number; kind: 'signing' | 'academy' }[] = []
+  // see teamRatingTerm below for what the eighty minutes are worth
   for (const side of [home, away]) {
-    const won = side.score > (side === home ? away.score : home.score)
+    const other = side === home ? away : home
+    const won = side.score > other.score
     const isNation = !state.clubs[side.teamId]
+    // what the eighty minutes were worth to everyone who played them
+    const team = teamRatingTerm(side, other)
     for (const [pid, r0] of side.ratings) {
       const p = state.players[pid]
       if (!p) continue
-      const r = clamp(r0 + (won ? 0.5 : -0.3) + gauss(rng) * 0.8, 1, 10)
+      // TWO QUANTITIES, NOT TWO OPINIONS OF ONE. `r` is the MARK - a verdict on
+      // the afternoon, which is why the scoreboard belongs in it. `own` is the
+      // same afternoon with the team's result taken back out, and it is what
+      // feeds FORM, because form models this player's own sharpness and a
+      // hammering does not make a prop individually sharper.
+      //
+      // This split was not a design instinct, it was a measurement.
+      // scripts/difficultyprobe.ts went red the moment the team term reached
+      // form: picking your best side was worth 21.0 league points a season
+      // before, and 10.3 after. Form drives the auto-picked XV, so pouring a
+      // team-wide number into it made every man in a winning side look sharp
+      // and halved the value of the manager's biggest lever. The mark on the
+      // screen can carry the result; the signal the squad is selected on
+      // cannot.
+      const spread = gauss(rng) * 0.8
+      const r = clamp(r0 + team + spread, 1, 10)
+      const own = clamp(r0 + spread, 1, 10)
+      // THE SCREEN SHOWS THE NUMBER THE GAME REMEMBERS - one computation, read
+      // by both, rather than the screen doing its own (the class of bug behind
+      // the coach market and the bench tank as well). See SideCtx.finalR.
+      ;(side.finalR ??= new Map()).set(pid, r)
       const friendly = ctx.fx.compId === 'fr'
       if (isNation) {
         // a Test match: another cap, and the milestones are forever
@@ -2657,7 +2749,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         p.stats.mApps = (p.stats.mApps ?? 0) + 1
         p.lastR = r
         p.lastWk = state.week
-        p.form = clamp(p.form * 0.65 + r * 0.35, 1, 10)
+        p.form = clamp(p.form * 0.65 + own * 0.35, 1, 10)
         const swing = (p.pers === 'Temperamental' ? 2 : 1) * (derby ? 1.6 : 1)
         p.morale = clamp(p.morale + (won ? 0.4 : -0.5) * swing, 1, 10)
         // post-match condition reflects how much petrol was actually burned
