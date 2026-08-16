@@ -102,6 +102,34 @@ Two things to do, in order:
    as Northampton and assert that no dial wins in the SAME direction at both.
    That is the real dominant-strategy test and it has never been run.
 
+## A bug class worth knowing: the off-screen reply
+
+Found from live feedback, not from any probe. Four screens shared it.
+
+A button calls an engine function that returns a sentence, and the screen puts
+that sentence in ONE banner at the top of the page. On a desktop-sized page you
+always see it. On a 412x915 phone, scrolled down to the eighth role card, the
+reply renders 786px above your thumb - and if the tap also collapses a list, the
+page jumps and nothing you can see has changed. The manager's report was "no
+matter what I press he won't sign and no reason". There was always a reason.
+
+Two rules came out of it, both applied in `Training.tsx`:
+
+  KEY THE MESSAGE TO THE THING THAT ASKED, not to the page. `useState('')` for a
+  page-wide message is the smell; `useState<{key, text}>` is the fix.
+
+  PUT THE REASON IN FRONT OF THE DECISION, through a predicate BOTH sides read.
+  `appointBlock` / `courseBlock` are read by the row (to write the shortfall and
+  grey the button) and by the engine (to refuse). A row that offers a button and
+  a handler that refuses it is the bug written twice.
+
+`scripts/hireprobe.mjs` guards it, and it measures `getBoundingClientRect`
+distance from the tapped button rather than checking the DOM contains the text -
+which is the only version of the test that would have failed on the old build.
+
+Still to check by the same method: any other screen where a list is long and the
+outcome of a row action is rendered outside that row.
+
 ## Job 3: audit the probes themselves
 
 Seven for seven is a pattern. Go through `scripts/` asking of each one: does this
