@@ -110,18 +110,18 @@ export default function Saves() {
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button className="btn" style={{ fontSize: 12, padding: '7px 14px' }} onClick={() => void doSave(slot)}>
+                <button className="btn slot-act" style={{ fontSize: 12, padding: '7px 14px' }} onClick={() => void doSave(slot)}>
                   💾 Save
                 </button>
                 {meta && !isCurrent && (
-                  <button className="btn ghost" style={{ fontSize: 12, padding: '7px 14px' }} onClick={() => void doLoad(slot)}>
+                  <button className="btn ghost slot-act" style={{ fontSize: 12, padding: '7px 14px' }} onClick={() => void doLoad(slot)}>
                     📂 Load
                   </button>
                 )}
                 {meta && (
                   confirmDel === slot
-                    ? <button className="btn danger" style={{ fontSize: 12, padding: '7px 8px' }} onClick={() => void doDelete(slot)}>Sure?</button>
-                    : <button className="btn ghost" style={{ fontSize: 12, padding: '7px 14px', color: '#9b2c2c' }} onClick={() => setConfirmDel(slot)}>✕ Delete</button>
+                    ? <button className="btn danger slot-act" style={{ fontSize: 12, padding: '7px 8px' }} onClick={() => void doDelete(slot)}>Sure?</button>
+                    : <button className="btn ghost slot-act" style={{ fontSize: 12, padding: '7px 14px', color: '#9b2c2c' }} onClick={() => setConfirmDel(slot)}>✕ Delete</button>
                 )}
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function Saves() {
                   <h3 style={{ fontSize: 14 }}>{s.slot}</h3>
                   <div className="meta">{s.managerName} - {s.club} · {seasonLabel(s.season)} wk {s.week}</div>
                 </div>
-                <button className="btn ghost" style={{ fontSize: 12 }} onClick={() => void doLoad(s.slot)}>📂 Load</button>
+                <button className="btn ghost slot-act" style={{ fontSize: 12 }} onClick={() => void doLoad(s.slot)}>📂 Load</button>
               </div>
             </div>
           ))}
