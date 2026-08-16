@@ -3313,3 +3313,37 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   text-align: center; margin-bottom: 2px;
 }
 .app.night .wiz-need { color: var(--gold); }
+
+/* ---- the bid stepper fits the phone --------------------------------------
+   User, from a 412px screen: "the reduce or plus 500 go off the screen and
+   dont fit in the box". It was five items on one nowrap flex line, which needs
+   about 398px of content in a 336px card, so the outer two buttons rendered
+   past both edges (measured by scripts/bidprobe.mjs at -19px and 379px on a
+   360px phone).
+
+   Four equal columns, and the fee on its own full-width row above them. 1fr
+   columns cannot outgrow the card whatever the label says, which is the point:
+   a flex row sized by its content is what broke, so the fix is a grid sized by
+   the container. The buttons keep the 44px thumb floor. */
+.bid-step {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px 0 10px;
+}
+.bid-step .bid-amt {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 21px;
+  letter-spacing: .5px;
+  padding-bottom: 4px;
+}
+.bid-step .btn {
+  min-height: 44px;
+  padding: 4px 2px;
+  font-size: 13px;
+  /* the label is short but a narrow column must never be the thing that
+     decides the layout: let it shrink rather than push the grid wider */
+  min-width: 0;
+  white-space: nowrap;
+}
