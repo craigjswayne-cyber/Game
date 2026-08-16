@@ -10,7 +10,12 @@ export default function Medical() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   const touch = useStore.getState().touch
-  const [msg, setMsg] = useState('')
+  // KEYED TO THE MAN, not to the page. A specialist consult on the eighth name
+  // in a long treatment room used to answer in a banner at the top of the
+  // screen - the same class of bug the coach market had, where the reply to
+  // your tap renders somewhere you are not looking and the button reads as
+  // dead. The line now lands in his own row.
+  const [msg, setMsg] = useState<{ id: number; text: string } | null>(null)
   const [query, setQuery] = useState('')
   const club = game.clubs[game.userClubId]
   const q = query.trim().toLowerCase()
@@ -52,7 +57,14 @@ export default function Medical() {
             {rows.map(p => (
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 <td><PosBadge pos={p.pos} /></td>
-                <td className="name">{p.name}</td>
+                <td className="name">
+                  {p.name}
+                  {msg?.id === p.id && (
+                    <div className="meta" style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'normal' }}>
+                      {msg.text}
+                    </div>
+                  )}
+                </td>
                 <td>{render(p)}</td>
               </tr>
             ))}
@@ -72,8 +84,6 @@ export default function Medical() {
             : ` · injuries roughly ${game.staff.physio * 12}% shorter`}
         </div>
       </div>
-
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}
 
       <div style={{ padding: '6px 14px 0' }}>
         <input className="inline-input" placeholder="Find a player…" value={query}
@@ -95,7 +105,7 @@ export default function Medical() {
           {p.injury!.desc} · {Math.max(1, p.injury!.until - game.week)}w
           {!p.specialist && p.injury!.until - game.week >= 3 && (
             <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
-              onClick={e => { e.stopPropagation(); setMsg(specialistConsult(game, p.id)); touch() }}>
+              onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
               🩺 Specialist
             </button>
           )}
@@ -111,7 +121,7 @@ export default function Medical() {
           ⚠ RUSTY {p.rust}w
           {game.cottonWk !== game.season * 100 + game.week && (
             <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
-              onClick={e => { e.stopPropagation(); setMsg(cottonWool(game, p.id)); touch() }}>
+              onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: cottonWool(game, p.id) }); touch() }}>
               🛌 Cotton wool
             </button>
           )}

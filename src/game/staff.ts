@@ -152,18 +152,58 @@ export function staffInterest(state: GameState, c: StaffCandidate): 'keen' | 'pe
   return 'no'
 }
 
+/**
+ * WHY HE CANNOT BE APPOINTED TODAY, or null if he can be.
+ *
+ * User, live on a phone: "ive tried to hire a coach who is keen but no matter
+ * what I press when in market he won't sign and no reason? like if I have no
+ * money I should be told ive not got budget."
+ *
+ * He was right about the symptom and right about the cause. A candidate the
+ * club could not pay the compensation for still showed as Keen, still offered
+ * a live-looking Appoint button, and appointStaff's refusal - which has always
+ * been a full sentence - was rendered into a banner at the TOP of the Backroom
+ * Staff panel. scripts/hireprobe.mjs measured it at 786px above the thumb that
+ * tapped the button, on a page scrolled down to the eighth role card. A reply
+ * you cannot see is a dead button.
+ *
+ * So the reason moves in front of the decision. This is the ONE predicate: the
+ * market row reads it to write the reason next to the man's name and to disable
+ * his button, and appointStaff reads it to refuse. They cannot drift, which is
+ * the whole point - a row that offers a button and a handler that refuses it is
+ * how this bug is written a second time.
+ *
+ *   short - fits on the candidate row, next to the wage
+ *   long  - the sentence shown when the refusal has to be spelled out
+ */
+export interface AppointBlock { short: string; long: string }
+
+export function appointBlock(state: GameState, c: StaffCandidate): AppointBlock | null {
+  const club = state.clubs[state.userClubId]
+  if (!club) return { short: 'No club', long: 'You have no club to appoint him to.' }
+  if (staffInterest(state, c) === 'no') {
+    return {
+      short: 'Wants a bigger club',
+      long: `${c.name} thanked you for the call and stayed where he is. A ${BADGE[c.tier].toLowerCase()}-badge coach wants a bigger stage than this.`,
+    }
+  }
+  if (club.balance < c.fee) {
+    return {
+      short: `No budget - you have ${fmt(club.balance)} of the ${fmt(c.fee)}`,
+      long: `${c.name} would come, but his club want ${fmt(c.fee)} compensation and there is ${fmt(club.balance)} in the bank. Sell somebody, or wait for the gate money.`,
+    }
+  }
+  return null
+}
+
 /** Appoint a candidate. Returns the line to show the manager. */
 export function appointStaff(state: GameState, role: StaffRole, idx: number): string {
   const club = state.clubs[state.userClubId]
   const cands = staffCandidates(state, role)
   const c = cands[idx]
   if (!c) return 'That candidate is no longer available.'
-  if (staffInterest(state, c) === 'no') {
-    return `${c.name} thanked you for the call and stayed where he is. A ${BADGE[c.tier].toLowerCase()}-badge coach wants a bigger stage than this.`
-  }
-  if (club.balance < c.fee) {
-    return `The compensation is ${fmt(c.fee)} and the club cannot cover it this week.`
-  }
+  const block = appointBlock(state, c)
+  if (block) return block.long
   const info = STAFF_INFO[role]
   const outgoing = state.staffPeople?.[role]
   club.balance -= c.fee
@@ -212,17 +252,45 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
  * so it cannot be re-rolled by looking at it twice, and the cooldown means it
  * cannot be re-rolled by trying again either.
  */
-export function sendToCourse(state: GameState, role: StaffRole): string {
+
+/** Why this coach cannot be put in for his badge today, or null if he can be.
+ *
+ *  The Assess button's twin of appointBlock, and it exists for the same reason:
+ *  the button used to be live whatever the balance said, and the refusal was
+ *  rendered into the same off-screen banner. One predicate, read by the screen
+ *  to grey the button and write the reason under it, and by sendToCourse to
+ *  refuse. */
+export function courseBlock(state: GameState, role: StaffRole): AppointBlock | null {
   const club = state.clubs[state.userClubId]
   const p = state.staffPeople?.[role]
   const info = STAFF_INFO[role]
-  if (!p) return `Appoint a ${info.name.toLowerCase()} first.`
-  if (p.tier >= 3) return `${p.name} already holds his gold badge. There is nothing left to sit.`
-  if (p.course) return `${p.name} is already on a course. The examiners will not be hurried.`
+  const say = (short: string, long: string): AppointBlock => ({ short, long })
+  if (!club) return say('No club', 'You have no club to send anybody on a course.')
+  if (!p) return say('Post vacant', `Appoint a ${info.name.toLowerCase()} first.`)
+  if (p.tier >= 3) return say('Gold already', `${p.name} already holds his gold badge. There is nothing left to sit.`)
+  if (p.course) return say('Already sitting one', `${p.name} is already on a course. The examiners will not be hurried.`)
   const abs = state.season * 100 + state.week
-  if ((p.retakeAt ?? 0) > abs) return `${p.name} cannot sit it again yet - he failed recently and the next intake is a few weeks off.`
+  if ((p.retakeAt ?? 0) > abs) {
+    const wks = p.retakeAt! - abs
+    return say(`Resits in ${wks} week${wks === 1 ? '' : 's'}`,
+      `${p.name} cannot sit it again yet - he failed recently and the next intake is ${wks} week${wks === 1 ? '' : 's'} off.`)
+  }
   const fee = courseFee(p.tier)
-  if (club.balance < fee) return `The course costs ${fmt(fee)} and the money is not there.`
+  if (club.balance < fee) {
+    return say(`No budget - you have ${fmt(club.balance)} of the ${fmt(fee)}`,
+      `The course costs ${fmt(fee)} and there is ${fmt(club.balance)} in the bank. The examiners take the fee up front.`)
+  }
+  return null
+}
+
+export function sendToCourse(state: GameState, role: StaffRole): string {
+  const block = courseBlock(state, role)
+  if (block) return block.long
+  const club = state.clubs[state.userClubId]
+  const p = state.staffPeople![role]!
+  const info = STAFF_INFO[role]
+  const abs = state.season * 100 + state.week
+  const fee = courseFee(p.tier)
   club.balance -= fee
   const toTier = p.tier + 1
   const badge = BADGE[toTier].toLowerCase()

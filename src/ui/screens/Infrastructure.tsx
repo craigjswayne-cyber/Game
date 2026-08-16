@@ -29,7 +29,13 @@ const pips = (lvl: number) => '●'.repeat(lvl) + '○'.repeat(MAX_FACILITY - lv
 export default function Infrastructure() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
-  const [msg, setMsg] = useState('')
+  // KEYED TO THE CARD THAT ASKED, for the reason spelled out in Training.tsx:
+  // a single banner at the top of the page is where a board's answer goes to
+  // die on a phone. The estate header is always the first thing on screen so
+  // the expansion reply is fine there; a facility five cards down is not, and
+  // its "the reserves will not carry a build this size" was rendering out of
+  // sight while the button under the thumb did nothing visible.
+  const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [itab, setItab] = useState<'ours' | 'league'>('ours')
   const club = game.clubs[game.userClubId]
   const abs = game.season * 100 + game.week
@@ -73,14 +79,17 @@ export default function Infrastructure() {
           </div>
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || game.facilityBuild != null}
-            onClick={() => { setMsg(requestExpansion(game)); touch() }}>
+            onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
             🏛 Ask to expand<br />
             <span style={{ fontSize: 10, fontWeight: 600 }}>+{plan.seats.toLocaleString()} seats · {fmtMoney(plan.cost)}</span>
           </button>
         </div>
+        {msg?.key === 'expand' && (
+          <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))' }}>
+            {msg.text}
+          </div>
+        )}
       </div>
-
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '7px 10px' }}>{msg}</div>}
 
       {itab === 'ours' && <>
       <SectionTitle sub="every upgrade goes through the boardroom">Facilities</SectionTitle>
@@ -107,13 +116,18 @@ export default function Infrastructure() {
                 {!building && lvl < MAX_FACILITY && (
                   <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
                     disabled={game.facilityBuild != null}
-                    onClick={() => { setMsg(requestFacility(game, fid)); touch() }}>
+                    onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
                     🏛 Ask board<br />
                     <span style={{ fontSize: 10, fontWeight: 600 }}>L{lvl + 1} · {fmtMoney(cost)}</span>
                   </button>
                 )}
                 {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: '#a8841a', fontWeight: 700 }}>World class</span>}
               </div>
+              {msg?.key === fid && (
+                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))' }}>
+                  {msg.text}
+                </div>
+              )}
             </div>
           )
         })}

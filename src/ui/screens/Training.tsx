@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
-import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointStaff, courseFee, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
+import { BADGE, BADGE_COL, EXAM_PASS_PCT, appointBlock, appointStaff, courseBlock, courseFee, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
@@ -136,13 +136,22 @@ function StaffPanel() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [open, setOpen] = useState<StaffRole | null>(null)
-  const [msg, setMsg] = useState('')
+  // THE ANSWER BELONGS TO THE ROLE THAT WAS TAPPED, NOT TO THE PAGE.
+  //
+  // This was a single string rendered in a banner at the top of the panel, and
+  // that one detail is the whole of the user's bug report: "ive tried to hire a
+  // coach who is keen but no matter what I press when in market he won't sign
+  // and no reason". There always WAS a reason - the eighth role card is simply
+  // 786px below the banner that carried it (measured by hireprobe), so on a
+  // phone the reply to your tap rendered off the top of the screen while the
+  // market collapsed underneath your thumb. Keying it by role puts the sentence
+  // on the card that produced it, where it is read.
+  const [msg, setMsg] = useState<{ role: StaffRole; text: string } | null>(null)
   const abs = game.season * 100 + game.week
   const roles = Object.keys(STAFF_INFO) as StaffRole[]
   return (
     <>
       <SectionTitle sub={`a badge is one day of assessment - ${EXAM_PASS_PCT}% pass, and a failure waits a month`}>Backroom Staff</SectionTitle>
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '7px 10px', marginBottom: 6 }}>{msg}</div>}
       {/* the weather in the room (25D-3): who feeds off whom and who cannot
           stand whom. Without this the chemistry is invisible three seasons
           after the hire-day letter, and the manager has no way to know why
@@ -174,6 +183,10 @@ function StaffPanel() {
           const p = game.staffPeople?.[role]
           const cands = open === role ? staffCandidates(game, role) : []
           const weeksLeft = p?.course ? Math.max(1, p.course.done - abs) : 0
+          // why the two buttons on this card would refuse, and what the last
+          // tap on it said - both belong to the card, not to the page
+          const courseNo = p ? courseBlock(game, role) : null
+          const said = msg?.role === role ? msg.text : null
           return (
             <div className="card" key={role} style={{ margin: 0, padding: '8px 10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
@@ -204,18 +217,35 @@ function StaffPanel() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
                   {p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
                     <button className="btn gold" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
-                      onClick={() => { setMsg(sendToCourse(game, role)); touch() }}>
+                      disabled={!!courseNo} title={courseNo?.long}
+                      onClick={() => { setMsg({ role, text: sendToCourse(game, role) }); touch() }}>
                       🎓 Assess<br /><span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(courseFee(p.tier))}</span>
                     </button>
                   )}
                   <button className="btn ghost" style={{ padding: '4px 8px', fontSize: 11 }}
-                    onClick={() => { setOpen(open === role ? null : role); setMsg('') }}>
+                    onClick={() => { setOpen(open === role ? null : role); setMsg(null) }}>
                     {open === role ? 'Close' : p ? 'Market' : 'Candidates'}
                   </button>
                 </div>
               </div>
+              {/* THE REASON THE BUTTON IS GREY, under the button. A disabled
+                  control with nothing next to it is the same bug in a new
+                  costume: the manager still cannot tell whether the game is
+                  broken or he is skint. */}
+              {courseNo && p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
+                <div className="meta" style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, marginTop: 3 }}>
+                  🎓 {courseNo.short}
+                </div>
+              )}
+              {said && (
+                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))' }}>
+                  {said}
+                </div>
+              )}
               {open === role && cands.map((c, i) => {
                 const keen = staffInterest(game, c)
+                // one predicate, shared with appointStaff (game/staff.ts)
+                const no = appointBlock(game, c)
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))', paddingTop: 5, marginTop: 5 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -225,12 +255,20 @@ function StaffPanel() {
                       <div className="meta" style={{ fontSize: 10.5 }}>
                         {c.age} · {c.trait} · {fmtWage(c.wage)}/wk · {fmtMoney(c.fee)} compensation
                       </div>
+                      {/* the money truth, on his row, before the tap - this is
+                          the line the user went looking for and never found */}
+                      {no && (
+                        <div className="meta" style={{ fontSize: 10.5, color: 'var(--red)', fontWeight: 700 }}>
+                          {no.short}
+                        </div>
+                      )}
                     </div>
                     <span className="meta" style={{ fontSize: 10.5, color: keen === 'keen' ? '#2f7d4f' : keen === 'persuadable' ? '#8a7a3a' : '#9b2c2c', fontWeight: 700, flexShrink: 0 }}>
                       {keen === 'keen' ? 'Keen' : keen === 'persuadable' ? 'Listening' : 'Not interested'}
                     </span>
                     <button className="btn" style={{ padding: '4px 9px', fontSize: 11, flexShrink: 0 }}
-                      onClick={() => { setMsg(appointStaff(game, role, i)); setOpen(null); touch() }}>Appoint</button>
+                      disabled={!!no} title={no?.long}
+                      onClick={() => { setMsg({ role, text: appointStaff(game, role, i) }); setOpen(null); touch() }}>Appoint</button>
                   </div>
                 )
               })}
