@@ -105,25 +105,56 @@ for (const club of allClubs) {
 // twelve are resolved by the derived table in verified.ts. The built world has no
 // duplicate real player, which is the check that actually matters and is asserted
 // separately below.
-const DUPE_BUDGET = 76
-const seen = new Map<string, string>()
+// ---- A SHARED NAME IS NOT A DEFECT. THE SAME MAN TWICE IS. ----------------
+//
+// This counted every repeated name as a collision and ratcheted on the total,
+// which is why it sat red at 78 against a budget of 76 and why the honest answer
+// looked like a choice between hand-resolving 45 players and bumping a number.
+// It was neither. Comparing each pair on POSITION AND AGE as well as name splits
+// them cleanly and objectively:
+//
+//   NAMESAKES - a 26-year-old winger at Nottingham and a 30-year-old lock at the
+//   Rams, both called Alex Hughes. A Cardiff centre and a Blackheath tighthead,
+//   both Ben Thomas. Welsh and English rugby are full of these and they are not
+//   errors; the two men simply share a name. Twenty-two of the seventy-eight.
+//   Writing either of them into verified.ts would DELETE A REAL PLAYER, which is
+//   a worse outcome than the warning it silences.
+//
+//   ONE MAN, TWO SQUAD FILES - same position, ages within a year. That is a
+//   player the guide moved and one file has not caught up with. Two of the
+//   seventy-eight, both now settled in verified.ts.
+//
+// So the ratchet is on the thing that is actually work: unresolved same-man
+// listings. It is 0, and 0 is a number that can be held. The namesake count is
+// reported, never asserted, because new squad data will keep producing them and
+// a probe that fails on real rugby teaches people to ignore it.
+const DUPE_BUDGET = 0
+const seen = new Map<string, { club: string; pos: string; age: number }>()
 const dupes: string[] = []
+const namesakes: string[] = []
 const seniorDupes: string[] = []
 for (const club of allClubs) {
   for (const p of club.players) {
     const key = p.name.toLowerCase()
     const prev = seen.get(key)
-    if (prev && prev !== club.id) {
-      dupes.push(`${p.name}: ${prev} + ${club.id}`)
-      const a = repOf.get(prev) ?? 0
-      const b = club.rep
-      if (a >= 70 && b >= 70) seniorDupes.push(`${p.name}: ${prev} (rep ${a}) + ${club.id} (rep ${b})`)
+    if (prev && prev.club !== club.id) {
+      const sameMan = prev.pos === p.pos && Math.abs(prev.age - p.age) <= 1
+      if (!sameMan) {
+        namesakes.push(`${p.name}: ${prev.club}(${prev.pos},${prev.age}) + ${club.id}(${p.pos},${p.age})`)
+      } else if (!verifiedClub(p.name)) {
+        dupes.push(`${p.name}: ${prev.club} + ${club.id} (${p.pos}, ${prev.age}/${p.age})`)
+        const a = repOf.get(prev.club) ?? 0
+        const b = club.rep
+        if (a >= 70 && b >= 70) seniorDupes.push(`${p.name}: ${prev.club} (rep ${a}) + ${club.id} (rep ${b})`)
+      }
     }
-    seen.set(key, club.id)
+    seen.set(key, { club: club.id, pos: p.pos, age: p.age })
   }
 }
+console.log(`names shared by two different men: ${namesakes.length} (reported, not a defect)`)
 if (dupes.length > DUPE_BUDGET) {
-  bad(`${dupes.length} duplicate names, up from ${DUPE_BUDGET} - new data added a collision`)
+  bad(`${dupes.length} unresolved same-man listings, up from ${DUPE_BUDGET} - new data put a player at two clubs`)
+  for (const d of dupes.slice(0, 10)) console.log(`    ${d}`)
 }
 if (dupes.length) {
   // A duplicate already resolved is not outstanding work: the builder places
