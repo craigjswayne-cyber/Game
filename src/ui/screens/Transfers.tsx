@@ -20,7 +20,10 @@ export default function Transfers() {
   const [listedOnly, setListedOnly] = useState(false)
   const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
   const [mdesc, setMdesc] = useState(false)
-  const [msg, setMsg] = useState<string | null>(null)
+  // KEYED TO THE ROW, not to the page. Same class of bug as the coach market:
+  // a banner above the tab bar answers a Sign on loan tapped eleven rows down,
+  // where the manager never sees it.
+  const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [xtab, setXtab] = useState<'market' | 'shortlist' | 'loans' | 'deals'>('market')
   const [page, setPage] = useState(0)
   const PER_PAGE = 10
@@ -78,8 +81,6 @@ export default function Transfers() {
             : `Window closed · deadline wk 26`}
         </span>
       </div>
-
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}
 
       <div className="tab-bar">
         <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>Market</button>
@@ -193,10 +194,13 @@ export default function Transfers() {
                   {[7, 26, 27].includes(game.week) && <b style={{ color: '#a12f2f' }}> · 🚨 dies at the deadline</b>}
                 </div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
-                  <button className="btn gold" onClick={() => { setMsg(respondToOffer(game, o.id, true)); touch() }}>Accept</button>
-                  <button className="btn" onClick={() => { setMsg(counterIncomingOffer(game, o.id)); touch() }}>Demand More</button>
-                  <button className="btn danger" onClick={() => { setMsg(respondToOffer(game, o.id, false)); touch() }}>Reject</button>
+                  <button className="btn gold" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }}>Accept</button>
+                  <button className="btn" onClick={() => { setMsg({ key: `offer:${o.id}`, text: counterIncomingOffer(game, o.id) }); touch() }}>Demand More</button>
+                  <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>Reject</button>
                 </div>
+                {msg?.key === `offer:${o.id}` && (
+                  <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
+                )}
               </div>
             )
           })}
@@ -234,9 +238,12 @@ export default function Transfers() {
             <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
             <td>
               <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-                onClick={() => { setMsg(loanIn(game, p.id)); touch() }}>
+                onClick={() => { setMsg({ key: `loan:${p.id}`, text: loanIn(game, p.id) }); touch() }}>
                 Sign on loan
               </button>
+              {msg?.key === `loan:${p.id}` && (
+                <div className="meta" style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'normal' }}>{msg.text}</div>
+              )}
             </td>
           </tr>
         ))}
