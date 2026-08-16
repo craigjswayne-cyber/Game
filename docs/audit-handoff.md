@@ -27,13 +27,17 @@ rate too low to be a broken invariant.
 
 ## Current state
 
-- `main` = `0bdf344`, deployed to Pages, verified green BY SHA.
-- Full suite (`bash scripts/suite.sh all` - note the positional arg, not an env
-  var) passes 115 including the long tier: soakhealth, soakui, stresstest,
-  deepsave, e2edeep.
-- Two known red, both understood, neither a game defect:
-  - `memoprobe` - see below, half-diagnosed
-  - `dialweight` - the sampling limit, see below
+- `main` = `f7ad9da`, deployed to Pages, verified green BY SHA.
+- Full suite passes 117, 0 failures (default tier). `bash scripts/suite.sh all`
+  adds the long tier - note the positional arg, not an env var.
+- `memoprobe` and `dialweight` BOTH READ GREEN NOW, AND THAT IS NOT A FIX.
+  Neither was touched. The rating change (f7ad9da) moved form, which moved
+  results, which reshuffled both probes' samples. dialweight's documented
+  problem is that it cannot resolve effects below its own noise floor, and a
+  green run is not evidence that it can; memoprobe failed one week in seven on
+  one seed, so a clean pass is roughly what chance predicts. Treat Job 1 and
+  Job 2 below as still open. If either goes red again, it has not regressed -
+  it has been resampled.
 
 ## Health numbers, four seeds, ~3,900 matches (scripts/bandcheck.ts)
 
