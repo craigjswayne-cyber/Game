@@ -33,30 +33,59 @@ if (!r1.claim || !r1.prep) bad('read missing claim or recommendation')
 
 // 3. accuracy over many weeks lands near the skill number
 let right = 0, n = 0
-const t = newGame('leicester', 'Analyst Probe', 909)
-const tc = t.clubs[t.userClubId]
-tc.facilities = { ...(tc.facilities ?? {}), briefing: 3 }
-t.staff.assistant = 2
-const target = analystSkill(t)
-for (let i = 0; i < 60; i++) {
-  const f = userFixtureThisWeek(t)
-  if (f) {
-    const opp = f.homeId === t.userClubId ? f.awayId : f.homeId
-    const r = analystRead(t, opp)
-    if (r) { n++; if (r.right) right++ }
-    t.matchPrep = r?.prep
-    simMatch(t, f, weekRng(t), false)
-    if (r) settleAnalyst(t, opp)
+let recRight = 0, recWrong = 0
+// FOUR WORLDS, NOT ONE, AND HERE IS WHY THAT MATTERS.
+//
+// This test used to run a single career and hold ~39 reads to a flat +/-0.18
+// band. A proportion measured over 39 draws has a standard error of about 8
+// points, so the band was barely two standard errors wide and the test was close
+// to a coin flip. It duly failed during the release audit's Pass 2 - one read
+// dropped out of the sample, 29/39 became 29/38, and a marginal ratio tipped
+// over a hard edge.
+//
+// It would have been easy, and wrong, to widen the band until it passed. So the
+// roll was measured directly instead: 80,000 draws of the same hash across 2,000
+// seeds return 57.97% against an intended 58%. The analyst is calibrated. What
+// was broken was the measurement, and the fix for an under-powered measurement
+// is more samples, not a looser bar.
+//
+// Pooled over four careers the sample is ~150 reads, the noise floor halves, and
+// the band can be tightened to 2 SE rather than loosened.
+let expSum = 0
+const WORLDS: [string, number][] = [
+  ['leicester', 909], ['bath', 31], ['toulouse', 8080], ['leinster', 555],
+]
+for (const [wclub, wseed] of WORLDS) {
+  const t = newGame(wclub, 'Analyst Probe', wseed)
+  const tc = t.clubs[t.userClubId]
+  tc.facilities = { ...(tc.facilities ?? {}), briefing: 3 }
+  t.staff.assistant = 2
+  for (let i = 0; i < 60; i++) {
+    const f = userFixtureThisWeek(t)
+    if (f) {
+      const opp = f.homeId === t.userClubId ? f.awayId : f.homeId
+      const r = analystRead(t, opp)
+      if (r) { n++; expSum += analystSkill(t); if (r.right) right++ }
+      t.matchPrep = r?.prep
+      simMatch(t, f, weekRng(t), false)
+      if (r) settleAnalyst(t, opp)
+    }
+    processWeekAndAdvance(t)
   }
-  processWeekAndAdvance(t)
+  // the followed-read ledger is per career, so it pools like everything else
+  recRight += t.analystRecord?.right ?? 0
+  recWrong += t.analystRecord?.wrong ?? 0
 }
-console.log(`accuracy over ${n} reads: ${((right / n) * 100).toFixed(0)}% (skill ${(target * 100).toFixed(0)}%)`)
-if (n < 20) bad(`only ${n} reads in 60 weeks`)
-if (Math.abs(right / n - target) > 0.18) bad('accuracy is far from the stated skill')
+const target = expSum / n
+console.log(`accuracy over ${n} reads in ${WORLDS.length} careers: ${((right / n) * 100).toFixed(1)}% (skill those reads were rolled against ${(target * 100).toFixed(1)}%)`)
+if (n < 100) bad(`only ${n} reads across ${WORLDS.length} careers`)
+const seP = Math.sqrt(target * (1 - target) / n)
+const off = Math.abs(right / n - target)
+console.log(`  off by ${(off * 100).toFixed(1)} points, noise floor ${(seP * 100).toFixed(1)} (bar 2 SE = ${(2 * seP * 100).toFixed(1)})`)
+if (off > 2 * seP) bad('accuracy is far from the skill those reads were rolled against')
 if (right === n) bad('every read was right - it is meant to be a judgement, not a certainty')
-const rec = t.analystRecord!
-console.log(`record followed: right ${rec.right}, wrong ${rec.wrong}`)
-if (rec.right + rec.wrong !== n) bad(`record counted ${rec.right + rec.wrong} of ${n} followed reads`)
+console.log(`record followed: right ${recRight}, wrong ${recWrong}`)
+if (recRight + recWrong !== n) bad(`record counted ${recRight + recWrong} of ${n} followed reads`)
 
 // 4. following a sound read is worth something on the day.
 //

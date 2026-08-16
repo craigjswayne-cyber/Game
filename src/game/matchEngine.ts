@@ -1208,11 +1208,19 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // the referee at all. A fussy whistle (breakdown 0.90) now blows a tenth
     // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
     side.refPenF = 2 - ref.breakdown
-    // Recomputed rather than multiplied, because aggression's price now depends
-    // on the whistle and not just the base rate (see aggPenRisk). `*= refPenF`
-    // could only scale what was already there; the interaction has to be built
-    // from both numbers at once, and this is the first moment both are known.
-    side.penRisk = aggPenRisk(side.aggF, side.refPenF)
+    // SWAPPED IN AS A RATIO, NOT ASSIGNED. The first version of this wrote
+    // `side.penRisk = aggPenRisk(...)` outright, which was wrong in a way only
+    // splitprobe caught: by the time we get here the dial block has already
+    // multiplied in the defensive line's own penalty cost, and an assignment
+    // threw it away. A full blitz stopped paying its 12% and the without-ball
+    // system silently went half free.
+    //
+    // So: divide out the referee-blind aggression price the dial block used and
+    // multiply in the referee-aware one. Everything else layered onto penRisk
+    // survives untouched, and a later recompute - where the dial block can see
+    // refPenF and computes the right price first time - lands on the same
+    // number, which is the property that matters.
+    side.penRisk *= aggPenRisk(side.aggF, side.refPenF) / aggPenRisk(side.aggF, 1)
   }
   // FAVOURITE PRESSURE (25D-2). On the big day the stronger side carries the
   // weight of expectation and the underdog plays with nothing to lose: the
