@@ -528,6 +528,47 @@ const freshMods = (): SideMods => ({
   scrum: 1, lineout: 1, breakdown: 1, attack: 1, defence: 1, kicking: 1, tempo: 1, card: 1,
 })
 
+/**
+ * The kickable-penalty rate: how physical you are, priced by who is refereeing.
+ *
+ * ---- WHY THIS IS A FUNCTION AND NOT TWO LINES OF ARITHMETIC ----------------
+ *
+ * penRisk has to be computed twice. Once in the dial block, which runs before
+ * the referee is known and again on every substitution, and once in beginMatch
+ * the moment the whistle is appointed. Two copies of a formula is how the
+ * refPenF bug happened in the first place, so there is one copy and both call
+ * it.
+ *
+ * ---- WHY AGGRESSION READS THE REFEREE (release audit, Pass 2) --------------
+ *
+ * scripts/dialweight.ts measured all six tactical dials over four seeds and
+ * found aggression worth 1.3 points of difference across a whole season - noise.
+ * It was wired up and it did nothing, because the breakdown it bought and the
+ * penalties it conceded cancelled almost exactly. That sounds like balance and
+ * is actually the absence of a decision: there was no opponent, no scoreline and
+ * no referee against which moving it was right.
+ *
+ * The gain and the cost are both bigger now (breakdown 0.06 -> 0.09, the penalty
+ * coefficient 0.20 -> 0.30, cards 0.006 -> 0.009), which on its own would just be
+ * a louder wash. What makes it a decision is that the COST NOW SCALES WITH THE
+ * WHISTLE, and the whistle is on the pre-match briefing:
+ *
+ *   average referee (rp 1.00)   coefficient 0.30
+ *   fussy at the tackle (1.15)  coefficient 0.42 - physicality is expensive
+ *   lets a lot go      (0.85)   coefficient 0.18 - physicality is cheap
+ *
+ * So the same slider is right against one referee and wrong against another, and
+ * the panel that has been on the briefing since F1 finally has something to say.
+ *
+ * MEAN-NEUTRAL ON BOTH COUNTS, which is why the world average cannot move: the
+ * panel's tolerances mean exactly 1.0, so E[0.30 + 0.80 * (rp - 1)] is 0.30; and
+ * philosophy.ts mirrors every dial pair about 50, so the world's mean aggression
+ * is exactly neutral and E[aggF] is 0. Measured, not argued - see disttest.
+ */
+function aggPenRisk(aggF: number, rp: number): number {
+  return 0.115 * rp * (1 + aggF * (0.30 + 0.80 * (rp - 1)))
+}
+
 /** Layer a multiplier on a side so that it survives the next substitution. */
 function layer(side: SideCtx, k: keyof SideMods, m: number) {
   if (m === 1) return
@@ -560,6 +601,12 @@ export interface SideCtx {
   /** the referee's contribution to penRisk, locked in at kick-off so a unit
    *  recompute can rebuild the dial part without losing the whistle */
   refPenF?: number
+  /** f(aggression), -1..1, stashed at build time. penRisk is now computed in two
+   *  places - once before the referee is known and again once he is - and both
+   *  need the dial. Storing the resolved figure is what stops the two copies of
+   *  the formula drifting apart, which is the bug the refPenF comment above was
+   *  itself written about. */
+  aggF: number
   poss: number // accumulated momentum, for possession stats
   pens: number // penalty goals kicked
   /** penalties conceded - repeated infringements bring the bin into play */
@@ -633,19 +680,15 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
      * dial, which is the same as no instruction at all.
      */
     const f = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v)) - 50 : 0) / 50 // -1..1
-    side.units.attack *= 1 + f(t.style) * 0.06 + f(t.tempo) * 0.05
+    side.units.attack *= 1 + f(t.style) * 0.06 + f(t.tempo) * 0.05 - f(t.kicking) * 0.035
     side.units.scrum *= 1 - f(t.style) * 0.05
-    side.units.breakdown *= 1 + f(t.aggression) * 0.06 - f(t.style) * 0.03
+    side.units.breakdown *= 1 + f(t.aggression) * 0.09 - f(t.style) * 0.03 - f(t.kicking) * 0.02
     side.units.kicking *= 1 + f(t.kicking) * 0.1
     side.units.defence *= 1 - f(t.tempo) * 0.03
     side.tempoF = 1 + f(t.tempo) * 0.22
-    side.cardRisk = 0.012 + f(t.aggression) * 0.006
-    // a physical side gives the referee more to look at: up to a fifth more
-    // kickable penalties at the top of the dial, a fifth fewer at the bottom.
-    // refPenF (the whistle's own tolerance) is locked in at kick-off and
-    // survives the recompute; the panel's tolerances mean exactly 1.0 so the
-    // world average concedes what it always conceded (audit 16D)
-    side.penRisk = 0.115 * (1 + f(t.aggression) * 0.2) * (side.refPenF ?? 1)
+    side.cardRisk = 0.012 + f(t.aggression) * 0.009
+    side.aggF = f(t.aggression)
+    side.penRisk = aggPenRisk(side.aggF, side.refPenF ?? 1)
     // THE WITHOUT-BALL SYSTEM (18D, FM26's split shapes translated). Line
     // speed is a trade priced in the engine's own currencies: a blitz brings
     // pressure (defence up) and gives the referee offside creep to look at
@@ -868,7 +911,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
   const side: SideCtx = {
     teamId, lineup, units,
     score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), binned: new Set(), sent: 0,
-    cardRisk: 0.012, penRisk: 0.115,
+    cardRisk: 0.012, penRisk: 0.115, aggF: 0,
     poss: 0, pens: 0, consPens: 0,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
     exIds: new Set(),
@@ -1165,7 +1208,11 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     // the referee at all. A fussy whistle (breakdown 0.90) now blows a tenth
     // more penalties; a lenient one (1.10) a tenth fewer (audit 16D)
     side.refPenF = 2 - ref.breakdown
-    side.penRisk *= side.refPenF
+    // Recomputed rather than multiplied, because aggression's price now depends
+    // on the whistle and not just the base rate (see aggPenRisk). `*= refPenF`
+    // could only scale what was already there; the interaction has to be built
+    // from both numbers at once, and this is the first moment both are known.
+    side.penRisk = aggPenRisk(side.aggF, side.refPenF)
   }
   // FAVOURITE PRESSURE (25D-2). On the big day the stronger side carries the
   // weight of expectation and the underdog plays with nothing to lose: the

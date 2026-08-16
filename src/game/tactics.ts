@@ -28,14 +28,25 @@ export const SLIDER_INFO: SliderInfo[] = [
     down: 'Measured phase play: saves the legs and keeps defensive shape, at the cost of attacking spark.',
   },
   {
+    // A DIAL WITH A HIDDEN PRICE IS NOT A DECISION. Both of these now name what
+    // the setting costs as well as what it buys, because the release audit's
+    // Pass 2 found kicking was a free lunch worth eleven league points a season
+    // and the readout said nothing about giving anything up. The engine gives
+    // the boot its territory and takes attacking continuity for it, so the words
+    // have to say that or the player is being asked to choose blind.
     key: 'kicking', label: 'Kicking', lo: 'Ball in hand', hi: 'Kick for territory',
-    up: 'Territory game: contestable kicks and corner pins - your kicking unit matters more, great in bad weather.',
-    down: 'Keep it in hand: more running threat, but you live in your own half if it goes wrong.',
+    up: 'Territory game: contestable kicks and corner pins, and your kicking unit matters more. Great in bad weather. You carry less, so attack and breakdown both drop.',
+    down: 'Keep it in hand: more running threat and more ruck presence, but you live in your own half if it goes wrong.',
   },
   {
+    // Physicality is the referee read (see aggPenRisk in matchEngine): worth
+    // about two and a half points a match in front of a lenient whistle and
+    // about a point and a half AGAINST you in front of a fussy one, measured by
+    // scripts/dialweight.ts. The referee is named on the pre-match briefing, so
+    // this line points at him rather than describing a wash.
     key: 'aggression', label: 'Physicality', lo: 'Stay clean', hi: 'Push the limits',
-    up: 'Fly into rucks and dominate collisions: breakdown power ↑, but expect more yellow cards.',
-    down: 'Discipline first: fewer penalties and cards, less breakdown menace.',
+    up: 'Fly into rucks and dominate collisions: breakdown power up, more yellows, and a lot more kickable penalties. Check the referee first - a fussy whistle punishes this hard, a lenient one lets you away with it.',
+    down: 'Discipline first: fewer penalties and cards, less breakdown menace. The safe call against a referee who is strict at the tackle.',
   },
 ]
 

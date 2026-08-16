@@ -51,6 +51,16 @@ export const HANDBOOK: HandbookEntry[] = [
   },
   {
     cat: 'match',
+    q: 'Does the referee change how I should set up?',
+    a: 'Yes, and Physicality is the dial he decides. Pushing it up buys breakdown power and costs you yellow cards and kickable penalties, and the penalty price scales with the man in the middle. Measured over eight seasons: in front of a referee who lets a lot go at the tackle, going physical is worth about two and a half points a match to you; in front of one who is fussy there, it costs you about a point and a half. Getting that read right is worth roughly four points a match, which is more than any other single slider is worth on its own. The referee and his interpretations are named on the pre-match briefing before you pick, so the information is always there. Left in the middle the dial costs and buys nothing.',
+  },
+  {
+    cat: 'match',
+    q: 'Is kicking for territory just better?',
+    a: 'No, and it used to be. Winding Kicking up gives your kicking unit more of the game and pins them in their half, which is exactly what you want in wind and rain. It also means you carry less: your attack and your breakdown both drop for it. Across a season the two roughly cancel, so it is a read on the weather, the opposition and your own boot rather than a setting to leave at one end. If you have a siege gun at ten and a shaky pack, kick. If your strength is width and offloads, do not.',
+  },
+  {
+    cat: 'match',
     q: 'Who decides what to do with a kickable penalty?',
     a: 'You do. When your side wins a penalty in range, the game stops and asks: posts, corner, or tap and go. Your kicker\'s goal kicking and the angle both matter, and so does the scoreboard. Taking three when you need seven is how games get lost.',
   },
