@@ -33,6 +33,44 @@
  *   not drown the quietest by more than a stated ratio. That catches a dial that
  *   is not plumbed in, and a dial that has become the only decision, and it does
  *   not pretend to be a balance target it has not earned.
+ *
+ * ---- WHAT IT FOUND, AND WHY THIS PROBE IS RED ----------------------------
+ *
+ * First measurement, four seeds, points difference over a full season:
+ *
+ *   kicking     +126.3   +11.00 league points from 10 to 90
+ *   tempo       -108.8    -4.25
+ *   style        +85.0    +6.25
+ *   defLine     +31.8     +2.50
+ *   defWidth    -31.0     -5.50
+ *   aggression   -1.3     -0.75
+ *
+ * Two findings, and both are Majors.
+ *
+ *   KICKING IS CLOSE TO A DOMINANT STRATEGY. Kick-heavy is worth eleven league
+ *   points a season over keep-in-hand - nearly three extra wins - against an
+ *   average field, with nothing on the screen warning you that one end of one
+ *   slider is that much better than the other. Pass 1 asks explicitly for
+ *   dominant strategies to be hunted; this is one, and it is a slider, not a
+ *   loop a player has to discover.
+ *
+ *   AGGRESSION IS A NULL. It is plumbed in - the seasons are not identical - but
+ *   1.3 points of difference across a whole season is inside the noise of a
+ *   four-seed sample. Whatever the extra physicality buys, the cards and
+ *   penalties take back almost exactly, which sounds like balance and is
+ *   actually the absence of a decision: there is no opponent and no situation in
+ *   which the player is right to move it.
+ *
+ * THIS PROBE IS LEFT FAILING ON PURPOSE, and is deliberately not wired into
+ * suite.sh. The measured spread is 101x against a 40x bar. Loosening the bar to
+ * 110x would turn a finding into a passing test and normalise the hole, and the
+ * audit's own rule is that a clean report hiding a drift is the one unforgivable
+ * outcome. The bar stays at 40x until the engine earns it.
+ *
+ * Fixing it is an engine round, not a tweak, and it has to respect the standing
+ * rules: any change to the kicking or aggression weighting moves the match
+ * stream, so scripts/fingerprint.ts needs a deliberate rebaseline through its
+ * sentinel and the disttest bands need re-checking on four seeds afterwards.
  */
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
