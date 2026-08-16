@@ -3210,3 +3210,92 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-top: 1px solid rgba(255, 255, 255, .1); padding-top: 7px;
 }
 .sc-cup { color: #f0d98a; font-weight: 700; }
+
+/* ================= 44px, on the twenty-seven screens nobody measured =========
+ *
+ * scripts/geosweep.mjs walked all 32 routed screens at three geometries and
+ * found twelve classes of control under the 44px target the project already
+ * holds itself to. Not one was geometry-dependent: they were the same size on a
+ * 360px phone and a 430px one, which is the tell that this was never a
+ * dimensions bug at all. It was a COVERAGE bug.
+ *
+ * tapsize.mjs, which owns this rule, visits five screens - Home, the inbox
+ * reader, Team, Tactics, Finances - and queries `button` only. So every button
+ * on the other twenty-seven screens, and EVERY `<select>` in the entire game,
+ * had never once been measured. The controls below include Save, Load and
+ * Delete, which are the three buttons in this game that can lose a career.
+ *
+ * Two tools, and which one applies is decided by the element, not by taste:
+ *
+ *   ::after EXPANDER where the visual box has to stay small for density. Used
+ *     on the chips and the text links, as .btn.tiny and .back-btn already do.
+ *   min-height WHERE THE BOX CAN GROW - and it is the ONLY option for a
+ *     <select>, because pseudo-elements do not render on form controls. That is
+ *     why the two deliberately-compacted select rules below give up their
+ *     compaction: there was no third choice, and a 26px dropdown that assigns
+ *     the club captaincy is not a density trade-off worth keeping.
+ */
+
+/* A button in a .btn-row is a primary action in a row of its own, with a 12px
+   margin and nothing to crowd. 39px, and no reason for it. */
+.btn-row .btn { min-height: 44px; }
+
+/* Save / Load / Delete, stacked 6px apart beside a slot's summary. 32px. */
+.slot-act { min-height: 44px; }
+
+/* A full-width list row: 83px+ of width and 36px of height, so it fails on the
+   short axis only. The handbook's 49 chapter rows are all of them. */
+.news-item { min-height: 44px; }
+
+/* Every dropdown in the game. The base control was 41px - three short. */
+.inline-input { min-height: 44px; }
+
+/* THE TWO COMPACTIONS THIS GIVES BACK, and what each cost to keep.
+ *
+ * .lead-row was squeezed to 3px padding (26px tall) because six select rows at
+ * the base padding made the leadership card 276px and pushed Selection to 3.05
+ * screenfuls. .gt-sel was squeezed for the same reason inside a table row.
+ * Both were reasonable calls made by someone reading heights off a layout; both
+ * were made without anyone having measured the tap target, because nothing in
+ * the suite measured selects.
+ *
+ * MEASURED cost of giving the compaction back, from scripts/scrollaudit.mjs
+ * against a worktree at the previous commit: Selection 2.51 -> 2.73 screenfuls.
+ * The handbook pays more for the .news-item rule above - 2.38 -> 2.79, which is
+ * 49 chapter rows gaining 8px each - and transfers 2.17 -> 2.20. All three stay
+ * inside scrollaudit's bar, and densityaudit and overlapaudit both still pass.
+ * Worth saying plainly: this round traded about a fifth of a screenful on two
+ * screens for controls a thumb can actually hit. */
+.lead-row .inline-input, .gt-sel { min-height: 44px; }
+
+/* The only route from a player to his club, as a 12px text link with no padding
+   at all: 17px tall, the smallest control found anywhere in the game. The box
+   stays exactly as it looks - an inline link under his nationality - and the
+   expander does the work. Horizontal reach is kept tight because the block
+   above it is text, not a control, and vertical is generous because the card
+   has padding below. */
+.club-link { position: relative; }
+.club-link::after { content: ''; position: absolute; inset: -14px -6px; }
+
+/* The pager under the transfer search: two buttons 14px apart in a centred row
+   of their own. 39px, and the row has 8px of padding to give. */
+.pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 0; }
+.pager .btn { min-height: 44px; }
+
+/* THE MENTORING CHIPS GET A DOCUMENTED 36px FLOOR, NOT 44, and this is the one
+ * exception in this block - so here is the measurement rather than an opinion.
+ *
+ * They are `button.chip` in a wrapping `.chips` row with a 7px gap. The first
+ * attempt was the usual ::after expander, and it bought 6px, not 16: with an
+ * expander on every chip, adjacent rows' expanders meet in the middle of the
+ * gap and each chip can only claim ~3.5px of it. Measured reach was 34px. Past
+ * that, an expander big enough to reach 44px overlaps the neighbour's and turns
+ * a tap into a coin flip between two kids - which is the same reason
+ * `form-chip` and `preset-chip` carry 36px floors instead of 44.
+ *
+ * So the box grows to 36px, which needs no expander at all and cannot steal a
+ * neighbour's tap. `.chip` is also the read-only info chip used all over the
+ * game, so only the interactive ones move. Registered as a floor in BOTH
+ * scripts/tapsize.mjs and scripts/geosweep.mjs, because a floor known to one
+ * probe and not the other is how the next person gets a mystery failure. */
+button.chip { min-height: 36px; display: inline-flex; align-items: center; }

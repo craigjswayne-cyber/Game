@@ -325,7 +325,7 @@ export default function Transfers() {
         </tbody>
       </table></div>
       {pages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, padding: '8px 0' }}>
+        <div className="pager">
           <button className="btn ghost" disabled={pageSafe === 0} onClick={() => setPage(pageSafe - 1)}>‹ Prev</button>
           <span className="meta" style={{ fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1 }}>
             PAGE {pageSafe + 1}/{pages}

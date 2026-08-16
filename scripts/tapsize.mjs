@@ -45,6 +45,13 @@ const FLOOR = [
   // centre to centre vertically, so growing the hit area to 44px would overlap
   // the neighbour's and turn a tap into a coin flip between two shirts
   { cls: 'form-chip', min: 36, why: 'fifteen chips on one half-pitch; 44px hit areas would overlap the closest pairs' },
+  // measured by scripts/geosweep.mjs on the mentoring picker, which is the first
+  // harness ever to look at the Training screen: an ::after expander on a chip
+  // in a 7px-gapped wrapping row buys ~3.5px, not 14, because every neighbour
+  // has one too and they meet in the middle of the gap. Reach was 34px. So the
+  // box carries the floor instead, and 36 is the same number the two chip
+  // families above settled on for the same reason.
+  { cls: 'chip', min: 36, why: 'wrapping rows with a 7px gap; a 44px expander steals the neighbouring chip taps' },
 ]
 
 const server = await startPreview('4196', 3000)
