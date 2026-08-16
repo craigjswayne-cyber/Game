@@ -50,6 +50,21 @@ export default function NewGame() {
 
   const canNext = step === 0 ? leagueIdx != null : step === 1 ? clubId != null : step === 2 ? name.trim().length > 0 : true
 
+  /* A GREYED BUTTON HAS TO SAY WHAT IT WANTS.
+   *
+   * Found by scripts/strangerpath.mjs, which walks the new-career path pressing
+   * only the most obvious control on each screen and reports every point a
+   * stranger would stall. On all three gated steps the forward button was
+   * `disabled` with no title, no label and no message anywhere on the screen -
+   * so a new player who scrolled past the name field met a dead Confirm on step
+   * 3 of 4 with nothing telling them why. A gate is fine. A silent gate is
+   * indistinguishable from a frozen game, and this one sits in the first minute
+   * of the first session. */
+  const needed = canNext ? null
+    : step === 0 ? 'Pick a competition to carry on.'
+    : step === 1 ? 'Pick the club you want to manage.'
+    : 'Enter your name to carry on.'
+
   const next = () => {
     if (step < 3) { setStep(step + 1); return }
     if (!club) return
@@ -264,9 +279,11 @@ export default function NewGame() {
         )}
       </main>
 
-      <div className="action-bar">
+      <div className="action-bar wiz-bar">
+        {needed && <div className="wiz-need">{needed}</div>}
         <button className="btn ghost" onClick={prev}>{step === 0 ? 'Main Menu' : 'Back'}</button>
-        <button className="btn gold" style={{ flex: 1.6, fontSize: 15 }} disabled={!canNext} onClick={next}>
+        <button className="btn gold" style={{ flex: 1.6, fontSize: 15 }} disabled={!canNext} onClick={next}
+          title={needed ?? undefined}>
           {step === 3 ? '▸ Start Career' : 'Confirm'}
         </button>
       </div>

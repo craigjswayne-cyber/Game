@@ -3299,3 +3299,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
  * scripts/tapsize.mjs and scripts/geosweep.mjs, because a floor known to one
  * probe and not the other is how the next person gets a mystery failure. */
 button.chip { min-height: 36px; display: inline-flex; align-items: center; }
+
+/* ---- the new-career wizard's gate says what it wants ---------------------
+   Found by scripts/strangerpath.mjs. All three gated steps disabled Confirm
+   with no explanation anywhere on the screen, so a new player who scrolled past
+   the name field met a dead button on step 3 of 4. The line wraps to its own
+   full-width row above the buttons; .content already clears 150px for this bar,
+   which was 64px and is now about 86px. */
+.wiz-bar { flex-wrap: wrap; }
+.wiz-need {
+  flex: 1 0 100%;
+  font-size: 12px; font-weight: 600; color: var(--brand-800);
+  text-align: center; margin-bottom: 2px;
+}
+.app.night .wiz-need { color: var(--gold); }
