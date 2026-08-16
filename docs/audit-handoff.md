@@ -131,3 +131,55 @@ looked at." The audit prompt is in `docs/release-audit-prompt.md`.
 - Deploy verification: match the SHA. `list_workflow_runs` with a branch filter
   returned runs from months ago that said "success", which would have been
   reported as a green deploy of tonight's build.
+
+## Two feature requests from the user, in priority order
+
+### 1. Continue should serve the desk (asked twice now)
+
+> "when I click continue it doesnt just continue through all unread message and
+> force me to respond to press enquiries etc. this should be the central home
+> where the game communicates everything and everything should be answered, read
+> between games."
+
+This is the same complaint recorded at season.ts ~2617 ("press questions should
+be forced to be cleared before each next match"), where the fix was judged too
+large: "The hard continue-gate is a bigger rework of every walk flow; what ships
+now is the honest half." What shipped was expiry - unanswered questions do not
+follow you into the next week, three-week-old stories get filed - which treats
+the pile growing and not the actual complaint, which is that the game never makes
+you answer anything.
+
+The precedent exists: a transfer bid genuinely blocks Continue (10E). The
+mechanism is there; it has never been applied to press or news.
+
+Why it was deferred is a real reason, not an excuse: Continue has several jobs -
+advance a day, jump to matchday, step the wizard, handle the Annual - and a gate
+has to be right in all of them or you ship a game that looks frozen. That exact
+bug happened this session (Continue visible but dead on the Annual, soakui hung
+on it). So: one gate, evaluated in one place, with a probe that walks every
+Continue path including the Annual and the wizard.
+
+### 2. The board asks what you expect, and it costs you (partly built)
+
+> "think they'll win the league? they get a bit more money but they best win or
+> the board will be nervous about their budget. same goes if a manager picks a
+> top team and selects fight bravely against relegation then it should be showing
+> his lack of expectation and the squad should be more doubtful of their manager."
+
+The pressure half EXISTS (25C): a week-2 press question sets `state.stance` to
+high / board / safe, and `boardReaction` reads it on every result all season.
+Options carry flat morale effects of +0.5 / +0.1 / -0.2.
+
+Two gaps, both named by the user:
+
+  NO MONEY. Aiming high buys pressure and nothing else. It should come with a
+  budget bump, and the board's patience already shortens to pay for it. Measure
+  this one: a budget bump with no matching cost is exactly the free lunch the
+  kicking dial was, and dialweight cannot currently resolve effects that small.
+
+  THE SQUAD REACTION IS FLAT. -0.2 whether you are at Northampton or a promoted
+  side. It should scale with the gap between what you promised and what the
+  club's stature implies, so talking it down at a big club reads as a manager who
+  does not believe in them, and the same words at a newly-promoted club cost
+  nothing. That turns a three-way choice into a read on your own situation, which
+  is the shape that makes the referee/physicality decision work.
