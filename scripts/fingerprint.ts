@@ -190,10 +190,37 @@ const EXPECTED: string[] = [
   // fixture pairings included. Not an engine change: the four-seed band check
   // read 53.7-54.7 points against the historical 52.5-55.3, and disttest sits
   // at 54.0 points, 6.31 tries, 56% home, 1.6% draws.
-  'gloucester 57-38 exeter',
+  //
+  // Rebaselined by the release audit's Pass 2, and this one is two deliberate
+  // mechanical changes in the match engine:
+  //
+  //   KICKING PAYS FOR ITS TERRITORY. It was the only one of the six tactical
+  //   dials with a gain and no cost - style gives up scrum, tempo gives up
+  //   defence, aggression gives up penalties, and kicking gave up nothing - so
+  //   kick-heavy was a free lunch worth eleven league points a season, measured.
+  //   It now costs attack (0.035) and breakdown (0.02), which turns it into a
+  //   trade: 2.54 points a match against the 4.0 free-lunch ceiling.
+  //
+  //   AGGRESSION READS THE REFEREE. Its gain and cost both grew (breakdown 0.06
+  //   -> 0.09, penalties 0.20 -> 0.30, cards 0.006 -> 0.009) and the penalty
+  //   price now scales with the whistle, so physicality is worth +2.67 points a
+  //   match in front of a lenient referee and -1.63 in front of a fussy one.
+  //   Before this it was worth nothing at all in any circumstance.
+  //
+  // Both are mean-neutral by construction and by measurement: f(50) is zero on
+  // every term, philosophy.ts mirrors each dial pair about 50, and the panel's
+  // tolerances mean exactly 1.0. Verified on FOUR seeds with the new
+  // scripts/bandcheck.ts rather than on disttest's single world - 54.2 -> 54.4
+  // points a game, 6.39 -> 6.41 tries, 1.9% -> 2.1% draws, 7.9% -> 7.4%
+  // blowouts, home advantage 55.6% -> 53.7%. Every band still inside tolerance.
+  //
+  // Worth recording that only two of the six results below moved. The streams
+  // stay aligned through four of them, which is what a small, symmetric change
+  // to two unit multipliers should look like.
+  'gloucester 46-24 exeter',
   'bath 27-37 sale',
   'northampton 9-24 leicester',
-  'newcastle 9-14 saracens',
+  'newcastle 9-17 saracens',
   'harlequins 41-22 bristol',
   'sale 30-16 gloucester',
 ]
