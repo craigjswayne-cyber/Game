@@ -57,6 +57,24 @@ import { PREM_2526 } from './prem2526'
 // game will actually simulate.
 
 export const VERIFIED_CLUB: Record<string, string> = {
+  // ---- the last two genuine double-listings (release audit) ---------------
+  //
+  // dataaudit's ratchet had been red at 78 against a budget of 76, and the
+  // interesting part was what the 78 turned out to be. Comparing each collision
+  // on POSITION AND AGE rather than on the name alone splits them cleanly: 22 are
+  // two different men who happen to share a name - a winger of 26 and a lock of
+  // 30 both called Alex Hughes, a Cardiff centre and a Blackheath tighthead both
+  // called Ben Thomas - and exactly two are one man listed at two clubs.
+  //
+  // Which club, decided from the files rather than from memory: in both cases the
+  // two listings differ by a year of age, and the older listing is the more
+  // recently compiled squad, so it is the club he moved TO. That is a signal
+  // inside the data itself, which is worth more here than my recollection of the
+  // 2025-26 French windows - and for Sanconnie the two agree anyway, Montauban
+  // having come up to the Top 14 for this season.
+  'bruce devaux': 'perpignan',
+  'fabien sanconnie': 'montauban',
+
   // Back at the Hurricanes for 2025-26 after his season-long Leinster
   // sabbatical ended with the 2024-25 URC campaign; re-signed to 2028.
   'jordie barrett': 'hurricanes',
