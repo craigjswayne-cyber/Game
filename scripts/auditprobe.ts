@@ -53,8 +53,20 @@ const freshBothSquads = (g: GameState, homeId: string, awayId: string) => {
         if (e.type === 'TRY') {
           tries++
           if (e.min > 60) lateTries++
+          // THE BIN IS [from, from+10), NOT (from, from+10].
+          //
+          // The engine sets yellowUntil = min + 10 and holds a man off while
+          // `yellowUntil > min`, so he is back ON at exactly from+10 - ten
+          // minutes served. This check used `<= b.from + 10` and so counted his
+          // first legal minute back as a score from inside the bin.
+          //
+          // It needed a try at precisely from+10, by exactly the man who had been
+          // binned, which is why it sat undetected until a card-rate change moved
+          // the streams: 1 violation in 150 matches. The engine was right and the
+          // probe was wrong, which is worth stating plainly because this one read
+          // as a correctness bug in the match engine and was reported as such.
           if (e.playerId != null &&
-              binned.some(b => b.pid === e.playerId && b.teamId === e.teamId && e.min > b.from && e.min <= b.from + 10)) {
+              binned.some(b => b.pid === e.playerId && b.teamId === e.teamId && e.min > b.from && e.min < b.from + 10)) {
             binViolations++
           }
         }
