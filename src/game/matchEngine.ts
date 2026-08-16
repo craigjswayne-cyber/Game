@@ -1722,7 +1722,7 @@ function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) 
     side.onPitch.delete(outId)
     side.onPitch.add(best.id)
     side.ratings.set(best.id, 6)
-    side.energy.set(best.id, Math.max(60, state.players[best.id]?.cond ?? 85))
+    side.energy.set(best.id, benchTank(state.players[best.id]))
     const benchSlot = side.lineup.indexOf(best.id)
     side.lineup[slot] = best.id
     if (benchSlot >= 0) side.lineup[benchSlot] = outId
@@ -1765,6 +1765,41 @@ function applyFinishers(state: GameState, ctx: LiveCtx, side: SideCtx, min: numb
   }
 }
 
+/**
+ * ---- THE TANK A REPLACEMENT CARRIES ON ----
+ *
+ * User: "a player who had low energy before the game who was on the bench
+ * suddenly had 100% when coming on from the bench."
+ *
+ * SIX places put a man on the pitch - the AI coach's rotation, an injury
+ * replacement, an HIA, the manager's own substitution, a positional swap and a
+ * reversal - and five of them wrote `Math.max(60, cond)`. The sixth was not a
+ * substitution site at all: applyBrief's 'impact' case ran immediately
+ * afterwards and wrote a flat `100`, wiping the figure the substitution had
+ * just worked out. A man at 45% came on with a full tank because of what his
+ * bench seat had been told to do.
+ *
+ * The second half of that bug is the more interesting one, and it is why this
+ * is a bonus rather than a set: writing 100 absolute REWARDED EXHAUSTION. A
+ * fresh replacement on 95 gained 5; a spent one floored at 60 gained 40. The
+ * optimal play was to brief your most knackered forward as the impact man,
+ * which is the opposite of what a bench is for.
+ *
+ * So: one function decides what a replacement is worth, every site calls it,
+ * and a brief adds a bounded top-up on TOP of it instead of replacing it.
+ *
+ * The 60 floor is deliberate and stays: a replacement has spent the hour
+ * sitting down, so he is fresher than his training-ground condition says. It
+ * is a floor on the tank he brings, not a claim that he is fit.
+ */
+function benchTank(p: Player | null | undefined): number {
+  return Math.max(60, Math.min(100, p?.cond ?? 85))
+}
+
+/** What a bench brief adds to that tank. Bounded, and applied to whatever the
+ *  man actually had, so it can never again be worth more to the tired. */
+const IMPACT_TOPUP = 8
+
 /** What the man was told as he pulled the shirt on (F4).
  *
  *  Capped at three briefed replacements a side: eight stacking instructions
@@ -1782,7 +1817,8 @@ function applyBrief(state: GameState, side: SideCtx, inId: number): string | nul
     case 'impact':
       layer(side, 'attack', 1.025)
       layer(side, 'defence', 0.99)
-      side.energy.set(inId, 100)
+      // a top-up on what he brought, never a reset to full (see benchTank)
+      side.energy.set(inId, Math.min(100, (side.energy.get(inId) ?? benchTank(state.players[inId])) + IMPACT_TOPUP))
       return 'He is on to go through them.'
     case 'shore':
       layer(side, 'defence', 1.025)
@@ -2028,7 +2064,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           if (sub) {
             side.onPitch.add(sub.id)
             side.ratings.set(sub.id, 6)
-            side.energy.set(sub.id, Math.max(60, sub.cond))
+            side.energy.set(sub.id, benchTank(sub))
             const slot = side.lineup.indexOf(p.id)
             const bSlot = side.lineup.indexOf(sub.id)
             if (slot >= 0 && slot < 15) {
@@ -2074,7 +2110,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         side.onPitch.delete(p.id)
         side.onPitch.add(sub.id)
         side.ratings.set(sub.id, 6)
-        side.energy.set(sub.id, Math.max(60, sub.cond))
+        side.energy.set(sub.id, benchTank(sub))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
         pushEvent(state, ctx, min, 'INJ', side, `${p.name} is led away for a Head Injury Assessment - ${sub.name} on while the doctors do their work.`, p.id)
       }
@@ -2342,7 +2378,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   mine.onPitch.delete(outId)
   mine.onPitch.add(inId)
   if (!mine.ratings.has(inId)) mine.ratings.set(inId, 6)
-  mine.energy.set(inId, Math.max(60, pin.cond))
+  mine.energy.set(inId, benchTank(pin))
   ctx.subsUsed += 1
   recomputeSideUnits(state, ctx, mine)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
@@ -2390,7 +2426,7 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   mine.ratings.delete(onId)
   mine.energy.delete(onId)
   mine.ratings.set(inId, 6)
-  mine.energy.set(inId, Math.max(60, pin.cond))
+  mine.energy.set(inId, benchTank(pin))
   recomputeSideUnits(state, ctx, mine)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   // A better cover pick can undo the shortage the assistant walked into, so the

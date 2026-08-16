@@ -558,10 +558,19 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 {floorPrice(game, p) < ask - 50_000 && (
                   <div className="meta muted">They may go as low as {fmtMoney(floorPrice(game, p))}.</div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 0' }}>
+                {/* THE STEPPER IS A GRID, NOT A ROW (user, on a 412px phone:
+                    "the reduce or plus 500 go off the screen and dont fit in
+                    the box"). Five items on one nowrap flex line - two minus
+                    buttons, the fee, two plus buttons - measured 398px of
+                    content inside a 336px card, so -500k rendered at x=-19 and
+                    +500k ran off the right. The fee gets its own line, where it
+                    wants to be big anyway, and the four steps share four equal
+                    columns that cannot outgrow the card. scripts/bidprobe.mjs
+                    measures it at 360, the narrowest phone supported. */}
+                <div className="bid-step">
+                  <b className="bid-amt">{fmtMoney(bid)}</b>
                   <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 500_000))}>−500k</button>
                   <button className="btn ghost" onClick={() => setBid(Math.max(100_000, bid - 100_000))}>−100k</button>
-                  <b style={{ minWidth: 88, textAlign: 'center', fontSize: 16 }}>{fmtMoney(bid)}</b>
                   <button className="btn ghost" onClick={() => setBid(bid + 100_000)}>+100k</button>
                   <button className="btn ghost" onClick={() => setBid(bid + 500_000)}>+500k</button>
                 </div>
