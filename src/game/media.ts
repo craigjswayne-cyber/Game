@@ -1,5 +1,5 @@
 import type { GameState, OfficeTopic, Player, PressItem } from './model'
-import { SEASON_WEEKS, formGuide, logDecision, poss } from './model'
+import { SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
@@ -102,6 +102,18 @@ export function generatePress(state: GameState, rng: Rng) {
   if (state.week === 2 && !state.press.some(p => p.season === state.season && p.options.some(o => o.stance))) {
     const pred = state.preds?.[state.userClubId]
     const predWord = pred ? `The pundits have you ${pred}${pred === 1 ? 'st' : pred === 2 ? 'nd' : pred === 3 ? 'rd' : 'th'}.` : 'The pundits are split on you.'
+    // Stature: 1 = title favourite, 0 = wooden-spoon pick. The squad's read on
+    // each answer scales with it (user: "if a manager picks a top team and
+    // selects fight bravely against relegation then... the squad should be
+    // more doubtful of their manager"). No prediction reads as mid-table.
+    const leagueN = state.comps[club.leagueId]?.teamIds.length ?? 10
+    const stature = pred != null && leagueN > 1 ? clamp((leagueN - pred) / (leagueN - 1), 0, 1) : 0.5
+    // The war chest (user: "they get a bit more money but they best win or the
+    // board will be nervous about their budget"). Released the moment the
+    // manager aims high; the rollover claws it back with interest if the side
+    // finishes no better than the pundits said - see rebuildSeason.
+    const fund = Math.min(400_000, Math.max(100_000, Math.round((club.budget * 0.12) / 50_000) * 50_000))
+    const round1 = (x: number) => Math.round(x * 10) / 10
     const item = mk(state,
       voice(21, [
         `Season launch day, and the room wants a number. ${predWord} Where are you telling this club it is going?`,
@@ -109,16 +121,21 @@ export function generatePress(state: GameState, rng: Rng) {
       ]),
       undefined, [
         {
-          label: `'Judge us in May - aim high'`, morale: 0.5, board: 0.3, stance: 'high',
-          reaction: `The headline writes itself and the dressing room walks taller. From here every win is proof and every defeat is a broken promise: the boardroom needle will swing hard, both ways, all season.`,
+          label: `'Judge us in May - aim high' (+${fmtMoney(fund)} war chest)`,
+          morale: round1(0.2 + 0.4 * (1 - stature)), board: 0.3, stance: 'high', fund,
+          reaction: `The headline writes itself and the board puts ${fmtMoney(fund)} behind it - beat the pundits' number or that money comes back out of next summer's budget, with interest. ${stature < 0.45
+            ? 'Nobody rated this squad, and the dressing room walks a foot taller for hearing a manager who does.'
+            : 'The dressing room nods along - a club this size expects the talk.'} From here every win is proof and every defeat is a broken promise: the boardroom needle will swing hard, both ways, all season.`,
         },
         {
           label: `'The board's targets are fair'`, morale: 0.1, board: 0.2, stance: 'board',
           reaction: `Steady. You and the board are reading from the same page, and results will be judged the way they always were.`,
         },
         {
-          label: `'Quiet season - heads down'`, morale: -0.2, board: 0, stance: 'safe',
-          reaction: `You talk the year down to take the heat off the group. The boardroom needle is muted both ways: defeats cost less, but so does winning - credit is thin for a man who promised nothing.`,
+          label: `'Quiet season - heads down'`, morale: round1(-0.7 * stature), board: 0, stance: 'safe',
+          reaction: `You talk the year down to take the heat off the group. The boardroom needle is muted both ways: defeats cost less, but so does winning - credit is thin for a man who promised nothing.${stature > 0.55
+            ? ` And at a club the pundits fancy, the squad hears something else in it: a manager who does not believe in them.`
+            : ''}`,
         },
       ], rng)
     item.outlet = OFFICE_OUTLET
@@ -774,8 +791,24 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   // boardReaction reads it on every result
   if (opt.stance) {
     state.stance = opt.stance
+    const c = state.clubs[state.userClubId]
+    // the war chest lands the moment the words are out - and the rollover
+    // remembers exactly how much the promise was worth
+    if (opt.fund) {
+      c.budget += opt.fund
+      state.stanceFund = opt.fund
+    }
+    // the whole room heard the launch speech. The option's morale figure was
+    // computed against the club's stature when the question was built, and
+    // this item has no playerId, so the per-player branch above never fires -
+    // without this loop the squad reaction is a printed number that moves
+    // nobody, which is exactly what it was for two versions.
+    for (const id of c.players) {
+      const p = state.players[id]
+      if (p) p.morale = clamp(p.morale + opt.morale, 1, 10)
+    }
     logDecision(state,
-      opt.stance === 'high' ? 'Set the bar high at the season launch: judge us in May.'
+      opt.stance === 'high' ? `Set the bar high at the season launch: judge us in May.${opt.fund ? ` The board released a ${fmtMoney(opt.fund)} war chest.` : ''}`
         : opt.stance === 'safe' ? 'Talked the season down at the launch: heads down, no promises.'
         : "Backed the board's targets at the season launch.", opt.stance !== 'safe')
   }
