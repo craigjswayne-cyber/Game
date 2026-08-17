@@ -1043,7 +1043,16 @@ export function rebuildSeason(state: GameState) {
     }
   }
 
-  // board verdict on the season vs their stated objective
+  // board verdict on the season vs their stated objective. The final league
+  // position, the title and the objective money are CAPTURED here and settled
+  // after the budget refresh below: club.budget is assigned from scratch down
+  // there, so any money added to it at this point in the function is silently
+  // wiped. The "+£250k budget" this verdict prints fell into exactly that
+  // hole for two versions - the favour (boardOwed) was the only part of the
+  // reward that ever arrived.
+  let userFinishPos = 0
+  let userWonLeague = false
+  let objBonus = 0
   if (!state.unemployed) {
     const club = state.clubs[state.userClubId]
     const comp = state.comps[club.leagueId]
@@ -1052,6 +1061,8 @@ export function rebuildSeason(state: GameState) {
       state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos })
       const obj = boardObjective(club.rep)
       const wonLeague = comp.champion === club.id
+      userFinishPos = pos
+      userWonLeague = wonLeague
       const met = wonLeague || (pos > 0 && pos <= obj.pos)
       club.boardConfidence = clamp(club.boardConfidence + (wonLeague ? 25 : met ? 12 : -14), 5, 100)
       // secondary objectives: side quests with real consequences
@@ -1061,7 +1072,7 @@ export function rebuildSeason(state: GameState) {
         if (!def || !def.applies(state)) continue
         const ok = def.met(state)
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
-        if (ok) { club.budget += 250_000; state.boardOwed = true }
+        if (ok) { objBonus += 250_000; state.boardOwed = true }
         sideLines.push(`${ok ? '✅' : '❌'} ${def.text(state)}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
       }
       state.news.push({
@@ -1504,6 +1515,47 @@ export function rebuildSeason(state: GameState) {
     // retired - is exactly the case the tidy-up was built for.
     club.tactic.userPicked = false
   }
+
+  // Money the board promised the manager is settled HERE, after the refresh
+  // above has assigned every budget from scratch - earlier in this function it
+  // would be wiped, which is the hole the objective bonus sat in for two
+  // versions (see the verdict block).
+  if (!state.unemployed) {
+    const club = state.clubs[state.userClubId]
+    if (objBonus > 0) club.budget += objBonus
+    // THE AIM-HIGH RECKONING (user: "they get a bit more money but they best
+    // win or the board will be nervous about their budget"). The war chest was
+    // an advance against a promise to beat the pundits' number. Beat it, or
+    // win the league outright, and the advance was earned. Miss it and next
+    // season's budget gives the money back with interest: the interest is what
+    // makes taking the cheque every summer a bet rather than a salary, and the
+    // rate is set by measurement (scripts/stancecheck.ts), not by argument.
+    if (state.stance === 'high' && state.stanceFund) {
+      const pred = state.preds?.[club.id]
+      const met = userWonLeague || (pred != null && userFinishPos > 0 && userFinishPos < pred)
+      if (met) {
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
+          subject: `💷 The war chest is yours to keep`,
+          body: `You told the world to judge you in May, and May agreed. The ${fmtMoney(state.stanceFund)} the board put behind the promise stays spent with their blessing, and the chairman is already quoting you in the season-ticket letter.`,
+        })
+      } else if (pred != null) {
+        // The interest rate is measured, not argued (scripts/stancecheck.ts,
+        // 10 paired careers x 3 seasons): a strict beat-the-pundits promise is
+        // missed 57% of the time, so 1.75x puts the expected repayment level
+        // with the advance and always aiming high is a bet, not a salary. At
+        // 2x the high road taxed a career 100k a season; at 1.2x it paid 173k
+        // a season - both free lunches, one in each direction.
+        const claw = Math.round((state.stanceFund * 1.75) / 50_000) * 50_000
+        club.budget = Math.max(200_000, club.budget - claw)
+        state.news.push({
+          id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
+          subject: `💷 The board recalls the war chest`,
+          body: `Last summer you aimed high and the board paid for the privilege: a ${fmtMoney(state.stanceFund)} advance against a promise to beat the pundits. The pundits said ${ordinal(pred)}; you finished ${ordinal(userFinishPos)}. The accountants have taken ${fmtMoney(claw)} off this season's budget - the advance, plus interest for the nervousness. Your budget stands at ${fmtMoney(club.budget)}.`,
+        })
+      }
+    }
+  }
   ensureCaptains(state)
 
   // loan-ins go home to their parent clubs
@@ -1528,8 +1580,10 @@ export function rebuildSeason(state: GameState) {
   // the achievement ledger belongs to the objectives it tracked
   state.objDone = []
   // last season's stance died with last season - the launch decision comes
-  // round again in week 2
+  // round again in week 2, and the reckoning above has already settled the
+  // war chest, so the advance dies with it
   state.stance = undefined
+  state.stanceFund = undefined
   // THE ANNUAL (user: "a forced page that says 'ready for a new season?' with
   // records backed up"). The rollover has just filed the honours, the annals
   // and the record books; the stamp routes Continue to the Annual page, whose

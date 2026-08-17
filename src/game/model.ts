@@ -630,6 +630,10 @@ export interface PressOption {
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
   stance?: 'safe' | 'board' | 'high'
+  /** money the board releases the moment this option is chosen (the aim-high
+   *  war chest). Computed when the question is built so the label can print
+   *  the exact figure; applied once in answerPress. */
+  fund?: number
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
@@ -1050,6 +1054,12 @@ export interface GameState {
    *  more boardroom credit and every defeat cost noticeably more; 'safe' mutes
    *  both; unset or 'board' is exactly the old behaviour. */
   stance?: 'safe' | 'board' | 'high'
+  /** the war chest taken by aiming high at the launch (user: "they get a bit
+   *  more money but they best win or the board will be nervous about their
+   *  budget"). Recorded so the rollover knows how much the promise was worth:
+   *  finish no better than the pundits said and next season's budget gives it
+   *  back with interest. Cleared with the stance each summer. */
+  stanceFund?: number
   /** THE ANNUAL (user: "there should be a forced page that says 'ready for a
    *  new season?'"). Stamped by the rollover with the season just finished;
    *  the UI routes Continue to the Annual page until its button clears it.
