@@ -930,7 +930,15 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
 }
 
 function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxId: number, big: boolean): SideCtx {
-  const lineup = lineupFor(state, teamId)
+  // A COPY, not the club's sheet (user: "if you make subs in matches when it
+  // loads back to the first team page - the original starting team should be
+  // selected"). lineupFor hands back club.tactic.lineup BY REFERENCE for the
+  // user's club, and every substitution, injury cover and finisher writes
+  // side.lineup in place - so an afternoon's changes were being written into
+  // the saved team sheet, and the Team screen greeted the manager with his
+  // finishing XV: the winger who came off the bench standing in the flanker's
+  // slot. The match owns its own sheet; the saved one is the manager's.
+  const lineup = lineupFor(state, teamId).slice()
   const ratings = new Map<number, number>()
   const onPitch = new Set<number>()
   const energy = new Map<number, number>()
@@ -1590,11 +1598,24 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
 const RATING_RESULT = 0.45
 const RATING_MARGIN_DIV = 28
 const RATING_MARGIN_CAP = 0.9
+// A HAMMERING OUTRANKS A HANDSOME WIN (user, after the 106-3: "player ratings
+// feel better but still a little way off for a 106-3 game"). The main slope
+// caps at a 25-point margin so a cricket score cannot hand out nines on its
+// own - but capping dead flat meant 31-6 and 106-3 paid every man exactly the
+// same. Past the cap the term keeps climbing at about a fifth of the slope,
+// to its own hard ceiling: the full extra +0.35 arrives by a 53-point margin.
+// Exactly symmetric, so the two sides of any fixture still cancel and the
+// world's mean mark holds by construction; and the team term still never
+// reaches form, so the difficultyprobe lesson stands untouched.
+const RATING_TAIL_DIV = 80
+const RATING_TAIL_CAP = 0.35
 
 export function teamRatingTerm(side: SideCtx, other: SideCtx): number {
   const margin = side.score - other.score
   const result = margin > 0 ? RATING_RESULT : margin < 0 ? -RATING_RESULT : 0
-  const by = Math.max(-RATING_MARGIN_CAP, Math.min(RATING_MARGIN_CAP, margin / RATING_MARGIN_DIV))
+  const a = Math.abs(margin)
+  const tail = Math.min(RATING_TAIL_CAP, Math.max(0, (a - RATING_MARGIN_CAP * RATING_MARGIN_DIV) / RATING_TAIL_DIV))
+  const by = Math.sign(margin) * (Math.min(RATING_MARGIN_CAP, a / RATING_MARGIN_DIV) + tail)
   return result + by
 }
 
@@ -2002,6 +2023,16 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const tired = 1 - (sideEnergy(side) + sideEnergy(opp)) / 200
       if (tired > 0) pTry = Math.min(0.42, pTry * (1 + tired * 0.5))
     }
+    // GARBAGE TIME IS REAL (user, after a 106-3 win at a top club: "this would
+    // be a tight game in real life - the scores feel well off at present").
+    // Past five converted tries of lead nobody keeps the hammer down: the
+    // fly-half kicks the corners, the bench gets its run, the skipper points
+    // at the posts. The damp sits on the LEADING side's try chance only, so a
+    // close game never feels it; the floor keeps a true mismatch a rout
+    // rather than a cricket score. Same rng draws either way - the stream is
+    // untouched, only the threshold the roll is compared against moves.
+    const lead = side.score - opp.score
+    if (lead > 35) pTry *= Math.max(0.3, 35 / lead)
     const r = rng()
     if (r < pTry) {
       scoreTry(state, ctx, side, min)
