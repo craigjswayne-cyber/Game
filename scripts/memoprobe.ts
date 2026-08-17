@@ -44,30 +44,56 @@ const claimed = (n: NewsItem): number | null => {
 //
 // Checked at the moment the memo is written rather than at the end of the run: the
 // table keeps moving, so a position read forty weeks later proves nothing.
+//
+// TWO ASSERTIONS NOW, WHERE ONE USED TO CARRY BOTH JOBS BADLY. The memo stamps
+// the position it quoted (NewsItem.quotedPos, written by boardMemo at the same
+// moment as the prose). The prose is held to the stamp ALWAYS - that is the
+// printing bug the probe was built for, the unsorted-table findIndex. The
+// stamp is held to the sorted table only while the memo's season is still the
+// season on the clock: this probe once went red one week in seven on one seed
+// because it re-derived "the truth" from a table the engine had already
+// rebuilt for a new season, and a yardstick that moves under the measurement
+// is the analystprobe mistake wearing a different shirt.
 {
+  // DETECTED BY ID, NEVER BY COUNT. The old loop fired on memos.length
+  // changing, and the news log is TRIMMED underneath it - so when a trim
+  // removed an old memo, the length moved, the loop re-read a five-week-old
+  // memo and compared it against today's table. That was the entire
+  // "one week in seven on one seed" failure: seed 3's wk33 memo (stamp 6,
+  // table 6, perfectly honest) re-surfaced at wk38 against a table that read
+  // 7. The smell has a name in the handoff: collecting from a log that is
+  // trimmed underneath you (wireprobe).
   let checked = 0
+  let stamped = 0
   let worst: string | null = null
   for (const seed of [3, 7, 11, 19]) {
     const g = newGame('northampton', 'Memo', seed)
-    let seen = 0
+    const seenIds = new Set<number>()
     for (let w = 0; w < 40; w++) {
       processWeekAndAdvance(g)
-      const memos = memosOf(g)
-      if (memos.length === seen) continue
-      seen = memos.length
-      const memo = memos[memos.length - 1]
-      const want = sortTable(g.comps[g.clubs['northampton'].leagueId].table)
-        .findIndex(r => r.teamId === 'northampton') + 1
+      const fresh = memosOf(g).filter(n => !seenIds.has(n.id))
+      for (const n of fresh) seenIds.add(n.id)
+      const memo = fresh[fresh.length - 1]
+      if (!memo) continue
       const got = claimed(memo)
-      if (got != null) {
-        checked++
-        if (got !== want && !worst) worst = `seed ${seed}: memo said ${got}, table says ${want}`
+      if (got == null) continue
+      checked++
+      // the prose says what the memo actually read, every time
+      if (memo.quotedPos != null) {
+        stamped++
+        if (got !== memo.quotedPos && !worst) worst = `seed ${seed}: prose says ${got}, stamp says ${memo.quotedPos}`
+      } else if (!worst) worst = `seed ${seed} wk${memo.week}: memo printed a position but carried no stamp`
+      // and the stamp told the truth about the table it could see
+      if (memo.season === g.season) {
+        const want = sortTable(g.comps[g.clubs['northampton'].leagueId].table)
+          .findIndex(r => r.teamId === 'northampton') + 1
+        if (memo.quotedPos !== want && !worst) worst = `seed ${seed} wk${memo.week}: stamp ${memo.quotedPos}, table says ${want}`
       }
     }
   }
-  console.log(`  ${checked} memo positions checked across 4 saves`)
+  console.log(`  ${checked} memo positions checked across 4 saves (${stamped} stamped)`)
   ok(checked >= 12, `enough memos to be worth checking (${checked})`)
-  ok(!worst, `every memo's league position matches the sorted table${worst ? ` - ${worst}` : ''}`)
+  ok(!worst, `every memo's league position is honest${worst ? ` - ${worst}` : ''}`)
 }
 
 // ---- every number in the prose is a whole number ---------------------------
