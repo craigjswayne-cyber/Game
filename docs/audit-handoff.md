@@ -1,249 +1,149 @@
 # Release audit: where it got to, and what to do next
 
-Written at the end of the audit session that shipped `0bdf344`. Read this before
-picking up the remaining work; it will save you rediscovering the same things.
+Last updated at the end of the session that shipped the 106-3 batch (subs
+sheet, garbage time, rating tail, the war chest, memoprobe's root cause and
+the CRN dialweight). Read this before picking up the remaining work.
 
-## The headline finding
+## The headline lesson, still undefeated
 
-**Seven suite failures were investigated. Seven were the probe. Zero were the
-engine.**
+**Treat a red probe as a claim about the probe until proven otherwise.** The
+score now stands at eight probe bugs to one engine character (the sin-bin
+`<=`). The newest entry is the best one: memoprobe's "one week in seven on
+one seed" was the probe detecting memos BY COUNT while the news log was
+trimmed underneath it - a trim moved the length, the probe re-read a
+five-week-old memo against today's table, and the memo had been honest all
+along. The stamp built to test the previous hypothesis (quotedPos on the
+news item) disproved that hypothesis in one run. Instrument before you
+diagnose; the instrument will usually convict the yardstick.
 
-| probe | claimed | actually |
-|---|---|---|
-| auditprobe | a player scored from inside the sin bin | bin is `[from, from+10)`, the check used `<=`, so it counted his first legal minute back |
-| benchprobe | a bomb squad pays out while sitting | an injury put one man on; the payout is proportional and was exactly right |
-| dataaudit | 78 duplicate players | 37 pairs of different men sharing a name, 2 genuine double-listings |
-| analystprobe | the analyst is 18 points more accurate than advertised | 39 draws against a +/-18 band; the roll is 57.97% over 80,000 draws |
-| dialweight (v1) | kicking worth +11 league points | league points is a step function; the estimator's error bar was bigger than most effects |
-| wireprobe | (earlier) three seasons of news | the log is trimmed weekly, so it read 34 weeks |
-| geosweep (v1) | 26 sideways overflows | all 26 were deliberate swipeable tab strips |
-
-The sin-bin one was escalated to the user as a release blocker. It was one
-character. **Treat a red probe as a claim about the probe until proven
-otherwise**, especially one that goes red after a deliberate engine change.
-
-The tell in every case: a number moved that could not have moved, or a failure
-rate too low to be a broken invariant.
+The tells, all seen in the wild: a number that moved when it could not have,
+a failure rate too low for a broken invariant, a yardstick snapshotted once
+and compared against many samples, a fixed band with no relation to the
+sample's noise floor, detection by aggregate (length, count) over a log that
+is trimmed or resampled, boundary `<=` against `<`.
 
 ## Current state
 
-- `main` = `713f191`, deployed to Pages, verified green BY SHA.
-- Full suite passes 118, 0 failures (default tier). `soakui` reads five of
-  five (1885 taps against a 1654-tap no-gate baseline). `bash scripts/suite.sh all`
-  adds the long tier - note the positional arg, not an env var.
-- `memoprobe` and `dialweight` BOTH READ GREEN NOW, AND THAT IS NOT A FIX.
-  Neither was touched. The rating change (f7ad9da) moved form, which moved
-  results, which reshuffled both probes' samples. dialweight's documented
-  problem is that it cannot resolve effects below its own noise floor, and a
-  green run is not evidence that it can; memoprobe failed one week in seven on
-  one seed, so a clean pass is roughly what chance predicts. Treat Job 1 and
-  Job 2 below as still open. If either goes red again, it has not regressed -
-  it has been resampled.
+- All work committed on claude/rugby-manager-mobile-app-rk7yz1-m54m3g;
+  merge to main and Pages deploy verified BY SHA (see the standing rules -
+  a branch-filtered workflow query returns months-old greens).
+- Suite: full `bash scripts/suite.sh all` run this session - see the session
+  log for the verdict. New probes in the engine tier: sheetlock, blowprobe,
+  stanceprobe. stancecheck is a REPORTER (measurement, no verdict).
+- Health numbers moved ON PURPOSE this session: garbage-time compression
+  costs the world ~1.2 pts a game, all of it in already-decided matches.
+  bandcheck pool now reads 53.2 pts (band 52-56), 6.25 tries, 55.2% home,
+  1.7% draws, 6.2% blowouts (was 7.4%). If a future bandcheck reads ~54.4,
+  that is the OLD engine, not a fix.
 
-## Health numbers, four seeds, ~3,900 matches (scripts/bandcheck.ts)
+## What shipped this session, and what it measured
 
-54.4 points a game, 6.41 tries, 53.7% home wins, 2.1% draws, 7.4% blowouts.
-Twenty seasons: save 7.2 -> 8.1MB and flattening, fee medians 2.40 / 3.20 / 2.90
-/ 3.00M by era, user ends on 7.4M against an AI median of 13.7M.
+1. **Subs no longer rewrite the saved XV** (mkSide plays on a copy).
+   lineupFor returns the user sheet by reference; one afternoon rewrote 8 of
+   23 slots on the old engine (sheetlock.ts). This also means instant-result
+   injury covers no longer leak into the sheet - the injured man's shirt is
+   held for him, as lineupFor's repair path always intended.
 
-## Job 1: settle memoprobe (small)
+2. **Garbage-time compression** (stepTick): leading side's open-play try
+   chance damps past +35, floor 0.3, rng stream untouched. Forced mismatch
+   max 101 -> 78, median rout kept; top-v-top distributions identical.
+   Context that matters: headless top-v-top NEVER produced a 60+ margin in
+   425 fixtures - the user's 106-3 at Leinster needed a managed save's
+   stacked advantages. The compression bounds the scoreboard whatever the
+   cause; the cause itself (how big a managed side's edge can compound) has
+   not been separately measured and could be a future pass.
 
-A board memo's league position disagrees with the table, one week in seven.
-Evidence already gathered on seed 3:
+3. **Rating margin tail** (teamRatingTerm): flat cap at margin 25 meant
+   31-6 paid like 106-3; now +0.35 more by margin 53, exactly symmetric,
+   form untouched. 55+ wins bank mean 8.09, floor 6.7, 43% at 8+.
 
-```
-wk10  memo 4 | before 4 | after 4   ok
-wk16  memo 2 | before 3 | after 2   matches after
-wk22  memo 3 | before 3 | after 3   ok
-wk28  memo 5 | before 4 | after 5   matches after
-wk34  memo 4 | before 4 | after 4   ok
-wk39  memo 4 | before 5 | after 5   MATCHES NEITHER
-wk40  memo 4 | before 5 | after 4   matches after
-```
+4. **The war chest** (the user's board-expectations ask, both halves):
+   - 'Judge us in May' releases 12% of budget (100-400k, on the button)
+     against beating the pundits' predicted finish; a miss repays 1.75x out
+     of next summer's refresh. The rate is MEASURED (stancecheck.ts, 16
+     paired careers x 3 seasons): 57% miss rate, net +85k +/- 47k a season,
+     the residual arriving through better finishes (3.23 v 3.75 mean), not
+     the ledger. 2x taxed 100k/season, 1.2x paid 173k - both free lunches.
+   - The squad reaction was DEAD CODE (opt.morale only applies with a
+     playerId). It now lands on every player and scales with stature:
+     safe at a title favourite -0.7, at a wooden-spoon pick 0.0; high +0.2
+     favourite, +0.6 unfancied. Reaction prose says so.
+   - Found underneath: the season review's "+£250k budget" per met
+     objective was WIPED by the budget refresh 400 lines later, every
+     season, for two versions - only the boardOwed favour arrived. Money
+     promises now settle after the refresh (stanceprobe pins the landing).
 
-Six of seven match the end-of-week table, so `boardMemo` normally reads it after
-results settle. The wk39 case matches neither, which means it read the table at
-a moment inside `processWeekAndAdvance` that an outside observer cannot see.
+5. **memoprobe root cause** - see the headline lesson. boardMemo stamps
+   quotedPos; the probe detects by id, holds prose to stamp always, stamp
+   to table same-season.
 
-Next: trace what happens between `boardMemo(state)` (season.ts ~2545) and the
-end of that function. If the table can still move after the memo is written, the
-memo is quoting a real position that later became stale, and the probe should
-capture the position at write time rather than after the call. If nothing moves
-it, it is a genuine bug in the memo.
+6. **dialweight is CRN now**: one canonical career at 50s; per user
+   fixture, the same fixture simmed from the same state and same rng at 10
+   and 90; paired difference. Two clubs (Northampton + the league's most
+   pack-leaning by packTilt, currently Saracens). What it resolved that
+   three reverted calibrations could not:
+   - aggression by referee STRADDLES ZERO: +0.30 lenient / -2.33 fussy.
+   - kicking leans low-end at both shapes (-2.54 +/- 0.86 NOR, -0.92 SAR),
+     inside the 4.0 dominance bar. A real number at last; if it is ever
+     tuned, tune it against THIS harness only.
+   - style/tempo are mean-level while swinging 6-10 |points| an afternoon,
+     and tempo flips sign between clubs - balanced decision dials.
+   - The mean-louder-than-noise assert on style/tempo was REMOVED on
+     purpose: under CRN a balanced dial reads mean-zero while deciding
+     matches. Decoration is caught exactly - all paired diffs zero.
+   Probes that pin seed-specific outcomes (a title, a finish) break when
+   the engine legitimately moves; stanceprobe now FINDS a qualifying seed
+   at runtime instead. Prefer that shape.
 
-Cosmetic either way: a memo saying 4th when you are 5th.
+## Open work, roughly in order
 
-## Job 2: make the dial measurement trustworthy (the important one)
-
-`scripts/dialweight.ts` measures what each tactical slider is worth. It cannot
-currently resolve effects smaller than about two points a match, and that is not
-good enough to say whether the tactics screen is balanced.
-
-The proof it is underpowered: across three runs, `style` - which no edit touched
-- measured **+5.16, then +2.09, then -0.10**. Three calibrations of the
-aggression dial were made against numbers with that much slop before the pattern
-was spotted, and all three were reverted.
-
-What is already known and solid:
-- kicking's free lunch is gone (it now costs attack and breakdown)
-- physicality reads the referee, and the SLOPE is well resolved:
-  +4.34 a match against a lenient whistle, +0.37 against a fussy one, n=741
-
-What is NOT known:
-- how big style and tempo really are. Both measure large at Northampton, but
-  philosophy.ts pairs clubs to squad shape, so "expansive beats forward-led" at a
-  backs club may be a squad read rather than a dominant strategy.
-- whether the physicality split straddles zero (right in one case, wrong in the
-  other) or merely slopes. The probe reports this and deliberately does not
-  assert it.
-
-Two things to do, in order:
-
-1. **More sample.** Currently 8 seeds x 2 seasons per arm = 16 observations.
-   Needs several times that. Consider measuring at match level with paired runs
-   rather than at season level, which would cut variance far more cheaply than
-   simply running more seasons.
-2. **Two contrasting clubs.** Run the same sweep at a forward-heavy club as well
-   as Northampton and assert that no dial wins in the SAME direction at both.
-   That is the real dominant-strategy test and it has never been run.
-
-## A bug class worth knowing: the off-screen reply
-
-Found from live feedback, not from any probe. Four screens shared it.
-
-A button calls an engine function that returns a sentence, and the screen puts
-that sentence in ONE banner at the top of the page. On a desktop-sized page you
-always see it. On a 412x915 phone, scrolled down to the eighth role card, the
-reply renders 786px above your thumb - and if the tap also collapses a list, the
-page jumps and nothing you can see has changed. The manager's report was "no
-matter what I press he won't sign and no reason". There was always a reason.
-
-Two rules came out of it, both applied in `Training.tsx`:
-
-  KEY THE MESSAGE TO THE THING THAT ASKED, not to the page. `useState('')` for a
-  page-wide message is the smell; `useState<{key, text}>` is the fix.
-
-  PUT THE REASON IN FRONT OF THE DECISION, through a predicate BOTH sides read.
-  `appointBlock` / `courseBlock` are read by the row (to write the shortfall and
-  grey the button) and by the engine (to refuse). A row that offers a button and
-  a handler that refuses it is the bug written twice.
-
-`scripts/hireprobe.mjs` guards it, and it measures `getBoundingClientRect`
-distance from the tapped button rather than checking the DOM contains the text -
-which is the only version of the test that would have failed on the old build.
-
-Still to check by the same method: any other screen where a list is long and the
-outcome of a row action is rendered outside that row.
-
-## Job 3: audit the probes themselves
-
-Seven for seven is a pattern. Go through `scripts/` asking of each one: does this
-measure what its name says? Specific smells to look for, all of which were found
-tonight:
-
-- absolute assertions where only a difference is meaningful (benchprobe)
-- boundary conditions at `<=` vs `<` (auditprobe)
-- a yardstick snapshotted once and compared against many samples (analystprobe)
-- a fixed band with no relation to the sample's noise floor (analystprobe,
-  dialweight)
-- collecting from a log that is trimmed underneath you (wireprobe)
-- comparing strings where the thing you care about is identity (dataaudit)
-
-## Job 4: Pass 9 of the audit
-
-Untouched. "What would a hostile reviewer open first, and what has nobody ever
-looked at." The audit prompt is in `docs/release-audit-prompt.md`.
+1. **Pass 9 of the commercial release audit** - untouched.
+   Prompt: docs/release-audit-prompt.md.
+2. **Where does a managed save's edge come from?** The 106-3 needed an
+   effective strength gap headless play never produces between top clubs.
+   Facilities + morale + chem + talks + briefs each measured fine alone;
+   nobody has measured them STACKED against the AI baseline. If the stack
+   is worth more than a rep tier, difficulty reads too easy for an
+   attentive manager. (This is measurement, not a fix - the compression
+   already bounds the scoreboard.)
+3. **Ratings, user's verdict pending**: "feel better but still a little way
+   off" was written before the tail shipped. Wait for live feedback before
+   touching the constants again.
+4. Two design calls that are the USER'S to make, not yours to assume:
+   - every replacement comes on at 60% minimum, making the Medical screen's
+     "under 62%" warning partly untrue for bench players
+   - forwards still rate below backs (21% v 29% rated 7+ post-tail);
+     closing it needs a scrum/breakdown term, and those figures carry the
+     tactical dials, so it could be farmed by a slider. Left deliberately.
 
 ## Conventions worth knowing
 
-- Full suite: `bash scripts/suite.sh all`. Without `all` it silently skips the
-  five long probes, and the skip line is easy to miss.
+- Full suite: `bash scripts/suite.sh all` - POSITIONAL arg. Without `all`
+  it silently skips the five long probes.
 - Never rebuild `dist` or edit `src`/`scripts` while a suite runs.
-- Every fix ships with a probe demonstrated to fail on the old code, via a git
-  worktree at HEAD with `ln -sfn /home/user/Game/node_modules`.
-- Deploy verification: match the SHA. `list_workflow_runs` with a branch filter
-  returned runs from months ago that said "success", which would have been
-  reported as a green deploy of tonight's build.
+- Every fix ships with a probe demonstrated to fail on the old code, via a
+  git worktree at HEAD with `ln -sfn /home/user/Game/node_modules`.
+- Every new dial mean-neutral, verified by MEASUREMENT (stancecheck.ts is
+  the current template: paired careers, same seeds, report the SEM).
+- Deterministic gates use mulberry32 on seed/id hashes, never the shared
+  match rng (dialweight's per-fixture rng is the template).
+- Deploy verification must MATCH THE SHA.
+- No em dashes in game text (scripts/textlint.ts); chat is exempt.
 
-## Two feature requests from the user, in priority order
+## The off-screen reply bug class (from live feedback, still worth hunting)
 
-### 1. Continue should serve the desk (asked twice now)
+A button calls an engine function that returns a sentence, and the screen
+puts that sentence in ONE banner at the top of the page - 786px above the
+thumb that tapped. KEY THE MESSAGE TO THE THING THAT ASKED
+(`useState<{key, text}>`), and PUT THE REASON IN FRONT OF THE DECISION
+through a predicate both the row and the engine read (Training.tsx's
+appointBlock/courseBlock). scripts/hireprobe.mjs guards it by measuring
+getBoundingClientRect distance from the tapped button. Screens with long
+lists whose row actions render outside the row have not all been checked.
 
-> "when I click continue it doesnt just continue through all unread message and
-> force me to respond to press enquiries etc. this should be the central home
-> where the game communicates everything and everything should be answered, read
-> between games."
+## Feature requests on file
 
-This is the same complaint recorded at season.ts ~2617 ("press questions should
-be forced to be cleared before each next match"), where the fix was judged too
-large: "The hard continue-gate is a bigger rework of every walk flow; what ships
-now is the honest half." What shipped was expiry - unanswered questions do not
-follow you into the next week, three-week-old stories get filed - which treats
-the pile growing and not the actual complaint, which is that the game never makes
-you answer anything.
-
-The precedent exists: a transfer bid genuinely blocks Continue (10E). The
-mechanism is there; it has never been applied to press or news.
-
-Why it was deferred is a real reason, not an excuse: Continue has several jobs -
-advance a day, jump to matchday, step the wizard, handle the Annual - and a gate
-has to be right in all of them or you ship a game that looks frozen. That exact
-bug happened this session (Continue visible but dead on the Annual, soakui hung
-on it). So: one gate, evaluated in one place, with a probe that walks every
-Continue path including the Annual and the wizard.
-
-### 2. The board asks what you expect, and it costs you (partly built)
-
-> "think they'll win the league? they get a bit more money but they best win or
-> the board will be nervous about their budget. same goes if a manager picks a
-> top team and selects fight bravely against relegation then it should be showing
-> his lack of expectation and the squad should be more doubtful of their manager."
-
-The pressure half EXISTS (25C): a week-2 press question sets `state.stance` to
-high / board / safe, and `boardReaction` reads it on every result all season.
-Options carry flat morale effects of +0.5 / +0.1 / -0.2.
-
-Two gaps, both named by the user:
-
-  NO MONEY. Aiming high buys pressure and nothing else. It should come with a
-  budget bump, and the board's patience already shortens to pay for it. Measure
-  this one: a budget bump with no matching cost is exactly the free lunch the
-  kicking dial was, and dialweight cannot currently resolve effects that small.
-
-  THE SQUAD REACTION IS FLAT. -0.2 whether you are at Northampton or a promoted
-  side. It should scale with the gap between what you promised and what the
-  club's stature implies, so talking it down at a big club reads as a manager who
-  does not believe in them, and the same words at a newly-promoted club cost
-  nothing. That turns a three-way choice into a read on your own situation, which
-  is the shape that makes the referee/physicality decision work.
-
-## SHIPPED, and the two mistakes it cost to get there
-
-The Continue desk gate is live in `713f191`. `days.deskBlock` says what the desk
-needs; `store.continueWeek` acts on it and the button LABEL draws the same
-predicate, so a gated tap reads "Read (3)" rather than refusing in silence. It
-fires only where the week leaves - into the match, and on the settle - so the
-Monday-to-Friday walk is untouched. Mail is served a story a tap up to
-`MAX_DESK_HOLDS`; press holds once and yields on a second tap.
-
-Two process mistakes are worth more than the feature:
-
-  THE BASELINE CAME THIRD. soakui went red, and two rounds of patching were
-  spent assuming the stall was pre-existing. Running soakui on the build WITHOUT
-  the gate took thirteen minutes and said PASSED, five seasons - so the stall
-  was mine all along. This document's own headline lesson, applied backwards.
-  **When a probe goes red after your change, measure the build without your
-  change before you theorise.**
-
-  THE THEORY WAS WRONG UNTIL IT WAS INSTRUMENTED. The stall was diagnosed as an
-  oscillating unread count. A twenty-line headless reproduction showed the count
-  falling perfectly - 54, 53, 52 - because a season rollover writes FIFTY-FOUR
-  stories in one settle and the gate wanted all of them. Nothing was stuck; the
-  game just wanted 54 taps. The fix is a BUDGET (bounded holds), not a progress
-  check, because a budget terminates whatever the cause is.
-
-And a bug the gate found for free: `.who-chip` (the tappable player names inside
-a news story) had always been 33px against the 44px floor. No probe could see it
-because nothing routed through the reader. Routing Continue through it made
-geosweep find it. Layout probes only see what the walk reaches.
-
+1. **Continue should serve the desk** - shipped (the desk gate, budgeted at
+   MAX_DESK_HOLDS because a rollover writes 54 stories in one settle).
+   Watch for feedback on the gate's feel.
+2. **Board expectations cost money** - shipped this session, see above.
