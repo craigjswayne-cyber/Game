@@ -215,3 +215,51 @@ Two gaps, both named by the user:
   does not believe in them, and the same words at a newly-promoted club cost
   nothing. That turns a three-way choice into a read on your own situation, which
   is the shape that makes the referee/physicality decision work.
+
+## OPEN BUG: the desk gate hangs at season rollover (do not ship as-is)
+
+The Continue desk gate (`days.deskBlock`, `store.continueWeek`) does what the
+user asked - `scripts/deskgate.mjs` reports 7 failures against the build without
+it and none with it - but `scripts/soakui.mjs` will not pass five seasons with it
+in place, and the fault is MINE, measured:
+
+| build | result |
+|---|---|
+| without the gate (502d559) | SOAK UI PASSED, five seasons, 1676 taps |
+| with the gate | STUCK: 60 taps without the week moving, "READ (1)" at s5 wk1 |
+
+The baseline is the important row. It was run only after two rounds of patching
+had already been spent assuming the stall was pre-existing - the exact mistake
+this document warns about two sections above ("treat a red probe as a claim about
+the probe until proven otherwise"), applied in reverse: a red probe was treated
+as a claim about the CODEBASE when it was a claim about my change.
+
+### Why the "no progress" bound did not save it
+
+`Store.lastDeskN` releases the gate when the unread count comes back UNCHANGED.
+That catches a stalled count. It does not catch an OSCILLATING one - if serving
+a story causes another to appear or reappear, the count changes every tap while
+never reaching zero, and the comparison never fires. The two soak runs reported
+`READ (2)` and `READ (1)` at the same week, which is consistent with oscillation
+rather than a stuck value.
+
+Note also why week 1 is where it bites, and why an earlier guess that "the gate
+cannot be involved, day steps are not gated" was wrong: week 1 is pre-season, so
+`nextStep` there is the FRIENDLY - a `match` step - and `deskGates` is true.
+
+### The fix to try, and the order to do it in
+
+1. INSTRUMENT FIRST. Log the unread ids (not just the count) on every gate hold
+   at s5 wk1. The question to answer is whether the same story is served
+   repeatedly, or a new one keeps arriving. Do not patch before that is known;
+   two patches have already been written against a guess.
+2. THEN BOUND BY HOLDS, NOT BY SIZE. Replace the count comparison with a hard
+   budget: the gate may hold at most N times in one week, counted, reset when the
+   week turns. That terminates whatever the cause is, which the size comparison
+   provably does not.
+3. Re-run `node scripts/soakui.mjs` and require five of five before merging. It
+   takes about 13 minutes and it is the only thing that settles it - deskgate
+   passing is necessary and nowhere near sufficient.
+
+The work is on `claude/rugby-manager-mobile-app-rk7yz1` and deliberately NOT on
+main. `main` is at 502d559, which is what is deployed.
