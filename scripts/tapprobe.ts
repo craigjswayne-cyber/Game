@@ -62,9 +62,21 @@ const where = () => {
   for (let i = 0; i < 30; i++) {
     const before = where()
     const navBefore = st.getState().nav.length
+    // A TAP THAT SERVES THE NEXT UNREAD STORY MOVES THE GAME WITHOUT MOVING THE
+    // SCREEN. The desk gate (days.deskBlock) makes Continue the reader's Next
+    // button while the pile lasts, and openInbox on a screen that is already the
+    // inbox changes neither the top screen nor the nav depth - it marks a story
+    // read and advances inboxId. Judging progress by navigation alone counted
+    // four such taps as swallowed and reported a latched guard that was not
+    // latched. What this probe is really defending is "no deliberate tap does
+    // NOTHING", so the reader's own state counts as somewhere to have gone.
+    const mailBefore = st.getState().game?.news.filter(n => !n.read && !n.cleared).length ?? 0
+    const readBefore = st.getState().inboxId
     st.getState().continueWeek()
     taps++
+    const mailAfter = st.getState().game?.news.filter(n => !n.read && !n.cleared).length ?? 0
     const moved = where() !== before || st.getState().nav.length !== navBefore
+      || mailAfter !== mailBefore || st.getState().inboxId !== readBefore
     if (!moved) swallowed++
     // if it handed over to a match, play it out of the way so the walk continues
     const mi = st.getState().nav.findIndex(n => n.screen === 'matchday')

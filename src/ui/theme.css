@@ -3347,3 +3347,12 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   min-width: 0;
   white-space: nowrap;
 }
+
+/* ---- the people chips in a news story are thumb targets -------------------
+   scripts/geosweep.mjs found these at 83x33 against a 44px floor, at all three
+   phone widths. They were always that size; what changed is that the desk gate
+   (days.deskBlock) routes Continue through the news reader, so the sweep now
+   opens a story with a chip row in it and sees them. A pre-existing gap made
+   reachable, not a new one - and a real one, because these chips are how a
+   manager taps from a story to the player it is about. */
+.who-chip { min-height: 44px; }
