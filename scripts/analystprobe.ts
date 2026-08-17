@@ -4,7 +4,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { weekRng } from '../src/game/season'
-import { analystRead, analystSkill, settleAnalyst } from '../src/game/analyst'
+import { analystRead, analystSkill, rollIsRight, settleAnalyst } from '../src/game/analyst'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -34,23 +34,29 @@ if (!r1.claim || !r1.prep) bad('read missing claim or recommendation')
 // 3. accuracy over many weeks lands near the skill number
 let right = 0, n = 0
 let recRight = 0, recWrong = 0
-// FOUR WORLDS, NOT ONE, AND HERE IS WHY THAT MATTERS.
+// THIS TEST HAS NOW BEEN WRONG TWICE, IN THE SAME DIRECTION, ABOUT THE SAME
+// NUMBER - and both times the analyst was calibrated all along.
 //
-// This test used to run a single career and hold ~39 reads to a flat +/-0.18
-// band. A proportion measured over 39 draws has a standard error of about 8
-// points, so the band was barely two standard errors wide and the test was close
-// to a coin flip. It duly failed during the release audit's Pass 2 - one read
-// dropped out of the sample, 29/39 became 29/38, and a marginal ratio tipped
-// over a hard edge.
+// Version 1 held ~39 reads from one career to a flat +/-0.18 band (a coin
+// flip; it duly tipped during Pass 2). Version 2 pooled four careers and held
+// ~170 reads to a 2-SE binomial band - which assumes 170 INDEPENDENT draws,
+// and they are not. The read's roll is hash(seed, week, opponent):
+// deterministic constants. The four worlds are fixed seeds and the schedule
+// comes from newGame, so every run samples the SAME frozen panel, whose
+// realized accuracy is whatever those particular hashes happen to be.
+// Measured across 2,000 synthetic careers, frozen per-career accuracy spans
+// 46% to 70% (p5-p95) around a true 58%. The panel only shifts when an
+// engine change reshuffles careers (a facility upgrade lands a week later, a
+// skill threshold moves), and then the pooled number JUMPS: it went from
+// +5.1 over target to +7.7 - past the 2-SE bar of 7.5 - the week the
+// garbage-time batch shipped, with the roll mechanism untouched.
 //
-// It would have been easy, and wrong, to widen the band until it passed. So the
-// roll was measured directly instead: 80,000 draws of the same hash across 2,000
-// seeds return 57.97% against an intended 58%. The analyst is calibrated. What
-// was broken was the measurement, and the fix for an under-powered measurement
-// is more samples, not a looser bar.
-//
-// Pooled over four careers the sample is ~150 reads, the noise floor halves, and
-// the band can be tightened to 2 SE rather than loosened.
+// So the CALIBRATION assert is now the direct one (block 3b): the roll
+// itself, over 270,000 synthetic triples, a property the engine owns and one
+// that actually converges. The career walk below keeps only a WIDE sanity
+// band whose job is catching inverted wiring (right/wrong swapped reads
+// ~42%, sixteen points off) - because frozen-panel luck legitimately
+// reaches nine.
 let expSum = 0
 const WORLDS: [string, number][] = [
   ['leicester', 909], ['bath', 31], ['toulouse', 8080], ['leinster', 555],
@@ -79,10 +85,28 @@ for (const [wclub, wseed] of WORLDS) {
 const target = expSum / n
 console.log(`accuracy over ${n} reads in ${WORLDS.length} careers: ${((right / n) * 100).toFixed(1)}% (skill those reads were rolled against ${(target * 100).toFixed(1)}%)`)
 if (n < 100) bad(`only ${n} reads across ${WORLDS.length} careers`)
-const seP = Math.sqrt(target * (1 - target) / n)
 const off = Math.abs(right / n - target)
-console.log(`  off by ${(off * 100).toFixed(1)} points, noise floor ${(seP * 100).toFixed(1)} (bar 2 SE = ${(2 * seP * 100).toFixed(1)})`)
-if (off > 2 * seP) bad('accuracy is far from the skill those reads were rolled against')
+console.log(`  off by ${(off * 100).toFixed(1)} points (frozen-panel sanity band 12; calibration is asserted on the roll itself below)`)
+if (off > 0.12) bad('career accuracy is so far from skill the wiring must be inverted')
+
+// 3b. THE CALIBRATION ASSERT: the roll itself is fair. 500 seeds x 45 weeks
+// x 12 opponents = 270,000 triples through the exact function analystRead
+// rolls with. For a given hash this is a CONSTANT, so the band is tight and
+// it moves only if someone moves the mechanism.
+{
+  const OPPS = ['leicester', 'bath', 'toulouse', 'leinster', 'saracens', 'sale',
+    'quins', 'bristol', 'exeter', 'gloucester', 'tigers', 'northampton']
+  const SKILL = 0.58
+  let below = 0, total = 0
+  for (let seed = 1; seed <= 500; seed++) {
+    for (let abs = 1; abs <= 45; abs++) {
+      for (const o of OPPS) { total++; if (rollIsRight(seed, abs, o, SKILL)) below++ }
+    }
+  }
+  const frac = below / total
+  console.log(`the roll, measured directly: ${(frac * 100).toFixed(2)}% right over ${total} triples (intended ${(SKILL * 100).toFixed(0)}%)`)
+  if (Math.abs(frac - SKILL) > 0.01) bad('the roll mechanism itself is off its intended rate')
+}
 if (right === n) bad('every read was right - it is meant to be a judgement, not a certainty')
 console.log(`record followed: right ${recRight}, wrong ${recWrong}`)
 if (recRight + recWrong !== n) bad(`record counted ${recRight + recWrong} of ${n} followed reads`)

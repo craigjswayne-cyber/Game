@@ -1065,6 +1065,12 @@ export interface GameState {
    *  finish no better than the pundits said and next season's budget gives it
    *  back with interest. Cleared with the stance each summer. */
   stanceFund?: number
+  /** absolute week (season * SEASON_WEEKS + week) the LAW WATCH wind-up last
+   *  aired. The freshness gate used to scan state.news for the last airing,
+   *  and the news log is trimmed at 250 items - a busy month pushed the last
+   *  airing out of the window and re-armed the story early; and it compared
+   *  same-season only, so every rollover reset the clock. */
+  lawWatchAt?: number
   /** THE ANNUAL (user: "there should be a forced page that says 'ready for a
    *  new season?'"). Stamped by the rollover with the season just finished;
    *  the UI routes Continue to the Annual page until its button clears it.

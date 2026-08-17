@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import { fmtMoney, formGuide, mgrReputation, poss } from './model'
+import { SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 
@@ -758,8 +758,14 @@ function lawWatch(state: GameState, rng: Rng) {
       `No more draws, ever, says the paper - first score after 80 wins it. The romantics mourn the honourable draw; the broadcasters have already cut a trailer. The league's fixture staff, asked to model the overtime, sent back a single spreadsheet cell reading "no".`],
   ]
   const pick2 = proposals[(state.season * 7 + state.week * 5) % proposals.length]
-  // never twice in quick succession - one wind-up at a time
-  if (state.news.some(n => n.season === state.season && n.subject.startsWith('LAW WATCH') && state.week - n.week < 12)) return
+  // Never twice in quick succession - one wind-up at a time. The clock is a
+  // stamp on state, NOT a scan of state.news: the news log is trimmed at 250
+  // items, so a busy month could push the last airing out of sight and re-arm
+  // the wind-up early - and the old scan compared same-season only, so every
+  // rollover reset the clock entirely. Absolute weeks survive both.
+  const now = state.season * SEASON_WEEKS + state.week
+  if (state.lawWatchAt != null && now - state.lawWatchAt < 12) return
+  state.lawWatchAt = now
   wire(state, pick2[0], pick2[1])
 }
 
