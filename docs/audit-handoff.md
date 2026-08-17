@@ -7,14 +7,27 @@ the CRN dialweight). Read this before picking up the remaining work.
 ## The headline lesson, still undefeated
 
 **Treat a red probe as a claim about the probe until proven otherwise.** The
-score now stands at eight probe bugs to one engine character (the sin-bin
-`<=`). The newest entry is the best one: memoprobe's "one week in seven on
-one seed" was the probe detecting memos BY COUNT while the news log was
-trimmed underneath it - a trim moved the length, the probe re-read a
-five-week-old memo against today's table, and the memo had been honest all
-along. The stamp built to test the previous hypothesis (quotedPos on the
-news item) disproved that hypothesis in one run. Instrument before you
-diagnose; the instrument will usually convict the yardstick.
+score now stands at TEN probe bugs to one engine character (the sin-bin
+`<=`), after this session's full suite returned exactly two failures and
+both were the probe again:
+
+- memoprobe (#8) detected memos BY COUNT while the news log was trimmed
+  underneath it - it re-read a five-week-old memo against today's table.
+  The memo had been honest all along.
+- analystprobe (#9) held a FROZEN panel of hash draws to a 2-SE binomial
+  band that assumes independence. The panel's triples are deterministic
+  constants; frozen per-career accuracy legitimately spans 46-70% around a
+  true 58%. The roll itself, measured directly over 270k triples, reads
+  57.97% - the calibration assert is now that direct measurement
+  (analyst.rollIsRight, exported pure for exactly this).
+- wireprobe (#10) computed absolute weeks with a hardcoded 34-week season
+  in a 45-week world, so a legal 16-week story gap read as 5.
+
+Instrument before you diagnose; the instrument will usually convict the
+yardstick. And the wireprobe dig found a REAL engine bug underneath: the
+LAW WATCH freshness gate scanned the trimmed news log and reset at season
+boundaries - the third trimmed-log gate in one session, now a stamp on
+state (lawWatchAt). Grep for `state.news.some` before writing a fourth.
 
 The tells, all seen in the wild: a number that moved when it could not have,
 a failure rate too low for a broken invariant, a yardstick snapshotted once
@@ -27,9 +40,11 @@ is trimmed or resampled, boundary `<=` against `<`.
 - All work committed on claude/rugby-manager-mobile-app-rk7yz1-m54m3g;
   merge to main and Pages deploy verified BY SHA (see the standing rules -
   a branch-filtered workflow query returns months-old greens).
-- Suite: full `bash scripts/suite.sh all` run this session - see the session
-  log for the verdict. New probes in the engine tier: sheetlock, blowprobe,
-  stanceprobe. stancecheck is a REPORTER (measurement, no verdict).
+- Suite: full `bash scripts/suite.sh all` run this session - 123 PASS with
+  two failures, both probe bugs (#9, #10 above), fixed and re-run green,
+  then the engine fast tier re-run over the follow-up engine touches. New
+  probes in the engine tier: sheetlock, blowprobe, stanceprobe. stancecheck
+  is a REPORTER (measurement, no verdict).
 - Health numbers moved ON PURPOSE this session: garbage-time compression
   costs the world ~1.2 pts a game, all of it in already-decided matches.
   bandcheck pool now reads 53.2 pts (band 52-56), 6.25 tries, 55.2% home,

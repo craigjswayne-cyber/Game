@@ -54,6 +54,15 @@ function hash(seed: number, abs: number, oppId: string): number {
   return (h >>> 0) % 1000
 }
 
+/** The read's roll, as a pure function, so the probe can measure the
+ *  MECHANISM directly instead of holding a frozen career panel to a binomial
+ *  band it never obeyed (the panel's triples are deterministic constants -
+ *  see analystprobe for the whole story). Exactly the computation
+ *  analystRead performs. */
+export function rollIsRight(seed: number, abs: number, oppId: string, skill: number): boolean {
+  return hash(seed, abs, oppId) % 100 < Math.round(skill * 100)
+}
+
 /**
  * File (or fetch) this week's read. Deterministic per (seed, week, opponent):
  * revisiting the screen never rerolls it, and it costs no shared rng.
@@ -68,7 +77,7 @@ export function analystRead(state: GameState, oppId: string): AnalystRead | null
   const xv = lineupFor(state, oppId).slice(0, 15).map(id => id != null ? state.players[id] : null)
   const h = hash(state.seed, abs, oppId)
   const skill = analystSkill(state)
-  const right = h % 100 < Math.round(skill * 100)
+  const right = rollIsRight(state.seed, abs, oppId, skill)
 
   // the true soft spot, by unit strength relative to the rest of their game
   const scores: [AnalystRead['unit'], number][] = [

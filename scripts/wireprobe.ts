@@ -21,6 +21,7 @@
 //     flat sentence is a filler item, not a story somebody screenshots.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
+import { SEASON_WEEKS } from '../src/game/model'
 import type { GameState } from '../src/game/model'
 
 let fails = 0
@@ -31,8 +32,13 @@ const ok = (c: boolean, what: string) => {
 
 const g: GameState = newGame('northampton', 'Wire Probe', 606)
 
-// Absolute week, so a gap that straddles a season rollover is measured honestly.
-const WEEKS_PER = 34
+// Absolute week, so a gap that straddles a season rollover is measured
+// honestly - USING THE REAL SEASON LENGTH. This sat hardcoded at 34 from
+// when seasons were 34 weeks; at 45 weeks every cross-season gap read 11
+// weeks short, and a LAW WATCH pair aired a perfectly legal 16 weeks apart
+// (s1wk44 -> s2wk15) failed the 12-week bar as "5". The yardstick with a
+// stale constant is probe bug number ten.
+const WEEKS_PER = SEASON_WEEKS
 const seen: { key: string; at: number; subject: string; body: string }[] = []
 let seenIds = 0
 
@@ -44,7 +50,14 @@ let seenIds = 0
 // returns nothing forever - the probe silently read only the first 34 weeks
 // and called it three seasons. Ids are monotonic; the cap cannot hide them.
 let lastId = 0
-for (let i = 0; i < WEEKS_PER * 4; i++) {
+// The watch WINDOW stays at the 136 calls every volume floor and the LRU
+// spread bound were calibrated against ("four seasons" of 34 weeks, from the
+// same era as the stale constant). Only the abs-week YARDSTICK above moves to
+// the real season length: lengthening the window to 4 true seasons pushed the
+// airing count up and the use-count spread legitimately to 3, which is the
+// bound doing its job on a bigger sample, not the rotation going dishonest.
+const WATCH_CALLS = 136
+for (let i = 0; i < WATCH_CALLS; i++) {
   processWeekAndAdvance(g)
   for (const n of g.news.filter(x => x.id > lastId)) {
     lastId = Math.max(lastId, n.id)
