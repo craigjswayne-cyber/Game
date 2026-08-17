@@ -22,6 +22,18 @@ import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './
  */
 export const TAP_GUARD_MS = 220
 
+/**
+ * How many stories the desk gate may insist on in one week before it relents.
+ *
+ * An ordinary week writes four or five (soakui measures 4.4 bulletins a week
+ * over 218 weeks), so in the weeks the user was complaining about this is never
+ * reached and the desk really is cleared before the match. A season rollover
+ * writes fifty-four in one settle, and there the budget is what stops the game
+ * asking for fifty-four taps. Exported so scripts/deskgate.mjs asserts against
+ * the same number rather than a copy of it.
+ */
+export const MAX_DESK_HOLDS = 6
+
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
   | 'tables' | 'transfers' | 'training' | 'finances' | 'club' | 'matchday'
@@ -100,19 +112,28 @@ interface Store {
   /** When Continue was last honoured, for the double-tap guard. See
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
-  /** How big the unread pile was the last time the desk gate held the week.
+  /** How many times the desk gate has held THIS week.
    *
-   *  THE GATE IS ONLY ALLOWED TO HOLD WHILE IT IS MAKING PROGRESS. Serving mail
-   *  should always shrink the pile - openInbox marks a story read every time -
-   *  so if the count comes back unchanged, something upstream is not clearing
-   *  and the gate must let go rather than hold the week forever.
+   *  A BUDGET, NOT A PROGRESS CHECK, and the difference is the whole bug.
    *
-   *  This is not theoretical. scripts/soakui.mjs found the first version of this
-   *  gate stuck at "READ (2)" for 60 taps at season 5 week 1, and before that
-   *  stuck on the Press Room for 60 taps at season 2 week 1. A gate that can
-   *  hang is a bricked save, and no amount of being right about the feature is
-   *  worth that. Either the pile falls or the week turns. */
-  lastDeskN: number
+   *  The first version released the gate when the unread count came back
+   *  unchanged, on the theory that a hang meant the serving was not landing.
+   *  scripts/soakui.mjs said otherwise and a headless reproduction said why: at
+   *  a season rollover the pile is FIFTY-FOUR stories - every league's honours,
+   *  the playoffs, the awards, all written in one settle - and the count fell
+   *  perfectly, 54, 53, 52, one per tap. Nothing was stuck. The gate was simply
+   *  demanding fifty-four consecutive taps before the week could move, and
+   *  soakui gave up at sixty and called it frozen. It was right to: a manager
+   *  tapping Continue fifty-four times to get out of the summer is a bug even
+   *  though every tap "worked".
+   *
+   *  So the gate insists on a handful and then relents. In an ordinary week the
+   *  pile is four or five, well inside the budget, and the user's ask is met in
+   *  full - nothing walks you past this week's mail into the match. In a rollover
+   *  week it gives up gracefully and the rest waits in the inbox, which is where
+   *  it always was. Bounded means it terminates whatever the cause, which the
+   *  count comparison provably did not. */
+  deskHolds: number
 
   start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
   toggleShortlist: (playerId: number) => void
@@ -311,7 +332,7 @@ export const useStore = create<Store>((set, get) => ({
   game: null,
   tick: 0,
   lastAdvanceAt: 0,
-  lastDeskN: -1,
+  deskHolds: 0,
   nav: [{ screen: 'menu' }],
   liveMatch: null,
   matchRec: null,
@@ -575,12 +596,11 @@ export const useStore = create<Store>((set, get) => ({
         // CONTINUE *IS* THE READER'S NEXT BUTTON, which is the literal request:
         // each tap serves the oldest unread and marks it read.
         //
-        // AND IT ONLY HOLDS WHILE THAT IS ACTUALLY WORKING. If the pile comes
-        // back the same size the serving is not landing, and one more tap goes
-        // through instead of hanging - see Store.lastDeskN for the soak that
-        // insisted on this.
-        if (get().lastDeskN !== desk.n) {
-          set(() => ({ lastDeskN: desk.n }))
+        // AND IT ONLY HOLDS A BOUNDED NUMBER OF TIMES. A rollover pile is 54
+        // stories deep, and insisting on all of them is a 54-tap summer - see
+        // Store.deskHolds for the soak that measured it.
+        if (get().deskHolds < MAX_DESK_HOLDS) {
+          set(s2 => ({ deskHolds: s2.deskHolds + 1 }))
           get().openInbox()
           return
         }
@@ -627,7 +647,7 @@ export const useStore = create<Store>((set, get) => ({
     // the week is spent: settle it, then start the new Monday. The watermark is
     // what tells the bulletins which stories are new.
     g.newsFrom = g.nextId
-    set(() => ({ lastDeskN: -1 }))
+    set(() => ({ deskHolds: 0 }))
     processWeekAndAdvance(g)
     landOnNextWeek(g, set, get)
   },

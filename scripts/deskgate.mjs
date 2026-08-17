@@ -187,6 +187,46 @@ try {
   ok(three.screen !== 'press',
     `a second tap from inside the room carries on rather than trapping you (${three.screen})`)
 
+  // ---- 2c. A ROLLOVER PILE DOES NOT BECOME A 54-TAP SUMMER ----------------
+  //
+  // The measurement that produced MAX_DESK_HOLDS: at a season rollover the
+  // engine writes FIFTY-FOUR stories in one settle - every league's honours, the
+  // playoffs, the awards - and the first gate insisted on all of them. The count
+  // fell perfectly one per tap, so nothing was stuck; the game simply wanted 54
+  // taps, and soakui gave up at 60 and called it frozen. It was right to.
+  //
+  // So the gate is BUDGETED, and this plants a pile far bigger than the budget
+  // and counts the taps to the match. The bound, not the pile, has to decide.
+  const BUDGET = 6
+  await page.evaluate(() => {
+    const st = window.rugbyStore.getState()
+    const g = st.game
+    st.home()
+    for (const p of g.press) p.answered = true
+    for (let i = 0; i < 40; i++) {
+      g.news.push({ id: g.nextId++, week: g.week, season: g.season, type: 'general', read: false,
+        subject: `Rollover story ${i}`, body: 'One of forty.' })
+    }
+    g.day = 4
+    st.touch()
+  })
+  const bigPile = await state()
+  say(`\n  planted ${bigPile.unread} unread, budget is ${BUDGET}`)
+  let toMatch = 0
+  for (; toMatch < 30; toMatch++) {
+    const s = await state()
+    if (s.screen === 'matchday') break
+    await page.click('.continue-btn').catch(() => {})
+    await page.waitForTimeout(280)
+  }
+  const end = await state()
+  say(`  reached ${end.screen} in ${toMatch} taps with ${end.unread} still unread`)
+  ok(end.screen === 'matchday', `a huge pile still lets you reach the match (${end.screen})`)
+  ok(toMatch <= BUDGET + 3,
+    `and it takes about the budget, not the pile (${toMatch} taps for ${bigPile.unread} stories)`)
+  ok(end.unread > 0,
+    `the rest waits in the inbox rather than being forced (${end.unread} left)`)
+
   // ---- 3. the day walk is not gated --------------------------------------
   //
   // The gate belongs on the way OUT of the week. If it fired on every tap the
