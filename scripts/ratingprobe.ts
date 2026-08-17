@@ -45,7 +45,15 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  
   ok(drew === 0, `a draw is neutral rather than punished as a non-win (${drew})`)
   // and it is bounded, so a cricket score cannot hand out nines on its own
   const huge = teamRatingTerm(side(140), side(0))
-  ok(huge <= 1.35001, `the margin is capped (140-0 is worth ${huge.toFixed(2)})`)
+  ok(huge <= 1.70001, `the margin is capped (140-0 is worth ${huge.toFixed(2)})`)
+  // ...but past the old cap it is not DEAD flat (user, after the 106-3:
+  // "still a little way off for a 106-3 game"). 31-6 and 106-3 used to pay
+  // every man on the pitch identically; a hammering now keeps climbing, at a
+  // gentler slope, to its own ceiling.
+  const handsome = teamRatingTerm(side(31), side(6))
+  const cricket = teamRatingTerm(side(106), side(3))
+  ok(cricket >= handsome + 0.25,
+    `a 106-3 outranks a 31-6 for every shirt (${cricket.toFixed(2)} v ${handsome.toFixed(2)})`)
 }
 
 // ---- 2. the screen and the record are the same number --------------------
