@@ -74,10 +74,18 @@ try {
     // drive a whole season the way a real thumb would, at machine speed: clear
     // the desk, Continue through the day flow, and hand any matchday to the
     // assistant's Instant Result. Stops the moment the rollover stamps annual.
-    for (let guard = 0; guard < 900; guard++) {
+    // 900 was sized before the desk gate existed. Continue now spends up to
+    // MAX_DESK_HOLDS taps a week serving mail, so a 44-week season costs a few
+    // hundred more iterations and the loop ran out before the rollover stamped
+    // anything - the Annual never appeared and the wait timed out on a page that
+    // was fine. The desk is cleared here too, which is what the comment above
+    // already claimed this loop did.
+    for (let guard = 0; guard < 2500; guard++) {
       const st = window.rugbyStore.getState()
       if (!st.game || st.game.annual) break
       for (const o of st.game.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
+      for (const n of st.game.news) { n.read = true }
+      for (const q of st.game.press) q.answered = true
       const screen = st.nav[st.nav.length - 1]?.screen
       // the 220ms double-tap guard is for thumbs, not for this loop
       window.rugbyStore.setState({ lastAdvanceAt: 0 })
