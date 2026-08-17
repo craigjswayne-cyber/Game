@@ -219,6 +219,9 @@ export function boardMemo(state: GameState): void {
   const kind = conf >= 62 ? '👔' : conf >= 45 ? '👔' : '⚠️'
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    // the position the prose quotes, stamped so a reader arriving after the
+    // table has moved on can still check the memo against what it actually saw
+    ...(pos ? { quotedPos: pos } : {}),
     subject: `${kind} Board review: ${club.short} - boardroom confidence ${conf}%`,
     body: [
       // "monthly review" and a six-week window were the same mismatch in miniature:

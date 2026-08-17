@@ -596,6 +596,11 @@ export interface NewsItem {
    *  do those reports go? They should appear in news and a section called
    *  scout reports"). */
   tag?: 'scout'
+  /** The league position a board memo quoted, stamped at write time. The table
+   *  a later reader derives is not the table the memo read (a new season's
+   *  table is empty, a settling week has moved on), so the claim the probe
+   *  holds the memo to is recorded next to the prose it appears in. */
+  quotedPos?: number
 }
 
 export interface PressOption {
