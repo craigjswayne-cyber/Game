@@ -1,7 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
 import { seasonLabel } from '../game/model'
-import { dayLine, inInbox, nextStep } from '../game/days'
+import { dayLine, deskBlock, deskGates, inInbox, nextStep } from '../game/days'
 import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -439,11 +439,21 @@ export default function App() {
                 hand the gate back its original problem: two quick taps at the
                 end of a season would show the Annual and dismiss it in the same
                 gesture, which is the accident the page exists to prevent. */}
-            {cur.screen !== 'annual' && (
-              <button className="continue-btn" onClick={continueWeek}>
-                {nextStep(game).kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
-              </button>
-            )}
+            {cur.screen !== 'annual' && (() => {
+              // THE LABEL READS THE GATE, so Continue never refuses in silence.
+              // deskBlock is the one predicate: continueWeek acts on it and this
+              // draws it, which is what stops a gated tap looking like a frozen
+              // game - the failure this session has now fixed four times in
+              // other shapes.
+              const step = nextStep(game)
+              const desk = deskGates(step) ? deskBlock(game) : null
+              return (
+                <button className="continue-btn" onClick={continueWeek}
+                  title={desk ? 'The desk needs clearing before the week turns' : undefined}>
+                  {desk ? `${desk.label} ▸` : step.kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
+                </button>
+              )
+            })()}
           </div>
         </div>
       </header>

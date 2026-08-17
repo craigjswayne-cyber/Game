@@ -8,7 +8,7 @@ import {
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
-import { firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep } from './game/days'
+import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep } from './game/days'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
@@ -545,6 +545,33 @@ export const useStore = create<Store>((set, get) => ({
     // masthead's label, this handler and the day bulletin all read it, so they
     // can never disagree about what day it is or what happens next.
     const step = nextStep(g)
+    // ---- THE DESK GATE (see game/days.ts deskBlock) ----
+    //
+    // Asked for twice: "when I click continue it doesnt just continue through
+    // all unread message and force me to respond to press enquiries etc ...
+    // everything should be answered, read between games."
+    //
+    // Only on the way OUT of the week - into the match or into the settle - so
+    // the Monday-to-Friday walk is untouched and Tuesday still gets to introduce
+    // the press question before anything insists on it. The button's label reads
+    // the same predicate, so it says "Read (3)" rather than refusing in silence.
+    if (deskGates(step)) {
+      const desk = deskBlock(g)
+      if (desk?.kind === 'mail') {
+        // CONTINUE *IS* THE READER'S NEXT BUTTON, which is the literal request:
+        // each tap serves the oldest unread and marks it read, so the pile
+        // always shrinks by one and the walk always terminates.
+        get().openInbox()
+        return
+      }
+      if (desk?.kind === 'press') {
+        set(s => ({
+          nav: s.nav[s.nav.length - 1]?.screen === 'press' ? s.nav : [...s.nav, { screen: 'press' as const }],
+          tick: s.tick + 1,
+        }))
+        return
+      }
+    }
     if (step.kind === 'match') {
       // stand the manager on the day the match actually falls, so the masthead
       // reads Friday for a Friday night game

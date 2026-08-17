@@ -300,6 +300,68 @@ export function nextStep(state: GameState): NextStep {
   return stepFromDay(state, today(state))
 }
 
+/**
+ * ---- THE DESK HAS TO BE CLEAR BEFORE THE WEEK TURNS ----
+ *
+ * The user asked for this twice. "when I click continue it doesnt just continue
+ * through all unread message and force me to respond to press enquiries etc.
+ * this should be the central home where the game communicates everything and
+ * everything should be answered, read between games."
+ *
+ * The complaint is already recorded at season.ts ~2617, where the fix was judged
+ * too large and half of it shipped instead: unanswered questions expire, old
+ * stories get filed. That treated the pile GROWING and not the actual
+ * complaint, which is that the game never makes you answer anything.
+ *
+ * WHERE THE GATE FIRES, AND WHY NOT EVERYWHERE. Continue has four jobs - walk a
+ * day, jump to matchday, settle the week, open the Annual - and a gate that is
+ * wrong in any of them ships a game that looks frozen. That exact bug has
+ * happened here before (Round 26: the Annual's Continue was visible and dead,
+ * and soakui hung on it for 60 taps).
+ *
+ * So the gate is deliberately NOT on every tap. It fires only where the week is
+ * about to LEAVE - on the way into the match, and on the settle - which is
+ * precisely what the user asked for ("read between games"). The day bulletins
+ * still walk Monday to Friday untouched, so Tuesday still gets to introduce the
+ * press question before anything insists on it.
+ *
+ * WHY THIS RETURNS A REASON. The button's label reads this too, so Continue
+ * changes to "Read (3)" or "Press room" instead of silently refusing. A gate
+ * you cannot see is the off-screen-reply bug in another costume, and this
+ * session has already fixed that one four times.
+ *
+ * BOTH PILES ARE ALWAYS CLEARABLE, which is what stops it becoming a soft lock:
+ * every tap of Continue on `mail` marks one story read and serves the next, so
+ * n taps clear n stories, and a press question always carries options.
+ */
+export type DeskBlock =
+  | { kind: 'mail'; n: number; label: string }
+  | { kind: 'press'; n: number; label: string }
+
+export function deskBlock(state: GameState): DeskBlock | null {
+  // MAIL FIRST, because it is the cheap one: a tap each, and the manager is
+  // reading rather than deciding. Making him answer the press with nine unread
+  // stories behind it buries the context the questions are about.
+  const unread = state.news.filter(n => !n.read && !n.cleared && inInbox(state, n)).length
+  if (unread > 0) {
+    return { kind: 'mail', n: unread, label: `Read (${unread})` }
+  }
+  // A question with no options cannot be answered, so it must not be able to
+  // hold the week: that would be a locked save, not a gate.
+  const open = state.press.filter(p =>
+    p.week === state.week && !p.answered && (p.options?.length ?? 0) > 0).length
+  if (open > 0) {
+    return { kind: 'press', n: open, label: open === 1 ? 'Press room' : `Press room (${open})` }
+  }
+  return null
+}
+
+/** Does the desk get a say on this step? Only when the week is about to leave -
+ *  see deskBlock. Day bulletins walk untouched. */
+export function deskGates(step: NextStep): boolean {
+  return step.kind === 'match' || step.kind === 'week'
+}
+
 /** The first thing to show after a week has been settled.
  *
  *  Monday gets first refusal, because Monday is where the weekend's results and
