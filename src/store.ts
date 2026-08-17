@@ -100,6 +100,19 @@ interface Store {
   /** When Continue was last honoured, for the double-tap guard. See
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
+  /** How big the unread pile was the last time the desk gate held the week.
+   *
+   *  THE GATE IS ONLY ALLOWED TO HOLD WHILE IT IS MAKING PROGRESS. Serving mail
+   *  should always shrink the pile - openInbox marks a story read every time -
+   *  so if the count comes back unchanged, something upstream is not clearing
+   *  and the gate must let go rather than hold the week forever.
+   *
+   *  This is not theoretical. scripts/soakui.mjs found the first version of this
+   *  gate stuck at "READ (2)" for 60 taps at season 5 week 1, and before that
+   *  stuck on the Press Room for 60 taps at season 2 week 1. A gate that can
+   *  hang is a bricked save, and no amount of being right about the feature is
+   *  worth that. Either the pile falls or the week turns. */
+  lastDeskN: number
 
   start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
   toggleShortlist: (playerId: number) => void
@@ -298,6 +311,7 @@ export const useStore = create<Store>((set, get) => ({
   game: null,
   tick: 0,
   lastAdvanceAt: 0,
+  lastDeskN: -1,
   nav: [{ screen: 'menu' }],
   liveMatch: null,
   matchRec: null,
@@ -559,16 +573,40 @@ export const useStore = create<Store>((set, get) => ({
       const desk = deskBlock(g)
       if (desk?.kind === 'mail') {
         // CONTINUE *IS* THE READER'S NEXT BUTTON, which is the literal request:
-        // each tap serves the oldest unread and marks it read, so the pile
-        // always shrinks by one and the walk always terminates.
-        get().openInbox()
-        return
+        // each tap serves the oldest unread and marks it read.
+        //
+        // AND IT ONLY HOLDS WHILE THAT IS ACTUALLY WORKING. If the pile comes
+        // back the same size the serving is not landing, and one more tap goes
+        // through instead of hanging - see Store.lastDeskN for the soak that
+        // insisted on this.
+        if (get().lastDeskN !== desk.n) {
+          set(() => ({ lastDeskN: desk.n }))
+          get().openInbox()
+          return
+        }
       }
-      if (desk?.kind === 'press') {
-        set(s => ({
-          nav: s.nav[s.nav.length - 1]?.screen === 'press' ? s.nav : [...s.nav, { screen: 'press' as const }],
-          tick: s.tick + 1,
-        }))
+      // THE PRESS HOLD YIELDS ON THE SECOND TAP, AND IT HAS TO.
+      //
+      // The first draft held the week until every question was answered, and
+      // scripts/soakui.mjs found the consequence within one season: 60 taps
+      // without the week moving, stuck on the Press Room at season 2 week 1.
+      // Season openings stack the room - the 25C expectations question and the
+      // pre-season camp decision both live in state.press - and a manager who
+      // does not realise a question is REQUIRED cannot tell a gate from a
+      // bricked save. That is the same "control that does nothing" failure the
+      // Annual shipped in Round 26, and it is worse here because it can happen
+      // on any week rather than one.
+      //
+      // So: tap once and you are taken to the room, which is the part the user
+      // actually asked for - the game stops walking you past it. Tap again from
+      // inside the room and the week goes on, and the question expires the way
+      // an unanswered question always has (season.ts, the desk-clears-itself
+      // block). Being made to LOOK is a gate; being unable to leave is a bug.
+      //
+      // Mail keeps the hard gate, because there the gate itself does the
+      // clearing: every tap reads one story, so it cannot fail to terminate.
+      if (desk?.kind === 'press' && get().nav[get().nav.length - 1]?.screen !== 'press') {
+        set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
         return
       }
     }
@@ -589,6 +627,7 @@ export const useStore = create<Store>((set, get) => ({
     // the week is spent: settle it, then start the new Monday. The watermark is
     // what tells the bulletins which stories are new.
     g.newsFrom = g.nextId
+    set(() => ({ lastDeskN: -1 }))
     processWeekAndAdvance(g)
     landOnNextWeek(g, set, get)
   },

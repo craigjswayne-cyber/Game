@@ -148,6 +148,45 @@ try {
   ok(after.press === 0, `and the press question was answered (${after.press} left)`)
   ok(clearedAt >= 0 && clearedAt <= taps, 'the desk cleared before the match, not after it')
 
+  // ---- 2b. AND THE PRESS HOLD YIELDS ON A SECOND TAP ----------------------
+  //
+  // The first draft of the gate held the week until every question was
+  // answered, and soakui found the consequence in one season: 60 taps without
+  // the week moving, stuck on the Press Room at season 2 week 1, where the
+  // expectations question and the pre-season camp decision both sit in
+  // state.press. A manager who does not realise a question is REQUIRED cannot
+  // tell a gate from a bricked save.
+  //
+  // So being made to LOOK is the gate, and being unable to leave is the bug.
+  // One tap takes you to the room; a second from inside it carries on, and the
+  // question expires as an unanswered question always has.
+  const held = await page.evaluate(() => {
+    const st = window.rugbyStore.getState()
+    const g = st.game
+    // section 2 finished standing on Matchday, where Continue is not the control
+    // that advances anything - back to Home first, or this measures nothing.
+    st.home()
+    for (const n of g.news) { n.read = true; n.cleared = true }
+    g.press.push({ id: g.nextId++, week: g.week, season: g.season, outlet: 'The Probe',
+      question: 'Will you ignore this one?', answered: false,
+      options: [{ label: 'Never', morale: 0, board: 0 }] })
+    g.day = 4
+    st.touch()
+    return true
+  })
+  ok(held, 'a single unanswered question can be planted')
+  const one = await state()
+  await page.click('.continue-btn').catch(() => {})
+  await page.waitForTimeout(300)
+  const two = await state()
+  ok(two.screen === 'press', `the first tap takes you to the room (${two.screen})`)
+  await page.click('.continue-btn').catch(() => {})
+  await page.waitForTimeout(400)
+  const three = await state()
+  say(`  press hold: ${one.screen} -> ${two.screen} -> ${three.screen}`)
+  ok(three.screen !== 'press',
+    `a second tap from inside the room carries on rather than trapping you (${three.screen})`)
+
   // ---- 3. the day walk is not gated --------------------------------------
   //
   // The gate belongs on the way OUT of the week. If it fired on every tap the
