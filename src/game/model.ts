@@ -339,6 +339,18 @@ export interface Player {
   poty?: number
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
+  /** club matches this season this man was actually AVAILABLE for - not away
+   *  with his country, suspended, injured, on loan, or unsigned. Tracked
+   *  forward by settleGameTime; the game-time ledger bills the manager a
+   *  share of THIS, never of the whole season (user: "i shouldn't be
+   *  punished if he is unavailable"). Reset with the season's stats. */
+  avail?: number
+  /** absolute week (season * SEASON_WEEKS + week) this man joined his current
+   *  club, stamped by the transfer executor. The buy-back gate reads it: a
+   *  club that just paid a fee rarely sells (user: "i shouldn't really be
+   *  able to buy them back within 6 months"). Absent on moves from before
+   *  the stamp existed. */
+  joinedAt?: number
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
   /**
@@ -1082,6 +1094,9 @@ export interface GameState {
    *  playerId, so the office memo never cooled it and a long window could
    *  ask twice in a fortnight with the same three buttons. */
   natAskAt?: number
+  /** absolute week the availability counter last ticked (see settleGameTime),
+   *  so a double-called settle cannot count one match twice */
+  availWeek?: number
   /** THE ANNUAL (user: "there should be a forced page that says 'ready for a
    *  new season?'"). Stamped by the rollover with the season just finished;
    *  the UI routes Continue to the Annual page until its button clears it.

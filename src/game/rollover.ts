@@ -1161,6 +1161,7 @@ export function rebuildSeason(state: GameState) {
     // season actually held (25D: minutes-gated growth)
     p.lastStarts = p.stats.starts
     p.stats = emptyStats()
+    p.avail = 0
     p.form = 6
     p.morale = clamp(p.morale, 5, 10)
     p.cond = 100
