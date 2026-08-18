@@ -173,6 +173,12 @@ of the trimmed news log.
   refuses sales of a sub-22-week arrival below double the ask, with the
   reason in the message. haggleprobe pins door, reason, and expiry.
 
+- RENEWAL COUNTERS ARE HONOURED: "they'd sign today at X" was refused when
+  met (week-seeded roll ran below FULL demand; counter = 0.97 * demand), and
+  fmtMoney printed the counter as "£8k" while the button's fmtWage said
+  "£8.4k" - the same 8,400. Any offer at or above the counter signs now;
+  wages print via fmtWage. renewprobe meets every quoted counter same-week
+  (old engine: all 23 refused, Fischetti reproduces the screenshot).
 - FREE AGENTS: "Free agents" is an option in the market's League select
   (their league is nowhere), and signFreeAgent(ai.ts) replaced the inline
   page button that skipped cap and embargo checks. Rule of the find: AN
