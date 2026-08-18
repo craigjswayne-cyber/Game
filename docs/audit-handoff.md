@@ -173,6 +173,12 @@ of the trimmed news log.
   refuses sales of a sub-22-week arrival below double the ask, with the
   reason in the message. haggleprobe pins door, reason, and expiry.
 
+- FREE AGENTS: "Free agents" is an option in the market's League select
+  (their league is nowhere), and signFreeAgent(ai.ts) replaced the inline
+  page button that skipped cap and embargo checks. Rule of the find: AN
+  ENGINE RULE A SCREEN CAN BYPASS IS NOT A RULE - grep the screens for
+  direct state mutation when touching any market path.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, SEASON_WEEKS, TRAIT_INFO, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
-import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signOnTerms, talkToPlayer } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
@@ -588,15 +588,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </>
       ) : (
         <button className="btn gold block" onClick={() => {
-          const user = game.clubs[game.userClubId]
-          const wage = renewalDemand(p)
-          const squadWages = user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
-          if (squadWages + wage > user.wageBudget) { setMsg('His wage demands would exceed your wage budget.'); return }
-          p.clubId = user.id
-          user.players.push(p.id)
-          p.wage = wage
-          p.contractEnds = game.season + 2
-          setMsg(`${p.name} signs on a free transfer (£${wage.toLocaleString()}/wk).`)
+          // one path with the engine's guards (cap, embargo, wage budget) -
+          // the old inline version skipped the first two
+          setMsg(signFreeAgent(game, p.id).msg)
           touch()
         }}>Sign Free Agent</button>
       )}
