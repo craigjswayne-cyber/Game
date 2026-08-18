@@ -1,5 +1,5 @@
 import type { GameState, Player } from './model'
-import { SEASON_WEEKS, addGrudge, fmtMoney } from './model'
+import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -776,14 +776,24 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
     return { ok: false, msg: `${p.name} isn't interested in extending right now.` }
   }
   let wage = offer
-  if (offer < demand) {
+  // A QUOTED NUMBER IS A PROMISE (user, offering MORE than the number on the
+  // card: "im offering 8.6k but he isnt accepting but says he'll accept
+  // 8k?"). The counter is demand * 0.97, but the accept roll ran for any
+  // offer under the full demand - and the roll is seeded on the week, so
+  // inside one week the same refusal repeated forever, re-quoting a number
+  // it would never honour. Anything at or above the counter now signs
+  // without a roll, which is what "they'd sign today at X" has to mean.
+  // And a wage is formatted as a wage: fmtMoney printed the same 8,400 the
+  // button showed as "£8.4k/wk" back at the manager as "£8k/wk".
+  const counterAt = Math.round((demand * 0.97) / 50) * 50
+  if (offer < counterAt) {
     const ratio = offer / demand
     if (ratio < 0.85) {
       if (p.pers === 'Mercenary' || p.pers === 'Temperamental') p.morale = clamp(p.morale - 0.6, 1, 10)
       return {
         ok: false,
         msg: p.pers === 'Mercenary'
-          ? `The agent laughs down the phone. "${fmtMoney(offer)}? We'll speak when you're serious." ${p.name} has heard about the lowball.`
+          ? `The agent laughs down the phone. "${fmtWage(offer)} a week? We'll speak when you're serious." ${p.name} has heard about the lowball.`
           : `${p.name}'s agent calls the offer "some way short" and ends the meeting. Come back with more.`,
       }
     }
@@ -792,8 +802,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
       (p.pers === 'Loyal' ? 0.6 : p.pers === 'Professional' ? 0.45 : p.pers === 'Mercenary' ? 0.12 : 0.3)
       + (p.morale >= 7.5 ? 0.15 : 0) + (ratio - 0.85) * 1.2
     if (rng() >= acceptP) {
-      const counter = Math.round((demand * 0.97) / 50) * 50
-      return { ok: false, msg: `${p.name}'s camp say no - but they'd sign today at ${fmtMoney(counter)}/wk.`, counter }
+      return { ok: false, msg: `${p.name}'s camp say no - but they'd sign today at ${fmtWage(counterAt)}/wk.`, counter: counterAt }
     }
   }
   wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money

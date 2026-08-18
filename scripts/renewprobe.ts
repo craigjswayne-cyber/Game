@@ -125,5 +125,39 @@ console.log(`signature rate with cap room: ${signed}/${open} = ${(rate * 100).to
   ` (${capBlocked} refused by the salary cap, which is the cap doing its job)`)
 if (rate < 0.85) bad(`only ${(rate * 100).toFixed(0)}% of players sign when their asking wage is met and there is cap room`)
 
+// ---- A QUOTED COUNTER IS A PROMISE, THE SAME WEEK --------------------------
+//
+// (user, offering MORE than the number on the card: "im offering 8.6k but he
+// isnt accepting but says he'll accept 8k?"). The counter is demand * 0.97,
+// but the accept roll used to run for anything under the FULL demand - and
+// the roll is seeded on the week, so within one week the same refusal
+// repeated forever while re-quoting a number it would never honour. Now:
+// walk every squad man who counters, offer exactly the number his camp
+// quoted, in the same week, and he must sign at it. And the message must
+// print the wage the way the buttons do (fmtWage), not fmtMoney's rounding
+// of it - "£8k" and "£8.4k" in one card were the same 8,400.
+{
+  const g = newGame('northampton', 'Counter', 51)
+  for (let i = 0; i < 6; i++) processWeekAndAdvance(g)
+  const club = g.clubs[g.userClubId]
+  let countersMet = 0
+  for (const id of [...club.players]) {
+    const p = g.players[id]
+    if (!p || p.acad || p.loanFrom || p.retiring) continue
+    const demand = renewalDemand(p)
+    const low = Math.round((demand * 0.9) / 50) * 50 // under demand, above the laugh line
+    const r = offerRenewalAt(g, p.id, low)
+    if (r.ok || r.counter == null) continue
+    countersMet++
+    if (!r.msg.includes(fmtWage(r.counter))) {
+      bad(`${p.name}'s counter of ${r.counter} is printed as something else: "${r.msg}"`)
+    }
+    const honoured = offerRenewalAt(g, p.id, r.counter)
+    if (!honoured.ok) bad(`${p.name}'s camp quoted ${fmtWage(r.counter)}/wk and then refused it: "${honoured.msg}"`)
+  }
+  console.log(`\n${countersMet} counters quoted and met on the spot`)
+  if (countersMet < 3) bad(`too few counters to trust the check (${countersMet})`)
+}
+
 if (fails) { console.error(`\nRENEW PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nRENEW PROBE PASSED')
