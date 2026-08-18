@@ -12,6 +12,7 @@ import { inInbox } from '../../game/days'
 import { fmtMoney, formGuide, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { ordinal } from '../../game/gossip'
+import { natRankOrder } from '../../game/natrank'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -176,6 +177,41 @@ export default function Home() {
           </div>
         </div>
       )}
+      {/* THE COUNTRY DESK (user: "the game doesnt feel like it currently
+          nails the international element. its meant to be the pinnacle but is
+          hidden away"). A Test job lives on Home beside the club: the next
+          Test, the world ranking, the union's confidence - and on a Test week
+          the card says plainly that this Saturday is your country's, with the
+          assistant minding any club fixture. */}
+      {game.natTeam && (() => {
+        const nat = nationByCode(game.natTeam)
+        const next = game.fixtures
+          .filter(f => !f.played && (f.homeId === game.natTeam || f.awayId === game.natTeam))
+          .sort((a, b) => a.week - b.week)[0]
+        const rank = natRankOrder(game).indexOf(game.natTeam) + 1
+        const testWeek = next && next.week === game.week
+        return (
+          <div className="card" onClick={() => go('agency')} style={{ borderLeft: '4px solid #2f7d4f' }}>
+            <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
+              Head coach · {nat?.name ?? game.natTeam}{rank > 0 ? ` · world No. ${rank}` : ''}{game.natConfidence != null ? ` · union ${Math.round(game.natConfidence)}%` : ''}
+            </div>
+            {next ? (
+              <>
+                <h3 className="fx-line">
+                  {flagOf(next.homeId)} {nationByCode(next.homeId)?.name ?? next.homeId} v {flagOf(next.awayId)} {nationByCode(next.awayId)?.name ?? next.awayId}
+                </h3>
+                <div className="muted" style={{ marginTop: 6 }}>
+                  {testWeek
+                    ? `🌍 TEST WEEK: this Saturday is your country's. Your assistant minds any club fixture.`
+                    : `Next Test ${weekDate(game.season, next.week)}.`}
+                </div>
+              </>
+            ) : (
+              <div className="muted">No Test on the calendar - the union watches your club work in the meantime.</div>
+            )}
+          </div>
+        )
+      })()}
       {/* the objectives, the annual and the press call used to sit in a second
           grid below the dashboard, where they got a whole row to themselves.
           In the same grid as the next match they share its row instead. */}

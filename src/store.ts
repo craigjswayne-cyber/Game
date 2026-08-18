@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { newGame } from './game/newgame'
-import { natFixtureThisWeek, processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, weekRng } from './game/season'
+import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
@@ -697,10 +697,11 @@ export const useStore = create<Store>((set, get) => ({
       }))
       return
     }
-    const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
-    const fx = clubFx ?? natFixtureThisWeek(g)
+    // the Test outranks the club game - same decision point as the day walk
+    const fx = userMatchThisWeek(g)
     if (!fx) return
-    const userTeamId = clubFx
+    const isClub = fx.homeId === g.userClubId || fx.awayId === g.userClubId
+    const userTeamId = isClub
       ? g.userClubId
       : (fx.homeId === g.natTeam || fx.awayId === g.natTeam) ? g.natTeam!
       : (fx.homeId === 'LIO' || fx.awayId === 'LIO') ? 'LIO'
@@ -743,10 +744,11 @@ export const useStore = create<Store>((set, get) => ({
       }))
       return
     }
-    const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
-    const fx = clubFx ?? natFixtureThisWeek(g)
+    // the Test outranks the club game - same decision point as the day walk
+    const fx = userMatchThisWeek(g)
     if (!fx) return
-    const userTeamId = clubFx
+    const isClub = fx.homeId === g.userClubId || fx.awayId === g.userClubId
+    const userTeamId = isClub
       ? g.userClubId
       : (fx.homeId === g.natTeam || fx.awayId === g.natTeam) ? g.natTeam!
       : (fx.homeId === 'LIO' || fx.awayId === 'LIO') ? 'LIO'

@@ -1084,7 +1084,7 @@ function mgrMilestones(state: GameState, won: boolean) {
   }
 }
 
-function boardReaction(state: GameState, fx: Fixture) {
+function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   const club = state.clubs[state.userClubId]
   const isHome = fx.homeId === club.id
   const us = isHome ? fx.homeScore : fx.awayScore
@@ -1206,12 +1206,15 @@ function boardReaction(state: GameState, fx: Fixture) {
   }
   // the spotlight follows an unbeaten run (16C)
   if (fx.compId !== 'fr') runSpotlight(state, fx, us, them)
-  // manager career record
-  state.mgr.m += 1
-  if (us > them) state.mgr.w += 1
-  else if (us === them) state.mgr.d += 1
-  else state.mgr.l += 1
-  mgrMilestones(state, us > them)
+  // manager career record - unless the assistant ran the touchline while the
+  // manager took his country's Test: "matches in the dugout" means HIS dugout
+  if (!delegated) {
+    state.mgr.m += 1
+    if (us > them) state.mgr.w += 1
+    else if (us === them) state.mgr.d += 1
+    else state.mgr.l += 1
+    mgrMilestones(state, us > them)
+  }
 
   // the terraces have longer memories and shorter fuses than the board
   const before = state.fanMood ?? 60
@@ -1274,6 +1277,20 @@ export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   return state.fixtures.find(f =>
     f.week === state.week && !f.played &&
     (teams.includes(f.homeId) || teams.includes(f.awayId)))
+}
+
+/** THE MATCH THAT IS THE MANAGER'S THIS WEEK - one decision point, read by
+ *  the day walk, both match entrances and the probes, so they can never
+ *  disagree about whose touchline he stands on.
+ *
+ *  A Test outranks the club fixture (user, after Scotland's game auto-played
+ *  behind his club Saturday: "it didnt show the fixture and just played it...
+ *  its meant to be the pinnacle but is hidden away"). When both fall in one
+ *  week the manager takes his country and the assistant takes the club - the
+ *  settle sims the club game and reports it (see the assistant's Saturday in
+ *  processWeekAndAdvance). */
+export function userMatchThisWeek(state: GameState): Fixture | undefined {
+  return natFixtureThisWeek(state) ?? (state.unemployed ? undefined : userFixtureThisWeek(state))
 }
 
 /** how many stories the inbox keeps on the shelf - older ones fall off the bottom */
@@ -2148,6 +2165,36 @@ export function processWeekAndAdvance(state: GameState) {
       }
       matchReport(state, userFx)
     }
+  }
+
+  // ---- THE ASSISTANT'S SATURDAY ----
+  // (user: "when you take on a international job your assistant should step
+  // in for the periods of time and let you coach the team"). When the
+  // manager took his nation's Test this week, the loop above simmed the club
+  // fixture. The club's afternoon still counts in full - the board reacts,
+  // the report files, the milestones tick - it just was not his hands on the
+  // wheel, and the news says whose they were.
+  if (userFx && simmedUserFx && simmedUserFx !== userFx && !state.unemployed &&
+      (simmedUserFx.homeId === state.userClubId || simmedUserFx.awayId === state.userClubId) &&
+      simmedUserFx.compId !== 'fr') {
+    const cfx = simmedUserFx
+    boardReaction(state, cfx, true)
+    matchReport(state, cfx)
+    milestones(state, rng)
+    leagueRoundUp(state)
+    const us = cfx.homeId === state.userClubId ? cfx.homeScore : cfx.awayScore
+    const them = cfx.homeId === state.userClubId ? cfx.awayScore : cfx.homeScore
+    const opp = state.clubs[cfx.homeId === state.userClubId ? cfx.awayId : cfx.homeId]
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'result', read: false,
+      subject: `🧢 The assistant took the ${opp?.short ?? 'league'} match: ${us > them ? 'won' : us < them ? 'lost' : 'drew'} ${us}-${them}`,
+      body: `With you away on Test duty, your assistant picked the side and ran the touchline. ${us > them
+        ? 'He hands the week back with a win and an insufferable grin.'
+        : us < them
+        ? 'He hands the week back with an apology and a full debrief already on your desk.'
+        : 'He hands the week back all square.'} The board judges the result the way it judges any other - the routines are yours even when the voice is not.`,
+      fixtureId: cfx.id,
+    })
   }
 
   // board pressure: warnings, then the sack

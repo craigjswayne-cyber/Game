@@ -191,6 +191,18 @@ of the trimmed news log.
   ENGINE RULE A SCREEN CAN BYPASS IS NOT A RULE - grep the screens for
   direct state mutation when touching any market path.
 
+- THE TEST WEEK IS THE MANAGER'S: userMatchThisWeek (season.ts) is the one
+  decision point for whose match this week is - Test outranks club; the day
+  walk and both match entrances read it. The settle's "assistant's Saturday"
+  block runs the club fixture's full bookkeeping with boardReaction's
+  delegated flag (mgr record counts only the match he attended). Home
+  carries a country desk card. testweekprobe stages the collision. STILL
+  OPEN from the same request: the international element deserves more than
+  a card - squad announcement moments, a Test-window press beat, maybe a
+  dedicated country screen. The user explicitly invited creativity here
+  ("we may need to get creative and maybe a new menu appears or something
+  with both club and country"). Design it with him, incrementally.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.
