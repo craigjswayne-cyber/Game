@@ -373,6 +373,10 @@ export interface Club {
   city: string
   country: string
   stadium: string
+  /** the ground's traditional name, kept the first time naming rights change
+   *  the gates so successive sponsors replace each other rather than stack
+   *  ("Franklin's Gardens", under whatever is currently bolted above it) */
+  stadiumBase?: string
   capacity: number
   /** the real, opening capacity of the ground - the anchor for demandCeiling,
    *  so a ground that has been extended cannot justify extending again */

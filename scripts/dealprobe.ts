@@ -277,5 +277,38 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   if (!empty.deals) bad('seedDeals did not fill an empty department')
 }
 
+// ---- THE SPONSOR'S NAME IS ACTUALLY OVER THE GATES -------------------------
+//
+// (user: "the naming rights for the stadium have been sold in game - why is
+// it not updating in game?"). Three properties: a fresh world's gates agree
+// with its inherited naming deal; signing the slot renames the ground with
+// the traditional name kept; and a second sponsor replaces the first rather
+// than stacking.
+{
+  const g = newGame('northampton', 'Gates', 47)
+  const club = g.clubs[g.userClubId]
+  const live = g.deals?.naming
+  if (!live) bad('a fresh world has no inherited naming deal')
+  else if (club.stadium.includes(' at ') && !club.stadium.startsWith(live.sponsor)) {
+    bad(`the gates say "${club.stadium}" but the deal card says ${live.sponsor}`)
+  }
+  const before = club.stadium
+  const base = before.includes(' at ') ? before.slice(before.indexOf(' at ') + 4) : before
+  // run the inherited deal out so the slot can be sold
+  if (live) live.until = g.season - 1
+  const offer = offersFor(g, 'naming')[0]
+  signOffer(g, offer)
+  if (!club.stadium.startsWith(offer.sponsor)) bad(`signed ${offer.sponsor} and the gates still say "${club.stadium}"`)
+  if (!club.stadium.endsWith(base)) bad(`the traditional name was lost: "${club.stadium}" should end "${base}"`)
+  // a second sponsor replaces, never stacks
+  g.deals!.naming!.until = g.season - 1
+  const offer2 = offersFor(g, 'naming')[1]
+  signOffer(g, offer2)
+  if (!club.stadium.startsWith(offer2.sponsor) || !club.stadium.endsWith(base) ||
+      (club.stadium.match(/ Stadium at /g) ?? []).length > 1) {
+    bad(`the second sponsor stacked instead of replacing: "${club.stadium}"`)
+  }
+}
+
 if (fails) { console.error(`DEAL PROBE: ${fails} failures`); process.exit(1) }
 console.log('DEAL PROBE PASSED')

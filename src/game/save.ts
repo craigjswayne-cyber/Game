@@ -9,7 +9,7 @@ import { rebuildTable } from './season'
 import { hashString, mulberry32 } from './rng'
 import { seedNatRank } from './natrank'
 import { seedPhilosophies } from './philosophy'
-import { seedDeals } from './commercial'
+import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
 
@@ -489,6 +489,21 @@ export function migrate(s: GameState): GameState {
   // weeklyCentral no longer pays it. Inherited fully sold at market rate, which
   // is exactly what the flat formula used to pay.
   seedDeals(s)
+
+  // THE GATES MATCH THE DEAL (user: "the naming rights for the stadium have
+  // been sold in game - why is it not updating in game?"). A live naming
+  // deal signed before signOffer renamed anything left the deal card and the
+  // stadium line in permanent disagreement - heal on load, idempotently, so
+  // the sponsor the Finances page has always named is the one over the
+  // gates. New worlds agree from day one (seedDeals derives the inherited
+  // sponsor from the data's own name where it carries one).
+  {
+    const d = s.deals?.naming
+    const club = s.clubs[s.userClubId]
+    if (d && club && d.until >= s.season && !club.stadium.startsWith(d.sponsor)) {
+      applyStadiumName(s, d.sponsor)
+    }
+  }
 
   // The academy became a 27-man team with its own A League (feedback 10G), so an
   // existing career gets the same academy in the same shape.
