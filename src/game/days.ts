@@ -1,6 +1,6 @@
 import type { GameState, NewsItem } from './model'
 import { fixtureDayOff, weekDate } from './model'
-import { natFixtureThisWeek, userFixtureThisWeek } from './season'
+import { userMatchThisWeek } from './season'
 
 /**
  * ---- THE WEEK, DAY BY DAY ----
@@ -249,8 +249,9 @@ export function dayHasSomething(state: GameState, day: DayIndex): boolean {
   if (day === 3 && state.offers.some(o => o.status === 'pending' && o.forUser)) return true
   if (day === 4) {
     // Friday always has the opposition on it when there is a match to come, and
-    // otherwise it has the rest of the league's fixtures
-    if (!state.unemployed && userFixtureThisWeek(state)) return true
+    // otherwise it has the rest of the league's fixtures. A Test week counts:
+    // the manager's match is his nation's.
+    if (userMatchThisWeek(state)) return true
   }
   return false
 }
@@ -261,7 +262,9 @@ export function dayHasSomething(state: GameState, day: DayIndex): boolean {
  *  Friday IS the match day, so Continue must not offer a Friday bulletin and
  *  then a Saturday match. */
 export function matchDayIndex(state: GameState): DayIndex | null {
-  const fx = (!state.unemployed && userFixtureThisWeek(state)) || natFixtureThisWeek(state)
+  // one decision point with the match entrances: a Test week is the
+  // manager's Test week, and the assistant has the club game
+  const fx = userMatchThisWeek(state)
   if (!fx) return null
   return fixtureDayOff(fx.id) === -1 ? 4 : MATCH_DAY
 }
