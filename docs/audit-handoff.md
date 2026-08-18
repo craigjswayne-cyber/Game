@@ -110,6 +110,27 @@ is trimmed or resampled, boundary `<=` against `<`.
    the engine legitimately moves; stanceprobe now FINDS a qualifying seed
    at runtime instead. Prefer that shape.
 
+## The championship-weekend batch (second wave of live feedback)
+
+Four more reports arrived from the user's double-winning season, all four
+the game mis-narrating its own biggest moments, all fixed and pinned by
+scripts/occasionprobe.ts (8 of 15 asserts fail on the old engine, the first
+reproducing the screenshot verbatim):
+
+- a neutral final's 80,941 was announced as the home gate record (guard:
+  !fx.venue)
+- the final-day spotlight promised "Win and it is yours" in a playoff
+  league (playoff leagues now talk top seed; tableless-title leagues keep
+  the old words)
+- mathematical playoff qualification now gets announced, strict check
+  (5 pts a game for every rival, ties against you), stamped once a season
+  (state.playoffClinch)
+- the press room leads with a won final the Monday after, a double toasted
+  as a double (state.silverwareAsk stamp)
+
+Note the pattern across BOTH waves: every stamp is on state, never a scan
+of the trimmed news log.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

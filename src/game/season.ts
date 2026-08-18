@@ -1184,7 +1184,12 @@ function boardReaction(state: GameState, fx: Fixture) {
     // every crowd after that is chasing it
     // friendlies do not count: the bar is for competitive rugby, and pre-season
     // comes first in the calendar so a friendly would otherwise always set it
-    if (isHome && fx.att && fx.compId !== 'fr') {
+    // ...and NEITHER DOES A NEUTRAL FINAL (user, after a Twickenham final:
+    // "the final was at Twickenham so it shouldn't have been a record").
+    // A showpiece final names the user as nominal home with fx.venue set to
+    // the neutral ground, so 80,941 through somebody else's turnstiles was
+    // being announced as a record at a 15,000-seat home ground.
+    if (isHome && fx.att && fx.compId !== 'fr' && !fx.venue) {
       const prev = state.gateRecord
       if (!prev) {
         state.gateRecord = { att: fx.att, oppId, season: state.season }
@@ -2486,15 +2491,29 @@ export function processWeekAndAdvance(state: GameState) {
               (ids.includes(f.homeId) || ids.includes(f.awayId)) &&
               f.homeId !== club.id && f.awayId !== club.id)
             .map(f => `${teamShort(state, f.homeId)} ${f.homeScore}–${f.awayScore} ${teamShort(state, f.awayId)}`)
+          // WHAT TOPPING THE TABLE ACTUALLY WINS (user, on the last round of
+          // a playoff league: "its saying its all mine but the playoffs are
+          // still to be played"). In a league with playoffTeams the regular
+          // season crowns a top seed, not a champion, and telling a manager
+          // "win and it is yours" the week before three knockout rounds is a
+          // promise the format cannot keep. Leagues without playoffs keep the
+          // old words - there, the table IS the title.
+          const seeded = line > 0
           let subject = ''
           let body = ''
           if (idx === 0 && gapTop === 0) {
             const chasers = order.slice(1, 3).map(r => r.teamId)
-            subject = roundsLeft === 1 ? `🏁 FINAL DAY: the title is in your hands` : `🏁 TITLE RACE: you lead with ${roundsLeft} to play`
-            body = [`Top of the table, ${order[1] ? `${me.pts - order[1].pts} clear of ${teamShort(state, order[1].teamId)}` : 'clear'}. ${roundsLeft === 1 ? 'Win and it is yours. Simple as that.' : 'Every point is gold now.'}`,
+            subject = roundsLeft === 1
+              ? (seeded ? `🏁 FINAL DAY: top seed in your hands` : `🏁 FINAL DAY: the title is in your hands`)
+              : `🏁 TITLE RACE: you lead with ${roundsLeft} to play`
+            body = [`Top of the table, ${order[1] ? `${me.pts - order[1].pts} clear of ${teamShort(state, order[1].teamId)}` : 'clear'}. ${roundsLeft === 1
+              ? (seeded ? 'Win and you finish top - the playoff road runs through your ground, and the title is settled there.' : 'Win and it is yours. Simple as that.')
+              : (seeded ? 'Every point is gold now - top spot means the playoffs come to you.' : 'Every point is gold now.')}`,
               ...rivalResults(chasers).map(r => `Chasers: ${r}`)].join('\n')
           } else if (gapTop <= 6) {
-            subject = roundsLeft === 1 ? `🏁 FINAL DAY: title still alive` : `🏁 TITLE RACE: ${gapTop} behind with ${roundsLeft} to play`
+            subject = roundsLeft === 1
+              ? (seeded ? `🏁 FINAL DAY: top seed still alive` : `🏁 FINAL DAY: title still alive`)
+              : `🏁 TITLE RACE: ${gapTop} behind with ${roundsLeft} to play`
             body = [`${teamShort(state, top.teamId)} lead you by ${gapTop}. ${roundsLeft === 1 ? 'You need a win and a favour.' : 'Keep winning and keep watching the wires.'}`,
               ...rivalResults([top.teamId]).map(r => `The leaders: ${r}`)].join('\n')
           } else if (lineRow && lineRow.pts - me.pts <= 6) {
@@ -2514,6 +2533,30 @@ export function processWeekAndAdvance(state: GameState) {
               id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
               subject, body,
             })
+          }
+          // MATHEMATICAL PLAYOFF QUALIFICATION GETS SAID OUT LOUD (user: "no
+          // announcement when you mathematically qualify for the playoffs").
+          // The check is the strict one: a rival can pass you only if their
+          // points plus five per remaining game (win plus try bonus, the most
+          // a match can pay) reach yours - ties count against you, so the
+          // announcement is never premature by a tiebreak. Announced once a
+          // season via a STAMP on state, never by scanning the news log - the
+          // log is trimmed, and this session found three gates that forgot.
+          if (line > 0 && state.playoffClinch !== state.season && idx >= 0) {
+            const leftOf = (id: string) => state.fixtures.filter(f =>
+              f.compId === comp.id && !f.stage && !f.played &&
+              (f.homeId === id || f.awayId === id)).length
+            const canPass = order.filter((r, i) =>
+              i !== idx && r.pts + 5 * leftOf(r.teamId) >= me.pts).length
+            if (canPass < line) {
+              state.playoffClinch = state.season
+              const club2 = state.clubs[state.userClubId]
+              state.news.push({
+                id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+                subject: `🎟 PLAYOFFS SECURED: ${club2.short} are mathematically in`,
+                body: `Whatever happens from here, ${club2.name} will be in the ${comp.short} playoffs - no combination of results can push you out of the top ${line}. The seeding is still worth fighting for: finish higher and the knockout rounds come to ${club2.stadium}. The office has already had a call about semi-final ticketing.`,
+              })
+            }
           }
         }
       }

@@ -1071,6 +1071,13 @@ export interface GameState {
    *  airing out of the window and re-armed the story early; and it compared
    *  same-season only, so every rollover reset the clock. */
   lawWatchAt?: number
+  /** the season the playoff-clinch announcement ran (user: "no announcement
+   *  when you mathematically qualify"). A stamp, not a news-log scan. */
+  playoffClinch?: number
+  /** absolute week (season * SEASON_WEEKS + week) of the newest final the
+   *  press room has already asked about, so a won trophy is toasted exactly
+   *  once and a double weekend is toasted as a double. */
+  silverwareAsk?: number
   /** THE ANNUAL (user: "there should be a forced page that says 'ready for a
    *  new season?'"). Stamped by the rollover with the season just finished;
    *  the UI routes Continue to the Annual page until its button clears it.
