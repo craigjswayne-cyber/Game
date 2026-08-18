@@ -143,6 +143,47 @@ export function generatePress(state: GameState, rng: Rng) {
     return
   }
 
+  // THE MORNING AFTER SILVERWARE, THE ROOM ASKS ABOUT THE SILVERWARE (user:
+  // "day after winning both prem final and champs cup - no press questions
+  // about success. feels a bit odd"). A won final is the biggest day the
+  // club has, and the press generator had no beat for it - the Monday after
+  // a double the room was asking about a winger's form. Fires past the spam
+  // gate like the other can't-miss moments; the stamp (absolute week of the
+  // newest final toasted) keeps it to one toast per trophy, and a weekend
+  // that lands two finals gets asked about as a double.
+  {
+    const absNow = state.season * SEASON_WEEKS + state.week
+    const toasted = state.silverwareAsk ?? -1
+    const won = state.fixtures.filter(f => {
+      if (f.stage !== 'F' || !f.played) return false
+      if (f.homeId !== state.userClubId && f.awayId !== state.userClubId) return false
+      const abs = state.season * SEASON_WEEKS + f.week
+      if (abs <= toasted || absNow - abs > 2) return false
+      return f.homeId === state.userClubId ? f.homeScore > f.awayScore : f.awayScore > f.homeScore
+    })
+    if (won.length) {
+      state.silverwareAsk = Math.max(...won.map(f => state.season * SEASON_WEEKS + f.week))
+      const names = won.map(f => state.comps[f.compId]?.name ?? 'the cup')
+      const what = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]
+      const double = names.length > 1
+      state.press.push(mk(state,
+        voice(23, [
+          double
+            ? `The table in front of you has ${names.length} trophies on it. ${what}, in one weekend. The room is on its feet before the first question: how does a season like this happen?`
+            : `The ${what} is on the table in front of you, still wearing its ribbons. The room wants the story: what wins a final?`,
+          double
+            ? `Nobody in this room has covered a weekend like it: ${what}, back to back. When does it sink in?`
+            : `The champagne is barely dry on the ${what}. Where does this one rank in your career?`,
+        ]),
+        undefined, [
+          { label: `'This group earned every inch'`, morale: 0.5, board: 0.4, reaction: `The quote runs under every photo of the celebrations. The squad walks into pre-season believing, and the chairman has the front page framed.` },
+          { label: `'The supporters deserve this'`, morale: 0.3, board: 0.3, reaction: `The town takes it personally, in the best way. Season-ticket renewals do not need a letter this year.` },
+          { label: `'We go again - this is a beginning'`, morale: 0.2, board: 0.5, reaction: `Half the room writes "dynasty". The board hears ambition and likes the sound of it; the squad hears the bar going up.` },
+        ], rng))
+      return
+    }
+  }
+
   if (open >= 2) return // don't spam
 
   // the morning after a bigger club's interest breaks, the first question
