@@ -310,6 +310,21 @@ export function commercialWeekly(state: GameState): number {
   return sum
 }
 
+/** The sponsor's name goes over the gates (user: "the naming rights for the
+ *  stadium have been sold in game - why is it not updating in game?"). The
+ *  traditional name is kept the first time the gates change - stripped of any
+ *  sponsor the data itself shipped with, "cinch Stadium at Franklin's
+ *  Gardens" style - so successive sponsors replace each other rather than
+ *  stacking, and the composed name follows the same real-world convention. */
+export function applyStadiumName(state: GameState, sponsor: string) {
+  const club = state.clubs[state.userClubId]
+  if (!club) return
+  club.stadiumBase ??= club.stadium.includes(' at ')
+    ? club.stadium.slice(club.stadium.indexOf(' at ') + 4)
+    : club.stadium
+  club.stadium = `${sponsor} Stadium at ${club.stadiumBase}`
+}
+
 /** Sign an offer. Replaces whatever was in that slot. */
 export function signOffer(state: GameState, offer: Offer): string {
   const club = state.clubs[state.userClubId]
@@ -325,14 +340,18 @@ export function signOffer(state: GameState, offer: Offer): string {
     slot: offer.slot, sponsor: offer.sponsor, weekly: offer.weekly, clause: offer.clause,
     from: state.season, until: state.season + offer.years - 1, repAt: club.rep,
   }
+  // naming rights actually name the ground - the deal the user could sign
+  // without a single letter changing over the gates was the complaint
+  if (offer.slot === 'naming') applyStadiumName(state, offer.sponsor)
   const yrs = offer.years === 1 ? 'one season' : `${offer.years} seasons`
   logDecision(state, `Signed ${offer.sponsor} for the ${SLOT_BY_ID[offer.slot].name.toLowerCase()}: ${fmtMoney(offer.weekly)} a week over ${yrs}.`, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${SLOT_BY_ID[offer.slot].icon} ${offer.sponsor} sign on with ${club.short}`,
-    body: offer.clause === 'none'
+    body: (offer.clause === 'none'
       ? `${offer.sponsor} take the ${SLOT_BY_ID[offer.slot].name.toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week. The commercial department is pleased with itself, and the money starts arriving on Friday.`
-      : `${offer.sponsor} take the ${SLOT_BY_ID[offer.slot].name.toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week, with a clause: ${CLAUSES[offer.clause].text.toLowerCase()} Deliver and it is the best deal in the building. Do not, and you have sold cheap.`,
+      : `${offer.sponsor} take the ${SLOT_BY_ID[offer.slot].name.toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week, with a clause: ${CLAUSES[offer.clause].text.toLowerCase()} Deliver and it is the best deal in the building. Do not, and you have sold cheap.`)
+      + (offer.slot === 'naming' ? ` The signage vans arrive Monday: the ground plays as ${club.stadium} for the length of the deal.` : ''),
   })
   return `Done. ${offer.sponsor}, ${fmtMoney(offer.weekly)} a week, ${yrs}.`
 }
@@ -360,6 +379,8 @@ export function expireDeals(state: GameState) {
       slot: slot.id, sponsor: names[h % names.length], weekly: rate, clause: 'none',
       from: state.season, until: state.season + 1, repAt: club.rep, auto: true,
     }
+    // the new caretaker's name goes over the gates like anybody else's
+    if (slot.id === 'naming') applyStadiumName(state, names[h % names.length])
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `${slot.icon} ${d.sponsor} deal expires`,
@@ -384,8 +405,19 @@ export function seedDeals(state: GameState) {
   for (const [i, slot] of SLOTS.entries()) {
     const h = hash(state.seed, `inherit|${slot.id}|${club.id}`)
     const names = NAMES[slot.id]
+    // THE INHERITED NAMING SPONSOR IS WHOEVER IS ALREADY OVER THE GATES.
+    // Half the data's grounds ship with their real sponsor in the name
+    // ("cinch Stadium at Franklin's Gardens"), and inventing a second
+    // sponsor for a slot the name says is sold would put the deal card and
+    // the gates in permanent disagreement (user: "the naming rights for the
+    // stadium have been sold in game - why is it not updating?"). A ground
+    // with no sponsor in its name keeps its traditional name and the
+    // fictional inheritor - renaming Sandy Park on day one would be worse.
+    const dataSponsor = slot.id === 'naming'
+      ? (/^(.*?) Stadium at /.exec(club.stadium) ?? /^(.*?) at /.exec(club.stadium))?.[1] ?? null
+      : null
     state.deals[slot.id] = {
-      slot: slot.id, sponsor: names[h % names.length],
+      slot: slot.id, sponsor: dataSponsor ?? names[h % names.length],
       weekly: marketRate(club.rep, slot.id), clause: 'none',
       from: state.season,
       // staggered, so all three do not fall due in the same summer

@@ -179,6 +179,12 @@ of the trimmed news log.
   "£8.4k" - the same 8,400. Any offer at or above the counter signs now;
   wages print via fmtWage. renewprobe meets every quoted counter same-week
   (old engine: all 23 refused, Fischetti reproduces the screenshot).
+- NAMING RIGHTS NAME THE GROUND: applyStadiumName composes
+  "{sponsor} Stadium at {stadiumBase}" (base captured once, so sponsors
+  replace rather than stack); signOffer and the expiry caretaker both call
+  it; seedDeals derives the inherited sponsor from the data's own name
+  ("cinch...") so fresh worlds agree from day one; save.ts heals live
+  mismatched saves idempotently on load. dealprobe pins all three.
 - FREE AGENTS: "Free agents" is an option in the market's League select
   (their league is nowhere), and signFreeAgent(ai.ts) replaced the inline
   page button that skipped cap and embargo checks. Rule of the find: AN
