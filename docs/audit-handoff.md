@@ -150,6 +150,15 @@ of the trimmed news log.
 - "world rankings are out of sync" is NOT diagnosed - the list renders
   live, the arrows compare a monthly snapshot; asked the user what exactly
   disagreed before touching it.
+- LEAGUE TABLE PTS CLIPPED ON DEVICE, UNREPRODUCIBLE HEADLESS: the old
+  auto-layout table fit headless Chromium at 412/384/360 with fat data and
+  scaled text - but with ZERO pixels of slack every time, and a no-slack
+  layout clips under any real device's font metrics (the screenshot).
+  Lesson for layout probes: a pass at exactly the viewport edge is a fail
+  waiting for a font; and geosweep only ever reads tables at week one,
+  when the data is at its narrowest. Fixed colgroup layout removes the
+  class. Same session: the treasury (balance -> transfer budget in 500k
+  slices above the boardReinvests reserve, econprobe holds the ledger).
 
 ## Open work, roughly in order
 

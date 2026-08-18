@@ -9,6 +9,7 @@ import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, marketRate,
   offersFor, signOffer,
 } from '../../game/commercial'
+import { RELEASE_STEP, cashReserve, releaseBlock, releaseToBudget } from '../../game/treasury'
 
 export default function Finances() {
   // two pages rather than one long scroll
@@ -17,6 +18,7 @@ export default function Finances() {
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const [askMsg, setAskMsg] = useState<string | null>(null)
+  const [relMsg, setRelMsg] = useState<string | null>(null)
   const club = game.clubs[game.userClubId]
   const askedKey = `asked-${game.season}`
   const asked = (game as unknown as Record<string, unknown>)[askedKey] === true
@@ -155,6 +157,25 @@ export default function Finances() {
       <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
+      {/* THE TREASURY (user: "should be able to transfer balance into
+          transfer money"). The button and the engine read one predicate
+          (releaseBlock), so when the move is off the button says why - the
+          reason in front of the decision, not a refusal after it. */}
+      {(() => {
+        const block = releaseBlock(game)
+        return (
+          <>
+            {relMsg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{relMsg}</div>}
+            <button className="btn ghost block" disabled={!!block}
+              onClick={() => { const r = releaseToBudget(game); setRelMsg(r.msg); touch() }}>
+              🏦 Move {fmtMoney(RELEASE_STEP)} of the balance into the transfer budget
+            </button>
+            <div className="meta" style={{ padding: '2px 16px 8px', fontSize: 11.5 }}>
+              {block ?? `The board protects ${fmtMoney(cashReserve(game))} in the bank (a season of wages plus a float); everything above it is yours to move, ${fmtMoney(RELEASE_STEP)} at a time.`}
+            </div>
+          </>
+        )
+      })()}
       </>}
       {/* ---- the commercial department (F30) ----
           Three things to sell, and what is in each slot right now. The offers

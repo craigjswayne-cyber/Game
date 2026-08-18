@@ -28,7 +28,17 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
 
   return (
     <>
-      <div className="tblwrap"><table className="dtable ltable">
+      {/* FIXED LAYOUT, LIKE THE SQUAD TABLES (user: "cant see the points in
+          the table"). The narrow-screen padding trim was not enough: with
+          nowrap cells, auto table layout sizes columns from content minimums,
+          so a +/- of 111 and a "pred 2nd" chip riding in the name cell pushed
+          POINTS - the one number a league table exists to show - off the
+          right edge, and the sideways scroll it fell into is a scroll nothing
+          else on the phone has. A colgroup plus .fit makes the table exactly
+          as wide as the screen, the name column ellipsises, and the pred chip
+          moves to the legend line below where it costs no width. */}
+      <div className="tblwrap fitwrap"><table className="dtable ltable fit">
+        <colgroup><col width="26" /><col /><col width="24" /><col width="24" /><col width="24" /><col width="24" /><col width="42" /><col width="26" /><col width="34" /></colgroup>
         <thead>
           <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
             <th className="num">D</th><th className="num">L</th><th className="num">+/-</th>
@@ -50,9 +60,6 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
                 <td className="num muted">{i + 1}</td>
                 <td className="name">
                   <CrestT g={game} teamId={r.teamId} size={17} />{teamShort(game, r.teamId)}
-                  {r.teamId === game.userClubId && game.preds?.[r.teamId] != null && (
-                    <span className="muted" style={{ fontSize: 10.5, marginLeft: 5 }}>pred {ordinal(game.preds[r.teamId])}</span>
-                  )}
                 </td>
                 <td className="num">{r.p}</td>
                 <td className="num">{r.w}</td>
@@ -66,11 +73,14 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
           })}
         </tbody>
       </table></div>
-      {!compact && (playoffLine || relegates) && (
+      {!compact && (playoffLine || relegates || game.preds?.[game.userClubId] != null) && (
         <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
           {playoffLine ? `🟡 Top ${playoffLine}: playoff places` : ''}
           {playoffLine && relegates ? ' · ' : ''}
           {relegates ? '🔻 Bottom: relegation' : ''}
+          {comp.teamIds.includes(game.userClubId) && game.preds?.[game.userClubId] != null
+            ? `${playoffLine || relegates ? ' · ' : ''}🎙 Pundits predicted you ${ordinal(game.preds[game.userClubId])}`
+            : ''}
         </div>
       )}
     </>
