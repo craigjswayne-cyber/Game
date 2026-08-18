@@ -46,6 +46,9 @@ export function loanIn(state: GameState, playerId: number): string {
   p.clubId = user.id
   p.morale = clamp(p.morale + 1, 1, 10)
   p.sc = 100
+  // the game-time ledger starts counting his availability from arrival, not
+  // from the weeks he spent at his parent club
+  p.avail = 0
   p.debutPending = 'signing'
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,

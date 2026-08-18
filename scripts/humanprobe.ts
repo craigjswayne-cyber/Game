@@ -220,5 +220,35 @@ const club = g.clubs[g.userClubId]
   ok(!(told.wantsOut ?? 0), 'a fringe man was told where he stands: no request from him')
 }
 
+// ---- away with his country is not a broken promise -------------------------
+//
+// (user: "i shouldn't be punished if he is unavailable - it should only
+// apply if he isnt being picked through my choice"). Two key men, both with
+// zero appearances after twenty matches: one on Test duty the whole time,
+// one benched by choice. The ledger owes the absent man nothing and his
+// morale holds; the benched man keeps the grievance in full.
+{
+  const gg = newGame('northampton', 'Human', 24)
+  const c = gg.clubs[gg.userClubId]
+  const outside = c.players.map(id => gg.players[id]).filter(p => p && !p.acad && !c.tactic.lineup.includes(p.id))
+  const away = outside[0]
+  away.status = 'key'; away.stats.apps = 0; away.morale = 8; away.natSquad = true
+  const benched = outside[1]
+  benched.status = 'key'; benched.stats.apps = 0; benched.morale = 8
+  for (const fx of gg.fixtures) {
+    if (fx.week <= 20 && (fx.homeId === c.id || fx.awayId === c.id)) fx.played = true
+  }
+  gg.week = 20
+  for (let w = 0; w < 20; w++) settleGameTime(gg)
+  const played = clubMatchesPlayed(gg, c.id)
+  const rowAway = ledgerRow(gg, c, away, played)
+  const rowBench = ledgerRow(gg, c, benched, played)
+  console.log(`  on Test duty: owed ${rowAway.expected}, morale ${away.morale.toFixed(1)} | benched by choice: owed ${rowBench.expected}, morale ${benched.morale.toFixed(1)}`)
+  ok(rowAway.expected === 0, `a man away with his country is owed nothing for those weeks (${rowAway.expected})`)
+  ok(away.morale >= 7.9, 'and his morale does not drift for it')
+  ok(rowBench.expected > 0 && benched.morale < away.morale,
+    'while the man benched by choice still carries the grievance in full')
+}
+
 console.log(fails ? `HUMAN PROBE FAILED (${fails})` : 'HUMAN PROBE PASSED')
 process.exit(fails ? 1 : 0)

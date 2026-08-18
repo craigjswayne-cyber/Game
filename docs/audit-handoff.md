@@ -160,6 +160,19 @@ of the trimmed news log.
   class. Same session: the treasury (balance -> transfer budget in 500k
   slices above the boardReinvests reserve, econprobe holds the ledger).
 
+## The late-night pair (fourth wave)
+
+- GAME-TIME PROMISES BILL AVAILABILITY NOW, NOT THE CALENDAR: p.avail ticks
+  forward in settleGameTime (skips natSquad, bans, injury, loans; signings
+  and loanees start at zero on arrival; abs-week stamp prevents double
+  counting; reset with season stats). ledgerRow bills a share of avail. The
+  old whole-season share survives only as a first-touch fallback for saves
+  the counter has not reached. humanprobe stages Test-duty v benched-by-
+  choice; old engine owed both the same and drifted both.
+- THE BUY-BACK GATE: p.joinedAt stamped by the transfer executor; agreeFee
+  refuses sales of a sub-22-week arrival below double the ask, with the
+  reason in the message. haggleprobe pins door, reason, and expiry.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

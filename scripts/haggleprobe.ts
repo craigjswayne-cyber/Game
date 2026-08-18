@@ -116,5 +116,33 @@ for (const d of soft.slice(0, 3)) {
   }
 }
 
+// ---- THE INK IS STILL WET: no instant buy-backs ----------------------------
+//
+// (user: "i just sold this player - i shouldn't really be able to buy them
+// back within 6 months... i can offer but it should rarely be accepted as
+// the club have invested in this player"). A freshly-arrived man is behind a
+// door only a can't-argue offer (double the ask) opens; once half a season
+// has passed, the normal market applies again.
+{
+  const g = newGame('northampton', 'InkWet', 41)
+  const SEASON_WEEKS = 45
+  const target = Object.values(g.players).find(p =>
+    p.clubId && p.clubId !== g.userClubId && g.clubs[p.clubId!] && !p.acad && p.ca >= 70)!
+  const seller = g.clubs[target.clubId!]
+  g.clubs[g.userClubId].budget = 100_000_000
+  target.joinedAt = g.season * SEASON_WEEKS + g.week - 3 // three weeks into his move
+  const ask = askingPrice(g, target)
+  const polite = agreeFee(g, target.id, ask)
+  if (polite.ok) bad(`three weeks after arriving, ${seller.short} sold ${target.name} at the mere asking price`)
+  if (polite.ok || !/invested in him/.test(polite.msg)) bad(`the refusal does not say why: "${polite.msg}"`)
+  const silly = agreeFee(g, target.id, Math.round((ask * 2) / 50_000) * 50_000 + 50_000)
+  if (!silly.ok && !/won't discuss terms/.test(silly.msg)) {
+    bad(`an offer past double the ask should force the door: "${silly.msg}"`)
+  }
+  target.joinedAt = g.season * SEASON_WEEKS + g.week - 30 // an old move
+  const later = agreeFee(g, target.id, ask)
+  if (!later.ok && /invested in him/.test(later.msg)) bad('the gate outlived its half season')
+}
+
 if (fails) { console.error(`HAGGLE PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nHAGGLE PROBE PASSED')

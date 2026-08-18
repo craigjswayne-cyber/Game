@@ -24,6 +24,7 @@
 //   than merely spared.
 
 import type { Club, GameState, Player } from './model'
+import { SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
@@ -104,10 +105,16 @@ export interface LedgerRow {
 export function ledgerRow(state: GameState, club: Club, p: Player, played: number): LedgerRow {
   const status = statusOf(state, club, p)
   const share = STATUS_BY_ID[status].share
-  // Long-term injury is nobody's broken promise: the weeks he could not have
-  // played are taken out of what he was entitled to expect.
+  // THE PROMISE ONLY COVERS WEEKS HE WAS YOURS TO PICK (user: "i shouldn't be
+  // punished if he is unavailable - it should only apply if he isnt being
+  // picked through my choice"). p.avail is the count of club matches this man
+  // was actually available for, tracked forward by settleGameTime - so Test
+  // windows, suspensions, injury spells and the weeks before a mid-season
+  // signing arrived all stop billing the manager. The old whole-season share
+  // with a current-injury deduction survives only as the fallback for a save
+  // the counter has not touched yet.
   const out = p.injury ? Math.min(played, p.injury.weeks ?? 0) : 0
-  const expected = Math.round(Math.max(0, played - out) * share)
+  const expected = Math.round((p.avail ?? Math.max(0, played - out)) * share)
   const actual = p.stats.apps
   const gap = actual - expected
   const mood: LedgerRow['mood'] =
@@ -137,6 +144,27 @@ export function settleGameTime(state: GameState) {
   const club = state.clubs[state.userClubId]
   if (!club) return
   const played = clubMatchesPlayed(state, club.id)
+  // THE AVAILABILITY COUNTER, kept from the first week (before the grace
+  // return below - the sample has to exist by the time the ledger bites).
+  // One increment per man per club match, and only when the week was his to
+  // give: away with his country, suspended, injured, out on loan or not yet
+  // signed, and the match never enters what he was promised a share of. The
+  // abs-week stamp stops a double-called settle from counting a match twice.
+  // First touch of an older save seeds the old estimate - except a man
+  // currently on Test duty, who starts level rather than owed.
+  const absWk = state.season * SEASON_WEEKS + state.week
+  const playedThisWeek = state.fixtures.some(f =>
+    f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id))
+  if (playedThisWeek && state.availWeek !== absWk) {
+    state.availWeek = absWk
+    for (const id of club.players) {
+      const p = state.players[id]
+      if (!p || p.acad) continue
+      p.avail ??= p.natSquad ? p.stats.apps
+        : Math.max(0, played - 1 - (p.injury ? Math.min(played - 1, p.injury.weeks ?? 0) : 0))
+      if (!p.injury && p.bans === 0 && !p.natSquad && !p.onLoan) p.avail += 1
+    }
+  }
   if (played < 6) return
   // A man in this week's twenty-three has nothing to raise this week, and that
   // exclusion is what makes the whole ledger safe to attach to morale.

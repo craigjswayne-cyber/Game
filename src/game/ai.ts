@@ -1,5 +1,5 @@
 import type { GameState, Player } from './model'
-import { addGrudge, fmtMoney } from './model'
+import { SEASON_WEEKS, addGrudge, fmtMoney } from './model'
 import { ensureCaptains } from './analysis'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -197,6 +197,10 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.morale = clamp(p.morale + 1, 1, 10)
   p.transferListed = false
   p.debutPending = 'signing'
+  // the arrival is stamped: the buy-back gate in agreeFee reads it, and the
+  // game-time ledger's availability counter starts fresh at the new club
+  p.joinedAt = state.season * SEASON_WEEKS + state.week
+  p.avail = 0
   if (toClubId === state.userClubId) {
     state.mgr.signings += 1
     state.mgr.spent += fee
@@ -372,6 +376,25 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   if (fee > user.budget) return { ok: false, msg: 'That bid exceeds your transfer budget.' }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
+  // THE INK IS STILL WET (user: "i just sold this player - i shouldn't
+  // really be able to buy them back within 6 months... i can offer but it
+  // should rarely be accepted as the club have invested in this player").
+  // A club that just paid a fee and built plans around a man does not flip
+  // him for his market price half a season later. While the arrival is fresh
+  // the only door is an offer too big to argue with - double the ask - and
+  // the refusal says so. joinedAt is stamped by the transfer executor;
+  // players who moved before the stamp existed carry no gate.
+  {
+    const now = state.season * SEASON_WEEKS + state.week
+    const weeksIn = p.joinedAt != null ? now - p.joinedAt : null
+    if (weeksIn != null && weeksIn < 22 && fee < ask * 2) {
+      const door = Math.round((ask * 2) / 50_000) * 50_000
+      return {
+        ok: false,
+        msg: `${seller.short} end the call politely: ${p.name} arrived ${weeksIn < 2 ? 'days' : `${weeksIn} weeks`} ago and the club has invested in him. Until he has been theirs half a season, only an offer they cannot argue with - ${fmtMoney(door)} - reopens the conversation.`,
+      }
+    }
+  }
   // WHAT WILL THEY ACTUALLY TAKE?
   //
   // This used to be `counterPrice - 50_000`, a flat fifty grand off whatever the
