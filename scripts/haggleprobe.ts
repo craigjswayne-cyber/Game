@@ -13,7 +13,7 @@
 //     the salary cap it was balanced against
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { MAX_HAGGLE, agreeFee, askingPrice, floorPrice, sellerWillingness } from '../src/game/ai'
+import { MAX_HAGGLE, agreeFee, askingPrice, floorPrice, sellerWillingness, signFreeAgent } from '../src/game/ai'
 import { fmtMoney } from '../src/game/model'
 
 let fails = 0
@@ -142,6 +142,36 @@ for (const d of soft.slice(0, 3)) {
   target.joinedAt = g.season * SEASON_WEEKS + g.week - 30 // an old move
   const later = agreeFee(g, target.id, ask)
   if (!later.ok && /invested in him/.test(later.msg)) bad('the gate outlived its half season')
+}
+
+// ---- FREE AGENTS SIGN THROUGH THE ENGINE'S GUARDS --------------------------
+//
+// (user: "you should be able to search for free agents on the transfer
+// centre"). The market's Free agents filter finds them; this is the signing
+// path behind the button - which used to live inline in the UI and skipped
+// the salary-cap and embargo checks entirely.
+{
+  const g = newGame('northampton', 'FreeAgent', 43)
+  const user = g.clubs[g.userClubId]
+  // a fresh world has no free agents yet - make one the way a contract
+  // expiry does: off his club's roster, clubId null
+  const fa = Object.values(g.players).find(p =>
+    p.clubId && p.clubId !== g.userClubId && g.clubs[p.clubId!] && !p.acad && p.age <= 30)
+  if (!fa) bad('nobody in the world could be released to test with')
+  else {
+    const donor = g.clubs[fa.clubId!]
+    donor.players = donor.players.filter(id => id !== fa.id)
+    fa.clubId = null
+    const signings0 = g.mgr.signings
+    const r = signFreeAgent(g, fa.id)
+    if (!r.ok) bad(`a clubless man with affordable wages was refused: ${r.msg}`)
+    if (fa.clubId !== user.id || !user.players.includes(fa.id)) bad('he signed but did not arrive')
+    if (!fa.wage || fa.wage <= 0) bad('he signed for no wage at all')
+    if (fa.joinedAt == null || fa.avail !== 0) bad('the arrival was not stamped (joinedAt/avail)')
+    if (g.mgr.signings !== signings0 + 1) bad('the signing is missing from the manager record')
+    const again = signFreeAgent(g, fa.id)
+    if (again.ok) bad('signed the same man twice')
+  }
 }
 
 if (fails) { console.error(`HAGGLE PROBE: ${fails} failures`); process.exit(1) }

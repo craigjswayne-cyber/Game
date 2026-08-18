@@ -481,6 +481,31 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} fee, £${wage.toLocaleString()}/wk${signOn > 0 ? `, ${fmtMoney(signOn)} signing bonus` : ''}${promiseMinutes ? ', first-team rugby promised' : ''}.` }
 }
 
+/** Sign a clubless player: no fee, his wage demand, and the same guards a
+ *  paid signing passes (user: "you should be able to search for free agents
+ *  on the transfer centre"). This used to live inline in the player page's
+ *  button, where it skipped the salary-cap and embargo checks entirely - an
+ *  engine rule a screen can bypass is not a rule. One function now, called
+ *  by the button, probed headlessly. */
+export function signFreeAgent(state: GameState, playerId: number): { ok: boolean; msg: string } {
+  const p = state.players[playerId]
+  const user = state.clubs[state.userClubId]
+  if (!p || p.clubId != null || !user) return { ok: false, msg: 'He is not a free agent.' }
+  if (embargoed(state, user.id)) {
+    return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. Nobody can be signed until it is served.' }
+  }
+  const wage = renewalDemand(p)
+  const capMsg = capBreak(state, user.id, wage)
+  if (capMsg) return { ok: false, msg: capMsg }
+  if (capBill(state, user) + wage > user.wageBudget) {
+    return { ok: false, msg: `His wage demands (£${wage.toLocaleString()}/wk) would exceed your wage budget.` }
+  }
+  executeTransfer(state, p, user.id, 0)
+  p.wage = wage
+  p.contractEnds = state.season + 2
+  return { ok: true, msg: `${p.name} signs on a free transfer (£${wage.toLocaleString()}/wk).` }
+}
+
 /** Legacy one-shot bid: agree the fee and sign at his demanded wage. */
 export function userBid(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
   const agreed = agreeFee(state, playerId, fee)

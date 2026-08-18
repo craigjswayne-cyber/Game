@@ -45,7 +45,8 @@ export default function Transfers() {
     if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.clubId ? game.clubs[p.clubId]?.short.toLowerCase().includes(q) : false))
     if (maxVal > 0) list = list.filter(p => p.value <= maxVal)
     if (maxAge > 0) list = list.filter(p => p.age <= maxAge)
-    if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
+    if (league === 'FA') list = list.filter(p => !p.clubId)
+    else if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
     if (listedOnly) list = list.filter(p => p.transferListed)
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
@@ -293,6 +294,10 @@ export default function Transfers() {
         </select>
         <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
           <option value="ALL">League</option>
+          {/* a free agent's league is nowhere, which makes this the natural
+              place to find him (user: "you should be able to search for free
+              agents on the transfer centre") */}
+          <option value="FA">Free agents</option>
           {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
             <option key={c.id} value={c.id}>{c.short}</option>
           ))}
