@@ -8,6 +8,7 @@ import { simMatch } from '../src/game/matchEngine'
 import { staffWageBill } from '../src/game/staff'
 import { facLevel, FACILITY_INFO, operatingCost, weeklyCentral, type FacilityId } from '../src/game/model'
 import { commercialWeekly } from '../src/game/commercial'
+import { cashReserve, releaseBlock, releaseToBudget } from '../src/game/treasury'
 
 const SEASONS = Number(process.argv[2] ?? 4)
 const CLUB = process.argv[3] ?? 'northampton'
@@ -89,6 +90,29 @@ if (netWeekly < -40_000) fails.push(`weekly ledger runs at ${Math.round(netWeekl
 // than the league, the transfer market stops meaning anything.
 const median = aiBals[Math.floor(aiBals.length / 2)]
 if (median > 0 && bal / median > 6) fails.push(`runaway wealth: ${(bal / median).toFixed(1)}x the AI median`)
+// ---- THE TREASURY: balance moves to budget, above the reserve only ---------
+//
+// (user: "should be able to transfer balance into transfer money"). The rule
+// under test: 500k a slice, never below the board's reserve (a season of
+// wages plus the float), and the ledger balances to the pound.
+{
+  const t = newGame('northampton', 'Treasury', 3)
+  const club = t.clubs[t.userClubId]
+  club.balance = cashReserve(t) + 1_200_000
+  const bal0 = club.balance, bud0 = club.budget
+  const first = releaseToBudget(t)
+  if (!first.ok) fails.push(`a club with surplus cash was refused: ${first.msg}`)
+  if (club.balance !== bal0 - 500_000 || club.budget !== bud0 + 500_000) {
+    fails.push(`the slice moved wrong: balance ${bal0} -> ${club.balance}, budget ${bud0} -> ${club.budget}`)
+  }
+  const second = releaseToBudget(t)
+  if (!second.ok) fails.push('the second affordable slice was refused')
+  const third = releaseToBudget(t)
+  if (third.ok) fails.push('a slice that dips below the reserve went through')
+  if (releaseBlock(t) == null) fails.push('the button predicate disagrees with the refusal')
+  if (club.balance < cashReserve(t)) fails.push(`the reserve was breached: ${club.balance} < ${cashReserve(t)}`)
+}
+
 if (fails.length) {
   for (const f of fails) console.error(`FAIL: ${f}`)
   process.exit(1)
