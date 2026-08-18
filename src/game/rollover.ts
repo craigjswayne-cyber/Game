@@ -302,36 +302,61 @@ function agePlayers(state: GameState, rng: Rng) {
     // the season to write
     p.value = playerValue(p.ca, p.age, p.pa, p.pos, undefined, p.contractEnds - state.season)
   }
-  // graduation: at 22 you're too old for the academy; AI clubs also
-  // promote anyone who is clearly ready
-  // one letter for the whole intake, not one per graduate. Week 1 of a new
-  // season is the busiest inbox of the year, and three separate "X graduates"
-  // items were three of the sixteen things the manager had to read past.
-  const grads: Player[] = []
+  // THE DEVELOPMENT DEAL ENDS AT 21, AND IT IS THE MANAGER'S CALL (user: "we
+  // also need an age where they need to either be upgraded or released... the
+  // contract should expire at age 21 to allow this"). The academy used to
+  // auto-graduate everyone at 22, so the manager never had to decide anything
+  // - the pipeline fed the senior squad on its own. Now a lad's final academy
+  // year is announced the summer he turns 20, and the summer he turns 21 he
+  // either wears the pro contract the manager gave him (the Promote button on
+  // his page, any time before then) or he leaves as a free agent. AI academies
+  // keep their own rules - graduate at 22, early when clearly ready - because
+  // their pipelines are not run by the user's judgement.
+  const lastYear: Player[] = []
+  const released: Player[] = []
   for (const p of Object.values(state.players)) {
     if (!p.acad) continue
-    if (p.age >= 22 || (p.clubId !== state.userClubId && p.ca >= 62)) {
+    if (p.clubId === state.userClubId) {
+      if (p.age >= 21) {
+        const c = state.clubs[p.clubId]
+        if (c) c.players = c.players.filter(id => id !== p.id)
+        p.acad = false
+        p.clubId = null
+        released.push(p)
+      } else if (p.age === 20) {
+        lastYear.push(p)
+      }
+      continue
+    }
+    if (p.age >= 22 || p.ca >= 62) {
       p.acad = false
       // HE SIGNS HIS FIRST PROFESSIONAL CONTRACT. He was on a development deal
       // (see playerWage), and graduating without re-pricing him would leave a
       // senior squad man on academy money for the rest of his career.
       p.wage = playerWage(p.ca, p.age)
       p.debutPending = p.stats.apps === 0 && p.career.length === 0 ? 'academy' : null
-      if (p.clubId === state.userClubId) grads.push(p)
     }
   }
-  if (grads.length) {
-    grads.sort((a, b) => b.ca - a.ca)
-    const one = grads.length === 1
+  if (lastYear.length) {
+    lastYear.sort((a, b) => b.ca - a.ca)
     state.news.push({
       id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-      subject: one
-        ? `${grads[0].name} graduates to the first-team squad`
-        : `${grads.length} graduate to the first-team squad`,
-      body: one
-        ? `Too old for the academy, ready or not: ${grads[0].name} (${grads[0].age}, ${grads[0].pos}) moves up to full first-team training. Time to sink or swim.`
-        : `Too old for the academy, ready or not. Moving up to full first-team training: ${grads.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Some will sink, some will swim, and the ones you play will tell you which.`,
-      playerId: grads[0].id,
+      subject: lastYear.length === 1
+        ? `⏳ ${lastYear[0].name}'s last academy year`
+        : `⏳ Last academy year for ${lastYear.length} of your prospects`,
+      body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract from ${lastYear.length === 1 ? 'his' : 'their'} player page before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
+      playerId: lastYear[0].id,
+    })
+  }
+  if (released.length) {
+    released.sort((a, b) => b.ca - a.ca)
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+      subject: released.length === 1
+        ? `🚪 ${released[0].name}'s development deal expires - he leaves`
+        : `🚪 ${released.length} academy deals expire - they leave`,
+      body: `No professional terms were offered, so at 21 the academy road ends: ${released.map(p => `${p.name} (${p.pos})`).join(', ')} ${released.length === 1 ? 'leaves' : 'leave'} as ${released.length === 1 ? 'a free agent' : 'free agents'}. The academy coach clears ${released.length === 1 ? 'his locker' : 'their lockers'} and starts again with the next intake.`,
+      playerId: released[0].id,
     })
   }
 

@@ -131,6 +131,26 @@ reproducing the screenshot verbatim):
 Note the pattern across BOTH waves: every stamp is on state, never a scan
 of the trimmed news log.
 
+## The evening batch (third wave)
+
+- THE ANNUAL GATE LEAKED THROUGH MATCHES: kickOff/instantResult had no
+  annual check, so the Team screen's MATCHDAY button played a gated season
+  to week 6. Both reroute to the Annual now, like Continue. The general
+  rule this makes three for: A GATE MUST HOLD EVERY DOOR, and the probe
+  must walk every door (annualprobe now walks the match door too).
+- Development deals end at 21: warned at 20, promote by 21 or he walks
+  (user request, verbatim). AI academies unchanged. acadprobe stages it.
+- Legacy screen: league cell width-capped (Finish was off-screen at 412px),
+  cups ride on the season row. HOF criteria are club-blind by design
+  (peak CA 85 + 350 apps/150 tries/2200 pts, or raw 470/190/3000) - the
+  user asked, answer given, criteria left alone.
+- Test-window press question rotates its option sets and cools via
+  state.natAskAt (no playerId means the office memo never applied).
+- MatchDay XV/bench tables share fixed column widths (bench stars drifted).
+- "world rankings are out of sync" is NOT diagnosed - the list renders
+  live, the arrows compare a monthly snapshot; asked the user what exactly
+  disagreed before touching it.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

@@ -121,6 +121,37 @@ try {
   ok(await page.locator('text=Ready for a new season').count() > 0,
     'a second Continue stays on the Annual - the gate holds')
 
+  // THE MATCH DOOR IS A DOOR TOO (user: "i haven't pressed new season yet
+  // but its restarted in the background"). Continue was gated; the Team
+  // screen's MATCHDAY button was not, and three quick pre-season kick-offs
+  // played the new season to week 4 - then week 6 - behind the Annual. Walk
+  // that exact path: stand on the matchday screen, ask for the assistant's
+  // result and a kick-off, and the week must not turn - the tap must land
+  // back on the Annual with the stamp intact.
+  const leak = await page.evaluate(async () => {
+    const st = window.rugbyStore.getState()
+    const before = { week: st.game.week, season: st.game.season }
+    st.go('matchday')
+    window.rugbyStore.setState({ lastAdvanceAt: 0 })
+    window.rugbyStore.getState().instantResult()
+    await new Promise(r => setTimeout(r, 60))
+    if (window.rugbyStore.getState().nav.at(-1)?.screen !== 'annual') {
+      window.rugbyStore.getState().go('matchday')
+    }
+    window.rugbyStore.setState({ lastAdvanceAt: 0 })
+    window.rugbyStore.getState().kickOff()
+    await new Promise(r => setTimeout(r, 60))
+    const s2 = window.rugbyStore.getState()
+    return {
+      before, after: { week: s2.game.week, season: s2.game.season },
+      live: !!s2.liveMatch, screen: s2.nav[s2.nav.length - 1]?.screen, annual: !!s2.game.annual,
+    }
+  })
+  ok(leak.after.week === leak.before.week && leak.after.season === leak.before.season && !leak.live,
+    `a kick-off behind the Annual cannot turn the week (week ${leak.before.week} -> ${leak.after.week}, live ${leak.live})`)
+  ok(leak.screen === 'annual' && leak.annual,
+    `and the tap lands on the Annual with the stamp intact (landed on "${leak.screen}")`)
+
   // the one door out
   await step('the Annual door appears', () => page.waitForSelector('text=Ready for a new season', { timeout: 15000 }))
   await step('walk through the Annual door', () => page.click('text=Ready for a new season', { timeout: 15000 }))

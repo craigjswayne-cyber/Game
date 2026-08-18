@@ -1078,6 +1078,10 @@ export interface GameState {
    *  press room has already asked about, so a won trophy is toasted exactly
    *  once and a double weekend is toasted as a double. */
   silverwareAsk?: number
+  /** absolute week the test-window exodus question last ran. It has no
+   *  playerId, so the office memo never cooled it and a long window could
+   *  ask twice in a fortnight with the same three buttons. */
+  natAskAt?: number
   /** THE ANNUAL (user: "there should be a forced page that says 'ready for a
    *  new season?'"). Stamped by the rollover with the season just finished;
    *  the UI routes Continue to the Annual page until its button clears it.

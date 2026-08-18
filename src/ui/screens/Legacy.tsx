@@ -76,15 +76,31 @@ export default function Legacy() {
           <div className="tblwrap"><table className="dtable">
             <thead><tr><th>Season</th><th>League</th><th className="num">Finish</th></tr></thead>
             <tbody>
-              {[...m.finishes].reverse().map((f, i) => (
-                <tr key={i}>
-                  <td>{seasonLabel(f.season)}</td>
-                  <td>{game.comps[f.leagueId]?.name ?? f.leagueId}</td>
-                  <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? '#a8841a' : undefined }}>
-                    {f.pos === 1 ? '🏆 1st' : ord(f.pos)}
-                  </td>
-                </tr>
-              ))}
+              {[...m.finishes].reverse().map((f, i) => {
+                // the cups won that year belong on the year's row (user:
+                // "season by season... doesnt include champions cup success?").
+                // They ride in the league column so Finish stays a league fact.
+                const cups = m.trophies.filter(t => t.season === f.season && t.compId !== f.leagueId)
+                return (
+                  <tr key={i}>
+                    <td>{seasonLabel(f.season)}</td>
+                    {/* .name caps the cell width - the full league name used to
+                        shove the Finish column half off a 412px screen (user:
+                        "1st is out of screen") */}
+                    <td className="name">
+                      {game.comps[f.leagueId]?.name ?? f.leagueId}
+                      {cups.map((t, j) => (
+                        <div key={j} style={{ color: '#a8841a', fontSize: 11, fontWeight: 700 }}>
+                          🏆 {game.comps[t.compId]?.name ?? t.compId}
+                        </div>
+                      ))}
+                    </td>
+                    <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? '#a8841a' : undefined }}>
+                      {f.pos === 1 ? '🏆 1st' : ord(f.pos)}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table></div>
         </>

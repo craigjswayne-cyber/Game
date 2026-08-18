@@ -688,6 +688,15 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g) return
     if (!onMatchDay(get)) return
+    // the Annual gate, same as kickOff: the assistant cannot start a season
+    // the manager has not
+    if (g.annual) {
+      set(s => ({
+        nav: s.nav[s.nav.length - 1]?.screen === 'annual' ? s.nav : [...s.nav, { screen: 'annual' as const }],
+        tick: s.tick + 1,
+      }))
+      return
+    }
     const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
     const fx = clubFx ?? natFixtureThisWeek(g)
     if (!fx) return
@@ -720,6 +729,20 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g) return
     if (!onMatchDay(get)) return
+    // THE ANNUAL GATE HOLDS HERE TOO (user: "i haven't pressed new season yet
+    // but its restarted in the background"). Continue was gated, but a match
+    // is its own door: the Team screen's MATCHDAY button reaches the new
+    // season's friendly with the Annual still up, and finishMatch turns the
+    // week - so three quick pre-season kick-offs played 2026-27 to week 4
+    // behind a page whose whole promise is that nothing starts without the
+    // button. Same reroute as Continue: the tap lands you on the Annual.
+    if (g.annual) {
+      set(s => ({
+        nav: s.nav[s.nav.length - 1]?.screen === 'annual' ? s.nav : [...s.nav, { screen: 'annual' as const }],
+        tick: s.tick + 1,
+      }))
+      return
+    }
     const clubFx = g.unemployed ? undefined : userFixtureThisWeek(g)
     const fx = clubFx ?? natFixtureThisWeek(g)
     if (!fx) return

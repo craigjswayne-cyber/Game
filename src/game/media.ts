@@ -484,20 +484,43 @@ export function generatePress(state: GameState, rng: Rng) {
     }
   }
 
-  // Test-window exodus
+  // Test-window exodus. THE ANSWERS ROTATE AND THE QUESTION COOLS DOWN
+  // (user: "we keep getting the international have taken 6 of players. need
+  // to change up the options for response"). Three voicings already rotated,
+  // but the three ANSWERS were frozen, and with no playerId the office memo
+  // never cooled it - a long window could ask twice in a fortnight with the
+  // same three buttons. The option set now rotates on the same deterministic
+  // clock as the wording, and a stamp keeps the subject off the desk for
+  // eight weeks once raised.
   const away = squad.filter(p => p.natSquad).length
-  if (away >= 4 && rng() < 0.5) {
+  const absNow2 = state.season * SEASON_WEEKS + state.week
+  if (away >= 4 && rng() < 0.5 && (state.natAskAt == null || absNow2 - state.natAskAt >= 8)) {
+    state.natAskAt = absNow2
+    const optionSets = [
+      [
+        { label: 'Proud to produce Test players', morale: 0.4, board: 0.3, reaction: 'Gracious - and the academy parents noticed.' },
+        { label: 'The calendar is broken', morale: 0, board: 0.1, reaction: 'Half the league\'s coaches text you in agreement.' },
+        { label: 'We cope. Next question', morale: 0.2, board: 0, reaction: 'Brisk. The fringe players hear the message: their chance is coming.' },
+      ],
+      [
+        { label: 'The fringe get their shot now', morale: 0.5, board: 0.1, reaction: 'Ten men who train all week and watch all weekend just sat up straighter.' },
+        { label: 'We want compensation money', morale: 0, board: 0.4, reaction: 'The chairman applauds from upstairs. The unions send a lawyer\'s letter.' },
+        { label: 'Their families should be proud', morale: 0.3, board: 0.1, reaction: 'A warm line that costs nothing and travels. Two mums frame the clipping.' },
+      ],
+      [
+        { label: 'Judge my squad depth in May', morale: 0.2, board: 0.3, reaction: 'Confident. The pundits write it down for later, which is how promises work.' },
+        { label: 'I pick clubs over country, always', morale: 0.1, board: 0.2, reaction: 'The terraces love it. Three national coaches stop returning your calls.' },
+        { label: 'Honestly? It hurts us', morale: -0.1, board: 0, reaction: 'Candid, and the room respects it - but the headline writes itself: COACH ADMITS CRISIS.' },
+      ],
+    ]
+    const opts = optionSets[(state.season * 5 + state.week * 3 + 14) % optionSets.length]
     candidates.push(mk(state,
       voice(14, [
         `${away} of your players are away on international duty. Should clubs be compensated when the Test windows strip their squads?`,
         `${away} first-teamers gone to the Test window and half your dressing room is empty. Proud, or fed up?`,
         `The internationals have taken ${away} of yours this window. Is the club-versus-country tug of war broken?`,
       ]),
-      undefined, [
-        { label: 'Proud to produce Test players', morale: 0.4, board: 0.3, reaction: 'Gracious - and the academy parents noticed.' },
-        { label: 'The calendar is broken', morale: 0, board: 0.1, reaction: 'Half the league\'s coaches text you in agreement.' },
-        { label: 'We cope. Next question', morale: 0.2, board: 0, reaction: 'Brisk. The fringe players hear the message: their chance is coming.' },
-      ], rng))
+      undefined, opts, rng))
   }
 
   // THE RUN GETS ASKED ABOUT (user: "no questions on how we are unbeaten this
