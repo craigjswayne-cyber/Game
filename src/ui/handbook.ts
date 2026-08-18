@@ -210,7 +210,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'What is the academy for?',
-    a: 'A youth intake arrives every season. Your academy coach and the Centre of Excellence both raise the quality of what comes through, and the better your setup the more likely a genuine prospect appears. You get an honest preview before intake day and a graded report afterwards. Promote the ones worth promoting.',
+    a: 'A youth intake arrives every season. Your academy coach and the Centre of Excellence both raise the quality of what comes through, and the better your setup the more likely a genuine prospect appears. You get an honest preview before intake day and a graded report afterwards. Development deals run out at 21: promote a lad to a professional contract from his player page before the summer he turns 21, or he leaves as a free agent. You are warned a full season ahead.',
   },
 
   // ---------------- Market ----------------

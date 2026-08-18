@@ -120,5 +120,35 @@ const clubs = Object.values(g.clubs)
   ok(draws >= 1.8 && draws <= 3.0, 'and draws are rare without being impossible')
 }
 
+// ---- THE DEVELOPMENT DEAL ENDS AT 21 ---------------------------------------
+//
+// (user: "we also need an age where they need to either be upgraded or
+// released... the contract should expire at age 21 to allow this"). The
+// academy used to auto-graduate everyone at 22, so the manager never had to
+// decide anything. Now the summer a lad turns 21 he either wears the pro
+// contract the manager gave him or he walks - and the summer before, the
+// letter warns you. AI academies keep their own rules.
+{
+  const g = newGame('northampton', 'Acad21', 31)
+  const club = g.clubs[g.userClubId]
+  const acads = club.players.map(id => g.players[id]).filter(p => p?.acad)
+  ok(acads.length >= 3, `an academy to test with (${acads.length})`)
+  const [walks, warned, kept] = acads
+  walks.age = 20   // turns 21 at the rollover: deal expires, no terms offered
+  warned.age = 19  // turns 20: final academy year, the letter goes out
+  kept.age = 20    // turns 21 too - but the manager promoted him in time
+  kept.acad = false
+  const walksId = walks.id, keptId = kept.id
+  rebuildSeason(g)
+  ok(g.players[walksId]?.clubId == null && !club.players.includes(walksId),
+    `no pro terms by 21 and he walks (${walks.name})`)
+  ok(g.news.some(n => n.subject.includes('deal expires') || n.subject.includes('deals expire')),
+    'and the departure is announced, not silent')
+  ok(g.news.some(n => n.subject.toLowerCase().includes('last academy year')),
+    `the 20-year-old gets a season of warning (${warned.name})`)
+  ok(club.players.includes(keptId) && !g.players[keptId].acad,
+    `the man promoted in time stays (${kept.name})`)
+}
+
 console.log(fails ? `ACADEMY PROBE FAILED (${fails})` : 'ACADEMY PROBE PASSED')
 process.exit(fails ? 1 : 0)

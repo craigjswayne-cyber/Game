@@ -435,18 +435,24 @@ function Preview({ fxId }: { fxId: number }) {
     const pid = t.lineup[slot]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
+    // FIXED COLUMN WIDTHS, because the XV and the Replacements are separate
+    // <table>s sharing this one row renderer: left to auto-layout, each table
+    // sizes its own columns from its own longest name, so the bench's star
+    // column drifted sideways from the XV's directly above it (user: "the
+    // stars are unaligned for subs"). Pin every column but the name and the
+    // two sections read as one sheet.
     return (
       <tr key={slot} onClick={() => tapSlot(slot)}
         className={`${prob ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
-        <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
-        <td><PosBadge pos={pos} /></td>
+        <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700, width: 26 }}>{shirt}</td>
+        <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
         <td className="name">
           {p ? p.name : <span className="muted">- tap to pick -</span>}
           {prob && p && <span style={{ color: '#9b2c2c', fontSize: 10.5, fontWeight: 700 }}> {prob}</span>}
           {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: '#a8841a', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY</span>}
         </td>
-        <td>{p && <Stars ca={effAt(p, pos)} />}</td>
-        <td className="num">{p ? `${Math.round(p.cond)}%` : ''}</td>
+        <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
+        <td className="num" style={{ width: 44 }}>{p ? `${Math.round(p.cond)}%` : ''}</td>
       </tr>
     )
   }
