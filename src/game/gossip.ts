@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import { SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
+import { RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 
@@ -806,7 +806,9 @@ export function postPredictionsNews(state: GameState) {
         ? `${nm(club.id)} are pegged mid-table - "solid, unspectacular" is the consensus. Prove them wrong.`
         : myPos === order.length
           ? `The pundits have ${nm(club.id)} dead last. Wooden spoon talk already. Use it.`
-          : `${nm(club.id)} are among the relegation favourites. Nobody expects much - the perfect place to start.`
+          : RELEGATES.includes(club.leagueId)
+            ? `${nm(club.id)} are among the relegation favourites. Nobody expects much - the perfect place to start.`
+            : `${nm(club.id)} are picked for the bottom half. Nobody expects much - the perfect place to start.`
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
     subject: `🎙 Pundits' ${comp.name} predictions are in`,

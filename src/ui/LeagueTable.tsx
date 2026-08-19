@@ -13,8 +13,7 @@ import { teamShort } from '../game/matchEngine'
 import { ordinal } from '../game/gossip'
 import { CrestT } from './components'
 
-/** Leagues where the bottom club goes down. */
-const RELEGATES = ['prem', 'champ', 'top14']
+import { RELEGATES } from '../game/model'
 
 export default function LeagueTable({ compId, compact }: { compId: string; compact?: boolean }) {
   const game = useStore(s => s.game)!

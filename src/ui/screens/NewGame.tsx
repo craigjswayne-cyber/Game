@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { CHALLENGES, LEAGUE_DEFS } from '../../game/newgame'
+import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { Crest, Jersey } from '../components'
@@ -18,9 +18,9 @@ const finances = (budget: number) =>
     : budget >= 1_000_000 ? ['Okay', '#8a7a3a']
     : ['Tight', '#a12f2f']
 
-const mediaLabel = (rep: number) =>
-  rep >= 87 ? 'Title favourites' : rep >= 80 ? 'Playoff contenders'
-    : rep >= 72 ? 'Dark horses' : rep >= 66 ? 'Mid-table battlers' : 'Relegation-zone rated'
+// judged inside the club's own league (mediaVerdict) - absolute reputation
+// thresholds branded every National League One club "Relegation-zone rated",
+// in a division that has no relegation
 
 export default function NewGame() {
   const start = useStore(s => s.start)
@@ -208,7 +208,7 @@ export default function NewGame() {
                   <div><label>Finances</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{finances(club.budget)[0]}</span></div>
                   <div><label>Star Player</label><span>⭐ {starPlayer?.name}</span></div>
                   <div><label>Stadium</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
-                  <div><label>Media Verdict</label><span>{mediaLabel(club.rep)}</span></div>
+                  <div><label>Media Verdict</label><span>{mediaVerdict(club, league ?? defs.find(d => d.clubs.some(c => c.id === club.id))!)}</span></div>
                   <div><label>Transfer Budget</label><span>£{(club.budget / 1e6).toFixed(1)}m</span></div>
                   <div><label>Squad Value</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
                   <div><label>Squad Size</label><span>{club.players.length}</span></div>
