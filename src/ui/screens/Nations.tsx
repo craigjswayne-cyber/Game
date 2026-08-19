@@ -17,8 +17,10 @@ export default function Nations() {
 
   const myNat = game.natTeam
   const mySquad = myNat ? (game.natSquads[myNat] ?? []).map(id => game.players[id]).filter(Boolean) : []
+  // no rating floor: the user's federation calls its best REAL players,
+  // whatever their age or number - the preview must agree with the rule
   const myPool = myNat && !mySquad.length
-    ? Object.values(game.players).filter(p => p.nat === myNat && p.clubId && p.ca >= 68).sort((a, b) => b.ca - a.ca).slice(0, 26)
+    ? Object.values(game.players).filter(p => p.nat === myNat && p.clubId).sort((a, b) => b.ca - a.ca).slice(0, 26)
     : []
 
   return (

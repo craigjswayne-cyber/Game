@@ -470,9 +470,16 @@ function manageInternationals(state: GameState, rng: Rng) {
       const lionsCalls: Player[] = []
       for (const nat of w.nations) {
         const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
+        // the user's own federation names its best REAL players, whatever
+        // their age or rating - no floor keeps a young Scot at home while a
+        // stand-in gets generated (user: "there should be no age limits or
+        // restrictions on who should be picked"). AI nations keep the floor
+        // so the wider Test world's squad quality is untouched.
+        const usersNat = nat === state.natTeam ||
+          (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))
         const pool = Object.values(state.players)
           .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
-            p.clubId && !p.injury && !p.onLoan && p.ca >= 68)
+            p.clubId && !p.injury && !p.onLoan && (usersNat || p.ca >= 68))
           .sort((a, b) => b.ca - a.ca)
           .slice(0, w.size)
         // emerging nations field home-based internationals our club world

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
 import { CHALLENGES } from '../../game/newgame'
+import { flagOf, nationByCode } from '../../game/nations'
 import { SectionTitle } from '../components'
 
 /** Coaching badge tiers, earned through reputation. */
@@ -153,6 +154,24 @@ export default function Profile() {
           {confirmNatResign
             ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>Confirm</button>
             : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => setConfirmNatResign(true)}>Step down…</button>}
+        </div>
+      )}
+      {/* the international record outlives the job (user: "your international
+          record still stays on your profile") - every tenure, closed or
+          current, stays on the CV for good */}
+      {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
+        <div className="card" style={{ borderLeft: '4px solid #2f7d4f' }}>
+          <h3 style={{ fontSize: 15 }}>🌍 International Record</h3>
+          {(game.natHistory ?? []).map((t, i) => (
+            <div key={i} className="meta" style={{ padding: '3px 0' }}>
+              {flagOf(t.nat)} <b>{nationByCode(t.nat)?.name ?? t.nat}</b> · {t.m} Test{t.m === 1 ? '' : 's'} · {t.w}W {t.d}D {t.l}L
+            </div>
+          ))}
+          {game.natTeam && game.natRecord && (
+            <div className="meta" style={{ padding: '3px 0' }}>
+              {flagOf(game.natTeam)} <b>{nationByCode(game.natTeam)?.name ?? game.natTeam}</b> · {game.natRecord.m} Test{game.natRecord.m === 1 ? '' : 's'} · {game.natRecord.w}W {game.natRecord.d}D {game.natRecord.l}L <span className="muted">(current)</span>
+            </div>
+          )}
         </div>
       )}
       {(game.challengesDone ?? []).length > 0 && (

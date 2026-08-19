@@ -1191,6 +1191,10 @@ export interface GameState {
    *  hands were on. Cleared when you step down; a new union starts you at
    *  nought, the way the record books do. */
   natRecord?: { m: number; w: number; d: number; l: number } | null
+  /** finished national tenures, oldest first - the profile's international
+   *  record survives the job (user: "your international record still stays
+   *  on your profile") */
+  natHistory?: { nat: string; m: number; w: number; d: number; l: number }[]
   /** season index when the user took charge of the current club */
   tenureStart?: number
   /** club ids where the user has earned legend status - once, forever */
@@ -1310,6 +1314,20 @@ export const SEASON_WEEKS = 45
 export const poss = (name: string) => name.endsWith('s') ? `${name}'` : `${name}'s`
 
 /** Convert (season, week) to a display date. Season 0 week 1 = Sat 6 Sep 2025. */
+/** Close the current national tenure: the Test record moves to the profile's
+ *  permanent history and the live fields clear. Called by BOTH doors out -
+ *  stepping down and the union's annual-review sack - so neither can lose
+ *  the ledger (user: "your international record still stays on your
+ *  profile"). */
+export function closeNatTenure(state: GameState) {
+  if (state.natTeam && state.natRecord && state.natRecord.m > 0) {
+    ;(state.natHistory ??= []).push({ nat: state.natTeam, ...state.natRecord })
+  }
+  state.natTeam = null
+  state.natConfidence = null
+  state.natRecord = null
+}
+
 export function weekDate(season: number, week: number): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + (week - 1) * 7 * 86400000)

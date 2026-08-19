@@ -1,7 +1,7 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { aiBoardsReinvest } from './aiecon'
 import { rivalVerdict } from './boss'
-import { boardObjective, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import { boardObjective, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -898,9 +898,7 @@ export function rebuildSeason(state: GameState) {
     }
     const conf = Math.round(state.natConfidence)
     if (conf < 28) {
-      state.natTeam = null
-      state.natConfidence = null
-      state.natRecord = null // the record book closes with the tenure
+      closeNatTenure(state) // the record moves to the profile's history, not the bin
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
         subject: `🌍 SACKED: ${nat} relieve you of the national job`,
