@@ -257,7 +257,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'market',
     q: 'Can I loan players out?',
-    a: 'Yes, and you should for young players who are not going to get minutes. A postcard arrives from the feeder club telling you how he is doing. Loans in belong to your current project: take a new job and they go home.',
+    a: 'Yes, and you should for young players who are not going to get minutes. A postcard arrives from the feeder club telling you how he is doing. Loans in belong to your current project: take a new job and they go home. Loans have gravity, too: a player will step down one division for game time, but two is rare - a National League club borrows from the Championship, and only the odd hungry youngster drops all the way from a top flight.',
   },
 
   // ---------------- The Club ----------------

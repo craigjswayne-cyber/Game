@@ -1306,6 +1306,16 @@ export const SEASON_WEEKS = 45
  *  no screen can threaten relegation in a league that has none. */
 export const RELEGATES = ['prem', 'champ', 'top14']
 
+/** The pyramid by tier: 1 the top flights, 2 the second divisions, 3 National
+ *  League One. Loan gravity reads it - how far down a move is decides who
+ *  would actually make it. */
+export const LEAGUE_TIER: Record<string, number> = {
+  prem: 1, top14: 1, urc: 1, srp: 1, jl1: 1,
+  champ: 2, prod2: 2,
+  natl1: 3,
+}
+export const leagueTier = (leagueId?: string | null): number => LEAGUE_TIER[leagueId ?? ''] ?? 2
+
 /**
  * Possessive for a name that may already end in s.
  *
