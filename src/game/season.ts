@@ -431,10 +431,12 @@ const winnerOf = (fx: Fixture) => (fx.homeScore >= fx.awayScore ? fx.homeId : fx
 // Internationals
 // ------------------------------------------------------------------
 
-interface Window { start: number; end: number; nations: string[]; size: number }
+export interface Window { start: number; end: number; nations: string[]; size: number }
 
-/** Call-up windows for the competitions that actually exist this season. */
-function activeWindows(state: GameState): Window[] {
+/** Call-up windows for the competitions that actually exist this season.
+ *  Exported for the country desk: call-up and drop need the window's squad
+ *  cap, and the screen needs to know whether a window is open at all. */
+export function activeWindows(state: GameState): Window[] {
   const out: Window[] = []
   if (state.comps['wc']) {
     out.push({ start: 1, end: WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: 28 })
@@ -521,7 +523,7 @@ function manageInternationals(state: GameState, rng: Rng) {
               '',
               `BACKS: ${bks.map(line).join('; ')}`,
               '',
-              'Pick your Test XV from the International Rugby screen before each match.',
+              'Shape the squad and pick your Test XV from the Club & Country screen before each match.',
             ].join('\n'),
           })
         }
@@ -2154,6 +2156,13 @@ export function processWeekAndAdvance(state: GameState) {
       if (us > them) state.mgr.w += 1
       else if (us === them) state.mgr.d += 1
       else state.mgr.l += 1
+      // the tenure's own ledger, shown on the country desk - the record books
+      // keep a coach's Test record separately, so the game does too
+      const rec = (state.natRecord ??= { m: 0, w: 0, d: 0, l: 0 })
+      rec.m += 1
+      if (us > them) rec.w += 1
+      else if (us === them) rec.d += 1
+      else rec.l += 1
       mgrMilestones(state, us > them)
       // the union keeps score: every Test moves their confidence in you,
       // weighted by where the two sides sit in the world

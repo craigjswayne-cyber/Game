@@ -636,6 +636,9 @@ export interface PressOption {
   /** lodge a disciplinary appeal for the named player's ban - the verdict
    *  lands immediately (deterministic, no shared rng) */
   appeal?: boolean
+  /** union confidence delta - the national-coach window question, where what
+   *  you tell the country's press moves the federation, not the club board */
+  natConf?: number
   /** the pre-season decision: one special week, three philosophies */
   camp?: 'heat' | 'home' | 'tour'
   /** agreeing to a loan actually sends him. Saying yes and then leaving the
@@ -1098,6 +1101,9 @@ export interface GameState {
    *  playerId, so the office memo never cooled it and a long window could
    *  ask twice in a fortnight with the same three buttons. */
   natAskAt?: number
+  /** absolute week the national-coach window question last ran, so the room
+   *  raises your Test squad once per window, not every Friday of it */
+  natCoachAskAt?: number
   /** absolute week the availability counter last ticked (see settleGameTime),
    *  so a double-called settle cannot count one match twice */
   availWeek?: number
@@ -1181,6 +1187,10 @@ export interface GameState {
   /** the union's confidence in you as national coach, 0-100 - null when
    *  you do not hold a Test job. Below 28 at the annual review: sacked */
   natConfidence?: number | null
+  /** your Test record for the current national tenure - only matches your
+   *  hands were on. Cleared when you step down; a new union starts you at
+   *  nought, the way the record books do. */
+  natRecord?: { m: number; w: number; d: number; l: number } | null
   /** season index when the user took charge of the current club */
   tenureStart?: number
   /** club ids where the user has earned legend status - once, forever */

@@ -900,6 +900,7 @@ export function rebuildSeason(state: GameState) {
     if (conf < 28) {
       state.natTeam = null
       state.natConfidence = null
+      state.natRecord = null // the record book closes with the tenure
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
         subject: `🌍 SACKED: ${nat} relieve you of the national job`,
