@@ -239,6 +239,23 @@ of the trimmed news log.
   closeNatTenure is looked up via a namespace import in the probe so the
   old code fails per-assert instead of dying at load). countryui.mjs
   checks the profile card renders both tenures.
+- A LEAGUE IS JUDGED ON ITS OWN TERMS (user, scanning National League One
+  clubs: "they all say relegation zone"): the new-career Media Verdict
+  read ABSOLUTE reputation on Premiership-calibrated thresholds, so every
+  club in a lower division wore the same bottom tag - in a league with no
+  relegation and no playoffs, both impossible words. mediaVerdict
+  (newgame.ts) ranks the club inside its own league and only promises
+  what that league has: playoff words need playoffTeams > 0, promotion
+  words are for ladder leagues (natl1), relegation words need the league
+  on RELEGATES - which moved from a LeagueTable-local constant to
+  model.ts as the single source (LeagueTable, mediaVerdict and gossip's
+  pundit-predictions verdict all read it; the pundit line said
+  "relegation favourites" in no-relegation leagues too). verdictprobe.ts
+  sweeps every league for monoculture, exactly-one-favourite and
+  impossible-word claims; red on 2fce955 (the rule only existed as a
+  screen constant). LESSON REPEATED: absolute thresholds calibrated on
+  the top flight break silently in every other division - grep for
+  rep-threshold word ladders when a lower league reads wrong.
 
 ## Open work, roughly in order
 

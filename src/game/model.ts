@@ -1301,6 +1301,11 @@ export function isWorldCupSeason(season: number): boolean {
 
 export const SEASON_WEEKS = 45
 
+/** Leagues where the bottom club goes down. ONE list: the table's shading,
+ *  the new-career media verdict and the pundits' predictions all read it, so
+ *  no screen can threaten relegation in a league that has none. */
+export const RELEGATES = ['prem', 'champ', 'top14']
+
 /**
  * Possessive for a name that may already end in s.
  *

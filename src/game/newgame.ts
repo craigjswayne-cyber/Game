@@ -25,7 +25,7 @@ import { clamp } from './rng'
 import { autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
-import { CHEM_SLOTS, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
+import { CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -66,6 +66,25 @@ export interface LeagueDef {
   double: boolean
   playoffTeams: number
   clubs: RawClub[]
+}
+
+/** The press verdict on a club, judged INSIDE its own league (user, scanning
+ *  National League One: "they all say relegation zone"). The old label read
+ *  absolute reputation on a scale calibrated for the Premiership, so a whole
+ *  lower division wore the same bottom tag - in a league with no relegation
+ *  and no playoffs, both words it used were impossible. A club is favourites
+ *  or written off relative to the teams it actually plays, and the words only
+ *  promise what its league really has. */
+export function mediaVerdict(club: { id: string }, league: LeagueDef): string {
+  const order = [...league.clubs].sort((a, b) => b.rep - a.rep)
+  const i = Math.max(0, order.findIndex(c => c.id === club.id))
+  const n = order.length
+  const quarter = Math.max(2, Math.ceil(n / 4))
+  if (i === 0) return 'Title favourites'
+  if (i < quarter) return league.playoffTeams > 0 ? 'Playoff contenders' : 'Promotion chasers'
+  if (i < Math.ceil(n / 2)) return 'Dark horses'
+  if (i < n - quarter) return 'Mid-table battlers'
+  return RELEGATES.includes(league.id) ? 'Relegation-zone rated' : 'Written off by the press'
 }
 
 export const LEAGUE_DEFS: () => LeagueDef[] = () => [
