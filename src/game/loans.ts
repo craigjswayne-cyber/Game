@@ -1,6 +1,7 @@
 // The loan-in market: borrow tomorrow's stars from the big clubs' benches.
 
 import type { GameState, Player } from './model'
+import { leagueTier } from './model'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32 } from './rng'
 
@@ -14,11 +15,36 @@ export function loanTargets(state: GameState): Player[] {
       if (!parent || parent.rep < user.rep + 4) return false
       if (p.age > 23 || p.ca < 60 || p.ca > 80) return false
       if (p.injury || p.natSquad) return false
+      // LOAN GRAVITY (user, at Esher: "ive been able to loan some huge
+      // players... unrealistic that they would take such a step down. the odd
+      // few may for game time but realistically it would be more championship
+      // players"). The reputation test alone let a third-tier club borrow off
+      // Premiership benches - at rep 38 EVERY club in the world passed it, and
+      // the top-12-by-potential sort handed Esher the biggest wonderkids in
+      // the game. A player steps down at most one division freely; two is the
+      // odd few - 21 or under, desperate for game time, behind a per-player
+      // deterministic gate so the same save always meets the same odd few.
+      const drop = leagueTier(user.leagueId) - leagueTier(parent.leagueId)
+      if (drop >= 2) {
+        if (p.age > 21) return false
+        if (mulberry32(state.seed + p.id * 13 + state.season * 31)() >= 0.25) return false
+      }
       // he's behind the queue at home: not in the parent's best XV
       return !parent.tactic.lineup.slice(0, 15).includes(p.id)
     })
     .sort((a, b) => b.pa - a.pa)
-    .slice(0, 12)
+    // "the odd few" is a count, not just a filter: the potential sort ranks
+    // any surviving top-flight kid above every Championship name, so without
+    // a cap the list was still eleven wonderkids and one honest borrow. Two
+    // big-drop names at a time; the rest of the room is the division above.
+    .reduce<Player[]>((out, p) => {
+      if (out.length >= 12) return out
+      const drop = leagueTier(user.leagueId) - leagueTier(state.clubs[p.clubId!].leagueId)
+      if (drop >= 2 && out.filter(q =>
+        leagueTier(user.leagueId) - leagueTier(state.clubs[q.clubId!].leagueId) >= 2).length >= 2) return out
+      out.push(p)
+      return out
+    }, [])
 }
 
 /** Bring him in until the end of the season. Parent pays half the wage. */

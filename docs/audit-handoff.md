@@ -256,6 +256,22 @@ of the trimmed news log.
   screen constant). LESSON REPEATED: absolute thresholds calibrated on
   the top flight break silently in every other division - grep for
   rep-threshold word ladders when a lower league reads wrong.
+- LOAN GRAVITY (user, at Esher: "ive been able to loan some huge
+  players... unrealistic... the odd few may for game time but
+  realistically it would be more championship players"): loanTargets'
+  only parentage test was parent.rep >= user.rep + 4 - at a rep-38
+  third-tier club EVERY club in the world passed, and the
+  top-12-by-potential sort handed Esher twelve Premiership/Top 14
+  wonderkids and zero Championship names (the old-code probe run shows
+  exactly that). Two-part fix in loans.ts, both reading the new
+  LEAGUE_TIER/leagueTier pyramid map in model.ts: (1) a two-division
+  drop is only for age <= 21 behind a mulberry32 per-player-per-season
+  gate; (2) "the odd few" is a COUNT, not just a filter - at most two
+  big-drop names on the list at once, because the potential sort ranks
+  any surviving wonderkid above every honest borrow (first cut passed
+  the letter of the rule with 11 of 12 still top-flight kids - assert
+  list COMPOSITION, not just member legality). loanstep.ts pins it,
+  4 FAILs on 19e62d0 via the namespace-fallback trick.
 
 ## Open work, roughly in order
 
