@@ -141,7 +141,7 @@ export default function Country() {
             <div className="meta">National head coach{conf != null ? ` · union ${conf}%` : ''}</div>
           </div>
           {confirmNat
-            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNat(false) }}>Confirm</button>
+            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>Confirm</button>
             : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>Step down…</button>}
         </div>
         {!club && <div className="meta">No club post - the Test job is the whole desk for now.</div>}
@@ -159,7 +159,7 @@ export default function Country() {
           {table(squad.filter(p => FWD.includes(p.pos)), true)}
           <SectionTitle>Backs</SectionTitle>
           {table(squad.filter(p => !FWD.includes(p.pos)), true)}
-          <SectionTitle sub="qualified, in form, waiting on the phone call">The Next Men In</SectionTitle>
+          <SectionTitle sub="every qualified name in the game, best first - no age limit, no rating floor, your call">The Next Men In</SectionTitle>
           {pool.length ? table(pool, false) : <div className="meta" style={{ padding: '0 16px' }}>Nobody left standing outside camp.</div>}
         </>
       ) : (
@@ -168,7 +168,7 @@ export default function Country() {
           <div className="meta" style={{ padding: '0 16px 4px' }}>
             The likely squad, on current form. When a window opens the federation names its list and hands it to you.
           </div>
-          {table(pool.length ? pool : squad, false)}
+          {table((pool.length ? pool : squad).slice(0, 26), false)}
         </>
       )}
 

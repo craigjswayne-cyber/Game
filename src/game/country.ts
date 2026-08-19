@@ -30,22 +30,26 @@ export function natWindow(state: GameState): { size: number } | null {
 }
 
 /** Is this player callable for the user's nation at all? One predicate so the
- *  screen's list and the call-up guard can never disagree. */
+ *  screen's list and the call-up guard can never disagree.
+ *
+ *  Deliberately thin (user: "there should be no age limits or restrictions
+ *  on who should be picked"): the passport, the treatment table and not
+ *  already being in a camp are the only bars. Age, rating, loan status and
+ *  even holding a club contract are the COACH's judgement, not the game's. */
 function callable(state: GameState, p: Player): boolean {
   const nat = state.natTeam
   if (!nat) return false
   const natMatch = nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat
-  return natMatch && !!p.clubId && !p.injury && !p.onLoan && !p.natSquad
+  return natMatch && !p.injury && !p.natSquad
 }
 
-/** The next men in: qualified players outside every current Test squad,
- *  best first. The screen shows the top of this list next to the squad. */
-export function natEligible(state: GameState, limit = 12): Player[] {
+/** The next men in: EVERY qualified player outside the current Test squads,
+ *  best first, the full list - no cap, no rating floor, no velvet rope. */
+export function natEligible(state: GameState): Player[] {
   if (!state.natTeam) return []
   return Object.values(state.players)
     .filter(p => callable(state, p))
     .sort((a, b) => b.ca - a.ca)
-    .slice(0, limit)
 }
 
 /** Call a player into the window squad. Returns null on success, or the
@@ -60,9 +64,7 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   if (!p) return 'No such player.'
   if (squad.includes(playerId) || p.natSquad) return `${p.name} is already in a Test squad.`
   if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return `${p.name} is not qualified for this squad.`
-  if (!p.clubId) return `${p.name} has no club - the federation only calls up contracted players.`
   if (p.injury) return `${p.name} is injured. The medical staff will not pass him.`
-  if (p.onLoan) return `${p.name} is out on loan and outside the agreement.`
   if (squad.length >= w.size) return `The federation caps the squad at ${w.size}. Drop a name first.`
   squad.push(playerId)
   p.natSquad = true

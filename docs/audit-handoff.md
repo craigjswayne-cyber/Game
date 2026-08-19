@@ -216,8 +216,29 @@ of the trimmed news log.
   appointments with step-down buttons (resign/resignNat, two-tap
   confirm), the window squad with Drop/Call-up per row, the next men in,
   the Test calendar. Home's country card and a natTeam-gated World menu
-  entry route to it. countryprobe.ts pins the lot (its old-code
+  entry route to it (the entry appears only while the job is held and
+  vanishes on resign or sack - the user confirmed that gating is the
+  intended shape). countryprobe.ts pins the lot (its old-code
   demonstration is module-not-found: the feature did not exist).
+- NO VELVET ROPE + THE RECORD SURVIVES (user: "there should be no age
+  limits or restrictions on who should be picked" / "your international
+  record still stays on your profile"): callable() in country.ts is now
+  passport + fit + not-already-in-camp ONLY - the 12-name eligible cap,
+  the clubId and onLoan refusals are gone, and natEligible returns the
+  whole qualified population. The window-open default build in season.ts
+  drops its ca>=68 floor for the USER's nation only (usersNat flag; AI
+  nations keep it so the world sim's squad quality is untouched - a
+  nation of 60-rated pros now gets its real men called instead of
+  generated stand-ins). closeNatTenure (model.ts, NOT country.ts - a
+  country->season->rollover import cycle was the reason) is the ONE door
+  out of a tenure: it archives natRecord into natHistory and clears the
+  live fields; store.resignNat and the rollover annual-review sack both
+  call it, and Profile.tsx shows every tenure - closed and current - in
+  an International Record card. countryprobe parts 5-7 pin all of it,
+  demonstrated behaviourally red on c2e612e (9 FAILs on their own lines;
+  closeNatTenure is looked up via a namespace import in the probe so the
+  old code fails per-assert instead of dying at load). countryui.mjs
+  checks the profile card renders both tenures.
 
 ## Open work, roughly in order
 

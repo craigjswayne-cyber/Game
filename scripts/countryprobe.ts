@@ -14,12 +14,30 @@
 //      state.natRecord, not just the manager's combined ledger.
 //   4. The country's press want the national coach during a window, and what
 //      he says moves the UNION's confidence, not the club board's.
+//
+// Second wave (user: "there should be no age limits or restrictions on who
+// should be picked" / "your international record still stays on your
+// profile"):
+//
+//   5. The eligible list is the WHOLE qualified population - no cap, no
+//      rating floor - and a loanee or a free agent is the coach's call, not
+//      the game's refusal.
+//   6. The user's own federation names its best REAL players whatever their
+//      rating: a nation of 60-rated pros gets its own men called, not a
+//      squad of generated stand-ins.
+//   7. Leaving the job moves the Test record to the profile's permanent
+//      history instead of the bin.
 import { newGame } from '../src/game/newgame'
 import { natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, NAT_SQUAD_FLOOR } from '../src/game/country'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
-import type { Fixture } from '../src/game/model'
+import type { Fixture, GameState } from '../src/game/model'
+// namespace lookup, not a named import: on the old code the export does not
+// exist, and a missing named import would kill the whole run at load time -
+// this way the old-code demonstration shows every red on its own line
+import * as M from '../src/game/model'
+const closeNatTenure = (M as { closeNatTenure?: (s: GameState) => void }).closeNatTenure
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -91,6 +109,26 @@ if (crock) {
   console.log('  --  no injured Scot to test the medical refusal this walk')
 }
 
+// ---- 5. no velvet rope on the call-up list ----
+const everyQualified = Object.values(g.players).filter(p =>
+  p.nat === 'SCO' && !p.injury && !p.natSquad).length
+const wholePool = natEligible(g)
+ok(wholePool.length === everyQualified,
+  `the eligible list is the whole qualified population, uncapped (${wholePool.length} of ${everyQualified})`)
+ok(wholePool.length > 12, `and it runs past the old dozen (${wholePool.length} names)`)
+ok(wholePool.some(p => p.ca < 68 || p.age <= 21),
+  'young and low-rated names are on the list, not behind a floor')
+// a loanee is the coach's call
+ok(natDrop(g, squad[squad.length - 1]) == null, 'made room for the loanee')
+const loanee = wholePool.filter(p => !p.natSquad)[0]
+loanee.onLoan = true
+ok(natCallUp(g, loanee.id) == null, `a player out on loan can still be picked (${loanee.name})`)
+// so is a man with no club
+ok(natDrop(g, squad[squad.length - 1]) == null, 'made room for the free agent')
+const fa = natEligible(g)[0]
+fa.clubId = null
+ok(natCallUp(g, fa.id) == null, `a free agent can still be picked (${fa.name})`)
+
 // ---- 3. a played Test lands on the tenure's own record ----
 // an open window usually means a real Test already stands this week - use
 // it; stage a synthetic one only when the calendar is bare
@@ -137,6 +175,32 @@ if (item) {
   ok(h.natConfidence! > confBefore, `backing the squad moves the union (${confBefore} -> ${h.natConfidence})`)
   ok(h.clubs[h.userClubId].boardConfidence === boardBefore, 'and leaves the club board where it was')
 }
+
+// ---- 6. the user's federation has no rating floor of its own ----
+// make every club Scot a 60-rated pro: the old build's ca >= 68 floor would
+// find nobody real and fill the room with generated stand-ins instead
+const g2 = newGame('northampton', 'NoFloor', 63)
+g2.natTeam = 'SCO'
+g2.natConfidence = 60
+let realScots = 0
+for (const p of Object.values(g2.players)) {
+  if (p.nat === 'SCO' && p.clubId && !p.injury && !p.onLoan) { p.ca = 60; realScots++ }
+}
+for (let i = 0; i < 60 && !g2.natSquads['SCO']; i++) processWeekAndAdvance(g2)
+const sq2 = (g2.natSquads['SCO'] ?? []).map(id => g2.players[id]).filter(Boolean)
+const realCalled = sq2.filter(p => p.clubId).length
+ok(realCalled >= Math.min(realScots, NAT_SQUAD_FLOOR),
+  `a nation of 60-rated pros still gets its own men called (${realCalled} real in a squad of ${sq2.length}, ${realScots} in the game)`)
+
+// ---- 7. the record survives the job ----
+const before7 = { ...g.natRecord! }
+ok(typeof closeNatTenure === 'function', 'closeNatTenure exists - one door for both exits')
+closeNatTenure?.(g)
+ok(g.natTeam == null && g.natRecord == null, 'the live tenure fields clear on the way out')
+const hist = g.natHistory ?? []
+const last = hist[hist.length - 1]
+ok(!!last && last.nat === 'SCO' && last.m === before7.m && last.w === before7.w,
+  `the Test record moved to the profile's history (${last ? `${last.nat} ${last.w}W ${last.d}D ${last.l}L of ${last.m}` : 'nothing archived'})`)
 
 console.log(fails ? `\nCOUNTRY PROBE FAILED (${fails})` : '\nCOUNTRY PROBE PASSED: the pinnacle has a desk of its own')
 process.exit(fails ? 1 : 0)

@@ -42,6 +42,8 @@ try {
     g.natTeam = 'SCO'
     g.natConfidence = 63
     g.natRecord = { m: 5, w: 3, d: 0, l: 2 }
+    // a finished tenure from years back - the profile must still show it
+    g.natHistory = [{ nat: 'WAL', m: 14, w: 8, d: 1, l: 5 }]
     // an international comp's fixture list names the window weeks - park the
     // save inside one so the shaping buttons render
     const intl = g.fixtures.filter(f => ['aut', 'sn'].includes(f.compId))
@@ -113,6 +115,13 @@ try {
   } else {
     say('  --  window staging unavailable this world: shaping buttons untested this run')
   }
+
+  // the international record outlives the job, on the Manager Profile
+  await page.evaluate(() => window.rugbyStore.getState().go('profile'))
+  await page.waitForSelector('text=International Record', { timeout: 10000 })
+  const recCard = await page.locator('.card', { hasText: 'International Record' }).innerText()
+  ok(/Wales.*14 Tests.*8W 1D 5L/s.test(recCard), 'the closed Wales tenure is still on the CV')
+  ok(/Scotland.*5 Tests.*3W 0D 2L.*current/s.test(recCard), 'and the live Scotland tenure sits beside it, marked current')
 } catch (e) {
   say(`FAIL  ${e.message}`)
   fails++

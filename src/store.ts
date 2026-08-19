@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
+import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import {
@@ -1075,9 +1076,7 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g || !g.natTeam) return
     const nat = g.natTeam
-    g.natTeam = null
-    g.natConfidence = null
-    g.natRecord = null // the record book closes with the tenure
+    closeNatTenure(g) // the record moves to the profile's history, not the bin
     g.news.push({
       id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
       subject: `You step down as ${nat} head coach`,
