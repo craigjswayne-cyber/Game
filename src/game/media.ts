@@ -3,6 +3,7 @@ import { SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
+import { nationByCode } from './nations'
 import { clamp, pick, type Rng } from './rng'
 
 const OUTLETS = [
@@ -523,6 +524,30 @@ export function generatePress(state: GameState, rng: Rng) {
       undefined, opts, rng))
   }
 
+  // THE OTHER HAT. When the manager also coaches a nation and his squad is in
+  // camp, the country's press want him too - a Test window should feel like
+  // the biggest week of his year, not a line in the fixture list (user: "its
+  // meant to be the pinnacle but is hidden away"). What he says here moves
+  // the UNION's confidence, not the club board's - saying the country comes
+  // second is heard in the federation offices, and saying it comes first is
+  // heard in his own dressing room.
+  if (state.natTeam && (state.natSquads[state.natTeam]?.length ?? 0) > 0 &&
+      (state.natCoachAskAt == null || absNow2 - state.natCoachAskAt >= 6) && rng() < 0.6) {
+    state.natCoachAskAt = absNow2
+    const natName = nationByCode(state.natTeam)?.name ?? state.natTeam
+    candidates.push(mk(state,
+      voice(37, [
+        `Your ${natName} squad is in camp and the country is watching. What does this window need to deliver?`,
+        `Two jobs, one weekend: the nation's press want to know where ${natName} sits on your list. Well?`,
+        `The ${natName} squad you named has the phone-ins arguing already. Talk us through your thinking.`,
+      ]),
+      undefined, [
+        { label: `'${natName} can win the lot'`, morale: 0, board: 0, natConf: 3, reaction: 'The union loves it - and has written it down. Deliver, or this window becomes the stick they beat you with.' },
+        { label: `'Judge us Test by Test'`, morale: 0, board: 0.2, natConf: 0.5, reaction: 'Measured. The federation nods; the phone-ins move on to the referees.' },
+        { label: `'My club pays my wages'`, morale: 0.3, board: 0.4, natConf: -3, reaction: 'Your dressing room walks taller. In the federation offices, someone underlines a clause.' },
+      ], rng))
+  }
+
   // THE RUN GETS ASKED ABOUT (user: "no questions on how we are unbeaten this
   // season"). Five league wins from five is the only story in town; a press
   // room that ignores it while asking about the Test calendar reads as deaf.
@@ -749,6 +774,11 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   item.reaction = opt.reaction
   // a public loyalty vow goes on the record - walk it back and it walks with you
   if (opt.vow) state.vowedAt = state.season * 100 + state.week
+  // the national-coach question is heard in the federation offices, not the
+  // club boardroom - what it moves is the union's confidence
+  if (opt.natConf && state.natConfidence != null) {
+    state.natConfidence = clamp(state.natConfidence + opt.natConf, 0, 100)
+  }
   // a lodged appeal is heard the same day: deterministic verdict, no shared
   // rng - the same save always gets the same hearing
   if (opt.appeal && item.playerId != null) {

@@ -196,12 +196,28 @@ of the trimmed news log.
   walk and both match entrances read it. The settle's "assistant's Saturday"
   block runs the club fixture's full bookkeeping with boardReaction's
   delegated flag (mgr record counts only the match he attended). Home
-  carries a country desk card. testweekprobe stages the collision. STILL
-  OPEN from the same request: the international element deserves more than
-  a card - squad announcement moments, a Test-window press beat, maybe a
-  dedicated country screen. The user explicitly invited creativity here
-  ("we may need to get creative and maybe a new menu appears or something
-  with both club and country"). Design it with him, incrementally.
+  carries a country desk card. testweekprobe stages the collision.
+- THE COUNTRY DESK (the user approved the full package: "yep this all
+  sounds good. lets build it all"): src/game/country.ts is the engine -
+  natWindow (open call-up window + cap, read off season.ts's now-exported
+  activeWindows), natEligible (one callable() predicate shared with the
+  guards so screen and engine can never disagree), natCallUp and natDrop
+  (refusal-message contract like treasury's releaseBlock; cap at the
+  window size, floor NAT_SQUAD_FLOOR=23, injured/loaned/clubless refused,
+  every squad change voids state.natLineup so match day repicks from the
+  real room). state.natRecord {m,w,d,l} is the tenure's own Test ledger,
+  incremented beside the mgr record in the settle's Test branch, started
+  in answerNatOffer, cleared on resignNat and the union's annual-review
+  sack (rollover.ts). A national-coach press beat (media.ts, stamp
+  natCoachAskAt, 6-week cooldown, window-open gated) carries the new
+  PressOption.natConf field - answers move the UNION's confidence, not
+  the club board. The Club & Country screen (Country.tsx, nav 'country')
+  holds it all: rank + points + confidence bar + tenure record, both
+  appointments with step-down buttons (resign/resignNat, two-tap
+  confirm), the window squad with Drop/Call-up per row, the next men in,
+  the Test calendar. Home's country card and a natTeam-gated World menu
+  entry route to it. countryprobe.ts pins the lot (its old-code
+  demonstration is module-not-found: the feature did not exist).
 
 ## Open work, roughly in order
 

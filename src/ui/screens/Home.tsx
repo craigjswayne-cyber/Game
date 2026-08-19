@@ -191,7 +191,7 @@ export default function Home() {
         const rank = natRankOrder(game).indexOf(game.natTeam) + 1
         const testWeek = next && next.week === game.week
         return (
-          <div className="card" onClick={() => go('agency')} style={{ borderLeft: '4px solid #2f7d4f' }}>
+          <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid #2f7d4f' }}>
             <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
               Head coach · {nat?.name ?? game.natTeam}{rank > 0 ? ` · world No. ${rank}` : ''}{game.natConfidence != null ? ` · union ${Math.round(game.natConfidence)}%` : ''}
             </div>

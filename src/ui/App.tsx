@@ -36,6 +36,7 @@ import DreamTeam from './screens/DreamTeam'
 import WeekResults from './screens/WeekResults'
 import SeasonReview from './screens/SeasonReview'
 import Agency from './screens/Agency'
+import Country from './screens/Country'
 import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
@@ -44,7 +45,7 @@ const TITLES: Record<string, string> = {
   home: 'Home', inbox: 'News', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Tactics', fixtures: 'Fixtures',
   tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
   finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
-  nations: 'International Rugby', history: 'Roll of Honour', legacy: 'Manager Legacy',
+  nations: 'International Rugby', country: 'Club & Country', history: 'Roll of Honour', legacy: 'Manager Legacy',
   jobs: 'Job Centre', medical: 'Medical Centre',
   report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status', day: 'The Week', draw: 'The Draw', annual: 'The Annual',
   dreamteam: 'Team of the Week', wire: 'News', infra: 'Club Infrastructure',
@@ -295,6 +296,7 @@ export default function App() {
       case 'results': return <WeekResults param={cur.param as string} />
       case 'seasonreview': return <SeasonReview />
       case 'agency': return <Agency />
+      case 'country': return <Country />
       case 'infra': return <Infrastructure />
       case 'academy': return <Academy />
       default: return <Home />
@@ -370,6 +372,8 @@ export default function App() {
       title: 'World',
       items: [
         { ico: '🏆', label: 'Competitions', screen: 'tables' },
+        // the pinnacle gets a door of its own while you hold a Test job
+        ...(game.natTeam ? [{ ico: '🌏', label: 'Club & Country', screen: 'country' as const }] : []),
         { ico: '🌍', label: 'International Rugby', screen: 'nations' },
         { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
         { ico: '🔭', label: 'Scouting Agency', screen: 'agency' },

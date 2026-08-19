@@ -42,6 +42,7 @@ export type Screen =
   // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
   // you navigate to.
   | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
+  | 'country'
   | 'offers' | 'academy' | 'day' | 'draw' | 'annual'
 
 interface NavEntry {
@@ -1059,6 +1060,7 @@ export const useStore = create<Store>((set, get) => ({
     if (accept) {
       g.natTeam = nat
       g.natConfidence = 60
+      g.natRecord = { m: 0, w: 0, d: 0, l: 0 } // a new tenure starts at nought
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
         subject: `🌍 Appointed: national head coach of ${nat}`,
@@ -1075,6 +1077,7 @@ export const useStore = create<Store>((set, get) => ({
     const nat = g.natTeam
     g.natTeam = null
     g.natConfidence = null
+    g.natRecord = null // the record book closes with the tenure
     g.news.push({
       id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
       subject: `You step down as ${nat} head coach`,

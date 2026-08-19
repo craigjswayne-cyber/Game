@@ -371,7 +371,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'career',
     q: 'Can I manage a country?',
-    a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: you pick the squad, you take the Six Nations or the Rugby Championship, and the union keeps score. A World Cup is the biggest thing in the game. The Job Centre shows how close your reputation is.',
+    a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: the Club & Country screen holds the whole desk - the ranking, the union\'s confidence, your Test record, and the window squad, which is yours to shape. When camp is open you can drop a name and call the next man up, the federation caps the room and will not let it fall below 23, and on a Test weekend your assistant minds any club fixture while you take the country. Step down from either job from the same screen. A World Cup is the biggest thing in the game. The Job Centre shows how close your reputation is.',
   },
   {
     cat: 'career',
