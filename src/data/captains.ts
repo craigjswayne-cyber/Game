@@ -8,11 +8,18 @@
 // STILL TO CHECK. A captaincy is the most visible fact about a club, so these
 // are only changed against a clear source, and four came back with sources
 // contradicting each other. Left as they are rather than guessed at:
-//   exeter      Yeandle and Robinson both described as captain in 2025-26
-//   harlequins  Dombrandt in one place, Stephan Lewies named as new captain
-//               in another
-//   sale        Ben Curry here, Ernst van Rhyn reported elsewhere
 //   saracens    Itoje here, and Farrell named club captain on his return
+//
+// THREE OF THE FOUR ARE NOW ANSWERED, by the league's own club-by-club
+// captains article (supplied by the user; the site is blocked here):
+//   exeter      Yeandle is club captain, Jenkins the on-field skipper - the
+//               entry keeps Jenkins, who is the man wearing it on a Saturday
+//   harlequins  Dombrandt, confirmed (he did succeed Lewies). He tore an ACL
+//               in June, so the club may yet change it - Furbank, arriving
+//               from Saints, is named as a candidate
+//   sale        van Rhyn, confirmed, and corrected below
+// The same article says Gloucester's captaincy is officially TBC after Tomos
+// Williams left for Saracens, which is why no name is pinned there.
 export const CLUB_CAPTAINS: Record<string, string> = {
   // Gallagher Premiership
   bath: 'Ben Spencer',
@@ -20,12 +27,19 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   bristol: 'Fitz Harding',
   exeter: 'Dafydd Jenkins',
   // Named club captain for 2025-26, with Clark and Atkinson as his vices
-  gloucester: 'Tomos Williams',
+  // Tomos Williams captained Gloucester until the 2026-27 window took him to Saracens.
+  // No source names his replacement, so the armband is left to the game's
+  // own leadership pick rather than to a guess - the same way 65 other clubs
+  // choose theirs.
   harlequins: 'Alex Dombrandt',
   // Montoya left for Pau at the end of 2024-25; Chessum leads Leicester now
   leicester: 'Ollie Chessum',
   northampton: 'Fraser Dingwall',
-  sale: 'Ben Curry',
+  // Van Rhyn took the armband from Ben Curry at the start of 2025-26 and
+  // started every league game of it - the league's own club-by-club captains
+  // piece settles the contradiction this file recorded above.
+  sale: 'Ernst van Rhyn',
+  newcastle: 'George McGuigan',
   saracens: 'Maro Itoje',
 
   // United Rugby Championship
@@ -36,7 +50,10 @@ export const CLUB_CAPTAINS: Record<string, string> = {
   glasgow: 'Kyle Steyn',
   edinburgh: 'Grant Gilchrist',
   cardiff: 'Josh Adams',
-  ospreys: 'Jac Morgan',
+  // Jac Morgan captained the Ospreys until the same window took him to Gloucester.
+  // No source names his replacement, so the armband is left to the game's
+  // own leadership pick rather than to a guess - the same way 65 other clubs
+  // choose theirs.
   scarlets: 'Josh Macleod',
   benetton: 'Michele Lamaro',
   stormers: 'Salmaan Moerat',

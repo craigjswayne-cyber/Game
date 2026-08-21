@@ -56,7 +56,19 @@ const cover = (players: { pos: string; alt?: readonly string[] | string[] }[]) =
 // Newcastle's own back row, which the guide lists four men deep because Chick and
 // Graham both left for Saints. Lower this again by updating the OTHER leagues'
 // squads, not by putting the transfers back.
-const GAP_BUDGET = 30
+// 30 until the 2026-27 Premiership transfer window was applied, then 39. The
+// nine are the same price paid again, and the same shape: a real window moves
+// real men out of clubs whose own squad files this source says nothing about.
+// The Ospreys really are a hooker and a flanker lighter without Lake and Jac
+// Morgan, the Blues a number eight without Sotutu, the Dragons without
+// Wainwright, the Chiefs a scrum-half without Roe, the Drua a flanker without
+// Canakaivata, La Rochelle a tighthead without Sclavi, Stade a centre without
+// Marchant. Two of the thirteen new gaps WERE closed with men the transfer
+// list itself names arriving (Vunipola to Leicester, Francis to Sale); the
+// other nine have no named replacement anywhere in the source, and inventing
+// one is the thing this file exists to prevent. Lower it by adding those
+// clubs' own signings when a source turns up - never by cancelling transfers.
+const GAP_BUDGET = 39
 let gapCount = 0
 const gapsByLeague = new Map<string, number>()
 for (const club of allClubs) {
@@ -141,7 +153,9 @@ for (const club of allClubs) {
       const sameMan = prev.pos === p.pos && Math.abs(prev.age - p.age) <= 1
       if (!sameMan) {
         namesakes.push(`${p.name}: ${prev.club}(${prev.pos},${prev.age}) + ${club.id}(${p.pos},${p.age})`)
-      } else if (!verifiedClub(p.name)) {
+      // ask about the LISTINGS, not the bare name: a `name@club` pin resolves
+      // the duplicate even though the plain-name lookup deliberately declines
+      } else if (!verifiedClub(p.name, club.id) && !verifiedClub(p.name, prev.club)) {
         dupes.push(`${p.name}: ${prev.club} + ${club.id} (${p.pos}, ${prev.age}/${p.age})`)
         const a = repOf.get(prev.club) ?? 0
         const b = club.rep
@@ -191,17 +205,30 @@ if (dupes.length) {
 //     builder has nothing to relocate), and must land where it says it does.
 const verifiedNames = Object.keys(VERIFIED_CLUB)
 const clubIds = new Set(allClubs.map(c => c.id))
-for (const [name, want] of Object.entries(VERIFIED_CLUB)) {
-  if (!clubIds.has(want)) bad(`verified table sends ${name} to ${want}, which is not a club`)
+// A key is either a bare name or `name@sourceclub`, which pins ONE listing of
+// a name two different men share (see verified.ts). Both forms are audited,
+// but a scoped key has to be looked up at its own club rather than by name.
+const splitKey = (k: string) => {
+  const i = k.indexOf('@')
+  return i < 0 ? { name: k, from: null as string | null } : { name: k.slice(0, i), from: k.slice(i + 1) }
+}
+for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
+  const { name, from } = splitKey(key)
+  if (!clubIds.has(want)) bad(`verified table sends ${key} to ${want}, which is not a club`)
+  if (from && !clubIds.has(from)) bad(`verified table scopes ${key} to ${from}, which is not a club`)
   const listedAt = allClubs.filter(c => c.players.some(p => p.name.toLowerCase() === name)).map(c => c.id)
-  if (!listedAt.length) bad(`verified table names ${name}, who is in no squad file - nothing to relocate`)
+  if (!listedAt.length) bad(`verified table names ${key}, who is in no squad file - nothing to relocate`)
+  else if (from && !listedAt.includes(from)) {
+    bad(`verified table scopes ${key} to ${from}, but he is listed at ${listedAt.join(', ')} - the pin names the wrong club`)
+  }
 }
 {
   const g = world
-  for (const [name, want] of Object.entries(VERIFIED_CLUB)) {
+  for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
+    const { name } = splitKey(key)
     const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === name)
-    if (hits.length !== 1) bad(`${name} appears ${hits.length} times in the built world, wants exactly 1`)
-    else if (hits[0].clubId !== want) bad(`${name} was built at ${hits[0].clubId}, wants ${want}`)
+    if (hits.length !== 1) bad(`${key} appears ${hits.length} times in the built world, wants exactly 1`)
+    else if (hits[0].clubId !== want) bad(`${key} was built at ${hits[0].clubId}, wants ${want}`)
   }
   console.log(`verified relocations: ${verifiedNames.length} players placed by hand, all landed`)
 

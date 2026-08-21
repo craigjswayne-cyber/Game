@@ -105,7 +105,6 @@ export const SRP_A: RawClub[] = [
       { name: 'Kyle Preston', pos: 'SH', age: 25, nat: 'NZL', q: 72, intl: true },
       { name: 'Rivez Reihana', pos: 'FH', age: 25, nat: 'NZL', q: 74, gk: true },
       { name: 'Taha Kemara', pos: 'FH', age: 21, nat: 'NZL', q: 70, gk: true },
-      { name: 'James O\'Connor', pos: 'FH', alt: ['CE', 'FB'], age: 35, nat: 'AUS', q: 76, intl: true },
       { name: 'David Havili', pos: 'CE', alt: ['FB'], age: 30, nat: 'NZL', q: 83, intl: true },
       { name: 'Braydon Ennor', pos: 'CE', alt: ['WG'], age: 28, nat: 'NZL', q: 79, intl: true },
       { name: 'Dallas McLeod', pos: 'CE', age: 26, nat: 'NZL', q: 75, intl: true },

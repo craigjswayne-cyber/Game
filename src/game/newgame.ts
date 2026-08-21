@@ -164,7 +164,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   for (const def of defs) {
     for (const rc of def.clubs) {
       for (const rp of rc.players) {
-        const to = verifiedClub(rp.name)
+        const to = verifiedClub(rp.name, rc.id)
         if (!to || to === rc.id || !clubIds.has(to)) continue
         const list = relocate.get(to) ?? []
         // his old club may list him twice over; he only signs for one of them
@@ -194,12 +194,17 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         if (!squad.some(x => x.name === rp.name)) squad.push(rp)
       }
       // men who really play here and are in no file at all
+      const handAdded = new Set<string>()
       for (const rp of extraPlayers(rc.id)) {
-        if (!squad.some(x => x.name === rp.name)) squad.push(rp)
+        if (!squad.some(x => x.name === rp.name)) { squad.push(rp); handAdded.add(rp.name) }
       }
       for (const rp of squad) {
-        // he is checked, and this is not where he plays
-        const to = verifiedClub(rp.name)
+        // he is checked, and this is not where he plays. A HAND-ADDED man is
+        // exempt: additions.ts already places him at the club that needs him,
+        // by hand, and the relocation table speaks for the league FILES. When
+        // the 2026-27 window moved four Northampton men to new clubs, the
+        // 2025-26 guide still said Northampton and quietly deleted all four.
+        const to = handAdded.has(rp.name) ? null : verifiedClub(rp.name, rc.id)
         if (to && clubIds.has(to) && to !== rc.id) continue
         // same real player supplied by two files (sabbaticals etc) - keep first
         const key = rp.name.toLowerCase()
