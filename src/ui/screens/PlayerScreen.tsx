@@ -5,7 +5,7 @@ import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness,
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, persKnown, reportStage, STAGE_WORD } from '../../game/scout'
 import { loanOut, loanRecall } from '../../game/loans'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
@@ -129,11 +129,18 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="chips">
         <span className="chip" title="his overall standard out of 100, and the one number that decides most matches">
           Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
-        <span className="chip" title="how he behaves: it drives contract talks, team talks and whether he mentors well">Character <b>{p.pers}</b></span>
+        <span className="chip" title="how he behaves: it drives contract talks, team talks and whether he mentors well">Character <b>{persKnown(game, p) ? p.pers : 'Unknown'}</b>{!persKnown(game, p) && <span className="muted" title="Who a man is takes the longest to scout - the full file reveals it"> ?</span>}</span>
         {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> caps</span>}
-        {p.trait && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>✨ {p.trait}</span>}
+        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>✨ {p.trait}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
+      </div>
+      {!mine && (
+        <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 11.5 }}>
+          🔍 {STAGE_WORD[reportStage(game, p)]}
+        </div>
+      )}
+      <div className="chips">
         <span className="chip" title="what the market says he is worth, not what a club would accept">Value <b>{fmtMoney(p.value)}</b></span>
         <span className="chip" title="what he costs you every week of the year">Wage <b>{fmtWage(p.wage)}/wk</b></span>
         <span className="chip" title="the summer his deal runs out. Leave it too late and he can sign elsewhere for nothing">Contract to <b>{2026 + p.contractEnds}</b></span>

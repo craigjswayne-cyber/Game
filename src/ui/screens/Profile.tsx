@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
+import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
 import { flagOf, nationByCode } from '../../game/nations'
 import { SectionTitle } from '../components'
@@ -120,9 +121,21 @@ export default function Profile() {
             Dressing room {Math.round(trust)}/100 · {trustWord(trust)}
           </div>
           <div className="meta" style={{ marginTop: 2, fontSize: 11 }}>
-            A team talk is worth {Math.round(trustFactor(game) * 100)}% of its full effect while they feel like this.
+            A team talk is worth {Math.round(trustFactor(game) * standing(game).talk * 100)}% of its full effect while they feel like this.
             Win and it climbs; lose and it slides.
           </div>
+          {(() => {
+            // THE AUTHORITY LINE (pillar 1): the room compares your name to its
+            // own, and the screen says so out loud rather than taxing quietly
+            const a = standing(game)
+            if (game.unemployed) return null
+            return (
+              <div className="meta" style={{ marginTop: 6, fontSize: 11, color: a.bite > 0.35 ? '#9b2c2c' : undefined }}>
+                Squad standing {a.profile}/100 against your {a.rep}. {standingWord(a)}
+                {a.bite > 0.05 && ` Training patterns take ${Math.round((1 - a.familiarity) * 100)}% longer to drill while it lasts.`}
+              </div>
+            )
+          })()}
         </div>
       </div>
 

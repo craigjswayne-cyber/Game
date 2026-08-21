@@ -13,6 +13,8 @@ import { OFFICE_OUTLET, generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
+import { recordTendency } from './tendency'
+import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
@@ -2154,6 +2156,9 @@ export function processWeekAndAdvance(state: GameState) {
       leagueRoundUp(state)
       // you learn a lot about the men you just faced
       scoutOpponent(state, userFx.homeId === state.userClubId ? userFx.awayId : userFx.homeId)
+      // the analysts' tape: this week's dials go in the tendency window, and
+      // the repetition streaks tick (pillar 2) - a habit is now a fact
+      recordTendency(state)
     } else {
       // Test match: national duty counts on the manager's record
       const mySide = userFx.homeId === state.natTeam || userFx.homeId === 'LIO' ? userFx.homeId : userFx.awayId
@@ -2642,6 +2647,9 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
     generatePress(state, rng)
+    // the dressing room's own ledger (pillar 1): incidents surface, unanswered
+    // ones fester, and the senior players knock when the room has had enough
+    disciplineWeek(state)
     // press tone cools toward neutral unless you keep feeding it
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }

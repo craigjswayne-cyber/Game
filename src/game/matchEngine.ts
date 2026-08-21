@@ -1,5 +1,7 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
+import { standing } from './authority'
+import { analystShift, archetypeOf, loudestDial, PATTERN_WORD, repetitionFatigue } from './oppcoach'
 import { updateNatRank } from './natrank'
 import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationByCode } from './nations'
@@ -658,6 +660,11 @@ export interface SideCtx {
   drainF: number
   /** the AI coach's one in-match tactical shift has been made */
   shifted?: boolean
+  /** repetition-fatigue petrol multiplier, set once at mkSide - survives the
+   *  substitution rebuild because nothing ever reassigns it */
+  repF?: number
+  /** how many times a REACTIVE dugout has changed its picture (max 2) */
+  reacted?: number
   /** an active Head Injury Assessment: who went off, who covers, verdict due */
   hia?: { pid: number; subId: number; failed: boolean; returnTick: number }
   /** goal-kicking bonus from the kicking coach */
@@ -970,6 +977,11 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
     benchIds, seatOf,
   }
   applyModifiers(state, side, null)
+  // REPETITION FATIGUE (pillar 2): a high-intensity habit held for weeks is
+  // paid for in petrol. Set once here - the substitution rebuild re-runs
+  // applyModifiers, not mkSide, so this can never compound. 1.0 exactly in a
+  // fresh world, which is what keeps the fingerprint on the old stream.
+  if (side.isUser) side.repF = repetitionFatigue(state)
   return side
 }
 
@@ -1500,6 +1512,19 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     preTalk: null, decision: null, momo: 0, grudge: grudge?.reason ?? null,
   }
 
+  // THE ANALYST'S HOMEWORK (pillar 2): an analyst-archetype dugout facing the
+  // user starts with its plan pulled toward the counter to the user's habit.
+  // Layered like the referee - a substitution cannot wash it off - and drawn
+  // from no rng: an empty tendency window means nothing happens, which is
+  // every calibrated harness and every fresh world.
+  for (const side of [home, away]) {
+    if (side.isUser || !ctx.isUser) continue
+    const shift = analystShift(state, side.teamId)
+    if (!shift) continue
+    for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)
+    pushEvent(state, ctx, 0, 'SUB', side,
+      `${state.clubs[side.teamId]?.coach ?? 'The opposition coach'} has done his homework: ${teamShort(state, side.teamId)} are set up specifically for ${PATTERN_WORD[shift.pattern]}. Change the picture, or play through the plan.`)
+  }
   if (fx.venue) {
     pushEvent(state, ctx, 0, 'KO', home, `FINAL DAY at ${fx.venue.name}. ${fx.att ? `${fx.att.toLocaleString()} inside and` : 'A full house and'} the noise rolling around ${fx.venue.city} - two sets of supporters, one trophy. Kick-off!`)
   } else if (derby) {
@@ -1637,7 +1662,7 @@ function drainEnergy(state: GameState, ctx: LiveCtx, side: SideCtx) {
     const base = (2.0 + (20 - p.a.sta) * 0.14) * (inRedZone(p) ? 1.12 : 1)
     const posF = FW_POS.has(p.pos) ? 1.1 : 1
     const e = side.energy.get(id) ?? 80
-    side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * posF * wF))
+    side.energy.set(id, Math.max(0, e - base * side.tempoF * side.drainF * (side.repF ?? 1) * posF * wF))
   }
 }
 
@@ -2285,12 +2310,49 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
  *  up; an AI side protecting a lead late shuts up shop. Once per match. */
 function aiTacticShift(state: GameState, ctx: LiveCtx) {
   for (const side of [ctx.home, ctx.away]) {
-    if (side.isUser || side.shifted) continue
+    if (side.isUser) continue
     const opp = side === ctx.home ? ctx.away : ctx.home
     const diff = side.score - opp.score
     const min = ctx.tick * 4
     const coach = state.clubs[side.teamId]?.coach
     const who = coach ?? `The ${teamShort(state, side.teamId)} coach`
+    // THE REACTIVE DUGOUT (pillar 2): a reactive-archetype coach who is being
+    // hurt reads the loudest thing the user is doing and counters it from the
+    // touchline - at most twice, each counter a trade rather than a free
+    // upgrade, and deterministic on the state of the match. He reads the
+    // scoreboard and the picture in front of him, not the tendency file.
+    if (opp.isUser && archetypeOf(side.teamId) === 'reactive' && (side.reacted ?? 0) < 2) {
+      const window = (side.reacted ?? 0) === 0 ? ctx.tick >= 5 && diff <= -5 : ctx.tick >= 14 && diff <= -10
+      if (window) {
+        const loud = loudestDial(state.clubs[opp.teamId]?.tactic ?? { style: 50, tempo: 50, kicking: 50, aggression: 50 })
+        if (loud) {
+          side.reacted = (side.reacted ?? 0) + 1
+          const say = (what: string, how: string) => pushEvent(state, ctx, min, 'SUB', side,
+            `${who} has seen the problem: ${what}. ${teamShort(state, side.teamId)} ${how}`)
+          if (loud.dial === 'style' && loud.v > 50) {
+            layer(side, 'defence', 1.05); layer(side, 'breakdown', 0.96)
+            say('the width is killing them', 'push their wings out to meet it, and thin out the rucks to do so.')
+          } else if (loud.dial === 'style') {
+            layer(side, 'breakdown', 1.06); layer(side, 'defence', 0.97)
+            say('everything is coming through the middle', 'stack the breakdown and dare the ball to go wide.')
+          } else if (loud.dial === 'kicking' && loud.v > 50) {
+            layer(side, 'defence', 1.04); layer(side, 'attack', 0.97)
+            say('the aerial bombardment', 'drop a man deep and keep the back three home.')
+          } else if (loud.dial === 'tempo' && loud.v > 50) {
+            layer(side, 'tempo', 0.92); layer(side, 'defence', 1.03)
+            say('the pace of the game', 'slow everything - every scrum reset, every mark, every tying of a bootlace.')
+          } else if (loud.dial === 'aggression' && loud.v > 50) {
+            layer(side, 'card', 0.85); layer(side, 'breakdown', 1.03)
+            say('the physical battle', 'refuse the scrap, keep fifteen on the field and let the referee do the tidying.')
+          } else {
+            // a quiet, conservative habit: press it
+            layer(side, 'tempo', 1.08); layer(side, 'defence', 0.98)
+            say('how passive this all is', 'raise the tempo and force the game to be played.')
+          }
+        }
+      }
+    }
+    if (side.shifted) continue
     if (ctx.tick >= 12 && diff <= -10) {
       side.shifted = true
       layer(side, 'attack', 1.06)
@@ -2346,7 +2408,12 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
   // trust and stays 1.06 once the room is bought in. Risk multipliers above 1
   // (the fire talk's cards) scale the same way, so an unconvincing rant does
   // not get you the penalties without the aggression.
-  const tf = trustFactor(state)
+  // COMPOSED, not replaced (pillar 1): trust is whether you have delivered
+  // HERE, standing is whether your name commands this room at all. A rookie
+  // in a star dressing room loses most of the talk on both counts; two
+  // seasons of results rebuild both. Multiplying the two distances keeps
+  // each system's probes meaningful on its own.
+  const tf = trustFactor(state) * standing(state).talk
   const scale = (m: number) => 1 + (m - 1) * tf
   switch (kind) {
     case 'calm':

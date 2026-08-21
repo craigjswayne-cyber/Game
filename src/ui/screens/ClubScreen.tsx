@@ -7,6 +7,7 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
+import { archetypeOf } from '../../game/oppcoach'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
@@ -51,6 +52,20 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           return (
             <div className="meta">
               📋 {ph.name} <span className="muted">({dialLine(club.tactic)})</span>
+            </div>
+          )
+        })()}
+        {/* the dugout's character (pillar 2): countering is a system you can
+            plan against, not a hidden tax - so the scouting says who reads
+            whom before you pick a game plan */}
+        {club.id !== game.userClubId && (() => {
+          const arch = archetypeOf(club.id)
+          const word = arch === 'analyst' ? 'studies your recent matches and sets up to counter your habits'
+            : arch === 'reactive' ? 'changes the picture from the touchline when the match turns against him'
+            : 'trusts his own plan, week in, week out'
+          return (
+            <div className="meta">
+              🧠 <b>{arch === 'analyst' ? 'The Analyst' : arch === 'reactive' ? 'The Tinkerer' : 'The Believer'}</b>: {word}
             </div>
           )
         })()}

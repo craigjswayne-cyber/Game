@@ -639,6 +639,9 @@ export interface PressOption {
   /** union confidence delta - the national-coach window question, where what
    *  you tell the country's press moves the federation, not the club board */
   natConf?: number
+  /** a discipline incident response: how the manager handles the man
+   *  (authority.ts decides whether it lands or blows up in his face) */
+  disc?: 'fine' | 'word' | 'ignore'
   /** the pre-season decision: one special week, three philosophies */
   camp?: 'heat' | 'home' | 'tour'
   /** agreeing to a loan actually sends him. Saying yes and then leaving the
@@ -691,6 +694,8 @@ export interface PressItem {
   reaction?: string
   /** set on office conversations: what he came in to talk about */
   topic?: OfficeTopic
+  /** set on discipline conversations: the incident this one resolves */
+  incidentId?: number
 }
 
 export interface TransferOffer {
@@ -1107,6 +1112,22 @@ export interface GameState {
   /** season*100+week each terrace-pulse subject last fired - a stamp, not a
    *  news scan, because the trimmed log forgets its own cooldown evidence */
   pulseAt?: Record<string, number>
+  /** THE TENDENCY WINDOW (four pillars, pillar 2): the user's last five club
+   *  matches' dial settings, oldest first. Written once per settled user club
+   *  match, ring-buffered at five, and read by opposing analysts - a manager
+   *  who plays the same way every week is a manager who can be planned for. */
+  tendency?: { season: number; week: number; style: number; tempo: number; kicking: number; aggression: number; defLine: number; defWidth: number }[]
+  /** THE DISCIPLINE LEDGER (pillar 1): open dressing-room incidents. An
+   *  incident is flagged when it happens and moves through handled, festering
+   *  or challenged depending on how - and by WHOM - it is dealt with. Pruned
+   *  once resolved and older than a season, so the list cannot grow. */
+  incidents?: { id: number; pid: number; kind: 'training' | 'rating'; state: 'flagged' | 'handled' | 'festering' | 'challenged'; season: number; week: number }[]
+  /** season*100+week the senior players last called a meeting to question the
+   *  manager's authority - a stamp, never a news scan */
+  challengeAt?: number
+  /** per-dial run length of consecutive user matches played at an extreme
+   *  (pillar 2's repetition fatigue) - written at settle, read at kick-off */
+  dialStreak?: Record<string, number>
   /** absolute week the availability counter last ticked (see settleGameTime),
    *  so a double-called settle cannot count one match twice */
   availWeek?: number

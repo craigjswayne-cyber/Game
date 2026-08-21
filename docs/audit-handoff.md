@@ -369,6 +369,50 @@ of the trimmed news log.
     confirmed GLOUCESTER IS OFFICIALLY TBC - which is why no name is pinned
     there rather than a guess.
   - xferprobe.ts pins all of it; 38 FAILs on 14a8b95.
+- THE FOUR PILLARS (user approved the design doc, then: "action everything
+  above to make this game more challenging"). Three new leaf modules plus
+  couplings, and the meta-claim that made it shippable: IN A FRESH WORLD AT
+  NEUTRAL DIALS NOTHING FIRES - fingerprint verified unchanged with all of
+  it wired, because the tendency window is empty, every dial sits at 50 and
+  repetitionFatigue() is exactly 1.0.
+  - authority.ts: squadProfile (top-23 mean ca on the reputation ruler),
+    standing() (gap bites past -20, saturates at -45, delivered trust
+    cancels the strain LINEARLY TO ZERO at 100 - the first cut kept 25%
+    forever and trustprobe rightly convicted it against the trust
+    system's own full-effect promise), the discipline machine (flagged -> handled / festering /
+    challenged; a fine's landing is deterministic on incident id vs bite),
+    the senior-players meeting (2 live grievances, challengeAt STAMP,
+    8-week cooldown). Couplings: drillWeek speed x standing.familiarity,
+    applyPreTalk distance x standing.talk (COMPOSED with trustFactor - they
+    model different things), office incidents resolved via answerPress's
+    new opt.disc, auto-fester after 2 ignored weeks in disciplineWeek.
+  - tendency.ts: 5-match ring buffer of user dials written at club-match
+    settle; predictability = extremity x (1 - spread) so alternating 15/85
+    reads ZERO; pattern maps the habit onto the COUNTER table's ids.
+    dialStreak walks per-dial extremity runs (+/-signed, decay 1/match).
+  - oppcoach.ts: archetypeOf hash of club id -> stubborn 45% / analyst 35%
+    / reactive 20% (measured 48/35/18 across the world). analystShift =
+    dials pulled toward COUNTER by predictability x rep-skill x 0.45,
+    expressed as unit-factor RATIOS through a coefficient table that MUST
+    match applyModifiers term for term (cross-referenced comments both
+    ends). Applied in beginMatch as layer()s with a "done his homework"
+    event. Reactive tier lives inside aiTacticShift: losing by 5+ at tick 5
+    (then 10+ at tick 14, max twice), counters the user's loudestDial with
+    small paired trade layers, no rng. repetitionFatigue: tempo/aggression/
+    defLine streaks past 75 cost 3%/match petrol after the first, cap 12%,
+    via side.repF set ONCE in mkSide (the substitution rebuild re-runs
+    applyModifiers, NOT mkSide - drainF is assignment-unsafe there, which
+    is why repF is its own field).
+  - scout.ts staged reports: reportStage 0-3 on the knowledge scalar;
+    persKnown at 90+; PlayerScreen gates the Character chip and the trait
+    chip (stage 2) and prints the stage word. ClubScreen names the dugout
+    archetype (The Believer / The Analyst / The Tinkerer) - countering is
+    a system to play against, not a hidden tax.
+  - pillarprobe.ts pins all of it including the beginMatch integration and
+    the fresh-world silences; red on 705dafe (modules absent). Watch in
+    future: dialweight now measures dials in a world where reactive
+    dugouts answer them - if its floors/bars ever drift, suspect that
+    coupling first.
 
 ## Open work, roughly in order
 
