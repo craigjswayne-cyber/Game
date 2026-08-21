@@ -20,6 +20,7 @@
 //   one. Off-the-top is the reverse.
 
 import type { Club, GameState, Playbook } from './model'
+import { standing } from './authority'
 import { clamp } from './rng'
 
 export interface Routine {
@@ -153,7 +154,11 @@ export function drillWeek(state: GameState, club: Club, emphasisSetPiece: boolea
   const pb = playbookOf(club)
   const coach = club.id === state.userClubId ? (state.staff?.scrumCoach ?? 0) : Math.round(club.rep / 25)
   const called = new Set([club.tactic.lineoutCall ?? DEFAULT_LINEOUT, club.tactic.scrumCall ?? DEFAULT_SCRUM])
-  const up = (emphasisSetPiece ? 2.2 : 1.0) + coach * 0.45
+  // AUTHORITY GATES THE DRILLING (pillar 1): a room that outranks its
+  // manager trains his patterns at half pace - not malice, re-examination.
+  // Every rep is argued with. Earn the room and the tax disappears.
+  const auth = club.id === state.userClubId ? standing(state).familiarity : 1
+  const up = ((emphasisSetPiece ? 2.2 : 1.0) + coach * 0.45) * auth
   for (const r of ROUTINES) {
     const cur = pb.drilled[r.id] ?? 30
     // a hard routine has a lower ceiling without real coaching behind it

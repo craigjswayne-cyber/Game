@@ -49,6 +49,34 @@ export function bumpKnowledge(p: Player, amt: number) {
   p.sc = clamp((p.sc ?? 20) + amt, 0, 100)
 }
 
+/** THE STAGED REPORT (four pillars, pillar 3's last piece). Numbers arriving
+ *  as ranges was already built; this staggers everything that is NOT a
+ *  number. A weekend's tape tells you how a man plays. It does not tell you
+ *  who he is - that takes months of calls to people who have shared a
+ *  dressing room with him, which is why character is the LAST thing a report
+ *  fills in, and why signing an unscouted star is a gamble twice over. */
+export type ReportStage = 0 | 1 | 2 | 3
+
+export function reportStage(state: GameState, p: Player): ReportStage {
+  const k = knowledge(state, p)
+  if (k >= 90) return 3      // the full file: character, temperament, the lot
+  if (k >= 55) return 2      // a proper report: role, kicking, durability read
+  if (k >= 35) return 1      // a weekend of tape: broad numbers only
+  return 0                   // a name and a shirt number
+}
+
+/** Is his character known? Stage 3 only - who a man is takes the longest. */
+export function persKnown(state: GameState, p: Player): boolean {
+  return reportStage(state, p) >= 3
+}
+
+export const STAGE_WORD: Record<ReportStage, string> = {
+  0: 'Unscouted: a name on a team sheet. The numbers below are guesswork.',
+  1: 'Initial report: a weekend of tape. Broad numbers, nothing behind them.',
+  2: 'Detailed report: strengths and role are clear. Character still unknown.',
+  3: 'Full file: numbers, character and temperament all verified.',
+}
+
 /** Weekly knowledge gathering. */
 export function weeklyScouting(state: GameState) {
   const scoutLvl = state.staff.scout

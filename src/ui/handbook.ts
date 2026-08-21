@@ -370,6 +370,11 @@ export const HANDBOOK: HandbookEntry[] = [
   },
   {
     cat: 'career',
+    q: 'Why does my squad train slowly and half-ignore my team talks?',
+    a: 'Because the room outranks you. The game compares your reputation to the standing of the 23 you pick: walk into a star dressing room as an unproven name and the squad re-examines every instruction - patterns drill at up to half pace, team talks land at a fraction of their weight, and a fine handed out by a manager without a record can blow up into a stand-off. The Manager Profile shows the standing line. The way out is the same as real life: deliver. Trust earned through results cancels the strain outright - a room that fully believes in you stops caring what your CV says - and a trophy ends the conversation for good.',
+  },
+  {
+    cat: 'career',
     q: 'Can I manage a country?',
     a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: the Club & Country screen holds the whole desk - the ranking, the union\'s confidence, your Test record, and the window squad, which is yours to shape. When camp is open you can drop a name and call the next man up - any qualified player in the game, no age limit and no rating floor, only the injured refused - the federation caps the room and will not let it fall below 23, and on a Test weekend your assistant minds any club fixture while you take the country. Leave the job and the Test record stays on your Manager Profile for good. Step down from either job from the same screen. A World Cup is the biggest thing in the game. The Job Centre shows how close your reputation is.',
   },

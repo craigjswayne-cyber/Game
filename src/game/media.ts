@@ -4,6 +4,7 @@ import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
 import { nationByCode } from './nations'
+import { applyResponse } from './authority'
 import { clamp, pick, type Rng } from './rng'
 
 const OUTLETS = [
@@ -778,6 +779,12 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   // club boardroom - what it moves is the union's confidence
   if (opt.natConf && state.natConfidence != null) {
     state.natConfidence = clamp(state.natConfidence + opt.natConf, 0, 100)
+  }
+  // a discipline conversation: the incident machine decides whether the
+  // response lands, and its verdict becomes the printed reaction
+  if (opt.disc && item.incidentId != null) {
+    const inc = (state.incidents ?? []).find(i => i.id === item.incidentId)
+    if (inc) item.reaction = applyResponse(state, inc, opt.disc)
   }
   // a lodged appeal is heard the same day: deterministic verdict, no shared
   // rng - the same save always gets the same hearing
