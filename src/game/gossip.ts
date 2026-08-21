@@ -411,13 +411,29 @@ function streakWatch(state: GameState, rng: Rng) {
   // state.news and the form guide, never the stream, so every match after
   // this week plays out identically.
   const four = formGuide(state, uid, 4)
-  const quietFor = (subj: string) => !state.news.some(n =>
-    n.subject === subj && (state.season * 100 + state.week) - (n.season * 100 + n.week) < 4)
+  // A STAMP, NOT A NEWS SCAN - and the cooldown holds BOTH doors. Two bugs
+  // lived here, found by instrumenting seed 2's repeat at weeks 41+42 after
+  // the Saints data change re-dealt the calendar:
+  //   - the gate read state.news for its own cooldown, and the log trims at
+  //     NEWS_KEEP - the same lesson as memoprobe, stancecheck and LAW WATCH:
+  //     a gate that reads the news log forgets whatever the log forgot first;
+  //   - "fresh" (the run just became three) BYPASSED the cooldown, and fresh
+  //     is derived from the form guide, which does not advance in a week the
+  //     club plays no match - so a blank week after a becoming-three pulse
+  //     re-announced the same third win with the same sermon.
+  // A genuine new streak needs at least four match-weeks between same-subject
+  // pulses (loss plus three wins), so the cooldown gating every door loses no
+  // legitimate pulse; fresh now only picks the VOICE. The rng draw stays
+  // exactly where it was, so the stream is untouched.
+  const now = state.season * 100 + state.week
+  const quietFor = (subj: string) => now - (state.pulseAt?.[subj] ?? -99) >= 4
+  const stamp = (subj: string) => { (state.pulseAt ??= {})[subj] = now }
   if (results.every(r => r === 'W')) {
     const fire = rng() < 0.7
     const fresh = !(four.length === 4 && four[0] === 'W')
     const subj = `Terrace pulse: believers at ${club.short}`
-    if (fire && (fresh || quietFor(subj))) {
+    if (fire && quietFor(subj)) {
+      stamp(subj)
       wire(state, subj, fresh
         ? voice(state, 24, [
           `Three wins on the spin and the ${club.stadium} bars are humming. A supporters' podcast this week: "Whisper it, but this ${state.managerName} side might actually be building something."`,
@@ -436,7 +452,8 @@ function streakWatch(state: GameState, rng: Rng) {
     const fire = rng() < 0.8
     const fresh = !(four.length === 4 && four[0] === 'L')
     const subj = `Terrace pulse: grumbles at ${club.short}`
-    if (fire && (fresh || quietFor(subj))) {
+    if (fire && quietFor(subj)) {
+      stamp(subj)
       wire(state, subj, fresh
         ? voice(state, 25, [
           `Three straight defeats and the phone-ins have turned. One season-ticket holder of 30 years: "I don't see a plan out there." Win this weekend and it all goes quiet - that's football... no, that's rugby.`,

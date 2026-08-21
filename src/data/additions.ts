@@ -74,6 +74,14 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   moana: [
     { name: 'Pepesana Patafilo', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
   ],
+  // Ion Neculai's move to Northampton (the club's own published 2026/27
+  // squad list, supplied by the user) left Zebre a single real tighthead in
+  // Muhamed Hasa. Nocera is Zebre's own: an Italy U20 front-rower out of
+  // their academy, in the senior rotation - judged against the league he
+  // plays in, a squad man, which is what the shirt needs.
+  zebre: [
+    { name: 'Matteo Nocera', pos: 'TP', age: 21, nat: 'ITA', q: 58 },
+  ],
   // The Force's outside backs for 2026 are Bridge, Beale, Grealy and Lancaster.
   // Beale and Grealy are already ours, which makes the list good; Bridge is the
   // former All Blacks winger, and the Force had two specialists without him.

@@ -75,6 +75,24 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'bruce devaux': 'perpignan',
   'fabien sanconnie': 'montauban',
 
+  // ---- Northampton's published 2026/27 squad list (user's screenshot of
+  // the club's own announcement, round 27) names both among the props.
+  // Their authored entries live at their old clubs; this moves the men
+  // rather than writing them twice.
+  'ion neculai': 'northampton',
+  // Short-term deal per the same list. The guide's Harlequins line is his
+  // 2025-26 club, which is why the hand table has to win here.
+  'jordan els': 'northampton',
+  // The same list has NO Atuanya and no Tom James - but the guide's stale
+  // Northampton lines would otherwise drag namesakes in by name alone: the
+  // Cardiff tighthead called Emeka Atuanya, and the Cornish Pirates
+  // full-back called Tom James. Pin each man to the club that authored him.
+  // (Bishop's Stortford's generated 32-year-old prop of the same name is
+  // the one casualty: a name can only be verified to one club, and the
+  // Pirates entry is the real man.)
+  'emeka atuanya': 'cardiff',
+  'tom james': 'pirates',
+
   // Back at the Hurricanes for 2025-26 after his season-long Leinster
   // sabbatical ended with the 2024-25 URC campaign; re-signed to 2028.
   'jordie barrett': 'hurricanes',

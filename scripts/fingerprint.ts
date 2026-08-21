@@ -217,18 +217,26 @@ const EXPECTED: string[] = [
   // Worth recording that only two of the six results below moved. The streams
   // stay aligned through four of them, which is what a small, symmetric change
   // to two unit multipliers should look like.
-  'gloucester 46-24 exeter',
-  'bath 27-37 sale',
-  'northampton 9-24 leicester',
-  // Moved once more, by the splitprobe fix in the following commit: restoring the
-  // defensive line's penalty cost (which an assignment had been wiping) changes
-  // what every AI side concedes, because philosophy.ts sets defLine away from 50
-  // for most of them. One result of the six moved back to where it was before
-  // this round started, which is the shape you would expect from putting a term
-  // back rather than adding a new one.
-  'newcastle 9-14 saracens',
-  'harlequins 41-22 bristol',
-  'sale 30-16 gloucester',
+  // (splitprobe-era baseline kept in history: gloucester 46-24 exeter, bath
+  // 27-37 sale, northampton 9-24 leicester, newcastle 9-14 saracens,
+  // harlequins 41-22 bristol, sale 30-16 gloucester.)
+  //
+  // Rebaselined for Northampton's announced 2026/27 squad (the user's
+  // screenshots of the club's own post): a DATA change, not a mechanical one,
+  // but authored players and academy prospects change how many rng draws the
+  // world build makes, so the league draw itself sees a different stream and
+  // all six results (and their pairings) move - the same shape as the 10G
+  // academy rebaseline above. Balance verified as the protocol demands, with
+  // a PAIRED four-seed measurement on the same script at the old and new
+  // data: 53.4 -> 53.6 points a game (seed spread 1.7 wide), tries 6.28 ->
+  // 6.28, home 54% -> 54%, draws 2.0% -> 1.6%. The world did not move; the
+  // stream did, which is exactly what a squad-list edit should do.
+  'northampton 57-38 bristol',
+  'leicester 20-27 sale',
+  'exeter 19-3 bath',
+  'saracens 23-34 gloucester',
+  'harlequins 62-20 newcastle',
+  'sale 30-22 northampton',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

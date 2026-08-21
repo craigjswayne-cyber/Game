@@ -95,16 +95,24 @@ export const PREM_B: RawClub[] = [
     stadium: 'cinch Stadium at Franklin\'s Gardens', capacity: 15249,
     colors: ['#000000', '#00843d'],
     rep: 86, budget: 4000000,
+    // The club's own published 2026/27 squad list (user's screenshot of the
+    // official announcement, round 27). Out: West, Millar Mills, Atuanya,
+    // Scott-Young, Graham, Brown, James, Furbank, Ramm. Ion Neculai and
+    // Jordan Els also join per the list - they are authored at their old
+    // clubs and arrive via VERIFIED_CLUB relocation, not a second entry.
+    // The eighteen Senior Academy names (*) live in ACADEMY_PROSPECTS, bar
+    // Aidan Pugh, who takes the third senior scrum-half shirt the academy
+    // shape has no room for.
     players: [
       { name: 'Emmanuel Iyogun', pos: 'LP', age: 24, nat: 'ENG', q: 76 },
       { name: 'Danilo Fischetti', pos: 'LP', age: 27, nat: 'ITA', q: 76, intl: true },
-      { name: 'Tom West', pos: 'LP', age: 29, nat: 'ENG', q: 74 },
       { name: 'Luke Green', pos: 'LP', age: 22, nat: 'ENG', q: 62 },
+      { name: 'Leftheri Zigiriadis', pos: 'LP', age: 21, nat: 'ENG', q: 60 },
       { name: 'Curtis Langdon', pos: 'HK', age: 28, nat: 'ENG', q: 79, intl: true },
       { name: 'Robbie Smith', pos: 'HK', age: 27, nat: 'ENG', q: 70 },
       { name: 'Henry Walker', pos: 'HK', age: 27, nat: 'ENG', q: 70 },
       { name: 'Craig Wright', pos: 'HK', age: 22, nat: 'SCO', q: 62 },
-      { name: 'Elliot Millar Mills', pos: 'TP', age: 33, nat: 'SCO', q: 72, intl: true },
+      { name: 'Ben Alexander', pos: 'HK', age: 21, nat: 'ENG', q: 60 },
       { name: 'Trevor Davison', pos: 'TP', age: 31, nat: 'ENG', q: 70 },
       { name: 'Cleopas Kundiona', pos: 'TP', age: 27, nat: 'ENG', q: 69 },
       { name: 'Alex Coles', pos: 'LK', alt: ['FL'], age: 26, nat: 'ENG', q: 82, intl: true },
@@ -112,18 +120,16 @@ export const PREM_B: RawClub[] = [
       { name: 'Chunya Munga', pos: 'LK', age: 25, nat: 'ENG', q: 71 },
       { name: 'Tom Lockett', pos: 'LK', age: 23, nat: 'ENG', q: 65 },
       { name: 'Ed Prowse', pos: 'LK', age: 23, nat: 'ENG', q: 64 },
-      { name: 'Emeka Atuanya', pos: 'LK', age: 21, nat: 'ENG', q: 61 },
+      { name: 'Josh Taylor', pos: 'LK', age: 21, nat: 'ENG', q: 60 },
       { name: 'Henry Pollock', pos: 'FL', alt: ['N8'], age: 20, nat: 'ENG', q: 84, intl: true },
       { name: 'Tom Pearson', pos: 'FL', age: 25, nat: 'ENG', q: 79 },
       { name: 'Josh Kemeny', pos: 'FL', alt: ['N8'], age: 26, nat: 'AUS', q: 74, intl: true },
-      { name: 'Angus Scott-Young', pos: 'FL', age: 28, nat: 'AUS', q: 73 },
-      { name: 'Sam Graham', pos: 'FL', alt: ['N8'], age: 28, nat: 'ENG', q: 72 },
       { name: 'Archie Benson', pos: 'FL', age: 21, nat: 'ENG', q: 61 },
-      { name: 'Fyn Brown', pos: 'FL', age: 21, nat: 'ENG', q: 60 },
+      { name: 'James Bennett', pos: 'FL', age: 22, nat: 'ENG', q: 62 },
       { name: 'Callum Chick', pos: 'N8', alt: ['FL'], age: 29, nat: 'ENG', q: 76 },
       { name: 'Alex Mitchell', pos: 'SH', age: 28, nat: 'ENG', q: 87, intl: true },
-      { name: 'Tom James', pos: 'SH', age: 28, nat: 'ENG', q: 72 },
       { name: 'Archie McParland', pos: 'SH', age: 20, nat: 'ENG', q: 63 },
+      { name: 'Aidan Pugh', pos: 'SH', age: 19, nat: 'ENG', q: 56 },
       { name: 'Fin Smith', pos: 'FH', age: 23, nat: 'ENG', q: 88, gk: true, intl: true },
       { name: 'Anthony Belleau', pos: 'FH', age: 29, nat: 'FRA', q: 74, gk: true },
       { name: 'Fraser Dingwall', pos: 'CE', age: 26, nat: 'ENG', q: 80, intl: true },
@@ -132,11 +138,13 @@ export const PREM_B: RawClub[] = [
       { name: 'Toby Thame', pos: 'CE', age: 22, nat: 'ENG', q: 62 },
       { name: 'Tommy Freeman', pos: 'WG', alt: ['CE', 'FB'], age: 24, nat: 'ENG', q: 89, intl: true },
       { name: 'Ollie Sleightholme', pos: 'WG', age: 25, nat: 'ENG', q: 81, intl: true },
-      { name: 'George Hendy', pos: 'WG', alt: ['FB'], age: 22, nat: 'ENG', q: 72 },
       { name: 'Amena Caqusau', pos: 'WG', age: 24, nat: 'FIJ', q: 68 },
       { name: 'James Martin', pos: 'WG', age: 22, nat: 'ENG', q: 61 },
-      { name: 'George Furbank', pos: 'FB', alt: ['FH'], age: 29, nat: 'ENG', q: 82, intl: true },
-      { name: 'James Ramm', pos: 'FB', alt: ['WG'], age: 27, nat: 'AUS', q: 73 },
+      { name: 'Malik Faissal', pos: 'WG', age: 21, nat: 'ENG', q: 61 },
+      { name: 'Edoardo Todaro', pos: 'WG', alt: ['FB'], age: 20, nat: 'ITA', q: 61 },
+      // Furbank's departure makes Hendy the resident 15, which is where he
+      // played most of his rugby anyway
+      { name: 'George Hendy', pos: 'FB', alt: ['WG'], age: 22, nat: 'ENG', q: 72 },
     ],
   },
   {
