@@ -74,6 +74,43 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   moana: [
     { name: 'Pepesana Patafilo', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
   ],
+  // ---- the 2026-27 Premiership window: men Northampton let go, restored at
+  // the clubs that signed them.
+  //
+  // Their entries were hand-authored at Northampton and were deleted when the
+  // Saints published their 2026/27 list, which said they had left but not
+  // where they went. The transfer list says: three to Newcastle, one to
+  // Harlequins. Nothing here is invented - each is his original authored
+  // entry, recovered from the commit that removed him, which is why this is
+  // an addition rather than a guess.
+  //
+  // Tom James went the same way, to Saracens, and is deliberately NOT here:
+  // the world builder allows one player per name, and taking him for Saracens
+  // would delete the Cornish Pirates full-back of the same name. One signing
+  // lost beats one real player destroyed.
+  newcastle: [
+    { name: 'Tom West', pos: 'LP', age: 29, nat: 'ENG', q: 74 },
+    { name: 'Elliot Millar Mills', pos: 'TP', age: 33, nat: 'SCO', q: 72, intl: true },
+    { name: 'Sam Graham', pos: 'FL', alt: ['N8'], age: 28, nat: 'ENG', q: 72 },
+  ],
+  harlequins: [
+    { name: 'George Furbank', pos: 'FB', alt: ['FH'], age: 29, nat: 'ENG', q: 82, intl: true },
+  ],
+  // Two shirts the 2026-27 window emptied, closed with the men the transfer
+  // list itself names as arriving - the strongest source available, and the
+  // only two of the thirteen new gaps the page actually covers.
+  //
+  // Leicester lost Nicky Smith to Sale and were left with ONE specialist
+  // loosehead; Sale released WillGriff John and were left with one tighthead.
+  // The page names Vunipola and Francis as their replacements. Ages and
+  // quality are judged the way the rest of this file judges them: two
+  // long-serving Test front-rowers in the late stage of their careers.
+  leicester: [
+    { name: 'Mako Vunipola', pos: 'LP', age: 35, nat: 'ENG', q: 72, intl: true },
+  ],
+  sale: [
+    { name: 'Tomas Francis', pos: 'TP', age: 34, nat: 'WAL', q: 70, intl: true },
+  ],
   // Ion Neculai's move to Northampton (the club's own published 2026/27
   // squad list, supplied by the user) left Zebre a single real tighthead in
   // Muhamed Hasa. Nocera is Zebre's own: an Italy U20 front-rower out of

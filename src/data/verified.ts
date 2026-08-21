@@ -21,7 +21,10 @@ import { PREM_2526 } from './prem2526'
 // renaming players to break ties and damaged real data both times.
 //
 // RULES FOR ADDING TO THIS TABLE
-//   1. One entry per player, keyed on his lowercased full name.
+//   1. One entry per player, keyed on his lowercased full name - or, when
+//      two different men share that name, on `name@sourceclub` to pin the
+//      one LISTING that moves. Any scoped key silences the plain-name
+//      form for every other listing of that name, which is the point.
 //   2. Only add a player whose 2025-26 club you have actually checked. An
 //      unchecked player left out of here keeps today's behaviour, which is
 //      merely arbitrary rather than wrong.
@@ -73,6 +76,117 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // 2025-26 French windows - and for Sanconnie the two agree anyway, Montauban
   // having come up to the Top 14 for this season.
   'bruce devaux': 'perpignan',
+
+  // Both listings of one man, pinned together. A scoped key silences the
+  // plain-name form for every other listing, so pinning only the departing
+  // club left his duplicate entry unmoved - and the builder's one-player-per-
+  // name rule then kept the WRONG copy. Pin both ends of each duplicate.
+  'dan du preez@bath': 'bath',
+  'jamie bhatti@bath': 'bath',
+  'boeta chamberlain@bulls': 'lions',
+  'nicky smith@ospreys': 'sale',
+  'len ikitau@brumbies': 'brumbies',
+  'zack henry@pau': 'newcastle',
+  // Sam Spink is TWO men - a Saracens centre of 27 and a Western Force centre
+  // of 25 - and the Saracens one was released in this window. With his entry
+  // deleted the 2025-26 guide simply pulled the Force man to Saracens in his
+  // place. Self-pinning the Force listing silences the guide for that name.
+  'sam spink@force': 'force',
+  // ---- THE 2026-27 PREMIERSHIP TRANSFER WINDOW ---------------------------
+  // Wikipedia's List of 2026-27 Premiership Rugby transfers, supplied by the
+  // user as screenshots of all nine club sections (the page itself is blocked
+  // by this environment's egress policy). Every entry is scoped `name@club`:
+  // the window moves LISTINGS, not names, and nine of these names belong to
+  // two different men in this data. Grouped by the club they join.
+  // -> bath
+  'dan du preez@sale': 'bath',
+  'jamie bhatti@glasgow': 'bath',
+  // -> bayonne
+  'rob du preez@sale': 'bayonne',
+  // -> bedford
+  'harry wells@leicester': 'bedford',
+  // -> blackheath
+  'joel grayson@newcastle': 'blackheath',
+  // -> blackrams
+  'tamati tua@exeter': 'blackrams',
+  // -> bordeaux
+  'tom willis@saracens': 'bordeaux',
+  // -> brumbies
+  'len ikitau@exeter': 'brumbies',
+  // -> bulls
+  'hanro liebenberg@leicester': 'bulls',
+  // -> cardiff
+  'jarrod evans@harlequins': 'cardiff',
+  'scott sio@exeter': 'cardiff',
+  'tom manz@leicester': 'cardiff',
+  // -> ealing
+  'gareth simpson@saracens': 'ealing',
+  'hayden hyde@harlequins': 'ealing',
+  'louie johnson@saracens': 'ealing',
+  'sam grahamslaw@bristol': 'ealing',
+  // -> exeter
+  'dallas mcleod@crusaders': 'exeter',
+  'sam wolstenholme@bristol': 'exeter',
+  // -> gloucester
+  'dewi lake@ospreys': 'gloucester',
+  'jac morgan@ospreys': 'gloucester',
+  'jean kleyn@munster': 'gloucester',
+  // -> harlequins
+  'harry johnson-holmes@force': 'harlequins',
+  'james dun@bristol': 'harlequins',
+  // -> la_rochelle
+  'theo mcfarland@saracens': 'la_rochelle',
+  // -> leicester
+  'aaron wainwright@dragons': 'leicester',
+  'joe jenkins@bristol': 'leicester',
+  'joel sclavi@la_rochelle': 'leicester',
+  // -> lions
+  'boeta chamberlain@newcastle': 'lions',
+  // -> lscottish
+  'will butler@gloucester': 'lscottish',
+  // -> newcastle
+  'benjamin elizalde@bristol': 'newcastle',
+  'brandon jackson@saracens': 'newcastle',
+  'fehi fineanganofo@hurricanes': 'newcastle',
+  'hoskins sotutu@blues': 'newcastle',
+  'josh hodge@exeter': 'newcastle',
+  'obi ene@sale': 'newcastle',
+  'pouri rakete-stones@hurricanes': 'newcastle',
+  'raffi quirke@sale': 'newcastle',
+  'werner kok@ulster': 'newcastle',
+  'will rigg@exeter': 'newcastle',
+  'zack henry@stade_francais': 'newcastle',
+  'zuriel togiatama@drua': 'newcastle',
+  // -> northampton
+  'jordan els@harlequins': 'northampton',
+  // -> ospreys
+  'dan john@exeter': 'ospreys',
+  // -> pau
+  'santiago grondona@bristol': 'pau',
+  // -> perpignan
+  'marco riccioni@saracens': 'perpignan',
+  // -> pirates
+  'steele barker@bristol': 'pirates',
+  // -> plymouth
+  'iwan jenkins@exeter': 'plymouth',
+  // -> reds
+  'izaia perese@leicester': 'reds',
+  // -> sale
+  'alex lozowski@saracens': 'sale',
+  'christ tshiunza@exeter': 'sale',
+  'elia canakaivata@drua': 'sale',
+  'joe marchant@stade_francais': 'sale',
+  'nicky smith@leicester': 'sale',
+  'xavier roe@chiefs': 'sale',
+  // -> saracens
+  'george martin@leicester': 'saracens',
+  'tomos williams@gloucester': 'saracens',
+  // -> sharks
+  'ivan van zyl@saracens': 'sharks',
+  // -> ulster
+  'jamie benson@harlequins': 'ulster',
+  // -> vannes
+  'matias alemanno@gloucester': 'vannes',
   'fabien sanconnie': 'montauban',
 
   // ---- Northampton's published 2026/27 squad list (user's screenshot of
@@ -163,7 +277,6 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // On loan at Pau 2021-2023, back at Racing 92 since.
   'jordan joseph': 'racing92',
   // Pau 2021-2023, Stade Français since. His contract there runs to 2026.
-  'zack henry': 'stade_francais',
   // Benetton 2020-2024, Toulon since, and extended to 2028.
   'gianmarco lucchesi': 'toulon',
 
@@ -196,7 +309,6 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Left Ospreys for Leicester in 2023 and is their first-choice loosehead,
   // most minutes of any Tigers prop in the run to the final. Leicester had ONE
   // loosehead in the files because of this.
-  'nicky smith': 'leicester',
   // Sheedy and Pollard used to be relocated out of the Premiership from here.
   // The 2025/26 squad guide drops both from their old clubs, so there is nothing
   // left to relocate and a dead entry is a failure the audit rightly reports.
@@ -237,7 +349,8 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'julian montoya': 'pau',
   // Listed at Saracens by the 2025/26 guide and still at the Force in the Super
   // Rugby file, which is a season behind. The guide is the checked source.
-  'sam spink': 'saracens',
+  // (Sam Spink's Saracens pin is gone: the 2026-27 window released him, and
+  //  the Force man of the same name is pinned above.)
   // Bath's announced 2026/27 squad (official club Instagram, Aug 2026) - the
   // one club running a season ahead of the guide, at the user's request. Both
   // men keep their authored entries; the old listings (Glasgow's urc_a and
@@ -267,11 +380,36 @@ const FROM_GUIDE: Map<string, string> = new Map(
   PREM_2526.flatMap(club => club.players.map(p => [p.name.toLowerCase(), club.id] as [string, string])),
 )
 
-/** The club this player really turns out for, or null if nobody has checked. */
-export const verifiedClub = (name: string): string | null => {
+/** The club this player really turns out for, or null if nobody has checked.
+ *
+ *  `at` is the club whose file this listing sits in, and it exists because a
+ *  name is not an identity. Two different men share a name 35 times over in
+ *  this data, and a name-keyed table can only send both to one club: applying
+ *  the 2026-27 Premiership window, 'george martin' meant the Leicester lock
+ *  bound for Saracens AND an Esher winger who is going nowhere. A key of the
+ *  form `name@sourceclub` binds one LISTING rather than one name, so the lock
+ *  moves and the winger stays. The plain-name form is unchanged and still
+ *  answers when no specific listing is pinned. */
+export const verifiedClub = (name: string, at?: string): string | null => {
   const key = name.toLowerCase()
+  // this exact listing is pinned
+  if (at) {
+    const scoped = VERIFIED_CLUB[`${key}@${at}`]
+    if (typeof scoped === 'string') return scoped
+  }
+  // the name is pinned somewhere, but not here: this listing is a different
+  // man (or the same man's stale entry), and nothing may move him
+  if (SCOPED_NAMES.has(key)) return null
   if (Object.prototype.hasOwnProperty.call(VERIFIED_CLUB, key) && typeof VERIFIED_CLUB[key] === 'string') {
     return VERIFIED_CLUB[key]
   }
   return FROM_GUIDE.get(key) ?? null
 }
+
+/** Names carrying at least one `name@club` pin, computed once. The lookup runs
+ *  for every player in the world at every world build; rescanning the table
+ *  each time would be thousands of string comparisons for nothing. */
+const SCOPED_NAMES: Set<string> = new Set(
+  Object.keys(VERIFIED_CLUB).filter(k => k.includes('@')).map(k => k.slice(0, k.indexOf('@'))),
+)
+

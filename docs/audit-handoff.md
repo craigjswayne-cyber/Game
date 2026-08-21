@@ -332,6 +332,43 @@ of the trimmed news log.
   seed-pinned measurement family to move, and treat each red as its own
   diagnosis - this wave held one real engine bug among four probe
   calibration artifacts.
+- THE 2026-27 PREMIERSHIP TRANSFER WINDOW (user pasted Wikipedia's transfer
+  list and the league's captains article as screenshots - BOTH DOMAINS ARE
+  EGRESS-BLOCKED here, and WebSearch's summary of the same page merged Bath's
+  and Bristol's squads into one, so screenshots are the only trustworthy
+  route). 233 movements recorded in a ledger, then classified mechanically
+  rather than by hand: 59 relocations, 22 removals, 8 skipped, 113 arrivals
+  we never had. Ledger + plan kept at scratchpad/xfer/ (regenerate rather
+  than trust it: it is scratch).
+  - MECHANISM: VERIFIED_CLUB gained `name@sourceclub` keys. A name is not an
+    identity - 35 names in this data belong to two men - and the old
+    name-keyed table would have sent the Esher winger George Martin to
+    Saracens alongside the Leicester lock. A scoped key binds one LISTING;
+    any scoped key silences the plain-name form for that name's other
+    listings (SCOPED_NAMES, precomputed - the lookup runs per player per
+    build). dataaudit learned the key form too, including that a pin must
+    name a club the man is actually listed at.
+  - RULE THAT SAVED THE DATA: a movement only bites if the player is in the
+    squad of the club the page says he LEFT. Eight fired otherwise - Newcastle
+    releasing "Jack Grant" would have deleted a Waratahs scrum-half, "Harry
+    Wilson" leaving Saracens would have deleted the Wallabies number eight.
+  - SAME-MAN DUPLICATES MUST BE PINNED AT BOTH ENDS. Pinning only the
+    departing listing left the duplicate unmoved, and the builder's global
+    one-player-per-name dedupe then kept the WRONG copy (Chamberlain built at
+    bulls when the pin said lions). Six pairs now pinned twice.
+  - HAND-ADDED MEN ARE EXEMPT FROM RELOCATION (newgame.ts). additions.ts
+    places a man at the club that needs him; the 2025-26 guide still said
+    Northampton and silently deleted all four restored Saints men.
+  - GAP_BUDGET 30 -> 39, documented: nine clubs the page does not cover
+    genuinely lost a man (Ospreys, Blues, Dragons, Chiefs, Drua, La Rochelle,
+    Stade). Two of thirteen new gaps closed with men the list itself names
+    arriving (Vunipola to Leicester, Francis to Sale). Never invent the rest.
+  - Captains: the league's article settled three of the four open questions
+    this repo had recorded (Sale is van Rhyn not Ben Curry; Exeter's Jenkins
+    is the on-field skipper; Dombrandt confirmed), added Newcastle, and
+    confirmed GLOUCESTER IS OFFICIALLY TBC - which is why no name is pinned
+    there rather than a guess.
+  - xferprobe.ts pins all of it; 38 FAILs on 14a8b95.
 
 ## Open work, roughly in order
 

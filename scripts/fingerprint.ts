@@ -231,12 +231,20 @@ const EXPECTED: string[] = [
   // data: 53.4 -> 53.6 points a game (seed spread 1.7 wide), tries 6.28 ->
   // 6.28, home 54% -> 54%, draws 2.0% -> 1.6%. The world did not move; the
   // stream did, which is exactly what a squad-list edit should do.
-  'northampton 57-38 bristol',
-  'leicester 20-27 sale',
-  'exeter 19-3 bath',
-  'saracens 23-34 gloucester',
-  'harlequins 62-20 newcastle',
-  'sale 30-22 northampton',
+  // Rebaselined again for the 2026-27 Premiership transfer window. Same shape
+  // as the Saints rebaseline above and the same protocol: a DATA change, not a
+  // mechanical one, but 59 relocations, 22 departures and six additions change
+  // how many rng draws the world build makes, so the league draw itself sees a
+  // different stream and every fixture here moves. Balance verified PAIRED at
+  // 14a8b95 and at the window, four seeds each: 53.53 -> 53.78 points a game,
+  // tries 6.28 -> 6.30, home 53.8% -> 54.3%, draws 1.6% -> 2.0%. Every delta
+  // sits inside the seed spread. The world did not move; the stream did.
+  'bristol 38-28 sale',
+  'northampton 36-30 newcastle',
+  'gloucester 19-3 exeter',
+  'harlequins 9-14 bath',
+  'leicester 34-29 saracens',
+  'newcastle 15-57 bristol',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
