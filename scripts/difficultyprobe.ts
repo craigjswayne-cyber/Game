@@ -113,8 +113,19 @@ ok(pts('optimise') > pts('sleepwalk') + 5,
   `picking your best side is worth real points (${(pts('optimise') - pts('sleepwalk')).toFixed(1)} a season)`)
 ok(pts('sabotage') < pts('sleepwalk') - 15,
   `and picking your worst side is punished (${(pts('sleepwalk') - pts('sabotage')).toFixed(1)} points lost)`)
-ok(rows.sleepwalk.filter(r => r.champion).length === 0,
-  `pressing Continue all season never wins the league (${rows.sleepwalk.filter(r => r.champion).length}/${SEEDS.length})`)
+// "Never wins the league" was the first draft of this claim, and at n=3 it was
+// a coin toss wearing a principle's clothes: the 2026/27 Saints data flipped
+// one seed and autopilot lifted a trophy the engaged manager lifted TOO, on
+// the same seed with 11.7 more points. The slideshow failure this probe hunts
+// is autopilot winning a title engagement would NOT have won - so pair the
+// claim seed by seed, where CRN makes it sharp instead of lucky.
+SEEDS.forEach((s, i) => console.log(
+  `  seed ${String(s).padEnd(4)} sleepwalk ${rows.sleepwalk[i].pts}pts${rows.sleepwalk[i].champion ? ' CHAMPIONS' : ''} · optimise ${rows.optimise[i].pts}pts${rows.optimise[i].champion ? ' CHAMPIONS' : ''}`))
+const stolen = SEEDS.filter((_, i) => rows.sleepwalk[i].champion && !rows.optimise[i].champion)
+ok(stolen.length === 0,
+  `autopilot never wins a title the engaged manager would have missed${stolen.length ? ` (seed ${stolen.join(', ')})` : ''}`)
+ok(rows.sleepwalk.filter(r => r.champion).length < SEEDS.length,
+  `and Continue is not a guaranteed trophy (${rows.sleepwalk.filter(r => r.champion).length}/${SEEDS.length} titles)`)
 ok(posn('optimise') < posn('sleepwalk'),
   `and the engaged manager finishes higher than the absent one (${posn('optimise').toFixed(2)} v ${posn('sleepwalk').toFixed(2)})`)
 

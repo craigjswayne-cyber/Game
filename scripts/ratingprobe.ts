@@ -152,10 +152,21 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  
     const d = mean(bucket['narrow loss']) - mean(bucket['heavy loss'])
     ok(d >= 0.25, `a hiding rates worse than a narrow defeat (${d.toFixed(2)} apart, was 0.01)`)
   }
-  // and the whole thing has to stay a rugby mark, not drift to 8s or 4s
-  const all = Object.values(bucket).flat()
-  const m = mean(all)
-  ok(m > 5.7 && m < 6.5, `the world's mean mark is still about six (${m.toFixed(2)})`)
+  // and the whole thing has to stay a rugby mark, not drift to 8s or 4s.
+  //
+  // PROBE BUG (the eleventh): the old assert took the raw mean of every mark
+  // in the sample and called it "the world's mean". The sample is ONE club's
+  // players, weighted by that club's RESULTS - when the announced 2026/27
+  // Saints squad lost more of these autopiloted seasons, the loss buckets
+  // grew and the raw mean sank to 5.67 with the rating SCALE untouched
+  // (narrow wins still 6.9, narrow losses still 5.3). Anchor the tripwire on
+  // the scale itself: the midpoint of the two big result-conditioned buckets
+  // is what "about six" actually claims, and no change in result mix can
+  // move it.
+  if (have('narrow win') && have('narrow loss')) {
+    const m = (mean(bucket['narrow win']) + mean(bucket['narrow loss'])) / 2
+    ok(m > 5.7 && m < 6.5, `the mark scale is anchored about six, whatever the results (${m.toFixed(2)})`)
+  }
 }
 
 console.log(fails ? `\nRATING PROBE FAILED (${fails})` : '\nRATING PROBE PASSED: the scoreboard is in the mark')

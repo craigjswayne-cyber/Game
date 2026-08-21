@@ -53,6 +53,32 @@ export const ACADEMY_PROSPECTS: Record<string, Prospect[]> = {
     // ACAD_SHAPE asks for two N8s, so this one sits alongside Fitchew rather
     // than taking his place
     { name: 'Duncan Swayne', pos: 'N8', age: 18, q: 52 },
+    // The Senior Academy from the club's own published 2026/27 squad list
+    // (user's screenshot of the official announcement, round 27). Positions
+    // are fitted to the shirts ACAD_SHAPE has open - both N8 shirts belong
+    // to the two names above. Aidan Pugh is the one list name not here: the
+    // shape holds two scrum-halves and the list carries three, so he takes
+    // the third senior 9 shirt instead. Quality sits at the top of the
+    // academy band - these are the names the club printed, not hidden finds.
+    { name: 'Noah Buxton', pos: 'LP', age: 19, q: 50 },
+    { name: 'Oliver Scola', pos: 'LP', age: 18, q: 49 },
+    { name: 'Aiden Reid', pos: 'TP', age: 19, q: 50 },
+    { name: 'Sonny Tonga\'uiha', pos: 'TP', age: 18, q: 50 },
+    // an England age-grade name with a real ceiling: the honest claim is
+    // potential, not a finished article
+    { name: 'Aiden Ainsworth-Cave', pos: 'LK', age: 19, q: 53, pa: 80 },
+    { name: 'George Tonga\'uiha', pos: 'LK', age: 18, q: 49 },
+    { name: 'Jack Lewis', pos: 'FL', age: 19, q: 49 },
+    { name: 'Alex Mead', pos: 'FL', age: 18, q: 49 },
+    { name: 'Charlie Ulcoq', pos: 'FL', age: 19, q: 50 },
+    { name: 'Sonny Goode', pos: 'SH', age: 18, q: 50 },
+    { name: 'Jonny Weimann', pos: 'SH', age: 19, q: 49 },
+    { name: 'Hugh Shields', pos: 'FH', age: 19, q: 51, gk: true },
+    { name: 'Henry Lumley', pos: 'CE', age: 19, q: 50 },
+    { name: 'Freddie St John', pos: 'CE', age: 18, q: 49 },
+    { name: 'James Pater', pos: 'WG', age: 19, q: 49 },
+    { name: 'Charlie Tamani', pos: 'WG', age: 18, q: 50 },
+    { name: 'Thomas Rowe', pos: 'FB', age: 19, q: 50 },
   ],
   saracens: [
     { name: 'Will Roberts', pos: 'SH', age: 18, q: 51 },

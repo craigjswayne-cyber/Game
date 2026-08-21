@@ -272,6 +272,66 @@ of the trimmed news log.
   the letter of the rule with 11 of 12 still top-flight kids - assert
   list COMPOSITION, not just member legality). loanstep.ts pins it,
   4 FAILs on 19e62d0 via the namespace-fallback trick.
+- NORTHAMPTON 2026/27 (user supplied the club's own squad-announcement
+  screenshots): prem_b rewritten to the published list - nine out (West,
+  Millar Mills, Atuanya, Scott-Young, Graham, Brown, James, Furbank,
+  Ramm), new seniors authored (Zigiriadis, Alexander, Bennett, Taylor,
+  Pugh, Faissal, Todaro), Hendy moved to FB as the resident 15. Neculai
+  (ex-Zebre) and Els (ex-Quins) arrive via VERIFIED_CLUB relocation, not
+  second entries. The 18 Senior Academy names went to ACADEMY_PROSPECTS
+  (17 fitted to ACAD_SHAPE's open shirts; Pugh takes the third senior 9
+  because the shape holds only two SHs). TRAPS HIT, for next time: (1)
+  deleting an authored man whose name is in the PREM_2526 guide lets
+  FROM_GUIDE drag a NAMESAKE in by name alone - Cardiff's Atuanya and the
+  Pirates' Tom James both landed at Saints until hand-table entries
+  pinned each to his own club; (2) relocating a player OUT opens a
+  real-cover gap at his old club and trips dataaudit's ratchet (31>30) -
+  Zebre needed a real backfill (Matteo Nocera, additions.ts) not a
+  ratchet bump. saintscheck.ts pins the announcement (37 FAILs on
+  9dde811); dataaudit PASSED after the backfill.
+- THE DATA CHANGE'S RED WAVE, five probes, each a different lesson:
+  - round25b (terrace pulse repeated at seed 2, weeks 41+42): A REAL
+    ENGINE BUG - and a lesson in paying the instrumentation debt. First
+    diagnosis (news-scan cooldown vs NEWS_KEEP trim - the fourth
+    news-scanning gate) was true but NOT the firing mechanism: the
+    stamp fix alone left seed 2 red. pulsedebug instrumentation showed
+    week 42 was a BLANK week - no match, form guide frozen at LWWW, so
+    "fresh" (run-just-became-three) stayed true and the fresh path
+    BYPASSED the cooldown entirely, re-announcing the same third win.
+    Both fixed in gossip.ts: state.pulseAt stamps (subject ->
+    season*100+week) and the cooldown now holds BOTH doors - a genuine
+    new streak needs 4+ match-weeks between same-subject pulses, so
+    nothing legitimate is lost and fresh only picks the voice. The rng
+    draw stays where it was; the stream is untouched.
+  - ratingprobe: PROBE BUG #11 - "the world's mean mark" was one club's
+    marks weighted by that club's RESULTS; the new Saints squad lost
+    more autopiloted seasons, the loss buckets grew, and the raw mean
+    sank with the rating scale untouched. The tripwire now anchors on
+    the midpoint of the narrow-win and narrow-loss bucket means, which
+    no result mix can move.
+  - difficultyprobe: "sleepwalk NEVER wins the league" at n=3 was a coin
+    toss wearing a principle's clothes - the flipped seed's title was
+    won by the optimiser too. The claim is now paired per seed:
+    autopilot must never win a title the engaged manager MISSED, and
+    Continue must not be a guaranteed trophy.
+  - dialweight's referee conditional: the observational buckets held
+    different MATCHES (SE +/- 1.7 against a sub-point slope). Now a
+    controlled experiment: refFor hashes the fixture id, so the same
+    snapshot re-simmed under a swapped id changes only the whistle, and
+    the same rng seed gives CRN across the referee - one paired
+    lenient-minus-fussy swing per fixture, noise cancelled in the pair.
+  - fingerprint: legitimate rebaseline (the data change moves the world
+    build stream), done per its own protocol - four-seed balance
+    verification BEFORE updating EXPECTED, in the same commit, run
+    PAIRED (same script at 9dde811 and at the new data): 53.4 -> 53.6
+    pts/game against a seed spread 1.7 wide, tries 6.28 -> 6.28.
+  - dialweight's controlled referee experiment then showed the real
+    slope: +4.23 +/- 1.96 a match paired - the observational buckets
+    had a genuinely large effect buried, not a marginal one.
+  META-LESSON: a data edit is an engine-visible change; expect the
+  seed-pinned measurement family to move, and treat each red as its own
+  diagnosis - this wave held one real engine bug among four probe
+  calibration artifacts.
 
 ## Open work, roughly in order
 

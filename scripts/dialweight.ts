@@ -71,7 +71,8 @@ const se = (a: number[]) => {
 
 interface ClubSweep {
   diffs: Record<Dial, number[]>
-  aggByRef: { lenient: number[]; fussy: number[] }
+  /** paired lenient-minus-fussy aggression swings, referee controlled by id */
+  aggRefPairs: number[]
   zeros: Record<Dial, number>
 }
 
@@ -79,7 +80,7 @@ interface ClubSweep {
 function sweep(clubId: string): ClubSweep {
   const out: ClubSweep = {
     diffs: Object.fromEntries(DIALS.map(d => [d, []])) as Record<Dial, number[]>,
-    aggByRef: { lenient: [], fussy: [] },
+    aggRefPairs: [],
     zeros: Object.fromEntries(DIALS.map(d => [d, 0])) as Record<Dial, number>,
   }
   for (const seed of SEEDS) {
@@ -115,10 +116,37 @@ function sweep(clubId: string): ClubSweep {
           const d = marginAt(dial, 90) - marginAt(dial, 10)
           out.diffs[dial].push(d)
           if (d === 0) out.zeros[dial]++
-          if (dial === 'aggression') {
-            const rp = 2 - refFor(fx.id).breakdown
-            if (rp < 0.98) out.aggByRef.lenient.push(d)
-            else if (rp > 1.02) out.aggByRef.fussy.push(d)
+        }
+        // THE REFEREE READ, CONTROLLED. The first version bucketed the
+        // observational pairs above by the fixture's own whistle - different
+        // MATCHES in each bucket, so between-match variance (+/- 1.7 a mean)
+        // buried a slope worth well under a point, and the assert passed or
+        // failed on which afternoons the calendar happened to deal. refFor is
+        // a hash of the fixture id, so the same snapshot re-simmed under a
+        // swapped id changes the referee and nothing else, and the same rng
+        // seed makes it common random numbers across the whistle too: each
+        // fixture yields ONE paired lenient-minus-fussy swing, and the noise
+        // that buried the slope cancels inside the pair.
+        if (out.aggRefPairs.length < 60) {
+          const dUnder = (fid: number, v: number): number => {
+            const c: GameState = structuredClone(g)
+            ;(c.clubs[c.userClubId].tactic as unknown as Record<string, number>)['aggression'] = v
+            const f = c.fixtures.find(x => x.id === fx.id)!
+            f.id = fid
+            simMatch(c, f, mulberry32(((fx.id * 6 + DIALS.indexOf('aggression')) * 2654435761) >>> 0), false)
+            return (f.homeId === c.userClubId ? 1 : -1) * (f.homeScore - f.awayScore)
+          }
+          let idL = -1, idF = -1
+          for (let k = 1; k < 400 && (idL < 0 || idF < 0); k++) {
+            const cand = 500_000 + fx.id * 199 + k
+            const rp = 2 - refFor(cand).breakdown
+            if (rp < 0.98 && idL < 0) idL = cand
+            else if (rp > 1.02 && idF < 0) idF = cand
+          }
+          if (idL >= 0 && idF >= 0) {
+            const dL = dUnder(idL, 90) - dUnder(idL, 10)
+            const dF = dUnder(idF, 90) - dUnder(idF, 10)
+            out.aggRefPairs.push(dL - dF)
           }
         }
       }
@@ -198,16 +226,12 @@ for (const dial of DIALS) {
 // going to have (refFor is deterministic on fixture id). The slope is the
 // engine feature; where the split sits against zero is printed for the record.
 {
-  const both = {
-    lenient: [...at.northampton.aggByRef.lenient, ...at[packClub.id].aggByRef.lenient],
-    fussy: [...at.northampton.aggByRef.fussy, ...at[packClub.id].aggByRef.fussy],
-  }
-  const gL = mean(both.lenient)
-  const gF = mean(both.fussy)
-  console.log(`\n  aggression by referee (paired, both clubs): lenient ${(gL >= 0 ? '+' : '') + gL.toFixed(2)} +/- ${se(both.lenient).toFixed(2)} (n=${both.lenient.length}), fussy ${(gF >= 0 ? '+' : '') + gF.toFixed(2)} +/- ${se(both.fussy).toFixed(2)} (n=${both.fussy.length})`)
-  console.log(`  the read is worth ${(gL - gF).toFixed(2)} a match to get right; ${gL > 0 && gF < 0 ? 'STRADDLES zero' : 'does not straddle zero at this sample'}`)
-  ok(gL > gF,
-    `going physical costs less in front of a lenient referee than a fussy one (${(gL >= 0 ? '+' : '') + gL.toFixed(2)} v ${(gF >= 0 ? '+' : '') + gF.toFixed(2)})`)
+  const pairs = [...at.northampton.aggRefPairs, ...at[packClub.id].aggRefPairs]
+  const m = mean(pairs)
+  console.log(`\n  aggression by referee, controlled: same snapshot, same rng, the whistle swapped by fixture id`)
+  console.log(`  paired lenient-minus-fussy swing: ${(m >= 0 ? '+' : '') + m.toFixed(2)} +/- ${se(pairs).toFixed(2)} a match (n=${pairs.length})`)
+  ok(m > 0,
+    `going physical costs less in front of a lenient referee than a fussy one (paired ${(m >= 0 ? '+' : '') + m.toFixed(2)} a match)`)
 }
 
 console.log(fails ? `\n${fails} FAILURES` : '\nDIAL WEIGHT PASSED: every dial earns its place at two squad shapes, measured with the world held still')

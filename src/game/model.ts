@@ -1104,6 +1104,9 @@ export interface GameState {
   /** absolute week the national-coach window question last ran, so the room
    *  raises your Test squad once per window, not every Friday of it */
   natCoachAskAt?: number
+  /** season*100+week each terrace-pulse subject last fired - a stamp, not a
+   *  news scan, because the trimmed log forgets its own cooldown evidence */
+  pulseAt?: Record<string, number>
   /** absolute week the availability counter last ticked (see settleGameTime),
    *  so a double-called settle cannot count one match twice */
   availWeek?: number
