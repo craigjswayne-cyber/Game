@@ -548,6 +548,63 @@ why: renaming it orphans every existing save). scripts/brandprobe.mjs pins
 tab title, wordmark, manifest and version to the rendered page. The release
 is tagged v1.0.1 on main.
 
+## The spine waves (design review waves 1+2) and the chaos sweep
+
+Three waves shipped together, all from the PHASE Playbook design review:
+
+**The Dream (dream.ts).** A career ambition chosen on the wizard's summary
+step (default = first applicable, so Start Career is never gated and the 37
+browser probes that walk the wizard still pass). Seven dreams, offered by
+club context (a Championship side gets "reach the top flight", a top-flight
+side gets the league-and-Europe double). Progress is COMPUTED, never stored
+- dreamState is a pure lens (probe-asserted byte-identical save) - and the
+engine never reads it, so the fingerprint cannot move. Wired: Home card,
+Legacy card, season-review verdict (stamped in rollover.ts AFTER
+finishes/trophies land, NOT where state.review is built - snapshot it there
+and a title season reports no progress). New save fields: state.dream,
+trophies[].clubId, finishes[].clubId, Player.homegrown (set at both academy
+promotion paths). scripts/dreamprobe.ts; module-not-found red on 39723ba.
+
+**Stakes billing + season calendar (stakes.ts).** matchStakes(state, fx):
+ONE line naming the loudest true thing about the user's next fixture
+(weighted candidates; finals > boardroom crisis > relegation > summit >
+milestones > grudges > runs), null when nothing is honestly interesting.
+Trap paid for: week one's 0-0 table made "win and you go top" true for
+everyone - all table-based stakes gate on played >= 4 (same class as the
+objectives week-1 bug). seasonTentpoles: derbies/finals/deadlines/intake as
+dated landmarks, one per week. Wired: Home next-match card + Season Ahead
+strip, MatchDay tunnel card. Pure lenses, probe-asserted.
+scripts/billprobe.ts.
+
+**Board patience scales with stature (model.ts boardPatience).** 0.55x (rep
+38) to 2.05x (rep 93), linear, same anchors as oppcoach's new
+archetypeWeights (elite dugouts are mostly analyst/reactive, minnows mostly
+stubborn - the difficulty curve emerges from the fiction). Applied to
+boardReaction's per-match swing, the week-24 half-term target (now measured
+from boardObjective's expected finish, not raw position - a giant 5th of 10
+is a crisis, a minnow 5th of 10 is a triumph), and the season-end
+reconciliation. Measured (difficultyprobe extension, 6 seeds): Bath
+sleepwalk mean min-confidence 16.3 with 2/6 sacked in-season; Bath optimise
+61.2 with 0/6; Esher sleepwalk 60.2 with 0/6 and never below 55. The old
+tree reds all four differential claims. Fingerprint UNMOVED (boardReaction
+runs post-sim; newGame confidence untouched).
+
+**The chaos sweep (chaosprobe.ts + chaosui.mjs).** A requested QA/pentest
+pass: 0/1/14-man rosters, fifteen backs in the pack, empty and all-injured
+benches, position wipeouts, all-zero morale/cond/confidence, sack-speed
+run + 15 post-sack weeks, -10m balances, NaN/Infinity/maxint into every
+money desk, zero-wage 99-year contracts, all failure triggers on one week,
+1-rated squads, 40 aggression-100 matches, ghost player ids, release-to-
+budget hammered x1000. ONE real hole found and fixed: respondToOffer had no
+squad floor - there is no release button, so accepting every incoming bid
+could legally drain the squad to a ghost XV that kept playing real fixtures
+(measured: 0-man Northampton "lost" 8-43). The board now vetoes any sale
+leaving < 18 seniors (ai.ts), with the veto asserted green and red-demoed
+(sale went straight through on the old tree). Everything else already held,
+thanks to earlier waves: realMoney guards, sheet healing, the sack floor,
+the blowout ceiling, fmtMoney's billions tier. Browser leg: -10m ledger,
+18-man squad and a 150-6 scoreline all render without horizontal overflow.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

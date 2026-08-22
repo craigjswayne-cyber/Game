@@ -561,6 +561,21 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   const bidder = state.clubs[o.fromClubId]
   if (!p || !bidder) { o.status = 'rejected'; return 'Offer withdrawn.' }
   if (accept) {
+    // THE BOARD'S SQUAD FLOOR (chaos sweep finding). There is no release
+    // button in this game, so accepting incoming bids is the one lever that
+    // can drain a squad - and it had no floor at all: accept everything and
+    // the club plays out its fixtures as a ghost XV of nulls, losing 43-8 to
+    // sides that technically faced nobody. Selling half your squad is a legal,
+    // stupid choice and stays one; selling past the point where a season can
+    // physically be fulfilled is where a real board steps in. Eighteen
+    // seniors is the floor: a full matchday 23 minus the five men a normal
+    // week has in the physio room, i.e. still barely a club.
+    const seniors = (state.clubs[state.userClubId]?.players ?? [])
+      .map(id => state.players[id]).filter(x => x && !x.acad).length
+    if (p.clubId === state.userClubId && !p.acad && seniors - 1 < 18) {
+      o.status = 'rejected'
+      return `The board vetoes the sale. ${seniors - 1} senior players cannot fulfil a fixture list, and they will not let the club become the league's ghost ship - build the squad back up before selling again.`
+    }
     o.status = 'accepted'
     executeTransfer(state, p, bidder.id, o.fee)
     return `${p.name} sold to ${bidder.name} for ${fmtMoney(o.fee)}.`
