@@ -2,6 +2,7 @@ import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
+import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
@@ -1243,6 +1244,20 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
         })
       }
     }
+  }
+  // the era's record book: marks to beat (records.ts, wave 5)
+  if (fx.compId !== 'fr') {
+    const foe = fx.homeId === state.userClubId ? fx.awayId : fx.homeId
+    const mark = offerResult(state, foe, us, them)
+    if (mark) {
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: `📕 A record under you: ${us}-${them}`,
+        body: `${mark} It goes in the book, where the next side to visit can read it.`,
+        fixtureId: fx.id,
+      })
+    }
+    offerRun(state, unbeatenRun(state, state.userClubId))
   }
   // the spotlight follows an unbeaten run (16C)
   if (fx.compId !== 'fr') runSpotlight(state, fx, us, them)

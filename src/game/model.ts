@@ -1255,6 +1255,18 @@ export interface GameState {
    *  manager does not: Continue refuses and the Legacy screen shows the
    *  verdict instead of the horizon. */
   retired?: { season: number; age: number; forced: boolean; grade: string; score: number }
+  /** The record book of THIS MANAGER'S ERA (records.ts): marks he set and can
+   *  be asked to beat. Named `era` rather than `records` because that name is
+   *  already taken above by the per-league season records, and two things
+   *  called records on one object is how somebody writes to the wrong one.
+   *  Stored rather than computed because a season's fixtures are wiped every
+   *  summer, so the biggest win of an era is not recoverable after the fact. */
+  era?: {
+    biggestWin?: { oppId: string; us: number; them: number; season: number }
+    worstLoss?: { oppId: string; us: number; them: number; season: number }
+    longestUnbeaten?: { n: number; season: number }
+    recordSigning?: { playerId: number; fee: number; season: number }
+  }
   /** The season's talisman hunt (living.ts): one rival circling one of your
    *  players, in stages, so losing him is the end of a story you watched
    *  rather than an alert that arrived. One per season; cleared when the

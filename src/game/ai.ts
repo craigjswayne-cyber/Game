@@ -1,5 +1,6 @@
 import type { GameState, Player } from './model'
 import { clubIntent } from './living'
+import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
 import { playerValue, playerWage } from './attributes'
@@ -205,6 +206,8 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   if (toClubId === state.userClubId) {
     state.mgr.signings += 1
     state.mgr.spent += fee
+    // and the biggest cheque of the era goes in the book (records.ts)
+    offerSigning(state, p.id, fee)
     p.sc = 100
   }
   p.wage = Math.max(p.wage, playerWage(p.ca, p.age))
