@@ -132,7 +132,13 @@ export default function Medical() {
         <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{p.bans} match{p.bans > 1 ? 'es' : ''}</span>
       ))}
 
-      {section('Running on Fumes', 'condition under 62% - consider resting', tired, p => (
+      {/* The figure is honest for a STARTER and overstates the problem for a
+          replacement: benchTank() floors every man who comes off the bench at
+          60% however tired the training ground says he is, because he has spent
+          the hour sitting down (matchEngine.ts). Saying "consider resting" flat
+          out told half a squad something untrue, so the line now names who it
+          is actually talking to. */}
+      {section('Running on Fumes', 'condition under 62% - it costs a starter; off the bench he still comes on at 60%', tired, p => (
         <span style={{ fontWeight: 700, fontSize: 12 }}>{Math.round(p.cond)}%</span>
       ))}
 

@@ -1247,7 +1247,15 @@ export interface GameState {
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
-  agency?: { seniors: number[]; kids: number[]; best: Record<number, number> }
+  agency?: {
+    seniors: number[]; kids: number[]; best: Record<number, number>
+    /** when this snapshot published. The tables render CURRENT standings every
+     *  week while the snapshot only moves every four, so without a stamp the
+     *  movement arrows are measured against a list the player never saw and the
+     *  screen cannot say which two things it is comparing (user: "world
+     *  rankings are out of sync"). */
+    at?: { season: number; week: number }
+  }
   /** shortlist players already alerted about this season */
   slAlerted?: number[]
   /** absolute week (season*100+week) the cotton-wool pick was last used */
