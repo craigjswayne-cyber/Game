@@ -115,34 +115,56 @@
 /* ============ Floodlit mode (night theme) ============ */
 .app.night {
   /* night is committed dark, so say so outright: this is what stops the browser
-     second-guessing the palette and washing the navy out to grey */
+     second-guessing the palette and washing the charcoal out to grey */
   color-scheme: dark;
   /* white under the floodlights, at the user's request */
-  --stripe: #f4f7fc;
-  /* the night surfaces carried almost no chroma either: a navy this dark reads as
-     black, so the cards, the page and the hairlines were all grey. More blue in
-     the same lightness band keeps the mood and gives the gold something to sit
-     against. */
-  --cream: #08142c;
-  --cream-2: #0e1e3d;
-  --cream-3: #1d3358;
-  --paper: #112544;
-  --ink: #e8edf5;
-  --ink-soft: #adb9ca;
-  --ink-faint: #7c8aa0;
-  --hairline: rgba(232, 237, 245, 0.09);
-  --accent-ink: #9fc2e8;
-  --title-ink: #eef3fb;
-  --star-empty: #46618a;
-  --ink-good: #5fc98a;
+  --stripe: #f4f6f4;
+  /* THE CHARCOAL-AND-GREEN PASS (user: "bring the game colours up to the
+     level"). Night used to be navy with gold accents; it is now a warm
+     charcoal with one green, and the green is RATIONED: actions, selected
+     states, ratings, form, positive numbers. Everything structural - pages,
+     cards, borders, chrome - is charcoal, which is what makes the green land
+     when it appears. The eight anchor values are the user's own:
+     bg #181a19, cards #222624, active #42b94f, pressed #247a32,
+     headings #f4f6f4, body #9ba29d, borders #3a403c. */
+  --cream: #181a19;
+  --cream-2: #1e2220;
+  --cream-3: #2e3430;
+  --paper: #222624;
+  --ink: #e7ebe8;
+  --ink-soft: #9ba29d;
+  --ink-faint: #7d837e;
+  --hairline: #3a403c;
+  --accent-ink: #8fd39a;
+  --title-ink: #f4f6f4;
+  /* the ghost stars: #414843 scored 1.6:1 on the striped table rows - the
+     exact trap this token's day-side comment documents - so the night value
+     sits two steps lighter than the borders it shares a hue with */
+  --star-empty: #5c645e;
+  --ink-good: #5ecf69;
   --ink-bad: #ff7a6b;
-  /* --gold-dark doubles as a night hairline (tab bar, table headings). Full gold
-     rules across every table would be a lot, so night gets a deep warm instead. */
-  --gold-dark: #5c4718;
+  --win: #42b94f;
+  /* The night chrome ramp: the --brand-* family carries masthead, nav and
+     button surfaces, so remapping it here is what turns the whole chassis
+     charcoal without touching a single component rule. */
+  --brand-950: #101211;
+  --brand-900: #181a19;
+  --brand-800: #222624;
+  --brand-700: #2b302d;
+  --brand-600: #353b37;
+  --brand-100: #d9e0da;
+  /* The accent family keeps its name (the token behind every active state,
+     meter and key number) and takes the green: bright for text on charcoal,
+     the user's #247a32 for pressed/secondary and the quiet rules the deep
+     gold used to draw (tab bar, table headings). */
+  --gold: #42b94f;
+  --gold-bright: #66d773;
+  --gold-dark: #247a32;
+  --gold-deep: #1b5a25;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
   --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
   background:
-    radial-gradient(130% 50% at 50% -8%, rgba(122, 168, 226, .08), transparent 60%),
+    radial-gradient(130% 50% at 50% -8%, rgba(96, 200, 116, .05), transparent 60%),
     var(--cream);
 }
 .app.night .section-title { color: var(--title-ink); }
@@ -150,7 +172,7 @@
 .app.night .tab-bar button.active { color: var(--gold-bright); }
 .app.night .tab-bar { border-bottom-color: var(--gold-dark); }
 .app.night .dtable th { border-bottom-color: var(--gold-dark); color: var(--ink-faint); }
-.app.night .btn.ghost { color: var(--ink); border-color: rgba(236, 231, 216, .3); }
+.app.night .btn.ghost { color: var(--ink); border-color: rgba(214, 221, 215, .3); }
 .app.night .slider-row .lbls b { color: var(--gold-bright); }
 .app.night .th-sort.active { color: var(--gold-bright); }
 .app.night .tick-event.big .txt { color: var(--title-ink); }
@@ -162,20 +184,20 @@
 .app.night .masthead {
   background:
     radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 38%, transparent), transparent 55%),
-    linear-gradient(168deg, #0c1a33 0%, #081226 70%, #050b19 100%);
+    linear-gradient(168deg, #1d211f 0%, #151816 70%, #0e100f 100%);
 }
-.app.night .bottom-nav { background: linear-gradient(180deg, #081226, #050b19); }
+.app.night .bottom-nav { background: linear-gradient(180deg, #151816, #0e100f); }
 .app.night .pitch {
   background:
     linear-gradient(180deg, rgba(140, 190, 255, .10), rgba(0, 0, 15, .3)),
     repeating-linear-gradient(90deg, #1d4a35 0 40px, #1a4330 40px 80px);
   border-color: rgba(0, 0, 0, .5);
-  box-shadow: inset 0 2px 18px rgba(0, 0, 10, .55), 0 0 24px rgba(160, 200, 255, .07);
+  box-shadow: inset 0 2px 18px rgba(0, 0, 5, .55), 0 0 24px rgba(120, 220, 140, .06);
 }
 .app.night .scoreboard {
   background:
     radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 34%, transparent), transparent 60%),
-    linear-gradient(172deg, #0a1730, #050b19);
+    linear-gradient(172deg, #191d1b, #0e100f);
 }
 .app.night .chip { background: var(--paper); }
 .app.night .modal-veil { background: rgba(0, 0, 0, .65); }
@@ -185,7 +207,30 @@
 .app.night .btn:not(.gold):not(.ghost),
 .app.night .scoreboard,
 .app.night .pos-badge,
-.app.night .title-screen { color: #e8edf5; }
+.app.night .title-screen { color: #edf1ee; }
+/* THE HERO GRADIENT (#247a32 to #42b94f), and it is rationed harder than the
+   green itself: exactly the elements that ARE the primary action. Continue is
+   the button the whole game runs through, and .btn.gold is the primary variant
+   (Best XV, confirmations). Everything else stays charcoal - a gradient on
+   every card is a gradient on none of them. Dark ink on the green: white sits
+   at 2.5:1 on #42b94f, the near-black reads at 7:1 there and 3.4:1 on the
+   deep end, which clears the large-bold-text bar for a 16px/700 label. */
+.app.night .continue-btn {
+  background: linear-gradient(180deg, #42b94f, #247a32);
+  color: #06130b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 2px 6px rgba(0, 0, 0, .4);
+}
+.app.night .continue-btn:active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 1px 2px rgba(0, 0, 0, .35); }
+.app.night .btn.gold {
+  background: linear-gradient(180deg, #42b94f, #2c8f3c);
+  color: #06130b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), var(--shadow-1);
+}
+.app.night .title-screen {
+  background:
+    radial-gradient(120% 90% at 50% -20%, rgba(66, 185, 79, .14), transparent 60%),
+    linear-gradient(180deg, #1c201e 0%, #101211 100%);
+}
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -1209,7 +1254,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-weight: 800; font-size: 21px; letter-spacing: 3px;
   color: var(--title-ink, #082b20);
 }
-.app.night .wire-brand { color: #ece7d8; }
+.app.night .wire-brand { color: #e5eae6; }
 .wire-sub {
   font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
   color: var(--ink-faint);
@@ -1515,7 +1560,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: linear-gradient(180deg, #9ec7e8, #b7d6ee);
   box-shadow: var(--shadow-1);
 }
-.app.night .dt-board { background: linear-gradient(180deg, #123048, #0d2436); }
+.app.night .dt-board { background: linear-gradient(180deg, #262b28, #1a1d1b); }
 .dt-head {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 14px 10px 10px;
@@ -2352,7 +2397,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .sh-nrg.amber { color: #c9a227; }
 .sh-nrg.red { color: #e05a4d; font-weight: 700; }
 .sheet-log { margin-top: 4px; }
-.app.night .sheet-row { background: #101c30; border-color: #26374f; }
+.app.night .sheet-row { background: #1a1d1b; border-color: #3a403c; }
 
 /* ---- the tactics pitch was the wrong way round (feedback 9-5) ----------
    A vertical half-pitch, 430px tall, on a phone whose content area is about
@@ -2597,7 +2642,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: block; height: 100%; border-radius: 2px;
   background: linear-gradient(90deg, var(--pick), color-mix(in srgb, var(--pick) 55%, #2f7d4f));
 }
-.app.night .rt-bar { background: #26374f; }
+.app.night .rt-bar { background: #343a36; }
 /* the chosen exit strategy and penalty instruction have to look chosen */
 .preset-chip.on {
   background: var(--pick); color: var(--pick-ink); font-weight: 800;
@@ -3061,7 +3106,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      the empty part of the bar invisible, so the theme has to say it outright */
   background: var(--cream-3); border-radius: 6px; overflow: hidden;
 }
-.app.night .cap-bar { background: #26374f; }
+.app.night .cap-bar { background: #343a36; }
 .cap-fill { height: 100%; background: var(--brand-600, #1d7a4c); transition: width .25s ease; }
 .cap-fill.tight { background: #b8901c; }
 .cap-fill.over { background: #a12f2f; }

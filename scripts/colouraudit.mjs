@@ -162,7 +162,16 @@ try {
   // being fixed, so hold the floor: content chroma may rise, and it may not
   // fall. Rebaseline deliberately, in the same commit as the palette change,
   // with a note saying why.
-  const FLOOR = 0.112 // measured 0.119 with the navigation repaired
+  // Rebaselined for the charcoal-and-green pass, deliberately and in the same
+  // commit, exactly as the paragraph above demands. The user specified the
+  // palette ("let the charcoal dominate, with green reserved for actions,
+  // selected states, ratings, form indicators, positive performance and key
+  // numbers"), so the AVERAGE chroma falling is the instruction working - the
+  // proof the green did not drift away with it is in the per-screen rows:
+  // squad 26% vivid and tactics 30% vivid, the two screens where ratings and
+  // form live. Measured 0.098 content chroma on the new palette; the floor
+  // holds just under it so the next accidental step toward grey still trips.
+  const FLOOR = 0.093 // measured 0.098 on the charcoal-and-green palette
   if (an && am / an < FLOOR) {
     console.error(`FAIL: content chroma ${(am / an).toFixed(3)} is below the ${FLOOR} floor - the palette has drifted back toward grey`)
     process.exitCode = 1
