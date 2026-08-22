@@ -1,0 +1,163 @@
+/* ==================================================================
+   FAB RUGBY - the colour system. ONE file, TWO modes, and every hex
+   in the game lives here or does not exist.
+
+   The rules this file enforces (from the design brief, and the probe
+   scripts/paletteqa.mjs holds the game to them):
+     1. No hex outside this file. Components read semantic tokens only.
+     2. Tokens are named by ROLE, never by colour. Mode switching is a
+        single variable swap at the root scope below.
+     3. Green means positive or actionable. Gold means value or
+        attention. Red means loss or risk. Nothing else gets colour.
+     4. Key numbers render in --text-primary. Green appears only on
+        the delta beside a number, never on the number itself.
+     5. Elevation is surface lightness (surface-1 -> 2 -> 3), never
+        shadow.
+     6. Text contrast: 4.5:1 under 18px, 3:1 at 18px and above. The
+        audit table for every promised pair lives in
+        docs/contrast-audit.md and the pairs are asserted by probe.
+
+   NIGHT IS THE DEFAULT. Day is the override class. During migration
+   the night block is scoped to both :root and .app.night so the
+   existing floodlight toggle keeps working until the store flips to
+   adding .day instead; the day block answers to either spelling.
+   ================================================================== */
+
+/* ---------------- night (default) ---------------- */
+:root,
+.app.night {
+  color-scheme: dark;
+
+  /* surfaces: the five-step neutral ramp IS the elevation system */
+  --canvas: #1a201e;
+  --surface-1: #242b29;
+  --surface-2: #2e3634;
+  --surface-3: #384240;
+  --border: #333c3a;
+  --border-strong: #4a5553;
+
+  /* text: chalk, three weights, and NEVER faded with opacity */
+  --text-primary: #f0f4f2;
+  --text-secondary: #b3bdb9;
+  --text-muted: #8b958f;
+
+  /* the action green */
+  --primary: #34c06f;
+  --primary-hover: #4ed88c;
+  --primary-pressed: #1e8c4e;
+  --primary-tint: #17332a;
+  --on-primary: #0b1310;
+
+  /* the value gold. --gold is the TEXT form; --gold-fill is the chip/
+     surface form with dark text on it. Night's brief gave one gold, so
+     fill = text there (it is light enough to be a surface); day splits
+     them because #e9be68 text on white is unreadable. Components use
+     --gold for glyphs and figures, --gold-fill behind a badge. */
+  --gold: #e9be68;
+  --gold-fill: #e9be68;
+  --gold-tint: #322914;
+  --on-gold: #1f1708;
+
+  /* loss and risk */
+  --danger: #ef6c63;
+  --danger-tint: #3a1f1d;
+
+  /* informational - comparison screens, analyst notes, links. Info vs
+     gold encodes player A vs player B so primary never encodes identity. */
+  --info: #5aa9e6;
+
+  /* the hero gradient: club header and matchday hero ONLY. Never behind
+     body text or a data table. */
+  --hero-gradient: linear-gradient(135deg, #16523a, #1e8c4e);
+}
+
+/* ---------------- day ---------------- */
+.app.day,
+.app:not(.night) {
+  color-scheme: light;
+
+  --canvas: #f1f4f1;
+  --surface-1: #ffffff;
+  --surface-2: #e8ede9;
+  --surface-3: #ffffff;
+  --border: #dce3de;
+  --border-strong: #bcc7c1;
+
+  --text-primary: #14201b;
+  --text-secondary: #4e5a55;
+  --text-muted: #6b7671;
+
+  --primary: #0f7a43;
+  --primary-hover: #0c6438;
+  --primary-pressed: #0a5730;
+  --primary-tint: #e2f1e7;
+  --on-primary: #ffffff;
+
+  --gold: #8a6516;
+  --gold-fill: #e9be68;
+  --gold-tint: #faf0da;
+  --on-gold: #1f1708;
+
+  --danger: #c0362c;
+  --danger-tint: #fbe9e7;
+
+  --info: #185fa5;
+
+  --hero-gradient: linear-gradient(135deg, #0a5730, #0f7a43);
+}
+
+/* ---------------- semantic aliases ----------------
+   Derived, never redefined per mode: they follow the mode through the
+   tokens they point at. Components say what they MEAN. */
+:root, .app {
+  --text-positive: var(--primary);
+  --text-negative: var(--danger);
+  --text-rating: var(--gold);
+  --row-selected-bg: var(--primary-tint);
+  --row-selected-border: var(--primary);
+  --row-hover-bg: var(--surface-2);
+
+  /* disabled: muted text on the recessed surface. Opacity on text is
+     banned - it composites to an unaudited colour. */
+  --disabled-text: var(--text-muted);
+  --disabled-bg: var(--surface-2);
+}
+
+/* ---------------- the ramps ----------------
+   Future values are PICKED from these, not invented. Every existing
+   token that shares the hue sits at its stop, so the ramp and the
+   system cannot drift apart.
+
+   Neutral ramp (five steps, the tinted night charcoal):
+     n1 #1a201e  n2 #242b29  n3 #2e3634  n4 #384240  n5 #4a5553
+
+   Primary-hue ramp (nine stops, light to dark; anchors marked):
+     g1 #e2f1e7  (day primary-tint)
+     g2 #bfe5cf
+     g3 #8edbaf
+     g4 #4ed88c  (night primary-hover)
+     g5 #34c06f  (night primary)
+     g6 #1e8c4e  (night primary-pressed / night hero end)
+     g7 #0f7a43  (day primary / day hero end)
+     g8 #0a5730  (day primary-pressed / day hero start)
+     g9 #17332a  (night primary-tint)
+   g2, g3 are the two interpolated stops; everything else is a live token. */
+:root, .app {
+  --ramp-n1: #1a201e; --ramp-n2: #242b29; --ramp-n3: #2e3634;
+  --ramp-n4: #384240; --ramp-n5: #4a5553;
+  --ramp-g1: #e2f1e7; --ramp-g2: #bfe5cf; --ramp-g3: #8edbaf;
+  --ramp-g4: #4ed88c; --ramp-g5: #34c06f; --ramp-g6: #1e8c4e;
+  --ramp-g7: #0f7a43; --ramp-g8: #0a5730; --ramp-g9: #17332a;
+}
+
+/* ---------------- focus and disabled, as rules ---------------- */
+:where(.app) :focus-visible {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 2px;
+}
+:where(.app) button:disabled,
+:where(.app) .btn:disabled {
+  color: var(--disabled-text);
+  background: var(--disabled-bg);
+  box-shadow: none;
+}
