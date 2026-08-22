@@ -41,6 +41,13 @@ const beats: NewsItem[] = []
 const verdicts: NewsItem[] = []
 const seen = new Set<number>()
 for (let w = 0; w < SEASON_WEEKS * 3 + 4; w++) {
+  // KEEP HIM IN A JOB. This walk sleepwalks - it never picks a side - and
+  // since the AI coaching baseline landed (matchEngine.ts) that is no longer
+  // survivable: measured, this exact career is SACKED before season three, so
+  // the rollover it is waiting for never arrives and the probe fails on
+  // employment rather than on the thing it exists to check. Holding the board
+  // off is the same trick deepsave.ts uses for the same reason.
+  if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
   processWeekAndAdvance(g)
   for (const n of g.news) {
     if (seen.has(n.id)) continue

@@ -899,6 +899,52 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       }
     }
   }
+  // ---- EVERY OTHER CLUB HAS COACHES TOO ----
+  //
+  // Measured by scripts/stackprobe.ts, and it is the reason that probe exists.
+  // A manager who used the whole toolbox won the league NINE TIMES OUT OF NINE
+  // from a mid-table club, mean finishing position 1.00, on every seed. The
+  // cause is directly below: facLevel() reads the user's club and nothing else,
+  // and the backroom block is gated on side.isUser, so a full staff and level-5
+  // facilities were worth five to ten percent on every unit AGAINST A WORLD
+  // WHERE NO CLUB COULD EVER HAVE ANY. The manager was not out-coaching his
+  // rivals; he was the only club in the sport with a coaching department.
+  //
+  // So a professional club now turns up with professional coaches. This is a
+  // baseline, not a mirror: it is deliberately FLAT with only a light tilt for
+  // reputation, because making it scale hard with rep would amplify the gap
+  // between rich and poor and stratify the league - a balance regression wearing
+  // a realism costume. Every Premiership side has an attack coach; what varies
+  // between them is less than reputation suggests.
+  //
+  // What is left as the manager's genuine edge is the part that is a DECISION
+  // rather than a purchase: the weekly match preparation below, the analyst's
+  // read, and the team sheet. Your staff roughly match theirs. Your choices are
+  // yours.
+  //
+  // KEYED ON THE CLUB, NOT ON side.isUser, and the difference is not academic.
+  // A sleepwalking manager's fixtures are simmed through the AI path, where
+  // isUser is false for BOTH sides - so gating on the flag handed the manager's
+  // own club a free coaching department on exactly the weeks he could not be
+  // bothered to turn up. Measured before this line was fixed: a giant's
+  // sleepwalk board bottomed at 31.3 instead of 16.3 and sackings fell from 2
+  // in 6 to 1 in 6, which is the change making absenteeism SAFER. The user's
+  // club is the user's club whoever is pressing the buttons.
+  //
+  // Deterministic: reputation only, no draw from the shared stream.
+  if (side.teamId !== state.userClubId) {
+    const rep = state.clubs[side.teamId]?.rep ?? 60
+    // 0 at rep 40, 1 at rep 90, so the tilt is gentle and bounded at both ends
+    const tilt = clamp((rep - 40) / 50, 0, 1)
+    const coach = 0.026 + 0.014 * tilt
+    side.units.attack *= 1 + coach
+    side.units.defence *= 1 + coach
+    side.units.scrum *= 1 + coach * 0.9
+    side.units.lineout *= 1 + coach * 0.9
+    side.units.kicking *= 1 + coach * 0.8
+    side.goalBonus = (side.goalBonus ?? 0) + coach * 0.22
+  }
+
   // your backroom staff sharpen the matchday units (club only - Test
   // weeks mean borrowed players, not your own coaching department)
   if (side.isUser && side.teamId === state.userClubId && state.staff) {

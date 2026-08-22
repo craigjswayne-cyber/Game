@@ -16,6 +16,35 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
+  // REBASELINED for the AI coaching baseline (the "make it tougher" round), and
+  // exactly ONE of the six results moved: leicester 37-30 saracens became
+  // leicester 16-48 saracens. That it is the LEICESTER fixture is the whole
+  // point of the change rather than a coincidence - Leicester is the user club
+  // in this stream, and the user club is now the only side on the field without
+  // a coaching department until the manager builds one.
+  //
+  // WHY. scripts/stackprobe.ts measured the thing nobody had measured: a manager
+  // using the whole toolbox won the league NINE TIMES OUT OF NINE from a
+  // mid-table club, mean finishing position 1.00, on every seed. facLevel()
+  // reads only the user's club and the backroom block was gated to the user's
+  // side, so a full staff and level-5 facilities were worth 5-10% on every unit
+  // against a world where no club could ever have any coaching at all.
+  //
+  // Now a professional club turns up with professional coaches: a flat baseline
+  // with a light reputation tilt, deliberately not scaling hard with rep because
+  // that would stratify the league. Measured after:
+  //   stack     70.8pts pos 1.00  9/9 titles  ->  65.8pts pos 1.89  5/9 titles
+  //   sheet     60.7pts pos 2.56  5/9         ->  56.6pts pos 3.11  3/9
+  //   sleepwalk 44.2pts pos 5.44  1/9         ->  33.1pts pos 8.11  0/9
+  //
+  // FOUR-SEED BALANCE, in this commit as the rule requires (12345/777/4242/101):
+  //   avg total pts 54.0 / 54.3 / 53.5 / 54.4   (was ~52.5-53.0)
+  //   tries         6.3  / 6.3  / 6.2  / 6.4    (was ~5.9-6.3)
+  //   home win      56%  / 55%  / 56%  / 55%    (was 55.2%) - UNMOVED
+  //   draws         1.6% / 2.1% / 2.2% / 1.5%
+  // Scores up about a point because every side that is not yours now attacks
+  // and defends a few per cent better. Home advantage, which is the number that
+  // says whether the competition itself is still healthy, did not move.
   // Rebaselined (leicester fixture ONLY): the absent-manager wave. The user's
   // day-one sheet is now named by the assistant through assistantJudgement,
   // and leicester is this world's user club, so that one scoreline moves; the
@@ -250,7 +279,7 @@ const EXPECTED: string[] = [
   'northampton 36-30 newcastle',
   'gloucester 19-3 exeter',
   'harlequins 9-14 bath',
-  'leicester 37-30 saracens',
+  'leicester 16-48 saracens',
   'newcastle 15-57 bristol',
 ]
 

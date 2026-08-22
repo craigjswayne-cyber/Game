@@ -161,8 +161,17 @@ export function checkWorld(g: GameState, when: string, abused = false) {
   for (const comp of table<GameState['comps'][string]>(g, 'the competitions', g.comps, when)) {
     if (comp.type !== 'league' || !comp.table) continue
     for (const row of comp.table) {
-      if (!finite(row.p) || !finite(row.pts) || row.p < 0 || row.pts < 0) {
-        bad('TABLE', `${comp.id}: ${row.teamId} has played ${row.p} for ${row.pts} points (${when})`)
+      // NEGATIVE POINTS ARE LEGAL NOW, but only for a reason the save can name.
+      // A club in administration is docked ten before a ball is kicked
+      // (insolvency.ts), so a row reading P0 on minus ten is the mechanic
+      // working, not a corrupt table - and this check flagged exactly that the
+      // first time administration shipped. What must still be impossible is
+      // negative points with no deduction to explain them.
+      const docked = g.clubs[row.teamId]?.admin?.season === g.season
+        ? (g.clubs[row.teamId]?.admin?.penalty ?? 0) : 0
+      if (!finite(row.p) || !finite(row.pts) || row.p < 0 || row.pts < -docked) {
+        bad('TABLE', `${comp.id}: ${row.teamId} has played ${row.p} for ${row.pts} points` +
+          `${docked ? ` (docked ${docked})` : ''} (${when})`)
       }
       const played = fixtures.filter(f => f.compId === comp.id && f.played && !f.stage &&
         (f.homeId === row.teamId || f.awayId === row.teamId)).length
