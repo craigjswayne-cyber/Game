@@ -707,3 +707,25 @@ scripts/gapreport.ts so it cannot be lost:
 
 The number is a coverage measure, not a bug count. It should fall when a real
 2026-27 signing is announced and checked in, and at no other time.
+
+
+## Two audit findings that did not survive measurement (Aug 2026)
+
+Worth recording because both were mine, and both are the same mistake in
+different clothes: measuring a POPULATION that changes shape over time and
+reading the shape change as a defect.
+
+- **"Regens mint 13% hot" (release audit 2.5) is withdrawn.** There is no
+  shipped-youth population to compare against - every 17-year-old in a fresh
+  world is academy-generated (930 of them, 0 from the senior lists). The step
+  was the under-23 age window filling with development, plus rollover intake
+  being weighted to higher-rep clubs (mean rep 71-74 at intake vs 67.3 across
+  the world) because good academies churn faster. A recalibration of
+  acadQuality was written, measured against a baseline that turned out to be
+  self-referential, and reverted.
+- **"39 real-cover gaps" is a coverage measure, not a bug count** - see above.
+
+The lesson for the next dial: an age-banded or membership-changing cohort is
+not a fixed population, so a like-for-like comparison has to be age-matched
+and mint-fresh. If a number moves over seasons, first ask whether the thing
+being counted is still the same thing.
