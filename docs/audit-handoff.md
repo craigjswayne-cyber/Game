@@ -464,6 +464,44 @@ lineupFor writes a FRESH array each weekly naming, so capture
 club.tactic.lineup AFTER the call when asserting write-back (nearly probe
 bug #12).
 
+## The charcoal-and-green pass (floodlit palette, user-specified)
+
+User: "looking to bring the game colours up to the level", with eight anchor
+values - bg #181a19, cards #222624, active #42b94f, pressed #247a32,
+headings #f4f6f4, body #9ba29d, borders #3a403c - and two rules: charcoal
+dominates (green ONLY for actions, selected states, ratings, form, positive
+numbers) and a #247a32-to-#42b94f gradient for major hero elements.
+
+Night theme only - the day theme keeps its blue-and-cream. Implementation is
+almost entirely the .app.night token block in theme.css: the --brand-* ramp
+(masthead, nav, buttons) remapped to charcoal so the chassis follows without
+touching component rules, and the --gold accent family keeps its NAME but
+carries the green (every active state, meter, unread bar and key number
+already points at it - renaming eight tokens across 3358 lines buys nothing).
+The hero gradient is rationed to the Continue button and .btn.gold, with
+near-black ink: white sits at 2.5:1 on #42b94f, the dark ink reads 7:1 there
+and 3.4:1 on the deep end. Literal navy stragglers to sweep on any future
+palette change: masthead/bottom-nav/scoreboard/title-screen gradients,
+dt-board, sheet-row, rt-bar, cap-bar - grep the night block for hexes.
+
+Probe: scripts/paletteqa.mjs pins the eight anchors and the two structural
+promises (chrome stays charcoal, selection is green, hero gradient on
+Continue) to the RENDERED page. Guardrails: nightcontrast 2.2 caught the
+first cut's ghost stars at 1.6:1 (--star-empty landed two steps too dark for
+the striped rows - read that token's comment before touching it); colouraudit
+was rebaselined 0.112 -> 0.093 deliberately, in the same commit, because the
+charcoal directive lowers AVERAGE chroma by design while squad/tactics hold
+26%/30% vivid; contrastprobe 4.5 on form controls passed untouched.
+
+PROBE BUG #12, and it finally happened for real: the red-demonstration run
+of paletteqa on the old worktree came back GREEN because an earlier crashed
+probe run (server.stop was misnamed server.kill) leaked its DETACHED vite
+preview on port 4193, and the worktree probe connected to it - measuring the
+NEW dist while standing in the old tree. --strictPort makes the second vite
+exit, it does not make the first one die. Before trusting any browser-probe
+red OR green from a worktree, pgrep for stray "vite preview" holders of that
+port. The false green read exactly like a probe that forgot to look.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.
