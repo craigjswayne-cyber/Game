@@ -900,7 +900,7 @@ export function logDecision(state: GameState, text: string, good?: boolean) {
 export type MatchPrep = 'attack' | 'defence' | 'setpiece' | 'fitness' | 'recovery'
 
 export interface StaffLevels {
-  assistant: number // 0-3: training gains
+  assistant: number // 0-3: training gains, and how sharp his eye is when he names your side
   physio: number    // 0-3: injury length & recovery
   scout: number     // 0-3: knowledge gathering speed
   attack: number    // 0-3: attack coach - sharper strike play on matchday
@@ -929,7 +929,7 @@ export interface StaffPerson {
 }
 
 export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
-  assistant: { name: 'Assistant Coach', desc: 'Sharper sessions - bigger training gains, faster youth growth.', wage: 4000 },
+  assistant: { name: 'Assistant Coach', desc: 'Sharper sessions - bigger training gains, faster youth growth, better auto-picked sides.', wage: 4000 },
   physio: { name: 'Head Physio', desc: 'Shorter injury layoffs and quicker recovery between matches.', wage: 3000 },
   scout: { name: 'Chief Scout', desc: 'Faster, wider scouting knowledge across the leagues.', wage: 2500 },
   attack: { name: 'Attack Coach', desc: 'Strike moves and shape - a sharper attack every matchday, bigger attacking training gains.', wage: 3500 },

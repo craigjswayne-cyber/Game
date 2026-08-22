@@ -31,7 +31,7 @@ export default function Tutorial() {
         <h3>How this works</h3>
         <b>1. One button moves the game on.</b> It says <b>Continue</b> at the top of the screen. Press it and a day goes by. Press it again and again and you walk through the week - who is injured, what the press want, who is for sale - until Saturday, when the button says <b>Matchday</b>.
         <br /><br />
-        <b>2. Pick your team.</b> Tap the clipboard at the bottom, then <b>Team</b> - you land on the team sheet. Tap two players to swap them, or press <b>Best XV</b> and let the computer pick. You have fifteen starters and eight replacements.
+        <b>2. Pick your team.</b> Tap the clipboard at the bottom, then <b>Team</b> - you land on the team sheet. Tap two players to swap them, or press <b>Best XV</b> and let your assistant draft one - then fix what he got wrong. You have fifteen starters and eight replacements.
         <br /><br />
         <b>3. Play the match.</b> Press <b>Kick Off</b>. You say a few words to the players first - pick whichever one feels right, there is no wrong answer. During the game you can bring on replacements or change how you play. When you win a penalty near their line, you choose: kick at the posts for three points, or go to the corner and try for a try.
         <br /><br />

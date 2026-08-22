@@ -137,12 +137,18 @@ const meanMorale = (g: GameState) => {
         `the advance came back with interest: ${budget(control)} -> ${budget(missed)} (claw 1.75x 250k)`)
     }
 
-    // a promise measured against dead last is kept by anyone not dead last
+    // a promise measured against a rung BELOW the table is kept by any finish
+    // at all. This used to stage pred = dead last ("kept by anyone not dead
+    // last") and the assistant-eye wave promptly found the hole: seed 26's
+    // hands-off Saints finished bottom and survived the relegation playoff -
+    // the autopilot cost working as designed - and the staging silently turned
+    // into a missed promise. This probe tests the settlement bookkeeping, not
+    // the club's season, so the staged number must not depend on the finish.
     const kept = run(s => {
       s.stance = 'high'
       s.stanceFund = 250_000
       const n = Object.keys(s.preds ?? {}).length || 10
-      s.preds![s.userClubId] = n
+      s.preds![s.userClubId] = n + 1
     })
     ok(kept.news.some(n => n.subject.includes('war chest is yours to keep')),
       'a kept promise is acknowledged, not clawed')

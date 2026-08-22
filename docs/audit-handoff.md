@@ -414,6 +414,56 @@ of the trimmed news log.
     dugouts answer them - if its floors/bars ever drift, suspect that
     coupling first.
 
+## The absent-manager wave (autopilot must cost something)
+
+Live report, week 11 of a fresh hands-off save, 3W-1D-1L: "ive not made one
+single change yet in the game since I signed up and started everything is
+done with the auto buttons". difficultyprobe's sleepwalk/optimise gap was
+this finding in a lab; the save was it in the wild. Two free lunches:
+
+1. **Every auto-named side was the honest optimiser.** The Best XV button
+   was autoSelect with claim() on top; the day-one sheet, the stale
+   tidy-up, MatchDay's tunnel fix and one-tap rotation were all the same
+   answer key. Now `assistantJudgement(state)` (matchEngine.ts) is a
+   deterministic per-man misread - mulberry32 on (seed, season, week,
+   player id), zero shared-rng draws - multiplied into autoSelect's score
+   at every point where the ASSISTANT names the user's side. Amplitude by
+   staff.assistant level: 12/8/5/2 percent for levels 0-3, so upgrading
+   the assistant is now a real lever. AI clubs and the difficultyprobe
+   OPTIMISER still get the honest ranking (no judge arg = factor 1). A
+   manager-picked sheet (userPicked) is untouched, as ever.
+
+   THE TRAP THIS WAVE WALKED INTO, measured before it shipped: the first
+   cut had lineupFor re-name an unclaimed sheet FRESH EVERY WEEK through
+   the assistant's eye, on the theory that weekly fuzz compounds. It made
+   autopilot BETTER - difficultyprobe's sleepwalker jumped to 55.7 pts
+   (paired 314d8cb baseline: 34.7) and the optimise gap collapsed to 4.7
+   (probe red). A weekly form-and-condition refresh is worth far more
+   than a 12% misread costs. The absent manager's real bill is the STATIC
+   sheet nobody updates; the misread is a surcharge on the rare day
+   somebody names one. The sticky sheet stays, exactly as before, and
+   only the naming moments carry the eye. Final paired numbers (n=3
+   seeds, noise-dominated, read the asserts not the points): old
+   sleepwalk 34.7 / optimise 60.3, new sleepwalk 43.0 / optimise 57.0,
+   both trees green on every difficultyprobe assert. Paired four-seed
+   balance: 53.80 pts/game on BOTH trees - the league never noticed.
+2. **Silence at the press desk was free.** An expired question now docks
+   0.8 board confidence and 0.4 fan mood in the expiry sweep
+   (season.ts), sized below the worst live answer (board -0.2 option = 1.0
+   confidence) so answering badly still beats not answering.
+
+Surfaced: Selection screen shows a muted "your assistant names this side"
+line on unclaimed sheets; handbook Q&A "What happens if I never pick the
+team myself?"; Tutorial and Best XV handbook text now call the button the
+assistant's draft. Probe: scripts/absentprobe.ts (red on 314d8cb: export
+missing + both expiry costs 0.00). Fingerprint: ONLY the leicester fixture
+moved (the fingerprint world's user club) - the other five scorelines held,
+which is the dormancy property doing its job; rebaselined with the paired
+four-seed balance measurement in the same commit. Trap for the next reader:
+lineupFor writes a FRESH array each weekly naming, so capture
+club.tactic.lineup AFTER the call when asserting write-back (nearly probe
+bug #12).
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

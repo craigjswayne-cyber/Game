@@ -150,7 +150,12 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'squad',
     q: 'How do I pick the side quickly?',
-    a: 'Tap Team and you land on the team sheet. Best XV fills every shirt with the best natural fit available, quietly weighing form; then adjust by hand - tap a player, tap another, and they swap. Tap the same slot twice for the full squad picker. How the side plays (roles, set piece, bench shape, prep, game plan) lives on the Tactics screen.',
+    a: 'Tap Team and you land on the team sheet. Best XV asks your assistant for his best side - a strong draft that quietly weighs form, but it is his eye, not an answer key. Adjust by hand - tap a player, tap another, and they swap - and the corrections are yours. Tap the same slot twice for the full squad picker. How the side plays (roles, set piece, bench shape, prep, game plan) lives on the Tactics screen.',
+  },
+  {
+    cat: 'squad',
+    q: 'What happens if I never pick the team myself?',
+    a: 'Your assistant names the side, and it stays named: nobody updates an untouched sheet for form, fitness or new signings, and the assistant is decent, not perfect - he misjudges a man here and there, less often the higher his level. Picking the XV yourself is always worth real points over a season, and so is upgrading the assistant if you want to delegate. The press desk works the same way: questions left to rot cost a little board confidence and fan mood every time, so silence is a choice with a price.',
   },
   {
     cat: 'squad',
