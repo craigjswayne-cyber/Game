@@ -12,13 +12,35 @@ import SelectionPane from './Selection'
 type View = 'selection' | 'general' | 'stats' | 'gametime' | 'contracts'
 type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd' | 'wage' | 'until'
 
+/**
+ * Fitness, as a dial rather than as a colour.
+ *
+ * Pass 9 of the release audit went looking for the thing nobody had checked and
+ * found it here. Every other state indicator in this interface already carries
+ * a second channel - MoraleArrow has its glyph, FormPill prints the number, the
+ * ability delta has an arrow - but this ring was three hues and nothing else,
+ * with a `title` tooltip that a phone will never show. Simulating the three
+ * common dichromacies on the real tokens (scripts/colourblind.ts) put gold and
+ * red 61 apart under deuteranopia, which at eleven pixels is the same dot: a
+ * man carrying a knock and a man who cannot play looked identical to about one
+ * reader in twelve.
+ *
+ * So the ARC now carries the number and the colour only agrees with it. A full
+ * ring is a fit man and a quarter ring is not, in any colour vision, in
+ * greyscale, and through a bad phone screen in sunlight.
+ */
 function FitRing({ v }: { v: number }) {
+  const pct = Math.max(0, Math.min(100, v))
   const c = v >= 85 ? 'var(--text-positive)' : v >= 68 ? 'var(--gold)' : 'var(--danger)'
+  const state = v >= 85 ? 'fully fit' : v >= 68 ? 'carrying a knock' : 'unfit'
   return (
-    <span title={`${Math.round(v)}% fit`} style={{
-      display: 'inline-block', width: 11, height: 11, borderRadius: '50%',
-      border: `2.5px solid ${c}`, verticalAlign: -1,
-    }} />
+    <span role="img" aria-label={`${state}, ${Math.round(v)} per cent`}
+      title={`${Math.round(v)}% fit`} style={{
+        display: 'inline-block', width: 11, height: 11, borderRadius: '50%',
+        verticalAlign: -1,
+        background: `conic-gradient(${c} ${(pct * 3.6).toFixed(0)}deg, var(--surface-3) 0)`,
+        boxShadow: 'inset 0 0 0 1px var(--border-strong)',
+      }} />
   )
 }
 
