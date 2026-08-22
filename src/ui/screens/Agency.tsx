@@ -1,12 +1,26 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney } from '../../game/model'
+import type { GameState } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
 import { natRankOrder } from '../../game/natrank'
 import { nationByCode } from '../../game/nations'
 import { CrestT, Nat, PosBadge, SectionTitle } from '../components'
 
 /** The Scouting Agency: monthly world rankings, FM-style. */
+/** What the movement arrows are measured from.
+ *
+ *  These tables are the CURRENT standings, recomputed every week; the snapshot
+ *  behind the arrows only republishes every four (season.ts). Saying "since
+ *  last month" while showing today's order is how the two ended up reading as
+ *  out of sync, so the screen now names the week it is comparing against. */
+function sinceLine(game: GameState): string {
+  const at = game.agency?.at
+  if (!at) return 'current standings - the first list publishes shortly'
+  const same = at.season === game.season
+  return `current standings · ▲▼ against the list published ${same ? `in Week ${at.week}` : `last season, Week ${at.week}`}`
+}
+
 export default function Agency() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
@@ -54,7 +68,7 @@ export default function Agency() {
           </tbody>
         </table></div>
         <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-          ▲▼ movement since last month · your nation highlighted when you hold a Test job
+          {sinceLine(game)} · your nation highlighted when you hold a Test job
         </div>
         <div className="spacer" />
       </>
@@ -68,7 +82,7 @@ export default function Agency() {
         <button className={tab === 'kids' ? 'active' : ''} onClick={() => setTab('kids')}>Wonderkids</button>
         <button onClick={() => setTab('nations')}>Test Nations</button>
       </div>
-      <SectionTitle sub={tab === 'seniors' ? 'the twenty best players on the planet, updated monthly' : 'the ceilings scouts whisper about - 21 and under'}>
+      <SectionTitle sub={tab === 'seniors' ? 'the twenty best players on the planet, as they stand today' : 'the ceilings scouts whisper about - 21 and under'}>
         {tab === 'seniors' ? 'Senior Rankings: World' : 'Wonderkid Watch: World'}
       </SectionTitle>
       <div className="tblwrap"><table className="dtable">
@@ -104,7 +118,7 @@ export default function Agency() {
         </tbody>
       </table></div>
       <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-        ▲▼ movement since last month · your players highlighted · tap a name to scout him
+        {sinceLine(game)} · your players highlighted · tap a name to scout him
       </div>
       <div className="spacer" />
     </>

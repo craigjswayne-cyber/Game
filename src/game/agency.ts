@@ -34,6 +34,9 @@ export function updateAgency(state: GameState) {
   }
   state.agency.seniors = seniors
   state.agency.kids = kids
+  // the moment of publication: every arrow on the Agency screen is measured
+  // from here, and the screen names this week so the comparison is legible
+  state.agency.at = { season: state.season, week: state.week }
 
   // the Test rankings publish on the same cycle - with a headline when the
   // nation you coach breaks new ground

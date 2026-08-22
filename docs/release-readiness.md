@@ -256,3 +256,27 @@ backend), line 25 (store packaging - a separate project). The economy and
 regen calibration notes (2.4, 2.5) remain open as balance work, since a
 lower-league budget dial has to clear the paired-seed balance harness, not a
 release checklist.
+
+---
+
+## Owner's decision on the store question (recorded)
+
+Asked to choose between fictionalising the world and staying a free personal
+project, the owner chose: **stay the free personal project.**
+
+What that settles:
+
+- Checklist line 1 (the real-name database) is **closed as accepted**, not
+  outstanding. The game keeps its real clubs, players and competitions, and
+  the title screen keeps saying what it is: a personal project, real names
+  used for fun, not for sale.
+- Lines 23 and 25 (cloud saves, store packaging) are **optional** rather than
+  blocking, because there is no store submission to block. They stay on the
+  list as quality-of-life work, not as release gates.
+- The audit's remaining value is as an internal quality bar: everything it
+  measured that is not about a storefront - save integrity, long-run
+  stability, permissions, layout, accessibility - still applies, and the
+  remediated items were fixed on that basis rather than for a reviewer.
+
+This report therefore stands as a quality audit, not a submission checklist.
+No part of it should be read as a plan to sell the game.
