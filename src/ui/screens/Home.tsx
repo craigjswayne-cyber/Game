@@ -8,6 +8,7 @@ import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
 import { dreamState, dreamPct } from '../../game/dream'
 import { matchStakes, seasonTentpoles } from '../../game/stakes'
+import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
@@ -250,6 +251,22 @@ export default function Home() {
           intake day, the finals you have reached. Everything here already
           fires on schedule - the player has simply never been able to see it
           coming. Three at a time, so it is a glance and not a calendar app. */}
+      {/* THE CIRCLING (living.ts, wave 4). A rival building towards a bid for
+          your best player across a whole season, said out loud from the first
+          paragraph of paper talk - so losing him is the end of a story you
+          watched happen rather than an alert that arrived one Tuesday. */}
+      {(() => {
+        const line = huntLine(game)
+        if (!line) return null
+        return (
+          <button className="card" onClick={() => go('transfers')}
+            style={{ borderLeft: '4px solid var(--prop-red, var(--danger))' }}>
+            <div className="fact-label">👀 Circling</div>
+            <div style={{ marginTop: 4 }}>{line}</div>
+          </button>
+        )
+      })()}
+
       {(() => {
         const soon = seasonTentpoles(game).filter(t => t.week >= game.week).slice(0, 3)
         if (!soon.length) return null

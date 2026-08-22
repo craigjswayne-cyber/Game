@@ -1,4 +1,5 @@
 import type { GameState, Player } from './model'
+import { clubIntent } from './living'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
 import { playerValue, playerWage } from './attributes'
@@ -239,14 +240,22 @@ export function aiTransfers(state: GameState, rng: Rng) {
     const NEED_MIN: Record<string, number> = { LP: 2, HK: 2, TP: 2, LK: 3, FL: 3, N8: 2, SH: 2, FH: 2, CE: 3, WG: 3, FB: 2 }
     const need = Object.entries(NEED_MIN).find(([pos, min]) => (byPos[pos] ?? 0) < min)?.[0]
     if (!need) continue
+    // WHAT THIS CLUB IS ACTUALLY TRYING TO DO (living.ts). Without it a hundred
+    // clubs behave like one club with a hundred names: thinnest position, best
+    // body available, every time. A rebuilding side will not buy a thirty-year-
+    // old and a side going for it will not settle for a squad man.
+    const intent = clubIntent(state, buyer)
+    if (intent === 'breakup') continue // they are selling, not shopping
     const targets = Object.values(state.players).filter(p =>
       p.clubId && p.clubId !== buyer.id && p.clubId !== state.userClubId &&
-      p.pos === need && p.ca >= 70 && !p.onLoan && !p.loanFrom &&
+      p.pos === need && p.ca >= (intent === 'allin' ? 76 : 70) && !p.onLoan && !p.loanFrom &&
+      (intent === 'rebuild' ? p.age <= 25 : true) &&
       (state.clubs[p.clubId]?.rep ?? 99) <= buyer.rep + 6 &&
       askingPrice(state, p) <= buyer.budget)
-      .sort((a, b) => b.ca - a.ca)
+      // a rebuilding club buys for the future, everybody else buys the best now
+      .sort((a, b) => intent === 'rebuild' ? (b.pa - a.pa) || (b.ca - a.ca) : b.ca - a.ca)
     const p = targets[0]
-    if (p && rng() < 0.6) executeTransfer(state, p, buyer.id, askingPrice(state, p))
+    if (p && rng() < (intent === 'allin' ? 0.75 : 0.6)) executeTransfer(state, p, buyer.id, askingPrice(state, p))
   }
 
   // unsettled/listed players move - mostly in the windows
