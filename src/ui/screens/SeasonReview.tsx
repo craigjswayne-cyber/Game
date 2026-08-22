@@ -88,6 +88,24 @@ export default function SeasonReview() {
           </div>
         </div>
 
+        {r.dream && (
+          <>
+            <SectionTitle sub="the reason this save exists">The Dream</SectionTitle>
+            <div className="card" style={{ borderLeft: `4px solid ${r.dream.done ? 'var(--primary)' : 'var(--gold)'}` }}>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>{r.dream.title}</div>
+              <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
+                <div style={{ width: `${Math.min(100, Math.round((r.dream.at / Math.max(1, r.dream.goal)) * 100))}%`, height: '100%', background: r.dream.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
+              </div>
+              <div className="meta">
+                {r.dream.done ? 'Realised. Everything after this is a bonus.'
+                  : r.dream.moved != null && r.dream.moved > 0 ? `Closer this season: ${r.dream.note}.`
+                  : r.dream.moved != null ? `No closer this season: ${r.dream.note}.`
+                  : r.dream.note}
+              </div>
+            </div>
+          </>
+        )}
+
         <SectionTitle sub={r.league.name}>The League</SectionTitle>
         <div className="card">
           {row('Finished', r.league.pos > 0 ? ordinal(r.league.pos) : '-', true)}

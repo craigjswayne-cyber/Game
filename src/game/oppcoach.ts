@@ -26,11 +26,40 @@ import { COUNTER } from './philosophy'
 
 export type Archetype = 'stubborn' | 'analyst' | 'reactive'
 
+/**
+ * How likely a dugout is to be each archetype, as a function of club stature.
+ *
+ * Design review, wave 2: "the best dugouts read you fastest" - the counter-
+ * adaptation pillar already existed but every club drew from the same urn, so
+ * a National One minnow was exactly as likely to field an analyst as Toulouse.
+ * Tying the mix to reputation makes the climb up the leagues a climb into
+ * sharper opposition, which is the difficulty curve the design review asked
+ * for and the one this game never had: not bigger numbers, smarter minds.
+ *
+ * A straight line in rep between the two ends of the real club pool (measured
+ * 38..93 across every league), clamped past either end. The endpoints are
+ * chosen so they still sum to 1 with no renormalising:
+ *   rep 38 (the weakest club in the game): 85% stubborn, 10% analyst, 5% reactive
+ *   rep 93 (the strongest):                 8% stubborn, 46% analyst, 46% reactive
+ * A rep-86 Premiership giant sits at roughly 18/41/41 - the "almost
+ * exclusively" a sharp dugout the review called for, without a discontinuity
+ * anywhere the manager could feel as a cliff-edge.
+ */
+export function archetypeWeights(rep: number): { stubborn: number; analyst: number; reactive: number } {
+  const t = Math.max(0, Math.min(1, (rep - 38) / (93 - 38)))
+  const lerp = (a: number, b: number) => a + (b - a) * t
+  return { stubborn: lerp(0.85, 0.08), analyst: lerp(0.10, 0.46), reactive: lerp(0.05, 0.46) }
+}
+
 /** Which kind of coach lives in this dugout. Hash of the club id: stable for
- *  the life of a save, different across clubs, no rng consumed. */
-export function archetypeOf(clubId: string): Archetype {
+ *  the life of a save, different across clubs, no rng consumed. `rep` weights
+ *  the odds (archetypeWeights) - pass the club's actual reputation; callers
+ *  with no club record (a Test dugout) fall back to a strong-club default,
+ *  because international rugby is the pinnacle and should be read sharply. */
+export function archetypeOf(clubId: string, rep = 78): Archetype {
   const r = mulberry32(hashString(`${clubId}:dugout`))()
-  return r < 0.45 ? 'stubborn' : r < 0.80 ? 'analyst' : 'reactive'
+  const w = archetypeWeights(rep)
+  return r < w.stubborn ? 'stubborn' : r < w.stubborn + w.analyst ? 'analyst' : 'reactive'
 }
 
 /** The dial-to-unit coefficient table. MUST MATCH applyModifiers in
@@ -66,7 +95,7 @@ export interface AnalystShift {
  *  analysis department (a National 1 dugout is not Toulouse's), and a hard
  *  ceiling - it can never fully mirror you. */
 export function analystShift(state: GameState, clubId: string): AnalystShift | null {
-  if (archetypeOf(clubId) !== 'analyst') return null
+  if (archetypeOf(clubId, state.clubs[clubId]?.rep ?? 78) !== 'analyst') return null
   const prof = tendencyProfile(state)
   if (!prof || !prof.pattern) return null
   const counter = COUNTER[prof.pattern]

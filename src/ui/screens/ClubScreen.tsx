@@ -59,7 +59,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             plan against, not a hidden tax - so the scouting says who reads
             whom before you pick a game plan */}
         {club.id !== game.userClubId && (() => {
-          const arch = archetypeOf(club.id)
+          const arch = archetypeOf(club.id, club.rep)
           const word = arch === 'analyst' ? 'studies your recent matches and sets up to counter your habits'
             : arch === 'reactive' ? 'changes the picture from the touchline when the match turns against him'
             : 'trusts his own plan, week in, week out'

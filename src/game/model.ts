@@ -191,6 +191,9 @@ export interface SeasonReview {
   balanceDelta: number
   confidence: number
   trophies: string[]
+  /** where the career's Dream stood when this season closed. Optional: seasons
+   *  reviewed before dreams existed have none, and a save may have no dream. */
+  dream?: { title: string; note: string; at: number; goal: number; done: boolean; moved: number | null }
 }
 
 /** Live grudge between two clubs, if any. */
@@ -339,6 +342,10 @@ export interface Player {
   poty?: number
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
+  /** came through THIS club's academy and was promoted to the seniors. Set once
+   *  at promotion and never cleared, because it is a fact about where he learned
+   *  the game, not about where he plays now (dream.ts reads it). */
+  homegrown?: boolean
   /** club matches this season this man was actually AVAILABLE for - not away
    *  with his country, suspended, injured, on loan, or unsigned. Tracked
    *  forward by settleGameTime; the game-time ledger bills the manager a
@@ -941,8 +948,11 @@ export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string;
 
 export interface ManagerStats {
   m: number; w: number; d: number; l: number
-  trophies: { compId: string; season: number }[]
-  finishes: { season: number; leagueId: string; pos: number }[]
+  /** clubId is optional for saves written before dreams existed - a dream that
+   *  asks "with THIS club" treats a missing clubId as "counts", because the
+   *  alternative is silently erasing a trophy the manager really won */
+  trophies: { compId: string; season: number; clubId?: string }[]
+  finishes: { season: number; leagueId: string; pos: number; clubId?: string }[]
   signings: number
   spent: number
   /** Manager of the Month awards won */
@@ -1002,6 +1012,17 @@ export interface GameState {
   mgrOrigin?: MgrOrigin
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
+  /**
+   * THE DREAM: the ambition the manager named at career start (dream.ts).
+   *
+   * Three fields and no progress: every dream computes its own state from the
+   * save, so there is nothing here that can fall out of step with the career it
+   * describes. `clubId` is the club the dream was declared ABOUT, which is not
+   * always where the manager works now - "take Esher into the top flight" stays
+   * a promise about Esher after you leave. Optional: a save from before dreams
+   * existed simply has none, and the Home screen shows the old horizons instead.
+   */
+  dream?: { id: string; clubId: string; season: number }
   /** open managerial vacancies at AI clubs */
   /**
    * `passed` is the manager saying he is not interested.
@@ -1447,6 +1468,31 @@ export function boardObjective(rep: number): { text: string; pos: number } {
   if (rep >= 80) return { text: 'reach the playoffs', pos: 6 }
   if (rep >= 72) return { text: 'finish in the top half', pos: 7 }
   return { text: 'stay clear of the bottom two', pos: 12 }
+}
+
+/**
+ * How thin a boardroom's patience is, scaled by the club's own stature.
+ *
+ * Design review, wave 2: "board patience scales with stature - at a giant,
+ * second place is a crisis, and an absent manager there is sacked by March;
+ * at a minnow, survival buys years of goodwill." Before this every board
+ * reacted to a swing the same way regardless of who they were, which is why
+ * a title challenger sliding to 5th felt no different to the boardroom than
+ * a relegation battler doing the same - both a comfortable mid-table finish
+ * for one and a crisis for the other, on the SAME number.
+ *
+ * A straight line across the real club pool (rep 38..93, same anchors
+ * archetypeWeights uses in oppcoach.ts, so "how sharp the opposition reads
+ * you" and "how patient your own board is" move on the same real-world
+ * scale): 0.55x at the weakest club in the game, 2.05x at the strongest.
+ * Applied as a multiplier on the SWING, never on the floor or ceiling a
+ * confidence value can reach - a giant's board still cannot be pushed past
+ * 100, and a minnow's board still cannot be dragged below the sack line by
+ * one bad afternoon it was always going to shrug off.
+ */
+export function boardPatience(rep: number): number {
+  const t = Math.max(0, Math.min(1, (rep - 38) / (93 - 38)))
+  return 0.55 + t * 1.50
 }
 
 /**

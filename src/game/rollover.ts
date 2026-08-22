@@ -1,7 +1,7 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { aiBoardsReinvest } from './aiecon'
 import { rivalVerdict } from './boss'
-import { boardObjective, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import { boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -10,6 +10,7 @@ import { SLOTS, expireDeals, offersFor } from './commercial'
 import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
+import { dreamState } from './dream'
 import { objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
@@ -330,6 +331,9 @@ function agePlayers(state: GameState, rng: Rng) {
     }
     if (p.age >= 22 || p.ca >= 62) {
       p.acad = false
+      // he is a graduate of this club's academy for the rest of his career,
+      // wherever he ends up playing it (dream.ts counts them)
+      p.homegrown = true
       // HE SIGNS HIS FIRST PROFESSIONAL CONTRACT. He was on a development deal
       // (see playerWage), and graduating without re-pricing him would leave a
       // senior squad man on academy money for the rest of his career.
@@ -1082,13 +1086,44 @@ export function rebuildSeason(state: GameState) {
     const comp = state.comps[club.leagueId]
     if (comp) {
       const pos = sortTable(comp.table).findIndex(r => r.teamId === club.id) + 1
-      state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos })
+      state.mgr.finishes.push({ season: state.season, leagueId: club.leagueId, pos, clubId: club.id })
       const obj = boardObjective(club.rep)
       const wonLeague = comp.champion === club.id
       userFinishPos = pos
       userWonLeague = wonLeague
       const met = wonLeague || (pos > 0 && pos <= obj.pos)
-      club.boardConfidence = clamp(club.boardConfidence + (wonLeague ? 25 : met ? 12 : -14), 5, 100)
+      // PATIENCE SCALES WITH STATURE (wave 2, same curve boardReaction and the
+      // half-term check use). The trophy itself still lands the same flat +25
+      // everywhere - winning the whole league is exceptional at any club, so it
+      // is not rescaled - but missing the target now costs a giant roughly 60%
+      // MORE than the old flat -14 (rep 93: -23) and a minnow roughly 40% LESS
+      // (rep 38: -8), because the same shortfall means something different at
+      // each end. Clearing the target without winning outright runs the other
+      // way: a modest target cleared buys a small club noticeably more than
+      // the old flat +12 (rep 38: +16), and a demanding target barely cleared
+      // buys a giant noticeably less (rep 93: +7) - it was only ever the floor.
+      const patienceF = boardPatience(club.rep)
+      const delta = wonLeague ? 25 : met ? Math.round(12 * (1.65 - patienceF * 0.65)) : -Math.round(14 * patienceF)
+      club.boardConfidence = clamp(club.boardConfidence + delta, 5, 100)
+      // THE DREAM'S MAY VERDICT. Stamped here rather than where state.review is
+      // built, because the review is assembled BEFORE this season's finish and
+      // trophies are on the record - snapshot it up there and a title-winning
+      // season would report no progress towards a dream about titles.
+      if (state.review) {
+        const d = dreamState(state)
+        if (d) {
+          const prev = state.annals && state.annals.length > 1
+            ? state.annals[state.annals.length - 2]?.dream?.at ?? null : null
+          state.review.dream = {
+            title: d.title,
+            note: d.progress.note,
+            at: d.progress.at,
+            goal: d.progress.goal,
+            done: d.progress.done,
+            moved: prev != null ? d.progress.at - prev : null,
+          }
+        }
+      }
       // secondary objectives: side quests with real consequences
       const sideLines: string[] = []
       for (const id of state.objectives ?? []) {

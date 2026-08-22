@@ -14,6 +14,7 @@ import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { derbyName } from '../../game/rivalries'
+import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
@@ -587,6 +588,16 @@ function Preview({ fxId }: { fxId: number }) {
           </div>
           </div>
         </div>
+
+        {/* THE BILLING, in the tunnel. Same one line as the Home card, at the
+            moment it lands hardest: this is what the next eighty minutes are
+            actually for. Silent when the fixture has nothing to say. */}
+        {(() => {
+          const bill = matchStakes(game, fx)
+          return bill ? (
+            <div className="card" style={{ borderLeft: '4px solid var(--gold)', fontWeight: 600 }}>{bill}</div>
+          ) : null
+        })()}
 
         <div className="tab-bar" style={{ marginTop: 4 }}>
           <button className={ptab === 'brief' ? 'active' : ''} onClick={() => setPtab('brief')}>Briefing</button>

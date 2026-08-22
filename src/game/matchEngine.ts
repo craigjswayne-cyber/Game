@@ -2358,7 +2358,7 @@ function aiTacticShift(state: GameState, ctx: LiveCtx) {
     // touchline - at most twice, each counter a trade rather than a free
     // upgrade, and deterministic on the state of the match. He reads the
     // scoreboard and the picture in front of him, not the tendency file.
-    if (opp.isUser && archetypeOf(side.teamId) === 'reactive' && (side.reacted ?? 0) < 2) {
+    if (opp.isUser && archetypeOf(side.teamId, state.clubs[side.teamId]?.rep ?? 78) === 'reactive' && (side.reacted ?? 0) < 2) {
       const window = (side.reacted ?? 0) === 0 ? ctx.tick >= 5 && diff <= -5 : ctx.tick >= 14 && diff <= -10
       if (window) {
         const loud = loudestDial(state.clubs[opp.teamId]?.tactic ?? { style: 50, tempo: 50, kicking: 50, aggression: 50 })

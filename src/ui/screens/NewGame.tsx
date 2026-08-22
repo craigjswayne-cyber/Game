@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
+import { dreamsFor, type DreamContext } from '../../game/dream'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { Crest, Jersey } from '../components'
@@ -32,12 +33,29 @@ export default function NewGame() {
   const [name, setName] = useState('')
   const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
+  const [dreamId, setDreamId] = useState<string | null>(null)
 
   const league = leagueIdx != null ? defs[leagueIdx] : null
   const club: RawClub | null = clubId
     ? defs.flatMap(d => d.clubs).find(c => c.id === clubId) ?? null
     : null
   const challenge = challengeId ? CHALLENGES.find(c => c.id === challengeId) : null
+
+  /* THE DREAM (design review, wave 1): the last thing the wizard asks is the
+     only thing it asks about YOU. What is offered depends on the club - a
+     Championship side can dream of the top flight and a Premiership side
+     cannot - and the choice is required, because a career with no declared
+     ambition is the exact hole this was built to close. */
+  const dreamCtx: DreamContext | null = club && league
+    ? { clubId: club.id, clubName: club.short ?? club.name, leagueId: league.id, rep: club.rep }
+    : null
+  const dreams = dreamCtx ? dreamsFor(dreamCtx) : []
+  /* The first dream that applies is pre-selected rather than left blank: a
+     required tap here would block the one button the whole wizard exists to
+     reach, and a career with no ambition at all is the hole this closes. The
+     default is club-appropriate (a Championship side is offered promotion
+     first) and the tiles sit right under it, so changing it is one tap. */
+  const dream = dreamId ?? dreams[0]?.id ?? null
 
   const pickChallenge = (id: string) => {
     const ch = CHALLENGES.find(c => c.id === id)!
@@ -78,6 +96,9 @@ export default function NewGame() {
     if (g && chosen) {
       Object.assign(g.clubs[g.userClubId].tactic, chosen.tactic)
     }
+    // the ambition is stamped on the save the moment the career begins, and
+    // never moves again: it is what this save is FOR
+    if (g && dream) g.dream = { id: dream, clubId: g.userClubId, season: g.season }
   }
   const prev = () => {
     if (step === 0) { back(); return }
@@ -273,6 +294,21 @@ export default function NewGame() {
                 <div><label>Season</label><span>2025-26</span></div>
                 {challenge && <div><label>Challenge</label><span>{challenge.title}</span></div>}
                 <div><label>Board Objective</label><span>{club.rep >= 87 ? 'Win the title' : club.rep >= 80 ? 'Reach the playoffs' : club.rep >= 72 ? 'Top half' : 'Avoid the bottom two'}</span></div>
+              </div>
+            </div>
+            <div className="card">
+              <label className="fact-label">Your Dream</label>
+              <div className="meta" style={{ marginBottom: 2 }}>
+                The board sets the season. You set the career - tap the one thing that would make this save worth finishing.
+              </div>
+              <div className="speech-grid" style={{ padding: '6px 0 0' }}>
+                {dreams.map(d => (
+                  <button key={d.id} className={`speech-tile${dream === d.id ? ' sel' : ''}`}
+                    onClick={() => setDreamId(d.id)}>
+                    <b>{d.title(dreamCtx!)}</b>
+                    <span className="d">{d.blurb}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </>
