@@ -4,6 +4,7 @@ import { dreamState, dreamPct } from '../../game/dream'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
+import { nemesis, protegeLine } from '../../game/records'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
 
@@ -111,6 +112,58 @@ export default function Legacy() {
           your 250th win arrives with a salute - but nothing anywhere had ever
           mentioned that a 250th win was a thing, so the salute was a surprise
           rather than an arrival. Same numbers, shown before they land. */}
+      {/* WHAT THE CAREER LEAVES BEHIND (records.ts, wave 5): marks to beat, the
+          men you made who play elsewhere now, and the club that has your
+          number. Two of the three are pure lenses over state that already
+          existed, which is why an old save gets its whole history for free. */}
+      {(() => {
+        const e = game.era
+        const nem = nemesis(game)
+        const prot = protegeLine(game)
+        if (!e?.biggestWin && !nem && !prot) return null
+        return (
+          <>
+            <SectionTitle sub="what this era leaves behind">The Book</SectionTitle>
+            <div className="card">
+              {e?.biggestWin && (
+                <div className="dash-line">
+                  <span className="dl-t">Biggest win</span>
+                  <b>{e.biggestWin.us}-{e.biggestWin.them}</b>
+                  <span className="muted">v {game.clubs[e.biggestWin.oppId]?.short ?? e.biggestWin.oppId}</span>
+                </div>
+              )}
+              {e?.worstLoss && (
+                <div className="dash-line">
+                  <span className="dl-t">Heaviest defeat</span>
+                  <b>{e.worstLoss.us}-{e.worstLoss.them}</b>
+                  <span className="muted">v {game.clubs[e.worstLoss.oppId]?.short ?? e.worstLoss.oppId}</span>
+                </div>
+              )}
+              {e?.longestUnbeaten && e.longestUnbeaten.n > 1 && (
+                <div className="dash-line">
+                  <span className="dl-t">Longest unbeaten</span>
+                  <b>{e.longestUnbeaten.n}</b>
+                  <span className="muted">matches</span>
+                </div>
+              )}
+              {e?.recordSigning && (
+                <div className="dash-line">
+                  <span className="dl-t">Record signing</span>
+                  <b>{fmtMoney(e.recordSigning.fee)}</b>
+                  <span className="muted">{game.players[e.recordSigning.playerId]?.name ?? ''}</span>
+                </div>
+              )}
+              {nem && (
+                <div className="meta" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                  <b style={{ color: 'var(--danger)' }}>Nemesis. </b>{nem.line}
+                </div>
+              )}
+              {prot && <div className="meta" style={{ marginTop: 6 }}>🎓 {prot}</div>}
+            </div>
+          </>
+        )
+      })()}
+
       <SectionTitle sub="the next four things this career is working towards">On the Horizon</SectionTitle>
       <div className="card">
         {horizon(game).map((h, i, all) => (
