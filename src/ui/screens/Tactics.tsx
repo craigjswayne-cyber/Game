@@ -33,7 +33,7 @@ export default function Tactics() {
 
   const slider = (info: typeof SLIDER_INFO[number]) => (
     <div className="slider-row" key={info.key}>
-      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--accent-ink)' }}>{info.label}</b><span>{info.hi}</span></div>
+      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--info)' }}>{info.label}</b><span>{info.hi}</span></div>
       <input type="range" min={0} max={100} value={t[info.key]}
         onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, t[info.key])}</div>
@@ -44,7 +44,7 @@ export default function Tactics() {
   // preset system and default to 50 when a save predates them.
   const defSlider = (info: typeof DEF_SLIDER_INFO[number]) => (
     <div className="slider-row" key={info.key}>
-      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--accent-ink)' }}>{info.label}</b><span>{info.hi}</span></div>
+      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--info)' }}>{info.label}</b><span>{info.hi}</span></div>
       <input type="range" min={0} max={100} value={t[info.key] ?? 50}
         onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, t[info.key] ?? 50)}</div>
@@ -160,7 +160,7 @@ export default function Tactics() {
             one: how well drilled the move is, and what that is worth today. The
             explainers are gone and the page states its own rule once, at the
             top. */}
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">
             <b>One rule runs this page.</b> Whatever you call gets sharper every week and everything
             else goes rusty, so pick moves you mean to keep calling. Set-Piece Work in Prep speeds it
@@ -279,9 +279,9 @@ export default function Tactics() {
           const legal = benchFrontRow(game, club)
           if (legal && want === got) return null
           return (
-            <div className="card" style={{ borderLeft: `4px solid ${legal ? 'var(--gold)' : 'var(--red)'}` }}>
+            <div className="card" style={{ borderLeft: `4px solid ${legal ? 'var(--gold)' : 'var(--danger)'}` }}>
               <div className="meta">
-                {!legal && <b style={{ color: 'var(--red)' }}>No front-row cover on the bench. </b>}
+                {!legal && <b style={{ color: 'var(--danger)' }}>No front-row cover on the bench. </b>}
                 {!legal
                   ? 'Law 3 says the scrum goes uncontested if either side cannot cover hooker and both props, and both teams lose the weapon. The 16, 17 and 18 shirts exist for exactly this.'
                   : `You named a ${SPLITS.find(x => x.id === want)?.name.toLowerCase()}, and the men in the shirts make it a ${SPLITS.find(x => x.id === got)?.name.toLowerCase()}. The bench you actually pick is the one that plays.`}
@@ -353,7 +353,7 @@ export default function Tactics() {
             ['recovery', '🧖 Recovery Week', 'Squad regains extra fitness this week'],
           ] as const).map(([k, label, desc]) => (
             <button key={k} className="preset-chip" title={desc}
-              style={game.matchPrep === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+              style={game.matchPrep === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
               onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
               {label}
             </button>
@@ -373,7 +373,7 @@ export default function Tactics() {
       </>}
 
       {ttab === 'plan' && <>
-        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ marginTop: 4, borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">{assistantAdvice(game)}</div>
         </div>
         {/* F23: the opposition dugout has a standing instruction now, so the game
@@ -438,7 +438,7 @@ function AnalystCard() {
   const fx = userFixtureThisWeek(game)
   if (!fx) {
     return (
-      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <div className="fact-label">The Analyst</div>
         <div className="meta">No match this week, so nothing to study. He will have a read on the next opponent as soon as one is in the diary.</div>
       </div>
@@ -450,13 +450,13 @@ function AnalystCard() {
   if (!read || !opp) return null
   const followed = game.matchPrep === read.prep
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div className="fact-label">The Analyst on {opp.short}</div>
         <div className="meta" style={{ fontSize: 11 }}>{analystForm(game)}</div>
       </div>
       <div className="meta" style={{ marginTop: 2 }}>
-        <b style={{ color: '#a8841a' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
+        <b style={{ color: 'var(--gold)' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
         <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5 }}

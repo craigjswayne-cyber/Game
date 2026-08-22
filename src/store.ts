@@ -341,7 +341,11 @@ export const useStore = create<Store>((set, get) => ({
   wireQueue: [],
   saveSlot: 'slot1',
   inboxId: null,
-  night: typeof localStorage !== 'undefined' && localStorage.getItem('rm-night') === '1',
+  // NIGHT IS THE DEFAULT (design brief): a fresh install opens under the
+  // floodlights, and only an explicit '0' - the player choosing daylight -
+  // turns them off. The old default was day, which nobody who reported in
+  // ever used.
+  night: typeof localStorage === 'undefined' || localStorage.getItem('rm-night') !== '0',
   toggleNight: () => set(s => {
     const night = !s.night
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }

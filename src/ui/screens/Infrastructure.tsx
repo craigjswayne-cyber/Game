@@ -55,7 +55,7 @@ export default function Infrastructure() {
         <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>Our Estate</button>
         <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>The League</button>
       </div>
-      <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '8px 12px' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
@@ -74,7 +74,7 @@ export default function Infrastructure() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="fact-label">Estate</div>
-            <div style={{ fontWeight: 700, color: '#a8841a' }}>{grade.label}</div>
+            <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{grade.label}</div>
             <div className="meta" style={{ fontSize: 11 }}>{grade.sum}/{grade.max} · {ord} of {peers.length} in the league</div>
           </div>
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
@@ -85,7 +85,7 @@ export default function Infrastructure() {
           </button>
         </div>
         {msg?.key === 'expand' && (
-          <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))' }}>
+          <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
             {msg.text}
           </div>
         )}
@@ -105,13 +105,13 @@ export default function Infrastructure() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: 13.5, margin: 0 }}>
-                    {info.icon} {info.name} <span style={{ color: '#a8841a', letterSpacing: 1 }}>{pips(lvl)}</span>
+                    {info.icon} {info.name} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
                   </h3>
                   <div className="meta" style={{ fontSize: 11 }}>{info.desc}</div>
                   <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>
                     {lvl === 0 ? 'Nothing to speak of' : `Level ${lvl}: ${EFFECT[fid](lvl)}`}
                   </div>
-                  {building && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🏗 Builders on site - opens in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
+                  {building && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>🏗 Builders on site - opens in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
                 </div>
                 {!building && lvl < MAX_FACILITY && (
                   <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
@@ -121,10 +121,10 @@ export default function Infrastructure() {
                     <span style={{ fontSize: 10, fontWeight: 600 }}>L{lvl + 1} · {fmtMoney(cost)}</span>
                   </button>
                 )}
-                {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: '#a8841a', fontWeight: 700 }}>World class</span>}
+                {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>World class</span>}
               </div>
               {msg?.key === fid && (
-                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))' }}>
+                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {msg.text}
                 </div>
               )}

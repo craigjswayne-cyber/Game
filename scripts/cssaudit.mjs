@@ -22,7 +22,11 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 const CSS = 'src/ui/theme.css'
-const css = readFileSync(CSS, 'utf8')
+// The palette lives in tokens.css since the two-accent system; the theme
+// file only READS tokens now. Harvest definitions from both, or every
+// semantic token reads as dead (44 false positives, caught the first time
+// this audit ran after the split).
+const css = readFileSync(CSS, 'utf8') + '\n' + readFileSync('src/ui/tokens.css', 'utf8')
 
 // A definition is `--name:` anywhere, not only at the start of a line: the theme
 // has one-liners like `:root { --pick: #9fc2e8; }`, and the first cut of this

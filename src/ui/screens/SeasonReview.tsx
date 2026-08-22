@@ -25,9 +25,9 @@ export default function SeasonReview() {
     : r.league.predicted && r.league.pos > r.league.predicted ? '📉 A season below expectations'
     : '📋 A season in the ledger'
   const row = (label: string, value: string, strong = false) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--hairline)', fontSize: 13 }}>
-      <span style={{ color: 'var(--ink-soft)' }}>{label}</span>
-      <b style={strong ? { color: 'var(--accent-ink)' } : undefined}>{value}</b>
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+      <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
+      <b style={strong ? { color: 'var(--info)' } : undefined}>{value}</b>
     </div>
   )
   return (
@@ -81,7 +81,7 @@ export default function SeasonReview() {
           )}
         </div>
 
-        <div className="card center" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card center" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 18 }}>{headline}</h3>
           <div className="meta">
             {r.overall.w}W {r.overall.d}D {r.overall.l}L from {r.overall.m} matches in all competitions
@@ -129,7 +129,7 @@ export default function SeasonReview() {
                   <tr key={a.season}>
                     <td>{seasonLabel(a.season)}</td>
                     <td>{a.clubName}</td>
-                    <td className="num" style={a.league.pos === 1 ? { color: 'var(--accent-ink)', fontWeight: 700 } : undefined}>
+                    <td className="num" style={a.league.pos === 1 ? { color: 'var(--info)', fontWeight: 700 } : undefined}>
                       {a.league.pos > 0 ? ordinal(a.league.pos) : '-'}
                     </td>
                     <td className="num">{a.overall.w}-{a.overall.d}-{a.overall.l}</td>
@@ -152,7 +152,7 @@ export default function SeasonReview() {
                   return (
                     <tr key={w.season}>
                       <td>{seasonLabel(w.season)}</td>
-                      <td style={mine ? { color: 'var(--accent-ink)', fontWeight: 700 } : undefined}>🏅 {w.name}</td>
+                      <td style={mine ? { color: 'var(--info)', fontWeight: 700 } : undefined}>🏅 {w.name}</td>
                       <td>{w.clubName}</td>
                     </tr>
                   )

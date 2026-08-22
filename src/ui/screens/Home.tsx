@@ -67,14 +67,14 @@ export default function Home() {
   const leagueOrder = sortTable(game.comps[club.leagueId]?.table ?? [])
   // 0 until a league game is played, so the widget's dash actually shows
   const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)
-  const finState = club.balance >= 3_000_000 ? ['Rich', '#2f7d4f']
-    : club.balance >= 500_000 ? ['Secure', '#6f8f4f']
-    : club.balance >= 0 ? ['Okay', '#8a7a3a'] : ['In the red', '#9b2c2c']
+  const finState = club.balance >= 3_000_000 ? ['Rich', 'var(--text-positive)']
+    : club.balance >= 500_000 ? ['Secure', 'var(--text-positive)']
+    : club.balance >= 0 ? ['Okay', 'var(--border-strong)'] : ['In the red', 'var(--text-negative)']
 
   if (game.unemployed) {
     return (
       <>
-        <button className="card" style={{ borderLeft: '4px solid var(--stripe)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('jobs')}>
           <h3>📋 The Job Centre</h3>
           <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open - apply, or press Continue and wait for the right one.</div>
@@ -108,19 +108,19 @@ export default function Home() {
         const thisWk = game.fixtures.filter(f => f.compId === 'sn' && f.week === game.week)
         return (
           <div className="card" onClick={() => go('nations')}
-            style={{ background: 'linear-gradient(135deg, var(--brand-900), var(--brand-950))', color: '#eef3fb', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold-bright)' }}>🏆 SIX NATIONS - THE GREATEST CHAMPIONSHIP</div>
+            style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
+            <div className="fact-label" style={{ color: 'var(--gold)' }}>🏆 SIX NATIONS - THE GREATEST CHAMPIONSHIP</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
                 {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : 'v'} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
               </div>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
-              <div className="meta" style={{ color: '#adc4e8', marginTop: 5 }}>
+              <div className="meta" style={{ color: 'var(--text-muted)', marginTop: 5 }}>
                 Table: {rows.map((r, i) => `${i + 1}. ${nationByCode(r.teamId)?.name} (${r.pts})`).join(' · ')}
               </div>
             )}
-            <div className="meta" style={{ color: 'var(--gold-bright)', marginTop: 3 }}>Tap for the full championship ▸</div>
+            <div className="meta" style={{ color: 'var(--gold)', marginTop: 3 }}>Tap for the full championship ▸</div>
           </div>
         )
       })()}
@@ -147,7 +147,7 @@ export default function Home() {
         const streak = unbeaten >= 3 ? `🔥 Unbeaten in ${unbeaten}` : winless >= 3 ? `❄️ ${winless} without a win` : null
         if (!hook && !streak) return null
         return (
-          <div className="card" style={{ borderLeft: `4px solid ${winless >= 3 ? '#9b2c2c' : 'var(--gold-bright)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div className="card" style={{ borderLeft: `4px solid ${winless >= 3 ? 'var(--text-negative)' : 'var(--gold)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
             {hook && <b style={{ fontSize: 13 }}>{hook}</b>}
             {streak && <span className="chip" style={{ marginLeft: 'auto', fontWeight: 700 }}>{streak}</span>}
           </div>
@@ -155,7 +155,7 @@ export default function Home() {
       })()}
       {fx && (
         <div className="card" onClick={() => go('tactics')} style={{
-          borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? '#c9a227'}`,
+          borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
             Next match · {comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
@@ -191,7 +191,7 @@ export default function Home() {
         const rank = natRankOrder(game).indexOf(game.natTeam) + 1
         const testWeek = next && next.week === game.week
         return (
-          <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid #2f7d4f' }}>
+          <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid var(--text-positive)' }}>
             <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
               Head coach · {nat?.name ?? game.natTeam}{rank > 0 ? ` · world No. ${rank}` : ''}{game.natConfidence != null ? ` · union ${Math.round(game.natConfidence)}%` : ''}
             </div>
@@ -235,7 +235,7 @@ export default function Home() {
                 const met = o!.met(game)
                 const done = met && o!.banked
                 return (
-                  <span key={o!.id} style={{ color: done ? '#2f7d4f' : met ? 'var(--accent-ink)' : 'var(--ink-soft)' }}>
+                  <span key={o!.id} style={{ color: done ? 'var(--text-positive)' : met ? 'var(--info)' : 'var(--text-secondary)' }}>
                     {done ? '✓' : met ? '◍' : '○'} {o!.text(game)}
                     {met && !o!.banked ? ' (on course)' : ''}
                   </span>
@@ -246,14 +246,14 @@ export default function Home() {
         )
       })()}
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--stripe)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('seasonreview')}>
           <h3>📖 The Annual is out</h3>
           <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
         </button>
       )}
       {pressOpen > 0 && (
-        <button className="card" style={{ borderLeft: '4px solid var(--stripe)' }}
+        <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('press')}>
           <h3>🗞️ The press want a word</h3>
           <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
@@ -267,7 +267,7 @@ export default function Home() {
           .slice(0, 3)
         if (!idle.length) return null
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
             <div className="fact-label">Blank Weekend</div>
             <div className="meta" style={{ marginBottom: 6 }}>
               No fixture this week. A friendly banks sharpness and combinations for the squad - but injuries in a meaningless game sting twice as much.
@@ -300,9 +300,9 @@ export default function Home() {
         </button>
         <button className="hub-widget" onClick={() => go('report')}>
           <label>Board</label>
-          <b style={{ color: club.boardConfidence > 55 ? '#2f7d4f' : club.boardConfidence > 25 ? '#8a7a3a' : '#9b2c2c' }}>
-            {Math.round(club.boardConfidence)}%
-          </b>
+          {/* rule 4: a key number renders in text-primary - colour belongs on
+              the delta beside it, never on the figure itself */}
+          <b>{Math.round(club.boardConfidence)}%</b>
           <span>confidence</span>
         </button>
         <button className="hub-widget" onClick={() => go('club', club.id)}>
@@ -333,7 +333,7 @@ export default function Home() {
         const resStr = (f: typeof played[0]) => {
           const us = f.homeId === club.id ? f.homeScore : f.awayScore
           const them = f.homeId === club.id ? f.awayScore : f.homeScore
-          return { txt: `${us}-${them}`, c: us > them ? '#2f7d4f' : us < them ? '#9b2c2c' : undefined }
+          return { txt: `${us}-${them}`, c: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }
         }
         return (
           <div className="dash-row">
@@ -376,7 +376,7 @@ export default function Home() {
               {out.length === 0 && <div className="dash-line"><span className="muted">A clean bill of health</span></div>}
               {out.slice(0, 4).map(p => (
                 <div key={p!.id} className="dash-line">
-                  <span className="dl-t" style={{ color: '#9b2c2c' }}>{p!.name.split(' ').slice(-1)[0]}</span>
+                  <span className="dl-t" style={{ color: 'var(--text-negative)' }}>{p!.name.split(' ').slice(-1)[0]}</span>
                   <span className="muted">{Math.max(1, p!.injury!.until - game.week)}w</span>
                 </div>
               ))}
@@ -397,7 +397,7 @@ export default function Home() {
                 const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
                 // W/L/D, not won/LOST/drew: the words plus the eyes emoji cost
                 // this half-width row 40px and the rival's name paid for it
-                return { txt: `${us > them ? 'W' : us < them ? 'L' : 'D'} ${us}-${them}`, c: us < them ? '#2f7d4f' : us > them ? '#9b2c2c' : undefined }
+                return { txt: `${us > them ? 'W' : us < them ? 'L' : 'D'} ${us}-${them}`, c: us < them ? 'var(--text-positive)' : us > them ? 'var(--text-negative)' : undefined }
               })() : null
               return (
                 <button className="dash-panel" onClick={() => go('club', rival)}>

@@ -28,7 +28,7 @@ export default function Annual() {
       <SectionTitle sub="the season is filed - honours, annals and record books all written up">
         The {label} Annual
       </SectionTitle>
-      <div className="card" style={{ borderLeft: '4px solid var(--gold, #c9a227)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <div className="meta" style={{ fontSize: 12.5 }}>
           {myPots.length > 0
             ? `A season with silverware in it: ${myPots.length === 1 ? 'one trophy' : `${myPots.length} trophies`} went in your cabinet, and the club will talk about it for years.`
@@ -42,9 +42,9 @@ export default function Annual() {
           <SectionTitle sub="who took what">Roll of Honour, {label}</SectionTitle>
           <div className="card" style={{ padding: '6px 12px' }}>
             {honours.map((h, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '4px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '4px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
                 <span className="meta">{game.comps[h.compId]?.name ?? h.compId.toUpperCase()}</span>
-                <b style={{ fontSize: 12.5, color: (game.clubs[h.champion]?.id ?? h.champion) === game.userClubId ? 'var(--accent-ink)' : undefined }}>
+                <b style={{ fontSize: 12.5, color: (game.clubs[h.champion]?.id ?? h.champion) === game.userClubId ? 'var(--info)' : undefined }}>
                   {game.clubs[h.champion]?.name ?? h.champion}
                 </b>
               </div>

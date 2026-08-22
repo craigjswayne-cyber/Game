@@ -20,15 +20,15 @@ export default function Legacy() {
         <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
         <h3 style={{ fontSize: 21, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">Director of Rugby, {club.name}</div>
-        {challenge && <div className="meta" style={{ color: '#a8841a', fontWeight: 700, marginTop: 3 }}>Challenge: {challenge.title}</div>}
+        {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>Challenge: {challenge.title}</div>}
       </div>
 
       <SectionTitle>Career Record</SectionTitle>
       <div className="chips">
         <span className="chip">Matches <b>{m.m}</b></span>
-        <span className="chip">Won <b style={{ color: '#2f7d4f' }}>{m.w}</b></span>
+        <span className="chip">Won <b style={{ color: 'var(--text-positive)' }}>{m.w}</b></span>
         <span className="chip">Drawn <b>{m.d}</b></span>
-        <span className="chip">Lost <b style={{ color: '#a12f2f' }}>{m.l}</b></span>
+        <span className="chip">Lost <b style={{ color: 'var(--danger)' }}>{m.l}</b></span>
         <span className="chip">Win rate <b>{winPct}%</b></span>
         <span className="chip">Signings <b>{m.signings}</b></span>
         <span className="chip">Spent <b>{fmtMoney(m.spent)}</b></span>
@@ -63,7 +63,7 @@ export default function Legacy() {
       ) : (
         <div className="chips">
           {m.trophies.map((t, i) => (
-            <span key={i} className="chip" style={{ borderColor: '#c9a227' }}>
+            <span key={i} className="chip" style={{ borderColor: 'var(--gold)' }}>
               🏆 <b>{game.comps[t.compId]?.name ?? t.compId}</b> {seasonLabel(t.season)}
             </span>
           ))}
@@ -90,12 +90,12 @@ export default function Legacy() {
                     <td className="name">
                       {game.comps[f.leagueId]?.name ?? f.leagueId}
                       {cups.map((t, j) => (
-                        <div key={j} style={{ color: '#a8841a', fontSize: 11, fontWeight: 700 }}>
+                        <div key={j} style={{ color: 'var(--gold)', fontSize: 11, fontWeight: 700 }}>
                           🏆 {game.comps[t.compId]?.name ?? t.compId}
                         </div>
                       ))}
                     </td>
-                    <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? '#a8841a' : undefined }}>
+                    <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? 'var(--gold)' : undefined }}>
                       {f.pos === 1 ? '🏆 1st' : ord(f.pos)}
                     </td>
                   </tr>

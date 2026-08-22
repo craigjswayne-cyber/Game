@@ -80,13 +80,13 @@ export default function Saves() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>Autosave is on</h3>
         <div className="meta">
           Your career autosaves to <b>{SLOT_NAMES[saveSlot] ?? saveSlot}</b> after every match and every few weeks.
           Use the slots below for manual backups or parallel careers.
         </div>
-        {msg && <div className="meta" style={{ color: '#2f7d4f', fontWeight: 700, marginTop: 6 }}>{msg}</div>}
+        {msg && <div className="meta" style={{ color: 'var(--text-positive)', fontWeight: 700, marginTop: 6 }}>{msg}</div>}
       </div>
 
       <SectionTitle>Save Slots</SectionTitle>
@@ -121,7 +121,7 @@ export default function Saves() {
                 {meta && (
                   confirmDel === slot
                     ? <button className="btn danger slot-act" style={{ fontSize: 12, padding: '7px 8px' }} onClick={() => void doDelete(slot)}>Sure?</button>
-                    : <button className="btn ghost slot-act" style={{ fontSize: 12, padding: '7px 14px', color: '#9b2c2c' }} onClick={() => setConfirmDel(slot)}>✕ Delete</button>
+                    : <button className="btn ghost slot-act" style={{ fontSize: 12, padding: '7px 14px', color: 'var(--text-negative)' }} onClick={() => setConfirmDel(slot)}>✕ Delete</button>
                 )}
               </div>
             </div>

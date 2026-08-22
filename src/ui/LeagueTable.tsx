@@ -52,9 +52,9 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
                 className={r.teamId === game.userClubId ? 'me' : ''}
                 onClick={() => game.clubs[r.teamId] && go('club', r.teamId)}
                 style={{
-                  ...(inPlayoffs ? { background: 'color-mix(in srgb, #c9a227 12%, transparent)' } : undefined),
-                  ...(goesDown ? { background: 'color-mix(in srgb, #9b2c2c 10%, transparent)' } : undefined),
-                  ...(playoffLine && i === playoffLine - 1 ? { borderBottom: '2px solid #c9a227' } : undefined),
+                  ...(inPlayoffs ? { background: 'color-mix(in srgb, var(--gold) 12%, transparent)' } : undefined),
+                  ...(goesDown ? { background: 'color-mix(in srgb, var(--text-negative) 10%, transparent)' } : undefined),
+                  ...(playoffLine && i === playoffLine - 1 ? { borderBottom: '2px solid var(--gold)' } : undefined),
                 }}>
                 <td className="num muted">{i + 1}</td>
                 <td className="name">

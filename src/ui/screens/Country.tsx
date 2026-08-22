@@ -70,7 +70,7 @@ export default function Country() {
       <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : ''}</td>
       <td style={{ width: 64, textAlign: 'right' }}>
         {w && (
-          <button className="btn ghost" style={{ fontSize: 12, padding: '6px 10px', color: inSquad ? '#9b2c2c' : '#2f7d4f' }}
+          <button className="btn ghost" style={{ fontSize: 12, padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
             onClick={e => { e.stopPropagation(); act(p, inSquad ? natDrop : natCallUp) }}>
             {inSquad ? 'Drop' : 'Call up'}
           </button>
@@ -85,7 +85,7 @@ export default function Country() {
         <Fragment key={p.id}>
           {row(p, inSquad)}
           {msg?.key === p.id && msg.text && (
-            <tr><td colSpan={4} className="meta" style={{ color: '#9b2c2c', paddingTop: 0 }}>{msg.text}</td></tr>
+            <tr><td colSpan={4} className="meta" style={{ color: 'var(--text-negative)', paddingTop: 0 }}>{msg.text}</td></tr>
           )}
         </Fragment>
       ))}
@@ -94,7 +94,7 @@ export default function Country() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid #2f7d4f' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
         <h3 style={{ fontSize: 17 }}>{flagOf(natId)} {nat?.name ?? natId}</h3>
         <div className="meta" style={{ marginTop: 2 }}>
           {rank > 0 ? `World No. ${rank}` : 'Unranked'} · {(game.natRank?.[natId] ?? 0).toFixed(2)} pts
@@ -102,8 +102,8 @@ export default function Country() {
         </div>
         {conf != null && (
           <div style={{ margin: '8px 2px 2px' }}>
-            <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${conf}%`, height: '100%', background: conf >= 60 ? '#2f7d4f' : conf >= 40 ? 'var(--gold)' : '#a12f2f' }} />
+            <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ width: `${conf}%`, height: '100%', background: conf >= 60 ? 'var(--text-positive)' : conf >= 40 ? 'var(--gold)' : 'var(--danger)' }} />
             </div>
             <div className="meta" style={{ marginTop: 4 }}>
               Union confidence {conf}/100 · the annual review sacks below 28
@@ -131,7 +131,7 @@ export default function Country() {
             </div>
             {confirmClub
               ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resign(); setConfirmClub(false) }}>Confirm</button>
-              : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>Step down…</button>}
+              : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>Step down…</button>}
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
@@ -142,7 +142,7 @@ export default function Country() {
           </div>
           {confirmNat
             ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>Confirm</button>
-            : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>Step down…</button>}
+            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>Step down…</button>}
         </div>
         {!club && <div className="meta">No club post - the Test job is the whole desk for now.</div>}
       </div>
@@ -188,7 +188,7 @@ export default function Country() {
             <tr key={f.id}>
               <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
               <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name ?? f.homeId} v {nationByCode(f.awayId)?.name ?? f.awayId} {flagOf(f.awayId)}</td>
-              <td className="num" style={{ fontWeight: 700, color: us > them ? '#2f7d4f' : us < them ? '#9b2c2c' : undefined }}>
+              <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
                 {f.homeScore}-{f.awayScore}
               </td>
             </tr>

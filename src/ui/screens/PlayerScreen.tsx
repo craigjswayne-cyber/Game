@@ -102,7 +102,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {p.intl ? ' · International' : ''}{p.youth ? ' · Academy graduate' : ''}
             </div>
             {club && (
-              <button className="meta club-link" style={{ color: 'var(--accent-ink)', fontWeight: 600, marginTop: 2 }}
+              <button className="meta club-link" style={{ color: 'var(--info)', fontWeight: 600, marginTop: 2 }}
                 onClick={() => go('club', club.id)}>
                 {club.name} ›
               </button>
@@ -122,7 +122,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           sign-on perks (user: "player profiles need work. they should be
           clearer"). The verdict line reads them out loud first, and every chip
           below now carries a plain-language title so a long-press explains it. */}
-      <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--red)' : p.form >= 7 ? 'var(--win)' : 'var(--gold)'}` }}>
+      <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)'}` }}>
         <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
 
@@ -131,8 +131,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
         <span className="chip" title="how he behaves: it drives contract talks, team talks and whether he mentors well">Character <b>{persKnown(game, p) ? p.pers : 'Unknown'}</b>{!persKnown(game, p) && <span className="muted" title="Who a man is takes the longest to scout - the full file reveals it"> ?</span>}</span>
         {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> caps</span>}
-        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>✨ {p.trait}</span>}
-        {!mine && <span className="chip" style={know < 55 ? { color: '#a8841a' } : undefined}>
+        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--info)', fontWeight: 700 }}>✨ {p.trait}</span>}
+        {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
           Scouted <b>{Math.round(know)}%</b></span>}
       </div>
       {!mine && (
@@ -144,21 +144,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <span className="chip" title="what the market says he is worth, not what a club would accept">Value <b>{fmtMoney(p.value)}</b></span>
         <span className="chip" title="what he costs you every week of the year">Wage <b>{fmtWage(p.wage)}/wk</b></span>
         <span className="chip" title="the summer his deal runs out. Leave it too late and he can sign elsewhere for nothing">Contract to <b>{2026 + p.contractEnds}</b></span>
-        {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: '#a8841a', color: '#a8841a', fontWeight: 700 }}>
+        {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 }}>
           💼 Agent wants new terms</span>}
-        {(p.wantsOut ?? 0) > 0 && <span className="chip" style={{ borderColor: '#9b2c2c', color: '#9b2c2c', fontWeight: 700 }}
+        {(p.wantsOut ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)', fontWeight: 700 }}
           title="he asked to leave over game time - pick him and he may withdraw it">
           🚪 Transfer request in</span>}
         <span className="chip" title="how happy he is here. Unhappy men play worse and ask to leave">Morale <b>{moraleWord(p.morale)}</b></span>
         <span className="chip" title="how fresh his legs are. Below 70% he tires badly in the last quarter">Fitness <b>{Math.round(p.cond)}%</b></span>
         <span className="chip" title="match rhythm. A man back from injury is fit but not sharp, and it shows">Sharpness <b>{Math.round(p.sharp)}%</b></span>
-        {p.injury && <span className="chip" style={{ borderColor: '#9b2c2c', color: '#9b2c2c' }}>
+        {p.injury && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)' }}>
           Injured: {p.injury.desc} (~{Math.max(0, p.injury.until - game.week)}w)</span>}
-        {p.bans > 0 && <span className="chip" style={{ color: '#9b2c2c' }}>Suspended {p.bans} match{p.bans > 1 ? 'es' : ''}</span>}
-        {p.acad && <span className="chip" style={{ color: 'var(--accent-ink)', fontWeight: 700 }}>🎓 Academy squad</span>}
+        {p.bans > 0 && <span className="chip" style={{ color: 'var(--text-negative)' }}>Suspended {p.bans} match{p.bans > 1 ? 'es' : ''}</span>}
+        {p.acad && <span className="chip" style={{ color: 'var(--info)', fontWeight: 700 }}>🎓 Academy squad</span>}
         {p.natSquad && <span className="chip">On international duty</span>}
-        {p.onLoan && <span className="chip" style={{ color: '#a8841a' }}>Away on season loan</span>}
-        {p.transferListed && <span className="chip" style={{ color: '#a8841a' }}>Transfer listed</span>}
+        {p.onLoan && <span className="chip" style={{ color: 'var(--gold)' }}>Away on season loan</span>}
+        {p.transferListed && <span className="chip" style={{ color: 'var(--gold)' }}>Transfer listed</span>}
       </div>
 
       {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
@@ -166,7 +166,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           man: praise the form or have the quiet word. The outcome is his
           personality's, not a dice roll - see chats.ts. */}
       {mine && !p.onLoan && (
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="fact-label">The Office</div>
           {chatMsg
             ? <div className="meta" style={{ fontStyle: 'italic' }}>{chatMsg}</div>
@@ -220,7 +220,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 <div className="fm-attr" key={k}>
                   <span className="fm-name">{ATTR_NAMES[k]}</span>
                   {rv != null && (
-                    <b className="fm-rival" style={{ color: v > rv ? '#2f7d4f' : v < rv ? '#9b2c2c' : 'var(--ink-faint)' }}>{rv}</b>
+                    <b className="fm-rival" style={{ color: v > rv ? 'var(--text-positive)' : v < rv ? 'var(--text-negative)' : 'var(--text-muted)' }}>{rv}</b>
                   )}
                   <b className={`fm-chip ${exact ? (v >= 80 ? 'hi' : v >= 55 ? 'mid' : 'lo') : 'rng'}`}>
                     {exact ? v : `${fineAttr(p.id, idx, lo)}-${fineAttr(p.id, idx, hi)}`}
@@ -248,18 +248,18 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         {(p.wcWins ?? 0) > 0 && <span className="chip">🏆 World Cup winner{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}
         {p.lastR != null && <span className="chip">Last match <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
         {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (
-          <span className="chip">Development <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? '#2f7d4f' : '#9b2c2c' }}>
+          <span className="chip">Development <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? 'var(--text-positive)' : 'var(--text-negative)' }}>
             {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
           </b></span>
         )}
-        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold-bright)' }}>🌟 <b>Wonderkid</b></span>}
+        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}>🌟 <b>Wonderkid</b></span>}
         {(p.poty ?? 0) > 0 && (
-          <span className="chip" style={{ borderColor: 'var(--gold-bright)' }}>
+          <span className="chip" style={{ borderColor: 'var(--gold)' }}>
             🏅 <b>World POTY{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
           </span>
         )}
         {p.retiring && !p.farewell && (
-          <span className="chip" style={{ borderColor: '#a12f2f' }} title="He has announced this season is his last">
+          <span className="chip" style={{ borderColor: 'var(--danger)' }} title="He has announced this season is his last">
             🎤 <b>Retiring in the summer</b>
           </span>
         )}
@@ -274,7 +274,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           const to = game.clubs[pc.toClubId]
           const incoming = pc.toClubId === game.userClubId
           return (
-            <span className="chip" style={{ borderColor: incoming ? 'var(--gold-bright)' : '#a12f2f' }}>
+            <span className="chip" style={{ borderColor: incoming ? 'var(--gold)' : 'var(--danger)' }}>
               🖊 <b>Pre-contract: {to?.short ?? '?'}</b>
             </span>
           )
@@ -318,7 +318,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         </>
       )}
 
-      {msg && <div ref={msgRef} className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+      {msg && <div ref={msgRef} className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         {msg}
         {counter != null && (
           <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
@@ -331,7 +331,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </div>}
 
       {termsFee != null && (
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 15 }}>✍️ Personal terms - fee agreed at {fmtMoney(termsFee)}</h3>
           <div className="meta" style={{ margin: '4px 0' }}>His camp opens at <b>£{personalTermsDemand(game, p).toLocaleString()}/wk</b>. A signing bonus or a first-team promise softens the wage.</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
@@ -382,7 +382,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           ? 'Growing into it nicely. Good marks most weeks, and the education is clearly taking.'
           : 'Getting the minutes he went for. Steady rather than spectacular.'
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
             <div className="fact-label">🧳 Out on loan</div>
             <div className="meta" style={{ marginTop: 4 }}>{verdict}</div>
             <div className="meta" style={{ marginTop: 4 }}>
@@ -453,7 +453,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   signed was several screenfuls above the thumb that tapped. */}
               {talkOutcome ? (
                 <>
-                  <div className="sheet-casualty" style={{ borderLeftColor: talkSigned ? '#2f7d4f' : '#9b2c2c' }}>
+                  <div className="sheet-casualty" style={{ borderLeftColor: talkSigned ? 'var(--text-positive)' : 'var(--text-negative)' }}>
                     {talkSigned ? '🖊 ' : '💬 '}{talkOutcome}
                   </div>
                   {talkSigned

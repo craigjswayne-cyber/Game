@@ -8,7 +8,7 @@ import { regenName } from './nations'
 export type StaffRole = keyof StaffLevels
 
 export const BADGE = ['Unbadged', 'Bronze', 'Silver', 'Gold']
-export const BADGE_COL = ['#8a8a8a', '#b07a4e', '#9aa6b2', '#c9a227']
+export const BADGE_COL = ['var(--text-muted)', 'var(--prop-tee-edge)', 'var(--text-secondary)', 'var(--gold)']
 
 /** Pass rate for a coaching course. Hard number, straight from the brief. */
 export const EXAM_PASS_PCT = 58

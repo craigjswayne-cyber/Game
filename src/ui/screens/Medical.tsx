@@ -76,7 +76,7 @@ export default function Medical() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--stripe)', padding: '8px 14px' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
         <div className="meta">
           🏥 <b>{game.staffPeople?.physio ? `${game.staffPeople.physio.name} (${BADGE[game.staff.physio].toLowerCase()} badge)` : 'Head Physio'}</b>
           {game.staff.physio === 0
@@ -92,7 +92,7 @@ export default function Medical() {
       </div>
 
       {allClear && (
-        <div className="card center" style={{ borderLeft: '4px solid #2f7d4f' }}>
+        <div className="card center" style={{ borderLeft: '4px solid var(--text-positive)' }}>
           <h3 style={{ fontSize: 15 }}>{q ? 'Nothing on him' : '✅ A quiet treatment room'}</h3>
           <div className="meta">{q
             ? 'No player matching that search is injured, suspended, rusty or short of a gallop.'
@@ -101,7 +101,7 @@ export default function Medical() {
       )}
 
       {section('Treatment Room', `ruled out - a specialist consult (${fmtMoney(SPECIALIST_FEE)}) can shorten a long lay-off`, injured, p => (
-        <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>
           {p.injury!.desc} · {Math.max(1, p.injury!.until - game.week)}w
           {!p.specialist && p.injury!.until - game.week >= 3 && (
             <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
@@ -113,11 +113,11 @@ export default function Medical() {
       ))}
 
       {section('Red Zone - season load', '1,300+ minutes: they break easier and tire faster. Rest them.', loaded, p => (
-        <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>🔋 {p.stats.mins}′ this season</span>
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>🔋 {p.stats.mins}′ this season</span>
       ))}
 
       {section('Returning from Injury', 'playable, but a rushed return risks a breakdown · one man a week can be wrapped in cotton wool', rusty, p => (
-        <span style={{ color: '#a8841a', fontWeight: 700, fontSize: 12 }}>
+        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>
           ⚠ RUSTY {p.rust}w
           {game.cottonWk !== game.season * 100 + game.week && (
             <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
@@ -129,7 +129,7 @@ export default function Medical() {
       ))}
 
       {section('Suspended', 'serving bans', banned, p => (
-        <span style={{ color: '#9b2c2c', fontWeight: 700, fontSize: 12 }}>{p.bans} match{p.bans > 1 ? 'es' : ''}</span>
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{p.bans} match{p.bans > 1 ? 'es' : ''}</span>
       ))}
 
       {section('Running on Fumes', 'condition under 62% - consider resting', tired, p => (
@@ -137,7 +137,7 @@ export default function Medical() {
       ))}
 
       {section('Away from the Club', 'international duty & loans', away, p => (
-        <span style={{ color: '#a8841a', fontWeight: 700, fontSize: 12 }}>{p.onLoan ? 'ON LOAN' : 'INTL DUTY'}</span>
+        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>{p.onLoan ? 'ON LOAN' : 'INTL DUTY'}</span>
       ))}
       <div className="spacer" />
     </>

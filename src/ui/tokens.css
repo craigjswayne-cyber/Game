@@ -46,7 +46,7 @@
   --primary-hover: #4ed88c;
   --primary-pressed: #1e8c4e;
   --primary-tint: #17332a;
-  --on-primary: #0b1310;
+  --on-primary: #070d0a;
 
   /* the value gold. --gold is the TEXT form; --gold-fill is the chip/
      surface form with dark text on it. Night's brief gave one gold, so
@@ -69,6 +69,17 @@
   /* the hero gradient: club header and matchday hero ONLY. Never behind
      body text or a data table. */
   --hero-gradient: linear-gradient(135deg, #16523a, #1e8c4e);
+
+  /* stage-2 support (judgement calls, see docs/palette-migration.md):
+     text ON the hero gradient; the modal scrim; the tactics-board pitch,
+     which the brief wants as a desaturated dark green in its own right */
+  --on-hero: #f0f4f2;
+  --on-hero-soft: #b9cfc2;
+  --scrim: rgba(0, 0, 0, 0.65);
+  --pitch-a: #1d4a35;
+  --pitch-b: #1a4330;
+  --on-danger: #2b0e0b;
+  --on-info: #0d1b26;
 }
 
 /* ---------------- day ---------------- */
@@ -104,6 +115,14 @@
   --info: #185fa5;
 
   --hero-gradient: linear-gradient(135deg, #0a5730, #0f7a43);
+
+  --on-hero: #ffffff;
+  --on-hero-soft: #cfe3d6;
+  --scrim: rgba(20, 32, 27, 0.45);
+  --pitch-a: #2e7a52;
+  --pitch-b: #2a7050;
+  --on-danger: #ffffff;
+  --on-info: #ffffff;
 }
 
 /* ---------------- semantic aliases ----------------
@@ -148,6 +167,25 @@
   --ramp-g1: #e2f1e7; --ramp-g2: #bfe5cf; --ramp-g3: #8edbaf;
   --ramp-g4: #4ed88c; --ramp-g5: #34c06f; --ramp-g6: #1e8c4e;
   --ramp-g7: #0f7a43; --ramp-g8: #0a5730; --ramp-g9: #17332a;
+}
+
+/* ---------------- match-scene props ----------------
+   Physical objects drawn on screen: the referee's cards, the ball, the
+   posts, the kicking tee. A yellow card is yellow in BOTH modes - these
+   are depictions, not interface colour, which is why they sit outside
+   the two-accent rule. Same values in both modes on purpose. */
+:root, .app {
+  --prop-yellow: #f2c200;
+  --prop-yellow-deep: #e0b400;
+  --prop-red: #c0392f;
+  --prop-red-deep: #a31207;
+  --prop-white: #f3f5f8;
+  --prop-cream: #fdf9ee;
+  --prop-cream-deep: #e4d9bd;
+  --prop-tee: #e8d9b0;
+  --prop-tee-edge: #9a7b3f;
+  --prop-ink: #ffffff;
+  --prop-ink-dark: #1d2733;
 }
 
 /* ---------------- focus and disabled, as rules ---------------- */

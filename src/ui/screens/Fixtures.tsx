@@ -49,10 +49,10 @@ export default function Fixtures() {
   // that tells you to go to the other page to change which table you are on
   const chips = (
     <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap', alignItems: 'center' }}>
-      <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+      <button className="preset-chip" style={comp === 'ALL' ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
         onClick={() => setComp('ALL')}>{page === 'table' ? 'My league' : 'All comps'}</button>
       {comps.map(cid => (
-        <button key={cid} className="preset-chip" style={comp === cid ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+        <button key={cid} className="preset-chip" style={comp === cid ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
           onClick={() => setComp(cid)}>{game.comps[cid]?.short ?? (cid === 'fr' ? 'Friendly' : cid)}</button>
       ))}
       {/* Played and To Come are gone at the user's request. The list is in date

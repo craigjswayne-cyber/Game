@@ -90,7 +90,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {club.id === game.userClubId && (() => {
             const m = game.fanMood ?? 60
             const word = m >= 80 ? 'Bouncing' : m >= 62 ? 'Behind you' : m >= 45 ? 'Watching' : m >= 30 ? 'Restless' : 'Mutinous'
-            return <span className="chip" style={{ color: m >= 62 ? '#2f7d4f' : m <= 30 ? '#9b2c2c' : undefined }}>Fans <b>{word}</b></span>
+            return <span className="chip" style={{ color: m >= 62 ? 'var(--text-positive)' : m <= 30 ? 'var(--text-negative)' : undefined }}>Fans <b>{word}</b></span>
           })()}
           <span className="chip">Squad <b>{players.length}</b></span>
           <span className="chip">Squad value <b>{fmtMoney(squadValue(game, club.id))}</b></span>
@@ -98,9 +98,9 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             const rec = game.vsBook?.[club.id]
             if (!rec || rec.w + rec.d + rec.l === 0) return null
             return <>
-              <span className="chip">Your record <b style={{ color: rec.w > rec.l ? '#2f7d4f' : rec.w < rec.l ? '#9b2c2c' : undefined }}>{rec.w}W {rec.d}D {rec.l}L</b></span>
+              <span className="chip">Your record <b style={{ color: rec.w > rec.l ? 'var(--text-positive)' : rec.w < rec.l ? 'var(--text-negative)' : undefined }}>{rec.w}W {rec.d}D {rec.l}L</b></span>
               {Math.abs(rec.run ?? 0) >= 3 && (
-                <span className="chip" style={{ color: (rec.run ?? 0) > 0 ? '#2f7d4f' : '#9b2c2c' }}>
+                <span className="chip" style={{ color: (rec.run ?? 0) > 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
                   {(rec.run ?? 0) > 0 ? `Won last ${rec.run}` : `Lost last ${-(rec.run ?? 0)}`}
                 </span>
               )}
@@ -148,7 +148,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <div className="meta" style={{ padding: '2px 0' }}>
                 🏆 {seasons ? `${seasons} ${seasons === 1 ? 'title' : 'titles'} won since you arrived` : 'No silverware in the book yet. Champions are crowned in May.'}
               </div>
-              <div className="meta" style={{ marginTop: 6, color: 'var(--ink-faint)' }}>
+              <div className="meta" style={{ marginTop: 6, color: 'var(--text-muted)' }}>
                 A man joins the Legends list at 100 appearances here, the honours board fills in every
                 May, and record gates and derby ledgers appear the first time you set one.
               </div>
@@ -227,12 +227,12 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               <div className="meta" style={{ paddingBottom: rows.length ? 6 : 0 }}>{verdict}</div>
               {rows.map(({ p, why }) => (
                 <div key={p.id} onClick={() => go('player', p.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: '1px solid var(--hairline)', cursor: 'pointer' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: '1px solid var(--border)', cursor: 'pointer' }}>
                   <span style={{ fontWeight: 700, minWidth: 0, flex: 1 }}>
                     {p.name} <span className="muted" style={{ fontWeight: 400 }}>({p.pos})</span>
                   </span>
                   <span className="muted" style={{ fontSize: 12, textAlign: 'right' }}>{why.join(' · ')}</span>
-                  <b style={{ color: p.morale <= 4 ? '#9b2c2c' : p.morale <= 6 ? 'var(--ink-soft)' : '#2f7d4f' }}>
+                  <b style={{ color: p.morale <= 4 ? 'var(--text-negative)' : p.morale <= 6 ? 'var(--text-secondary)' : 'var(--text-positive)' }}>
                     {p.morale.toFixed(0)}
                   </b>
                 </div>
@@ -254,7 +254,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             <SectionTitle sub="what this era will be remembered for">Era Records</SectionTitle>
             <div className="card">
               {legend && (
-                <div className="meta" style={{ padding: '3px 0', color: 'var(--accent-ink)', fontWeight: 700 }}>
+                <div className="meta" style={{ padding: '3px 0', color: 'var(--info)', fontWeight: 700 }}>
                   🗽 Club legend - voted by the supporters' trust, forever
                 </div>
               )}
@@ -271,7 +271,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
               )}
               {derbies.map(([cid, r]) => (
                 <div key={cid} className="meta" style={{ padding: '3px 0' }}>
-                  🔥 v {game.clubs[cid]?.short ?? cid}: <b style={{ color: r.w > r.l ? '#2f7d4f' : r.w < r.l ? '#9b2c2c' : undefined }}>{r.w}W {r.d}D {r.l}L</b>
+                  🔥 v {game.clubs[cid]?.short ?? cid}: <b style={{ color: r.w > r.l ? 'var(--text-positive)' : r.w < r.l ? 'var(--text-negative)' : undefined }}>{r.w}W {r.d}D {r.l}L</b>
                   {r.w > r.l ? <span className="muted"> - bragging rights held</span> : r.w < r.l ? <span className="muted"> - they hold the whip hand</span> : null}
                 </div>
               ))}

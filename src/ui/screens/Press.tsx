@@ -25,7 +25,7 @@ export default function Press() {
           </div>
           <div className="press-q">“{item.question}”</div>
           {item.playerId != null && game.players[item.playerId] && (
-            <button className="muted" style={{ padding: '0 14px 8px', fontWeight: 600, color: 'var(--accent-ink)' }}
+            <button className="muted" style={{ padding: '0 14px 8px', fontWeight: 600, color: 'var(--info)' }}
               onClick={() => go('player', item.playerId!)}>
               View {game.players[item.playerId].name} ›
             </button>
@@ -38,7 +38,7 @@ export default function Press() {
               </button>
             ))}
           </div>
-          <hr style={{ border: 'none', borderTop: '2px solid var(--cream-3)', margin: '0 14px' }} />
+          <hr style={{ border: 'none', borderTop: '2px solid var(--border-strong)', margin: '0 14px' }} />
         </div>
       ))}
       {past.length > 0 && (

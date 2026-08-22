@@ -139,9 +139,9 @@ function MondayBlocks() {
         const them = home ? mine.awayScore : mine.homeScore
         const oppId = home ? mine.awayId : mine.homeId
         const verdict = us > them ? 'Won' : us < them ? 'Lost' : 'Drew'
-        const col = us > them ? 'var(--win)' : us < them ? 'var(--red)' : undefined
+        const col = us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : undefined
         return (
-          <div className="card" style={{ borderLeft: `4px solid ${us > them ? 'var(--win)' : us < them ? 'var(--red)' : 'var(--gold)'}` }}>
+          <div className="card" style={{ borderLeft: `4px solid ${us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : 'var(--gold)'}` }}>
             <div className="fact-label">Saturday, reviewed</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={22} />
@@ -171,7 +171,7 @@ function MondayBlocks() {
               <div key={line} className="meta" style={{ padding: '2px 0' }}>🏥 {line}</div>
             ))}
             {med.back.map(line => (
-              <div key={line} className="meta" style={{ padding: '2px 0', color: 'var(--win)' }}>🟢 {line}</div>
+              <div key={line} className="meta" style={{ padding: '2px 0', color: 'var(--text-positive)' }}>🟢 {line}</div>
             ))}
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('medical')}>
               Medical Centre ▸
@@ -191,7 +191,7 @@ function TuesdayBlocks() {
   return (
     <>
       {waiting > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="fact-label">🎙 The press are waiting</div>
           <div className="meta">
             {waiting === 1 ? 'One question' : `${waiting} questions`} you have not answered. Say nothing and
@@ -242,7 +242,7 @@ function WednesdayBlocks() {
           {' '}Transfer budget <b>{fmtMoney(club?.budget ?? 0)}</b>.
         </div>
         {offers > 0 && (
-          <div className="meta" style={{ marginTop: 3, color: 'var(--accent-ink)', fontWeight: 700 }}>
+          <div className="meta" style={{ marginTop: 3, color: 'var(--info)', fontWeight: 700 }}>
             {offers === 1 ? 'One bid' : `${offers} bids`} on your players need answering.
           </div>
         )}
@@ -323,7 +323,7 @@ function FridayBlocks() {
         const opp = game.clubs[oppId]
         const read = analystRead(game, oppId)
         return (
-          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
             <div className="fact-label">Tomorrow</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={26} />
@@ -358,7 +358,7 @@ function FridayBlocks() {
                   {pos ? `${ordinal(pos)} in the ${lg.short}` : ''}
                   {pos && last5.length ? ' · ' : ''}
                   {last5.length ? <>form {last5.map((r, i) => (
-                    <b key={i} style={{ color: r === 'W' ? '#2f7d4f' : r === 'L' ? '#a12f2f' : '#a8841a', marginLeft: i ? 3 : 4 }}>{r}</b>
+                    <b key={i} style={{ color: r === 'W' ? 'var(--text-positive)' : r === 'L' ? 'var(--danger)' : 'var(--gold)', marginLeft: i ? 3 : 4 }}>{r}</b>
                   ))}</> : ''}
                 </div>
               )
@@ -383,7 +383,7 @@ function FridayBlocks() {
             })()}
             {read && (
               <div className="meta" style={{ marginTop: 6 }}>
-                <b style={{ color: '#a8841a' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
+                <b style={{ color: 'var(--gold)' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
               </div>
             )}
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('tactics')}>

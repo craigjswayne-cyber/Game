@@ -68,7 +68,7 @@ export default function Offers() {
         </div>
       </div>
       <div style={{ padding: 14 }}>
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="offer-head">
             <CrestT g={game} teamId={bidder.id} size={34} />
             <div>
@@ -88,7 +88,7 @@ export default function Offers() {
 
           <div className="meta" style={{ marginTop: 6 }}>
             Valued at {fmtMoney(p.value)}, so this is{' '}
-            <b style={{ color: over > 0 ? 'var(--win)' : 'var(--red)' }}>
+            <b style={{ color: over > 0 ? 'var(--text-positive)' : 'var(--danger)' }}>
               {over > 0 ? `${fmtMoney(over)} over` : over < 0 ? `${fmtMoney(-over)} under` : 'exactly'}
             </b>{' '}the valuation. He is a <b>{STATUS_BY_ID[st].name.toLowerCase()}</b>, on {fmtWage(p.wage)}/wk
             until the end of {2026 + p.contractEnds - game.season - 1}.
@@ -99,7 +99,7 @@ export default function Offers() {
               : `Cover behind him: ${cover.slice(0, 2).map(x => x.name).join(', ')}${cover.length > 2 ? ` and ${cover.length - 2} more` : ''}.`}
           </div>
           {deadline && (
-            <div className="meta" style={{ color: 'var(--red)', fontWeight: 700 }}>
+            <div className="meta" style={{ color: 'var(--danger)', fontWeight: 700 }}>
               🚨 The window shuts within days. Refuse this and there may be no second bid.
             </div>
           )}

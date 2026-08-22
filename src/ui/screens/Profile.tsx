@@ -8,10 +8,10 @@ import { SectionTitle } from '../components'
 
 /** Coaching badge tiers, earned through reputation. */
 export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
-  if (rep >= 85) return { name: 'Platinum Badge', icon: '💎', color: '#7fb4c9', next: null, at: null }
-  if (rep >= 70) return { name: 'Gold Badge', icon: '🥇', color: '#c9a227', next: 'Platinum', at: 85 }
-  if (rep >= 55) return { name: 'Silver Badge', icon: '🥈', color: '#9aa5ad', next: 'Gold', at: 70 }
-  return { name: 'Bronze Badge', icon: '🥉', color: '#a8763a', next: 'Silver', at: 55 }
+  if (rep >= 85) return { name: 'Platinum Badge', icon: '💎', color: 'var(--info)', next: null, at: null }
+  if (rep >= 70) return { name: 'Gold Badge', icon: '🥇', color: 'var(--gold)', next: 'Platinum', at: 85 }
+  if (rep >= 55) return { name: 'Silver Badge', icon: '🥈', color: 'var(--text-secondary)', next: 'Gold', at: 70 }
+  return { name: 'Bronze Badge', icon: '🥉', color: 'var(--prop-tee-edge)', next: 'Silver', at: 55 }
 }
 
 interface Speciality {
@@ -106,7 +106,7 @@ export default function Profile() {
         <div style={{ margin: '8px 30px 2px' }}>
           {/* from 20, not 30: an unproven manager now starts on 22 and the old
               floor drew him a negative bar */}
-          <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ width: `${Math.max(0, Math.min(100, Math.round(((rep - 20) / 75) * 100)))}%`, height: '100%', background: badge.color }} />
           </div>
           <div className="meta" style={{ marginTop: 4 }}>
@@ -114,8 +114,8 @@ export default function Profile() {
           </div>
           {/* Trust has to be visible or it is just a hidden coefficient - the
               same mistake the analyst's read made before it paid out. */}
-          <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', marginTop: 8 }}>
-            <div style={{ width: `${Math.round(trust)}%`, height: '100%', background: trust >= 68 ? '#2f7d4f' : trust >= 40 ? 'var(--gold)' : '#a12f2f' }} />
+          <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', marginTop: 8 }}>
+            <div style={{ width: `${Math.round(trust)}%`, height: '100%', background: trust >= 68 ? 'var(--text-positive)' : trust >= 40 ? 'var(--gold)' : 'var(--danger)' }} />
           </div>
           <div className="meta" style={{ marginTop: 4 }}>
             Dressing room {Math.round(trust)}/100 · {trustWord(trust)}
@@ -130,7 +130,7 @@ export default function Profile() {
             const a = standing(game)
             if (game.unemployed) return null
             return (
-              <div className="meta" style={{ marginTop: 6, fontSize: 11, color: a.bite > 0.35 ? '#9b2c2c' : undefined }}>
+              <div className="meta" style={{ marginTop: 6, fontSize: 11, color: a.bite > 0.35 ? 'var(--text-negative)' : undefined }}>
                 Squad standing {a.profile}/100 against your {a.rep}. {standingWord(a)}
                 {a.bite > 0.05 && ` Training patterns take ${Math.round((1 - a.familiarity) * 100)}% longer to drill while it lasts.`}
               </div>
@@ -140,7 +140,7 @@ export default function Profile() {
       </div>
 
       {game.natOffer && (
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 15 }}>🌍 {game.natOffer.nat} want you as national head coach</h3>
           <div className="meta">
             Coach the national side alongside your club. In Test windows you take charge on match day when your
@@ -160,20 +160,20 @@ export default function Profile() {
             <div className="meta">
               Test weeks are yours when the club calendar allows.
               {game.natConfidence != null && (
-                <> Union confidence: <b style={{ color: game.natConfidence >= 60 ? '#2f7d4f' : game.natConfidence >= 40 ? 'var(--ink-soft)' : '#9b2c2c' }}>{Math.round(game.natConfidence)}%</b></>
+                <> Union confidence: <b>{Math.round(game.natConfidence)}%</b></>
               )}
             </div>
           </div>
           {confirmNatResign
             ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>Confirm</button>
-            : <button className="btn ghost" style={{ fontSize: 12, color: '#9b2c2c' }} onClick={() => setConfirmNatResign(true)}>Step down…</button>}
+            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => setConfirmNatResign(true)}>Step down…</button>}
         </div>
       )}
       {/* the international record outlives the job (user: "your international
           record still stays on your profile") - every tenure, closed or
           current, stays on the CV for good */}
       {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
-        <div className="card" style={{ borderLeft: '4px solid #2f7d4f' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
           <h3 style={{ fontSize: 15 }}>🌍 International Record</h3>
           {(game.natHistory ?? []).map((t, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
@@ -188,7 +188,7 @@ export default function Profile() {
         </div>
       )}
       {(game.challengesDone ?? []).length > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 15 }}>🏅 Challenges Conquered</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>
@@ -220,10 +220,10 @@ export default function Profile() {
       {!game.unemployed && (
         <div style={{ padding: '8px 14px 0' }}>
           <div className="fact-label">Board Confidence</div>
-          <div style={{ height: 9, background: 'var(--cream-3)', borderRadius: 5, overflow: 'hidden', marginTop: 4 }}>
+          <div style={{ height: 9, background: 'var(--border-strong)', borderRadius: 5, overflow: 'hidden', marginTop: 4 }}>
             <div style={{
               width: `${club.boardConfidence}%`, height: '100%',
-              background: club.boardConfidence > 55 ? '#2f7d4f' : club.boardConfidence > 25 ? '#c9a227' : '#9b2c2c',
+              background: club.boardConfidence > 55 ? 'var(--primary)' : club.boardConfidence > 25 ? 'var(--gold-fill)' : 'var(--danger)',
             }} />
           </div>
         </div>
@@ -247,11 +247,11 @@ export default function Profile() {
         <SectionTitle sub="what you chose, and what it did">Decisions</SectionTitle>
         <div className="card" style={{ padding: '6px 10px' }}>
           {game.decisions!.slice(0, 12).map((d, i) => (
-            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}>
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
               <span className="muted" style={{ fontFamily: 'var(--cond)', fontSize: 11, minWidth: 62, flexShrink: 0 }}>
                 {seasonLabel(d.season)} w{d.week}
               </span>
-              <span style={{ flexShrink: 0, color: d.good === true ? '#2f7d4f' : d.good === false ? '#9b2c2c' : '#8a7a3a', fontWeight: 700 }}>
+              <span style={{ flexShrink: 0, color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
                 {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
               </span>
               <span className="meta" style={{ fontSize: 11.5 }}>{d.text}</span>
@@ -299,7 +299,7 @@ export default function Profile() {
         {!game.unemployed && (
           confirmResign
             ? <button className="btn danger" onClick={() => resign()}>Confirm - Walk Away</button>
-            : <button className="btn ghost" style={{ color: '#9b2c2c' }} onClick={() => setConfirmResign(true)}>Resign…</button>
+            : <button className="btn ghost" style={{ color: 'var(--text-negative)' }} onClick={() => setConfirmResign(true)}>Resign…</button>
         )}
       </div>
       <div className="spacer" />

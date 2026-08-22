@@ -24,9 +24,9 @@ import { kitPattern, type KitPattern } from '../game/kits'
  * They are what makes it read as a ball at 20px, where actual lacing turns to mud.
  */
 export function BrandMark({ size = 64, inverse = false }: { size?: number; inverse?: boolean }) {
-  const disc = inverse ? '#1b3468' : '#2e57ab'
-  const ring = inverse ? '#eef3fb' : '#dbe6f6'
-  const line = inverse ? '#0d1f3f' : '#1b3468'
+  const disc = inverse ? 'var(--ramp-g8)' : 'var(--ramp-g7)'
+  const ring = 'var(--prop-white)'
+  const line = 'var(--ramp-g9)'
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
       <circle cx="32" cy="32" r="32" fill={disc} />
@@ -34,7 +34,7 @@ export function BrandMark({ size = 64, inverse = false }: { size?: number; inver
       {/* the ball: an ellipse rotated off the horizontal, keylined in deep navy */}
       <g transform="rotate(-32 32 32)">
         <ellipse cx="32" cy="32" rx="16.2" ry="22.6" fill={line} />
-        <ellipse cx="32" cy="32" rx="13.6" ry="20.0" fill="#ffffff" />
+        <ellipse cx="32" cy="32" rx="13.6" ry="20.0" fill="var(--prop-white)" />
         {/* the light on the leather: one hook top-left, one bottom-right */}
         <path d="M31.4 12.4 C24.4 18.6 22.0 25.8 22.6 33.6 C24.4 26.6 26.4 20.4 33.2 13.8 Z" fill={line} />
         <path d="M32.6 51.6 C39.6 45.4 42.0 38.2 41.4 30.4 C39.6 37.4 37.6 43.6 30.8 50.2 Z" fill={line} />
@@ -133,7 +133,7 @@ export function PosBadge({ pos }: { pos: string }) {
 }
 
 export function FormPill({ v }: { v: number }) {
-  const bg = v >= 7.5 ? '#2f7d4f' : v >= 6 ? '#6f8f4f' : v >= 4.5 ? '#8a7a3a' : '#9b2c2c'
+  const bg = v >= 7.5 ? 'var(--text-positive)' : v >= 6 ? 'var(--primary-pressed)' : v >= 4.5 ? 'var(--border-strong)' : 'var(--text-negative)'
   return <span className="form-pill" style={{ background: bg }}>{v.toFixed(1)}</span>
 }
 
@@ -152,13 +152,13 @@ export function Stars({ ca }: { ca: number }) {
   // number 20" - row 20 was the one three-star man in a list of halves).
   // Every glyph gets the same 1em cell, so five cells is five ems on every row.
   return (
-    <span style={{ color: '#a8841a', fontSize: 11 }}>
+    <span style={{ color: 'var(--gold)', fontSize: 11 }}>
       {Array.from({ length: 5 }, (_, i) => {
         const lit = i < full
         const isHalf = i === full && half
         return (
           <span key={i} style={{ display: 'inline-block', width: '1em', textAlign: 'center',
-            color: lit || isHalf ? undefined : 'var(--star-empty)' }}>
+            color: lit || isHalf ? undefined : 'var(--text-muted)' }}>
             {isHalf ? '½' : '★'}
           </span>
         )
@@ -168,11 +168,11 @@ export function Stars({ ca }: { ca: number }) {
 }
 
 export function availabilityTag(p: Player, week: number): { txt: string; color: string } | null {
-  if (p.injury) return { txt: `INJ ${Math.max(0, p.injury.until - week)}w`, color: '#9b2c2c' }
-  if (p.bans > 0) return { txt: `BAN ${p.bans}`, color: '#9b2c2c' }
-  if (p.natSquad) return { txt: 'INTL', color: '#a8841a' }
-  if ((p.rust ?? 0) > 0) return { txt: `⚠ RUSTY ${p.rust}w`, color: '#a8841a' }
-  if (p.loanFrom) return { txt: 'ON LOAN HERE', color: '#3a68c4' }
+  if (p.injury) return { txt: `INJ ${Math.max(0, p.injury.until - week)}w`, color: 'var(--text-negative)' }
+  if (p.bans > 0) return { txt: `BAN ${p.bans}`, color: 'var(--text-negative)' }
+  if (p.natSquad) return { txt: 'INTL', color: 'var(--gold)' }
+  if ((p.rust ?? 0) > 0) return { txt: `⚠ RUSTY ${p.rust}w`, color: 'var(--gold)' }
+  if (p.loanFrom) return { txt: 'ON LOAN HERE', color: 'var(--info)' }
   return null
 }
 
@@ -267,9 +267,9 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
           <stop offset="1" stopColor="#000" stopOpacity=".08" />
         </linearGradient>
         <linearGradient id={gold} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#f0dc95" />
-          <stop offset=".45" stopColor="#c9a227" />
-          <stop offset="1" stopColor="#8a6a12" />
+          <stop offset="0" stopColor="var(--gold-fill)" />
+          <stop offset=".45" stopColor="var(--gold-fill)" />
+          <stop offset="1" stopColor="var(--gold-fill)" />
         </linearGradient>
       </defs>
       <path d={SHIELD} fill={c1} />
@@ -291,7 +291,7 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
         x="12" y={wide ? 16.6 : 16.4} textAnchor="middle"
         fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
         fontWeight="700" fontSize={wide ? 8.6 : 12.4} letterSpacing={wide ? '-.35' : '.1'}
-        fill="#ffffff" stroke="rgba(0,0,0,.55)" strokeWidth={wide ? 0.7 : 1.1}
+        fill="var(--prop-white)" stroke="rgba(0,0,0,.55)" strokeWidth={wide ? 0.7 : 1.1}
         paintOrder="stroke"
         style={{ paintOrder: 'stroke' }}
       >{letter}</text>
@@ -321,7 +321,7 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
         <path d="M34 8 L38 14 L33 17 L31 12 Z" fill={c2} opacity=".9" />
       </g>
       <path d={BODY} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.2" />
-      <path d="M20 4 L24 8 L28 4" fill="none" stroke="#f7f3e8" strokeWidth="1.6" />
+      <path d="M20 4 L24 8 L28 4" fill="none" stroke="var(--prop-cream)" strokeWidth="1.6" />
     </svg>
   )
 }
@@ -335,8 +335,8 @@ export function CrestT({ g, teamId, size = 16 }: { g: GameState; teamId: string;
 
 /** Colour for an attribute bar by value. */
 export function attrBarColor(v: number): string {
-  if (v >= 16) return 'linear-gradient(90deg, #e3b92e, #a8841a)'
-  if (v >= 12) return 'linear-gradient(90deg, #3f9463, #2f7d4f)'
-  if (v >= 8) return 'linear-gradient(90deg, #9aa89f, #7d8b82)'
-  return 'linear-gradient(90deg, #c9beab, #b3a78f)'
+  if (v >= 16) return 'var(--gold-fill)'
+  if (v >= 12) return 'var(--primary)'
+  if (v >= 8) return 'var(--border-strong)'
+  return 'var(--surface-3)'
 }
