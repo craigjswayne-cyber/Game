@@ -729,3 +729,44 @@ The lesson for the next dial: an age-banded or membership-changing cohort is
 not a fixed population, so a like-for-like comparison has to be age-matched
 and mint-fresh. If a number moves over seasons, first ask whether the thing
 being counted is still the same thing.
+
+
+## The Playbook is built (waves 3-5, Aug 2026)
+
+All five waves now exist. Waves 3-5 in one round, each behind a probe:
+
+- **Wave 3, career.ts** - the manager has an AGE. It advances at the rollover,
+  the door opens at 62 with a letter, and 70 is a hard stop with a graded
+  verdict (A+ to F, measured at both extremes: empty career F/0, decade of
+  silverware A+/100). Continue refuses once retired. The verdict is computed,
+  never stored, and the ENGINE NEVER READS AGE - no decline, no wisdom bonus -
+  so it cannot move the fingerprint.
+- **Wave 4, living.ts** - club intent (rebuild/consolidate/allin/breakup) biases
+  the AI market, and one rival hunts your talisman across a season in four
+  escalating stages ending in a bid. Gated on mulberry32 over season/club/player
+  hashes, NEVER the shared match rng, so a hunt cannot move a result.
+  CALIBRATION LESSON: the rebuild threshold was first set at mean squad age
+  28.6 and fired for ONE club in a hundred. Senior squads here run 24.2-28.9,
+  median 26.2 - measure the distribution before picking a threshold on it.
+- **Wave 5, records.ts** - the era's record book (stored, because fixtures are
+  wiped each summer), plus proteges and the nemesis as PURE LENSES over state
+  that already existed (homegrown, vsBook). Named `era` not `records`:
+  GameState already had a `records`.
+
+Conventions these rounds reinforced, worth keeping:
+
+- A probe that measures a CALENDAR rather than a PROPERTY will break on any
+  balance change. Three did in the toughness round (bossprobe, memoprobe,
+  round25c all assumed a sleepwalking manager keeps his job; he does not any
+  more) and one in the rating round (chaosprobe gave a zeroed board 12 weeks to
+  sack somebody, it now takes 15). Hold the board off with boardConfidence when
+  the walk is not the thing under test.
+- A new mechanic that produces a legal-but-novel value will trip old sanity
+  checks. Administration's minus-ten did it three times: worldcheck, invariants
+  and capprobe/extremes all rejected negative table points. Teach the invariant,
+  do not weaken it - each now allows a negative only as far as a deduction the
+  save can name.
+- Anything added to a player's event credit reaches FORM, and form drives the
+  auto-picker, so it changes selection and therefore results. Keep collective
+  verdicts out of `own` (the team term and now the pack term both are), or the
+  before/after comparison you are trying to make becomes unmeasurable.
