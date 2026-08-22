@@ -1255,6 +1255,11 @@ export interface GameState {
    *  manager does not: Continue refuses and the Legacy screen shows the
    *  verdict instead of the horizon. */
   retired?: { season: number; age: number; forced: boolean; grade: string; score: number }
+  /** The season's talisman hunt (living.ts): one rival circling one of your
+   *  players, in stages, so losing him is the end of a story you watched
+   *  rather than an alert that arrived. One per season; cleared when the
+   *  season turns or the player leaves. */
+  hunt?: { clubId: string; playerId: number; stage: 0 | 1 | 2 | 3; season: number }
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */

@@ -1,6 +1,7 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
+import { advanceHunt } from './living'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
@@ -2564,6 +2565,8 @@ export function processWeekAndAdvance(state: GameState) {
   aiFireSale(state)
   // and the manager gets a year's notice before the same thing happens to him
   insolvencyWarning(state)
+  // one rival, one of your players, all season (living.ts)
+  advanceHunt(state)
   // THE MAN IN THE OTHER DUGOUT (C3). One voice, once a month at most, and a
   // sacking when his season collapses. Gated on the calendar and the table, never
   // on the shared rng - a quote that moved the sim stream would change results by
