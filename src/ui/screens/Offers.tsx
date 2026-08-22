@@ -19,7 +19,11 @@ export default function Offers() {
   const game = useStore(s => s.game)!
   useStore(s => s.tick)
   const { touch, continueWeek, go } = useStore.getState()
-  const [msg, setMsg] = useState<string | null>(null)
+  // KEYED TO THE OFFER THAT WAS ANSWERED. As a bare string this rendered inside
+  // EVERY offer card at once (the line lives in the per-offer body), so
+  // rejecting the second bid printed "you turned it down" under the first and
+  // third as well - three clubs appearing to have been answered by one tap.
+  const [msg, setMsg] = useState<{ key: number; text: string } | null>(null)
 
   const pending = game.offers.filter(o => o.status === 'pending' && o.forUser)
   const o = pending[0]
@@ -31,7 +35,7 @@ export default function Offers() {
       <div style={{ padding: 14 }}>
         <div className="card">
           <h3>Desk clear</h3>
-          <div className="meta">{msg ?? 'Every bid has an answer. Nothing else is waiting on you.'}</div>
+          <div className="meta">{msg?.text ?? 'Every bid has an answer. Nothing else is waiting on you.'}</div>
           <button className="btn gold block" style={{ marginTop: 10 }} onClick={() => continueWeek()}>
             ▸ Get On With The Week
           </button>
@@ -58,7 +62,7 @@ export default function Offers() {
   const deadline = [7, 26, 27].includes(game.week)
   const over = o.fee - p.value
 
-  const answer = (fn: () => string) => { setMsg(fn()); touch() }
+  const answer = (key: number, fn: () => string) => { setMsg({ key, text: fn() }); touch() }
 
   return (
     <>
@@ -105,19 +109,19 @@ export default function Offers() {
           )}
 
           <div className="btn-row" style={{ marginTop: 10 }}>
-            <button className="btn gold" onClick={() => answer(() => respondToOffer(game, o.id, true))}>
+            <button className="btn gold" onClick={() => answer(o.id, () => respondToOffer(game, o.id, true))}>
               Accept {fmtMoney(o.fee)}
             </button>
             <button className="btn" disabled={!!o.countered}
               title={o.countered ? 'You have already been back to them once' : 'Ask for more, and risk them walking'}
-              onClick={() => answer(() => counterIncomingOffer(game, o.id))}>
+              onClick={() => answer(o.id, () => counterIncomingOffer(game, o.id))}>
               {o.countered ? 'Already Asked' : 'Demand More'}
             </button>
-            <button className="btn danger" onClick={() => answer(() => respondToOffer(game, o.id, false))}>
+            <button className="btn danger" onClick={() => answer(o.id, () => respondToOffer(game, o.id, false))}>
               Reject
             </button>
           </div>
-          {msg && <div className="meta sheet-log" style={{ marginTop: 8 }}>{msg}</div>}
+          {msg?.key === o.id && <div className="meta sheet-log" style={{ marginTop: 8 }}>{msg.text}</div>}
         </div>
 
         <button className="btn ghost block" onClick={() => go('player', p.id)}>
