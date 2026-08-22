@@ -25,9 +25,10 @@ export default function Menu() {
       {/* set in caps at the user's request, so it reads as a strapline under the
           title rather than as a sentence someone left there */}
       <div className="tagline">STORIES, SEASONS &amp; SILVERWARE</div>
-      {/* the release the player is holding. Bump WITH package.json - the pair
-          drifting apart is how a bug report says v1.0.1 about a v1.0.3 build */}
-      <div className="muted" style={{ marginTop: 10, letterSpacing: 1 }}>v1.0.1</div>
+      {/* the release under the strapline reads from the same build stamp as the
+          footer (vite.config.ts defines it from package.json), so the version
+          on the tin can never drift from the version in the box */}
+      <div className="muted" style={{ marginTop: 10, letterSpacing: 1 }}>{__BUILD_TAG__.split(' ')[0]}</div>
       <hr className="rules" />
       <div className="menu-btns">
         {(() => {
