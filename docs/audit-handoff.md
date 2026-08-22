@@ -682,5 +682,28 @@ each behind a probe red-demonstrated on the pre-fix tree:
   its vh fallback - comments between the pair fail the suite.
 
 Still open by decision, not oversight: the real-name database (the owner's
-identity call), cloud saves, store packaging, and the lower-league deficit
-equilibrium (a balance dial - it must clear the paired-seed harness).
+identity call - now settled as "stay a free personal project"), cloud saves,
+store packaging, and the lower-league deficit equilibrium (a balance dial - it
+must clear the paired-seed harness).
+
+## The real-cover gaps are not a defect (settled, Aug 2026)
+
+Asked to close the 39 gaps by searching and then by inventing, both routes
+were tried and both are wrong. The finding, now written into the head of
+scripts/gapreport.ts so it cannot be lost:
+
+- A gap is a shirt worn by a GENERATED name, never an empty shirt. Squads are
+  built to 65 and the cover is the right standard for the league (La Rochelle's
+  second tighthead is a generated man at 77 behind Atonio at 82).
+- This world is 2026-27. Most gaps exist BECAUSE the window worked: Jarrod
+  Evans to Cardiff, Grondona to Pau, Benson to Ulster are checked pins, and the
+  men replacing them have not been announced anywhere.
+- Search returns 2025-26 squads, so every name it offers for these clubs is a
+  man the window already moved. Adding them back would undo checked transfers.
+  This is the trap: the search results LOOK authoritative and are a season late.
+- Inventing a name and filing it in additions.ts changes nothing a player can
+  see (the generator already fills the shirt) and destroys the only thing that
+  file is for.
+
+The number is a coverage measure, not a bug count. It should fall when a real
+2026-27 signing is announced and checked in, and at no other time.
