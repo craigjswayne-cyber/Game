@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import {
-  matchStats, teamShort, teamUnits, rosterOf, autoSelect, availablePlayers,
+  matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
@@ -287,7 +287,9 @@ function Preview({ fxId }: { fxId: number }) {
   const hasBad = warnings.some(w => w.level === 'bad')
   const fixedLineup = useMemo(() => {
     if (!confirm || !hasBad) return null
-    const picked = autoSelect(game, availablePlayers(game, club.players), splitFor(club))
+    // his re-pick, his eye: the tunnel fix is the assistant working, so it
+    // carries assistantJudgement like every side he names
+    const picked = autoSelect(game, availablePlayers(game, club.players), splitFor(club), assistantJudgement(game))
     for (let i = 0; i < 15; i++) {
       const p = picked[i] != null ? game.players[picked[i]!] : null
       if (problem(p)) return null // crisis: even the assistant cannot field 15 fit men
@@ -306,7 +308,8 @@ function Preview({ fxId }: { fxId: number }) {
   const rotateXV = () => {
     const rest = new Set(rotFlagged.map(p => p.id))
     const pool = availablePlayers(game, club.players).filter(p => !rest.has(p.id))
-    const fresh = autoSelect(game, pool)
+    // the one-tap rotation is the assistant's draft too - same imperfect eye
+    const fresh = autoSelect(game, pool, undefined, assistantJudgement(game))
     for (let i = 0; i < 23; i++) t.lineup[i] = fresh[i]
     touch()
   }

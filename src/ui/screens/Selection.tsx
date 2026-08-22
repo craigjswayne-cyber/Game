@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { XV_SLOTS, type Player, type Pos } from '../../game/model'
-import { autoSelect, availablePlayers } from '../../game/matchEngine'
+import { assistantJudgement, autoSelect, availablePlayers } from '../../game/matchEngine'
 import { effAt } from '../../game/attributes'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
 import { benchSeats, splitFor } from '../../game/bench'
@@ -163,10 +163,17 @@ export default function SelectionPane() {
              two buttons that both silently rewrite the whole team sheet is one
              too many, and the difference between them (form weighted over
              class) was never visible on the button. Best XV already weighs
-             form; the Form column is there for anyone who wants to argue. */
+             form; the Form column is there for anyone who wants to argue.
+
+             The button is the ASSISTANT'S draft, not an answer key: it runs
+             through assistantJudgement, the same imperfect eye that names the
+             side when the manager never opens this screen. One tap a week was
+             the honest optimiser for free, which is no game at all. Correct
+             his shirts by hand and the corrections are yours; hire a better
+             assistant and his drafts sharpen. */
           <button className="btn gold tiny" onClick={() => {
             const pool = availablePlayers(game, club.players)
-            club.tactic.lineup = autoSelect(game, pool, splitFor(club))
+            club.tactic.lineup = autoSelect(game, pool, splitFor(club), assistantJudgement(game))
             // he asked for this side, so it is his: the engine must not
             // second-guess a sheet the manager put there on purpose
             claim()
@@ -181,6 +188,14 @@ export default function SelectionPane() {
         <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
         <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
       </div>
+      {/* an unclaimed sheet is the assistant's, and the manager deserves to be
+          told so BEFORE match day - the moment he touches a shirt this line
+          goes away, because the sheet is his from then on */}
+      {!t.userPicked && (
+        <div className="muted" style={{ padding: '4px 2px 0' }}>
+          Untouched sheet: your assistant named this side, with his eye for it, not yours - and nobody is updating it for form or fitness. Change a shirt and it becomes your team.
+        </div>
+      )}
       {/* the bench and the armband sit side by side in landscape: stacked,
           they were a screenful of scrolling below a team sheet that already
           filled the screen. Portrait keeps them in order. */}

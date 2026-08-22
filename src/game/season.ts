@@ -2749,6 +2749,17 @@ export function processWeekAndAdvance(state: GameState) {
       q.answered = true
       q.answerLabel = 'No comment'
       q.reaction = 'The moment passed. The outlet ran the piece without you, and next week brings new questions.'
+      // Silence is not free. Ignoring the desk used to cost exactly nothing,
+      // which made never opening the Press screen strictly optimal - the worst
+      // live answer docks board confidence, but letting every question rot
+      // docked none. Small numbers on purpose: one missed question is a shrug,
+      // a season of empty chairs is a board that has stopped hearing from its
+      // manager and a support that has stopped hearing from its club. Sized
+      // below the worst live answer (board -0.2 on the option scale = 1.0
+      // confidence) so answering badly still beats not answering at all.
+      const uc = state.clubs[state.userClubId]
+      if (uc) uc.boardConfidence = clamp(uc.boardConfidence - 0.8, 0, 100)
+      state.fanMood = clamp((state.fanMood ?? 60) - 0.4, 10, 95)
     }
   }
   for (const n of state.news) {

@@ -16,7 +16,14 @@ picks.forEach((fx, i) => {
 })
 
 const EXPECTED: string[] = [
-  // Rebaselined: the bench economy (F4). Clubs now name a 5-3, 6-2 or 4-4 bench,
+  // Rebaselined (leicester fixture ONLY): the absent-manager wave. The user's
+  // day-one sheet is now named by the assistant through assistantJudgement,
+  // and leicester is this world's user club, so that one scoreline moves; the
+  // other five holding is the fuzz's blast radius demonstrated - AI clubs and
+  // the shared rng stream untouched. Paired four-seed balance: 53.80 pts/game
+  // on both trees, tries 6.3 both, home% and draws inside noise.
+  //
+  // Rebaselined before that: the bench economy (F4). Clubs now name a 5-3, 6-2 or 4-4 bench,
   // the closing quarter takes the shape the 23 was picked for once three
   // replacements are on, and a side forced to put a forward in a back's shirt
   // pays for it. All three are deliberate mechanical changes, so individual
@@ -243,7 +250,7 @@ const EXPECTED: string[] = [
   'northampton 36-30 newcastle',
   'gloucester 19-3 exeter',
   'harlequins 9-14 bath',
-  'leicester 34-29 saracens',
+  'leicester 37-30 saracens',
   'newcastle 15-57 bristol',
 ]
 

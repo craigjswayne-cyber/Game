@@ -22,7 +22,7 @@ import { inheritStaff } from './staff'
 import { seedPhilosophies } from './philosophy'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
-import { autoSelect } from './matchEngine'
+import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
@@ -441,6 +441,17 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   for (const club of Object.values(state.clubs)) {
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
+  }
+  // ...except the user's, which the ASSISTANT names, through his own eye
+  // (assistantJudgement): the manager has not picked a side yet, and the side
+  // the game hands him on day one should not be the answer key. AI clubs keep
+  // the honest pick above - their calibration is the league's calibration.
+  {
+    const mine = state.clubs[state.userClubId]
+    if (mine) {
+      const pool = mine.players.map(id => state.players[id]).filter(Boolean)
+      mine.tactic.lineup = autoSelect(state, pool, undefined, assistantJudgement(state))
+    }
   }
 
   // a new manager starts with the benefit of the doubt from the terraces -

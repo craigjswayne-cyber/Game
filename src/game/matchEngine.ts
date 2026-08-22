@@ -57,20 +57,50 @@ export function availablePlayers(state: GameState, ids: number[], forNation = fa
     .filter(p => p && !p.injury && !p.onLoan && p.bans === 0 && (forNation || !p.natSquad))
 }
 
+/** The assistant's eye when he names the side for you.
+ *
+ *  A judgement factor per man, multiplied into autoSelect's score: 1.0 is a
+ *  perfect read, and each man is misread by up to the amplitude for the
+ *  assistant's level - 12% with nobody hired, down to 2% with a level-3
+ *  assistant. Misreads are symmetric around the truth (no thumb on the scale,
+ *  just blur), but selection takes the top of a blurred ranking, so the named
+ *  side is a little worse than the true best side, and worse more often the
+ *  cheaper the man doing the naming. That gap IS the price of not picking the
+ *  team yourself.
+ *
+ *  Deterministic on (seed, season, week, player): the same week always misreads
+ *  the same men by the same amount, so the Selection screen, the match and a
+ *  reload all show one side - and it draws nothing from the shared match rng,
+ *  so a world where the manager picks every week is bit-identical to one where
+ *  this function never runs. */
+export function assistantJudgement(state: GameState): (p: Player) => number {
+  const lvl = Math.min(3, Math.max(0, state.staff?.assistant ?? 0))
+  const amp = [0.12, 0.08, 0.05, 0.02][lvl]
+  const base = ((Math.abs(state.seed) * 31 + state.season * 53 + state.week * 17) >>> 0)
+  return (p: Player) => {
+    const r = mulberry32(((base * 97 + p.id * 613) >>> 0) || 1)()
+    return 1 + amp * (2 * r - 1)
+  }
+}
+
 /** Pick the best legal 23 from a pool. Returns array of 23 player ids (or null).
  *
  *  The bench seats depend on the split (F4): a 6-2 wants a sixth forward where a
  *  5-3 wants a third back, so the auto-pick has to know which bench it is
  *  filling or the split would be a label with nothing behind it. */
-export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit): (number | null)[] {
+export function autoSelect(state: GameState, pool: Player[], split?: BenchSplit, judge?: (p: Player) => number): (number | null)[] {
   const BENCH = seatsFor(split)
   // academy players are a second squad - only raided when the seniors run dry
   const seniors = pool.filter(p => !p.acad)
   if (seniors.length >= 23) pool = seniors
   const used = new Set<number>()
   const lineup: (number | null)[] = new Array(23).fill(null)
+  // `judge` is a caller's read on each man layered over the true score - the
+  // assistant's imperfect eye when he names the side (see assistantJudgement).
+  // No judge means the honest ranking, which is what every AI club and the
+  // Selection screen's own auto-pick button get.
   const score = (p: Player, pos: Pos) =>
-    effAt(p, pos) * (0.7 + 0.3 * (p.cond / 100)) * (0.85 + 0.03 * p.form)
+    effAt(p, pos) * (0.7 + 0.3 * (p.cond / 100)) * (0.85 + 0.03 * p.form) * (judge ? judge(p) : 1)
 
   // phase one: every shirt to a natural first, best men first.
   //
@@ -383,8 +413,15 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
     if (valid && !stale) return lu
     if (stale) {
       // Write the tidy-up back, so the Selection screen shows the side that
-      // actually played. Only ever reached for a sheet the game itself picked.
-      club.tactic.lineup = autoSelect(state, availablePlayers(state, club.players, false), splitFor(club))
+      // actually played. Only ever reached for a sheet the game itself picked -
+      // which means the ASSISTANT is the one naming the replacement side, and
+      // his eye (assistantJudgement) comes with him. The first cut of this
+      // wave re-picked an unclaimed sheet fresh every week instead, and the
+      // difficultyprobe caught it making autopilot BETTER: a weekly form-and-
+      // condition refresh is worth far more than a 12% misread costs. The
+      // absent manager's real bill is the sheet nobody updates; the misread
+      // is the surcharge on the rare day somebody does.
+      club.tactic.lineup = autoSelect(state, availablePlayers(state, club.players, false), splitFor(club), assistantJudgement(state))
       return club.tactic.lineup
     }
     // INVALID: somebody in it cannot play. Repair the shirts that need repairing
