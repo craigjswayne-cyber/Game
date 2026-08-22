@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const TOP14_A: RawClub[] = [
   {
-    id: 'toulouse', name: 'Stade Toulousain', short: 'Toulouse',
+    id: 'toulouse', name: 'Toulouse', short: 'Toulouse',
     city: 'Toulouse', country: 'FRA',
-    stadium: 'Stade Ernest-Wallon', capacity: 19500,
+    stadium: 'Stade Municipal Toulouse', capacity: 19500,
     colors: ['#d10a11', '#000000'],
     rep: 93, budget: 6500000,
     players: [
@@ -43,9 +43,9 @@ export const TOP14_A: RawClub[] = [
     ],
   },
   {
-    id: 'bordeaux', name: 'Union Bordeaux Bègles', short: 'Bordeaux',
+    id: 'bordeaux', name: 'Bordeaux', short: 'Bordeaux',
     city: 'Bordeaux', country: 'FRA',
-    stadium: 'Stade Chaban-Delmas', capacity: 34694,
+    stadium: 'Stade Municipal Bordeaux', capacity: 34694,
     colors: ['#7d1128', '#ffffff'],
     rep: 88, budget: 6000000,
     players: [
@@ -80,9 +80,9 @@ export const TOP14_A: RawClub[] = [
     ],
   },
   {
-    id: 'la_rochelle', name: 'Stade Rochelais', short: 'La Rochelle',
+    id: 'la_rochelle', name: 'La Rochelle', short: 'La Rochelle',
     city: 'La Rochelle', country: 'FRA',
-    stadium: 'Stade Marcel-Deflandre', capacity: 16000,
+    stadium: 'Stade La Rochelle', capacity: 16000,
     colors: ['#ffcc00', '#000000'],
     rep: 86, budget: 5000000,
     players: [
@@ -116,9 +116,9 @@ export const TOP14_A: RawClub[] = [
     ],
   },
   {
-    id: 'clermont', name: 'ASM Clermont Auvergne', short: 'Clermont',
+    id: 'clermont', name: 'Clermont-Ferrand', short: 'Clermont',
     city: 'Clermont-Ferrand', country: 'FRA',
-    stadium: 'Stade Marcel-Michelin', capacity: 19022,
+    stadium: 'Stade Municipal Clermont-Ferrand', capacity: 19022,
     colors: ['#ffd100', '#003a70'],
     rep: 79, budget: 3000000,
     players: [
@@ -153,9 +153,9 @@ export const TOP14_A: RawClub[] = [
     ],
   },
   {
-    id: 'toulon', name: 'RC Toulon', short: 'Toulon',
+    id: 'toulon', name: 'Toulon', short: 'Toulon',
     city: 'Toulon', country: 'FRA',
-    stadium: 'Stade Mayol', capacity: 17500,
+    stadium: 'Parc Toulon', capacity: 17500,
     colors: ['#e30613', '#000000'],
     rep: 82, budget: 4000000,
     players: [
@@ -189,9 +189,9 @@ export const TOP14_A: RawClub[] = [
     ],
   },
   {
-    id: 'racing92', name: 'Racing 92', short: 'Racing 92',
+    id: 'racing92', name: 'Nanterre', short: 'Nanterre',
     city: 'Nanterre', country: 'FRA',
-    stadium: 'Paris La Défense Arena', capacity: 30681,
+    stadium: 'Parc des Sports Nanterre', capacity: 30681,
     colors: ['#8ed8f8', '#ffffff'],
     rep: 81, budget: 4500000,
     players: [
@@ -229,9 +229,9 @@ export const TOP14_A: RawClub[] = [
     ],
   },
   {
-    id: 'stade_francais', name: 'Stade Français Paris', short: 'Stade Fr.',
+    id: 'stade_francais', name: 'Paris', short: 'Paris',
     city: 'Paris', country: 'FRA',
-    stadium: 'Stade Jean-Bouin', capacity: 20000,
+    stadium: 'Parc des Sports Paris', capacity: 20000,
     colors: ['#e75480', '#002395'],
     rep: 77, budget: 3200000,
     players: [

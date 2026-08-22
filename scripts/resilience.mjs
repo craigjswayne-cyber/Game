@@ -95,8 +95,8 @@ async function newCareer(name) {
   await page.goto('http://localhost:4177/')
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
-  await page.waitForSelector('text=Gallagher Premiership')
-  await page.click('text=Gallagher Premiership')
+  await page.waitForSelector('text=English Premier Division')
+  await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Star Player')
@@ -145,7 +145,7 @@ try {
 
   // ---------- A5: the celebration overlay ----------
   console.log('A5 the celebration overlay')
-  const set = await mutate(`g => { g.celebration = { headline: 'CHAMPIONS OF ENGLAND', sub: 'Gallagher Premiership winners', icon: '🏆' } }`)
+  const set = await mutate(`g => { g.celebration = { headline: 'CHAMPIONS OF ENGLAND', sub: 'English Premier Division winners', icon: '🏆' } }`)
   check(set === 'ok', `the celebration can be written to the live state (${set})`)
   await page.click('.bottom-nav button[title="Home"]')
   await page.waitForSelector('.celebrate-veil', { timeout: 5000 })

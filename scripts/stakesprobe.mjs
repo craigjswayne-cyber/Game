@@ -25,7 +25,7 @@ try {
   await page.goto('http://localhost:4189/')
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
   await page.click('text=New Career')
-  await page.click('text=Gallagher Premiership')
+  await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Star Player')

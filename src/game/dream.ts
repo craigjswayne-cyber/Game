@@ -97,7 +97,7 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'europe',
-    title: () => 'Win the Champions Cup',
+    title: () => 'Win the European Club Cup',
     blurb: 'The biggest prize in club rugby. Qualify, survive the pool, and win four knockout ties against the best sides on the continent.',
     applies: () => true,
     progress: state => {
@@ -107,7 +107,7 @@ export const DREAMS: DreamDef[] = [
         at: Math.min(1, n),
         goal: 1,
         note: n > 0 ? `won it${n > 1 ? ` ${n} times` : ''}`
-          : chc > 0 ? 'a Challenge Cup on the shelf: the big one is still out there'
+          : chc > 0 ? 'a Continental Shield on the shelf: the big one is still out there'
           : 'not yet',
         done: n > 0,
       }
@@ -116,7 +116,7 @@ export const DREAMS: DreamDef[] = [
   {
     id: 'double',
     title: ctx => `Win the league and Europe with ${ctx.clubName}`,
-    blurb: 'The double that defines an era: your domestic title and the Champions Cup, both with this club. They need not be the same season.',
+    blurb: 'The double that defines an era: your domestic title and the European Club Cup, both with this club. They need not be the same season.',
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) === 1,
     progress: state => {
       const club = dreamClub(state)
@@ -180,7 +180,7 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'world',
-    title: () => 'Coach a nation to the World Cup',
+    title: () => 'Coach a nation to the World Championship',
     blurb: 'Club rugby is the day job. Take a Test side as well, and win the tournament that only comes round every four years.',
     applies: () => true,
     progress: state => {

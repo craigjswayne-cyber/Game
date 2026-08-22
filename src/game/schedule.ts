@@ -183,7 +183,7 @@ export function schedulePreseason(state: GameState, rng: Rng) {
 
 export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   // just "Champions Cup" (user: "remove the word continental")
-  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Champions Cup', short: 'Champions Cup' },
+  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'European Club Cup', short: 'Club Cup' },
 ): Competition {
   const teams = shuffled(rng, clubIds.slice(0, 16))
   const comp: Competition = {
@@ -235,7 +235,7 @@ function buildWorldCup(rng: Rng, state: GameState) {
   seedNatRank(state)
   const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
-    id: 'wc', name: 'Rugby World Cup', short: 'World Cup', type: 'intl',
+    id: 'wc', name: 'The World Championship', short: 'World Champ.', type: 'intl',
     teamIds: nations, table: nations.map(emptyRow), rounds: 5, playoffTeams: 8,
     weeksByRound: WC_POOL_WEEKS, koWeeks: WC_KO_WEEKS, isNational: true,
     seeds: seeded,
@@ -252,9 +252,9 @@ function buildWorldCup(rng: Rng, state: GameState) {
   const userSeed = state.natTeam ? seeded.indexOf(state.natTeam) + 1 : 0
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
-    subject: `🏆 World Cup draw: the rankings pick the pools`,
+    subject: `🏆 World Championship draw: the rankings pick the pools`,
     body: [
-      `The World Cup pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
+      `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationByCode(state.natTeam!)?.name ?? state.natTeam} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
         : `Four pools, five nations each, and somewhere in there a group of death.`,
     ].join('\n'),
@@ -330,7 +330,7 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snRounds = roundRobin(sn, rng, false)
   const snComp: Competition = {
-    id: 'sn', name: 'Six Nations', short: 'Six Nations', type: 'intl',
+    id: 'sn', name: 'European Nations Championship', short: 'Euro Nations', type: 'intl',
     teamIds: sn, table: sn.map(emptyRow), rounds: 5, playoffTeams: 0,
     weeksByRound: SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }
@@ -351,7 +351,7 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   const trc = ['NZL', 'RSA', 'AUS', 'ARG']
   const trcRounds = roundRobin(trc, rng, true)
   const trcComp: Competition = {
-    id: 'trc', name: 'The Rugby Championship', short: 'Rugby Champ.', type: 'intl',
+    id: 'trc', name: 'Southern Nations Championship', short: 'Southern Nations', type: 'intl',
     teamIds: trc, table: trc.map(emptyRow), rounds: 6, playoffTeams: 0,
     weeksByRound: TRC_WEEKS, koWeeks: [], isNational: true,
   }
@@ -370,7 +370,7 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   const pnc = ['FIJ', 'JPN', 'SAM', 'TGA', 'USA', 'CAN']
   const pncRounds = roundRobin(pnc, rng, false)
   const pncComp: Competition = {
-    id: 'pnc', name: 'Pacific Nations Cup', short: 'Pacific Cup', type: 'intl',
+    id: 'pnc', name: 'The Islands Cup', short: 'Islands Cup', type: 'intl',
     teamIds: pnc, table: pnc.map(emptyRow), rounds: 5, playoffTeams: 0,
     weeksByRound: PNC_WEEKS, koWeeks: [], isNational: true,
   }

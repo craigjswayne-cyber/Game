@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const PREM_B: RawClub[] = [
   {
-    id: 'leicester', name: 'Leicester Tigers', short: 'Leicester',
+    id: 'leicester', name: 'Leicester', short: 'Leicester',
     city: 'Leicester', country: 'ENG',
-    stadium: 'Mattioli Woods Welford Road', capacity: 25849,
+    stadium: 'Leicester Common', capacity: 25849,
     colors: ['#00563f', '#c8102e'],
     rep: 83, budget: 3500000,
     players: [
@@ -50,9 +50,9 @@ export const PREM_B: RawClub[] = [
     ],
   },
   {
-    id: 'newcastle', name: 'Newcastle Red Bulls', short: 'Newcastle',
+    id: 'newcastle', name: 'Newcastle', short: 'Newcastle',
     city: 'Newcastle upon Tyne', country: 'ENG',
-    stadium: 'Kingston Park', capacity: 10200,
+    stadium: 'Newcastle Meadow', capacity: 10200,
     colors: ['#0a1f44', '#e30613'],
     rep: 66, budget: 3000000,
     players: [
@@ -83,9 +83,9 @@ export const PREM_B: RawClub[] = [
     ],
   },
   {
-    id: 'northampton', name: 'Northampton Saints', short: 'Northampton',
+    id: 'northampton', name: 'Northampton', short: 'Northampton',
     city: 'Northampton', country: 'ENG',
-    stadium: 'cinch Stadium at Franklin\'s Gardens', capacity: 15249,
+    stadium: 'Northampton Park', capacity: 15249,
     colors: ['#000000', '#00843d'],
     rep: 86, budget: 4000000,
     // The club's own published 2026/27 squad list (user's screenshot of the
@@ -141,9 +141,9 @@ export const PREM_B: RawClub[] = [
     ],
   },
   {
-    id: 'sale', name: 'Sale Sharks', short: 'Sale',
+    id: 'sale', name: 'Sale', short: 'Sale',
     city: 'Salford', country: 'ENG',
-    stadium: 'Salford Community Stadium', capacity: 12000,
+    stadium: 'Salford Park', capacity: 12000,
     colors: ['#001a4d', '#ffffff'],
     rep: 82, budget: 3000000,
     players: [
@@ -179,7 +179,7 @@ export const PREM_B: RawClub[] = [
   {
     id: 'saracens', name: 'Saracens', short: 'Saracens',
     city: 'London', country: 'ENG',
-    stadium: 'StoneX Stadium', capacity: 10500,
+    stadium: 'Hendon Common', capacity: 10500,
     colors: ['#000000', '#d31145'],
     rep: 86, budget: 4500000,
     players: [

@@ -134,8 +134,8 @@ for (const dev of DEVICES) {
     await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
     await page.click('text=New Career')
-    await page.waitForSelector('text=Gallagher Premiership')
-    await page.click('text=Gallagher Premiership')
+    await page.waitForSelector('text=English Premier Division')
+    await page.click('text=English Premier Division')
     await page.waitForSelector('.club-tile')
     await report(page, dev.name, 'wizard: club pick')
     await page.click('.tile >> text=Northampton')

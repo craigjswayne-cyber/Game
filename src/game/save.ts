@@ -134,10 +134,38 @@ export function migrate(s: GameState): GameState {
   s.pledges = asList(s.pledges)
   s.preContracts = asList(s.preContracts)
   s.comps = asMap(s.comps)
-  // the cup dropped a word from its name (user: "remove the word continental -
-  // can just be the champions cup"); a mid-season save carries the old one
-  // until rollover rebuilds the comp, so it is healed here instead
-  if (s.comps['cc']?.name === 'Continental Champions Cup') s.comps['cc'].name = 'Champions Cup'
+  // ---- v1.0.2: THE NAMES ON A SAVE ARE NOT THE NAMES IN THE CODE ----
+  //
+  // Club and competition names are STORED in the save, not read from the data
+  // files at render time. So a career started before the rename carries the old
+  // ones forever: the rename would land perfectly on a new game and an existing
+  // save would still be showing every real mark, which is the one case that
+  // actually matters legally.
+  //
+  // Healed by id from the shipped definitions, so this needs no table of old
+  // names - which is the point, because a table of old names in src/ would put
+  // every one of them back in the bundle the rename just cleaned.
+  {
+    for (const def of LEAGUE_DEFS()) {
+      const comp = s.comps[def.id]
+      if (comp) { comp.name = def.name; comp.short = def.short }
+      for (const raw of def.clubs) {
+        const club = s.clubs[raw.id]
+        if (!club) continue
+        club.name = raw.name
+        club.short = raw.short
+        // A NAMING-RIGHTS DEAL IS THE MANAGER'S OWN DOING and must survive the
+        // rename: commercial.ts stores the unsponsored ground in stadiumBase
+        // and renders "<Sponsor> Stadium at <base>". Rewrite the base and leave
+        // the sponsor's half alone, or a live deal silently reverts.
+        const sponsor = club.stadiumBase && club.stadium.includes(' at ')
+          ? club.stadium.slice(0, club.stadium.indexOf(' at '))
+          : null
+        club.stadiumBase = raw.stadium
+        club.stadium = sponsor ? `${sponsor} at ${raw.stadium}` : raw.stadium
+      }
+    }
+  }
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
   s.clubs = asMap(s.clubs)

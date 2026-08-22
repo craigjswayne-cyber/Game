@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const SRP_B: RawClub[] = [
   {
-    id: 'brumbies', name: 'ACT Brumbies', short: 'Brumbies',
+    id: 'brumbies', name: 'Canberra', short: 'Canberra',
     city: 'Canberra', country: 'AUS',
-    stadium: 'GIO Stadium', capacity: 25011,
+    stadium: 'Canberra Park', capacity: 25011,
     colors: ['#0F204B', '#F6BE00'],
     rep: 82, budget: 1800000,
     players: [
@@ -43,9 +43,9 @@ export const SRP_B: RawClub[] = [
     ],
   },
   {
-    id: 'reds', name: 'Queensland Reds', short: 'Reds',
+    id: 'reds', name: 'Brisbane', short: 'Brisbane',
     city: 'Brisbane', country: 'AUS',
-    stadium: 'Suncorp Stadium', capacity: 52500,
+    stadium: 'Brisbane Park', capacity: 52500,
     colors: ['#76232F', '#FFFFFF'],
     rep: 81, budget: 1600000,
     players: [
@@ -83,9 +83,9 @@ export const SRP_B: RawClub[] = [
     ],
   },
   {
-    id: 'waratahs', name: 'NSW Waratahs', short: 'Waratahs',
+    id: 'waratahs', name: 'Sydney', short: 'Sydney',
     city: 'Sydney', country: 'AUS',
-    stadium: 'Allianz Stadium', capacity: 42500,
+    stadium: 'Sydney Park', capacity: 42500,
     colors: ['#009FDF', '#FFFFFF'],
     rep: 78, budget: 1500000,
     players: [
@@ -120,9 +120,9 @@ export const SRP_B: RawClub[] = [
     ],
   },
   {
-    id: 'force', name: 'Western Force', short: 'Force',
+    id: 'force', name: 'Perth', short: 'Perth',
     city: 'Perth', country: 'AUS',
-    stadium: 'HBF Park', capacity: 20500,
+    stadium: 'Perth Grounds', capacity: 20500,
     colors: ['#1D428A', '#000000'],
     rep: 73, budget: 1000000,
     players: [
@@ -157,9 +157,9 @@ export const SRP_B: RawClub[] = [
     ],
   },
   {
-    id: 'drua', name: 'Fijian Drua', short: 'Drua',
+    id: 'drua', name: 'Suva', short: 'Suva',
     city: 'Suva', country: 'FIJ',
-    stadium: 'HFC Bank Stadium', capacity: 15000,
+    stadium: 'Suva Park', capacity: 15000,
     colors: ['#00B2A9', '#FFFFFF'],
     rep: 70, budget: 600000,
     players: [

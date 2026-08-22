@@ -5,7 +5,7 @@ const PAIRS: [string, string, string][] = [
   // Premiership
   ['leicester', 'northampton', 'The East Midlands Derby'],
   ['bath', 'gloucester', 'The West Country Derby'],
-  ['bath', 'bristol', 'The Heineken West Derby'],
+  ['bath', 'bristol', 'The West Country Derby'],
   ['saracens', 'harlequins', 'The London Derby'],
   ['sale', 'newcastle', 'The Northern Derby'],
   // Top 14

@@ -69,16 +69,16 @@ const club = (
 })
 
 export const CHAMP: RawClub[] = [
-  club('ealing', 'Ealing Trailfinders', 'Ealing', 'London', 'Trailfinders Sports Ground', 5000, ['#0a5c36', '#ffffff'], 62, 700_000),
-  club('doncaster', 'Doncaster Knights', 'Doncaster', 'Doncaster', 'Castle Park', 5183, ['#1a3a5c', '#c9a227'], 58, 450_000),
-  club('coventry', 'Coventry Rugby', 'Coventry', 'Coventry', 'Butts Park Arena', 4000, ['#1b2f9e', '#ffffff'], 57, 420_000),
-  club('bedford', 'Bedford Blues', 'Bedford', 'Bedford', 'Goldington Road', 5000, ['#1e5aa8', '#ffffff'], 56, 400_000),
-  club('pirates', 'Cornish Pirates', 'Pirates', 'Penzance', 'Mennaye Field', 4000, ['#111111', '#c9a227'], 55, 380_000),
-  club('nottingham', 'Nottingham Rugby', 'Nottingham', 'Nottingham', 'The Bay', 3500, ['#0a6b4f', '#ffffff'], 52, 300_000),
-  club('hartpury', 'Hartpury University', 'Hartpury', 'Gloucester', "Gillman's Ground", 2000, ['#7a0c2e', '#9aa5ad'], 51, 260_000),
-  club('lscottish', 'London Scottish', 'L. Scottish', 'Richmond', 'The Athletic Ground', 4500, ['#12295c', '#c02f3a'], 50, 250_000),
-  club('richmond', 'Richmond Rugby', 'Richmond', 'Richmond', 'The Athletic Ground', 4500, ['#c9a227', '#c02f3a'], 50, 250_000),
-  club('cambridge', 'Cambridge Rugby', 'Cambridge', 'Cambridge', 'Volac Park', 3000, ['#7a1027', '#f0eadc'], 47, 200_000),
-  club('chinnor', 'Chinnor RFC', 'Chinnor', 'Chinnor', 'Kingsey Road', 2000, ['#0e0e0e', '#ffffff'], 46, 180_000),
-  club('caldy', 'Caldy RFC', 'Caldy', 'Wirral', 'Paton Field', 2500, ['#123c6b', '#8fc1e3'], 44, 160_000),
+  club('ealing', 'Ealing', 'Ealing', 'London', 'Ealing Park', 5000, ['#0a5c36', '#ffffff'], 62, 700_000),
+  club('doncaster', 'Doncaster', 'Doncaster', 'Doncaster', 'Doncaster Gardens', 5183, ['#1a3a5c', '#c9a227'], 58, 450_000),
+  club('coventry', 'Coventry', 'Coventry', 'Coventry', 'Coventry Gardens', 4000, ['#1b2f9e', '#ffffff'], 57, 420_000),
+  club('bedford', 'Bedford', 'Bedford', 'Bedford', 'Bedford Road', 5000, ['#1e5aa8', '#ffffff'], 56, 400_000),
+  club('pirates', 'Penzance', 'Penzance', 'Penzance', 'Penzance Park', 4000, ['#111111', '#c9a227'], 55, 380_000),
+  club('nottingham', 'Nottingham', 'Nottingham', 'Nottingham', 'Nottingham Lane', 3500, ['#0a6b4f', '#ffffff'], 52, 300_000),
+  club('hartpury', 'Hartpury', 'Hartpury', 'Gloucester', 'Hartpury Road', 2000, ['#7a0c2e', '#9aa5ad'], 51, 260_000),
+  club('lscottish', 'Sheen', 'Sheen', 'Richmond', 'Sheen Gardens', 4500, ['#12295c', '#c02f3a'], 50, 250_000),
+  club('richmond', 'Richmond', 'Richmond', 'Richmond', 'Richmond Rise', 4500, ['#c9a227', '#c02f3a'], 50, 250_000),
+  club('cambridge', 'Cambridge', 'Cambridge', 'Cambridge', 'Cambridge Park', 3000, ['#7a1027', '#f0eadc'], 47, 200_000),
+  club('chinnor', 'Chinnor', 'Chinnor', 'Chinnor', 'Chinnor Park', 2000, ['#0e0e0e', '#ffffff'], 46, 180_000),
+  club('caldy', 'Wirral', 'Wirral', 'Wirral', 'Wirral Common', 2500, ['#123c6b', '#8fc1e3'], 44, 160_000),
 ]

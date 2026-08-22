@@ -1182,7 +1182,7 @@ const CON_LINES = [
   (n: string) => `From the chalk of the touchline, ${n} draws it inside the far post - kicking coaches will replay that one.`,
 ]
 const FLAVOR_GRASSROOTS = [
-  (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul - proper National 1 rugby, this.`,
+  (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul - proper National Div rugby, this.`,
   (n: string, t: string) => `A dog has briefly joined the ${t} defensive line. Play carries on regardless.`,
   (n: string, t: string) => `${n} slips in the mud where the winter pitch never quite recovers. The crowd, all four hundred of them, enjoy that.`,
   (n: string, t: string) => `Huge cheer from the clubhouse balcony as ${n} flattens his man. Someone rings the bell.`,

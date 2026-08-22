@@ -382,7 +382,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `🏟️ FINALS WEEKEND: ${v.city} gets Europe's showpiece`,
           body: [
-            `${v.name} will stage both European finals this season: the Challenge Cup under Friday lights, the Champions Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
+            `${v.name} will stage both European finals this season: the Continental Shield under Friday lights, the European Club Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
             `Eight quarter-finalists still stand in each competition, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
           ].join('\n'),
         })
@@ -1833,7 +1833,7 @@ export function processWeekAndAdvance(state: GameState) {
           body: [
             (state.season * 5 + state.week * 3) % 2 === 0
               ? `${champName} are champions of the world, and ${names} ${winners.length === 1 ? 'was' : 'were'} in the squad that did it. The shirt goes in a frame; the aura comes back to training with ${winners.length === 1 ? 'him' : 'them'}.`
-              : `When the confetti settled on the World Cup final, ${names} of ${champName} ${winners.length === 1 ? 'was' : 'were'} under it - your player${winners.length > 1 ? 's' : ''}, world champion${winners.length > 1 ? 's' : ''}.`,
+              : `When the confetti settled on the World Championship final, ${names} of ${champName} ${winners.length === 1 ? 'was' : 'were'} under it - your player${winners.length > 1 ? 's' : ''}, world champion${winners.length > 1 ? 's' : ''}.`,
             `Whatever happens for the rest of ${winners.length === 1 ? 'his' : 'their'} career${winners.length > 1 ? 's' : ''}, nobody can take this away.`,
           ].join(' '),
           playerId: winners[0].id,
@@ -1866,9 +1866,9 @@ export function processWeekAndAdvance(state: GameState) {
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Cup post-mortem: ${name}`,
+          subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Championship post-mortem: ${name}`,
           body: [
-            `${name} finish the World Cup as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
+            `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
             deepest === 1 ? `Whatever else happens in your career, they can never take this away.` : parWord,
           ].filter(Boolean).join(' '),
         })
@@ -2445,7 +2445,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `⚔️ The relegation playoff: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
-          body: `One game for a Premiership place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
+          body: `One game for a Premier Division place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
           fixtureId: fx.id,
         })
       }
@@ -2563,7 +2563,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🌍 ${nat} want you as national head coach`,
-          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Cup. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
         })
       }
     }
@@ -2700,7 +2700,7 @@ export function processWeekAndAdvance(state: GameState) {
         const leader = order[0] ? nationByCode(order[0].teamId)?.name : null
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🏆 Six Nations round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
+          subject: `🏆 European Nations Championship round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
           body: [
             ...round.map(f => `${nationByCode(f.homeId)?.name} ${f.homeScore}–${f.awayScore} ${nationByCode(f.awayId)?.name}`),
             leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',

@@ -918,7 +918,7 @@ export function rebuildSeason(state: GameState) {
         body: [
           `The ${nat} union has completed its annual review of the national programme: ${w} Test wins, ${l} defeats this season. Confidence in the head coach stands at ${conf}%.`,
           conf >= 70 ? `They are already talking about extending your tenure.`
-            : conf >= 45 ? `Steady as she goes - but unions measure everything in World Cups.`
+            : conf >= 45 ? `Steady as she goes - but unions measure everything in World Championships.`
             : `The knives are not out yet, but the drawer is open. The next window matters.`,
         ].join(' '),
       })
@@ -1275,9 +1275,9 @@ export function rebuildSeason(state: GameState) {
 
   // Promotion & relegation between each top flight and its second tier
   const PYRAMID: [string, string, string][] = [
-    ['prem', 'champ', 'the Premiership'],
+    ['prem', 'champ', 'the Premier Division'],
     ['champ', 'natl1', 'the Championship'],
-    ['top14', 'prod2', 'the Top 14'],
+    ['top14', 'prod2', 'the Elite 14'],
   ]
   // your own promotion or relegation is the story of the season and keeps its
   // own headline. The other divisions' movements are one round-up: three
@@ -1302,7 +1302,7 @@ export function rebuildSeason(state: GameState) {
       if (bar) {
         const winner = bar.homeScore > bar.awayScore ? bar.homeId : bar.awayId
         if (winner === down) {
-          const line = `${state.clubs[down].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} and keep their Premiership place; ${state.clubs[up].name} stay down`
+          const line = `${state.clubs[down].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} and keep their Premier Division place; ${state.clubs[up].name} stay down`
           if (down === state.userClubId || up === state.userClubId) {
             state.news.push({
               id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -1342,7 +1342,7 @@ export function rebuildSeason(state: GameState) {
       body: (() => {
         const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
         const how = bar
-          ? `${state.clubs[up].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} away from home and take the Premiership place. ${state.clubs[down].name} lose it on their own ground and drop into the second tier.`
+          ? `${state.clubs[up].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} away from home and take the Premier Division place. ${state.clubs[down].name} lose it on their own ground and drop into the second tier.`
           : `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
         return `${how}${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`
       })(),
@@ -1470,7 +1470,7 @@ export function rebuildSeason(state: GameState) {
   // minus ten before a ball is kicked, for anyone who went under in the summer
   for (const comp of Object.values(state.comps)) applyAdminPenalties(comp, state)
   state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
-  state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
+  state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'The Continental Shield', short: 'Continental Shield' })
   const wcYear = isWorldCupSeason(state.season)
   buildInternationals(rng, state, wcYear)
   schedulePreseason(state, rng)
@@ -1510,7 +1510,7 @@ export function rebuildSeason(state: GameState) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
       subject: `🏆 A RUGBY WORLD CUP season`,
-      body: `The ${2025 + state.season} Rugby World Cup kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
+      body: `The ${2025 + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
     })
   }
 
@@ -1709,10 +1709,10 @@ function challengeCheck(state: GameState) {
   ;(state.challengesDone ??= []).push(ch)
   const title = CHALLENGES.find(c => c.id === ch)?.title ?? ch
   const line =
-    ch === 'sapiac' ? 'Montauban stay in the Top 14. Sapiac is safe, and the Tarn-et-Garonne will sing your name for a generation.'
+    ch === 'sapiac' ? 'Montauban stay in the Elite 14. Sapiac is safe, and the Tarn-et-Garonne will sing your name for a generation.'
     : ch === 'redbull' ? 'Newcastle are champions of England. From bottom-four squad to the summit - the project is complete.'
-    : ch === 'dynasty' ? 'The URC and the Champions Cup both live at Thomond Park now. The dynasty is broken, and it broke on your watch.'
-    : 'Penzance to the Premiership. Cornwall has a top-flight club at last, and it is yours.'
+    : ch === 'dynasty' ? 'The URC and the European Club Cup both live at Limerick Park now. The dynasty is broken, and it broke on your watch.'
+    : 'Penzance to the Premier Division. Cornwall has a top-flight club at last, and it is yours.'
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
     subject: `🏅 CHALLENGE COMPLETE: ${title}`,

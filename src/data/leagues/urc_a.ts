@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const URC_A: RawClub[] = [
   {
-    id: 'leinster', name: 'Leinster Rugby', short: 'Leinster',
+    id: 'leinster', name: 'Dublin', short: 'Dublin',
     city: 'Dublin', country: 'IRE',
-    stadium: 'Aviva Stadium', capacity: 51700,
+    stadium: 'Dublin Park', capacity: 51700,
     colors: ['#0055a5', '#ffffff'],
     rep: 93, budget: 5500000,
     players: [
@@ -44,9 +44,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'munster', name: 'Munster Rugby', short: 'Munster',
+    id: 'munster', name: 'Limerick', short: 'Limerick',
     city: 'Limerick', country: 'IRE',
-    stadium: 'Thomond Park', capacity: 25600,
+    stadium: 'Limerick Park', capacity: 25600,
     colors: ['#c8102e', '#001a3a'],
     rep: 84, budget: 3000000,
     players: [
@@ -84,9 +84,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'ulster', name: 'Ulster Rugby', short: 'Ulster',
+    id: 'ulster', name: 'Belfast', short: 'Belfast',
     city: 'Belfast', country: 'IRE',
-    stadium: 'Kingspan Stadium', capacity: 18196,
+    stadium: 'Belfast Road', capacity: 18196,
     colors: ['#ffffff', '#d21034'],
     rep: 76, budget: 2000000,
     players: [
@@ -125,9 +125,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'connacht', name: 'Connacht Rugby', short: 'Connacht',
+    id: 'connacht', name: 'Galway', short: 'Galway',
     city: 'Galway', country: 'IRE',
-    stadium: 'Dexcom Stadium', capacity: 8129,
+    stadium: 'Galway Green', capacity: 8129,
     colors: ['#00843d', '#000000'],
     rep: 74, budget: 1200000,
     players: [
@@ -166,9 +166,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'glasgow', name: 'Glasgow Warriors', short: 'Glasgow',
+    id: 'glasgow', name: 'Glasgow', short: 'Glasgow',
     city: 'Glasgow', country: 'SCO',
-    stadium: 'Scotstoun Stadium', capacity: 7351,
+    stadium: 'Glasgow Park', capacity: 7351,
     colors: ['#0a2240', '#8bd3f5'],
     rep: 85, budget: 2800000,
     players: [
@@ -206,9 +206,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'edinburgh', name: 'Edinburgh Rugby', short: 'Edinburgh',
+    id: 'edinburgh', name: 'Edinburgh', short: 'Edinburgh',
     city: 'Edinburgh', country: 'SCO',
-    stadium: 'Hive Stadium', capacity: 7800,
+    stadium: 'Edinburgh Park', capacity: 7800,
     colors: ['#000000', '#d50032'],
     rep: 77, budget: 2200000,
     players: [
@@ -244,9 +244,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'benetton', name: 'Benetton Rugby', short: 'Benetton',
+    id: 'benetton', name: 'Treviso', short: 'Treviso',
     city: 'Treviso', country: 'ITA',
-    stadium: 'Stadio Monigo', capacity: 6700,
+    stadium: 'Campo Treviso', capacity: 6700,
     colors: ['#007a3d', '#ffffff'],
     rep: 75, budget: 1500000,
     players: [
@@ -283,9 +283,9 @@ export const URC_A: RawClub[] = [
     ],
   },
   {
-    id: 'zebre', name: 'Zebre Parma', short: 'Zebre',
+    id: 'zebre', name: 'Parma', short: 'Parma',
     city: 'Parma', country: 'ITA',
-    stadium: 'Stadio Sergio Lanfranchi', capacity: 5000,
+    stadium: 'Stadio Parma', capacity: 5000,
     colors: ['#000000', '#ffffff'],
     rep: 64, budget: 600000,
     players: [

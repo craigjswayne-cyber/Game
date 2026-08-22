@@ -123,7 +123,7 @@ export const CLAUSES: Record<ClauseId, Clause> = {
   // against the safe deal. Every clause now beats market when it pays, at every
   // base the generator can produce.
   top4: { id: 'top4', text: 'Pays the bonus for as long as you sit in the top four.', bonus: 0.24 },
-  europe: { id: 'europe', text: 'Pays the bonus in any season you are in the Champions Cup.', bonus: 0.22 },
+  europe: { id: 'europe', text: 'Pays the bonus in any season you are in the European Club Cup.', bonus: 0.22 },
   silverware: { id: 'silverware', text: 'Pays the bonus for a season after you win a trophy.', bonus: 0.32 },
   crowds: { id: 'crowds', text: 'Pays the bonus while the ground averages over 90% full.', bonus: 0.20 },
 }

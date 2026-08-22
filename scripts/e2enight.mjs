@@ -37,9 +37,9 @@ try {
   await shot('01-title')
 
   await page.click('text=New Career')
-  await page.waitForSelector('text=Gallagher Premiership')
+  await page.waitForSelector('text=English Premier Division')
   await shot('02-wizard-league')
-  await page.click('text=Gallagher Premiership')
+  await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')
   await shot('03-wizard-club')
   // No club tint on a club tile's fill or frame. The user reported a "weird red"

@@ -624,7 +624,7 @@ function Preview({ fxId }: { fxId: number }) {
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                 <div className="fact-label">The Stakes</div>
                 <div className="meta">{relBar
-                  ? 'The relegation playoff. Eighty minutes for a Premiership place: the winner plays top-flight rugby next season, the loser spends a year in the Championship.'
+                  ? 'The relegation playoff. Eighty minutes for a Premier Division place: the winner plays top-flight rugby next season, the loser spends a year in the Championship.'
                   : `Knockout rugby. Win and the ${comp.short} run goes on; lose and it ends this afternoon.`}</div>
               </div>
             )

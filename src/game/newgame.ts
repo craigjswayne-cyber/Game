@@ -43,19 +43,19 @@ export interface Challenge {
 export const CHALLENGES: Challenge[] = [
   {
     id: 'sapiac', clubId: 'montauban', title: 'Sauvez Sapiac',
-    desc: 'Tiny Montauban are back in the Top 14 with the smallest budget in the land. Keep them up. Become immortal in the Tarn-et-Garonne.',
+    desc: 'Tiny Montauban are back in the Elite 14 with the smallest budget in the land. Keep them up. Become immortal in the Tarn-et-Garonne.',
   },
   {
     id: 'redbull', clubId: 'newcastle', title: 'The Energy Project',
-    desc: 'New owners, big ambitions, bottom-four squad. Turn Newcastle from perennial strugglers into Premiership champions.',
+    desc: 'New owners, big ambitions, bottom-four squad. Turn Newcastle from perennial strugglers into Premier Division champions.',
   },
   {
     id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
-    desc: 'Leinster hoover up every trophy in Ireland. From Thomond Park, end their reign - win the URC and the Champions Cup.',
+    desc: 'Leinster hoover up every trophy in Ireland. From Limerick Park, end their reign - win the URC and the European Club Cup.',
   },
   {
     id: 'pirates', clubId: 'pirates', title: "The Pirates' Dream",
-    desc: 'Penzance to the Premiership: take the Cornish Pirates out of the Championship on a shoestring and put Cornwall in the top flight at last.',
+    desc: 'Penzance to the Premier Division: take the Penzance out of the Championship on a shoestring and put Cornwall in the top flight at last.',
   },
 ]
 
@@ -88,14 +88,14 @@ export function mediaVerdict(club: { id: string }, league: LeagueDef): string {
 }
 
 export const LEAGUE_DEFS: () => LeagueDef[] = () => [
-  { id: 'prem', name: 'Gallagher Premiership', short: 'Premiership', double: true, playoffTeams: 4, clubs: [...PREM_A, ...PREM_B] },
-  { id: 'top14', name: 'Top 14', short: 'Top 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
-  { id: 'urc', name: 'United Rugby Championship', short: 'URC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
-  { id: 'srp', name: 'Super Rugby Pacific', short: 'Super Rugby', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
-  { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
-  { id: 'prod2', name: 'Pro D2', short: 'Pro D2', double: true, playoffTeams: 6, clubs: PROD2 },
-  { id: 'jl1', name: 'Japan League One', short: 'League One', double: true, playoffTeams: 4, clubs: JL1 },
-  { id: 'natl1', name: 'National League One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
+  { id: 'prem', name: 'English Premier Division', short: 'Premier Division', double: true, playoffTeams: 4, clubs: [...PREM_A, ...PREM_B] },
+  { id: 'top14', name: 'French Elite 14', short: 'Elite 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
+  { id: 'urc', name: 'Celtic & Africa Super League', short: 'CASL', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
+  { id: 'srp', name: 'The Pacific Championship', short: 'Pacific Champ.', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
+  { id: 'champ', name: 'English Second Division', short: 'Second Division', double: true, playoffTeams: 4, clubs: CHAMP },
+  { id: 'prod2', name: 'French Division 2', short: 'Division 2', double: true, playoffTeams: 6, clubs: PROD2 },
+  { id: 'jl1', name: 'Japan Elite League', short: 'Japan Elite', double: true, playoffTeams: 4, clubs: JL1 },
+  { id: 'natl1', name: 'English National Division', short: 'National Div', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach'): GameState {
@@ -413,7 +413,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     .sort((a, b) => b.rep - a.rep)
     .slice(0, 16)
     .map(c => c.id)
-  state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
+  state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'The Continental Shield', short: 'Continental Shield' })
 
   buildInternationals(rng, state, isWorldCupSeason(0))
   schedulePreseason(state, rng)

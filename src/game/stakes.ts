@@ -180,7 +180,7 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
     const d = dreamState(state)
     if (d && !d.progress.done) {
       if ((fx.compId === 'cc') && !!fx.stage && (d.def.id === 'europe' || d.def.id === 'double')) {
-        out.push({ text: `Champions Cup knockout rugby - the exact road your career was pointed down.`, weight: 88 })
+        out.push({ text: `European Club Cup knockout rugby - the exact road your career was pointed down.`, weight: 88 })
       }
     }
   }

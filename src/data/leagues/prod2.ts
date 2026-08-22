@@ -63,11 +63,11 @@ const club = (
 })
 
 export const PROD2: RawClub[] = [
-  club('grenoble', 'FC Grenoble Rugby', 'Grenoble', 'Grenoble', 'Stade des Alpes', 20068, ['#1a3a75', '#c02f3a'], 62, 900_000),
+  club('grenoble', 'Grenoble', 'Grenoble', 'Grenoble', 'Stade Grenoble', 20068, ['#1a3a75', '#c02f3a'], 62, 900_000),
   {
-    id: 'montauban', name: 'US Montauban', short: 'Montauban',
+    id: 'montauban', name: 'Montauban', short: 'Montauban',
     city: 'Montauban', country: 'FRA',
-    stadium: 'Stade Sapiac', capacity: 12600,
+    stadium: 'Parc des Sports Montauban', capacity: 12600,
     colors: ['#007749', '#000000'],
     rep: 63, budget: 600000,
     players: [
@@ -101,16 +101,16 @@ export const PROD2: RawClub[] = [
       { name: 'Thomas Salles', pos: 'FB', age: 27, nat: 'FRA', q: 61 },
     ],
   },
-  club('brive', 'CA Brive', 'Brive', 'Brive-la-Gaillarde', 'Stade Amédée-Domenech', 15000, ['#111111', '#ffffff'], 60, 800_000),
-  club('beziers', 'AS Béziers Hérault', 'Béziers', 'Béziers', 'Stade Raoul-Barrière', 18555, ['#c02f3a', '#1a3a75'], 57, 600_000),
-  club('provence', 'Provence Rugby', 'Provence', 'Aix-en-Provence', 'Stade Maurice-David', 5000, ['#0e0e0e', '#c9a227'], 56, 550_000),
-  club('oyonnax', 'Oyonnax Rugby', 'Oyonnax', 'Oyonnax', 'Stade Charles-Mathon', 11400, ['#c02f3a', '#0e0e0e'], 56, 550_000),
-  club('colomiers', 'Colomiers Rugby', 'Colomiers', 'Colomiers', 'Stade Michel-Bendichou', 11430, ['#1e5aa8', '#ffffff'], 53, 420_000),
-  club('nevers', 'USON Nevers', 'Nevers', 'Nevers', 'Stade du Pré-Fleuri', 7000, ['#1a3a5c', '#c9a227'], 53, 420_000),
-  club('montdemarsan', 'Stade Montois', 'Mont-de-M.', 'Mont-de-Marsan', 'Stade Guy-Boniface', 8000, ['#c9a227', '#0e0e0e'], 51, 380_000),
-  club('biarritz', 'Biarritz Olympique', 'Biarritz', 'Biarritz', 'Parc des Sports Aguiléra', 13400, ['#c02f3a', '#ffffff'], 50, 360_000),
-  club('agen', 'SU Agen', 'Agen', 'Agen', 'Stade Armandie', 14000, ['#1a3a75', '#ffffff'], 49, 340_000),
-  club('valence', 'Valence Romans Drôme', 'Valence', 'Valence', 'Stade Georges-Pompidou', 15000, ['#7a0c2e', '#c9a227'], 47, 300_000),
-  club('dax', 'US Dax', 'Dax', 'Dax', 'Stade Maurice-Boyau', 8000, ['#c02f3a', '#f0eadc'], 46, 280_000),
-  club('carcassonne', 'US Carcassonne', 'Carcassonne', 'Carcassonne', 'Stade Albert-Domec', 12000, ['#c9a227', '#1a3a75'], 45, 260_000),
+  club('brive', 'Brive-la-Gaillarde', 'Brive', 'Brive-la-Gaillarde', 'Stade Brive-la-Gaillarde', 15000, ['#111111', '#ffffff'], 60, 800_000),
+  club('beziers', 'Béziers', 'Béziers', 'Béziers', 'Stade Béziers', 18555, ['#c02f3a', '#1a3a75'], 57, 600_000),
+  club('provence', 'Aix-en-Provence', 'Aix', 'Aix-en-Provence', 'Stade Aix-en-Provence', 5000, ['#0e0e0e', '#c9a227'], 56, 550_000),
+  club('oyonnax', 'Oyonnax', 'Oyonnax', 'Oyonnax', 'Stade Oyonnax', 11400, ['#c02f3a', '#0e0e0e'], 56, 550_000),
+  club('colomiers', 'Colomiers', 'Colomiers', 'Colomiers', 'Parc des Sports Colomiers', 11430, ['#1e5aa8', '#ffffff'], 53, 420_000),
+  club('nevers', 'Nevers', 'Nevers', 'Nevers', 'Parc des Sports Nevers', 7000, ['#1a3a5c', '#c9a227'], 53, 420_000),
+  club('montdemarsan', 'Mont-de-Marsan', 'Mont', 'Mont-de-Marsan', 'Parc des Sports Mont-de-Marsan', 8000, ['#c9a227', '#0e0e0e'], 51, 380_000),
+  club('biarritz', 'Biarritz', 'Biarritz', 'Biarritz', 'Parc Biarritz', 13400, ['#c02f3a', '#ffffff'], 50, 360_000),
+  club('agen', 'Agen', 'Agen', 'Agen', 'Parc des Sports Agen', 14000, ['#1a3a75', '#ffffff'], 49, 340_000),
+  club('valence', 'Valence', 'Valence', 'Valence', 'Stade Valence', 15000, ['#7a0c2e', '#c9a227'], 47, 300_000),
+  club('dax', 'Dax', 'Dax', 'Dax', 'Parc des Sports Dax', 8000, ['#c02f3a', '#f0eadc'], 46, 280_000),
+  club('carcassonne', 'Carcassonne', 'Carcassonne', 'Carcassonne', 'Stade Carcassonne', 12000, ['#c9a227', '#1a3a75'], 45, 260_000),
 ]

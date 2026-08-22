@@ -220,7 +220,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'career',
     q: 'What is the Dream?',
-    a: 'The ambition you chose for this career, at the foot of the New Career wizard - take a Championship club into the top flight, win the league and Europe with one club, build a first team out of your own academy, coach a nation to the World Cup, and a handful more. It is offered fresh from your starting club, so a Premiership giant is never asked to "reach the top flight" and a National League One side is never asked to "win it all with what you have got." It sits on the Home screen every week with an honest line on where it stands, gets a verdict in every season review, and is graded on the Manager Legacy screen at the end of the career. It changes nothing about how a match plays out - it is a lens on the save, not a lever in it.',
+    a: 'The ambition you chose for this career, at the foot of the New Career wizard - take a Championship club into the top flight, win the league and Europe with one club, build a first team out of your own academy, coach a nation to the World Championship, and a handful more. It is offered fresh from your starting club, so a Premier Division giant is never asked to "reach the top flight" and a English National Division side is never asked to "win it all with what you have got." It sits on the Home screen every week with an honest line on where it stands, gets a verdict in every season review, and is graded on the Manager Legacy screen at the end of the career. It changes nothing about how a match plays out - it is a lens on the save, not a lever in it.',
   },
   {
     cat: 'squad',
@@ -354,7 +354,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'club',
     q: 'Should I build hospitality boxes?',
-    a: 'Boxes and lounges make every home crowd worth more at the gate, four per cent per level. They also cost more to run than any other building on the estate, because a box needs chefs and hosts whether or not there is a match. Break-even is an average home crowd of about nine thousand across a season of roughly fourteen home gates, so at a full Premiership ground a level returns about one and a half times its upkeep, and more again at a big one. Below that it is a straight loss. Expanding the ground adds seats; this makes the seats you have worth more.',
+    a: 'Boxes and lounges make every home crowd worth more at the gate, four per cent per level. They also cost more to run than any other building on the estate, because a box needs chefs and hosts whether or not there is a match. Break-even is an average home crowd of about nine thousand across a season of roughly fourteen home gates, so at a full Premier Division ground a level returns about one and a half times its upkeep, and more again at a big one. Below that it is a straight loss. Expanding the ground adds seats; this makes the seats you have worth more.',
   },
 
   // ---------------- Career ----------------
@@ -391,17 +391,17 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'career',
     q: 'Can I manage a country?',
-    a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: the Club & Country screen holds the whole desk - the ranking, the union\'s confidence, your Test record, and the window squad, which is yours to shape. When camp is open you can drop a name and call the next man up - any qualified player in the game, no age limit and no rating floor, only the injured refused - the federation caps the room and will not let it fall below 23, and on a Test weekend your assistant minds any club fixture while you take the country. Leave the job and the Test record stays on your Manager Profile for good. Step down from either job from the same screen. A World Cup is the biggest thing in the game. The Job Centre shows how close your reputation is.',
+    a: 'Yes, if one asks. The unions watch managers with a reputation of 64 or better and ring twice a season - the smaller nations first, England, France and New Zealand only for names in the mid-80s. Accept from your Manager Profile and you hold the country alongside the club: the Club & Country screen holds the whole desk - the ranking, the union\'s confidence, your Test record, and the window squad, which is yours to shape. When camp is open you can drop a name and call the next man up - any qualified player in the game, no age limit and no rating floor, only the injured refused - the federation caps the room and will not let it fall below 23, and on a Test weekend your assistant minds any club fixture while you take the country. Leave the job and the Test record stays on your Manager Profile for good. Step down from either job from the same screen. A World Championship is the biggest thing in the game. The Job Centre shows how close your reputation is.',
   },
   {
     cat: 'career',
-    q: 'Is there a World Cup?',
-    a: 'Every four years - 2027, 2031 and on. Twenty nations in four pools of five, seeded from the live world rankings so four years of Test results decide who lands the kind pool and who gets the group of death, then quarter-finals, semis and a final. It runs in the opening weeks of the season and your internationals are away with their countries until it is decided, so plan the early club rounds around the gaps. There is no Rugby Championship and no autumn series that year: the World Cup is the Test calendar. Hold a national job when one comes around and you coach every match of it - your seeding sets the bar, the union marks you against it, and the post-mortem lands either way. A World Cup won stays on a player\'s honours for good, and on yours.',
+    q: 'Is there a World Championship?',
+    a: 'Every four years - 2027, 2031 and on. Twenty nations in four pools of five, seeded from the live world rankings so four years of Test results decide who lands the kind pool and who gets the group of death, then quarter-finals, semis and a final. It runs in the opening weeks of the season and your internationals are away with their countries until it is decided, so plan the early club rounds around the gaps. There is no Rugby Championship and no autumn series that year: the World Championship is the Test calendar. Hold a national job when one comes around and you coach every match of it - your seeding sets the bar, the union marks you against it, and the post-mortem lands either way. A World Championship won stays on a player\'s honours for good, and on yours.',
   },
   {
     cat: 'career',
     q: 'How does promotion and relegation work?',
-    a: 'In England the trapdoor is a game: the Premiership\'s bottom club hosts the Championship winner in a one-off playoff after the finals, and the winner plays top-flight rugby next season. Everywhere else the swap is automatic - bottom of the top flight down, champion of the second tier up. European places come from final league standings: the top five of the Premiership, six of the Top 14 and five of the URC make the Champions Cup, and the band below each of them goes into the Challenge Cup.',
+    a: 'In England the trapdoor is a game: the Premier Division\'s bottom club hosts the Championship winner in a one-off playoff after the finals, and the winner plays top-flight rugby next season. Everywhere else the swap is automatic - bottom of the top flight down, champion of the second tier up. European places come from final league standings: the top five of the Premier Division, six of the Elite 14 and five of the URC make the European Club Cup, and the band below each of them goes into the Continental Shield.',
   },
   {
     cat: 'career',

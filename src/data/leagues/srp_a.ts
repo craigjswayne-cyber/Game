@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const SRP_A: RawClub[] = [
   {
-    id: 'blues', name: 'Blues', short: 'Blues',
+    id: 'blues', name: 'Auckland', short: 'Auckland',
     city: 'Auckland', country: 'NZL',
-    stadium: 'Eden Park', capacity: 50000,
+    stadium: 'Auckland Grounds', capacity: 50000,
     colors: ['#003087', '#ffffff'],
     rep: 85, budget: 1700000,
     players: [
@@ -41,9 +41,9 @@ export const SRP_A: RawClub[] = [
     ],
   },
   {
-    id: 'chiefs', name: 'Chiefs', short: 'Chiefs',
+    id: 'chiefs', name: 'Hamilton', short: 'Hamilton',
     city: 'Hamilton', country: 'NZL',
-    stadium: 'FMG Stadium Waikato', capacity: 25800,
+    stadium: 'Hamilton Grounds', capacity: 25800,
     colors: ['#d71920', '#fdb913'],
     rep: 87, budget: 1800000,
     players: [
@@ -78,9 +78,9 @@ export const SRP_A: RawClub[] = [
     ],
   },
   {
-    id: 'crusaders', name: 'Crusaders', short: 'Crusaders',
+    id: 'crusaders', name: 'Christchurch', short: 'Christchurch',
     city: 'Christchurch', country: 'NZL',
-    stadium: 'Apollo Projects Stadium', capacity: 18000,
+    stadium: 'Christchurch Oval', capacity: 18000,
     colors: ['#ce181e', '#000000'],
     rep: 88, budget: 2000000,
     players: [
@@ -117,9 +117,9 @@ export const SRP_A: RawClub[] = [
     ],
   },
   {
-    id: 'highlanders', name: 'Highlanders', short: 'Highlanders',
+    id: 'highlanders', name: 'Dunedin', short: 'Dunedin',
     city: 'Dunedin', country: 'NZL',
-    stadium: 'Forsyth Barr Stadium', capacity: 30748,
+    stadium: 'Dunedin Oval', capacity: 30748,
     colors: ['#0a2240', '#ffd100'],
     rep: 74, budget: 1000000,
     players: [
@@ -154,9 +154,9 @@ export const SRP_A: RawClub[] = [
     ],
   },
   {
-    id: 'hurricanes', name: 'Hurricanes', short: 'Hurricanes',
+    id: 'hurricanes', name: 'Wellington', short: 'Wellington',
     city: 'Wellington', country: 'NZL',
-    stadium: 'Sky Stadium', capacity: 34500,
+    stadium: 'Wellington Oval', capacity: 34500,
     colors: ['#ffd100', '#1d1d1b'],
     rep: 84, budget: 1500000,
     players: [
@@ -192,9 +192,9 @@ export const SRP_A: RawClub[] = [
     ],
   },
   {
-    id: 'moana', name: 'Moana Pasifika', short: 'Moana',
+    id: 'moana', name: 'Manukau', short: 'Manukau',
     city: 'Auckland', country: 'NZL',
-    stadium: 'North Harbour Stadium', capacity: 25000,
+    stadium: 'Manukau Grounds', capacity: 25000,
     colors: ['#00b2a9', '#0c1c3c'],
     rep: 72, budget: 800000,
     players: [

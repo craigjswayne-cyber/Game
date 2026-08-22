@@ -53,7 +53,7 @@ const SPECIALITIES: Speciality[] = [
     id: 'euro', name: 'Continental Royalty', icon: '👑',
     desc: 'Conquered Europe\'s biggest prize.',
     earned: g => g.mgr.trophies.some(t => t.compId === 'cc'),
-    hint: 'Win the Champions Cup.',
+    hint: 'Win the European Club Cup.',
   },
   {
     id: 'manman', name: 'Man-Manager', icon: '🫂',
