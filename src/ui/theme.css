@@ -76,7 +76,13 @@ html { overscroll-behavior: none; }
 /* mobile browsers: 100% of html can undershoot when the URL bar collapses,
    leaving a dead band below the app - dvh tracks the real visible height */
 @supports (height: 100dvh) {
-  html, body, #root { height: 100dvh; }
+  /* divided by --zoom (the text-size setting, store.ts): zoom scales every
+     rendered length INCLUDING dvh, so at 1.3 a bare 100dvh shell painted 30%
+     taller than the screen and the whole app scrolled - measured by
+     scripts/textscale.mjs. Dividing the local height by the zoom makes the
+     rendered height the real viewport again at every scale (at the default
+     --zoom: 1 this is exactly 100dvh). */
+  html, body, #root { height: calc(100dvh / var(--zoom, 1)); }
 }
 
 body {
@@ -904,7 +910,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; min-height: 44px; }
 
 /* first-run welcome dialog */
-.tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; }
+/* overflow-y on the veil and margin:auto on the box: when the box is taller
+   than the screen anyway (text scale at 1.3 multiplies the prose while the
+   dvh ceiling below does not grow with it), flex centering alone pushes BOTH
+   ends off-screen and the close button becomes untappable - caught by
+   scripts/textscale.mjs. Auto margins keep the top edge reachable and the
+   veil scrolls the rest. */
+.tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; overflow-y: auto; }
 .tut-box {
   background: var(--surface-2); color: var(--text-primary);
   border: 2px solid var(--gold);
@@ -917,10 +929,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      ceiling and a scroller the last two paragraphs and the close button were
      off the bottom of the screen with no way to reach them (blocker A2). Same
      pattern .modal has used all along. */
+  /* the dvh line is divided by --zoom for the same reason as the app shell: at
+     text scale 1.3 a bare dvh ceiling renders 30% taller than the screen it is
+     meant to fit. The comment sits ABOVE the pair because cssaudit requires the
+     dvh companion on the line right after its vh fallback. */
   max-height: calc(100vh - 44px);
-  max-height: calc(100dvh - 44px);
+  max-height: calc(100dvh / var(--zoom, 1) - 44px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  margin: auto;
 }
 .tut-close { margin-top: 14px; }
 .tut-close .btn { width: 100%; }

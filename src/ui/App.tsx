@@ -138,17 +138,31 @@ function Overlays() {
   )
 }
 
-/** Best-effort hard lock where the platform allows it (installed PWA). */
-function useOrientationLock() {
+/* There used to be a hard landscape lock here (screen.orientation, from the
+ * same era as the departed sideways veil). In a browser tab the lock silently fails,
+ * which is why nobody missed it; in exactly the installed contexts a store
+ * package means, it would have WON, and opened the game sideways into the
+ * layout the project stopped tuning. The release audit caught it
+ * (docs/release-readiness.md, Part 1.2); the manifest's orientation is now
+ * "any" to match, and scripts/shelllint.ts keeps a landscape lock from ever
+ * coming back. */
+
+/** Every font size in this UI is in px, so OS text scaling does nothing on its
+ *  own (release audit, Part 2.3). This is the game's answer: a zoom on the
+ *  document root, chosen on the title screen, persisted like night mode.
+ *  Viewport-unit lengths are exempt from zoom by spec, so the app shell stays
+ *  screen-sized while the type and controls inside it grow. */
+function useTextScale() {
+  const scale = useStore(s => s.textScale)
   useEffect(() => {
-    const tryLock = () => {
-      const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
-      o?.lock?.('landscape').catch(() => { /* browser tabs refuse - the veil handles it */ })
-    }
-    tryLock()
-    window.addEventListener('click', tryLock, { once: true })
-    return () => window.removeEventListener('click', tryLock)
-  }, [])
+    try {
+      const st = document.documentElement.style
+      st.setProperty('zoom', String(scale))
+      // read by theme.css to divide dvh-sized boxes back down to the real
+      // viewport: zoom scales rendered dvh lengths along with everything else
+      st.setProperty('--zoom', String(scale))
+    } catch { /* very old engines */ }
+  }, [scale])
 }
 
 /** A reload lands you back where you were, not on the title screen.
@@ -192,7 +206,7 @@ export default function App() {
   useStore(s => s.tick)
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
-  useOrientationLock()
+  useTextScale()
   useResume()
 
   const cur = nav[nav.length - 1]
