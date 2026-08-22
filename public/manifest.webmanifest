@@ -1,6 +1,6 @@
 {
-  "name": "FAB Rugby",
-  "short_name": "FAB Rugby",
+  "name": "PHASE: Rugby Manager",
+  "short_name": "PHASE",
   "description": "A classic-style rugby union management game: real clubs, real players, deep seasons.",
   "start_url": "./",
   "display": "standalone",

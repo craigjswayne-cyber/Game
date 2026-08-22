@@ -21,10 +21,13 @@ export default function Menu() {
     <div className="title-screen">
       <BrandMark size={60} />
       <hr className="rules" />
-      <h1><b>FAB</b><br />RUGBY</h1>
+      <h1><b>PHASE</b><br />RUGBY MANAGER</h1>
       {/* set in caps at the user's request, so it reads as a strapline under the
           title rather than as a sentence someone left there */}
       <div className="tagline">STORIES, SEASONS &amp; SILVERWARE</div>
+      {/* the release the player is holding. Bump WITH package.json - the pair
+          drifting apart is how a bug report says v1.0.1 about a v1.0.3 build */}
+      <div className="muted" style={{ marginTop: 10, letterSpacing: 1 }}>v1.0.1</div>
       <hr className="rules" />
       <div className="menu-btns">
         {(() => {
