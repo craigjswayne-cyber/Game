@@ -203,18 +203,56 @@ once, permanently. Calibration note, not a defect.
 | 16 | Portrait QA and tap targets | **PASS** | portraitqa + tapsize green at this dist |
 | 17 | Notch/safe-area handling | **PASS** | env(safe-area-inset-*) on masthead, nav, sheets (10 sites in theme.css); devicematrix runs notched viewports |
 | 18 | Max text scaling | **FAIL** | All 199 font-size decls px; user-scalable=no; OS text-size ignored (Part 2.3) |
-| 19 | Orientation correctness in store package | **FAIL** | Manifest + runtime lock say landscape; game is portrait-tuned (Part 1.2) |
-| 20 | Store shell branding (splash/status bar) | **FAIL** | Retired blue #24478f/#08142c in index.html + manifest (Part 2.2) |
+| 19 | Orientation correctness in store package | **PASS** (remediated) | Landscape lock removed; manifest orientation "any"; shelllint.ts guards it |
+| 20 | Store shell branding (splash/status bar) | **PASS** (remediated) | Splash and status bar wear the night ground #1a201e, read from tokens.css by shelllint.ts |
 | 21 | IAP edge cases | **N/A** | No IAPs exist (verified, Part 2.1) |
 | 22 | Ad implementation | **N/A** | No ads exist (verified) |
 | 23 | Cloud save/state persistence across devices | **FAIL** | Single-device IndexedDB; manual export only (Part 1.3) |
 | 24 | Offline behaviour | **PASS** | Service worker: network-first shell, cache-first hashed assets, stale-cache cleanup |
 | 25 | Store packaging (TWA/wrapper) exists | **FAIL** | Web-only today (Part 1.4) |
 
-**Sign-off verdict: NOT READY for store submission.** Five fails are
+**Sign-off verdict at audit time: NOT READY for store submission.** Five fails were
 engineering work measured in days (19, 20 same afternoon; 18, 23, 25 real but
 bounded). One fail is the identity of the current build (1: the real-name
 database), is deliberate, and is the actual decision the project owner has to
 make - fictionalise and ship, or stay a personal project. The simulation core,
 save integrity, permissions posture and layout discipline are already at or
 above store standard, which is the part that usually is not.
+
+---
+
+## Remediation addendum
+
+Shipped in the commit that carries this addendum, each fix behind a probe
+demonstrated red on the pre-fix tree (828106c):
+
+- **Orientation (1.2, line 19)**: the landscape hard-lock is gone from App.tsx
+  and the manifest declares `"orientation": "any"` - portrait is the tuned
+  orientation and landscape still works, so the shell now forces neither.
+- **Store shell branding (2.2, line 20)**: index.html theme-color and the
+  manifest splash colours now carry the night ground `#1a201e`. The new
+  `scripts/shelllint.ts` reads that value out of tokens.css, so a future
+  palette change fails the suite until the shell follows.
+- **Manifest description (2.6)**: no longer advertises "real clubs, real
+  players".
+- **Apple touch icon (2.6)**: a true 180x180 PNG, generated from the 512 and
+  verified byte-level by shelllint.
+- **Text scaling (2.3, line 18)**: a Text Size setting on the title screen
+  (1x / 1.15x / 1.3x), persisted like night mode and applied as a zoom on the
+  document root. `scripts/textscale.mjs` holds it: the choice renders, it
+  survives a reload, and the game is playable at 1.3 - wizard to Home, no
+  sideways scroll, bottom nav inside the viewport.
+
+The text-scale probe caught two real defects on the way in, which is the point
+of building one: at 1.3 the welcome dialog's close button rendered off-screen
+and could not be tapped (fixed: the veil scrolls and the box centres with auto
+margins), and the whole app shell painted 30% taller than the screen because
+zoom scales dvh lengths (fixed: the shell's dvh heights are divided by the
+zoom factor).
+
+Still failing, unchanged and deliberate: line 1 (the real-name database - the
+project owner's identity decision), line 23 (cloud saves - needs a platform
+backend), line 25 (store packaging - a separate project). The economy and
+regen calibration notes (2.4, 2.5) remain open as balance work, since a
+lower-league budget dial has to clear the paired-seed balance harness, not a
+release checklist.

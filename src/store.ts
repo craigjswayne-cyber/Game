@@ -76,6 +76,10 @@ interface Store {
   wireQueue: number[]
   night: boolean
   toggleNight: () => void
+  /** 1, 1.15 or 1.3: a zoom on the document root, the game's answer to px-fixed
+   *  type ignoring the OS text-size slider (release audit, Part 2.3). */
+  textScale: number
+  setTextScale: (v: number) => void
   /** The welcome dialog, hoisted out of Home so any screen can open it and the
    *  Manager menu can bring it back after it has been dismissed (blocker A2). */
   tut: boolean
@@ -351,6 +355,19 @@ export const useStore = create<Store>((set, get) => ({
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
     return { night }
   }),
+
+  // parsed defensively: a mangled value must read as the default, never as NaN
+  // (NaN zoom would blank the whole app)
+  textScale: (() => {
+    if (typeof localStorage === 'undefined') return 1
+    const v = Number(localStorage.getItem('rm-zoom'))
+    return [1.15, 1.3].includes(v) ? v : 1
+  })(),
+  setTextScale: (v: number) => {
+    const scale = [1.15, 1.3].includes(v) ? v : 1
+    try { localStorage.setItem('rm-zoom', String(scale)) } catch { /* private mode */ }
+    set({ textScale: scale })
+  },
 
   tut: false,
   openTut: () => set({ tut: true }),

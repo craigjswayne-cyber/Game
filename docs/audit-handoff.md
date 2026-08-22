@@ -657,3 +657,30 @@ lists whose row actions render outside the row have not all been checked.
    MAX_DESK_HOLDS because a rollover writes 54 stories in one settle).
    Watch for feedback on the gate's feel.
 2. **Board expectations cost money** - shipped this session, see above.
+
+## The release gate (audit + same-day remediation, Aug 2026)
+
+docs/release-readiness.md is the store-submission audit at 828106c: every
+claim is a grep, a probe, or scripts/releasesim.ts (15 headless seasons, now
+on the suite's SLOW list). Its three shell defects were fixed the same day,
+each behind a probe red-demonstrated on the pre-fix tree:
+
+- scripts/shelllint.ts polices everything OUTSIDE src/ that textlint and
+  tokenlint never see: manifest orientation (never landscape - the game is
+  portrait-tuned), splash/status colours (read live from tokens.css --canvas,
+  so a palette change fails until the shell follows), the description (no
+  real-world IP advertising), the 180x180 apple-touch-icon (verified at PNG
+  byte level), and no landscape hard-lock in App.tsx.
+- Text Size (title screen, 1x/1.15x/1.3x, key rm-zoom) is a zoom on the
+  document root. TWO TRAPS, both now guarded by scripts/textscale.mjs:
+  zoom scales dvh lengths, so every dvh-sized box that must fit the screen
+  needs dividing by var(--zoom, 1) (the app shell and .tut-box do this - a
+  bare 100dvh painted 30% past the screen); and flex-centred veils push an
+  overflowing child off BOTH edges, so .tut-veil scrolls and .tut-box has
+  margin: auto (the welcome dialog's button was untappable at 1.3).
+- Also learned: cssaudit demands the dvh companion on the line RIGHT AFTER
+  its vh fallback - comments between the pair fail the suite.
+
+Still open by decision, not oversight: the real-name database (the owner's
+identity call), cloud saves, store packaging, and the lower-league deficit
+equilibrium (a balance dial - it must clear the paired-seed harness).

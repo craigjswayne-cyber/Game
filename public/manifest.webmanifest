@@ -1,12 +1,12 @@
 {
   "name": "PHASE: Rugby Manager",
   "short_name": "PHASE",
-  "description": "A classic-style rugby union management game: real clubs, real players, deep seasons.",
+  "description": "A classic-style rugby union management game: deep seasons, big decisions, a career worth the chase.",
   "start_url": "./",
   "display": "standalone",
-  "orientation": "landscape",
-  "background_color": "#08142c",
-  "theme_color": "#24478f",
+  "orientation": "any",
+  "background_color": "#1a201e",
+  "theme_color": "#1a201e",
   "icons": [
     {
       "src": "./icon-192.png",

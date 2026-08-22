@@ -7,6 +7,8 @@ import { BrandMark } from '../components'
 export default function Menu() {
   const go = useStore(s => s.go)
   const setGame = useStore(s => s.setGame)
+  const textScale = useStore(s => s.textScale)
+  const setTextScale = useStore(s => s.setTextScale)
   const [saves, setSaves] = useState<SaveMeta[]>([])
   const [showLoad, setShowLoad] = useState(false)
 
@@ -71,7 +73,26 @@ export default function Menu() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 40, fontSize: 11, opacity: .65 }}>
+      {/* Text size: a zoom on the document root, because every font size in
+          this UI is px and the OS text slider therefore does nothing (release
+          audit, Part 2.3). Three steps, persisted like night mode; the buttons
+          preview their own size. */}
+      <div className="text-scale-row" style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>TEXT SIZE</span>
+        {([[1, 13], [1.15, 15], [1.3, 18]] as const).map(([v, px]) => (
+          <button key={v} className="btn ghost text-scale-btn"
+            aria-pressed={textScale === v}
+            style={{
+              fontSize: px, padding: '4px 12px', lineHeight: 1,
+              color: textScale === v ? 'var(--primary)' : 'var(--text-secondary)',
+              borderColor: textScale === v ? 'var(--primary)' : 'var(--border-strong)',
+            }}
+            onClick={() => setTextScale(v)}>
+            A
+          </button>
+        ))}
+      </div>
+      <div style={{ marginTop: 22, fontSize: 11, opacity: .65 }}>
         A personal project - real names used for fun, not for sale.
       </div>
       {/* WHICH BUILD IS THIS? Two phones, two people, and no way to tell a stale
