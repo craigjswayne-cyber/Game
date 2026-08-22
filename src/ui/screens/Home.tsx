@@ -6,6 +6,8 @@ import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
+import { dreamState, dreamPct } from '../../game/dream'
+import { matchStakes, seasonTentpoles } from '../../game/stakes'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
@@ -170,6 +172,17 @@ export default function Home() {
             {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? 'Neutral venue'} · {weekDate(game.season, fx.week)}
             {fx.venue ? ' · Neutral ground' : fx.homeId === club.id ? ' · Home' : ' · Away'}
           </div>
+          {/* WHAT THIS MATCH MEANS. The engine has always known - the table
+              maths, the boardroom, the grudge, the man one try short of fifty -
+              and never said it at the one moment it lands. One line, the loudest
+              true thing, and nothing at all when there is nothing to say. */}
+          {isThisWeek && (() => {
+            const bill = matchStakes(game, fx)
+            return bill ? (
+              <div style={{ marginTop: 7, paddingTop: 7, borderTop: '1px solid var(--border)',
+                            fontWeight: 600, color: 'var(--gold)' }}>{bill}</div>
+            ) : null
+          })()}
           <div className="muted" style={{ marginTop: 6 }}>
             {isThisWeek
               ? 'Tap to set your team, then press Continue to play.'
@@ -210,6 +223,50 @@ export default function Home() {
               <div className="muted">No Test on the calendar - the union watches your club work in the meantime.</div>
             )}
           </div>
+        )
+      })()}
+      {/* THE DREAM sits above the season objectives on purpose. The board's
+          brief expires in May; this does not, and the whole point of putting it
+          here is that a manager sees the reason for the save every single week.
+          Absent on a career started before dreams existed - the Legacy screen's
+          horizons carry those saves as they always did. */}
+      {(() => {
+        const d = dreamState(game)
+        if (!d) return null
+        const pct = dreamPct(d.progress)
+        return (
+          <button className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}
+            onClick={() => go('legacy')}>
+            <div className="fact-label">{d.progress.done ? '★ THE DREAM, REALISED' : '★ THE DREAM'}</div>
+            <div style={{ fontWeight: 700, fontSize: 14.5, marginTop: 2 }}>{d.title}</div>
+            <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '7px 0 4px' }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
+            </div>
+            <div className="meta">{d.progress.note}</div>
+          </button>
+        )
+      })()}
+      {/* THE SEASON AHEAD. Anticipation needs dates: derbies, deadlines,
+          intake day, the finals you have reached. Everything here already
+          fires on schedule - the player has simply never been able to see it
+          coming. Three at a time, so it is a glance and not a calendar app. */}
+      {(() => {
+        const soon = seasonTentpoles(game).filter(t => t.week >= game.week).slice(0, 3)
+        if (!soon.length) return null
+        return (
+          <button className="card" onClick={() => go('fixtures')}>
+            <div className="fact-label">📅 The Season Ahead</div>
+            <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px', marginTop: 2 }}>
+              {soon.map(t => (
+                <span key={`${t.week}-${t.label}`}>
+                  {t.icon} {t.label}
+                  <b style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {t.week === game.week ? ' this week' : ` in ${t.week - game.week} wk${t.week - game.week === 1 ? '' : 's'}`}
+                  </b>
+                </span>
+              ))}
+            </div>
+          </button>
         )
       })()}
       {/* the objectives, the annual and the press call used to sit in a second

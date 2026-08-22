@@ -129,5 +129,76 @@ ok(rows.sleepwalk.filter(r => r.champion).length < SEEDS.length,
 ok(posn('optimise') < posn('sleepwalk'),
   `and the engaged manager finishes higher than the absent one (${posn('optimise').toFixed(2)} v ${posn('sleepwalk').toFixed(2)})`)
 
+// ---------------------------------------------------------------------------
+// BOARD PATIENCE SCALES WITH STATURE (design review, wave 2)
+//
+// The three properties above establish that picking your own side matters at
+// all. This establishes something the design review specifically asked for:
+// that the SAME failure - never opening a screen - costs differently
+// depending on who you manage it for. "At a giant, second place is a crisis
+// ... at a minnow, survival buys years of goodwill" only means something if
+// the identical sleepwalk performance produces a genuinely different fate.
+//
+// GIANT = Bath (rep 88, boardObjective "win the title") - the highest-rep
+// club in the Premiership, so the effect lands exactly where the review's own
+// example lives. MINNOW = Esher (rep 38, "stay clear of the bottom two") -
+// the National League One club the loan-realism wave already used as its
+// low-rep anchor.
+//
+// Six seeds, not three: this is a differential between two full boardroom
+// curves (boardPatience, model.ts), not a single dial, and a real season's
+// worth of match-level noise means any one seed can run kind or cruel - seed
+// 4242 below is a giant that gets a soft season by chance and its board barely
+// notices. The claim that has to hold is the SHAPE across seeds, not that
+// every single one crosses the sack line by a fixed date.
+const STATURE_SEEDS = [9, 777, 101, 55, 2024, 4242]
+
+function statureRun(clubId: string, seed: number, mode: Mode) {
+  const g: GameState = newGame(clubId, 'Stature', seed)
+  let guard = 0
+  let minConf = 100
+  let sacked = false
+  let sackWeek: number | null = null
+  while (g.week < SEASON_WEEKS && guard++ < SEASON_WEEKS + 5) {
+    if (mode !== 'sleepwalk' && !g.unemployed) {
+      const lu = pick(g, mode)
+      if (lu) {
+        g.clubs[g.userClubId].tactic.lineup = lu
+        g.clubs[g.userClubId].tactic.userPicked = true
+      }
+    }
+    processWeekAndAdvance(g)
+    if (g.unemployed) { sacked = true; sackWeek = g.week; break }
+    const c = g.clubs[clubId]
+    if (c) minConf = Math.min(minConf, c.boardConfidence)
+  }
+  return { minConf: Math.round(minConf), sacked, sackWeek }
+}
+
+const giantSleep = STATURE_SEEDS.map(s => statureRun('bath', s, 'sleepwalk'))
+const giantOpt = STATURE_SEEDS.map(s => statureRun('bath', s, 'optimise'))
+const minnowSleep = STATURE_SEEDS.map(s => statureRun('esher', s, 'sleepwalk'))
+const meanMin = (rows: { minConf: number }[]) => mean(rows.map(r => r.minConf))
+const worstMin = (rows: { minConf: number }[]) => Math.min(...rows.map(r => r.minConf))
+
+console.log('\nboard patience by stature (6 seeds each):')
+console.log(`  bath rep88   sleepwalk  mean min-confidence ${meanMin(giantSleep).toFixed(1)}, ${giantSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`
+  + (giantSleep.some(r => r.sacked) ? ` (${giantSleep.filter(r => r.sacked).map(r => `wk${r.sackWeek}`).join(', ')})` : ''))
+console.log(`  bath rep88   optimise   mean min-confidence ${meanMin(giantOpt).toFixed(1)}, ${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
+console.log(`  esher rep38  sleepwalk  mean min-confidence ${meanMin(minnowSleep).toFixed(1)}, ${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
+
+ok(meanMin(giantSleep) < meanMin(giantOpt) - 25,
+  `a giant's sleepwalk board sinks far lower than its engaged board (${meanMin(giantSleep).toFixed(1)} v ${meanMin(giantOpt).toFixed(1)})`)
+ok(meanMin(giantSleep) < meanMin(minnowSleep) - 25,
+  `the SAME sleepwalk season costs a giant's board far more than a minnow's (${meanMin(giantSleep).toFixed(1)} v ${meanMin(minnowSleep).toFixed(1)})`)
+ok(giantSleep.filter(r => r.sacked).length >= 1,
+  `sleepwalking at a genuine title favourite gets somebody sacked within the season (${giantSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} seeds)`)
+ok(giantOpt.filter(r => r.sacked).length === 0,
+  `and engaged management at the same club never is (${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length})`)
+ok(minnowSleep.filter(r => r.sacked).length === 0,
+  `a minnow's sleepwalk manager always survives the season - patience protects (${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length})`)
+ok(worstMin(minnowSleep) >= 35,
+  `and its board never gets anywhere near crisis range (worst seed bottomed at ${worstMin(minnowSleep)})`)
+
 console.log(fails ? `\n${fails} FAILURES` : '\nDIFFICULTY PROBE PASSED: the team sheet is wired to the pitch, and Continue does not win titles')
 process.exit(fails ? 1 : 0)

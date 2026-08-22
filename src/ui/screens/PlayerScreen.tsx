@@ -399,6 +399,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {mine && p.acad && (
         <button className="btn gold block" onClick={() => {
           p.acad = false
+          // promoted by hand is still a graduate of your academy
+          p.homegrown = true
           // a first-team player is paid like one: the rollover graduation path
           // has always re-priced the development deal, and this button did not,
           // which made hand-promotion a free-labour loophole (audit 16D)

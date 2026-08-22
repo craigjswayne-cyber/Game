@@ -81,6 +81,11 @@ export const HANDBOOK: HandbookEntry[] = [
   },
   {
     cat: 'match',
+    q: 'What is the line under the next fixture on Home?',
+    a: 'The single loudest true thing about the match ahead - win and you go top, the board meets Monday regardless, a man is one try short of fifty, an old rival you have lost to three times running. It reads the table, the boardroom, the grudge book and the milestones the same way you could, and says out loud whichever one matters most this week. It says nothing when there is honestly nothing to say - a mid-table October Tuesday gets silence, not a manufactured headline.',
+  },
+  {
+    cat: 'match',
     q: 'Do cards and the referee matter?',
     a: 'A great deal. Each referee has his own tolerance, and some will reach for a card where others talk. A yellow puts you a man down for ten minutes and the scoreboard usually shows it. A red is worse: the player leaves the field, and he picks up a ban of one or more matches afterwards. Aggressive players and the Hot Head trait get carded more.',
   },
@@ -213,6 +218,11 @@ export const HANDBOOK: HandbookEntry[] = [
     a: 'The forced page between seasons. When the final whistle of a campaign has gone and the summer has been processed, Continue lands on the Annual: the year\'s champions, your silverware if there was any, and confirmation that the season is filed - the Roll of Honour, your Annals on the Manager Legacy screen and the record books are all written up before you see it. One button starts the new season, and nothing advances until you press it.',
   },
   {
+    cat: 'career',
+    q: 'What is the Dream?',
+    a: 'The ambition you chose for this career, at the foot of the New Career wizard - take a Championship club into the top flight, win the league and Europe with one club, build a first team out of your own academy, coach a nation to the World Cup, and a handful more. It is offered fresh from your starting club, so a Premiership giant is never asked to "reach the top flight" and a National League One side is never asked to "win it all with what you have got." It sits on the Home screen every week with an honest line on where it stands, gets a verdict in every season review, and is graded on the Manager Legacy screen at the end of the career. It changes nothing about how a match plays out - it is a lens on the save, not a lever in it.',
+  },
+  {
     cat: 'squad',
     q: 'What is the academy for?',
     a: 'A youth intake arrives every season. Your academy coach and the Centre of Excellence both raise the quality of what comes through, and the better your setup the more likely a genuine prospect appears. You get an honest preview before intake day and a graded report afterwards. Development deals run out at 21: promote a lad to a professional contract from his player page before the summer he turns 21, or he leaves as a free agent. You are warned a full season ahead.',
@@ -279,7 +289,7 @@ export const HANDBOOK: HandbookEntry[] = [
   {
     cat: 'club',
     q: 'What is board confidence and what moves it?',
-    a: 'A 0 to 100 reading of how safe your job is. Results move it most, then the objectives you were set, then how you handle the press and whether you keep your promises. It appears on the Home dashboard, and a half-term report card spells out where you stand. Let it fall far enough and you will be sacked.',
+    a: 'A 0 to 100 reading of how safe your job is. Results move it most, then the objectives you were set, then how you handle the press and whether you keep your promises. It appears on the Home dashboard, and a half-term report card spells out where you stand. Let it fall far enough and you will be sacked. The board\'s PATIENCE scales with who you manage: a genuine title favourite has a thin-skinned board that reacts hard to every swing, so a season adrift of the trophy is a real crisis - stay hands-off there and you can be out of a job by the spring. A club with modest ambitions has a patient one that barely reacts to a mid-table finish, because nobody expected more. Same numbers, same rules, a very different ride depending on the crest on your shirt.',
   },
   {
     cat: 'club',

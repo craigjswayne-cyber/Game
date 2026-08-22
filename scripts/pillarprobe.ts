@@ -152,10 +152,10 @@ console.log('\nPILLAR 2: the tendency window and the coaches who read it\n')
   // the analyst does his homework; the believer does not
   const clubs = Object.keys(h.clubs)
   const byArch = { stubborn: [] as string[], analyst: [] as string[], reactive: [] as string[] }
-  for (const c of clubs) byArch[archetypeOf(c)].push(c)
+  for (const c of clubs) byArch[archetypeOf(c, h.clubs[c].rep)].push(c)
   ok(byArch.stubborn.length > 0 && byArch.analyst.length > 0 && byArch.reactive.length > 0,
     `all three dugout characters exist (${byArch.stubborn.length}/${byArch.analyst.length}/${byArch.reactive.length} of ${clubs.length})`)
-  ok(archetypeOf('saracens') === archetypeOf('saracens'), 'and a club keeps its character')
+  ok(archetypeOf('saracens', 86) === archetypeOf('saracens', 86), 'and a club keeps its character')
 
   const analystClub = byArch.analyst.find(c => h.clubs[c].leagueId === 'prem')!
   const shift = analystShift(h, analystClub)
@@ -202,7 +202,7 @@ console.log('\nINTEGRATION: the homework reaches the pitch\n')
   const t = h.clubs.northampton.tactic
   for (let i = 0; i < 5; i++) { t.style = 85; h.week = i + 2; recordTendency(h) }
   const analystClub = Object.keys(h.clubs).find(c =>
-    h.clubs[c].leagueId === 'prem' && c !== 'northampton' && archetypeOf(c) === 'analyst' && analystShift(h, c))!
+    h.clubs[c].leagueId === 'prem' && c !== 'northampton' && archetypeOf(c, h.clubs[c].rep) === 'analyst' && analystShift(h, c))!
   const fx: Fixture = {
     id: 970_001, compId: 'prem', round: 1, week: h.week, homeId: 'northampton', awayId: analystClub,
     played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,

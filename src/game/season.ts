@@ -5,7 +5,7 @@ import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
 import { boardMemo } from './boardmemo'
-import { addGrudge, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
+import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -1131,8 +1131,17 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // ways. Unset (never asked, old save, AI career) is exactly the old maths.
   const stanceF = state.stance === 'high' ? (us > them ? 1.15 : 1.3)
     : state.stance === 'safe' ? 0.85 : 1
-  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF, 0, 100)
-  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF, 0, 100)
+  // PATIENCE SCALES WITH STATURE (wave 2): the whole swing, win or loss, is
+  // louder at a big club and quieter at a small one - boardPatience(rep) is
+  // the single curve, shared with the season-end reconciliation below so a
+  // giant's board is impatient everywhere it can be, not just at one
+  // checkpoint. Multiplying both directions (rather than only losses) keeps
+  // the existing diff-term asymmetry intact: diff already makes an upset WIN
+  // worth little to a giant and an upset LOSS cost it dearly; patienceF just
+  // turns the whole boardroom's volume up or down around that.
+  const patienceF = boardPatience(club.rep)
+  if (us > them) club.boardConfidence = clamp(club.boardConfidence + mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
+  else if (us < them) club.boardConfidence = clamp(club.boardConfidence - mag * derbyF * ownerF * stanceF * patienceF, 0, 100)
 
   // The dressing room keeps its own book, and it is slower to move than the
   // board's. Belief is earned a win at a time and it does not arrive in one
@@ -1968,12 +1977,26 @@ export function processWeekAndAdvance(state: GameState) {
     // it feels to match the table it is looking at. Without this the boardroom
     // only ever reacted to individual results, whose wins and losses roughly
     // cancel - so a side that slid from 1st to 8th kept the confidence it earned
-    // last May. Measured: 8th of 10 with an 88% board. Gentle, because there is
-    // half a season left to put it right.
+    // last May.
+    //
+    // STATURE-RELATIVE, since wave 2 (boardPatience): the OLD target read raw
+    // table position, so a title-favourite sitting 5th of 10 and a bottom-half
+    // club sitting 5th of 10 got the SAME 62% target - "second is a crisis at
+    // a giant" cannot exist on a formula that cannot tell a giant from a
+    // minnow. The target now measures distance from boardObjective(rep)'s own
+    // expected finish - 70 is dead-on-target, and it moves 108 points across
+    // the table's spread either side rather than the old 54, so a genuine
+    // title favourite sliding to mid-table lands in real crisis territory
+    // (clamped 20-96, never a mathematically impossible confidence). The
+    // BLEND weight is patience-scaled too: a giant's board pulls toward the
+    // half-term verdict harder, a minnow's barely moves off where it was.
     if (posNow > 0 && (comp?.table.length ?? 0) > 1) {
-      const frac = (posNow - 1) / (comp!.table.length - 1)
-      const target = 86 - frac * 54
-      club.boardConfidence = clamp(club.boardConfidence * 0.75 + target * 0.25, 0, 100)
+      const tableLen = comp!.table.length
+      const objPos = Math.min(boardObjective(club.rep).pos, tableLen)
+      const devFrac = (posNow - objPos) / Math.max(1, tableLen - 1)
+      const target = clamp(70 - devFrac * 108, 20, 96)
+      const blendW = clamp(0.25 * boardPatience(club.rep), 0.12, 0.5)
+      club.boardConfidence = clamp(club.boardConfidence * (1 - blendW) + target * blendW, 0, 100)
     }
     const pred = state.preds?.[club.id]
     const diff = pred && posNow ? pred - posNow : 0
@@ -2316,7 +2339,7 @@ export function processWeekAndAdvance(state: GameState) {
           sub: `${comp.name} · ${seasonLabel(state.season)} · ${state.managerName}`,
           icon: '🏆',
         }
-        state.mgr.trophies.push({ compId: comp.id, season: state.season })
+        state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
           subject: `🏆 CHAMPIONS! The ${comp.name} is yours`,
@@ -2332,7 +2355,7 @@ export function processWeekAndAdvance(state: GameState) {
         comp.champion = sortTable(comp.table)[0].teamId
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
         if (comp.type === 'league' && comp.champion === state.userClubId) {
-          state.mgr.trophies.push({ compId: comp.id, season: state.season })
+          state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           state.celebration = {
             headline: `${teamShort(state, state.userClubId).toUpperCase()} ARE CHAMPIONS`,
             sub: `${comp.name} · ${seasonLabel(state.season)} · ${state.managerName}`,
@@ -2348,7 +2371,7 @@ export function processWeekAndAdvance(state: GameState) {
         const lionsWin = comp.id === 'lions' && comp.champion === 'LIO' &&
           state.natTeam != null && ['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)
         if ((state.natTeam != null && comp.champion === state.natTeam) || lionsWin) {
-          state.mgr.trophies.push({ compId: comp.id, season: state.season })
+          state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `🏆 CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
