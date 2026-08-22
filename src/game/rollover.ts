@@ -1,5 +1,7 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { aiBoardsReinvest } from './aiecon'
+import { applyAdminPenalties } from './season'
+import { settleInsolvency } from './insolvency'
 import { rivalVerdict } from './boss'
 import { boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
@@ -1384,6 +1386,13 @@ export function rebuildSeason(state: GameState) {
   // here, while the season's fixtures still exist to prove it.
   invinciblesCheck(state)
 
+  // THE RECKONING (release audit 2.4): a club that spent the season unable to
+  // pay for itself goes into administration now, while state.season is still
+  // the season it failed in - settleInsolvency stamps the penalty onto the year
+  // about to start. It has to run before the bump for that reason, and before
+  // the tables are rebuilt below so the deduction is in them from round one.
+  settleInsolvency(state)
+
   // wipe season structures & rebuild
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
@@ -1453,6 +1462,8 @@ export function rebuildSeason(state: GameState) {
       rng, state,
     )
   }
+  // minus ten before a ball is kicked, for anyone who went under in the summer
+  for (const comp of Object.values(state.comps)) applyAdminPenalties(comp, state)
   state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
   state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
   const wcYear = isWorldCupSeason(state.season)

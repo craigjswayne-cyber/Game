@@ -208,7 +208,7 @@ export function aiWeeklyFinance(state: GameState): void {
  * below a floor squad, released as a free agent rather than sold, because a board
  * cutting costs in a hurry takes the saving and not the fee.
  */
-function shedWages(state: GameState, club: Club): Player | null {
+export function shedWages(state: GameState, club: Club): Player | null {
   const marquee = new Set((club.marquee ?? []).slice(0, 3))
   if (club.players.length <= FLOOR_SQUAD) return null
   const seniors = club.players

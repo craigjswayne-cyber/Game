@@ -1,5 +1,6 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
+import { adminPenalty, insolvencyWarning } from './insolvency'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
@@ -205,7 +206,7 @@ function applyToTable(comp: Competition, fx: Fixture) {
  * inventing a correction, so the repaired table is the one the engine would have
  * produced. Found by scripts/savefuzz.ts.
  */
-export function rebuildTable(comp: Competition, fixtures: Fixture[]) {
+export function rebuildTable(comp: Competition, fixtures: Fixture[], state?: GameState) {
   if (comp.type !== 'league' || !Array.isArray(comp.table)) return
   for (const r of comp.table) {
     r.p = 0; r.w = 0; r.d = 0; r.l = 0
@@ -214,6 +215,24 @@ export function rebuildTable(comp: Competition, fixtures: Fixture[]) {
   for (const fx of fixtures) {
     if (fx.compId !== comp.id || !fx.played || fx.stage) continue
     applyToTable(comp, fx)
+  }
+  applyAdminPenalties(comp, state)
+}
+
+/**
+ * A club in administration starts the season on minus ten.
+ *
+ * Applied HERE rather than painted on by the table screen, because a deduction
+ * that only exists in the UI is not a deduction: promotion, relegation, playoff
+ * cut-offs, the title itself and every AI board's read of its own season all
+ * come off comp.table, and each of those has to see the same number the manager
+ * does. Points are allowed to go negative, as they do in the real thing.
+ */
+export function applyAdminPenalties(comp: Competition, state?: GameState) {
+  if (!state || comp.type !== 'league' || !Array.isArray(comp.table)) return
+  for (const r of comp.table) {
+    const hit = adminPenalty(state.clubs[r.teamId], state.season)
+    if (hit) r.pts -= hit
   }
 }
 
@@ -2543,6 +2562,8 @@ export function processWeekAndAdvance(state: GameState) {
   // the world's books do not stop because he is between posts.
   aiWeeklyFinance(state)
   aiFireSale(state)
+  // and the manager gets a year's notice before the same thing happens to him
+  insolvencyWarning(state)
   // THE MAN IN THE OTHER DUGOUT (C3). One voice, once a month at most, and a
   // sacking when his season collapses. Gated on the calendar and the table, never
   // on the shared rng - a quote that moved the sim stream would change results by

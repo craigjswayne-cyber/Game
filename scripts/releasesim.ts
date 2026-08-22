@@ -59,6 +59,12 @@ interface Row {
   season: number; bytes: number; players: number; newU23: number
   u23Mean: number; retiredish: number; ages: [number, number]
   userBal: number; leagueBal: number; broke: number; news: number
+  /** clubs more than ten weeks of wages under: the honest depth measure. A club
+   *  that has just come out of administration is still "in the red" at two
+   *  weeks, so counting the sign of the balance says nothing about distress. */
+  deep: number
+  /** clubs whose points deduction applies to this season */
+  admin: number
 }
 const rows: Row[] = []
 let prevIds = new Set(Object.keys(g.players))
@@ -103,17 +109,22 @@ for (let s = 0; s < SEASONS; s++) {
     userBal: g.clubs[g.userClubId]?.balance ?? 0,
     leagueBal: clubs.reduce((x, c) => x + c.balance, 0),
     broke: clubs.filter(c => c.balance < 0).length,
+    deep: clubs.filter(c => {
+      const w = c.players.reduce((x, id) => x + (g.players[id]?.wage ?? 0), 0)
+      return w > 0 && c.balance < -10 * w
+    }).length,
+    admin: clubs.filter(c => c.admin && c.admin.season === g.season).length,
     news: g.news.length,
   })
 }
 
-console.log('\nseason  saveMB  players  left  newU23  u23attr  ageMin-Max  userBal£m  leagueBal£m  broke  news')
+console.log('\nseason  saveMB  players  left  newU23  u23attr  ageMin-Max  userBal£m  leagueBal£m  broke  deep  admin  news')
 for (const r of rows) {
   console.log(
     `${String(r.season).padStart(6)}  ${(r.bytes / 1e6).toFixed(2).padStart(6)}  ${String(r.players).padStart(7)}  ` +
     `${String(r.retiredish).padStart(4)}  ${String(r.newU23).padStart(6)}  ${r.u23Mean.toFixed(1).padStart(7)}  ` +
     `${String(r.ages[0]).padStart(6)}-${r.ages[1]}  ${(r.userBal / 1e6).toFixed(1).padStart(9)}  ` +
-    `${(r.leagueBal / 1e6).toFixed(1).padStart(11)}  ${String(r.broke).padStart(5)}  ${r.news}`)
+    `${(r.leagueBal / 1e6).toFixed(1).padStart(11)}  ${String(r.broke).padStart(5)}  ${String(r.deep).padStart(4)}  ${String(r.admin).padStart(5)}  ${r.news}`)
 }
 
 const last = rows[rows.length - 1]
@@ -166,6 +177,13 @@ ok(rows.slice(2).every(r => r.retiredish > 0 && r.newU23 > 0),
     Object.entries(byTier).map(([t, [b, n]]) => `tier${t} ${b}/${n}`).join(', '))
   ok(last.broke <= Object.keys(g.clubs).length * 0.5,
     `the economy is not a graveyard (${last.broke} clubs in the red of ${Object.keys(g.clubs).length})`)
+  // DEPTH, not sign: administration clears the debt, so a club it has just
+  // saved still reads as "in the red" at two weeks of wages. What must not run
+  // away is the number in real distress.
+  ok(last.deep <= Object.keys(g.clubs).length * 0.3,
+    `distress is contained (${last.deep} clubs more than ten weeks under)`)
+  ok(rows.slice(6).some(r => r.admin > 0),
+    `and clubs that cannot pay actually go under (${rows.reduce((x, r) => x + r.admin, 0)} administrations over the run)`)
 }
 ok(Number.isFinite(last.leagueBal) && Math.abs(last.leagueBal) < 30e9,
   `league-wide money stays on a human scale (£${(last.leagueBal / 1e6).toFixed(0)}m)`)

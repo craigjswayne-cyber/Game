@@ -419,6 +419,9 @@ export interface Club {
   legends?: { name: string; apps: number; tries: number; pts: number }[]
   /** marquee designations - their wages sit outside the cap (max 2) */
   marquee?: number[]
+  /** In administration: the season the points penalty applies to, and how many
+   *  points it is. Cleared once that season has been played (insolvency.ts). */
+  admin?: { season: number; penalty: number }
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
   /** the head coach's standing instruction (F23) - an id from philosophy.ts.

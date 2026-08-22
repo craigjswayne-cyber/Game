@@ -284,7 +284,7 @@ export function migrate(s: GameState): GameState {
         (f.homeId === r.teamId || f.awayId === r.teamId)).length
       return r.p !== played
     })
-    if (wrong) rebuildTable(comp, s.fixtures)
+    if (wrong) rebuildTable(comp, s.fixtures, s)
   }
 
   s.shortlist ??= []
