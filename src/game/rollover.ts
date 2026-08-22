@@ -2,6 +2,7 @@ import type { Club, GameState, Player, Pos } from './model'
 import { aiBoardsReinvest } from './aiecon'
 import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
+import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import { boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
@@ -1392,6 +1393,10 @@ export function rebuildSeason(state: GameState) {
   // about to start. It has to run before the bump for that reason, and before
   // the tables are rebuilt below so the deduction is in them from round one.
   settleInsolvency(state)
+
+  // and the manager gets a year older with everybody else (career.ts). Before
+  // the season bump, so the age and the season it belongs to stay in step.
+  ageManager(state)
 
   // wipe season structures & rebuild
   state.season += 1

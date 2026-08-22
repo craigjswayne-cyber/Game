@@ -551,6 +551,10 @@ export const useStore = create<Store>((set, get) => ({
   continueWeek: () => {
     const g = get().game
     if (!g) return
+    // A RETIRED MANAGER DOES NOT GET ANOTHER WEEK (career.ts). The save stays
+    // readable forever - the record, the cabinet and the verdict are the whole
+    // point of an ending - but the clock has stopped.
+    if (g.retired) return
     /**
      * ONE TAP IS ONE WEEK.
      *

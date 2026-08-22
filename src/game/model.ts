@@ -1247,6 +1247,14 @@ export interface GameState {
   tenureStart?: number
   /** club ids where the user has earned legend status - once, forever */
   legendOf?: string[]
+  /** The manager's own age. A career has a length (career.ts): the clock is
+   *  visible from week one, advances every summer, and ends the story at 70.
+   *  Absent on saves written before it existed - mgrAge() defaults them. */
+  mgrAge?: number
+  /** Set once, when the career ends. The save keeps playing history but the
+   *  manager does not: Continue refuses and the Legacy screen shows the
+   *  verdict instead of the horizon. */
+  retired?: { season: number; age: number; forced: boolean; grade: string; score: number }
   /** last published ranking order (nation codes), for movement arrows */
   natRankPrev?: string[]
   /** Scouting Agency monthly rankings: last month's order + best-ever ranks */
