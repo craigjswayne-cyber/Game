@@ -280,3 +280,36 @@ What that settles:
 
 This report therefore stands as a quality audit, not a submission checklist.
 No part of it should be read as a plan to sell the game.
+
+---
+
+## Correction: the regen calibration finding (2.5) was wrong
+
+Part 2.5 of this report claimed the game's academies mint youth about 13%
+stronger than "the real-world youth data they replace". Asked to flatten that
+step, the measurement was redone properly and the finding does not survive.
+Two separate errors produced it:
+
+1. **There is no shipped-youth population to be hotter than.** Every
+   seventeen-year-old in a fresh world is academy-generated - the senior squad
+   files contain zero of them (930 academy, 0 from the lists). The "real-world
+   youth data" the claim compares against does not exist.
+2. **The step was the age window filling.** A season-2 under-23 cohort is all
+   freshly minted seventeen-year-olds; a season-8 cohort spans 17 to 23 and
+   carries six years of development. Comparing them measures growing up, not
+   minting.
+
+An age-matched, mint-fresh comparison then showed rollover intake running a
+few percent above world-build intake, and that has an honest cause too:
+rollover intake is weighted toward higher-reputation clubs (measured mean club
+reputation of 71.3 and 73.7 at intake against a world mean of 67.3), because
+better academies churn faster - they promote and sell more men, so they refill
+more shirts, and `acadQuality` scales with club reputation by design.
+
+What the original measurement got right stands: the cohort is FLAT at
+equilibrium, 9.6 at season 9 against 9.4 at season 15 across nine measured
+seasons. There is no compounding drift, which was the question that mattered.
+
+**No change shipped.** A recalibration was written, measured, and reverted
+once the baseline turned out to be self-referential. Checklist line 12 stands
+as a pass with the note removed rather than the code altered.
