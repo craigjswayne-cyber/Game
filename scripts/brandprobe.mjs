@@ -1,4 +1,4 @@
-// PHASE: Rugby Manager, v1.0.1 - the name and the number on the tin.
+// PHASE: Rugby Manager - the name and the number on the tin.
 //
 // The game was renamed from FAB Rugby and released as v1.0.1 ("the new name
 // of the game is called PHASE: Rugby Manager" / "export this as v.1.0.1").
@@ -8,7 +8,10 @@
 // any FAB-era tree by construction.
 //
 // Run: node scripts/brandprobe.mjs   (needs a fresh npm run build)
+import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
+
+const VERSION = JSON.parse(readFileSync('package.json', 'utf8')).version
 import { startPreview } from './lib/preview.mjs'
 
 const server = await startPreview('4197', 2500)
@@ -32,8 +35,13 @@ try {
   ok(!t.h1.includes('FAB'), 'and the old name is gone from it')
   ok(t.mfName === 'PHASE: Rugby Manager' && t.mfShort === 'PHASE',
     `the PWA manifest carries the new name (saw "${t.mfName}" / "${t.mfShort}")`)
-  ok(t.body.includes('v1.0.1'), 'the title screen shows the release, v1.0.1')
-  console.log(fails ? `BRAND PROBE FAILED (${fails})` : 'BRAND PROBE PASSED: PHASE: Rugby Manager, v1.0.1')
+  // READ THE NUMBER FROM package.json rather than hard-coding it here. This
+  // line said 'v1.0.1' and had to be hand-edited the first time the release
+  // moved, which is a probe that fails for being out of date rather than for
+  // finding anything. The build stamp comes from package.json (vite.config.ts),
+  // so the probe should ask the same source the game does.
+  ok(t.body.includes(`v${VERSION}`), `the title screen shows the release, v${VERSION}`)
+  console.log(fails ? `BRAND PROBE FAILED (${fails})` : `BRAND PROBE PASSED: PHASE: Rugby Manager, v${VERSION}`)
   process.exitCode = fails ? 1 : 0
 } catch (e) {
   console.error('BRAND PROBE FAILED:', String(e).slice(0, 300))
