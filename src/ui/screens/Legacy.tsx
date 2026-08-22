@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useStore } from '../../store'
 import { dreamState, dreamPct } from '../../game/dream'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
+import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
 
@@ -10,6 +12,9 @@ const ord = (n: number) =>
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
+  const [confirmRetire, setConfirmRetire] = useState(false)
+  const [retireMsg, setRetireMsg] = useState<string | null>(null)
   const club = game.clubs[game.userClubId]
   const m = game.mgr
   const winPct = m.m ? Math.round((m.w / m.m) * 100) : 0
@@ -38,6 +43,53 @@ export default function Legacy() {
               <div className="meta">{d.progress.note}</div>
             </div>
           </>
+        )
+      })()}
+
+      {/* THE ENDING, or the clock ticking towards it (career.ts, wave 3). A
+          career with no last season has no third act: nothing is ever the last
+          chance, and the dream can always wait until next year. */}
+      {(() => {
+        const v = careerVerdict(game)
+        if (game.retired) {
+          return (
+            <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+              <div className="meta" style={{ letterSpacing: 1 }}>
+                RETIRED {game.retired.forced ? '(the game called time)' : 'on his own terms'} AT {game.retired.age}
+              </div>
+              <h3 style={{ fontSize: 19, marginTop: 4 }}>{v.title}</h3>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '8px 0' }}>
+                <b style={{ fontSize: 34, color: 'var(--gold)', lineHeight: 1 }}>{v.grade}</b>
+                <span className="muted">career grade</span>
+              </div>
+              {v.lines.map((l, i) => <div key={i} className="meta" style={{ marginTop: 4 }}>{l}</div>)}
+            </div>
+          )
+        }
+        return (
+          <div className="card">
+            <div className="meta">{clockLine(game)}</div>
+            {mayRetire(game) && (
+              <>
+                <div className="meta" style={{ marginTop: 8 }}>
+                  If you stopped today: <b style={{ color: 'var(--gold)' }}>{v.grade}</b> - {v.title.toLowerCase()}.
+                </div>
+                {confirmRetire ? (
+                  <div className="btn-row" style={{ marginTop: 10 }}>
+                    <button className="btn danger" onClick={() => { setRetireMsg(retire(game)); setConfirmRetire(false); touch() }}>
+                      Yes, that is that
+                    </button>
+                    <button className="btn ghost" onClick={() => setConfirmRetire(false)}>One more season</button>
+                  </div>
+                ) : (
+                  <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setConfirmRetire(true)}>
+                    Hang up the clipboard
+                  </button>
+                )}
+                {retireMsg && <div className="meta sheet-log" style={{ marginTop: 8 }}>{retireMsg}</div>}
+              </>
+            )}
+          </div>
         )
       })()}
 

@@ -121,6 +121,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     unemployed: false,
     processedWeek: false,
     managerName,
+    // A CAREER HAS A LENGTH (career.ts). A player who takes his first job at
+    // 42 gets roughly twenty-eight seasons before the game retires him at 70,
+    // which is long enough for the slowest dream in the book and short enough
+    // that a decade spent drifting is a decade he does not get back.
+    mgrAge: 42,
     training: 'balanced',
     shortlist: [],
     staff: { assistant: 0, physio: 0, scout: 0, attack: 0, defence: 0, scrumCoach: 0, kicking: 0, academyCoach: 0 },
