@@ -64,7 +64,7 @@ export default function Finances() {
           The chips label themselves, so the Matchday heading was only height. */}
       <div className="fin-head">
         <div className="chips">
-          <span className="chip">Balance <b style={{ color: club.balance < 0 ? '#9b2c2c' : '#2f7d4f' }}>{fmtMoney(club.balance)}</b></span>
+          <span className="chip">Balance <b style={{ color: club.balance < 0 ? 'var(--text-negative)' : 'var(--text-positive)' }}>{fmtMoney(club.balance)}</b></span>
           <span className="chip">Transfer budget <b>{fmtMoney(club.budget)}</b></span>
           <span className="chip">Wage bill <b>{fmtMoney(wages)}/wk</b></span>
           <span className="chip">Wage budget <b>{fmtMoney(club.wageBudget)}/wk</b></span>
@@ -105,7 +105,7 @@ export default function Finances() {
           const line = (label: string, amount: number, note?: string) => (
             <div className="ledger-row" key={label}>
               <span className="lg-what">{label}{note ? <span className="muted"> {note}</span> : null}</span>
-              <span className="lg-amt" style={{ color: amount >= 0 ? 'var(--ink-good)' : 'var(--ink-bad)' }}>
+              <span className="lg-amt" style={{ color: amount >= 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
                 {amount >= 0 ? '+' : '−'}{fmtMoney(Math.abs(amount))}
               </span>
             </div>
@@ -123,7 +123,7 @@ export default function Finances() {
               {line('Ground and estate upkeep', -upkeep)}
               <div className="ledger-row total">
                 <span className="lg-what">Every week, before gate receipts</span>
-                <span className="lg-amt" style={{ color: net >= 0 ? 'var(--ink-good)' : 'var(--ink-bad)' }}>
+                <span className="lg-amt" style={{ color: net >= 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
                   {net >= 0 ? '+' : '−'}{fmtMoney(Math.abs(net))}
                 </span>
               </div>
@@ -153,7 +153,7 @@ export default function Finances() {
           ))}
         </tbody>
       </table></div>
-      {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{askMsg}</div>}
+      {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{askMsg}</div>}
       <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
         {asked ? 'Budget request made this season' : '💰 Ask the board for transfer funds'}
       </button>
@@ -165,7 +165,7 @@ export default function Finances() {
         const block = releaseBlock(game)
         return (
           <>
-            {relMsg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{relMsg}</div>}
+            {relMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{relMsg}</div>}
             <button className="btn ghost block" disabled={!!block}
               onClick={() => { const r = releaseToBudget(game); setRelMsg(r.msg); touch() }}>
               🏦 Move {fmtMoney(RELEASE_STEP)} of the balance into the transfer budget
@@ -186,7 +186,7 @@ export default function Finances() {
         <SectionTitle sub={`${fmtMoney(commercialWeekly(game))} a week from ${SLOTS.filter(x => game.deals?.[x.id]).length} of 3 slots`}>
           The Commercial Department
         </SectionTitle>
-        {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}><div className="meta">{dealMsg}</div></div>}
+        {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}><div className="meta">{dealMsg}</div></div>}
         {SLOTS.map(slot => {
           const live = game.deals?.[slot.id]
           const inTerm = !!live && live.until >= game.season
@@ -203,7 +203,7 @@ export default function Finances() {
                   {live!.clause !== 'none' && (
                     <div className="meta muted">
                       {CLAUSES[live!.clause].text}{' '}
-                      <b style={{ color: clauseActive(game, live!.clause) ? 'var(--ink-good)' : undefined }}>
+                      <b style={{ color: clauseActive(game, live!.clause) ? 'var(--text-positive)' : undefined }}>
                         {clauseActive(game, live!.clause) ? 'Paying now.' : 'Not paying.'}
                       </b>
                     </div>
@@ -274,7 +274,7 @@ export default function Finances() {
                   </div>
                   <div className="meta" style={{ marginTop: 6 }}>{capWord(pos)}</div>
                   {pos.embargo > 0 && (
-                    <div className="meta" style={{ marginTop: 6, color: '#a12f2f', fontWeight: 700 }}>
+                    <div className="meta" style={{ marginTop: 6, color: 'var(--danger)', fontWeight: 700 }}>
                       No signings until the embargo is served.
                     </div>
                   )}
@@ -310,7 +310,7 @@ export default function Finances() {
                     {row.cells.map((cell, i) => (
                       <td key={i} className="num" style={{
                         fontWeight: cell.count < cell.need ? 700 : 400,
-                        color: cell.count < cell.need ? '#a12f2f' : cell.count === cell.need ? '#a8841a' : undefined,
+                        color: cell.count < cell.need ? 'var(--danger)' : cell.count === cell.need ? 'var(--gold)' : undefined,
                       }}>{cell.count}</td>
                     ))}
                   </tr>
@@ -344,19 +344,19 @@ export default function Finances() {
           return (
             <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 12.5, alignItems: 'flex-start' }}>
               <span>{done ? '✅' : ok ? '🕗' : '⬜'}</span>
-              <span style={{ color: done ? 'var(--win)' : 'var(--ink-soft)' }}>
+              <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
                 {def.text(game)}{ok && !def.banked ? ' - on course, settled at the final whistle' : ''}
-                {' '}<b style={{ color: 'var(--ink-faint)' }}>· +£250k & board favour if met</b>
+                {' '}<b style={{ color: 'var(--text-muted)' }}>· +£250k & board favour if met</b>
               </span>
             </div>
           )
         })}
       </div>
       <SectionTitle sub={`${Math.round(club.boardConfidence)}%`}>Board Confidence</SectionTitle>
-      <div style={{ margin: '8px 14px', height: 10, background: 'var(--cream-3)', borderRadius: 5 }}>
+      <div style={{ margin: '8px 14px', height: 10, background: 'var(--border-strong)', borderRadius: 5 }}>
         <div style={{
           width: `${club.boardConfidence}%`, height: '100%', borderRadius: 5,
-          background: club.boardConfidence > 60 ? '#2f7d4f' : club.boardConfidence > 30 ? '#c9a227' : '#9b2c2c',
+          background: club.boardConfidence > 60 ? 'var(--primary)' : club.boardConfidence > 30 ? 'var(--gold-fill)' : 'var(--danger)',
         }} />
       </div>
       <div className="muted" style={{ padding: '4px 14px 14px' }}>
@@ -381,7 +381,7 @@ function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
       <SectionTitle sub={`${trend >= 0 ? '+' : '−'}${fmtMoney(Math.abs(trend))} since week ${first.w}`}>Season Balance</SectionTitle>
       <div className="card">
         <div style={{ position: 'relative', display: 'flex', gap: 2, height: 72 }}>
-          <span style={{ position: 'absolute', left: 0, right: 0, top: 35, height: 1, background: 'var(--hairline)' }} />
+          <span style={{ position: 'absolute', left: 0, right: 0, top: 35, height: 1, background: 'var(--border)' }} />
           {hist.map(h => {
             const bar = Math.max(2, Math.round((Math.abs(h.b) / max) * 34))
             return (
@@ -390,7 +390,7 @@ function BalanceChart({ hist }: { hist: { w: number; b: number }[] }) {
                 <i style={{
                   position: 'absolute', left: 0, right: 0,
                   ...(h.b >= 0 ? { bottom: 36, height: bar } : { top: 36, height: bar }),
-                  background: h.b >= 0 ? 'var(--brand-800)' : 'var(--red)',
+                  background: h.b >= 0 ? 'var(--surface-3)' : 'var(--danger)',
                   borderRadius: 2.5,
                 }} />
               </span>

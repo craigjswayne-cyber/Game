@@ -33,204 +33,32 @@
 }
 
 :root {
-  /* The CSS half of the force-dark fix (the meta tag in index.html is the other
-     half). A mobile browser only leaves a dark page alone if the page says it
-     can handle dark itself; otherwise it inverts and desaturates whatever it
-     finds, which turned every night card grey on the device. */
-  color-scheme: light dark;
-  /* The chrome family. Named --brand-* rather than --green-*, which is what it was
-     called for months while holding navy: a palette token that lies about its own
-     colour is how a rule ends up painting the wrong thing. Blue, white and grey,
-     at the user's request, after a crimson-and-gold pass was tried and dropped. */
-  --brand-950: #1b3468;
-  --brand-900: #24478f;
-  --brand-800: #2e57ab;
-  --brand-700: #3a68c4;
-  --brand-600: #4a77d0;
-  --brand-100: #dbe6f6;
-  --cream: #e9f0fb;
-  --cream-2: #dbe6f7;
-  --cream-3: #c4d6ee;
-  --paper: #ffffff;
-  --ink: #1d2733;
-  --ink-soft: #55616f;
-  --ink-faint: #8794a3;
-  /* THE ACCENT, and it has to actually be one.
-     It was #5c6470 - a slate grey, chroma 0.08 - and it is the token behind the
-     active tab underline, the unread-news bar, focus rings, progress meters, the
-     next-fixture row and the wizard crumbs. Measured with scripts/colouraudit,
-     78% of every painted screen was effectively grey and only 13% carried real
-     colour. That is the "feels greyed out" report, and this is its cause: the one
-     colour meant to carry the interface had no colour in it. */
-  --gold: #dda32a;
-  --gold-bright: #ffd35e;
-  --gold-dark: #a87c18;
-  --gold-deep: #6f5210;
-  --red: #e03b2b;
-  --win: #2fa85f;
-  --loss: #e03b2b;
-  /* --win and --loss are chosen to be painted AS a surface: a pip, a chip, a
-     fill with light text on top. These two are the same idea for text sitting ON
-     a surface, which is a different problem, because a green dark enough to read
-     on white paper is too dark to read on a night card. The finances ledger used
-     a literal #9b2c2c and scored 2:1 at night - the figure the manager looks at
-     most, on the screen he checks every week, and not readable. Day keeps exactly
-     the colours it had. See scripts/nightcontrast.mjs. */
-  --ink-good: #2f7d4f;
-  --ink-bad: #9b2c2c;
-  --draw: #c9a227;
-  --hairline: rgba(29, 39, 51, 0.1);
-  /* --serif is the display voice (headlines, club names), --sans is body,
-     --cond is the condensed caps voice for labels and nav. One family with
-     three jobs, separated by weight and letter-spacing rather than by
-     loading three fonts onto a phone. */
+  /* Colour lives in src/ui/tokens.css - ONE file, both modes, and the
+     tokenlint script fails the build on any hex outside it. This block
+     keeps only what is not palette: the type system, and the club
+     identity channels that JS sets per save (a club's colours are DATA,
+     not theme - see docs/palette-migration.md). */
   --serif: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
   --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --cond: 'Space Grotesk', 'Arial Narrow', var(--sans);
-  --shadow-1: 0 1px 2px rgba(27, 52, 104, .07), 0 2px 8px rgba(27, 52, 104, .06);
-  --shadow-2: 0 2px 4px rgba(27, 52, 104, .09), 0 8px 24px rgba(27, 52, 104, .1);
-  /* club identity - overridden per save on .app */
-  --club1: #2e57ab;
-  --club2: #ffffff;
-  --club1-ink: #ffffff;
-  /* semantic accents that flip under floodlights */
-  --accent-ink: #24478f;
-  --title-ink: #1b3468;
-  /* the ghost stars behind a rating: quiet, but a five-star scale you cannot see
-     the five of is just a row of stars. Both themes used to sit at 1.5:1 and
-     1.3:1, which is not quiet, it is absent. */
-  /* Measured against a STRIPED table row, not against white paper: the rows the
-     stars actually sit in are a shade darker than the card, which cost 0.3 of a
-     ratio point and put the earlier value under the floor. */
-  --star-empty: #8d9db8;
-  /* The stripe down the left edge of an accent card: the star player, the
-     highlights, the assistant's note, every "read this one" card in the game.
-     It was gold in both themes, and gold on navy read as a yellow bar rather
-     than a highlight (user, of the full-time review: "the yellow on the side of
-     these - can we use white"). One token, so the answer is in one place.
-     Daylight keeps the gold, where white on cream would be no stripe at all. */
-  --stripe: #c9a227;
+  --club1: var(--primary);
+  --club2: var(--surface-1);
+  /* ink over an ARBITRARY club colour: white, as it always was. JS sets
+     --club1 per save but never --club1-ink, and the first token cut pointed
+     this at --on-primary - near-black at night - which painted Northampton's
+     shirt numbers black-on-black (1.1:1, caught by nightcontrast). */
+  --club1-ink: var(--prop-ink);
 }
 
-/* ============ Floodlit mode (night theme) ============ */
-.app.night {
-  /* night is committed dark, so say so outright: this is what stops the browser
-     second-guessing the palette and washing the charcoal out to grey */
-  color-scheme: dark;
-  /* white under the floodlights, at the user's request */
-  --stripe: #f4f6f4;
-  /* THE CHARCOAL-AND-GREEN PASS (user: "bring the game colours up to the
-     level"). Night used to be navy with gold accents; it is now a warm
-     charcoal with one green, and the green is RATIONED: actions, selected
-     states, ratings, form, positive numbers. Everything structural - pages,
-     cards, borders, chrome - is charcoal, which is what makes the green land
-     when it appears. The eight anchor values are the user's own:
-     bg #181a19, cards #222624, active #42b94f, pressed #247a32,
-     headings #f4f6f4, body #9ba29d, borders #3a403c. */
-  --cream: #181a19;
-  --cream-2: #1e2220;
-  --cream-3: #2e3430;
-  --paper: #222624;
-  --ink: #e7ebe8;
-  --ink-soft: #9ba29d;
-  --ink-faint: #7d837e;
-  --hairline: #3a403c;
-  --accent-ink: #8fd39a;
-  --title-ink: #f4f6f4;
-  /* the ghost stars: #414843 scored 1.6:1 on the striped table rows - the
-     exact trap this token's day-side comment documents - so the night value
-     sits two steps lighter than the borders it shares a hue with */
-  --star-empty: #5c645e;
-  --ink-good: #5ecf69;
-  --ink-bad: #ff7a6b;
-  --win: #42b94f;
-  /* The night chrome ramp: the --brand-* family carries masthead, nav and
-     button surfaces, so remapping it here is what turns the whole chassis
-     charcoal without touching a single component rule. */
-  --brand-950: #101211;
-  --brand-900: #181a19;
-  --brand-800: #222624;
-  --brand-700: #2b302d;
-  --brand-600: #353b37;
-  --brand-100: #d9e0da;
-  /* The accent family keeps its name (the token behind every active state,
-     meter and key number) and takes the green: bright for text on charcoal,
-     the user's #247a32 for pressed/secondary and the quiet rules the deep
-     gold used to draw (tab bar, table headings). */
-  --gold: #42b94f;
-  --gold-bright: #66d773;
-  --gold-dark: #247a32;
-  --gold-deep: #1b5a25;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
-  --shadow-2: 0 2px 4px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .35);
-  background:
-    radial-gradient(130% 50% at 50% -8%, rgba(96, 200, 116, .05), transparent 60%),
-    var(--cream);
-}
-.app.night .section-title { color: var(--title-ink); }
-.app.night .card h3, .app.night .news-item .subj { color: var(--title-ink); }
-.app.night .tab-bar button.active { color: var(--gold-bright); }
-.app.night .tab-bar { border-bottom-color: var(--gold-dark); }
-.app.night .dtable th { border-bottom-color: var(--gold-dark); color: var(--ink-faint); }
-.app.night .btn.ghost { color: var(--ink); border-color: rgba(214, 221, 215, .3); }
-.app.night .slider-row .lbls b { color: var(--gold-bright); }
-.app.night .th-sort.active { color: var(--gold-bright); }
-.app.night .tick-event.big .txt { color: var(--title-ink); }
-.app.night .press-q { color: var(--ink); }
-.app.night .press-outlet { color: var(--gold); }
-.app.night .news-item .when { color: var(--gold); }
-.app.night .inline-input { border-color: var(--cream-3); color: var(--ink); }
-.app.night .pos-badge { box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
-.app.night .masthead {
-  background:
-    radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 38%, transparent), transparent 55%),
-    linear-gradient(168deg, #1d211f 0%, #151816 70%, #0e100f 100%);
-}
-.app.night .bottom-nav { background: linear-gradient(180deg, #151816, #0e100f); }
-.app.night .pitch {
-  background:
-    linear-gradient(180deg, rgba(140, 190, 255, .10), rgba(0, 0, 15, .3)),
-    repeating-linear-gradient(90deg, #1d4a35 0 40px, #1a4330 40px 80px);
-  border-color: rgba(0, 0, 0, .5);
-  box-shadow: inset 0 2px 18px rgba(0, 0, 5, .55), 0 0 24px rgba(120, 220, 140, .06);
-}
-.app.night .scoreboard {
-  background:
-    radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 34%, transparent), transparent 60%),
-    linear-gradient(172deg, #191d1b, #0e100f);
-}
-.app.night .chip { background: var(--paper); }
-.app.night .modal-veil { background: rgba(0, 0, 0, .65); }
-/* chrome text: --cream doubles as a surface at night, so restate light ink */
-.app.night .masthead,
-.app.night .back-btn,
-.app.night .btn:not(.gold):not(.ghost),
-.app.night .scoreboard,
-.app.night .pos-badge,
-.app.night .title-screen { color: #edf1ee; }
-/* THE HERO GRADIENT (#247a32 to #42b94f), and it is rationed harder than the
-   green itself: exactly the elements that ARE the primary action. Continue is
-   the button the whole game runs through, and .btn.gold is the primary variant
-   (Best XV, confirmations). Everything else stays charcoal - a gradient on
-   every card is a gradient on none of them. Dark ink on the green: white sits
-   at 2.5:1 on #42b94f, the near-black reads at 7:1 there and 3.4:1 on the
-   deep end, which clears the large-bold-text bar for a 16px/700 label. */
-.app.night .continue-btn {
-  background: linear-gradient(180deg, #42b94f, #247a32);
-  color: #06130b;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 2px 6px rgba(0, 0, 0, .4);
-}
-.app.night .continue-btn:active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 1px 2px rgba(0, 0, 0, .35); }
-.app.night .btn.gold {
-  background: linear-gradient(180deg, #42b94f, #2c8f3c);
-  color: #06130b;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), var(--shadow-1);
-}
-.app.night .title-screen {
-  background:
-    radial-gradient(120% 90% at 50% -20%, rgba(66, 185, 79, .14), transparent 60%),
-    linear-gradient(180deg, #1c201e 0%, #101211 100%);
-}
+/* ============ Floodlit mode ============
+   The night palette lives in tokens.css. What remains here are the few
+   component rules that genuinely differ at night beyond what semantic
+   tokens already express. */
+
+
+
+/* Nothing here needs a night spelling any more: every rule below reads
+   semantic tokens, and tokens.css swaps the whole palette per mode. */
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -252,8 +80,8 @@ html { overscroll-behavior: none; }
 }
 
 body {
-  background: var(--brand-950);
-  color: var(--ink);
+  background: var(--canvas);
+  color: var(--text-primary);
   font-family: var(--sans);
   font-size: 13.5px;
   line-height: 1.45;
@@ -280,11 +108,11 @@ button { font: inherit; border: none; background: none; cursor: pointer; color: 
  * The lesson: a control that leaves its ink to the user agent is readable by
  * luck, and the luck runs out on somebody else's phone. Set both halves of
  * every contrast pair, on the same rule, so neither can go missing. */
-input, select, textarea { font: inherit; color: var(--ink); }
+input, select, textarea { font: inherit; color: var(--text-primary); }
 /* The dropdown list is drawn by the browser, so it gets the pair too: our ink
  * on a dark system popup would be the same bug wearing the other hat. */
-option { font: inherit; color: var(--ink); background-color: var(--paper); }
-::placeholder { color: var(--ink-faint); opacity: 1; }
+option { font: inherit; color: var(--text-primary); background-color: var(--surface-1); }
+::placeholder { color: var(--text-muted); opacity: 1; }
 
 .app {
   position: relative;
@@ -294,12 +122,11 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   max-width: 560px;
   margin: 0 auto;
   /* re-anchor inherited text colour INSIDE the themed subtree: body resolves
-     var(--ink) with light-theme values, so night-mode descendants relying on
+     var(--text-primary) with light-theme values, so night-mode descendants relying on
      inheritance would otherwise get the light theme's near-black ink */
-  color: var(--ink);
+  color: var(--text-primary);
   background:
-    linear-gradient(180deg, rgba(46, 87, 171, .05), rgba(46, 87, 171, 0) 140px),
-    var(--cream);
+    var(--canvas);
   box-shadow: 0 0 60px rgba(0, 0, 0, .35);
 }
 
@@ -308,8 +135,8 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   position: relative;
   background:
     radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 32%, transparent), transparent 55%),
-    linear-gradient(168deg, var(--brand-800) 0%, var(--brand-900) 62%, var(--brand-950) 100%);
-  color: var(--cream);
+    var(--hero-gradient);
+  color: var(--on-hero);
   padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
   flex-shrink: 0;
 }
@@ -340,13 +167,13 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: color-mix(in srgb, var(--gold-bright) 75%, #fff 25%);
+  color: var(--on-hero-soft);
   letter-spacing: .4px;
   white-space: nowrap;
   margin-top: 1px;
 }
 .back-btn {
-  color: var(--cream);
+  color: var(--text-primary);
   font-size: 26px;
   line-height: 1;
   padding: 2px 10px 6px 0;
@@ -361,8 +188,8 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
 
 /* ================= Continue ================= */
 .continue-btn {
-  background: linear-gradient(180deg, #ffffff, #eef3f9);
-  color: var(--brand-900);
+  background: var(--primary);
+  color: var(--on-primary);
   font-family: var(--cond);
   font-weight: 700;
   font-size: 16px;
@@ -394,7 +221,7 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--brand-900);
+  color: var(--text-primary);
   padding: 13px 14px 5px;
   display: flex;
   justify-content: space-between;
@@ -418,7 +245,7 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .3px;
-  color: var(--ink-faint);
+  color: var(--text-muted);
   text-align: right;
 }
 
@@ -426,9 +253,9 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
 .tblwrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  background: var(--paper);
-  border-top: 1px solid var(--hairline);
-  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 .dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dtable th {
@@ -437,11 +264,11 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.1px;
-  color: var(--ink-faint);
+  color: var(--text-muted);
   text-align: left;
   padding: 9px 7px 7px;
-  border-bottom: 2px solid var(--brand-800);
-  background: var(--paper);
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--surface-1);
   position: sticky;
   top: 0;
   white-space: nowrap;
@@ -449,57 +276,57 @@ option { font: inherit; color: var(--ink); background-color: var(--paper); }
 }
 .dtable td {
   padding: 7px 6px;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
   font-weight: 500;
-  color: var(--ink-soft);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
-.dtable td.name { color: var(--ink); font-weight: 600; font-size: 12.5px; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
-.dtable tr:active td { background: color-mix(in srgb, var(--gold) 12%, transparent); }
-.dtable.zebra tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--cream-2) 45%, var(--paper)); }
+.dtable td.name { color: var(--text-primary); font-weight: 600; font-size: 12.5px; max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
+.dtable tr:active td { background: var(--row-hover-bg); }
+.dtable.zebra tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, var(--surface-1)); }
 .dtable.zebra tbody tr:nth-child(even).me td,
-.dtable.zebra tbody tr.me td { background: color-mix(in srgb, var(--club1) 9%, var(--paper)); }
+.dtable.zebra tbody tr.me td { background: color-mix(in srgb, var(--club1) 9%, var(--surface-1)); }
 .dtable .num { text-align: right; }
 .dtable .me td {
-  background: color-mix(in srgb, var(--club1) 9%, var(--paper));
-  color: var(--ink);
+  background: color-mix(in srgb, var(--club1) 9%, var(--surface-1));
+  color: var(--text-primary);
   font-weight: 700;
   border-top: 1px solid color-mix(in srgb, var(--club1) 30%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--club1) 30%, transparent);
 }
 
 .th-sort { cursor: pointer; user-select: none; }
-.th-sort.active { color: var(--brand-800); }
+.th-sort.active { color: var(--primary); }
 
 /* ================= Cards ================= */
 .card {
-  background: var(--paper);
-  border: 1px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
   border-radius: 10px;
   margin: 9px 12px;
   padding: 11px 13px;
-  box-shadow: var(--shadow-1);
+  
 }
 /* a card that is also a button: the width used to be an inline
    calc(100% - 28px) on every one of them, which no grid could override */
 button.card { display: block; width: calc(100% - 28px); text-align: left; }
-.card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--brand-900); margin-bottom: 3px; letter-spacing: .1px; }
+.card h3 { font-family: var(--sans); font-size: 16.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; letter-spacing: .1px; }
 .fx-line { font-size: 18px; margin: 4px 0; }
-.card .meta { font-size: 12px; color: var(--ink-soft); font-weight: 500; }
+.card .meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 
 /* ================= News ================= */
 .news-item {
   display: block; width: 100%; text-align: left;
   padding: 12px 16px 11px;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--border);
   background: transparent;
 }
 .news-item .subj {
   font-family: var(--sans);
   font-weight: 700;
   font-size: 14.5px;
-  color: var(--brand-950);
+  color: var(--text-primary);
   letter-spacing: .1px;
   line-height: 1.3;
 }
@@ -507,27 +334,27 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   content: '';
   display: inline-block;
   width: 7px; height: 7px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-dark));
+  background: var(--gold-fill);
   margin-right: 7px;
   vertical-align: 2px;
 }
 .news-item .body {
-  font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; font-weight: 500;
+  font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; font-weight: 500;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden; white-space: pre-line; line-height: 1.5;
 }
 .news-item .when {
   font-family: var(--cond);
   font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-  color: var(--gold-deep);
+  color: var(--gold);
 }
 .news-item.open .body { display: block; -webkit-line-clamp: unset; }
 
 /* ================= Bottom nav ================= */
 .bottom-nav {
   display: flex;
-  background: linear-gradient(180deg, var(--brand-900), var(--brand-950));
-  border-top: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
   flex-shrink: 0;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, .25);
@@ -535,7 +362,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .bottom-nav button {
   flex: 1;
   position: relative;
-  color: #7fa192;
+  color: var(--text-muted);
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: .5px;
@@ -546,12 +373,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   gap: 3px;
   transition: color .15s ease;
 }
-.bottom-nav button.active { color: var(--gold-bright); }
+.bottom-nav button.active { color: var(--primary); }
 .bottom-nav button.active::before {
   content: '';
   position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 26px; height: 2.5px; border-radius: 0 0 3px 3px;
-  background: var(--gold);
+  background: var(--primary);
 }
 /* FM-style rail: symbols only - labels live in tooltips/flyouts */
 .bottom-nav .nlbl { display: none; }
@@ -560,38 +387,38 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .bottom-nav .nbadge { position: relative; }
 .bottom-nav .dot {
   position: absolute; top: -3px; right: -9px;
-  background: linear-gradient(180deg, #c94a3d, #a12f2f);
-  color: #fff; font-size: 8.5px; font-weight: 800;
+  background: var(--danger);
+  color: var(--on-danger); font-size: 8.5px; font-weight: 800;
   min-width: 15px; height: 15px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
-  border: 1.5px solid var(--brand-950);
+  border: 1.5px solid var(--canvas);
 }
 
 /* ================= Buttons ================= */
 .btn {
   display: inline-block;
-  background: linear-gradient(180deg, var(--brand-700), var(--brand-800));
-  color: var(--cream);
+  background: var(--surface-3);
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 12.5px;
   letter-spacing: .3px;
   padding: 9px 13px;
   border-radius: 8px;
   text-align: center;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), var(--shadow-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
 }
 .btn.gold {
-  background: linear-gradient(180deg, var(--brand-600), var(--brand-800));
-  color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), var(--shadow-1);
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
 }
 .btn.ghost {
   background: transparent;
-  color: var(--brand-800);
-  border: 1.5px solid color-mix(in srgb, var(--brand-800) 45%, transparent);
+  color: var(--primary);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
   box-shadow: none;
 }
-.btn.danger { background: linear-gradient(180deg, #b13a34, #96302b); }
+.btn.danger { background: var(--danger); color: var(--on-danger); }
 /* A full-width button is always a primary action, so it gets the full target.
    Deliberately not put on .btn itself: nineteen small buttons live inside live
    table rows, and growing those to 44px would both undo the density pass and
@@ -604,17 +431,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .btn-row .btn { flex: 1; }
 
 /* ================= Attributes ================= */
-.attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; padding: 10px 16px; background: var(--paper); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.attr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; padding: 10px 16px; background: var(--surface-1); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .attr {
   display: flex; align-items: center; gap: 8px;
-  font-size: 12.5px; font-weight: 500; color: var(--ink-soft);
+  font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
   padding: 4.5px 0;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--border);
 }
 .attr span:first-child { flex: 1; }
 .attr .bar {
   width: 52px; height: 4px; border-radius: 2px;
-  background: var(--cream-2);
+  background: var(--surface-2);
   overflow: hidden; flex-shrink: 0;
 }
 .attr .bar i {
@@ -624,33 +451,33 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .attr .v {
   font-family: var(--cond);
   font-weight: 700; font-size: 15px;
-  width: 22px; text-align: right; color: var(--ink);
+  width: 22px; text-align: right; color: var(--text-primary);
 }
-.attr .v.elite { color: var(--gold-deep); }
-.attr .v.good { color: var(--win); }
-.attr .v.poor { color: var(--ink-faint); }
+.attr .v.elite { color: var(--gold); }
+.attr .v.good { color: var(--primary); }
+.attr .v.poor { color: var(--text-muted); }
 
 /* ================= Chips ================= */
 .chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 10px 16px; }
 .chip {
-  background: var(--paper);
-  border: 1px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
   border-radius: 7px;
   padding: 4.5px 9px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--ink-soft);
-  box-shadow: var(--shadow-1);
+  color: var(--text-secondary);
+  
 }
-.chip b { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.chip b { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 
 /* ================= Match day ================= */
 .scoreboard {
   position: relative;
   background:
     radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 30%, transparent), transparent 60%),
-    linear-gradient(172deg, var(--brand-900), var(--brand-950));
-  color: var(--cream);
+    var(--hero-gradient);
+  color: var(--on-hero);
   padding: calc(env(safe-area-inset-top) + 14px) 16px 14px;
   text-align: center;
 }
@@ -669,7 +496,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond);
   font-size: 27px; font-weight: 700; letter-spacing: 1px; line-height: 1;
   white-space: nowrap;
-  color: var(--gold-bright);
+  color: var(--gold);
   min-width: 84px;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 12px rgba(227, 185, 46, .25);
@@ -677,7 +504,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .scoreboard .minute {
   font-family: var(--cond); font-style: normal; font-weight: 700;
   letter-spacing: .8px; text-transform: uppercase;
-  font-size: 12px; color: var(--brand-100); margin-top: 6px; letter-spacing: .5px;
+  font-size: 12px; color: var(--on-hero-soft); margin-top: 6px; letter-spacing: .5px;
 }
 
 .pitch {
@@ -686,11 +513,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   height: 132px;
   background:
     linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.16)),
-    repeating-linear-gradient(90deg, #2e7050 0 40px, #29684a 40px 80px);
+    repeating-linear-gradient(90deg, var(--pitch-a) 0 40px, var(--pitch-b) 40px 80px);
   border: 1px solid rgba(8, 43, 32, .35);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: inset 0 2px 14px rgba(0, 0, 0, .3), var(--shadow-1);
+  box-shadow: inset 0 2px 14px rgba(0, 0, 0, .3);
 }
 .pitch .line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,.8); }
 .pitch .line.dashed {
@@ -712,8 +539,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pitch .posts::after { top: 8px; }
 .pitch .ball {
   position: absolute; top: 50%; width: 19px; height: 13px;
-  background: radial-gradient(circle at 35% 30%, #fdf9ee, #e4d9bd);
-  border: 2px solid var(--brand-950);
+  background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
+  border: 2px solid var(--canvas);
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(-25deg);
   transition: left 1.1s cubic-bezier(.45, .05, .35, 1), top .8s ease;
@@ -728,23 +555,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 .ticker { padding: 4px 16px; }
 .tick-event {
-  display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--hairline);
+  display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border);
   animation: flash-in .5s ease;
-  font-size: 13px; font-weight: 500; color: var(--ink-soft);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
   line-height: 1.45;
 }
 .tick-event .min {
   font-family: var(--cond); font-weight: 700; font-size: 14px;
-  color: var(--ink-faint); min-width: 30px; text-align: right; flex-shrink: 0;
+  color: var(--text-muted); min-width: 30px; text-align: right; flex-shrink: 0;
 }
 .tick-event.big {
   background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 16%, transparent), transparent 70%);
   margin: 0 -16px; padding: 11px 16px;
   border-left: 4px solid var(--gold);
 }
-.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14.5px; color: var(--brand-950); }
-.tick-event.card-y { border-left: 4px solid #d4b106; margin: 0 -16px; padding: 9px 16px; }
-.tick-event.card-r, .tick-event.inj { border-left: 4px solid var(--red); margin: 0 -16px; padding: 9px 16px; }
+.tick-event.big .txt { font-weight: 700; font-family: var(--sans); font-size: 14.5px; color: var(--text-primary); }
+.tick-event.card-y { border-left: 4px solid var(--prop-yellow-deep); margin: 0 -16px; padding: 9px 16px; }
+.tick-event.card-r, .tick-event.inj { border-left: 4px solid var(--danger); margin: 0 -16px; padding: 9px 16px; }
 
 @keyframes flash-in {
   0% { background-color: color-mix(in srgb, var(--gold) 55%, transparent); opacity: 0; }
@@ -760,72 +587,72 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 16px;
   font-weight: 700;
  
-  color: var(--ink);
+  color: var(--text-primary);
   padding: 4px 16px 12px;
   line-height: 1.5;
 }
 .press-outlet {
   font-size: 10px; text-transform: uppercase; letter-spacing: 2px;
-  color: var(--gold-deep); padding: 14px 16px 3px; font-weight: 800;
+  color: var(--gold); padding: 14px 16px 3px; font-weight: 800;
 }
 
 /* ================= Sliders ================= */
 .slider-row { padding: 11px 16px; }
-.slider-row .lbls { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--ink-faint); margin-bottom: 3px; }
-.slider-row .lbls b { color: var(--brand-800); font-family: var(--cond); font-size: 14px; text-transform: uppercase; letter-spacing: .8px; }
-.slider-row input[type=range] { width: 100%; accent-color: var(--brand-700); }
+.slider-row .lbls { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; }
+.slider-row .lbls b { color: var(--primary); font-family: var(--cond); font-size: 14px; text-transform: uppercase; letter-spacing: .8px; }
+.slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
 
 /* ================= Title screen ================= */
 .title-screen {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   background:
-    radial-gradient(120% 90% at 50% -20%, rgba(159, 194, 232, .2), transparent 60%),
-    linear-gradient(180deg, var(--brand-900) 0%, var(--brand-950) 100%);
-  color: var(--cream); text-align: center; padding: 24px;
+    radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+    var(--canvas);
+  color: var(--text-primary); text-align: center; padding: 24px;
 }
-.title-screen .rules { width: 64px; border: none; border-top: 2px solid #ffffff; margin: 16px auto; }
+.title-screen .rules { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
 /* FAB takes the pale tint, RUGBY the white: a two-tone wordmark rather than one
    flat block of text. */
-.title-screen h1 b { color: var(--brand-100); font-weight: 900; }
+.title-screen h1 b { color: var(--primary); font-weight: 900; }
 .title-screen h1 {
   font-family: var(--serif); font-size: 46px; font-weight: 900;
   line-height: 1.02; letter-spacing: 1px;
   text-shadow: 0 2px 20px rgba(159, 194, 232, .3);
   letter-spacing: 4px;
 }
-.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--brand-100); margin-top: 8px; font-size: 15px; }
+.title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 15px; }
 .title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
 
 /* ================= Misc ================= */
 .form-pill {
   display: inline-block; min-width: 30px; text-align: center;
   font-family: var(--cond); font-size: 13.5px; font-weight: 700;
-  border-radius: 5px; padding: 2px 5px; color: #fff;
+  border-radius: 5px; padding: 2px 5px; color: var(--club1-ink);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
 }
 .pos-badge {
   display: inline-block;
   font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: .5px;
-  background: linear-gradient(180deg, var(--brand-700), var(--brand-800));
-  color: var(--cream); border-radius: 4px; padding: 1.5px 5.5px;
+  background: var(--surface-3);
+  color: var(--text-primary); border-radius: 4px; padding: 1.5px 5.5px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
 }
-.pos-badge.back { background: linear-gradient(180deg, #6a7480, #5c6470); color: #ffffff; }
-.muted { color: var(--ink-faint); font-size: 12px; font-weight: 500; }
+.pos-badge.back { background: var(--border-strong); color: var(--text-primary); }
+.muted { color: var(--text-muted); font-size: 12px; font-weight: 500; }
 .center { text-align: center; }
 .spacer { height: 14px; }
 .inline-input {
   width: 100%; padding: 11px 12px;
-  border: 1.5px solid var(--cream-3); border-radius: 8px;
+  border: 1.5px solid var(--border-strong); border-radius: 8px;
   /* both halves of the pair, on the same rule, so neither can go missing */
-  background: var(--paper); color: var(--ink);
+  background: var(--surface-1); color: var(--text-primary);
   margin: 6px 0;
   font-size: 14px;
 }
-.inline-input:focus { outline: none; border-color: var(--gold); }
+.inline-input:focus { outline: none; border-color: var(--row-selected-border); }
 .club-pick {
   display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
-  padding: 11px 16px; border-bottom: 1px solid var(--hairline);
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
   background: transparent;
 }
 .club-color {
@@ -842,15 +669,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid rgba(0,0,0,.15);
 }
 
-.result-w { color: var(--win); font-weight: 700; }
-.result-l { color: var(--loss); font-weight: 700; }
-.result-d { color: var(--draw); font-weight: 700; }
+.result-w { color: var(--primary); font-weight: 700; }
+.result-l { color: var(--danger); font-weight: 700; }
+.result-d { color: var(--text-muted); font-weight: 700; }
 
 .tab-bar {
   display: flex; overflow-x: auto;
-  background: var(--paper);
-  border-bottom: 2px solid var(--brand-900);
-  box-shadow: var(--shadow-1);
+  background: var(--surface-1);
+  border-bottom: 2px solid var(--border-strong);
+  
 }
 .tab-bar button {
   /* six tabs on Selection, four on Finances, and every one of them was 36px.
@@ -860,17 +687,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond);
   font-size: 14px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .8px;
-  color: var(--ink-faint);
+  color: var(--text-muted);
   white-space: nowrap;
   letter-spacing: .2px;
 }
 .tab-bar button.active {
-  color: var(--brand-900);
-  box-shadow: inset 0 -3px 0 var(--gold);
+  color: var(--text-primary);
+  box-shadow: inset 0 -3px 0 var(--primary);
 }
 
 .modal-veil {
-  position: fixed; inset: 0; background: rgba(6, 35, 26, .6);
+  position: fixed; inset: 0; background: var(--scrim);
   /* and the veil itself, because a bottom sheet is anchored to ITS bottom. If the
      veil is a large-viewport tall, flex-end puts the sheet's foot below the fold
      and its head above it, whatever the sheet's own max-height says. */
@@ -881,7 +708,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   backdrop-filter: blur(2px);
 }
 .modal {
-  background: var(--cream); width: 100%; max-width: 560px; overflow-y: auto;
+  background: var(--canvas); width: 100%; max-width: 560px; overflow-y: auto;
   /* vh THEN dvh, and the second line is the one that matters on a phone.
      On mobile Chrome `vh` measures the LARGE viewport - the height the page
      would have if the browser chrome were hidden - so a sheet anchored to the
@@ -898,7 +725,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
   box-shadow: 0 -12px 40px rgba(0, 0, 0, .35);
 }
-.modal .grab { width: 40px; height: 4.5px; background: var(--cream-3); border-radius: 3px; margin: 9px auto; }
+.modal .grab { width: 40px; height: 4.5px; background: var(--border-strong); border-radius: 3px; margin: 9px auto; }
 
 /* stat hero numbers (finances, club) */
 .big-num { font-family: var(--cond); font-weight: 700; font-size: 22px; letter-spacing: .5px; }
@@ -942,7 +769,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     gap: 0;
     padding: calc(env(safe-area-inset-top) + 6px) 0 6px env(safe-area-inset-left);
     border-top: none;
-    border-right: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+    border-right: 1px solid var(--border);
     box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
     overflow-y: auto;
   }
@@ -988,8 +815,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 
 /* highlighted fixture / problem rows (theme-aware) */
-.next-fx td { background: color-mix(in srgb, var(--gold) 16%, var(--paper)); }
-.prob-row td { background: color-mix(in srgb, var(--red) 14%, var(--paper)); }
+.next-fx td { background: var(--row-selected-bg); }
+.prob-row td { background: color-mix(in srgb, var(--danger) 14%, var(--surface-1)); }
 
 /* ============ Guided new-career wizard (FM Mobile structure) ============ */
 .step-meter {
@@ -997,7 +824,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: rgba(255, 255, 255, .15);
   overflow: hidden; flex-shrink: 0;
 }
-.step-meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-bright), var(--gold)); border-radius: 3px; transition: width .3s ease; }
+.step-meter i { display: block; height: 100%; background: var(--primary); border-radius: 3px; transition: width .3s ease; }
 
 .crumbs { display: flex; gap: 4px; margin-top: 9px; }
 .crumb {
@@ -1012,33 +839,32 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .crumb:first-child { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); }
-.crumb.on { color: var(--brand-950); background: linear-gradient(180deg, var(--gold-bright), var(--gold)); }
-.crumb.done { color: var(--gold-bright); background: rgba(201, 162, 39, .18); }
+.crumb.on { color: var(--on-primary); background: var(--primary); }
+.crumb.done { color: var(--primary); background: var(--primary-tint); }
 
 .wizard-hint {
   font-family: var(--sans); font-style: normal; font-weight: 700;
-  color: var(--ink-soft); font-size: 13.5px;
+  color: var(--text-secondary); font-size: 13.5px;
   padding: 14px 16px 4px;
 }
 
 .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 10px 14px; }
 .tile {
-  background: var(--paper);
-  border: 1.5px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1.5px solid var(--border);
   border-radius: 9px;
   padding: 13px 8px;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
   text-align: center;
-  box-shadow: var(--shadow-1);
-  color: var(--ink);
+  
+  color: var(--text-primary);
   transition: border-color .12s ease;
 }
 .tile b { font-size: 13px; line-height: 1.25; }
 .tile .tile-ico { font-size: 20px; }
 .tile.sel {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 1.5px var(--gold), var(--shadow-2);
-  background: color-mix(in srgb, var(--gold) 7%, var(--paper));
+  border-color: var(--row-selected-border);
+  background: var(--row-selected-bg);
 }
 
 .detail-panel { padding: 0; overflow: hidden; }
@@ -1052,7 +878,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .fact-grid label, .fact-label {
   display: block;
   font-size: 9.5px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--text-muted);
   margin-bottom: 2px;
 }
 .fact-grid span { font-size: 13px; font-weight: 600; }
@@ -1071,8 +897,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      screen of the game looked clipped rather than scrolled. Content passing
      behind a solid toolbar reads as intentional; content dissolving into one
      reads as a bug. */
-  background: var(--cream);
-  border-top: 1px solid var(--hairline);
+  background: var(--canvas);
+  border-top: 1px solid var(--border);
   box-shadow: 0 -6px 14px rgba(0, 0, 0, .10);
 }
 .action-bar .btn { flex: 1; padding: 13px 0; font-size: 14px; min-height: 44px; }
@@ -1080,7 +906,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* first-run welcome dialog */
 .tut-veil { position: fixed; inset: 0; background: rgba(6, 35, 26, .7); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 22px; }
 .tut-box {
-  background: var(--brand-950); color: #ece7d8;
+  background: var(--surface-2); color: var(--text-primary);
   border: 2px solid var(--gold);
   border-radius: 10px;
   padding: 20px 18px;
@@ -1098,15 +924,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .tut-close { margin-top: 14px; }
 .tut-close .btn { width: 100%; }
-.tut-box h3 { font-family: var(--sans); font-size: 17px; font-weight: 700; color: var(--gold-bright); margin-bottom: 8px; }
-.tut-box .muted { color: #9fb2a7; margin-top: 12px; }
+.tut-box h3 { font-family: var(--sans); font-size: 17px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.tut-box .muted { color: var(--text-secondary); margin-top: 12px; }
 
 /* floodlit toggle in masthead */
 .night-btn {
   position: relative;
   width: 34px; height: 34px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--cream);
+  color: var(--text-primary);
   background: rgba(255, 255, 255, .08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
   flex-shrink: 0;
@@ -1142,7 +968,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   bottom: 14px; left: 50%;
   transform: translateX(-50%) scale(.68);
   background: rgba(8, 30, 22, .92);
-  color: #fff;
+  color: var(--prop-ink);
   font-size: 9px; font-weight: 700; letter-spacing: .4px;
   padding: 2px 6px; border-radius: 4px;
   white-space: nowrap;
@@ -1161,25 +987,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .speech-tile {
   display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
-  background: var(--paper);
-  border: 1.5px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1.5px solid var(--border);
   border-radius: 9px;
   padding: 10px 11px;
   text-align: left;
-  box-shadow: var(--shadow-1);
+  
   transition: border-color .15s, transform .1s;
 }
 .speech-tile:active { transform: scale(.98); }
-.speech-tile.sel { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--paper)); }
+.speech-tile.sel { border-color: var(--row-selected-border); background: var(--row-selected-bg); }
 .speech-tile .ico { font-size: 17px; }
-.speech-tile b { font-size: 12.5px; color: var(--ink); font-family: var(--sans); }
-.speech-tile .d { font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }
+.speech-tile b { font-size: 12.5px; color: var(--text-primary); font-family: var(--sans); }
+.speech-tile .d { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }
 
 /* one-tap game plans */
 .preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .preset-chip {
-  background: var(--brand-900);
-  color: #ece7d8;
+  background: var(--surface-2);
+  color: var(--text-primary);
   border-radius: 15px;
   padding: 6px 11px;
   /* 28px before. The full 44px is not available to a chip in either axis: six of
@@ -1190,9 +1016,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      rather than pretending they meet the 44px rule. */
   min-height: 36px;
   font-size: 11px; font-weight: 700; font-family: var(--sans);
-  box-shadow: var(--shadow-1);
+  
 }
-.preset-chip:active { background: var(--brand-700); }
+.preset-chip:active { background: var(--row-hover-bg); }
 
 /* ================= FM-style slide-out sub-menus ================= */
 .submenu-veil {
@@ -1204,8 +1030,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .submenu {
   position: absolute; left: 0; top: 0; bottom: 0;
   width: min(260px, 70vw);
-  background: linear-gradient(172deg, #10203a, #0a1425);
-  border-right: 2px solid var(--gold-bright);
+  background: var(--surface-2);
+  border-right: 2px solid var(--border-strong);
   box-shadow: 12px 0 40px rgba(0, 0, 0, .45);
   overflow-y: auto;
   padding-bottom: env(safe-area-inset-bottom);
@@ -1215,7 +1041,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .submenu-head {
   font-family: var(--cond);
   font-weight: 700; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--gold-bright, #e3b92e);
+  color: var(--gold);
   padding: calc(env(safe-area-inset-top) + 16px) 18px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
@@ -1223,7 +1049,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; align-items: center; gap: 12px;
   width: 100%;
   padding: 13px 18px;
-  color: #ece7d8;
+  color: var(--text-primary);
   font-family: var(--sans);
   font-size: 14px; font-weight: 600;
   border-bottom: 1px solid rgba(255, 255, 255, .06);
@@ -1231,7 +1057,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .submenu-item:active { background: rgba(255, 255, 255, .08); }
 .submenu-item .mico { font-size: 17px; width: 24px; text-align: center; }
 .submenu-item .mbadge {
-  background: var(--red, #a12f2f); color: #fff;
+  background: var(--danger); color: var(--on-danger);
   font-size: 10px; font-weight: 700;
   min-width: 17px; height: 17px; border-radius: 9px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -1246,30 +1072,30 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      a newspaper, and a masthead rule that flips with the theme stops looking like
      newsprint. Written as a literal because there was no --hairline-2 token behind
      it - the fallback was doing all the work and nobody could tell. */
-  border-bottom: 3px double #c9bfa8;
+  border-bottom: 3px double var(--border-strong);
   margin: 0 14px;
 }
 .wire-brand {
   font-family: var(--serif, Georgia);
   font-weight: 800; font-size: 21px; letter-spacing: 3px;
-  color: var(--title-ink, #082b20);
+  color: var(--text-primary);
 }
-.app.night .wire-brand { color: #e5eae6; }
+.wire-brand { color: var(--text-primary); }
 .wire-sub {
   font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--text-muted);
 }
 .wire-card { cursor: pointer; }
 .wire-card.unread { border-left: 4px solid var(--gold); }
 /* The body of a story, set as paragraphs. It used to be one pre-line block, which
    is why the news read as a wall: the engine writes stories in two and three parts
    and none of them had any air around them. */
-.wire-body { font-family: var(--sans); color: var(--ink-soft); }
+.wire-body { font-family: var(--sans); color: var(--text-secondary); }
 .wire-body p { font-size: 14px; line-height: 1.62; margin: 0 0 10px; }
 .wire-body p:last-child { margin-bottom: 0; }
 .wire-card .wire-date {
   font-family: var(--cond); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase;
-  color: var(--ink-faint); margin-bottom: 3px;
+  color: var(--text-muted); margin-bottom: 3px;
 }
 
 /* ================= Manager profile: specialities ================= */
@@ -1280,18 +1106,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .spec-tile {
   display: flex; flex-direction: column; gap: 3px;
-  background: var(--paper);
-  border: 1.5px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1.5px solid var(--border);
   border-radius: 9px;
   padding: 10px 11px;
   opacity: .55;
   filter: grayscale(.8);
-  box-shadow: var(--shadow-1);
+  
 }
-.spec-tile.on { opacity: 1; filter: none; border-color: var(--gold); }
+.spec-tile.on { opacity: 1; filter: none; border-color: var(--row-selected-border); }
 .spec-tile .ico { font-size: 18px; }
-.spec-tile b { font-size: 12.5px; color: var(--ink); font-family: var(--sans); }
-.spec-tile .d { font-size: 10.5px; color: var(--ink-faint); line-height: 1.35; }
+.spec-tile b { font-size: 12.5px; color: var(--text-primary); font-family: var(--sans); }
+.spec-tile .d { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }
 
 /* ================= Home hub widgets ================= */
 .hub-row {
@@ -1302,27 +1128,27 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .hub-widget {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  background: var(--paper);
-  border: 1px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
   border-radius: 9px;
   padding: 9px 4px;
-  box-shadow: var(--shadow-1);
+  
 }
 .hub-widget label {
   font-family: var(--cond); font-size: 10px; font-weight: 700;
   letter-spacing: 1.2px; text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--text-muted);
 }
-.hub-widget b { font-size: 16px; font-family: var(--cond); letter-spacing: .5px; color: var(--ink); }
-.hub-widget span { font-size: 9.5px; color: var(--ink-faint); }
+.hub-widget b { font-size: 16px; font-family: var(--cond); letter-spacing: .5px; color: var(--text-primary); }
+.hub-widget span { font-size: 9.5px; color: var(--text-muted); }
 .form-pip {
   width: 15px; height: 15px; border-radius: 3px;
-  font-size: 9.5px; font-weight: 700; line-height: 15px; color: #fff;
+  font-size: 9.5px; font-weight: 700; line-height: 15px; color: var(--text-primary);
   display: inline-block; text-align: center;
 }
-.form-pip.W { background: #2f7d4f; }
-.form-pip.D { background: #8a7a3a; }
-.form-pip.L { background: #9b2c2c; }
+.form-pip.W { background: var(--primary); color: var(--on-primary); }
+.form-pip.D { background: var(--border-strong); }
+.form-pip.L { background: var(--danger); color: var(--on-danger); }
 
 /* ================= Momentum bar & captain armband ================= */
 .momo-bar {
@@ -1352,11 +1178,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .ft-stamp span {
   margin-top: 10px; font-family: var(--cond); font-size: 26px; font-weight: 800;
-  color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
+  color: var(--prop-ink); text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
 }
-.ft-stamp.w b { color: var(--ink-good); }
-.ft-stamp.l b { color: var(--ink-bad); }
-.ft-stamp.d b { color: #6b7280; }
+.ft-stamp.w b { color: var(--text-positive); }
+.ft-stamp.l b { color: var(--text-negative); }
+.ft-stamp.d b { color: var(--text-muted); }
 @keyframes ftstamp {
   0% { opacity: 0; transform: scale(1.9); }
   14% { opacity: 1; transform: scale(1); }
@@ -1374,12 +1200,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .fm-col-head {
   font-family: var(--cond); font-size: 10.5px; font-weight: 800;
   letter-spacing: 1px; text-transform: uppercase;
-  color: var(--ink-faint); padding: 4px 0 2px;
-  border-bottom: 2px solid var(--gold);
+  color: var(--text-muted); padding: 4px 0 2px;
+  border-bottom: 2px solid var(--border-strong);
 }
 .fm-attr {
   display: flex; align-items: center; gap: 6px;
-  padding: 3px 0; border-bottom: 1px solid var(--hairline);
+  padding: 3px 0; border-bottom: 1px solid var(--border);
   font-size: 12px;
 }
 .fm-attr .fm-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1387,12 +1213,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .fm-attr .fm-chip {
   min-width: 34px; text-align: center; padding: 1px 5px;
   border-radius: 5px; font-family: var(--cond); font-size: 12.5px; font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
 }
-.fm-attr .fm-chip.hi { background: #2f7d4f; }
-.fm-attr .fm-chip.mid { background: #2c4f80; }
-.fm-attr .fm-chip.lo { background: #6b7280; }
-.fm-attr .fm-chip.rng { background: transparent; color: var(--ink-faint); border: 1px dashed var(--hairline); font-weight: 700; font-size: 11px; }
+.fm-attr .fm-chip.hi { background: var(--primary); color: var(--on-primary); }
+.fm-attr .fm-chip.mid { background: var(--info); color: var(--on-info); }
+.fm-attr .fm-chip.lo { background: var(--border-strong); }
+.fm-attr .fm-chip.rng { background: transparent; color: var(--text-muted); border: 1px dashed var(--border); font-weight: 700; font-size: 11px; }
 @media (max-width: 700px) { .fm-attrs { grid-template-columns: 1fr 1fr; } }
 
 /* FM-style home dashboard: three glanceable panels in a row */
@@ -1407,25 +1233,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   /* a button centres its content box, so a short panel sat its heading
      halfway down the row while the tall ones started at the top */
   display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
-  background: var(--paper);
-  border: 1px solid var(--hairline);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 10px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, .06);
   /* buttons default to UA buttontext (black) - invisible on the night
      theme's dark panels; inherit the theme ink instead */
-  color: var(--ink);
+  color: var(--text-primary);
 }
 .dash-head {
   font-family: var(--cond); font-size: 11px; font-weight: 800;
   letter-spacing: 1px; text-transform: uppercase;
-  color: var(--accent-ink); margin-bottom: 4px;
-  border-bottom: 2px solid var(--gold); padding-bottom: 2px;
+  color: var(--info); margin-bottom: 4px;
+  border-bottom: 2px solid var(--border-strong); padding-bottom: 2px;
 }
 .dash-line {
   display: flex; align-items: center; gap: 6px;
   font-size: 11.5px; padding: 2px 0;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--border);
 }
 .dash-line .dl-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 /* :not(.dl-wk) is the whole fix, and it earns its comment. The rule below
@@ -1461,8 +1287,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   height: 430px;
   border-radius: 10px;
   /* calm, flat green: the mowing stripes fought the chips (8B feedback) */
-  background: linear-gradient(180deg, #2e7a4d, #29704662);
-  background-color: #2c754a;
+  background: var(--primary);
+  
   border: 1px solid rgba(0, 0, 0, .3);
   box-shadow: inset 0 2px 14px rgba(0, 0, 20, .25);
   overflow: hidden;
@@ -1484,20 +1310,20 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   display: flex; flex-direction: column; align-items: center;
   min-width: 64px; padding: 4px 7px;
   border-radius: 8px;
-  background: linear-gradient(180deg, var(--club1, #1c3f77), color-mix(in srgb, var(--club1, #1c3f77) 70%, black));
+  background: linear-gradient(180deg, var(--club1, var(--primary)), color-mix(in srgb, var(--club1, var(--primary)) 70%, black));
   border: 1px solid rgba(255, 255, 255, .25);
   box-shadow: 0 3px 8px rgba(0, 0, 0, .35);
-  color: #fff;
+  color: var(--club1-ink);
 }
 .form-chip .fc-role {
   font-family: var(--cond); font-size: 9.5px; font-weight: 800;
-  letter-spacing: 1px; color: var(--gold-bright, #e3b92e);
+  letter-spacing: 1px; color: var(--gold);
 }
 .form-chip .fc-name { font-size: 11px; font-weight: 700; max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .form-chip .fc-num {
   position: absolute; top: -7px; right: -7px;
   width: 17px; height: 17px; border-radius: 50%;
-  background: var(--gold, #c9a227); color: #1a1a10;
+  background: var(--gold-fill); color: var(--on-gold);
   font-size: 10px; font-weight: 800; line-height: 17px;
 }
 
@@ -1524,32 +1350,32 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: absolute; top: -2.5px;
   width: 4px; height: 12px;
   margin-left: -2px;
-  background: var(--gold-bright, #e3b92e);
+  background: var(--gold-fill);
   border: 1px solid rgba(0, 0, 0, .35);
   border-radius: 2px;
   transition: left .9s cubic-bezier(.45, .05, .35, 1);
   box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
 }
-.pitch .pdot.cap { outline: 1.5px solid #e3b92e; outline-offset: 1px; }
+.pitch .pdot.cap { outline: 1.5px solid var(--gold-fill); outline-offset: 1px; }
 
 /* inbox: jump to the next unread message */
 .news-item .next-unread {
   display: none;
   margin-top: 8px;
   padding: 7px 12px;
-  background: var(--brand-900);
-  color: #ece7d8;
+  background: var(--surface-2);
+  color: var(--text-primary);
   border-radius: 7px;
   font-size: 12px; font-weight: 700; font-family: var(--sans);
   width: fit-content;
 }
 .news-item.open .next-unread { display: inline-block; }
-.news-item .next-unread:active { background: var(--brand-700); }
+.news-item .next-unread:active { background: var(--row-hover-bg); }
 
 /* lineup tap-to-swap: the player you're "holding" */
 .dtable tr.held-row td {
-  background: color-mix(in srgb, var(--gold) 22%, var(--paper)) !important;
-  box-shadow: inset 3px 0 0 var(--gold);
+  background: var(--row-selected-bg) !important;
+  box-shadow: inset 3px 0 0 var(--row-selected-border);
 }
 
 /* ================= Dream Team of the round - magazine style ================= */
@@ -1557,16 +1383,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 10px 14px;
   border-radius: 12px;
   overflow: hidden;
-  background: linear-gradient(180deg, #9ec7e8, #b7d6ee);
-  box-shadow: var(--shadow-1);
+  background: var(--surface-3);
+  
 }
-.app.night .dt-board { background: linear-gradient(180deg, #262b28, #1a1d1b); }
+.dt-board { background: var(--surface-2); }
 .dt-head {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 14px 10px 10px;
 }
 .dt-head span {
-  background: #2f6bb0; color: #fff;
+  background: var(--info); color: var(--on-info);
   font-family: var(--cond); font-weight: 700; letter-spacing: 3px;
   padding: 3px 14px;
 }
@@ -1578,7 +1404,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.1)),
-    repeating-linear-gradient(180deg, #3d9e63 0 42px, #37945b 42px 84px);
+    repeating-linear-gradient(180deg, var(--pitch-a) 0 42px, var(--pitch-b) 42px 84px);
   border: 2px solid rgba(255, 255, 255, .5);
   padding: 10px 4px 12px;
 }
@@ -1590,11 +1416,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .dt-name {
   font-family: var(--cond); font-weight: 700; font-size: 9.5px; letter-spacing: .5px;
-  color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  color: var(--prop-ink); text-shadow: 0 1px 2px rgba(0,0,0,.6);
   max-width: 86px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dt-score {
-  background: #2f6bb0; color: #fff;
+  background: var(--info); color: var(--on-info);
   font-family: var(--cond); font-weight: 700; font-size: 10.5px;
   padding: 1px 10px; border-radius: 3px;
   box-shadow: 0 1px 3px rgba(0,0,0,.35);
@@ -1615,7 +1441,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .wknd-row .side.mine, .wknd-row .side.mine b { font-weight: 800; }
 .wknd-row .side.mine { text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
 .wknd-row .vs {
-  background: #5c6a63; color: #fff;
+  background: var(--border-strong); color: var(--text-primary);
   font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 1px;
   padding: 4px 12px; border-radius: 5px;
 }
@@ -1669,17 +1495,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   letter-spacing: 3px;
   padding: 7px 24px;
   border-radius: 6px;
-  background: #ffffff;
-  color: #1d2733;
+  background: var(--prop-white);
+  color: var(--prop-ink-dark);
   box-shadow: 0 6px 26px rgba(0, 0, 0, .45);
   animation: banner-in 1.6s cubic-bezier(.2, .9, .3, 1) forwards;
   display: flex; align-items: center; gap: 10px;
   white-space: nowrap;
   pointer-events: none;
 }
-.ev-banner.yc { background: #f2c200; color: #231f00; }
-.ev-banner.rc { background: #c0392f; color: #ffffff; }
-.ev-banner.inj { background: #ffffff; color: #c0392f; font-size: 15px; letter-spacing: 2px; }
+.ev-banner.yc { background: var(--prop-yellow); color: var(--prop-ink-dark); }
+.ev-banner.rc { background: var(--prop-red); color: var(--prop-ink); }
+.ev-banner.inj { background: var(--prop-white); color: var(--prop-red); font-size: 15px; letter-spacing: 2px; }
 @keyframes banner-in {
   0% { opacity: 0; transform: translate(-50%, -50%) translateX(-70px) skewX(-8deg); }
   12% { opacity: 1; transform: translate(-50%, -50%) skewX(0); }
@@ -1687,8 +1513,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   100% { opacity: 0; transform: translate(-50%, -50%) translateX(50px); }
 }
 .ev-banner .cardchip { width: 13px; height: 18px; border-radius: 2.5px; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
-.ev-banner .cardchip.y { background: linear-gradient(160deg, #ffe14d, #e0b400); }
-.ev-banner .cardchip.r { background: linear-gradient(160deg, #ff6a5c, #a31207); }
+.ev-banner .cardchip.y { background: linear-gradient(160deg, var(--prop-yellow), var(--prop-yellow-deep)); }
+.ev-banner .cardchip.r { background: linear-gradient(160deg, var(--prop-red), var(--prop-red-deep)); }
 
 /* ---- set-piece animations (scrum / lineout / maul) ---- */
 .setp {
@@ -1716,7 +1542,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .setp .splabel {
   position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
   font-family: var(--cond); font-weight: 800; font-size: 8.5px; letter-spacing: 1.2px;
-  color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .6); white-space: nowrap;
+  color: var(--prop-ink); text-shadow: 0 1px 3px rgba(0, 0, 0, .6); white-space: nowrap;
   animation: splabel-in .35s ease-out both;
 }
 @keyframes splabel-in { from { opacity: 0; transform: translateX(-50%) translateY(4px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
@@ -1739,7 +1565,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .bin-chip {
   position: absolute; bottom: 3px; z-index: 4;
   font-family: var(--cond); font-weight: 700; font-size: 10px; letter-spacing: .4px;
-  background: rgba(20, 20, 10, .68); color: #ffe14d;
+  background: rgba(20, 20, 10, .68); color: var(--prop-yellow);
   border: 1px solid rgba(255, 225, 77, .5); border-radius: 9px; padding: 1px 6px;
   pointer-events: none;
 }
@@ -1753,18 +1579,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .kickcam .kc-post {
   position: absolute; bottom: 8px; width: 3px; height: 42px; border-radius: 2px;
-  background: #f3f5f8; box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  background: var(--prop-white); box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
 }
 .kickcam .kc-post.l { left: 30px; }
 .kickcam .kc-post.r { right: 30px; }
 .kickcam .kc-bar {
   position: absolute; bottom: 28px; left: 30px; right: 30px; height: 3px;
-  border-radius: 2px; background: #f3f5f8; box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  border-radius: 2px; background: var(--prop-white); box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
 }
 .kickcam .kc-ball {
   position: absolute; bottom: 6px; left: 50%; width: 7px; height: 9px;
-  margin-left: -3.5px; border-radius: 50%; background: #e8d9b0;
-  border: 1px solid #9a7b3f;
+  margin-left: -3.5px; border-radius: 50%; background: var(--prop-tee);
+  border: 1px solid var(--prop-tee-edge);
   animation: kc-flight 1.1s cubic-bezier(.3, .1, .5, 1) both;
 }
 .kickcam.miss .kc-ball { animation-name: kc-flight-miss; }
@@ -1779,10 +1605,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .kickcam .kc-verdict {
   position: absolute; top: 4px; left: 0; right: 0; text-align: center;
   font-family: var(--cond); font-weight: 800; font-size: 10.5px; letter-spacing: 1.5px;
-  color: #7fe0a0; opacity: 0;
+  color: var(--primary-hover); opacity: 0;
   animation: kc-verdict-in .3s ease .95s both;
 }
-.kickcam.miss .kc-verdict { color: #ff9a8a; }
+.kickcam.miss .kc-verdict { color: var(--danger); }
 @keyframes kc-verdict-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes kc-fade { 0% { opacity: 0; } 10% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 
@@ -1790,23 +1616,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .now-line {
   display: flex; gap: 10px; align-items: flex-start;
   margin: 10px 14px; padding: 14px 16px;
-  background: var(--paper); border-radius: 10px;
-  box-shadow: var(--shadow-1);
-  border-left: 4px solid var(--cream-3);
+  background: var(--surface-1); border-radius: 10px;
+  
+  border-left: 4px solid var(--border-strong);
   font-size: 16px; line-height: 1.45;
   animation: now-in .32s ease both;
   min-height: 76px;
 }
 .now-line .min {
   font-family: var(--cond); font-weight: 800; font-size: 15px;
-  color: var(--accent-ink); flex-shrink: 0; min-width: 30px;
+  color: var(--info); flex-shrink: 0; min-width: 30px;
 }
-.now-line .txt { color: var(--ink); }
-.now-line.big { border-left-color: var(--gold-bright); }
-.now-line.big .txt { font-weight: 700; color: var(--title-ink); font-size: 17px; }
-.now-line.card-y { border-left-color: #e0b400; }
-.now-line.card-r { border-left-color: #c0392f; }
-.now-line.inj { border-left-color: #9b5c2c; }
+.now-line .txt { color: var(--text-primary); }
+.now-line.big { border-left-color: var(--gold); }
+.now-line.big .txt { font-weight: 700; color: var(--text-primary); font-size: 17px; }
+.now-line.card-y { border-left-color: var(--prop-yellow-deep); }
+.now-line.card-r { border-left-color: var(--prop-red); }
+.now-line.inj { border-left-color: var(--danger); }
 @keyframes now-in {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1860,7 +1686,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   animation: cel-in .5s ease both;
 }
 @keyframes cel-in { from { opacity: 0; } to { opacity: 1; } }
-.celebrate-box { text-align: center; color: #eef3fb; padding: 24px; max-width: 560px; }
+.celebrate-box { text-align: center; color: var(--text-primary); padding: 24px; max-width: 560px; }
 .celebrate-box h1 {
   font-family: var(--serif); font-weight: 900; font-size: 30px; letter-spacing: 2px;
   margin-top: 12px; line-height: 1.15;
@@ -1869,7 +1695,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .celebrate-box .sub {
   margin-top: 8px; font-family: var(--cond); font-weight: 700; letter-spacing: 1.4px;
-  text-transform: uppercase; font-size: 12.5px; color: var(--gold-bright);
+  text-transform: uppercase; font-size: 12.5px; color: var(--gold);
 }
 @keyframes cel-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 .confetti {
@@ -2010,7 +1836,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: sticky;
   top: 0;
   z-index: 6;
-  background: var(--paper);
+  background: var(--surface-1);
   box-shadow: 0 4px 8px -7px rgba(0, 0, 0, .55);
 }
 .sticky-controls ~ .tblwrap .dtable th { top: var(--stickyh, 0px); }
@@ -2043,7 +1869,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .filter-note {
   font-family: var(--sans); font-size: 10.5px; font-weight: 600;
-  letter-spacing: .2px; color: var(--ink-faint);
+  letter-spacing: .2px; color: var(--text-muted);
   margin-left: auto; text-align: right;
 }
 
@@ -2116,7 +1942,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .lead-row .lead-tag {
   font-family: var(--cond); font-weight: 800; font-size: 13px;
-  min-width: 22px; text-align: center; color: var(--accent-ink);
+  min-width: 22px; text-align: center; color: var(--info);
 }
 .lead-row .fact-label { min-width: 52px; }
 .lead-row .inline-input { margin: 0; flex: 1; min-width: 0; }
@@ -2199,7 +2025,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    "selection squares arent consistent"). An inset ring says the same thing
    inside the tile's own edges. */
 .tile.sel {
-  box-shadow: inset 0 0 0 2px var(--gold), var(--shadow-1);
+  box-shadow: inset 0 0 0 2px var(--row-selected-border);
 }
 /* a long club name should truncate, not set the tile's width for everyone */
 .tile b {
@@ -2303,7 +2129,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    The block is 3 short lines at most, and it earns every one of them. */
 .sheet-top {
   position: sticky; top: 0; z-index: 2;
-  background: var(--cream);
+  background: var(--canvas);
   padding-bottom: 2px;
   box-shadow: 0 6px 8px -6px rgba(0, 0, 0, .35);
 }
@@ -2316,8 +2142,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* the casualty, on his own line and impossible to miss */
 .sheet-casualty {
   font-size: 13px; font-weight: 600;
-  color: var(--ink);
-  background: var(--paper);
+  color: var(--text-primary);
+  background: var(--surface-1);
   border-left: 3px solid var(--gold);
   border-radius: 6px;
   padding: 5px 8px;
@@ -2372,13 +2198,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .sheet-row {
   display: flex; align-items: center; gap: 6px; width: 100%;
   padding: 5px 7px; margin-bottom: 3px;
-  border: 1px solid var(--cream-3); border-radius: 7px;
-  background: var(--paper); color: inherit;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface-1); color: inherit;
   font-size: 12px; text-align: left; cursor: pointer;
 }
 .sheet-row:disabled { opacity: .4; cursor: default; }
-.sheet-row.armed { border-color: var(--gold); box-shadow: inset 0 0 0 2px var(--gold); }
-.sheet-row.cover { border-color: #2f7d4f; }
+.sheet-row.armed { border-color: var(--row-selected-border); box-shadow: inset 0 0 0 2px var(--row-selected-border); }
+.sheet-row.cover { border-color: var(--primary); }
 .sh-num {
   flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 11px;
   letter-spacing: .5px; opacity: .7;
@@ -2386,7 +2212,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* what a man is, next to what number he wears (Round 27) */
 .sh-pos {
   flex: 0 0 26px; font-family: var(--cond); font-weight: 700; font-size: 10.5px;
-  letter-spacing: .5px; text-transform: uppercase; opacity: .9; color: var(--accent-ink);
+  letter-spacing: .5px; text-transform: uppercase; opacity: .9; color: var(--info);
 }
 .sh-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sh-flag { flex: 0 0 auto; font-size: 11px; }
@@ -2394,10 +2220,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /* nowrap, because this column is 32px and a four-line wrap tears the whole row
    open - which is exactly what a long condition phrase did here (Round 27) */
 .sh-nrg { flex: 0 0 32px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.sh-nrg.amber { color: #c9a227; }
-.sh-nrg.red { color: #e05a4d; font-weight: 700; }
+.sh-nrg.amber { color: var(--gold); }
+.sh-nrg.red { color: var(--danger); font-weight: 700; }
 .sheet-log { margin-top: 4px; }
-.app.night .sheet-row { background: #1a1d1b; border-color: #3a403c; }
+
 
 /* ---- the tactics pitch was the wrong way round (feedback 9-5) ----------
    A vertical half-pitch, 430px tall, on a phone whose content area is about
@@ -2479,7 +2305,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    scroll, and "Northampton" ellipsised to "Northamp...". The split is now only
    applied once there is a panel to put in it.
 
-   Polish: the tile was flat var(--paper) with a crest sitting on it. Every club
+   Polish: the tile was flat var(--surface-1) with a crest sitting on it. Every club
    in the game HAS two colours and they were going unused here of all places -
    the screen whose entire job is choosing between clubs. The tile now wears them
    as a deep wash behind its own crest, which is what made the earlier crest work
@@ -2512,13 +2338,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .club-tile {
   position: relative;
   overflow: hidden;
-  background: var(--paper);
-  border-color: var(--hairline);
+  background: var(--surface-1);
+  border-color: var(--border);
 }
 .club-tile::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 3.5px;
-  background: linear-gradient(90deg, var(--c1, #1c3f77) 0%, var(--c1, #1c3f77) 50%, var(--c2, #0b1c33) 50%, var(--c2, #0b1c33) 100%);
+  background: linear-gradient(90deg, var(--c1, var(--surface-3)) 0%, var(--c1, var(--surface-3)) 50%, var(--c2, var(--border-strong)) 50%, var(--c2, var(--border-strong)) 100%);
 }
 .club-tile b {
   font-size: 12px;
@@ -2526,7 +2352,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .club-tile.sel {
   border-color: var(--gold);
-  box-shadow: inset 0 0 0 2px var(--gold), var(--shadow-1);
+  box-shadow: inset 0 0 0 2px var(--row-selected-border);
 }
 @media (orientation: landscape) and (min-width: 640px) {
   /* short screen: the crest and the name, nothing else, two rows for a league */
@@ -2548,18 +2374,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    strength you cannot miss. It is a separate name from --gold-bright on purpose,
    so that the next person to retint the palette can see that selection depends
    on it. densityaudit's sibling, pickaudit, now measures the difference. */
-:root { --pick: #9fc2e8; --pick-ink: #0b1c33; }
+:root, .app { --pick: var(--primary-hover); --pick-ink: var(--on-primary); }
 .tile.sel, .club-tile.sel, .speech-tile.sel {
   border-color: var(--pick);
-  box-shadow: inset 0 0 0 2px var(--pick), var(--shadow-1);
+  box-shadow: inset 0 0 0 2px var(--pick);
 }
 .tile.sel, .speech-tile.sel {
-  background: color-mix(in srgb, var(--pick) 26%, var(--paper));
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
 }
 /* selected is the same blue wash every other tile gets: no club colour in it, so
    picking a red club cannot look like picking a broken one */
 .club-tile.sel {
-  background: color-mix(in srgb, var(--pick) 26%, var(--paper));
+  background: color-mix(in srgb, var(--pick) 26%, var(--surface-1));
 }
 /* and the words brighten with the box, so the change is legible even to someone
    who cannot pick the ring out from the border */
@@ -2567,8 +2393,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    As var(--pick) it was accent-on-accent-wash, which measured 1.4:1 the moment the
    accent changed. The ring and the wash are what say "selected"; the name just has
    to be readable. Kept from the crimson pass because it is true in any palette. */
-.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--ink); }
-.app.night .tile.sel b, .app.night .club-tile.sel b, .app.night .speech-tile.sel b { color: #ffffff; }
+.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--text-primary); }
+.tile.sel b, .club-tile.sel b, .speech-tile.sel b { color: var(--text-primary); }
 /* a tick, because a colour change alone is a poor signal if you cannot see the
    unselected tiles next to it - on a narrow screen the picked one may be alone */
 .tile.sel, .club-tile.sel, .speech-tile.sel { position: relative; }
@@ -2600,7 +2426,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .club-pick.sel {
   border-color: var(--pick);
   box-shadow: inset 0 0 0 2px var(--pick);
-  background: color-mix(in srgb, var(--pick) 18%, var(--paper));
+  background: color-mix(in srgb, var(--pick) 18%, var(--surface-1));
 }
 
 /* the one line of the inbox that stays on Home: whether there is anything to read */
@@ -2636,17 +2462,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .rt-bar {
   display: block; width: 100%; height: 4px; margin: 4px 0 2px;
-  background: var(--cream-3); border-radius: 2px; overflow: hidden;
+  background: var(--border-strong); border-radius: 2px; overflow: hidden;
 }
 .rt-bar i {
   display: block; height: 100%; border-radius: 2px;
-  background: linear-gradient(90deg, var(--pick), color-mix(in srgb, var(--pick) 55%, #2f7d4f));
+  background: linear-gradient(90deg, var(--pick), color-mix(in srgb, var(--pick) 55%, var(--primary)));
 }
-.app.night .rt-bar { background: #343a36; }
+.rt-bar { background: var(--border-strong); }
 /* the chosen exit strategy and penalty instruction have to look chosen */
 .preset-chip.on {
   background: var(--pick); color: var(--pick-ink); font-weight: 800;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--pick) 60%, #fff);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--pick) 60%, var(--text-primary));
 }
 
 /* ---- the bench economy (F4) ---------------------------------------------
@@ -2655,8 +2481,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    readable without a modal per player. */
 .brief-list { padding: 3px 14px; display: grid; gap: 4px; }
 .brief-row {
-  background: var(--cream-2); border-radius: 8px; padding: 5px 8px;
-  box-shadow: var(--shadow-1);
+  background: var(--surface-2); border-radius: 8px; padding: 5px 8px;
+  
 }
 /* Landscape has 844px to play with, so the man and his four options share one
    line: stacked, eight seats came to 1080px of scrolling on a 390px-tall
@@ -2666,11 +2492,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .brief-who { flex: 0 0 190px; min-width: 0; }
   .brief-row .preset-row { margin-top: 0; flex: 1; justify-content: flex-end; }
 }
-.app.night .brief-row { background: var(--cream-2); }
+
 .brief-who { display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
 .brief-who .num {
   font-family: monospace; font-weight: 700; min-width: 18px;
-  color: var(--ink-soft); font-size: 11.5px;
+  color: var(--text-secondary); font-size: 11.5px;
 }
 .brief-who .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .brief-row .preset-row { margin-top: 5px; gap: 5px; }
@@ -2711,7 +2537,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    sent looked exactly like the fifty-nine before it. */
 .reader-bar {
   display: flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-bottom: 1px solid var(--hairline);
+  padding: 6px 14px; border-bottom: 1px solid var(--border);
 }
 /* The older/newer arrows are the control a manager uses most often outside a
    match, and they were 30x24. Here they get real size rather than an invisible
@@ -2722,7 +2548,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .reader-bar .btn.tiny:disabled { opacity: .35; }
 .reader-pos {
   flex: 1; font-family: var(--cond); font-size: 11px; font-weight: 700;
-  letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint);
+  letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .reader { padding: 8px 16px 4px; }
@@ -2732,10 +2558,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .reader h2 {
   font-family: var(--serif); font-size: 19px; line-height: 1.2;
-  margin: 3px 0 7px; color: var(--title-ink, var(--ink));
+  margin: 3px 0 7px; color: var(--text-primary);
 }
 /* Paragraph air, matched to the Wire so a story reads the same in both places. */
-.reader p { font-size: 13.5px; line-height: 1.6; margin: 0 0 10px; color: var(--ink); }
+.reader p { font-size: 13.5px; line-height: 1.6; margin: 0 0 10px; color: var(--text-primary); }
 .reader p:last-of-type { margin-bottom: 2px; }
 
 /* ---- people named in a story (feedback 10F) -----------------------------
@@ -2756,14 +2582,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .who-chip {
   display: flex; flex-direction: row; align-items: baseline; gap: 5px;
   flex: 0 0 auto; white-space: nowrap;
-  background: var(--cream-2); border: 1px solid var(--cream-3);
+  background: var(--surface-2); border: 1px solid var(--border);
   border-left: 3px solid var(--gold);
   border-radius: 7px; padding: 6px 10px; text-align: left;
-  box-shadow: var(--shadow-1);
+  
 }
-.who-chip b { font-size: 12.5px; color: var(--ink); }
-.who-chip span { font-size: 10.5px; color: var(--ink-faint); font-weight: 700; }
-.who-chip:active { background: var(--cream-3); }
+.who-chip b { font-size: 12.5px; color: var(--text-primary); }
+.who-chip span { font-size: 10.5px; color: var(--text-muted); font-weight: 700; }
+.who-chip:active { background: var(--row-hover-bg); }
 
 /* The one-line core-loop hint, first three weeks of a first career only. Sized
    to read as guidance rather than as an alert: no icon, no border, no dismiss
@@ -2773,27 +2599,27 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 9px 12px;
   border-left: 3px solid var(--gold);
   border-radius: 7px;
-  background: color-mix(in srgb, var(--gold) 10%, var(--paper));
-  font-size: 12.5px; line-height: 1.45; color: var(--ink-soft);
+  background: var(--gold-tint);
+  font-size: 12.5px; line-height: 1.45; color: var(--text-secondary);
 }
-.first-hint b { color: var(--ink); }
+.first-hint b { color: var(--text-primary); }
 
 /* The two fixes on the full-time verdict (13A). A numbered list rather than a
    paragraph, because the point is that these are two discrete jobs. */
 .fix-row {
   display: flex; gap: 8px; align-items: flex-start;
-  padding: 5px 0; border-bottom: 1px solid var(--hairline);
+  padding: 5px 0; border-bottom: 1px solid var(--border);
 }
 .fix-row:last-of-type { border-bottom: 0; }
 .fix-no {
   flex: 0 0 18px; height: 18px; margin-top: 1px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 5px; background: var(--brand-700); color: #fff;
+  border-radius: 5px; background: var(--surface-3); color: var(--text-primary);
   font-family: var(--cond); font-size: 11.5px; font-weight: 700;
 }
 
 /* a dressing-room rift and the button that might end it (10H) */
-.rift-row { padding: 5px 0; border-bottom: 1px solid var(--hairline); }
+.rift-row { padding: 5px 0; border-bottom: 1px solid var(--border); }
 .rift-row:last-of-type { border-bottom: 0; }
 
 /* ---- the crash screen (blocker A1) --------------------------------------
@@ -2804,8 +2630,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: fixed; inset: 0; z-index: 9999;
   display: flex; align-items: center; justify-content: center;
   padding: 18px;
-  background: linear-gradient(172deg, #0b3d2e, #071f18);
-  color: #ece7d8;
+  background: var(--canvas);
+  color: var(--text-primary);
   font-family: var(--sans, system-ui, sans-serif);
   overflow-y: auto;
 }
@@ -2814,25 +2640,25 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   max-height: calc(100vh - 36px);
   max-height: calc(100dvh - 36px);
   overflow-y: auto;
-  background: #082b20;
-  border: 2px solid #e3b92e;
+  background: var(--surface-1);
+  border: 2px solid var(--gold);
   border-radius: 11px;
   padding: 18px 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
 }
-.crash-box h2 { font-size: 17px; font-weight: 700; color: #f0d98c; margin: 0 0 8px; }
-.crash-box p { font-size: 13px; line-height: 1.55; margin: 0 0 10px; color: #cfdcd4; }
+.crash-box h2 { font-size: 17px; font-weight: 700; color: var(--gold); margin: 0 0 8px; }
+.crash-box p { font-size: 13px; line-height: 1.55; margin: 0 0 10px; color: var(--text-secondary); }
 .crash-err {
   font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.4;
   white-space: pre-wrap; word-break: break-word;
   background: rgba(0, 0, 0, .35); border-radius: 7px;
-  padding: 9px 10px; margin: 0 0 12px; color: #ffbfae;
+  padding: 9px 10px; margin: 0 0 12px; color: var(--danger);
   max-height: 28vh; max-height: 28dvh; overflow-y: auto;
 }
 .crash-btns { display: flex; gap: 9px; flex-wrap: wrap; }
 .crash-btns .btn { flex: 1; min-width: 150px; padding: 12px 10px; font-size: 13px; }
-.crash-btns .btn.ghost { color: #f0d98c; border-color: rgba(227, 185, 46, .5); }
-.crash-note { font-size: 11.5px; color: #8fa79b; margin-top: 11px; line-height: 1.45; }
+.crash-btns .btn.ghost { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, transparent); }
+.crash-note { font-size: 11.5px; color: var(--text-muted); margin-top: 11px; line-height: 1.45; }
 
 /* ---- the save-failed banner (blocker A4) --------------------------------
    Top of the screen, above everything except the crash screen and the portrait
@@ -2843,17 +2669,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px) * 0);
   padding-left: max(12px, env(safe-area-inset-left));
   padding-right: max(12px, env(safe-area-inset-right));
-  background: linear-gradient(180deg, #8f2c22, #6f2019);
-  color: #ffe9e3;
+  background: var(--danger-tint);
+  color: var(--text-primary);
   font-family: var(--sans, system-ui, sans-serif);
   font-size: 12px; line-height: 1.45;
   box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
 }
 .save-warn > div:first-child { flex: 1; min-width: 190px; }
-.save-warn b { color: #fff; }
+.save-warn b { color: var(--danger); }
 .save-warn-why { display: block; opacity: .75; font-size: 11px; margin-top: 2px; }
 .save-warn-btns { display: flex; gap: 6px; flex-shrink: 0; }
-.save-warn-btns .btn.ghost { color: #ffe9e3; border-color: rgba(255, 233, 227, .45); }
+.save-warn-btns .btn.ghost { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
 
 /* ------------------------------------------------------------------
    PORTRAIT
@@ -3007,52 +2833,52 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 14px 16px 12px;
   background:
     radial-gradient(120% 200% at 12% -60%, color-mix(in srgb, var(--club1) 22%, transparent), transparent 60%),
-    linear-gradient(170deg, var(--paper), color-mix(in srgb, var(--cream-2) 60%, var(--paper)));
-  border-bottom: 1px solid var(--hairline);
+    linear-gradient(170deg, var(--surface-1), color-mix(in srgb, var(--surface-2) 60%, var(--surface-1)));
+  border-bottom: 1px solid var(--border);
 }
 .day-head .dh-day {
   font-family: var(--cond);
   font-size: 30px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-  line-height: 1; color: var(--ink);
+  line-height: 1; color: var(--text-primary);
 }
 .day-head .dh-theme {
   font-family: var(--sans);
-  font-size: 15px; font-weight: 700; color: var(--accent-ink);
+  font-size: 15px; font-weight: 700; color: var(--info);
   margin-top: 3px;
 }
 .day-head .dh-date {
   font-family: var(--cond);
   font-size: 11.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-  color: var(--ink-faint); margin-top: 5px;
+  color: var(--text-muted); margin-top: 5px;
 }
 .day-head .dh-sub {
-  font-family: var(--sans); font-size: 12px; color: var(--ink-soft); margin-top: 4px;
+  font-family: var(--sans); font-size: 12px; color: var(--text-secondary); margin-top: 4px;
 }
 
 /* a headline in the day's bulletin: an icon, the subject, an affordance */
 .day-story {
   display: flex; align-items: center; gap: 9px; width: 100%;
   padding: 8px 12px; background: none; border: none;
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--border);
   font-family: var(--sans); font-size: 13px; text-align: left;
-  color: var(--ink);
+  color: var(--text-primary);
 }
 .day-story:first-child { border-top: none; }
 .day-story .ds-ico { font-size: 15px; flex-shrink: 0; }
 .day-story .ds-subj { flex: 1; min-width: 0; font-weight: 600; line-height: 1.3; }
-.day-story .ds-go { color: var(--ink-faint); flex-shrink: 0; }
-.day-story:active { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.day-story .ds-go { color: var(--text-muted); flex-shrink: 0; }
+.day-story:active { background: var(--row-hover-bg); }
 
 /* Friday's other fixtures: two crests either side of a fixed v */
 .day-fx {
   display: flex; align-items: center; gap: 6px;
-  padding: 5px 12px; border-top: 1px solid var(--hairline);
+  padding: 5px 12px; border-top: 1px solid var(--border);
   font-family: var(--sans); font-size: 12.5px;
 }
 .day-fx:first-child { border-top: none; }
 .day-fx .dfx-side { flex: 1; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .day-fx .dfx-side.right { text-align: left; }
-.day-fx .dfx-v { color: var(--ink-faint); font-family: var(--cond); font-weight: 700; }
+.day-fx .dfx-v { color: var(--text-muted); font-family: var(--cond); font-weight: 700; }
 
 .day-next { margin: 12px 14px 0; font-size: 15px; }
 
@@ -3060,16 +2886,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    money reads as a column. */
 .ledger-row {
   display: flex; align-items: baseline; gap: 8px;
-  padding: 4px 0; border-top: 1px solid var(--hairline);
+  padding: 4px 0; border-top: 1px solid var(--border);
   font-family: var(--sans); font-size: 12.5px;
 }
 .ledger-row:first-child { border-top: none; }
-.ledger-row .lg-what { flex: 1; min-width: 0; color: var(--ink-soft); }
+.ledger-row .lg-what { flex: 1; min-width: 0; color: var(--text-secondary); }
 .ledger-row .lg-amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ledger-row.total {
-  border-top: 2px solid var(--brand-800); margin-top: 3px; padding-top: 6px;
+  border-top: 2px solid var(--border-strong); margin-top: 3px; padding-top: 6px;
 }
-.ledger-row.total .lg-what { color: var(--ink); font-weight: 700; }
+.ledger-row.total .lg-what { color: var(--text-primary); font-weight: 700; }
 .ledger-row.total .lg-amt { font-size: 14px; }
 
 /* Four standing instructions, two by two (user: "tidy kickable penalty options
@@ -3093,7 +2919,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .rs-h { text-align: right; }
 .rs-a { text-align: left; }
-.rs-d { width: 14px; padding: 0; text-align: center; color: var(--ink-faint); }
+.rs-d { width: 14px; padding: 0; text-align: center; color: var(--text-muted); }
 
 /* ================= Salary cap bar (F6) ================= */
 /* The bar can overfill: being over the cap is a state the manager must be able
@@ -3104,17 +2930,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: relative; height: 12px; margin-top: 8px;
   /* the same track the rating bars use: a dark wash on a dark ground would leave
      the empty part of the bar invisible, so the theme has to say it outright */
-  background: var(--cream-3); border-radius: 6px; overflow: hidden;
+  background: var(--border-strong); border-radius: 6px; overflow: hidden;
 }
-.app.night .cap-bar { background: #343a36; }
-.cap-fill { height: 100%; background: var(--brand-600, #1d7a4c); transition: width .25s ease; }
-.cap-fill.tight { background: #b8901c; }
-.cap-fill.over { background: #a12f2f; }
-.cap-mark { position: absolute; top: -2px; bottom: -2px; right: 0; width: 2px; background: var(--ink-soft, #6b7a72); opacity: .7; }
+
+.cap-fill { height: 100%; background: var(--primary); transition: width .25s ease; }
+.cap-fill.tight { background: var(--gold-fill); }
+.cap-fill.over { background: var(--danger); }
+.cap-mark { position: absolute; top: -2px; bottom: -2px; right: 0; width: 2px; background: var(--text-secondary); opacity: .7; }
 
 /* ================= The draw room (F19) ================= */
 .draw-room { padding: 4px 14px 12px; }
-.day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; border-left: 4px solid var(--gold, #c9a227); }
+.day-draw { display: block; width: calc(100% - 28px); margin: 8px 14px; text-align: left; border-left: 4px solid var(--gold); }
 .day-draw-top { font-family: var(--sans); font-weight: 700; font-size: 14.5px; margin-bottom: 2px; }
 .draw-balls { margin: 6px 0 10px; }
 .draw-tie {
@@ -3124,22 +2950,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      token that does not exist in this stylesheet, so the fallback white was
      painted in both themes while the names followed --ink and went pale at
      night. See scripts/cssaudit.mjs, which now refuses a token nobody defines. */
-  background: var(--paper); border: 1px solid var(--hairline); border-radius: 10px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
   font-size: 14.5px;
   /* each ball arrives rather than appearing: the reveal is the point of the room */
   animation: draw-in .28s ease;
 }
-.draw-tie.ours { border-color: var(--gold, #c9a227); border-width: 2px; font-weight: 700; }
+.draw-tie.ours { border-color: var(--gold); border-width: 2px; font-weight: 700; }
 .draw-num {
   flex: 0 0 22px; height: 22px; border-radius: 11px;
-  background: var(--brand-700, #14603c); color: #f2ede0;
+  background: var(--primary); color: var(--on-primary);
   font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
 .draw-home, .draw-away { flex: 1; }
 .draw-away { text-align: right; }
-.draw-v { color: var(--ink-soft, #6b7a72); font-size: 12px; }
+.draw-v { color: var(--text-secondary); font-size: 12px; }
 .draw-waiting { text-align: center; padding: 8px 0; }
-.draw-verdict { border-left: 4px solid var(--gold, #c9a227); }
+.draw-verdict { border-left: 4px solid var(--gold); }
 .draw-next { margin-top: 10px; font-size: 15px; }
 @keyframes draw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
@@ -3176,7 +3002,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin-top: 6px;
   font-size: 10px;
   letter-spacing: .4px;
-  color: #9fb0c6;
+  color: var(--text-muted);
   opacity: .8;
   font-variant-numeric: tabular-nums;
 }
@@ -3187,14 +3013,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .submenu-note {
   padding: 7px 14px 8px;
   font-size: 11.5px; line-height: 1.4;
-  color: var(--gold-bright);
+  color: var(--gold);
   border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
 .mstart {
   font-family: var(--cond);
   font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  color: var(--brand-950);
-  background: var(--gold);
+  color: var(--on-gold);
+  background: var(--gold-fill);
   border-radius: 3px; padding: 2px 5px;
   flex-shrink: 0;
 }
@@ -3207,12 +3033,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   padding: 6px 9px;
   border-left: 3px solid var(--gold);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--gold) 9%, var(--paper));
-  font-size: 12px; line-height: 1.4; color: var(--ink-soft);
+  background: var(--gold-tint);
+  font-size: 12px; line-height: 1.4; color: var(--text-secondary);
 }
 .fix-grade.good {
-  border-left-color: #2f7d4f;
-  background: color-mix(in srgb, #2f7d4f 9%, var(--paper));
+  border-left-color: var(--primary);
+  background: var(--primary-tint);
 }
 
 /* ================= The season card (C4) =================
@@ -3224,37 +3050,37 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   margin: 10px 14px 4px;
   padding: 12px 14px 13px;
   border-radius: 12px;
-  background: linear-gradient(160deg, #0e2b46 0%, #0a1c30 60%, #08131f 100%);
+  background: var(--hero-gradient);
   border: 1px solid rgba(201, 162, 39, .45);
   box-shadow: 0 6px 22px rgba(0, 0, 0, .3);
-  color: #eef3f9;
+  color: var(--on-hero);
 }
 .sc-top { display: flex; align-items: center; gap: 2px; }
 .sc-top b { font-size: 15px; letter-spacing: -.2px; }
 .sc-sub {
   font-family: var(--cond); font-size: 11px; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase; color: #c9a227;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--gold);
 }
 .sc-pos {
   font-family: var(--cond); font-size: 26px; font-weight: 700; line-height: .95;
-  text-align: right; color: #ffffff; flex-shrink: 0;
+  text-align: right; color: var(--on-hero); flex-shrink: 0;
 }
 .sc-pos span {
   display: block; font-size: 9px; letter-spacing: 1.2px; font-weight: 700;
-  color: #c9a227;
+  color: var(--gold);
 }
 .sc-row {
   display: flex; gap: 14px; margin-top: 10px;
   font-family: var(--cond); font-size: 12px; letter-spacing: .6px;
-  color: #9fb4cc; text-transform: uppercase;
+  color: var(--on-hero-soft); text-transform: uppercase;
 }
-.sc-row b { font-family: var(--sans); font-size: 15px; color: #ffffff; margin-right: 3px; }
+.sc-row b { font-family: var(--sans); font-size: 15px; color: var(--on-hero); margin-right: 3px; }
 .sc-pct { margin-left: auto; }
 .sc-star, .sc-cup {
-  margin-top: 8px; font-size: 11.5px; line-height: 1.35; color: #cddaea;
+  margin-top: 8px; font-size: 11.5px; line-height: 1.35; color: var(--on-hero-soft);
   border-top: 1px solid rgba(255, 255, 255, .1); padding-top: 7px;
 }
-.sc-cup { color: #f0d98a; font-weight: 700; }
+.sc-cup { color: var(--gold-fill); font-weight: 700; }
 
 /* ================= 44px, on the twenty-seven screens nobody measured =========
  *
@@ -3354,10 +3180,10 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .wiz-bar { flex-wrap: wrap; }
 .wiz-need {
   flex: 1 0 100%;
-  font-size: 12px; font-weight: 600; color: var(--brand-800);
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
   text-align: center; margin-bottom: 2px;
 }
-.app.night .wiz-need { color: var(--gold); }
+
 
 /* ---- the bid stepper fits the phone --------------------------------------
    User, from a 412px screen: "the reduce or plus 500 go off the screen and

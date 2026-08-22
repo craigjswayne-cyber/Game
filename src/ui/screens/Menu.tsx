@@ -46,19 +46,19 @@ export default function Menu() {
           )
         })()}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
-          style={saves.length ? { color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>
           New Career
         </button>
         {saves.length > 0 && (
-          <button className="btn ghost" style={{ color: '#ffffff', borderColor: '#9fc2e8', fontSize: 15 }}
+          <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
             onClick={() => setShowLoad(!showLoad)}>
             Load Career
           </button>
         )}
         {showLoad && saves.map(s => (
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>
-            <button className="btn" style={{ flex: 1, background: 'var(--brand-800)' }} onClick={() => void load(s.slot)}>
+            <button className="btn" style={{ flex: 1, background: 'var(--surface-3)' }} onClick={() => void load(s.slot)}>
               {s.managerName} - {s.club}
               <div style={{ fontSize: 11, opacity: .8 }}>{seasonLabel(s.season)}, Week {s.week}</div>
             </button>

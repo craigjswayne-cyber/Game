@@ -105,7 +105,7 @@ export default function SelectionPane() {
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
         <td className="name">{p ? p.name : <span className="muted">- tap to select -</span>}
-          {p && club.captain === p.id && <b style={{ color: '#a8841a' }}> (C)</b>}
+          {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td>{p && <Stars ca={effAt(p, pos)} />}</td>
         <td>{p && <FormPill v={p.form} />}</td>

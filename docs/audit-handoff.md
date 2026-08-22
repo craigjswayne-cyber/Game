@@ -502,6 +502,38 @@ exit, it does not make the first one die. Before trusting any browser-probe
 red OR green from a worktree, pgrep for stray "vite preview" holders of that
 port. The false green read exactly like a probe that forgot to look.
 
+## The token system (two accents, two modes, no hex outside tokens.css)
+
+The design brief that supersedes the charcoal-and-green pass: role-named
+semantic tokens in src/ui/tokens.css (night DEFAULT + day from one variable
+swap), green = positive/actionable, gold = value/attention, red = loss/risk,
+key numbers in text-primary with colour only on deltas, elevation by surface
+lightness (the shadow tokens are gone), hero gradient rationed to the club
+header and matchday hero. Stage 1 (tokens + contrast audit) was gated on
+user approval; approved with --on-primary amended #0b1310 -> #070d0a.
+
+The enforcement triad:
+  - scripts/tokenlint.ts - hex anywhere outside tokens.css fails the suite
+    (src/data exempt: club colours are data; alpha masks and stopOpacity
+    glosses exempt; RETIRED token names banned so fallbacks cannot resurrect
+    the old palette).
+  - scripts/paletteqa.mjs - the rendered contract, night AND day legs.
+  - docs/contrast-audit.md - 66 pairs, 60 pass, 6 usage rules.
+docs/palette-migration.md is the judgement-call ledger (deliverable 4).
+
+Traps hit and paid for:
+  - JS sets --club1 per save but never --club1-ink; pointing the :root
+    default at --on-primary painted shirt numbers black-on-black at night
+    (1.1:1). It is var(--prop-ink) white, as the old palette had it.
+  - The ghost stars demanded a THIRD calibration (star-empty saga continues):
+    border-strong reads 2.1:1 on striped rows at night, 1.6 in day. They
+    are var(--text-muted) now - slightly louder, always readable.
+  - The old --gold was action AND value in one token; 52 sites classified
+    by hand (selection family -> --row-selected-*/primary, attention ->
+    gold, structure -> border). grep the commit for the full mapping.
+  - Old saves keep their rm-night key; only fresh installs flip to night
+    default (localStorage absent => night).
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

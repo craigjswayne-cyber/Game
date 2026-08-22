@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
+import './ui/tokens.css'
 import './ui/theme.css'
 
 // the boundary sits outside App on purpose: a boundary can only catch what its
@@ -32,7 +33,7 @@ if ('serviceWorker' in navigator && !location.hostname.includes('localhost')) {
         Object.assign(el.style, {
           position: 'fixed', left: '50%', bottom: '18px', transform: 'translateX(-50%)',
           zIndex: '200', padding: '10px 18px', borderRadius: '22px', border: 'none',
-          background: '#0d1f3f', color: '#f0d98c', fontWeight: '700', fontSize: '14px',
+          background: 'var(--surface-2)', color: 'var(--gold)', fontWeight: '700', fontSize: '14px',
           boxShadow: '0 6px 24px rgba(0,0,0,.45)', cursor: 'pointer',
         } as CSSStyleDeclaration)
         document.body.appendChild(el)

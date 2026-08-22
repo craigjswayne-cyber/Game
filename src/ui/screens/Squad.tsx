@@ -13,7 +13,7 @@ type View = 'selection' | 'general' | 'stats' | 'gametime' | 'contracts'
 type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps' | 'tries' | 'points' | 'avr' | 'pkd' | 'wage' | 'until'
 
 function FitRing({ v }: { v: number }) {
-  const c = v >= 85 ? '#2f7d4f' : v >= 68 ? '#c9a227' : '#a12f2f'
+  const c = v >= 85 ? 'var(--text-positive)' : v >= 68 ? 'var(--gold)' : 'var(--danger)'
   return (
     <span title={`${Math.round(v)}% fit`} style={{
       display: 'inline-block', width: 11, height: 11, borderRadius: '50%',
@@ -23,9 +23,9 @@ function FitRing({ v }: { v: number }) {
 }
 
 function MoraleArrow({ v }: { v: number }) {
-  if (v >= 7) return <span style={{ color: '#2f7d4f', fontSize: 14 }}>▲</span>
-  if (v >= 4.5) return <span style={{ color: '#c9a227', fontSize: 14 }}>►</span>
-  return <span style={{ color: '#a12f2f', fontSize: 14 }}>▼</span>
+  if (v >= 7) return <span style={{ color: 'var(--text-positive)', fontSize: 14 }}>▲</span>
+  if (v >= 4.5) return <span style={{ color: 'var(--gold)', fontSize: 14 }}>►</span>
+  return <span style={{ color: 'var(--danger)', fontSize: 14 }}>▼</span>
 }
 
 export default function Squad() {
@@ -109,8 +109,8 @@ export default function Squad() {
           display: 'inline-block', minWidth: 26, textAlign: 'center',
           fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 12.5,
           borderRadius: 4, padding: '1.5px 4px',
-          background: xv ? 'var(--club1)' : 'color-mix(in srgb, var(--club1) 30%, var(--paper))',
-          color: xv ? '#fff' : 'var(--ink)',
+          background: xv ? 'var(--club1)' : 'color-mix(in srgb, var(--club1) 30%, var(--surface-1))',
+          color: xv ? 'var(--club1-ink)' : 'var(--text-primary)',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,.15)',
         }}>{xv ? i + 1 : `S${i - 14}`}</span>
       </td>
@@ -123,7 +123,7 @@ export default function Squad() {
       {/* red while he is away with his country (user: "if a player is on
           International duty they should have a red colour for their name") -
           one glance down the list shows who the Test window has taken */}
-      <span style={p.natSquad ? { color: '#d4574e', fontWeight: 700 } : undefined}>{p.name}</span>{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: '#a8841a' }}> (C)</b> : ''}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
+      <span style={p.natSquad ? { color: 'var(--danger)', fontWeight: 700 } : undefined}>{p.name}</span>{game.clubs[game.userClubId].captain === p.id ? <b style={{ color: 'var(--gold)' }}> (C)</b> : ''}{stars.has(p.id) ? ' ⭐' : ''} <AvailTag p={p} g={game} />
     </td>
   )
 
@@ -163,7 +163,7 @@ export default function Squad() {
             already the forwards and 9 to 15 the backs. The chips filtered a
             list that had grouped itself. */}
         {([['all', 'First Team'], ['aca', '🎓 Academy']] as const).map(([k, label]) => (
-          <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+          <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             onClick={() => setGroup(k)}>{label}</button>
         ))}
         {/* the academy has its own A League now, so the filter hands off to it
@@ -180,11 +180,11 @@ export default function Squad() {
             same line as first team and academy"). */}
         {([['any', 'Everyone', 'the whole squad'], ['fit', '✅', 'available to pick'], ['out', '🚑', 'injured, banned, away or on loan']] as const).map(([k, label, why]) => (
           <button key={k} className="preset-chip" title={why} aria-label={why}
-            style={avail === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            style={avail === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             onClick={() => setAvail(k)}>{label}</button>
         ))}
         {view === 'gametime' && (
-          <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+          <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             onClick={() => setGtAll(!gtAll)}>{gtAll ? 'Everyone shown' : 'Needs a word'}</button>
         )}
       </div>}
@@ -291,7 +291,7 @@ export default function Squad() {
                   <td className="num">{avr ? avr.toFixed(2) : '-'}</td>
                   <td className="num" style={{ fontWeight: 700 }}>
                     {(p.ca0 != null && p.ca !== p.ca0) && (
-                      <span style={{ color: p.ca > p.ca0 ? '#2f7d4f' : '#a12f2f', marginRight: 3, fontWeight: 400 }}
+                      <span style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)', marginRight: 3, fontWeight: 400 }}
                         title={p.ca > p.ca0 ? 'Ability has grown this season' : 'Ability has slipped this season'}>
                         {p.ca > p.ca0 ? '▲' : '▼'}
                       </span>
@@ -307,8 +307,8 @@ export default function Squad() {
                   const row = ledgerRow(game, club, p, played)
                   const cur = statusOf(game, club, p)
                   const MOOD: Record<string, [string, string]> = {
-                    happy: ['😀', '#2f7d4f'], content: ['🙂', '#2f7d4f'],
-                    restless: ['😐', '#c9a227'], unhappy: ['😠', '#a12f2f'],
+                    happy: ['😀', 'var(--text-positive)'], content: ['🙂', 'var(--text-positive)'],
+                    restless: ['😐', 'var(--gold)'], unhappy: ['😠', 'var(--danger)'],
                   }
                   const [icon, col] = MOOD[row.mood]
                   return (<>
@@ -319,7 +319,7 @@ export default function Squad() {
                       </select>
                     </td>
                     <td className="num" style={{ fontWeight: 700 }}>{row.actual}</td>
-                    <td className="num" style={{ color: row.gap < -2 ? '#a12f2f' : undefined }}>{row.expected}</td>
+                    <td className="num" style={{ color: row.gap < -2 ? 'var(--danger)' : undefined }}>{row.expected}</td>
                     <td title={STATUS_BY_ID[cur].desc} style={{ color: col, whiteSpace: 'nowrap' }}>
                       {icon} {row.gap >= 0 ? `+${row.gap}` : row.gap}
                     </td>
@@ -329,7 +329,7 @@ export default function Squad() {
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="num">{p.age}</td>
                   <td className="num">{fmtWage(p.wage)}</td>
-                  <td className="num" style={{ fontWeight: 700, color: p.contractEnds <= game.season ? '#a12f2f' : p.contractEnds === game.season + 1 ? '#a8841a' : undefined }}>
+                  <td className="num" style={{ fontWeight: 700, color: p.contractEnds <= game.season ? 'var(--danger)' : p.contractEnds === game.season + 1 ? 'var(--gold)' : undefined }}>
                     {2026 + p.contractEnds}
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>

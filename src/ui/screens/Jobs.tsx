@@ -71,7 +71,7 @@ export default function Jobs() {
           </button>
         )}
         <div className="meta" style={{ marginTop: 5 }}>
-          Interview prospects: <b style={{ color: chance > 0.65 ? '#2f7d4f' : chance > 0.35 ? '#a8841a' : '#a12f2f' }}>
+          Interview prospects: <b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
             {chance > 0.75 ? 'Excellent' : chance > 0.5 ? 'Good' : chance > 0.3 ? 'Outside shot' : 'Long shot'}
           </b>
         </div>
@@ -84,7 +84,7 @@ export default function Jobs() {
       <div className="card">
         <h3 style={{ fontSize: 16 }}>{game.unemployed ? 'Between jobs' : 'The managerial market'}</h3>
         <div className="meta">
-          Your reputation: <b style={{ color: 'var(--accent-ink)' }}>{rep}/95</b> - built on {game.mgr.m} matches,
+          Your reputation: <b style={{ color: 'var(--info)' }}>{rep}/95</b> - built on {game.mgr.m} matches,
           {' '}{game.mgr.m ? Math.round((game.mgr.w / game.mgr.m) * 100) : 0}% won, {game.mgr.trophies.length} troph{game.mgr.trophies.length === 1 ? 'y' : 'ies'}.
         </div>
         {game.unemployed && (
@@ -106,7 +106,7 @@ export default function Jobs() {
         )}
       </div>
 
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>{msg}</div>}
+      {msg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{msg}</div>}
 
       <SectionTitle sub={open.length === 1 ? 'one job open' : `${open.length} jobs open`}>Vacancies</SectionTitle>
       {open.length === 0 && (

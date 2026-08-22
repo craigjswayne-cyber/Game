@@ -68,13 +68,13 @@ export default function Transfers() {
     <>
       <div className="chips" style={{
         position: 'sticky', top: 0, zIndex: 5, margin: 0, padding: '10px 14px 8px',
-        background: 'color-mix(in srgb, var(--cream) 92%, transparent)', backdropFilter: 'blur(6px)',
-        borderBottom: '1px solid var(--hairline)',
+        background: 'color-mix(in srgb, var(--canvas) 92%, transparent)', backdropFilter: 'blur(6px)',
+        borderBottom: '1px solid var(--border)',
       }}>
         <span className="chip">💰 Budget <b>{fmtMoney(user.budget)}</b></span>
         <span className="chip">Wage room <b>{fmtMoney(Math.max(0, user.wageBudget - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}/wk</b></span>
         <span className="chip" style={{
-          color: (game.week <= 7 || game.week === 26 || game.week === 27) ? 'var(--win)' : 'var(--ink-faint)',
+          color: (game.week <= 7 || game.week === 26 || game.week === 27) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
         }}>
           {game.week <= 7 ? `Window open · closes wk 8`
@@ -114,7 +114,7 @@ export default function Transfers() {
               const demand = renewalDemand(p)
               return (
                 <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--hairline)', cursor: 'pointer' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                   <PosBadge pos={p.pos} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700 }}>{p.name}</div>
@@ -123,11 +123,11 @@ export default function Transfers() {
                     </div>
                   </div>
                   {p.retiring
-                    ? <span className="chip" style={{ borderColor: '#a12f2f', color: '#a12f2f', fontWeight: 700 }}>retiring</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>retiring</span>
                     : gazumped
-                    ? <span className="chip" style={{ borderColor: '#a12f2f', color: '#a12f2f', fontWeight: 700 }}>signed elsewhere</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>signed elsewhere</span>
                     : (p.wantsDeal ?? 0) > 0
-                      ? <span className="chip" style={{ borderColor: 'var(--gold-bright)', fontWeight: 700 }}>wants a deal</span>
+                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>wants a deal</span>
                       : <span className="chip" style={{ fontWeight: 700 }}>expiring</span>}
                 </div>
               )
@@ -143,7 +143,7 @@ export default function Transfers() {
                 <SectionTitle sub="pre-contracts agreed - they arrive when the season ends">Arriving In Summer</SectionTitle>
                 {incoming.map(p => (
                   <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--hairline)', cursor: 'pointer' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
                     <PosBadge pos={p.pos} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700 }}>{p.name}</div>
@@ -151,7 +151,7 @@ export default function Transfers() {
                         {p.age} yrs · from {p.clubId ? game.clubs[p.clubId]?.short ?? '?' : 'free agency'} · on a free
                       </div>
                     </div>
-                    <span className="chip" style={{ borderColor: 'var(--gold-bright)', fontWeight: 700 }}>🖊 agreed</span>
+                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>🖊 agreed</span>
                   </div>
                 ))}
               </>
@@ -171,7 +171,7 @@ export default function Transfers() {
         <div className="chips" style={{ padding: 0 }}>
           {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
             <button key={c.id} className="chip" onClick={() => { game.scoutFocus = game.scoutFocus === c.id ? null : c.id; touch() }}
-              style={game.scoutFocus === c.id ? { borderColor: 'var(--gold-bright)', color: 'var(--accent-ink)', fontWeight: 700 } : undefined}>
+              style={game.scoutFocus === c.id ? { borderColor: 'var(--gold)', color: 'var(--info)', fontWeight: 700 } : undefined}>
               {game.scoutFocus === c.id ? '🔭 ' : ''}{c.short}
             </button>
           ))}
@@ -192,7 +192,7 @@ export default function Transfers() {
                 <h3>{bidder.name} bid {fmtMoney(o.fee)} for {p.name}</h3>
                 <div className="meta">
                   Value {fmtMoney(p.value)} · {p.age} yrs · morale {p.morale.toFixed(0)}/10
-                  {[7, 26, 27].includes(game.week) && <b style={{ color: '#a12f2f' }}> · 🚨 dies at the deadline</b>}
+                  {[7, 26, 27].includes(game.week) && <b style={{ color: 'var(--danger)' }}> · 🚨 dies at the deadline</b>}
                 </div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
                   <button className="btn gold" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }}>Accept</button>
@@ -218,7 +218,7 @@ export default function Transfers() {
                 <td className="name">{p.name}</td>
                 <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : 'Free agent'}</td>
                 <td><Stars ca={fuzzedCa(game, p)} /></td>
-                <td className="num" style={{ color: knowledge(game, p) >= 95 ? '#2f7d4f' : undefined }}>
+                <td className="num" style={{ color: knowledge(game, p) >= 95 ? 'var(--text-positive)' : undefined }}>
                   {Math.round(knowledge(game, p))}%
                 </td>
               </tr>
@@ -302,7 +302,7 @@ export default function Transfers() {
             <option key={c.id} value={c.id}>{c.short}</option>
           ))}
         </select>
-        <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+        <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
           onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>🏷️ Listed</button>
       </div>
       <div className="tblwrap"><table className="dtable">
@@ -407,7 +407,7 @@ function ScoutCommission() {
             </div>
           </>
         )}
-        {msg && <div className="meta" style={{ marginTop: 6, color: '#a8841a', fontWeight: 700 }}>{msg}</div>}
+        {msg && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)', fontWeight: 700 }}>{msg}</div>}
       </div>
 
       {finds.length > 0 && (
@@ -417,7 +417,7 @@ function ScoutCommission() {
             {finds.map(f => {
               const p = game.players[f.playerId]
               if (!p) return null
-              const col = f.grade >= 3 ? '#2f7d4f' : f.grade === 2 ? '#6f8f4f' : f.grade === 1 ? '#8a7a3a' : '#9b2c2c'
+              const col = f.grade >= 3 ? 'var(--text-positive)' : f.grade === 2 ? 'var(--text-secondary)' : f.grade === 1 ? 'var(--border-strong)' : 'var(--text-negative)'
               return (
                 <tr key={f.playerId} onClick={() => go('player', f.playerId)}>
                   <td><PosBadge pos={p.pos} /></td>
@@ -464,7 +464,7 @@ function ScoutReports() {
       <SectionTitle sub="every postcard and report the department has filed - tap one to read it again">Scout Reports</SectionTitle>
       <div className="card" style={{ padding: '2px 10px' }}>
         {reports.map((n, i) => (
-          <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}
+          <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
             onClick={() => setOpenId(openId === n.id ? null : n.id)}>
             <div className="meta" style={{ fontSize: 10.5 }}>{weekDate(n.season, n.week)}</div>
             <div style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{n.subject}</div>

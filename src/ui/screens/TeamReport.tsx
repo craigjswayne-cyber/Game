@@ -54,7 +54,7 @@ export default function TeamReport() {
         <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>Squad Depth</button>
         <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>Best XV</button>
       </div>
-      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ fontSize: 14 }}>The Assistant's Verdict</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>
@@ -101,7 +101,7 @@ export default function TeamReport() {
             <tr key={d.pos} className={d.count < d.need ? 'prob-row' : undefined}>
               <td><PosBadge pos={d.pos} /></td>
               <td className="name" style={{ fontSize: 12 }}>{POS_NAMES[d.pos]}</td>
-              <td className="num" style={d.count < d.need ? { color: '#9b2c2c', fontWeight: 700 } : undefined}>
+              <td className="num" style={d.count < d.need ? { color: 'var(--text-negative)', fontWeight: 700 } : undefined}>
                 {d.count}/{d.need}
               </td>
               <td style={{ fontSize: 12 }}>{d.best?.name ?? '-'}</td>
@@ -120,7 +120,7 @@ export default function TeamReport() {
           <div key={b.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 11, fontWeight: 700 }}>{b.n}</span>
             <div style={{ width: '100%', height: `${(b.n / maxB) * 58}px`, background: 'var(--club1)', borderRadius: '4px 4px 0 0', minHeight: 2 }} />
-            <span style={{ fontSize: 10, color: 'var(--ink-faint)' }}>{b.label}</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{b.label}</span>
           </div>
         ))}
       </div>

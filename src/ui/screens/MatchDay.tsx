@@ -421,12 +421,12 @@ function Preview({ fxId }: { fxId: number }) {
     const pct = total ? (mine / total) * 100 : 50
     return (
       <div style={{ padding: '4px 14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-soft)' }}>
-          <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)' }}>
+          <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--info)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
         </div>
-        <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+        <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
           <div style={{ width: `${pct}%`, background: 'var(--club1)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.15)' }} />
-          <div style={{ flex: 1, background: game.clubs[opp]?.colors[0] ?? '#c9a227', opacity: .85 }} />
+          <div style={{ flex: 1, background: game.clubs[opp]?.colors[0] ?? 'var(--gold)', opacity: .85 }} />
         </div>
       </div>
     )
@@ -451,8 +451,8 @@ function Preview({ fxId }: { fxId: number }) {
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
         <td className="name">
           {p ? p.name : <span className="muted">- tap to pick -</span>}
-          {prob && p && <span style={{ color: '#9b2c2c', fontSize: 10.5, fontWeight: 700 }}> {prob}</span>}
-          {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: '#a8841a', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY</span>}
+          {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 10.5, fontWeight: 700 }}> {prob}</span>}
+          {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY</span>}
         </td>
         <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
         <td className="num" style={{ width: 44 }}>{p ? `${Math.round(p.cond)}%` : ''}</td>
@@ -478,7 +478,7 @@ function Preview({ fxId }: { fxId: number }) {
                 style={t.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}{t.lineup.includes(p.id) ? ' (selected)' : ''}
-                  {(p.rust ?? 0) > 0 && <span style={{ color: '#a8841a', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY {p.rust}w</span>}
+                  {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY {p.rust}w</span>}
                 </td>
                 <td><Stars ca={effAt(p, pos)} /></td>
                 <td className="num">{Math.round(p.cond)}%</td>
@@ -503,12 +503,12 @@ function Preview({ fxId }: { fxId: number }) {
               <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>Everything looks in order. The tunnel awaits.</div>
             )}
             {warnings.length > 0 && (
-              <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--hairline)', borderRadius: 10, padding: '2px 10px' }}>
+              <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: '2px 10px' }}>
                 {warnings.map((w, i) => (
                   <div key={i} style={{
                     display: 'flex', gap: 8, padding: '6px 0', fontSize: 12.5, lineHeight: 1.4,
-                    color: w.level === 'bad' ? '#9b2c2c' : w.level === 'warn' ? '#8a6d1a' : 'var(--ink-soft)',
-                    borderBottom: i < warnings.length - 1 ? '1px solid var(--hairline)' : 'none',
+                    color: w.level === 'bad' ? 'var(--text-negative)' : w.level === 'warn' ? 'var(--gold)' : 'var(--text-secondary)',
+                    borderBottom: i < warnings.length - 1 ? '1px solid var(--border)' : 'none',
                   }}>
                     <span>{w.level === 'bad' ? '⛔' : w.level === 'warn' ? '⚠️' : 'ℹ️'}</span>
                     <span>{w.text}</span>
@@ -522,14 +522,14 @@ function Preview({ fxId }: { fxId: number }) {
               </div>
             )}
             {hasBad && fixedLineup && (
-              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: '#9b2c2c', fontWeight: 600 }}>
+              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
                 The team cannot kick off as it is. Fix It lets the assistant repair
                 the team sheet and start the match. Not Yet goes back so you can
                 sort it yourself.
               </div>
             )}
             {hasBad && !fixedLineup && (
-              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: '#9b2c2c', fontWeight: 600 }}>
+              <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
                 A full-blown crisis: the squad cannot field fifteen fit men. The
                 assistant will patch the gaps with whoever can stand.
               </div>
@@ -574,7 +574,7 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="mday-badges" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={38} />
             {game.clubs[fx.homeId] && <Jersey club={game.clubs[fx.homeId]} size={54} />}
-            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--ink-faint)', letterSpacing: 2 }}>VS</span>
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>VS</span>
             {game.clubs[fx.awayId] && <Jersey club={game.clubs[fx.awayId]} size={54} />}
             <CrestT g={game} teamId={fx.awayId} size={38} />
           </div>
@@ -583,7 +583,7 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="meta">🏟️ {fx.venue ? `${fx.venue.name}, ${fx.venue.city} · neutral ground` : `${home?.stadium ?? 'Neutral venue'}${home ? `, ${home.city}` : ''}`}</div>
           <div className="meta" style={{ marginTop: 3 }}>
             {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} Forecast: {rollWeather(game.week, weekRng(game))}
-            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: '#a12f2f', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} - expect a cauldron</span>}
+            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: 'var(--danger)', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} - expect a cauldron</span>}
           </div>
           </div>
         </div>
@@ -610,7 +610,7 @@ function Preview({ fxId }: { fxId: number }) {
             // season's status on it, and the card should say exactly that
             const relBar = fx.stage === 'BAR' && comp.id === 'prem'
             return (
-              <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+              <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                 <div className="fact-label">The Stakes</div>
                 <div className="meta">{relBar
                   ? 'The relegation playoff. Eighty minutes for a Premiership place: the winner plays top-flight rugby next season, the loser spends a year in the Championship.'
@@ -649,7 +649,7 @@ function Preview({ fxId }: { fxId: number }) {
             }
           }
           return (
-            <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+            <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
               <div className="fact-label">The Stakes</div>
               <div className="meta">{bits.join(' ')}</div>
             </div>
@@ -673,7 +673,7 @@ function Preview({ fxId }: { fxId: number }) {
           return (
             <>
               {game.matchPrep && (
-                <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+                <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                   <div className="fact-label">This Week's Preparation</div>
                   <div className="meta">
                     {{
@@ -687,7 +687,7 @@ function Preview({ fxId }: { fxId: number }) {
                 </div>
               )}
               {fx.stage === 'F' && (
-                <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+                <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                   <div className="fact-label">🏆 THE FINAL</div>
                   <div className="meta">
                     Eighty minutes from the {game.comps[fx.compId]?.name ?? 'trophy'}. Everything the
@@ -702,7 +702,7 @@ function Preview({ fxId }: { fxId: number }) {
                 const rec = game.derbyBook?.[opp]
                 const played = rec ? rec.w + rec.d + rec.l : 0
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
                     <div className="fact-label">🔥 {dn}</div>
                     <div className="meta">
                       The form book goes in the bin, the cards come out, and the town keeps the score
@@ -717,7 +717,7 @@ function Preview({ fxId }: { fxId: number }) {
               {(() => {
                 const g = !derbyName(fx.homeId, fx.awayId) ? grudgeBetween(game, fx.homeId, fx.awayId) : null
                 return g ? (
-                  <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
                     <div className="fact-label">Bad Blood</div>
                     <div className="meta">
                       There's history here - <b>{g.reason}</b>. Expect cards, a hostile
@@ -737,7 +737,7 @@ function Preview({ fxId }: { fxId: number }) {
                   .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
                 if (!theirs.length && !ours.length) return null
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                     <div className="fact-label">Old Boys</div>
                     {theirs.slice(0, 3).map(p => (
                       <div key={p.id} className="meta">
@@ -762,7 +762,7 @@ function Preview({ fxId }: { fxId: number }) {
                 if (!bowing) return null
                 const home = fx.homeId === game.userClubId
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                     <div className="fact-label">The Farewell Tour</div>
                     <div className="meta">
                       <b>{bowing.name}</b> ({bowing.age}, {bowing.pos}) has announced this season is his last.
@@ -799,7 +799,7 @@ function Preview({ fxId }: { fxId: number }) {
                 }
                 if (!lines.length) return null
                 return (
-                  <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+                  <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                     <div className="fact-label">On The Brink</div>
                     {lines.slice(0, 3).map(({ p, text }) => (
                       <div key={p.id} className="meta">
@@ -810,7 +810,7 @@ function Preview({ fxId }: { fxId: number }) {
                 )
               })()}
               {danger && (
-                <div className="card" style={{ borderLeft: '4px solid #a12f2f' }}>
+                <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
                   <div className="fact-label">Danger Man</div>
                   <div className="meta">
                     <b>{danger.name}</b> ({danger.pos}) is the one to shackle - {oppClub?.short ?? 'they'} play
@@ -918,10 +918,10 @@ function Preview({ fxId }: { fxId: number }) {
                     {total > 0 && (
                       <div className="meta">
                         Under you: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b> against {oppClub?.short ?? 'them'}.
-                        {rec!.w === 0 && rec!.l >= 3 && <> <b style={{ color: '#9b2c2c' }}>Your bogey side</b> - you have never beaten them, and the players know it. End it today.</>}
-                        {rec!.l === 0 && rec!.w >= 5 && <> <b style={{ color: '#2f7d4f' }}>Happy hunting ground</b> - they have never beaten you. Keep it that way.</>}
-                        {(rec!.run ?? 0) >= 3 && !(rec!.l === 0 && rec!.w >= 5) && <> <b style={{ color: '#2f7d4f' }}>{rec!.run} straight wins</b> over them - the streak is yours to protect.</>}
-                        {(rec!.run ?? 0) <= -3 && !(rec!.w === 0 && rec!.l >= 3) && <> <b style={{ color: '#9b2c2c' }}>{-(rec!.run ?? 0)} straight defeats</b> to this lot - somebody has to break the hoodoo.</>}
+                        {rec!.w === 0 && rec!.l >= 3 && <> <b style={{ color: 'var(--text-negative)' }}>Your bogey side</b> - you have never beaten them, and the players know it. End it today.</>}
+                        {rec!.l === 0 && rec!.w >= 5 && <> <b style={{ color: 'var(--text-positive)' }}>Happy hunting ground</b> - they have never beaten you. Keep it that way.</>}
+                        {(rec!.run ?? 0) >= 3 && !(rec!.l === 0 && rec!.w >= 5) && <> <b style={{ color: 'var(--text-positive)' }}>{rec!.run} straight wins</b> over them - the streak is yours to protect.</>}
+                        {(rec!.run ?? 0) <= -3 && !(rec!.w === 0 && rec!.l >= 3) && <> <b style={{ color: 'var(--text-negative)' }}>{-(rec!.run ?? 0)} straight defeats</b> to this lot - somebody has to break the hoodoo.</>}
                       </div>
                     )}
                     {meetings.map(m => (
@@ -944,7 +944,7 @@ function Preview({ fxId }: { fxId: number }) {
         {bar('Defence', myUnits.defence, oppUnits.defence)}
 
         {gamePlan.length > 0 && (
-          <div className="card" style={{ borderLeft: '4px solid var(--stripe)', marginTop: 8 }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)', marginTop: 8 }}>
             <div className="fact-label">Assistant's Game Plan</div>
             {gamePlan.map((p, i) => (
               <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
@@ -971,9 +971,9 @@ function Preview({ fxId }: { fxId: number }) {
               <SectionTitle sub="combinations click with games together">Partnerships</SectionTitle>
               <div className="card" style={{ paddingTop: 6, paddingBottom: 6 }}>
                 {rows.map(r => (
-                  <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--hairline)', fontSize: 12.5 }}>
-                    <span><span style={{ color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, fontSize: 11 }}>{r.key}</span> · {surname(r.a.name)} & {surname(r.b.name)}</span>
-                    <span style={{ color: r.g >= 25 ? '#2f7d4f' : r.g < 5 ? '#9b2c2c' : 'var(--ink-soft)', fontWeight: 600 }}>
+                  <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
+                    <span><span style={{ color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, fontSize: 11 }}>{r.key}</span> · {surname(r.a.name)} & {surname(r.b.name)}</span>
+                    <span style={{ color: r.g >= 25 ? 'var(--text-positive)' : r.g < 5 ? 'var(--text-negative)' : 'var(--text-secondary)', fontWeight: 600 }}>
                       {r.g} together · {r.tier}
                     </span>
                   </div>
@@ -986,7 +986,7 @@ function Preview({ fxId }: { fxId: number }) {
 
         {ptab === 'team' && <>
         {rotWindow && rotFlagged.length >= 2 && (
-          <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
             <div className="fact-label">Assistant's Rotation Plan</div>
             <div className="meta">
               {comp?.type !== 'league'
@@ -1134,11 +1134,11 @@ function NationPreview({ fxId }: { fxId: number }) {
     const pct = total ? (mine / total) * 100 : 50
     return (
       <div style={{ padding: '4px 14px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink-soft)' }}>
-          <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--accent-ink)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)' }}>
+          <span>{mine.toFixed(1)}</span><b style={{ color: 'var(--info)' }}>{label}</b><span>{theirs.toFixed(1)}</span>
         </div>
-        <div style={{ height: 8, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
-          <div style={{ width: `${pct}%`, background: 'var(--brand-700)' }} />
+        <div style={{ height: 8, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', display: 'flex' }}>
+          <div style={{ width: `${pct}%`, background: 'var(--primary)' }} />
           <div style={{ flex: 1, background: 'var(--gold)', opacity: .7 }} />
         </div>
       </div>
@@ -1160,7 +1160,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={40} />
-            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--ink-faint)', letterSpacing: 2 }}>VS</span>
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>VS</span>
             <CrestT g={game} teamId={fx.awayId} size={40} />
           </div>
           <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
@@ -1313,8 +1313,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   lastTeamC: [string, string]
 }) {
   const fx = ctx.fx
-  const homeC = game!.clubs[fx.homeId]?.colors ?? ['#c9a227', '#082b20']
-  const awayC = game!.clubs[fx.awayId]?.colors ?? ['#1a3a5c', '#f0eadc']
+  const homeC = game!.clubs[fx.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
+  const awayC = game!.clubs[fx.awayId]?.colors ?? ['var(--ramp-n4)', 'var(--prop-white)']
   const min = last?.min ?? 0
   const evType = last?.type
   const towardHome = last?.teamId === fx.homeId
@@ -1474,7 +1474,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         <div key={`tb${fxKey}`} className="try-burst" style={{ left: towardHome ? '90%' : '10%' }}>
           {Array.from({ length: 10 }).map((_, i) => (
             <i key={i} style={{
-              background: i % 2 ? lastTeamC[0] : (lastTeamC[1] ?? '#fff'),
+              background: i % 2 ? lastTeamC[0] : (lastTeamC[1] ?? 'var(--prop-white)'),
               ['--ang' as string]: `${i * 36}deg`,
             } as React.CSSProperties} />
           ))}
@@ -1508,9 +1508,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
 
 function contrastText(bg: string): string {
   const hex = bg.replace('#', '')
-  if (hex.length < 6) return '#fff'
+  if (hex.length < 6) return 'var(--prop-ink)'
   const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16)
-  return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? '#0d241c' : '#fff'
+  return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? 'var(--prop-ink-dark)' : 'var(--prop-ink)'
 }
 
 function Live() {
@@ -1619,8 +1619,8 @@ function Live() {
     TRY: '🏉', CON: '🎯', PEN: '🥅', DG: '🎯', YC: '🟨', RC: '🟥', INJ: '🩹', HT: '⏸', FT: '🏁', KO: '⏱', SUB: '·', BRK: '💧',
   }[e.type] ?? '·')
 
-  const homeC = game.clubs[fixture.homeId]?.colors ?? ['#c9a227', '#082b20']
-  const awayC = game.clubs[fixture.awayId]?.colors ?? ['#c9a227', '#082b20']
+  const homeC = game.clubs[fixture.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
+  const awayC = game.clubs[fixture.awayId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
   // Half-time and the 60' break are the two states where the match is stopped
   // waiting for the manager rather than paused. The control row treats them as
   // one thing: Play means "get back out there".
@@ -1661,7 +1661,7 @@ function Live() {
           const share = live ? win.reduce((s, x) => s + x, 0) / win.length : 0.5
           const ref = refFor(fixture.id)
           const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
-          const penC = (n: number) => n >= binAt ? '#e05a4d' : n === binAt - 1 ? '#e0b34d' : undefined
+          const penC = (n: number) => n >= binAt ? 'var(--danger)' : n === binAt - 1 ? 'var(--gold)' : undefined
           return (
             <div className="last10">
               <span className="l10-pens" title="Penalties conceded (referee bins repeat offenders)">
@@ -1948,7 +1948,7 @@ function DecisionPanel() {
   ]
 
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid #a12f2f' }}>
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--danger)' }}>
       <h3 style={{ fontSize: 15 }}>⏱ Penalty - your call from the touchline</h3>
       <div className="meta" style={{ marginBottom: 8 }}>
         {teamShort(game, mine.teamId)} {mine.score} – {opp.score} {teamShort(game, opp.teamId)} ·
@@ -1961,7 +1961,7 @@ function DecisionPanel() {
             <span style={{ fontSize: 20 }}>{o.icon}</span>
             <span>
               <b style={{ display: 'block', fontSize: 13.5 }}>{o.name}</b>
-              <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{o.desc}</span>
+              <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{o.desc}</span>
             </span>
           </button>
         ))}
@@ -2024,7 +2024,7 @@ function MatchVerdict() {
   const tags = fixes.map(f => f.tag).join(',')
   useEffect(() => { noteFixes(fxId, tags ? tags.split(',') as FixTag[] : []) }, [fxId, tags, noteFixes])
   return (
-    <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+    <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       {star && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -2037,7 +2037,7 @@ function MatchVerdict() {
             <b>{star.name}</b>{' '}
             <span className="muted">({clubCode(teamShort(game, starMine ? mine.teamId : opp.teamId))})</span>
           </div>
-          <span className="form-pill" style={{ background: '#2f7d4f', fontSize: 15 }}>
+          <span className="form-pill" style={{ background: 'var(--text-positive)', fontSize: 15 }}>
             {ctx.motmId != null ? (mine.ratings.get(ctx.motmId) ?? opp.ratings.get(ctx.motmId) ?? 7).toFixed(1) : ''}
           </span>
         </div>
@@ -2070,10 +2070,10 @@ function MatchVerdict() {
 
       <div className="fact-label" style={{ marginTop: 8 }}>The Unit Battles</div>
       {units.map(({ label, pct, verdict }) => {
-        const color = pct >= 52 ? '#2f7d4f' : pct <= 48 ? '#9b2c2c' : undefined
+        const color = pct >= 52 ? 'var(--text-positive)' : pct <= 48 ? 'var(--text-negative)' : undefined
         return (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--hairline)', fontSize: 12.5 }}>
-            <span style={{ color: 'var(--ink-soft)' }}>{label}</span>
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
+            <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
             <span><b style={{ color, fontFamily: 'var(--cond)', fontSize: 14 }}>{pct}%</b>
               <span className="muted"> won · {pct > 48 && pct < 52 ? verdict : pct >= 52 ? `we ${verdict}` : `they ${verdict === 'shaded' ? 'shaded it' : 'bullied us'}`}</span>
             </span>
@@ -2095,7 +2095,7 @@ function Highlights() {
     .sort((a, b) => a.min - b.min)
   if (!picks.length) return null
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--stripe)' }}>
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
       <h3 style={{ fontSize: 14 }}>🎬 The Highlights</h3>
       {picks.map((e, i) => (
         <div key={i} className="meta" style={{ padding: '3px 0' }}>
@@ -2111,9 +2111,9 @@ function StatsPanel() {
   const live = useStore(s => s.liveMatch)!
   const st = matchStats(live.ctx)
   const row = (label: string, v: [number, number], pct = false) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--hairline)', fontSize: 13 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
       <b style={{ width: 34, textAlign: 'right', fontFamily: 'var(--cond)', fontSize: 15 }}>{v[0]}{pct ? '%' : ''}</b>
-      <span style={{ flex: 1, textAlign: 'center', color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 12 }}>{label}</span>
+      <span style={{ flex: 1, textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: 1, fontSize: 12 }}>{label}</span>
       <b style={{ width: 34, fontFamily: 'var(--cond)', fontSize: 15 }}>{v[1]}{pct ? '%' : ''}</b>
     </div>
   )
@@ -2156,7 +2156,7 @@ function RatingsPanel() {
           <tr key={p!.id}>
             <td><PosBadge pos={p!.pos} /></td>
             <td className="name">{p!.name}{ctx.motmId === p!.id ? ' ⭐' : ''}</td>
-            <td className="num" style={{ fontWeight: 700, color: r >= 7.5 ? '#2f7d4f' : r < 5.5 ? '#9b2c2c' : undefined }}>
+            <td className="num" style={{ fontWeight: 700, color: r >= 7.5 ? 'var(--text-positive)' : r < 5.5 ? 'var(--text-negative)' : undefined }}>
               {Math.min(10, Math.max(1, r)).toFixed(1)}
             </td>
           </tr>
@@ -2232,10 +2232,10 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
   }
 
   return (
-    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--stripe)' }}>
+    <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
       <h3 style={{ fontSize: 15 }}>{title}</h3>
       {advice.length > 0 && (
-        <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold-bright) 14%, var(--paper))', borderRadius: 8 }}>
+        <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold) 14%, var(--surface-1))', borderRadius: 8 }}>
           <div className="fact-label">Assistant's Notes</div>
           {advice.slice(0, 3).map((a, i) => (
             <div key={i} className="meta" style={{ marginTop: 3 }}>{a}</div>
@@ -2271,11 +2271,11 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       <div className="fact-label" style={{ marginTop: 10 }}>In-Match Tactics <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>- tap a name to see what it does</span></div>
       {SLIDER_INFO.map(s => (
         <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
-          <span style={{ width: 78, fontSize: 11, color: 'var(--ink-faint)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
+          <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
             onClick={() => setExplain(`${s.label}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
             {s.label}
           </span>
-          <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--brand-700)' }}
+          <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--primary)' }}
             onChange={e => { club.tactic[s.key] = Number(e.target.value); liveTactics(); touch() }} />
         </div>
       ))}
@@ -2521,7 +2521,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
           }}>↩ Take back the last change</button>
         )}
         {mustDecide && !settled && (
-          <div className="meta sheet-log" style={{ color: 'var(--red)', fontWeight: 700 }}>
+          <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
             Play is stopped until somebody takes his shirt. Tap the man you want on, or tap the
             assistant's pick again to keep him.
           </div>
@@ -2566,10 +2566,10 @@ function EnergyBars({ mine }: { mine: SideCtx }) {
       {rows.map(({ p, e }) => (
         <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 11.5 }}>
           <span style={{ width: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
-          <div style={{ flex: 1, height: 7, background: 'var(--cream-3)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ flex: 1, height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden' }}>
             {/* the true width, not a banded one: a gauge that rounds to fifths
                 is a gauge that quietly lies, and the number sits beside it */}
-            <div style={{ width: `${e}%`, height: '100%', background: e < 25 ? '#9b2c2c' : e < 50 ? '#c9a227' : '#2f7d4f' }} />
+            <div style={{ width: `${e}%`, height: '100%', background: e < 25 ? 'var(--text-negative)' : e < 50 ? 'var(--gold)' : 'var(--text-positive)' }} />
           </div>
           <span style={{ width: 118, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
             <b>{Math.round(e)}%</b> <span style={{ opacity: .7, fontStyle: 'italic' }}>{condWord(e)}</span>

@@ -13,10 +13,10 @@ import { fmtMoney } from '../../game/model'
 const STEPS = ['Competition', 'Club', 'Manager', 'Summary']
 
 const finances = (budget: number) =>
-  budget >= 4_000_000 ? ['Rich', '#2f7d4f']
-    : budget >= 2_000_000 ? ['Secure', '#6f8f4f']
-    : budget >= 1_000_000 ? ['Okay', '#8a7a3a']
-    : ['Tight', '#a12f2f']
+  budget >= 4_000_000 ? ['Rich', 'var(--text-positive)']
+    : budget >= 2_000_000 ? ['Secure', 'var(--text-positive)']
+    : budget >= 1_000_000 ? ['Okay', 'var(--border-strong)']
+    : ['Tight', 'var(--danger)']
 
 // judged inside the club's own league (mediaVerdict) - absolute reputation
 // thresholds branded every National League One club "Relegation-zone rated",
@@ -161,7 +161,7 @@ export default function NewGame() {
                   <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>
                     {chClub && <Crest club={chClub} size={28} mr={10} />}
                     <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
-                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--title-ink, #082b20)' }}>{ch.title}</b>
+                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--text-primary)' }}>{ch.title}</b>
                       <span className="meta" style={{ fontSize: 11.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{ch.desc}</span>
                     </span>
                   </button>
@@ -198,13 +198,13 @@ export default function NewGame() {
             </div>
             {club && (
               <div className="card detail-panel">
-                <div className="club-banner" style={{ background: club.colors[0], color: '#fff' }}>
+                <div className="club-banner" style={{ background: club.colors[0], color: 'var(--prop-ink)' }}>
                   <Crest club={club} size={22} mr={8} />
                   <span style={{ flex: 1 }}>{club.name}</span>
                   <Jersey club={club} size={46} />
                 </div>
                 <div className="fact-grid">
-                  <div><label>Reputation</label><span style={{ color: '#a8841a' }}>{'★'.repeat(Math.max(1, Math.round(club.rep / 20)))}<span style={{ opacity: .3 }}>{'★'.repeat(5 - Math.max(1, Math.round(club.rep / 20)))}</span></span></div>
+                  <div><label>Reputation</label><span style={{ color: 'var(--gold)' }}>{'★'.repeat(Math.max(1, Math.round(club.rep / 20)))}<span style={{ opacity: .3 }}>{'★'.repeat(5 - Math.max(1, Math.round(club.rep / 20)))}</span></span></div>
                   <div><label>Finances</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{finances(club.budget)[0]}</span></div>
                   <div><label>Star Player</label><span>⭐ {starPlayer?.name}</span></div>
                   <div><label>Stadium</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
@@ -223,7 +223,7 @@ export default function NewGame() {
           <>
             <div className="wizard-hint">Your manager profile at {club.name}.</div>
             {challenge && (
-              <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+              <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
                 <h3 style={{ fontSize: 15 }}>Challenge accepted: {challenge.title}</h3>
                 <div className="meta">{challenge.desc}</div>
               </div>
@@ -263,7 +263,7 @@ export default function NewGame() {
           <>
             <div className="wizard-hint">Everything set. One tap from the dugout.</div>
             <div className="card detail-panel">
-              <div className="club-banner" style={{ background: club.colors[0], color: '#fff' }}>
+              <div className="club-banner" style={{ background: club.colors[0], color: 'var(--prop-ink)' }}>
                 <Crest club={club} size={22} mr={8} />{club.name}
               </div>
               <div className="fact-grid">

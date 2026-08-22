@@ -35,11 +35,11 @@ export default function Agency() {
               const move = prevIdx < 0 ? 'flat' : prevIdx > i ? 'up' : prevIdx < i ? 'down' : 'flat'
               const mine = game.natTeam === code
               return (
-                <tr key={code} style={mine ? { background: 'color-mix(in srgb, #c9a227 14%, transparent)' } : undefined}>
+                <tr key={code} style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                   <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
                   <td style={{ width: 18, fontSize: 11 }}>
-                    {move === 'up' ? <span style={{ color: '#2f7d4f' }}>▲</span>
-                      : move === 'down' ? <span style={{ color: '#9b2c2c' }}>▼</span>
+                    {move === 'up' ? <span style={{ color: 'var(--text-positive)' }}>▲</span>
+                      : move === 'down' ? <span style={{ color: 'var(--text-negative)' }}>▼</span>
                       : <span className="muted">·</span>}
                   </td>
                   <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
@@ -83,12 +83,12 @@ export default function Agency() {
             const mine = p.clubId === game.userClubId
             return (
               <tr key={p.id} onClick={() => go('player', p.id)}
-                style={mine ? { background: 'color-mix(in srgb, #c9a227 14%, transparent)' } : undefined}>
+                style={mine ? { background: 'color-mix(in srgb, var(--gold) 14%, transparent)' } : undefined}>
                 <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
                 <td style={{ width: 18, fontSize: 11 }}>
-                  {move === 'up' ? <span style={{ color: '#2f7d4f' }}>▲</span>
-                    : move === 'down' ? <span style={{ color: '#9b2c2c' }}>▼</span>
-                    : move === 'new' ? <span style={{ color: 'var(--accent-ink)' }}>★</span>
+                  {move === 'up' ? <span style={{ color: 'var(--text-positive)' }}>▲</span>
+                    : move === 'down' ? <span style={{ color: 'var(--text-negative)' }}>▼</span>
+                    : move === 'new' ? <span style={{ color: 'var(--info)' }}>★</span>
                     : <span className="muted">·</span>}
                 </td>
                 <td className="name" style={mine ? { fontWeight: 800 } : undefined}>

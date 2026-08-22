@@ -113,7 +113,7 @@ function Celebration() {
           left: `${(i * 137) % 100}%`,
           animationDelay: `${(i * 0.23) % 2.4}s`,
           animationDuration: `${2.6 + (i % 5) * 0.5}s`,
-          background: ['#e3b92e', '#2e57ab', '#c0392f', '#2f7d4f', '#9fc2e8'][i % 5],
+          background: ['var(--gold-fill)', 'var(--info)', 'var(--prop-red)', 'var(--text-positive)', 'var(--primary-hover)'][i % 5],
         }} />
       ))}
       <div className="celebrate-box">

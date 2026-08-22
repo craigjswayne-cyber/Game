@@ -51,7 +51,7 @@ export default function Training() {
         {players.filter(p => p.age <= 26).sort((a, b) => b.pa - b.ca - (a.pa - a.ca)).slice(0, 10).map(p => {
           const on = game.devFocus.includes(p.id)
           return (
-            <button key={p.id} className="chip" style={on ? { borderColor: '#c9a227', background: 'color-mix(in srgb, var(--gold) 14%, var(--paper))' } : undefined}
+            <button key={p.id} className="chip" style={on ? { borderColor: 'var(--gold)', background: 'color-mix(in srgb, var(--gold) 14%, var(--surface-1))' } : undefined}
               onClick={() => {
                 game.devFocus = on
                   ? game.devFocus.filter(id => id !== p.id)
@@ -79,7 +79,7 @@ export default function Training() {
             const cur = activePlan(game, p.id)
             const curName = cur ? KINDS.find(k => k.id === cur)?.name : null
             return (
-              <button key={p.id} className="chip" style={cur ? { borderColor: '#c9a227', background: 'color-mix(in srgb, var(--gold) 14%, var(--paper))' } : undefined}
+              <button key={p.id} className="chip" style={cur ? { borderColor: 'var(--gold)', background: 'color-mix(in srgb, var(--gold) 14%, var(--surface-1))' } : undefined}
                 onClick={() => {
                   const idx = cur == null ? 0 : KINDS.findIndex(k => k.id === cur) + 1
                   const rest = (game.plans ?? []).filter(x => x.id !== p.id)
@@ -114,7 +114,7 @@ export default function Training() {
           {players.map(p => (
             <tr key={p.id}>
               <td className="name">{p.name}</td>
-              <td className="num" style={{ color: p.cond < 70 ? '#9b2c2c' : undefined }}>{Math.round(p.cond)}%</td>
+              <td className="num" style={{ color: p.cond < 70 ? 'var(--text-negative)' : undefined }}>{Math.round(p.cond)}%</td>
               <td className="num">{Math.round(p.sharp)}%</td>
               <td className="muted">{p.injury ? `${p.injury.desc} (~${Math.max(0, p.injury.until - game.week)}w)` : p.natSquad ? 'Intl duty' : p.bans > 0 ? `Banned ${p.bans}` : 'Available'}</td>
             </tr>
@@ -161,7 +161,7 @@ function StaffPanel() {
         if (!pairs.length) return null
         const net = pairs.reduce((s, r) => s + (r.kind === 'click' ? 1 : -1), 0)
         return (
-          <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: `4px solid ${net > 0 ? '#2f7d4f' : net < 0 ? '#9b2c2c' : 'var(--stripe)'}` }}>
+          <div className="card" style={{ padding: '7px 10px', marginBottom: 6, borderLeft: `4px solid ${net > 0 ? 'var(--text-positive)' : net < 0 ? 'var(--text-negative)' : 'var(--gold)'}` }}>
             <div className="fact-label">The Staff Room</div>
             <div className="meta" style={{ fontSize: 11.5, marginBottom: 3 }}>
               {net > 0 ? 'A coaching team pulling the same way. Your youngsters feel it.'
@@ -170,7 +170,7 @@ function StaffPanel() {
             </div>
             {pairs.map((r, i) => (
               <div key={i} className="meta" style={{ fontSize: 11, padding: '1px 0' }}>
-                <b style={{ color: r.kind === 'click' ? '#2f7d4f' : '#9b2c2c' }}>{r.kind === 'click' ? '✓' : '✗'}</b>{' '}
+                <b style={{ color: r.kind === 'click' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{r.kind === 'click' ? '✓' : '✗'}</b>{' '}
                 {r.a} and {r.b} - {r.note}
               </div>
             ))}
@@ -200,9 +200,9 @@ function StaffPanel() {
                       <div className="meta" style={{ fontSize: 11 }}>
                         {p.age} · {p.trait} · {fmtWage(p.wage)}{(p.passed ?? 0) > 0 ? ` · ${p.passed} badge${p.passed === 1 ? '' : 's'} here` : ''}
                       </div>
-                      {p.course && <div className="meta" style={{ fontSize: 11, color: '#a8841a', fontWeight: 700 }}>🎓 On the {BADGE[p.course.toTier].toLowerCase()} course - result in {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
+                      {p.course && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>🎓 On the {BADGE[p.course.toTier].toLowerCase()} course - result in {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
                       {!p.course && (p.retakeAt ?? 0) > abs && (
-                        <div className="meta" style={{ fontSize: 11, color: 'var(--red)' }}>
+                        <div className="meta" style={{ fontSize: 11, color: 'var(--danger)' }}>
                           Failed his last assessment - can sit it again in {p.retakeAt! - abs} week{p.retakeAt! - abs === 1 ? '' : 's'}
                         </div>
                       )}
@@ -233,12 +233,12 @@ function StaffPanel() {
                   costume: the manager still cannot tell whether the game is
                   broken or he is skint. */}
               {courseNo && p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
-                <div className="meta" style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, marginTop: 3 }}>
+                <div className="meta" style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600, marginTop: 3 }}>
                   🎓 {courseNo.short}
                 </div>
               )}
               {said && (
-                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))' }}>
+                <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
                   {said}
                 </div>
               )}
@@ -247,7 +247,7 @@ function StaffPanel() {
                 // one predicate, shared with appointStaff (game/staff.ts)
                 const no = appointBlock(game, c)
                 return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--rule, rgba(128,128,128,.25))', paddingTop: 5, marginTop: 5 }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 5, marginTop: 5 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 700 }}>
                         {flagOf(c.nat)} {c.name} <span style={{ color: BADGE_COL[c.tier], fontSize: 10.5 }}>{BADGE[c.tier].toUpperCase()}</span>
@@ -258,12 +258,12 @@ function StaffPanel() {
                       {/* the money truth, on his row, before the tap - this is
                           the line the user went looking for and never found */}
                       {no && (
-                        <div className="meta" style={{ fontSize: 10.5, color: 'var(--red)', fontWeight: 700 }}>
+                        <div className="meta" style={{ fontSize: 10.5, color: 'var(--danger)', fontWeight: 700 }}>
                           {no.short}
                         </div>
                       )}
                     </div>
-                    <span className="meta" style={{ fontSize: 10.5, color: keen === 'keen' ? '#2f7d4f' : keen === 'persuadable' ? '#8a7a3a' : '#9b2c2c', fontWeight: 700, flexShrink: 0 }}>
+                    <span className="meta" style={{ fontSize: 10.5, color: keen === 'keen' ? 'var(--text-positive)' : keen === 'persuadable' ? 'var(--border-strong)' : 'var(--text-negative)', fontWeight: 700, flexShrink: 0 }}>
                       {keen === 'keen' ? 'Keen' : keen === 'persuadable' ? 'Listening' : 'Not interested'}
                     </span>
                     <button className="btn" style={{ padding: '4px 9px', fontSize: 11, flexShrink: 0 }}
@@ -307,9 +307,9 @@ function MentorPanel() {
         if (!s2 || !k2) return null
         // how well the two of them actually work together, and why
         const fit = mentorFit(s2, k2)
-        const col = fit >= 66 ? 'var(--win)' : fit >= 36 ? '#a8841a' : 'var(--red)'
+        const col = fit >= 66 ? 'var(--text-positive)' : fit >= 36 ? 'var(--gold)' : 'var(--danger)'
         return (
-          <div key={i} style={{ padding: '5px 0', borderTop: i ? '1px solid var(--hairline)' : undefined }}>
+          <div key={i} style={{ padding: '5px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
               <span className="meta" style={{ flex: 1, minWidth: 0 }}>
                 <b>{s2.name}</b> ({s2.pos}, {s2.pers}) → 🎓 <b>{k2.name}</b> ({k2.pos}, {k2.pers}, {k2.age})
@@ -318,7 +318,7 @@ function MentorPanel() {
               <button className="btn ghost" style={{ fontSize: 11, padding: '4px 10px' }}
                 onClick={() => { game.mentors = pairs.filter((_, j) => j !== i); touch() }}>End</button>
             </div>
-            <div className="meta" style={{ fontSize: 11, color: 'var(--ink-faint)' }}>
+            <div className="meta" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               {fitReason(s2, k2)}
               {kidCount(mp.senior) >= 2 ? ' Two kids on his wing: each learns at three-quarter speed, and he will say so.' : ''}
             </div>

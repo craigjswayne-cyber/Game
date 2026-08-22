@@ -40,7 +40,7 @@ export default function Academy() {
 
   return (
     <>
-      <div className="card" style={{ borderLeft: '4px solid var(--stripe)' }}>
+      <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <h3 style={{ margin: 0 }}>🎓 {club.short} Academy</h3>
         <div className="meta">
           {squad.length} of {ACADEMY_SIZE} registered ·{' '}
@@ -56,7 +56,7 @@ export default function Academy() {
       <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap' }}>
         {([['squad', 'Squad'], ['table', 'A League Table'], ['fixtures', 'Fixtures & Results']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip"
-            style={tab === k ? undefined : { background: 'var(--cream-3)', color: 'var(--ink-soft)' }}
+            style={tab === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
