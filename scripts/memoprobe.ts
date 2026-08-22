@@ -70,6 +70,13 @@ const claimed = (n: NewsItem): number | null => {
     const g = newGame('northampton', 'Memo', seed)
     const seenIds = new Set<number>()
     for (let w = 0; w < 40; w++) {
+    // KEEP HIM IN A JOB. This walk sleepwalks - it never picks a side - and
+    // since the AI coaching baseline landed (matchEngine.ts) that is no longer
+    // survivable: measured, this exact career is SACKED before season three, so
+    // the rollover it is waiting for never arrives and the probe fails on
+    // employment rather than on the thing it exists to check. Holding the board
+    // off is the same trick deepsave.ts uses for the same reason.
+    if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
       processWeekAndAdvance(g)
       const fresh = memosOf(g).filter(n => !seenIds.has(n.id))
       for (const n of fresh) seenIds.add(n.id)
@@ -116,7 +123,13 @@ const claimed = (n: NewsItem): number | null => {
   let counted = 0
   for (const seed of [3, 7, 11, 19, 23]) {
     const g = newGame('northampton', 'Memo', seed)
-    for (let w = 0; w < 60; w++) processWeekAndAdvance(g)
+    for (let w = 0; w < 60; w++) {
+      // same reason as the walk above: a sleepwalking manager is sacked before
+      // sixty weeks are out now that the rest of the world has coaches, and a
+      // sacked manager gets no more board memos to count
+      if (!g.unemployed) g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
+      processWeekAndAdvance(g)
+    }
     const lines = memosOf(g).map(m => m.body.split('\n').filter(Boolean).slice(-1)[0])
     counted += lines.length
     for (let i = 1; i < lines.length; i++) {

@@ -22,6 +22,20 @@ import { OBJECTIVE_DEFS } from '../src/game/objectives'
 import { weekDate } from '../src/game/model'
 import type { GameState } from '../src/game/model'
 
+/** Hold the board off.
+ *
+ *  Every walk in this file sleepwalks - it presses Continue and never picks a
+ *  side - and since the AI coaching baseline landed (matchEngine.ts) that is no
+ *  longer survivable: the manager is sacked partway through, and an unemployed
+ *  manager gets no objectives, no board memos and no sponsorship office. Each
+ *  walk would then fail on employment instead of on the thing it exists to
+ *  check. Same trick deepsave.ts uses, for the same reason. */
+const keepJob = (g: GameState) => {
+  if (!g.unemployed && g.clubs[g.userClubId]) {
+    g.clubs[g.userClubId].boardConfidence = Math.max(g.clubs[g.userClubId].boardConfidence, 55)
+  }
+}
+
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
@@ -61,7 +75,7 @@ console.log('\nobjectives, ageing, and two full seasons watched:\n')
   let guard = 0
   // season one
   while (g.season === start && guard++ < 60) {
-    processWeekAndAdvance(g)
+    keepJob(g); processWeekAndAdvance(g)
     for (const n of g.news) {
       if (n.subject.startsWith('✅ Board objective met')) {
         achieved.set(n.subject + '|' + n.id, 1)
@@ -105,7 +119,7 @@ console.log('\nobjectives, ageing, and two full seasons watched:\n')
   guard = 0
   let decision = g.press.find(p => p.options.some(o => o.deal))
   while (!decision && guard++ < 130) {
-    processWeekAndAdvance(g)
+    keepJob(g); processWeekAndAdvance(g)
     decision = g.press.find(p => p.options.some(o => o.deal))
   }
   ok(!!decision, `the office asks about a lapsed deal (${decision ? `season ${g.season}, "${decision.question.slice(0, 50)}..."` : 'never asked in 130 weeks'})`)
@@ -123,8 +137,8 @@ console.log('\nobjectives, ageing, and two full seasons watched:\n')
 console.log('\nthe expectations decision and the annual stamp:\n')
 {
   const g: GameState = newGame('northampton', 'Probe', 606)
-  processWeekAndAdvance(g)
-  processWeekAndAdvance(g) // the launch decision is asked as week 2 settles
+  keepJob(g); processWeekAndAdvance(g)
+  keepJob(g); processWeekAndAdvance(g) // the launch decision is asked as week 2 settles
   const launch = g.press.find(p => p.options.some(o => o.stance))
   ok(!!launch, 'the office asks how to pitch the season')
   if (launch) {
@@ -164,7 +178,7 @@ console.log('\nthe expectations decision and the annual stamp:\n')
   // ...and the annual stamp waits at the end of the season
   const start = g.season
   let guard = 0
-  while (g.season === start && guard++ < 60) processWeekAndAdvance(g)
+  while (g.season === start && guard++ < 60) { keepJob(g); processWeekAndAdvance(g) }
   ok(g.annual?.season === start, `the rollover stamped the Annual for season ${start} (got ${JSON.stringify(g.annual)})`)
   ok(g.stance === undefined, 'and the stance died with the old season')
 }
