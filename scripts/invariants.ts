@@ -68,7 +68,11 @@ function audit(g: GameState, tag: string) {
   }
   for (const c of Object.values(g.comps)) {
     for (const r of c.table) {
-      if (r.pts < 0 || Number.isNaN(r.pts)) bad(`${tag} ${c.id} table pts ${r.pts} for ${r.teamId}`)
+      // a club in administration is docked ten (insolvency.ts), so negative
+      // points are legal exactly as far as a deduction the save can name
+      const docked = g.clubs[r.teamId]?.admin?.season === g.season
+        ? (g.clubs[r.teamId]?.admin?.penalty ?? 0) : 0
+      if (r.pts < -docked || Number.isNaN(r.pts)) bad(`${tag} ${c.id} table pts ${r.pts} for ${r.teamId}`)
       if (r.p > 60) bad(`${tag} ${c.id} ${r.teamId} played ${r.p} games`)
     }
   }
