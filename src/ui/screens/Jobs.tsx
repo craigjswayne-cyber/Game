@@ -10,7 +10,11 @@ export default function Jobs() {
   const applyJob = useStore(s => s.applyJob)
   const passJob = useStore(s => s.passJob)
   const resign = useStore(s => s.resign)
-  const [msg, setMsg] = useState<string | null>(null)
+  // KEYED TO THE ROW THAT ASKED. This used to be a bare string rendered in one
+  // card above the vacancy list, so applying for the fifth job printed the
+  // club's answer several hundred pixels above the thumb that tapped Apply -
+  // the off-screen reply bug hireprobe.mjs was built for, in a second place.
+  const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [confirmResign, setConfirmResign] = useState(false)
 
   const [showPassed, setShowPassed] = useState(false)
@@ -43,7 +47,7 @@ export default function Jobs() {
             </div>
           </div>
           <button className="btn gold" disabled={!!v.applied}
-            onClick={() => setMsg(applyJob(club.id))}>
+            onClick={() => setMsg({ key: club.id, text: applyJob(club.id) })}>
             {v.applied ? 'Applied' : 'Apply'}
           </button>
         </div>
@@ -63,12 +67,20 @@ export default function Jobs() {
               // why the probe now asserts the sentence.
               const wasPassed = !!v.passed
               passJob(club.id, !wasPassed)
-              setMsg(wasPassed
-                ? `Back on the list: you would consider ${club.name} after all.`
-                : `Turned down: you have let it be known you are not a candidate for ${club.name}.`)
+              setMsg({
+                key: club.id,
+                text: wasPassed
+                  ? `Back on the list: you would consider ${club.name} after all.`
+                  : `Turned down: you have let it be known you are not a candidate for ${club.name}.`,
+              })
             }}>
             {v.passed ? '↩ Put it back on the list' : '✕ Not interested'}
           </button>
+        )}
+        {msg?.key === club.id && (
+          <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+            {msg.text}
+          </div>
         )}
         <div className="meta" style={{ marginTop: 5 }}>
           Interview prospects: <b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
@@ -105,8 +117,6 @@ export default function Jobs() {
           </div>
         )}
       </div>
-
-      {msg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{msg}</div>}
 
       <SectionTitle sub={open.length === 1 ? 'one job open' : `${open.length} jobs open`}>Vacancies</SectionTitle>
       {open.length === 0 && (
