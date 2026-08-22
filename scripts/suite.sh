@@ -23,7 +23,7 @@ FAILS=0
 # no pass/fail to give: these print numbers or write screenshots
 REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck"
 # minutes each, not seconds: only on request
-SLOW="soakhealth soakui stresstest deepsave e2edeep"
+SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim"
 
 run() {
   local name="$1"; shift
