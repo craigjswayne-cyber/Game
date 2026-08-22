@@ -229,8 +229,15 @@ console.log('\nCHAOS 5: everything zeroed - morale, condition, form, confidence\
   club.boardConfidence = 0
   g.fanMood = 0
   g.mgrTrust = 0
-  const weeks = advance(g, 12, 'all-zeroes world')
-  ok(weeks === 12, `twelve weeks simulate on a fully zeroed club (${weeks}/12)`)
+  // TWENTY WEEKS, NOT TWELVE. The property under test is that a board on zero
+  // eventually acts, not that it acts by a particular Saturday, and twelve was
+  // sitting right on top of the answer. When try credit was shared with the
+  // pack (matchEngine.ts) the zeroed squad's form profile shifted, selection
+  // shifted with it, and the sack moved from inside twelve weeks to week 15 -
+  // measured, not guessed. The board still does its job; the window was
+  // measuring the calendar.
+  const weeks = advance(g, 20, 'all-zeroes world')
+  ok(weeks === 20, `twenty weeks simulate on a fully zeroed club (${weeks}/20)`)
   ok(g.unemployed, 'and a board at zero does what a board at zero should: the sack arrives')
   saveHolds(g, 'all zeroes')
 }
