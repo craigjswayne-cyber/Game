@@ -1,5 +1,37 @@
 // Which shirts are worn by made-up names, and who is already in them.
 //
+// ---- WHAT A GAP IS, AND WHY MOST OF THEM SHOULD STAY OPEN ----
+//
+// A gap is NOT an empty shirt. Every club is built to 65 men; a gap means one
+// of a position's first-team shirts is worn by a GENERATED name rather than a
+// checked one. Measured at the clubs with gaps, that cover is the right
+// standard for its league - La Rochelle's second tighthead behind Atonio (82)
+// is a generated man at 77, which is a Top 14 prop, not filler.
+//
+// Most of the remaining gaps are also CORRECT. This world is 2026-27, and the
+// 2026-27 window moved real men out of real clubs (Jarrod Evans to Cardiff,
+// Grondona to Pau, Jamie Benson to Ulster, all pinned in verified.ts). The
+// club they left is genuinely a checked man short, and the men who replace
+// them have not been announced anywhere. That is an honest unknown about a
+// season that has not been played, not a defect.
+//
+// So there are exactly two wrong ways to drive this number down, and both have
+// been tried and rejected:
+//
+//   1. SEARCHING FOR THE MISSING MAN. A search engine answers with 2025-26
+//      squads, because that is what is written about. Every name it returns
+//      for these clubs is a man the window has already moved - putting Jarrod
+//      Evans back in a Harlequins shirt would UNDO a checked transfer.
+//   2. INVENTING A NAME AND FILING IT AS REAL. The generator already fills the
+//      shirt, with the right nationality and the right standard. Hand-writing
+//      an invented name into additions.ts would change nothing a player can
+//      see and would destroy the one thing that file is for: a list of men
+//      somebody actually checked.
+//
+// The number is therefore a coverage measure, not a bug count. It should fall
+// when a real 2026-27 signing is announced and gets checked in, and at no
+// other time.
+//
 // The data audit says "clermont has 0 real FB, wants 1". That is the what; this
 // is the working list. For every gap it prints the real men the club already
 // has in that shirt, so a relocation can be chosen without guessing, and it
