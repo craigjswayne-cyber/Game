@@ -534,6 +534,20 @@ Traps hit and paid for:
   - Old saves keep their rm-night key; only fresh installs flip to night
     default (localStorage absent => night).
 
+## PHASE: Rugby Manager, v1.0.1 (the rename and the release)
+
+The game is called PHASE: Rugby Manager now, released as v1.0.1. Renamed:
+the title-screen wordmark (PHASE / RUGBY MANAGER, keeping the word RUGBY on
+screen because half the browser probes wait on 'text=RUGBY'), index.html
+title, the PWA manifest (short_name PHASE - what a home screen shows), save
+import/export strings and the export filename prefix, package.json
+(1.0.1), and the service worker cache name (rugby-manager-v101) so
+installed PWAs fetch the new build. The title screen shows v1.0.1 - bump it
+WITH package.json. DO NOT touch the localStorage save key (save.ts says
+why: renaming it orphans every existing save). scripts/brandprobe.mjs pins
+tab title, wordmark, manifest and version to the rendered page. The release
+is tagged v1.0.1 on main.
+
 ## Open work, roughly in order
 
 1. **Pass 9 of the commercial release audit** - untouched.

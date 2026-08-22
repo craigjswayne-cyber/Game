@@ -1,7 +1,7 @@
 {
-  "name": "fab-rugby",
+  "name": "phase-rugby-manager",
   "private": true,
-  "version": "0.0.3",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -611,8 +611,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   color: var(--text-primary); text-align: center; padding: 24px;
 }
 .title-screen .rules { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
-/* FAB takes the pale tint, RUGBY the white: a two-tone wordmark rather than one
-   flat block of text. */
+/* PHASE carries the action green, RUGBY MANAGER the chalk: a two-tone wordmark
+   rather than one flat block of text. */
 .title-screen h1 b { color: var(--primary); font-weight: 900; }
 .title-screen h1 {
   font-family: var(--serif); font-size: 46px; font-weight: 900;

@@ -5,7 +5,7 @@ import { kitPattern, type KitPattern } from '../game/kits'
 
 
 /**
- * ---- THE FAB RUGBY BALL ----
+ * ---- THE PHASE RUGBY BALL ----
  *
  * The mark is the ball, tilted, white leather with a heavy keyline, sitting inside
  * a pale ring on the brand blue. It replaced a shield with goalposts and initials
