@@ -1,0 +1,22 @@
+{
+  "_comment": [
+    "The wrapper's configuration. Two things here are deliberate and both are",
+    "review-relevant: webDir points at the BUILT ASSETS so the app ships them",
+    "in its bundle rather than loading a URL (see README.md, guideline 4.2),",
+    "and there is no 'server' block at all - adding one turns this back into a",
+    "browser pointed at a website.",
+    "",
+    "backgroundColor is the night ground from src/ui/tokens.css. It has to match",
+    "or a white frame flashes between the launch screen and the first paint."
+  ],
+  "appId": "com.phaserugbymanager.app",
+  "appName": "PHASE: Rugby Manager",
+  "webDir": "../../dist",
+  "backgroundColor": "#1a201e",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#1a201e",
+    "scrollEnabled": true,
+    "limitsNavigationsToAppBoundDomains": true
+  }
+}
