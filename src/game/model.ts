@@ -138,10 +138,10 @@ export const EURO_FINAL_VENUES: FinalVenue[] = [
   { name: 'Greater Twickenham', city: 'London', capacity: 82000 },
   { name: 'Grand Stade de Paris', city: 'Paris', capacity: 80698 },
   { name: 'Cardiff National Stadium', city: 'Cardiff', capacity: 74500 },
-  { name: 'Stade Velodrome', city: 'Marseille', capacity: 67394 },
-  { name: 'Murrayfield', city: 'Edinburgh', capacity: 67144 },
+  { name: 'Marseille Stadium', city: 'Marseille', capacity: 67394 },
+  { name: 'Edinburgh Stadium', city: 'Edinburgh', capacity: 67144 },
   { name: 'Crocker Park', city: 'Dublin', capacity: 82300 },
-  { name: 'Wembley Stadium', city: 'London', capacity: 90000 },
+  { name: 'English Football Stadium', city: 'London', capacity: 90000 },
 ]
 
 /** Where a competition's final is played, or null for finals that stay at the

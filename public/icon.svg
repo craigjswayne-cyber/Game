@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- PHASE: Rugby Manager: the ball, a pale ring, brand blue. Same geometry as the BrandMark
-       component in src/ui/components.tsx - if one changes, change both. -->
-  <rect width="64" height="64" rx="14" fill="#2e57ab"/>
-  <circle cx="32" cy="32" r="26" fill="none" stroke="#dbe6f6" stroke-width="3.4"/>
+  <!-- PHASE: Rugby Manager: the ball, a pale ring, brand green. The colours are the
+       same ramp the in-app BrandMark reads from tokens.css (--ramp-g7 / g9 /
+       --prop-white), literal here because a favicon cannot see a CSS variable.
+       Same geometry as the BrandMark component in src/ui/components.tsx - if one
+       changes, change both, and regenerate the PNGs with scripts/icons.mjs. -->
+  <rect width="64" height="64" rx="14" fill="#0f7a43"/>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="#dbf6e6" stroke-width="3.4"/>
   <g transform="rotate(-32 32 32)">
-    <ellipse cx="32" cy="32" rx="16.2" ry="22.6" fill="#1b3468"/>
+    <ellipse cx="32" cy="32" rx="16.2" ry="22.6" fill="#17332a"/>
     <ellipse cx="32" cy="32" rx="13.6" ry="20.0" fill="#ffffff"/>
-    <path d="M31.4 12.4 C24.4 18.6 22.0 25.8 22.6 33.6 C24.4 26.6 26.4 20.4 33.2 13.8 Z" fill="#1b3468"/>
-    <path d="M32.6 51.6 C39.6 45.4 42.0 38.2 41.4 30.4 C39.6 37.4 37.6 43.6 30.8 50.2 Z" fill="#1b3468"/>
+    <path d="M31.4 12.4 C24.4 18.6 22.0 25.8 22.6 33.6 C24.4 26.6 26.4 20.4 33.2 13.8 Z" fill="#17332a"/>
+    <path d="M32.6 51.6 C39.6 45.4 42.0 38.2 41.4 30.4 C39.6 37.4 37.6 43.6 30.8 50.2 Z" fill="#17332a"/>
   </g>
 </svg>
