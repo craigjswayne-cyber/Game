@@ -80,9 +80,22 @@ try {
     // anything - the Annual never appeared and the wait timed out on a page that
     // was fine. The desk is cleared here too, which is what the comment above
     // already claimed this loop did.
-    for (let guard = 0; guard < 2500; guard++) {
+    // BOUNDED BY PROGRESS, NOT BY A NUMBER. This loop has been given a bigger
+    // fixed budget twice (900, then 2500) and each time a later change made a
+    // season cost more taps and it silently ran out again - reporting "the
+    // rollover stamped the Annual" as a failure on a page that was perfectly
+    // healthy. It was flaky at 2500: the same build passed one run and failed
+    // the next. So it now watches the CLOCK instead: keep going while the week
+    // is still moving, and stop when it stalls, which is the only thing that
+    // means the loop is genuinely stuck.
+    let lastWeek = -1
+    let sinceMoved = 0
+    for (let guard = 0; guard < 20000; guard++) {
       const st = window.rugbyStore.getState()
       if (!st.game || st.game.annual) break
+      const clock = (st.game.season ?? 0) * 100 + (st.game.week ?? 0)
+      if (clock !== lastWeek) { lastWeek = clock; sinceMoved = 0 }
+      else if (++sinceMoved > 400) break
       for (const o of st.game.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
       for (const n of st.game.news) { n.read = true }
       for (const q of st.game.press) q.answered = true
