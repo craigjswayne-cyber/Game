@@ -138,7 +138,13 @@ for (const [group, marks] of Object.entries(MARKS)) {
     // case-insensitive ON PURPOSE. The two that shipped were SIX NATIONS and
     // RUGBY WORLD CUP - the sweep that removed them was case-sensitive, and a
     // tripwire that repeats the original mistake is worth nothing.
-    const re = new RegExp(mark.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+    // A WORD BOUNDARY AT THE FRONT, or an identifier can trip this.
+    // "world.infRankLine" - a translation key for the estate ranking line -
+    // lowercases to "infrankline", which contains "franklin", and the probe
+    // reported a venue mark that is nowhere in the build. Case-insensitive is
+    // deliberate (SIX NATIONS shipped once, in caps); matching the middle of a
+    // longer word is not, and a mark on screen is always at a word boundary.
+    const re = new RegExp(`\\b${mark.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i')
     for (const { f, text } of bundle) {
       if (!re.test(text)) continue
       const at = text.search(re)
