@@ -87,7 +87,7 @@ export const URC_B: RawClub[] = [
   {
     id: 'sharks', name: 'Durban RFC', short: 'Durban',
     city: 'Durban', country: 'RSA',
-    stadium: 'Kings Park', capacity: 52000,
+    stadium: 'Kingsway Park', capacity: 52000,
     colors: ['#000000', '#ffffff'],
     rep: 84, budget: 2800000,
     players: [
@@ -274,7 +274,7 @@ export const URC_B: RawClub[] = [
   {
     id: 'dragons', name: 'Newport RFC', short: 'Newport',
     city: 'Newport', country: 'WAL',
-    stadium: 'Rodney Parade', capacity: 8700,
+    stadium: 'Rodney Park', capacity: 8700,
     colors: ['#e21836', '#000000'],
     rep: 64, budget: 500000,
     players: [

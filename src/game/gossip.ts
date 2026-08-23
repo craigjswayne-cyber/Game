@@ -756,19 +756,19 @@ function clubhouseTales(state: GameState, rng: Rng) {
   wire(state, t[0], t[1], t[2])
 }
 
-/** Once or twice a year World Rugby floats something outrageous, purely to
+/** Once or twice a year the world governing body floats something outrageous, purely to
  *  see the fans combust. Nothing ever comes of it. Nothing ever will. */
 function lawWatch(state: GameState, rng: Rng) {
   if (rng() > 0.033) return
   const proposals: [string, string][] = [
     ['LAW WATCH: 25-point "super try" floated for length-of-the-field scores',
-      `A working group has proposed quintuple points for tries begun behind a team's own 22. Coaches call it "bingo rugby". Fans have already built entire imaginary seasons around it. World Rugby stresses it is "one idea among many", which is committee language for never.`],
+      `A working group has proposed quintuple points for tries begun behind a team's own 22. Coaches call it "bingo rugby". Fans have already built entire imaginary seasons around it. The world governing body stresses it is "one idea among many", which is committee language for never.`],
     ['LAW WATCH: proposal to reduce teams to 13 players "under review"',
       `A discussion paper suggests trimming the XV to thirteen to "open space and cut collisions". The northern unions are apoplectic, the southern unions intrigued, and one existing sport with exactly that player count is watching with its arms folded. Expect a quiet burial by autumn.`],
     ['LAW WATCH: shot clock for scrums - 30 seconds or a free-kick',
       `The proposal: packs get half a minute from mark to engagement or concede the put-in. Front rows everywhere describe the idea as "a war crime". Referees privately love it. The trial is earmarked for a development competition nobody can name, which tells you everything.`],
     ['LAW WATCH: kicks at goal worth less in the final quarter, says think-tank',
-      `Penalties would drop to two points after the hour "to encourage ambition". Kickers are furious, flankers delighted, and the fan forums have run the numbers on every classic final and declared history itself invalid. World Rugby thanks the think-tank for its input.`],
+      `Penalties would drop to two points after the hour "to encourage ambition". Kickers are furious, flankers delighted, and the fan forums have run the numbers on every classic final and declared history itself invalid. The world governing body thanks the think-tank for its input.`],
     ['LAW WATCH: unlimited substitutions trial mooted for pre-season',
       `Rolling subs, all match, every match. Conditioning coaches are drooling; purists are drafting strongly worded letters with footnotes. The proposal is "at concept stage", a phrase that has preceded precisely nothing becoming law in the sport's history.`],
     ['LAW WATCH: golden point extra time for all league matches "on the table"',

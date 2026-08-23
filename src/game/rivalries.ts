@@ -5,7 +5,7 @@ const PAIRS: [string, string, string][] = [
   // Premier Division
   ['leicester', 'northampton', 'The East Midlands Derby'],
   ['bath', 'gloucester', 'The West Country Derby'],
-  ['bath', 'bristol', 'The Heineken West Derby'],
+  ['bath', 'bristol', 'The West Country Clash'],
   ['saracens', 'harlequins', 'The London Derby'],
   ['sale', 'newcastle', 'The Northern Derby'],
   // Elite 14
@@ -18,11 +18,11 @@ const PAIRS: [string, string, string][] = [
   // UPC
   ['leinster', 'munster', 'The Irish Derby'],
   ['ulster', 'connacht', 'The North-West Derby'],
-  ['glasgow', 'edinburgh', 'The 1872 Cup'],
+  ['glasgow', 'edinburgh', 'The Scottish Derby'],
   ['cardiff', 'scarlets', 'The Welsh Derby'],
   ['ospreys', 'scarlets', 'The West Wales Derby'],
   ['bulls', 'stormers', 'The North-South Derby'],
-  ['sharks', 'lions', 'The Currie Cup Rivalry'],
+  ['sharks', 'lions', 'The Coastal Derby'],
   ['benetton', 'zebre', 'The Italian Derby'],
   // Championship
   ['richmond', 'lscottish', 'The Oldest Fixture - the Richmond Derby'],
