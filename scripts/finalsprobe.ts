@@ -70,9 +70,9 @@ console.log(`captured finals: ${captured.map(c => `s${c.season} ${c.fx.compId}@$
 for (const s of [0, 1]) {
   const prem = finalOf(s, 'prem')
   ok(!!prem, `season ${s}: the Premiership final happened`)
-  ok(prem?.venue?.name === 'Twickenham', `season ${s}: the Premiership final is at Twickenham (${prem?.venue?.name ?? 'nowhere'})`)
+  ok(prem?.venue?.name === EURO_FINAL_VENUES[0].name, `season ${s}: the Premiership final is at ${EURO_FINAL_VENUES[0].name} (${prem?.venue?.name ?? 'nowhere'})`)
   const t14 = finalOf(s, 'top14')
-  if (t14) ok(t14.venue?.name === 'Stade de France', `season ${s}: the Top 14 final is at the Stade de France (${t14.venue?.name ?? 'nowhere'})`)
+  if (t14) ok(t14.venue?.name === EURO_FINAL_VENUES[1].name, `season ${s}: the Top 14 final is at ${EURO_FINAL_VENUES[1].name} (${t14.venue?.name ?? 'nowhere'})`)
   const cc = finalOf(s, 'cc')
   const chc = finalOf(s, 'chc')
   ok(!!cc && !!chc, `season ${s}: both European finals happened`)

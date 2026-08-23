@@ -131,7 +131,11 @@ if (recRight + recWrong !== n) bad(`record counted ${recRight + recWrong} of ${n
 // aggregate that a single blowout can flip.
 {
   const seasons: number[] = []
-  for (let seed = 1; seed <= 12; seed++) {
+  // Twenty-four seasons, not twelve: the verified August 2026 squads
+  // reshuffled club strengths and the season-count comparison sat exactly on
+  // its threshold (6 of 12) - a coin-flip verdict at that sample size. The
+  // assertions are unchanged; the sample is just big enough to mean something.
+  for (let seed = 1; seed <= 24; seed++) {
     const margin: Record<string, number> = {}
     for (const follow of ['follow', 'ignore']) {
       const w = newGame('leicester', 'Edge', seed * 31)
