@@ -145,7 +145,13 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
   const { mulberry32 } = await import('../src/game/rng')
   type Row = { raw: number; homeWin: number; draw: number }
   const rows: Row[] = []
-  for (const seed of [12345, 777, 4242]) {
+  // Nine worlds, not three: the quartile gap is a one-to-two point effect
+  // measured against about +/-1.7 points of sampling noise per quartile at
+  // three worlds, so any data change that reshuffles club strengths could
+  // flip the comparison by luck alone (the August 2026 squad verification
+  // did exactly that). Tripling the sample halves the noise; the assertion
+  // itself is unchanged.
+  for (const seed of [12345, 777, 4242, 31337, 2468, 97531, 8080, 555, 424242]) {
     const g = newGame('northampton', 'Venue Probe', seed)
     const league = g.fixtures.filter(f =>
       g.comps[f.compId]?.type === 'league' && g.clubs[f.homeId] && g.clubs[f.awayId] &&
@@ -170,7 +176,7 @@ for (const [k, v] of Object.entries(byComp).sort((a, b) => b[1].sum / b[1].n - a
   const easiest = band(0, q)
   const hardest = band(rows.length - q, rows.length)
   const all = band(0, rows.length)
-  console.log(`\n${rows.length} league fixtures simmed over 3 worlds:`)
+  console.log(`\n${rows.length} league fixtures simmed over 9 worlds:`)
   console.log(`  easiest quarter (mean raw ${easiest.mr.toFixed(3)}): home win ${easiest.w.toFixed(1)}%`)
   console.log(`  hardest quarter (mean raw ${hardest.mr.toFixed(3)}): home win ${hardest.w.toFixed(1)}%`)
   console.log(`  all fixtures: home win ${all.w.toFixed(1)}%, draws ${all.d.toFixed(1)}%`)
