@@ -656,6 +656,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .title-screen .tagline { font-family: var(--serif); font-weight: 700; color: var(--text-secondary); margin-top: 8px; font-size: 15px; }
 .title-screen .menu-btns { margin-top: 38px; display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
 
+/* ---- the two how-it-reads controls, under the buttons ----
+   Text size and language sit together because they answer the same question,
+   and both are small on purpose: a 44px pill three times over would compete
+   with New Career for the eye. The visual box stays small and an invisible
+   ::after carries the tap target out to 44px, which is the same trick .btn.tiny
+   uses for the inbox arrows.
+
+   The language row wraps rather than shrinks. "Français" is eight characters
+   where "EN" is two, and the languages still to come are longer again; a row
+   that squeezed them would end up with a two-line button in it. */
+.title-screen .lang-row { flex-wrap: wrap; row-gap: 8px; }
+.title-screen .lang-btn,
+.title-screen .text-scale-btn { position: relative; }
+.title-screen .lang-btn::after,
+.title-screen .text-scale-btn::after { content: ''; position: absolute; inset: -10px -2px; }
+
 /* ================= Misc ================= */
 .form-pill {
   display: inline-block; min-width: 30px; text-align: center;

@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
 import { seasonLabel } from '../game/model'
+import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep } from '../game/days'
 import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
@@ -42,17 +43,19 @@ import Infrastructure from './screens/Infrastructure'
 import Academy from './screens/Academy'
 import Tutorial from './Tutorial'
 
-const TITLES: Record<string, string> = {
-  home: 'Home', inbox: 'News', offers: 'Bids For Your Players', results: 'Full-Time Round-Up', squad: 'Team', agency: 'Scouting Agency', tactics: 'Tactics', fixtures: 'Fixtures',
-  tables: 'Competitions', transfers: 'Transfer Centre', training: 'Training & Coaching',
-  finances: 'Finances', club: 'Club', press: 'Press Room', player: 'Player Profile',
-  nations: 'International Rugby', country: 'Club & Country', history: 'Roll of Honour', legacy: 'Manager Legacy',
-  jobs: 'Job Centre', medical: 'Medical Centre',
-  report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status', day: 'The Week', draw: 'The Draw', annual: 'The Annual',
-  dreamteam: 'Team of the Week', wire: 'News', infra: 'Club Infrastructure',
-  handbook: "The Manager's Handbook",
-  bug: 'Report a Bug',
-}
+/* The masthead title for every screen that is not Home (Home shows the club).
+ *
+ * These are i18n keys rather than the strings themselves, because the map is
+ * built once at module load and the language can change after that: a table of
+ * English text would go stale the moment somebody used the picker on the title
+ * screen. The keys and the English wording both live in src/locales/en.json. */
+const TITLES: readonly string[] = [
+  'home', 'inbox', 'offers', 'results', 'squad', 'agency', 'tactics', 'fixtures',
+  'tables', 'transfers', 'training', 'finances', 'club', 'press', 'player',
+  'nations', 'country', 'history', 'legacy', 'jobs', 'medical',
+  'report', 'profile', 'saves', 'day', 'draw', 'annual',
+  'dreamteam', 'wire', 'infra', 'handbook', 'bug',
+]
 
 const IcoMoon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -205,6 +208,10 @@ export default function App() {
   const nav = useStore(s => s.nav)
   const game = useStore(s => s.game)
   const night = useStore(s => s.night)
+  // subscribed, not read: t() is a plain function call, so without this the
+  // tree would keep whatever language it was first painted in until something
+  // else happened to re-render it
+  useStore(s => s.lang)
   useStore(s => s.tick)
   const { back, go, home, continueWeek, toggleNight, openInbox } = useStore.getState()
   const [menu, setMenu] = useState<null | 'hub' | 'world' | 'manager'>(null)
@@ -280,6 +287,12 @@ export default function App() {
     '--club2': club.colors[1],
   } as CSSProperties
 
+  // Home wears the club's own name, which is never translated; every other
+  // screen wears its title from the dictionary.
+  const mastheadTitle = cur.screen === 'home'
+    ? (game.unemployed ? t('titles.unemployed') : club.name)
+    : TITLES.includes(cur.screen) ? t(`titles.${cur.screen}`) : ''
+
   const screen = () => {
     switch (cur.screen) {
       case 'home': return <Home />
@@ -339,7 +352,7 @@ export default function App() {
       // just "Hub" (user: "scrap the pre match"). It was never only pre-match -
       // finances, the academy and the infrastructure live here too - and on a
       // 412px screen the longer name wrapped the menu heading onto two lines.
-      title: `${club.short} · Hub`,
+      title: t('groups.hub', { club: club.short }),
       // The user's own order, given as a list (13D). It groups the three squad
       // pages together at the top - the team, the report on it, the academy
       // feeding it - then the weekly work, then the money, then the bricks. Squad
@@ -350,52 +363,52 @@ export default function App() {
         // Team opens on the team sheet now (user: "Selection should be the
         // team section"), so the tactics screen is just Tactics - the how,
         // not the who.
-        { ico: '🏉', label: 'Team', screen: 'squad' },
-        { ico: '📊', label: 'Team Report', screen: 'report' },
-        { ico: '📋', label: 'Tactics', screen: 'tactics' },
-        { ico: '🎓', label: 'Academy', screen: 'academy' },
-        { ico: '🏋️', label: 'Training & Staff', screen: 'training' },
-        { ico: '🏥', label: 'Medical Centre', screen: 'medical', badge: injuredCount },
-        { ico: '📅', label: 'Fixtures & Results', screen: 'fixtures' },
-        { ico: '💰', label: 'Finances', screen: 'finances' },
-        { ico: '🔁', label: 'Transfer Centre', screen: 'transfers', badge: offersOpen },
-        { ico: '🏗️', label: 'Club Infrastructure', screen: 'infra' },
-        { ico: '🏟️', label: 'Club Information', screen: 'club' },
+        { ico: '🏉', label: t('groups.team'), screen: 'squad' },
+        { ico: '📊', label: t('groups.teamReport'), screen: 'report' },
+        { ico: '📋', label: t('groups.tactics'), screen: 'tactics' },
+        { ico: '🎓', label: t('groups.academy'), screen: 'academy' },
+        { ico: '🏋️', label: t('groups.trainingStaff'), screen: 'training' },
+        { ico: '🏥', label: t('groups.medical'), screen: 'medical', badge: injuredCount },
+        { ico: '📅', label: t('groups.fixturesResults'), screen: 'fixtures' },
+        { ico: '💰', label: t('groups.finances'), screen: 'finances' },
+        { ico: '🔁', label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
+        { ico: '🏗️', label: t('groups.infra'), screen: 'infra' },
+        { ico: '🏟️', label: t('groups.clubInfo'), screen: 'club' },
       ],
     },
     manager: {
       title: game.managerName,
       items: [
-        { ico: '👤', label: 'Manager Profile', screen: 'profile' },
+        { ico: '👤', label: t('groups.profile'), screen: 'profile' },
         // the manager is the one in front of the cameras, so the press room
         // belongs to him rather than to the team sheet
-        { ico: '🎙️', label: 'Press Room', screen: 'press', badge: pressOpen },
+        { ico: '🎙️', label: t('groups.press'), screen: 'press', badge: pressOpen },
         // Only the jobs he has not answered. It used to be vacancies.length, so
         // the red dot appeared because somebody somewhere got sacked and nothing
         // he could do would clear it (see GameState.vacancies).
-        { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
-        { ico: '📜', label: 'Manager Legacy', screen: 'legacy' },
-        { ico: '📖', label: "The Manager's Handbook", screen: 'handbook' },
-        { ico: '🐞', label: 'Report a Bug', screen: 'bug' },
+        { ico: '🕴️', label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
+        { ico: '📜', label: t('groups.legacy'), screen: 'legacy' },
+        { ico: '📖', label: t('groups.handbook'), screen: 'handbook' },
+        { ico: '🐞', label: t('groups.bug'), screen: 'bug' },
         // dismissing the welcome dialog used to be final and irreversible
-        { ico: '❓', label: 'How to play', screen: 'home', action: () => useStore.getState().openTut() },
-        { ico: '💾', label: 'Save / Load Game', screen: 'saves' },
+        { ico: '❓', label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
+        { ico: '💾', label: t('groups.saveLoad'), screen: 'saves' },
         // A reload now resumes the career where it was left, so a refresh is no
         // longer the way back to the title screen - and without a deliberate
         // route there, starting a second career would be impossible.
-        { ico: '🚪', label: 'Main Menu', screen: 'menu', action: () => useStore.getState().toTitle() },
+        { ico: '🚪', label: t('groups.mainMenu'), screen: 'menu', action: () => useStore.getState().toTitle() },
       ],
     },
     world: {
-      title: 'World',
+      title: t('groups.world'),
       items: [
-        { ico: '🏆', label: 'Competitions', screen: 'tables' },
+        { ico: '🏆', label: t('groups.competitions'), screen: 'tables' },
         // the pinnacle gets a door of its own while you hold a Test job
-        ...(game.natTeam ? [{ ico: '🌏', label: 'Club & Country', screen: 'country' as const }] : []),
-        { ico: '🌍', label: 'International Rugby', screen: 'nations' },
-        { ico: '🏉', label: 'Team of the Week', screen: 'dreamteam' },
-        { ico: '🔭', label: 'Scouting Agency', screen: 'agency' },
-        { ico: '📜', label: 'Roll of Honour', screen: 'history' },
+        ...(game.natTeam ? [{ ico: '🌏', label: t('groups.country'), screen: 'country' as const }] : []),
+        { ico: '🌍', label: t('groups.nations'), screen: 'nations' },
+        { ico: '🏉', label: t('groups.dreamteam'), screen: 'dreamteam' },
+        { ico: '🔭', label: t('groups.agency'), screen: 'agency' },
+        { ico: '📜', label: t('groups.history'), screen: 'history' },
       ],
     },
   }
@@ -434,7 +447,7 @@ export default function App() {
               the moon and Matchday left the title about 200px and every club
               name and screen title arrived truncated */}
           <div className="mast-text">
-            <h1>{cur.screen === 'home' ? (game.unemployed ? 'Unemployed' : club.name) : TITLES[cur.screen] ?? ''}</h1>
+            <h1>{mastheadTitle}</h1>
             {/* the real day, not the week's Saturday shown seven times. Continue
                 walks Monday to Saturday now, so the date has to move with it. */}
             <div className="date">{dayLine(game).toUpperCase()} · {seasonLabel(game.season)} · Wk {game.week}</div>
@@ -484,29 +497,29 @@ export default function App() {
         {/* The order the user asked for, top to bottom: news, home, the hub,
             the manager. World comes last because it is the only group that is
             about somebody else's club. */}
-        {navBtn('inbox', <IcoInbox />, 'News', unread)}
-        {navBtn('home', <IcoHome />, 'Home')}
+        {navBtn('inbox', <IcoInbox />, t('nav.news'), unread)}
+        {navBtn('home', <IcoHome />, t('nav.home'))}
         {game.unemployed ? (
           <>
             {/* openJobs, not vacancies.length: the same fix the Manager group badge
                 got in 14B, and it matters more now that turning a job down takes it
                 off the pile. A badge counting jobs that are no longer in the list is
                 a red dot with nothing behind it. */}
-            {navBtn('jobs', <IcoClipboard />, 'Jobs', openJobs)}
-            {groupBtn('manager', <IcoPress />, 'Manager')}
-            {groupBtn('world', <IcoTrophy />, 'World')}
+            {navBtn('jobs', <IcoClipboard />, t('nav.jobs'), openJobs)}
+            {groupBtn('manager', <IcoPress />, t('nav.manager'))}
+            {groupBtn('world', <IcoTrophy />, t('nav.world'))}
           </>
         ) : (
           <>
-            {groupBtn('hub', <IcoClipboard />, 'Hub', offersOpen + injuredCount)}
+            {groupBtn('hub', <IcoClipboard />, t('nav.hub'), offersOpen + injuredCount)}
             {/* Vacancies the manager can still do something about, matching the Job
                 Centre item's own count. Raw vacancies.length lit this dot because
                 somebody somewhere had been sacked, and nothing he could do would
                 clear it: the same bug the Job Centre item already fixed for itself,
                 still living in the group badge above it. Reported as "says there is
                 a notification but doesn't show anything". */}
-            {groupBtn('manager', <IcoPress />, 'Manager', pressOpen + openJobs)}
-            {groupBtn('world', <IcoTrophy />, 'World')}
+            {groupBtn('manager', <IcoPress />, t('nav.manager'), pressOpen + openJobs)}
+            {groupBtn('world', <IcoTrophy />, t('nav.world'))}
           </>
         )}
       </nav>
@@ -525,7 +538,7 @@ export default function App() {
                 are marked instead, for the same three weeks as the Home hint, and
                 then the marks go. */}
             {menu === 'hub' && firstWeeks && (
-              <div className="submenu-note">Before your first match, these three are the job.</div>
+              <div className="submenu-note">{t('groups.firstJobs')}</div>
             )}
             {MENUS[menu].items.map(it => (
               <button key={it.label} className="submenu-item"
@@ -533,7 +546,7 @@ export default function App() {
                 <span className="mico">{it.ico}</span>
                 <span style={{ flex: 1, textAlign: 'left' }}>{it.label}</span>
                 {menu === 'hub' && firstWeeks && FIRST_JOBS.has(it.screen)
-                  ? <span className="mstart">start here</span> : null}
+                  ? <span className="mstart">{t('groups.startHere')}</span> : null}
                 {it.badge ? <span className="mbadge">{it.badge > 9 ? '9+' : it.badge}</span> : null}
               </button>
             ))}

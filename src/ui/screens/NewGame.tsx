@@ -7,17 +7,20 @@ import type { RawClub } from '../../data/types'
 import { Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
 import { fmtMoney } from '../../game/model'
+import { t } from '../../game/i18n'
 
 // FM Mobile-style guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
 
-const STEPS = ['Competition', 'Club', 'Manager', 'Summary']
+/* Keys rather than words, in both of these, because the module is evaluated
+   once and the language can change afterwards - see docs/i18n.md. */
+const STEPS = ['wizard.stepCompetition', 'wizard.stepClub', 'wizard.stepManager', 'wizard.stepSummary']
 
 const finances = (budget: number) =>
-  budget >= 4_000_000 ? ['Rich', 'var(--text-positive)']
-    : budget >= 2_000_000 ? ['Secure', 'var(--text-positive)']
-    : budget >= 1_000_000 ? ['Okay', 'var(--border-strong)']
-    : ['Tight', 'var(--danger)']
+  budget >= 4_000_000 ? ['wizard.rich', 'var(--text-positive)']
+    : budget >= 2_000_000 ? ['wizard.secure', 'var(--text-positive)']
+    : budget >= 1_000_000 ? ['wizard.okay', 'var(--border-strong)']
+    : ['wizard.tight', 'var(--danger)']
 
 // judged inside the club's own league (mediaVerdict) - absolute reputation
 // thresholds branded every English National One club "Relegation-zone rated",
@@ -79,9 +82,9 @@ export default function NewGame() {
    * indistinguishable from a frozen game, and this one sits in the first minute
    * of the first session. */
   const needed = canNext ? null
-    : step === 0 ? 'Pick a competition to carry on.'
-    : step === 1 ? 'Pick the club you want to manage.'
-    : 'Enter your name to carry on.'
+    : step === 0 ? t('wizard.needCompetition')
+    : step === 1 ? t('wizard.needClub')
+    : t('wizard.needName')
 
   const next = () => {
     if (step < 3) { setStep(step + 1); return }
@@ -119,8 +122,8 @@ export default function NewGame() {
         <div className="masthead-row">
           <button className="back-btn" onClick={prev}>‹</button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1>New Career</h1>
-            <div className="date">Step {step + 1} of 4<span className="step-name"> · {STEPS[step]}</span></div>
+            <h1>{t('wizard.title')}</h1>
+            <div className="date">{t('wizard.step', { step: step + 1, total: 4 })}<span className="step-name"> · {t(STEPS[step])}</span></div>
           </div>
           <div className="step-meter"><i style={{ width: `${((step + 1) / 4) * 100}%` }} /></div>
         </div>
@@ -163,18 +166,18 @@ export default function NewGame() {
           <>
             {/* compact rows, not tiles: every league and challenge on one
                 screen with no scrolling (8-batch feedback) */}
-            <div className="wizard-hint">Choose the competition you'll manage in.</div>
+            <div className="wizard-hint">{t('wizard.pickCompetition')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6 }}>
               {defs.map((d, i) => (
                 <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
                   onClick={() => { setLeagueIdx(i); setClubId(null); setStep(1) }}>
                   <span style={{ fontSize: 15 }}>🏆</span>
                   <span className="cname">{d.name}</span>
-                  <span className="muted">{d.clubs.length} clubs</span>
+                  <span className="muted">{t('wizard.clubCount', { n: d.clubs.length })}</span>
                 </button>
               ))}
             </div>
-            <div className="wizard-hint" style={{ marginTop: 10 }}>…or take on a Challenge.</div>
+            <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.orChallenge')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
               {CHALLENGES.map(ch => {
                 const chClub = defs.flatMap(d => d.clubs).find(c => c.id === ch.clubId)
@@ -225,14 +228,14 @@ export default function NewGame() {
                   <Jersey club={club} size={46} />
                 </div>
                 <div className="fact-grid">
-                  <div><label>Reputation</label><span style={{ color: 'var(--gold)' }}>{'★'.repeat(Math.max(1, Math.round(club.rep / 20)))}<span style={{ opacity: .3 }}>{'★'.repeat(5 - Math.max(1, Math.round(club.rep / 20)))}</span></span></div>
-                  <div><label>Finances</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{finances(club.budget)[0]}</span></div>
-                  <div><label>Star Player</label><span>⭐ {starPlayer?.name}</span></div>
-                  <div><label>Stadium</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
-                  <div><label>Media Verdict</label><span>{mediaVerdict(club, league ?? defs.find(d => d.clubs.some(c => c.id === club.id))!)}</span></div>
-                  <div><label>Transfer Budget</label><span>£{(club.budget / 1e6).toFixed(1)}m</span></div>
-                  <div><label>Squad Value</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
-                  <div><label>Squad Size</label><span>{club.players.length}</span></div>
+                  <div><label>{t('wizard.reputation')}</label><span style={{ color: 'var(--gold)' }}>{'★'.repeat(Math.max(1, Math.round(club.rep / 20)))}<span style={{ opacity: .3 }}>{'★'.repeat(5 - Math.max(1, Math.round(club.rep / 20)))}</span></span></div>
+                  <div><label>{t('wizard.finances')}</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{t(finances(club.budget)[0])}</span></div>
+                  <div><label>{t('wizard.starPlayer')}</label><span>⭐ {starPlayer?.name}</span></div>
+                  <div><label>{t('wizard.stadium')}</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
+                  <div><label>{t('wizard.mediaVerdict')}</label><span>{mediaVerdict(club, league ?? defs.find(d => d.clubs.some(c => c.id === club.id))!)}</span></div>
+                  <div><label>{t('wizard.transferBudget')}</label><span>£{(club.budget / 1e6).toFixed(1)}m</span></div>
+                  <div><label>{t('wizard.squadValue')}</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
+                  <div><label>{t('wizard.squadSize')}</label><span>{club.players.length}</span></div>
                 </div>
               </div>
             )}
@@ -242,10 +245,10 @@ export default function NewGame() {
 
         {step === 2 && club && (
           <>
-            <div className="wizard-hint">Your manager profile at {club.name}.</div>
+            <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                <h3 style={{ fontSize: 15 }}>Challenge accepted: {challenge.title}</h3>
+                <h3 style={{ fontSize: 15 }}>{t('wizard.challengeAccepted', { title: challenge.title })}</h3>
                 <div className="meta">{challenge.desc}</div>
               </div>
             )}
@@ -253,19 +256,19 @@ export default function NewGame() {
                 the tiles at the bottom of it sat below the fold on a phone */}
             <div className="wiz-split narrow-left">
             <div className="card">
-              <label className="fact-label">Your Name</label>
-              <input className="inline-input" placeholder="e.g. A. Gaffer"
+              <label className="fact-label">{t('wizard.yourName')}</label>
+              <input className="inline-input" placeholder={t('wizard.namePlaceholder')}
                 value={name} onChange={e => setName(e.target.value)}
                 onFocus={e => {
                   // keep the field visible above the software keyboard
                   const el = e.target
                   setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
                 }} />
-              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>Club</label>
+              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>{t('wizard.club')}</label>
               <div className="meta">{club.name} · {league?.name}</div>
             </div>
             <div className="card">
-              <label className="fact-label">Coaching Philosophy</label>
+              <label className="fact-label">{t('wizard.philosophy')}</label>
               <div className="speech-grid" style={{ padding: '6px 0 0' }}>
                 {COACHING_STYLES.map(s => (
                   <button key={s.id} className={`speech-tile${styleId === s.id ? ' sel' : ''}`}
@@ -282,24 +285,24 @@ export default function NewGame() {
 
         {step === 3 && club && league && (
           <>
-            <div className="wizard-hint">Everything set. One tap from the dugout.</div>
+            <div className="wizard-hint">{t('wizard.allSet')}</div>
             <div className="card detail-panel">
               <div className="club-banner" style={{ background: club.colors[0], color: 'var(--prop-ink)' }}>
                 <Crest club={club} size={22} mr={8} />{club.name}
               </div>
               <div className="fact-grid">
-                <div><label>Manager</label><span>{name.trim()}</span></div>
-                <div><label>Competition</label><span>{league.name}</span></div>
-                <div><label>Philosophy</label><span>{COACHING_STYLES.find(s => s.id === styleId)?.name}</span></div>
-                <div><label>Season</label><span>2025-26</span></div>
-                {challenge && <div><label>Challenge</label><span>{challenge.title}</span></div>}
-                <div><label>Board Objective</label><span>{club.rep >= 87 ? 'Win the title' : club.rep >= 80 ? 'Reach the playoffs' : club.rep >= 72 ? 'Top half' : 'Avoid the bottom two'}</span></div>
+                <div><label>{t('wizard.manager')}</label><span>{name.trim()}</span></div>
+                <div><label>{t('wizard.competition')}</label><span>{league.name}</span></div>
+                <div><label>{t('wizard.philosophyShort')}</label><span>{COACHING_STYLES.find(s => s.id === styleId)?.name}</span></div>
+                <div><label>{t('wizard.season')}</label><span>2025-26</span></div>
+                {challenge && <div><label>{t('wizard.challenge')}</label><span>{challenge.title}</span></div>}
+                <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
               </div>
             </div>
             <div className="card">
-              <label className="fact-label">Your Dream</label>
+              <label className="fact-label">{t('wizard.yourDream')}</label>
               <div className="meta" style={{ marginBottom: 2 }}>
-                The board sets the season. You set the career - tap the one thing that would make this save worth finishing.
+                {t('wizard.dreamBlurb')}
               </div>
               <div className="speech-grid" style={{ padding: '6px 0 0' }}>
                 {dreams.map(d => (
@@ -317,10 +320,10 @@ export default function NewGame() {
 
       <div className="action-bar wiz-bar">
         {needed && <div className="wiz-need">{needed}</div>}
-        <button className="btn ghost" onClick={prev}>{step === 0 ? 'Main Menu' : 'Back'}</button>
+        <button className="btn ghost" onClick={prev}>{step === 0 ? t('wizard.mainMenu') : t('wizard.back')}</button>
         <button className="btn gold" style={{ flex: 1.6, fontSize: 15 }} disabled={!canNext} onClick={next}
           title={needed ?? undefined}>
-          {step === 3 ? '▸ Start Career' : 'Confirm'}
+          {step === 3 ? t('wizard.startCareer') : t('wizard.confirm')}
         </button>
       </div>
     </>
