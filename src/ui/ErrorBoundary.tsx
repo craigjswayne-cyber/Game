@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useStore } from '../store'
 import { recordCrash } from '../game/bugreport'
+import { t } from '../game/i18n'
 
 interface Props { children: ReactNode }
 interface State { err: Error | null }
@@ -54,21 +55,16 @@ export default class ErrorBoundary extends Component<Props, State> {
     return (
       <div className="crash">
         <div className="crash-box">
-          <h2>🩹 Something broke on that screen</h2>
-          <p>
-            Your save is safe. The game writes to this device every week, so the worst you can lose is
-            what has happened since the last Continue. Going back to the title screen usually clears it,
-            because it is almost always one screen misreading something rather than the save itself.
-          </p>
+          <h2>{t('report.crashTitle')}</h2>
+          <p>{t('report.crashBody')}</p>
           <pre className="crash-err">{err.message || String(err)}</pre>
           <div className="crash-btns">
-            <button className="btn gold" onClick={this.toMenu}>Back to the title screen</button>
-            <button className="btn ghost" onClick={() => location.reload()}>Reload the game</button>
-            <button className="btn ghost" onClick={this.toReport}>Report this</button>
+            <button className="btn gold" onClick={this.toMenu}>{t('report.crashToTitle')}</button>
+            <button className="btn ghost" onClick={() => location.reload()}>{t('report.crashReload')}</button>
+            <button className="btn ghost" onClick={this.toReport}>{t('report.crashReport')}</button>
           </div>
           <div className="crash-note">
-            Report this attaches that message, the build and the screens you came through - you do not
-            have to copy anything down.
+            {t('report.crashNote')}
           </div>
         </div>
       </div>

@@ -7,9 +7,7 @@ import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
 import { nemesis, protegeLine } from '../../game/records'
 import { CHALLENGES } from '../../game/newgame'
 import { horizon, horizonPct } from '../../game/legacy'
-
-const ord = (n: number) =>
-  `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
+import { ord, t } from '../../game/i18n'
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
@@ -26,8 +24,8 @@ export default function Legacy() {
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}><Crest club={club} size={44} mr={0} /></div>
         <h3 style={{ fontSize: 21, marginTop: 6 }}>{game.managerName}</h3>
-        <div className="meta">Director of Rugby, {club.name}</div>
-        {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>Challenge: {challenge.title}</div>}
+        <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
+        {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>{t('legacy.lgChallenge', { title: t(challenge.title) })}</div>}
       </div>
 
       {(() => {
@@ -35,7 +33,7 @@ export default function Legacy() {
         if (!d) return null
         return (
           <>
-            <SectionTitle sub={d.progress.done ? 'realised' : 'what this career is for'}>The Dream</SectionTitle>
+            <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}>
               <div style={{ fontWeight: 700, fontSize: 15.5 }}>{d.title}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
@@ -56,12 +54,12 @@ export default function Legacy() {
           return (
             <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
               <div className="meta" style={{ letterSpacing: 1 }}>
-                RETIRED {game.retired.forced ? '(the game called time)' : 'on his own terms'} AT {game.retired.age}
+                {t('legacy.lgRetiredLine', { how: t(game.retired.forced ? 'legacy.lgForced' : 'legacy.lgOwnTerms'), age: game.retired.age })}
               </div>
               <h3 style={{ fontSize: 19, marginTop: 4 }}>{v.title}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '8px 0' }}>
                 <b style={{ fontSize: 34, color: 'var(--gold)', lineHeight: 1 }}>{v.grade}</b>
-                <span className="muted">career grade</span>
+                <span className="muted">{t('legacy.lgCareerGrade')}</span>
               </div>
               {v.lines.map((l, i) => <div key={i} className="meta" style={{ marginTop: 4 }}>{l}</div>)}
             </div>
@@ -73,18 +71,18 @@ export default function Legacy() {
             {mayRetire(game) && (
               <>
                 <div className="meta" style={{ marginTop: 8 }}>
-                  If you stopped today: <b style={{ color: 'var(--gold)' }}>{v.grade}</b> - {v.title.toLowerCase()}.
+                  {t('legacy.lgIfStopped')}<b style={{ color: 'var(--gold)' }}>{v.grade}</b>{t('legacy.lgIfStoppedRest', { title: v.title.toLowerCase() })}
                 </div>
                 {confirmRetire ? (
                   <div className="btn-row" style={{ marginTop: 10 }}>
                     <button className="btn danger" onClick={() => { setRetireMsg(retire(game)); setConfirmRetire(false); touch() }}>
-                      Yes, that is that
+                      {t('legacy.lgYesThatIsThat')}
                     </button>
-                    <button className="btn ghost" onClick={() => setConfirmRetire(false)}>One more season</button>
+                    <button className="btn ghost" onClick={() => setConfirmRetire(false)}>{t('legacy.lgOneMore')}</button>
                   </div>
                 ) : (
                   <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setConfirmRetire(true)}>
-                    Hang up the clipboard
+                    {t('legacy.lgHangUp')}
                   </button>
                 )}
                 {retireMsg && <div className="meta sheet-log" style={{ marginTop: 8 }}>{retireMsg}</div>}
@@ -94,15 +92,15 @@ export default function Legacy() {
         )
       })()}
 
-      <SectionTitle>Career Record</SectionTitle>
+      <SectionTitle>{t('legacy.lgCareerRecord')}</SectionTitle>
       <div className="chips">
-        <span className="chip">Matches <b>{m.m}</b></span>
-        <span className="chip">Won <b style={{ color: 'var(--text-positive)' }}>{m.w}</b></span>
-        <span className="chip">Drawn <b>{m.d}</b></span>
-        <span className="chip">Lost <b style={{ color: 'var(--danger)' }}>{m.l}</b></span>
-        <span className="chip">Win rate <b>{winPct}%</b></span>
-        <span className="chip">Signings <b>{m.signings}</b></span>
-        <span className="chip">Spent <b>{fmtMoney(m.spent)}</b></span>
+        <span className="chip">{t('profile.matches')} <b>{m.m}</b></span>
+        <span className="chip">{t('profile.won')} <b style={{ color: 'var(--text-positive)' }}>{m.w}</b></span>
+        <span className="chip">{t('profile.drawn')} <b>{m.d}</b></span>
+        <span className="chip">{t('profile.lost')} <b style={{ color: 'var(--danger)' }}>{m.l}</b></span>
+        <span className="chip">{t('profile.winRate')} <b>{winPct}%</b></span>
+        <span className="chip">{t('legacy.lgSignings')} <b>{m.signings}</b></span>
+        <span className="chip">{t('legacy.lgSpent')} <b>{fmtMoney(m.spent)}</b></span>
       </div>
 
       {/* WHAT YOU ARE CHASING (C4).
@@ -123,39 +121,39 @@ export default function Legacy() {
         if (!e?.biggestWin && !nem && !prot) return null
         return (
           <>
-            <SectionTitle sub="what this era leaves behind">The Book</SectionTitle>
+            <SectionTitle sub={t('legacy.lgTheBookSub')}>{t('legacy.lgTheBook')}</SectionTitle>
             <div className="card">
               {e?.biggestWin && (
                 <div className="dash-line">
-                  <span className="dl-t">Biggest win</span>
+                  <span className="dl-t">{t('legacy.lgBiggestWin')}</span>
                   <b>{e.biggestWin.us}-{e.biggestWin.them}</b>
-                  <span className="muted">v {game.clubs[e.biggestWin.oppId]?.short ?? e.biggestWin.oppId}</span>
+                  <span className="muted">{t('legacy.lgVs', { club: game.clubs[e.biggestWin.oppId]?.short ?? e.biggestWin.oppId })}</span>
                 </div>
               )}
               {e?.worstLoss && (
                 <div className="dash-line">
-                  <span className="dl-t">Heaviest defeat</span>
+                  <span className="dl-t">{t('legacy.lgHeaviestDefeat')}</span>
                   <b>{e.worstLoss.us}-{e.worstLoss.them}</b>
-                  <span className="muted">v {game.clubs[e.worstLoss.oppId]?.short ?? e.worstLoss.oppId}</span>
+                  <span className="muted">{t('legacy.lgVs', { club: game.clubs[e.worstLoss.oppId]?.short ?? e.worstLoss.oppId })}</span>
                 </div>
               )}
               {e?.longestUnbeaten && e.longestUnbeaten.n > 1 && (
                 <div className="dash-line">
-                  <span className="dl-t">Longest unbeaten</span>
+                  <span className="dl-t">{t('legacy.lgLongestUnbeaten')}</span>
                   <b>{e.longestUnbeaten.n}</b>
-                  <span className="muted">matches</span>
+                  <span className="muted">{t('legacy.lgMatchesWord')}</span>
                 </div>
               )}
               {e?.recordSigning && (
                 <div className="dash-line">
-                  <span className="dl-t">Record signing</span>
+                  <span className="dl-t">{t('legacy.lgRecordSigning')}</span>
                   <b>{fmtMoney(e.recordSigning.fee)}</b>
                   <span className="muted">{game.players[e.recordSigning.playerId]?.name ?? ''}</span>
                 </div>
               )}
               {nem && (
                 <div className="meta" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                  <b style={{ color: 'var(--danger)' }}>Nemesis. </b>{nem.line}
+                  <b style={{ color: 'var(--danger)' }}>{t('legacy.lgNemesis')}</b>{nem.line}
                 </div>
               )}
               {prot && <div className="meta" style={{ marginTop: 6 }}>🎓 {prot}</div>}
@@ -164,7 +162,7 @@ export default function Legacy() {
         )
       })()}
 
-      <SectionTitle sub="the next four things this career is working towards">On the Horizon</SectionTitle>
+      <SectionTitle sub={t('legacy.lgHorizonSub')}>{t('legacy.lgHorizon')}</SectionTitle>
       <div className="card">
         {horizon(game).map((h, i, all) => (
           <div key={h.label} style={{ marginBottom: i === all.length - 1 ? 0 : 9 }}>
@@ -178,10 +176,10 @@ export default function Legacy() {
         ))}
       </div>
 
-      <SectionTitle sub={m.trophies.length ? undefined : 'the cabinet awaits'}>Trophy Cabinet</SectionTitle>
+      <SectionTitle sub={m.trophies.length ? undefined : t('legacy.lgCabinetAwaits')}>{t('legacy.lgTrophyCabinet')}</SectionTitle>
       {m.trophies.length === 0 ? (
         <div className="muted" style={{ padding: '4px 16px 12px' }}>
-          Empty shelves and big dreams. Win something.
+          {t('legacy.lgEmptyShelves')}
         </div>
       ) : (
         <div className="chips">
@@ -195,9 +193,9 @@ export default function Legacy() {
 
       {m.finishes.length > 0 && (
         <>
-          <SectionTitle>Season By Season</SectionTitle>
+          <SectionTitle>{t('legacy.lgSeasonBySeason')}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>Season</th><th>League</th><th className="num">Finish</th></tr></thead>
+            <thead><tr><th>{t('profile.colSeason')}</th><th>{t('profile.colLeague')}</th><th className="num">{t('profile.colFinish')}</th></tr></thead>
             <tbody>
               {[...m.finishes].reverse().map((f, i) => {
                 // the cups won that year belong on the year's row (user:
@@ -219,7 +217,7 @@ export default function Legacy() {
                       ))}
                     </td>
                     <td className="num" style={{ fontWeight: 700, color: f.pos === 1 ? 'var(--gold)' : undefined }}>
-                      {f.pos === 1 ? '🏆 1st' : ord(f.pos)}
+                      {f.pos === 1 ? t('legacy.lgChampionPos') : ord(f.pos)}
                     </td>
                   </tr>
                 )
@@ -231,9 +229,9 @@ export default function Legacy() {
 
       {(game.hof ?? []).length > 0 && (
         <>
-          <SectionTitle sub="the immortals - careers that closed the argument">🏛 Hall of Fame</SectionTitle>
+          <SectionTitle sub={t('legacy.lgHofSub')}>{t('legacy.lgHallOfFame')}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>Name</th><th>Pos</th><th className="num">Apps</th><th className="num">Tries</th><th className="num">Pts</th><th>Retired</th></tr></thead>
+            <thead><tr><th>{t('squad.colName')}</th><th>{t('squad.colPos')}</th><th className="num">{t('club.colApps')}</th><th className="num">{t('club.colTries')}</th><th className="num">{t('squad.colPts')}</th><th>{t('legacy.lgColRetired')}</th></tr></thead>
             <tbody>
               {(game.hof ?? []).map((h, i) => (
                 <tr key={i}>

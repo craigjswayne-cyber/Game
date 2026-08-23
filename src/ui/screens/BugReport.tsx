@@ -4,6 +4,7 @@ import { SectionTitle } from '../components'
 import {
   DEV_CONTACT, buildReport, crashCount, mailtoUrl, reportFilename,
 } from '../../game/bugreport'
+import { t } from '../../game/i18n'
 
 /**
  * Report a Bug. Under the Handbook in the menu, because it is the other half of
@@ -34,24 +35,24 @@ export default function BugReport() {
 
   const doShare = async () => {
     try {
-      await navigator.share({ title: 'PHASE: Rugby Manager - bug report', text: report })
-      setMsg('Handed to your share sheet. Add a screenshot there if you have one.')
+      await navigator.share({ title: t('legacy.bgShareTitle'), text: report })
+      setMsg(t('legacy.bgShared'))
     } catch (e) {
       // a share the player cancels rejects too, and telling him it failed when
       // he chose to back out is worse than saying nothing
-      if ((e as Error)?.name !== 'AbortError') setMsg('Your device would not open the share sheet. Try Copy instead.')
+      if ((e as Error)?.name !== 'AbortError') setMsg(t('legacy.bgShareFailed'))
     }
   }
 
   const doCopy = async () => {
     try {
       await navigator.clipboard.writeText(report)
-      setMsg('Report copied. Paste it into a message or an e-mail.')
+      setMsg(t('legacy.bgCopied'))
     } catch {
       // clipboard access is refused outright in some in-app browsers, so open
       // the text instead: selecting it by hand still gets the report out
       setShowFull(true)
-      setMsg('This browser would not let the game use the clipboard. The full report is open below - select it and copy by hand.')
+      setMsg(t('legacy.bgCopyFailed'))
     }
   }
 
@@ -63,9 +64,9 @@ export default function BugReport() {
       a.download = reportFilename(game)
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 4000)
-      setMsg('Saved to your device. Attach it to a message when you are ready.')
+      setMsg(t('legacy.bgSaved'))
     } catch {
-      setMsg('This browser would not save the file. Try Copy instead.')
+      setMsg(t('legacy.bgSaveFailed'))
     }
   }
 
@@ -73,46 +74,42 @@ export default function BugReport() {
 
   return (
     <div className="content">
-      <SectionTitle sub="Nothing leaves this device unless you send it">Report a Bug</SectionTitle>
+      <SectionTitle sub={t('legacy.bgSub')}>{t('legacy.bgTitle')}</SectionTitle>
 
       <div className="card">
-        <label className="bug-label" htmlFor="bug-notes">What went wrong?</label>
+        <label className="bug-label" htmlFor="bug-notes">{t('legacy.bgWhatWrong')}</label>
         <textarea
           id="bug-notes"
           className="inline-input bug-notes"
           value={notes}
           onChange={e => setNotes(e.target.value)}
           rows={6}
-          placeholder={'What were you doing?\nWhat did you expect to happen?\nWhat happened instead?'}
+          placeholder={t('legacy.bgPlaceholder')}
         />
         <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-          The build, your club, the week, the seed and the last screens you visited are attached
-          automatically. Your squad, your saves and your name are not.
-          {errs > 0 && <> <b>{errs} error{errs > 1 ? 's' : ''}</b> the game caught {errs > 1 ? 'are' : 'is'} attached too.</>}
+          {t('legacy.bgAttached')}
+          {errs > 0 && t(errs === 1 ? 'legacy.bgErrAttached' : 'legacy.bgErrsAttached', { n: errs })}
         </div>
       </div>
 
       <div className="card">
-        <div className="bug-label">Send it</div>
+        <div className="bug-label">{t('legacy.bgSendIt')}</div>
         <div className="btn-row">
-          {canShare && <button className="btn gold" onClick={() => { void doShare() }}>Share</button>}
-          <a className="btn" href={mailtoUrl(report)}>E-mail</a>
-          <button className="btn" onClick={() => { void doCopy() }}>Copy</button>
-          <button className="btn ghost" onClick={doDownload}>Save file</button>
+          {canShare && <button className="btn gold" onClick={() => { void doShare() }}>{t('legacy.bgShare')}</button>}
+          <a className="btn" href={mailtoUrl(report)}>{t('legacy.bgEmail')}</a>
+          <button className="btn" onClick={() => { void doCopy() }}>{t('legacy.bgCopy')}</button>
+          <button className="btn ghost" onClick={doDownload}>{t('legacy.bgSaveFile')}</button>
         </div>
         {msg && <div className="bug-msg">{msg}</div>}
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          <b>A screenshot helps more than anything you can type.</b> Take one with your phone
-          the usual way, then use <b>Share</b> and attach it alongside this report - the game
-          cannot take one for you.
-          {' '}E-mail goes to <b>{DEV_CONTACT}</b>, and the mail route trims long reports;
-          Copy and Save always carry the whole thing.
+          <b>{t('legacy.bgScreenshotB')}</b>{t('legacy.bgScreenshot')}
+          {t('legacy.bgMailGoesTo')}<b>{DEV_CONTACT}</b>{t('legacy.bgMailRest')}
         </div>
       </div>
 
       <div className="card">
         <button className="btn ghost block" onClick={() => setShowFull(v => !v)}>
-          {showFull ? 'Hide what gets sent' : 'Show exactly what gets sent'}
+          {t(showFull ? 'legacy.bgHideFull' : 'legacy.bgShowFull')}
         </button>
         {showFull && <pre className="bug-preview">{report}</pre>}
       </div>

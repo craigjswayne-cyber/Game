@@ -15,6 +15,7 @@
 // list - and arithmetic inside JSX cannot be tested.
 import { GAME_MARKS, WIN_MARKS } from './season'
 import type { GameState } from './model'
+import { ord, t } from './i18n'
 
 export interface Horizon {
   label: string
@@ -23,9 +24,6 @@ export interface Horizon {
   /** the honest state of it, in a few words */
   note: string
 }
-
-const ord = (n: number) =>
-  `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
 
 /** The next mark above a count, or null once they are all behind you. */
 const next = (marks: readonly number[], at: number): number | null =>
@@ -48,25 +46,25 @@ export function horizon(state: GameState): Horizon[] {
   const titles = m.finishes.filter(f => f.pos === 1).length
 
   if (nextWin) {
-    rows.push({ label: `${nextWin} career wins`, at: m.w, goal: nextWin, note: `${nextWin - m.w} more` })
+    rows.push({ label: t('legacy.hzWins', { n: nextWin }), at: m.w, goal: nextWin, note: t('legacy.hzMore', { n: nextWin - m.w }) })
   }
   if (nextGame) {
-    rows.push({ label: `${nextGame} matches in the dugout`, at: m.m, goal: nextGame, note: `${nextGame - m.m} more` })
+    rows.push({ label: t('legacy.hzMatches', { n: nextGame }), at: m.m, goal: nextGame, note: t('legacy.hzMore', { n: nextGame - m.m }) })
   }
   // A title is always ahead of you: there is always another season.
   rows.push({
-    label: titles === 0 ? 'A first league title' : `A ${ord(titles + 1)} league title`,
+    label: titles === 0 ? t('legacy.hzFirstTitle') : t('legacy.hzNthTitle', { n: ord(titles + 1) }),
     at: titles,
     goal: titles + 1,
-    note: titles === 0 ? 'nothing yet' : `${titles} so far`,
+    note: titles === 0 ? t('legacy.hzNothingYet') : t('legacy.hzSoFar', { n: titles }),
   })
   // and so is the next decade of doing it
   const era = seasons < 10 ? 10 : seasons < 20 ? 20 : Math.ceil((seasons + 1) / 10) * 10
   rows.push({
-    label: era === 10 ? 'A decade in charge' : `${era} seasons in charge`,
+    label: era === 10 ? t('legacy.hzDecade') : t('legacy.hzSeasonsInCharge', { n: era }),
     at: seasons,
     goal: era,
-    note: `${seasons} season${seasons === 1 ? '' : 's'} done`,
+    note: t(seasons === 1 ? 'legacy.hzSeasonDone' : 'legacy.hzSeasonsDone', { n: seasons }),
   })
   return rows
 }

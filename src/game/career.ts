@@ -26,6 +26,7 @@
 import { LEAGUE_TIER, mgrReputation } from './model'
 import type { GameState } from './model'
 import { dreamState } from './dream'
+import { t } from './i18n'
 
 /** Youngest a manager may start; the wizard offers a spread around this. */
 export const START_AGE = 42
@@ -57,14 +58,14 @@ export const mayRetire = (state: GameState): boolean =>
 
 /** What the clock should say on the manager's own screen. */
 export function clockLine(state: GameState): string {
-  if (state.retired) return 'Retired.'
+  if (state.retired) return t('legacy.cvRetired')
   const a = mgrAge(state)
   const left = seasonsLeft(state)
-  if (a < 50) return `${a} years old. Time is the one thing you are not short of.`
-  if (a < RETIRE_OPEN) return `${a} years old, and in the middle of it.`
-  if (left > 4) return `${a} years old. You could go whenever you like now, and you have not.`
-  if (left > 1) return `${a} years old. ${left} more seasons before the game makes the choice for you.`
-  return `${a} years old. This is the last one.`
+  if (a < 50) return t('legacy.cvYoungClock', { age: a })
+  if (a < RETIRE_OPEN) return t('legacy.cvMiddleClock', { age: a })
+  if (left > 4) return t('legacy.cvOpenClock', { age: a })
+  if (left > 1) return t('legacy.cvSeasonsLeft', { age: a, n: left })
+  return t('legacy.cvLastOne', { age: a })
 }
 
 export interface Verdict {
@@ -111,29 +112,32 @@ export function careerVerdict(state: GameState): Verdict {
   const grade = score >= 88 ? 'A+' : score >= 76 ? 'A' : score >= 64 ? 'B'
     : score >= 50 ? 'C' : score >= 34 ? 'D' : score >= 18 ? 'E' : 'F'
 
-  const title = score >= 88 ? 'One of the greats the sport argues about'
-    : score >= 76 ? 'A manager who left the game bigger than he found it'
-    : score >= 64 ? 'A serious career, and a cabinet to prove it'
-    : score >= 50 ? 'A good manager who was worth the job'
-    : score >= 34 ? 'A working life in the game'
-    : score >= 18 ? 'He was here, and he tried'
-    : 'It never happened for him'
+  const title = t(score >= 88 ? 'legacy.cvTitleGreat'
+    : score >= 76 ? 'legacy.cvTitleBigger'
+    : score >= 64 ? 'legacy.cvTitleSerious'
+    : score >= 50 ? 'legacy.cvTitleGood'
+    : score >= 34 ? 'legacy.cvTitleWorking'
+    : score >= 18 ? 'legacy.cvTitleTried'
+    : 'legacy.cvTitleNever')
 
   const lines: string[] = []
   lines.push(seasons
-    ? `${seasons} season${seasons === 1 ? '' : 's'} in the dugout, ${games} matches, ${Math.round(winPct * 100)}% of them won.`
-    : 'A career that ended before a full season was completed.')
+    ? t(seasons === 1 ? 'legacy.cvSeasonsOne' : 'legacy.cvSeasons', { n: seasons, games, pct: Math.round(winPct * 100) })
+    : t('legacy.cvShort'))
   lines.push(trophies
-    ? `${trophies} major ${trophies === 1 ? 'trophy' : 'trophies'}${titles ? `, including ${titles} league ${titles === 1 ? 'title' : 'titles'}` : ''}.`
-    : 'No major trophy. Plenty of good managers never win one, and it is still the first thing anybody will say.')
-  if (topFlight) lines.push(`${topFlight} season${topFlight === 1 ? '' : 's'} at the top table.`)
-  if (legends) lines.push(`A legend at ${legends} ${legends === 1 ? 'club' : 'clubs'} - they will keep your name up whatever happens next.`)
+    ? t(trophies === 1 ? 'legacy.cvTrophyOne' : 'legacy.cvTrophies', {
+        n: trophies,
+        titles: titles ? t(titles === 1 ? 'legacy.cvInclTitleOne' : 'legacy.cvInclTitles', { n: titles }) : '',
+      })
+    : t('legacy.cvNoTrophy'))
+  if (topFlight) lines.push(t(topFlight === 1 ? 'legacy.cvTopFlightOne' : 'legacy.cvTopFlight', { n: topFlight }))
+  if (legends) lines.push(t(legends === 1 ? 'legacy.cvLegendOne' : 'legacy.cvLegends', { n: legends }))
   if (d) {
     lines.push(dreamDone
-      ? `The dream was ${d.title.toLowerCase()}, and you did it.`
-      : `The dream was ${d.title.toLowerCase()}. ${d.progress.note[0].toUpperCase()}${d.progress.note.slice(1)}, and now the clock has run out on it.`)
+      ? t('legacy.cvDreamDone', { dream: d.title.toLowerCase() })
+      : t('legacy.cvDreamMissed', { dream: d.title.toLowerCase(), note: `${d.progress.note[0].toUpperCase()}${d.progress.note.slice(1)}` }))
   }
-  lines.push(`Reputation at the end: ${mgrReputation(state)} of 95.`)
+  lines.push(t('legacy.cvRepEnd', { rep: mgrReputation(state) }))
 
   return { grade, title, lines, score }
 }
@@ -144,7 +148,7 @@ export function careerVerdict(state: GameState): Verdict {
  * Deterministic and idempotent: retiring twice is not a thing.
  */
 export function retire(state: GameState, forced = false): string {
-  if (state.retired) return 'You have already retired.'
+  if (state.retired) return t('legacy.cvRetiredAlready')
   const v = careerVerdict(state)
   state.retired = { season: state.season, age: mgrAge(state), forced, grade: v.grade, score: v.score }
   state.news.push({

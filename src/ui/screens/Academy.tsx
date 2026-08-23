@@ -4,6 +4,7 @@ import { teamShort } from '../../game/matchEngine'
 import { fixtureDate } from '../../game/model'
 import { CrestT, PosBadge, SectionTitle, Stars } from '../components'
 import { acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
+import { ord, t } from '../../game/i18n'
 
 /** The academy section: the squad, the A League table, and the fixtures.
  *
@@ -24,7 +25,7 @@ export default function Academy() {
   // ensureAcademyLeague writes onto the state object this render is already
   // holding, so what it returns is what the screen draws - no touch needed.
   const l = ensureAcademyLeague(game)
-  if (!club) return <div className="muted" style={{ padding: 14 }}>No club, no academy.</div>
+  if (!club) return <div className="muted" style={{ padding: 14 }}>{t('report.acNoClub')}</div>
 
   const squad = academySquad(game, club)
   const xv = new Set(academyXV(game, club).map(p => p.id))
@@ -41,32 +42,31 @@ export default function Academy() {
   return (
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <h3 style={{ margin: 0 }}>🎓 {club.short} Academy</h3>
+        <h3 style={{ margin: 0 }}>{t('report.acTitle', { club: club.short })}</h3>
         <div className="meta">
-          {squad.length} of {ACADEMY_SIZE} registered ·{' '}
-          {coach ? `${coach} runs it` : level > 0 ? 'your academy coach runs it' : 'nobody runs it - the post is vacant'}
-          {l ? ` · ${l.name}${pos > 0 ? `, ${pos}${pos === 1 ? 'st' : pos === 2 ? 'nd' : pos === 3 ? 'rd' : 'th'}` : ''}` : ''}
+          {t('report.acRegistered', { n: squad.length, max: ACADEMY_SIZE })}
+          {coach ? t('report.acCoachRuns', { name: coach }) : t(level > 0 ? 'report.acCoachGeneric' : 'report.acNoCoach')}
+          {l ? (pos > 0 ? t('report.acLeaguePos', { league: l.name, pos: ord(pos) }) : t('report.acLeagueNoPos', { league: l.name })) : ''}
         </div>
         <div className="meta">
-          Team strength {Math.round(academyStrength(game, club))}. The coach rotates the side, so every scholar
-          gets rugby - minutes are what turn one of them into a first-team player.
+          {t('report.acStrength', { n: Math.round(academyStrength(game, club)) })}
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: 6, padding: '0 14px 6px', flexWrap: 'wrap' }}>
-        {([['squad', 'Squad'], ['table', 'A League Table'], ['fixtures', 'Fixtures & Results']] as const).map(([k, label]) => (
+        {([['squad', 'report.acSquad'], ['table', 'report.acTable'], ['fixtures', 'report.acFixtures']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip"
             style={tab === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setTab(k)}>{label}</button>
+            onClick={() => setTab(k)}>{t(label)}</button>
         ))}
       </div>
 
       {tab === 'squad' && (
         <>
-          <SectionTitle sub={`${squad.filter(p => xv.has(p.id)).length} in this week's XV`}>The Scholars</SectionTitle>
+          <SectionTitle sub={t('report.acInXV', { n: squad.filter(p => xv.has(p.id)).length })}>{t('report.acScholars')}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>Pos</th><th>Name</th><th className="num">Age</th><th>Ability</th>
-              <th className="num">Apps</th><th className="num">Form</th><th /></tr></thead>
+            <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th className="num">{t('report.acColAge')}</th><th>{t('transfers.colAbility')}</th>
+              <th className="num">{t('report.acColApps')}</th><th className="num">{t('report.acColForm')}</th><th /></tr></thead>
             <tbody>
               {[...squad].sort((a, b) => b.ca + b.pa / 2 - (a.ca + a.pa / 2)).map(p => (
                 <tr key={p.id} onClick={() => go('player', p.id)} style={{ cursor: 'pointer' }}>
@@ -76,10 +76,10 @@ export default function Academy() {
                   <td><Stars ca={p.ca} /></td>
                   <td className="num">{p.stats.apps}</td>
                   <td className="num">{p.form.toFixed(1)}</td>
-                  <td className="num muted">{xv.has(p.id) ? 'XV' : ''}</td>
+                  <td className="num muted">{xv.has(p.id) ? t('report.acXV') : ''}</td>
                 </tr>
               ))}
-              {!squad.length && <tr><td colSpan={7} className="muted">Nobody on the books. The summer intake will fix that.</td></tr>}
+              {!squad.length && <tr><td colSpan={7} className="muted">{t('report.acEmpty')}</td></tr>}
             </tbody>
           </table></div>
         </>
@@ -87,11 +87,11 @@ export default function Academy() {
 
       {tab === 'table' && l && (
         <>
-          <SectionTitle sub={l.champion ? `Champions: ${teamShort(game, l.champion)}` : `${l.fixtures.filter(f => f.played).length} of ${l.fixtures.length} played`}>{l.name}</SectionTitle>
+          <SectionTitle sub={l.champion ? t('fixtures.champions', { club: teamShort(game, l.champion) }) : t('report.acPlayedOf', { played: l.fixtures.filter(f => f.played).length, total: l.fixtures.length })}>{l.name}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
-              <th className="num">D</th><th className="num">L</th><th className="num">+/-</th>
-              <th className="num">BP</th><th className="num">Pts</th></tr></thead>
+            <thead><tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
+              <th className="num">{t('common.d')}</th><th className="num">{t('common.l')}</th><th className="num">{t('tables.colDiff')}</th>
+              <th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
               {rows.map((r, i) => (
                 <tr key={r.teamId} className={r.teamId === me ? 'me' : ''}
@@ -111,17 +111,16 @@ export default function Academy() {
             </tbody>
           </table></div>
           <div className="filter-note">
-            No trophy, no promotion, no relegation. What the table is for is telling you whether the men coming
-            through are winning games against the men coming through everywhere else.
+            {t('report.acTableNote')}
           </div>
         </>
       )}
 
       {tab === 'fixtures' && l && (
         <>
-          <SectionTitle sub={`${mine.filter(f => f.played).length} of ${mine.length} played`}>A League Fixtures</SectionTitle>
+          <SectionTitle sub={t('report.acPlayedOf', { played: mine.filter(f => f.played).length, total: mine.length })}>{t('report.acFixturesTitle')}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>Date</th><th>Opponent</th><th>Result</th><th>Scorers</th></tr></thead>
+            <thead><tr><th>{t('fixtures.colDate')}</th><th>{t('fixtures.colOpponent')}</th><th>{t('fixtures.colResult')}</th><th>{t('report.acColScorers')}</th></tr></thead>
             <tbody>
               {mine.map(f => {
                 const home = f.homeId === me
@@ -135,11 +134,11 @@ export default function Academy() {
                   <tr key={`${f.round}-${f.homeId}`}>
                     <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.round, -1)}</td>
                     <td className="name">
-                      <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{home ? 'v' : '@'}</span>
-                      <CrestT g={game} teamId={opp} size={15} />{teamShort(game, opp)} A
+                      <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{t(home ? 'fixtures.atHomeMark' : 'fixtures.awayMark')}</span>
+                      <CrestT g={game} teamId={opp} size={15} />{teamShort(game, opp)}{t('report.acAwayTag')}
                     </td>
                     <td className={!f.played ? 'muted' : us > them ? 'result-w' : us < them ? 'result-l' : 'result-d'}>
-                      {f.played ? `${us > them ? 'W' : us < them ? 'L' : 'D'} ${us}-${them}` : (home ? 'H' : 'A')}
+                      {f.played ? `${t(us > them ? 'common.w' : us < them ? 'common.l' : 'common.d')} ${us}-${them}` : t(home ? 'common.h' : 'common.a')}
                     </td>
                     <td className="muted" style={{ fontSize: 11 }}>
                       {[...tally].map(([n, c]) => (c > 1 ? `${n} (${c})` : n)).join(', ')}
@@ -154,7 +153,7 @@ export default function Academy() {
 
       {tab !== 'squad' && !l && (
         <div className="muted" style={{ padding: 14 }}>
-          No A League this season. Your league needs at least four clubs to run one.
+          {t('report.acNoLeague')}
         </div>
       )}
       <div className="spacer" />

@@ -1,4 +1,5 @@
 import { useStore } from '../store'
+import { t } from '../game/i18n'
 
 /** The welcome dialog: how the game is played, in four paragraphs.
  *
@@ -28,19 +29,23 @@ export default function Tutorial() {
             know what any of that means. Rewritten as five plain steps in the
             order they happen, with the one button named first (user: "check the
             language on how to play, should be fairly idiot proof"). */}
-        <h3>How this works</h3>
-        <b>1. One button moves the game on.</b> It says <b>Continue</b> at the top of the screen. Press it and a day goes by. Press it again and again and you walk through the week - who is injured, what the press want, who is for sale - until Saturday, when the button says <b>Matchday</b>.
+        {/* The bold phrases inside these steps name real buttons, so they are
+            interpolated rather than written into the sentence: a translator has
+            to be able to move "Continue" to wherever French puts it, and it has
+            to read the same as the button it points at. */}
+        <h3>{t('report.tutTitle')}</h3>
+        <b>{t('report.tut1b')}</b>{t('report.tut1', { continue: t('report.tutContinue'), matchday: t('report.tutMatchday') })}
         <br /><br />
-        <b>2. Pick your team.</b> Tap the clipboard at the bottom, then <b>Team</b> - you land on the team sheet. Tap two players to swap them, or press <b>Best XV</b> and let your assistant draft one - then fix what he got wrong. You have fifteen starters and eight replacements.
+        <b>{t('report.tut2b')}</b>{t('report.tut2', { team: t('report.tutTeam'), bestXV: t('report.tutBestXV') })}
         <br /><br />
-        <b>3. Play the match.</b> Press <b>Kick Off</b>. You say a few words to the players first - pick whichever one feels right, there is no wrong answer. During the game you can bring on replacements or change how you play. When you win a penalty near their line, you choose: kick at the posts for three points, or go to the corner and try for a try.
+        <b>{t('report.tut3b')}</b>{t('report.tut3', { kickOff: t('report.tutKickOff') })}
         <br /><br />
-        <b>4. Nothing is hidden.</b> Every number in this game has a page explaining it, in plain English, in <b>The Manager's Handbook</b> (bottom right, Manager). It has a search box. If something confuses you, it is in there.
+        <b>{t('report.tut4b')}</b>{t('report.tut4', { handbook: t('report.tutHandbook') })}
         <br /><br />
-        <b>5. You will lose games.</b> That is the game working, not you doing it wrong. The board tells you what it expects on the Finances screen, and you have a season to deliver it.
-        <div className="muted">This page is always here: <b>Manager</b> &gt; <b>How to play</b>.</div>
+        <b>{t('report.tut5b')}</b>{t('report.tut5')}
+        <div className="muted">{t('report.tutAlwaysHere', { manager: t('report.tutManager'), howToPlay: t('report.tutHowToPlay') })}</div>
         <div className="tut-close">
-          <button className="btn gold" onClick={close}>Got it, let me manage</button>
+          <button className="btn gold" onClick={close}>{t('report.tutGotIt')}</button>
         </div>
       </div>
     </div>

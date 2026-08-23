@@ -6,6 +6,7 @@ import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow } from '../../game/country'
 import { PosBadge, SectionTitle } from '../components'
+import { ord, t } from '../../game/i18n'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -30,8 +31,8 @@ export default function Country() {
     // stepped down (or sacked) with the screen open - nothing to run here
     return (
       <div className="card">
-        <h3 style={{ fontSize: 15 }}>🌍 No national job</h3>
-        <div className="meta">Unions come calling when a club coach's work is hard to ignore. Keep winning.</div>
+        <h3 style={{ fontSize: 15 }}>{t('legacy.coNoJob')}</h3>
+        <div className="meta">{t('legacy.coNoJobBody')}</div>
       </div>
     )
   }
@@ -65,14 +66,14 @@ export default function Country() {
     <tr key={p.id} onClick={() => go('player', p.id)}>
       <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
-        {p.name}{(p.caps ?? 0) > 0 ? <span className="muted"> · {p.caps} caps</span> : <span className="muted"> · uncapped</span>}
+        {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
       </td>
       <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : ''}</td>
       <td style={{ width: 64, textAlign: 'right' }}>
         {w && (
           <button className="btn ghost" style={{ fontSize: 12, padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}
             onClick={e => { e.stopPropagation(); act(p, inSquad ? natDrop : natCallUp) }}>
-            {inSquad ? 'Drop' : 'Call up'}
+            {t(inSquad ? 'legacy.coDrop' : 'legacy.coCallUp')}
           </button>
         )}
       </td>
@@ -97,8 +98,11 @@ export default function Country() {
       <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
         <h3 style={{ fontSize: 17 }}>{flagOf(natId)} {nat?.name ?? natId}</h3>
         <div className="meta" style={{ marginTop: 2 }}>
-          {rank > 0 ? `World No. ${rank}` : 'Unranked'} · {(game.natRank?.[natId] ?? 0).toFixed(2)} pts
-          {rec ? ` · Tests ${rec.w}-${rec.d}-${rec.l} under you` : ''}
+          {t('legacy.coRankLine', {
+            rank: rank > 0 ? t('legacy.coWorldNo', { n: rank }) : t('legacy.coUnranked'),
+            pts: (game.natRank?.[natId] ?? 0).toFixed(2),
+            rec: rec ? t('legacy.coTestsUnder', { w: rec.w, d: rec.d, l: rec.l }) : '',
+          })}
         </div>
         {conf != null && (
           <div style={{ margin: '8px 2px 2px' }}>
@@ -106,14 +110,16 @@ export default function Country() {
               <div style={{ width: `${conf}%`, height: '100%', background: conf >= 60 ? 'var(--text-positive)' : conf >= 40 ? 'var(--gold)' : 'var(--danger)' }} />
             </div>
             <div className="meta" style={{ marginTop: 4 }}>
-              Union confidence {conf}/100 · the annual review sacks below 28
+              {t('legacy.coUnionConf', { n: conf })}
             </div>
           </div>
         )}
         {testFx && (
           <div className="muted" style={{ marginTop: 8, fontWeight: 700 }}>
-            🌍 TEST WEEK: {nationByCode(testFx.homeId)?.name ?? testFx.homeId} v {nationByCode(testFx.awayId)?.name ?? testFx.awayId} this Saturday.
-            Your assistant minds any club fixture.
+            {t('legacy.coTestWeek', {
+              home: nationByCode(testFx.homeId)?.name ?? testFx.homeId,
+              away: nationByCode(testFx.awayId)?.name ?? testFx.awayId,
+            })}
           </div>
         )}
       </div>
@@ -121,63 +127,63 @@ export default function Country() {
       {/* both hats, and the way out of either - in the open, not buried
           (user: "OR you can step down from your club role") */}
       <div className="card">
-        <SectionTitle sub="one man, two touchlines - and the door out of either, should you want it">Your Appointments</SectionTitle>
+        <SectionTitle sub={t('legacy.coAppointmentsSub')}>{t('legacy.coAppointments')}</SectionTitle>
         {club && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
             <span style={{ fontSize: 20 }}>🏟️</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 13.5 }}>{club.name}</div>
-              <div className="meta">Director of Rugby · board {Math.round(club.boardConfidence)}%</div>
+              <div className="meta">{t('legacy.coDirectorBoard', { n: Math.round(club.boardConfidence) })}</div>
             </div>
             {confirmClub
-              ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resign(); setConfirmClub(false) }}>Confirm</button>
-              : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>Step down…</button>}
+              ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resign(); setConfirmClub(false) }}>{t('legacy.coConfirm')}</button>
+              : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => { setConfirmClub(true); setConfirmNat(false) }}>{t('legacy.coStepDown')}</button>}
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
           <span style={{ fontSize: 20 }}>{flagOf(natId) || '🌍'}</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 700, fontSize: 13.5 }}>{nat?.name ?? natId}</div>
-            <div className="meta">National head coach{conf != null ? ` · union ${conf}%` : ''}</div>
+            <div className="meta">{t('legacy.coNatCoach')}{conf != null ? t('legacy.coNatUnion', { n: conf }) : ''}</div>
           </div>
           {confirmNat
-            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>Confirm</button>
-            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>Step down…</button>}
+            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNat(false); go('home') }}>{t('legacy.coConfirm')}</button>
+            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => { setConfirmNat(true); setConfirmClub(false) }}>{t('legacy.coStepDown')}</button>}
         </div>
-        {!club && <div className="meta">No club post - the Test job is the whole desk for now.</div>}
+        {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
       </div>
 
       {w ? (
         <>
-          <SectionTitle sub={`the federation caps camp at ${w.size} and will not let it fall below ${NAT_SQUAD_FLOOR} - your club's men in bold`}>
-            Test Squad · {squad.length}/{w.size}
+          <SectionTitle sub={t('legacy.coSquadSub', { max: w.size, floor: NAT_SQUAD_FLOOR })}>
+            {t('legacy.coTestSquad', { n: squad.length, max: w.size })}
           </SectionTitle>
           <div className="meta" style={{ padding: '0 16px 4px' }}>
-            Window open: drop a name, call the next man up. The Test XV is picked from this room on match day.
+            {t('legacy.coWindowOpen')}
           </div>
-          <SectionTitle>Forwards</SectionTitle>
+          <SectionTitle>{t('legacy.coForwards')}</SectionTitle>
           {table(squad.filter(p => FWD.includes(p.pos)), true)}
-          <SectionTitle>Backs</SectionTitle>
+          <SectionTitle>{t('legacy.coBacks')}</SectionTitle>
           {table(squad.filter(p => !FWD.includes(p.pos)), true)}
-          <SectionTitle sub="every qualified name in the game, best first - no age limit, no rating floor, your call">The Next Men In</SectionTitle>
-          {pool.length ? table(pool, false) : <div className="meta" style={{ padding: '0 16px' }}>Nobody left standing outside camp.</div>}
+          <SectionTitle sub={t('legacy.coNextMenSub')}>{t('legacy.coNextMen')}</SectionTitle>
+          {pool.length ? table(pool, false) : <div className="meta" style={{ padding: '0 16px' }}>{t('legacy.coNobodyLeft')}</div>}
         </>
       ) : (
         <>
-          <SectionTitle sub="call-ups happen when the federation opens camp - shape the squad then">Between Windows</SectionTitle>
+          <SectionTitle sub={t('legacy.coBetweenSub')}>{t('legacy.coBetweenWindows')}</SectionTitle>
           <div className="meta" style={{ padding: '0 16px 4px' }}>
-            The likely squad, on current form. When a window opens the federation names its list and hands it to you.
+            {t('legacy.coLikelySquad')}
           </div>
           {table((pool.length ? pool : squad).slice(0, 26), false)}
         </>
       )}
 
-      <SectionTitle>Tests</SectionTitle>
+      <SectionTitle>{t('legacy.coTests')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {upcoming.map(f => (
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name ?? f.homeId} v {nationByCode(f.awayId)?.name ?? f.awayId} {flagOf(f.awayId)}</td>
+            <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name ?? f.homeId} {t('common.v')} {nationByCode(f.awayId)?.name ?? f.awayId} {flagOf(f.awayId)}</td>
             <td className="num muted">-</td>
           </tr>
         ))}
@@ -187,7 +193,7 @@ export default function Country() {
           return (
             <tr key={f.id}>
               <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-              <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name ?? f.homeId} v {nationByCode(f.awayId)?.name ?? f.awayId} {flagOf(f.awayId)}</td>
+              <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name ?? f.homeId} {t('common.v')} {nationByCode(f.awayId)?.name ?? f.awayId} {flagOf(f.awayId)}</td>
               <td className="num" style={{ fontWeight: 700, color: us > them ? 'var(--text-positive)' : us < them ? 'var(--text-negative)' : undefined }}>
                 {f.homeScore}-{f.awayScore}
               </td>
@@ -195,11 +201,11 @@ export default function Country() {
           )
         })}
         {!upcoming.length && !results.length && (
-          <tr><td className="meta">No Tests on the calendar yet this season.</td></tr>
+          <tr><td className="meta">{t('legacy.coNoTests')}</td></tr>
         )}
       </tbody></table></div>
       <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-        Full tables and every competition live on the International Rugby screen.
+        {t('legacy.coFullTables')}
       </div>
       <div className="spacer" />
     </>

@@ -27,6 +27,7 @@
  * The engine reads none of it.
  */
 import type { GameState, Player } from './model'
+import { t } from './i18n'
 
 export interface RecordBook {
   biggestWin?: { oppId: string; us: number; them: number; season: number }
@@ -129,9 +130,7 @@ export function nemesis(state: GameState): Nemesis | null {
   }
   if (!best || best.w >= best.l) return null // nobody owns you
   const club = state.clubs[best.clubId]
-  best.line = `${club?.short ?? best.clubId}: ${best.w}W ${best.d}D ${best.l}L in ${best.played}. ` +
-    (best.w === 0
-      ? 'You have never beaten them.'
-      : 'They have had the better of this for years.')
+  best.line = t('legacy.nemLine', { club: club?.short ?? best.clubId, w: best.w, d: best.d, l: best.l, played: best.played })
+    + t(best.w === 0 ? 'legacy.nemNever' : 'legacy.nemBetter')
   return best
 }
