@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, POS_ORDER, POS_NAMES, XV_SLOTS, type Player, type Pos } from '../../game/model'
+import { fmtMoney, POS_ORDER, XV_SLOTS, type Player, type Pos } from '../../game/model'
 import { effAt } from '../../game/attributes'
 import { assistantAdvice, squadValue, starPlayerIds } from '../../game/analysis'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { PosBadge, SectionTitle, Stars } from '../components'
+import { posName, ord, t } from '../../game/i18n'
 
 /** The assistant's full report on the squad, FM Team Report style. */
 export default function TeamReport() {
@@ -50,26 +51,26 @@ export default function TeamReport() {
   return (
     <>
       <div className="tab-bar">
-        <button className={rtab === 'standing' ? 'active' : ''} onClick={() => setRtab('standing')}>Where We Stand</button>
-        <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>Squad Depth</button>
-        <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>Best XV</button>
+        <button className={rtab === 'standing' ? 'active' : ''} onClick={() => setRtab('standing')}>{t('report.trWhereWeStand')}</button>
+        <button className={rtab === 'depth' ? 'active' : ''} onClick={() => setRtab('depth')}>{t('report.trSquadDepth')}</button>
+        <button className={rtab === 'xv' ? 'active' : ''} onClick={() => setRtab('xv')}>{t('report.trBestXV')}</button>
       </div>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <h3 style={{ fontSize: 14 }}>The Assistant's Verdict</h3>
+        <h3 style={{ fontSize: 14 }}>{t('report.trVerdict')}</h3>
         <div className="meta" style={{  }}>{assistantAdvice(game)}</div>
       </div>
 
       {rtab === 'standing' && <>
-      <SectionTitle>Where We Stand</SectionTitle>
+      <SectionTitle>{t('report.trWhereWeStand')}</SectionTitle>
       <div className="chip-row" style={{ padding: '0 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <span className="chip">League position <b>{pos > 0 ? `${pos} / ${leagueClubs.length}` : '-'}</b></span>
-        <span className="chip">Squad value <b>{fmtMoney(squadValue(game, club.id))}</b> (rank {valueRank})</span>
-        <span className="chip">Reputation rank <b>{repRank} / {leagueClubs.length}</b></span>
-        <span className="chip">Average age <b>{avgAge.toFixed(1)}</b></span>
-        <span className="chip">Squad size <b>{squad.length}</b></span>
+        <span className="chip">{t('report.trLeaguePos')} <b>{pos > 0 ? `${pos} / ${leagueClubs.length}` : '-'}</b></span>
+        <span className="chip">{t('report.trSquadValue')} <b>{fmtMoney(squadValue(game, club.id))}</b>{t('report.trValueRank', { n: valueRank })}</span>
+        <span className="chip">{t('report.trRepRank')} <b>{repRank} / {leagueClubs.length}</b></span>
+        <span className="chip">{t('report.trAvgAge')} <b>{avgAge.toFixed(1)}</b></span>
+        <span className="chip">{t('report.trSquadSize')} <b>{squad.length}</b></span>
       </div>
 
-      <SectionTitle sub="⭐ = the men opponents fear">Star Players</SectionTitle>
+      <SectionTitle sub={t('report.trStarSub')}>{t('report.trStarPlayers')}</SectionTitle>
       {/* Fixed columns, because auto layout let the name take what it wanted and
           pushed the value off the right-hand edge of the phone (user: "star player
           money doesnt stay within phone boundaries"). The name is the only thing
@@ -93,14 +94,14 @@ export default function TeamReport() {
 
       </>}
       {rtab === 'depth' && <>
-      <SectionTitle sub="cover per shirt - red needs recruits">Positional Depth</SectionTitle>
+      <SectionTitle sub={t('report.trDepthSub')}>{t('report.trDepth')}</SectionTitle>
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>Pos</th><th>Role</th><th className="num">Cover</th><th>Best option</th></tr></thead>
+        <thead><tr><th>{t('squad.colPos')}</th><th>{t('report.trColRole')}</th><th className="num">{t('report.trColCover')}</th><th>{t('report.trColBest')}</th></tr></thead>
         <tbody>
           {depth.map(d => (
             <tr key={d.pos} className={d.count < d.need ? 'prob-row' : undefined}>
               <td><PosBadge pos={d.pos} /></td>
-              <td className="name" style={{ fontSize: 12 }}>{POS_NAMES[d.pos]}</td>
+              <td className="name" style={{ fontSize: 12 }}>{posName(d.pos)}</td>
               <td className="num" style={d.count < d.need ? { color: 'var(--text-negative)', fontWeight: 700 } : undefined}>
                 {d.count}/{d.need}
               </td>
@@ -110,7 +111,7 @@ export default function TeamReport() {
         </tbody>
       </table></div>
 
-      <SectionTitle sub="a healthy squad peaks in the middle">Age Profile</SectionTitle>
+      <SectionTitle sub={t('report.trAgeSub')}>{t('report.trAgeProfile')}</SectionTitle>
       {/* 12px of air above the bars. In portrait the section title's hint wraps
           onto its own line, which put "a healthy squad peaks in the middle"
           directly against the top of the tallest bar with nothing between them
@@ -127,7 +128,7 @@ export default function TeamReport() {
 
       </>}
       {rtab === 'xv' && <>
-      <SectionTitle>Current Best XV</SectionTitle>
+      <SectionTitle>{t('report.trCurrentXV')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {bestXi.map(({ slot, p }, i) => (
           <tr key={i} onClick={() => p && go('player', p.id)}>
