@@ -1,5 +1,6 @@
 import { capBill } from './ai'
 import { fmtMoney, type Club, type GameState } from './model'
+import { t } from './i18n'
 
 /**
  * ---- THE SALARY CAP (F6) ----
@@ -262,12 +263,12 @@ export function auditCaps(state: GameState) {
 
 /** Plain words for the cap bar, so the number is never on its own. */
 export function capWord(pos: CapPosition): string {
-  if (pos.cap == null) return 'No cap in this division'
-  if (pos.embargo > 0) return 'Transfer embargo: over the cap two years running'
-  if (pos.over) return `${fmtMoney(-pos.headroom)}/wk over the cap`
-  if (pos.used > 0.96) return 'Right up against the cap'
-  if (pos.used > 0.85) return `${fmtMoney(pos.headroom)}/wk of room left`
-  return `${fmtMoney(pos.headroom)}/wk clear of the cap`
+  if (pos.cap == null) return t('finances.capNoCap')
+  if (pos.embargo > 0) return t('finances.capEmbargo')
+  if (pos.over) return t('finances.capOver', { amount: fmtMoney(-pos.headroom) })
+  if (pos.used > 0.96) return t('finances.capRightUp')
+  if (pos.used > 0.85) return t('finances.capRoomLeft', { amount: fmtMoney(pos.headroom) })
+  return t('finances.capClear', { amount: fmtMoney(pos.headroom) })
 }
 
 /**
@@ -281,11 +282,11 @@ export function capWord(pos: CapPosition): string {
  * each cell - so a hole two years out is visible before it becomes a crisis.
  */
 export const ROSTER_GROUPS: { label: string; pos: string[] }[] = [
-  { label: 'Front row', pos: ['LP', 'HK', 'TP'] },
-  { label: 'Back five', pos: ['LK', 'FL', 'N8'] },
-  { label: 'Halves', pos: ['SH', 'FH'] },
-  { label: 'Midfield', pos: ['CE'] },
-  { label: 'Back three', pos: ['WG', 'FB'] },
+  { label: 'finances.unitFrontRow', pos: ['LP', 'HK', 'TP'] },
+  { label: 'finances.unitBackFive', pos: ['LK', 'FL', 'N8'] },
+  { label: 'finances.unitHalves', pos: ['SH', 'FH'] },
+  { label: 'finances.unitMidfield', pos: ['CE'] },
+  { label: 'finances.unitBackThree', pos: ['WG', 'FB'] },
 ]
 
 export interface RosterCell {
@@ -329,7 +330,7 @@ export function rosterWarnings(state: GameState, clubId: string): string[] {
     for (let i = 1; i < row.cells.length; i++) {
       const cell = row.cells[i]
       if (cell.count >= cell.need) continue
-      out.push(`${row.label}: ${cell.count} under contract for ${2026 + seasons[i]}, ${cell.need} needed`)
+      out.push(t('finances.rosterWarn', { unit: t(row.label), count: cell.count, year: 2026 + seasons[i], need: cell.need }))
       break // one warning per unit, at the first summer it bites
     }
   }

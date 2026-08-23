@@ -35,6 +35,7 @@
 // that pays out is worth more than the formula ever paid. That is the reward for
 // engaging with the system, and it is bounded - see MAX_UPLIFT.
 import { fmtMoney, logDecision, type GameState } from './model'
+import { t, tIn } from './i18n'
 
 export type SlotId = 'shirt' | 'naming' | 'kit'
 
@@ -50,16 +51,16 @@ export interface SlotInfo {
 
 export const SLOTS: SlotInfo[] = [
   {
-    id: 'shirt', name: 'Front of Shirt', icon: '👕', share: 0.46,
-    desc: 'The main sponsor. The biggest single cheque in the building, and the one the supporters notice.',
+    id: 'shirt', name: 'finances.slotShirt', icon: '👕', share: 0.46,
+    desc: 'finances.slotShirtDesc',
   },
   {
-    id: 'naming', name: 'Stadium Naming Rights', icon: '🏟', share: 0.24,
-    desc: 'Somebody else’s name over the gates. Lucrative, and never popular on the terraces.',
+    id: 'naming', name: 'finances.slotNaming', icon: '🏟', share: 0.24,
+    desc: 'finances.slotNamingDesc',
   },
   {
-    id: 'kit', name: 'Kit Supplier', icon: '🧵', share: 0.30,
-    desc: 'Who makes the shirts. Pays in cash and in replica sales through the club shop.',
+    id: 'kit', name: 'finances.slotKit', icon: '🧵', share: 0.30,
+    desc: 'finances.slotKitDesc',
   },
 ]
 
@@ -116,16 +117,16 @@ export interface Clause {
 }
 
 export const CLAUSES: Record<ClauseId, Clause> = {
-  none: { id: 'none', text: 'No performance clause. The money is the money.', bonus: 0 },
+  none: { id: 'none', text: 'finances.clauseNone', bonus: 0 },
   // The bonuses have to CLEAR the discount the clause deal is sold at, or the
   // whole offer is a trap: measured by scripts/dealprobe.ts, a 0.82x base with an
   // 0.18 bonus pays 0.97x, so taking the risk and winning still lost you money
   // against the safe deal. Every clause now beats market when it pays, at every
   // base the generator can produce.
-  top4: { id: 'top4', text: 'Pays the bonus for as long as you sit in the top four.', bonus: 0.24 },
-  europe: { id: 'europe', text: 'Pays the bonus in any season you are in the Continental Cup.', bonus: 0.22 },
-  silverware: { id: 'silverware', text: 'Pays the bonus for a season after you win a trophy.', bonus: 0.32 },
-  crowds: { id: 'crowds', text: 'Pays the bonus while the ground averages over 90% full.', bonus: 0.20 },
+  top4: { id: 'top4', text: 'finances.clauseTop4', bonus: 0.24 },
+  europe: { id: 'europe', text: 'finances.clauseEurope', bonus: 0.22 },
+  silverware: { id: 'silverware', text: 'finances.clauseSilverware', bonus: 0.32 },
+  crowds: { id: 'crowds', text: 'finances.clauseCrowds', bonus: 0.20 },
 }
 
 export interface Offer {
@@ -328,12 +329,14 @@ export function applyStadiumName(state: GameState, sponsor: string) {
 /** Sign an offer. Replaces whatever was in that slot. */
 export function signOffer(state: GameState, offer: Offer): string {
   const club = state.clubs[state.userClubId]
-  if (!club) return 'No club.'
+  if (!club) return t('finances.treasuryNoClub')
   const live = state.deals?.[offer.slot]
   // a caretaker the department took on your behalf is a stopgap, not a contract:
   // replacing it is the whole point of being told about it
   if (live && live.until >= state.season && !live.auto) {
-    return `The ${SLOT_BY_ID[offer.slot].name.toLowerCase()} is already under contract to ${live.sponsor} until the end of ${2026 + live.until}. You cannot sell it twice.`
+    return t('finances.slotAlreadySold', {
+      slot: t(SLOT_BY_ID[offer.slot].name).toLowerCase(), sponsor: live.sponsor, year: 2026 + live.until,
+    })
   }
   state.deals ??= {}
   state.deals[offer.slot] = {
@@ -344,16 +347,16 @@ export function signOffer(state: GameState, offer: Offer): string {
   // without a single letter changing over the gates was the complaint
   if (offer.slot === 'naming') applyStadiumName(state, offer.sponsor)
   const yrs = offer.years === 1 ? 'one season' : `${offer.years} seasons`
-  logDecision(state, `Signed ${offer.sponsor} for the ${SLOT_BY_ID[offer.slot].name.toLowerCase()}: ${fmtMoney(offer.weekly)} a week over ${yrs}.`, true)
+  logDecision(state, `Signed ${offer.sponsor} for the ${tIn('en', SLOT_BY_ID[offer.slot].name).toLowerCase()}: ${fmtMoney(offer.weekly)} a week over ${yrs}.`, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${SLOT_BY_ID[offer.slot].icon} ${offer.sponsor} sign on with ${club.short}`,
     body: (offer.clause === 'none'
-      ? `${offer.sponsor} take the ${SLOT_BY_ID[offer.slot].name.toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week. The commercial department is pleased with itself, and the money starts arriving on Friday.`
-      : `${offer.sponsor} take the ${SLOT_BY_ID[offer.slot].name.toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week, with a clause: ${CLAUSES[offer.clause].text.toLowerCase()} Deliver and it is the best deal in the building. Do not, and you have sold cheap.`)
+      ? `${offer.sponsor} take the ${tIn('en', SLOT_BY_ID[offer.slot].name).toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week. The commercial department is pleased with itself, and the money starts arriving on Friday.`
+      : `${offer.sponsor} take the ${tIn('en', SLOT_BY_ID[offer.slot].name).toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week, with a clause: ${tIn('en', CLAUSES[offer.clause].text).toLowerCase()} Deliver and it is the best deal in the building. Do not, and you have sold cheap.`)
       + (offer.slot === 'naming' ? ` The signage vans arrive Monday: the ground plays as ${club.stadium} for the length of the deal.` : ''),
   })
-  return `Done. ${offer.sponsor}, ${fmtMoney(offer.weekly)} a week, ${yrs}.`
+  return t('finances.dealDone', { sponsor: offer.sponsor, weekly: fmtMoney(offer.weekly), years: offer.years === 1 ? t('finances.oneSeason') : t('finances.seasons', { n: offer.years }) })
 }
 
 /**
