@@ -1033,9 +1033,14 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
     if (id != null) {
       ratings.set(id, 6 + ratingJitter(fxId, id))
       onPitch.add(id)
-      // and a man who trained on empty starts on empty: the 50 floor meant a
-      // knackered starter kicked off almost as fresh as a rested one
-      energy.set(id, Math.max(25, state.players[id]?.cond ?? 85))
+      // The 50 floor means a knackered starter kicks off almost as fresh as a
+      // rested one, which is half of why the bench is a trap (see eF below).
+      // DROPPING IT TO 25 WAS TRIED AND REVERTED: it made results swing hard
+      // enough that stanceprobe's board stopped clawing back a broken promise
+      // and trustprobe's near-even season lurched 26 -> 6 instead of drifting.
+      // The floor is load-bearing for the board's read of a season, which is
+      // not something a bench fix should be quietly deciding.
+      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85))
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })
@@ -2149,12 +2154,21 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   // gate in a six-week window. A global multiplier on every unit in every match
   // is too blunt an instrument for a bench problem.
   //
-  // What DID land is the tank floor in mkSide (see there): a man who trained on
-  // empty now starts on empty, so a spent starter can be 16.5% down rather than
-  // 11%, and the widening comes from tired players actually being tired rather
-  // than from rescaling the world. That is a partial fix. The rest of the
-  // inversion is open, and the honest next step is to make a replacement's
-  // benefit local to the shirt he replaces rather than a side-wide average.
+  // THE TANK FLOOR IN mkSide WAS TRIED TOO, and reverted for its own reasons
+  // (see there). So both levers that widen the freshness gap are known to break
+  // something else that is measured, and NOTHING IN THE ENGINE IS CHANGED HERE:
+  // the bench inversion is still real and still open.
+  //
+  // What was fixed is the part that was actively harmful - coachfix.ts was
+  // telling managers to make all eight changes, which measures 2.5 points a
+  // match worse than making none.
+  //
+  // The honest next step is not another multiplier. It is to make a
+  // replacement's benefit LOCAL to the shirt he replaces - a fresh tighthead
+  // against a spent one, priced on those two men - rather than a side-wide
+  // average that every other system reads. Both attempts here failed because a
+  // side-wide energy term is load-bearing for ratings, cup progression and the
+  // board's read of a season, none of which a bench fix should be deciding.
   const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
