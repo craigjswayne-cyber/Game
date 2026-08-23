@@ -179,7 +179,10 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   margin-top: 1px;
 }
 .back-btn {
-  color: var(--text-primary);
+  /* --on-hero, not --text-primary: the masthead gradient does not flip with
+     the theme, so day mode painted this chevron near-black on bottle green at
+     1.85:1 - the second most used control in the app. */
+  color: var(--on-hero);
   font-size: 26px;
   line-height: 1;
   padding: 2px 10px 6px 0;
@@ -502,7 +505,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond);
   font-size: 27px; font-weight: 700; letter-spacing: 1px; line-height: 1;
   white-space: nowrap;
-  color: var(--gold);
+  /* GOLD ON THE HERO GRADIENT IS ALWAYS --gold-fill, NEVER --gold. --gold is
+     the text gold and day mode tunes it dark (#8a6516) to sit on white and on
+     canvas; on the dark hero it is 1.26:1 - the live score, invisible, in the
+     one mode no probe tests (every harness sets rm-night first). --gold-fill
+     is #e9be68 in both modes and measures 3.83:1 there. .sc-cup already knew. */
+  color: var(--gold-fill);
   min-width: 84px;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 12px rgba(227, 185, 46, .25);
@@ -584,8 +592,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   100% { background-color: transparent; opacity: 1; }
 }
 
-.speed-controls { display: flex; gap: 8px; padding: 10px 14px 4px; }
-.speed-controls .btn { flex: 1; padding: 8px 0; font-family: var(--cond); font-size: 15px; letter-spacing: 1px; }
+/* The live-match controls are the last child of .live-wrap and there is no
+   bottom nav under them, on a viewport-fit=cover page - so this row owns the
+   home-indicator clearance every other bottom-anchored surface here already
+   honours (.bottom-nav, .action-bar, .modal, .submenu). Without it the lower
+   band of Play/Pause sits in the system swipe zone: reaching for Pause during
+   a match dismissed the app. The buttons were 38px against a 44/48 floor, and
+   they are the four pressed most in eighty minutes. */
+.speed-controls {
+  display: flex; gap: 8px;
+  padding: 10px max(14px, env(safe-area-inset-right))
+           calc(env(safe-area-inset-bottom) + 8px) max(14px, env(safe-area-inset-left));
+}
+.speed-controls .btn {
+  flex: 1; min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 4px; font-family: var(--cond); font-size: 15px; letter-spacing: 1px;
+}
 
 /* ================= Press ================= */
 .press-q {
@@ -949,7 +972,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   position: relative;
   width: 34px; height: 34px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--text-primary);
+  /* same trap as .back-btn: 2.33:1 in day mode, on the theme toggle itself */
+  color: var(--on-hero);
   background: rgba(255, 255, 255, .08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
   flex-shrink: 0;
@@ -2214,7 +2238,12 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
 .sheet-row {
   display: flex; align-items: center; gap: 6px; width: 100%;
-  padding: 5px 7px; margin-bottom: 3px;
+  /* 29px, stacked 3px apart, 23 of them in one portrait column - on the
+     control that spends a substitution, under a running clock. The scrolling
+     half of this screen was fixed when a player reported it; the target half
+     was never measured. */
+  min-height: 44px;
+  padding: 6px 8px; margin-bottom: 4px;
   border: 1px solid var(--border); border-radius: 7px;
   background: var(--surface-1); color: inherit;
   font-size: 12px; text-align: left; cursor: pointer;
@@ -3300,3 +3329,15 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   word-break: break-word;
   color: var(--text-secondary);
 }
+
+
+/* Every direct child of a masthead row must be allowed to shrink. App's own
+   header gets this from .mast-text in portrait; MatchDay, SeasonReview and
+   NewGame hand-roll the row with a bare flex:1 div and do not. A flex item's
+   min-width is auto, which floors it at min-content, and .date is nowrap - so
+   a long competition name drags the whole header past the right edge into a
+   sideways page scroll. The v1.0.3 rename made this live rather than latent:
+   "UNITED PROVINCES CHAMPIONSHIP - QUARTER-FINAL - SAT 12 SEP" is longer than
+   anything the header carried before. */
+.masthead > * { min-width: 0; }
+.masthead .date { overflow: hidden; text-overflow: ellipsis; }
