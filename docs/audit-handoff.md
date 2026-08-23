@@ -4,6 +4,16 @@ Last updated at the end of the session that shipped the 106-3 batch (subs
 sheet, garbage time, rating tail, the war chest, memoprobe's root cause and
 the CRN dialweight). Read this before picking up the remaining work.
 
+> **Since then, two things have moved and neither is in this document.** The
+> game is now in English and French end to end (`docs/i18n.md` for the rule that
+> decides what follows the reader and what keeps its language), and it is being
+> prepared for sale rather than kept as a personal project - the monetisation
+> layer, the legal surface, the store listing and the packaging are in
+> `docs/monetisation.md`, `docs/store-listing.md` and `packaging/`, and
+> `docs/release-readiness.md` carries the current checklist and the owner's
+> decision on the unlicensed player names. Everything below is still true about
+> the engine and the probes; it just is not the whole picture any more.
+
 ## The headline lesson, still undefeated
 
 **Treat a red probe as a claim about the probe until proven otherwise.** The
