@@ -9,6 +9,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
+import { t } from '../../game/i18n'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
@@ -122,14 +123,15 @@ function Preview({ fxId }: { fxId: number }) {
   const isHome = fx.homeId === game.userClubId
   const opp = isHome ? fx.awayId : fx.homeId
   const club = game.clubs[game.userClubId]
-  const t = club.tactic
+  // `tac`, not `t`: t() is the translator (src/game/i18n.ts)
+  const tac = club.tactic
 
   const oppLineup = useMemo(() => {
     const pool = availablePlayers(game, rosterOf(game, opp))
     return autoSelect(game, pool)
   }, [game, opp])
   const oppUnits = teamUnits(game, oppLineup)
-  const myUnits = teamUnits(game, t.lineup)
+  const myUnits = teamUnits(game, tac.lineup)
 
   // the bench seats are whatever the split says they are (F4)
   const seats = benchSeats(club)
@@ -141,7 +143,7 @@ function Preview({ fxId }: { fxId: number }) {
     if (slot < 15) return XV_SLOTS[slot].pos
     const seat = seats[slot - 15]
     if (seat.open) {
-      const id = t.lineup[slot]
+      const id = tac.lineup[slot]
       const p = id != null ? game.players[id] : null
       if (p) return p.pos
     }
@@ -150,14 +152,14 @@ function Preview({ fxId }: { fxId: number }) {
 
   /** A sheet edited here is the manager's, same as on the Selection screen:
    *  the engine must not re-pick it on the way out of the tunnel. */
-  const claim = () => { t.userPicked = true }
+  const claim = () => { tac.userPicked = true }
 
   const setSlot = (slot: number, pid: number | null) => {
     if (pid != null) {
-      const other = t.lineup.indexOf(pid)
-      if (other >= 0) t.lineup[other] = t.lineup[slot]
+      const other = tac.lineup.indexOf(pid)
+      if (other >= 0) tac.lineup[other] = tac.lineup[slot]
     }
-    t.lineup[slot] = pid
+    tac.lineup[slot] = pid
     claim()
     setPickSlot(null)
     setSel(null)
@@ -168,9 +170,9 @@ function Preview({ fxId }: { fxId: number }) {
   const tapSlot = (slot: number) => {
     if (sel == null) { setSel(slot); return }
     if (sel === slot) { setSel(null); setPickSlot(slot); return }
-    const a = t.lineup[sel]
-    t.lineup[sel] = t.lineup[slot]
-    t.lineup[slot] = a
+    const a = tac.lineup[sel]
+    tac.lineup[sel] = tac.lineup[slot]
+    tac.lineup[slot] = a
     claim()
     setSel(null)
     touch()
@@ -190,7 +192,7 @@ function Preview({ fxId }: { fxId: number }) {
   }
   const warnings: { level: 'bad' | 'warn' | 'note'; text: string }[] = []
   for (let i = 0; i < 15; i++) {
-    const pid = t.lineup[i]
+    const pid = tac.lineup[i]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
     if (prob === 'EMPTY') warnings.push({ level: 'bad', text: `The no. ${XV_SLOTS[i].shirt} shirt is empty - nobody is picked in it.` })
@@ -202,8 +204,8 @@ function Preview({ fxId }: { fxId: number }) {
   // injured player on the bench and the game play continued. All 23 should be
   // fit and ready to play"). An empty bench seat is a choice; a broken man in
   // one is a dead replacement the game would happily count all afternoon.
-  for (let i = 15; i < t.lineup.length; i++) {
-    const pid = t.lineup[i]
+  for (let i = 15; i < tac.lineup.length; i++) {
+    const pid = tac.lineup[i]
     if (pid == null) continue
     const p = game.players[pid] ?? null
     const prob = problem(p)
@@ -216,7 +218,7 @@ function Preview({ fxId }: { fxId: number }) {
   // JUDGED ON THE SHEET THAT WILL PLAY, NOT THE SHEET AS SAVED. Reported from a
   // live game: "my wife had props on the bench and a hooker but the game flashed
   // up this message." She was right and the warning was wrong. It used to read
-  // t.lineup, the sheet exactly as she left it, and frontRowCover does not count a
+  // tac.lineup, the sheet exactly as she left it, and frontRowCover does not count a
   // man who is injured - so a tighthead who picked up a knock during the week and
   // was still named at 3 took the count from two to one, and the warning shouted
   // about uncontested scrums while a tighthead sat on the bench she was looking at.
@@ -228,7 +230,7 @@ function Preview({ fxId }: { fxId: number }) {
   // repairSheet is the right thing to ask because it is what kick-off does and it
   // is pure: every named man who can play keeps his own shirt, and only the broken
   // slots are filled, from the men she did not name.
-  const frontRow = frontRowCover(game, repairSheet(game, club, t.lineup, splitFor(club)))
+  const frontRow = frontRowCover(game, repairSheet(game, club, tac.lineup, splitFor(club)))
   if (!frontRow.legal) {
     // Plain words here too: "Law 3", "your 23" and "(1 of 2)" is how the
     // laws describe the problem, not how a player hears it. Say what is
@@ -243,7 +245,7 @@ function Preview({ fxId }: { fxId: number }) {
     })
   }
   // milestone watch: pre-announce the numbers worth playing for today
-  for (const pid of t.lineup.slice(0, 15)) {
+  for (const pid of tac.lineup.slice(0, 15)) {
     const pl = pid != null ? game.players[pid] : null
     if (!pl) continue
     const cTries = pl.career.reduce((s, c) => s + c.tries, 0) + pl.stats.tries + (pl.hist?.tries ?? 0)
@@ -301,7 +303,7 @@ function Preview({ fxId }: { fxId: number }) {
 
   // rotation dilemma: before a cup tie or on a quick turnaround, the
   // assistant flags overloaded/underdone legs and offers a one-tap rotation
-  const rotFlagged = t.lineup.slice(0, 15)
+  const rotFlagged = tac.lineup.slice(0, 15)
     .map(id => id != null ? game.players[id] : null)
     .filter((p): p is Player => !!p && !p.injury && p.clubId === club.id && (inRedZone(p) || p.cond < 62))
   const rotWindow = comp?.type !== 'league' || gapDays <= 5
@@ -311,7 +313,7 @@ function Preview({ fxId }: { fxId: number }) {
     const pool = availablePlayers(game, club.players).filter(p => !rest.has(p.id))
     // the one-tap rotation is the assistant's draft too - same imperfect eye
     const fresh = autoSelect(game, pool, undefined, assistantJudgement(game))
-    for (let i = 0; i < 23; i++) t.lineup[i] = fresh[i]
+    for (let i = 0; i < 23; i++) tac.lineup[i] = fresh[i]
     touch()
   }
 
@@ -382,7 +384,7 @@ function Preview({ fxId }: { fxId: number }) {
   const applyPlan = () => {
     for (const p of gamePlan) {
       for (const [k, dv] of Object.entries(p.d) as [SliderKey, number][]) {
-        t[k] = Math.max(5, Math.min(95, t[k] + dv))
+        tac[k] = Math.max(5, Math.min(95, tac[k] + dv))
       }
     }
     setPlanApplied(true)
@@ -436,7 +438,7 @@ function Preview({ fxId }: { fxId: number }) {
   const renderSlot = (slot: number) => {
     const shirt = slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt
     const pos = slotPos(slot)
-    const pid = t.lineup[slot]
+    const pid = tac.lineup[slot]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
     // FIXED COLUMN WIDTHS, because the XV and the Replacements are separate
@@ -476,9 +478,9 @@ function Preview({ fxId }: { fxId: number }) {
           <table className="dtable"><tbody>
             {pool.map(p => (
               <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
-                style={t.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
+                style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
-                <td className="name">{p.name}{t.lineup.includes(p.id) ? ' (selected)' : ''}
+                <td className="name">{p.name}{tac.lineup.includes(p.id) ? ' (selected)' : ''}
                   {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY {p.rust}w</span>}
                 </td>
                 <td><Stars ca={effAt(p, pos)} /></td>
@@ -541,7 +543,7 @@ function Preview({ fxId }: { fxId: number }) {
                   inside it because that substring is what a tap looks for */}
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
                 onClick={() => {
-                  if (hasBad && fixedLineup) { t.lineup = fixedLineup; touch() }
+                  if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
                   setConfirm(false)
                   if (view === 'instant') instantResult(speech ?? undefined)
                   else kickOff(speech ?? undefined, view)
@@ -742,7 +744,7 @@ function Preview({ fxId }: { fxId: number }) {
                   .map(id => id != null ? game.players[id] : null)
                   .filter((p): p is Player => !!p && oldBoyApps(p, game.userClubId) > 0)
                   .sort((a, b) => oldBoyApps(b, game.userClubId) - oldBoyApps(a, game.userClubId))
-                const ours = t.lineup
+                const ours = tac.lineup
                   .map(id => id != null ? game.players[id] : null)
                   .filter((p): p is Player => !!p && oldBoyApps(p, opp) > 0)
                   .sort((a, b) => oldBoyApps(b, opp) - oldBoyApps(a, opp))
@@ -793,7 +795,7 @@ function Preview({ fxId }: { fxId: number }) {
                 const TRIES = [50, 100]
                 const PTS = [1000, 1500]
                 const lines: { p: Player; text: string }[] = []
-                for (const id of t.lineup.slice(0, 15)) {
+                for (const id of tac.lineup.slice(0, 15)) {
                   const p = id != null ? game.players[id] : null
                   if (!p) continue
                   const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
@@ -852,17 +854,17 @@ function Preview({ fxId }: { fxId: number }) {
                 // you actually named without counting shirts.
                 const def = SPLIT_BY_ID[splitFor(club)]
                 const briefed = seats
-                  .map((_, i) => ({ i, b: briefForSeat(club, i), id: t.lineup[15 + i] }))
+                  .map((_, i) => ({ i, b: briefForSeat(club, i), id: tac.lineup[15 + i] }))
                   .filter(x => x.b !== 'orders' && x.id != null)
                 return (
                   <div className="card">
                     <div className="fact-label">The Finishers</div>
                     <div className="meta" style={{ marginBottom: briefed.length ? 4 : 0 }}>
-                      <b>{def.name}.</b> {def.desc}
+                      <b>{t(def.name)}.</b> {t(def.desc)}
                     </div>
                     {briefed.map(x => (
                       <div key={x.i} className="meta">
-                        · {game.players[x.id!]?.name}: {BRIEF_BY_ID[x.b].name.toLowerCase()}
+                        · {game.players[x.id!]?.name}: {t(BRIEF_BY_ID[x.b].name).toLowerCase()}
                       </div>
                     ))}
                     {briefed.length === 0 && (
@@ -906,12 +908,12 @@ function Preview({ fxId }: { fxId: number }) {
                     return (
                       <>
                         <div className="meta" style={{ marginTop: 4 }}>
-                          <b>{ph.name}.</b> {ph.blurb}
+                          <b>{t(ph.name)}.</b> {t(ph.blurb)}
                         </div>
                         <div className="meta muted">{dialLine(oppClub.tactic)}</div>
                         {suite >= 1 && (
                           <div className="meta" style={{ marginTop: 4 }}>
-                            <b>The angle:</b> {ph.soft}
+                            <b>{t('matchday.theAngle')}</b> {t(ph.soft)}
                           </div>
                         )}
                       </>
@@ -969,8 +971,8 @@ function Preview({ fxId }: { fxId: number }) {
         {(() => {
           const label: Record<number, string> = { 0: 'Front row', 3: 'Locks', 8: 'Halfbacks', 11: 'Centres' }
           const rows = CHEM_SLOTS.filter(([i]) => label[i]).map(([i, j]) => {
-            const a = t.lineup[i] != null ? game.players[t.lineup[i]!] : null
-            const b = t.lineup[j] != null ? game.players[t.lineup[j]!] : null
+            const a = tac.lineup[i] != null ? game.players[tac.lineup[i]!] : null
+            const b = tac.lineup[j] != null ? game.players[tac.lineup[j]!] : null
             if (!a || !b) return null
             const g = game.chem?.[chemKey(a.id, b.id)] ?? 0
             return { key: label[i], a, b, g, tier: chemTier(g) }
@@ -1011,14 +1013,14 @@ function Preview({ fxId }: { fxId: number }) {
             </button>
           </div>
         )}
-        <SectionTitle sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
+        <SectionTitle sub={sel != null ? `moving ${game.players[tac.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
         {/* forwards left, backs right, exactly as the Tactics team sheet does it.
             The same information was laid out two different ways one screen apart. */}
         <div className="xv-split">
           <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
           <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
         </div>
-        <SectionTitle sub={SPLIT_BY_ID[splitFor(club)]?.name.toLowerCase()}>Replacements</SectionTitle>
+        <SectionTitle sub={t(SPLIT_BY_ID[splitFor(club)]?.name ?? '').toLowerCase()}>{t('selection.replacements')}</SectionTitle>
         <div className="xv-split">
           <table className="dtable"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
           <table className="dtable"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
@@ -2272,9 +2274,9 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       <div className="fact-label" style={{ marginTop: 12 }}>Quick Game Plans</div>
       <div className="preset-row">
         {PRESETS.map(p => (
-          <button key={p.id} className="preset-chip" title={p.desc}
-            onClick={() => { applyPreset(p.values); setExplain(`${p.icon} ${p.name}: ${p.desc}`) }}>
-            {p.icon} {p.name}
+          <button key={p.id} className="preset-chip" title={t(p.desc)}
+            onClick={() => { applyPreset(p.values); setExplain(`${p.icon} ${t(p.name)}: ${t(p.desc)}`) }}>
+            {p.icon} {t(p.name)}
           </button>
         ))}
       </div>
@@ -2283,8 +2285,8 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {SLIDER_INFO.map(s => (
         <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
-            onClick={() => setExplain(`${s.label}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
-            {s.label}
+            onClick={() => setExplain(`${t(s.label)}: ${sliderReadout(s.key, club.tactic[s.key])}`)}>
+            {t(s.label)}
           </span>
           <input type="range" min={0} max={100} value={club.tactic[s.key]} style={{ flex: 1, accentColor: 'var(--primary)' }}
             onChange={e => { club.tactic[s.key] = Number(e.target.value); liveTactics(); touch() }} />
@@ -2510,7 +2512,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                   <span className="sh-num">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>
                   {brief !== 'orders' && (
-                    <span className="sh-flag" title={BRIEF_BY_ID[brief].name}>{BRIEF_BY_ID[brief].icon}</span>
+                    <span className="sh-flag" title={t(BRIEF_BY_ID[brief].name)}>{BRIEF_BY_ID[brief].icon}</span>
                   )}
                   {off && covers(p) && <span className="sh-flag" title="Natural cover">✓</span>}
                   <span className="sh-rate">{p.ca}</span>

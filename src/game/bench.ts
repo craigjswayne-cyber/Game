@@ -21,6 +21,10 @@
 // Balance note, learned the hard way twice: the default has to be exactly
 // neutral and the two alternatives have to be near mirror images, or a new dial
 // quietly taxes or subsidises the entire world.
+//
+// name/short/desc are i18n KEYS, not words - these tables are built once at
+// module load and the language can change afterwards. English wording is in
+// src/locales/en.json under `bench`. The engine reads only the NUMBERS here.
 
 import type { Club, GameState, Player, Pos } from './model'
 import { effAt } from './attributes'
@@ -59,8 +63,8 @@ export interface SplitDef {
  *  free, and across a world that picks both the mean does not move. */
 export const SPLITS: SplitDef[] = [
   {
-    id: '5-3', name: 'Five and Three',
-    desc: 'The orthodox bench. Cover everywhere, a weapon nowhere.',
+    id: '5-3', name: 'bench.split53',
+    desc: 'bench.split53Desc',
     seats: [
       { shirt: 16, pos: ['HK'] },
       { shirt: 17, pos: ['LP', 'TP'] },
@@ -74,8 +78,8 @@ export const SPLITS: SplitDef[] = [
     scrum: 1, breakdown: 1, defence: 1, attack: 1,
   },
   {
-    id: '6-2', name: 'Six and Two',
-    desc: 'The bomb squad. You win the last twenty up front, and one back injury leaves a forward in the backline.',
+    id: '6-2', name: 'bench.split62',
+    desc: 'bench.split62Desc',
     seats: [
       { shirt: 16, pos: ['HK'] },
       { shirt: 17, pos: ['LP', 'TP'] },
@@ -89,8 +93,8 @@ export const SPLITS: SplitDef[] = [
     scrum: 1.04, breakdown: 1.02, defence: 1.01, attack: 0.965,
   },
   {
-    id: '4-4', name: 'Four and Four',
-    desc: 'Width and insurance. Fresh legs out wide and cover for every back, at the cost of the shove.',
+    id: '4-4', name: 'bench.split44',
+    desc: 'bench.split44Desc',
     seats: [
       { shirt: 16, pos: ['HK'] },
       { shirt: 17, pos: ['LP', 'TP'] },
@@ -243,10 +247,10 @@ export interface BriefDef {
 }
 
 export const BRIEFS: BriefDef[] = [
-  { id: 'orders', name: 'Follow the shirt', short: 'The Shirt', icon: '👕', desc: 'Do the job the man you replaced was doing. No change of plan.' },
-  { id: 'impact', name: 'Go through them', short: 'Impact', icon: '💥', desc: 'Twenty minutes flat out. More carry, less cover, and he will be empty at the end.' },
-  { id: 'shore', name: 'Shut the door', short: 'Shut Door', icon: '🛡', desc: 'Tackles, discipline, no risks. The lead is the only thing that matters.' },
-  { id: 'manage', name: 'Play the corners', short: 'Corners', icon: '🎯', desc: 'Kick the clock away and keep it in their half. Nothing fancy.' },
+  { id: 'orders', name: 'bench.briefOrders', short: 'bench.briefOrdersShort', icon: '👕', desc: 'bench.briefOrdersDesc' },
+  { id: 'impact', name: 'bench.briefImpact', short: 'bench.briefImpactShort', icon: '💥', desc: 'bench.briefImpactDesc' },
+  { id: 'shore', name: 'bench.briefShore', short: 'bench.briefShoreShort', icon: '🛡', desc: 'bench.briefShoreDesc' },
+  { id: 'manage', name: 'bench.briefManage', short: 'bench.briefManageShort', icon: '🎯', desc: 'bench.briefManageDesc' },
 ]
 
 export const BRIEF_BY_ID: Record<string, BriefDef> =

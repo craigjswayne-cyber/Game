@@ -39,6 +39,7 @@
 // stretching 78/22 further should re-measure before believing it is free.
 import { isForward } from './bench'
 import type { Club, GameState, Tactic } from './model'
+import { t } from './i18n'
 
 export interface Philosophy {
   id: string
@@ -63,51 +64,51 @@ export interface Philosophy {
 
 export const PHILOSOPHIES: Philosophy[] = [
   {
-    id: 'pack', pair: 'A', name: 'Forward Dominance', packSide: true,
-    blurb: 'They want a shoving match. Maul off the lineout, pick and go, squeeze at the scrum.',
-    soft: 'Slow their ball down and the width outside them is decoration.',
+    id: 'pack', pair: 'A', name: 'philosophy.pack', packSide: true,
+    blurb: 'philosophy.packBlurb',
+    soft: 'philosophy.packSoft',
     dials: { style: 26, tempo: 42, kicking: 60, aggression: 62, defLine: 56, defWidth: 38 },
   },
   {
-    id: 'width', pair: 'A', name: 'Width and Offloads', packSide: false,
-    blurb: 'Ball to the edges early and often, with the offload always on in contact.',
-    soft: 'Front up in the collisions and their handling starts costing them.',
+    id: 'width', pair: 'A', name: 'philosophy.width', packSide: false,
+    blurb: 'philosophy.widthBlurb',
+    soft: 'philosophy.widthSoft',
     dials: { style: 74, tempo: 58, kicking: 40, aggression: 38, defLine: 44, defWidth: 62 },
   },
   {
-    id: 'tempo', pair: 'B', name: 'Fast Hands, Fast Feet', packSide: false,
-    blurb: 'Tap and go, quick rucks, no time to reset. They want you out of breath by fifty.',
-    soft: 'Keep your shape for an hour and the pace they set is the pace they die at.',
+    id: 'tempo', pair: 'B', name: 'philosophy.tempo', packSide: false,
+    blurb: 'philosophy.tempoBlurb',
+    soft: 'philosophy.tempoSoft',
     dials: { style: 62, tempo: 78, kicking: 38, aggression: 50, defLine: 58, defWidth: 56 },
   },
   {
-    id: 'squeeze', pair: 'B', name: 'Territory and Squeeze', packSide: true,
-    blurb: 'Field position first. Long kicks, corner pins, and pressure on your exits.',
-    soft: 'Beat the first chaser and there is acres behind their kicking game.',
+    id: 'squeeze', pair: 'B', name: 'philosophy.squeeze', packSide: true,
+    blurb: 'philosophy.squeezeBlurb',
+    soft: 'philosophy.squeezeSoft',
     dials: { style: 38, tempo: 22, kicking: 62, aggression: 50, defLine: 42, defWidth: 44 },
   },
   {
-    id: 'blitz', pair: 'C', name: 'Blitz Defence', packSide: true,
-    blurb: 'Up and at you off the line, then kick the turnover long. Built to strangle.',
-    soft: 'Go behind the rush rather than into it and the line is stretched thin.',
+    id: 'blitz', pair: 'C', name: 'philosophy.blitz', packSide: true,
+    blurb: 'philosophy.blitzBlurb',
+    soft: 'philosophy.blitzSoft',
     dials: { style: 42, tempo: 40, kicking: 66, aggression: 58, defLine: 72, defWidth: 46 },
   },
   {
-    id: 'counter', pair: 'C', name: 'Counter-Punch', packSide: false,
-    blurb: 'Happy without the ball. They soak it up and strike the moment it breaks loose.',
-    soft: 'Hold on to it, build phases, and give them nothing to run at.',
+    id: 'counter', pair: 'C', name: 'philosophy.counter', packSide: false,
+    blurb: 'philosophy.counterBlurb',
+    soft: 'philosophy.counterSoft',
     dials: { style: 58, tempo: 60, kicking: 34, aggression: 42, defLine: 28, defWidth: 54 },
   },
   {
-    id: 'chaos', pair: 'D', name: 'Controlled Chaos', packSide: true,
-    blurb: 'Fast, physical and loose on purpose. They back themselves in a scramble.',
-    soft: 'Discipline. They give away more than they win when it gets messy.',
+    id: 'chaos', pair: 'D', name: 'philosophy.chaos', packSide: true,
+    blurb: 'philosophy.chaosBlurb',
+    soft: 'philosophy.chaosSoft',
     dials: { style: 66, tempo: 70, kicking: 44, aggression: 66, defLine: 62, defWidth: 60 },
   },
   {
-    id: 'structure', pair: 'D', name: 'Structure and Discipline', packSide: false,
-    blurb: 'Patient phase play off a set plan, and they will not hand you penalties.',
-    soft: 'Force them off script early. Improvising is not what they practise.',
+    id: 'structure', pair: 'D', name: 'philosophy.structure', packSide: false,
+    blurb: 'philosophy.structureBlurb',
+    soft: 'philosophy.structureSoft',
     dials: { style: 34, tempo: 30, kicking: 56, aggression: 34, defLine: 38, defWidth: 40 },
   },
 ]
@@ -259,35 +260,35 @@ export interface Counter {
 
 export const COUNTER: Record<string, Counter> = {
   pack: {
-    line: 'Meet them up front. Go wide off slow ball against that pack and they will eat you at the breakdown.',
+    line: 'philosophy.counter_pack',
     dials: { style: 34, tempo: 44, kicking: 62, aggression: 62 },
   },
   width: {
-    line: 'Pin them in their own half and make them play from deep, where all that width costs them more than it gains.',
+    line: 'philosophy.counter_width',
     dials: { style: 40, tempo: 40, kicking: 68, aggression: 56 },
   },
   tempo: {
-    line: 'Slow it down. Every reset is a breather you take and they do not want.',
+    line: 'philosophy.counter_tempo',
     dials: { style: 38, tempo: 30, kicking: 64, aggression: 44 },
   },
   squeeze: {
-    line: 'Run it back at them. A side that lives on field position hates chasing.',
+    line: 'philosophy.counter_squeeze',
     dials: { style: 62, tempo: 60, kicking: 30, aggression: 46 },
   },
   blitz: {
-    line: 'Go round the rush rather than into it, and keep the penalty count clean so they get no easy exits.',
+    line: 'philosophy.counter_blitz',
     dials: { style: 66, tempo: 56, kicking: 44, aggression: 44 },
   },
   counter: {
-    line: 'Give them nothing loose. Build phases and kick only when the chase is set.',
+    line: 'philosophy.counter_counter',
     dials: { style: 44, tempo: 44, kicking: 58, aggression: 52 },
   },
   chaos: {
-    line: 'Be the disciplined side and let them give it away. Do not join the scrap.',
+    line: 'philosophy.counter_chaos',
     dials: { style: 40, tempo: 36, kicking: 60, aggression: 34 },
   },
   structure: {
-    line: 'Rush them off their script early. Speed and pressure beat a plan they have rehearsed all week.',
+    line: 'philosophy.counter_structure',
     dials: { style: 60, tempo: 68, kicking: 40, aggression: 58 },
   },
 }
@@ -296,14 +297,15 @@ export const counterTo = (id: string | undefined): Counter | null => (id ? COUNT
 
 /** The dials as a one-line readout, for the briefing card. All six now: how
  *  a side defends is public knowledge too - you can watch them (20C). */
-export function dialLine(t: Tactic): string {
-  const band = (v: number, lo: string, mid: string, hi: string) => (v >= 62 ? hi : v <= 38 ? lo : mid)
+export function dialLine(tac: Tactic): string {
+  // `tac`, not `t`: t() is the translator
+  const band = (v: number, lo: string, mid: string, hi: string) => t(v >= 62 ? hi : v <= 38 ? lo : mid)
   return [
-    band(t.style, 'tight', 'even', 'wide'),
-    band(t.tempo, 'slow', 'steady', 'quick'),
-    band(t.kicking, 'ball in hand', 'mixed', 'kick-heavy'),
-    band(t.aggression, 'clean', 'firm', 'abrasive'),
-    band(t.defLine ?? 50, 'passive line', 'measured line', 'blitzing line'),
-    band(t.defWidth ?? 50, 'narrow defence', 'balanced defence', 'spread defence'),
+    band(tac.style, 'philosophy.dialTight', 'philosophy.dialEven', 'philosophy.dialWide'),
+    band(tac.tempo, 'philosophy.dialSlow', 'philosophy.dialSteady', 'philosophy.dialQuick'),
+    band(tac.kicking, 'philosophy.dialBallInHand', 'philosophy.dialMixed', 'philosophy.dialKickHeavy'),
+    band(tac.aggression, 'philosophy.dialClean', 'philosophy.dialFirm', 'philosophy.dialAbrasive'),
+    band(tac.defLine ?? 50, 'philosophy.dialPassiveLine', 'philosophy.dialMeasuredLine', 'philosophy.dialBlitzingLine'),
+    band(tac.defWidth ?? 50, 'philosophy.dialNarrowDef', 'philosophy.dialBalancedDef', 'philosophy.dialSpreadDef'),
   ].join(' · ')
 }

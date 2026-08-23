@@ -39,7 +39,10 @@ try {
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
-  await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
+  // The club is "Leicester RFC" since the IP rename; matching on the
+  // prefix rather than the full name so the next rename does not kill
+  // three harnesses in one go.
+  await page.waitForSelector('text=Welcome to Leicester', { timeout: 15000 })
   await measure('home')
 
   await page.click('.bottom-nav button[title="Hub"]')

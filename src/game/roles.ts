@@ -1,5 +1,9 @@
 // Positional roles, FM-style but for rugby: each shirt can be told HOW to
 // play his position. Small, honest effects - selection still rules.
+//
+// name/short/desc are i18n KEYS, not words: this table is built once at module
+// load and the language can change afterwards. The screen calls t() on them.
+// English wording is in src/locales/en.json under `roles`.
 
 export interface RoleDef { id: string; name: string; short: string; desc: string }
 
@@ -7,37 +11,37 @@ export interface RoleDef { id: string; name: string; short: string; desc: string
 // hooker into a Mobile Prop. A hooker's job is the throw and the link play; he
 // gets his own two.
 const PROPS: RoleDef[] = [
-  { id: 'scrummager', name: 'Scrummager', short: 'SCR', desc: 'Lives for the set piece. Scrum up, a touch less around the park.' },
-  { id: 'mobile', name: 'Mobile Prop', short: 'MOB', desc: 'A front-rower with wheels. Attack up, scrum eases off.' },
+  { id: 'scrummager', name: 'roles.scrummager', short: 'roles.scrummagerShort', desc: 'roles.scrummagerDesc' },
+  { id: 'mobile', name: 'roles.mobile', short: 'roles.mobileShort', desc: 'roles.mobileDesc' },
 ]
 const HOOKER: RoleDef[] = [
-  { id: 'thrower', name: 'Lineout Thrower', short: 'THR', desc: 'The throw is his job and he drills it. Lineout up, scrum eases.' },
-  { id: 'link', name: 'Link Man', short: 'LNK', desc: 'A hooker who plays like a flanker. Attack and breakdown up, scrum eases.' },
+  { id: 'thrower', name: 'roles.thrower', short: 'roles.throwerShort', desc: 'roles.throwerDesc' },
+  { id: 'link', name: 'roles.link', short: 'roles.linkShort', desc: 'roles.linkDesc' },
 ]
 const LOCKS: RoleDef[] = [
-  { id: 'lineout_general', name: 'Lineout General', short: 'LIN', desc: 'Runs the air. Lineout up, and his eyes are up there rather than on the floor.' },
-  { id: 'enforcer_lock', name: 'Enforcer', short: 'ENF', desc: 'Brings the nasty. Breakdown up, cards flirt.' },
+  { id: 'lineout_general', name: 'roles.lineout_general', short: 'roles.lineout_generalShort', desc: 'roles.lineout_generalDesc' },
+  { id: 'enforcer_lock', name: 'roles.enforcer_lock', short: 'roles.enforcer_lockShort', desc: 'roles.enforcer_lockDesc' },
 ]
 const BACK_ROW: RoleDef[] = [
-  { id: 'jackal_role', name: 'Jackal', short: 'JKL', desc: 'First to every ruck. Breakdown up, but he is over the ball rather than in the line.' },
-  { id: 'carrier', name: 'Ball Carrier', short: 'CAR', desc: 'Hard metres every time. Attack up; carrying is not clearing rucks.' },
-  { id: 'stopper', name: 'Defensive Anchor', short: 'DEF', desc: 'Tackles everything that moves. Defence up, attack eases.' },
+  { id: 'jackal_role', name: 'roles.jackal_role', short: 'roles.jackal_roleShort', desc: 'roles.jackal_roleDesc' },
+  { id: 'carrier', name: 'roles.carrier', short: 'roles.carrierShort', desc: 'roles.carrierDesc' },
+  { id: 'stopper', name: 'roles.stopper', short: 'roles.stopperShort', desc: 'roles.stopperDesc' },
 ]
 const SCRUM_HALF: RoleDef[] = [
-  { id: 'box_kicker', name: 'Box Kicker', short: 'BOX', desc: 'Pins the corners. Kicking game up, less ball through the hands.' },
-  { id: 'sniper', name: 'Sniper', short: 'SNP', desc: 'Darts from the base. Attack up, kicking eases.' },
+  { id: 'box_kicker', name: 'roles.box_kicker', short: 'roles.box_kickerShort', desc: 'roles.box_kickerDesc' },
+  { id: 'sniper', name: 'roles.sniper', short: 'roles.sniperShort', desc: 'roles.sniperDesc' },
 ]
 const FLY_HALF: RoleDef[] = [
-  { id: 'kicking_general', name: 'Kicking General', short: 'KGN', desc: 'Plays the corners all day. Kicking well up.' },
-  { id: 'playmaker', name: 'Playmaker', short: 'PLY', desc: 'Flat to the line, ball in hand. Attack up, defence eases.' },
+  { id: 'kicking_general', name: 'roles.kicking_general', short: 'roles.kicking_generalShort', desc: 'roles.kicking_generalDesc' },
+  { id: 'playmaker', name: 'roles.playmaker', short: 'roles.playmakerShort', desc: 'roles.playmakerDesc' },
 ]
 const CENTRES: RoleDef[] = [
-  { id: 'crash', name: 'Crash Ball', short: 'CRB', desc: 'Over the gain line. Breakdown support up, a little less width.' },
-  { id: 'distributor', name: 'Distributor', short: 'DST', desc: 'Hands through the gap. Attack up, defence eases.' },
+  { id: 'crash', name: 'roles.crash', short: 'roles.crashShort', desc: 'roles.crashDesc' },
+  { id: 'distributor', name: 'roles.distributor', short: 'roles.distributorShort', desc: 'roles.distributorDesc' },
 ]
 const BACK_THREE: RoleDef[] = [
-  { id: 'finisher', name: 'Finisher', short: 'FIN', desc: 'Feed him and he scores. Attack edge up, defence eases.' },
-  { id: 'aerial', name: 'Aerial Specialist', short: 'AIR', desc: 'Owns the high ball. Defence and kick-chase up, less of a threat with it in hand.' },
+  { id: 'finisher', name: 'roles.finisher', short: 'roles.finisherShort', desc: 'roles.finisherDesc' },
+  { id: 'aerial', name: 'roles.aerial', short: 'roles.aerialShort', desc: 'roles.aerialDesc' },
 ]
 
 /** Role options per XV slot (0-14 in lineup order). */

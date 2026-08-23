@@ -4,13 +4,14 @@ import { XV_SLOTS, type Player } from '../../game/model'
 import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, defSliderReadout, sliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
 import { PosBadge, SectionTitle } from '../components'
-import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
+import { analystClaim, analystForm, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
 import { counterTo, dialLine, philosophyOf } from '../../game/philosophy'
 import { repetitionFatigue } from '../../game/oppcoach'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
+import { t } from '../../game/i18n'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -27,17 +28,18 @@ export default function Tactics() {
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
-  const t = club.tactic
+  // `tac`, not `t`: t() is the translator (src/game/i18n.ts)
+  const tac = club.tactic
 
   // the bench seats depend on the split the manager named (F4)
   const seats = benchSeats(club)
 
   const slider = (info: typeof SLIDER_INFO[number]) => (
     <div className="slider-row" key={info.key}>
-      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--info)' }}>{info.label}</b><span>{info.hi}</span></div>
-      <input type="range" min={0} max={100} value={t[info.key]}
-        onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, t[info.key])}</div>
+      <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
+      <input type="range" min={0} max={100} value={tac[info.key]}
+        onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
+      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{sliderReadout(info.key, tac[info.key])}</div>
     </div>
   )
 
@@ -46,9 +48,9 @@ export default function Tactics() {
   const defSlider = (info: typeof DEF_SLIDER_INFO[number]) => (
     <div className="slider-row" key={info.key}>
       <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--info)' }}>{info.label}</b><span>{info.hi}</span></div>
-      <input type="range" min={0} max={100} value={t[info.key] ?? 50}
-        onChange={e => { t[info.key] = Number(e.target.value); touch() }} />
-      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, t[info.key] ?? 50)}</div>
+      <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
+        onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
+      <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
     </div>
   )
 
@@ -82,34 +84,34 @@ export default function Tactics() {
   const go = useStore.getState().go
   const roleSheet = () => {
     if (roleSlot == null) return null
-    const pid = t.lineup[roleSlot]
+    const pid = tac.lineup[roleSlot]
     const p = pid != null ? game.players[pid] : null
     const roles = rolesForSlot(roleSlot)
-    const current = t.roles?.[roleSlot] ?? null
+    const current = tac.roles?.[roleSlot] ?? null
     return (
       <div className="modal-veil" onClick={() => setRoleSlot(null)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 14px 10px' }}>
-            <SectionTitle sub={`No. ${XV_SLOTS[roleSlot].shirt} · how should he play the position? · ${roles.length + 1} options`}>
-              {p ? p.name : 'Empty slot'}
+            <SectionTitle sub={t('tacticsScreen.roleSheetSub', { shirt: XV_SLOTS[roleSlot].shirt, n: roles.length + 1 })}>
+              {p ? p.name : t('tacticsScreen.emptySlot')}
             </SectionTitle>
-            <button className="club-pick" onClick={() => { (t.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
+            <button className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = null; setRoleSlot(null); touch() }}>
               <span style={{ fontSize: 16 }}>{current == null ? '●' : '○'}</span>
-              <span className="cname">Natural</span>
-              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>No special instruction.</span>
+              <span className="cname">{t('tacticsScreen.natural')}</span>
+              <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t('tacticsScreen.noInstruction')}</span>
             </button>
             {roles.map(r => (
-              <button key={r.id} className="club-pick" onClick={() => { (t.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
+              <button key={r.id} className="club-pick" onClick={() => { (tac.roles ??= [])[roleSlot] = r.id; setRoleSlot(null); touch() }}>
                 <span style={{ fontSize: 16 }}>{current === r.id ? '●' : '○'}</span>
-                <span className="cname">{r.name}</span>
-                <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{r.desc}</span>
+                <span className="cname">{t(r.name)}</span>
+                <span className="muted" style={{ maxWidth: '55%', textAlign: 'right' }}>{t(r.desc)}</span>
               </button>
             ))}
             {p && (
               <button className="btn ghost block" style={{ marginTop: 8 }}
                 onClick={() => { setRoleSlot(null); go('player', p.id) }}>
-                Open {p.name.split(' ').slice(-1)[0]}'s profile ›
+                {t('tacticsScreen.openProfile', { name: p.name.split(' ').slice(-1)[0] })}
               </button>
             )}
           </div>
@@ -138,21 +140,23 @@ export default function Tactics() {
       <div className="tab-bar">
         {/* named for what is on it: role chips on a pitch (user: "change the
             tactics to roles") */}
-        <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>Roles</button>
-        <button className={ttab === 'setp' ? 'active' : ''} onClick={() => setTtab('setp')}>Set Piece</button>
-        <button className={ttab === 'bench' ? 'active' : ''} onClick={() => setTtab('bench')}>Bench</button>
-        <button className={ttab === 'prep' ? 'active' : ''} onClick={() => setTtab('prep')}>Prep</button>
-        <button className={ttab === 'plan' ? 'active' : ''} onClick={() => setTtab('plan')}>Game Plan</button>
+        <button className={ttab === 'tactics' ? 'active' : ''} onClick={() => setTtab('tactics')}>{t('tacticsScreen.tabRoles')}</button>
+        <button className={ttab === 'setp' ? 'active' : ''} onClick={() => setTtab('setp')}>{t('tacticsScreen.tabSetPiece')}</button>
+        <button className={ttab === 'bench' ? 'active' : ''} onClick={() => setTtab('bench')}>{t('tacticsScreen.tabBench')}</button>
+        <button className={ttab === 'prep' ? 'active' : ''} onClick={() => setTtab('prep')}>{t('tacticsScreen.tabPrep')}</button>
+        <button className={ttab === 'plan' ? 'active' : ''} onClick={() => setTtab('plan')}>{t('tacticsScreen.tabPlan')}</button>
       </div>
 
       {repPct > 0 && worstDial && (
         <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
-          <div className="fact-label">The conditioning coach wants a word</div>
+          <div className="fact-label">{t('tacticsScreen.condCoach')}</div>
           <div style={{ fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>
-            {worstDial.n} weeks running at the same extreme on <b>{worstDial.k === 'defLine' ? 'defensive line' : worstDial.k}</b>.
-            The GPS numbers say the squad is running <b>{repPct}% hotter</b> than it should, and the last twenty
-            minutes are where you feel that. The league reads a manager who repeats himself, too.
-            Two weeks nearer the middle walks both back.
+            {t('tacticsScreen.condLine', {
+              n: worstDial.n,
+              dial: t(worstDial.k === 'defLine' ? 'tacticsScreen.dialDefLine'
+                : worstDial.k === 'tempo' ? 'tacticsScreen.dialTempo' : 'tacticsScreen.dialAggression'),
+              pct: repPct,
+            })}
           </div>
         </div>
       )}
@@ -160,14 +164,14 @@ export default function Tactics() {
       {ttab === 'tactics' && <>
         <div className="form-pitch">
           {SPOTS.map(([x, y], i) => {
-            const pid = t.lineup[i]
+            const pid = tac.lineup[i]
             const p = pid != null ? game.players[pid] : null
-            const role = t.roles?.[i] != null ? ROLE_BY_ID[t.roles![i]!] : null
+            const role = tac.roles?.[i] != null ? ROLE_BY_ID[tac.roles![i]!] : null
             return (
               <button key={i} className="form-chip"
                 style={{ '--fx': `${x}%`, '--fy': `${y}%` } as React.CSSProperties}
                 onClick={() => setRoleSlot(i)}>
-                <span className="fc-role">{role ? role.short : XV_SLOTS[i].pos}</span>
+                <span className="fc-role">{role ? t(role.short) : XV_SLOTS[i].pos}</span>
                 <span className="fc-name">{p ? p.name.split(' ').slice(-1)[0] : '-'}</span>
                 <span className="fc-num">{XV_SLOTS[i].shirt}</span>
               </button>
@@ -175,7 +179,7 @@ export default function Tactics() {
           })}
         </div>
         <div className="meta" style={{ padding: '4px 16px' }}>
-          Tap a shirt to set his role or open his profile. Roles are small, honest edges - the scrummager props up the set piece, the playmaker opens the game.
+          {t('tacticsScreen.rolesNote')}
         </div>
       </>}
 
@@ -190,29 +194,27 @@ export default function Tactics() {
             top. */}
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <div className="meta">
-            <b>One rule runs this page.</b> Whatever you call gets sharper every week and everything
-            else goes rusty, so pick moves you mean to keep calling. Set-Piece Work in Prep speeds it
-            up and your scrum coach sets the ceiling.
+            <b>{t('tacticsScreen.setPieceRule')}</b> {t('tacticsScreen.setPieceRuleRest')}
           </div>
         </div>
-        {([['lineout', 'Lineout Call', DEFAULT_LINEOUT, 'lineoutCall'],
-           ['scrum', 'Scrum Call', DEFAULT_SCRUM, 'scrumCall']] as const).map(([kind, heading, dflt, key]) => (
+        {([['lineout', 'tacticsScreen.lineoutCall', DEFAULT_LINEOUT, 'lineoutCall'],
+           ['scrum', 'tacticsScreen.scrumCall', DEFAULT_SCRUM, 'scrumCall']] as const).map(([kind, heading, dflt, key]) => (
           <div key={kind}>
-            <SectionTitle>{heading}</SectionTitle>
+            <SectionTitle>{t(heading)}</SectionTitle>
             <div className="routine-grid">
               {ROUTINES.filter(r => r.kind === kind).map(r => {
-                const on = (t[key] ?? dflt) === r.id
+                const on = (tac[key] ?? dflt) === r.id
                 const e = routineEffect(club, r.id)
                 return (
                   <button key={r.id} className={`speech-tile${on ? ' sel' : ''}`}
-                    onClick={() => { t[key] = r.id; touch() }}>
-                    <b>{r.name}</b>
-                    <span className="d">{r.desc}</span>
+                    onClick={() => { tac[key] = r.id; touch() }}>
+                    <b>{t(r.name)}</b>
+                    <span className="d">{t(r.desc)}</span>
                     <span className="rt-bar"><i style={{ width: `${e.drilled}%` }} /></span>
                     <span className="d">
-                      {Math.round(e.drilled)}% drilled
-                      {e.mult >= 1.02 ? `, worth +${Math.round((e.mult - 1) * 100)}%`
-                        : e.mult <= 0.98 ? `, costing ${Math.round((1 - e.mult) * 100)}%` : ', about level'}
+                      {t('tacticsScreen.drilled', { pct: Math.round(e.drilled) })}
+                      {e.mult >= 1.02 ? t('tacticsScreen.worth', { pct: Math.round((e.mult - 1) * 100) })
+                        : e.mult <= 0.98 ? t('tacticsScreen.costing', { pct: Math.round((1 - e.mult) * 100) }) : t('tacticsScreen.aboutLevel')}
                     </span>
                   </button>
                 )
@@ -221,76 +223,76 @@ export default function Tactics() {
           </div>
         ))}
 
-        <SectionTitle>Goal Kickers</SectionTitle>
+        <SectionTitle>{t('tacticsScreen.goalKickers')}</SectionTitle>
         <div className="card">
           {[0, 1].map(slot => {
-            const cur = (t.kickers ?? [])[slot] ?? null
-            const xv = t.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((p): p is Player => !!p)
+            const cur = (tac.kickers ?? [])[slot] ?? null
+            const xv = tac.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((p): p is Player => !!p)
             return (
               <div key={slot} className="lead-row">
-                <span className="fact-label">{slot === 0 ? 'First' : 'Second'}</span>
+                <span className="fact-label">{t(slot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')}</span>
                 <select className="inline-input" value={cur ?? ''}
                   onChange={ev => {
                     const v = ev.target.value === '' ? null : Number(ev.target.value)
-                    const ks = [...(t.kickers ?? [null, null])]
+                    const ks = [...(tac.kickers ?? [null, null])]
                     ks[slot] = v
-                    t.kickers = ks
+                    tac.kickers = ks
                     touch()
                   }}>
-                  <option value="">Assistant picks</option>
+                  <option value="">{t('tacticsScreen.assistantPicks')}</option>
                   {[...xv].sort((a, b) => b.a.goa - a.a.goa).map(p => (
-                    <option key={p.id} value={p.id}>{p.name} ({p.pos}) - goal kicking {p.a.goa}</option>
+                    <option key={p.id} value={p.id}>{t('tacticsScreen.kickerOption', { name: p.name, pos: p.pos, goa: p.a.goa })}</option>
                   ))}
                 </select>
               </div>
             )
           })}
-          <div className="meta" style={{ marginTop: 5 }}>First choice takes everything; the second man steps up when he is off.</div>
+          <div className="meta" style={{ marginTop: 5 }}>{t('tacticsScreen.kickerNote')}</div>
         </div>
 
-        <SectionTitle>Getting Out Of Your 22</SectionTitle>
+        <SectionTitle>{t('tacticsScreen.exiting')}</SectionTitle>
         <div className="card">
           <div className="opt-2x2">
             {([
-              ['box', '📦 Box Kick'],
-              ['long', '🦶 Long Kick'],
-              ['counter', '🏃 Run It'],
-              ['fifty22', '🎯 50:22'],
+              ['box', 'tacticsScreen.exitBox'],
+              ['long', 'tacticsScreen.exitLong'],
+              ['counter', 'tacticsScreen.exitCounter'],
+              ['fifty22', 'tacticsScreen.exitFifty22'],
             ] as const).map(([id, label]) => (
-              <button key={id} className={`preset-chip${(t.exit ?? 'long') === id ? ' on' : ''}`}
-                onClick={() => { t.exit = id; touch() }}>{label}</button>
+              <button key={id} className={`preset-chip${(tac.exit ?? 'long') === id ? ' on' : ''}`}
+                onClick={() => { tac.exit = id; touch() }}>{t(label)}</button>
             ))}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
-            {({
-              box: 'Safest way out, and it hands the ball back.',
-              long: 'Field position first. Solid and hard to punish.',
-              counter: 'You keep the ball and take the risk in your own half.',
-              fifty22: 'Huge if the boot is accurate, a gift if it is not.',
-            })[t.exit ?? 'long']}
+            {t(({
+              box: 'tacticsScreen.exitBoxDesc',
+              long: 'tacticsScreen.exitLongDesc',
+              counter: 'tacticsScreen.exitCounterDesc',
+              fifty22: 'tacticsScreen.exitFifty22Desc',
+            })[tac.exit ?? 'long'])}
           </div>
         </div>
 
-        <SectionTitle>Kickable Penalty</SectionTitle>
+        <SectionTitle>{t('tacticsScreen.kickablePenalty')}</SectionTitle>
         <div className="card">
           <div className="opt-2x2">
             {([
-              ['ask', '🤔 Ask Me'],
-              ['posts', '🥅 Take Points'],
-              ['corner', '🚩 To the Corner'],
-              ['tap', '⚡ Tap and Go'],
+              ['ask', 'tacticsScreen.penAsk'],
+              ['posts', 'tacticsScreen.penPosts'],
+              ['corner', 'tacticsScreen.penCorner'],
+              ['tap', 'tacticsScreen.penTap'],
             ] as const).map(([id, label]) => (
-              <button key={id} className={`preset-chip${(t.penaltyCall ?? 'ask') === id ? ' on' : ''}`}
-                onClick={() => { t.penaltyCall = id; touch() }}>{label}</button>
+              <button key={id} className={`preset-chip${(tac.penaltyCall ?? 'ask') === id ? ' on' : ''}`}
+                onClick={() => { tac.penaltyCall = id; touch() }}>{t(label)}</button>
             ))}
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
-            {({
-              ask: 'You get asked every time. Fine for a big game, tiring on a wet Friday.',
-              posts: 'Three points, every time. No drama and no big scores.',
-              corner: 'Back the maul. Tries win knockouts.',
-              tap: 'Play before they set. Chaos, in both directions.',
-            })[t.penaltyCall ?? 'ask']}
+            {t(({
+              ask: 'tacticsScreen.penAskDesc',
+              posts: 'tacticsScreen.penPostsDesc',
+              corner: 'tacticsScreen.penCornerDesc',
+              tap: 'tacticsScreen.penTapDesc',
+            })[tac.penaltyCall ?? 'ask'])}
           </div>
         </div>
         <div className="spacer" />
@@ -309,15 +311,18 @@ export default function Tactics() {
           return (
             <div className="card" style={{ borderLeft: `4px solid ${legal ? 'var(--gold)' : 'var(--danger)'}` }}>
               <div className="meta">
-                {!legal && <b style={{ color: 'var(--danger)' }}>No front-row cover on the bench. </b>}
+                {!legal && <b style={{ color: 'var(--danger)' }}>{t('tacticsScreen.noFrontRow')}</b>}
                 {!legal
-                  ? 'Law 3 says the scrum goes uncontested if either side cannot cover hooker and both props, and both teams lose the weapon. The 16, 17 and 18 shirts exist for exactly this.'
-                  : `You named a ${SPLITS.find(x => x.id === want)?.name.toLowerCase()}, and the men in the shirts make it a ${SPLITS.find(x => x.id === got)?.name.toLowerCase()}. The bench you actually pick is the one that plays.`}
+                  ? t('tacticsScreen.law3')
+                  : t('tacticsScreen.splitMismatch', {
+                      want: t(SPLITS.find(x => x.id === want)?.name ?? '').toLowerCase(),
+                      got: t(SPLITS.find(x => x.id === got)?.name ?? '').toLowerCase(),
+                    })}
               </div>
             </div>
           )
         })()}
-        <SectionTitle sub="the first three shirts cover the front row - the rest is yours">The 23</SectionTitle>
+        <SectionTitle sub={t('tacticsScreen.the23Sub')}>{t('tacticsScreen.the23')}</SectionTitle>
         <div className="routine-grid">
           {SPLITS.map(sp => {
             const on = splitFor(club) === sp.id
@@ -325,22 +330,22 @@ export default function Tactics() {
             return (
               <button key={sp.id} className={`speech-tile${on ? ' sel' : ''}`}
                 onClick={() => {
-                  t.bench = sp.id as BenchSplit
+                  tac.bench = sp.id as BenchSplit
                   // the seats changed shape, so the men in them are re-chosen
                   refillBench(game, club)
                   touch()
                 }}>
-                <b>{sp.name}</b>
-                <span className="d">{sp.desc}</span>
-                <span className="d">{fw} forwards, {8 - fw} backs on the bench</span>
+                <b>{t(sp.name)}</b>
+                <span className="d">{t(sp.desc)}</span>
+                <span className="d">{t('tacticsScreen.splitCount', { fw, bk: 8 - fw })}</span>
               </button>
             )
           })}
         </div>
-        <SectionTitle sub="the first three briefs to come on are the ones that land">Finisher Briefs</SectionTitle>
+        <SectionTitle sub={t('tacticsScreen.finisherBriefsSub')}>{t('tacticsScreen.finisherBriefs')}</SectionTitle>
         <div className="brief-list">
           {seats.map((seat, i) => {
-            const pid = t.lineup[15 + i]
+            const pid = tac.lineup[15 + i]
             const p = pid != null ? game.players[pid] : null
             const cur = briefForSeat(club, i)
             return (
@@ -348,18 +353,18 @@ export default function Tactics() {
                 <div className="brief-who">
                   <span className="num">{seat.shirt}</span>
                   <PosBadge pos={seat.pos[0]} />
-                  <span className="nm">{p ? p.name : <span className="muted">- empty seat -</span>}</span>
+                  <span className="nm">{p ? p.name : <span className="muted">{t('tacticsScreen.emptySeat')}</span>}</span>
                 </div>
                 <div className="preset-row">
                   {BRIEFS.map(b => (
-                    <button key={b.id} className={`preset-chip${cur === b.id ? ' on' : ''}`} title={b.desc}
+                    <button key={b.id} className={`preset-chip${cur === b.id ? ' on' : ''}`} title={t(b.desc)}
                       onClick={() => {
-                        const arr = [...(t.briefs ?? new Array(8).fill(null))]
+                        const arr = [...(tac.briefs ?? new Array(8).fill(null))]
                         while (arr.length < 8) arr.push(null)
                         arr[i] = b.id as Brief
-                        t.briefs = arr
+                        tac.briefs = arr
                         touch()
-                      }}>{b.icon} {b.short}</button>
+                      }}>{b.icon} {t(b.short)}</button>
                   ))}
                 </div>
               </div>
@@ -371,31 +376,31 @@ export default function Tactics() {
 
       {ttab === 'prep' && <>
         <AnalystCard />
-        <SectionTitle sub="an edge next week, always with a cost">Match Preparation</SectionTitle>
+        <SectionTitle sub={t('tacticsScreen.matchPrepSub')}>{t('tacticsScreen.matchPrep')}</SectionTitle>
         <div className="preset-row" style={{ padding: '0 14px', flexWrap: 'wrap', gap: 8 }}>
           {([
-            ['attack', '⚡ Attacking Shapes', 'Sharper attack (−1% defence)'],
-            ['defence', '🛡 Defensive Drills', 'Meaner defence (−1% attack)'],
-            ['setpiece', '🏗 Set-Piece Work', 'Scrum & lineout +4% (−1% attack)'],
-            ['fitness', '🏃 Conditioning', 'Legs last longer on matchday'],
-            ['recovery', '🧖 Recovery Week', 'Squad regains extra fitness this week'],
+            ['attack', 'analyst.prepAttack', 'tacticsScreen.prepAttackShort'],
+            ['defence', 'analyst.prepDefence', 'tacticsScreen.prepDefenceShort'],
+            ['setpiece', 'analyst.prepSetpiece', 'tacticsScreen.prepSetpieceShort'],
+            ['fitness', 'analyst.prepFitness', 'tacticsScreen.prepFitnessShort'],
+            ['recovery', 'analyst.prepRecovery', 'tacticsScreen.prepRecoveryShort'],
           ] as const).map(([k, label, desc]) => (
-            <button key={k} className="preset-chip" title={desc}
+            <button key={k} className="preset-chip" title={t(desc)}
               style={game.matchPrep === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
               onClick={() => { game.matchPrep = game.matchPrep === k ? undefined : k; touch() }}>
-              {label}
+              {t(label)}
             </button>
           ))}
         </div>
         <div className="card" style={{ marginTop: 10 }}>
           <div className="meta">
-            {game.matchPrep ? {
-              attack: 'The week is spent on strike moves and width. Attack +3.5%, defence −1%.',
-              defence: 'Wall-building: line speed, spacing, scramble. Defence +3.5%, attack −1%.',
-              setpiece: 'Live scrummaging and lineout reps. Scrum & lineout +4%, attack −1%.',
-              fitness: 'Lung-busters. Your players tire ~8% slower in the next match.',
-              recovery: 'Feet up, pool sessions, massage. Everyone recovers extra condition this week.',
-            }[game.matchPrep] : 'No focus set this week - training runs on autopilot. Pick one above; every choice trades something away.'}
+            {t(game.matchPrep ? {
+              attack: 'tacticsScreen.prepAttackLong',
+              defence: 'tacticsScreen.prepDefenceLong',
+              setpiece: 'tacticsScreen.prepSetpieceLong',
+              fitness: 'tacticsScreen.prepFitnessLong',
+              recovery: 'tacticsScreen.prepRecoveryLong',
+            }[game.matchPrep] : 'tacticsScreen.prepNone')}
           </div>
         </div>
       </>}
@@ -418,33 +423,33 @@ export default function Tactics() {
           if (!ph || !ctr) return null
           return (
             <>
-              <SectionTitle sub={`${opp.short} play ${ph.name.toLowerCase()}`}>Answering Them</SectionTitle>
+              <SectionTitle sub={t('tacticsScreen.theyPlay', { club: opp.short, style: t(ph.name).toLowerCase() })}>{t('tacticsScreen.answeringThem')}</SectionTitle>
               <div className="card">
-                <div className="meta"><b>{ph.name}.</b> {ph.blurb}</div>
+                <div className="meta"><b>{t(ph.name)}.</b> {t(ph.blurb)}</div>
                 <div className="meta muted">{dialLine(opp.tactic)}</div>
                 <div className="meta" style={{ marginTop: 6 }}>
-                  <b>Assistant:</b> {ctr.line}
+                  <b>{t('tacticsScreen.assistant')}</b> {t(ctr.line)}
                 </div>
                 <button className="btn gold block tiny" style={{ marginTop: 6 }}
-                  onClick={() => { Object.assign(t, ctr.dials); touch() }}>
-                  Set the counter plan
+                  onClick={() => { Object.assign(tac, ctr.dials); touch() }}>
+                  {t('tacticsScreen.setCounterPlan')}
                 </button>
               </div>
             </>
           )
         })()}
-        <SectionTitle sub="one tap sets all four sliders">Quick Game Plans</SectionTitle>
+        <SectionTitle sub={t('tacticsScreen.quickGamePlansSub')}>{t('tacticsScreen.quickGamePlans')}</SectionTitle>
         <div className="preset-row" style={{ padding: '0 14px' }}>
           {PRESETS.map(p => (
-            <button key={p.id} className="preset-chip" title={p.desc}
-              onClick={() => { Object.assign(t, p.values); touch() }}>
-              {p.icon} {p.name}
+            <button key={p.id} className="preset-chip" title={t(p.desc)}
+              onClick={() => { Object.assign(tac, p.values); touch() }}>
+              {p.icon} {t(p.name)}
             </button>
           ))}
         </div>
-        <SectionTitle sub="how you attack when your fifteen have the ball">With the Ball</SectionTitle>
+        <SectionTitle sub={t('tacticsScreen.withTheBallSub')}>{t('tacticsScreen.withTheBall')}</SectionTitle>
         {SLIDER_INFO.map(slider)}
-        <SectionTitle sub="how the line defends when they have it">Without the Ball</SectionTitle>
+        <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>
         {DEF_SLIDER_INFO.map(defSlider)}
       </>}
 
@@ -467,8 +472,8 @@ function AnalystCard() {
   if (!fx) {
     return (
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-        <div className="fact-label">The Analyst</div>
-        <div className="meta">No match this week, so nothing to study. He will have a read on the next opponent as soon as one is in the diary.</div>
+        <div className="fact-label">{t('analyst.theAnalyst')}</div>
+        <div className="meta">{t('analyst.noMatchToStudy')}</div>
       </div>
     )
   }
@@ -480,22 +485,20 @@ function AnalystCard() {
   return (
     <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <div className="fact-label">The Analyst on {opp.short}</div>
+        <div className="fact-label">{t('analyst.analystOn', { club: opp.short })}</div>
         <div className="meta" style={{ fontSize: 11 }}>{analystForm(game)}</div>
       </div>
       <div className="meta" style={{ marginTop: 2 }}>
-        <b style={{ color: 'var(--gold)' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
+        <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}
       </div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap' }}>
         <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5 }}
           disabled={followed}
           onClick={() => { game.matchPrep = read.prep; touch() }}>
-          {followed ? `✓ Preparing ${PREP_LABEL[read.prep]}` : `Work on it: ${PREP_LABEL[read.prep]}`}
+          {followed ? t('analyst.preparing', { prep: prepLabel(read.prep) }) : t('analyst.workOnIt', { prep: prepLabel(read.prep) })}
         </button>
         <span className="meta" style={{ fontSize: 11 }}>
-          {followed
-            ? 'The week is his. If he has read them right you will feel it in that area on Saturday.'
-            : 'Ignore him and prepare as you see fit - he is wrong often enough to argue with.'}
+          {t(followed ? 'analyst.weekIsHis' : 'analyst.ignoreHim')}
         </span>
       </div>
     </div>

@@ -5,6 +5,7 @@
 // have spent the week preparing for a problem they do not have.
 import { logDecision, type GameState, type MatchPrep } from './model'
 import { teamUnits, lineupFor } from './matchEngine'
+import { t } from './i18n'
 
 export interface AnalystRead {
   /** absolute week (season*100+week) this read was filed for */
@@ -16,7 +17,16 @@ export interface AnalystRead {
   prep: MatchPrep
   /** whether he has actually got it right - hidden until the match */
   right: boolean
+  /** The sentence, as English, exactly as it was filed.
+   *
+   *  Kept because it is already inside every save written before the read was
+   *  split into its parts: analystClaim() rebuilds the line from `unit`,
+   *  `confidence` and `man` when they are there, and falls back to this when
+   *  they are not, so an old career still reads properly rather than showing a
+   *  raw key. New reads set both. */
   claim: string
+  /** the man he would test, so the line can be rebuilt in any language */
+  man?: string
   /** how sure he sounded, 0-1 */
   confidence: number
   /** his record has already been updated for this read */
@@ -114,6 +124,7 @@ export function analystRead(state: GameState, oppId: string): AnalystRead | null
   const sure = confidence >= 0.85 ? 'I would stake my job on this' : confidence >= 0.7 ? 'I am fairly confident' : 'It is a hunch, but a decent one'
   const read: AnalystRead = {
     abs, oppId, unit, prep: UNIT_PREP[unit], right, confidence,
+    man: man?.name,
     claim: `${sure}: ${wordFor[unit]}${man ? `, and ${man.name} is the one to test` : ''}. ${how[unit]}`,
   }
   state.analyst = read
@@ -155,10 +166,33 @@ export function settleAnalyst(state: GameState, oppId: string) {
 
 export const analystForm = (state: GameState) => {
   const rec = state.analystRecord
-  if (!rec || rec.right + rec.wrong === 0) return 'No reads followed yet this era.'
+  if (!rec || rec.right + rec.wrong === 0) return t('analyst.noReadsYet')
   const n = rec.right + rec.wrong
-  return `Followed ${n} of his reads: right ${rec.right}, wrong ${rec.wrong}.`
+  return t('analyst.followedReads', { n, right: rec.right, wrong: rec.wrong })
 }
+
+/** The analyst's line, in the language the screen is in.
+ *
+ *  Built at render rather than at generation because a read is SAVED: a claim
+ *  translated when it was filed would be stuck in whatever language the manager
+ *  happened to be using that week. */
+export function analystClaim(r: AnalystRead): string {
+  if (r.man === undefined && r.claim) return r.claim  // filed before the split
+  const cap = (u: string) => u[0].toUpperCase() + u.slice(1)
+  const sure = t(r.confidence >= 0.85 ? 'analyst.sureStake'
+    : r.confidence >= 0.7 ? 'analyst.sureFairly' : 'analyst.sureHunch')
+  return t('analyst.claim', {
+    sure,
+    weakness: t(`analyst.weak${cap(r.unit)}`),
+    who: r.man ? t('analyst.andTest', { name: r.man }) : '',
+    how: t(`analyst.how${cap(r.unit)}`),
+  })
+}
+
+/** UI labels. The engine's own UNIT_LABEL below stays English because it is
+ *  written into stored news bodies, which are English wherever they are read. */
+export const unitLabel = (u: AnalystRead['unit']) => t(`analyst.unit${u[0].toUpperCase()}${u.slice(1)}`)
+export const prepLabel = (p: MatchPrep) => t(`analyst.prep${p[0].toUpperCase()}${p.slice(1)}`)
 
 /** Slot labels, for the UI. */
 export const UNIT_LABEL: Record<AnalystRead['unit'], string> = {

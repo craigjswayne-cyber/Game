@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitPattern, type KitPattern } from '../game/kits'
+import { t } from '../game/i18n'
 
 
 /**
@@ -168,18 +169,19 @@ export function Stars({ ca }: { ca: number }) {
 }
 
 export function availabilityTag(p: Player, week: number): { txt: string; color: string } | null {
-  if (p.injury) return { txt: `INJ ${Math.max(0, p.injury.until - week)}w`, color: 'var(--text-negative)' }
-  if (p.bans > 0) return { txt: `BAN ${p.bans}`, color: 'var(--text-negative)' }
-  if (p.natSquad) return { txt: 'INTL', color: 'var(--gold)' }
-  if ((p.rust ?? 0) > 0) return { txt: `⚠ RUSTY ${p.rust}w`, color: 'var(--gold)' }
-  if (p.loanFrom) return { txt: 'ON LOAN HERE', color: 'var(--info)' }
+  if (p.injury) return { txt: t('common.injTag', { n: Math.max(0, p.injury.until - week) }), color: 'var(--text-negative)' }
+  if (p.bans > 0) return { txt: t('common.banTag', { n: p.bans }), color: 'var(--text-negative)' }
+  if (p.natSquad) return { txt: t('common.intlTag'), color: 'var(--gold)' }
+  if ((p.rust ?? 0) > 0) return { txt: t('medical.rusty', { n: p.rust ?? 0 }), color: 'var(--gold)' }
+  if (p.loanFrom) return { txt: t('common.loanHereTag'), color: 'var(--info)' }
   return null
 }
 
 export function AvailTag({ p, g }: { p: Player; g: GameState }) {
-  const t = availabilityTag(p, g.week)
-  if (!t) return null
-  return <span style={{ color: t.color, fontWeight: 700, fontSize: 10.5 }}>{t.txt}</span>
+  // `tag`, not `t`: t() is the translator
+  const tag = availabilityTag(p, g.week)
+  if (!tag) return null
+  return <span style={{ color: tag.color, fontWeight: 700, fontSize: 10.5 }}>{tag.txt}</span>
 }
 
 export function attrClass(v: number): string {
