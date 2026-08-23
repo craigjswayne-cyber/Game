@@ -13,7 +13,7 @@ import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
 const server = await startPreview('4193', 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
 const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }

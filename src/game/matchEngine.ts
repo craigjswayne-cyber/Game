@@ -2133,15 +2133,29 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   drainEnergy(state, ctx, home)
   drainEnergy(state, ctx, away)
 
-  // THE BENCH HAD TO BE WORTH USING. Freshness was capped at 22% of a unit's
-  // score and a starter's tank never opened below 50, so the most a spent man
-  // could be down was 11% - far less than the quality gap from a starter to a
-  // seventh replacement. The arithmetic made the bench a trap: measured over 77
-  // paired fixtures, one or two changes gained about a point, three lost 0.6 and
-  // eight lost 2.5, so the right play was to leave the bench sitting - while
-  // aiAutoSubs emptied it for all 100 AI clubs. MAX_SUBS was raised to eight
-  // without widening the reward, which is where the inversion came from.
-  const eF = (s: SideCtx) => 0.66 + 0.34 * (sideEnergy(s) / 100)
+  // THE BENCH IS A TRAP, AND THIS BAND IS ONLY HALF THE REASON.
+  //
+  // An audit measured the inversion: over 77 paired fixtures one or two changes
+  // gained about a point, three lost 0.6 and eight lost 2.5 - so the winning
+  // play was to leave the bench sitting down, while aiAutoSubs empties it for
+  // all 100 AI clubs. The cause is that freshness is capped at 22% of a unit's
+  // score, which is less than the quality gap from a starter to a seventh
+  // replacement, and MAX_SUBS went to eight without the reward widening.
+  //
+  // WIDENING THIS BAND WAS TRIED AND REVERTED. At 0.66 + 0.34 the Player of the
+  // Month count fell from 18 to 11 across awardprobe's three careers and at
+  // 0.72 + 0.28 to 14, against a floor of 15 - because the band changes who
+  // survives cup rounds, which changes how many clubs clear the three-match
+  // gate in a six-week window. A global multiplier on every unit in every match
+  // is too blunt an instrument for a bench problem.
+  //
+  // What DID land is the tank floor in mkSide (see there): a man who trained on
+  // empty now starts on empty, so a spent starter can be 16.5% down rather than
+  // 11%, and the widening comes from tired players actually being tired rather
+  // than from rescaling the world. That is a partial fix. The rest of the
+  // inversion is open, and the honest next step is to make a replacement's
+  // benefit local to the shirt he replaces rather than a side-wide average.
+  const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent)

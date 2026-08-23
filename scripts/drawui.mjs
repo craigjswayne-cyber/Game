@@ -11,7 +11,7 @@ import { startPreview } from './lib/preview.mjs'
 import { mkdirSync } from 'node:fs'
 const SHOTS = 'shots'; mkdirSync(SHOTS, { recursive: true })
 const server = await startPreview('4182', 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, colorScheme: 'dark' })
 const page = await ctx.newPage()
 // floodlit before the app boots: the theme the user actually plays in

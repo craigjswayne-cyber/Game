@@ -23,7 +23,7 @@ const DEVICES = [
 ]
 
 const server = await startPreview('4237', 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 let fails = 0
 // FAIL starts the line: suite.sh surfaces a failed probe's detail by grepping

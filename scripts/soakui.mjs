@@ -29,7 +29,7 @@ mkdirSync(SHOTS, { recursive: true })
 
 const server = await startPreview('4191', 2500)
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // the phone he plays on, in the orientation he plays in
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 // night mode, because that is what he plays in. Nothing else is preset: portrait

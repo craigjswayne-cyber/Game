@@ -11,7 +11,7 @@ import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
 
 const server = await startPreview('4179', 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 

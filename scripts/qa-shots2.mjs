@@ -6,7 +6,7 @@ import { mkdirSync } from 'node:fs'
 const SHOTS = '/tmp/claude-0/-home-user-Game/3407727b-220d-5fa6-b2ad-b15e5ff93514/scratchpad/qa2'
 mkdirSync(SHOTS, { recursive: true })
 const server = await startPreview(4176, 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
 const errors = []
 page.on('pageerror', e => errors.push(String(e)))

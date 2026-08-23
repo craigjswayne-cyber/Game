@@ -25,7 +25,7 @@ let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const server = await startPreview('4192', 3000)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // 360 is the narrowest phone the game claims to support; the user's is 412
 const page = await browser.newPage({ viewport: { width: 360, height: 800 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))

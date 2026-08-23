@@ -28,7 +28,7 @@ const SIZES = [
   { w: 740, h: 300, label: '740x300 worst case' },
 ]
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 let fails = 0
 let checks = 0
 

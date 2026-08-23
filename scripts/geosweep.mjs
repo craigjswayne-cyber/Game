@@ -70,7 +70,7 @@ const SCREENS = [
   'infra', 'academy',
 ]
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 try {
   for (const geo of GEOMETRIES) {
     const page = await browser.newPage({ viewport: { width: geo.w, height: geo.h } })

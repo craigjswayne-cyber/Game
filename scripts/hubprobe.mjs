@@ -24,7 +24,7 @@ let fails = 0
 const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 const server = await startPreview('4188', 3000)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // the user's phone, in portrait, in night mode
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))

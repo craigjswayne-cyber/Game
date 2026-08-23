@@ -9,7 +9,7 @@ mkdirSync(SHOTS, { recursive: true })
 
 const server = await startPreview('4175', 2500)
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
 const errors = []
