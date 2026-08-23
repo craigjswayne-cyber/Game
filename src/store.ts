@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
+import { getLang, initLang, setLang as applyLang, type Lang } from './game/i18n'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
@@ -81,6 +82,12 @@ interface Store {
    *  type ignoring the OS text-size slider (release audit, Part 2.3). */
   textScale: number
   setTextScale: (v: number) => void
+  /** The interface language. It lives in the store as well as in i18n.ts for
+   *  one reason: t() is a plain function, so nothing would re-render when the
+   *  dictionary underneath it changed. App reads this field, so switching
+   *  language re-renders the tree the same way any other state change does. */
+  lang: Lang
+  setLang: (l: Lang) => void
   /** The welcome dialog, hoisted out of Home so any screen can open it and the
    *  Manager menu can bring it back after it has been dismissed (blocker A2). */
   tut: boolean
@@ -368,6 +375,15 @@ export const useStore = create<Store>((set, get) => ({
     const scale = [1.15, 1.3].includes(v) ? v : 1
     try { localStorage.setItem('rm-zoom', String(scale)) } catch { /* private mode */ }
     set({ textScale: scale })
+  },
+
+  // initLang reads the stored choice, or takes the device's hint the first
+  // time. Doing it here rather than in a useEffect means the very first paint
+  // is already in the right language: a French phone never flashes English.
+  lang: initLang(),
+  setLang: (l: Lang) => {
+    applyLang(l)
+    set({ lang: getLang() })
   },
 
   tut: false,

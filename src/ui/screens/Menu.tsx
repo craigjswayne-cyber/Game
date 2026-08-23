@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { listSaves, loadGame, deleteSave, type SaveMeta } from '../../game/save'
 import { seasonLabel } from '../../game/model'
+import { LANGS, t } from '../../game/i18n'
 import { BrandMark } from '../components'
 
 export default function Menu() {
@@ -9,6 +10,8 @@ export default function Menu() {
   const setGame = useStore(s => s.setGame)
   const textScale = useStore(s => s.textScale)
   const setTextScale = useStore(s => s.setTextScale)
+  const lang = useStore(s => s.lang)
+  const setLang = useStore(s => s.setLang)
   const [saves, setSaves] = useState<SaveMeta[]>([])
   const [showLoad, setShowLoad] = useState(false)
 
@@ -26,7 +29,7 @@ export default function Menu() {
       <h1><b>PHASE</b><br />RUGBY MANAGER</h1>
       {/* set in caps at the user's request, so it reads as a strapline under the
           title rather than as a sentence someone left there */}
-      <div className="tagline">STORIES, SEASONS &amp; SILVERWARE</div>
+      <div className="tagline">{t('menu.tagline')}</div>
       {/* the release under the strapline reads from the same build stamp as the
           footer (vite.config.ts defines it from package.json), so the version
           on the tin can never drift from the version in the box */}
@@ -46,27 +49,27 @@ export default function Menu() {
               {/* one line, always: the longest club name in the game is
                   "Montpellier Hérault Rugby" and a manager can be called
                   anything, so the line ellipsises rather than wrapping */}
-              <div className="ct-line">▸ Continue - {newest.managerName}, {newest.club}</div>
-              <div className="ct-sub">{seasonLabel(newest.season)}, Week {newest.week}</div>
+              <div className="ct-line">{t('menu.continue', { manager: newest.managerName, club: newest.club })}</div>
+              <div className="ct-sub">{t('menu.savedAt', { season: seasonLabel(newest.season), week: newest.week })}</div>
             </button>
           )
         })()}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
           style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>
-          New Career
+          {t('menu.newCareer')}
         </button>
         {saves.length > 0 && (
           <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
             onClick={() => setShowLoad(!showLoad)}>
-            Load Career
+            {t('menu.loadCareer')}
           </button>
         )}
         {showLoad && saves.map(s => (
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>
             <button className="btn" style={{ flex: 1, background: 'var(--surface-3)' }} onClick={() => void load(s.slot)}>
               {s.managerName} - {s.club}
-              <div style={{ fontSize: 11, opacity: .8 }}>{seasonLabel(s.season)}, Week {s.week}</div>
+              <div style={{ fontSize: 11, opacity: .8 }}>{t('menu.savedAt', { season: seasonLabel(s.season), week: s.week })}</div>
             </button>
             <button className="btn danger" style={{ padding: '0 12px' }}
               onClick={() => void deleteSave(s.slot).then(() => listSaves().then(setSaves))}>✕</button>
@@ -78,7 +81,7 @@ export default function Menu() {
           audit, Part 2.3). Three steps, persisted like night mode; the buttons
           preview their own size. */}
       <div className="text-scale-row" style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>TEXT SIZE</span>
+        <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>{t('menu.textSize')}</span>
         {([[1, 13], [1.15, 15], [1.3, 18]] as const).map(([v, px]) => (
           <button key={v} className="btn ghost text-scale-btn"
             aria-pressed={textScale === v}
@@ -92,8 +95,33 @@ export default function Menu() {
           </button>
         ))}
       </div>
+      {/* Language, directly under text size, because the two are the same kind
+          of decision: how this game reads on this phone. It sits on the title
+          screen rather than behind the Manager menu so it can be answered
+          before a career exists - a French speaker should never have to start
+          one in English to find the switch.
+
+          The labels are written in their own language ("Français", not
+          "French"): somebody hunting for their language is scanning for the
+          word they would use for it. */}
+      <div className="lang-row" style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>{t('menu.language')}</span>
+        {LANGS.map(l => (
+          <button key={l.code} className="btn ghost lang-btn"
+            lang={l.code}
+            aria-pressed={lang === l.code}
+            style={{
+              fontSize: 13, padding: '4px 12px', lineHeight: 1.2,
+              color: lang === l.code ? 'var(--primary)' : 'var(--text-secondary)',
+              borderColor: lang === l.code ? 'var(--primary)' : 'var(--border-strong)',
+            }}
+            onClick={() => setLang(l.code)}>
+            {l.label}
+          </button>
+        ))}
+      </div>
       <div style={{ marginTop: 22, fontSize: 11, opacity: .65 }}>
-        A personal project - real names used for fun, not for sale.
+        {t('menu.disclaimer')}
       </div>
       {/* WHICH BUILD IS THIS? Two phones, two people, and no way to tell a stale
           tab from a fresh deploy except by hunting for a feature. Stamped in at

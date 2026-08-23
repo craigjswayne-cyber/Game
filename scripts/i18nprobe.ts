@@ -1,0 +1,159 @@
+// Probe: the second language is a translation, not a half-finished one.
+//
+// Three things go wrong when a game is localised, and all three are silent:
+//
+//   1. A key is used in code and exists in no dictionary at all. English
+//      renders 'menu.tagline' instead of a strapline, and nobody notices until
+//      it is on a phone.
+//   2. A key exists in English and not in French. The fallback hides it, so the
+//      French title screen has one English line on it and the build is green.
+//   3. A placeholder is dropped or misspelt in translation. "{manager}" becomes
+//      "{mananger}", the fill leaves it as literal braces, and a French player
+//      reads "Reprendre - {mananger}, Toulouse".
+//
+// None of those throws. All three are a bug report from a paying customer, so
+// they are assertions here instead.
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import en from '../src/locales/en.json'
+import fr from '../src/locales/fr.json'
+import { LANGS, tIn, type Lang } from '../src/game/i18n'
+
+let fails = 0
+const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
+
+type Dict = Record<string, unknown>
+const DICTS: Record<string, Dict> = { en: en as Dict, fr: fr as Dict }
+
+/** Every leaf path in a dictionary, ignoring the _meta block and flattening a
+ *  plural entry to the key that holds it rather than to its forms. */
+function leaves(d: Dict, prefix = ''): string[] {
+  const out: string[] = []
+  for (const [k, v] of Object.entries(d)) {
+    if (!prefix && k === '_meta') continue
+    const path = prefix ? `${prefix}.${k}` : k
+    if (typeof v === 'string') out.push(path)
+    else if (v && typeof v === 'object') {
+      const o = v as Dict
+      if ('other' in o) out.push(path)             // a plural: one key, two forms
+      else out.push(...leaves(o, path))
+    }
+  }
+  return out
+}
+
+/** The {names} inside a string, or inside every form of a plural. */
+function slots(d: Dict, key: string): Set<string> {
+  let node: unknown = d
+  for (const part of key.split('.')) node = (node as Dict)?.[part]
+  const texts = typeof node === 'string'
+    ? [node]
+    : Object.values((node ?? {}) as Record<string, string>).filter(v => typeof v === 'string')
+  const out = new Set<string>()
+  for (const s of texts) for (const m of s.matchAll(/\{(\w+)\}/g)) out.add(m[1])
+  return out
+}
+
+// ---- what the code actually asks for -------------------------------------
+const files: string[] = []
+const walk = (dir: string) => {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name)
+    if (statSync(p).isDirectory()) walk(p)
+    else if (/\.tsx?$/.test(name)) files.push(p)
+  }
+}
+walk('src')
+
+/** Comments stripped, because i18n.ts documents itself with example keys -
+ *  t('menus.title.newCareer') and friends - and a probe that reports those as
+ *  broken call sites is a probe nobody will keep. */
+const code = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+
+const used = new Set<string>()
+const dynamic = new Set<string>()
+for (const f of files) {
+  const src = code(readFileSync(f, 'utf8'))
+  for (const m of src.matchAll(/\bt\(\s*'([\w.]+)'/g)) used.add(m[1])
+  // t(`titles.${cur.screen}`) - the prefix is checkable even when the tail is
+  // not, and an unknown prefix is as broken as an unknown key
+  for (const m of src.matchAll(/\bt\(\s*`([\w.]*)\$\{/g)) dynamic.add(m[1])
+}
+
+const enKeys = new Set(leaves(en as Dict))
+ok(used.size > 20, `the sweep found call sites at all (${used.size} static keys in ${files.length} files)`)
+
+const orphans = [...used].filter(k => !enKeys.has(k))
+ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? ': missing ' + orphans.slice(0, 6).join(', ') : ''}`)
+
+// a dynamic key's prefix must name a real namespace, or the whole family is dead
+for (const prefix of dynamic) {
+  const ns = prefix.replace(/\.$/, '')
+  const hit = [...enKeys].some(k => k.startsWith(ns + '.'))
+  ok(hit, `the computed key t(\`${prefix}\${...}\`) points at a namespace that exists`)
+}
+
+// ---- and every language answers the same questions ------------------------
+for (const { code, label } of LANGS) {
+  if (code === 'en') continue
+  const d = DICTS[code]
+  const theirs = new Set(leaves(d))
+
+  const gaps = [...enKeys].filter(k => !theirs.has(k))
+  ok(gaps.length === 0, `${label} has every key English has${gaps.length ? ` (${gaps.length} missing: ${gaps.slice(0, 6).join(', ')})` : ''}`)
+
+  const stale = [...theirs].filter(k => !enKeys.has(k))
+  ok(stale.length === 0, `${label} has no keys English has dropped${stale.length ? ': ' + stale.slice(0, 6).join(', ') : ''}`)
+
+  const bad: string[] = []
+  for (const k of enKeys) {
+    if (!theirs.has(k)) continue
+    const a = slots(en as Dict, k)
+    const b = slots(d, k)
+    if (a.size !== b.size || [...a].some(x => !b.has(x))) bad.push(`${k} [${[...a]}] vs [${[...b]}]`)
+  }
+  ok(bad.length === 0, `${label} carries the same placeholders${bad.length ? ': ' + bad.slice(0, 4).join(' | ') : ''}`)
+
+  // nothing renders as a raw key or an empty box
+  const blanks = [...theirs].filter(k => tIn(code as Lang, k).trim() === '' || tIn(code as Lang, k) === k)
+  ok(blanks.length === 0, `${label} has no blank or unresolved strings${blanks.length ? ': ' + blanks.slice(0, 4).join(', ') : ''}`)
+}
+
+// ---- the two things a fill has to get right -------------------------------
+{
+  const line = tIn('fr', 'menu.continue', { manager: 'A. Gaffer', club: 'RC Toulouse' })
+  ok(line.includes('A. Gaffer') && line.includes('RC Toulouse'), `French interpolates: "${line}"`)
+  ok(!/\{\w+\}/.test(line), 'and leaves no unfilled braces behind')
+  // a number goes through the locale, so a French screen reads 12 000 rather
+  // than 12,000 - the sort of thing that reads as a decimal point to a player
+  const wk = tIn('fr', 'menu.savedAt', { season: '2026/27', week: 12000 })
+  ok(wk.includes('12') && !wk.includes('12,000'), `French formats numbers its own way: "${wk}"`)
+}
+
+// ---- English is a test selector as well as a string -----------------------
+//
+// Forty browser harnesses find buttons with text=New Career and the like. If a
+// tidy-up ever rewords the English side of the dictionary, those go red with a
+// timeout and no clue why - so the handful the harnesses depend on are pinned.
+{
+  const PINNED: [string, string][] = [
+    ['menu.newCareer', 'New Career'],
+    ['menu.loadCareer', 'Load Career'],
+    ['nav.home', 'Home'],
+    ['titles.squad', 'Team'],
+    ['groups.handbook', "The Manager's Handbook"],
+    ['groups.bug', 'Report a Bug'],
+    // the new-career wizard, which every browser harness walks through before
+    // it can measure anything at all
+    ['wizard.confirm', 'Confirm'],
+    ['wizard.startCareer', '▸ Start Career'],
+    ['wizard.namePlaceholder', 'e.g. A. Gaffer'],
+    ['wizard.starPlayer', 'Star Player'],
+  ]
+  for (const [k, want] of PINNED) {
+    ok(tIn('en', k) === want, `en.${k} is still "${want}" (browser harnesses select on it)`)
+  }
+}
+
+console.log(fails ? `I18N PROBE FAILED (${fails})` : 'I18N PROBE PASSED: both languages answer every question the code asks')
+process.exit(fails ? 1 : 0)

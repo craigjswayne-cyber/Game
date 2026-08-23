@@ -78,6 +78,13 @@ widths), `portraitqa` and `devicematrix` (overflow, truncation, unreachable
 content, six geometries), `nightcontrast` (contrast in **both** themes), `e2e`
 (the whole flow end to end), `motionprobe`, `subreach`, `replyreach`.
 
+**Language** — `i18nprobe` (every key the code asks for exists in English, every
+English key exists in every translation, and the placeholders match on both
+sides) and `langprobe` (the picker is on the title screen under the text size,
+switching repaints without navigation, the choice survives a reload, `<html
+lang>` follows, and the bottom nav and submenus still fit 412px in the longer
+language). See `docs/i18n.md`.
+
 **IP** — `ipprobe` greps the shipped bundle for 121 real club, competition,
 sponsor, venue and governing-body marks. It reads the rename table out of
 `save.ts` rather than keeping its own copy.
