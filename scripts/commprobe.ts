@@ -51,6 +51,7 @@ function nameIndex(state: GameState) {
 
 let matches = 0, lines = 0, named = 0, coachClashes = 0
 const offenders: { name: string; where: string; text: string }[] = []
+let namesakes = 0
 const byRelation: Record<string, number> = {}
 
 for (const [club, seed] of [['harlequins', 12345], ['northampton', 777], ['bath', 4242]] as const) {
@@ -85,6 +86,17 @@ for (const [club, seed] of [['harlequins', 12345], ['northampton', 777], ['bath'
       // players, so a coach occasionally shares a name with a player at some
       // third club, and this probe would then accuse the right line of the wrong
       // crime. Counted separately below rather than exempted silently.
+      // AND THE NAME MIGHT BELONG TO TWO MEN. Twenty-four names in this world are
+      // worn by two different real players - a winger of 26 and a lock of 30
+      // both called Alex Hughes - because the world builder now puts both on a
+      // pitch instead of deleting the second (see scripts/namedup.ts). This
+      // probe tests every player's name against every line, so when the George
+      // Martin who is playing gets a mention, the OTHER George Martin matches
+      // the same text and was reported as a phantom. If a man of that name is
+      // on this team sheet, the line is accounted for.
+      const sheetNames = new Set<string>()
+      for (const id of sheet) { const nm = g.players[id]?.name; if (nm) sheetNames.add(nm) }
+
       const coachNames = new Set<string>()
       for (const teamId of [mine.homeId, mine.awayId]) {
         const nm = g.clubs[teamId]?.coach
@@ -102,6 +114,7 @@ for (const [club, seed] of [['harlequins', 12345], ['northampton', 777], ['bath'
           if (!re.test(text)) continue
           named++
           if (sheet.has(id)) continue
+          if (sheetNames.has(name)) { namesakes++; continue }
           // a coach of one of these two clubs who happens to share a name with
           // some player elsewhere in the world: the line is right, the collision
           // is a naming coincidence
@@ -140,6 +153,7 @@ if (offenders.length) {
 
 const strays = Object.values(byRelation).reduce((s, n) => s + n, 0)
 console.log(`\n${strays} mentions of men who were not in the match-day 23`)
+console.log(`${namesakes} mentions explained by a namesake who WAS in the 23`)
 
 if (matches < 40) bad(`only ${matches} matches simulated, too few to judge`)
 if (named < 200) bad(`only ${named} names found in ${lines} lines, so this probe is not reading the commentary`)
