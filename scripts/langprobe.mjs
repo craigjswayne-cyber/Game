@@ -492,6 +492,39 @@ try {
     }
   }
 
+  // ---- About & legal, which is the page a store reviewer opens -----------
+  //
+  // It carries the unofficial statement, the privacy line and the contact
+  // address - the three sentences that have to be right in every language the
+  // listing claims, because a French listing with an English legal page is a
+  // French listing that has not been translated.
+  {
+    // out of the match first: full time is a panel with no navigation on it, so
+    // the way back to the rest of the game is the button that leaves
+    for (let i = 0; i < 6 && !(await page.locator('.bottom-nav').count()); i++) {
+      const out = page.locator('.btn.gold.block')
+      if (await out.count()) await out.last().click().catch(() => {})
+      await page.waitForTimeout(700)
+    }
+    ok(await page.locator('.bottom-nav').count() > 0, 'the match hands back to the rest of the game')
+    await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
+    await page.waitForSelector('.submenu')
+    await page.waitForTimeout(500)
+    const about = page.locator('.submenu-item', { hasText: 'propos' })
+    ok(await about.count() === 1, 'the About page has a French door in the Manager menu')
+    if (await about.count()) {
+      await about.click()
+      await page.waitForTimeout(500)
+      const text = await page.locator('main.content').innerText()
+      say(`  about: "${text.replace(/\s+/g, ' ').slice(0, 80)}"`)
+      ok(/non officiel/i.test(text), 'the unofficial statement is in French')
+      ok(/collecte rien/i.test(text), 'and so is the line about what the game collects')
+      const eng = ['Unofficial, and independent', 'Your data', 'Read the privacy policy', 'Say something', 'This build']
+        .filter(w => text.includes(w))
+      ok(eng.length === 0, `no English left on the legal page${eng.length ? ': ' + eng.join(', ') : ''}`)
+    }
+  }
+
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''}`)
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
