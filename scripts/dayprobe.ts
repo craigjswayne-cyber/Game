@@ -1,7 +1,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import {
-  DAY_NAMES, dayDate, dayHasSomething, firstStepOfWeek, matchDayIndex, nextStep, stepFromDay,
+  dayDate, dayHasSomething, dayName, firstStepOfWeek, matchDayIndex, nextStep, stepFromDay,
   storiesForDay, today, type DayIndex,
 } from '../src/game/days'
 import type { GameState } from '../src/game/model'
@@ -44,7 +44,7 @@ function walkWeek(g: GameState): { taps: number; days: DayIndex[]; ended: 'match
 
 console.log('--- 1. a fresh career starts on Monday of week 1')
 const g = newGame('northampton', 'Day Walker', 4242)
-ok(today(g) === 0, `day 0, which is ${DAY_NAMES[today(g)]}`)
+ok(today(g) === 0, `day 0, which is ${dayName(today(g))}`)
 console.log(`  week 1 Monday is ${dayDate(g.season, g.week, 0)}, Saturday is ${dayDate(g.season, g.week, 5)}`)
 {
   // the anchor: weekDate(season, week) is the week's SATURDAY, so Monday is five
@@ -68,7 +68,7 @@ console.log('\n--- 2. the walk terminates, every week, for a whole season')
     weeks++
     // every day it stopped on had something on it
     for (const d of walk.days) {
-      if (!dayHasSomething(h, d)) { console.log(` FAIL  stopped on an empty ${DAY_NAMES[d]} in week ${h.week}`); fails++ }
+      if (!dayHasSomething(h, d)) { console.log(` FAIL  stopped on an empty ${dayName(d)} in week ${h.week}`); fails++ }
     }
     h.newsFrom = h.nextId
     processWeekAndAdvance(h)

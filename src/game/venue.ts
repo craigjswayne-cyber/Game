@@ -1,5 +1,6 @@
 import type { GameState } from './model'
 import { SEASON_WEEKS } from './model'
+import { t } from './i18n'
 import { climateOf, distanceKm, tzShift, venueOf, warmth, type Venue } from './geo'
 
 /**
@@ -129,27 +130,15 @@ export function venueEffect(state: GameState, homeId: string, awayId: string, we
  *  produce the same warning every time, or the briefing is noise. Ordered by what
  *  a coach would actually lead with. */
 function noteFor(km: number, tz: number, altGap: number, heatGap: number, h: Venue): string | null {
-  if (altGap >= 1000) {
-    return `Altitude. The ground sits ${Math.round(h.alt)}m up and the air is thin, so legs go earlier than the clock says. Expect the last quarter to hurt.`
-  }
-  if (altGap >= 500) {
-    return `A noticeable climb to ${Math.round(h.alt)}m. Not the highveld, but enough that the forwards will feel the second half.`
-  }
-  if (km >= 8000) {
-    return `${km.toLocaleString()}km and ${tz} hours of clock change. Long-haul rugby: the squad will not be fresh, whatever the medical room says.`
-  }
-  if (km >= 3000) {
-    return `A genuine trek at ${km.toLocaleString()}km${tz >= 3 ? ` and ${tz} hours of time difference` : ''}. Travel legs are a factor here.`
-  }
+  if (altGap >= 1000) return t('venue.altHigh', { alt: Math.round(h.alt) })
+  if (altGap >= 500) return t('venue.altSome', { alt: Math.round(h.alt) })
+  if (km >= 8000) return t('venue.longHaul', { km, tz })
+  if (km >= 3000) return t(tz >= 3 ? 'venue.trekTz' : 'venue.trek', { km, tz })
   if (heatGap >= 0.45) {
     const hot = climateOf(h) === 'tropical' || climateOf(h) === 'subtropical'
-    return hot
-      ? 'Heat and humidity nobody in this squad trains in. Hydration and tempo control, or it gets away from us late on.'
-      : 'Cold, and colder than this lot are built for. Keep the ball off the deck and make them handle it.'
+    return t(hot ? 'venue.heat' : 'venue.cold')
   }
-  if (km >= 1200) {
-    return `${km.toLocaleString()}km on the road. Not far enough to blame, far enough to notice.`
-  }
+  if (km >= 1200) return t('venue.road', { km })
   return null
 }
 

@@ -8,6 +8,7 @@ import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
+import { t } from './i18n'
 import { venueEffect } from './venue'
 import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
@@ -539,14 +540,18 @@ export function frontRowCover(state: GameState, lineup: (number | null)[]): { LP
  *  the manager cannot read is a tendency he cannot select around. */
 export function refNotes(r: Referee): string[] {
   const out: string[] = []
-  if (r.scrum >= 1.08) out.push('Pedantic at the scrum - the dominant front row gets rewarded.')
-  else if (r.scrum <= 0.94) out.push('Waves the scrum away - your set piece is worth less today.')
-  if (r.breakdown >= 1.05) out.push('Lets the jackal work - a strong breakdown will win turnovers.')
-  else if (r.breakdown <= 0.95) out.push('Fussy at the tackle - hands off, or it is a penalty.')
-  if (r.patience <= 4) out.push(`Short fuse: ${r.patience} penalties and somebody walks.`)
-  else if (r.patience >= 7) out.push(`Patient: he allows ${r.patience} before reaching for a card.`)
-  if (r.flow >= 1.03) out.push('Plays advantage and lets it flow.')
-  else if (r.flow <= 0.99) out.push('Stop-start - he blows for everything.')
+  // THE ONE PART OF THIS FILE THAT SPEAKS THE PLAYER'S LANGUAGE. Everything else
+  // here is commentary, and commentary is written into the match report the save
+  // keeps, so it stays English (docs/i18n.md). These notes are read off the
+  // referee at render and stored nowhere.
+  if (r.scrum >= 1.08) out.push(t('matchday.refScrumTight'))
+  else if (r.scrum <= 0.94) out.push(t('matchday.refScrumLoose'))
+  if (r.breakdown >= 1.05) out.push(t('matchday.refJackal'))
+  else if (r.breakdown <= 0.95) out.push(t('matchday.refFussy'))
+  if (r.patience <= 4) out.push(t('matchday.refShortFuse', { n: r.patience }))
+  else if (r.patience >= 7) out.push(t('matchday.refPatient', { n: r.patience }))
+  if (r.flow >= 1.03) out.push(t('matchday.refFlow'))
+  else if (r.flow <= 0.99) out.push(t('matchday.refStopStart'))
   return out
 }
 
@@ -747,7 +752,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     }
   }
   if (club) {
-    const t = club.tactic
+    const tac = club.tactic
     /**
      * A dial is a 0-100 number, and every one of them is multiplied into a unit
      * score, then into tempoF, then into how hard the side runs - which is how
@@ -764,14 +769,14 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
      * dial, which is the same as no instruction at all.
      */
     const f = (v: number) => (Number.isFinite(v) ? Math.max(0, Math.min(100, v)) - 50 : 0) / 50 // -1..1
-    side.units.attack *= 1 + f(t.style) * 0.06 + f(t.tempo) * 0.05 - f(t.kicking) * 0.035
-    side.units.scrum *= 1 - f(t.style) * 0.05
-    side.units.breakdown *= 1 + f(t.aggression) * 0.06 - f(t.style) * 0.03 - f(t.kicking) * 0.02
-    side.units.kicking *= 1 + f(t.kicking) * 0.1
-    side.units.defence *= 1 - f(t.tempo) * 0.03
-    side.tempoF = 1 + f(t.tempo) * 0.22
-    side.cardRisk = 0.012 + f(t.aggression) * 0.006
-    side.aggF = f(t.aggression)
+    side.units.attack *= 1 + f(tac.style) * 0.06 + f(tac.tempo) * 0.05 - f(tac.kicking) * 0.035
+    side.units.scrum *= 1 - f(tac.style) * 0.05
+    side.units.breakdown *= 1 + f(tac.aggression) * 0.06 - f(tac.style) * 0.03 - f(tac.kicking) * 0.02
+    side.units.kicking *= 1 + f(tac.kicking) * 0.1
+    side.units.defence *= 1 - f(tac.tempo) * 0.03
+    side.tempoF = 1 + f(tac.tempo) * 0.22
+    side.cardRisk = 0.012 + f(tac.aggression) * 0.006
+    side.aggF = f(tac.aggression)
     side.penRisk = aggPenRisk(side.aggF, side.refPenF ?? 1)
     // THE WITHOUT-BALL SYSTEM (18D, FM26's split shapes translated). Line
     // speed is a trade priced in the engine's own currencies: a blitz brings
@@ -782,18 +787,18 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
     // the dial plays the old game bit for bit, and the fingerprint holds it
     // there. Defensive WIDTH is the other half and lives in beginMatch,
     // because it is a matchup read against the opponent's attacking shape.
-    const dl = f(t.defLine ?? 50)
+    const dl = f(tac.defLine ?? 50)
     side.units.defence *= 1 + dl * 0.04
     side.penRisk *= 1 + dl * 0.12
     side.cardRisk += dl * 0.002
 
     // The called set-piece routines (F2). What you get is the routine's ceiling
     // scaled by how well drilled it is and how sick of it the analysts are.
-    const lo = routineEffect(club, t.lineoutCall ?? DEFAULT_LINEOUT)
-    const sc = routineEffect(club, t.scrumCall ?? DEFAULT_SCRUM)
+    const lo = routineEffect(club, tac.lineoutCall ?? DEFAULT_LINEOUT)
+    const sc = routineEffect(club, tac.scrumCall ?? DEFAULT_SCRUM)
     side.units.lineout *= lo.mult
     side.units.scrum *= sc.mult
-    for (const [id, e] of [[t.lineoutCall ?? DEFAULT_LINEOUT, lo], [t.scrumCall ?? DEFAULT_SCRUM, sc]] as const) {
+    for (const [id, e] of [[tac.lineoutCall ?? DEFAULT_LINEOUT, lo], [tac.scrumCall ?? DEFAULT_SCRUM, sc]] as const) {
       const r = ROUTINE_BY_ID[id]
       if (!r) continue
       // a routine that eats time feeds the forwards and starves the backs
@@ -805,10 +810,10 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
 
     // The kicking game (F3). A designated kicker is a decision; the automatic
     // pick of whoever has the best attribute is not.
-    const named = (t.kickers ?? []).find(id => id != null && side.onPitch.has(id) && !state.players[id]?.injury)
+    const named = (tac.kickers ?? []).find(id => id != null && side.onPitch.has(id) && !state.players[id]?.injury)
     if (named != null) side.units.kickerId = named
     // exit strategy: how you play your way out of your own 22
-    switch (t.exit) {
+    switch (tac.exit) {
       case 'box': side.units.kicking *= 1.05; side.units.attack *= 0.985; break
       case 'long': side.units.kicking *= 1.03; side.units.defence *= 1.01; side.units.attack *= 0.99; break
       case 'counter': side.units.attack *= 1.03; side.units.defence *= 0.98; break
@@ -2437,8 +2442,8 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
     ctx.seg = 1
     ctx.awaiting = 'HT'
     pushEvent(state, ctx, 40, 'HT', null, `Half-time: ${teamShort(state, ctx.fx.homeId)} ${ctx.home.score} - ${ctx.away.score} ${teamShort(state, ctx.fx.awayId)}`)
-    const t = ctx.home.poss + ctx.away.poss || 1
-    pushEvent(state, ctx, 40, 'SUB', null, `First-half numbers: possession ${Math.round((ctx.home.poss / t) * 100)}%–${Math.round((ctx.away.poss / t) * 100)}%, tries ${ctx.home.tries}–${ctx.away.tries}, penalty goals ${ctx.home.pens}–${ctx.away.pens}.`)
+    const possTotal = ctx.home.poss + ctx.away.poss || 1
+    pushEvent(state, ctx, 40, 'SUB', null, `First-half numbers: possession ${Math.round((ctx.home.poss / possTotal) * 100)}%–${Math.round((ctx.away.poss / possTotal) * 100)}%, tries ${ctx.home.tries}–${ctx.away.tries}, penalty goals ${ctx.home.pens}–${ctx.away.pens}.`)
     return 'HT'
   }
   if (ctx.tick === 15) {

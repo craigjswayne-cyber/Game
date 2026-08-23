@@ -88,13 +88,12 @@ function SaveWarning() {
   return (
     <div className="save-warn">
       <div>
-        <b>⚠ Save failed{fails > 1 ? ` (${fails} in a row)` : ''}.</b>{' '}
-        Nothing since your last successful save is being written to this phone. Usually this is storage:
-        clear some space, then press Continue. {msg ? <span className="save-warn-why">{msg}</span> : null}
+        <b>{fails > 1 ? t('common.saveFailedN', { n: fails }) : t('common.saveFailed')}</b>{' '}
+        {t('common.saveFailBody')} {msg ? <span className="save-warn-why">{msg}</span> : null}
       </div>
       <div className="save-warn-btns">
-        <button className="btn tiny gold" onClick={() => void useStore.getState().persist()}>Try again</button>
-        <button className="btn tiny ghost" onClick={() => useStore.getState().dismissSaveFail()}>Hide</button>
+        <button className="btn tiny gold" onClick={() => void useStore.getState().persist()}>{t('common.tryAgain')}</button>
+        <button className="btn tiny ghost" onClick={() => useStore.getState().dismissSaveFail()}>{t('common.hide')}</button>
       </div>
     </div>
   )
@@ -125,7 +124,10 @@ function Celebration() {
         <div style={{ fontSize: 64, lineHeight: 1 }}>{cel.icon}</div>
         <h1>{cel.headline}</h1>
         <div className="sub">{cel.sub}</div>
-        <div className="muted" style={{ marginTop: 14 }}>Tap anywhere - the party carries on without you.</div>
+        {/* the headline and its sub come off state.celebration, which was written
+            when the trophy was won - a save's paperwork keeps the language it was
+            filed in (docs/i18n.md). This line is the screen's own. */}
+        <div className="muted" style={{ marginTop: 14 }}>{t('common.partyOn')}</div>
       </div>
     </div>
   )
@@ -484,8 +486,8 @@ export default function App() {
               const desk = deskGates(step) ? deskBlock(game) : null
               return (
                 <button className="continue-btn" onClick={continueWeek}
-                  title={desk ? 'The desk needs clearing before the week turns' : undefined}>
-                  {desk ? `${desk.label} ▸` : step.kind === 'match' ? 'Matchday ▸' : 'Continue ▸'}
+                  title={desk ? t('common.deskWaits') : undefined}>
+                  {desk ? `${desk.label} ▸` : t(step.kind === 'match' ? 'common.matchdayBtn' : 'common.continueBtn')}
                 </button>
               )
             })()}

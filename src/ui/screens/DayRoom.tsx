@@ -2,13 +2,13 @@ import { useStore } from '../../store'
 import { fmtMoney, unbeatenRun } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import {
-  DAY_NAMES, DAY_SUB, DAY_THEME, dayDate, medicalNews, pressWaiting, storiesForDay, today,
+  dayDate, dayName, daySub, dayTheme, medicalNews, pressWaiting, storiesForDay, today,
 } from '../../game/days'
 import { userFixtureThisWeek } from '../../game/season'
 import { leaguePos } from '../../game/schedule'
-import { ordinal } from '../../game/gossip'
-import { analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/analyst'
+import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
+import { ord, t } from '../../game/i18n'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
@@ -37,10 +37,10 @@ export default function DayRoom() {
   return (
     <>
       <div className="day-head">
-        <div className="dh-day">{DAY_NAMES[day]}</div>
-        <div className="dh-theme">{DAY_THEME[day]}</div>
-        <div className="dh-date">{dayDate(game.season, game.week, day)} · Week {game.week}</div>
-        <div className="dh-sub">{DAY_SUB[day]}</div>
+        <div className="dh-day">{dayName(day)}</div>
+        <div className="dh-theme">{dayTheme(day)}</div>
+        <div className="dh-date">{t('dayroom.headDate', { date: dayDate(game.season, game.week, day), week: game.week })}</div>
+        <div className="dh-sub">{daySub(day)}</div>
       </div>
 
       {/* A draw waiting to be watched comes before anything else in the week:
@@ -56,12 +56,8 @@ export default function DayRoom() {
           they are about the world. */}
       {game.unemployed ? (
         <div className="card">
-          <div className="fact-label">Between jobs</div>
-          <div className="meta">
-            No training ground, no physio's list, no press to face - all of that
-            belongs to a club. The Job Centre has the vacancies, and the papers
-            keep you honest about the rugby you are missing.
-          </div>
+          <div className="fact-label">{t('dayroom.betweenJobs')}</div>
+          <div className="meta">{t('dayroom.betweenJobsBody')}</div>
         </div>
       ) : (
         <>
@@ -75,8 +71,8 @@ export default function DayRoom() {
 
       {stories.length > 0 && (
         <>
-          <SectionTitle sub={`${stories.length} ${stories.length === 1 ? 'story' : 'stories'} · tap to read`}>
-            {day === 0 ? 'The Morning Papers' : day === 4 ? "Friday's Paper" : 'On The Wire'}
+          <SectionTitle sub={t('dayroom.storiesSub', { n: stories.length })}>
+            {t(day === 0 ? 'dayroom.papersMon' : day === 4 ? 'dayroom.papersFri' : 'dayroom.papersWire')}
           </SectionTitle>
           <div className="card" style={{ padding: '4px 0' }}>
             {stories.map(n => (
@@ -93,7 +89,7 @@ export default function DayRoom() {
       {/* the walk-on button. The masthead has one too, and they call the same
           action: this one exists because the bottom of the page is where a
           reader's thumb already is when they have finished reading it. */}
-      <button className="btn gold block day-next" onClick={continueWeek}>Continue ▸</button>
+      <button className="btn gold block day-next" onClick={continueWeek}>{t('dayroom.continue')}</button>
       <div className="spacer" />
     </>
   )
@@ -106,15 +102,18 @@ function DrawWaiting() {
   const draw = game.draw
   if (!draw || !draw.ties.length) return null
   const comp = game.comps[draw.compId]
-  const stage = { R16: 'last sixteen', QF: 'quarter-final', SF: 'semi-final', F: 'final', BAR: 'barrage' }[draw.stage] ?? draw.stage
+  // the stage code IS the key suffix - dayroom.stageR16, stageQF and so on -
+  // and an unknown code falls back to the code rather than to a missing key
+  const known = ['R16', 'QF', 'SF', 'F', 'BAR'].includes(draw.stage)
+  const stageName = known ? t(`dayroom.stage${draw.stage}`) : draw.stage
   const watched = draw.revealed >= draw.ties.length
   return (
     <button className="card day-draw" onClick={() => go('draw')}>
-      <div className="day-draw-top">🎟 The {comp?.short ?? 'cup'} {stage} draw</div>
+      <div className="day-draw-top">
+        {t('dayroom.drawTitle', { comp: comp?.short ?? t('dayroom.drawCup'), stage: stageName })}
+      </div>
       <div className="meta">
-        {watched
-          ? 'You have seen the balls come out. Tap to look again.'
-          : `${draw.ties.length} ties in the hat, and one of them is yours. Tap to watch the draw.`}
+        {watched ? t('dayroom.drawWatched') : t('dayroom.drawTies', { n: draw.ties.length })}
       </div>
     </button>
   )
@@ -138,20 +137,22 @@ function MondayBlocks() {
         const us = home ? mine.homeScore : mine.awayScore
         const them = home ? mine.awayScore : mine.homeScore
         const oppId = home ? mine.awayId : mine.homeId
-        const verdict = us > them ? 'Won' : us < them ? 'Lost' : 'Drew'
+        const verdict = t(us > them ? 'dayroom.won' : us < them ? 'dayroom.lost' : 'dayroom.drew')
         const col = us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : undefined
         return (
           <div className="card" style={{ borderLeft: `4px solid ${us > them ? 'var(--text-positive)' : us < them ? 'var(--danger)' : 'var(--gold)'}` }}>
-            <div className="fact-label">Saturday, reviewed</div>
+            <div className="fact-label">{t('dayroom.satReviewed')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={22} />
               <b style={{ fontSize: 15, color: col }}>{verdict} {us}-{them}</b>
-              <span className="muted">{home ? 'at home to' : 'away at'} {teamShort(game, oppId)}</span>
+              <span className="muted">
+                {t(home ? 'dayroom.homeTo' : 'dayroom.awayAt', { club: teamShort(game, oppId) })}
+              </span>
             </div>
             {leagueId && (
               <button className="btn ghost block" style={{ marginTop: 8 }}
                 onClick={() => go('results', `${mine.compId}:${lastWeek}`)}>
-                The full round-up and the table ▸
+                {t('dayroom.roundUp')}
               </button>
             )}
           </div>
@@ -159,13 +160,13 @@ function MondayBlocks() {
       })()}
       {!mine && leagueId && (
         <div className="card">
-          <div className="fact-label">A blank weekend</div>
-          <div className="meta">No match for you, so the week starts with the training ground rather than the video room.</div>
+          <div className="fact-label">{t('dayroom.blankWeekend')}</div>
+          <div className="meta">{t('dayroom.blankWeekendBody')}</div>
         </div>
       )}
       {(med.out.length > 0 || med.back.length > 0) && (
         <>
-          <SectionTitle sub="the physio's list, first thing Monday">Treatment Room</SectionTitle>
+          <SectionTitle sub={t('dayroom.treatmentSub')}>{t('dayroom.treatmentRoom')}</SectionTitle>
           <div className="card">
             {med.out.map(line => (
               <div key={line} className="meta" style={{ padding: '2px 0' }}>🏥 {line}</div>
@@ -174,7 +175,7 @@ function MondayBlocks() {
               <div key={line} className="meta" style={{ padding: '2px 0', color: 'var(--text-positive)' }}>🟢 {line}</div>
             ))}
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('medical')}>
-              Medical Centre ▸
+              {t('dayroom.medicalCentre')}
             </button>
           </div>
         </>
@@ -192,31 +193,29 @@ function TuesdayBlocks() {
     <>
       {waiting > 0 && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <div className="fact-label">🎙 The press are waiting</div>
-          <div className="meta">
-            {waiting === 1 ? 'One question' : `${waiting} questions`} you have not answered. Say nothing and
-            they will write it for you.
-          </div>
+          <div className="fact-label">{t('dayroom.pressWaiting')}</div>
+          <div className="meta">{t('dayroom.pressWaitingBody', { n: waiting })}</div>
           <button className="btn gold block" style={{ marginTop: 8 }} onClick={() => go('press')}>
-            Face the cameras ▸
+            {t('dayroom.faceCameras')}
           </button>
         </div>
       )}
       {club && (
         <div className="card">
-          <div className="fact-label">🏛 The boardroom</div>
+          <div className="fact-label">{t('dayroom.boardroom')}</div>
           <div className="meta">
-            Confidence in you: <b>{Math.round(club.boardConfidence)}%</b>
-            {club.boardConfidence > 70 ? ' - they are enjoying this.'
-              : club.boardConfidence > 45 ? ' - broadly satisfied, watching closely.'
-              : club.boardConfidence > 25 ? ' - they want results and soon.'
-              : ' - patience has run out.'}
+            {t('dayroom.confidenceIn')}<b>{Math.round(club.boardConfidence)}%</b>
+            {t(club.boardConfidence > 70 ? 'dayroom.moodEnjoying'
+              : club.boardConfidence > 45 ? 'dayroom.moodSatisfied'
+              : club.boardConfidence > 25 ? 'dayroom.moodSoon'
+              : 'dayroom.moodOut')}
           </div>
           <div className="meta" style={{ marginTop: 2 }}>
-            Balance <b>{fmtMoney(club.balance)}</b> · transfer budget <b>{fmtMoney(club.budget)}</b>
+            {t('dayroom.balanceLabel')}<b>{fmtMoney(club.balance)}</b>
+            {t('dayroom.budgetLabel')}<b>{fmtMoney(club.budget)}</b>
           </div>
           <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('finances')}>
-            Finances and objectives ▸
+            {t('dayroom.financesObjectives')}
           </button>
         </div>
       )}
@@ -236,29 +235,26 @@ function WednesdayBlocks() {
   return (
     <>
       <div className="card">
-        <div className="fact-label">💼 The market</div>
+        <div className="fact-label">{t('dayroom.market')}</div>
         <div className="meta">
-          {open ? 'The window is open.' : 'The window is shut, so nothing moves until it reopens.'}
-          {' '}Transfer budget <b>{fmtMoney(club?.budget ?? 0)}</b>.
+          {t(open ? 'dayroom.windowOpen' : 'dayroom.windowShut')}
+          {t('dayroom.marketBudgetPre')}<b>{fmtMoney(club?.budget ?? 0)}</b>{t('dayroom.marketBudgetEnd')}
         </div>
         {offers > 0 && (
           <div className="meta" style={{ marginTop: 3, color: 'var(--info)', fontWeight: 700 }}>
-            {offers === 1 ? 'One bid' : `${offers} bids`} on your players need answering.
+            {t('dayroom.bids', { n: offers })}
           </div>
         )}
         <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('transfers')}>
-          Transfer Centre ▸
+          {t('dayroom.transferCentre')}
         </button>
       </div>
       {expiring > 0 && (
         <div className="card">
-          <div className="fact-label">✍️ Paperwork</div>
-          <div className="meta">
-            {expiring === 1 ? 'One man' : `${expiring} men`} with a deal running down or an agent asking for
-            improved terms. Leave it long enough and somebody else has the conversation for you.
-          </div>
+          <div className="fact-label">{t('dayroom.paperwork')}</div>
+          <div className="meta">{t('dayroom.paperworkBody', { n: expiring })}</div>
           <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('squad')}>
-            Contracts ▸
+            {t('dayroom.contracts')}
           </button>
         </div>
       )}
@@ -278,26 +274,26 @@ function ThursdayBlocks() {
   return (
     <>
       <div className="card">
-        <div className="fact-label">🏉 The training ground</div>
+        <div className="fact-label">{t('dayroom.trainingGround')}</div>
         <div className="meta">
-          {squad.length - out} of {squad.length} available{out ? `, ${out} unavailable` : ''}.
-          {tired ? ` ${tired} still carrying the weekend in their legs.` : ' Legs are fresh.'}
+          {out
+            ? t('dayroom.availableOut', { fit: squad.length - out, all: squad.length, n: out })
+            : t('dayroom.available', { fit: squad.length - out, all: squad.length })}
+          {tired ? t('dayroom.tired', { n: tired }) : t('dayroom.fresh')}
         </div>
         <div className="meta" style={{ marginTop: 2 }}>
-          This week's emphasis: <b>{game.matchPrep ? PREP_LABEL[game.matchPrep] ?? game.matchPrep : 'nothing set'}</b>
+          {t('dayroom.emphasis')}<b>{game.matchPrep ? prepLabel(game.matchPrep) : t('dayroom.nothingSet')}</b>
         </div>
         <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('training')}>
-          Training and staff ▸
+          {t('dayroom.trainingStaff')}
         </button>
       </div>
       {flat > 0 && (
         <div className="card">
-          <div className="fact-label">😐 The dressing room</div>
-          <div className="meta">
-            {flat === 1 ? 'One man is' : `${flat} men are`} flat. A word now is cheaper than a word in February.
-          </div>
+          <div className="fact-label">{t('dayroom.dressingRoom')}</div>
+          <div className="meta">{t('dayroom.dressingBody', { n: flat })}</div>
           <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('club', club.id)}>
-            Dressing room ▸
+            {t('dayroom.dressingRoomBtn')}
           </button>
         </div>
       )}
@@ -324,13 +320,17 @@ function FridayBlocks() {
         const read = analystRead(game, oppId)
         return (
           <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-            <div className="fact-label">Tomorrow</div>
+            <div className="fact-label">{t('dayroom.tomorrow')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
               <CrestT g={game} teamId={oppId} size={26} />
-              <b style={{ fontSize: 16 }}>{home ? 'v' : 'at'} {opp?.name ?? teamShort(game, oppId)}</b>
+              <b style={{ fontSize: 16 }}>
+                {t(home ? 'dayroom.vHome' : 'dayroom.vAway', { club: opp?.name ?? teamShort(game, oppId) })}
+              </b>
             </div>
             <div className="meta" style={{ marginTop: 3 }}>
-              {game.comps[fx.compId]?.name ?? 'Friendly'} · {fx.venue ? `${fx.venue.name}, ${fx.venue.city}` : home ? `${club?.stadium}` : `${opp?.stadium ?? 'away'}`}
+              {game.comps[fx.compId]?.name ?? t('dayroom.friendly')} · {fx.venue
+                ? t('dayroom.venueLine', { name: fx.venue.name, city: fx.venue.city })
+                : home ? `${club?.stadium}` : `${opp?.stadium ?? t('dayroom.away')}`}
             </div>
             {/* WHO ARE THEY, RIGHT NOW (user: "it would be good to see A teams
                 position in the league if its not a cup game and their last 5
@@ -355,10 +355,14 @@ function FridayBlocks() {
               if (!pos && !last5.length) return null
               return (
                 <div className="meta" style={{ marginTop: 3 }}>
-                  {pos ? `${ordinal(pos)} in the ${lg.short}` : ''}
+                  {pos ? t('dayroom.posInLeague', { pos: ord(pos), league: lg.short }) : ''}
                   {pos && last5.length ? ' · ' : ''}
-                  {last5.length ? <>form {last5.map((r, i) => (
-                    <b key={i} style={{ color: r === 'W' ? 'var(--text-positive)' : r === 'L' ? 'var(--danger)' : 'var(--gold)', marginLeft: i ? 3 : 4 }}>{r}</b>
+                  {/* the class stays W/L/D - it is what colours the letter -
+                      while the letter shown follows the language */}
+                  {last5.length ? <>{t('dayroom.formLabel')} {last5.map((r, i) => (
+                    <b key={i} style={{ color: r === 'W' ? 'var(--text-positive)' : r === 'L' ? 'var(--danger)' : 'var(--gold)', marginLeft: i ? 3 : 4 }}>
+                      {t(r === 'W' ? 'common.w' : r === 'L' ? 'common.l' : 'common.d')}
+                    </b>
                   ))}</> : ''}
                 </div>
               )
@@ -367,7 +371,9 @@ function FridayBlocks() {
                 season when the fixture card is not just a fixture card */}
             {fx.stage === 'F' && fx.compId !== 'fr' && (
               <div className="meta" style={{ marginTop: 3 }}>
-                🏆 <b>THE FINAL.</b> {fx.venue ? `${fx.venue.capacity.toLocaleString()} inside ${fx.venue.name} tomorrow. ` : ''}Eighty minutes for the whole season. Nobody at the club sleeps well tonight.
+                🏆 <b>{t('dayroom.theFinalB')}</b>
+                {fx.venue ? t('dayroom.finalVenue', { n: fx.venue.capacity, venue: fx.venue.name }) : ''}
+                {t('dayroom.finalRest')}
               </div>
             )}
             {/* the weight of the run, named on the eve (16C): once you are 8+
@@ -377,30 +383,30 @@ function FridayBlocks() {
               if (run < 8 || fx.compId === 'fr') return null
               return (
                 <div className="meta" style={{ marginTop: 3 }}>
-                  🛡️ <b>Unbeaten in {run}.</b> This is their cup final now: expect their best eighty, and keep the room calm.
+                  🛡️ <b>{t('dayroom.unbeatenB', { n: run })}</b>{t('dayroom.unbeatenRest')}
                 </div>
               )
             })()}
             {read && (
               <div className="meta" style={{ marginTop: 6 }}>
-                <b style={{ color: 'var(--gold)' }}>{UNIT_LABEL[read.unit]}.</b> {read.claim}
+                <b style={{ color: 'var(--gold)' }}>{unitLabel(read.unit)}.</b> {analystClaim(read)}
               </div>
             )}
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('tactics')}>
-              Team sheet and game plan ▸
+              {t('dayroom.teamSheet')}
             </button>
           </div>
         )
       })()}
       {others.length > 0 && (
         <>
-          <SectionTitle sub="the rest of the round">Elsewhere This Weekend</SectionTitle>
+          <SectionTitle sub={t('dayroom.elsewhereSub')}>{t('dayroom.elsewhere')}</SectionTitle>
           <div className="card" style={{ padding: '4px 0' }}>
             {others.map(f => (
               <div key={f.id} className="day-fx">
                 <span className="dfx-side">{teamShort(game, f.homeId)}</span>
                 <CrestT g={game} teamId={f.homeId} size={15} />
-                <span className="dfx-v">v</span>
+                <span className="dfx-v">{t('common.v')}</span>
                 <CrestT g={game} teamId={f.awayId} size={15} />
                 <span className="dfx-side right">{teamShort(game, f.awayId)}</span>
               </div>

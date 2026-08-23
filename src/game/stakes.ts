@@ -25,6 +25,7 @@
  *      no rng and writes nothing back, so it cannot move a single result.
  */
 import { grudgeBetween, unbeatenRun } from './model'
+import { ord, t } from './i18n'
 // WIN_MARKS lives in season.ts (legacy.ts imports it the same way)
 import { WIN_MARKS } from './season'
 import type { Fixture, GameState } from './model'
@@ -37,9 +38,6 @@ export interface Stake {
    *  a milestone beats a grudge beats a nice run. */
   weight: number
 }
-
-const ord = (n: number) =>
-  `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
 
 /** Head-to-head over the seasons on the record: [ourWins, theirWins, lastRun]. */
 function headToHead(state: GameState, oppId: string): { theirs: number; ours: number; streak: number } {
@@ -105,30 +103,30 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
       const late = played >= total - 5
       if (played >= 4 && meIdx > 0 && above.length > 0) {
         const climbTo = meIdx + 1 - above.length
-        if (climbTo === 1) out.push({ text: 'Win and you go top of the league.', weight: 100 })
-        else out.push({ text: `Win and you climb to ${ord(climbTo)}.`, weight: 55 + (late ? 20 : 0) })
+        if (climbTo === 1) out.push({ text: t('stakes.goTop'), weight: 100 })
+        else out.push({ text: t('stakes.climbTo', { pos: ord(climbTo) }), weight: 55 + (late ? 20 : 0) })
       } else if (played >= 4 && meIdx === 0) {
         const chaser = table[1]
         const gap = mine.pts - (chaser?.pts ?? 0)
         out.push({
           text: gap <= 4
-            ? `Top of the league by ${gap} point${gap === 1 ? '' : 's'} - and ${state.clubs[chaser.teamId]?.short ?? 'the chasers'} are right behind you.`
-            : `Top of the league. Win and the gap goes out to ${gap + 4}.`,
+            ? t('stakes.topNarrow', { n: gap, gap, club: state.clubs[chaser.teamId]?.short ?? t('stakes.chasers') })
+            : t('stakes.topClear', { gap: gap + 4 }),
           weight: gap <= 4 ? 92 : 60,
         })
       }
       // the wrong end of it
       const relegates = ['prem', 'champ', 'top14'].includes(comp.id)
       if (played >= 4 && relegates && pos >= table.length - 1 && late) {
-        out.push({ text: 'A relegation six-pointer in all but name: the drop is one bad afternoon away.', weight: 105 })
+        out.push({ text: t('stakes.relSixPointer'), weight: 105 })
       } else if (played >= 4 && relegates && pos >= table.length - 2) {
-        out.push({ text: `${ord(pos)} of ${table.length}. The bottom of this table is close enough to read.`, weight: 62 })
+        out.push({ text: t('stakes.nearBottom', { pos: ord(pos), n: table.length }), weight: 62 })
       }
       // the run-in
       if (late && comp.playoffTeams > 0) {
         const cut = table[comp.playoffTeams - 1]
         if (cut && Math.abs(mine.pts - cut.pts) <= 5 && pos > comp.playoffTeams) {
-          out.push({ text: `The playoff places are ${Math.max(0, cut.pts - mine.pts)} points away with ${Math.max(0, total - played)} to play.`, weight: 95 })
+          out.push({ text: t('stakes.playoffChase', { gap: Math.max(0, cut.pts - mine.pts), left: Math.max(0, total - played) }), weight: 95 })
         }
       }
     }
@@ -137,23 +135,23 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
   // ---- the boardroom ----
   if (club.boardConfidence <= 22) {
     out.push({
-      text: club.boardConfidence <= 12
-        ? 'The board meets on Monday either way. What you hand them tonight decides the meeting.'
-        : 'The boardroom has gone quiet on you. A result here would change the temperature.',
+      text: t(club.boardConfidence <= 12 ? 'stakes.boardMonday' : 'stakes.boardQuiet'),
       weight: club.boardConfidence <= 12 ? 110 : 70,
     })
   }
 
   // ---- the grudge, the derby, the bogey side ----
   const grudge = grudgeBetween(state, uid, oppId)
-  if (fx.derby) out.push({ text: `Derby day. ${oppName}, and the city stops for it.`, weight: 80 })
-  if (grudge) out.push({ text: `Bad blood: ${grudge.reason}. Nobody at either club has forgotten.`, weight: 78 })
+  if (fx.derby) out.push({ text: t('stakes.derbyDay', { club: oppName }), weight: 80 })
+  // the grudge's own reason is written into the save when the grudge is struck,
+  // so it stays in the language it was filed in and the sentence carries it
+  if (grudge) out.push({ text: t('stakes.badBlood', { reason: grudge.reason }), weight: 78 })
   const h2h = headToHead(state, oppId)
-  if (h2h.streak >= 3) out.push({ text: `${oppName} have beaten you ${h2h.streak} times in a row. At some point that has to stop.`, weight: 76 })
+  if (h2h.streak >= 3) out.push({ text: t('stakes.beatenRun', { club: oppName, n: h2h.streak }), weight: 76 })
 
   // ---- runs, ours and theirs ----
   const run = unbeatenRun(state, uid)
-  if (run >= 6) out.push({ text: `${run} unbeaten. The whole league is waiting for it to end.`, weight: 58 + Math.min(20, run) })
+  if (run >= 6) out.push({ text: t('stakes.unbeaten', { n: run }), weight: 58 + Math.min(20, run) })
 
   // ---- a man on the edge of something ----
   {
@@ -161,10 +159,10 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
     for (const p of squad) {
       if (!p) continue
       for (const mark of [50, 100, 150, 200, 250]) {
-        if (p.stats.apps === mark - 1) out.push({ text: `${p.name} makes appearance number ${mark} for the club tonight.`, weight: 66 })
+        if (p.stats.apps === mark - 1) out.push({ text: t('stakes.appMark', { player: p.name, n: mark }), weight: 66 })
       }
       for (const mark of [25, 50, 75, 100]) {
-        if (p.stats.tries === mark - 1) out.push({ text: `${p.name} is one try short of ${mark} for the club.`, weight: 68 })
+        if (p.stats.tries === mark - 1) out.push({ text: t('stakes.tryMark', { player: p.name, n: mark }), weight: 68 })
       }
     }
   }
@@ -172,7 +170,7 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
   // ---- the manager's own marks ----
   {
     const nextWin = WIN_MARKS.find((x: number) => x > state.mgr.w)
-    if (nextWin && state.mgr.w === nextWin - 1) out.push({ text: `Win this and it is career victory number ${nextWin}.`, weight: 72 })
+    if (nextWin && state.mgr.w === nextWin - 1) out.push({ text: t('stakes.winMark', { n: nextWin }), weight: 72 })
   }
 
   // ---- the dream, when this fixture is on its road ----
@@ -180,14 +178,14 @@ export function matchStakes(state: GameState, fx: Fixture): string | null {
     const d = dreamState(state)
     if (d && !d.progress.done) {
       if ((fx.compId === 'cc') && !!fx.stage && (d.def.id === 'europe' || d.def.id === 'double')) {
-        out.push({ text: `Continental Cup knockout rugby - the exact road your career was pointed down.`, weight: 88 })
+        out.push({ text: t('stakes.dreamRoad'), weight: 88 })
       }
     }
   }
 
   // ---- a final is a final ----
-  if (fx.stage === 'F') out.push({ text: 'A final. Everything a season is for, in eighty minutes.', weight: 120 })
-  else if (fx.stage === 'SF') out.push({ text: 'A semi-final: win and you are eighty minutes from silverware.', weight: 108 })
+  if (fx.stage === 'F') out.push({ text: t('stakes.aFinal'), weight: 120 })
+  else if (fx.stage === 'SF') out.push({ text: t('stakes.aSemi'), weight: 108 })
 
   if (!out.length) return null
   out.sort((a, b) => b.weight - a.weight)
@@ -207,18 +205,19 @@ export function seasonTentpoles(state: GameState): Tentpole[] {
   const out: Tentpole[] = []
   for (const fx of state.fixtures) {
     if (fx.homeId !== uid && fx.awayId !== uid) continue
-    if (fx.derby) out.push({ week: fx.week, icon: '🔥', label: `Derby: ${state.clubs[fx.homeId === uid ? fx.awayId : fx.homeId]?.short ?? ''}` })
-    if (fx.stage === 'F') out.push({ week: fx.week, icon: '🏆', label: 'A FINAL' })
-    else if (fx.stage === 'SF') out.push({ week: fx.week, icon: '🏆', label: 'Semi-final' })
+    if (fx.derby) out.push({ week: fx.week, icon: '🔥', label: t('stakes.tpDerby', { club: state.clubs[fx.homeId === uid ? fx.awayId : fx.homeId]?.short ?? '' }) })
+    if (fx.stage === 'F') out.push({ week: fx.week, icon: '🏆', label: t('stakes.tpFinal') })
+    else if (fx.stage === 'SF') out.push({ week: fx.week, icon: '🏆', label: t('stakes.tpSemi') })
   }
   // the fixed furniture of a season
-  out.push({ week: 7, icon: '📝', label: 'Transfer deadline' })
-  out.push({ week: 24, icon: '🏛', label: 'Half-term report card' })
-  out.push({ week: 27, icon: '📝', label: 'Mid-season deadline' })
-  out.push({ week: 30, icon: '🎓', label: 'Academy class preview' })
-  out.push({ week: 44, icon: '🎓', label: 'Intake day' })
+  out.push({ week: 7, icon: '📝', label: t('stakes.tpDeadline') })
+  out.push({ week: 24, icon: '🏛', label: t('stakes.tpHalfTerm') })
+  out.push({ week: 27, icon: '📝', label: t('stakes.tpMidDeadline') })
+  out.push({ week: 30, icon: '🎓', label: t('stakes.tpAcademyPreview') })
+  out.push({ week: 44, icon: '🎓', label: t('stakes.tpIntake') })
   out.sort((a, b) => a.week - b.week)
   // one entry per week, the most interesting kept: a derby beats the calendar
+  // `tp`, not `t`: t() is the translator
   const seen = new Set<number>()
-  return out.filter(t => (seen.has(t.week) ? false : (seen.add(t.week), true)))
+  return out.filter(tp => (seen.has(tp.week) ? false : (seen.add(tp.week), true)))
 }

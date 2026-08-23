@@ -383,6 +383,115 @@ try {
     .filter(w => planText.includes(w))
   ok(engleft.length === 0, `no English game plan left${engleft.length ? ': ' + engleft.join(', ') : ''}`)
 
+  // ---- the day room and match day, the two longest screens in the game -----
+  //
+  // Between them they hold the week's bulletin, the whole pre-match briefing,
+  // the tunnel, the touchline and full time. Almost none of it is a label: it is
+  // sentences the screen builds at render out of the assistant, the analyst, the
+  // table and the referee, which is exactly the kind of text that stays English
+  // without anybody noticing. So the walk goes all the way to a final whistle.
+  //
+  // The match COMMENTARY is English on purpose - it is written into the report
+  // the save keeps (docs/i18n.md) - so nothing here reads the ticker.
+  const walkTo = async (stop, max = 40) => {
+    for (let i = 0; i < max; i++) {
+      if (await page.locator(stop).count()) return true
+      if (await page.locator('.wire-body').count()) {
+        // Continue handed us the morning's paper: read to the end of the queue
+        await page.locator('.btn-row .btn.gold').last().click().catch(() => {})
+      } else if (await page.locator('.continue-btn').count()) {
+        await page.locator('.continue-btn').click().catch(() => {})
+      } else break
+      await page.waitForTimeout(220)
+    }
+    return (await page.locator(stop).count()) > 0
+  }
+
+  ok(await walkTo('.day-head'), 'Continue reaches a day bulletin')
+  if (await page.locator('.day-head').count()) {
+    const head = (await page.locator('.day-head').innerText()).replace(/\s+/g, ' ')
+    say(`  day room: "${head.slice(0, 80)}"`)
+    ok(/Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi/i.test(head), 'the day is named in French')
+    ok(/semaine/i.test(head), 'and so is the week line')  // the head is uppercased by CSS
+    const dayText = await page.locator('.content, .day-head').first().innerText().catch(() => '')
+    const dayEng = ['The Review', 'The Morning Papers', 'On The Wire', 'Treatment Room', 'The market',
+      'The boardroom', 'The training ground', 'Tomorrow', 'Continue ▸']
+      .filter(w => dayText.includes(w))
+    ok(dayEng.length === 0, `no English left in the day room${dayEng.length ? ': ' + dayEng.join(', ') : ''}`)
+    const next = await page.locator('.day-next').innerText().catch(() => '')
+    ok(/Continuer/.test(next), `and its own Continue is French ("${next.trim()}")`)
+  }
+
+  ok(await walkTo('.mday-head', 60), 'and the week walks on to a match')
+  if (await page.locator('.mday-head').count()) {
+    const mTabs = await page.locator('.tab-bar button').allInnerTexts()
+    say(`  match-day tabs: ${mTabs.join(' | ')}`)
+    ok(mTabs.some(x => /Équipe/i.test(x)) && mTabs.some(x => /Causerie/i.test(x)), 'the match-day tabs are French')
+    const kickBtn = await page.locator('.continue-btn').innerText().catch(() => '')
+    ok(/Coup d'envoi/i.test(kickBtn), `the kick-off button is French ("${kickBtn.trim()}")`)
+
+    // the briefing tab is the sentence-heavy one: stakes, referee, opposition,
+    // the assistant's plan, all of them assembled rather than looked up
+    await page.locator('.tab-bar button', { hasText: 'Briefing' }).click()
+    await page.waitForTimeout(400)
+    const brief = await page.locator('main.content').innerText()
+    const briefEng = ['The Stakes', 'The Whistle', 'The Finishers', 'Head to Head', "Assistant's Game Plan",
+      'The Opposite Number', 'Danger Man', 'The Book On Them', 'Partnerships', 'has the appointment']
+      .filter(w => brief.includes(w))
+    ok(briefEng.length === 0, `no English left in the briefing${briefEng.length ? ': ' + briefEng.join(', ') : ''}`)
+    ok(/Face à face|Mêlée|Touche/i.test(brief), 'and the head-to-head bars are French')
+
+    // down the tunnel: the dressing room, then whatever the ready check says
+    await page.locator('.continue-btn').click()
+    await page.waitForTimeout(500)
+    if (await page.locator('.talk-modal').count()) {
+      const tiles = await page.locator('.talk-modal .speech-tile b').allInnerTexts()
+      say(`  dressing room: ${tiles.join(' | ')}`)
+      ok(!tiles.some(x => /Calm the nerves|Light the fuse|Nobody rates us|I expect a win/i.test(x)),
+        'the team talk is French')
+      await page.locator('.talk-modal .btn.ghost.block').click()
+      await page.waitForTimeout(500)
+    }
+    if (await page.locator('.modal .btn.gold').count() && !(await page.locator('.live-wrap').count())) {
+      const ready = await page.locator('.modal').innerText()
+      ok(!/Are you ready for the game\?|Not Yet|Take the Field/i.test(ready), 'the ready check is French')
+      await page.locator('.modal .btn.gold').click()
+      await page.waitForTimeout(600)
+    }
+
+    ok(await page.locator('.live-wrap').count() > 0, 'and the match starts')
+    if (await page.locator('.live-wrap').count()) {
+      const caps = await page.locator('.ctrl-cap').allInnerTexts()
+      say(`  touchline controls: ${caps.join(' | ')}`)
+      // 'Pause' is not on the list: it is the same word in both languages, so it
+      // is no evidence either way
+      ok(!caps.some(x => /^(Play|Squad)$/i.test(x)), 'the touchline controls are French')
+      const l10 = await page.locator('.l10-label').innerText().catch(() => '')
+      ok(!/PENALTIES/i.test(l10), `and the possession strip is French ("${l10}")`)
+
+      // to full time: Skip, and press through half-time and the hour
+      for (let i = 0; i < 30 && !(await page.locator('.ft-stamp').count()); i++) {
+        const skip = page.locator('.speed-controls .btn', { hasText: 'Passer' })
+        if (await skip.count()) await skip.first().click().catch(() => {})
+        else if (await page.locator('.panel-area .btn.gold').count()) {
+          await page.locator('.panel-area .btn.gold').first().click().catch(() => {})
+        }
+        await page.waitForTimeout(700)
+      }
+      ok(await page.locator('.ft-stamp').count() > 0, 'the match reaches full time')
+      if (await page.locator('.ft-stamp').count()) {
+        const stamp = (await page.locator('.ft-stamp').innerText()).replace(/\s+/g, ' ')
+        say(`  full time: "${stamp.trim()}"`)
+        ok(/VICTOIRE|DÉFAITE|MATCH NUL/i.test(stamp), 'the full-time stamp is French')
+        const report = await page.locator('.panel-area').innerText()
+        const ftEng = ["Coach's Verdict", 'The Unit Battles', 'Star Player', 'Match Stats', 'The Highlights',
+          'Continue to Results', 'Player ratings', 'The Two Fixes', 'The Fix']
+          .filter(w => report.includes(w))
+        ok(ftEng.length === 0, `no English left in the full-time report${ftEng.length ? ': ' + ftEng.join(', ') : ''}`)
+      }
+    }
+  }
+
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''}`)
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
