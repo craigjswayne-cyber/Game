@@ -145,6 +145,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   }
 
   const seenNames = new Set<string>()
+  /** Real men already built, by lowercased name. A list per name, because a
+   *  name can belong to two different players - see the dedup below. */
+  const seenMen = new Map<string, { pos: string; age: number }[]>()
 
   // the Sapiac challenge's premise is that Montauban ARE in the Elite 14 -
   // make it true at boot: they come up, the weakest Elite 14 side goes down
@@ -211,9 +214,26 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // 2025-26 guide still said Northampton and quietly deleted all four.
         const to = handAdded.has(rp.name) ? null : verifiedClub(rp.name, rc.id)
         if (to && clubIds.has(to) && to !== rc.id) continue
-        // same real player supplied by two files (sabbaticals etc) - keep first
+        // A SHARED NAME IS NOT THE SAME MAN, and keyed on the bare name this
+        // deleted 24 real players from every world - a 26-year-old winger and a
+        // 30-year-old lock both called Alex Hughes are two men, and only one of
+        // them was reaching the pitch. scripts/dataaudit.ts had already worked
+        // out the discrimination and says so in its own comments ("writing
+        // either of them into verified.ts would DELETE A REAL PLAYER"), and the
+        // scoped name@club pins in verified.ts exist for the same reason - then
+        // this line dropped the second man anyway, twelve lines further down.
+        //
+        // Same rule as the audit: one man, if the shirt matches and the ages are
+        // within a year of each other. A genuine double listing (a sabbatical,
+        // a mid-window move recorded twice) still dedups; two different players
+        // both get built.
         const key = rp.name.toLowerCase()
-        if (seenNames.has(key)) continue
+        const built = seenMen.get(key)
+        if (built?.some(m => m.pos === rp.pos && Math.abs(m.age - rp.age) <= 1)) continue
+        if (built) built.push({ pos: rp.pos, age: rp.age })
+        else seenMen.set(key, [{ pos: rp.pos, age: rp.age }])
+        // and the bare name still goes into the registry the NAME GENERATOR
+        // reads, so no invented player can be handed either namesake's name
         seenNames.add(key)
         const p = buildPlayer(rp, club.id, seed + club.players.length, 0)
         p.real = true // written by hand in the data, not by the name generator
@@ -279,7 +299,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         regenName(rng, club.country, seenNames) // the name he replaces, burned
         // and the goal-kicker roll, which mkExtra only draws for a 10 or a 15
         if (pos === 'FH' || pos === 'FB') rng()
-        seenNames.add(pr.name)
+        // lowercase, like every other writer and reader of this set: registered
+        // as typed, the name was never actually reserved and regenName could
+        // mint a second man with it
+        seenNames.add(pr.name.toLowerCase())
         const p = buildPlayer(
           { name: pr.name, pos: pr.pos, age: pr.age, nat: club.country, q: pr.q, gk: pr.gk },
           club.id, seed + club.players.length * 31 + i, 0)

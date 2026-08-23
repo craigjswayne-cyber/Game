@@ -227,8 +227,14 @@ for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
   for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
     const { name } = splitKey(key)
     const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === name)
-    if (hits.length !== 1) bad(`${key} appears ${hits.length} times in the built world, wants exactly 1`)
-    else if (hits[0].clubId !== want) bad(`${key} was built at ${hits[0].clubId}, wants ${want}`)
+    // A NAMESAKE IS NOT A DUPLICATE. The builder now puts both men called
+    // George Martin on a pitch - the Leicester lock the pin moves, and the
+    // Esher winger who is going nowhere - so what this asserts is that ONE of
+    // them landed where the pin says, not that only one of him exists.
+    if (!hits.length) bad(`${key} is pinned but nobody of that name was built`)
+    else if (!hits.some(h => h.clubId === want)) {
+      bad(`${key} was built at ${hits.map(h => h.clubId).join(', ')}, wants ${want}`)
+    }
   }
   console.log(`verified relocations: ${verifiedNames.length} players placed by hand, all landed`)
 
@@ -242,13 +248,19 @@ for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
     for (const rp of extras) {
       added++
       const key = rp.name.toLowerCase()
-      const already = allClubs.filter(c => c.players.some(p => p.name.toLowerCase() === key)).map(c => c.id)
+      // the same man already in a file is a relocation and belongs in
+      // verified.ts - but a NAMESAKE is not the same man, and the test for
+      // that is the one the builder and the namesake report both use
+      const already = allClubs.filter(c => c.players.some(p =>
+        p.name.toLowerCase() === key && p.pos === rp.pos && Math.abs(p.age - rp.age) <= 1)).map(c => c.id)
       if (already.length) {
         bad(`additions table adds ${rp.name}, who is already in the files at ${already.join(', ')} - relocate him instead`)
       }
       const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === key)
-      if (hits.length !== 1) bad(`${rp.name} appears ${hits.length} times in the built world, wants exactly 1`)
-      else if (hits[0].clubId !== clubId) bad(`${rp.name} was built at ${hits[0].clubId}, wants ${clubId}`)
+      if (!hits.length) bad(`${rp.name} was added but never built`)
+      else if (!hits.some(h => h.clubId === clubId)) {
+        bad(`${rp.name} was built at ${hits.map(h => h.clubId).join(', ')}, wants ${clubId}`)
+      }
       if (!POS_ORDER.includes(rp.pos)) bad(`additions table gives ${rp.name} position ${rp.pos}, which is not a shirt`)
     }
   }

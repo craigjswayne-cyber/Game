@@ -284,12 +284,24 @@ const EXPECTED: string[] = [
   // rebaseline above). No dial, no rule, no engine change in the same commit.
   // scripts/bandcheck.ts held every band inside tolerance over four worlds on
   // the new data before this baseline was written down.
-  'sale 33-15 exeter',
-  'leicester 11-14 gloucester',
-  'bristol 6-28 bath',
-  'harlequins 41-41 newcastle',
-  'northampton 41-22 saracens',
-  'gloucester 34-37 sale',
+  //
+  // REBASELINED for the namesake fix. The world builder had been keyed on the
+  // bare lowercased name across all 101 clubs, so twenty-four REAL players
+  // were dropped from every career - two different men called Alex Hughes, a
+  // winger of 26 and a lock of 30, and only one of them made it onto a pitch.
+  // The builder now splits them the way scripts/dataaudit.ts already did, on
+  // name + shirt + age. Twenty-four more men in the world consume different
+  // rng draws and the fixture pairings fall differently, so this stream moves.
+  //
+  // Not a mechanical change: no dial, no rule, no rating. bandcheck was run
+  // first and held every band over four worlds - 6.27 tries, 54.3% home,
+  // 2.2% draws, 6.5% blowouts.
+  'harlequins 57-38 exeter',
+  'gloucester 22-24 bristol',
+  'sale 19-3 saracens',
+  'northampton 41-41 newcastle',
+  'bath 43-17 leicester',
+  'bristol 30-22 harlequins',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
