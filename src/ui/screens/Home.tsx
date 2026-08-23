@@ -14,9 +14,8 @@ import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
 import { fmtMoney, formGuide, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
-import { ordinal } from '../../game/gossip'
 import { natRankOrder } from '../../game/natrank'
-import { t } from '../../game/i18n'
+import { ord, t } from '../../game/i18n'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -358,7 +357,7 @@ export default function Home() {
       <div className="hub-row">
         <button className="hub-widget" onClick={() => go('tables')}>
           <label>{t('home.wLeague')}</label>
-          <b>{pos > 0 ? `${pos}${t(pos === 1 ? 'common.ord1' : pos === 2 ? 'common.ord2' : pos === 3 ? 'common.ord3' : 'common.ordN')}` : '-'}</b>
+          <b>{pos > 0 ? ord(pos) : '-'}</b>
           <span>{game.comps[club.leagueId]?.short}</span>
         </button>
         <button className="hub-widget" onClick={() => go('fixtures')}>
@@ -479,7 +478,7 @@ export default function Home() {
                   <div className="dash-line">
                     <span className="dl-t">{teamShort(game, rival)}</span>
                     {rr && <b style={{ color: rr.c }}>{rr.txt}</b>}
-                    {rPos > 0 && <span className="muted">{ordinal(rPos)}</span>}
+                    {rPos > 0 && <span className="muted">{ord(rPos)}</span>}
                   </div>
                 </button>
               )

@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useStore } from '../../store'
 import { weekDate, type NewsItem } from '../../game/model'
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
+import { t } from '../../game/i18n'
 
 /** The inbox: one message at a time, with a recall window.
  *
@@ -50,7 +51,7 @@ export function PeopleChips({ n }: { n: NewsItem }) {
         return (
           <button key={id} className="who-chip" onClick={e => { e.stopPropagation(); go('player', id) }}>
             <b>{p.name}</b>
-            <span>{p.pos}{club ? ` · ${club.short}` : ' · free agent'} ▸</span>
+            <span>{p.pos}{club ? ` · ${club.short}` : t('inbox.freeAgent')} ▸</span>
           </button>
         )
       })}
@@ -65,7 +66,7 @@ export function InboxList({ compact }: { compact?: boolean }) {
   const touch = useStore(s => s.touch)
   const news = [...game.news].filter(n => inInbox(game, n)).sort((a, b) => b.id - a.id)
   if (news.length === 0) {
-    return <div className="muted" style={{ padding: 14 }}>Nothing yet. Press Continue to get the season moving.</div>
+    return <div className="muted" style={{ padding: 14 }}>{t('inbox.nothingYet')}</div>
   }
   return (
     <>
@@ -119,8 +120,7 @@ export default function Inbox() {
   if (!n) {
     return (
       <div className="muted" style={{ padding: 14 }}>
-        Nothing in the inbox. Read mail stays here for {RECALL_DAYS} days and then moves on,
-        so an empty screen means you are up to date. Press Continue to get the season moving.
+        {t('inbox.emptyReader', { days: RECALL_DAYS })}
       </div>
     )
   }
@@ -129,27 +129,27 @@ export default function Inbox() {
   // Only ever shown on something already read: an unread story does not expire,
   // and the countdown runs from when it was READ (see days.inInbox).
   const left = daysLeft(game, n)
-  const shelf = !n.read ? '' : left <= 0 ? ' · last day in the inbox'
-    : left === 1 ? ' · one more day' : ` · ${left} days left`
+  const shelf = !n.read ? '' : left <= 0 ? t('inbox.shelfLastDay')
+    : left === 1 ? t('inbox.shelfOneDay') : t('inbox.shelfDaysLeft', { n: left })
 
   return (
     <>
       <div className="reader-bar">
         {/* older is BACK in time, which is further down a newest-first list */}
         <button className="btn ghost tiny" disabled={i >= window20.length - 1}
-          title="Older message" aria-label="Older message"
+          title={t('inbox.olderMessage')} aria-label={t('inbox.olderMessage')}
           onClick={() => inboxStep(-1)}>◀</button>
         <span className="reader-pos">
           {/* a story older than the browse window has no position in it */}
-          {i >= 0 ? `${i + 1} of ${window20.length}` : 'backlog'}
-          {unread > 0 ? ` · ${unread} unread` : ' · all read'}
+          {i >= 0 ? t('inbox.position', { i: i + 1, n: window20.length }) : t('inbox.backlog')}
+          {unread > 0 ? t('inbox.someUnread', { n: unread }) : t('inbox.allRead')}
         </span>
         <button className="btn ghost tiny" disabled={i <= 0}
-          title="Newer message" aria-label="Newer message"
+          title={t('inbox.newerMessage')} aria-label={t('inbox.newerMessage')}
           onClick={() => inboxStep(1)}>▶</button>
         {unread > 0
-          ? <button className="btn gold tiny" onClick={() => openInbox()}>Next unread ({unread}) ▸</button>
-          : <button className="btn ghost tiny" onClick={() => clearRead()}>Clear read</button>}
+          ? <button className="btn gold tiny" onClick={() => openInbox()}>{t('inbox.nextUnread', { n: unread })}</button>
+          : <button className="btn ghost tiny" onClick={() => clearRead()}>{t('inbox.clearRead')}</button>}
       </div>
 
       <article className="reader">

@@ -393,5 +393,40 @@
     "awayFromClubSub": "international duty & loans",
     "onLoan": "ON LOAN",
     "intlDuty": "INTL DUTY"
+  },
+  "inbox": {
+    "freeAgent": " · free agent",
+    "nothingYet": "Nothing yet. Press Continue to get the season moving.",
+    "emptyReader": "Nothing in the inbox. Read mail stays here for {days} days and then moves on, so an empty screen means you are up to date. Press Continue to get the season moving.",
+    "olderMessage": "Older message",
+    "newerMessage": "Newer message",
+    "position": "{i} of {n}",
+    "backlog": "backlog",
+    "someUnread": " · {n} unread",
+    "allRead": " · all read",
+    "nextUnread": "Next unread ({n}) ▸",
+    "clearRead": "Clear read",
+    "shelfLastDay": " · last day in the inbox",
+    "shelfOneDay": " · one more day",
+    "shelfDaysLeft": " · {n} days left"
+  },
+  "tables": {
+    "internationals": "Internationals",
+    "honours": "Honours",
+    "manager": "Manager",
+    "jobs": "Jobs",
+    "knockoutStages": "Knockout Stages",
+    "allCompsThisSeason": "all comps, this season",
+    "topTryScorers": "Top Try Scorers",
+    "topPointsScorers": "Top Points Scorers",
+    "formPlayers": "Form Players",
+    "colRank": "#",
+    "colTeam": "Team",
+    "colP": "P",
+    "colBP": "BP",
+    "colDiff": "+/-",
+    "playoffLine": "🟡 Top {n}: playoff places",
+    "relegationLine": "🔻 Bottom: relegation",
+    "punditsPredicted": "🎙 Pundits predicted you {place}"
   }
 }

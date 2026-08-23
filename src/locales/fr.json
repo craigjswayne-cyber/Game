@@ -393,5 +393,40 @@
     "awayFromClubSub": "sélections et prêts",
     "onLoan": "EN PRÊT",
     "intlDuty": "EN SÉLECTION"
+  },
+  "inbox": {
+    "freeAgent": " · agent libre",
+    "nothingYet": "Rien pour l'instant. Appuyez sur Continuer pour lancer la saison.",
+    "emptyReader": "Rien dans la messagerie. Les messages lus y restent {days} jours puis disparaissent : un écran vide veut dire que vous êtes à jour. Appuyez sur Continuer pour lancer la saison.",
+    "olderMessage": "Message plus ancien",
+    "newerMessage": "Message plus récent",
+    "position": "{i} sur {n}",
+    "backlog": "en retard",
+    "someUnread": " · {n} non lus",
+    "allRead": " · tout est lu",
+    "nextUnread": "Suivant non lu ({n}) ▸",
+    "clearRead": "Tout classer",
+    "shelfLastDay": " · dernier jour dans la messagerie",
+    "shelfOneDay": " · encore un jour",
+    "shelfDaysLeft": " · encore {n} jours"
+  },
+  "tables": {
+    "internationals": "Internationaux",
+    "honours": "Palmarès",
+    "manager": "Manager",
+    "jobs": "Postes",
+    "knockoutStages": "Phases finales",
+    "allCompsThisSeason": "toutes comp., cette saison",
+    "topTryScorers": "Meilleurs marqueurs d'essais",
+    "topPointsScorers": "Meilleurs réalisateurs",
+    "formPlayers": "Joueurs en forme",
+    "colRank": "#",
+    "colTeam": "Équipe",
+    "colP": "J",
+    "colBP": "BO",
+    "colDiff": "+/-",
+    "playoffLine": "🟡 Top {n} : places de phases finales",
+    "relegationLine": "🔻 Dernier : relégation",
+    "punditsPredicted": "🎙 Les experts vous voyaient {place}"
   }
 }
