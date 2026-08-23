@@ -69,16 +69,16 @@ const club = (
 })
 
 export const NATL1: RawClub[] = [
-  club('rosslyn', 'Rosslyn Park', 'Rosslyn Pk', 'London', 'The Rock', 2000, ['#c02f3a', '#ffffff'], 44, 140_000),
+  club('rosslyn', 'Roehampton RFC', 'Roehampton', 'London', 'The Crag', 2000, ['#c02f3a', '#ffffff'], 44, 140_000),
   club('salefc', 'Sale FC', 'Sale FC', 'Sale', 'Heywood Road', 3000, ['#12295c', '#ffffff'], 43, 130_000),
-  club('rams', 'Rams RFC', 'Rams', 'Reading', 'Old Bath Road', 2000, ['#0e0e0e', '#c9a227'], 43, 130_000),
+  club('rams', 'Reading RFC', 'Reading', 'Reading', 'Old Bath Road', 2000, ['#0e0e0e', '#c9a227'], 43, 130_000),
   club('cinderford', 'Cinderford RFC', 'Cinderford', 'Cinderford', 'Dockham Road', 2200, ['#0a5c36', '#c02f3a'], 42, 120_000),
-  club('blackheath', 'Blackheath FC', 'Blackheath', 'London', 'Well Hall', 2500, ['#c02f3a', '#0e0e0e'], 42, 120_000),
-  club('plymouth', 'Plymouth Albion', 'Plymouth', 'Plymouth', 'Brickfields', 3500, ['#0a3b2e', '#ffffff'], 41, 115_000),
-  club('moseley', 'Birmingham Moseley', 'Moseley', 'Birmingham', 'Billesley Common', 3000, ['#c02f3a', '#0e0e0e'], 41, 110_000),
-  club('darlington', 'Darlington Mowden Park', 'Darlington', 'Darlington', 'The Darlington Arena', 25000, ['#12295c', '#c9a227'], 40, 110_000),
-  club('leedstykes', 'Leeds Tykes', 'Leeds', 'Leeds', 'Grammar School at Leeds', 1500, ['#1e5aa8', '#c9a227'], 40, 105_000),
-  club('stortford', "Bishop's Stortford", 'Stortford', "Bishop's Stortford", 'Silver Leys', 1800, ['#12295c', '#8fc1e3'], 39, 100_000),
-  club('sedgley', 'Sedgley Park', 'Sedgley Pk', 'Manchester', 'Park Lane', 1500, ['#0a5c36', '#ffffff'], 38, 95_000),
+  club('blackheath', 'Blackheath RFC', 'Blackheath', 'London', 'Well Hall', 2500, ['#c02f3a', '#0e0e0e'], 42, 120_000),
+  club('plymouth', 'Plymouth RFC', 'Plymouth', 'Plymouth', 'Brickfields', 3500, ['#0a3b2e', '#ffffff'], 41, 115_000),
+  club('moseley', 'Birmingham RFC', 'Birmingham', 'Birmingham', 'Billesley Common', 3000, ['#c02f3a', '#0e0e0e'], 41, 110_000),
+  club('darlington', 'Darlington RFC', 'Darlington', 'Darlington', 'The Darlington Arena', 25000, ['#12295c', '#c9a227'], 40, 110_000),
+  club('leedstykes', 'Leeds RFC', 'Leeds', 'Leeds', 'Leeds College Ground', 1500, ['#1e5aa8', '#c9a227'], 40, 105_000),
+  club('stortford', "Bishop's Stortford RFC", 'Stortford', "Bishop's Stortford", 'Silver Leys', 1800, ['#12295c', '#8fc1e3'], 39, 100_000),
+  club('sedgley', 'Sedgley Park RFC', 'Sedgley Pk', 'Manchester', 'Park Lane', 1500, ['#0a5c36', '#ffffff'], 38, 95_000),
   club('esher', 'Esher RFC', 'Esher', 'Esher', 'Molesey Road', 2700, ['#7a0c2e', '#ffffff'], 38, 95_000),
 ]

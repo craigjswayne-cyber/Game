@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const TOP14_B: RawClub[] = [
   {
-    id: 'castres', name: 'Castres Olympique', short: 'Castres',
+    id: 'castres', name: 'RC Castres', short: 'Castres',
     city: 'Castres', country: 'FRA',
-    stadium: 'Stade Pierre-Fabre', capacity: 12500,
+    stadium: 'Stade Pierre-Favre', capacity: 12500,
     colors: ['#005baa', '#ffffff'],
     rep: 77, budget: 2200000,
     players: [
@@ -40,9 +40,9 @@ export const TOP14_B: RawClub[] = [
     ],
   },
   {
-    id: 'bayonne', name: 'Aviron Bayonnais', short: 'Bayonne',
+    id: 'bayonne', name: 'RC Bayonne', short: 'Bayonne',
     city: 'Bayonne', country: 'FRA',
-    stadium: 'Stade Jean-Dauger', capacity: 14370,
+    stadium: 'Stade Jean-Daubert', capacity: 14370,
     colors: ['#63b3e4', '#ffffff'],
     rep: 79, budget: 2400000,
     players: [
@@ -78,9 +78,9 @@ export const TOP14_B: RawClub[] = [
     ],
   },
   {
-    id: 'lyon', name: 'Lyon OU', short: 'Lyon',
+    id: 'lyon', name: 'RC Lyon', short: 'Lyon',
     city: 'Lyon', country: 'FRA',
-    stadium: 'Matmut Stadium de Gerland', capacity: 25000,
+    stadium: 'Stade de Gerland', capacity: 25000,
     colors: ['#d40000', '#000000'],
     rep: 77, budget: 2600000,
     players: [
@@ -115,9 +115,9 @@ export const TOP14_B: RawClub[] = [
     ],
   },
   {
-    id: 'montpellier', name: 'Montpellier Hérault Rugby', short: 'Montpellier',
+    id: 'montpellier', name: 'RC Montpellier', short: 'Montpellier',
     city: 'Montpellier', country: 'FRA',
-    stadium: 'GGL Stadium', capacity: 15697,
+    stadium: 'Stade de l\'Hérault', capacity: 15697,
     colors: ['#003d7c', '#ffffff'],
     rep: 74, budget: 3000000,
     players: [
@@ -153,7 +153,7 @@ export const TOP14_B: RawClub[] = [
     ],
   },
   {
-    id: 'pau', name: 'Section Paloise', short: 'Pau',
+    id: 'pau', name: 'RC Pau', short: 'Pau',
     city: 'Pau', country: 'FRA',
     stadium: 'Stade du Hameau', capacity: 18324,
     colors: ['#00854d', '#ffffff'],
@@ -190,9 +190,9 @@ export const TOP14_B: RawClub[] = [
     ],
   },
   {
-    id: 'perpignan', name: 'USA Perpignan', short: 'Perpignan',
+    id: 'perpignan', name: 'RC Perpignan', short: 'Perpignan',
     city: 'Perpignan', country: 'FRA',
-    stadium: 'Stade Aimé-Giral', capacity: 14593,
+    stadium: 'Stade Aimé-Giraud', capacity: 14593,
     colors: ['#c8102e', '#ffcd00'],
     rep: 68, budget: 1400000,
     players: [
@@ -227,7 +227,7 @@ export const TOP14_B: RawClub[] = [
     ],
   },
   {
-    id: 'vannes', name: 'RC Vannes', short: 'Vannes',
+    id: 'vannes', name: 'US Vannes', short: 'Vannes',
     city: 'Vannes', country: 'FRA',
     stadium: 'Stade de la Rabine', capacity: 11430,
     colors: ['#12295c', '#f0eadc'],

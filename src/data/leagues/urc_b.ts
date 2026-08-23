@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const URC_B: RawClub[] = [
   {
-    id: 'bulls', name: 'Vodacom Bulls', short: 'Bulls',
+    id: 'bulls', name: 'Pretoria RFC', short: 'Pretoria',
     city: 'Pretoria', country: 'RSA',
-    stadium: 'Loftus Versfeld', capacity: 51762,
+    stadium: 'Loftus Field', capacity: 51762,
     colors: ['#5eb6e4', '#0a2240'],
     rep: 85, budget: 2800000,
     players: [
@@ -44,9 +44,9 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'stormers', name: 'DHL Stormers', short: 'Stormers',
+    id: 'stormers', name: 'Cape Town RFC', short: 'Cape Town',
     city: 'Cape Town', country: 'RSA',
-    stadium: 'DHL Stadium', capacity: 55000,
+    stadium: 'Green Point Stadium', capacity: 55000,
     colors: ['#0d2240', '#4ba3dd'],
     rep: 83, budget: 2400000,
     players: [
@@ -85,7 +85,7 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'sharks', name: 'Hollywoodbets Sharks', short: 'Sharks',
+    id: 'sharks', name: 'Durban RFC', short: 'Durban',
     city: 'Durban', country: 'RSA',
     stadium: 'Kings Park', capacity: 52000,
     colors: ['#000000', '#ffffff'],
@@ -123,9 +123,9 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'lions', name: 'Emirates Lions', short: 'Lions',
+    id: 'lions', name: 'Johannesburg RFC', short: 'Joburg',
     city: 'Johannesburg', country: 'RSA',
-    stadium: 'Emirates Airline Park', capacity: 62567,
+    stadium: 'Elliston Park', capacity: 62567,
     colors: ['#e4022d', '#ffffff'],
     rep: 76, budget: 1500000,
     players: [
@@ -161,9 +161,9 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'cardiff', name: 'Cardiff Rugby', short: 'Cardiff',
+    id: 'cardiff', name: 'Cardiff RFC', short: 'Cardiff',
     city: 'Cardiff', country: 'WAL',
-    stadium: 'Cardiff Arms Park', capacity: 12125,
+    stadium: 'Cardiff Arms Field', capacity: 12125,
     colors: ['#0072ce', '#000000'],
     rep: 72, budget: 900000,
     players: [
@@ -197,9 +197,9 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'ospreys', name: 'Ospreys', short: 'Ospreys',
+    id: 'ospreys', name: 'Swansea RFC', short: 'Swansea',
     city: 'Swansea', country: 'WAL',
-    stadium: 'St Helen\'s', capacity: 5000,
+    stadium: 'St Helena\'s', capacity: 5000,
     colors: ['#000000', '#ffffff'],
     rep: 71, budget: 850000,
     players: [
@@ -235,9 +235,9 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'scarlets', name: 'Scarlets', short: 'Scarlets',
+    id: 'scarlets', name: 'Llanelli RFC', short: 'Llanelli',
     city: 'Llanelli', country: 'WAL',
-    stadium: 'Parc y Scarlets', capacity: 14870,
+    stadium: 'Stradley Park', capacity: 14870,
     colors: ['#a8072f', '#ffffff'],
     rep: 72, budget: 900000,
     players: [
@@ -272,7 +272,7 @@ export const URC_B: RawClub[] = [
     ],
   },
   {
-    id: 'dragons', name: 'Dragons RFC', short: 'Dragons',
+    id: 'dragons', name: 'Newport RFC', short: 'Newport',
     city: 'Newport', country: 'WAL',
     stadium: 'Rodney Parade', capacity: 8700,
     colors: ['#e21836', '#000000'],

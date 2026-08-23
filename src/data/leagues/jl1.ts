@@ -67,16 +67,16 @@ const club = (
 })
 
 export const JL1: RawClub[] = [
-  club('wildknights', 'Saitama Wild Knights', 'Wild Knights', 'Kumagaya', 'Kumagaya Rugby Stadium', 24000, ['#123a7a', '#f2c200'], 84, 3_200_000),
-  club('bravelupus', 'Toshiba Brave Lupus Tokyo', 'Brave Lupus', 'Fuchu', 'Ajinomoto Stadium', 49970, ['#c0392f', '#0e0e0e'], 83, 3_000_000),
-  club('sungoliath', 'Tokyo Sungoliath', 'Sungoliath', 'Fuchu', 'Chichibunomiya Stadium', 24871, ['#f2c200', '#0e0e0e'], 82, 3_000_000),
-  club('spears', 'Kubota Spears Funabashi', 'Spears', 'Funabashi', 'Kubota Spears Stadium', 7000, ['#c02f3a', '#12295c'], 80, 2_600_000),
-  club('canon', 'Yokohama Canon Eagles', 'Canon Eagles', 'Yokohama', 'Nippatsu Mitsuzawa Stadium', 15046, ['#c0392f', '#ffffff'], 78, 2_400_000),
-  club('verblitz', 'Toyota Verblitz', 'Verblitz', 'Toyota', 'Toyota Stadium', 45000, ['#a31207', '#0e0e0e'], 77, 2_400_000),
-  club('steelers', 'Kobelco Kobe Steelers', 'Steelers', 'Kobe', 'Noevir Stadium Kobe', 30132, ['#7a0c2e', '#0e0e0e'], 75, 2_000_000),
-  club('bluerevs', 'Shizuoka Blue Revs', 'Blue Revs', 'Iwata', 'Yamaha Stadium', 15165, ['#1e5aa8', '#ffffff'], 72, 1_600_000),
-  club('blackrams', 'Black Rams Tokyo', 'Black Rams', 'Setagaya', 'Komazawa Stadium', 20010, ['#0e0e0e', '#ffffff'], 71, 1_500_000),
-  club('dynaboars', 'Mitsubishi Dynaboars', 'Dynaboars', 'Sagamihara', 'Sagamihara Gion Stadium', 15300, ['#7a1027', '#9aa5ad'], 70, 1_400_000),
-  club('drocks', 'Urayasu D-Rocks', 'D-Rocks', 'Urayasu', 'Urayasu Stadium', 5000, ['#12295c', '#8fc1e3'], 69, 1_300_000),
-  club('hondaheat', 'Mie Honda Heat', 'Honda Heat', 'Suzuka', 'Suzuka Sports Garden', 5600, ['#c0392f', '#f0eadc'], 68, 1_200_000),
+  club('wildknights', 'Saitama RFC', 'Saitama', 'Kumagaya', 'Kumagaya Rugby Stadium', 24000, ['#123a7a', '#f2c200'], 84, 3_200_000),
+  club('bravelupus', 'Fuchu RFC', 'Fuchu', 'Fuchu', 'Fuchu Stadium', 49970, ['#c0392f', '#0e0e0e'], 83, 3_000_000),
+  club('sungoliath', 'Tokyo RFC', 'Tokyo', 'Fuchu', 'Aoyama Rugby Ground', 24871, ['#f2c200', '#0e0e0e'], 82, 3_000_000),
+  club('spears', 'Funabashi RFC', 'Funabashi', 'Funabashi', 'Funabashi Stadium', 7000, ['#c02f3a', '#12295c'], 80, 2_600_000),
+  club('canon', 'Yokohama RFC', 'Yokohama', 'Yokohama', 'Mitsuzawa Stadium', 15046, ['#c0392f', '#ffffff'], 78, 2_400_000),
+  club('verblitz', 'Mikawa RFC', 'Mikawa', 'Toyota', 'Mikawa Stadium', 45000, ['#a31207', '#0e0e0e'], 77, 2_400_000),
+  club('steelers', 'Kobe RFC', 'Kobe', 'Kobe', 'Port Kobe Stadium', 30132, ['#7a0c2e', '#0e0e0e'], 75, 2_000_000),
+  club('bluerevs', 'Shizuoka RFC', 'Shizuoka', 'Iwata', 'Iwata Stadium', 15165, ['#1e5aa8', '#ffffff'], 72, 1_600_000),
+  club('blackrams', 'Setagaya RFC', 'Setagaya', 'Setagaya', 'Komazawa Stadium', 20010, ['#0e0e0e', '#ffffff'], 71, 1_500_000),
+  club('dynaboars', 'Sagamihara RFC', 'Sagamihara', 'Sagamihara', 'Sagamihara Stadium', 15300, ['#7a1027', '#9aa5ad'], 70, 1_400_000),
+  club('drocks', 'Urayasu RFC', 'Urayasu', 'Urayasu', 'Urayasu Stadium', 5000, ['#12295c', '#8fc1e3'], 69, 1_300_000),
+  club('hondaheat', 'Suzuka RFC', 'Suzuka', 'Suzuka', 'Suzuka Sports Garden', 5600, ['#c0392f', '#f0eadc'], 68, 1_200_000),
 ]
