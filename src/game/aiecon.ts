@@ -27,7 +27,7 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
-import { weeklyCentral, type Club, type GameState, type Player } from './model'
+import { weeklyCentral, type Club, type GameState, type Player , UPKEEP_PER_SEAT} from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
 const GATE_PER_HEAD = 30
@@ -39,7 +39,7 @@ const GATE_PER_HEAD = 30
  * levels. AI clubs have no facility state at all, so their estate is implied by
  * the ground: a 20,000-seat club is running a 20,000-seat operation.
  */
-const UPKEEP_PER_SEAT = 3.1
+// the shared constant: see model.ts, where the user's ledger reads it too
 
 /** Backroom staff, implied by standing rather than by a named list of people. */
 const STAFF_PER_REP = 620

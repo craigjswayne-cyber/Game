@@ -801,6 +801,12 @@ export function estateSum(club: Club | undefined): number {
  * against an AI median of £15M, and a maxed estate (38 of 40) that had cost
  * nothing to keep. Upgrades have to be a commitment, not a ratchet.
  */
+/** What a seat costs to heat, mow, steward and insure for a week. ONE number,
+ *  read by the user's ledger here and by every AI club's in aiecon.ts - they
+ *  were 1.1 and 3.1 for a while, which made the manager's ground a third the
+ *  price of everybody else's. */
+export const UPKEEP_PER_SEAT = 3.1
+
 export function operatingCost(state: GameState): number {
   const club = state.clubs[state.userClubId]
   if (!club) return 0
@@ -823,7 +829,24 @@ export function operatingCost(state: GameState): number {
   // are better business - but it does mean the ratio is nearer 3x for a giant,
   // and anybody raising the 4% should re-read that sentence first.
   const boxes = (club.facilities?.hospitality ?? 0) * 2_800
-  return Math.round(club.capacity * 1.1 + estateSum(club) * 1_400 + boxes)
+  // THE SAME GROUND COSTS THE SAME TO RUN, whoever owns it. This charged the
+  // user 1.1 a seat a week while aiecon charges every other club in the world
+  // 3.1 (UPKEEP_PER_SEAT) - so a 25,000-seat ground cost the manager £27.5k a
+  // week and his rivals £77.5k, about £2.25M a season of free money that no
+  // decision earned. Measured at Sale, the user held 4.6x the median AI balance
+  // by season three without doing anything.
+  //
+  // The audit that found this also proposed indexing the user's RECEIPTS by
+  // moneyIndex, the way aiWeek indexes every AI club's. That was tried and
+  // reverted: measured over five seasons it made the divergence worse rather
+  // than better, because indexing rewards a high-reputation club (Sale went
+  // from 15.8M to 29.8M and cleared the richest AI club in the division) while
+  // the seat cost falls hardest on a big ground (Leicester went the other way).
+  // The two do not cancel; they redistribute. The seat price is an incoherence
+  // and is fixed here. The indexing is a design question about whether a
+  // manager's income should track wage inflation, and it needs deciding rather
+  // than patching.
+  return Math.round(club.capacity * UPKEEP_PER_SEAT + estateSum(club) * 1_400 + boxes)
 }
 
 /**

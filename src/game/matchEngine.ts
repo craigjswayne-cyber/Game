@@ -1033,7 +1033,9 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
     if (id != null) {
       ratings.set(id, 6 + ratingJitter(fxId, id))
       onPitch.add(id)
-      energy.set(id, Math.max(50, state.players[id]?.cond ?? 85))
+      // and a man who trained on empty starts on empty: the 50 floor meant a
+      // knackered starter kicked off almost as fresh as a rested one
+      energy.set(id, Math.max(25, state.players[id]?.cond ?? 85))
     }
   })
   const units = teamUnits(state, lineup, { fxId, big })
@@ -2131,7 +2133,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   drainEnergy(state, ctx, home)
   drainEnergy(state, ctx, away)
 
-  const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
+  // THE BENCH HAD TO BE WORTH USING. Freshness was capped at 22% of a unit's
+  // score and a starter's tank never opened below 50, so the most a spent man
+  // could be down was 11% - far less than the quality gap from a starter to a
+  // seventh replacement. The arithmetic made the bench a trap: measured over 77
+  // paired fixtures, one or two changes gained about a point, three lost 0.6 and
+  // eight lost 2.5, so the right play was to leave the bench sitting - while
+  // aiAutoSubs emptied it for all 100 AI clubs. MAX_SUBS was raised to eight
+  // without widening the reward, which is where the inversion came from.
+  const eF = (s: SideCtx) => 0.66 + 0.34 * (sideEnergy(s) / 100)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
     const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent)
