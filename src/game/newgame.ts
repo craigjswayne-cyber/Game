@@ -32,6 +32,7 @@ import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
 import { mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
+import { tIn } from './i18n'
 
 export interface Challenge {
   id: string
@@ -693,7 +694,7 @@ function squadAssessment(state: GameState): NewsItem {
       + (thin.length
         ? `Short at ${thin.join(', ')} - one injury there and someone plays out of position.\n`
         : `Every position has cover.\n`)
-      + `Board expects you to ${boardObjective(uc.rep).text}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
+      + `Board expects you to ${tIn('en', boardObjective(uc.rep).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
       + `I will have a read on the first opponent by Friday."`,
   }
 }

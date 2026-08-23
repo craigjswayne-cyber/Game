@@ -33,6 +33,7 @@ import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
+import { tIn } from './i18n'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -2782,8 +2783,8 @@ export function processWeekAndAdvance(state: GameState) {
       state.objDone.push(id)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: `✅ Board objective met: ${def.text(state).split(':')[0]}`,
-        body: `One of the season's briefs is in the bank: "${def.text(state)}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
+        subject: `✅ Board objective met: ${tIn('en', def.text(state)).split(':')[0]}`,
+        body: `One of the season's briefs is in the bank: "${tIn('en', def.text(state))}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
       })
     }
   }

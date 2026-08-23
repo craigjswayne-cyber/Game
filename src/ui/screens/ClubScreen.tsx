@@ -28,9 +28,9 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   return (
     <>
       <div className="tab-bar">
-        <button className={ctab === 'club' ? 'active' : ''} onClick={() => setCtab('club')}>The Club</button>
-        <button className={ctab === 'squad' ? 'active' : ''} onClick={() => setCtab('squad')}>Squad</button>
-        <button className={ctab === 'story' ? 'active' : ''} onClick={() => setCtab('story')}>History</button>
+        <button className={ctab === 'club' ? 'active' : ''} onClick={() => setCtab('club')}>{t('club.tabClub')}</button>
+        <button className={ctab === 'squad' ? 'active' : ''} onClick={() => setCtab('squad')}>{t('club.tabSquad')}</button>
+        <button className={ctab === 'story' ? 'active' : ''} onClick={() => setCtab('story')}>{t('club.tabHistory')}</button>
       </div>
       {ctab === 'club' && <div className="card" style={{ position: 'relative', overflow: 'hidden', paddingTop: 18 }}>
         <div style={{
@@ -42,9 +42,9 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <h3 style={{ fontSize: 20, flex: 1 }}>{club.name}</h3>
           <Jersey club={club} size={52} />
         </div>
-        <div className="meta">{club.city}, {nationByCode(club.country)?.name ?? club.country} · {league?.name}</div>
-        <div className="meta">🏟️ {club.stadium} - {club.capacity.toLocaleString()} capacity</div>
-        <div className="meta">🧢 Head coach: {club.id === game.userClubId ? game.managerName : club.coach ?? 'vacant'}</div>
+        <div className="meta">{t('club.cityLine', { city: club.city, country: nationByCode(club.country)?.name ?? club.country, league: league?.name ?? '' })}</div>
+        <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString() })}</div>
+        <div className="meta">{t('club.headCoach', { name: club.id === game.userClubId ? game.managerName : club.coach ?? t('club.vacant') })}</div>
         {/* F23: how this dugout wants the game played. Yours is not listed here
             because yours is the four sliders on the tactics screen. */}
         {(() => {
@@ -61,12 +61,11 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             whom before you pick a game plan */}
         {club.id !== game.userClubId && (() => {
           const arch = archetypeOf(club.id, club.rep)
-          const word = arch === 'analyst' ? 'studies your recent matches and sets up to counter your habits'
-            : arch === 'reactive' ? 'changes the picture from the touchline when the match turns against him'
-            : 'trusts his own plan, week in, week out'
+          const word = t(arch === 'analyst' ? 'club.archAnalystDesc'
+            : arch === 'reactive' ? 'club.archTinkererDesc' : 'club.archBelieverDesc')
           return (
             <div className="meta">
-              🧠 <b>{arch === 'analyst' ? 'The Analyst' : arch === 'reactive' ? 'The Tinkerer' : 'The Believer'}</b>: {word}
+              🧠 <b>{t(arch === 'analyst' ? 'club.archAnalyst' : arch === 'reactive' ? 'club.archTinkerer' : 'club.archBeliever')}</b>: {word}
             </div>
           )
         })()}
@@ -77,7 +76,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           for (const h of honours) (byComp[h.compId] ??= []).push(2025 + h.season)
           return (
             <div style={{ marginTop: 8 }}>
-              <div className="fact-label">🏆 Honours Board</div>
+              <div className="fact-label">{t('club.honoursBoard')}</div>
               {Object.entries(byComp).map(([compId, years]) => (
                 <div key={compId} className="meta">
                   {game.comps[compId]?.name ?? compId} × {years.length} <span className="muted">({years.map(y => `${y}-${String((y + 1) % 100).padStart(2, '0')}`).join(', ')})</span>
@@ -87,22 +86,22 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           )
         })()}
         <div className="badge-row" style={{ marginTop: 6, flexWrap: 'wrap' }}>
-          <span className="chip">Reputation <b>{club.rep}</b></span>
+          <span className="chip">{t('club.reputation')} <b>{club.rep}</b></span>
           {club.id === game.userClubId && (() => {
             const m = game.fanMood ?? 60
-            const word = m >= 80 ? 'Bouncing' : m >= 62 ? 'Behind you' : m >= 45 ? 'Watching' : m >= 30 ? 'Restless' : 'Mutinous'
-            return <span className="chip" style={{ color: m >= 62 ? 'var(--text-positive)' : m <= 30 ? 'var(--text-negative)' : undefined }}>Fans <b>{word}</b></span>
+            const word = t(m >= 80 ? 'club.fanBouncing' : m >= 62 ? 'club.fanBehind' : m >= 45 ? 'club.fanWatching' : m >= 30 ? 'club.fanRestless' : 'club.fanMutinous')
+            return <span className="chip" style={{ color: m >= 62 ? 'var(--text-positive)' : m <= 30 ? 'var(--text-negative)' : undefined }}>{t('club.fans')} <b>{word}</b></span>
           })()}
-          <span className="chip">Squad <b>{players.length}</b></span>
-          <span className="chip">Squad value <b>{fmtMoney(squadValue(game, club.id))}</b></span>
+          <span className="chip">{t('club.squad')} <b>{players.length}</b></span>
+          <span className="chip">{t('club.squadValue')} <b>{fmtMoney(squadValue(game, club.id))}</b></span>
           {club.id !== game.userClubId && (() => {
             const rec = game.vsBook?.[club.id]
             if (!rec || rec.w + rec.d + rec.l === 0) return null
             return <>
-              <span className="chip">Your record <b style={{ color: rec.w > rec.l ? 'var(--text-positive)' : rec.w < rec.l ? 'var(--text-negative)' : undefined }}>{rec.w}W {rec.d}D {rec.l}L</b></span>
+              <span className="chip">{t('club.yourRecord')} <b style={{ color: rec.w > rec.l ? 'var(--text-positive)' : rec.w < rec.l ? 'var(--text-negative)' : undefined }}>{t('club.record', { w: rec.w, d: rec.d, l: rec.l })}</b></span>
               {Math.abs(rec.run ?? 0) >= 3 && (
                 <span className="chip" style={{ color: (rec.run ?? 0) > 0 ? 'var(--text-positive)' : 'var(--text-negative)' }}>
-                  {(rec.run ?? 0) > 0 ? `Won last ${rec.run}` : `Lost last ${-(rec.run ?? 0)}`}
+                  {(rec.run ?? 0) > 0 ? t('club.wonLast', { n: rec.run ?? 0 }) : t('club.lostLast', { n: -(rec.run ?? 0) })}
                 </span>
               )}
             </>
@@ -110,7 +109,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           {players[0] && (() => {
             const stars = starPlayerIds(game, club.id)
             const star = players.find(p => stars.has(p.id))
-            return star ? <span className="chip">⭐ Star <b>{star.name}</b></span> : null
+            return star ? <span className="chip">{t('club.star')} <b>{star.name}</b></span> : null
           })()}
         </div>
       </div>}
@@ -127,31 +126,30 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         const capped = players.filter(p => (p.caps ?? 0) > 0).length
         return (
           <>
-            <SectionTitle sub={club.id === game.userClubId ? 'your era at the club' : 'what the record book holds'}>The Story So Far</SectionTitle>
+            <SectionTitle sub={t(club.id === game.userClubId ? 'club.yourEra' : 'club.recordBook')}>{t('club.storySoFar')}</SectionTitle>
             <div className="card">
               <div className="meta" style={{ padding: '2px 0' }}>
-                🏟️ {club.stadium}, {club.city} · {club.capacity.toLocaleString()} capacity
+                {t('club.storyStadium', { stadium: club.stadium, city: club.city, capacity: club.capacity.toLocaleString() })}
               </div>
               <div className="meta" style={{ padding: '2px 0' }}>
-                🏉 {league?.name ?? 'no league'} · reputation {club.rep}
+                {t('club.storyLeague', { league: league?.name ?? t('club.noLeague'), rep: club.rep })}
               </div>
               {capped > 0 && (
                 <div className="meta" style={{ padding: '2px 0' }}>
-                  🌍 {capped} capped {capped === 1 ? 'international' : 'internationals'} on the books
+                  {t(capped === 1 ? 'club.cappedOne' : 'club.cappedMany', { n: capped })}
                 </div>
               )}
               {rec && (
                 <div className="meta" style={{ padding: '2px 0' }}>
-                  🧢 {game.managerName}: {rec.m} {rec.m === 1 ? 'match' : 'matches'}, {rec.w}W {rec.d}D {rec.l}L
-                  {rec.trophies.length ? ` · ${rec.trophies.length} ${rec.trophies.length === 1 ? 'trophy' : 'trophies'}` : ''}
+                  {t(rec.m === 1 ? 'club.mgrRecordOne' : 'club.mgrRecord', { name: game.managerName, m: rec.m, w: rec.w, d: rec.d, l: rec.l })}
+                  {rec.trophies.length ? t(rec.trophies.length === 1 ? 'club.mgrTrophyOne' : 'club.mgrTrophies', { n: rec.trophies.length }) : ''}
                 </div>
               )}
               <div className="meta" style={{ padding: '2px 0' }}>
-                🏆 {seasons ? `${seasons} ${seasons === 1 ? 'title' : 'titles'} won since you arrived` : 'No silverware in the book yet. Champions are crowned in May.'}
+                {seasons ? t(seasons === 1 ? 'club.titleWon' : 'club.titlesWon', { n: seasons }) : t('club.noSilverware')}
               </div>
               <div className="meta" style={{ marginTop: 6, color: 'var(--text-muted)' }}>
-                A man joins the Legends list at 100 appearances here, the honours board fills in every
-                May, and record gates and derby ledgers appear the first time you set one.
+                {t('club.legendsNote')}
               </div>
             </div>
           </>
@@ -170,9 +168,9 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         if (!book.length) return null
         return (
           <>
-            <SectionTitle sub="100+ appearances · * still playing">Club Legends</SectionTitle>
+            <SectionTitle sub={t('club.clubLegendsSub')}>{t('club.clubLegends')}</SectionTitle>
             <div className="tblwrap"><table className="dtable">
-              <thead><tr><th>Name</th><th className="num">Apps</th><th className="num">Tries</th><th className="num">Pts</th></tr></thead>
+              <thead><tr><th>{t('squad.colName')}</th><th className="num">{t('club.colApps')}</th><th className="num">{t('club.colTries')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
               <tbody>
                 {book.map((l, i) => (
                   <tr key={i}>
@@ -189,7 +187,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
       })()}
       {ctab === 'story' && honours.length > 0 && (
         <>
-          <SectionTitle>Honours (your era)</SectionTitle>
+          <SectionTitle>{t('club.honoursEra')}</SectionTitle>
           <div className="chips">
             {honours.map((h, i) => (
               <span key={i} className="chip">🏆 {game.comps[h.compId]?.name ?? h.compId} {2025 + h.season}-{String((2026 + h.season) % 100).padStart(2, '0')}</span>
@@ -204,26 +202,29 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         const pledged = new Set((game.pledges ?? []).map(pl => pl.playerId))
         const seniors = players.filter(p => !p.acad)
         const avg = seniors.length ? seniors.reduce((s, p) => s + p.morale, 0) / seniors.length : 7
-        const verdict = avg >= 7.5 ? '😊 The room is bouncing - keep winning and keep quiet.'
-          : avg >= 6 ? '🙂 Settled enough. A few individuals need an eye kept on them.'
-          : avg >= 4.5 ? '😐 Uneasy. The card schools have gone quiet and doors close faster.'
-          : '😤 Mutinous. Sort the loudest voices before they sort you.'
+        const verdict = t(avg >= 7.5 ? 'club.roomBouncing'
+          : avg >= 6 ? 'club.roomSettled'
+          : avg >= 4.5 ? 'club.roomUneasy'
+          : 'club.roomMutinous')
         const rows = seniors.map(p => {
           const why: string[] = []
-          if (committed.has(p.id)) why.push('🖊 signed elsewhere')
-          if ((p.wantsDeal ?? 0) > 0) why.push('💷 wants a deal')
-          if (pledged.has(p.id) && !committed.has(p.id)) why.push('🤝 holding you to a promise')
-          if (p.transferListed) why.push('📋 transfer listed')
-          if (p.contractEnds <= game.season) why.push('⏳ deal expiring')
-          if (game.week >= 10 && p.stats.apps <= 2 && !p.injury) why.push('🪑 short of minutes')
-          if (!why.length && p.morale <= 4) why.push('🌧 flat, no single cause')
-          return { p, why }
-        }).filter(r => r.why.length && (r.p.morale <= 6.5 || r.why.some(w => !w.includes('deal expiring'))))
+          if (committed.has(p.id)) why.push(t('club.whySignedElsewhere'))
+          if ((p.wantsDeal ?? 0) > 0) why.push(t('club.whyWantsDeal'))
+          if (pledged.has(p.id) && !committed.has(p.id)) why.push(t('club.whyPromise'))
+          if (p.transferListed) why.push(t('club.whyListed'))
+          if (p.contractEnds <= game.season) why.push(t('club.whyExpiring'))
+          if (game.week >= 10 && p.stats.apps <= 2 && !p.injury) why.push(t('club.whyMinutes'))
+          if (!why.length && p.morale <= 4) why.push(t('club.whyFlat'))
+          // `expiring` is matched on the KEY rather than on the rendered words:
+          // the filter below decides who is shown, so it cannot depend on the
+          // language the screen happens to be in
+          return { p, why, expiringOnly: why.length === 1 && p.contractEnds <= game.season }
+        }).filter(r => r.why.length && (r.p.morale <= 6.5 || !r.expiringOnly))
           .sort((a, b) => a.p.morale - b.p.morale)
           .slice(0, 8)
         return (
           <>
-            <SectionTitle sub="who needs attention, and why">Dressing Room</SectionTitle>
+            <SectionTitle sub={t('club.dressingRoomSub')}>{t('club.dressingRoom')}</SectionTitle>
             <div className="card">
               <div className="meta" style={{ paddingBottom: rows.length ? 6 : 0 }}>{verdict}</div>
               {rows.map(({ p, why }) => (
@@ -238,7 +239,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                   </b>
                 </div>
               ))}
-              {!rows.length && <div className="muted" style={{ fontSize: 12.5 }}>Nobody is agitating. Enjoy it - it never lasts.</div>}
+              {!rows.length && <div className="muted" style={{ fontSize: 12.5 }}>{t('club.nobodyAgitating')}</div>}
             </div>
           </>
         )
@@ -252,28 +253,28 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
         if (!gate && !derbies.length && !legend && !tots) return null
         return (
           <>
-            <SectionTitle sub="what this era will be remembered for">Era Records</SectionTitle>
+            <SectionTitle sub={t('club.eraRecordsSub')}>{t('club.eraRecords')}</SectionTitle>
             <div className="card">
               {legend && (
                 <div className="meta" style={{ padding: '3px 0', color: 'var(--info)', fontWeight: 700 }}>
-                  🗽 Club legend - voted by the supporters' trust, forever
+                  {t('club.clubLegendVote')}
                 </div>
               )}
               {gate && (
                 <div className="meta" style={{ padding: '3px 0' }}>
-                  🎟 Record gate: <b>{gate.att.toLocaleString()}</b> v {game.clubs[gate.oppId]?.short ?? gate.oppId}
+                  {t('club.recordGate')} <b>{gate.att.toLocaleString()}</b>{t('club.vsClub', { club: game.clubs[gate.oppId]?.short ?? gate.oppId })}
                   {' '}<span className="muted">({2025 + gate.season}-{String((gate.season + 26) % 100).padStart(2, '0')})</span>
                 </div>
               )}
               {tots && (
                 <div className="meta" style={{ padding: '3px 0' }}>
-                  🏉 Try of the Season so far: <b>{tots.name}</b>, {tots.min}&apos; v {tots.opp}
+                  {t('club.tryOfSeason')} <b>{tots.name}</b>, {tots.min}&apos;{t('club.vsClub', { club: tots.opp })}
                 </div>
               )}
               {derbies.map(([cid, r]) => (
                 <div key={cid} className="meta" style={{ padding: '3px 0' }}>
-                  🔥 v {game.clubs[cid]?.short ?? cid}: <b style={{ color: r.w > r.l ? 'var(--text-positive)' : r.w < r.l ? 'var(--text-negative)' : undefined }}>{r.w}W {r.d}D {r.l}L</b>
-                  {r.w > r.l ? <span className="muted"> - bragging rights held</span> : r.w < r.l ? <span className="muted"> - they hold the whip hand</span> : null}
+                  {t('club.derbyLine', { club: game.clubs[cid]?.short ?? cid })} <b style={{ color: r.w > r.l ? 'var(--text-positive)' : r.w < r.l ? 'var(--text-negative)' : undefined }}>{t('club.record', { w: r.w, d: r.d, l: r.l })}</b>
+                  {r.w > r.l ? <span className="muted">{t('club.braggingHeld')}</span> : r.w < r.l ? <span className="muted">{t('club.whipHand')}</span> : null}
                 </div>
               ))}
             </div>
@@ -307,7 +308,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
             {rifts.length > 0 && (() => {
               return (
                 <>
-                  <SectionTitle sub="two of yours are not speaking - and it is costing you">Dressing-Room Rifts</SectionTitle>
+                  <SectionTitle sub={t('club.riftsSub')}>{t('club.rifts')}</SectionTitle>
                   <div className="card">
                     {rifts.map((f, i) => {
                       const a = game.players[f.a]
@@ -319,20 +320,20 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                         <div key={`${f.a}_${f.b}`} className="rift-row">
                           <div className="meta">
                             <b>{a.name}</b> ({a.pers.toLowerCase()}) and <b>{b.name}</b> ({b.pers.toLowerCase()})
-                            have not spoken since week {f.week}.
+                            {t('club.riftLine', { week: f.week })}
                           </div>
                           <div className="btn-row" style={{ marginTop: 5 }}>
                             <button className="btn gold tiny" disabled={asked}
-                              title={asked ? 'You had them in this week already' : 'Get them in a room and shut the door'}
+                              title={t(asked ? 'club.askedAlready' : 'club.shutTheDoor')}
                               onClick={() => {
                                 const rng = mulberry32(game.seed ^ (f.a * 31 + f.b * 17 + game.week * 7))
                                 setRiftMsg(reconcileFeud(game, i, rng).msg)
                                 touch()
                               }}>
-                              🤝 Get Them In A Room
+                              {t('club.getThemInARoom')}
                             </button>
                             <span className="meta" style={{ alignSelf: 'center' }}>
-                              {asked ? 'asked this week' : `${pct}% they shake on it`}
+                              {asked ? t('club.askedThisWeek') : t('club.shakeOnIt', { pct })}
                             </span>
                           </div>
                         </div>
@@ -340,29 +341,27 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                     })}
                     {riftMsg && <div className="meta sheet-log" style={{ marginTop: 6 }}>{riftMsg}</div>}
                     <div className="meta" style={{ marginTop: 6 }}>
-                      It comes down to whether these two will do it for you: their mood, their
-                      characters, how you stand at the club, and how long it has festered. Fail and
-                      the squad knows you tried, which costs more than saying nothing.
+                      {t('club.riftNote')}
                     </div>
                   </div>
                 </>
               )
             })()}
             {(feuds.length > 0 || duos.length > 0) && (
-              <SectionTitle sub="who they hate, who clicks">Feuds & Partnerships</SectionTitle>
+              <SectionTitle sub={t('club.feudsSub')}>{t('club.feuds')}</SectionTitle>
             )}
             <div className="card" style={feuds.length || duos.length ? undefined : { display: 'none' }}>
               {feuds.map((g, i) => {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
                   <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
-                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {g.reason} <span className="muted">(runs to {2025 + g.until}-{String((g.until + 26) % 100).padStart(2, '0')})</span>
+                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {g.reason} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
                   </div>
                 )
               })}
               {duos.map((d, i) => (
                 <div key={`d${i}`} className="meta" style={{ padding: '3px 0' }}>
-                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {d.g} games together, {chemTier(d.g)}
+                  🤝 <b>{surname(d.a.name)} & {surname(d.b.name)}</b> - {t('club.duoLine', { n: d.g, tier: chemTier(d.g) })}
                 </div>
               ))}
             </div>
@@ -379,14 +378,14 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
       const acads = players.filter(p => p.acad)
       const shown = sqTab === 'acad' ? acads : firsts
       return <>
-      <SectionTitle sub="tap to scout">Squad</SectionTitle>
+      <SectionTitle sub={t('club.squadSub')}>{t('club.tabSquad')}</SectionTitle>
       <div className="tab-bar">
-        <button className={sqTab === 'first' ? 'active' : ''} onClick={() => setSqTab('first')}>First Team ({firsts.length})</button>
-        <button className={sqTab === 'acad' ? 'active' : ''} onClick={() => setSqTab('acad')}>Academy ({acads.length})</button>
+        <button className={sqTab === 'first' ? 'active' : ''} onClick={() => setSqTab('first')}>{t('club.firstTeam', { n: firsts.length })}</button>
+        <button className={sqTab === 'acad' ? 'active' : ''} onClick={() => setSqTab('acad')}>{t('club.academy', { n: acads.length })}</button>
       </div>
-      {shown.length === 0 && <div className="muted" style={{ padding: '4px 16px 10px' }}>Nobody on the books here.</div>}
+      {shown.length === 0 && <div className="muted" style={{ padding: '4px 16px 10px' }}>{t('club.nobodyOnBooks')}</div>}
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>Pos</th><th>Name</th><th>Age</th><th>Nat</th><th>Ability</th><th>Form</th><th className="num">Value</th></tr></thead>
+        <thead><tr><th>{t('squad.colPos')}</th><th>{t('squad.colName')}</th><th>{t('squad.colAge')}</th><th>{t('squad.colNat')}</th><th>{t('transfers.colAbility')}</th><th>{t('transfers.colForm')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
         <tbody>
           {shown.map(p => (
             <tr key={p.id} onClick={() => go('player', p.id)}>

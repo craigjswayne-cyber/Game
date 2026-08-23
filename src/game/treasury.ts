@@ -13,6 +13,7 @@
 
 import type { GameState } from './model'
 import { SEASON_WEEKS, fmtMoney, logDecision } from './model'
+import { t } from './i18n'
 
 export const RELEASE_STEP = 500_000
 
@@ -31,11 +32,11 @@ export function cashReserve(state: GameState): number {
  *  (the Training.tsx lesson: a row that offers a button and a handler that
  *  refuses it is the bug written twice). */
 export function releaseBlock(state: GameState): string | null {
-  if (state.unemployed) return 'No club, no treasury.'
+  if (state.unemployed) return t('finances.treasuryNoClub')
   const club = state.clubs[state.userClubId]
-  if (!club) return 'No club, no treasury.'
+  if (!club) return t('finances.treasuryNoClub')
   if (club.balance - RELEASE_STEP < cashReserve(state)) {
-    return `The board keeps ${fmtMoney(cashReserve(state))} banked - a season of wages plus a float - and the balance cannot dip below it.`
+    return t('finances.treasuryFloor', { reserve: fmtMoney(cashReserve(state)) })
   }
   return null
 }
@@ -48,5 +49,5 @@ export function releaseToBudget(state: GameState): { ok: boolean; msg: string } 
   club.balance -= RELEASE_STEP
   club.budget += RELEASE_STEP
   logDecision(state, `Moved ${fmtMoney(RELEASE_STEP)} from the bank into the transfer budget.`, true)
-  return { ok: true, msg: `${fmtMoney(RELEASE_STEP)} moved into the transfer budget. The bank stands at ${fmtMoney(club.balance)}, the budget at ${fmtMoney(club.budget)}.` }
+  return { ok: true, msg: t('finances.treasuryMoved', { step: fmtMoney(RELEASE_STEP), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }) }
 }

@@ -6,6 +6,8 @@ import { isDerby } from './rivalries'
 
 export interface ObjectiveDef {
   id: string
+  /** An i18n KEY, not the words. Screens run it through t(); the board's own
+   *  letters run it through tIn('en', …) so a career's paperwork stays English. */
   text: (state: GameState) => string
   /** evaluated at rollover, before season structures are wiped */
   met: (state: GameState) => boolean
@@ -32,7 +34,7 @@ export interface ObjectiveDef {
 export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   {
     id: 'youth',
-    text: () => 'Blood the academy: give 6+ starts to players aged 21 or under',
+    text: () => 'objectives.youth',
     met: s => {
       const starts = s.clubs[s.userClubId].players
         .map(id => s.players[id])
@@ -46,7 +48,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   },
   {
     id: 'derby',
-    text: () => 'Win a derby: the fans demand local bragging rights',
+    text: () => 'objectives.derby',
     met: s => s.fixtures.some(f => {
       if (!f.played || !isDerby(f.homeId, f.awayId)) return false
       const us = f.homeId === s.userClubId ? f.homeScore : f.awayId === s.userClubId ? f.awayScore : -1
@@ -61,7 +63,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   },
   {
     id: 'cup',
-    text: () => 'Reach the Continental Cup knockouts',
+    text: () => 'objectives.europe',
     met: s => s.fixtures.some(f => f.compId === 'cc' && !!f.stage &&
       (f.homeId === s.userClubId || f.awayId === s.userClubId)),
     applies: s => (s.comps['cc']?.teamIds ?? []).includes(s.userClubId),
@@ -70,7 +72,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   },
   {
     id: 'books',
-    text: () => 'Balance the books: finish the season in the black',
+    text: () => 'objectives.books',
     met: s => s.clubs[s.userClubId].balance >= 0,
     applies: () => true,
     // NOT BANKED: in credit today says nothing about May.
@@ -83,7 +85,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   // in week 1 of a fresh career (scripts/objprobe.ts holds that).
   {
     id: 'tries',
-    text: () => 'Play with ambition: score 55 league tries this season',
+    text: () => 'objectives.tries',
     met: s => {
       const comp = s.comps[s.clubs[s.userClubId].leagueId]
       const row = comp?.table.find(r => r.teamId === s.userClubId)
@@ -95,7 +97,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   },
   {
     id: 'scalp',
-    text: () => 'Take a scalp: beat a side with a far bigger name than yours',
+    text: () => 'objectives.scalp',
     met: s => s.fixtures.some(f => {
       if (!f.played) return false
       const us = f.homeId === s.userClubId ? f.homeScore : f.awayId === s.userClubId ? f.awayScore : -1
@@ -112,7 +114,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   },
   {
     id: 'fortress',
-    text: () => 'Make the ground a fortress: win 8 home league games',
+    text: () => 'objectives.fortress',
     met: s => {
       const leagueId = s.clubs[s.userClubId].leagueId
       return s.fixtures.filter(f =>

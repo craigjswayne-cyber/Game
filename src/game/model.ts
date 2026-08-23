@@ -1,5 +1,6 @@
 import type { Pos } from '../data/types'
 import { mulberry32 } from './rng'
+import { t, tIn } from './i18n'
 
 export type { Pos }
 
@@ -79,7 +80,8 @@ export const inRedZone = (p: { stats: { mins: number } }) => p.stats.mins >= 130
 export const CHEM_SLOTS: [number, number][] = [[0, 1], [1, 2], [3, 4], [8, 9], [11, 12]]
 export const chemKey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`)
 export const chemTier = (g: number) =>
-  g >= 50 ? 'telepathic' : g >= 25 ? 'established' : g >= 10 ? 'settled' : g >= 5 ? 'settling in' : 'brand new'
+  t(g >= 50 ? 'common.chemTelepathic' : g >= 25 ? 'common.chemEstablished'
+    : g >= 10 ? 'common.chemSettled' : g >= 5 ? 'common.chemSettlingIn' : 'common.chemBrandNew')
 
 /** Appearances this player made for a club he has since left - 0 if he is
  *  still there. Fuels the old-boy storyline when the fixture list brings
@@ -1528,11 +1530,12 @@ export const BENCH_SLOTS: { shirt: number; pos: Pos[] }[] = [
 ]
 
 /** The board's stated aim for the season, from club stature. */
+/** `text` is an i18n key: screens t() it, the board's letters tIn('en', …) it. */
 export function boardObjective(rep: number): { text: string; pos: number } {
-  if (rep >= 87) return { text: 'win the title', pos: 1 }
-  if (rep >= 80) return { text: 'reach the playoffs', pos: 6 }
-  if (rep >= 72) return { text: 'finish in the top half', pos: 7 }
-  return { text: 'stay clear of the bottom two', pos: 12 }
+  if (rep >= 87) return { text: 'objectives.boardTitle', pos: 1 }
+  if (rep >= 80) return { text: 'objectives.boardPlayoffs', pos: 6 }
+  if (rep >= 72) return { text: 'objectives.boardTopHalf', pos: 7 }
+  return { text: 'objectives.boardSurvive', pos: 12 }
 }
 
 /**

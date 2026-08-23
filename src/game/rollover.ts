@@ -22,6 +22,7 @@ import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
 import { mentorBoost } from './mentoring'
 import { staffChem } from './staff'
+import { tIn } from './i18n'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -1135,12 +1136,12 @@ export function rebuildSeason(state: GameState) {
         const ok = def.met(state)
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
         if (ok) { objBonus += 250_000; state.boardOwed = true }
-        sideLines.push(`${ok ? '✅' : '❌'} ${def.text(state)}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
+        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.text(state))}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: met ? 'Board delighted with the season' : 'Board verdict: not good enough',
-        body: `The objective was to ${obj.text}. You finished ${ordinal(pos)}${wonLeague ? ' and won the title' : ''}. ${met
+        body: `The objective was to ${tIn('en', obj.text)}. You finished ${ordinal(pos)}${wonLeague ? ' and won the title' : ''}. ${met
           ? 'The chairman shakes your hand warmly - keep building.'
           : 'The chairman expects markedly better next season.'}${sideLines.length ? '\n\n' + sideLines.join('\n') : ''}`,
       })
@@ -1431,7 +1432,7 @@ export function rebuildSeason(state: GameState) {
       const [lng, sht, cls] = offers
       state.press.push({
         id: state.nextId++, week: 1, season: state.season, outlet: OFFICE_OUTLET,
-        question: `The ${slot.name.toLowerCase()} is on a stopgap arrangement at ${fmtMoney(d.weekly)} a week - under the going rate. The commercial director has three offers on the desk. Which way do we go?`,
+        question: `The ${tIn('en', slot.name).toLowerCase()} is on a stopgap arrangement at ${fmtMoney(d.weekly)} a week - under the going rate. The commercial director has three offers on the desk. Which way do we go?`,
         options: [
           {
             label: `${lng.sponsor}: ${fmtMoney(lng.weekly)}/wk, ${lng.years} years`, morale: 0, board: 0,
