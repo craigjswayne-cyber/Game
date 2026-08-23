@@ -33,7 +33,6 @@ export const TOP14_B: RawClub[] = [
       { name: 'Vilimoni Botitu', pos: 'CE', alt: ['FH'], age: 27, nat: 'FIJ', q: 78, intl: true },
       { name: 'Adrea Cocagi', pos: 'CE', age: 31, nat: 'FIJ', q: 71 },
       { name: 'Antoine Zeghdar', pos: 'CE', age: 25, nat: 'FRA', q: 67 },
-      { name: 'Filipo Nakosi', pos: 'WG', age: 30, nat: 'FIJ', q: 72, intl: true },
       { name: 'Nathanaël Hulleu', pos: 'WG', age: 26, nat: 'FRA', q: 70 },
       { name: 'Martin Laveau', pos: 'WG', age: 24, nat: 'FRA', q: 68 },
       { name: 'Geoffrey Palis', pos: 'FB', age: 34, nat: 'FRA', q: 66 },
@@ -196,6 +195,7 @@ export const TOP14_B: RawClub[] = [
     colors: ['#c8102e', '#ffcd00'],
     rep: 68, budget: 1400000,
     players: [
+      { name: 'Tom Ecochard', pos: 'SH', age: 31, nat: 'FRA', q: 67 },
       { name: 'Bruce Devaux', pos: 'LP', age: 29, nat: 'FRA', q: 63 },
       { name: 'Nephi Leatigaga', pos: 'LP', age: 32, nat: 'SAM', q: 62, intl: true },
       { name: 'Karlen Asieshvili', pos: 'LP', age: 34, nat: 'GEO', q: 58, intl: true },
