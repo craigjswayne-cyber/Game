@@ -256,68 +256,59 @@ async function sweep(night) {
       await page.locator('.day-draw').first().click()
       await look('the draw room')
 
-      // MATCH DAY, which this sweep has never visited.
+      // MATCH DAY, which this sweep had never visited.
       //
-      // The scoreboard's live score sat at 1.26:1 in daylight - gold text on
-      // the hero gradient - until a person noticed it. Two separate blind
-      // spots hid it: text over a gradient was skipped outright (fixed in
-      // MEASURE above), and the eighty minutes the game is actually about were
-      // not on this tour at all. The screens below are the ones a manager
-      // stares at longest in a season, so they are the last place a
-      // contrast bug should be allowed to live.
-      await page.evaluate(async () => {
-        // re-read the store every iteration: getState() hands back a snapshot,
-        // and holding one across the loop tests week 1 forever
-        const due = () => {
-          const g = window.rugbyStore.getState().game
-          return g.fixtures.some(f => f.week === g.week && !f.played
-            && (f.homeId === g.userClubId || f.awayId === g.userClubId))
-        }
-        for (let i = 0; i < 900 && !due(); i++) {
+      // The live score sat at 1.26:1 in daylight - gold on the hero gradient -
+      // until a person noticed. Two blind spots hid it: text over a gradient
+      // was skipped outright (fixed in MEASURE above), and the eighty minutes
+      // the game is about were not on this tour.
+      //
+      // DRIVEN THROUGH THE REAL BUTTONS, like motionprobe and subsprobe. The
+      // first attempt called store.kickOff() directly, which quietly does
+      // nothing off the match-day screen - and the flag that was supposed to
+      // report that only checked whether a fixture EXISTED, so the harness
+      // measured the Home screen twice and called it match-day coverage. A
+      // false claim of coverage is worse than an admitted gap.
+      let reachedMatch = false
+      for (let i = 0; i < 60; i++) {
+        if (await page.locator('text=Kick Off ▸').count()) { reachedMatch = true; break }
+        await page.evaluate(() => {
           const s = window.rugbyStore.getState()
           for (const n of s.game.news) n.read = true
           for (const q of s.game.press) q.answered = true
           window.rugbyStore.setState({ lastAdvanceAt: 0 })
-          if (s.liveMatch) s.instantResult()
-          else s.continueWeek()
-          await new Promise(r => setTimeout(r, 4))
-        }
-      }).catch(() => {})
-      await page.waitForTimeout(500)
-      const kicked = await page.evaluate(() => {
-        const s = window.rugbyStore.getState()
-        const fx = s.game.fixtures.find(f => f.week === s.game.week && !f.played
-          && (f.homeId === s.game.userClubId || f.awayId === s.game.userClubId))
-        if (!fx) return false
-        window.rugbyStore.setState({ lastAdvanceAt: 0 })
-        s.kickOff('calm', 'full')
-        return true
-      })
-      if (kicked) {
+        })
+        const cont = page.locator('.continue-btn')
+        if (!(await cont.count())) break
+        await cont.first().click().catch(() => {})
+        await page.waitForTimeout(140)
+      }
+      if (reachedMatch) {
+        await look('match day: the tunnel')
+        await page.locator('text=Kick Off ▸').first().click()
+        // two gates between the tunnel and the pitch, and missing either leaves
+        // the scoreboard unrendered while the harness thinks it kicked off
+        try {
+          await page.locator('.talk-modal').waitFor({ timeout: 3000 })
+          await look('match day: the team talk')
+          await page.click('.talk-modal .speech-tile >> text=Calm the nerves')
+        } catch { /* a talk was already given this week */ }
+        try {
+          await page.locator('text=▸ Take the Field').waitFor({ timeout: 2500 })
+          await page.click('text=▸ Take the Field')
+        } catch { /* no ready check on a clean sheet */ }
+        await page.waitForSelector('.scoreboard', { timeout: 15000 }).catch(() => {})
         await page.waitForTimeout(900)
-        await look('match day: kick-off')
-        // let the clock run so the scoreboard carries a real score
-        await page.evaluate(async () => {
-          for (let i = 0; i < 40; i++) {
-            const s = window.rugbyStore.getState()
-            if (!s.liveMatch) break
-            s.stepLive?.()
-            await new Promise(r => setTimeout(r, 8))
-          }
-        }).catch(() => {})
-        await page.waitForTimeout(600)
-        await look('match day: the scoreboard in play')
-        // HONEST LIMIT: these two looks reach the match-day shell - the
-        // masthead, the tunnel card, the controls - and measure 17 runs of
-        // text in each theme. They do NOT yet reach .scoreboard .score, the
-        // element whose 1.26:1 in daylight is the reason match day was added
-        // to this sweep, because kickOff lands on the pre-match screen and the
-        // live scoreboard needs the clock running past it. Verified by
-        // reintroducing the bug: this harness still passed. The gradient
-        // measurement above is real and does hold the mastheads and the season
-        // card; the live score is still only guarded by a human looking at it.
+        // the clock has to run before the scoreboard carries a score
+        for (let i = 0; i < 8; i++) {
+          await page.evaluate(() => window.rugbyStore.getState().advanceLive?.())
+          await page.waitForTimeout(120)
+        }
+        const live = await page.locator('.live-wrap .scoreboard .score').count()
+        if (live) await look('match day: the live scoreboard')
+        else console.log('  ---- match day: kicked off but no live scoreboard rendered')
       } else {
-        console.log('  ---- match day: no user fixture reached, sweep did not cover it')
+        console.log('  ---- match day: never reached a kick-off, NOT covered')
       }
   } catch (e) {
     findings.push({ label: `the ${theme} sweep itself`, cls: 'threw', text: String(e).slice(0, 120), r: 0 })

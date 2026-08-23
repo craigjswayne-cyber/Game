@@ -512,8 +512,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      measures 3.83:1 there, which is what .sc-cup beside it already used.
      nightcontrast does sweep daylight, so the reason this survived is not the
      theme: text over a GRADIENT was skipped outright, and match day was not on
-     the tour at all. Both since closed - though see that probe's own note on
-     what it still cannot reach. */
+     the tour at all. Both closed - that sweep now drives a real kick-off and
+     measures this element, and fails at 1:1 if it is ever set back. */
   color: var(--gold-fill);
   min-width: 84px;
   font-variant-numeric: tabular-nums;
