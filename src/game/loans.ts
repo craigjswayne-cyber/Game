@@ -1,7 +1,7 @@
 // The loan-in market: borrow tomorrow's stars from the big clubs' benches.
 
 import type { GameState, Player } from './model'
-import { leagueTier } from './model'
+import { SEASON_WEEKS, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32 } from './rng'
 
@@ -108,6 +108,7 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     return { ok: false, msg: `${p.name} is in your starting XV. Drop him first if you mean it.` }
   }
   p.onLoan = true
+  p.loanSince = state.season * SEASON_WEEKS + state.week
   // a NAMED feeder club (round 25, user: "say what club they are playing
   // for"): a real lower-tier side, picked deterministically per player, so
   // every postcard about him can say where he is. Cosmetic - he does not
@@ -140,13 +141,36 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
   if (!p) return { ok: false, msg: 'No such player.' }
   if (p.clubId !== state.userClubId) return { ok: false, msg: 'He is not yours to recall.' }
   if (!p.onLoan) return { ok: false, msg: `${p.name} is not out on loan.` }
+  // A LOAN IS WEEKS OF RUGBY, NOT A BUTTON.
+  //
+  // Out and straight back was a free reset of condition, sharpness and rust,
+  // and past week 20 a free point of CA - with no cooldown and both buttons on
+  // the same screen. Measured before this: 200 cycles took one under-23 from
+  // 65 to his ceiling of 76, and cycling the under-23s in the 23 before every
+  // match was worth +3.1 points a match and took the win rate from 49% to 62%.
+  // It also bypassed the whole development pillar - academy, mentoring,
+  // facilities, minutes - that the rest of the game is built on.
+  //
+  // So the recall now reads how long he was actually away.
+  const served = (state.season * SEASON_WEEKS + state.week) - (p.loanSince ?? 0)
+  if (served < 4) {
+    const left = 4 - served
+    return {
+      ok: false,
+      msg: `${p.name} has only just walked through their door. The feeder club expect him to play some rugby before you change your mind - give it ${left} more week${left === 1 ? '' : 's'}.`,
+    }
+  }
   p.onLoan = false
   p.loanClub = undefined
-  // playing every week: he arrives fit and sharp, not rusty
-  p.cond = Math.max(p.cond, 90)
-  p.sharp = Math.max(p.sharp ?? 60, 85)
-  p.rust = 0
-  const halfServed = state.week >= 20
+  p.loanSince = undefined
+  // he comes back as fit as the rugby he played, not as fit as the tap
+  const weeks = Math.min(20, served)
+  p.cond = Math.max(p.cond, 60 + weeks * 1.5)
+  p.sharp = Math.max(p.sharp ?? 60, 55 + weeks * 1.5)
+  p.rust = Math.max(0, (p.rust ?? 0) - Math.floor(weeks / 4))
+  // and the point of development needs most of a season served, not a date on
+  // the calendar: week >= 20 paid a man sent out in week 19 for one week away
+  const halfServed = served >= 18
   if (halfServed && p.ca < p.pa) p.ca += 1
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
