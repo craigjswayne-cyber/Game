@@ -27,7 +27,7 @@ import type { GameState } from './model'
  * change if the destination moves - and it is published in the client of a
  * public build, so it should be an address that can stand being seen.
  */
-export const DEV_CONTACT = 'theworldofrummi@gmail.com'
+export const DEV_CONTACT = 'phaserugbymanager@gmail.com'
 
 /** How many crashes to keep. A ring, because a broken screen in a render loop
  *  can throw a hundred times a second and the first one is the interesting one. */

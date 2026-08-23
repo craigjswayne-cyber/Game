@@ -9,7 +9,7 @@
 // [attached]." That is a promise in the product, so it is a test here.
 import { newGame } from '../src/game/newgame'
 import {
-  MAILTO_LIMIT, buildReport, crashCount, mailtoUrl, noteScreen, recordCrash, reportFilename,
+  DEV_CONTACT, MAILTO_LIMIT, buildReport, crashCount, mailtoUrl, noteScreen, recordCrash, reportFilename,
 } from '../src/game/bugreport'
 
 let fails = 0
@@ -65,6 +65,9 @@ const base = { state: g, nav: NAV, screen: SCREEN, when: '2026-08-23 12:00' }
   const short = buildReport({ ...base, notes: 'short one' })
   ok(mailtoUrl(short).startsWith('mailto:'), 'the mail route builds a mailto: url')
   ok(mailtoUrl(short).includes('subject='), 'with a subject')
+  // the address is the whole point of the mail route: a typo here sends every
+  // report the game ever produces to nobody, silently
+  ok(mailtoUrl(short).startsWith(`mailto:${DEV_CONTACT}?`), `addressed to ${DEV_CONTACT}`)
 
   const long = buildReport({ ...base, notes: 'x'.repeat(4000) })
   const trimmed = decodeURIComponent(mailtoUrl(long).split('body=')[1])
