@@ -452,12 +452,12 @@ export default function App() {
             <h1>{mastheadTitle}</h1>
             {/* the real day, not the week's Saturday shown seven times. Continue
                 walks Monday to Saturday now, so the date has to move with it. */}
-            <div className="date">{dayLine(game).toUpperCase()} · {seasonLabel(game.season)} · Wk {game.week}</div>
+            <div className="date">{t('common.mastheadDate', { day: dayLine(game).toUpperCase(), season: seasonLabel(game.season), week: game.week })}</div>
           </div>
           {/* grouped, so portrait can drop both onto one row of their own and
               leave the first row to the back arrow, the title and the date */}
           <div className="mast-ctl">
-            <button className="night-btn" onClick={toggleNight} aria-label="Toggle floodlit mode">
+            <button className="night-btn" onClick={toggleNight} aria-label={t('common.floodlitToggle')}>
               {night ? <IcoSun /> : <IcoMoon />}
             </button>
             {/* One button, one label, one decision function. It used to read
