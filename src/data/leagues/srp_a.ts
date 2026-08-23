@@ -74,7 +74,6 @@ export const SRP_A: RawClub[] = [
       { name: 'Emoni Narawa', pos: 'WG', age: 26, nat: 'NZL', q: 77, intl: true },
       { name: 'Leroy Carter', pos: 'WG', age: 26, nat: 'NZL', q: 75, intl: true },
       { name: 'Etene Nanai-Seturo', pos: 'WG', alt: ['FB'], age: 26, nat: 'NZL', q: 76 },
-      { name: 'Shaun Stevenson', pos: 'FB', alt: ['WG'], age: 28, nat: 'NZL', q: 80, intl: true },
     ],
   },
   {
@@ -127,7 +126,6 @@ export const SRP_A: RawClub[] = [
       { name: 'Daniel Lienert-Brown', pos: 'LP', alt: ['TP'], age: 30, nat: 'NZL', q: 69 },
       { name: 'Saula Ma\'u', pos: 'TP', age: 24, nat: 'NZL', q: 68 },
       { name: 'Sefo Kautai', pos: 'TP', age: 28, nat: 'NZL', q: 68 },
-      { name: 'Jermaine Ainsley', pos: 'TP', age: 30, nat: 'AUS', q: 70, intl: true },
       { name: 'Henry Bell', pos: 'HK', age: 23, nat: 'NZL', q: 70 },
       { name: 'Jack Taylor', pos: 'HK', age: 26, nat: 'NZL', q: 67 },
       { name: 'Fabian Holland', pos: 'LK', age: 22, nat: 'NZL', q: 78, intl: true },

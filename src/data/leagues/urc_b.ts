@@ -300,8 +300,6 @@ export const URC_B: RawClub[] = [
       { name: 'Will Reed', pos: 'FH', age: 24, nat: 'WAL', q: 67, gk: true },
       { name: 'Angus O\'Brien', pos: 'FH', alt: ['FB'], age: 31, nat: 'WAL', q: 66, gk: true },
       { name: 'Aneurin Owen', pos: 'CE', age: 24, nat: 'WAL', q: 69 },
-      { name: 'Sio Tomkinson', pos: 'CE', age: 29, nat: 'NZL', q: 71 },
-      { name: 'Jack Dixon', pos: 'CE', age: 30, nat: 'WAL', q: 66 },
       { name: 'Rio Dyer', pos: 'WG', age: 25, nat: 'WAL', q: 77, intl: true },
       { name: 'Jared Rosser', pos: 'WG', age: 26, nat: 'WAL', q: 65 },
       { name: 'Huw Anderson', pos: 'WG', alt: ['FB'], age: 22, nat: 'WAL', q: 62 },

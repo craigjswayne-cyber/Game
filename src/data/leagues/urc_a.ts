@@ -278,7 +278,6 @@ export const URC_A: RawClub[] = [
       { name: 'Ignacio Mendy', pos: 'WG', age: 25, nat: 'ARG', q: 68, intl: true },
       { name: 'Paolo Odogwu', pos: 'WG', age: 28, nat: 'ITA', q: 68, intl: true },
       { name: 'Louis Lynagh', pos: 'WG', alt: ['FB'], age: 24, nat: 'ITA', q: 70, intl: true },
-      { name: 'Edoardo Padovani', pos: 'WG', alt: ['FB'], age: 32, nat: 'ITA', q: 67, intl: true },
       { name: 'Rhyno Smith', pos: 'FB', age: 29, nat: 'RSA', q: 67 },
     ],
   },

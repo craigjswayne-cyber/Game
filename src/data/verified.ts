@@ -84,7 +84,7 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'dan du preez@bath': 'bath',
   'jamie bhatti@bath': 'bath',
   'boeta chamberlain@bulls': 'lions',
-  'nicky smith@ospreys': 'sale',
+  'nicky smith@ospreys': 'leicester',
   'len ikitau@brumbies': 'brumbies',
   'zack henry@pau': 'newcastle',
   // Sam Spink is TWO men - a Saracens centre of 27 and a Western Force centre
@@ -108,7 +108,7 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // -> blackheath
   'joel grayson@newcastle': 'blackheath',
   // -> blackrams
-  'tamati tua@exeter': 'blackrams',
+  'tamati tua@exeter': 'exeter',
   // -> bordeaux
   'tom willis@saracens': 'bordeaux',
   // -> brumbies
@@ -125,8 +125,8 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'louie johnson@saracens': 'ealing',
   'sam grahamslaw@bristol': 'ealing',
   // -> exeter
-  'dallas mcleod@crusaders': 'exeter',
-  'sam wolstenholme@bristol': 'exeter',
+  'dallas mcleod@crusaders': 'bristol',
+  'sam wolstenholme@bristol': 'bristol',
   // -> gloucester
   'dewi lake@ospreys': 'gloucester',
   'jac morgan@ospreys': 'gloucester',
@@ -147,13 +147,13 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // -> newcastle
   'benjamin elizalde@bristol': 'newcastle',
   'brandon jackson@saracens': 'newcastle',
-  'fehi fineanganofo@hurricanes': 'newcastle',
+  'fehi fineanganofo@hurricanes': 'hurricanes',
   'hoskins sotutu@blues': 'newcastle',
   'josh hodge@exeter': 'newcastle',
   'obi ene@sale': 'newcastle',
   'pouri rakete-stones@hurricanes': 'newcastle',
   'raffi quirke@sale': 'newcastle',
-  'werner kok@ulster': 'newcastle',
+  'werner kok@ulster': 'ulster',
   'will rigg@exeter': 'newcastle',
   'zack henry@stade_francais': 'newcastle',
   'zuriel togiatama@drua': 'newcastle',
@@ -166,21 +166,21 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // -> perpignan
   'marco riccioni@saracens': 'perpignan',
   // -> pirates
-  'steele barker@bristol': 'pirates',
+  'steele barker@bristol': 'bristol',
   // -> plymouth
   'iwan jenkins@exeter': 'plymouth',
   // -> reds
-  'izaia perese@leicester': 'reds',
+  'izaia perese@leicester': 'leicester',
   // -> sale
   'alex lozowski@saracens': 'sale',
   'christ tshiunza@exeter': 'sale',
   'elia canakaivata@drua': 'sale',
   'joe marchant@stade_francais': 'sale',
-  'nicky smith@leicester': 'sale',
+  'nicky smith@leicester': 'leicester',
   'xavier roe@chiefs': 'sale',
   // -> saracens
   'george martin@leicester': 'saracens',
-  'tomos williams@gloucester': 'saracens',
+  'tomos williams@gloucester': 'gloucester',
   // -> sharks
   'ivan van zyl@saracens': 'sharks',
   // -> ulster
@@ -209,7 +209,7 @@ export const VERIFIED_CLUB: Record<string, string> = {
 
   // Back at the Hurricanes for 2025-26 after his season-long Leinster
   // sabbatical ended with the 2024-25 URC campaign; re-signed to 2028.
-  'jordie barrett': 'hurricanes',
+  'jordie barrett': 'leinster',
   // The reverse trip: contracted to the Blues to 2027, but taking the
   // sabbatical clause to spend 2025-26 at Leinster as Barrett's replacement.
   'rieko ioane': 'leinster',
@@ -357,6 +357,42 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // Sale's prem_b/guide) drop here rather than by editing other clubs' files.
   'jamie bhatti': 'bath',
   'dan du preez': 'bath',
+
+  // ---- THE AUGUST 2026 COMPENDIUM (user-supplied transfer PDF) -----------
+  // The user's global rosters document, applied on top of everything above.
+  // Bath and Northampton are untouched on the user's instruction: their
+  // squads are the clubs' own official lists and outrank the compendium.
+  // Where the compendium contradicts an earlier pin, the pin above was
+  // repointed rather than deleted, so the guide stays silenced for that name.
+  'christian wade@newcastle': 'gloucester',
+  'adam hastings@gloucester': 'glasgow',
+  'adam hastings@glasgow': 'glasgow',
+  'waisea nayacalevu@toulon': 'sale',
+  'fergus burke@crusaders': 'saracens',
+  'fergus burke@saracens': 'saracens',
+  'owen farrell@saracens': 'racing92',
+  'owen farrell@racing92': 'racing92',
+  'yoan tanga@la_rochelle': 'stade_francais',
+  'demba bamba@lyon': 'racing92',
+  'hacjivah dayimani@stormers': 'racing92',
+  'seru uru@reds': 'racing92',
+  'lucas tauzin@perpignan': 'clermont',
+  'daniel bibi biziwu@clermont': 'pau',
+  'rémy baget@bayonne': 'castres',
+  'filipo nakosi@castres': 'vannes',
+  'wilfrid hounkpatin@castres': 'montpellier',
+  'paolo garbisi@montpellier': 'toulon',
+  'olivier klemenczak@racing92': 'pau',
+  'wj steenkamp@bulls': 'lions',
+  'emmanuel tshituka@lions': 'sharks',
+  'kieran hardy@scarlets': 'ospreys',
+  'pete samu@bordeaux': 'waratahs',
+  'samipeni finau@chiefs': 'bordeaux',
+  'ardie savea@moana': 'steelers',
+  'bayley kuenzle@force': 'glasgow',
+  'james humphreys@ulster': 'ealing',
+  'jack dempsey@glasgow': 'bravelupus',
+  'liam williams@newcastle': 'spears',
 }
 
 /** Every man the 2025/26 Premiership guide names, at the club it names him at.
