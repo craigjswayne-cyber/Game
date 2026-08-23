@@ -122,7 +122,7 @@ const inject = (g: GameState, fx: Fixture, att: number, venue?: { name: string; 
   ok(!!q, 'the morning after a double, the first question is about the double')
   if (q) {
     const prem = g.comps['prem']?.name ?? 'Premiership'
-    const cc = g.comps['cc']?.name ?? 'Champions Cup'
+    const cc = g.comps['cc']?.name ?? 'Continental Cup'
     ok(q.question.includes(prem) && q.question.includes(cc),
       'both trophies are named in the question')
     ok(g.silverwareAsk === abs(), 'the toast is stamped to the newest final')

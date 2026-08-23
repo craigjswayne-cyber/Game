@@ -82,8 +82,8 @@ try {
 
     // a career, quickly, the way every other browser harness starts one
     await page.click('text=New Career')
-    await page.waitForSelector('text=Gallagher Premiership', { timeout: 15000 })
-    await page.click('text=Gallagher Premiership')
+    await page.waitForSelector('text=English Premier Division', { timeout: 15000 })
+    await page.click('text=English Premier Division')
     await page.waitForSelector('.club-tile', { timeout: 15000 })
     await page.click('.tile >> text=Northampton')
     await page.waitForSelector('text=Star Player', { timeout: 15000 })

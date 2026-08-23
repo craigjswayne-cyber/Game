@@ -107,8 +107,8 @@ try {
     await page.goto(`http://localhost:${PORT}/`)
     await page.waitForSelector('text=RUGBY', { timeout: 20000 })
     await tap('text=New Career', 3)                      // triple tap
-    await page.waitForSelector('text=Gallagher Premiership', { timeout: 8000 })
-    await tap('text=Gallagher Premiership', 2)
+    await page.waitForSelector('text=English Premier Division', { timeout: 8000 })
+    await tap('text=English Premier Division', 2)
     await page.waitForSelector('.club-tile', { timeout: 8000 })
     await tap('.tile >> text=Northampton', 2)
     await page.waitForSelector('text=Star Player', { timeout: 8000 })
