@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 
 const svg = readFileSync('public/icon.svg', 'utf8')
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
-for (const size of [192, 512]) {
+for (const size of [180, 192, 512]) {
   const page = await browser.newPage({ viewport: { width: size, height: size } })
   await page.setContent(`<body style="margin:0"><div style="width:${size}px;height:${size}px">${svg.replace('<svg ', `<svg width="${size}" height="${size}" `)}</div></body>`)
   const buf = await page.screenshot({ omitBackground: true })

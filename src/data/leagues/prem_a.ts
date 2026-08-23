@@ -190,7 +190,7 @@ export const PREM_A: RawClub[] = [
     ],
   },
   {
-    id: 'harlequins', name: 'Harlequins RFC', short: 'Harlequins',
+    id: 'harlequins', name: 'Quins Rugby', short: 'Quins',
     city: 'London', country: 'ENG',
     stadium: 'Little Twickenham', capacity: 14800,
     colors: ['#006747', '#b7228f'],

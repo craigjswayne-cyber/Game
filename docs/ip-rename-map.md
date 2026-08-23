@@ -4,7 +4,10 @@ Status: **applied to `src/data/leagues/` on 2026-08-23**, along with the
 neutral finals venues in `model.ts` (Twickenham → Greater Twickenham, Stade de
 France → Grand Stade de Paris, Principality → Cardiff National Stadium, Croke
 Park → Crocker Park; Velodrome/Murrayfield/Wembley kept as generic place
-names) and the challenge/legacy texts that named Thomond Park and the Cornish
+names; Wembley → English Football Stadium, Murrayfield → Edinburgh Stadium
+and Stade Velodrome → Marseille Stadium followed in v1.0.3, all three being
+registered marks rather than the generic place names they were kept as) and
+the challenge/legacy texts that named Thomond Park and the Cornish
 Pirates. This addresses the club/ground half of the store blocker in
 `release-readiness.md` §1.1. Player names (~1,600) and competition names are
 a separate pass and NOT yet done. **v1.0.3** restored Harlequins and Saracens
@@ -25,7 +28,8 @@ Ground rules:
    "FC" to stay distinct from the top flight's Sale RFC. Harlequins and
    Saracens were district-renamed in v1.0.2 and restored by the owner in
    v1.0.3: both names are ordinary English words rather than places, and the
-   owner wanted them back.
+   owner wanted them back — as Quins Rugby and Sarries RFC, the terrace
+   short forms rather than the registered club names.
 4. **Ground names follow the owner's near-miss convention** (set on the
    Premiership): a soundalike of the real name (Ashton Gate → Ashford Gate,
    Kingsholm → Kinshome), a street-type swap (Welford Road → Welford Street),
@@ -46,12 +50,12 @@ Rows marked **(owner)** were chosen by the owner and are locked.
 | Bristol Bears | Bristol RFC | Ashton Gate | Ashford Gate **(owner)** |
 | Exeter Chiefs | Exeter RFC | Sandy Park | Beachy Park **(owner)** |
 | Gloucester Rugby | Gloucester RFC | Kingsholm | Kinshome **(owner)** |
-| Harlequins | Harlequins RFC **(owner, v1.0.3)** | Twickenham Stoop | Little Twickenham **(owner)** |
+| Harlequins | Quins Rugby **(owner, v1.0.3)** | Twickenham Stoop | Little Twickenham **(owner)** |
 | Leicester Tigers | Leicester RFC | Mattioli Woods Welford Road | Welford Street **(owner)** |
 | Newcastle Red Bulls | Newcastle RFC | Kingston Park | Gosforth Centre **(owner)** |
 | Northampton Saints | Northampton RFC **(owner)** | cinch Stadium at Franklin's Gardens | The Gardens **(owner)** |
 | Sale Sharks | Sale RFC | Salford Community Stadium | Salford City Stadium **(owner)** |
-| Saracens | Saracens RFC **(owner, v1.0.3)** | StoneX Stadium | Hendon Park |
+| Saracens | Sarries RFC **(owner, v1.0.3)** | StoneX Stadium | Hendon Park |
 
 Note on Salford City Stadium: that was the ground's actual former real-world
 name (pre-AJ Bell), and Salford City FC exists; "Salford Stadium" would be one
