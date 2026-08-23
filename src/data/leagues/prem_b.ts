@@ -78,7 +78,6 @@ export const PREM_B: RawClub[] = [
       { name: 'Alex Hearle', pos: 'WG', alt: ['FB'], age: 24, nat: 'ENG', q: 66 },
       { name: 'Nathan Greenwood', pos: 'WG', age: 22, nat: 'ENG', q: 61 },
       { name: 'Sam Waugh', pos: 'WG', age: 22, nat: 'ENG', q: 60 },
-      { name: 'Liam Williams', pos: 'FB', alt: ['WG'], age: 34, nat: 'WAL', q: 80, intl: true },
       { name: 'Joel Grayson', pos: 'FB', alt: ['FH'], age: 21, nat: 'ENG', q: 60, gk: true },
     ],
   },

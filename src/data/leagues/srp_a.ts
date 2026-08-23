@@ -122,6 +122,7 @@ export const SRP_A: RawClub[] = [
     colors: ['#0a2240', '#ffd100'],
     rep: 74, budget: 1000000,
     players: [
+      { name: 'Jermaine Ainsley', pos: 'TP', age: 30, nat: 'AUS', q: 70, intl: true },
       { name: 'Ethan de Groot', pos: 'LP', age: 27, nat: 'NZL', q: 84, intl: true },
       { name: 'Daniel Lienert-Brown', pos: 'LP', alt: ['TP'], age: 30, nat: 'NZL', q: 69 },
       { name: 'Saula Ma\'u', pos: 'TP', age: 24, nat: 'NZL', q: 68 },

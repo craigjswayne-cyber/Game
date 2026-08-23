@@ -9,6 +9,7 @@ export const SRP_B: RawClub[] = [
     colors: ['#0F204B', '#F6BE00'],
     rep: 82, budget: 1800000,
     players: [
+      { name: 'Nick Frost', pos: 'LK', age: 26, nat: 'AUS', q: 84, intl: true },
       { name: 'James Slipper', pos: 'LP', alt: ['TP'], age: 36, nat: 'AUS', q: 79, intl: true },
       { name: 'Rhys van Nek', pos: 'LP', age: 24, nat: 'AUS', q: 64 },
       { name: 'Lington Ieli', pos: 'LP', age: 23, nat: 'AUS', q: 62 },
@@ -162,6 +163,7 @@ export const SRP_B: RawClub[] = [
     colors: ['#00B2A9', '#FFFFFF'],
     rep: 70, budget: 600000,
     players: [
+      { name: 'Frank Lomani', pos: 'SH', age: 29, nat: 'FIJ', q: 76, intl: true },
       { name: 'Haereiti Hetet', pos: 'LP', age: 28, nat: 'FIJ', q: 68, intl: true },
       { name: 'Livai Natave', pos: 'LP', age: 24, nat: 'FIJ', q: 62 },
       { name: 'Jone Koroiduadua', pos: 'LP', alt: ['TP'], age: 29, nat: 'FIJ', q: 64, intl: true },
