@@ -3,9 +3,9 @@ import type { RawClub } from '../types'
 
 export const PREM_A: RawClub[] = [
   {
-    id: 'bath', name: 'Bath Rugby', short: 'Bath',
+    id: 'bath', name: 'Bath RFC', short: 'Bath',
     city: 'Bath', country: 'ENG',
-    stadium: 'The Recreation Ground', capacity: 14509,
+    stadium: 'Recreational Sports Centre', capacity: 14509,
     colors: ['#003c71', '#000000'],
     rep: 88, budget: 5000000,
     players: [
@@ -57,9 +57,9 @@ export const PREM_A: RawClub[] = [
     ],
   },
   {
-    id: 'bristol', name: 'Bristol Bears', short: 'Bristol',
+    id: 'bristol', name: 'Bristol RFC', short: 'Bristol',
     city: 'Bristol', country: 'ENG',
-    stadium: 'Ashton Gate', capacity: 27000,
+    stadium: 'Ashford Gate', capacity: 27000,
     colors: ['#0a2240', '#ffffff'],
     rep: 80, budget: 2600000,
     players: [
@@ -100,9 +100,9 @@ export const PREM_A: RawClub[] = [
     ],
   },
   {
-    id: 'exeter', name: 'Exeter Chiefs', short: 'Exeter',
+    id: 'exeter', name: 'Exeter RFC', short: 'Exeter',
     city: 'Exeter', country: 'ENG',
-    stadium: 'Sandy Park', capacity: 15600,
+    stadium: 'Beachy Park', capacity: 15600,
     colors: ['#000000', '#e6007e'],
     rep: 78, budget: 2200000,
     players: [
@@ -146,9 +146,9 @@ export const PREM_A: RawClub[] = [
     ],
   },
   {
-    id: 'gloucester', name: 'Gloucester Rugby', short: 'Gloucester',
+    id: 'gloucester', name: 'Gloucester RFC', short: 'Gloucester',
     city: 'Gloucester', country: 'ENG',
-    stadium: 'Kingsholm', capacity: 16115,
+    stadium: 'Kinshome', capacity: 16115,
     colors: ['#8b0d32', '#ffffff'],
     rep: 78, budget: 2400000,
     players: [
@@ -190,9 +190,9 @@ export const PREM_A: RawClub[] = [
     ],
   },
   {
-    id: 'harlequins', name: 'Harlequins', short: 'Harlequins',
+    id: 'harlequins', name: 'Twickenham RFC', short: 'Twickenham',
     city: 'London', country: 'ENG',
-    stadium: 'Twickenham Stoop', capacity: 14800,
+    stadium: 'Little Twickenham', capacity: 14800,
     colors: ['#006747', '#b7228f'],
     rep: 83, budget: 3200000,
     players: [

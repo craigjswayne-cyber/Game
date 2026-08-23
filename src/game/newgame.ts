@@ -51,11 +51,11 @@ export const CHALLENGES: Challenge[] = [
   },
   {
     id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
-    desc: 'Leinster hoover up every trophy in Ireland. From Thomond Park, end their reign - win the URC and the Champions Cup.',
+    desc: 'Leinster hoover up every trophy in Ireland. From Thormond Park, end their reign - win the URC and the Champions Cup.',
   },
   {
-    id: 'pirates', clubId: 'pirates', title: "The Pirates' Dream",
-    desc: 'Penzance to the Premiership: take the Cornish Pirates out of the Championship on a shoestring and put Cornwall in the top flight at last.',
+    id: 'pirates', clubId: 'pirates', title: 'The Cornwall Dream',
+    desc: 'Penzance to the Premiership: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last.',
   },
 ]
 

@@ -1711,7 +1711,7 @@ function challengeCheck(state: GameState) {
   const line =
     ch === 'sapiac' ? 'Montauban stay in the Top 14. Sapiac is safe, and the Tarn-et-Garonne will sing your name for a generation.'
     : ch === 'redbull' ? 'Newcastle are champions of England. From bottom-four squad to the summit - the project is complete.'
-    : ch === 'dynasty' ? 'The URC and the Champions Cup both live at Thomond Park now. The dynasty is broken, and it broke on your watch.'
+    : ch === 'dynasty' ? 'The URC and the Champions Cup both live at Thormond Park now. The dynasty is broken, and it broke on your watch.'
     : 'Penzance to the Premiership. Cornwall has a top-flight club at last, and it is yours.'
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,

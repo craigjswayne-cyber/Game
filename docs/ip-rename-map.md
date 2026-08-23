@@ -1,9 +1,13 @@
-# IP rename map — clubs and grounds (DRAFT, under review)
+# IP rename map — clubs and grounds (APPLIED)
 
-Status: proposal only. Nothing in `src/data` has been changed yet. This file is
-the working list for the fictionalisation pass flagged as the store blocker in
-`release-readiness.md` §1.1. Player names and competition names are separate
-passes and are not covered here.
+Status: **applied to `src/data/leagues/` on 2026-08-23**, along with the
+neutral finals venues in `model.ts` (Twickenham → Greater Twickenham, Stade de
+France → Grand Stade de Paris, Principality → Cardiff National Stadium, Croke
+Park → Crocker Park; Velodrome/Murrayfield/Wembley kept as generic place
+names) and the challenge/legacy texts that named Thomond Park and the Cornish
+Pirates. This addresses the club/ground half of the store blocker in
+`release-readiness.md` §1.1. Player names (~1,600) and competition names are
+separate passes and are NOT yet done.
 
 Ground rules:
 
@@ -87,39 +91,44 @@ step safer if it ever matters.
 
 | Current club | Proposed | Current ground | Proposed |
 |---|---|---|---|
-| Stade Toulousain | Toulouse RFC | Stade Ernest-Wallon | Stade Ernest-Vallon |
-| Union Bordeaux Bègles | Bordeaux RFC | Stade Chaban-Delmas | Stade Chaban-Delmar |
-| Stade Rochelais | La Rochelle RFC | Stade Marcel-Deflandre | Stade Marcel-Deslandes |
-| ASM Clermont Auvergne | Clermont RFC | Stade Marcel-Michelin | Stade Marcel-Michelot |
-| RC Toulon | Toulon RFC | Stade Mayol | Stade Meyol |
-| Racing 92 | Nanterre RFC | Paris La Défense Arena | Nanterre Arena |
-| Stade Français Paris | Paris RFC | Stade Jean-Bouin | Stade Jean-Baudin |
-| Castres Olympique | Castres RFC | Stade Pierre-Fabre | Stade Pierre-Favre |
-| Aviron Bayonnais | Bayonne RFC | Stade Jean-Dauger | Stade Jean-Daubert |
-| Lyon OU | Lyon RFC | Matmut Stadium de Gerland | Stade de Gerland |
-| Montpellier Hérault Rugby | Montpellier RFC | GGL Stadium | Stade de l'Hérault |
-| Section Paloise | Pau RFC | Stade du Hameau | keep |
-| USA Perpignan | Perpignan RFC | Stade Aimé-Giral | Stade Aimé-Giraud |
-| RC Vannes | Vannes RFC | Stade de la Rabine | keep |
+| Stade Toulousain | RC Toulouse | Stade Ernest-Wallon | Stade Ernest-Vallon |
+| Union Bordeaux Bègles | RC Bordeaux | Stade Chaban-Delmas | Stade Chaban-Delmar |
+| Stade Rochelais | RC La Rochelle | Stade Marcel-Deflandre | Stade Marcel-Deslandes |
+| ASM Clermont Auvergne | RC Clermont | Stade Marcel-Michelin | Stade Marcel-Michelot |
+| RC Toulon | AS Toulon | Stade Mayol | Stade Meyol |
+| Racing 92 | RC Nanterre | Paris La Défense Arena | Nanterre Arena |
+| Stade Français Paris | AS Paris | Stade Jean-Bouin | Stade Jean-Baudin |
+| Castres Olympique | RC Castres | Stade Pierre-Fabre | Stade Pierre-Favre |
+| Aviron Bayonnais | RC Bayonne | Stade Jean-Dauger | Stade Jean-Daubert |
+| Lyon OU | RC Lyon | Matmut Stadium de Gerland | Stade de Gerland |
+| Montpellier Hérault Rugby | RC Montpellier | GGL Stadium | Stade de l'Hérault |
+| Section Paloise | RC Pau | Stade du Hameau | keep |
+| USA Perpignan | RC Perpignan | Stade Aimé-Giral | Stade Aimé-Giraud |
+| RC Vannes | US Vannes | Stade de la Rabine | keep |
+
+French clubs take "RC City" (owner, 2026-08-23) instead of the RFC suffix.
+Three collisions dodged: RC Toulon and RC Vannes are the real clubs' actual
+names, so they take AS/US instead, and AS Paris avoids the historic Racing
+Club de Paris. Shorts stay the bare place ("Toulouse", "Paris").
 
 ## Pro D2 (prod2.ts)
 
 | Current club | Proposed | Current ground | Proposed |
 |---|---|---|---|
-| US Montauban | Montauban RFC | Stade Sapiac | keep |
-| FC Grenoble Rugby | Grenoble RFC | Stade des Alpes | keep |
-| CA Brive | Brive RFC | Stade Amédée-Domenech | Stade Amédée-Domergue |
-| AS Béziers Hérault | Béziers RFC | Stade Raoul-Barrière | Stade Raoul-Berrière |
-| Provence Rugby | Provence RFC | Stade Maurice-David | Stade Maurice-Davy |
-| Oyonnax Rugby | Oyonnax RFC | Stade Charles-Mathon | Stade Charles-Mathieu |
-| Colomiers Rugby | Colomiers RFC | Stade Michel-Bendichou | Stade Michel-Bendicourt |
-| USON Nevers | Nevers RFC | Stade du Pré-Fleuri | keep |
-| Stade Montois | Mont-de-Marsan RFC | Stade Guy-Boniface | Stade Guy-Bonifay |
-| Biarritz Olympique | Biarritz RFC | Parc des Sports Aguiléra | Parc des Sports Aguillon |
-| SU Agen | Agen RFC | Stade Armandie | Stade Armandin |
-| Valence Romans Drôme | Valence RFC | Stade Georges-Pompidou | Stade Georges-Pontier |
-| US Dax | Dax RFC | Stade Maurice-Boyau | Stade Maurice-Boyer |
-| US Carcassonne | Carcassonne RFC | Stade Albert-Domec | Stade Albert-Daumec |
+| US Montauban | RC Montauban | Stade Sapiac | keep |
+| FC Grenoble Rugby | RC Grenoble | Stade des Alpes | keep |
+| CA Brive | RC Brive | Stade Amédée-Domenech | Stade Amédée-Domergue |
+| AS Béziers Hérault | RC Béziers | Stade Raoul-Barrière | Stade Raoul-Berrière |
+| Provence Rugby | RC Provence | Stade Maurice-David | Stade Maurice-Davy |
+| Oyonnax Rugby | RC Oyonnax | Stade Charles-Mathon | Stade Charles-Mathieu |
+| Colomiers Rugby | RC Colomiers | Stade Michel-Bendichou | Stade Michel-Bendicourt |
+| USON Nevers | RC Nevers | Stade du Pré-Fleuri | keep |
+| Stade Montois | RC Mont-de-Marsan | Stade Guy-Boniface | Stade Guy-Bonifay |
+| Biarritz Olympique | RC Biarritz | Parc des Sports Aguiléra | Parc des Sports Aguillon |
+| SU Agen | RC Agen | Stade Armandie | Stade Armandin |
+| Valence Romans Drôme | RC Valence | Stade Georges-Pompidou | Stade Georges-Pontier |
+| US Dax | RC Dax | Stade Maurice-Boyau | Stade Maurice-Boyer |
+| US Carcassonne | RC Carcassonne | Stade Albert-Domec | Stade Albert-Daumec |
 
 ## United Rugby Championship (urc_a.ts, urc_b.ts)
 
@@ -187,9 +196,6 @@ so it takes the Mikawa region.
 
 ## Open questions
 
-- **French style**: "Toulouse RFC" is applied per the RFC rule; if the Top 14
-  should read more French, "RC Toulouse" / "Stade Toulouse" variants are a
-  one-word swap.
 - **Welsh collisions**: see the URC note (Cardiff/Newport/Swansea/Llanelli RFC
   are real historic club names).
 - **`seedDeals` in commercial.ts** parses real ground names for inherited

@@ -135,12 +135,12 @@ export function formGuide(state: GameState, clubId: string, n = 5): ('W' | 'L' |
  *  seats or more, and every one of them has actually staged top-flight rugby.
  *  Both European finals share the venue on the same weekend, as in life. */
 export const EURO_FINAL_VENUES: FinalVenue[] = [
-  { name: 'Twickenham', city: 'London', capacity: 82000 },
-  { name: 'Stade de France', city: 'Paris', capacity: 80698 },
-  { name: 'Principality Stadium', city: 'Cardiff', capacity: 74500 },
+  { name: 'Greater Twickenham', city: 'London', capacity: 82000 },
+  { name: 'Grand Stade de Paris', city: 'Paris', capacity: 80698 },
+  { name: 'Cardiff National Stadium', city: 'Cardiff', capacity: 74500 },
   { name: 'Stade Velodrome', city: 'Marseille', capacity: 67394 },
   { name: 'Murrayfield', city: 'Edinburgh', capacity: 67144 },
-  { name: 'Croke Park', city: 'Dublin', capacity: 82300 },
+  { name: 'Crocker Park', city: 'Dublin', capacity: 82300 },
   { name: 'Wembley Stadium', city: 'London', capacity: 90000 },
 ]
 
