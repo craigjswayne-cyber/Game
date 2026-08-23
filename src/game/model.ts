@@ -964,15 +964,18 @@ export interface StaffPerson {
   retakeAt?: number
 }
 
+/* name/desc are i18n keys (see docs/i18n.md): the table is built once and the
+   language can change after it. Anything written into a save calls tIn('en', …)
+   on them so a career's own paperwork stays English whatever the screen is. */
 export const STAFF_INFO: Record<keyof StaffLevels, { name: string; desc: string; wage: number }> = {
-  assistant: { name: 'Assistant Coach', desc: 'Sharper sessions - bigger training gains, faster youth growth, better auto-picked sides.', wage: 4000 },
-  physio: { name: 'Head Physio', desc: 'Shorter injury layoffs and quicker recovery between matches.', wage: 3000 },
-  scout: { name: 'Chief Scout', desc: 'Faster, wider scouting knowledge across the leagues.', wage: 2500 },
-  attack: { name: 'Attack Coach', desc: 'Strike moves and shape - a sharper attack every matchday, bigger attacking training gains.', wage: 3500 },
-  defence: { name: 'Defence Coach', desc: 'Line speed and system - a meaner defence every matchday, bigger defensive training gains.', wage: 3500 },
-  scrumCoach: { name: 'Set-Piece Coach', desc: 'Scrum and lineout platform - the tight five win you matchday penalties.', wage: 3000 },
-  kicking: { name: 'Kicking Coach', desc: 'Territory and the tee - better tactical kicking and goal kicking under pressure.', wage: 2500 },
-  academyCoach: { name: 'Academy Coach', desc: 'Runs the second squad - academy prospects develop faster under a proper mentor.', wage: 2500 },
+  assistant: { name: 'staff.roleAssistant', desc: 'staff.roleAssistantDesc', wage: 4000 },
+  physio: { name: 'staff.rolePhysio', desc: 'staff.rolePhysioDesc', wage: 3000 },
+  scout: { name: 'staff.roleScout', desc: 'staff.roleScoutDesc', wage: 2500 },
+  attack: { name: 'staff.roleAttack', desc: 'staff.roleAttackDesc', wage: 3500 },
+  defence: { name: 'staff.roleDefence', desc: 'staff.roleDefenceDesc', wage: 3500 },
+  scrumCoach: { name: 'staff.roleScrumCoach', desc: 'staff.roleScrumCoachDesc', wage: 3000 },
+  kicking: { name: 'staff.roleKicking', desc: 'staff.roleKickingDesc', wage: 2500 },
+  academyCoach: { name: 'staff.roleAcademyCoach', desc: 'staff.roleAcademyCoachDesc', wage: 2500 },
 }
 
 export interface ManagerStats {

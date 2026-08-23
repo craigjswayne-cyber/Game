@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, fmtWage, POS_NAMES, POS_ORDER, weekDate, type Pos } from '../../game/model'
+import { fmtMoney, fmtWage, POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
-import { BADGE } from '../../game/staff'
+import { badgeLabel } from '../../game/staff'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { posName, t } from '../../game/i18n'
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -71,23 +72,23 @@ export default function Transfers() {
         background: 'color-mix(in srgb, var(--canvas) 92%, transparent)', backdropFilter: 'blur(6px)',
         borderBottom: '1px solid var(--border)',
       }}>
-        <span className="chip">💰 Budget <b>{fmtMoney(user.budget)}</b></span>
-        <span className="chip">Wage room <b>{fmtMoney(Math.max(0, user.wageBudget - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}/wk</b></span>
+        <span className="chip">{t('transfers.budget')} <b>{fmtMoney(user.budget)}</b></span>
+        <span className="chip">{t('transfers.wageRoom')} <b>{fmtMoney(Math.max(0, user.wageBudget - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}{t('common.perWeek')}</b></span>
         <span className="chip" style={{
           color: (game.week <= 7 || game.week === 26 || game.week === 27) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,
         }}>
-          {game.week <= 7 ? `Window open · closes wk 8`
-            : game.week === 26 || game.week === 27 ? `⏰ Deadline window · slams shut wk 28`
-            : `Window closed · deadline wk 26`}
+          {t(game.week <= 7 ? 'transfers.windowOpen'
+            : game.week === 26 || game.week === 27 ? 'transfers.deadlineWindow'
+            : 'transfers.windowClosed')}
         </span>
       </div>
 
       <div className="tab-bar">
-        <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>Market</button>
-        <button className={xtab === 'shortlist' ? 'active' : ''} onClick={() => setXtab('shortlist')}>Shortlist</button>
-        <button className={xtab === 'loans' ? 'active' : ''} onClick={() => setXtab('loans')}>Loans</button>
-        <button className={xtab === 'deals' ? 'active' : ''} onClick={() => setXtab('deals')}>Deals</button>
+        <button className={xtab === 'market' ? 'active' : ''} onClick={() => setXtab('market')}>{t('transfers.tabMarket')}</button>
+        <button className={xtab === 'shortlist' ? 'active' : ''} onClick={() => setXtab('shortlist')}>{t('transfers.tabShortlist')}</button>
+        <button className={xtab === 'loans' ? 'active' : ''} onClick={() => setXtab('loans')}>{t('transfers.tabLoans')}</button>
+        <button className={xtab === 'deals' ? 'active' : ''} onClick={() => setXtab('deals')}>{t('transfers.tabDeals')}</button>
       </div>
 
       {xtab === 'deals' && (() => {
@@ -103,10 +104,10 @@ export default function Transfers() {
           .filter(Boolean)
         return (
           <>
-            <SectionTitle sub="deals running down and demands on the table">Contract Situations</SectionTitle>
+            <SectionTitle sub={t('transfers.contractSituationsSub')}>{t('transfers.contractSituations')}</SectionTitle>
             {expiring.length === 0 && (
               <div className="muted" style={{ padding: 14 }}>
-                Nothing urgent. Every contract runs beyond this season and nobody is agitating for improved terms.
+                {t('transfers.nothingUrgent')}
               </div>
             )}
             {expiring.map(p => {
@@ -119,28 +120,27 @@ export default function Transfers() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700 }}>{p.name}</div>
                     <div className="muted" style={{ fontSize: 12 }}>
-                      {p.age} yrs · on {fmtWage(p.wage)}, asks {fmtWage(demand)} /wk · morale {p.morale.toFixed(0)}/10
+                      {t('transfers.dealLine', { age: p.age, wage: fmtWage(p.wage), demand: fmtWage(demand), morale: p.morale.toFixed(0) })}
                     </div>
                   </div>
                   {p.retiring
-                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>retiring</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>{t('transfers.retiring')}</span>
                     : gazumped
-                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>signed elsewhere</span>
+                    ? <span className="chip" style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}>{t('transfers.signedElsewhere')}</span>
                     : (p.wantsDeal ?? 0) > 0
-                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>wants a deal</span>
-                      : <span className="chip" style={{ fontWeight: 700 }}>expiring</span>}
+                      ? <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.wantsADeal')}</span>
+                      : <span className="chip" style={{ fontWeight: 700 }}>{t('transfers.expiring')}</span>}
                 </div>
               )
             })}
             {expiring.length > 0 && (
               <div className="muted" style={{ padding: '8px 14px', fontSize: 12 }}>
-                Tap a player to renew from his page. From week 25 an unrenewed man can sign a
-                pre-contract elsewhere and walk for nothing in the summer.
+                {t('transfers.renewNote')}
               </div>
             )}
             {incoming.length > 0 && (
               <>
-                <SectionTitle sub="pre-contracts agreed - they arrive when the season ends">Arriving In Summer</SectionTitle>
+                <SectionTitle sub={t('transfers.arrivingSummerSub')}>{t('transfers.arrivingSummer')}</SectionTitle>
                 {incoming.map(p => (
                   <div key={p.id} className="row-item" onClick={() => go('player', p.id)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
@@ -148,10 +148,10 @@ export default function Transfers() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700 }}>{p.name}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {p.age} yrs · from {p.clubId ? game.clubs[p.clubId]?.short ?? '?' : 'free agency'} · on a free
+                        {t('transfers.incomingLine', { age: p.age, club: p.clubId ? game.clubs[p.clubId]?.short ?? '?' : t('transfers.freeAgency') })}
                       </div>
                     </div>
-                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>🖊 agreed</span>
+                    <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.agreed')}</span>
                   </div>
                 ))}
               </>
@@ -163,10 +163,9 @@ export default function Transfers() {
       {xtab === 'shortlist' && <>
       <ScoutCommission />
       <div className="card">
-        <div className="fact-label">Scouting Assignment</div>
+        <div className="fact-label">{t('transfers.scoutingAssignment')}</div>
         <div className="meta" style={{ marginBottom: 6 }}>
-          Point the network at one league - its players get watched every week
-          {game.scoutFocus ? '' : ' (currently unassigned)'}. Shortlisted men are always tracked, with alerts when their situation changes.
+          {t('transfers.assignmentNote', { unassigned: game.scoutFocus ? '' : t('transfers.unassigned') })}
         </div>
         <div className="chips" style={{ padding: 0 }}>
           {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
@@ -182,22 +181,22 @@ export default function Transfers() {
 
       {xtab === 'market' && offers.length > 0 && (
         <>
-          <SectionTitle>Offers For Your Players</SectionTitle>
+          <SectionTitle>{t('transfers.offersForYourPlayers')}</SectionTitle>
           {offers.map(o => {
             const p = game.players[o.playerId]
             const bidder = game.clubs[o.fromClubId]
             if (!p || !bidder) return null
             return (
               <div className="card" key={o.id}>
-                <h3>{bidder.name} bid {fmtMoney(o.fee)} for {p.name}</h3>
+                <h3>{t('transfers.bidLine', { club: bidder.name, fee: fmtMoney(o.fee), player: p.name })}</h3>
                 <div className="meta">
-                  Value {fmtMoney(p.value)} · {p.age} yrs · morale {p.morale.toFixed(0)}/10
-                  {[7, 26, 27].includes(game.week) && <b style={{ color: 'var(--danger)' }}> · 🚨 dies at the deadline</b>}
+                  {t('transfers.bidMeta', { value: fmtMoney(p.value), age: p.age, morale: p.morale.toFixed(0) })}
+                  {[7, 26, 27].includes(game.week) && <b style={{ color: 'var(--danger)' }}>{t('transfers.diesAtDeadline')}</b>}
                 </div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
-                  <button className="btn gold" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }}>Accept</button>
-                  <button className="btn" onClick={() => { setMsg({ key: `offer:${o.id}`, text: counterIncomingOffer(game, o.id) }); touch() }}>Demand More</button>
-                  <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>Reject</button>
+                  <button className="btn gold" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }}>{t('transfers.accept')}</button>
+                  <button className="btn" onClick={() => { setMsg({ key: `offer:${o.id}`, text: counterIncomingOffer(game, o.id) }); touch() }}>{t('transfers.demandMore')}</button>
+                  <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>{t('transfers.reject')}</button>
                 </div>
                 {msg?.key === `offer:${o.id}` && (
                   <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 6 }}>{msg.text}</div>
@@ -210,13 +209,13 @@ export default function Transfers() {
 
       {xtab === 'shortlist' && game.shortlist.length > 0 && (
         <>
-          <SectionTitle sub="scouts filing weekly reports">Shortlist</SectionTitle>
+          <SectionTitle sub={t('transfers.shortlistSub')}>{t('transfers.shortlist')}</SectionTitle>
           <div className="tblwrap"><table className="dtable"><tbody>
             {game.shortlist.map(id => game.players[id]).filter(Boolean).map(p => (
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}</td>
-                <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : 'Free agent'}</td>
+                <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : t('transfers.freeAgent')}</td>
                 <td><Stars ca={fuzzedCa(game, p)} /></td>
                 <td className="num" style={{ color: knowledge(game, p) >= 95 ? 'var(--text-positive)' : undefined }}>
                   {Math.round(knowledge(game, p))}%
@@ -228,7 +227,7 @@ export default function Transfers() {
       )}
 
       {xtab === 'loans' && <>
-      <SectionTitle sub="borrow a star, parent pays half the wage">Loan Market</SectionTitle>
+      <SectionTitle sub={t('transfers.loanMarketSub')}>{t('transfers.loanMarket')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {loanTargets(game).map(p => (
           <tr key={p.id}>
@@ -240,7 +239,7 @@ export default function Transfers() {
             <td>
               <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
                 onClick={() => { setMsg({ key: `loan:${p.id}`, text: loanIn(game, p.id) }); touch() }}>
-                Sign on loan
+                {t('transfers.signOnLoan')}
               </button>
               {msg?.key === `loan:${p.id}` && (
                 <div className="meta" style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'normal' }}>{msg.text}</div>
@@ -249,7 +248,7 @@ export default function Transfers() {
           </tr>
         ))}
         {loanTargets(game).length === 0 && (
-          <tr><td className="muted" style={{ padding: 12 }}>No clubs above you are loaning right now.</td></tr>
+          <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.noLoans')}</td></tr>
         )}
       </tbody></table></div>
 
@@ -257,7 +256,7 @@ export default function Transfers() {
       {xtab === 'market' && <>
       {/* "120 found (best 120)" said the cap twice and paid for it in width:
           the device matrix clipped "tap to bid" clean off at 360px. Once. */}
-      <SectionTitle sub={`${results.length === 120 ? 'best 120' : results.length} found · tap to bid`}>Scout The Market</SectionTitle>
+      <SectionTitle sub={t('transfers.marketSub', { n: results.length === 120 ? t('transfers.best120') : results.length })}>{t('transfers.scoutTheMarket')}</SectionTitle>
       {/* ---- six filters, two tidy rows, nothing bigger than it needs to be ----
           These controls were three different sizes: a flex-grow search box, a
           116px select whose label "All positions" did not fit inside it, and
@@ -269,57 +268,54 @@ export default function Transfers() {
           enough to fit, and it reads as a placeholder, which is what an unset
           filter is. */}
       <div className="filter-line">
-        <input className="inline-input" placeholder="Name or club…" value={query}
+        <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={query}
           onChange={e => { setQuery(e.target.value); setPage(0) }}
           style={{ flex: '2 1 0' }} />
         <select className="inline-input" value={pos} onChange={e => { setPos(e.target.value as Pos | 'ALL'); setPage(0) }}>
-          <option value="ALL">Position</option>
+          <option value="ALL">{t('transfers.filterPosition')}</option>
           {POS_ORDER.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
       </div>
       <div className="filter-line">
         <select className="inline-input" value={maxVal} onChange={e => { setMaxVal(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>Value</option>
-          <option value={250000}>to £250k</option>
-          <option value={1000000}>to £1m</option>
-          <option value={3000000}>to £3m</option>
-          <option value={8000000}>to £8m</option>
+          <option value={0}>{t('transfers.filterValue')}</option>
+          <option value={250000}>{t('transfers.toValue', { amount: '£250k' })}</option>
+          <option value={1000000}>{t('transfers.toValue', { amount: '£1m' })}</option>
+          <option value={3000000}>{t('transfers.toValue', { amount: '£3m' })}</option>
+          <option value={8000000}>{t('transfers.toValue', { amount: '£8m' })}</option>
         </select>
         <select className="inline-input" value={maxAge} onChange={e => { setMaxAge(Number(e.target.value)); setPage(0) }}>
-          <option value={0}>Age</option>
-          <option value={21}>21 or under</option>
-          <option value={24}>24 or under</option>
-          <option value={28}>28 or under</option>
-          <option value={32}>32 or under</option>
+          <option value={0}>{t('transfers.filterAge')}</option>
+          {[21, 24, 28, 32].map(n => <option key={n} value={n}>{t('transfers.ageOrUnder', { n })}</option>)}
         </select>
         <select className="inline-input" value={league} onChange={e => { setLeague(e.target.value); setPage(0) }}>
-          <option value="ALL">League</option>
+          <option value="ALL">{t('transfers.filterLeague')}</option>
           {/* a free agent's league is nowhere, which makes this the natural
               place to find him (user: "you should be able to search for free
               agents on the transfer centre") */}
-          <option value="FA">Free agents</option>
+          <option value="FA">{t('transfers.freeAgents')}</option>
           {Object.values(game.comps).filter(c => c.type === 'league').map(c => (
             <option key={c.id} value={c.id}>{c.short}</option>
           ))}
         </select>
         <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>🏷️ Listed</button>
+          onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>{t('transfers.listed')}</button>
       </div>
       <div className="tblwrap"><table className="dtable">
         <thead><tr>
-          <th>Pos</th>
-          <MTh k="name">Name</MTh>
-          <MTh k="age" right>Age</MTh>
-          <th>Nat</th>
-          <th>Club</th>
-          <MTh k="ca">Ability</MTh>
-          <MTh k="form" right>Form</MTh>
-          <MTh k="value" right>Value</MTh>
+          <th>{t('squad.colPos')}</th>
+          <MTh k="name">{t('squad.colName')}</MTh>
+          <MTh k="age" right>{t('squad.colAge')}</MTh>
+          <th>{t('squad.colNat')}</th>
+          <th>{t('transfers.colClub')}</th>
+          <MTh k="ca">{t('transfers.colAbility')}</MTh>
+          <MTh k="form" right>{t('transfers.colForm')}</MTh>
+          <MTh k="value" right>{t('squad.colValue')}</MTh>
         </tr></thead>
         <tbody>
           {pageRows.length === 0 && (
             <tr><td colSpan={8} className="muted" style={{ padding: 12 }}>
-              Nobody in the world matches that. Widen a filter{listedOnly ? ' - clubs list players as the window nears, so try again later' : ''}.
+              {t('transfers.noMatches', { listedHint: listedOnly ? t('transfers.listedHint') : '' })}
             </td></tr>
           )}
           {pageRows.map(p => (
@@ -328,7 +324,7 @@ export default function Transfers() {
               <td className="name">{p.name}{p.transferListed ? ' 🏷️' : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
-              <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : 'Free agent'}</td>
+              <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : t('transfers.freeAgent')}</td>
               <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
               <td className="num"><FormPill v={p.form} /></td>
               <td className="num">{fmtMoney(p.value)}</td>
@@ -338,11 +334,11 @@ export default function Transfers() {
       </table></div>
       {pages > 1 && (
         <div className="pager">
-          <button className="btn ghost" disabled={pageSafe === 0} onClick={() => setPage(pageSafe - 1)}>‹ Prev</button>
+          <button className="btn ghost" disabled={pageSafe === 0} onClick={() => setPage(pageSafe - 1)}>{t('transfers.prev')}</button>
           <span className="meta" style={{ fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1 }}>
-            PAGE {pageSafe + 1}/{pages}
+            {t('transfers.page', { n: pageSafe + 1, total: pages })}
           </span>
-          <button className="btn ghost" disabled={pageSafe >= pages - 1} onClick={() => setPage(pageSafe + 1)}>Next ›</button>
+          <button className="btn ghost" disabled={pageSafe >= pages - 1} onClick={() => setPage(pageSafe + 1)}>{t('transfers.next')}</button>
         </div>
       )}
       </>}
@@ -370,37 +366,43 @@ function ScoutCommission() {
   const finds = game.scoutFinds ?? []
   return (
     <>
-      <SectionTitle sub={man ? `${man.name} · ${BADGE[tier].toLowerCase()} badge` : 'no chief scout appointed'}>Commissioned Search</SectionTitle>
+      <SectionTitle sub={man ? t('transfers.scoutBadge', { name: man.name, badge: badgeLabel(tier).toLowerCase() }) : t('transfers.noChiefScout')}>{t('transfers.commissionedSearch')}</SectionTitle>
       <div className="card">
         {!man && (
           <div className="meta">
-            You have nobody to send. Appoint a chief scout in Training &amp; Coaching, then brief him on a 3, 6 or 9-month search.
+            {t('transfers.nobodyToSend')}
           </div>
         )}
         {man && out && (
           <div className="meta">
-            🔭 <b>{man.name} is on the road</b> - a {out.months}-month brief
-            {out.pos !== 'any' ? ` for a ${POS_NAMES[out.pos].toLowerCase()}` : ' for anyone who can play'}
-            {out.leagueId ? ` in the ${game.comps[out.leagueId]?.short ?? 'focus league'}` : ''}.
-            He reports back in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}.
+            🔭 <b>{t('transfers.onTheRoad', { name: man.name })}</b>
+            {t('transfers.briefLine', {
+              months: out.months,
+              pos: out.pos !== 'any' ? t('transfers.briefForPos', { pos: posName(out.pos).toLowerCase() }) : t('transfers.briefForAnyone'),
+              league: out.leagueId ? t('transfers.briefInLeague', { league: game.comps[out.leagueId]?.short ?? t('transfers.focusLeague') }) : '',
+            })}
+            {t(weeksLeft === 1 ? 'transfers.reportsBackOne' : 'transfers.reportsBack', { n: weeksLeft })}
           </div>
         )}
         {man && !out && (
           <>
             <div className="meta" style={{ marginBottom: 6 }}>
-              A longer trip sees more rugby: more names, and more of them worth signing. He watches
-              {game.scoutFocus ? ` the ${game.comps[game.scoutFocus]?.short ?? 'focus league'}` : ' the whole world'} - set the focus league below to narrow it.
+              {t('transfers.longerTrip', {
+                where: game.scoutFocus
+                  ? t('transfers.watchesLeague', { league: game.comps[game.scoutFocus]?.short ?? t('transfers.focusLeague') })
+                  : t('transfers.watchesWorld'),
+              })}
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
               <select className="inline-input" style={{ margin: 0, flex: '0 1 140px' }} value={pos}
                 onChange={e => setPos(e.target.value as Pos | 'any')}>
-                <option value="any">Any position</option>
-                {POS_ORDER.map(p => <option key={p} value={p}>{POS_NAMES[p]}</option>)}
+                <option value="any">{t('transfers.anyPosition')}</option>
+                {POS_ORDER.map(p => <option key={p} value={p}>{posName(p)}</option>)}
               </select>
               {([3, 6, 9] as SearchMonths[]).map(m => (
                 <button key={m} className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
                   onClick={() => { setMsg(commissionScout(game, pos, m)); touch() }}>
-                  {m} months<br />
+                  {t('transfers.months', { n: m })}<br />
                   <span style={{ fontSize: 10, fontWeight: 600 }}>{fmtMoney(searchFee(m, Math.max(1, tier)))}</span>
                 </button>
               ))}
@@ -412,7 +414,7 @@ function ScoutCommission() {
 
       {finds.length > 0 && (
         <>
-          <SectionTitle sub="his verdict, in his words - tap a name for the full profile">The Scout's Report</SectionTitle>
+          <SectionTitle sub={t('transfers.scoutsReportSub')}>{t('transfers.scoutsReport')}</SectionTitle>
           <div className="tblwrap"><table className="dtable"><tbody>
             {finds.map(f => {
               const p = game.players[f.playerId]
@@ -423,7 +425,7 @@ function ScoutCommission() {
                   <td><PosBadge pos={p.pos} /></td>
                   <td className="name">
                     {p.name}
-                    <span className="muted" style={{ fontWeight: 400 }}> {p.age} · {p.clubId ? game.clubs[p.clubId]?.short : 'free'}</span>
+                    <span className="muted" style={{ fontWeight: 400 }}> {p.age} · {p.clubId ? game.clubs[p.clubId]?.short : t('transfers.free')}</span>
                     <div className="meta" style={{ fontSize: 11 }}>{f.note}</div>
                   </td>
                   <td><Stars ca={fuzzedCa(game, p)} /></td>
@@ -431,7 +433,7 @@ function ScoutCommission() {
                   <td>
                     <button className="btn ghost" style={{ fontSize: 11, padding: '4px 9px' }}
                       onClick={e => { e.stopPropagation(); useStore.getState().toggleShortlist(f.playerId) }}>
-                      {game.shortlist.includes(f.playerId) ? '✓ Listed' : '+ Shortlist'}
+                      {t(game.shortlist.includes(f.playerId) ? 'transfers.alreadyListed' : 'transfers.addShortlist')}
                     </button>
                   </td>
                 </tr>
@@ -461,7 +463,7 @@ function ScoutReports() {
   if (!reports.length) return null
   return (
     <>
-      <SectionTitle sub="every postcard and report the department has filed - tap one to read it again">Scout Reports</SectionTitle>
+      <SectionTitle sub={t('transfers.scoutReportsSub')}>{t('transfers.scoutReports')}</SectionTitle>
       <div className="card" style={{ padding: '2px 10px' }}>
         {reports.map((n, i) => (
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}

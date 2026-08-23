@@ -2,12 +2,17 @@
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
 import { STAFF_INFO, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
+import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
 
 export type StaffRole = keyof StaffLevels
 
+/** The badge names as ENGLISH, for the paperwork a career keeps: news bodies
+ *  and the decision log are written once and read forever, so they must not
+ *  change language under the manager. Screens use badgeLabel() instead. */
 export const BADGE = ['Unbadged', 'Bronze', 'Silver', 'Gold']
+export const badgeLabel = (tier: number) => t(`staff.badge${tier}`)
 export const BADGE_COL = ['var(--text-muted)', 'var(--prop-tee-edge)', 'var(--text-secondary)', 'var(--gold)']
 
 /** Pass rate for a coaching course. Hard number, straight from the brief. */
@@ -39,6 +44,12 @@ const TRAITS = [
   'Calm head', 'Motivator',
 ]
 
+/** A stored trait, shown in the reader's language. The stored value stays
+ *  English because it is the key relation() matches on and it is inside every
+ *  save already. */
+export const traitLabel = (trait: string) =>
+  t(`staff.trait${trait.replace(/[^A-Za-z]+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, c => c.toUpperCase())}`)
+
 const NATS = ['ENG', 'WAL', 'IRE', 'SCO', 'FRA', 'NZL', 'AUS', 'RSA', 'ARG', 'ITA', 'FIJ']
 
 /**
@@ -60,15 +71,15 @@ const NATS = ['ENG', 'WAL', 'IRE', 'SCO', 'FRA', 'NZL', 'AUS', 'RSA', 'ARG', 'IT
  * same weather.
  */
 const CLICKS: [string, string, string][] = [
-  ['Analyst at heart', 'Detail merchant', 'two numbers men who finish each other\'s spreadsheets'],
-  ['Man-manager', 'Motivator', 'the dressing room has never hummed like this'],
-  ['Set-piece obsessive', 'Old-school hard yards', 'one programme, built entirely of scrummaging'],
-  ['Youth whisperer', 'Ex-international', 'the kids listen harder when the man pointing has caps'],
+  ['Analyst at heart', 'Detail merchant', 'staff.clickNumbers'],
+  ['Man-manager', 'Motivator', 'staff.clickRoom'],
+  ['Set-piece obsessive', 'Old-school hard yards', 'staff.clickScrum'],
+  ['Youth whisperer', 'Ex-international', 'staff.clickCaps'],
 ]
 const CLASHES: [string, string, string][] = [
-  ['Old-school hard yards', 'Sports scientist', 'GPS vests against hill runs, daily'],
-  ['Analyst at heart', 'Ex-international', 'the laptop and the caps disagree about everything'],
-  ['Detail merchant', 'Motivator', 'the video sessions are killing the mood in the room'],
+  ['Old-school hard yards', 'Sports scientist', 'staff.clashGps'],
+  ['Analyst at heart', 'Ex-international', 'staff.clashLaptop'],
+  ['Detail merchant', 'Motivator', 'staff.clashVideo'],
 ]
 
 function relation(a: string, b: string): { kind: 'click' | 'clash'; note: string } | null {
@@ -180,17 +191,19 @@ export interface AppointBlock { short: string; long: string }
 
 export function appointBlock(state: GameState, c: StaffCandidate): AppointBlock | null {
   const club = state.clubs[state.userClubId]
-  if (!club) return { short: 'No club', long: 'You have no club to appoint him to.' }
+  // These are shown on the card the manager just tapped, so they are in his
+  // language rather than the career's paperwork language.
+  if (!club) return { short: t('staff.blockNoClub'), long: t('staff.blockNoClubLong') }
   if (staffInterest(state, c) === 'no') {
     return {
-      short: 'Wants a bigger club',
-      long: `${c.name} thanked you for the call and stayed where he is. A ${BADGE[c.tier].toLowerCase()}-badge coach wants a bigger stage than this.`,
+      short: t('staff.blockBiggerClub'),
+      long: t('staff.blockBiggerClubLong', { name: c.name, badge: badgeLabel(c.tier).toLowerCase() }),
     }
   }
   if (club.balance < c.fee) {
     return {
-      short: `No budget - you have ${fmt(club.balance)} of the ${fmt(c.fee)}`,
-      long: `${c.name} would come, but his club want ${fmt(c.fee)} compensation and there is ${fmt(club.balance)} in the bank. Sell somebody, or wait for the gate money.`,
+      short: t('staff.blockNoBudget', { have: fmt(club.balance), need: fmt(c.fee) }),
+      long: t('staff.blockNoBudgetLong', { name: c.name, need: fmt(c.fee), have: fmt(club.balance) }),
     }
   }
   return null
@@ -201,7 +214,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   const club = state.clubs[state.userClubId]
   const cands = staffCandidates(state, role)
   const c = cands[idx]
-  if (!c) return 'That candidate is no longer available.'
+  if (!c) return t('staff.candGone')
   const block = appointBlock(state, c)
   if (block) return block.long
   const info = STAFF_INFO[role]
@@ -225,16 +238,16 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
     const r = relation(c.trait, other.trait)
     if (!r) continue
     chemLines.push(r.kind === 'click'
-      ? `The staff room approves: he and ${other.name} click - ${r.note}.`
-      : `One cloud on the horizon: he and ${other.name} see the game very differently - ${r.note}.`)
+      ? `The staff room approves: he and ${other.name} click - ${tIn('en', r.note)}.`
+      : `One cloud on the horizon: he and ${other.name} see the game very differently - ${tIn('en', r.note)}.`)
   }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject: `${c.name} appointed ${info.name}`,
-    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${info.name.toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
+    subject: `${c.name} appointed ${tIn('en', info.name)}`,
+    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
   })
-  logDecision(state, `Appointed ${c.name} as ${info.name.toLowerCase()} (${BADGE[c.tier].toLowerCase()} badge): ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} left.` : ''}`, true)
-  return `${c.name} is your new ${info.name.toLowerCase()}. ${fmt(c.fee)} compensation paid.`
+  logDecision(state, `Appointed ${c.name} as ${tIn('en', info.name).toLowerCase()} (${BADGE[c.tier].toLowerCase()} badge): ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} left.` : ''}`, true)
+  return `${c.name} is your new ${tIn('en', info.name).toLowerCase()}. ${fmt(c.fee)} compensation paid.`
 }
 
 /**
@@ -265,20 +278,20 @@ export function courseBlock(state: GameState, role: StaffRole): AppointBlock | n
   const p = state.staffPeople?.[role]
   const info = STAFF_INFO[role]
   const say = (short: string, long: string): AppointBlock => ({ short, long })
-  if (!club) return say('No club', 'You have no club to send anybody on a course.')
-  if (!p) return say('Post vacant', `Appoint a ${info.name.toLowerCase()} first.`)
-  if (p.tier >= 3) return say('Gold already', `${p.name} already holds his gold badge. There is nothing left to sit.`)
-  if (p.course) return say('Already sitting one', `${p.name} is already on a course. The examiners will not be hurried.`)
+  if (!club) return say(t('staff.courseNoClub'), t('staff.courseNoClubLong'))
+  if (!p) return say(t('staff.coursePostVacant'), t('staff.coursePostVacantLong', { role: t(info.name).toLowerCase() }))
+  if (p.tier >= 3) return say(t('staff.courseGold'), t('staff.courseGoldLong', { name: p.name }))
+  if (p.course) return say(t('staff.courseSitting'), t('staff.courseSittingLong', { name: p.name }))
   const abs = state.season * 100 + state.week
   if ((p.retakeAt ?? 0) > abs) {
     const wks = p.retakeAt! - abs
-    return say(`Resits in ${wks} week${wks === 1 ? '' : 's'}`,
-      `${p.name} cannot sit it again yet - he failed recently and the next intake is ${wks} week${wks === 1 ? '' : 's'} off.`)
+    return say(t(wks === 1 ? 'staff.courseResitsOne' : 'staff.courseResits', { n: wks }),
+      t(wks === 1 ? 'staff.courseResitsLongOne' : 'staff.courseResitsLong', { name: p.name, n: wks }))
   }
   const fee = courseFee(p.tier)
   if (club.balance < fee) {
-    return say(`No budget - you have ${fmt(club.balance)} of the ${fmt(fee)}`,
-      `The course costs ${fmt(fee)} and there is ${fmt(club.balance)} in the bank. The examiners take the fee up front.`)
+    return say(t('staff.courseNoBudget', { have: fmt(club.balance), need: fmt(fee) }),
+      t('staff.courseNoBudgetLong', { need: fmt(fee), have: fmt(club.balance) }))
   }
   return null
 }
@@ -300,11 +313,11 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     p.wage = Math.round((p.wage * 1.15) / 100) * 100
     p.passed = (p.passed ?? 0) + 1
     state.staff[role] = p.tier
-    logDecision(state, `${p.name} passed his ${badge} badge: a better ${info.name.toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
+    logDecision(state, `${p.name} passed his ${badge} badge: a better ${tIn('en', info.name).toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎓 ${p.name} passes his ${badge} badge`,
-      body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${info.name.toLowerCase()} than the club had this morning. His pay rises to ${fmt(p.wage)} a week.`,
+      body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had this morning. His pay rises to ${fmt(p.wage)} a week.`,
     })
     return `${p.name} passed. He is ${badge}-badged from today, and on ${fmt(p.wage)} a week.`
   }
@@ -342,11 +355,11 @@ export function resolveCourses(state: GameState) {
       p.wage = Math.round((p.wage * 1.15) / 100) * 100
       p.passed = (p.passed ?? 0) + 1
       state.staff[key] = p.tier
-      logDecision(state, `${p.name} passed his ${BADGE[p.tier].toLowerCase()} badge: a better ${info.name.toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
+      logDecision(state, `${p.name} passed his ${BADGE[p.tier].toLowerCase()} badge: a better ${tIn('en', info.name).toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
-        body: `Framed certificate, handshake at the training ground, and a better ${info.name.toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmt(p.wage)} a week.`,
+        body: `Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmt(p.wage)} a week.`,
       })
     } else {
       p.failed = (p.failed ?? 0) + 1
@@ -391,7 +404,7 @@ export function inheritStaff(state: GameState, quiet = false) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: 'The backroom staff you have inherited',
-    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${STAFF_INFO[k].name.toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => STAFF_INFO[k].name.toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''} Badges and hiring are on the Coaching page.`,
+    body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${tIn('en', STAFF_INFO[k].name).toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => tIn('en', STAFF_INFO[k].name).toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''} Badges and hiring are on the Coaching page.`,
   })
 }
 

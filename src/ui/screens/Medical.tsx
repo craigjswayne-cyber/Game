@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
-import { BADGE } from '../../game/staff'
+import { badgeLabel } from '../../game/staff'
 import { PosBadge, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 
@@ -80,7 +80,7 @@ export default function Medical() {
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
         <div className="meta">
           🏥 <b>{game.staffPeople?.physio
-            ? t('medical.physioNamed', { name: game.staffPeople.physio.name, badge: BADGE[game.staff.physio].toLowerCase() })
+            ? t('medical.physioNamed', { name: game.staffPeople.physio.name, badge: badgeLabel(game.staff.physio).toLowerCase() })
             : t('medical.headPhysio')}</b>
           {game.staff.physio === 0
             ? t('medical.physioVacant')
