@@ -1,4 +1,5 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
+import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
 import { analystShift, archetypeOf, loudestDial, PATTERN_WORD, repetitionFatigue } from './oppcoach'
@@ -815,31 +816,27 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
       default: break
     }
   }
-  // positional roles: how each shirt is told to play (small, capped edges)
+  // positional roles: how each shirt is told to play. Every one of them trades
+  // something (game/roles.ts ROLE_FX, which the Tactics screen reads too, so the
+  // description a manager taps and the effect he gets cannot drift apart).
   if (club?.tactic.roles) {
     for (let i = 0; i < 15; i++) {
       const r = club.tactic.roles[i]
       if (!r || side.lineup[i] == null) continue
-      switch (r) {
-        case 'scrummager': side.units.scrum *= 1.02; side.units.attack *= 0.997; break
-        case 'mobile': side.units.attack *= 1.008; side.units.scrum *= 0.988; break
-        // the hooker's own two: the throw, or the link play
-        case 'thrower': side.units.lineout *= 1.03; side.units.scrum *= 0.99; break
-        case 'link': side.units.attack *= 1.01; side.units.breakdown *= 1.008; side.units.scrum *= 0.985; break
-        case 'lineout_general': side.units.lineout *= 1.025; break
-        case 'enforcer_lock': side.units.breakdown *= 1.012; side.cardRisk *= 1.04; break
-        case 'jackal_role': side.units.breakdown *= 1.015; break
-        case 'carrier': side.units.attack *= 1.008; break
-        case 'stopper': side.units.defence *= 1.01; break
-        case 'box_kicker': side.units.kicking *= 1.02; break
-        case 'sniper': side.units.attack *= 1.01; side.units.kicking *= 0.99; break
-        case 'kicking_general': side.units.kicking *= 1.03; side.units.attack *= 0.995; break
-        case 'playmaker': side.units.attack *= 1.012; side.units.defence *= 0.995; break
-        case 'crash': side.units.breakdown *= 1.01; break
-        case 'distributor': side.units.attack *= 1.008; break
-        case 'finisher': side.units.attack *= 1.006; break
-        case 'aerial': side.units.defence *= 1.008; side.units.kicking *= 1.01; break
-      }
+      // A ROLE HAS TO BE LEGAL FOR THE SHIRT. rolesForSlot is the rule and it was
+      // enforced only in Tactics.tsx, so fifteen jackals were one save-edit away
+      // and measured +7.1 points a match. An engine rule a screen can bypass is
+      // not a rule - the same standard signFreeAgent's header sets.
+      if (!rolesForSlot(i).some(d => d.id === r)) continue
+      const fx = ROLE_FX[r]
+      if (!fx) continue
+      if (fx.scrum) side.units.scrum *= fx.scrum
+      if (fx.lineout) side.units.lineout *= fx.lineout
+      if (fx.breakdown) side.units.breakdown *= fx.breakdown
+      if (fx.attack) side.units.attack *= fx.attack
+      if (fx.defence) side.units.defence *= fx.defence
+      if (fx.kicking) side.units.kicking *= fx.kicking
+      if (fx.card) side.cardRisk *= fx.card
     }
   }
 
@@ -1064,7 +1061,11 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
   // paid for in petrol. Set once here - the substitution rebuild re-runs
   // applyModifiers, not mkSide, so this can never compound. 1.0 exactly in a
   // fresh world, which is what keeps the fingerprint on the old stream.
-  if (side.isUser) side.repF = repetitionFatigue(state)
+  // the CLUB is the club, whoever pressed the button. isUser is false for both
+  // sides when the assistant settles a fixture, so delegating a week skipped the
+  // penalty entirely - the same isUser-versus-teamId trap the coaching
+  // department comment above was written about.
+  if (side.teamId === state.userClubId) side.repF = repetitionFatigue(state)
   return side
 }
 
@@ -1859,7 +1860,16 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     return 'Points on the board - or so you hope.'
   }
   if (choice === 'corner') {
-    const pTry = clamp(0.26 + (mine.units.lineout - opp.units.defence) * 0.022, 0.12, 0.52)
+    // THE MAUL IS A SET-PIECE CONTEST, so it reads the set piece: your lineout
+    // AND your pack against their defence AND their breakdown. It used to read
+    // one unit against a defensive average that barely moves on the 1-20 scale,
+    // so the corner never climbed out of the low thirties and the boot was the
+    // right answer at every club in the game - measured at +2.1 points a match
+    // over the corner at a strong club and +4.5 at a weak one. A decision the
+    // engine stops the clock for should not have one answer.
+    const drive = mine.units.lineout * 0.6 + mine.units.scrum * 0.4
+    const stop = opp.units.defence * 0.5 + opp.units.breakdown * 0.5
+    const pTry = clamp(0.34 + (drive - stop) * 0.030, 0.15, 0.62)
     pushEvent(state, ctx, min, 'SUB', mine, `To the corner! The maul assembles five metres out...`)
     if (rng() < pTry) {
       const forwards = mine.lineup.slice(0, 8)
