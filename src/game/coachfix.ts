@@ -303,9 +303,17 @@ export function coachFixes(
   // is now the number that wins.
   if (ctx.subsUsed < 2) {
     c.push({
-      tag: 'fitness', score: 14 - ctx.subsUsed * 5,
-      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used.`,
-      how: 'Tap Match-Day Squad at the hour and make two or three, into the shirts running on empty. A fresh front row in the last twenty wins tight games - but past four you are swapping quality out for freshness you do not need.',
+      // the score stays where it was: this candidate shares its 'fitness' tag
+      // with the late-points complaint and loses the seat to it whenever the
+      // opposition scored after the hour, so dropping it made the bench line
+      // stop surfacing at all (fixprobe, eight matches, never seen)
+      tag: 'fitness', score: 16 - ctx.subsUsed * 5,
+      // the head keeps 'out of ${CAP_WORD}' deliberately: the cap derives from
+      // MAX_SUBS so the sentence cannot drift from the real bench size the way
+      // 'out of five' did for two rounds after the bench grew to eight, and
+      // scripts/fixprobe.ts holds it there by reading the sentence back
+      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used out of ${CAP_WORD}.`,
+      how: `Tap Match-Day Squad at the hour. All ${CAP_WORD} changes are free, but the two or three into the shirts running on empty are the ones that win tight games - past four you are swapping quality out for freshness you do not need.`,
     })
   }
 
