@@ -60,8 +60,8 @@ THE SEASON
 • Full league seasons with bonus points, knockout cups drawn in front of you,
   and an international calendar that takes your best players away at the worst
   possible moment.
-• Twenty-plus seasons deep. Players age, decline, retire and are replaced by
-  academy men you brought through yourself.
+• Season after season, for as long as you last. Players age, decline, retire
+  and are replaced by academy men you brought through yourself.
 
 THE WEEK
 • A week that arrives at the pace a week arrives: Monday's fallout and the
@@ -102,7 +102,7 @@ contains no official badges, kits or logos.
 ```
 First release.
 
-• Eight competitions, 100+ clubs, twenty-plus seasons of career.
+• Eight competitions, 100+ clubs, and a career that runs season after season.
 • Live-text match day with a pitch view, touchline calls and a coach's verdict.
 • Transfers, contracts, academy, staff, press, board and legacy.
 • Now in French as well as English.
@@ -222,8 +222,9 @@ LA SAISON
 • Des saisons complètes avec points de bonus, des coupes tirées au sort sous vos
   yeux, et un calendrier international qui vous prend vos meilleurs joueurs au
   pire moment.
-• Plus de vingt saisons de profondeur. Les joueurs vieillissent, déclinent,
-  prennent leur retraite et sont remplacés par les jeunes que vous avez formés.
+• Saison après saison, aussi longtemps que vous tiendrez. Les joueurs
+  vieillissent, déclinent, prennent leur retraite et sont remplacés par les
+  jeunes que vous avez formés.
 
 LA SEMAINE
 • Une semaine qui arrive au rythme d'une semaine : le débriefing du lundi et la
