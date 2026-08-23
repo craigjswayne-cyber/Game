@@ -2,11 +2,18 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
+import { installCrashCapture } from './game/bugreport'
 import './ui/tokens.css'
 import './ui/theme.css'
 
 // the boundary sits outside App on purpose: a boundary can only catch what its
 // children throw, so anything inside App would go down with it.
+// a throw in an event handler or an unawaited promise never unmounts the tree,
+// so the ErrorBoundary never sees it and the game carries on looking fine.
+// Those are the ones players report as "it just stopped responding" - the
+// report screen attaches them, so they no longer depend on being noticed.
+installCrashCapture()
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>

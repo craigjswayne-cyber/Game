@@ -23,6 +23,7 @@ import Nations from './screens/Nations'
 import History from './screens/History'
 import Legacy from './screens/Legacy'
 import Handbook from './screens/Handbook'
+import BugReport from './screens/BugReport'
 import Jobs from './screens/Jobs'
 import Wire from './screens/Wire'
 import Medical from './screens/Medical'
@@ -50,6 +51,7 @@ const TITLES: Record<string, string> = {
   report: 'Team Report', profile: 'Manager Profile', saves: 'Game Status', day: 'The Week', draw: 'The Draw', annual: 'The Annual',
   dreamteam: 'Team of the Week', wire: 'News', infra: 'Club Infrastructure',
   handbook: "The Manager's Handbook",
+  bug: 'Report a Bug',
 }
 
 const IcoMoon = () => (
@@ -297,6 +299,7 @@ export default function App() {
       case 'history': return <History />
       case 'legacy': return <Legacy />
       case 'handbook': return <Handbook />
+      case 'bug': return <BugReport />
       case 'jobs': return <Jobs />
       case 'wire': return <Wire />
       case 'medical': return <Medical />
@@ -373,6 +376,7 @@ export default function App() {
         { ico: '🕴️', label: 'Job Centre', screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
         { ico: '📜', label: 'Manager Legacy', screen: 'legacy' },
         { ico: '📖', label: "The Manager's Handbook", screen: 'handbook' },
+        { ico: '🐞', label: 'Report a Bug', screen: 'bug' },
         // dismissing the welcome dialog used to be final and irreversible
         { ico: '❓', label: 'How to play', screen: 'home', action: () => useStore.getState().openTut() },
         { ico: '💾', label: 'Save / Load Game', screen: 'saves' },

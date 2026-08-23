@@ -3244,3 +3244,59 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    reachable, not a new one - and a real one, because these chips are how a
    manager taps from a story to the player it is about. */
 .who-chip { min-height: 44px; }
+
+
+/* ================= Report a Bug ================= */
+/* The label is the fact-label at a size a form can carry: 9.5px is a caption
+   over a number, not a prompt over a box the player has to type into. */
+.bug-label {
+  display: block;
+  font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.bug-notes {
+  width: 100%;
+  min-height: 132px;
+  padding: 10px 11px;
+  line-height: 1.45;
+  resize: vertical;
+  /* 16px, and not for looks: iOS Safari zooms the whole page when a field
+     under 16px takes focus, and a page zoomed on a portrait-tuned layout does
+     not come back on its own. */
+  font-size: 16px;
+}
+/* the outcome line after a tap - it is the only confirmation the player gets
+   that a share sheet opened or a file was written, so it is not muted */
+.bug-msg {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--primary-tint);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+/* The report itself, shown in full before it moves. Monospace because a stack
+   trace read in a proportional face is not read at all, and scrollable in its
+   own box because a long user-agent string must never widen the page. */
+.bug-preview {
+  margin: 10px 0 0;
+  padding: 10px;
+  /* dvh as well as vh: mobile browser chrome shrinks the visual viewport and a
+     bare vh does not follow it, so the preview would stand taller than the
+     screen with the address bar showing. cssaudit requires the companion. */
+  max-height: 46vh;
+  max-height: 46dvh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+}

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { noteScreen } from './game/bugreport'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
@@ -42,7 +43,7 @@ export type Screen =
   // 'feed' was The Rugby Wire, a second news browser over the same array. Merged
   // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
   // you navigate to.
-  | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook'
+  | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook' | 'bug'
   | 'country'
   | 'offers' | 'academy' | 'day' | 'draw' | 'annual'
 
@@ -473,7 +474,7 @@ export const useStore = create<Store>((set, get) => ({
   },
   setSlot: (slot) => set({ saveSlot: slot }),
 
-  go: (screen, param) => set(s => { const nav = [...s.nav, { screen, param }]; noteWhere(s.saveSlot, nav); return { nav } }),
+  go: (screen, param) => set(s => { const nav = [...s.nav, { screen, param }]; noteWhere(s.saveSlot, nav); noteScreen(screen, param); return { nav } }),
   back: () => set(s => {
     const nav = s.nav.length > 1 ? s.nav.slice(0, -1) : s.nav
     noteWhere(s.saveSlot, nav)
