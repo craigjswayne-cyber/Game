@@ -1509,7 +1509,7 @@ export function rebuildSeason(state: GameState) {
   if (wcYear) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
-      subject: `🏆 A RUGBY WORLD CUP season`,
+      subject: `🏆 A WORLD CHAMPIONSHIP season`,
       body: `The ${2025 + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
     })
   }
