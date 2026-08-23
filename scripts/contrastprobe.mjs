@@ -42,7 +42,7 @@ const ok = (cond, what) => { console.log(`${cond ? '  ok' : 'FAIL'} ${what}`); i
 // bar; anything under about 1.6 is the same colour twice.
 const MIN_CONTRAST = 4.5
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** Walk the screens that hold form controls and measure every one of them. */
 async function sweep(label, { night, systemScheme }) {

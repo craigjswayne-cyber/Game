@@ -55,7 +55,7 @@ const FLOOR = [
 ]
 
 const server = await startPreview('4196', 3000)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 780 } })
 page.setDefaultTimeout(6000)
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))

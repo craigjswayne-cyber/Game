@@ -37,7 +37,7 @@ const say = s => writeSync(1, s + '\n')
 let fails = 0
 const ok = (cond, what) => { say(`${cond ? '  ok' : 'FAIL'} ${what}`); if (!cond) fails++ }
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /**
  * @param label   what to print

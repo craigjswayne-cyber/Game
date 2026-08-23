@@ -40,7 +40,7 @@ let hostileBoxes = 0
 const ok = (cond, what) => { console.log(`${cond ? '  ok  ' : 'FAIL  '}${what}`); if (!cond) fails++ }
 const note = (s) => { notes.push(`[${phase}] ${s}`); console.log(`  ..  ${s}`) }
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const ctx = await browser.newContext({ viewport: { width: 412, height: 732 } })
 const page = await ctx.newPage()
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))

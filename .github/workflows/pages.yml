@@ -28,6 +28,17 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      # THE DEPLOY DOES NOT SHIP A RED BUILD. This workflow used to build and
+      # publish whatever main was given, with nothing in the repo running a
+      # single one of the 110 probes - so the only thing standing between a
+      # broken engine and the people playing it was somebody remembering to run
+      # the suite by hand. The engine half runs here because it is ten minutes
+      # and it is the half that can make a career unplayable; the browser half
+      # runs in Gate (ci.yml) on this same branch and nightly.
+      - name: Typecheck
+        run: npx tsc -b --noEmit
+      - name: Engine suite
+        run: bash scripts/suite.sh fast
       - run: npm run build
       - uses: actions/configure-pages@v5
         with:

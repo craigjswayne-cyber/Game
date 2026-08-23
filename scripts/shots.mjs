@@ -8,7 +8,7 @@ mkdirSync(SHOTS, { recursive: true })
 
 const server = await startPreview('4174', 2500)
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: Number(process.env.W || 390), height: Number(process.env.H || 844) }, deviceScaleFactor: 2 })
 const errors = []
 page.on('pageerror', e => errors.push(String(e)))

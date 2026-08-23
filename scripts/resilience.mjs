@@ -23,7 +23,7 @@ mkdirSync(SHOTS, { recursive: true })
 
 const server = await startPreview('4177', 2500)
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // one context throughout: a second page would get its own storage partition and
 // the IndexedDB half of this probe would be testing nothing
 const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })

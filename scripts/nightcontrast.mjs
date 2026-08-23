@@ -36,7 +36,7 @@ import { startPreview } from './lib/preview.mjs'
 const FLOOR = 2.2
 
 const server = await startPreview('4185', 2500)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 const findings = []
 let measured = 0

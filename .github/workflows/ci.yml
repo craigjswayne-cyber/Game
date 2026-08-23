@@ -1,0 +1,94 @@
+name: Gate
+
+# WHAT RUNS THE PROBES.
+#
+# There are 110-odd harnesses in scripts/ and until now nothing ran them
+# automatically: the only workflow in this repo built the game and deployed it
+# to players, so a push to main shipped whatever it was given. Every gate this
+# project has passed was passed because somebody remembered to type
+# ./scripts/suite.sh - and the one time that habit slipped, a rename broke 42
+# browser harnesses and the engine-only run reported green for a fortnight.
+#
+# Two jobs, because they cost different amounts of time:
+#
+#   engine   ~10 min, on every push and every PR. This is the one that must be
+#            green before anything merges.
+#   browser  ~40 min, on main and once a night. It needs a build, a preview
+#            server and Chromium, and it is the half that catches what the
+#            engine cannot see - tap targets, contrast, overflow, the wizard.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  schedule:
+    # 03:00 UTC, so a flake that only shows under load has somewhere to show
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+# a second push to the same branch cancels the first: nobody needs the gate on
+# a commit that has already been replaced
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: Engine probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # the three linters first: they take seconds and they fail for reasons
+      # that are quick to read
+      - name: Typecheck
+        run: npx tsc -b --noEmit
+      - name: House style
+        run: npx vite-node scripts/textlint.ts
+      - name: Design tokens
+        run: npx vite-node scripts/tokenlint.ts
+      - name: Stylesheet
+        run: node scripts/cssaudit.mjs
+      - name: Engine suite
+        run: bash scripts/suite.sh fast
+
+  browser:
+    name: Browser harnesses
+    # only where it is worth 40 minutes: the branch that deploys, and overnight
+    if: github.ref == 'refs/heads/main' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # the probes launch playwright-core against a browser they are TOLD about
+      # (PW_CHROMIUM), because the path differs between a dev container and a
+      # runner. Install it here and point them at it.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Locate Chromium
+        run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
+      - name: Build
+        run: npm run build
+      - name: Full suite
+        run: bash scripts/suite.sh
+      # a failed browser run is worth looking at, and a screenshot says more
+      # than the line that failed
+      - name: Keep the screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shots
+          path: |
+            shots/
+            shots-*/
+          if-no-files-found: ignore
+          retention-days: 7

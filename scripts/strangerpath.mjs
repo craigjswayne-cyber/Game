@@ -40,7 +40,7 @@ const ok = (c, what) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fail
 const TAP_BUDGET = 30
 
 const server = await startPreview(4256, 3000)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /**
  * A BRAND NEW PHONE, every time.
