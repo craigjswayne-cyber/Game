@@ -4,14 +4,17 @@ A classic-style rugby union management game for mobile — a personal, just-for-
 in the spirit of the great late-90s management sims, dressed in an editorial
 heritage look (deep forest green, parchment, serif mastheads).
 
-**Personal use only. Not for sale or distribution.** Real player, club and stadium
-names are included purely for private enjoyment.
+**Personal use only. Not for sale or distribution.** Player names are real,
+included purely for private enjoyment; clubs and grounds are fictional
+(location-based identities, since v1.0.2).
 
 ## What's in the game
 
-- **4 real leagues, 51 real clubs, ~1,450 real players (2025–26 season)**
-  - Gallagher Premiership (10), Top 14 (14), United Rugby Championship (16), Super Rugby Pacific (11)
-  - Real stadiums with real capacities, real club colours, calibrated 1–100 player ratings
+- **8 selectable competitions, 100+ clubs, ~1,600 real players (2026–27 window, verified)**
+  - The English, French and Celtic/South African top flights plus their second
+    tiers, Super Rugby Pacific and Japan's League One
+  - Fictional location-based clubs and grounds with real capacities and
+    colours, calibrated 1–100 player ratings
 - **Competitions**: full league seasons with bonus points and playoffs, a 16-team
   Champions Cup (pools → knockouts), plus the Six Nations, Rugby Championship and
   Autumn internationals simulated around you — your players get called up and
