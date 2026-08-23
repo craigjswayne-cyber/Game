@@ -7,6 +7,7 @@ import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
 import { dialLine, philosophyOf } from '../../game/philosophy'
+import { t } from '../../game/i18n'
 import { archetypeOf } from '../../game/oppcoach'
 
 export default function ClubScreen({ clubId }: { clubId: string }) {
@@ -51,7 +52,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           if (!ph || club.id === game.userClubId) return null
           return (
             <div className="meta">
-              📋 {ph.name} <span className="muted">({dialLine(club.tactic)})</span>
+              📋 {t(ph.name)} <span className="muted">({dialLine(club.tactic)})</span>
             </div>
           )
         })()}

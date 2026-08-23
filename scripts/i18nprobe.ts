@@ -166,6 +166,10 @@ for (const { code, label } of LANGS) {
     ['wizard.startCareer', '▸ Start Career'],
     ['wizard.namePlaceholder', 'e.g. A. Gaffer'],
     ['wizard.starPlayer', 'Star Player'],
+    ['selection.bestXV', 'Best XV'],
+    ['tacticsScreen.tabPrep', 'Prep'],
+    ['tacticsScreen.tabPlan', 'Game Plan'],
+    ['groups.tactics', 'Tactics'],
   ]
   for (const [k, want] of PINNED) {
     ok(tIn('en', k) === want, `en.${k} is still "${want}" (browser harnesses select on it)`)

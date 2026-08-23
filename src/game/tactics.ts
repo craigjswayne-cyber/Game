@@ -1,7 +1,14 @@
 // Tactical vocabulary: what the sliders actually do, one-tap game plans,
 // and the coaching philosophies you can bring to a club.
+//
+// Every string in here is an i18n KEY rather than the words themselves. These
+// tables are built once at module load and the language can change afterwards,
+// so a table of English would go stale the moment somebody used the picker; the
+// screens call t() on whichever field they render. The English wording lives in
+// src/locales/en.json under `tactics`.
 
 import type { Tactic } from './model'
+import { t } from './i18n'
 
 export type SliderKey = 'style' | 'tempo' | 'kicking' | 'aggression'
 
@@ -18,14 +25,14 @@ export interface SliderInfo {
 
 export const SLIDER_INFO: SliderInfo[] = [
   {
-    key: 'style', label: 'Style', lo: 'Forwards / pick-and-go', hi: 'Expansive / wide',
-    up: 'Wide attacking rugby: backs see more ball (attack ↑), but you concede scrum solidity and some breakdown muscle.',
-    down: 'Tight, forward-first rugby: stronger scrum and maul platform, fewer strike chances out wide.',
+    key: 'style', label: 'tactics.sliderStyle', lo: 'tactics.sliderStyleLo', hi: 'tactics.sliderStyleHi',
+    up: 'tactics.sliderStyleUp',
+    down: 'tactics.sliderStyleDown',
   },
   {
-    key: 'tempo', label: 'Tempo', lo: 'Slow & structured', hi: 'High tempo',
-    up: 'Quick taps and fast rucks: more attacking punch, but your players burn energy faster and the defence loosens.',
-    down: 'Measured phase play: saves the legs and keeps defensive shape, at the cost of attacking spark.',
+    key: 'tempo', label: 'tactics.sliderTempo', lo: 'tactics.sliderTempoLo', hi: 'tactics.sliderTempoHi',
+    up: 'tactics.sliderTempoUp',
+    down: 'tactics.sliderTempoDown',
   },
   {
     // A DIAL WITH A HIDDEN PRICE IS NOT A DECISION. Both of these now name what
@@ -34,9 +41,9 @@ export const SLIDER_INFO: SliderInfo[] = [
     // and the readout said nothing about giving anything up. The engine gives
     // the boot its territory and takes attacking continuity for it, so the words
     // have to say that or the player is being asked to choose blind.
-    key: 'kicking', label: 'Kicking', lo: 'Ball in hand', hi: 'Kick for territory',
-    up: 'Territory game: contestable kicks and corner pins, and your kicking unit matters more. Great in bad weather. You carry less, so attack and breakdown both drop.',
-    down: 'Keep it in hand: more running threat and more ruck presence, but you live in your own half if it goes wrong.',
+    key: 'kicking', label: 'tactics.sliderKicking', lo: 'tactics.sliderKickingLo', hi: 'tactics.sliderKickingHi',
+    up: 'tactics.sliderKickingUp',
+    down: 'tactics.sliderKickingDown',
   },
   {
     // Physicality is the referee read (see aggPenRisk in matchEngine): worth
@@ -44,18 +51,18 @@ export const SLIDER_INFO: SliderInfo[] = [
     // about a point and a half AGAINST you in front of a fussy one, measured by
     // scripts/dialweight.ts. The referee is named on the pre-match briefing, so
     // this line points at him rather than describing a wash.
-    key: 'aggression', label: 'Physicality', lo: 'Stay clean', hi: 'Push the limits',
-    up: 'Fly into rucks and dominate collisions: breakdown power up, more yellows, and a lot more kickable penalties. Check the referee first - a fussy whistle punishes this hard, a lenient one lets you away with it.',
-    down: 'Discipline first: fewer penalties and cards, less breakdown menace. The safe call against a referee who is strict at the tackle.',
+    key: 'aggression', label: 'tactics.sliderAggression', lo: 'tactics.sliderAggressionLo', hi: 'tactics.sliderAggressionHi',
+    up: 'tactics.sliderAggressionUp',
+    down: 'tactics.sliderAggressionDown',
   },
 ]
 
 /** A short plain-English readout of a current setting, for the UI. */
 export function sliderReadout(key: SliderKey, v: number): string {
   const info = SLIDER_INFO.find(s => s.key === key)!
-  if (v >= 66) return info.up
-  if (v <= 34) return info.down
-  return 'Balanced - no bonus, no cost.'
+  if (v >= 66) return t(info.up)
+  if (v <= 34) return t(info.down)
+  return t('tactics.balancedReadout')
 }
 
 // ---- the without-ball system (18D) ----------------------------------------
@@ -67,23 +74,23 @@ export type DefSliderKey = 'defLine' | 'defWidth'
 
 export const DEF_SLIDER_INFO: { key: DefSliderKey; label: string; lo: string; hi: string; up: string; down: string }[] = [
   {
-    key: 'defLine', label: 'Line Speed', lo: 'Passive drift', hi: 'All-out blitz',
-    up: 'Fly off the line: harder tackles and turnovers (defence ↑), but offside pings and cards climb with it.',
-    down: 'Drift and contain: cleaner discipline, but you give their attack time and space to work.',
+    key: 'defLine', label: 'tactics.sliderDefLine', lo: 'tactics.sliderDefLineLo', hi: 'tactics.sliderDefLineHi',
+    up: 'tactics.sliderDefLineUp',
+    down: 'tactics.sliderDefLineDown',
   },
   {
-    key: 'defWidth', label: 'Width', lo: 'Narrow / ruck guard', hi: 'Spread wide',
-    up: 'String the line to the touchlines: smothers a wide attack, but a tight pick-and-go side runs through the middle.',
-    down: 'Pack the fringes: shuts down a forward-first side, but a wide attack finds grass out there.',
+    key: 'defWidth', label: 'tactics.sliderDefWidth', lo: 'tactics.sliderDefWidthLo', hi: 'tactics.sliderDefWidthHi',
+    up: 'tactics.sliderDefWidthUp',
+    down: 'tactics.sliderDefWidthDown',
   },
 ]
 
 /** Plain-English readout of a without-ball dial, for the UI. */
 export function defSliderReadout(key: DefSliderKey, v: number): string {
   const info = DEF_SLIDER_INFO.find(s => s.key === key)!
-  if (v >= 66) return info.up
-  if (v <= 34) return info.down
-  return 'Balanced - no bonus, no cost.'
+  if (v >= 66) return t(info.up)
+  if (v <= 34) return t(info.down)
+  return t('tactics.balancedReadout')
 }
 
 export interface Preset {
@@ -97,28 +104,28 @@ export interface Preset {
 /** One-tap game plans, FM shout style. */
 export const PRESETS: Preset[] = [
   {
-    id: 'allout', name: 'All-Out Attack', icon: '⚔️',
-    desc: 'Everything wide and fast. Chasing a score - shape be damned.',
+    id: 'allout', name: 'tactics.presetAllout', icon: '⚔️',
+    desc: 'tactics.presetAlloutDesc',
     values: { style: 82, tempo: 85, kicking: 18, aggression: 58 },
   },
   {
-    id: 'shutup', name: 'Shut Up Shop', icon: '🧱',
-    desc: 'Protect the lead. Slow it down, keep shape, kick the pressure away.',
+    id: 'shutup', name: 'tactics.presetShutup', icon: '🧱',
+    desc: 'tactics.presetShutupDesc',
     values: { style: 32, tempo: 22, kicking: 70, aggression: 42 },
   },
   {
-    id: 'corners', name: 'Kick the Corners', icon: '🎯',
-    desc: 'Territory war: pin them deep and squeeze penalties from their exits.',
+    id: 'corners', name: 'tactics.presetCorners', icon: '🎯',
+    desc: 'tactics.presetCornersDesc',
     values: { style: 42, tempo: 45, kicking: 86, aggression: 52 },
   },
   {
-    id: 'tight', name: 'Keep It Tight', icon: '🤜',
-    desc: 'Ten-man rugby. Maul it, carry hard, strangle the game up front.',
+    id: 'tight', name: 'tactics.presetTight', icon: '🤜',
+    desc: 'tactics.presetTightDesc',
     values: { style: 14, tempo: 34, kicking: 56, aggression: 68 },
   },
   {
-    id: 'balanced', name: 'Balanced', icon: '⚖️',
-    desc: 'Take what the defence gives you. No extremes.',
+    id: 'balanced', name: 'tactics.presetBalanced', icon: '⚖️',
+    desc: 'tactics.presetBalancedDesc',
     values: { style: 50, tempo: 50, kicking: 50, aggression: 50 },
   },
 ]
@@ -134,43 +141,43 @@ export interface CoachingStyle {
 /** Researched rugby philosophies for the New Career wizard. */
 export const COACHING_STYLES: CoachingStyle[] = [
   {
-    id: 'balanced', name: 'Balanced',
-    desc: 'Pragmatism above all - pick the right tool each week.',
+    id: 'balanced', name: 'tactics.styleBalanced',
+    desc: 'tactics.styleBalancedDesc',
     tactic: {},
   },
   {
-    id: 'forwards', name: 'Forward Dominance',
-    desc: 'Win the collisions, win the game. Scrum, maul, squeeze.',
+    id: 'forwards', name: 'tactics.styleForwards',
+    desc: 'tactics.styleForwardsDesc',
     tactic: { style: 28, kicking: 60, aggression: 62 },
   },
   {
-    id: 'expansive', name: 'Expansive',
-    desc: 'Width, offloads and heads-up rugby in the Fiji tradition.',
+    id: 'expansive', name: 'tactics.styleExpansive',
+    desc: 'tactics.styleExpansiveDesc',
     tactic: { style: 78, tempo: 66, kicking: 36 },
   },
   {
-    id: 'territory', name: 'Territory & Pressure',
-    desc: 'The classic ten-man kicking game: field position is everything.',
+    id: 'territory', name: 'tactics.styleTerritory',
+    desc: 'tactics.styleTerritoryDesc',
     tactic: { style: 40, tempo: 42, kicking: 82 },
   },
   {
-    id: 'hightempo', name: 'High-Tempo Chaos',
-    desc: 'Play at a pace nobody can live with - fitness is a weapon.',
+    id: 'hightempo', name: 'tactics.styleHightempo',
+    desc: 'tactics.styleHightempoDesc',
     tactic: { style: 60, tempo: 88, kicking: 40 },
   },
   {
-    id: 'defensive', name: 'Defensive Wall',
-    desc: 'Blitz defence and discipline. Keep them to nil and nick it.',
+    id: 'defensive', name: 'tactics.styleDefensive',
+    desc: 'tactics.styleDefensiveDesc',
     tactic: { style: 38, tempo: 38, kicking: 62, aggression: 46 },
   },
   {
-    id: 'counter', name: 'Counter-Attack',
-    desc: 'Soak pressure, strike from broken field. Turnover = try.',
+    id: 'counter', name: 'tactics.styleCounter',
+    desc: 'tactics.styleCounterDesc',
     tactic: { style: 64, tempo: 58, kicking: 58 },
   },
   {
-    id: 'offload', name: 'The Offloading Game',
-    desc: 'Keep the ball alive through contact - high risk, box office.',
+    id: 'offload', name: 'tactics.styleOffload',
+    desc: 'tactics.styleOffloadDesc',
     tactic: { style: 72, tempo: 62, kicking: 30, aggression: 56 },
   },
 ]

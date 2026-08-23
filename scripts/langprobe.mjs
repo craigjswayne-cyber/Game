@@ -150,7 +150,9 @@ try {
   // the placeholder is translated too, so a French probe cannot use the
   // English selector every other harness uses
   await page.fill('input[placeholder="ex. A. Gaffer"]', 'Le Gaffer')
-  await page.click('.speech-tile >> text=Forward Dominance')
+  // the coaching philosophies come from game/tactics.ts, so this is French now
+  // too - every other harness picks the same tile by its English name
+  await page.click('.speech-tile >> text=Domination des avants')
   await page.click('.action-bar >> text=Confirmer')
   ok(await page.locator('text=▸ Démarrer la carrière').count() === 1, 'the last button of the wizard is French')
   await page.click('text=▸ Démarrer la carrière')
@@ -322,6 +324,64 @@ try {
   say(`  medical header: "${physio.replace(/\s+/g, ' ').trim().slice(0, 70)}"`)
   ok(/kiné|blessures|poste vacant/i.test(physio), 'the medical header is French')
   ok(await page.getAttribute('.inline-input', 'placeholder') === 'Chercher un joueur…', 'and so is the search placeholder')
+
+  // ---- Tactics, whose words nearly all come from the engine's own tables ----
+  //
+  // Roles, presets, set-piece routines, bench splits, finisher briefs, the
+  // opposition philosophy and the analyst's read all live in src/game/*.ts as
+  // label tables. Those are the ones that silently stay English, because the
+  // screen renders whatever the table holds and no screen-level sweep can see
+  // it. So this walks the tabs and looks at what the tables produced.
+  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.waitForSelector('.submenu')
+  await page.waitForTimeout(400)
+  await page.locator('.submenu-item', { hasText: 'Tactique' }).first().click()
+  await page.waitForSelector('.tab-bar')
+  const tTabs = await page.locator('.tab-bar button').allInnerTexts()
+  say(`  tactics tabs: ${tTabs.join(' | ')}`)
+  ok(tTabs.some(x => /conquête/i.test(x)), 'the tactics tabs are French')
+
+  // a role sheet: the names and descriptions come from game/roles.ts
+  await page.locator('.form-chip').first().click()
+  await page.waitForSelector('.modal .club-pick')
+  const roleNames = await page.locator('.modal .club-pick .cname').allInnerTexts()
+  say(`  role options: ${roleNames.join(' | ')}`)
+  ok(roleNames.some(r => /naturel/i.test(r)), 'the role sheet is French')
+  ok(!roleNames.some(r => /^(Scrummager|Mobile Prop|Jackal|Playmaker)$/i.test(r)), 'and no role kept its English name')
+  await page.locator('.modal-veil').click({ position: { x: 5, y: 5 } }).catch(() => {})
+  await page.waitForTimeout(300)
+
+  // the set-piece routines, from game/playbook.ts
+  await page.locator('.tab-bar button', { hasText: 'Conquête' }).click()
+  await page.waitForSelector('.routine-grid')
+  const routines = await page.locator('.routine-grid .speech-tile b').allInnerTexts()
+  say(`  set-piece calls: ${routines.slice(0, 4).join(' | ')}`)
+  ok(!routines.some(r => /^(Front Ball|Middle Jump|Hold And Feed|Hard Shove)$/i.test(r)), 'the set-piece playbook is French')
+
+  // the bench splits and finisher briefs, from game/bench.ts
+  await page.locator('.tab-bar button', { hasText: 'Banc' }).click()
+  await page.waitForSelector('.routine-grid')
+  const splits = await page.locator('.routine-grid .speech-tile b').allInnerTexts()
+  say(`  bench splits: ${splits.join(' | ')}`)
+  ok(!splits.some(x => /^(Five and Three|Six and Two|Four and Four)$/i.test(x)), 'the bench splits are French')
+
+  // the week's preparation, from game/analyst.ts
+  await page.locator('.tab-bar button', { hasText: 'Prépa' }).click()
+  await page.waitForTimeout(300)
+  const prepChips = await page.locator('.preset-chip').allInnerTexts()
+  say(`  prep options: ${prepChips.join(' | ')}`)
+  ok(!prepChips.some(x => /Attacking Shapes|Defensive Drills|Conditioning|Recovery Week/i.test(x)), 'the preparation options are French')
+
+  // the sliders and the opposition read, from game/tactics.ts and philosophy.ts
+  await page.locator('.tab-bar button', { hasText: 'Plan de jeu' }).click()
+  await page.waitForSelector('.slider-row')
+  const sliderText = await page.locator('.slider-row').first().innerText()
+  say(`  first dial: "${sliderText.replace(/\s+/g, ' ').trim().slice(0, 90)}"`)
+  ok(!/Forwards \/ pick-and-go|Expansive \/ wide/i.test(sliderText), 'the dials are French')
+  const planText = await page.locator('.content').innerText()
+  const engleft = ['All-Out Attack', 'Shut Up Shop', 'Keep It Tight', 'Kick the Corners', 'With the Ball', 'Without the Ball']
+    .filter(w => planText.includes(w))
+  ok(engleft.length === 0, `no English game plan left${engleft.length ? ': ' + engleft.join(', ') : ''}`)
 
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''}`)
 } catch (e) {

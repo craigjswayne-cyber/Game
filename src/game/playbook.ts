@@ -18,6 +18,10 @@
 //   Each routine trades something. The drive maul is the best attacking lineout
 //   in the game and the slowest, so it feeds a forward game and starves a wide
 //   one. Off-the-top is the reverse.
+//
+// name/short/desc are i18n KEYS, not words - these tables are built once at
+// module load and the language can change afterwards. English wording is in
+// src/locales/en.json under `playbook`. The engine reads only the NUMBERS here.
 
 import type { Club, GameState, Playbook } from './model'
 import { standing } from './authority'
@@ -48,54 +52,54 @@ export interface Routine {
 export const ROUTINES: Routine[] = [
   // ---- lineout -------------------------------------------------------------
   {
-    id: 'lo_front', name: 'Front Ball', kind: 'lineout',
-    desc: 'Safe throw to two. Almost never lost, almost never a weapon.',
+    id: 'lo_front', name: 'playbook.lo_front', kind: 'lineout',
+    desc: 'playbook.lo_frontDesc',
     peak: 0.98, tell: 1.4, tempo: 1.02,
   },
   {
-    id: 'lo_middle', name: 'Middle Jump', kind: 'lineout',
-    desc: 'The orthodox call. Nothing to exploit, nothing to fear.',
+    id: 'lo_middle', name: 'playbook.lo_middle', kind: 'lineout',
+    desc: 'playbook.lo_middleDesc',
     peak: 1.00, tell: 1.0,
   },
   {
-    id: 'lo_back', name: 'Back Ball', kind: 'lineout',
-    desc: 'Throw to the tail and go. High reward, and a steal if the timing slips.',
+    id: 'lo_back', name: 'playbook.lo_back', kind: 'lineout',
+    desc: 'playbook.lo_backDesc',
     peak: 1.07, tell: 0.9, attack: 1.03,
   },
   {
-    id: 'lo_dummy', name: 'Dummy Jumper', kind: 'lineout',
-    desc: 'Sell the front, deliver at the back. Hard to read, hard to drill.',
+    id: 'lo_dummy', name: 'playbook.lo_dummy', kind: 'lineout',
+    desc: 'playbook.lo_dummyDesc',
     peak: 1.09, tell: 0.6,
   },
   {
-    id: 'lo_maul', name: 'Drive Maul', kind: 'lineout',
-    desc: 'Catch and drive. The best attacking lineout there is, and the slowest.',
+    id: 'lo_maul', name: 'playbook.lo_maul', kind: 'lineout',
+    desc: 'playbook.lo_maulDesc',
     peak: 1.11, tell: 1.1, attack: 1.04, tempo: 0.94,
   },
   {
-    id: 'lo_top', name: 'Off The Top', kind: 'lineout',
-    desc: 'Tapped straight down for fast ball. Quick hands, no platform.',
+    id: 'lo_top', name: 'playbook.lo_top', kind: 'lineout',
+    desc: 'playbook.lo_topDesc',
     peak: 0.99, tell: 1.0, attack: 1.02, tempo: 1.06,
   },
   // ---- scrum ---------------------------------------------------------------
   {
-    id: 'sc_channel1', name: 'Channel One', kind: 'scrum',
-    desc: 'Ball out fast past the hooker. Quick, and no shove behind it.',
+    id: 'sc_channel1', name: 'playbook.sc_channel1', kind: 'scrum',
+    desc: 'playbook.sc_channel1Desc',
     peak: 0.98, tell: 1.2, tempo: 1.05,
   },
   {
-    id: 'sc_hold', name: 'Hold And Feed', kind: 'scrum',
-    desc: 'Stable platform, ball at the eight\'s feet. The default for a reason.',
+    id: 'sc_hold', name: 'playbook.sc_hold', kind: 'scrum',
+    desc: 'playbook.sc_holdDesc',
     peak: 1.00, tell: 1.0,
   },
   {
-    id: 'sc_shove', name: 'Hard Shove', kind: 'scrum',
-    desc: 'Go after them. Penalties if you win it, a mess if you do not.',
+    id: 'sc_shove', name: 'playbook.sc_shove', kind: 'scrum',
+    desc: 'playbook.sc_shoveDesc',
     peak: 1.13, tell: 1.1, tempo: 0.96,
   },
   {
-    id: 'sc_wheel', name: 'The Wheel', kind: 'scrum',
-    desc: 'Turn the scrum and break off the side. Technical and deniable.',
+    id: 'sc_wheel', name: 'playbook.sc_wheel', kind: 'scrum',
+    desc: 'playbook.sc_wheelDesc',
     peak: 1.06, tell: 0.7, attack: 1.02,
   },
 ]

@@ -273,8 +273,8 @@ export default function NewGame() {
                 {COACHING_STYLES.map(s => (
                   <button key={s.id} className={`speech-tile${styleId === s.id ? ' sel' : ''}`}
                     onClick={() => setStyleId(s.id)}>
-                    <b>{s.name}</b>
-                    <span className="d">{s.desc}</span>
+                    <b>{t(s.name)}</b>
+                    <span className="d">{t(s.desc)}</span>
                   </button>
                 ))}
               </div>
@@ -293,7 +293,7 @@ export default function NewGame() {
               <div className="fact-grid">
                 <div><label>{t('wizard.manager')}</label><span>{name.trim()}</span></div>
                 <div><label>{t('wizard.competition')}</label><span>{league.name}</span></div>
-                <div><label>{t('wizard.philosophyShort')}</label><span>{COACHING_STYLES.find(s => s.id === styleId)?.name}</span></div>
+                <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>2025-26</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{challenge.title}</span></div>}
                 <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
