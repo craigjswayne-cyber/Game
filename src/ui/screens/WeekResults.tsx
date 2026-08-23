@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
-import { ordinal } from '../../game/gossip'
 import { CrestT, SectionTitle } from '../components'
+import { ord, t } from '../../game/i18n'
 
 /** The full-time round-up: everyone else's scores and the table as it
  *  stands, shown straight after your own final whistle. */
@@ -23,15 +23,15 @@ export default function WeekResults({ param }: { param: string }) {
   return (
     <>
       <div className="tab-bar">
-        <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>Results</button>
+        <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>{t('week.wrResults')}</button>
         {rows.length > 0 && (
           <button className={tab === 'table' ? 'active' : ''} onClick={() => setTab('table')}>
-            Table{myPos > 0 ? ` (${ordinal(myPos)})` : ''}
+            {myPos > 0 ? t('week.wrTablePos', { pos: ord(myPos) }) : t('week.wrTable')}
           </button>
         )}
       </div>
       {tab === 'results' && (<>
-      <SectionTitle sub={comp?.name ?? (compId === 'fr' ? 'Pre-season friendlies' : undefined)}>This Week's Results</SectionTitle>
+      <SectionTitle sub={comp?.name ?? (compId === 'fr' ? t('week.wrFriendlies') : undefined)}>{t('week.wrThisWeek')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {results.map(f => {
           const mine = f.homeId === game.userClubId || f.awayId === game.userClubId
@@ -55,13 +55,13 @@ export default function WeekResults({ param }: { param: string }) {
             </tr>
           )
         })}
-        {results.length === 0 && <tr><td className="muted" style={{ padding: 14 }}>No other results this round.</td></tr>}
+        {results.length === 0 && <tr><td className="muted" style={{ padding: 14 }}>{t('week.wrNoOthers')}</td></tr>}
       </tbody></table></div>
 
       </>)}
       {tab === 'table' && rows.length > 0 && (
         <>
-          <SectionTitle sub={myPos > 0 ? `you are ${ordinal(myPos)}` : undefined}>How The Table Stands</SectionTitle>
+          <SectionTitle sub={myPos > 0 ? t('week.wrYouAre', { pos: ord(myPos) }) : undefined}>{t('week.wrHowTable')}</SectionTitle>
           {/* FIXED LAYOUT, because auto layout sized Team off the longest name and
               pushed Pts past the right edge of the phone (user screenshot: the
               points column half off screen, the whole table reading as shoved
@@ -73,8 +73,8 @@ export default function WeekResults({ param }: { param: string }) {
               <col style={{ width: '15%' }} /><col style={{ width: '13%' }} />
             </colgroup>
             <thead>
-              <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
-                <th className="num">+/-</th><th className="num">Pts</th></tr>
+              <tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
+                <th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
@@ -92,9 +92,9 @@ export default function WeekResults({ param }: { param: string }) {
         </>
       )}
       {comp && comp.type !== 'league' && (
-        <button className="btn ghost block" onClick={() => go('tables', compId)}>View full competition ▸</button>
+        <button className="btn ghost block" onClick={() => go('tables', compId)}>{t('week.wrViewComp')}</button>
       )}
-      <button className="btn gold block" style={{ margin: '12px 14px' }} onClick={back}>Back to the Dressing Room ▸</button>
+      <button className="btn gold block" style={{ margin: '12px 14px' }} onClick={back}>{t('week.wrBack')}</button>
       <div className="spacer" />
     </>
   )

@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import { Jersey, SectionTitle } from '../components'
+import { t } from '../../game/i18n'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
  *  straight off the rugby magazine's socials. */
@@ -81,8 +82,8 @@ export default function DreamTeam() {
       <div className="dt-board">
         <div className="dt-head">
           <span className="dt-league">{comp?.name?.toUpperCase()}</span>
-          <span className="dt-title">DREAM TEAM</span>
-          <span className="dt-sub">{lastWeek ? `GAMEWEEK ${lastWeek}` : 'NO RUGBY PLAYED YET'}</span>
+          <span className="dt-title">{t('world.dtTitle')}</span>
+          <span className="dt-sub">{lastWeek ? t('world.dtGameweek', { n: lastWeek }) : t('world.dtNoRugby')}</span>
         </div>
         {lastWeek > 0 && (
           <div className="dt-pitch">
@@ -92,9 +93,9 @@ export default function DreamTeam() {
           </div>
         )}
       </div>
-      {lb('Season Ratings Leaderboard', byRating, p => (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2))}
-      {lb('Top Try Scorers', byTries, p => `${p.stats.tries}`)}
-      {lb('Top Points Scorers', byPoints, p => `${p.stats.points}`)}
+      {lb(t('world.dtRatings'), byRating, p => (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2))}
+      {lb(t('tables.topTryScorers'), byTries, p => `${p.stats.tries}`)}
+      {lb(t('tables.topPointsScorers'), byPoints, p => `${p.stats.points}`)}
       <OnesToWatch leagueId={leagueId} />
       <div className="spacer" />
     </>
@@ -112,13 +113,13 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
   if (!kids.length) return null
   return (
     <>
-      <SectionTitle sub="U21 ceilings, free agents included">Ones to Watch</SectionTitle>
+      <SectionTitle sub={t('world.dtOnesSub')}>{t('world.dtOnesToWatch')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {kids.map(p => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td className="num">{p.age}</td>
             <td className="name">🌟 {p.name}
-              <span className="muted"> ({p.pos} · {p.clubId ? teamShort(game, p.clubId) : 'FREE AGENT'})</span>
+              <span className="muted"> ({p.pos} · {p.clubId ? teamShort(game, p.clubId) : t('world.dtFreeAgent')})</span>
             </td>
             <td className="num muted">{p.nat}</td>
           </tr>

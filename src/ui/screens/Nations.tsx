@@ -4,13 +4,14 @@ import { sortTable } from '../../game/schedule'
 import { flagOf, nationByCode } from '../../game/nations'
 import { SectionTitle } from '../components'
 import { weekDate } from '../../game/model'
+import { t } from '../../game/i18n'
 
 export default function Nations() {
   const game = useStore(s => s.game)!
   const go = useStore(st => st.go)
   const tabs = ([
-    ['wc', '🏆 World Championship'], ['sn', 'Northern Championship'], ['trc', 'Southern Championship'], ['pnc', '🌺 Islands Cup'],
-    ['aut', 'Autumn Tests'], ['tour', 'Summer Tours'], ['lions', '🦁 Lions Tour'],
+    ['wc', 'world.natWc'], ['sn', 'world.natSn'], ['trc', 'world.natTrc'], ['pnc', 'world.natPnc'],
+    ['aut', 'world.natAut'], ['tour', 'world.natTour'], ['lions', 'world.natLions'],
   ] as const).filter(([id]) => game.comps[id])
   const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'sn')
   const comp = game.comps[compId]
@@ -27,11 +28,11 @@ export default function Nations() {
     <>
       {myNat && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 14 }}>🌍 You coach {nationByCode(myNat)?.name ?? myNat}</h3>
+          <h3 style={{ fontSize: 14 }}>{t('world.natYouCoach', { nat: nationByCode(myNat)?.name ?? myNat })}</h3>
           <div className="meta">
             {mySquad.length
-              ? `Test window open - your ${mySquad.length}-man squad is in camp. Pick the 23 from the match preview.`
-              : `Between windows. The likely squad below reflects current club form - call-ups happen automatically when a window opens.`}
+              ? t('world.natWindowOpen', { n: mySquad.length })
+              : t('world.natBetween')}
           </div>
           <div className="tblwrap" style={{ marginTop: 6 }}><table className="dtable"><tbody>
             {(mySquad.length ? mySquad : myPool).slice(0, 26).map(p => (
@@ -47,14 +48,14 @@ export default function Nations() {
       )}
       <div className="tab-bar">
         {tabs.map(([id, name]) => (
-          <button key={id} className={id === compId ? 'active' : ''} onClick={() => setCompId(id)}>{name}</button>
+          <button key={id} className={id === compId ? 'active' : ''} onClick={() => setCompId(id)}>{t(name)}</button>
         ))}
       </div>
       {comp && comp.table.length > 0 && (
         <>
-          <SectionTitle sub={comp.champion ? `Champions: ${nationByCode(comp.champion)?.name}` : undefined}>{comp.name}</SectionTitle>
+          <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationByCode(comp.champion)?.name ?? comp.champion }) : undefined}>{comp.name}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>#</th><th>Nation</th><th className="num">P</th><th className="num">W</th><th className="num">+/-</th><th className="num">Pts</th></tr></thead>
+            <thead><tr><th>{t('tables.colRank')}</th><th>{t('world.natColNation')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th><th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
               {sortTable(comp.table).map((r, i) => (
                 <tr key={r.teamId}>
@@ -70,12 +71,12 @@ export default function Nations() {
           </table></div>
         </>
       )}
-      <SectionTitle>Results & Fixtures</SectionTitle>
+      <SectionTitle>{t('world.natResults')}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {game.fixtures.filter(f => f.compId === compId).sort((a, b) => a.week - b.week).map(f => (
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name} v {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}</td>
+            <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {t('common.v')} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}</td>
             <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
           </tr>
         ))}

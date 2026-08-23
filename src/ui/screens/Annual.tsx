@@ -1,6 +1,7 @@
 import { useStore } from '../../store'
 import { seasonLabel } from '../../game/model'
 import { SectionTitle } from '../components'
+import { t } from '../../game/i18n'
 
 /**
  * The Annual: the forced page between seasons (user: "when a season is
@@ -25,21 +26,21 @@ export default function Annual() {
 
   return (
     <>
-      <SectionTitle sub="the season is filed - honours, annals and record books all written up">
-        The {label} Annual
+      <SectionTitle sub={t('week.annualSub')}>
+        {t('week.annualTitle', { label })}
       </SectionTitle>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <div className="meta" style={{ fontSize: 12.5 }}>
           {myPots.length > 0
-            ? `A season with silverware in it: ${myPots.length === 1 ? 'one trophy' : `${myPots.length} trophies`} went in your cabinet, and the club will talk about it for years.`
-            : 'No silverware this time, but every match, record and ledger from the campaign is safely on the books.'}
-          {' '}The full story is in the Roll of Honour and your Annals on the Manager Legacy screen, where it will stay for the rest of the career.
+            ? t('week.annualSilver', { n: myPots.length === 1 ? t('week.annualOneTrophy') : t('week.annualNTrophies', { n: myPots.length }) })
+            : t('week.annualNoSilver')}
+          {' '}{t('week.annualRest')}
         </div>
       </div>
 
       {honours.length > 0 && (
         <>
-          <SectionTitle sub="who took what">Roll of Honour, {label}</SectionTitle>
+          <SectionTitle sub={t('week.annualRollSub')}>{t('week.annualRoll', { label })}</SectionTitle>
           <div className="card" style={{ padding: '6px 12px' }}>
             {honours.map((h, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '4px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
@@ -61,7 +62,7 @@ export default function Annual() {
           touch()
           back()
         }}>
-          Ready for a new season? Start {seasonLabel(game.season)} ▸
+          {t('week.annualStart', { label: seasonLabel(game.season) })}
         </button>
       </div>
       <div className="spacer" />

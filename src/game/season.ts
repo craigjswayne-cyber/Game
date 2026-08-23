@@ -33,7 +33,7 @@ import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
-import { tIn } from './i18n'
+import { t, tIn } from './i18n'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -50,13 +50,13 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   // (an own-property check, so 'toString' and '__proto__' cannot sneak the
   // prototype's members in as a facility)
   if (!club || !Object.prototype.hasOwnProperty.call(FACILITY_INFO, fid) || typeof info?.name !== 'string') {
-    return 'That is not something the club can build.'
+    return t('facilities.facNotBuildable')
   }
   const lvl = club?.facilities?.[fid] ?? 0
-  if (lvl >= MAX_FACILITY) return `The ${info.name.toLowerCase()} is already world class. There is nothing left to build.`
-  if (state.facilityBuild) return `The builders are already on site (${FACILITY_INFO[state.facilityBuild.id].name}). One project at a time.`
+  if (lvl >= MAX_FACILITY) return t('facilities.facAlreadyWorldClass', { facility: t(info.name).toLowerCase() })
+  if (state.facilityBuild) return t('facilities.facBuildersBusy', { facility: t(FACILITY_INFO[state.facilityBuild.id].name) })
   const abs = state.season * 100 + state.week
-  if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
+  if ((state.facilityAskCooldown ?? 0) > abs) return t('facilities.facCooldown')
   const cost = facilityCost(info, lvl)
   /**
    * The board underwrites capital projects when it believes in you. That is what
@@ -88,22 +88,22 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
       : 'the reserves are too thin for a project this size'
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: `🏛 Board says no: ${info.name}`,
-      body: `Your request for a level ${lvl + 1} ${info.name.toLowerCase()} was heard, considered and declined - ${why}. The door reopens in a couple of months; better results and a healthier balance reopen it faster.`,
+      subject: `🏛 Board says no: ${tIn('en', info.name)}`,
+      body: `Your request for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()} was heard, considered and declined - ${why}. The door reopens in a couple of months; better results and a healthier balance reopen it faster.`,
     })
-    logDecision(state, `Asked the board for a level ${lvl + 1} ${info.name.toLowerCase()}: declined, ${why}.`, false)
+    logDecision(state, `Asked the board for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}: declined, ${why}.`, false)
     return `Declined - ${why}.`
   }
   club.balance -= clubShare
   state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
   const boardPut = cost - clubShare
-  logDecision(state, `Won board backing for a level ${lvl + 1} ${info.name.toLowerCase()}: ${fmtMoney(cost)}, open in five weeks.`, true)
+  logDecision(state, `Won board backing for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}: ${fmtMoney(cost)}, open in five weeks.`, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `🏛 Board approves: ${info.name} to level ${lvl + 1}`,
-    body: `${fmtMoney(cost)} signed off on a level ${lvl + 1} ${info.name.toLowerCase()}${boardPut > 0
+    subject: `🏛 Board approves: ${tIn('en', info.name)} to level ${lvl + 1}`,
+    body: `${fmtMoney(cost)} signed off on a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}${boardPut > 0
       ? ` - the board underwrite ${fmtMoney(boardPut)} of it and the club funds the remaining ${fmtMoney(clubShare)}`
-      : `, all of it from club funds`}. The builders move in on Monday and it opens in about five weeks. ${info.desc}`,
+      : `, all of it from club funds`}. The builders move in on Monday and it opens in about five weeks. ${tIn('en', info.desc)}`,
   })
   return boardPut > 0
     ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about five weeks to build.`
@@ -1575,11 +1575,11 @@ export function processWeekAndAdvance(state: GameState) {
     const uc = state.clubs[state.userClubId]
     if (uc) uc.facilities = { ...(uc.facilities ?? {}), [b.id]: b.level }
     state.facilityBuild = null
-    logDecision(state, `The level ${b.level} ${info.name.toLowerCase()} opened. ${info.desc}`, true)
+    logDecision(state, `The level ${b.level} ${tIn('en', info.name).toLowerCase()} opened. ${tIn('en', info.desc)}`, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-      subject: `🏗 The new ${info.name.toLowerCase()} opens`,
-      body: `The builders are gone and the ribbon is cut: your ${info.name.toLowerCase()} is now level ${b.level}. ${info.desc} The squad found it within minutes; the coaches found it first.`,
+      subject: `🏗 The new ${tIn('en', info.name).toLowerCase()} opens`,
+      body: `The builders are gone and the ribbon is cut: your ${tIn('en', info.name).toLowerCase()} is now level ${b.level}. ${tIn('en', info.desc)} The squad found it within minutes; the coaches found it first.`,
     })
   }
 

@@ -6,18 +6,19 @@ import {
 } from '../../game/model'
 import { expansionPlan, requestExpansion, requestFacility } from '../../game/season'
 import { SectionTitle } from '../components'
+import { ord as ordUI, t } from '../../game/i18n'
 
 /** What each level actually buys, in the manager's language. */
 const EFFECT: Record<FacilityId, (lvl: number) => string> = {
-  pitch: l => `${(l * 3.5).toFixed(1)}% fewer breakdowns at home`,
-  gym: l => `+${(l * 0.9).toFixed(1)} condition recovered a week`,
-  recovery: l => `injuries ${l * 3}% shorter`,
-  paddock: l => `training bites ${l * 20}% more often`,
-  kicking: l => `+${(l * 0.5).toFixed(1)}% off the tee`,
-  briefing: l => `match prep ${l * 15}% stronger`,
-  academy: l => `better intakes, ${(l * 1.2).toFixed(1)}% more wonderkids`,
-  shop: l => `about ${fmtMoney(Math.round(l * 9_000 * 1.2))} a week`,
-  hospitality: l => `+${l * 4}% on every home gate`,
+  pitch: l => t('world.fxPitch', { pct: (l * 3.5).toFixed(1) }),
+  gym: l => t('world.fxGym', { n: (l * 0.9).toFixed(1) }),
+  recovery: l => t('world.fxRecovery', { pct: l * 3 }),
+  paddock: l => t('world.fxPaddock', { pct: l * 20 }),
+  kicking: l => t('world.fxKicking', { pct: (l * 0.5).toFixed(1) }),
+  briefing: l => t('world.fxBriefing', { pct: l * 15 }),
+  academy: l => t('world.fxAcademy', { pct: (l * 1.2).toFixed(1) }),
+  shop: l => t('world.fxShop', { amount: fmtMoney(Math.round(l * 9_000 * 1.2)) }),
+  hospitality: l => t('world.fxHospitality', { pct: l * 4 }),
 }
 
 const pips = (lvl: number) => '●'.repeat(lvl) + '○'.repeat(MAX_FACILITY - lvl)
@@ -47,41 +48,44 @@ export default function Infrastructure() {
   const peers: Club[] = Object.values(game.clubs).filter(c => c.leagueId === club.leagueId)
   const ranked = [...peers].sort((a, b) => estateGrade(b).sum - estateGrade(a).sum)
   const rank = ranked.findIndex(c => c.id === club.id) + 1
-  const ord = rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : `${rank}th`
+  // ordUI, because ordinals are a language rather than a suffix (i18n.ts)
+  const ord = ordUI(rank)
 
   return (
     <>
       <div className="tab-bar">
-        <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>Our Estate</button>
-        <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>The League</button>
+        <button className={itab === 'ours' ? 'active' : ''} onClick={() => setItab('ours')}>{t('world.infOurEstate')}</button>
+        <button className={itab === 'league' ? 'active' : ''} onClick={() => setItab('league')}>{t('world.infTheLeague')}</button>
       </div>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ fontSize: 15, margin: 0 }}>🏟️ {club.stadium}</h3>
             <div className="meta">
-              {club.capacity.toLocaleString()} seats
-              {plan.played >= 1 && ` · ${plan.avg.toLocaleString()} average gate (${Math.round(plan.fill * 100)}% full)`}
+              {t('world.infSeats', { n: club.capacity.toLocaleString() })}
+              {plan.played >= 1 && t('world.infAvgGate', { avg: plan.avg.toLocaleString(), pct: Math.round(plan.fill * 100) })}
             </div>
             {/* the board will not build seats it cannot sell, so say out loud
                 how many this club could shift on its name alone */}
             <div className="meta" style={{ fontSize: 11 }}>
-              Catchment: about {demandCeiling(club).toLocaleString()} for a good game
-              {club.capacity >= demandCeiling(club) * 0.95
-                ? ' - the ground already holds everyone who would come'
-                : ` - ${(demandCeiling(club) - club.capacity).toLocaleString()} more than the ground holds`}
+              {t('world.infCatchment', {
+                n: demandCeiling(club).toLocaleString(),
+                rest: club.capacity >= demandCeiling(club) * 0.95
+                  ? t('world.infHoldsAll')
+                  : t('world.infMoreThanHolds', { n: (demandCeiling(club) - club.capacity).toLocaleString() }),
+              })}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div className="fact-label">Estate</div>
-            <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{grade.label}</div>
-            <div className="meta" style={{ fontSize: 11 }}>{grade.sum}/{grade.max} · {ord} of {peers.length} in the league</div>
+            <div className="fact-label">{t('world.infEstate')}</div>
+            <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{t(grade.label)}</div>
+            <div className="meta" style={{ fontSize: 11 }}>{t('world.infRankLine', { sum: grade.sum, max: grade.max, ord, n: peers.length })}</div>
           </div>
           <button className="btn gold" style={{ padding: '5px 10px', fontSize: 11.5, lineHeight: 1.25 }}
             disabled={club.capacity >= 82_000 || club.capacity >= demandCeiling(club) * 0.95 || game.facilityBuild != null}
             onClick={() => { setMsg({ key: 'expand', text: requestExpansion(game) }); touch() }}>
-            🏛 Ask to expand<br />
-            <span style={{ fontSize: 10, fontWeight: 600 }}>+{plan.seats.toLocaleString()} seats · {fmtMoney(plan.cost)}</span>
+            {t('world.infAskExpand')}<br />
+            <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infSeatsCost', { seats: plan.seats.toLocaleString(), cost: fmtMoney(plan.cost) })}</span>
           </button>
         </div>
         {msg?.key === 'expand' && (
@@ -92,7 +96,7 @@ export default function Infrastructure() {
       </div>
 
       {itab === 'ours' && <>
-      <SectionTitle sub="every upgrade goes through the boardroom">Facilities</SectionTitle>
+      <SectionTitle sub={t('world.infFacilitiesSub')}>{t('world.infFacilities')}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 6 }}>
         {ids.map(fid => {
           const info = FACILITY_INFO[fid]
@@ -105,23 +109,23 @@ export default function Infrastructure() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <h3 style={{ fontSize: 13.5, margin: 0 }}>
-                    {info.icon} {info.name} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
+                    {info.icon} {t(info.name)} <span style={{ color: 'var(--gold)', letterSpacing: 1 }}>{pips(lvl)}</span>
                   </h3>
-                  <div className="meta" style={{ fontSize: 11 }}>{info.desc}</div>
+                  <div className="meta" style={{ fontSize: 11 }}>{t(info.desc)}</div>
                   <div className="meta" style={{ fontSize: 11, fontWeight: 700 }}>
-                    {lvl === 0 ? 'Nothing to speak of' : `Level ${lvl}: ${EFFECT[fid](lvl)}`}
+                    {lvl === 0 ? t('world.infNothing') : t('world.infLevelIs', { n: lvl, effect: EFFECT[fid](lvl) })}
                   </div>
-                  {building && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>🏗 Builders on site - opens in about {weeksLeft} week{weeksLeft === 1 ? '' : 's'}</div>}
+                  {building && <div className="meta" style={{ fontSize: 11, color: 'var(--gold)', fontWeight: 700 }}>{t(weeksLeft === 1 ? 'world.infBuildersOne' : 'world.infBuilders', { n: weeksLeft })}</div>}
                 </div>
                 {!building && lvl < MAX_FACILITY && (
                   <button className="btn gold" style={{ padding: '5px 9px', fontSize: 11, lineHeight: 1.25, flexShrink: 0 }}
                     disabled={game.facilityBuild != null}
                     onClick={() => { setMsg({ key: fid, text: requestFacility(game, fid) }); touch() }}>
-                    🏛 Ask board<br />
-                    <span style={{ fontSize: 10, fontWeight: 600 }}>L{lvl + 1} · {fmtMoney(cost)}</span>
+                    {t('world.infAskBoard')}<br />
+                    <span style={{ fontSize: 10, fontWeight: 600 }}>{t('world.infLevelCost', { n: lvl + 1, cost: fmtMoney(cost) })}</span>
                   </button>
                 )}
-                {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>World class</span>}
+                {lvl >= MAX_FACILITY && <span className="meta" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('world.infWorldClass')}</span>}
               </div>
               {msg?.key === fid && (
                 <div className="meta" style={{ fontSize: 11.5, fontWeight: 600, marginTop: 4, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
@@ -135,9 +139,9 @@ export default function Infrastructure() {
 
       </>}
       {itab === 'league' && <>
-      <SectionTitle sub="what the rest of the league has built">League Estates</SectionTitle>
+      <SectionTitle sub={t('world.infLeagueEstatesSub')}>{t('world.infLeagueEstates')}</SectionTitle>
       <div className="tblwrap"><table className="dtable">
-        <thead><tr><th>Club</th><th className="num">Estate</th><th>Verdict</th><th className="num">Ground</th></tr></thead>
+        <thead><tr><th>{t('world.infColClub')}</th><th className="num">{t('world.infColEstate')}</th><th>{t('world.infColVerdict')}</th><th className="num">{t('world.infColGround')}</th></tr></thead>
         <tbody>
           {ranked.map(c => {
             const g2 = estateGrade(c)
@@ -145,7 +149,7 @@ export default function Infrastructure() {
               <tr key={c.id} style={c.id === club.id ? { background: 'color-mix(in srgb, var(--gold) 12%, transparent)' } : undefined}>
                 <td className="name">{c.short}</td>
                 <td className="num">{g2.sum}/{g2.max}</td>
-                <td className="muted">{g2.label}</td>
+                <td className="muted">{t(g2.label)}</td>
                 <td className="num">{c.capacity.toLocaleString()}</td>
               </tr>
             )
