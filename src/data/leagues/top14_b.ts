@@ -212,7 +212,6 @@ export const TOP14_B: RawClub[] = [
       { name: 'Alan Brazo', pos: 'FL', age: 27, nat: 'FRA', q: 68 },
       { name: 'Lucas Velarte', pos: 'FL', alt: ['N8'], age: 28, nat: 'ESP', q: 64, intl: true },
       { name: 'Kélian Galletier', pos: 'FL', age: 33, nat: 'FRA', q: 62 },
-      { name: 'Tom Ecochard', pos: 'SH', age: 31, nat: 'FRA', q: 67 },
       { name: 'Sadek Deghmache', pos: 'SH', age: 26, nat: 'FRA', q: 64 },
       { name: 'Tommaso Allan', pos: 'FH', age: 32, nat: 'ITA', q: 76, gk: true, intl: true },
       { name: 'Tristan Tedder', pos: 'FH', alt: ['FB'], age: 29, nat: 'RSA', q: 67, gk: true },

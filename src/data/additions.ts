@@ -37,6 +37,8 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // end of 2024-25, which leaves Iribaren and Berjon sharing the nine shirt;
   // the files only had Berjon.
   la_rochelle: [
+    { name: 'Kane Douglas', pos: 'LK', age: 37, nat: 'AUS', q: 62, intl: true },
+    { name: 'Davit Niniashvili', pos: 'FB', alt: ['WG'], age: 24, nat: 'GEO', q: 81, intl: true },
     { name: 'Teddy Iribaren', pos: 'SH', age: 34, nat: 'FRA', q: 74, gk: true },
   ],
   // Boris Wenger used to be added here to cover Harlequins' loosehead gap. The
@@ -47,10 +49,15 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // relocating them from a Premiership file stopped working once that file no
   // longer listed them, so they are added at their real clubs instead.
   cardiff: [
+    { name: 'Iwan Stephens', pos: 'WG', age: 25, nat: 'WAL', q: 63 },
+    { name: 'Ed Byrne', pos: 'LP', age: 32, nat: 'IRE', q: 68, intl: true },
     // Left Bristol for Cardiff and competes for the ten shirt there in 2025-26.
     { name: 'Callum Sheedy', pos: 'FH', alt: ['FB'], age: 30, nat: 'WAL', q: 74, gk: true, intl: true },
   ],
   bulls: [
+    { name: 'Aphiwe Dyantyi', pos: 'WG', age: 32, nat: 'RSA', q: 73 },
+    { name: 'Sintu Manjezi', pos: 'LK', age: 31, nat: 'RSA', q: 67 },
+    { name: 'Nama Xaba', pos: 'FL', age: 28, nat: 'RSA', q: 70 },
     // Three seasons at Leicester, then home to the Bulls on a two-year deal
     // from 1 July 2025.
     { name: 'Handre Pollard', pos: 'FH', age: 31, nat: 'RSA', q: 87, gk: true, intl: true },
@@ -59,6 +66,7 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // gap the audit found. Hamdaoui has been their arriere since 2024, after five
   // seasons and 120-odd games at Stade Francais, and covers the wing too.
   clermont: [
+    { name: 'Oskar Rixen', pos: 'CE', age: 24, nat: 'FRA', q: 63 },
     { name: 'Kylan Hamdaoui', pos: 'FB', alt: ['WG'], age: 32, nat: 'FRA', q: 70 },
   ],
   // Scarlets had one loosehead and two and a half flankers. Both names come off
@@ -72,6 +80,8 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // From Moana Pasifika's own named 2026 squad, corroborated by Fine Inisi and
   // Danny Toala already being ours. Patafilo arrived from Kyuden Voltex.
   moana: [
+    { name: 'Ngani Laumape', pos: 'CE', age: 33, nat: 'NZL', q: 74 },
+    { name: 'Solomon Alaimalo', pos: 'FB', alt: ['WG'], age: 30, nat: 'SAM', q: 64 },
     { name: 'Pepesana Patafilo', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
   ],
   // ---- the 2026-27 Premiership window: men Northampton let go, restored at
@@ -89,11 +99,14 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // would delete the Cornish Pirates full-back of the same name. One signing
   // lost beats one real player destroyed.
   newcastle: [
+    { name: 'Sam Cross', pos: 'FL', age: 34, nat: 'WAL', q: 66 },
+    { name: 'Ruaridh Dawson', pos: 'SH', age: 24, nat: 'SCO', q: 60 },
     { name: 'Tom West', pos: 'LP', age: 29, nat: 'ENG', q: 74 },
     { name: 'Elliot Millar Mills', pos: 'TP', age: 33, nat: 'SCO', q: 72, intl: true },
     { name: 'Sam Graham', pos: 'FL', alt: ['N8'], age: 28, nat: 'ENG', q: 72 },
   ],
   harlequins: [
+    { name: 'Leigh Halfpenny', pos: 'FB', age: 37, nat: 'WAL', q: 72, gk: true, intl: true },
     { name: 'George Furbank', pos: 'FB', alt: ['FH'], age: 29, nat: 'ENG', q: 82, intl: true },
   ],
   // Two shirts the 2026-27 window emptied, closed with the men the transfer
@@ -106,9 +119,12 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // quality are judged the way the rest of this file judges them: two
   // long-serving Test front-rowers in the late stage of their careers.
   leicester: [
-    { name: 'Mako Vunipola', pos: 'LP', age: 35, nat: 'ENG', q: 72, intl: true },
+    { name: 'Corne Beets', pos: 'LK', age: 27, nat: 'RSA', q: 70 },
+    { name: 'Elliott Stooke', pos: 'LK', age: 33, nat: 'ENG', q: 70 },
   ],
   sale: [
+    { name: 'Le Roux Roets', pos: 'LK', age: 30, nat: 'RSA', q: 74 },
+    { name: 'Will Addison', pos: 'FB', alt: ['CE'], age: 34, nat: 'IRE', q: 67, intl: true },
     { name: 'Tomas Francis', pos: 'TP', age: 34, nat: 'WAL', q: 70, intl: true },
   ],
   // Ion Neculai's move to Northampton (the club's own published 2026/27
@@ -117,13 +133,175 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // their academy, in the senior rotation - judged against the league he
   // plays in, a squad man, which is what the shirt needs.
   zebre: [
+    { name: 'Albert Batista', pos: 'FL', age: 24, nat: 'ITA', q: 58 },
     { name: 'Matteo Nocera', pos: 'TP', age: 21, nat: 'ITA', q: 58 },
   ],
   // The Force's outside backs for 2026 are Bridge, Beale, Grealy and Lancaster.
   // Beale and Grealy are already ours, which makes the list good; Bridge is the
   // former All Blacks winger, and the Force had two specialists without him.
   force: [
+    { name: 'James Ramm', pos: 'FB', alt: ['WG'], age: 28, nat: 'AUS', q: 67 },
+    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 70, intl: true },
     { name: 'George Bridge', pos: 'WG', age: 30, nat: 'NZL', q: 71 },
+  ],
+
+  // ---- THE AUGUST 2026 COMPENDIUM (user-supplied transfer PDF) -----------
+  // Men the compendium brings into the world from outside it (or from clubs
+  // whose files never listed them). Ages are as of August 2026; quality is
+  // judged the way the rest of this file judges it, against the league each
+  // man arrives into. Bath and Northampton are untouched: their squads are
+  // the clubs' own official lists and outrank the compendium.
+  gloucester: [
+    { name: 'Gareth Anscombe', pos: 'FH', age: 35, nat: 'WAL', q: 76, gk: true, intl: true },
+  ],
+  sharks: [
+    { name: 'Andre Esterhuizen', pos: 'CE', age: 32, nat: 'RSA', q: 82, intl: true },
+    { name: 'Luan de Bruin', pos: 'TP', age: 28, nat: 'RSA', q: 66 },
+  ],
+  edinburgh: [
+    { name: 'Matt Scott', pos: 'CE', age: 36, nat: 'SCO', q: 66, intl: true },
+  ],
+  racing92: [
+    { name: 'Romain Taofifenua', pos: 'LK', age: 36, nat: 'FRA', q: 70, intl: true },
+    { name: 'Sam James', pos: 'CE', age: 32, nat: 'ENG', q: 69 },
+  ],
+  saracens: [
+    { name: 'Phil Cokanasiga', pos: 'WG', age: 24, nat: 'ENG', q: 66 },
+  ],
+  toulon: [
+    { name: 'Kyle Sinckler', pos: 'TP', age: 33, nat: 'ENG', q: 79, intl: true },
+    { name: 'Lewis Ludlam', pos: 'FL', age: 30, nat: 'ENG', q: 77, intl: true },
+    { name: 'Antoine Frisch', pos: 'CE', age: 30, nat: 'IRE', q: 74, intl: true },
+  ],
+  bordeaux: [
+    { name: 'Jonny Gray', pos: 'LK', age: 32, nat: 'SCO', q: 77, intl: true },
+    { name: 'Joey Carbery', pos: 'FH', alt: ['FB'], age: 30, nat: 'IRE', q: 75, gk: true, intl: true },
+    { name: 'Lachlan Swinton', pos: 'FL', age: 29, nat: 'AUS', q: 72, intl: true },
+  ],
+  lyon: [
+    { name: 'Tomas Lavanini', pos: 'LK', age: 33, nat: 'ARG', q: 75, intl: true },
+    { name: 'Izack Rodda', pos: 'LK', age: 30, nat: 'AUS', q: 75, intl: true },
+  ],
+  stade_francais: [
+    { name: 'Joe Jonas', pos: 'WG', age: 23, nat: 'RSA', q: 66 },
+    { name: 'Raffaele Storti', pos: 'WG', age: 27, nat: 'POR', q: 70, intl: true },
+    { name: 'Israel Leota', pos: 'LP', age: 27, nat: 'SAM', q: 62 },
+  ],
+  toulouse: [
+    { name: 'Leo Banos', pos: 'FL', age: 24, nat: 'FRA', q: 70 },
+  ],
+  bayonne: [
+    { name: 'Alex Moon', pos: 'LK', age: 29, nat: 'ENG', q: 69 },
+  ],
+  castres: [
+    { name: 'Christian Ambadiang', pos: 'WG', age: 26, nat: 'FRA', q: 68 },
+  ],
+  vannes: [
+    { name: 'Mako Vunipola', pos: 'LP', age: 35, nat: 'ENG', q: 72, intl: true },
+    { name: 'Oli Kebble', pos: 'LP', age: 34, nat: 'SCO', q: 66 },
+    { name: 'Salesi Rayasi', pos: 'WG', age: 29, nat: 'FIJ', q: 70 },
+  ],
+  perpignan: [
+    { name: 'Antoine Aucagne', pos: 'FH', age: 24, nat: 'FRA', q: 63, gk: true },
+  ],
+  biarritz: [
+    { name: 'Piula Faasalele', pos: 'LK', age: 36, nat: 'SAM', q: 58 },
+    { name: 'Cornell du Preez', pos: 'N8', age: 35, nat: 'SCO', q: 58 },
+    { name: 'Thomas Dolhagaray', pos: 'CE', age: 26, nat: 'FRA', q: 58 },
+    { name: 'Kylian Jaminet', pos: 'FB', age: 27, nat: 'FRA', q: 65, gk: true },
+  ],
+  brive: [
+    { name: 'Courtney Lawes', pos: 'LK', alt: ['FL'], age: 37, nat: 'ENG', q: 74, intl: true },
+    { name: 'Curwin Bosch', pos: 'FH', alt: ['FB'], age: 29, nat: 'RSA', q: 73, gk: true },
+    { name: 'Matias Moroni', pos: 'CE', age: 35, nat: 'ARG', q: 68, intl: true },
+  ],
+  provence: [
+    { name: 'George North', pos: 'CE', alt: ['WG'], age: 34, nat: 'WAL', q: 71, intl: true },
+    { name: 'Jules Plisson', pos: 'FH', age: 34, nat: 'FRA', q: 62, gk: true },
+  ],
+  munster: [
+    { name: 'Diarmuid Kilgallen', pos: 'WG', age: 25, nat: 'IRE', q: 66 },
+    { name: 'Bryan Fitzgerald', pos: 'FL', age: 23, nat: 'IRE', q: 60 },
+  ],
+  stormers: [
+    { name: 'Steven Kitshoff', pos: 'LP', age: 34, nat: 'RSA', q: 79, intl: true },
+    { name: 'JD Schickerling', pos: 'LK', age: 31, nat: 'RSA', q: 69 },
+  ],
+  glasgow: [
+    { name: 'Patrick Schickerling', pos: 'TP', age: 27, nat: 'ENG', q: 70 },
+  ],
+  steelers: [
+    { name: 'George Turner', pos: 'HK', age: 33, nat: 'SCO', q: 74, intl: true },
+    { name: 'Brodie Retallick', pos: 'LK', age: 35, nat: 'NZL', q: 80, intl: true },
+  ],
+  dragons: [
+    { name: 'Solomone Funaki', pos: 'FL', age: 27, nat: 'TGA', q: 65, intl: true },
+    { name: 'Steve Cummins', pos: 'LK', age: 31, nat: 'AUS', q: 60 },
+  ],
+  benetton: [
+    { name: 'Matt Gallagher', pos: 'FB', age: 30, nat: 'ITA', q: 70 },
+    { name: 'Lautaro Bazan Velez', pos: 'SH', age: 29, nat: 'ARG', q: 66, intl: true },
+  ],
+  crusaders: [
+    { name: "Leicester Fainga'anuku", pos: 'WG', alt: ['CE'], age: 26, nat: 'NZL', q: 81, intl: true },
+  ],
+  chiefs: [
+    { name: 'Liam Coombes-Fabling', pos: 'WG', age: 23, nat: 'NZL', q: 62 },
+  ],
+  highlanders: [
+    { name: 'Lucas Casey', pos: 'N8', age: 23, nat: 'NZL', q: 60 },
+  ],
+  blues: [
+    { name: 'Torian Barnes', pos: 'LK', age: 23, nat: 'NZL', q: 61 },
+  ],
+  drua: [
+    { name: 'Virimi Vakatawa', pos: 'CE', age: 34, nat: 'FRA', q: 73, intl: true },
+    { name: 'Manasa Mataele', pos: 'WG', age: 29, nat: 'FIJ', q: 68 },
+  ],
+  bravelupus: [
+    { name: 'Shannon Frizell', pos: 'FL', age: 32, nat: 'NZL', q: 78, intl: true },
+  ],
+  sungoliath: [
+    { name: 'Sam Cane', pos: 'FL', age: 34, nat: 'NZL', q: 78, intl: true },
+  ],
+  verblitz: [
+    { name: 'Aaron Smith', pos: 'SH', age: 37, nat: 'NZL', q: 74, intl: true },
+    { name: 'Pieter-Steph du Toit', pos: 'FL', age: 34, nat: 'RSA', q: 84, intl: true },
+  ],
+  wildknights: [
+    { name: 'Lood de Jager', pos: 'LK', age: 33, nat: 'RSA', q: 79, intl: true },
+    { name: 'Marika Koroibete', pos: 'WG', age: 34, nat: 'AUS', q: 78, intl: true },
+  ],
+  spears: [
+    { name: 'Bernard Foley', pos: 'FH', age: 37, nat: 'AUS', q: 71, gk: true, intl: true },
+  ],
+  canon: [
+    { name: 'Jesse Kriel', pos: 'CE', age: 32, nat: 'RSA', q: 81, intl: true },
+  ],
+  bluerevs: [
+    { name: 'Kwagga Smith', pos: 'FL', age: 33, nat: 'RSA', q: 78, intl: true },
+    { name: 'Charles Piutau', pos: 'FB', age: 34, nat: 'TGA', q: 72, intl: true },
+  ],
+  blackrams: [
+    { name: 'TJ Perenara', pos: 'SH', age: 34, nat: 'NZL', q: 76, intl: true },
+  ],
+  drocks: [
+    { name: 'Jasper Wiese', pos: 'N8', age: 30, nat: 'RSA', q: 83, intl: true },
+    { name: 'Israel Folau', pos: 'WG', alt: ['FB'], age: 37, nat: 'AUS', q: 66 },
+  ],
+  hondaheat: [
+    { name: 'Franco Mostert', pos: 'LK', age: 35, nat: 'RSA', q: 77, intl: true },
+    { name: 'Tom Banks', pos: 'FB', age: 32, nat: 'AUS', q: 70, intl: true },
+  ],
+  dynaboars: [
+    { name: "Matt To'omua", pos: 'CE', alt: ['FH'], age: 36, nat: 'AUS', q: 65, gk: true, intl: true },
+    { name: 'Jackson Hemopo', pos: 'LK', age: 33, nat: 'NZL', q: 65 },
+  ],
+  ealing: [
+    { name: 'Mikey Summerfield', pos: 'LK', age: 24, nat: 'ENG', q: 58 },
+  ],
+  doncaster: [
+    { name: 'Taniela Filimone', pos: 'WG', age: 24, nat: 'TGA', q: 55 },
   ],
 }
 
