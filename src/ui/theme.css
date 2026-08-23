@@ -507,9 +507,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   white-space: nowrap;
   /* GOLD ON THE HERO GRADIENT IS ALWAYS --gold-fill, NEVER --gold. --gold is
      the text gold and day mode tunes it dark (#8a6516) to sit on white and on
-     canvas; on the dark hero it is 1.26:1 - the live score, invisible, in the
-     one mode no probe tests (every harness sets rm-night first). --gold-fill
-     is #e9be68 in both modes and measures 3.83:1 there. .sc-cup already knew. */
+     canvas; on the dark hero it is 1.26:1 - the live score, invisible, to
+     anybody who taps the sun icon. --gold-fill is #e9be68 in BOTH modes and
+     measures 3.83:1 there, which is what .sc-cup beside it already used.
+     nightcontrast does sweep daylight, so the reason this survived is not the
+     theme: text over a GRADIENT was skipped outright, and match day was not on
+     the tour at all. Both since closed - though see that probe's own note on
+     what it still cannot reach. */
   color: var(--gold-fill);
   min-width: 84px;
   font-variant-numeric: tabular-nums;
