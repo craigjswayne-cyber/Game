@@ -87,7 +87,27 @@ language). See `docs/i18n.md`.
 
 **IP** — `ipprobe` greps the shipped bundle for 121 real club, competition,
 sponsor, venue and governing-body marks. It reads the rename table out of
-`save.ts` rather than keeping its own copy.
+`save.ts` rather than keeping its own copy. Case-insensitive on purpose (SIX
+NATIONS shipped once, in caps) and anchored at a word boundary, because without
+the anchor `world.infRankLine` reads as "franklin" and fails the deploy over a
+translation key.
+
+**Money and privacy** — `netprobe` sweeps every shipped file for fetch, XHR,
+beacons, sockets, third-party SDK names, remote fonts and absolute URLs, which
+is the whole of the evidence for the "no data collected" answer on both store
+questionnaires. `moneyprobe` holds the four rules the till obeys: fails open,
+grants only on `owned`, handles all five purchase endings, keeps the receipt out
+of the save. `storeprobe` runs the built game in a browser — no purchase door
+and no ad frame without a bridge, a working one with a bridge injected the way a
+wrapper injects it, a restore at boot on a fresh install, and no ad for anybody
+who has paid. See `docs/monetisation.md`.
+
+**The way out** — `backupreach` checks that a career can leave the phone it
+lives on: the share sheet is offered where the browser can take a file, what it
+is handed is a real save (named, typed, parsing, 6,583 players, the manager's
+own name), Export still works where sharing is not possible, and backing out of
+the sheet is not reported as a failure. This is the only insurance a player has
+against a lost device, so it is worth more than it looks.
 
 ## Writing a probe that is worth having
 
@@ -124,3 +144,7 @@ Five lessons, each of them paid for:
 - **`staffprobe` occasionally reports FAIL with a passing last line** under
   parallel load — it prints its verdict and then does not exit, and the timeout
   wrapper records the kill. It passes standalone. Not yet fixed.
+- **`storeart.mjs` is not a probe** and has no verdict: it writes the store
+  screenshots, the feature graphic and the App Store icon into `storeart/`. Run
+  it before a submission and look at what it produced — it walks a real career,
+  so a screen that is broken in a new build is broken in the picture.
