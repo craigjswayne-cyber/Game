@@ -1457,11 +1457,20 @@ export function closeNatTenure(state: GameState) {
   state.natRecord = null
 }
 
+/** Month and weekday, short, in the language on screen.
+ *
+ *  A DATE IS NEVER STORED - every screen builds it from the season and week it
+ *  already has - so a career started in English reads its own dates back in
+ *  French the moment the language changes, and nothing in the save has to move.
+ *  French keeps the same order as English (16 août 2025), which is why the
+ *  format strings below need no translation of their own. */
+export const monthName = (m: number): string => t(`date.mon${m}`)
+export const dayAbbr = (d: number): string => t(`date.day${d}`)
+
 export function weekDate(season: number, week: number): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + (week - 1) * 7 * 86400000)
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  return `${d.getUTCDate()} ${monthName(d.getUTCMonth())} ${d.getUTCFullYear()}`
 }
 
 /** Which day this fixture kicks off: -1 Friday, 0 Saturday, +1 Sunday.
@@ -1482,9 +1491,7 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
 export function fixtureDate(season: number, week: number, fxId: number, dayOff?: -1 | 0 | 1): string {
   const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + ((week - 1) * 7 + (dayOff ?? fixtureDayOff(fxId))) * 86400000)
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-  return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`
+  return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
 
 export function seasonLabel(season: number): string {

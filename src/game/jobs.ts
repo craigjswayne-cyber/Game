@@ -9,6 +9,7 @@ import { clamp, mulberry32, type Rng } from './rng'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
+import { t } from './i18n'
 
 /** Chance an application succeeds, from reputation vs club stature.
  *
@@ -144,8 +145,11 @@ export function refreshVacancies(state: GameState, rng: Rng) {
 export function applyForJob(state: GameState, clubId: string): string {
   const v = state.vacancies.find(x => x.clubId === clubId)
   const club = state.clubs[clubId]
-  if (!v || !club) return 'That position has been filled.'
-  if (v.applied) return 'They have your application. Be patient.'
+  // the four sentences this function RETURNS land in a card on the Job Centre and
+  // are never filed anywhere, so they follow the reader; the news items it pushes
+  // are a career's paperwork and stay as written (docs/i18n.md)
+  if (!v || !club) return t('world.jbFilled')
+  if (v.applied) return t('world.jbPatient')
   v.applied = true
   const rng = mulberry32(state.seed ^ (state.week * 31 + club.rep))
   if (rng() < jobChance(state, clubId)) {
@@ -222,14 +226,14 @@ export function applyForJob(state: GameState, clubId: string): string {
       subject: `Appointed: ${state.managerName} takes over at ${club.name}`,
       body: `A new chapter. The board expects steady progress, the dressing room is watching, and the ${club.stadium} faithful will judge you soon enough. Your transfer budget is £${(club.budget / 1e6).toFixed(1)}m.`,
     })
-    return `You're in. Welcome to ${club.name}.`
+    return t('world.jbHired', { club: club.name })
   }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${club.short} go in a different direction`,
     body: `${club.name} thank you for your interest but have decided to pursue other candidates.`,
   })
-  return `${club.short} passed. Their loss - probably.`
+  return t('world.jbPassed', { club: club.short })
 }
 
 /** Walk away from the current job. */

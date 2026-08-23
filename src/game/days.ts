@@ -1,6 +1,7 @@
 import type { GameState, NewsItem } from './model'
-import { fixtureDayOff, weekDate } from './model'
+import { dayAbbr, fixtureDayOff, monthName, weekDate } from './model'
 import { userMatchThisWeek } from './season'
+import { t } from './i18n'
 
 /**
  * ---- THE WEEK, DAY BY DAY ----
@@ -36,33 +37,14 @@ export const MATCH_DAY: DayIndex = 5
 /** What the day is FOR - the heading on the bulletin, and the reason a story
  *  lands on it. A coach's week has this shape whether the game models it or not:
  *  the fallout on Monday, the cameras on Tuesday, business midweek, the squad on
- *  Thursday, the opposition on Friday. */
-export const DAY_NAMES: Record<DayIndex, string> = {
-  0: 'Monday',
-  1: 'Tuesday',
-  2: 'Wednesday',
-  3: 'Thursday',
-  4: 'Friday',
-  5: 'Saturday',
-}
-
-export const DAY_THEME: Record<DayIndex, string> = {
-  0: 'The Review',
-  1: 'Facing The Cameras',
-  2: 'Club Business',
-  3: 'The Squad',
-  4: 'Eve Of The Match',
-  5: 'Matchday',
-}
-
-export const DAY_SUB: Record<DayIndex, string> = {
-  0: 'the weekend picked over, and what it cost you',
-  1: 'the press want answers and the board has an opinion',
-  2: 'the market, the money and the paperwork',
-  3: 'who is fit, who is training, who needs a word',
-  4: 'the last look at them before you play them',
-  5: 'kick off',
-}
+ *  Thursday, the opposition on Friday.
+ *
+ *  Looked up rather than tabled, because these three are read at render and never
+ *  written into a save: the day room is a view of now, so it speaks whichever
+ *  language the manager is reading in today. */
+export const dayName = (day: DayIndex): string => t(`dayroom.day${day}`)
+export const dayTheme = (day: DayIndex): string => t(`dayroom.theme${day}`)
+export const daySub = (day: DayIndex): string => t(`dayroom.sub${day}`)
 
 /** Which day a story belongs to.
  *
@@ -101,9 +83,7 @@ export function today(state: GameState): DayIndex {
 export function dayDate(season: number, week: number, day: DayIndex): string {
   const start = Date.UTC(2025 + season, 7, 16)
   const d = new Date(start + ((week - 1) * 7 + (day - MATCH_DAY)) * 86400000)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${months[d.getUTCMonth()]}`
+  return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
 
 /**
@@ -225,9 +205,11 @@ export function medicalNews(state: GameState): { out: string[]; back: string[] }
     if (!p || p.acad) continue
     if (p.injury) {
       const weeks = p.injury.until - state.week
-      if (weeks > 0) out.push(`${p.name} - ${p.injury.desc}, about ${weeks} ${weeks === 1 ? 'week' : 'weeks'}`)
+      // the injury's own description stays as it was written into the save; the
+      // sentence around it is rebuilt in the language on screen
+      if (weeks > 0) out.push(t('dayroom.medOut', { player: p.name, desc: p.injury.desc, n: weeks }))
     } else if (p.sharp < 70) {
-      back.push(`${p.name} is back in training and ${Math.round(p.sharp)}% sharp`)
+      back.push(t('dayroom.medBack', { player: p.name, pct: Math.round(p.sharp) }))
     }
   }
   return { out: out.slice(0, 6), back: back.slice(0, 4) }
@@ -347,14 +329,14 @@ export function deskBlock(state: GameState): DeskBlock | null {
   // stories behind it buries the context the questions are about.
   const unread = state.news.filter(n => !n.read && !n.cleared && inInbox(state, n)).length
   if (unread > 0) {
-    return { kind: 'mail', n: unread, label: `Read (${unread})` }
+    return { kind: 'mail', n: unread, label: t('dayroom.deskRead', { n: unread }) }
   }
   // A question with no options cannot be answered, so it must not be able to
   // hold the week: that would be a locked save, not a gate.
   const open = state.press.filter(p =>
     p.week === state.week && !p.answered && (p.options?.length ?? 0) > 0).length
   if (open > 0) {
-    return { kind: 'press', n: open, label: open === 1 ? 'Press room' : `Press room (${open})` }
+    return { kind: 'press', n: open, label: open === 1 ? t('dayroom.deskPress') : t('dayroom.deskPressN', { n: open }) }
   }
   return null
 }

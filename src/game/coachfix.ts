@@ -26,15 +26,20 @@
  *   ONE FIX PER SUBJECT. An empty tank at full time and an unused bench are the
  *     same complaint twice; a list of two that says one thing is a list of one.
  *     Candidates carry a tag and the best of each tag survives.
+ *
+ *   READ AT FULL TIME, NEVER WRITTEN DOWN. Only the TAGS reach the save
+ *     (game.fixHw, so next week can mark the homework); every sentence is
+ *     rebuilt from them each time the card renders, which is why a verdict
+ *     written in English can be re-read in French. See docs/i18n.md.
  */
 import type { GameState, Tactic } from './model'
 import { MAX_SUBS } from './matchEngine'
 import type { LiveCtx, SideCtx } from './matchEngine'
+import { t } from './i18n'
 
 /** MAX_SUBS as a word for prose, so the advice can never disagree with the
  *  engine's cap again. Falls back to digits if the cap ever outgrows the list. */
-const CAP_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
-  'nine', 'ten'][MAX_SUBS] ?? String(MAX_SUBS)
+const capWord = () => MAX_SUBS <= 10 ? t(`coachfix.num${MAX_SUBS}`) : String(MAX_SUBS)
 
 export type UnitKey = 'scrum' | 'lineout' | 'breakdown'
 
@@ -43,12 +48,18 @@ export interface UnitBattle {
   label: string
   /** share of the contest won, 22-78 */
   pct: number
-  /** 'dominated' | 'edged it' | 'broke even' | 'shaded' | 'bullied' */
+  /** a token, not a phrase: 'dominated' | 'edged' | 'even' | 'shaded' | 'bullied'.
+   *  The screen builds the whole half-sentence from it, because 'we edged it' and
+   *  'ils l'ont emporté de peu' do not put the subject in the same place. */
   verdict: string
 }
 
+/** keys, not words - MatchDay calls t() on them */
 const UNIT_LABEL: Record<UnitKey, string> = {
-  scrum: 'Scrum', lineout: 'Lineout', breakdown: 'Breakdown',
+  scrum: 'matchday.h2hScrum', lineout: 'matchday.h2hLineout', breakdown: 'matchday.h2hBreakdown',
+}
+const UNIT_LOWER: Record<UnitKey, string> = {
+  scrum: 'coachfix.unitScrumLower', lineout: 'coachfix.unitLineoutLower', breakdown: 'coachfix.unitBreakdownLower',
 }
 
 /** The three set-piece contests, as percentages.
@@ -60,7 +71,7 @@ export function unitBattles(ctx: LiveCtx, mine: SideCtx, opp: SideCtx): UnitBatt
   return keys.map(([key, salt]) => {
     const jit = ((((ctx.fx.id * 2654435761) >>> 0) + salt * 977) % 9) - 4
     const pct = Math.max(22, Math.min(78, Math.round(50 + (mine.units[key] - opp.units[key]) * 5.5 + jit)))
-    const verdict = pct >= 57 ? 'dominated' : pct >= 52 ? 'edged it' : pct > 48 ? 'broke even'
+    const verdict = pct >= 57 ? 'dominated' : pct >= 52 ? 'edged' : pct > 48 ? 'even'
       : pct > 43 ? 'shaded' : 'bullied'
     return { key, label: UNIT_LABEL[key], pct, verdict }
   })
@@ -87,13 +98,13 @@ interface Cand extends CoachFix { score: number }
  * tag 'setpiece' scored 4.4.
  */
 export const FIX_LABEL: Record<FixTag, string> = {
-  setpiece: 'the set piece',
-  discipline: 'the discipline',
-  attack: 'turning possession into points',
-  territory: 'where the game was played',
-  kicking: 'the goal kicking',
-  fitness: 'using the bench',
-  admin: 'sticking to one plan',
+  setpiece: 'coachfix.fixSetpiece',
+  discipline: 'coachfix.fixDiscipline',
+  attack: 'coachfix.fixAttack',
+  territory: 'coachfix.fixTerritory',
+  kicking: 'coachfix.fixKicking',
+  fitness: 'coachfix.fixFitness',
+  admin: 'coachfix.fixAdmin',
 }
 
 /**
@@ -117,30 +128,32 @@ export function gradeFixes(prev: readonly FixTag[], now: readonly FixTag[]): {
   const open = new Set(now)
   return {
     // 'admin' is the coach saying nothing broke, so it is never homework
-    fixed: prev.filter(t => t !== 'admin' && !open.has(t)),
-    missed: prev.filter(t => t !== 'admin' && open.has(t)),
+    // (`tag`, not `t`: t() is the translator and a shadow here would be silent)
+    fixed: prev.filter(tag => tag !== 'admin' && !open.has(tag)),
+    missed: prev.filter(tag => tag !== 'admin' && open.has(tag)),
   }
 }
 
 /** One line of English for a grade, or null when there is nothing to report. */
 export function gradeLine(fixed: readonly FixTag[], missed: readonly FixTag[]): string | null {
-  const list = (ts: readonly FixTag[]) => ts.map(t => FIX_LABEL[t]).join(' and ')
+  // `tag`, not `t`: t() is the translator
+  const list = (ts: readonly FixTag[]) => ts.map(tag => t(FIX_LABEL[tag])).join(t('coachfix.gradeJoin'))
   // the labels are written to sit mid-sentence ("we asked about the set piece"),
   // so one that opens a sentence needs its capital. Caught by fixprobe reading
   // its own output: "two things. the set piece is sorted."
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
   if (fixed.length && missed.length) {
-    return `Last time we asked for two things. ${cap(list(fixed))} is sorted. ${cap(list(missed))} is not.`
+    return t('coachfix.gradeBoth', { fixed: cap(list(fixed)), missed: cap(list(missed)) })
   }
   if (fixed.length) {
     return fixed.length > 1
-      ? `Both jobs from last time are done: ${list(fixed)}. That is a side that listens.`
-      : `${cap(list(fixed))} is sorted since last time. Keep doing whatever that was.`
+      ? t('coachfix.gradeAllDone', { fixed: list(fixed) })
+      : t('coachfix.gradeOneDone', { fixed: cap(list(fixed)) })
   }
   if (missed.length) {
     return missed.length > 1
-      ? `${cap(list(missed))} were the jobs last time, and neither has moved.`
-      : `We asked about ${list(missed)} last time, and here it is again.`
+      ? t('coachfix.gradeBothMissed', { missed: cap(list(missed)) })
+      : t('coachfix.gradeOneMissed', { missed: list(missed) })
   }
   return null
 }
@@ -176,14 +189,15 @@ export function coachFixes(
   const worst = [...units].sort((a, b) => a.pct - b.pct)[0]
   if (worst && worst.pct < 49) {
     const how: Record<UnitKey, string> = {
-      scrum: 'Pick a heavier front row on Selection, or give a prop the scrummager role on the Roles tab. A dial cannot lift a light tight five.',
-      lineout: 'Get a second genuine jumper into the back five on Selection, and change the lineout call on Set Piece so they stop reading it.',
-      breakdown: 'A jackal flanker on Selection, or push Physicality up. Contested ball is won by bodies arriving, not by shape.',
+      scrum: 'coachfix.howScrum', lineout: 'coachfix.howLineout', breakdown: 'coachfix.howBreakdown',
     }
     c.push({
       tag: 'setpiece', score: (50 - worst.pct) * 2.2,
-      head: `${worst.label}: ${worst.pct}% won, and they ${worst.verdict === 'bullied' ? 'bullied us there' : 'shaded it'}.`,
-      how: how[worst.key],
+      head: t('coachfix.spHead', {
+        unit: t(worst.label), pct: worst.pct,
+        verdict: t(worst.verdict === 'bullied' ? 'coachfix.spBullied' : 'coachfix.spShaded'),
+      }),
+      how: t(how[worst.key]),
     })
   }
 
@@ -195,17 +209,17 @@ export function coachFixes(
     // name him. "Ten minutes a man short" is a statistic; "Curtis Langdon spent
     // ten minutes in the bin" is a selection decision the manager can make.
     const first = cards[0].playerId != null ? game.players[cards[0].playerId] : null
-    const who = first ? `${first.name} ` : ''
+    const who = first?.name
     c.push({
       tag: 'discipline', score: reds * 62 + yellows * 24,
       head: reds
-        ? `${who ? `${who}sent off` : 'A red card'}, and fourteen men for the rest of it.`
+        ? (who ? t('coachfix.discRedWho', { player: who }) : t('coachfix.discRed'))
         : yellows === 1
-          ? `${who ? `${who}binned: ten` : 'Ten'} minutes a man short.`
-          : `${yellows} yellows, ${yellows * 10} minutes a man short.`,
+          ? (who ? t('coachfix.discYcWho', { player: who }) : t('coachfix.discYc'))
+          : t('coachfix.discYcMany', { n: yellows, mins: yellows * 10 }),
       how: tactic && tactic.aggression >= 55
-        ? `Physicality is at ${tactic.aggression}. Pull it under fifty and the same pack concedes fewer.`
-        : 'Drop Physicality a notch and put a leader on culture in the leadership group. Cards are a habit, not luck.',
+        ? t('coachfix.discHowHigh', { n: tactic.aggression })
+        : t('coachfix.discHowLow'),
     })
   }
 
@@ -213,10 +227,10 @@ export function coachFixes(
   if (poss >= 53 && mine.tries <= 1) {
     c.push({
       tag: 'attack', score: (poss - 50) * 1.4 + (2 - mine.tries) * 9,
-      head: `${poss}% of the ball and ${mine.tries === 1 ? 'one try' : 'no tries'}.`,
+      head: t(mine.tries === 1 ? 'coachfix.attHeadOne' : 'coachfix.attHeadNone', { poss }),
       how: tactic && tactic.style <= 45
-        ? `Style is at ${tactic.style}, which keeps it in the pack. Push it past sixty and the backs will see it.`
-        : 'Give the 10 the playmaker role on the Roles tab and drill a different attacking call. Possession without width is just carrying.',
+        ? t('coachfix.attHowNarrow', { n: tactic.style })
+        : t('coachfix.attHowWide'),
     })
   }
 
@@ -224,10 +238,10 @@ export function coachFixes(
   if (poss <= 44) {
     c.push({
       tag: 'territory', score: (48 - poss) * 1.8,
-      head: `We only had ${poss}% of the ball.`,
+      head: t('coachfix.terrHead', { poss }),
       how: tactic && tactic.kicking >= 55
-        ? `Kicking is at ${tactic.kicking}, so we hand it back on purpose. Bring it down and keep the ball in hand.`
-        : 'Lower Tempo so phases last, and set the exit to counter on Set Piece rather than kicking it to their fullback.',
+        ? t('coachfix.terrHowKick', { n: tactic.kicking })
+        : t('coachfix.terrHowElse'),
     })
   }
 
@@ -237,10 +251,12 @@ export function coachFixes(
   if (lateAgainst >= 10) {
     c.push({
       tag: 'fitness', score: lateAgainst * 2.4,
-      head: `They scored ${lateAgainst} of their points after the hour.`,
+      head: t('coachfix.lateHead', { n: lateAgainst }),
       how: ctx.subsUsed <= 2
-        ? `You made ${ctx.subsUsed === 0 ? 'no changes' : `${ctx.subsUsed} change${ctx.subsUsed === 1 ? '' : 's'}`}. Tap Match-Day Squad at the hour: eight fresh bodies is a weapon you have already paid for.`
-        : 'Drop Tempo so the pack is not running on fumes at sixty, and brief two finishers on the Bench page.',
+        ? t('coachfix.lateHowFew', {
+          changes: ctx.subsUsed === 0 ? t('coachfix.lateNone') : t('coachfix.lateSome', { n: ctx.subsUsed }),
+        })
+        : t('coachfix.lateHowMany'),
     })
   }
 
@@ -251,8 +267,8 @@ export function coachFixes(
   if (missed >= 2 || (missed === 1 && Math.abs(margin) <= 2)) {
     c.push({
       tag: 'kicking', score: missed * 11 + (Math.abs(margin) <= 2 ? 12 : 0),
-      head: `${missed === 1 ? 'A conversion' : `${missed} conversions`} missed off the tee.`,
-      how: 'Name your kicking order on Set Piece rather than leaving it to whoever has the best boot on the pitch. A slump is only yours to answer if you chose the man.',
+      head: missed === 1 ? t('coachfix.teeHeadOne') : t('coachfix.teeHeadMany', { n: missed }),
+      how: t('coachfix.teeHow'),
     })
   }
 
@@ -284,8 +300,8 @@ export function coachFixes(
   if (ctx.subsUsed >= 3 && theirTank - tank >= 20) {
     c.push({
       tag: 'fitness', score: (theirTank - tank) * 1.1,
-      head: `Even after ${ctx.subsUsed} changes we finished on ${Math.round(tank)}% to their ${Math.round(theirTank)}%.`,
-      how: 'Lower Tempo, or set the week to fitness on Prep. This is a conditioning problem rather than a tactical one, and the gym level on Club Infrastructure is the long answer.',
+      head: t('coachfix.tankHead', { subs: ctx.subsUsed, mine: Math.round(tank), theirs: Math.round(theirTank) }),
+      how: t('coachfix.tankHow'),
     })
   }
 
@@ -312,8 +328,8 @@ export function coachFixes(
       // MAX_SUBS so the sentence cannot drift from the real bench size the way
       // 'out of five' did for two rounds after the bench grew to eight, and
       // scripts/fixprobe.ts holds it there by reading the sentence back
-      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used out of ${CAP_WORD}.`,
-      how: `Tap Match-Day Squad at the hour. All ${CAP_WORD} changes are free, but the two or three into the shirts running on empty are the ones that win tight games - past four you are swapping quality out for freshness you do not need.`,
+      head: t(ctx.subsUsed === 0 ? 'coachfix.benchHeadNone' : 'coachfix.benchHeadOne', { cap: capWord() }),
+      how: t('coachfix.benchHow', { cap: capWord() }),
     })
   }
 
@@ -323,23 +339,22 @@ export function coachFixes(
     if (roles < 4) {
       c.push({
         tag: 'admin', score: 9 - roles,
-        head: roles === 0 ? 'Not one shirt has a role set.'
-          : `Only ${roles} shirt${roles === 1 ? ' has' : 's have'} a role set.`,
-        how: 'Tap a shirt on the Roles tab. A scrummager, a jackal and a playmaker are three small edges you are currently not taking.',
+        head: roles === 0 ? t('coachfix.rolesHeadNone') : t('coachfix.rolesHeadSome', { n: roles }),
+        how: t('coachfix.rolesHow'),
       })
     }
     if (!(tactic.kickers ?? []).filter(Boolean).length) {
       c.push({
         tag: 'kicking', score: 7,
-        head: 'No kicking order named.',
-        how: 'Set your first and second kicker on Set Piece. The automatic pick hands the tee to a different man every week.',
+        head: t('coachfix.kickOrderHead'),
+        how: t('coachfix.kickOrderHow'),
       })
     }
     if (!tactic.bench) {
       c.push({
         tag: 'admin', score: 6,
-        head: 'The bench split is on automatic.',
-        how: 'Choose 5-3, 6-2 or 4-4 on the Bench page. Six forwards wins a scrum war, four and four covers an injury anywhere.',
+        head: t('coachfix.splitHead'),
+        how: t('coachfix.splitHow'),
       })
     }
   }
@@ -347,12 +362,14 @@ export function coachFixes(
   // ---- and if the side genuinely did its job, say what to protect -----------
   c.push(margin > 0 ? {
     tag: 'admin', score: 3,
-    head: 'Nothing broke, so the work is making it repeatable.',
-    how: `Leave the dials alone and pick the same shape again. The strongest unit was the ${units.slice().sort((a, b) => b.pct - a.pct)[0].label.toLowerCase()} - build next week around it.`,
+    head: t('coachfix.wonHead'),
+    how: t('coachfix.wonHow', {
+      unit: t(UNIT_LOWER[units.slice().sort((a, b) => b.pct - a.pct)[0].key]),
+    }),
   } : {
     tag: 'admin', score: 3,
-    head: 'Beaten without one number screaming about it.',
-    how: 'Run one preset for a fortnight rather than a new plan every Saturday. The engine rewards a side that knows its own game.',
+    head: t('coachfix.lostHead'),
+    how: t('coachfix.lostHow'),
   })
 
   // best of each subject, then the two worst problems on the list

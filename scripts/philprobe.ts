@@ -9,6 +9,7 @@
 import { newGame } from '../src/game/newgame'
 import { COUNTER, PHILOSOPHIES, PHILOSOPHY_BY_ID, newCoachPhilosophy, packTilt, pickPhilosophy, philosophyOf } from '../src/game/philosophy'
 import type { GameState } from '../src/game/model'
+import { LANGS, tIn } from '../src/game/i18n'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -109,11 +110,20 @@ for (let gen = 0; gen <= 12; gen++) seen.add(pickPhilosophy(g, club, gen))
 console.log(`${club.short} over thirteen appointments: ${seen.size} different ideas`)
 if (seen.size < 3) bad(`${club.short} would keep hiring the same coach's ideas (${seen.size} in thirteen)`)
 
-// 7. the briefing text is fit to print
+// 7. the briefing text is fit to print - IN EVERY LANGUAGE
+//
+// The table holds keys now, so the words come out of the dictionaries. Both
+// rules below are about the card the words land on rather than about English,
+// so both are checked per language: a French blurb that runs to 160 characters
+// overflows the same card an English one would.
 for (const ph of PHILOSOPHIES) {
-  if (!/[.!]$/.test(ph.blurb)) bad(`${ph.id} blurb does not end in a full stop`)
-  if (!/[.!]$/.test(ph.soft)) bad(`${ph.id} soft spot does not end in a full stop`)
-  if (ph.blurb.length > 130) bad(`${ph.id} blurb is ${ph.blurb.length} characters, too long for the card`)
+  for (const { code, label } of LANGS) {
+    const blurb = tIn(code, ph.blurb)
+    const soft = tIn(code, ph.soft)
+    if (!/[.!]$/.test(blurb)) bad(`${ph.id} blurb does not end in a full stop (${label})`)
+    if (!/[.!]$/.test(soft)) bad(`${ph.id} soft spot does not end in a full stop (${label})`)
+    if (blurb.length > 130) bad(`${ph.id} blurb is ${blurb.length} characters in ${label}, too long for the card`)
+  }
   for (const d of Object.values(ph.dials)) {
     if (d < 0 || d > 100) bad(`${ph.id} has a dial outside 0-100`)
   }
@@ -151,8 +161,11 @@ for (const ph of PHILOSOPHIES) {
 for (const ph of PHILOSOPHIES) {
   const c = COUNTER[ph.id]
   if (!c) { bad(`${ph.id} has no counter, so reading it is all you can do about it`); continue }
-  if (!/[.!]$/.test(c.line)) bad(`${ph.id} counter line does not end in a full stop`)
-  if (c.line.length > 130) bad(`${ph.id} counter line is ${c.line.length} characters, too long for the card`)
+  for (const { code, label } of LANGS) {
+    const line = tIn(code, c.line)
+    if (!/[.!]$/.test(line)) bad(`${ph.id} counter line does not end in a full stop (${label})`)
+    if (line.length > 130) bad(`${ph.id} counter line is ${line.length} characters in ${label}, too long for the card`)
+  }
   for (const [k, v] of Object.entries(c.dials)) {
     if (v < 0 || v > 100) bad(`${ph.id} counter has ${k} outside 0-100`)
   }

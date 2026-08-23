@@ -9,7 +9,7 @@ import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '..
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
-import { t } from '../../game/i18n'
+import { ord, posName, t } from '../../game/i18n'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
@@ -22,6 +22,10 @@ import { sortTable } from '../../game/schedule'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
+/** The forecast in words. The VALUE stays English everywhere it is stored or
+ *  compared - the engine reads fixture.weather - and only the label moves. */
+const weatherWord = (w: string): string => t(`matchday.wx${w}`)
+
 export default function MatchDay() {
   const game = useStore(s => s.game)!
   const live = useStore(s => s.liveMatch)
@@ -32,8 +36,8 @@ export default function MatchDay() {
   if (!fx) {
     return (
       <div className="title-screen">
-        <div>No fixture this week.</div>
-        <button className="btn gold" style={{ marginTop: 16 }} onClick={back}>Back</button>
+        <div>{t('matchday.noFixture')}</div>
+        <button className="btn gold" style={{ marginTop: 16 }} onClick={back}>{t('matchday.back')}</button>
       </div>
     )
   }
@@ -46,11 +50,13 @@ export default function MatchDay() {
 // Pre-match
 // ------------------------------------------------------------------
 
+// the tables hold KEYS, the tiles call t() - the speech id is what reaches the
+// engine and the save, so only the words on the tile change with the language
 const SPEECHES = [
-  { id: 'calm', icon: '🧊', name: 'Calm the nerves', desc: 'Defence up, discipline up. Solid start.' },
-  { id: 'fire', icon: '🔥', name: 'Light the fuse', desc: 'Attack & breakdown up - but cards loom.' },
-  { id: 'underdog', icon: '🐺', name: 'Nobody rates us', desc: 'Big lift when written off; flat if you\'re favourites.' },
-  { id: 'expect', icon: '👑', name: 'I expect a win', desc: 'Standards. Lands when strongest; risky otherwise.' },
+  { id: 'calm', icon: '🧊', name: 'matchday.spCalm', desc: 'matchday.spCalmD' },
+  { id: 'fire', icon: '🔥', name: 'matchday.spFire', desc: 'matchday.spFireD' },
+  { id: 'underdog', icon: '🐺', name: 'matchday.spUnderdog', desc: 'matchday.spUnderdogD' },
+  { id: 'expect', icon: '👑', name: 'matchday.spExpect', desc: 'matchday.spExpectD' },
 ] as const
 type SpeechId = typeof SPEECHES[number]['id']
 
@@ -62,9 +68,9 @@ type SpeechId = typeof SPEECHES[number]['id']
  *  team sheet). The middle one is the useful one, and putting all three in a row
  *  makes the choice a decision rather than a button nobody finds. */
 const VIEW_MODES = [
-  { id: 'full', icon: '📺', name: 'Every minute', desc: 'The full commentary, ruck by ruck. Every touchline call is yours.' },
-  { id: 'highlights', icon: '🎬', name: 'Highlights', desc: 'The ticker stops for scores, cards and injuries only. Half-time and the hour are still yours.' },
-  { id: 'instant', icon: '⏩', name: 'Assistant', desc: 'He takes the touchline and you read the report. Straight to the result.' },
+  { id: 'full', icon: '📺', name: 'matchday.vmFull', desc: 'matchday.vmFullD' },
+  { id: 'highlights', icon: '🎬', name: 'matchday.vmHighlights', desc: 'matchday.vmHighlightsD' },
+  { id: 'instant', icon: '⏩', name: 'matchday.vmInstant', desc: 'matchday.vmInstantD' },
 ] as const
 
 /** Chips on one line with a readout underneath, the same shape as the exit
@@ -80,15 +86,15 @@ function ViewPicker({ view, onPick }: {
 }) {
   return (
     <>
-      <div className="set-label">How will you watch this one?</div>
+      <div className="set-label">{t('matchday.howWatch')}</div>
       <div className="preset-row">
         {VIEW_MODES.map(v => (
-          <button key={v.id} className={`preset-chip${view === v.id ? ' on' : ''}`} title={v.desc}
-            onClick={() => onPick(v.id)}>{v.icon} {v.name}</button>
+          <button key={v.id} className={`preset-chip${view === v.id ? ' on' : ''}`} title={t(v.desc)}
+            onClick={() => onPick(v.id)}>{v.icon} {t(v.name)}</button>
         ))}
       </div>
       <div className="meta" style={{ marginTop: 4 }}>
-        {VIEW_MODES.find(v => v.id === view)?.desc}
+        {t(VIEW_MODES.find(v => v.id === view)?.desc ?? '')}
       </div>
     </>
   )
@@ -187,18 +193,18 @@ function Preview({ fxId }: { fxId: number }) {
   // be sent out" made the reader decode three abbreviations to learn one
   // thing: this man cannot play today.
   const PROB_WORD: Record<string, string> = {
-    INJURED: 'is injured', SUSPENDED: 'is suspended',
-    'INTL DUTY': 'is away with his country', GONE: 'has left the club',
+    INJURED: t('matchday.probINJURED'), SUSPENDED: t('matchday.probSUSPENDED'),
+    'INTL DUTY': t('matchday.probINTL'), GONE: t('matchday.probGONE'),
   }
   const warnings: { level: 'bad' | 'warn' | 'note'; text: string }[] = []
   for (let i = 0; i < 15; i++) {
     const pid = tac.lineup[i]
     const p = pid != null ? game.players[pid] : null
     const prob = problem(p)
-    if (prob === 'EMPTY') warnings.push({ level: 'bad', text: `The no. ${XV_SLOTS[i].shirt} shirt is empty - nobody is picked in it.` })
-    else if (prob) warnings.push({ level: 'bad', text: `${p!.name} (no. ${XV_SLOTS[i].shirt}) ${PROB_WORD[prob]} - he cannot start today.` })
-    else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: `${p!.name} is RUSTY (${p!.rust}w) - high re-injury risk if he plays.` })
-    else if (p!.cond < 60) warnings.push({ level: 'warn', text: `${p!.name} is only ${Math.round(p!.cond)}% fit - his tank will empty early.` })
+    if (prob === 'EMPTY') warnings.push({ level: 'bad', text: t('matchday.warnEmpty', { shirt: XV_SLOTS[i].shirt }) })
+    else if (prob) warnings.push({ level: 'bad', text: t('matchday.warnCannotStart', { player: p!.name, shirt: XV_SLOTS[i].shirt, problem: PROB_WORD[prob] }) })
+    else if ((p!.rust ?? 0) > 0) warnings.push({ level: 'warn', text: t('matchday.warnRusty', { player: p!.name, n: p!.rust ?? 0 }) })
+    else if (p!.cond < 60) warnings.push({ level: 'warn', text: t('matchday.warnUnfit', { player: p!.name, pct: Math.round(p!.cond) }) })
   }
   // The bench answers to the same rule as the XV (round 25, user: "I had an
   // injured player on the bench and the game play continued. All 23 should be
@@ -209,7 +215,7 @@ function Preview({ fxId }: { fxId: number }) {
     if (pid == null) continue
     const p = game.players[pid] ?? null
     const prob = problem(p)
-    if (prob && prob !== 'EMPTY') warnings.push({ level: 'bad', text: `${p!.name} (bench, no. ${i + 1}) ${PROB_WORD[prob]} - all twenty-three must be fit.` })
+    if (prob && prob !== 'EMPTY') warnings.push({ level: 'bad', text: t('matchday.warnBench', { player: p!.name, shirt: i + 1, problem: PROB_WORD[prob] }) })
   }
   // Law 3: without cover at all three front-row positions the referee orders
   // uncontested scrums, and the set piece leaves the game for both sides. Loud,
@@ -235,14 +241,11 @@ function Preview({ fxId }: { fxId: number }) {
     // Plain words here too: "Law 3", "your 23" and "(1 of 2)" is how the
     // laws describe the problem, not how a player hears it. Say what is
     // short, what the referee will do about it, and what fixes it.
-    const missing = ([['LP', 'loosehead prop'], ['HK', 'hooker'], ['TP', 'tighthead prop']] as const)
+    const missing = ([['LP', 'matchday.frLoosehead'], ['HK', 'matchday.frHooker'], ['TP', 'matchday.frTighthead']] as const)
       .filter(([k]) => frontRow[k] < 2)
-      .map(([k, word]) => frontRow[k] === 0 ? `nobody else who can play ${word}` : `only ${frontRow[k]} who can play ${word}`)
-      .join(' and ')
-    warnings.push({
-      level: 'bad',
-      text: `Scrum problem: in your whole matchday squad you have ${missing}. The referee needs 2 for each front-row shirt, or he makes every scrum uncontested - no pushing, and a strong pack counts for nothing. Put more front-row cover on the bench.`,
-    })
+      .map(([k, word]) => t(frontRow[k] === 0 ? 'matchday.frNone' : 'matchday.frOnly', { n: frontRow[k], pos: t(word) }))
+      .join(t('matchday.frJoin'))
+    warnings.push({ level: 'bad', text: t('matchday.warnScrum', { missing }) })
   }
   // milestone watch: pre-announce the numbers worth playing for today
   for (const pid of tac.lineup.slice(0, 15)) {
@@ -252,12 +255,16 @@ function Preview({ fxId }: { fxId: number }) {
     const cApps = pl.career.reduce((s, c) => s + c.apps, 0) + pl.stats.apps + (pl.hist?.apps ?? 0)
     const cPts = pl.career.reduce((s, c) => s + c.points, 0) + pl.stats.points + (pl.hist?.points ?? 0)
     for (const [val, at, label] of [
-      [cApps + 1, [100, 200, 300, 400], 'career appearance'],
-      [cTries, [49, 99], 'career try - one more today'],
-      [cPts, [495, 496, 497, 498, 499, 995, 996, 997, 998, 999], 'career point milestone in reach'],
+      [cApps + 1, [100, 200, 300, 400], 'apps'],
+      [cTries, [49, 99], 'tries'],
+      [cPts, [495, 496, 497, 498, 499, 995, 996, 997, 998, 999], 'points'],
     ] as const) {
       if ((at as readonly number[]).includes(val as number)) {
-        warnings.push({ level: 'note', text: `MILESTONE WATCH: ${pl.name} - ${label === 'career appearance' ? `${val}th career appearance today` : label === 'career try - one more today' ? `try number ${(val as number) + 1} of his career would bring up ${(val as number) + 1 === 50 ? '50' : '100'}` : `closing on ${(val as number) < 990 ? '500' : '1,000'} career points`}.` })
+        const n = val as number
+        const what = label === 'apps' ? t('matchday.msApps', { ord: ord(n) })
+          : label === 'tries' ? t('matchday.msTry', { n: n + 1, mark: n + 1 === 50 ? 50 : 100 })
+          : t('matchday.msPts', { mark: n < 990 ? 500 : 1000 })
+        warnings.push({ level: 'note', text: t('matchday.warnMilestone', { player: pl.name, what }) })
         break
       }
     }
@@ -269,14 +276,15 @@ function Preview({ fxId }: { fxId: number }) {
     const mine = order.findIndex(r => r.teamId === game.userClubId)
     const theirs = order.findIndex(r => r.teamId === opp)
     if (mine >= 0 && theirs >= 0 && Math.abs(order[mine].pts - order[theirs].pts) <= 4 && Math.abs(mine - theirs) <= 2) {
-      warnings.push({ level: 'note', text: `SIX-POINTER: ${Math.abs(order[mine].pts - order[theirs].pts) === 0 ? 'level on points' : `${Math.abs(order[mine].pts - order[theirs].pts)} points between you`} and fighting for the same prize. Beat them and bury them.` })
+      const gap = Math.abs(order[mine].pts - order[theirs].pts)
+      warnings.push({ level: 'note', text: t('matchday.warnSixPointer', { gap: gap === 0 ? t('matchday.sixLevel') : t('matchday.sixGap', { n: gap }) }) })
     }
   }
   const lastPlayed = game.fixtures.find(f =>
     f.week === game.week - 1 && f.played && (f.homeId === game.userClubId || f.awayId === game.userClubId))
   const gapDays = lastPlayed ? 7 + fixtureDayOff(fx.id) - fixtureDayOff(lastPlayed.id) : 7
-  if (gapDays <= 5) warnings.push({ level: 'warn', text: `Only a ${gapDays}-day turnaround since the last match - the squad recovered slower this week. Watch the tanks.` })
-  if (!speech) warnings.push({ level: 'note', text: 'No dressing-room speech chosen - the players will make their own minds up.' })
+  if (gapDays <= 5) warnings.push({ level: 'warn', text: t('matchday.warnTurnaround', { n: gapDays }) })
+  if (!speech) warnings.push({ level: 'note', text: t('matchday.warnNoSpeech') })
 
   // THE HARD GATE (user: "when a player is injured you shouldn't be able to
   // process the game without making changes"). A bad warning used to be
@@ -307,7 +315,7 @@ function Preview({ fxId }: { fxId: number }) {
     .map(id => id != null ? game.players[id] : null)
     .filter((p): p is Player => !!p && !p.injury && p.clubId === club.id && (inRedZone(p) || p.cond < 62))
   const rotWindow = comp?.type !== 'league' || gapDays <= 5
-  const rotReason = (p: Player) => inRedZone(p) ? 'red zone' : `${Math.round(p.cond)}% fit`
+  const rotReason = (p: Player) => inRedZone(p) ? t('matchday.rotRedZone') : t('matchday.rotFit', { pct: Math.round(p.cond) })
   const rotateXV = () => {
     const rest = new Set(rotFlagged.map(p => p.id))
     const pool = availablePlayers(game, club.players).filter(p => !rest.has(p.id))
@@ -332,52 +340,41 @@ function Preview({ fxId }: { fxId: number }) {
     const plans: { text: string; d: Partial<Record<SliderKey, number>>; w: number }[] = []
     if (forecast === 'Rain' || forecast === 'Snow')
       plans.push({ w: 3, text: v([
-        `${forecast} forecast - put boot to ball and pin the corners. Handling sides drown in this.`,
-        `${forecast} on the way. Territory wins this one: kick long, chase hard, let them make the mistakes.`,
-        `Filthy weather due. Keep the ball off the deck at your peril - this is a day for the boot and the maul.`,
+        t('matchday.planWet1', { weather: weatherWord(forecast) }),
+        t('matchday.planWet2', { weather: weatherWord(forecast) }),
+        t('matchday.planWet3'),
       ]), d: { kicking: 15, style: -8 } })
     if (oppUnits.scrum < myUnits.scrum * 0.94)
       plans.push({ w: 2.5, text: v([
-        'Their scrum creaks. Keep it tight and squeeze the penalties out of them.',
-        'We have them at the scrum. March them backwards until the referee gets bored of whistling.',
-        'Their front row is the weak link. Every scrum is three points waiting to happen.',
+        t('matchday.planScrumUs1'), t('matchday.planScrumUs2'), t('matchday.planScrumUs3'),
       ]), d: { style: -10, aggression: 8 } })
     if (myUnits.scrum < oppUnits.scrum * 0.94)
       plans.push({ w: 2, text: v([
-        'Avoid the arm wrestle - their pack is a handful. Play away from the set-piece.',
-        'Do not feed their scrum. Quick taps, quick lineouts, keep the big lads honest and blowing.',
-        'Their pack wants a fight we cannot win. Deny them the set-piece and stretch the game.',
+        t('matchday.planScrumThem1'), t('matchday.planScrumThem2'), t('matchday.planScrumThem3'),
       ]), d: { style: 8, kicking: 6 } })
     if (oppUnits.defence < myUnits.attack * 0.95)
       plans.push({ w: 2, text: v([
-        'Their edge defence is the soft spot. Go wide and shift the point of attack.',
-        'Numbers out wide win this. Two passes past the ruck and they are scrambling.',
-        'Their wings tuck in. Earn the corner and the tries will follow.',
+        t('matchday.planWide1'), t('matchday.planWide2'), t('matchday.planWide3'),
       ]), d: { style: 12, tempo: 8 } })
     if (myUnits.lineout > oppUnits.lineout * 1.07)
       plans.push({ w: 1.5, text: v([
-        'You own the air. Kick for touch and strangle the field position.',
-        'Their lineout wobbles under pressure. Kick to the corners and feast on the throw.',
+        t('matchday.planAir1'), t('matchday.planAir2'),
       ]), d: { kicking: 10 } })
     if (matchRef.style === 'strict')
       plans.push({ w: 2, text: v([
-        `${matchRef.name} cards early - discipline first at the ruck.`,
-        `${matchRef.name} referees the letter of the law. Stay on your feet, hands off, no cheap shots.`,
+        t('matchday.planStrict1', { ref: matchRef.name }), t('matchday.planStrict2', { ref: matchRef.name }),
       ]), d: { aggression: -12 } })
     if (matchRef.style === 'lenient')
       plans.push({ w: 1.5, text: v([
-        `${matchRef.name} lets it flow - lift the tempo and fight every breakdown.`,
-        `${matchRef.name} keeps the whistle in his pocket. The breakdown is a street fight today - win it.`,
+        t('matchday.planLenient1', { ref: matchRef.name }), t('matchday.planLenient2', { ref: matchRef.name }),
       ]), d: { tempo: 10, aggression: 6 } })
     if (oppCond < 78)
       plans.push({ w: 2, text: v([
-        'Their legs are heavy this week. Run them off their feet.',
-        'They backed up a hard match and it shows. High tempo from the first whistle and they will crack late.',
+        t('matchday.planTired1'), t('matchday.planTired2'),
       ]), d: { tempo: 12 } })
     if (heated)
       plans.push({ w: 1.8, text: v([
-        'This one will boil over. Be the calmer side and let them implode.',
-        'Bad blood in this fixture. Let them throw the punches and take the points from the penalties.',
+        t('matchday.planHeated1'), t('matchday.planHeated2'),
       ]), d: { aggression: -8 } })
     return plans.sort((a, b) => b.w - a.w).slice(0, 3)
   })()
@@ -453,9 +450,9 @@ function Preview({ fxId }: { fxId: number }) {
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700, width: 26 }}>{shirt}</td>
         <td style={{ width: 38 }}><PosBadge pos={pos} /></td>
         <td className="name">
-          {p ? p.name : <span className="muted">- tap to pick -</span>}
+          {p ? p.name : <span className="muted">{t('matchday.tapToPick')}</span>}
           {prob && p && <span style={{ color: 'var(--text-negative)', fontSize: 10.5, fontWeight: 700 }}> {prob}</span>}
-          {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY</span>}
+          {!prob && p && (p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> {t('matchday.rusty')}</span>}
         </td>
         <td style={{ width: 92 }}>{p && <Stars ca={effAt(p, pos)} />}</td>
         <td className="num" style={{ width: 44 }}>{p ? `${Math.round(p.cond)}%` : ''}</td>
@@ -472,23 +469,23 @@ function Preview({ fxId }: { fxId: number }) {
       <div className="modal-veil" onClick={() => setPickSlot(null)}>
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
-          <SectionTitle sub={`shirt ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt}`}>
-            Pick a {pos}
+          <SectionTitle sub={t('matchday.pickerSub', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
+            {t('matchday.pickerTitle', { pos: posName(pos) })}
           </SectionTitle>
           <table className="dtable"><tbody>
             {pool.map(p => (
               <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
                 style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                 <td><PosBadge pos={p.pos} /></td>
-                <td className="name">{p.name}{tac.lineup.includes(p.id) ? ' (selected)' : ''}
-                  {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> ⚠ RUSTY {p.rust}w</span>}
+                <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('matchday.selected') : ''}
+                  {(p.rust ?? 0) > 0 && <span style={{ color: 'var(--gold)', fontSize: 10.5, fontWeight: 700 }}> {t('matchday.rustyW', { n: p.rust ?? 0 })}</span>}
                 </td>
                 <td><Stars ca={effAt(p, pos)} /></td>
                 <td className="num">{Math.round(p.cond)}%</td>
               </tr>
             ))}
           </tbody></table>
-          <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>Clear Slot</button>
+          <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>{t('matchday.clearSlot')}</button>
         </div>
       </div>
     )
@@ -501,9 +498,9 @@ function Preview({ fxId }: { fxId: number }) {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 18px 4px' }}>
-            <h3 style={{ fontSize: 17, margin: '2px 0 8px', textAlign: 'center' }}>Are you ready for the game?</h3>
+            <h3 style={{ fontSize: 17, margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyTitle')}</h3>
             {warnings.length === 0 && (
-              <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>Everything looks in order. The tunnel awaits.</div>
+              <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.readyOk')}</div>
             )}
             {warnings.length > 0 && (
               <div style={{ maxHeight: '34vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: '2px 10px' }}>
@@ -521,26 +518,24 @@ function Preview({ fxId }: { fxId: number }) {
             )}
             {speech && (
               <div className="meta" style={{ marginTop: 8, textAlign: 'center' }}>
-                Speech: <b>{SPEECHES.find(s => s.id === speech)?.name}</b>
+                {t('matchday.speechLabel')}<b>{t(SPEECHES.find(s => s.id === speech)?.name ?? '')}</b>
               </div>
             )}
             {hasBad && fixedLineup && (
               <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
-                The team cannot kick off as it is. Fix It lets the assistant repair
-                the team sheet and start the match. Not Yet goes back so you can
-                sort it yourself.
+                {t('matchday.fixItNote')}
               </div>
             )}
             {hasBad && !fixedLineup && (
               <div className="meta" style={{ marginTop: 8, textAlign: 'center', color: 'var(--text-negative)', fontWeight: 600 }}>
-                A full-blown crisis: the squad cannot field fifteen fit men. The
-                assistant will patch the gaps with whoever can stand.
+                {t('matchday.crisisNote')}
               </div>
             )}
             <div className="btn-row" style={{ marginTop: 12 }}>
-              <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
+              <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
               {/* the gold button's label keeps the exact 'Take the Field' text
-                  inside it because that substring is what a tap looks for */}
+                  inside it because that substring is what a tap looks for -
+                  scripts/i18nprobe.ts pins the English value for the same reason */}
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
                 onClick={() => {
                   if (hasBad && fixedLineup) { tac.lineup = fixedLineup; touch() }
@@ -548,7 +543,7 @@ function Preview({ fxId }: { fxId: number }) {
                   if (view === 'instant') instantResult(speech ?? undefined)
                   else kickOff(speech ?? undefined, view)
                 }}>
-                {hasBad && fixedLineup ? '🩺 Fix It & ' : ''}{view === 'instant' ? '⏩ Let Him Take It' : '▸ Take the Field'}
+                {hasBad && fixedLineup ? t('matchday.fixItPrefix') : ''}{t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
               </button>
             </div>
           </div>
@@ -563,10 +558,10 @@ function Preview({ fxId }: { fxId: number }) {
         <div className="masthead-row">
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
-            <h1>Match Day</h1>
-            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
+            <h1>{t('matchday.mdTitle')}</h1>
+            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
-          <button className="continue-btn" onClick={tryKickOff}>Kick Off ▸</button>
+          <button className="continue-btn" onClick={tryKickOff}>{t('matchday.kickOff')}</button>
         </div>
       </header>
       <main className="content">
@@ -577,16 +572,18 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="mday-badges" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={38} />
             {game.clubs[fx.homeId] && <Jersey club={game.clubs[fx.homeId]} size={54} />}
-            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>VS</span>
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>{t('matchday.vs')}</span>
             {game.clubs[fx.awayId] && <Jersey club={game.clubs[fx.awayId]} size={54} />}
             <CrestT g={game} teamId={fx.awayId} size={38} />
           </div>
           <div className="mday-facts">
-          <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
-          <div className="meta">🏟️ {fx.venue ? `${fx.venue.name}, ${fx.venue.city} · neutral ground` : `${home?.stadium ?? 'Neutral venue'}${home ? `, ${home.city}` : ''}`}</div>
+          <h3 style={{ fontSize: 19 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
+          <div className="meta">🏟️ {fx.venue
+            ? t('matchday.venueNeutral', { name: fx.venue.name, city: fx.venue.city })
+            : home ? t('matchday.venueHome', { stadium: home.stadium, city: home.city }) : t('common.neutralVenue')}</div>
           <div className="meta" style={{ marginTop: 3 }}>
-            {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} Forecast: {rollWeather(game.week, weekRng(game))}
-            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: 'var(--danger)', fontWeight: 700 }}> · {derbyName(fx.homeId, fx.awayId)} - expect a cauldron</span>}
+            {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, weekRng(game))) })}
+            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: 'var(--danger)', fontWeight: 700 }}>{t('matchday.derbyTag', { derby: derbyName(fx.homeId, fx.awayId) ?? '' })}</span>}
           </div>
           </div>
         </div>
@@ -602,9 +599,9 @@ function Preview({ fxId }: { fxId: number }) {
         })()}
 
         <div className="tab-bar" style={{ marginTop: 4 }}>
-          <button className={ptab === 'brief' ? 'active' : ''} onClick={() => setPtab('brief')}>Briefing</button>
-          <button className={ptab === 'team' ? 'active' : ''} onClick={() => setPtab('team')}>Team</button>
-          <button className={ptab === 'talk' ? 'active' : ''} onClick={() => setPtab('talk')}>Talk{speech ? ' ✓' : ''}</button>
+          <button className={ptab === 'brief' ? 'active' : ''} onClick={() => setPtab('brief')}>{t('matchday.tabBrief')}</button>
+          <button className={ptab === 'team' ? 'active' : ''} onClick={() => setPtab('team')}>{t('matchday.tabTeam')}</button>
+          <button className={ptab === 'talk' ? 'active' : ''} onClick={() => setPtab('talk')}>{t('matchday.tabTalk')}{speech ? ' ✓' : ''}</button>
         </div>
 
         {ptab === 'brief' && <>
@@ -617,17 +614,18 @@ function Preview({ fxId }: { fxId: number }) {
           // lines that matter (playoffs, the bottom two). Knockout ties get
           // the only stake they have. Finals keep their own card below.
           const comp = game.comps[fx.compId]
-          const ord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][Math.min(n % 10, 4)] ?? 'th'}`
+          // ord() comes from i18n now - it was a local ternary here, and five
+          // screens each had their own copy of it
           if (fx.stage && fx.stage !== 'F' && comp) {
             // the relegation playoff (21A) is knockout rugby with a whole
             // season's status on it, and the card should say exactly that
             const relBar = fx.stage === 'BAR' && comp.id === 'prem'
             return (
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                <div className="fact-label">The Stakes</div>
+                <div className="fact-label">{t('matchday.stakes')}</div>
                 <div className="meta">{relBar
-                  ? 'The relegation playoff. Eighty minutes for a Premier Division place: the winner plays top-flight rugby next season, the loser spends a year in the Championship.'
-                  : `Knockout rugby. Win and the ${comp.short} run goes on; lose and it ends this afternoon.`}</div>
+                  ? t('matchday.stakesRelBar')
+                  : t('matchday.stakesKnockout', { comp: comp.short })}</div>
               </div>
             )
           }
@@ -646,24 +644,28 @@ function Preview({ fxId }: { fxId: number }) {
           const late = game.week >= 30
           const bits: string[] = []
           bits.push(pos === 1
-            ? `Top of the ${comp.short} on ${mine.pts} points${below ? `, ${gapDown} clear of ${teamShort(game, below.teamId)}` : ''}.`
-            : `${ord(pos)} in the ${comp.short} on ${mine.pts} points - ${teamShort(game, above!.teamId)} above by ${gapUp}${below ? `, ${teamShort(game, below.teamId)} below by ${gapDown}` : ''}.`)
-          if (pos > 1 && gapUp <= 4) bits.push(`A win is worth at least four: close enough to climb today.`)
-          else if (pos === 1 && gapDown <= 4) bits.push(`Slip up and the top spot is there to be taken.`)
+            ? (below
+              ? t('matchday.stakesTopClear', { comp: comp.short, pts: mine.pts, gap: gapDown, club: teamShort(game, below.teamId) })
+              : t('matchday.stakesTop', { comp: comp.short, pts: mine.pts }))
+            : (below
+              ? t('matchday.stakesPosBoth', { pos: ord(pos), comp: comp.short, pts: mine.pts, above: teamShort(game, above!.teamId), gapUp, below: teamShort(game, below.teamId), gapDown })
+              : t('matchday.stakesPos', { pos: ord(pos), comp: comp.short, pts: mine.pts, above: teamShort(game, above!.teamId), gapUp })))
+          if (pos > 1 && gapUp <= 4) bits.push(t('matchday.stakesClimb'))
+          else if (pos === 1 && gapDown <= 4) bits.push(t('matchday.stakesSlip'))
           if (late) {
             if (pos > cutoff && order[cutoff - 1]) {
-              bits.push(`The playoff line: ${order[cutoff - 1].pts - mine.pts} points to make up on ${ord(cutoff)}.`)
+              bits.push(t('matchday.stakesPlayoffGap', { n: order[cutoff - 1].pts - mine.pts, pos: ord(cutoff) }))
             } else if (pos <= cutoff && order[cutoff]) {
-              bits.push(`You hold a playoff place, ${mine.pts - order[cutoff].pts} points inside the line.`)
+              bits.push(t('matchday.stakesPlayoffHold', { n: mine.pts - order[cutoff].pts }))
             }
-            if (pos >= order.length - 1) bits.push(`You are in the bottom two. Every point is survival.`)
+            if (pos >= order.length - 1) bits.push(t('matchday.stakesBottomTwo'))
             else if (pos >= order.length - 3 && order[order.length - 2]) {
-              bits.push(`${mine.pts - order[order.length - 2].pts} points above the bottom two.`)
+              bits.push(t('matchday.stakesAboveDrop', { n: mine.pts - order[order.length - 2].pts }))
             }
           }
           return (
             <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-              <div className="fact-label">The Stakes</div>
+              <div className="fact-label">{t('matchday.stakes')}</div>
               <div className="meta">{bits.join(' ')}</div>
             </div>
           )
@@ -677,35 +679,29 @@ function Preview({ fxId }: { fxId: number }) {
           const meetings = game.fixtures.filter(f => f.played &&
             ((f.homeId === opp && f.awayId === game.userClubId) || (f.homeId === game.userClubId && f.awayId === opp)))
           const QUOTES = [
-            'We know exactly how they want to play - and we\'re ready for it.',
-            'No excuses from us this week. We\'ve targeted this one.',
-            'They\'re a good side, but this is our patch.',
-            'People keep writing us off. Suits us fine.',
-            'We\'ve had a good week. You\'ll see a response on Saturday.',
+            'matchday.quote1', 'matchday.quote2', 'matchday.quote3', 'matchday.quote4', 'matchday.quote5',
           ]
           return (
             <>
               {game.matchPrep && (
                 <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                  <div className="fact-label">This Week's Preparation</div>
+                  <div className="fact-label">{t('matchday.prepTitle')}</div>
                   <div className="meta">
-                    {{
-                      attack: '⚡ Attacking Shapes - strike moves drilled all week. Attack sharpened.',
-                      defence: '🛡 Defensive Drills - the wall is built. Defence sharpened.',
-                      setpiece: '🏗 Set-Piece Work - scrum and lineout honed to a point.',
-                      fitness: '🏃 Conditioning - the legs will last longer than theirs.',
-                      recovery: '🧖 Recovery Week - fresh bodies, full tanks.',
-                    }[game.matchPrep]}
+                    {t({
+                      attack: 'matchday.prepAttack',
+                      defence: 'matchday.prepDefence',
+                      setpiece: 'matchday.prepSetpiece',
+                      fitness: 'matchday.prepFitness',
+                      recovery: 'matchday.prepRecovery',
+                    }[game.matchPrep])}
                   </div>
                 </div>
               )}
               {fx.stage === 'F' && (
                 <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                  <div className="fact-label">🏆 THE FINAL</div>
+                  <div className="fact-label">{t('matchday.finalTitle')}</div>
                   <div className="meta">
-                    Eighty minutes from the {game.comps[fx.compId]?.name ?? 'trophy'}. Everything the
-                    season has been builds to this - there is no next week, no second leg, no points
-                    for a brave defeat. Win it.
+                    {t('matchday.finalBody', { comp: game.comps[fx.compId]?.name ?? t('matchday.finalTrophy') })}
                   </div>
                 </div>
               )}
@@ -718,11 +714,10 @@ function Preview({ fxId }: { fxId: number }) {
                   <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
                     <div className="fact-label">🔥 {dn}</div>
                     <div className="meta">
-                      The form book goes in the bin, the cards come out, and the town keeps the score
-                      longer than the league table does.
+                      {t('matchday.derbyBody')}
                       {played > 0
-                        ? <> Your ledger against {oppClub?.short ?? 'them'}: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b>.</>
-                        : <> Your first one. Win it and they will sing your name; lose it and they will remember that too.</>}
+                        ? <>{t('matchday.derbyLedger', { club: oppClub?.short ?? t('matchday.them') })}<b>{rec!.w}{t('common.w')} {rec!.d}{t('common.d')} {rec!.l}{t('common.l')}</b>.</>
+                        : <>{t('matchday.derbyFirst')}</>}
                     </div>
                   </div>
                 )
@@ -731,10 +726,9 @@ function Preview({ fxId }: { fxId: number }) {
                 const g = !derbyName(fx.homeId, fx.awayId) ? grudgeBetween(game, fx.homeId, fx.awayId) : null
                 return g ? (
                   <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
-                    <div className="fact-label">Bad Blood</div>
+                    <div className="fact-label">{t('matchday.badBlood')}</div>
                     <div className="meta">
-                      There's history here - <b>{g.reason}</b>. Expect cards, a hostile
-                      atmosphere and a contest the form book can't call.
+                      {t('matchday.badBloodPre')}<b>{g.reason}</b>{t('matchday.badBloodRest')}
                     </div>
                   </div>
                 ) : null
@@ -751,17 +745,16 @@ function Preview({ fxId }: { fxId: number }) {
                 if (!theirs.length && !ours.length) return null
                 return (
                   <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                    <div className="fact-label">Old Boys</div>
+                    <div className="fact-label">{t('matchday.oldBoys')}</div>
                     {theirs.slice(0, 3).map(p => (
                       <div key={p.id} className="meta">
-                        <b>{p.name}</b> ({p.pos}) faces the club he left - {oldBoyApps(p, game.userClubId)} appearances
-                        in your colours. Expect him to play like it is a final.
+                        <b>{p.name}</b>{t('matchday.oldBoyTheirs', { pos: p.pos, n: oldBoyApps(p, game.userClubId) })}
                       </div>
                     ))}
                     {ours.slice(0, 3).map(p => (
                       <div key={p.id} className="meta">
-                        Your <b>{p.name}</b> ({p.pos}) returns to a former home -
-                        {' '}{oldBoyApps(p, opp)} appearances for {oppClub?.short ?? 'them'}. He knows their calls.
+                        {t('matchday.oldBoyOursPre')}<b>{p.name}</b>
+                        {t('matchday.oldBoyOurs', { pos: p.pos, n: oldBoyApps(p, opp), club: oppClub?.short ?? t('matchday.them') })}
                       </div>
                     ))}
                   </div>
@@ -776,12 +769,12 @@ function Preview({ fxId }: { fxId: number }) {
                 const home = fx.homeId === game.userClubId
                 return (
                   <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                    <div className="fact-label">The Farewell Tour</div>
+                    <div className="fact-label">{t('matchday.farewell')}</div>
                     <div className="meta">
-                      <b>{bowing.name}</b> ({bowing.age}, {bowing.pos}) has announced this season is his last.
+                      <b>{bowing.name}</b>{t('matchday.farewellPre', { age: bowing.age, pos: bowing.pos })}
                       {home
-                        ? ` This is the final time ${oppClub?.short ?? 'they'} bring him to your ground. Beat him, then applaud him off.`
-                        : ` This is your last trip to face him on his own patch. Great players deserve a great send-off - just not the winning kind.`}
+                        ? t('matchday.farewellHome', { club: oppClub?.short ?? t('matchday.theyShort') })
+                        : t('matchday.farewellAway')}
                     </div>
                   </div>
                 )
@@ -802,21 +795,21 @@ function Preview({ fxId }: { fxId: number }) {
                   const cTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
                   const cPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
                   if (APPS.includes(cApps + 1)) {
-                    lines.push({ p, text: `makes career appearance number ${cApps + 1} if he takes the field` })
+                    lines.push({ p, text: t('matchday.brinkApps', { n: cApps + 1 }) })
                   } else if (TRIES.some(m => m - cTries === 1) && p.form >= 6.5) {
-                    lines.push({ p, text: `is one try away from ${cTries + 1} in his career, and he is in the form to get it` })
+                    lines.push({ p, text: t('matchday.brinkTry', { n: cTries + 1 }) })
                   } else {
                     const target = PTS.find(m => m > cPts && m - cPts <= 9)
-                    if (target) lines.push({ p, text: `needs ${target - cPts} points to reach ${target.toLocaleString()} in his career` })
+                    if (target) lines.push({ p, text: t('matchday.brinkPts', { n: target - cPts, mark: target }) })
                   }
                 }
                 if (!lines.length) return null
                 return (
                   <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                    <div className="fact-label">On The Brink</div>
+                    <div className="fact-label">{t('matchday.onTheBrink')}</div>
                     {lines.slice(0, 3).map(({ p, text }) => (
                       <div key={p.id} className="meta">
-                        <b>{p.name}</b> ({p.pos}) {text}. The ground will know the moment it happens.
+                        <b>{p.name}</b>{t('matchday.brinkLine', { pos: p.pos, what: text })}
                       </div>
                     ))}
                   </div>
@@ -824,10 +817,9 @@ function Preview({ fxId }: { fxId: number }) {
               })()}
               {danger && (
                 <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
-                  <div className="fact-label">Danger Man</div>
+                  <div className="fact-label">{t('matchday.dangerMan')}</div>
                   <div className="meta">
-                    <b>{danger.name}</b> ({danger.pos}) is the one to shackle - {oppClub?.short ?? 'they'} play
-                    through him. Keep him quiet and you're halfway there.
+                    <b>{danger.name}</b>{t('matchday.dangerBody', { pos: danger.pos, club: oppClub?.short ?? t('matchday.theyShort') })}
                   </div>
                 </div>
               )}
@@ -839,12 +831,12 @@ function Preview({ fxId }: { fxId: number }) {
                 const notes = refNotes(ref)
                 return (
                   <div className="card">
-                    <div className="fact-label">The Whistle</div>
+                    <div className="fact-label">{t('matchday.theWhistle')}</div>
                     <div className="meta" style={{ marginBottom: notes.length ? 4 : 0 }}>
-                      <b>{ref.name}</b> has the appointment.
+                      <b>{ref.name}</b>{t('matchday.refAppointed')}
                     </div>
                     {notes.map((n, i) => <div key={i} className="meta">· {n}</div>)}
-                    {notes.length === 0 && <div className="meta">Nothing marked in his book: he lets the players decide it.</div>}
+                    {notes.length === 0 && <div className="meta">{t('matchday.refNothing')}</div>}
                   </div>
                 )
               })()}
@@ -858,7 +850,7 @@ function Preview({ fxId }: { fxId: number }) {
                   .filter(x => x.b !== 'orders' && x.id != null)
                 return (
                   <div className="card">
-                    <div className="fact-label">The Finishers</div>
+                    <div className="fact-label">{t('matchday.finishers')}</div>
                     <div className="meta" style={{ marginBottom: briefed.length ? 4 : 0 }}>
                       <b>{t(def.name)}.</b> {t(def.desc)}
                     </div>
@@ -868,7 +860,7 @@ function Preview({ fxId }: { fxId: number }) {
                       </div>
                     ))}
                     {briefed.length === 0 && (
-                      <div className="meta">Every replacement is simply covering a shirt. No special instructions.</div>
+                      <div className="meta">{t('matchday.finishersNone')}</div>
                     )}
                   </div>
                 )
@@ -881,21 +873,22 @@ function Preview({ fxId }: { fxId: number }) {
                 if (!v.note) return null
                 return (
                   <div className="card">
-                    <div className="fact-label">The Trip</div>
+                    <div className="fact-label">{t('matchday.theTrip')}</div>
                     <div className="meta">{v.note}</div>
                     <div className="meta muted">
-                      {v.km.toLocaleString()}km
-                      {v.tz >= 1 ? ` · ${v.tz}h clock change` : ''}
-                      {v.altGap >= 250 ? ` · ${Math.round(v.alt).toLocaleString()}m above sea level` : ''}
+                      {t('matchday.tripKm', { n: v.km })}
+                      {v.tz >= 1 ? t('matchday.tripTz', { n: v.tz }) : ''}
+                      {v.altGap >= 250 ? t('matchday.tripAlt', { n: Math.round(v.alt) }) : ''}
                     </div>
                   </div>
                 )
               })()}
               {oppClub?.coach && (
                 <div className="card">
-                  <div className="fact-label">The Opposite Number</div>
+                  <div className="fact-label">{t('matchday.oppositeNumber')}</div>
                   <div className="meta">
-                    <b>{oppClub.coach}</b> ({oppClub.short} head coach): “{QUOTES[(fx.id + game.week) % QUOTES.length]}”
+                    <b>{oppClub.coach}</b>
+                    {t('matchday.oppCoachLine', { club: oppClub.short, quote: t(QUOTES[(fx.id + game.week) % QUOTES.length]) })}
                   </div>
                   {/* F23: what he actually asks of them. How a side plays is
                       public knowledge - you can watch them - so the philosophy
@@ -927,14 +920,15 @@ function Preview({ fxId }: { fxId: number }) {
                 if (!meetings.length && !total) return null
                 return (
                   <div className="card">
-                    <div className="fact-label">The Book On Them</div>
+                    <div className="fact-label">{t('matchday.bookOnThem')}</div>
                     {total > 0 && (
                       <div className="meta">
-                        Under you: <b>{rec!.w}W {rec!.d}D {rec!.l}L</b> against {oppClub?.short ?? 'them'}.
-                        {rec!.w === 0 && rec!.l >= 3 && <> <b style={{ color: 'var(--text-negative)' }}>Your bogey side</b> - you have never beaten them, and the players know it. End it today.</>}
-                        {rec!.l === 0 && rec!.w >= 5 && <> <b style={{ color: 'var(--text-positive)' }}>Happy hunting ground</b> - they have never beaten you. Keep it that way.</>}
-                        {(rec!.run ?? 0) >= 3 && !(rec!.l === 0 && rec!.w >= 5) && <> <b style={{ color: 'var(--text-positive)' }}>{rec!.run} straight wins</b> over them - the streak is yours to protect.</>}
-                        {(rec!.run ?? 0) <= -3 && !(rec!.w === 0 && rec!.l >= 3) && <> <b style={{ color: 'var(--text-negative)' }}>{-(rec!.run ?? 0)} straight defeats</b> to this lot - somebody has to break the hoodoo.</>}
+                        {t('matchday.underYou')}<b>{rec!.w}{t('common.w')} {rec!.d}{t('common.d')} {rec!.l}{t('common.l')}</b>
+                        {t('matchday.againstClub', { club: oppClub?.short ?? t('matchday.them') })}
+                        {rec!.w === 0 && rec!.l >= 3 && <> <b style={{ color: 'var(--text-negative)' }}>{t('matchday.bogeySide')}</b>{t('matchday.bogeyRest')}</>}
+                        {rec!.l === 0 && rec!.w >= 5 && <> <b style={{ color: 'var(--text-positive)' }}>{t('matchday.happyGround')}</b>{t('matchday.happyRest')}</>}
+                        {(rec!.run ?? 0) >= 3 && !(rec!.l === 0 && rec!.w >= 5) && <> <b style={{ color: 'var(--text-positive)' }}>{t('matchday.streakWins', { n: rec!.run ?? 0 })}</b>{t('matchday.streakWinsRest')}</>}
+                        {(rec!.run ?? 0) <= -3 && !(rec!.w === 0 && rec!.l >= 3) && <> <b style={{ color: 'var(--text-negative)' }}>{t('matchday.streakLosses', { n: -(rec!.run ?? 0) })}</b>{t('matchday.streakLossesRest')}</>}
                       </div>
                     )}
                     {meetings.map(m => (
@@ -949,27 +943,30 @@ function Preview({ fxId }: { fxId: number }) {
             </>
           )
         })()}
-        <SectionTitle sub="your colours on the left">Head to Head</SectionTitle>
-        {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
-        {bar('Lineout', myUnits.lineout, oppUnits.lineout)}
-        {bar('Breakdown', myUnits.breakdown, oppUnits.breakdown)}
-        {bar('Attack', myUnits.attack, oppUnits.attack)}
-        {bar('Defence', myUnits.defence, oppUnits.defence)}
+        <SectionTitle sub={t('matchday.h2hYours')}>{t('matchday.headToHead')}</SectionTitle>
+        {bar(t('matchday.h2hScrum'), myUnits.scrum, oppUnits.scrum)}
+        {bar(t('matchday.h2hLineout'), myUnits.lineout, oppUnits.lineout)}
+        {bar(t('matchday.h2hBreakdown'), myUnits.breakdown, oppUnits.breakdown)}
+        {bar(t('matchday.h2hAttack'), myUnits.attack, oppUnits.attack)}
+        {bar(t('matchday.h2hDefence'), myUnits.defence, oppUnits.defence)}
 
         {gamePlan.length > 0 && (
           <div className="card" style={{ borderLeft: '4px solid var(--gold)', marginTop: 8 }}>
-            <div className="fact-label">Assistant's Game Plan</div>
+            <div className="fact-label">{t('matchday.gamePlanTitle')}</div>
             {gamePlan.map((p, i) => (
               <div key={i} className="meta" style={{ padding: '2px 0' }}>• {p.text}</div>
             ))}
             <button className="btn ghost block" style={{ marginTop: 8 }} disabled={planApplied} onClick={applyPlan}>
-              {planApplied ? '✓ Plan applied - tactics adjusted' : '📋 Apply the plan - adjust my tactics'}
+              {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
             </button>
           </div>
         )}
 
         {(() => {
-          const label: Record<number, string> = { 0: 'Front row', 3: 'Locks', 8: 'Halfbacks', 11: 'Centres' }
+          const label: Record<number, string> = {
+            0: t('matchday.partFrontRow'), 3: t('matchday.partLocks'),
+            8: t('matchday.partHalfbacks'), 11: t('matchday.partCentres'),
+          }
           const rows = CHEM_SLOTS.filter(([i]) => label[i]).map(([i, j]) => {
             const a = tac.lineup[i] != null ? game.players[tac.lineup[i]!] : null
             const b = tac.lineup[j] != null ? game.players[tac.lineup[j]!] : null
@@ -981,13 +978,13 @@ function Preview({ fxId }: { fxId: number }) {
           const surname = (n: string) => n.split(' ').slice(-1)[0]
           return (
             <>
-              <SectionTitle sub="combinations click with games together">Partnerships</SectionTitle>
+              <SectionTitle sub={t('matchday.partnershipsSub')}>{t('matchday.partnerships')}</SectionTitle>
               <div className="card" style={{ paddingTop: 6, paddingBottom: 6 }}>
                 {rows.map(r => (
                   <div key={r.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
                     <span><span style={{ color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, fontSize: 11 }}>{r.key}</span> · {surname(r.a.name)} & {surname(r.b.name)}</span>
                     <span style={{ color: r.g >= 25 ? 'var(--text-positive)' : r.g < 5 ? 'var(--text-negative)' : 'var(--text-secondary)', fontWeight: 600 }}>
-                      {r.g} together · {r.tier}
+                      {t('matchday.partTogether', { n: r.g, tier: r.tier })}
                     </span>
                   </div>
                 ))}
@@ -1000,20 +997,24 @@ function Preview({ fxId }: { fxId: number }) {
         {ptab === 'team' && <>
         {rotWindow && rotFlagged.length >= 2 && (
           <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-            <div className="fact-label">Assistant's Rotation Plan</div>
+            <div className="fact-label">{t('matchday.rotationTitle')}</div>
             <div className="meta">
               {comp?.type !== 'league'
-                ? 'A cup tie is the week to trust the squad. '
-                : `A ${gapDays}-day turnaround is no week for heavy legs. `}
-              {rotFlagged.map(p => `${p.name} (${rotReason(p)})`).join(', ')} - {rotFlagged.length === 2 ? 'both' : `all ${rotFlagged.length}`} flagged
-              by the medical staff. Say the word and I'll name a fresh XV around them.
+                ? t('matchday.rotCup')
+                : t('matchday.rotTurnaround', { n: gapDays })}
+              {t('matchday.rotFlagged', {
+                men: rotFlagged.map(p => t('matchday.rotMan', { player: p.name, why: rotReason(p) })).join(', '),
+                count: rotFlagged.length === 2 ? t('matchday.rotBoth') : t('matchday.rotAll', { n: rotFlagged.length }),
+              })}
             </div>
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={rotateXV}>
-              🔄 Rotate the XV - rest the flagged {rotFlagged.length === 1 ? 'man' : 'men'}
+              {t('matchday.rotButton', { n: rotFlagged.length })}
             </button>
           </div>
         )}
-        <SectionTitle sub={sel != null ? `moving ${game.players[tac.lineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the squad list'}>Your XV</SectionTitle>
+        <SectionTitle sub={sel != null
+          ? t('matchday.moving', { player: game.players[tac.lineup[sel] ?? -1]?.name ?? t('matchday.emptySlot') })
+          : t('matchday.tapSwapHint')}>{t('matchday.yourXV')}</SectionTitle>
         {/* forwards left, backs right, exactly as the Tactics team sheet does it.
             The same information was laid out two different ways one screen apart. */}
         <div className="xv-split">
@@ -1028,14 +1029,14 @@ function Preview({ fxId }: { fxId: number }) {
         </>}
 
         {ptab === 'talk' && <>
-        <SectionTitle sub="one speech, choose the tone">Dressing Room</SectionTitle>
+        <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
         <div className="speech-grid">
           {SPEECHES.map(s => (
             <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
               onClick={() => setSpeech(speech === s.id ? null : s.id)}>
               <span className="ico">{s.icon}</span>
-              <b>{s.name}</b>
-              <span className="d">{s.desc}</span>
+              <b>{t(s.name)}</b>
+              <span className="d">{t(s.desc)}</span>
             </button>
           ))}
         </div>
@@ -1043,7 +1044,7 @@ function Preview({ fxId }: { fxId: number }) {
 
         <div className="btn-row" style={{ marginTop: 10 }}>
           <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={tryKickOff}>
-            {view === 'instant' ? 'Instant Result ▸' : view === 'highlights' ? 'Kick Off (Highlights) ▸' : 'Kick Off ▸'}
+            {t(view === 'instant' ? 'matchday.instantResult' : view === 'highlights' ? 'matchday.kickOffHighlights' : 'matchday.kickOff')}
           </button>
         </div>
         <div className="spacer" />
@@ -1055,8 +1056,8 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="modal talk-modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <div style={{ padding: '0 12px 10px' }}>
-              <SectionTitle sub={`${teamShort(game, club.id)} v ${teamShort(game, opp)} · one speech, choose the tone`}>
-                The Dressing Room
+              <SectionTitle sub={t('matchday.talkModalSub', { home: teamShort(game, club.id), away: teamShort(game, opp) })}>
+                {t('matchday.theDressingRoom')}
               </SectionTitle>
               {/* How you watch it (F5) lives here rather than at the foot of the
                   page. Measured: below the team sheet it sat 320px under the fold
@@ -1072,14 +1073,14 @@ function Preview({ fxId }: { fxId: number }) {
                       goDownTheTunnel(sp.id)
                     }}>
                     <span className="ico">{sp.icon}</span>
-                    <b>{sp.name}</b>
-                    <span className="d">{sp.desc}</span>
+                    <b>{t(sp.name)}</b>
+                    <span className="d">{t(sp.desc)}</span>
                   </button>
                 ))}
               </div>
               <button className="btn ghost block" style={{ marginTop: 8 }}
                 onClick={() => { setTalkDone(true); setTalkOpen(false); goDownTheTunnel(null) }}>
-                Say nothing - straight out
+                {t('matchday.sayNothing')}
               </button>
             </div>
           </div>
@@ -1164,8 +1165,8 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="masthead-row">
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
-            <h1>Test Match - {nat}</h1>
-            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
+            <h1>{t('matchday.testMatch', { nat })}</h1>
+            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
         </div>
       </header>
@@ -1173,20 +1174,22 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="card center">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 4 }}>
             <CrestT g={game} teamId={fx.homeId} size={40} />
-            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>VS</span>
+            <span style={{ fontFamily: 'var(--cond)', fontWeight: 700, fontSize: 15, color: 'var(--text-muted)', letterSpacing: 2 }}>{t('matchday.vs')}</span>
             <CrestT g={game} teamId={fx.awayId} size={40} />
           </div>
-          <h3 style={{ fontSize: 19 }}>{teamShort(game, fx.homeId)} v {teamShort(game, fx.awayId)}</h3>
-          <div className="meta">🌍 International rugby - the whole country is watching, coach.</div>
+          <h3 style={{ fontSize: 19 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
+          <div className="meta">{t('matchday.intlLine')}</div>
         </div>
-        <SectionTitle sub="your nation on the left">Head to Head</SectionTitle>
-        {bar('Scrum', myUnits.scrum, oppUnits.scrum)}
-        {bar('Lineout', myUnits.lineout, oppUnits.lineout)}
-        {bar('Breakdown', myUnits.breakdown, oppUnits.breakdown)}
-        {bar('Attack', myUnits.attack, oppUnits.attack)}
-        {bar('Defence', myUnits.defence, oppUnits.defence)}
+        <SectionTitle sub={t('matchday.h2hNation')}>{t('matchday.headToHead')}</SectionTitle>
+        {bar(t('matchday.h2hScrum'), myUnits.scrum, oppUnits.scrum)}
+        {bar(t('matchday.h2hLineout'), myUnits.lineout, oppUnits.lineout)}
+        {bar(t('matchday.h2hBreakdown'), myUnits.breakdown, oppUnits.breakdown)}
+        {bar(t('matchday.h2hAttack'), myUnits.attack, oppUnits.attack)}
+        {bar(t('matchday.h2hDefence'), myUnits.defence, oppUnits.defence)}
 
-        <SectionTitle sub={sel != null ? `moving ${game.players[myLineup[sel] ?? -1]?.name ?? 'empty slot'} - tap his new position` : 'tap a player, tap another to swap · tap twice for the full squad'}>Your Test XV</SectionTitle>
+        <SectionTitle sub={sel != null
+          ? t('matchday.moving', { player: game.players[myLineup[sel] ?? -1]?.name ?? t('matchday.emptySlot') })
+          : t('matchday.tapSwapHintTest')}>{t('matchday.yourTestXV')}</SectionTitle>
         <div className="tblwrap"><table className="dtable"><tbody>
           {XV_SLOTS.map((s, i) => {
             const pid = myLineup[i]
@@ -1195,13 +1198,13 @@ function NationPreview({ fxId }: { fxId: number }) {
               <tr key={i} onClick={() => tapSlot(i)} className={sel === i ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos} /></td>
-                <td className="name">{p?.name ?? <span className="muted">- tap to pick -</span>}</td>
+                <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos)} />}</td>
               </tr>
             )
           })}
         </tbody></table></div>
-        <SectionTitle>Test Bench</SectionTitle>
+        <SectionTitle>{t('matchday.testBench')}</SectionTitle>
         <div className="tblwrap"><table className="dtable"><tbody>
           {BENCH_SLOTS.map((s, i) => {
             const slot = 15 + i
@@ -1211,7 +1214,7 @@ function NationPreview({ fxId }: { fxId: number }) {
               <tr key={slot} onClick={() => tapSlot(slot)} className={sel === slot ? 'held-row' : undefined}>
                 <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{s.shirt}</td>
                 <td><PosBadge pos={s.pos[0]} /></td>
-                <td className="name">{p?.name ?? <span className="muted">- tap to pick -</span>}</td>
+                <td className="name">{p?.name ?? <span className="muted">{t('matchday.tapToPick')}</span>}</td>
                 <td>{p && <Stars ca={effAt(p, s.pos[0])} />}</td>
               </tr>
             )
@@ -1221,8 +1224,8 @@ function NationPreview({ fxId }: { fxId: number }) {
           <div className="modal-veil" onClick={() => setPickSlot(null)}>
             <div className="modal" onClick={e => e.stopPropagation()}>
               <div className="grab" />
-              <SectionTitle sub="the full Test squad">
-                Pick a {pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]}
+              <SectionTitle sub={t('matchday.testSquadSub')}>
+                {t('matchday.pickerTitle', { pos: posName(pickSlot < 15 ? XV_SLOTS[pickSlot].pos : BENCH_SLOTS[pickSlot - 15].pos[0]) })}
               </SectionTitle>
               <table className="dtable"><tbody>
                 {availablePlayers(game, rosterOf(game, nat), true)
@@ -1231,7 +1234,7 @@ function NationPreview({ fxId }: { fxId: number }) {
                     <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
                       style={myLineup.includes(p.id) ? { opacity: .55 } : undefined}>
                       <td><PosBadge pos={p.pos} /></td>
-                      <td className="name">{p.name}{myLineup.includes(p.id) ? ' (selected)' : ''}</td>
+                      <td className="name">{p.name}{myLineup.includes(p.id) ? t('matchday.selected') : ''}</td>
                       <td><Stars ca={p.ca} /></td>
                       <td className="num">{Math.round(p.cond)}%</td>
                     </tr>
@@ -1241,20 +1244,20 @@ function NationPreview({ fxId }: { fxId: number }) {
           </div>
         )}
 
-        <SectionTitle sub="one speech, choose the tone">Dressing Room</SectionTitle>
+        <SectionTitle sub={t('matchday.dressingRoomSub')}>{t('matchday.dressingRoom')}</SectionTitle>
         <div className="speech-grid">
           {SPEECHES.map(s => (
             <button key={s.id} className={`speech-tile${speech === s.id ? ' sel' : ''}`}
               onClick={() => setSpeech(speech === s.id ? null : s.id)}>
               <span className="ico">{s.icon}</span>
-              <b>{s.name}</b>
-              <span className="d">{s.desc}</span>
+              <b>{t(s.name)}</b>
+              <span className="d">{t(s.desc)}</span>
             </button>
           ))}
         </div>
         <div className="btn-row" style={{ marginTop: 10 }}>
           <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={() => setConfirm(true)}>
-            Kick Off ▸
+            {t('matchday.kickOff')}
           </button>
         </div>
         <div className="spacer" />
@@ -1263,19 +1266,19 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="modal-veil" onClick={() => setConfirm(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>Ready to lead {nat} out?</h3>
-            <div className="meta">Anthems done, jerseys presented. Substitutions and the team talk are yours from the touchline.</div>
+            <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>{t('matchday.readyNation', { nat })}</h3>
+            <div className="meta">{t('matchday.anthems')}</div>
             {/* the viewing choice sits here, not at the foot of a team sheet (F5) */}
             <ViewPicker view={view} onPick={setView} />
             <div className="btn-row" style={{ marginTop: 12 }}>
-              <button className="btn ghost" onClick={() => setConfirm(false)}>Not Yet</button>
+              <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
                 onClick={() => {
                   setConfirm(false)
                   if (view === 'instant') instantResult(speech ?? undefined)
                   else kickOff(speech ?? undefined, view)
                 }}>
-                {view === 'instant' ? '⏩ Let Him Take It' : '▸ Take the Field'}
+                {t(view === 'instant' ? 'matchday.letHimTakeIt' : 'matchday.takeField')}
               </button>
             </div>
           </div>
@@ -1295,9 +1298,9 @@ function NationPreview({ fxId }: { fxId: number }) {
 // two play buttons on it. Words instead of glyphs, inside a settings sheet:
 // speed is something you set once, not something you reach for every minute.
 const SPEEDS = [
-  { label: 'Slow', ms: 900, name: 'Slow - a minute at a time' },
-  { label: 'Normal', ms: 350, name: 'Normal - the default' },
-  { label: 'Fast', ms: 90, name: 'Fast - straight to the incidents' },
+  { label: 'matchday.spdSlow', ms: 900, name: 'matchday.spdSlowName' },
+  { label: 'matchday.spdNormal', ms: 350, name: 'matchday.spdNormalName' },
+  { label: 'matchday.spdFast', ms: 90, name: 'matchday.spdFastName' },
 ]
 
 /** XV formation spots: [x across own half 0-100, y down the pitch 0-100] */
@@ -1310,8 +1313,8 @@ const SPOTS: [number, number][] = [
 ]
 
 const BANNER: Partial<Record<MatchEvent['type'], string>> = {
-  TRY: 'TRY!', PEN: 'PENALTY GOAL', DG: 'DROP GOAL!', CON: 'CONVERTED',
-  YC: 'YELLOW CARD', RC: 'RED CARD', INJ: 'INJURY',
+  TRY: 'matchday.banTRY', PEN: 'matchday.banPEN', DG: 'matchday.banDG', CON: 'matchday.banCON',
+  YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
 }
 
 function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC }: {
@@ -1335,6 +1338,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
   const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
   const txt = last?.text ?? ''
+  // THE COMMENTARY IS ENGLISH AND STAYS ENGLISH - it is written into the match
+  // report the save keeps (see docs/i18n.md), so these patterns keep matching
+  // whatever language the screen is in. Only the label on the mock-up moves.
   const setPiece = showFx && evType === 'SUB'
     ? (/scrum/i.test(txt) ? 'SCRUM' : /lineout|against the throw/i.test(txt) ? 'LINEOUT' : /maul/i.test(txt) ? 'MAUL' : null)
     : null
@@ -1480,7 +1486,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
               <span className="pack r" style={{ background: awayC[0] }} />
             </>
           )}
-          <span className="splabel">{setPiece}</span>
+          <span className="splabel">{t(`matchday.sp${setPiece}`)}</span>
         </div>
       )}
       {showFx && evType === 'TRY' && (
@@ -1497,7 +1503,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         <div key={`kc${fxKey}`} className={`kickcam${kickMiss ? ' miss' : ''}`}>
           <span className="kc-post l" /><span className="kc-post r" /><span className="kc-bar" />
           <span className="kc-ball" />
-          <span className="kc-verdict">{kickMiss ? 'WIDE' : 'GOOD!'}</span>
+          <span className="kc-verdict">{t(kickMiss ? 'matchday.kickWide' : 'matchday.kickGood')}</span>
         </div>
       )}
       {binned(ctx.home).map((m, i) => (
@@ -1512,7 +1518,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           style={scoringFx ? { background: lastTeamC[0], color: contrastText(lastTeamC[0]) } : undefined}>
           {evType === 'YC' && <span className="cardchip y" />}
           {evType === 'RC' && <span className="cardchip r" />}
-          {banner}
+          {t(banner)}
         </div>
       )}
     </div>
@@ -1563,8 +1569,9 @@ function Live() {
 
   useEffect(() => {
     if (!playing) return
-    const t = setTimeout(() => advanceLive(), SPEEDS[speedIdx].ms)
-    return () => clearTimeout(t)
+    // `timer`, not `t`: t() is the translator
+    const timer = setTimeout(() => advanceLive(), SPEEDS[speedIdx].ms)
+    return () => clearTimeout(timer)
   }, [cursor, playing, speedIdx, events.length])
 
   // stadium sound & haptics on key events (skip when fast-forwarding)
@@ -1638,7 +1645,7 @@ function Live() {
   // waiting for the manager rather than paused. The control row treats them as
   // one thing: Play means "get back out there".
   const atInterval = atHalfTime || atBreak
-  const intervalLabel = atHalfTime ? 'Second Half' : 'Final Quarter'
+  const intervalLabel = t(atHalfTime ? 'matchday.secondHalf' : 'matchday.finalQuarter')
   /** Restart play, optionally fast-forwarding the period we are restarting. */
   const leaveInterval = (thenSkip = false) => {
     setDrawer(false)
@@ -1660,11 +1667,11 @@ function Live() {
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">
-          {done ? 'Full Time' : atHalfTime ? 'Half-Time' : atBreak ? "60' Break" : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
-          {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${fixture.weather}` : ''}
+          {done ? t('matchday.fullTime') : atHalfTime ? t('matchday.halfTime') : atBreak ? t('matchday.breakSixty') : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
+          {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${weatherWord(fixture.weather)}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
-          {live.mode === 'highlights' && !done ? ' · 🎬 HIGHLIGHTS' : ''}
+          {live.mode === 'highlights' && !done ? t('matchday.highlightsTag') : ''}
         </div>
         {!done && (() => {
           const win = (ctx.momoHist ?? []).slice(-3)
@@ -1677,18 +1684,18 @@ function Live() {
           const penC = (n: number) => n >= binAt ? 'var(--danger)' : n === binAt - 1 ? 'var(--gold)' : undefined
           return (
             <div className="last10">
-              <span className="l10-pens" title="Penalties conceded (referee bins repeat offenders)">
+              <span className="l10-pens" title={t('matchday.pensTitle')}>
                 ⚠ <b style={{ color: penC(ctx.home.consPens) }}>{ctx.home.consPens}</b>
               </span>
               {/* the flanking numbers are penalties conceded, and a phone cannot
                   hover a tooltip to find that out - so the label says it */}
-              <span className="l10-label">{live ? "PENALTIES · POSSESSION LAST 10'" : 'PENALTIES · AWAITING KICK-OFF'}</span>
-              <div className="l10-bar" title="Who has the ball" style={live ? undefined : { opacity: .35 }}>
+              <span className="l10-label">{t(live ? 'matchday.penPossLabel' : 'matchday.penAwaiting')}</span>
+              <div className="l10-bar" title={t('matchday.ballTitle')} style={live ? undefined : { opacity: .35 }}>
                 <div className="l10-home" style={{ width: `${Math.round(share * 100)}%`, background: homeC[0] }} />
                 <div className="l10-away" style={{ background: awayC[0] }} />
                 <div className="momo-needle" style={{ left: `${50 + ctx.momo * 44}%` }} />
               </div>
-              <span className="l10-pens" title="Penalties conceded (referee bins repeat offenders)">
+              <span className="l10-pens" title={t('matchday.pensTitle')}>
                 <b style={{ color: penC(ctx.away.consPens) }}>{ctx.away.consPens}</b> ⚠
               </span>
             </div>
@@ -1703,7 +1710,7 @@ function Live() {
         const kind = us > them ? 'w' : us < them ? 'l' : 'd'
         return (
           <div className={`ft-stamp ${kind}`} key={`stamp-${fixture.id}`}>
-            <b>{us > them ? 'VICTORY' : us < them ? 'DEFEAT' : 'DRAW'}</b>
+            <b>{t(us > them ? 'matchday.victory' : us < them ? 'matchday.defeat' : 'matchday.drawn')}</b>
             <span>{hs} - {as}</span>
           </div>
         )
@@ -1731,13 +1738,13 @@ function Live() {
         {!done && (
           <button className={`btn ${playing ? 'ghost' : 'gold'}`} style={{ flex: 1.6 }}
             disabled={atDecision}
-            title={atInterval ? intervalLabel : atDecision ? 'The touchline call is yours first' : playing ? 'Pause' : 'Resume'}
-            aria-label={atInterval ? intervalLabel : playing ? 'Pause' : 'Resume'}
+            title={atInterval ? intervalLabel : atDecision ? t('matchday.callFirst') : t(playing ? 'matchday.pause' : 'matchday.resume')}
+            aria-label={atInterval ? intervalLabel : t(playing ? 'matchday.pause' : 'matchday.resume')}
             onClick={() => {
               if (atInterval) { leaveInterval(); return }
               matchCursor(cursor, !playing)
             }}>
-            {playing ? '❚❚' : '▶'} <span className="ctrl-cap">{atInterval ? intervalLabel : playing ? 'Pause' : 'Play'}</span>
+            {playing ? '❚❚' : '▶'} <span className="ctrl-cap">{atInterval ? intervalLabel : t(playing ? 'matchday.pause' : 'matchday.play')}</span>
           </button>
         )}
         {!done && (
@@ -1748,7 +1755,7 @@ function Live() {
               // out of the interval first, or there is nothing to skip through
               if (atInterval) leaveInterval(true)
               else skipToBreak()
-            }}>Skip ▸</button>
+            }}>{t('matchday.skip')}</button>
         )}
         {/* Squad, not "Touchline" (user: "rather than touchline ... have it as
             squad selection so you click it and can make changes"). The panel it
@@ -1758,17 +1765,17 @@ function Live() {
             drawer button on the squad sheet. */}
         {!done && ctx.seg < 3 && (
           <button className={`btn ${sheet ? 'gold' : 'ghost'}`} style={{ flex: 1.2 }}
-            title="Match-day squad: make a substitution"
-            aria-label="Match-day squad: make a substitution"
+            title={t('matchday.squadTitle')}
+            aria-label={t('matchday.squadTitle')}
             onClick={() => {
               matchCursor(cursor, false)
               setSettings(false)
               setDrawer(false)
               setSheet(true)
-            }}>👥 <span className="ctrl-cap">Squad</span></button>
+            }}>👥 <span className="ctrl-cap">{t('matchday.squadBtn')}</span></button>
         )}
         <button className={`btn ${settings ? 'gold' : 'ghost'}`} style={{ flex: '0 0 46px' }}
-          title="Match settings: speed and sound" aria-label="Match settings: speed and sound"
+          title={t('matchday.settingsTitle')} aria-label={t('matchday.settingsTitle')}
           onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
       </div>
 
@@ -1780,10 +1787,10 @@ function Live() {
       )}
       {injury && (
         <SquadSheet
-          title={`🏥 ${injury.hurt} is off`}
+          title={t('matchday.injOff', { player: injury.hurt })}
           hurtName={injury.hurt}
-          hurtDesc={`${injury.desc}, out for ${injury.weeks} week${injury.weeks === 1 ? '' : 's'}`}
-          note="Name his replacement before play restarts."
+          hurtDesc={t('matchday.injDesc', { desc: injury.desc, n: injury.weeks })}
+          note={t('matchday.injNote')}
           freeCoverId={injury.coverId ?? undefined}
           /* forced: the physio is on, the clock is stopped, and the only way back
              to the match is through naming somebody */
@@ -1796,30 +1803,30 @@ function Live() {
         <div className="modal-veil" onClick={() => setSettings(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <h3 style={{ fontSize: 16, margin: '2px 0 8px' }}>Match Settings</h3>
-            <div className="set-label">Commentary speed</div>
+            <h3 style={{ fontSize: 16, margin: '2px 0 8px' }}>{t('matchday.matchSettings')}</h3>
+            <div className="set-label">{t('matchday.commentarySpeed')}</div>
             <div className="btn-row">
               {SPEEDS.map((s, i) => (
                 <button key={i} className={`btn ${i === speedIdx ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                  title={s.name} onClick={() => setSpeedIdx(i)}>{s.label}</button>
+                  title={t(s.name)} onClick={() => setSpeedIdx(i)}>{t(s.label)}</button>
               ))}
             </div>
-            <div className="set-label">What the ticker stops for</div>
+            <div className="set-label">{t('matchday.tickerStops')}</div>
             <div className="btn-row">
               <button className={`btn ${live.mode === 'full' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                onClick={() => matchMode('full')}>📺 Every minute</button>
+                onClick={() => matchMode('full')}>{t('matchday.everyMinute')}</button>
               <button className={`btn ${live.mode === 'highlights' ? 'gold' : 'ghost'}`} style={{ flex: 1 }}
-                onClick={() => matchMode('highlights')}>🎬 Highlights</button>
+                onClick={() => matchMode('highlights')}>{t('matchday.highlightsBtn')}</button>
             </div>
             {/* One switch, and it has to name everything it turns off. The buzz
                 used to survive Silent, so the label lied by omission. */}
-            <div className="set-label">Sound and buzz</div>
+            <div className="set-label">{t('matchday.soundAndBuzz')}</div>
             <button className="btn ghost block" onClick={() => setSound(toggleSound())}>
-              {sound ? '🔊 Crowd, whistle and buzz on' : '🔇 Silent, and no buzz'}
+              {t(sound ? 'matchday.soundOn' : 'matchday.soundOff')}
             </button>
             <button className="btn gold block" style={{ marginTop: 10 }}
               onClick={() => { setSettings(false); if (!done) matchCursor(cursor, true) }}>
-              {done ? 'Close' : '▸ Back to the Match'}
+              {t(done ? 'matchday.close' : 'matchday.backToMatch')}
             </button>
           </div>
         </div>
@@ -1839,14 +1846,14 @@ function Live() {
       <div className="content ticker panel-area" ref={tickerRef}>
         {atDecision && <DecisionPanel />}
         {drawer && paused && !done && !atDecision && (
-          <TouchlinePanel title="⏸ Play is paused - change the picture" showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel="▸ Resume Play" />
+          <TouchlinePanel title={t('matchday.pausedTitle')} showTalk={false} onResume={() => { setDrawer(false); matchCursor(cursor, true) }} resumeLabel={t('matchday.resumePlay')} />
         )}
         {(atHalfTime || atBreak) && (
           <TouchlinePanel
-            title={atBreak ? "60' - a break in play, final quarter ahead" : 'Half-Time - the dressing room waits'}
+            title={t(atBreak ? 'matchday.breakTitle' : 'matchday.halfTimeTitle')}
             showTalk={atHalfTime}
             onResume={() => { setDrawer(false); useStore.getState().startSecondHalf() }}
-            resumeLabel={atBreak ? '▸ Play the Final Quarter' : '▸ Start Second Half'}
+            resumeLabel={t(atBreak ? 'matchday.playFinalQuarter' : 'matchday.startSecondHalf')}
           />
         )}
         {/* THE STORY SO FAR (audit 20E). A touchline decision or the interval
@@ -1868,8 +1875,8 @@ function Live() {
           return (
             <>
               <div className="card" style={{ margin: '8px 14px' }}>
-                <div className="fact-label">The Story So Far</div>
-                {scores.length === 0 && <div className="meta muted">No scores yet. Somebody has to blink first.</div>}
+                <div className="fact-label">{t('matchday.storySoFar')}</div>
+                {scores.length === 0 && <div className="meta muted">{t('matchday.noScores')}</div>}
                 {scores.map((e, i) => (
                   <div key={i} className="meta" style={{ display: 'flex', gap: 8 }}>
                     <span className="muted" style={{ flex: '0 0 26px' }}>{Math.min(80, e.min)}'</span>
@@ -1880,7 +1887,7 @@ function Live() {
               </div>
               {slice && (
                 <div className="card" style={{ margin: '8px 14px' }}>
-                  <div className="fact-label">As It Stood At Kick-Off</div>
+                  <div className="fact-label">{t('matchday.asItStood')}</div>
                   {slice.map(r => {
                     const p = order!.indexOf(r) + 1
                     const usRow = r.teamId === game.userClubId
@@ -1888,7 +1895,7 @@ function Live() {
                       <div key={r.teamId} className="meta" style={{ display: 'flex', gap: 8, fontWeight: usRow ? 700 : 400 }}>
                         <span className="muted" style={{ flex: '0 0 22px' }}>{p}</span>
                         <span style={{ flex: 1 }}>{teamShort(game, r.teamId)}</span>
-                        <b>{r.pts} pts</b>
+                        <b>{t('matchday.ptsShort', { n: r.pts })}</b>
                       </div>
                     )
                   })}
@@ -1910,10 +1917,10 @@ function Live() {
             </div>
             <div className="btn-row" style={{ margin: '4px 14px' }}>
               <button className="btn ghost" onClick={() => setShowRatings(!showRatings)}>
-                {showRatings ? 'Hide ratings' : '⭐ Player ratings'}
+                {t(showRatings ? 'matchday.hideRatings' : 'matchday.showRatings')}
               </button>
               <button className="btn ghost" onClick={() => setShowLog(!showLog)}>
-                {showLog ? 'Hide commentary' : `📜 Commentary (${shown.length})`}
+                {showLog ? t('matchday.hideCommentary') : t('matchday.showCommentary', { n: shown.length })}
               </button>
             </div>
             {showRatings && <RatingsPanel />}
@@ -1924,7 +1931,7 @@ function Live() {
               </div>
             ))}
             <button className="btn gold block" style={{ margin: '10px 14px 14px' }} onClick={finishMatch}>
-              Continue to Results ▸
+              {t('matchday.continueToResults')}
             </button>
           </>
         )}
@@ -1947,25 +1954,27 @@ function DecisionPanel() {
 
   const options = [
     {
-      id: 'posts' as const, icon: '🥅', name: 'Take the Points',
-      desc: `${kicker ? kicker.name : 'Your kicker'} lines it up. Safe three${diff < 0 && diff >= -3 ? ' - levels or leads' : ''}.`,
+      id: 'posts' as const, icon: '🥅', name: t('matchday.optPosts'),
+      desc: t(diff < 0 && diff >= -3 ? 'matchday.optPostsDLead' : 'matchday.optPostsD',
+        { kicker: kicker ? kicker.name : t('matchday.yourKicker') }),
     },
     {
-      id: 'corner' as const, icon: '🚀', name: 'Kick to the Corner',
-      desc: 'Lineout five metres out. Maul for the try - glory or nothing.',
+      id: 'corner' as const, icon: '🚀', name: t('matchday.optCorner'),
+      desc: t('matchday.optCornerD'),
     },
     {
-      id: 'tap' as const, icon: '⚡', name: 'Tap & Go',
-      desc: 'Catch them flat-footed. Keeps the tempo scorching.',
+      id: 'tap' as const, icon: '⚡', name: t('matchday.optTap'),
+      desc: t('matchday.optTapD'),
     },
   ]
 
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--danger)' }}>
-      <h3 style={{ fontSize: 15 }}>⏱ Penalty - your call from the touchline</h3>
+      <h3 style={{ fontSize: 15 }}>{t('matchday.penCall')}</h3>
       <div className="meta" style={{ marginBottom: 8 }}>
-        {teamShort(game, mine.teamId)} {mine.score} – {opp.score} {teamShort(game, opp.teamId)} ·
-        {diff < 0 ? ` ${-diff} behind` : diff > 0 ? ` ${diff} ahead` : ' all square'} · {ctx.lastMin}'
+        {t('matchday.penScore', { home: teamShort(game, mine.teamId), hs: mine.score, as: opp.score, away: teamShort(game, opp.teamId) })}
+        {diff < 0 ? t('matchday.penBehind', { n: -diff }) : diff > 0 ? t('matchday.penAhead', { n: diff }) : t('matchday.penLevel')}
+        {t('matchday.penMin', { min: ctx.lastMin })}
       </div>
       <div style={{ display: 'grid', gap: 8 }}>
         {options.map(o => (
@@ -1993,17 +2002,19 @@ function MatchVerdict() {
   const star = ctx.motmId != null ? game.players[ctx.motmId] : null
   const starMine = star && mine.ratings.has(star.id)
   const margin = mine.score - opp.score
-  const t = ctx.home.poss + ctx.away.poss || 1
-  const myPoss = Math.round(((mine === ctx.home ? ctx.home.poss : ctx.away.poss) / t) * 100)
-  const feedback = margin > 0
-    ? (myPoss < 45 ? 'We won without the ball - the defensive shift was enormous. Take that anywhere.'
-      : margin >= 20 ? 'Ruthless. The assistant wants the same standards next week, not a lap of honour.'
-      : 'Winning tight ones is a habit - and we just fed the habit.')
+  // `possTotal`, not `t`: t() is the translator (src/game/i18n.ts), and a local
+  // called t here would shadow it silently - everything still typechecks
+  const possTotal = ctx.home.poss + ctx.away.poss || 1
+  const myPoss = Math.round(((mine === ctx.home ? ctx.home.poss : ctx.away.poss) / possTotal) * 100)
+  const feedback = t(margin > 0
+    ? (myPoss < 45 ? 'matchday.vdWonNoBall'
+      : margin >= 20 ? 'matchday.vdRuthless'
+      : 'matchday.vdHabit')
     : margin === 0
-      ? 'A draw that will feel like a loss or a win by Tuesday, depending on the video.'
-      : (myPoss >= 55 ? 'All that ball and nothing to show for it - the assistant circles our finishing in red.'
-        : margin <= -20 ? 'Beaten in every collision. The review will be honest, and it will sting.'
-        : 'Fine margins. Fix the two below and that is our game.')
+      ? 'matchday.vdDraw'
+      : (myPoss >= 55 ? 'matchday.vdWasted'
+        : margin <= -20 ? 'matchday.vdBeaten'
+        : 'matchday.vdMargins'))
   // The verdict used to stop at the sentence above, which names nothing (user:
   // "it should outline what the two fixes would be etc so the player can keep
   // tweaking the tactics"). game/coachfix reads the same match data and turns it
@@ -2041,7 +2052,7 @@ function MatchVerdict() {
       {star && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div className="fact-label">Star Player</div>
+            <div className="fact-label">{t('matchday.starPlayer')}</div>
             {/* THE CLUB CODE, both sides. It read "(yours)" for your own man and the
                 opponent's full short name for theirs, so the same slot carried two
                 different kinds of thing (user: "next to sleightholme (yours) should
@@ -2055,7 +2066,7 @@ function MatchVerdict() {
           </span>
         </div>
       )}
-      <div className="fact-label" style={{ marginTop: 8 }}>Coach's Verdict</div>
+      <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.coachsVerdict')}</div>
       <div className="meta">{feedback}</div>
 
       {verdictOnLast && (
@@ -2067,7 +2078,7 @@ function MatchVerdict() {
       {fixes.length > 0 && (
         <>
           <div className="fact-label" style={{ marginTop: 8 }}>
-            {fixes.length === 1 ? 'The Fix' : 'The Two Fixes'} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>- before next Saturday</span>
+            {t(fixes.length === 1 ? 'matchday.theFix' : 'matchday.theTwoFixes')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>{t('matchday.beforeSaturday')}</span>
           </div>
           {fixes.map((f, i) => (
             <div key={i} className="fix-row">
@@ -2081,14 +2092,17 @@ function MatchVerdict() {
         </>
       )}
 
-      <div className="fact-label" style={{ marginTop: 8 }}>The Unit Battles</div>
-      {units.map(({ label, pct, verdict }) => {
+      <div className="fact-label" style={{ marginTop: 8 }}>{t('matchday.unitBattlesTitle')}</div>
+      {units.map(({ key, label, pct, verdict }) => {
         const color = pct >= 52 ? 'var(--text-positive)' : pct <= 48 ? 'var(--text-negative)' : undefined
+        // the verdict is a token, not a phrase: 'we edged it' and 'ils l'ont
+        // emporté de peu' put the subject in different places, so each whole
+        // half-sentence is its own key
         return (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
-            <span style={{ color: 'var(--text-secondary)' }}>{label}</span>
+          <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 0', borderBottom: '1px solid var(--border)', fontSize: 12.5 }}>
+            <span style={{ color: 'var(--text-secondary)' }}>{t(label)}</span>
             <span><b style={{ color, fontFamily: 'var(--cond)', fontSize: 14 }}>{pct}%</b>
-              <span className="muted"> won · {pct > 48 && pct < 52 ? verdict : pct >= 52 ? `we ${verdict}` : `they ${verdict === 'shaded' ? 'shaded it' : 'bullied us'}`}</span>
+              <span className="muted">{t(`matchday.uw${verdict[0].toUpperCase()}${verdict.slice(1)}`)}</span>
             </span>
           </div>
         )
@@ -2109,7 +2123,7 @@ function Highlights() {
   if (!picks.length) return null
   return (
     <div className="card" style={{ margin: '12px 0', borderLeft: '4px solid var(--gold)' }}>
-      <h3 style={{ fontSize: 14 }}>🎬 The Highlights</h3>
+      <h3 style={{ fontSize: 14 }}>{t('matchday.highlightsTitle')}</h3>
       {picks.map((e, i) => (
         <div key={i} className="meta" style={{ padding: '3px 0' }}>
           <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> - {e.text}
@@ -2133,13 +2147,13 @@ function StatsPanel() {
   return (
     <div className="card" style={{ margin: '12px 0' }}>
       <h3 style={{ fontSize: 14, textAlign: 'center' }}>
-        {teamShort(game, live.fixture.homeId)} · Match Stats · {teamShort(game, live.fixture.awayId)}
+        {t('matchday.statsTitle', { home: teamShort(game, live.fixture.homeId), away: teamShort(game, live.fixture.awayId) })}
       </h3>
-      {row('Possession', st.possession, true)}
-      {row('Tries', st.tries)}
-      {row('Penalty goals', st.pens)}
-      {row('Cards', st.cards)}
-      {row('Energy left', st.energy, true)}
+      {row(t('matchday.stPossession'), st.possession, true)}
+      {row(t('matchday.stTries'), st.tries)}
+      {row(t('matchday.stPens'), st.pens)}
+      {row(t('matchday.stCards'), st.cards)}
+      {row(t('matchday.stEnergy'), st.energy, true)}
     </div>
   )
 }
@@ -2163,7 +2177,7 @@ function RatingsPanel() {
     .sort((a, b) => b.r - a.r)
   return (
     <div className="card" style={{ margin: '0 0 12px' }}>
-      <h3 style={{ fontSize: 14 }}>Your Player Ratings</h3>
+      <h3 style={{ fontSize: 14 }}>{t('matchday.yourRatings')}</h3>
       <table className="dtable"><tbody>
         {rows.map(({ p, r }) => (
           <tr key={p!.id}>
@@ -2209,7 +2223,9 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       .sort((a, b) => a.e - b.e)
     for (const { p, e } of tired.slice(0, 2)) {
       const cover = bench.find(b => b && (b.pos === p!.pos || b.alt.includes(p!.pos)))
-      advice.push(`🔋 ${p!.name} is ${condWord(e)}${cover ? ` - ${cover.name} covers ${p!.pos} from the bench` : ''}.`)
+      advice.push(cover
+        ? t('matchday.adviceTiredCover', { player: p!.name, word: condWord(e), cover: cover.name, pos: posName(p!.pos) })
+        : t('matchday.adviceTired', { player: p!.name, word: condWord(e) }))
     }
   }
   const min = ctx.tick * 4
@@ -2218,21 +2234,21 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       .map(([id, r]) => ({ p: game.players[id], r }))
       .filter(x => x.p && mine.onPitch.has(x.p.id) && x.r < 4.6)
       .sort((a, b) => a.r - b.r)[0]
-    if (poor) advice.push(`📉 ${poor.p!.name} is having one of those days (${poor.r.toFixed(1)}) - fresh legs might spare him.`)
+    if (poor) advice.push(t('matchday.advicePoor', { player: poor.p!.name, rating: poor.r.toFixed(1) }))
   }
   for (const e of live.events.slice(0, live.cursor)) {
     if (e.type === 'YC' && e.playerId != null && mine.onPitch.has(e.playerId) && (mine.yellowUntil.get(e.playerId) ?? 0) <= min) {
       const p = game.players[e.playerId]
-      if (p) advice.push(`🟨 ${p.name} is walking a tightrope - one more infringement and it's red.`)
+      if (p) advice.push(t('matchday.adviceCard', { player: p.name }))
       break
     }
   }
 
   const talks = [
-    ['fire', '🗣️ Shouting'],
-    ['calm', '🧊 Calm'],
-    ['demand', '📣 Encouraging'],
-    ['praise', '😄 Delighted'],
+    ['fire', 'matchday.talkFire'],
+    ['calm', 'matchday.talkCalm'],
+    ['demand', 'matchday.talkDemand'],
+    ['praise', 'matchday.talkPraise'],
   ] as const
 
   const applyPreset = (values: { style: number; tempo: number; kicking: number; aggression: number }) => {
@@ -2249,7 +2265,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       <h3 style={{ fontSize: 15 }}>{title}</h3>
       {advice.length > 0 && (
         <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'color-mix(in srgb, var(--gold) 14%, var(--surface-1))', borderRadius: 8 }}>
-          <div className="fact-label">Assistant's Notes</div>
+          <div className="fact-label">{t('matchday.assistantNotes')}</div>
           {advice.slice(0, 3).map((a, i) => (
             <div key={i} className="meta" style={{ marginTop: 3 }}>{a}</div>
           ))}
@@ -2258,11 +2274,11 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       <StatsPanel />
       {showTalk && (!ctx.talkUsed ? (
         <>
-          <div className="fact-label" style={{ marginTop: 4 }}>Team Talk</div>
+          <div className="fact-label" style={{ marginTop: 4 }}>{t('matchday.teamTalk')}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 6 }}>
             {talks.map(([k, label]) => (
               <button key={k} className="btn ghost" style={{ fontSize: 12.5, padding: '9px 6px' }}
-                onClick={() => teamTalk(k)}>{label}</button>
+                onClick={() => teamTalk(k)}>{t(label)}</button>
             ))}
           </div>
         </>
@@ -2271,7 +2287,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       ))}
 
       {isClubMatch && <>
-      <div className="fact-label" style={{ marginTop: 12 }}>Quick Game Plans</div>
+      <div className="fact-label" style={{ marginTop: 12 }}>{t('matchday.quickPlans')}</div>
       <div className="preset-row">
         {PRESETS.map(p => (
           <button key={p.id} className="preset-chip" title={t(p.desc)}
@@ -2281,7 +2297,7 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
         ))}
       </div>
 
-      <div className="fact-label" style={{ marginTop: 10 }}>In-Match Tactics <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>- tap a name to see what it does</span></div>
+      <div className="fact-label" style={{ marginTop: 10 }}>{t('matchday.inMatchTactics')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>{t('matchday.tapAName')}</span></div>
       {SLIDER_INFO.map(s => (
         <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0' }}>
           <span style={{ width: 78, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--cond)', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer' }}
@@ -2298,10 +2314,10 @@ function TouchlinePanel({ title, showTalk, onResume, resumeLabel }: {
       {/* One button into the match-day squad, where several changes can be made
           in one visit. This used to be two dropdowns and a Make button: one sub
           per trip, no shirt numbers, no sight of who was carrying a knock. */}
-      <div className="fact-label" style={{ marginTop: 12 }}>Replacements ({MAX_SUBS - ctx.subsUsed} of {MAX_SUBS} left)</div>
+      <div className="fact-label" style={{ marginTop: 12 }}>{t('matchday.replacementsLeft', { left: MAX_SUBS - ctx.subsUsed, max: MAX_SUBS })}</div>
       <button className="btn ghost block" style={{ marginTop: 6 }} disabled={ctx.subsUsed >= MAX_SUBS}
         onClick={() => setSquadOpen(true)}>
-        🔁 {ctx.subsUsed >= MAX_SUBS ? 'All changes used' : 'Match-Day Squad - make replacements'}
+        {t(ctx.subsUsed >= MAX_SUBS ? 'matchday.allChangesUsed' : 'matchday.makeReplacements')}
       </button>
       <EnergyBars mine={mine} />
       {squadOpen && <SquadSheet onClose={() => setSquadOpen(false)} />}
@@ -2413,27 +2429,27 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
             All three ride together in one sticky block. */}
         <div className="sheet-top">
           <div className="sheet-head">
-            <h3>{title ?? 'Match-Day Squad'}</h3>
-            <span className="meta">{left} change{left === 1 ? '' : 's'} left</span>
+            <h3>{title ?? t('matchday.matchDaySquad')}</h3>
+            <span className="meta">{t('matchday.changesLeft', { n: left })}</span>
           </div>
           {/* who is hurt, named in his own line rather than buried in a
               paragraph of instructions */}
           {hurtName && (
             <div className="sheet-casualty">
-              🏥 <b>{hurtName}</b> is off{hurtDesc ? ` - ${hurtDesc}` : ''}
+              🏥 <b>{hurtName}</b>{t('matchday.casualty')}{hurtDesc ? t('matchday.casualtyDesc', { desc: hurtDesc }) : ''}
             </div>
           )}
           <div className="meta sheet-hint">
             {note ? <>{note}{' '}</> : null}
-            {isFreeSwap && off ? `The assistant has sent ${off.name} on. Tap someone else to change it, free of charge, or tap him again to keep him.`
-              : off ? `${off.name} is armed. Tap his replacement on the bench, or tap a team-mate on the pitch to swap their positions.`
-              : left <= 0 ? 'No tactical replacements left. You can still tap two men on the pitch to swap their positions.'
-              : 'Tap a man on the pitch, then tap who comes on for him. Tapping a second man on the pitch swaps their positions instead.'}
+            {isFreeSwap && off ? t('matchday.hintFree', { player: off.name })
+              : off ? t('matchday.hintArmed', { player: off.name })
+              : left <= 0 ? t('matchday.hintNoneLeft')
+              : t('matchday.hintTap')}
           </div>
         </div>
         <div className="sheet-cols">
           <div className="sheet-col">
-            <div className="fact-label">On the Pitch</div>
+            <div className="fact-label">{t('matchday.onThePitch')}</div>
             {xv.map(({ shirt, p }) => {
               const on = mine.onPitch.has(p.id)
               const e = Math.round(mine.energy.get(p.id) ?? 70)
@@ -2453,7 +2469,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                       setFreeLeft(false)
                       // no setMade here on purpose: keeping the assistant's man is a
                       // decision, which settles the forced stop, but it is not a change
-                      setLog(l => [`${p.name} keeps the shirt.`, ...l].slice(0, MAX_SUBS))
+                      setLog(l => [t('matchday.keepsShirt', { player: p.name }), ...l].slice(0, MAX_SUBS))
                       setOffId(null)
                       return
                     }
@@ -2474,15 +2490,15 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                       numbering by heart to work out who you were taking off. */}
                   <span className="sh-pos">{p.pos}</span>
                   <span className="sh-name">{p.name}</span>
-                  {binned && <span className="sh-flag" title="In the bin">🟨</span>}
-                  {p.injury && <span className="sh-flag" title="Injured">🏥</span>}
+                  {binned && <span className="sh-flag" title={t('matchday.inTheBin')}>🟨</span>}
+                  {p.injury && <span className="sh-flag" title={t('matchday.injuredFlag')}>🏥</span>}
                   {/* A man off the pitch who is neither binned nor hurt was sent
                       off - a substituted man leaves the lineup entirely, so this
                       is the only remaining way to be gone. Without the flag his
                       row was just dead grey with no reason on it, which is how
                       subreach failed one suite run and taught the sheet to say
                       why (round 23). */}
-                  {!on && !binned && !p.injury && <span className="sh-flag" title="Sent off">🟥</span>}
+                  {!on && !binned && !p.injury && <span className="sh-flag" title={t('matchday.sentOff')}>🟥</span>}
                   {r != null && <span className="sh-rate">{r.toFixed(1)}</span>}
                   {/* THE NUMBER, NOT THE WORD (Round 27, user: "percentage
                       rather than words"). 25D-2 put the assistant's phrasing in
@@ -2499,8 +2515,8 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
             })}
           </div>
           <div className="sheet-col">
-            <div className="fact-label">Bench{off ? ` - cover for ${off.pos}` : ''}</div>
-            {benchSorted.length === 0 && <div className="meta">The bench is empty.</div>}
+            <div className="fact-label">{off ? t('matchday.benchCover', { pos: posName(off.pos) }) : t('matchday.bench')}</div>
+            {benchSorted.length === 0 && <div className="meta">{t('matchday.benchEmpty')}</div>}
             {benchSorted.map(p => {
               // what he was told before kick-off, so the choice is informed (F4)
               const seat = mine.seatOf.get(p.id)
@@ -2514,7 +2530,7 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
                   {brief !== 'orders' && (
                     <span className="sh-flag" title={t(BRIEF_BY_ID[brief].name)}>{BRIEF_BY_ID[brief].icon}</span>
                   )}
-                  {off && covers(p) && <span className="sh-flag" title="Natural cover">✓</span>}
+                  {off && covers(p) && <span className="sh-flag" title={t('matchday.naturalCover')}>✓</span>}
                   <span className="sh-rate">{p.ca}</span>
                 </button>
               )
@@ -2531,21 +2547,20 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
             setLog(l => [msg, ...l].slice(0, MAX_SUBS))
             setMade(n => Math.max(0, n - 1))
             setOffId(null)
-          }}>↩ Take back the last change</button>
+          }}>{t('matchday.takeBack')}</button>
         )}
         {mustDecide && !settled && (
           <div className="meta sheet-log" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-            Play is stopped until somebody takes his shirt. Tap the man you want on, or tap the
-            assistant's pick again to keep him.
+            {t('matchday.mustDecide')}
           </div>
         )}
         <div className="btn-row" style={{ marginTop: 8 }}>
           {onTactics && (
-            <button className="btn ghost" onClick={onTactics}>📋 Tactics</button>
+            <button className="btn ghost" onClick={onTactics}>{t('matchday.tacticsBtn')}</button>
           )}
           <button className="btn gold" style={{ flex: 1.6 }} disabled={!settled} onClick={onClose}>
-            {made ? `▸ Done (${made} change${made === 1 ? '' : 's'} made)`
-              : settled ? '▸ Back to the Match' : '▸ Name a replacement first'}
+            {made ? t('matchday.doneChanges', { n: made })
+              : t(settled ? 'matchday.backToMatch' : 'matchday.nameFirst')}
           </button>
         </div>
       </div>
@@ -2561,7 +2576,8 @@ export function SquadSheet({ onClose, freeCoverId, title, note, hurtName, hurtDe
  * the assistant can honestly tell you. Deterministic bands, no rng.
  */
 export function condWord(e: number): string {
-  return e >= 85 ? 'fresh' : e >= 70 ? 'going well' : e >= 55 ? 'blowing' : e >= 40 ? 'tiring' : e >= 25 ? 'running on empty' : 'out on his feet'
+  return t(e >= 85 ? 'matchday.cwFresh' : e >= 70 ? 'matchday.cwGoingWell' : e >= 55 ? 'matchday.cwBlowing'
+    : e >= 40 ? 'matchday.cwTiring' : e >= 25 ? 'matchday.cwEmpty' : 'matchday.cwSpent')
 }
 
 /** The assistant's condition report on the XV, most worrying first. */
@@ -2575,7 +2591,7 @@ function EnergyBars({ mine }: { mine: SideCtx }) {
     .slice(0, 6)
   return (
     <div style={{ marginTop: 8 }}>
-      <div className="fact-label">Assistant's Eye</div>
+      <div className="fact-label">{t('matchday.assistantsEye')}</div>
       {rows.map(({ p, e }) => (
         <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0', fontSize: 11.5 }}>
           <span style={{ width: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>

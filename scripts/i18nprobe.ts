@@ -170,6 +170,25 @@ for (const { code, label } of LANGS) {
     ['tacticsScreen.tabPrep', 'Prep'],
     ['tacticsScreen.tabPlan', 'Game Plan'],
     ['groups.tactics', 'Tactics'],
+    // match day, which half the harnesses have to walk through to reach a
+    // second season: the tunnel, the touchline and the way back out
+    ['matchday.kickOff', 'Kick Off ▸'],
+    ['matchday.takeField', '▸ Take the Field'],
+    ['matchday.spCalm', 'Calm the nerves'],
+    ['matchday.sayNothing', 'Say nothing - straight out'],
+    ['matchday.skip', 'Skip ▸'],
+    ['matchday.startSecondHalf', '▸ Start Second Half'],
+    ['matchday.playFinalQuarter', '▸ Play the Final Quarter'],
+    ['matchday.continueToResults', 'Continue to Results ▸'],
+    ['matchday.matchDaySquad', 'Match-Day Squad'],
+    ['matchday.takeBack', '↩ Take back the last change'],
+    ['matchday.optPosts', 'Take the Points'],
+    ['matchday.quickPlans', 'Quick Game Plans'],
+    ['matchday.matchSettings', 'Match Settings'],
+    ['matchday.spdFast', 'Fast'],
+    ['matchday.stakes', 'The Stakes'],
+    ['matchday.storySoFar', 'The Story So Far'],
+    ['dayroom.treatmentRoom', 'Treatment Room'],
   ]
   for (const [k, want] of PINNED) {
     ok(tIn('en', k) === want, `en.${k} is still "${want}" (browser harnesses select on it)`)

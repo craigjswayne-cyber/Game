@@ -30,7 +30,9 @@ try {
   await page.click('text=▸ Start Career')
   await page.waitForSelector('.tut-box', { timeout: 15000 })
   await page.click('.tut-close .btn')
-  await page.waitForSelector('text=Welcome to Leicester Tigers', { timeout: 15000 })
+  // 'Leicester', not 'Leicester Tigers': the club is Leicester RFC since the IP
+  // rename, and the welcome story names it the way the save has it
+  await page.waitForSelector('text=Welcome to Leicester', { timeout: 15000 })
   await shot('r2-inbox')
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text="Team"')
