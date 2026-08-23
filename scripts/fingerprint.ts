@@ -275,12 +275,21 @@ const EXPECTED: string[] = [
   // 14a8b95 and at the window, four seeds each: 53.53 -> 53.78 points a game,
   // tries 6.28 -> 6.30, home 53.8% -> 54.3%, draws 1.6% -> 2.0%. Every delta
   // sits inside the seed spread. The world did not move; the stream did.
-  'bristol 38-28 sale',
-  'northampton 36-30 newcastle',
-  'gloucester 19-3 exeter',
-  'harlequins 9-14 bath',
-  'leicester 16-48 saracens',
-  'newcastle 15-57 bristol',
+  //
+  // REBASELINED for the verified August 2026 window (v1.0.2). A data-only
+  // change, but a big one: the user's transfer PDF was applied and then every
+  // claim in it verified against confirmed sources - about sixty men moved,
+  // arrived or left, so world generation consumes different rng draws and the
+  // fixture pairings themselves fall differently (same as the 2026-27 window
+  // rebaseline above). No dial, no rule, no engine change in the same commit.
+  // scripts/bandcheck.ts held every band inside tolerance over four worlds on
+  // the new data before this baseline was written down.
+  'sale 33-15 exeter',
+  'leicester 11-14 gloucester',
+  'bristol 6-28 bath',
+  'harlequins 41-41 newcastle',
+  'northampton 41-22 saracens',
+  'gloucester 34-37 sale',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {
