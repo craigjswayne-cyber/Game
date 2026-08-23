@@ -8,6 +8,7 @@ import { analystForm, analystRead, PREP_LABEL, UNIT_LABEL } from '../../game/ana
 import { assistantAdvice } from '../../game/analysis'
 import { userFixtureThisWeek } from '../../game/season'
 import { counterTo, dialLine, philosophyOf } from '../../game/philosophy'
+import { repetitionFatigue } from '../../game/oppcoach'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 
@@ -117,6 +118,21 @@ export default function Tactics() {
     )
   }
 
+  // YOU ARE BECOMING READABLE, said out loud, on the screen that fixes it.
+  //
+  // repetitionFatigue charges up to 12% extra energy drain for holding a dial
+  // at an extreme five weeks running, and tendencyProfile lets an opposing
+  // analyst set up against a manager who repeats himself. Neither had a word
+  // anywhere in the UI: the squad tired faster every week with no cause on any
+  // page, and the first news of being read was one commentary line at kick-off,
+  // and only against one coach archetype. A cost the player cannot see is not a
+  // trade-off, it is a bug with a spreadsheet behind it.
+  const streaks = game.dialStreak ?? {}
+  const worstDial = (['tempo', 'aggression', 'defLine'] as const)
+    .map(k => ({ k, n: streaks[k] ?? 0 }))
+    .sort((a, b) => b.n - a.n)[0]
+  const repPct = Math.round((repetitionFatigue(game) - 1) * 100)
+
   return (
     <>
       <div className="tab-bar">
@@ -128,6 +144,18 @@ export default function Tactics() {
         <button className={ttab === 'prep' ? 'active' : ''} onClick={() => setTtab('prep')}>Prep</button>
         <button className={ttab === 'plan' ? 'active' : ''} onClick={() => setTtab('plan')}>Game Plan</button>
       </div>
+
+      {repPct > 0 && worstDial && (
+        <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
+          <div className="fact-label">The conditioning coach wants a word</div>
+          <div style={{ fontSize: 13, lineHeight: 1.45, marginTop: 4 }}>
+            {worstDial.n} weeks running at the same extreme on <b>{worstDial.k === 'defLine' ? 'defensive line' : worstDial.k}</b>.
+            The GPS numbers say the squad is running <b>{repPct}% hotter</b> than it should, and the last twenty
+            minutes are where you feel that. The league reads a manager who repeats himself, too.
+            Two weeks nearer the middle walks both back.
+          </div>
+        </div>
+      )}
 
       {ttab === 'tactics' && <>
         <div className="form-pitch">
