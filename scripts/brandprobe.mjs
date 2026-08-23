@@ -10,6 +10,10 @@
 // Run: node scripts/brandprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
 import { startPreview } from './lib/preview.mjs'
+// the release number comes from package.json, so a version bump cannot
+// silently diverge from what the title screen shows
+import { readFileSync } from 'node:fs'
+const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 
 const server = await startPreview('4197', 2500)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
@@ -32,8 +36,8 @@ try {
   ok(!t.h1.includes('FAB'), 'and the old name is gone from it')
   ok(t.mfName === 'PHASE: Rugby Manager' && t.mfShort === 'PHASE',
     `the PWA manifest carries the new name (saw "${t.mfName}" / "${t.mfShort}")`)
-  ok(t.body.includes('v1.0.1'), 'the title screen shows the release, v1.0.1')
-  console.log(fails ? `BRAND PROBE FAILED (${fails})` : 'BRAND PROBE PASSED: PHASE: Rugby Manager, v1.0.1')
+  ok(t.body.includes('v' + version), `the title screen shows the release, v${version}`)
+  console.log(fails ? `BRAND PROBE FAILED (${fails})` : `BRAND PROBE PASSED: PHASE: Rugby Manager, v${version}`)
   process.exitCode = fails ? 1 : 0
 } catch (e) {
   console.error('BRAND PROBE FAILED:', String(e).slice(0, 300))
