@@ -76,16 +76,43 @@ const MEASURE = `(() => {
     if (parseFloat(cs.opacity) < 0.25) continue          // deliberately faded out
     const fg = parse(cs.color)
     if (!fg || fg.a < 0.35) continue
-    // walk up for the first background that actually paints something. A gradient
-    // or an image cannot be reduced to one colour, so those elements are skipped
-    // rather than guessed at.
-    let node = el, bg = null, painted = false
+    // Walk up for the first background that actually paints something.
+    //
+    // A GRADIENT USED TO END THE WALK. "A gradient cannot be reduced to one
+    // colour, so those elements are skipped rather than guessed at" - true, and
+    // it left every masthead, scoreboard and season card in the game
+    // unmeasured, which is where a 1.26:1 live score sat in daylight until a
+    // person noticed. A gradient cannot be reduced to ONE colour, but it can be
+    // reduced to its WORST one: the contrast a reader gets is the contrast at
+    // the least favourable stop, and that is a number, not a guess. An actual
+    // image still ends the walk, because that really is unknowable here.
+    let node = el, bg = null, painted = false, stops = null
     while (node && node !== document.documentElement) {
       const s = getComputedStyle(node)
-      if (s.backgroundImage && s.backgroundImage !== 'none') { painted = true; break }
+      const bi = s.backgroundImage
+      if (bi && bi !== 'none') {
+        if (/gradient\\(/.test(bi)) {
+          const found = []
+          const re = /rgba?\\(([^)]+)\\)/g
+          let m
+          while ((m = re.exec(bi))) {
+            const p = m[1].split(',').map(x => parseFloat(x))
+            if (p.length >= 3 && (p[3] == null || p[3] > 0.5)) found.push({ r: p[0], g: p[1], b: p[2], a: 1 })
+          }
+          if (found.length) { stops = found; break }
+        }
+        painted = true
+        break
+      }
       const c = parse(s.backgroundColor)
       if (c && c.a > 0.5) { bg = c; break }
       node = node.parentElement
+    }
+    if (stops) {
+      // the worst stop is the one the reader has to cope with
+      let worstR = Infinity, worstC = stops[0]
+      for (const c of stops) { const r = ratio(fg, c); if (r < worstR) { worstR = r; worstC = c } }
+      bg = worstC
     }
     if (painted || !bg) continue
     const hex = (c) => '#' + [c.r, c.g, c.b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('')
@@ -100,7 +127,16 @@ const MEASURE = `(() => {
 async function look(label) {
   await page.waitForTimeout(350)
   let rows = []
-  try { rows = await page.evaluate(MEASURE) } catch { return }
+  // NO SILENT CATCH. This swallowed a syntax error in MEASURE and every screen
+  // returned early, so the harness measured 0 runs of text and printed
+  // CONTRAST PASSED. A probe that measures nothing has not passed, it has not
+  // run - and that is the most dangerous state a harness can be in.
+  try {
+    rows = await page.evaluate(MEASURE)
+  } catch (e) {
+    findings.push({ label: `${theme}/${label}`, cls: 'MEASURE threw', text: String(e).slice(0, 140), r: 0 })
+    return
+  }
   measured += rows.length
   const bad = rows.filter(x => x.r < FLOOR)
   // one line per distinct class, not one per row of a table
@@ -219,6 +255,70 @@ async function sweep(night) {
       await look('day bulletin')
       await page.locator('.day-draw').first().click()
       await look('the draw room')
+
+      // MATCH DAY, which this sweep has never visited.
+      //
+      // The scoreboard's live score sat at 1.26:1 in daylight - gold text on
+      // the hero gradient - until a person noticed it. Two separate blind
+      // spots hid it: text over a gradient was skipped outright (fixed in
+      // MEASURE above), and the eighty minutes the game is actually about were
+      // not on this tour at all. The screens below are the ones a manager
+      // stares at longest in a season, so they are the last place a
+      // contrast bug should be allowed to live.
+      await page.evaluate(async () => {
+        // re-read the store every iteration: getState() hands back a snapshot,
+        // and holding one across the loop tests week 1 forever
+        const due = () => {
+          const g = window.rugbyStore.getState().game
+          return g.fixtures.some(f => f.week === g.week && !f.played
+            && (f.homeId === g.userClubId || f.awayId === g.userClubId))
+        }
+        for (let i = 0; i < 900 && !due(); i++) {
+          const s = window.rugbyStore.getState()
+          for (const n of s.game.news) n.read = true
+          for (const q of s.game.press) q.answered = true
+          window.rugbyStore.setState({ lastAdvanceAt: 0 })
+          if (s.liveMatch) s.instantResult()
+          else s.continueWeek()
+          await new Promise(r => setTimeout(r, 4))
+        }
+      }).catch(() => {})
+      await page.waitForTimeout(500)
+      const kicked = await page.evaluate(() => {
+        const s = window.rugbyStore.getState()
+        const fx = s.game.fixtures.find(f => f.week === s.game.week && !f.played
+          && (f.homeId === s.game.userClubId || f.awayId === s.game.userClubId))
+        if (!fx) return false
+        window.rugbyStore.setState({ lastAdvanceAt: 0 })
+        s.kickOff('calm', 'full')
+        return true
+      })
+      if (kicked) {
+        await page.waitForTimeout(900)
+        await look('match day: kick-off')
+        // let the clock run so the scoreboard carries a real score
+        await page.evaluate(async () => {
+          for (let i = 0; i < 40; i++) {
+            const s = window.rugbyStore.getState()
+            if (!s.liveMatch) break
+            s.stepLive?.()
+            await new Promise(r => setTimeout(r, 8))
+          }
+        }).catch(() => {})
+        await page.waitForTimeout(600)
+        await look('match day: the scoreboard in play')
+        // HONEST LIMIT: these two looks reach the match-day shell - the
+        // masthead, the tunnel card, the controls - and measure 17 runs of
+        // text in each theme. They do NOT yet reach .scoreboard .score, the
+        // element whose 1.26:1 in daylight is the reason match day was added
+        // to this sweep, because kickOff lands on the pre-match screen and the
+        // live scoreboard needs the clock running past it. Verified by
+        // reintroducing the bug: this harness still passed. The gradient
+        // measurement above is real and does hold the mastheads and the season
+        // card; the live score is still only guarded by a human looking at it.
+      } else {
+        console.log('  ---- match day: no user fixture reached, sweep did not cover it')
+      }
   } catch (e) {
     findings.push({ label: `the ${theme} sweep itself`, cls: 'threw', text: String(e).slice(0, 120), r: 0 })
     console.log('THREW', e)
@@ -245,6 +345,12 @@ if (findings.length) {
   }
 }
 console.log(`\n${measured} runs of text measured against the background painted behind them, across both themes`)
+// the floor under the floor: a sweep that reads nothing is a broken sweep
+const TOO_FEW = 400
+if (measured < TOO_FEW) {
+  console.log(`CONTRAST DID NOT RUN: only ${measured} runs of text measured, expected at least ${TOO_FEW}`)
+  process.exit(1)
+}
 console.log(findings.length
   ? `CONTRAST FOUND ${findings.length} PLACE(S) BELOW ${FLOOR}:1`
   : `CONTRAST PASSED: nothing on any screen, in either theme, falls below ${FLOOR}:1`)
