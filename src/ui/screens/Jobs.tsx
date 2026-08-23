@@ -77,11 +77,6 @@ export default function Jobs() {
             {v.passed ? '↩ Put it back on the list' : '✕ Not interested'}
           </button>
         )}
-        {msg?.key === club.id && (
-          <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
-            {msg.text}
-          </div>
-        )}
         <div className="meta" style={{ marginTop: 5 }}>
           Interview prospects: <b style={{ color: chance > 0.65 ? 'var(--text-positive)' : chance > 0.35 ? 'var(--gold)' : 'var(--danger)' }}>
             {chance > 0.75 ? 'Excellent' : chance > 0.5 ? 'Good' : chance > 0.3 ? 'Outside shot' : 'Long shot'}
@@ -119,6 +114,17 @@ export default function Jobs() {
       </div>
 
       <SectionTitle sub={open.length === 1 ? 'one job open' : `${open.length} jobs open`}>Vacancies</SectionTitle>
+      {/* ABOVE THE LIST, NOT ON THE CARD. The confirmation used to render inside
+          the club's own card - which meant the one action that takes the card
+          out of the list, turning down your only vacancy, answered with
+          silence: the card went behind the turned-down line and took the
+          sentence with it. Found by jobsprobe, in the week the pile happened to
+          hold exactly one job. */}
+      {msg && (
+        <div className="meta sheet-log" style={{ margin: '0 16px 8px', borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+          {msg.text}
+        </div>
+      )}
       {open.length === 0 && (
         <div className="muted" style={{ padding: '4px 16px 12px' }}>
           {turned.length
