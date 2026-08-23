@@ -4,6 +4,7 @@ import { PeopleChips } from './Inbox'
 import { paragraphs } from '../components'
 import { weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
+import { t } from '../../game/i18n'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
@@ -35,8 +36,8 @@ export default function Wire() {
   if (!n) {
     return (
       <div className="card center" style={{ margin: '20vh 16px' }}>
-        <div className="meta">A quiet week. It never lasts.</div>
-        <button className="btn gold block" style={{ marginTop: 10 }} onClick={home}>Continue ▸</button>
+        <div className="meta">{t('week.wireQuietWeek')}</div>
+        <button className="btn gold block" style={{ marginTop: 10 }} onClick={home}>{t('week.wireContinue')}</button>
       </div>
     )
   }
@@ -46,8 +47,8 @@ export default function Wire() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', padding: '6px 14px 12px' }}>
       <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: 0 }}>
         <div className="wire-date" style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{weekDate(n.season, n.week)} · News</span>
-          <span>{idx + 1} / {items.length}</span>
+          <span>{t('week.wireDateNews', { date: weekDate(n.season, n.week) })}</span>
+          <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, margin: '8px 0 10px' }}>
           {TYPE_ICON[n.type] ?? '📰'} {n.subject}
@@ -67,12 +68,12 @@ export default function Wire() {
       <div className="btn-row" style={{ marginTop: 10 }}>
         {!last && (
           <button className="btn ghost" onClick={() => { for (const it of items) markRead(game, it); home() }}>
-            Skip the rest
+            {t('week.wireSkipRest')}
           </button>
         )}
         <button className="btn gold" style={{ flex: 2, fontSize: 15 }}
           onClick={() => { if (last) home(); else setIdx(idx + 1) }}>
-          {last ? '▸ On to the Week' : `Next Story ▸`}
+          {t(last ? 'week.wireOnToWeek' : 'week.wireNextStory')}
         </button>
       </div>
     </div>

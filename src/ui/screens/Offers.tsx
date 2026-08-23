@@ -4,6 +4,7 @@ import { fmtMoney, fmtWage } from '../../game/model'
 import { counterIncomingOffer, respondToOffer } from '../../game/ai'
 import { CrestT, PosBadge, Stars } from '../components'
 import { statusOf, STATUS_BY_ID } from '../../game/gametime'
+import { t } from '../../game/i18n'
 
 /** A bid for one of your players, and you are answering it now (feedback 10E).
  *
@@ -34,10 +35,10 @@ export default function Offers() {
     return (
       <div style={{ padding: 14 }}>
         <div className="card">
-          <h3>Desk clear</h3>
-          <div className="meta">{msg?.text ?? 'Every bid has an answer. Nothing else is waiting on you.'}</div>
+          <h3>{t('world.ofDeskClear')}</h3>
+          <div className="meta">{msg?.text ?? t('world.ofNothingWaiting')}</div>
           <button className="btn gold block" style={{ marginTop: 10 }} onClick={() => continueWeek()}>
-            ▸ Get On With The Week
+            {t('world.ofGetOn')}
           </button>
         </div>
       </div>
@@ -68,7 +69,7 @@ export default function Offers() {
     <>
       <div style={{ padding: '10px 14px 0' }}>
         <div className="filter-note">
-          {pending.length === 1 ? 'One bid on the desk' : `${pending.length} bids on the desk`} · the week waits for your answer
+          {pending.length === 1 ? t('world.ofOneBid') : t('world.ofNBids', { n: pending.length })}{t('world.ofWeekWaits')}
         </div>
       </div>
       <div style={{ padding: 14 }}>
@@ -76,8 +77,8 @@ export default function Offers() {
           <div className="offer-head">
             <CrestT g={game} teamId={bidder.id} size={34} />
             <div>
-              <h3 style={{ margin: 0 }}>{bidder.name} bid {fmtMoney(o.fee)}</h3>
-              <div className="meta">for {p.name}, and they want an answer</div>
+              <h3 style={{ margin: 0 }}>{t('world.ofBidLine', { club: bidder.name, fee: fmtMoney(o.fee) })}</h3>
+              <div className="meta">{t('world.ofForPlayer', { player: p.name })}</div>
             </div>
           </div>
 
@@ -86,46 +87,50 @@ export default function Offers() {
               <td><PosBadge pos={p.pos} /></td>
               <td className="name">{p.name}</td>
               <td><Stars ca={p.ca} /></td>
-              <td className="num">{p.age} yrs</td>
+              <td className="num">{t('world.ofYrs', { n: p.age })}</td>
             </tr>
           </tbody></table>
 
           <div className="meta" style={{ marginTop: 6 }}>
-            Valued at {fmtMoney(p.value)}, so this is{' '}
+            {t('world.ofValuedAt', { value: fmtMoney(p.value) })}
             <b style={{ color: over > 0 ? 'var(--text-positive)' : 'var(--danger)' }}>
-              {over > 0 ? `${fmtMoney(over)} over` : over < 0 ? `${fmtMoney(-over)} under` : 'exactly'}
-            </b>{' '}the valuation. He is a <b>{STATUS_BY_ID[st].name.toLowerCase()}</b>, on {fmtWage(p.wage)}/wk
-            until the end of {2026 + p.contractEnds - game.season - 1}.
+              {over > 0 ? t('world.ofOver', { amount: fmtMoney(over) }) : over < 0 ? t('world.ofUnder', { amount: fmtMoney(-over) }) : t('world.ofExactly')}
+            </b>{t('world.ofTheValuation')}
+            <b>{t(`squad.status${st[0].toUpperCase()}${st.slice(1)}`).toLowerCase()}</b>
+            {t('world.ofOnWage', { wage: fmtWage(p.wage), year: 2026 + p.contractEnds - game.season - 1 })}
           </div>
           <div className="meta">
             {cover.length === 0
-              ? `Sell him and you have nobody else who plays ${p.pos}.`
-              : `Cover behind him: ${cover.slice(0, 2).map(x => x.name).join(', ')}${cover.length > 2 ? ` and ${cover.length - 2} more` : ''}.`}
+              ? t('world.ofNoCover', { pos: p.pos })
+              : t('world.ofCover', {
+                  names: cover.slice(0, 2).map(x => x.name).join(', '),
+                  more: cover.length > 2 ? t('world.ofAndMore', { n: cover.length - 2 }) : '',
+                })}
           </div>
           {deadline && (
             <div className="meta" style={{ color: 'var(--danger)', fontWeight: 700 }}>
-              🚨 The window shuts within days. Refuse this and there may be no second bid.
+              {t('world.ofDeadline')}
             </div>
           )}
 
           <div className="btn-row" style={{ marginTop: 10 }}>
             <button className="btn gold" onClick={() => answer(o.id, () => respondToOffer(game, o.id, true))}>
-              Accept {fmtMoney(o.fee)}
+              {t('world.ofAccept', { fee: fmtMoney(o.fee) })}
             </button>
             <button className="btn" disabled={!!o.countered}
-              title={o.countered ? 'You have already been back to them once' : 'Ask for more, and risk them walking'}
+              title={t(o.countered ? 'world.ofAskedTitle' : 'world.ofDemandTitle')}
               onClick={() => answer(o.id, () => counterIncomingOffer(game, o.id))}>
-              {o.countered ? 'Already Asked' : 'Demand More'}
+              {t(o.countered ? 'world.ofAlreadyAsked' : 'world.ofDemandMore')}
             </button>
             <button className="btn danger" onClick={() => answer(o.id, () => respondToOffer(game, o.id, false))}>
-              Reject
+              {t('transfers.reject')}
             </button>
           </div>
           {msg?.key === o.id && <div className="meta sheet-log" style={{ marginTop: 8 }}>{msg.text}</div>}
         </div>
 
         <button className="btn ghost block" onClick={() => go('player', p.id)}>
-          View {p.name}'s profile ▸
+          {t('world.ofViewProfile', { player: p.name })}
         </button>
       </div>
       <div className="spacer" />

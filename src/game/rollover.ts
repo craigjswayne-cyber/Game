@@ -62,7 +62,7 @@ function boardReinvests(state: GameState) {
     const lvl = club.facilities?.[weakest] ?? 0
     if (spend >= facilityCost(FACILITY_INFO[weakest], lvl)) {
       club.facilities = { ...(club.facilities ?? {}), [weakest]: lvl + 1 }
-      built = `${FACILITY_INFO[weakest].name} goes to level ${lvl + 1}`
+      built = `${tIn('en', FACILITY_INFO[weakest].name)} goes to level ${lvl + 1}`
     }
   }
   state.fanMood = clamp((state.fanMood ?? 60) + 2, 0, 100)

@@ -738,14 +738,14 @@ export interface TransferOffer {
 export type FacilityId = 'gym' | 'kicking' | 'paddock' | 'briefing' | 'academy' | 'pitch' | 'recovery' | 'shop' | 'hospitality'
 export const MAX_FACILITY = 5
 export const FACILITY_INFO: Record<FacilityId, { name: string; icon: string; desc: string; base: number }> = {
-  pitch: { name: 'Playing Surface', icon: '🏉', desc: 'A true pitch: fewer breakdowns in home matches.', base: 260_000 },
-  gym: { name: 'Strength & Conditioning Gym', icon: '🏋️', desc: 'Players recover extra condition every week.', base: 350_000 },
-  recovery: { name: 'Recovery Centre', icon: '🧊', desc: 'Ice baths and pools: injuries heal quicker.', base: 420_000 },
-  paddock: { name: 'Training Paddock', icon: '🌱', desc: 'Attribute training bites more often.', base: 400_000 },
-  kicking: { name: 'Kicking Enclosure', icon: '🥅', desc: 'Sharper goal-kicking in every match.', base: 300_000 },
-  briefing: { name: 'Analysis & Briefing Suite', icon: '📽️', desc: 'Match preparation lands harder.', base: 380_000 },
-  academy: { name: 'Centre of Excellence', icon: '🎓', desc: 'Better academy intakes, more wonderkids.', base: 500_000 },
-  shop: { name: 'Club Shop & Megastore', icon: '🛍️', desc: 'Retail income every week, bigger when the fans are happy.', base: 240_000 },
+  pitch: { name: 'facilities.pitch', icon: '🏉', desc: 'facilities.pitchDesc', base: 260_000 },
+  gym: { name: 'facilities.gym', icon: '🏋️', desc: 'facilities.gymDesc', base: 350_000 },
+  recovery: { name: 'facilities.recovery', icon: '🧊', desc: 'facilities.recoveryDesc', base: 420_000 },
+  paddock: { name: 'facilities.paddock', icon: '🌱', desc: 'facilities.paddockDesc', base: 400_000 },
+  kicking: { name: 'facilities.kicking', icon: '🥅', desc: 'facilities.kickingDesc', base: 300_000 },
+  briefing: { name: 'facilities.briefing', icon: '📽️', desc: 'facilities.briefingDesc', base: 380_000 },
+  academy: { name: 'facilities.academy', icon: '🎓', desc: 'facilities.academyDesc', base: 500_000 },
+  shop: { name: 'facilities.shop', icon: '🛍️', desc: 'facilities.shopDesc', base: 240_000 },
   // F31: ground development past the turnstile. Capacity expansion already
   // exists (requestExpansion) and adds SEATS; this adds what each seat is
   // worth. Boxes, a members' lounge, a decent kitchen: the same crowd spends
@@ -907,8 +907,10 @@ export function estateGrade(club: Club): { label: string; sum: number; max: numb
   const max = ids.length * MAX_FACILITY
   const pct = sum / max
   return {
-    label: pct >= 0.8 ? 'World class' : pct >= 0.62 ? 'Excellent' : pct >= 0.44 ? 'Good'
-      : pct >= 0.26 ? 'Adequate' : pct >= 0.12 ? 'Basic' : 'Threadbare',
+    // a KEY, so the screens t() it and the board's letters tIn('en', …) it
+    label: pct >= 0.8 ? 'facilities.gradeWorldClass' : pct >= 0.62 ? 'facilities.gradeExcellent'
+      : pct >= 0.44 ? 'facilities.gradeGood' : pct >= 0.26 ? 'facilities.gradeAdequate'
+      : pct >= 0.12 ? 'facilities.gradeBasic' : 'facilities.gradeThreadbare',
     sum, max,
   }
 }

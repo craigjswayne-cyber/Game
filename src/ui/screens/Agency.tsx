@@ -6,6 +6,7 @@ import { agencyKids, agencySeniors } from '../../game/agency'
 import { natRankOrder } from '../../game/natrank'
 import { nationByCode } from '../../game/nations'
 import { CrestT, Nat, PosBadge, SectionTitle } from '../components'
+import { t } from '../../game/i18n'
 
 /** The Scouting Agency: monthly world rankings, FM-style. */
 /** What the movement arrows are measured from.
@@ -16,9 +17,9 @@ import { CrestT, Nat, PosBadge, SectionTitle } from '../components'
  *  out of sync, so the screen now names the week it is comparing against. */
 function sinceLine(game: GameState): string {
   const at = game.agency?.at
-  if (!at) return 'current standings - the first list publishes shortly'
+  if (!at) return t('world.agFirstList')
   const same = at.season === game.season
-  return `current standings · ▲▼ against the list published ${same ? `in Week ${at.week}` : `last season, Week ${at.week}`}`
+  return t(same ? 'world.agSinceThis' : 'world.agSinceLast', { week: at.week })
 }
 
 export default function Agency() {
@@ -35,13 +36,13 @@ export default function Agency() {
     return (
       <>
         <div className="tab-bar">
-          <button onClick={() => setTab('seniors')}>World Rankings</button>
-          <button onClick={() => setTab('kids')}>Wonderkids</button>
-          <button className="active">Test Nations</button>
+          <button onClick={() => setTab('seniors')}>{t('world.agWorldRankings')}</button>
+          <button onClick={() => setTab('kids')}>{t('world.agWonderkids')}</button>
+          <button className="active">{t('world.agTestNations')}</button>
         </div>
-        <SectionTitle sub="rating points move with every Test - upsets and knockouts move them most">Test Rankings: World</SectionTitle>
+        <SectionTitle sub={t('world.agTestSub')}>{t('world.agTestTitle')}</SectionTitle>
         <div className="tblwrap"><table className="dtable">
-          <thead><tr><th>#</th><th></th><th>Nation</th><th className="num" style={{ paddingRight: 14 }}>Pts</th></tr></thead>
+          <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num" style={{ paddingRight: 14 }}>{t('squad.colPts')}</th></tr></thead>
           <tbody>
             {order.map((code, i) => {
               const n = nationByCode(code)
@@ -57,7 +58,7 @@ export default function Agency() {
                       : <span className="muted">·</span>}
                   </td>
                   <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
-                    {n?.flag ?? ''} {n?.name ?? code}{mine ? ' (you)' : ''}
+                    {n?.flag ?? ''} {n?.name ?? code}{mine ? t('world.agYou') : ''}
                   </td>
                   {/* breathing room on the table's outer edge - the points sat
                       flush against the screen (round 25, from a screenshot) */}
@@ -68,7 +69,7 @@ export default function Agency() {
           </tbody>
         </table></div>
         <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-          {sinceLine(game)} · your nation highlighted when you hold a Test job
+          {sinceLine(game)}{t('world.agNatFoot')}
         </div>
         <div className="spacer" />
       </>
@@ -78,18 +79,18 @@ export default function Agency() {
   return (
     <>
       <div className="tab-bar">
-        <button className={tab === 'seniors' ? 'active' : ''} onClick={() => setTab('seniors')}>World Rankings</button>
-        <button className={tab === 'kids' ? 'active' : ''} onClick={() => setTab('kids')}>Wonderkids</button>
-        <button onClick={() => setTab('nations')}>Test Nations</button>
+        <button className={tab === 'seniors' ? 'active' : ''} onClick={() => setTab('seniors')}>{t('world.agWorldRankings')}</button>
+        <button className={tab === 'kids' ? 'active' : ''} onClick={() => setTab('kids')}>{t('world.agWonderkids')}</button>
+        <button onClick={() => setTab('nations')}>{t('world.agTestNations')}</button>
       </div>
-      <SectionTitle sub={tab === 'seniors' ? 'the twenty best players on the planet, as they stand today' : 'the ceilings scouts whisper about - 21 and under'}>
-        {tab === 'seniors' ? 'Senior Rankings: World' : 'Wonderkid Watch: World'}
+      <SectionTitle sub={t(tab === 'seniors' ? 'world.agSeniorSub' : 'world.agKidSub')}>
+        {t(tab === 'seniors' ? 'world.agSeniorTitle' : 'world.agKidTitle')}
       </SectionTitle>
       <div className="tblwrap"><table className="dtable">
         {/* No High column. It shadowed the rank number one cell to its left and
             cost the width that pushed Club off a portrait screen (user: "we dont
             want a high column"). The movement arrow already tells the story. */}
-        <thead><tr><th>#</th><th></th><th>Name</th><th>Pos</th><th></th><th>Club</th><th className="num">Value</th></tr></thead>
+        <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('squad.colName')}</th><th>{t('squad.colPos')}</th><th></th><th>{t('transfers.colClub')}</th><th className="num">{t('squad.colValue')}</th></tr></thead>
         <tbody>
           {list.map((p, i) => {
             const prevIdx = prev.indexOf(p.id)
@@ -118,7 +119,7 @@ export default function Agency() {
         </tbody>
       </table></div>
       <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-        {sinceLine(game)} · your players highlighted · tap a name to scout him
+        {sinceLine(game)}{t('world.agFoot')}
       </div>
       <div className="spacer" />
     </>
