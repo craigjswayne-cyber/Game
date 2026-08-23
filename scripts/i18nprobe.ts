@@ -86,6 +86,21 @@ ok(used.size > 20, `the sweep found call sites at all (${used.size} static keys 
 const orphans = [...used].filter(k => !enKeys.has(k))
 ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? ': missing ' + orphans.slice(0, 6).join(', ') : ''}`)
 
+// THE OTHER DIRECTION. A key in en.json that nothing asks for is either dead
+// weight or - far more often - a replacement that was written into the
+// dictionary and then never wired into the screen, which is how a half-done
+// extraction passes every check above. Namespaces reached by a computed key are
+// exempt, since their members are unreachable by a text search.
+{
+  const computedNs = new Set([...dynamic].map(p => p.replace(/\.$/, '')))
+  const blob = files.map(f => readFileSync(f, 'utf8')).join('\n')
+  const idle = [...enKeys].filter(k => {
+    if (computedNs.has(k.split('.')[0])) return false
+    return !blob.includes(`'${k}'`) && !blob.includes(`\`${k}`)
+  })
+  ok(idle.length === 0, `no key sits in en.json unused${idle.length ? ` (${idle.length}): ${idle.slice(0, 8).join(', ')}` : ''}`)
+}
+
 // a dynamic key's prefix must name a real namespace, or the whole family is dead
 for (const prefix of dynamic) {
   const ns = prefix.replace(/\.$/, '')

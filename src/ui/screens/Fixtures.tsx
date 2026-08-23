@@ -6,6 +6,7 @@ import { fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game
 import { CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
+import { t } from '../../game/i18n'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
@@ -129,7 +130,7 @@ export default function Fixtures() {
                     {f.played && f.events?.length ? <span className="muted" style={{ fontSize: 10 }}>▸</span> : null}
                   </span>
                 </td>
-                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? 'Friendly' : f.compId)}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{game.comps[f.compId]?.short ?? (f.compId === 'fr' ? t('common.friendly') : f.compId)}{f.stage ? ` ${stageName(f.stage)}` : ''}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{res(f)}</td>
               </tr>
             )
