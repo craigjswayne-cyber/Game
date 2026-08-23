@@ -1667,7 +1667,11 @@ function Live() {
           <div className="tname"><CrestT g={game} teamId={fixture.awayId} size={26} />{teamShort(game, fixture.awayId)}<span className="clubbar" style={{ background: awayC[0] }} /></div>
         </div>
         <div className="minute">
-          {done ? t('matchday.fullTime') : atHalfTime ? t('matchday.halfTime') : atBreak ? t('matchday.breakSixty') : `${Math.min(80, min)}'`} · {game.comps[fixture.compId]?.short}{fixture.stage ? ` ${stageName(fixture.stage)}` : ''}
+          {/* A FRIENDLY HAS NO COMPETITION, and this line used to print the
+              separator anyway: "57' ·  · 💨 Wind", with a hole where the name
+              would be. The dot belongs to the thing after it. */}
+          {done ? t('matchday.fullTime') : atHalfTime ? t('matchday.halfTime') : atBreak ? t('matchday.breakSixty') : `${Math.min(80, min)}'`}
+          {game.comps[fixture.compId]?.short ? ` · ${game.comps[fixture.compId]?.short}${fixture.stage ? ` ${stageName(fixture.stage)}` : ''}` : ''}
           {fixture.weather && fixture.weather !== 'Dry' ? ` · ${WEATHER_ICON[fixture.weather]} ${weatherWord(fixture.weather)}` : ''}
           {fixture.att ? ` · 👥 ${fixture.att.toLocaleString()}` : ''}
           {/* say so, or a ticker that skips the quiet minutes looks broken (F5) */}
