@@ -1,12 +1,24 @@
-# 🏉 Rugby Manager
+# 🏉 PHASE: Rugby Manager
 
-A classic-style rugby union management game for mobile — a personal, just-for-fun project
-in the spirit of the great late-90s management sims, dressed in an editorial
-heritage look (deep forest green, parchment, serif mastheads).
+A classic-style rugby union management game for mobile, in the spirit of the
+great late-90s management sims, dressed in an editorial heritage look (deep
+forest green, parchment, serif mastheads). English and French.
 
-**Personal use only. Not for sale or distribution.** Player names are real,
-included purely for private enjoyment; clubs and grounds are fictional
-(location-based identities, since v1.0.2).
+**Unofficial and independent.** Clubs, competitions, grounds and sponsors are
+fictional (location-based identities, since v1.0.2) and no official badge, kit
+or logo ships with the game. Player names are real, used to identify people in a
+sporting database and for nothing else; the game is not affiliated with,
+endorsed by or licensed by any player, club, league or governing body. Anybody
+named who would rather not be can write to phaserugbymanager@gmail.com and will
+be removed in the next update.
+
+The game collects nothing and sends nothing anywhere: no accounts, no analytics,
+no network calls at all (`scripts/netprobe.ts` fails the build if one appears).
+Careers are saved on the device, with export, import and a share-sheet backup.
+
+Store release work - the monetisation layer, the legal surface, the listing copy
+and the packaging - is documented in `docs/monetisation.md`,
+`docs/store-listing.md`, `docs/release-readiness.md` and `packaging/twa/`.
 
 ## What's in the game
 
