@@ -112,7 +112,7 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('nations')}
             style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold)' }}>🏆 SIX NATIONS - THE GREATEST CHAMPIONSHIP</div>
+            <div className="fact-label" style={{ color: 'var(--gold)' }}>🏆 {(game.comps['sn']?.name ?? 'The Championship').toUpperCase()} - THE GREATEST CHAMPIONSHIP</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
                 {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : 'v'} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
