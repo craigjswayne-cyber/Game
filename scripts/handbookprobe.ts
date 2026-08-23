@@ -25,6 +25,7 @@
 // numbers are pinned here, derived from the same constants the engine reads. If a
 // coefficient moves and the prose does not, this fails and names the entry.
 import { HANDBOOK, HANDBOOK_CATS, type HandbookCat } from '../src/ui/handbook'
+import { tIn } from '../src/game/i18n'
 import { MAX_FACILITY, FACILITY_INFO, inRedZone } from '../src/game/model'
 import { MARQUEE_SLOTS } from '../src/game/cap'
 import { EXAM_PASS_PCT, RETAKE_WEEKS, courseFee } from '../src/game/staff'
@@ -39,9 +40,17 @@ const ok = (c: boolean, what: string) => {
   if (!c) fails++
 }
 
+// THE ENTRIES ARE KEYS NOW, and this probe is about the WORDS. Everything below
+// reads the English side of the dictionary, because English is where the numbers
+// were checked against the engine - a French translation of "eight men" is a
+// translator's business, not this probe's. tIn pins the language regardless of
+// what the process happens to have set.
+const q = (e: { q: string }) => tIn('en', e.q)
+const a = (e: { a: string }) => tIn('en', e.a)
+
 /** Find the one entry whose question contains this fragment. */
 const entry = (frag: string) => {
-  const hits = HANDBOOK.filter(e => e.q.toLowerCase().includes(frag.toLowerCase()))
+  const hits = HANDBOOK.filter(e => q(e).toLowerCase().includes(frag.toLowerCase()))
   if (hits.length !== 1) {
     console.error(`FAIL: "${frag}" matches ${hits.length} entries, expected exactly 1`)
     fails++
@@ -54,7 +63,7 @@ const entry = (frag: string) => {
 const says = (frag: string, must: string[], why: string) => {
   const e = entry(frag)
   if (!e) return
-  const missing = must.filter(m => !e.a.toLowerCase().includes(m.toLowerCase()))
+  const missing = must.filter(m => !a(e).toLowerCase().includes(m.toLowerCase()))
   ok(missing.length === 0, `${why}${missing.length ? ` - missing ${JSON.stringify(missing)}` : ''}`)
 }
 
@@ -62,7 +71,7 @@ const says = (frag: string, must: string[], why: string) => {
 const avoids = (frag: string, never: string[], why: string) => {
   const e = entry(frag)
   if (!e) return
-  const found = never.filter(m => e.a.toLowerCase().includes(m.toLowerCase()))
+  const found = never.filter(m => a(e).toLowerCase().includes(m.toLowerCase()))
   ok(found.length === 0, `${why}${found.length ? ` - still says ${JSON.stringify(found)}` : ''}`)
 }
 
@@ -72,13 +81,14 @@ console.log(`${HANDBOOK.length} entries across ${HANDBOOK_CATS.length} categorie
 {
   const cats = new Set(HANDBOOK_CATS.map(c => c.id))
   const orphans = HANDBOOK.filter(e => !cats.has(e.cat as HandbookCat))
-  ok(orphans.length === 0, `every entry sits in a real category${orphans.length ? ` (${orphans[0].q})` : ''}`)
-  const dupes = HANDBOOK.map(e => e.q).filter((q, i, a) => a.indexOf(q) !== i)
+  ok(orphans.length === 0, `every entry sits in a real category${orphans.length ? ` (${q(orphans[0])})` : ''}`)
+  const asked = HANDBOOK.map(q)
+  const dupes = asked.filter((x, i) => asked.indexOf(x) !== i)
   ok(dupes.length === 0, `no question is asked twice${dupes.length ? ` (${dupes[0]})` : ''}`)
   const empty = HANDBOOK_CATS.filter(c => !HANDBOOK.some(e => e.cat === c.id))
-  ok(empty.length === 0, `no category is empty${empty.length ? ` (${empty[0].label})` : ''}`)
-  const thin = HANDBOOK.filter(e => e.a.length < 80)
-  ok(thin.length === 0, `no answer is a stub${thin.length ? ` (${thin[0].q})` : ''}`)
+  ok(empty.length === 0, `no category is empty${empty.length ? ` (${tIn('en', empty[0].label)})` : ''}`)
+  const thin = HANDBOOK.filter(e => a(e).length < 80)
+  ok(thin.length === 0, `no answer is a stub${thin.length ? ` (${q(thin[0])})` : ''}`)
 }
 
 console.log('')
@@ -107,9 +117,10 @@ says('facility upgrades work', [facCount === 9 ? 'nine facilities' : `${facCount
 
 // every facility has to be described somewhere in the handbook, by name
 {
-  const listed = HANDBOOK.map(e => e.a).join(' ').toLowerCase()
+  const listed = HANDBOOK.map(a).join(' ').toLowerCase()
   const unmentioned = Object.values(FACILITY_INFO)
-    .map(f => f.name)
+    // FACILITY_INFO holds keys as well - the same extraction, one file over
+    .map(f => tIn('en', f.name))
     .filter(n => !listed.includes(n.toLowerCase().split(' &')[0].split(' and')[0]))
   ok(unmentioned.length === 0,
     `every facility is explained somewhere${unmentioned.length ? ` (missing ${JSON.stringify(unmentioned)})` : ''}`)
