@@ -25,6 +25,8 @@ import History from './screens/History'
 import Legacy from './screens/Legacy'
 import Handbook from './screens/Handbook'
 import BugReport from './screens/BugReport'
+import About from './screens/About'
+import Supporter from './screens/Supporter'
 import Jobs from './screens/Jobs'
 import Wire from './screens/Wire'
 import Medical from './screens/Medical'
@@ -54,7 +56,7 @@ const TITLES: readonly string[] = [
   'tables', 'transfers', 'training', 'finances', 'club', 'press', 'player',
   'nations', 'country', 'history', 'legacy', 'jobs', 'medical',
   'report', 'profile', 'saves', 'day', 'draw', 'annual',
-  'dreamteam', 'wire', 'infra', 'handbook', 'bug',
+  'dreamteam', 'wire', 'infra', 'handbook', 'bug', 'about', 'supporter',
 ]
 
 const IcoMoon = () => (
@@ -315,6 +317,8 @@ export default function App() {
       case 'legacy': return <Legacy />
       case 'handbook': return <Handbook />
       case 'bug': return <BugReport />
+      case 'about': return <About />
+      case 'supporter': return <Supporter />
       case 'jobs': return <Jobs />
       case 'wire': return <Wire />
       case 'medical': return <Medical />
@@ -392,6 +396,10 @@ export default function App() {
         { ico: '📜', label: t('groups.legacy'), screen: 'legacy' },
         { ico: '📖', label: t('groups.handbook'), screen: 'handbook' },
         { ico: '🐞', label: t('groups.bug'), screen: 'bug' },
+        // what this is, who made it, and what it does with your data - the page
+        // a store reviewer looks for and the page a player ends up on when they
+        // want the privacy policy without leaving the game
+        { ico: 'ℹ️', label: t('groups.about'), screen: 'about' },
         // dismissing the welcome dialog used to be final and irreversible
         { ico: '❓', label: t('groups.howToPlay'), screen: 'home', action: () => useStore.getState().openTut() },
         { ico: '💾', label: t('groups.saveLoad'), screen: 'saves' },

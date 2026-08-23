@@ -16,6 +16,7 @@ import { fmtMoney, formGuide, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t } from '../../game/i18n'
+import { AdSlot } from '../AdSlot'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -502,6 +503,11 @@ export default function Home() {
           <div className="meta">{unreadItems[0]?.subject ?? ''}</div>
         </button>
       )}
+      {/* Renders nothing at all unless a packaged shell has attached an ad
+          provider, which the web build never does (game/monetise.ts). Here
+          rather than higher up because the foot of the dashboard is the one
+          place on this screen nobody is mid-decision. */}
+      <AdSlot place="home-foot" />
       <div className="spacer" />
     </>
   )

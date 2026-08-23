@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
 import { getLang, initLang, setLang as applyLang, type Lang } from './game/i18n'
+import { hasSupporter } from './game/monetise'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
@@ -47,6 +48,9 @@ export type Screen =
   | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook' | 'bug'
   | 'country'
   | 'offers' | 'academy' | 'day' | 'draw' | 'annual'
+  // the two the store release added: what this is and who made it, and the one
+  // till in the game (which has a door only where a store exists to open it)
+  | 'about' | 'supporter'
 
 interface NavEntry {
   screen: Screen
@@ -88,6 +92,16 @@ interface Store {
    *  language re-renders the tree the same way any other state change does. */
   lang: Lang
   setLang: (l: Lang) => void
+  /** Has this device supported the game (game/monetise.ts)?
+   *
+   *  In the store for the same reason `lang` is: hasSupporter() is a plain
+   *  function over localStorage, so nothing would repaint when a purchase
+   *  landed - the ad would stay on screen under the receipt. Written once at
+   *  boot and again by claimSupporter(); never read from a save, and never
+   *  written into one. */
+  supporter: boolean
+  /** A purchase or a restore has just succeeded: repaint on the strength of it. */
+  claimSupporter: () => void
   /** The welcome dialog, hoisted out of Home so any screen can open it and the
    *  Manager menu can bring it back after it has been dismissed (blocker A2). */
   tut: boolean
@@ -385,6 +399,9 @@ export const useStore = create<Store>((set, get) => ({
     applyLang(l)
     set({ lang: getLang() })
   },
+
+  supporter: hasSupporter(),
+  claimSupporter: () => set({ supporter: hasSupporter() }),
 
   tut: false,
   openTut: () => set({ tut: true }),

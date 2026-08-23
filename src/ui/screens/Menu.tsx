@@ -11,6 +11,7 @@ export default function Menu() {
   const textScale = useStore(s => s.textScale)
   const setTextScale = useStore(s => s.setTextScale)
   const lang = useStore(s => s.lang)
+  const supporter = useStore(s => s.supporter)
   const setLang = useStore(s => s.setLang)
   const [saves, setSaves] = useState<SaveMeta[]>([])
   const [showLoad, setShowLoad] = useState(false)
@@ -120,6 +121,12 @@ export default function Menu() {
           </button>
         ))}
       </div>
+      {/* The mark somebody paid for. It is deliberately the whole of what the
+          purchase shows: a line on the screen they see most, and nothing
+          anywhere that another player could be measured against. */}
+      {supporter && (
+        <div className="supporter-mark" style={{ marginTop: 18 }}>★ {t('supporter.badge')}</div>
+      )}
       <div style={{ marginTop: 22, fontSize: 11, opacity: .65 }}>
         {t('menu.disclaimer')}
       </div>

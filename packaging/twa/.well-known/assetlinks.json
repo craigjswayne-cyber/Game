@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.phaserugbymanager.app",
+      "sha256_cert_fingerprints": [
+        "REPLACE:WITH:THE:SHA256:OF:THE:UPLOAD:KEY",
+        "REPLACE:WITH:THE:SHA256:PLAY:APP:SIGNING:GIVES:YOU"
+      ]
+    }
+  }
+]
