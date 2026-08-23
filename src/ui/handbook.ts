@@ -421,4 +421,19 @@ export const HANDBOOK: HandbookEntry[] = [
     q: 'handbook.q76',
     a: 'handbook.a76',
   },
+  {
+    cat: 'career',
+    q: 'handbook.q77',
+    a: 'handbook.a77',
+  },
+  {
+    cat: 'career',
+    q: 'handbook.q78',
+    a: 'handbook.a78',
+  },
+  {
+    cat: 'career',
+    q: 'handbook.q79',
+    a: 'handbook.a79',
+  },
 ]
