@@ -40,6 +40,9 @@ jobs:
       - name: Engine suite
         run: bash scripts/suite.sh fast
       - run: npm run build
+      # nothing with a real club, competition or sponsor mark in it gets published
+      - name: Real-world marks
+        run: node scripts/ipprobe.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true

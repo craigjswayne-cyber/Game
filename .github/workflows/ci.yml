@@ -53,6 +53,12 @@ jobs:
         run: npx vite-node scripts/tokenlint.ts
       - name: Stylesheet
         run: node scripts/cssaudit.mjs
+      # the IP tripwire needs a build, but it is 20 seconds and it guards the
+      # thing that would pull the game from a store rather than break a career
+      - name: Build
+        run: npm run build
+      - name: Real-world marks
+        run: node scripts/ipprobe.mjs
       - name: Engine suite
         run: bash scripts/suite.sh fast
 

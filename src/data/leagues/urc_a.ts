@@ -168,7 +168,7 @@ export const URC_A: RawClub[] = [
   {
     id: 'glasgow', name: 'Glasgow RFC', short: 'Glasgow',
     city: 'Glasgow', country: 'SCO',
-    stadium: 'Scotstoun Stadium', capacity: 7351,
+    stadium: 'Scotsworth Stadium', capacity: 7351,
     colors: ['#0a2240', '#8bd3f5'],
     rep: 85, budget: 2800000,
     players: [
@@ -246,7 +246,7 @@ export const URC_A: RawClub[] = [
   {
     id: 'benetton', name: 'Treviso RFC', short: 'Treviso',
     city: 'Treviso', country: 'ITA',
-    stadium: 'Stadio Monigo', capacity: 6700,
+    stadium: 'Stadio Monaco', capacity: 6700,
     colors: ['#007a3d', '#ffffff'],
     rep: 75, budget: 1500000,
     players: [
