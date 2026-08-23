@@ -303,6 +303,9 @@ export interface Player {
   /** where a loaned-out man is spending the season - a real lower-tier club,
    *  picked at loan time, so the postcards can say where he is (round 25) */
   loanClub?: string
+  /** absolute week (season * SEASON_WEEKS + week) the loan began, so a recall
+   *  can price itself on the rugby he actually played rather than the button */
+  loanSince?: number
   /** ability at the start of the season, for development arrows */
   ca0?: number
   /** starts made LAST season, stashed before the summer stats wipe so the

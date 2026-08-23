@@ -509,6 +509,19 @@ export function migrate(s: GameState): GameState {
       }
       for (const rp of rc.players) {
         const p = buildPlayer(rp, club.id, (0xadd1e ^ hashString(rc.id)) + club.players.length * 13, s.season)
+        // A HAND-WRITTEN NAME IS A REAL MAN, however he arrives. newGame stamps
+        // this and this path did not, so every career that predates a league
+        // being added carried 775 real players flagged as generated - and
+        // seedExClubs then invented a pre-2025 club history for 100 of them,
+        // which is the one thing its own guard exists to prevent (the briefing
+        // that told a Northampton manager one of his men had made 39
+        // appearances for a club he never played for). The self-healing pass
+        // later in this file tests the same flag, so it could not reach them
+        // either.
+        p.real = true
+        // his name is spoken for now: register it before any generated filler
+        // is drawn, or the top-up can hand an invented man a real one
+        worldNames(s).add(p.name.toLowerCase())
         s.players[p.id] = p
         club.players.push(p.id)
       }
