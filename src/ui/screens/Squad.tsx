@@ -5,6 +5,7 @@ import { starPlayerIds } from '../../game/analysis'
 import { AvailTag, Nat, PosBadge, Stars, StickyControls } from '../components'
 import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type SquadStatus } from '../../game/gametime'
 import SelectionPane from './Selection'
+import { t } from '../../game/i18n'
 
 // FM Mobile squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
@@ -32,10 +33,10 @@ type SortKey = 'pos' | 'name' | 'age' | 'ca' | 'form' | 'cond' | 'value' | 'apps
 function FitRing({ v }: { v: number }) {
   const pct = Math.max(0, Math.min(100, v))
   const c = v >= 85 ? 'var(--text-positive)' : v >= 68 ? 'var(--gold)' : 'var(--danger)'
-  const state = v >= 85 ? 'fully fit' : v >= 68 ? 'carrying a knock' : 'unfit'
+  const state = t(v >= 85 ? 'squad.fitFully' : v >= 68 ? 'squad.fitKnock' : 'squad.fitUnfit')
   return (
-    <span role="img" aria-label={`${state}, ${Math.round(v)} per cent`}
-      title={`${Math.round(v)}% fit`} style={{
+    <span role="img" aria-label={t('squad.fitLabel', { state, pct: Math.round(v) })}
+      title={t('squad.fitTitle', { pct: Math.round(v) })} style={{
         display: 'inline-block', width: 11, height: 11, borderRadius: '50%',
         verticalAlign: -1,
         background: `conic-gradient(${c} ${(pct * 3.6).toFixed(0)}deg, var(--surface-3) 0)`,
@@ -166,8 +167,8 @@ export default function Squad() {
             on General Info. */}
         {(['selection', 'general', 'stats', 'gametime', 'contracts'] as View[]).map(v => (
           <button key={v} className={view === v ? 'active' : ''} onClick={() => setView(v)}>
-            {v === 'selection' ? 'Selection' : v === 'general' ? 'General Info'
-              : v === 'stats' ? 'Stats' : v === 'gametime' ? 'Game Time' : 'Contracts'}
+            {t(v === 'selection' ? 'squad.tabSelection' : v === 'general' ? 'squad.tabGeneral'
+              : v === 'stats' ? 'squad.tabStats' : v === 'gametime' ? 'squad.tabGameTime' : 'squad.tabContracts')}
           </button>
         ))}
         {/* The squad summary used to sit here, sharing the tab row's spare
@@ -184,14 +185,14 @@ export default function Squad() {
             as a sort here"): the list is ordered by shirt number, so 1 to 8 are
             already the forwards and 9 to 15 the backs. The chips filtered a
             list that had grouped itself. */}
-        {([['all', 'First Team'], ['aca', '🎓 Academy']] as const).map(([k, label]) => (
+        {([['all', 'squad.firstTeam'], ['aca', 'squad.academy']] as const).map(([k, label]) => (
           <button key={k} className="preset-chip" style={group === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setGroup(k)}>{label}</button>
+            onClick={() => setGroup(k)}>{t(label)}</button>
         ))}
         {/* the academy has its own A League now, so the filter hands off to it
             rather than pretending 27 scholars are a selection problem */}
         {group === 'aca' && (
-          <button className="preset-chip" onClick={() => go('academy')}>A League ▸</button>
+          <button className="preset-chip" onClick={() => go('academy')}>{t('squad.aLeague')}</button>
         )}
         {/* U23 is gone at the user's request, and so is the search box: on a
             portrait phone the two words "Available" and "Unavailable" plus an
@@ -200,14 +201,16 @@ export default function Squad() {
             availability filter is now the two icons it always was really
             (user: "get unavailable and available as just ✅🚑 icons and on the
             same line as first team and academy"). */}
-        {([['any', 'Everyone', 'the whole squad'], ['fit', '✅', 'available to pick'], ['out', '🚑', 'injured, banned, away or on loan']] as const).map(([k, label, why]) => (
-          <button key={k} className="preset-chip" title={why} aria-label={why}
+        {/* the two icons carry no words in any language; only Everyone and the
+            tooltips need the dictionary */}
+        {([['any', 'squad.everyone', 'squad.whyEveryone'], ['fit', '✅', 'squad.whyFit'], ['out', '🚑', 'squad.whyOut']] as const).map(([k, label, why]) => (
+          <button key={k} className="preset-chip" title={t(why)} aria-label={t(why)}
             style={avail === k ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setAvail(k)}>{label}</button>
+            onClick={() => setAvail(k)}>{label.includes('.') ? t(label) : label}</button>
         ))}
         {view === 'gametime' && (
           <button className="preset-chip" style={gtAll ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            onClick={() => setGtAll(!gtAll)}>{gtAll ? 'Everyone shown' : 'Needs a word'}</button>
+            onClick={() => setGtAll(!gtAll)}>{t(gtAll ? 'squad.everyoneShown' : 'squad.needsAWord')}</button>
         )}
       </div>}
       </StickyControls>
@@ -239,45 +242,45 @@ export default function Squad() {
         <thead>
           {view === 'general' && (
             <tr>
-              <Th k="pkd">Pkd</Th>
-              <Th k="name">Name</Th>
-              <Th k="pos">Pos</Th>
-              <Th k="age" right>Age</Th>
-              <th>Nat</th>
-              <th>Mor</th>
-              <Th k="avr" right>Av R</Th>
-              <Th k="value" right>Value</Th>
+              <Th k="pkd">{t('squad.colPkd')}</Th>
+              <Th k="name">{t('squad.colName')}</Th>
+              <Th k="pos">{t('squad.colPos')}</Th>
+              <Th k="age" right>{t('squad.colAge')}</Th>
+              <th>{t('squad.colNat')}</th>
+              <th>{t('squad.colMor')}</th>
+              <Th k="avr" right>{t('squad.colAvR')}</Th>
+              <Th k="value" right>{t('squad.colValue')}</Th>
             </tr>
           )}
           {view === 'gametime' && (
             <tr>
-              <Th k="pkd">Pkd</Th>
-              <Th k="name">Name</Th>
-              <th>He Was Told</th>
-              <Th k="apps" right>Ap</Th>
-              <th className="num">Due</th>
-              <th>Mood</th>
+              <Th k="pkd">{t('squad.colPkd')}</Th>
+              <Th k="name">{t('squad.colName')}</Th>
+              <th>{t('squad.colToldHim')}</th>
+              <Th k="apps" right>{t('squad.colAp')}</Th>
+              <th className="num">{t('squad.colDue')}</th>
+              <th>{t('squad.colMood')}</th>
             </tr>
           )}
           {view === 'stats' && (
             <tr>
-              <Th k="name">Name</Th>
-              <Th k="apps" right>Ap</Th>
-              <Th k="tries" right>T</Th>
-              <Th k="points" right>Pts</Th>
-              <th className="num">YC</th>
-              <th className="num">RC</th>
-              <th className="num">MotM</th>
+              <Th k="name">{t('squad.colName')}</Th>
+              <Th k="apps" right>{t('squad.colAp')}</Th>
+              <Th k="tries" right>{t('squad.colT')}</Th>
+              <Th k="points" right>{t('squad.colPts')}</Th>
+              <th className="num">{t('squad.colYC')}</th>
+              <th className="num">{t('squad.colRC')}</th>
+              <th className="num">{t('squad.colMotM')}</th>
             </tr>
           )}
           {view === 'contracts' && (
             <tr>
-              <Th k="pkd">Pkd</Th>
-              <Th k="name">Name</Th>
-              <Th k="pos">Pos</Th>
-              <Th k="age" right>Age</Th>
-              <Th k="wage" right>Wage /wk</Th>
-              <Th k="until" right>Until</Th>
+              <Th k="pkd">{t('squad.colPkd')}</Th>
+              <Th k="name">{t('squad.colName')}</Th>
+              <Th k="pos">{t('squad.colPos')}</Th>
+              <Th k="age" right>{t('squad.colAge')}</Th>
+              <Th k="wage" right>{t('squad.colWage')}</Th>
+              <Th k="until" right>{t('squad.colUntil')}</Th>
               {/* an icon, not a phrase: "under contract" is the answer for 38 of
                   42 men and it was eating 78px of a 412px screen to say so */}
               <th>?</th>
@@ -287,9 +290,7 @@ export default function Squad() {
         <tbody>
           {players.length === 0 && (
             <tr><td colSpan={8} className="muted" style={{ padding: 12, whiteSpace: 'normal' }}>
-              {view === 'gametime' && !gtAll
-                ? 'Nobody is short of the minutes he was promised. Tap Everyone Shown to set what the rest of the squad has been told.'
-                : 'Nobody matches that. Clear the filters to see the whole squad.'}
+              {t(view === 'gametime' && !gtAll ? 'squad.emptyGameTime' : 'squad.emptyFiltered')}
             </td></tr>
           )}
           {players.map(p => {
@@ -314,7 +315,7 @@ export default function Squad() {
                   <td className="num" style={{ fontWeight: 700 }}>
                     {(p.ca0 != null && p.ca !== p.ca0) && (
                       <span style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)', marginRight: 3, fontWeight: 400 }}
-                        title={p.ca > p.ca0 ? 'Ability has grown this season' : 'Ability has slipped this season'}>
+                        title={t(p.ca > p.ca0 ? 'squad.abilityUp' : 'squad.abilityDown')}>
                         {p.ca > p.ca0 ? '▲' : '▼'}
                       </span>
                     )}
@@ -337,12 +338,14 @@ export default function Squad() {
                     <td onClick={e => e.stopPropagation()}>
                       <select className="inline-input gt-sel" value={cur}
                         onChange={e => { p.status = e.target.value as SquadStatus; touch() }}>
-                        {STATUSES.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
+                        {/* the engine keeps the English name on the def; the
+                            option shows the translated one, keyed by id */}
+                        {STATUSES.map(st => <option key={st.id} value={st.id}>{t(`squad.status${st.id[0].toUpperCase()}${st.id.slice(1)}`)}</option>)}
                       </select>
                     </td>
                     <td className="num" style={{ fontWeight: 700 }}>{row.actual}</td>
                     <td className="num" style={{ color: row.gap < -2 ? 'var(--danger)' : undefined }}>{row.expected}</td>
-                    <td title={STATUS_BY_ID[cur].desc} style={{ color: col, whiteSpace: 'nowrap' }}>
+                    <td title={t(`squad.status${cur[0].toUpperCase()}${cur.slice(1)}Desc`)} style={{ color: col, whiteSpace: 'nowrap' }}>
                       {icon} {row.gap >= 0 ? `+${row.gap}` : row.gap}
                     </td>
                   </>)
@@ -356,10 +359,10 @@ export default function Squad() {
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {p.contractEnds <= game.season
-                      ? <span title="deal expires this summer">⏳</span>
+                      ? <span title={t('squad.dealExpires')}>⏳</span>
                       : (p.wantsDeal ?? 0) > 0
-                        ? <span title="his camp wants improved terms">💼</span>
-                        : <span className="muted" title="under contract, nothing to do">·</span>}
+                        ? <span title={t('squad.wantsTerms')}>💼</span>
+                        : <span className="muted" title={t('squad.underContract')}>·</span>}
                   </td>
                 </>)}
                 {view === 'stats' && (<>
@@ -377,12 +380,12 @@ export default function Squad() {
       </table></div>}
       {view === 'contracts' && (
         <div className="meta" style={{ padding: '6px 14px 0' }}>
-          ⏳ runs out this summer · 💼 his camp wants improved terms · red year expiring, amber next summer. Tap a man to open talks.
+          {t('squad.contractsNote')}
         </div>
       )}
       {view === 'gametime' && (
         <div className="meta" style={{ padding: '6px 14px 0' }}>
-          Ap is what he has played, Due is what a man on that promise should have played by now. Tell a squad man he is a Key Player and he will hold you to it.
+          {t('squad.gameTimeNote')}
         </div>
       )}
       <div className="spacer" />
