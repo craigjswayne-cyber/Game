@@ -135,11 +135,12 @@ export function migrate(s: GameState): GameState {
   s.preContracts = asList(s.preContracts)
   s.comps = asMap(s.comps)
   // COMPETITION NAMES LIVE IN THE SAVE, so a career started before v1.0.3
-  // carries the old real-world names in state.comps and would keep showing them
-  // for the rest of its life - rollover only rebuilds the cups, never the
-  // leagues. Renaming by id on load is the only thing that reaches an
-  // in-flight career. Keyed on id, so it is also the one place to change if a
-  // competition is ever renamed again.
+  // carries the old real-world names in state.comps. Rollover rebuilds every
+  // competition each summer (rollover.ts empties state.comps and re-runs
+  // buildLeague over LEAGUE_DEFS), so a career would heal itself in August -
+  // but a MID-SEASON save shows the old marks on every screen until then, and
+  // this is the only thing that reaches it. Keyed on id, so it is also the one
+  // place to change if a competition is ever renamed again.
   const COMP_NAMES: Record<string, [string, string]> = {
     prem: ['English Premier Division', 'Premier'],
     top14: ['French Elite 14', 'Elite 14'],
@@ -159,6 +160,52 @@ export function migrate(s: GameState): GameState {
   for (const [id, [name, short]] of Object.entries(COMP_NAMES)) {
     const c = s.comps[id]
     if (c) { c.name = name; c.short = short }
+  }
+
+  // ...and the two places a competition NAME is cached as a plain string rather
+  // than looked up by id, which the loop above cannot reach:
+  //   - the academy's A League title, derived from a comp short at build time
+  //     and then cached (academy.ts), so ensureAcademyLeague returns the stale
+  //     object rather than rebuilding it;
+  //   - the season reviews, which store trophies and cup runs as NAMES
+  //     (SeasonReview.trophies is string[], cups[].comp is a string), up to
+  //     thirty seasons deep. The Annual is a forced page every August, so a
+  //     pre-1.0.3 career's first sight of this build was a headline reading
+  //     "Gallagher Premiership - Champions Cup".
+  // Longest form first: "Premiership" is a substring of "Gallagher Premiership".
+  const RENAMED: [string, string][] = [
+    ['Gallagher Premiership', 'English Premier Division'],
+    ['United Rugby Championship', 'United Provinces Championship'],
+    ['Super Rugby Pacific', 'Pacific Championship'],
+    ['Continental Champions Cup', 'Continental Cup'],
+    ['European Challenge Cup', 'Continental Shield'],
+    ['The Rugby Championship', 'The Southern Championship'],
+    ['Pacific Nations Cup', 'Pacific Islands Cup'],
+    ['British & Irish Lions', 'Northern Lions'],
+    ['National League One', 'English National One'],
+    ['Japan League One', 'Japan Division One'],
+    ['Rugby World Cup', 'World Championship'],
+    ['Rugby Championship', 'The Southern Championship'],
+    ['Champions Cup', 'Continental Cup'],
+    ['Challenge Cup', 'Continental Shield'],
+    ['Premiership', 'English Premier Division'],
+    ['Six Nations', 'Northern Championship'],
+    ['World Cup', 'World Championship'],
+    ['Super Rugby', 'Pacific Championship'],
+    ['Top 14', 'Elite 14'],
+    ['Pro D2', 'Elite 2'],
+  ]
+  const reword = (text: string): string => {
+    let out = text
+    for (const [was, now] of RENAMED) out = out.split(was).join(now)
+    return out
+  }
+  if (s.academy?.name) s.academy.name = reword(s.academy.name)
+  for (const r of [s.review, ...(s.annals ?? [])]) {
+    if (!r) continue
+    if (r.league?.name) r.league.name = reword(r.league.name)
+    if (Array.isArray(r.trophies)) r.trophies = r.trophies.map(reword)
+    if (Array.isArray(r.cups)) for (const c of r.cups) if (c?.comp) c.comp = reword(c.comp)
   }
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
