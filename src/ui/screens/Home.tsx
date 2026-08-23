@@ -424,7 +424,7 @@ export default function Home() {
                   </div>
                 )
               })}
-              {/* The comp tag is the compId, not comp.short: "Champions Cup"
+              {/* The comp tag is the compId, not comp.short: "Continental Cup"
                   muted at the end of a half-width row cost 72px and the club
                   name beside it arrived as "Highlande..." (device matrix,
                   round 23). PREM/CC/TOP14 says which shirt the week is about

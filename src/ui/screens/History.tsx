@@ -6,11 +6,11 @@ import { SectionTitle } from '../components'
 // ephemeral competitions (rebuilt only in their years) vanish from the live
 // registry between editions, so the roll needs its own memory of their names
 const GONE_BUT_NOT_FORGOTTEN: Record<string, string> = {
-  wc: 'Rugby World Cup',
+  wc: 'World Championship',
   lions: 'Lions Tour',
   tour: 'Summer Tours',
   aut: 'Autumn Internationals',
-  pnc: 'Pacific Nations Cup',
+  pnc: 'Pacific Islands Cup',
 }
 
 export default function History() {

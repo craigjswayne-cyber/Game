@@ -107,7 +107,7 @@ export const DEFAULT_SCRUM = 'sc_hold'
 
 /** Everyone starts knowing the orthodox calls and nothing exotic. */
 export function freshPlaybook(rep: number): Playbook {
-  const base = 34 + Math.round(rep * 0.28) // a Top 14 pack starts better drilled
+  const base = 34 + Math.round(rep * 0.28) // an Elite 14 pack starts better drilled
   const drilled: Record<string, number> = {}
   for (const r of ROUTINES) {
     drilled[r.id] = r.id === DEFAULT_LINEOUT || r.id === DEFAULT_SCRUM

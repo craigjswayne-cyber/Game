@@ -20,7 +20,7 @@ const finances = (budget: number) =>
     : ['Tight', 'var(--danger)']
 
 // judged inside the club's own league (mediaVerdict) - absolute reputation
-// thresholds branded every National League One club "Relegation-zone rated",
+// thresholds branded every English National One club "Relegation-zone rated",
 // in a division that has no relegation
 
 export default function NewGame() {
@@ -43,7 +43,7 @@ export default function NewGame() {
 
   /* THE DREAM (design review, wave 1): the last thing the wizard asks is the
      only thing it asks about YOU. What is offered depends on the club - a
-     Championship side can dream of the top flight and a Premiership side
+     Championship side can dream of the top flight and a Premier Division side
      cannot - and the choice is required, because a career with no declared
      ambition is the exact hole this was built to close. */
   const dreamCtx: DreamContext | null = club && league

@@ -4,7 +4,7 @@
 export type KitPattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves'
 
 const KIT_PATTERNS: Record<string, KitPattern> = {
-  // Premiership
+  // Premier Division
   bath: 'hoops',          // blue, white & black hoops
   bristol: 'solid',
   exeter: 'solid',
@@ -15,7 +15,7 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   northampton: 'hoops',   // black, green & gold hoops
   sale: 'solid',
   saracens: 'solid',       // 2025-26: black shirt, red accents
-  // Top 14
+  // Elite 14
   toulouse: 'hoops',      // red & black
   bordeaux: 'sash',       // navy with claret
   la_rochelle: 'stripes', // yellow & black
@@ -30,7 +30,7 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   pau: 'hoops',           // green & white
   perpignan: 'halves',    // sang et or
   montauban: 'sash',
-  // URC
+  // UPC
   leinster: 'solid',
   munster: 'solid',
   ulster: 'solid',
@@ -47,7 +47,7 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   ospreys: 'solid',
   scarlets: 'solid',
   dragons: 'solid',
-  // Super Rugby Pacific
+  // Pacific Championship
   blues: 'solid',
   chiefs: 'sash',         // black with yellow
   crusaders: 'hoops',     // red & black

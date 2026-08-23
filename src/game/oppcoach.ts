@@ -41,7 +41,7 @@ export type Archetype = 'stubborn' | 'analyst' | 'reactive'
  * chosen so they still sum to 1 with no renormalising:
  *   rep 38 (the weakest club in the game): 85% stubborn, 10% analyst, 5% reactive
  *   rep 93 (the strongest):                 8% stubborn, 46% analyst, 46% reactive
- * A rep-86 Premiership giant sits at roughly 18/41/41 - the "almost
+ * A rep-86 Premier Division giant sits at roughly 18/41/41 - the "almost
  * exclusively" a sharp dugout the review called for, without a discontinuity
  * anywhere the manager could feel as a cliff-edge.
  */

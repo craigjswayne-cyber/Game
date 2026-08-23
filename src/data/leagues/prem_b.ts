@@ -176,7 +176,7 @@ export const PREM_B: RawClub[] = [
     ],
   },
   {
-    id: 'saracens', name: 'Hendon RFC', short: 'Hendon',
+    id: 'saracens', name: 'Saracens RFC', short: 'Saracens',
     city: 'London', country: 'ENG',
     stadium: 'Hendon Park', capacity: 10500,
     colors: ['#000000', '#d31145'],

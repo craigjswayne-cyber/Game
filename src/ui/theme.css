@@ -2345,7 +2345,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 /*  Second pass. Dropping the coloured border was not enough: the user says "weird
  *  red thing is back", and it was still there in the FILL. Even a 14% wash of a
  *  red primary over a near-black paper comes out a dirty maroon, and five of the
- *  ten Premiership clubs have red in their first two colours. There is no
+ *  ten top-flight clubs have red in their first two colours. There is no
  *  percentage of red-over-black that looks deliberate.
  *
  *  So the fill is now plain paper, exactly like every other tile in the game, and

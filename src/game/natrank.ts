@@ -1,6 +1,6 @@
 // World rankings for the Test game: an exchange system in the World Rugby
 // style. Points flow from loser to winner - more for an upset, more when a
-// knockout is on the line, most of all at a World Cup.
+// knockout is on the line, most of all at a World Championship.
 
 import type { Fixture, GameState } from './model'
 import { NATIONS } from './nations'

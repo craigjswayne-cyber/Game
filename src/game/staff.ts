@@ -368,7 +368,7 @@ export function staffWageBill(state: GameState): number {
 }
 
 /**
- * The department you inherit. A Top 14 giant hands you a proper backroom;
+ * The department you inherit. A Elite 14 giant hands you a proper backroom;
  * a Championship club hands you a physio with a bad knee and good intentions.
  * Deterministic per club, so the same job always looks the same.
  */

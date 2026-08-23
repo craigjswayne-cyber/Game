@@ -15,7 +15,7 @@
 //   hundred - and only ever because they had overspent on a fee, never because
 //   running a rugby club costs money.
 //
-//   A big wage bill was free. An AI club could carry forty men on Premiership
+//   A big wage bill was free. An AI club could carry forty men on Premier Division
 //   money and feel nothing, so wage inflation had no brake and no consequence.
 //
 //   Full grounds meant nothing to anyone but the manager. A club could sell out
@@ -122,7 +122,7 @@ const FLOOR_SQUAD = 30
  * seasons, which is not a struggling rugby club, it is a number that has stopped
  * meaning anything on a screen the manager can read.
  *
- * Twenty weeks of wages is about eight million for a Premiership bill. A club
+ * Twenty weeks of wages is about eight million for a Premier Division bill. A club
  * held at that floor stays firmly in the red, which is the point: the eight
  * percent discount in sellerWillingness keeps applying, and a manager with money
  * has somebody to talk to.

@@ -7,7 +7,8 @@ Park → Crocker Park; Velodrome/Murrayfield/Wembley kept as generic place
 names) and the challenge/legacy texts that named Thomond Park and the Cornish
 Pirates. This addresses the club/ground half of the store blocker in
 `release-readiness.md` §1.1. Player names (~1,600) and competition names are
-separate passes and are NOT yet done.
+a separate pass and NOT yet done. **v1.0.3** restored Harlequins and Saracens
+at the owner's request and fictionalised the competition names (see below).
 
 Ground rules:
 
@@ -17,11 +18,14 @@ Ground rules:
 3. **Club names are location-based with an RFC suffix** (owner's rules,
    2026-08-23): the plain place name plus "RFC", no nicknames — Northampton
    Saints is "Northampton RFC". Exceptions only where needed: clubs with no
-   place in their real identity take their actual district/region (Harlequins
-   → Twickenham RFC, Saracens → Hendon RFC, Blues → Auckland RFC), and the odd
+   place in their real identity take their actual district/region (Blues →
+   Auckland RFC), and the odd
    flavour name survives where two clubs share a town (London Scottish →
    London Caledonians RFC, since Richmond takes "Richmond RFC"). Sale FC keeps
-   "FC" to stay distinct from the Premiership's Sale RFC.
+   "FC" to stay distinct from the top flight's Sale RFC. Harlequins and
+   Saracens were district-renamed in v1.0.2 and restored by the owner in
+   v1.0.3: both names are ordinary English words rather than places, and the
+   owner wanted them back.
 4. **Ground names follow the owner's near-miss convention** (set on the
    Premiership): a soundalike of the real name (Ashton Gate → Ashford Gate,
    Kingsholm → Kinshome), a street-type swap (Welford Road → Welford Street),
@@ -42,12 +46,12 @@ Rows marked **(owner)** were chosen by the owner and are locked.
 | Bristol Bears | Bristol RFC | Ashton Gate | Ashford Gate **(owner)** |
 | Exeter Chiefs | Exeter RFC | Sandy Park | Beachy Park **(owner)** |
 | Gloucester Rugby | Gloucester RFC | Kingsholm | Kinshome **(owner)** |
-| Harlequins | Twickenham RFC | Twickenham Stoop | Little Twickenham **(owner)** |
+| Harlequins | Harlequins RFC **(owner, v1.0.3)** | Twickenham Stoop | Little Twickenham **(owner)** |
 | Leicester Tigers | Leicester RFC | Mattioli Woods Welford Road | Welford Street **(owner)** |
 | Newcastle Red Bulls | Newcastle RFC | Kingston Park | Gosforth Centre **(owner)** |
 | Northampton Saints | Northampton RFC **(owner)** | cinch Stadium at Franklin's Gardens | The Gardens **(owner)** |
 | Sale Sharks | Sale RFC | Salford Community Stadium | Salford City Stadium **(owner)** |
-| Saracens | Hendon RFC | StoneX Stadium | Hendon Park |
+| Saracens | Saracens RFC **(owner, v1.0.3)** | StoneX Stadium | Hendon Park |
 
 Note on Salford City Stadium: that was the ground's actual former real-world
 name (pre-AJ Bell), and Salford City FC exists; "Salford Stadium" would be one
@@ -193,6 +197,33 @@ Japan notes: Brave Lupus and Sungoliath are both Tokyo clubs, so one takes
 Fuchu (its actual home) and the other keeps Tokyo; Black Rams take their
 Setagaya district; Verblitz can't be "Toyota" without reading as the company,
 so it takes the Mikawa region.
+
+## Competitions (v1.0.3)
+
+The league picker still carried the real competition marks after the club pass,
+so they follow the same rules: sponsor and brand marks go, plain tier and
+geography vocabulary stays. Competition names live in the SAVE, so `save.ts`
+renames them by id on load - otherwise a career started before v1.0.3 would
+show the old names for the rest of its life.
+
+| Current | Proposed | Short |
+|---|---|---|
+| Gallagher Premiership | English Premier Division | Premier |
+| English Championship | keep (generic tier word) | Championship |
+| National League One | English National One | National 1 |
+| Top 14 | French Elite 14 | Elite 14 |
+| Pro D2 | French Elite 2 | Elite 2 |
+| United Rugby Championship | United Provinces Championship | UPC |
+| Super Rugby Pacific | Pacific Championship | Pacific |
+| Japan League One | Japan Division One | Japan D1 |
+| Champions Cup | Continental Cup | Continental Cup |
+| European Challenge Cup | Continental Shield | Continental Shield |
+| Rugby World Cup | World Championship | Worlds |
+| Six Nations | Northern Championship | Northern |
+| The Rugby Championship | The Southern Championship | Southern |
+| Pacific Nations Cup | Pacific Islands Cup | Islands Cup |
+| British & Irish Lions | Northern Lions | (Lions Tour) |
+| Autumn Internationals, Summer Tours | keep (descriptive) | - |
 
 ## Open questions
 

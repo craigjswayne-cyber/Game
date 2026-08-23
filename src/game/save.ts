@@ -134,10 +134,32 @@ export function migrate(s: GameState): GameState {
   s.pledges = asList(s.pledges)
   s.preContracts = asList(s.preContracts)
   s.comps = asMap(s.comps)
-  // the cup dropped a word from its name (user: "remove the word continental -
-  // can just be the champions cup"); a mid-season save carries the old one
-  // until rollover rebuilds the comp, so it is healed here instead
-  if (s.comps['cc']?.name === 'Continental Champions Cup') s.comps['cc'].name = 'Champions Cup'
+  // COMPETITION NAMES LIVE IN THE SAVE, so a career started before v1.0.3
+  // carries the old real-world names in state.comps and would keep showing them
+  // for the rest of its life - rollover only rebuilds the cups, never the
+  // leagues. Renaming by id on load is the only thing that reaches an
+  // in-flight career. Keyed on id, so it is also the one place to change if a
+  // competition is ever renamed again.
+  const COMP_NAMES: Record<string, [string, string]> = {
+    prem: ['English Premier Division', 'Premier'],
+    top14: ['French Elite 14', 'Elite 14'],
+    urc: ['United Provinces Championship', 'UPC'],
+    srp: ['Pacific Championship', 'Pacific'],
+    champ: ['English Championship', 'Championship'],
+    prod2: ['French Elite 2', 'Elite 2'],
+    jl1: ['Japan Division One', 'Japan D1'],
+    natl1: ['English National One', 'National 1'],
+    cc: ['Continental Cup', 'Continental Cup'],
+    chc: ['Continental Shield', 'Continental Shield'],
+    wc: ['World Championship', 'Worlds'],
+    sn: ['Northern Championship', 'Northern'],
+    trc: ['The Southern Championship', 'Southern'],
+    pnc: ['Pacific Islands Cup', 'Islands Cup'],
+  }
+  for (const [id, [name, short]] of Object.entries(COMP_NAMES)) {
+    const c = s.comps[id]
+    if (c) { c.name = name; c.short = short }
+  }
   s.natSquads = asMap(s.natSquads)
   s.players = asMap(s.players)
   s.clubs = asMap(s.clubs)

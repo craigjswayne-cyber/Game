@@ -914,7 +914,7 @@ function applyModifiers(state: GameState, side: SideCtx, weather: Weather | null
   // baseline, not a mirror: it is deliberately FLAT with only a light tilt for
   // reputation, because making it scale hard with rep would amplify the gap
   // between rich and poor and stratify the league - a balance regression wearing
-  // a realism costume. Every Premiership side has an attack coach; what varies
+  // a realism costume. Every Premier Division side has an attack coach; what varies
   // between them is less than reputation suggests.
   //
   // What is left as the manager's genuine edge is the part that is a DECISION

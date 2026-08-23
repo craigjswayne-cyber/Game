@@ -145,10 +145,10 @@ export const EURO_FINAL_VENUES: FinalVenue[] = [
 ]
 
 /** Where a competition's final is played, or null for finals that stay at the
- *  higher seed's ground (URC, Championship, the southern leagues - which is
+ *  higher seed's ground (UPC, Championship, the southern leagues - which is
  *  how those competitions actually do it).
  *
- *  The Premiership final is ALWAYS Twickenham and the Top 14 final is always
+ *  The Premier Division final is ALWAYS Twickenham and the Elite 14 final is always
  *  the Stade de France. The European finals rotate: a deterministic pick from
  *  the save's seed and the season, so the announcement, the fixture and any
  *  reload all agree without storing anything - and never the same city two
@@ -288,9 +288,9 @@ export interface Player {
   hist?: { apps: number; tries: number; points: number }
   /** Test caps, pre-2025 estimate plus every international played here */
   caps?: number
-  /** British & Irish Lions tours made - the honour of a career */
+  /** Northern Lions tours made - the honour of a career */
   lions?: number
-  /** World Cups won while in the squad - the other honour of a career */
+  /** World Championships won while in the squad - the other honour of a career */
   wcWins?: number
   /** pre-2025 former club (same league), for old-boy stories from day one */
   exClub?: string | null
@@ -1375,7 +1375,7 @@ export function trustWord(v: number): string {
     : 'They do not believe a word'
 }
 
-/** World Cup years: 2027, 2031, ... (in-game season index) */
+/** World Championship years: 2027, 2031, ... (in-game season index) */
 export function isWorldCupSeason(season: number): boolean {
   return (2025 + season) % 4 === 3
 }
