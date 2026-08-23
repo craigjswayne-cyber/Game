@@ -295,11 +295,17 @@ export function coachFixes(
   // sentence where no compiler could see it. Found by the RC battery, not a
   // player, which is pure luck: the advice was telling a manager he had five
   // changes when three more sat behind them.
-  if (ctx.subsUsed <= 1) {
+  // AND THE ADVICE HAS TO MATCH THE MEASUREMENT. This told the manager to empty
+  // the bench - all eight changes - and emptying the bench measured 2.5 points a
+  // match WORSE than making none. A hint system that recommends a loss is worse
+  // than no hint system, because the player trusts it. The engine's freshness
+  // band has been widened so the changes are worth making; the number it names
+  // is now the number that wins.
+  if (ctx.subsUsed < 2) {
     c.push({
-      tag: 'fitness', score: 16 - ctx.subsUsed * 5,
-      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used out of ${CAP_WORD}.`,
-      how: `Tap Match-Day Squad at the hour. All ${CAP_WORD} changes are free and a fresh front row in the last twenty wins tight games on its own.`,
+      tag: 'fitness', score: 14 - ctx.subsUsed * 5,
+      head: `${ctx.subsUsed === 0 ? 'No replacements' : 'One replacement'} used.`,
+      how: 'Tap Match-Day Squad at the hour and make two or three, into the shirts running on empty. A fresh front row in the last twenty wins tight games - but past four you are swapping quality out for freshness you do not need.',
     })
   }
 
