@@ -6,7 +6,7 @@ export interface Nation {
   flag: string
   rep: number // 1-100
   sixNations?: boolean
-  trc?: boolean // Rugby Championship
+  trc?: boolean // Southern Championship
 }
 
 export const NATIONS: Nation[] = [
@@ -33,7 +33,7 @@ export const NATIONS: Nation[] = [
   { code: 'ROU', name: 'Romania', flag: '🇷🇴', rep: 55 },
   { code: 'NAM', name: 'Namibia', flag: '🇳🇦', rep: 52 },
   { code: 'CHL', name: 'Chile', flag: '🇨🇱', rep: 54 },
-  { code: 'LIO', name: 'British & Irish Lions', flag: '🦁', rep: 93 },
+  { code: 'LIO', name: 'Northern Lions', flag: '🦁', rep: 93 },
 ]
 
 export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)

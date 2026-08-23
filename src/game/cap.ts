@@ -14,9 +14,9 @@ import { fmtMoney, type Club, type GameState } from './model'
  *
  * ---- why the number is measured, not written down ----
  *
- * The real Premiership cap is a figure in pounds, and quoting it here would mean
+ * The real Premier Division cap is a figure in pounds, and quoting it here would mean
  * nothing: this game's wage scale is its own, and a squad costs what the squad
- * costs. Measured at the start of a career, a Premiership bill runs from £192k to
+ * costs. Measured at the start of a career, a Premier Division bill runs from £192k to
  * £316k a week. A cap of "£6.4m a season" would either be unreachable or
  * irrelevant, and which one would depend on data changes nobody would connect to
  * it later.
@@ -32,7 +32,7 @@ import { fmtMoney, type Club, type GameState } from './model'
  * This used to read "one or two are over on day one and have to do something about
  * it", and that was the deliberate intent. It is not any more, and the reason is a
  * measurement rather than a preference. On the 2025/26 data the median rule put the
- * Premiership cap at £283k, and exactly one club was over it: Bath, at £292k, 103%.
+ * Premier Division cap at £283k, and exactly one club was over it: Bath, at £292k, 103%.
  * Bath is one of the two clubs actually being played in this house. So a new
  * manager picked the most famous squad in the game and was refused every signing
  * from her first week, for a squad she inherited, before she had been told a cap

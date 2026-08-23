@@ -19,7 +19,7 @@ export function loanTargets(state: GameState): Player[] {
       // players... unrealistic that they would take such a step down. the odd
       // few may for game time but realistically it would be more championship
       // players"). The reputation test alone let a third-tier club borrow off
-      // Premiership benches - at rep 38 EVERY club in the world passed it, and
+      // Premier Division benches - at rep 38 EVERY club in the world passed it, and
       // the top-12-by-potential sort handed Esher the biggest wonderkids in
       // the game. A player steps down at most one division freely; two is the
       // odd few - 21 or under, desperate for game time, behind a per-player

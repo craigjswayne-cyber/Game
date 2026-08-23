@@ -12,15 +12,15 @@ const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' 
 // finals are usually early april. Semis early may and final end of may.
 // The final of the premiership is usually in june"): the quarters land the
 // week after the pools close, the league plays on between the knockout
-// rounds the way the Premiership does, and the showpieces stack up in
+// rounds the way the Premier Division does, and the showpieces stack up in
 // May and June.
 // 1-3    PRE-SEASON friendlies (cross-league, every club)
 // 4-17   league rounds (autumn tests overlay weeks 13-15)
-// 18,19  Champions Cup pool 1-2 (leagues pause)
+// 18,19  Continental Cup pool 1-2 (leagues pause)
 // 20,21  league
-// 22,23  Champions Cup pool 3-4
-// 24-31  league (Six Nations overlay 25-29)
-// 32,33  Champions Cup pool 5-6
+// 22,23  Continental Cup pool 3-4
+// 24-31  league (Northern Championship overlay 25-29)
+// 32,33  Continental Cup pool 5-6
 // 34     CC quarter-finals (early April)
 // 35-37  league
 // 38     CC semi-finals (early May)
@@ -125,7 +125,7 @@ export function buildLeague(spec: LeagueSpec, rng: Rng, state: GameState): Compe
   return comp
 }
 
-/** Champions Cup: 16 clubs, 4 pools of 4 (double RR = 6 rounds), then QF/SF/F. */
+/** Continental Cup: 16 clubs, 4 pools of 4 (double RR = 6 rounds), then QF/SF/F. */
 /** Pre-season: three weeks of friendlies for every club before the real
  *  stuff. The user's run is cross-league opposition, home-away-home. */
 export function schedulePreseason(state: GameState, rng: Rng) {
@@ -182,8 +182,8 @@ export function schedulePreseason(state: GameState, rng: Rng) {
 }
 
 export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
-  // just "Champions Cup" (user: "remove the word continental")
-  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Champions Cup', short: 'Champions Cup' },
+  // just "Continental Cup" (user: "remove the word continental")
+  meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
 ): Competition {
   const teams = shuffled(rng, clubIds.slice(0, 16))
   const comp: Competition = {
@@ -224,7 +224,7 @@ export const TOUR_WEEKS = [44, 45]
 export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
 export const WC_KO_WEEKS = [10, 11, 12]
 
-/** Rugby World Cup: 20 nations, 4 pools of 5, then QF/SF/Final. */
+/** World Championship: 20 nations, 4 pools of 5, then QF/SF/Final. */
 function buildWorldCup(rng: Rng, state: GameState) {
   const nations = [
     'RSA', 'NZL', 'IRE', 'FRA', 'ENG', 'ARG', 'SCO', 'AUS', 'FIJ', 'ITA',
@@ -235,7 +235,7 @@ function buildWorldCup(rng: Rng, state: GameState) {
   seedNatRank(state)
   const seeded = [...nations].sort((a, b) => (state.natRank![b] ?? 0) - (state.natRank![a] ?? 0))
   const comp: Competition = {
-    id: 'wc', name: 'Rugby World Cup', short: 'World Cup', type: 'intl',
+    id: 'wc', name: 'World Championship', short: 'Worlds', type: 'intl',
     teamIds: nations, table: nations.map(emptyRow), rounds: 5, playoffTeams: 8,
     weeksByRound: WC_POOL_WEEKS, koWeeks: WC_KO_WEEKS, isNational: true,
     seeds: seeded,
@@ -252,9 +252,9 @@ function buildWorldCup(rng: Rng, state: GameState) {
   const userSeed = state.natTeam ? seeded.indexOf(state.natTeam) + 1 : 0
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
-    subject: `🏆 World Cup draw: the rankings pick the pools`,
+    subject: `🏆 World Championship draw: the rankings pick the pools`,
     body: [
-      `The World Cup pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
+      `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
       userSeed > 0 ? `${nationByCode(state.natTeam!)?.name ?? state.natTeam} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
         : `Four pools, five nations each, and somewhere in there a group of death.`,
     ].join('\n'),
@@ -274,7 +274,7 @@ function buildWorldCup(rng: Rng, state: GameState) {
   state.comps['wc'] = comp
 }
 
-/** Lions years: 2029, 2033, ... (every 4th season, offset from the World Cup). */
+/** Lions years: 2029, 2033, ... (every 4th season, offset from the World Championship). */
 export function isLionsSeason(season: number): boolean {
   return (2025 + season) % 4 === 1 && season > 0
 }
@@ -286,7 +286,7 @@ function buildSummer(rng: Rng, state: GameState) {
     const hosts = ['NZL', 'RSA', 'AUS']
     const host = hosts[Math.floor((2025 + season - 2029) / 4) % 3]
     const comp: Competition = {
-      id: 'lions', name: `Lions Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
+      id: 'lions', name: `Northern Lions Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
       short: 'Lions Tour', type: 'intl',
       teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 2, playoffTeams: 0,
       weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
@@ -323,14 +323,14 @@ function buildSummer(rng: Rng, state: GameState) {
   state.comps['tour'] = comp
 }
 
-/** Six Nations & Rugby Championship (played by national teams, engine-lite). */
+/** Northern Championship & Southern Championship (played by national teams, engine-lite). */
 export function buildInternationals(rng: Rng, state: GameState, worldCup = false) {
   if (worldCup) buildWorldCup(rng, state)
   if (!worldCup) buildSummer(rng, state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snRounds = roundRobin(sn, rng, false)
   const snComp: Competition = {
-    id: 'sn', name: 'Six Nations', short: 'Six Nations', type: 'intl',
+    id: 'sn', name: 'Northern Championship', short: 'Northern', type: 'intl',
     teamIds: sn, table: sn.map(emptyRow), rounds: 5, playoffTeams: 0,
     weeksByRound: SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }
@@ -345,13 +345,13 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   })
   state.comps['sn'] = snComp
 
-  // In a World Cup year there is no Rugby Championship and no autumn series
+  // In a World Championship year there is no Southern Championship and no autumn series
   if (worldCup) return
 
   const trc = ['NZL', 'RSA', 'AUS', 'ARG']
   const trcRounds = roundRobin(trc, rng, true)
   const trcComp: Competition = {
-    id: 'trc', name: 'The Rugby Championship', short: 'Rugby Champ.', type: 'intl',
+    id: 'trc', name: 'The Southern Championship', short: 'Southern', type: 'intl',
     teamIds: trc, table: trc.map(emptyRow), rounds: 6, playoffTeams: 0,
     weeksByRound: TRC_WEEKS, koWeeks: [], isNational: true,
   }
@@ -366,11 +366,11 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   })
   state.comps['trc'] = trcComp
 
-  // Pacific Nations Cup: the tier-two showpiece, alongside the Championship
+  // Pacific Islands Cup: the tier-two showpiece, alongside the Championship
   const pnc = ['FIJ', 'JPN', 'SAM', 'TGA', 'USA', 'CAN']
   const pncRounds = roundRobin(pnc, rng, false)
   const pncComp: Competition = {
-    id: 'pnc', name: 'Pacific Nations Cup', short: 'Pacific Cup', type: 'intl',
+    id: 'pnc', name: 'Pacific Islands Cup', short: 'Islands Cup', type: 'intl',
     teamIds: pnc, table: pnc.map(emptyRow), rounds: 5, playoffTeams: 0,
     weeksByRound: PNC_WEEKS, koWeeks: [], isNational: true,
   }

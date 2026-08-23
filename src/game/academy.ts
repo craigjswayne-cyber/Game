@@ -16,7 +16,7 @@
 //   has to be right everywhere the user might move to and because the seniors raid
 //   it in a crisis. A world-wide A League would be ~1,100 extra fixtures a season;
 //   one league is ~90. The competition is rebuilt at rollover for whatever league
-//   the manager is in that season, so taking a job in the Top 14 gets you the Espoirs.
+//   the manager is in that season, so taking a job in the Elite 14 gets you the Espoirs.
 //
 //   Its own sim, not simMatch. The senior engine is 2,200 lines wired into gate
 //   receipts, board confidence, milestone ledgers, Test call-ups and a points-per-game
@@ -58,7 +58,7 @@ export const ACAD_SHAPE: Pos[] = [
  *  summer intake and the save migration so the three can never drift apart.
  *
  *  Weighted hard on club reputation - the first cut of this leaned on the random
- *  term and produced a world where every academy in the Premiership sat inside
+ *  term and produced a world where every academy in the Premier Division sat inside
  *  three points of every other, which made the A League a coin toss and made
  *  building a Centre of Excellence pointless. Same mean, four times the spread. */
 export function acadQuality(club: Club, rng: Rng): number {

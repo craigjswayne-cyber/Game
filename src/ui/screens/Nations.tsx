@@ -9,7 +9,7 @@ export default function Nations() {
   const game = useStore(s => s.game)!
   const go = useStore(st => st.go)
   const tabs = ([
-    ['wc', '🏆 World Cup'], ['sn', 'Six Nations'], ['trc', 'Rugby Championship'], ['pnc', '🌺 Pacific Cup'],
+    ['wc', '🏆 World Championship'], ['sn', 'Northern Championship'], ['trc', 'Southern Championship'], ['pnc', '🌺 Islands Cup'],
     ['aut', 'Autumn Tests'], ['tour', 'Summer Tours'], ['lions', '🦁 Lions Tour'],
   ] as const).filter(([id]) => game.comps[id])
   const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'sn')

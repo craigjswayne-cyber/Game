@@ -279,10 +279,10 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       id: state.nextId++, compId: comp.id, round: 99, week, homeId: home, awayId: away,
       played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0, stage,
     }
-    // a showpiece final leaves home: the Premiership final is always
-    // Twickenham, the Top 14 final always the Stade de France, and the
+    // a showpiece final leaves home: the Premier Division final is always
+    // Twickenham, the Elite 14 final always the Stade de France, and the
     // European finals go to whichever great ground won this season's bid.
-    // Only club finals - a World Cup final has its own host nation.
+    // Only club finals - a World Championship final has its own host nation.
     if (stage === 'F' && state.clubs[home]) {
       const v = finalVenue(state, comp.id)
       if (v) fx.venue = v
@@ -342,7 +342,7 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
   // simmed away before the MatchDay screen ever saw it.
   const ko = comp.koWeeks
   if (cupLike) {
-    // pool competitions (Champions Cup, World Cup): QF ko[0], SF ko[1], F ko[2]
+    // pool competitions (Continental Cup, World Championship): QF ko[0], SF ko[1], F ko[2]
     if (koFx('QF').length === 0) {
       const pools = poolStandings(state, comp)
       const winners = pools.map(p => p[0])
@@ -375,14 +375,14 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
       mkFx('QF', ko[0], seeds[2], seeds[5])
       // the host city is announced with the quarter-final draw. Both European
       // finals share one great ground on one weekend, so the story runs once,
-      // off the Champions Cup, and covers the pair of them.
+      // off the Continental Cup, and covers the pair of them.
       if (comp.id === 'cc') {
         const v = finalVenue(state, 'cc')
         if (v) state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `🏟️ FINALS WEEKEND: ${v.city} gets Europe's showpiece`,
           body: [
-            `${v.name} will stage both European finals this season: the Challenge Cup under Friday lights, the Champions Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
+            `${v.name} will stage both European finals this season: the Continental Shield under Friday lights, the Continental Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
             `Eight quarter-finalists still stand in each competition, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
           ].join('\n'),
         })
@@ -1717,7 +1717,7 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
-  // Six Nations lore: the Slam and the Spoon are bigger than the table
+  // Northern Championship lore: the Slam and the Spoon are bigger than the table
   {
     const sn = state.comps['sn']
     const lastWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1]
@@ -1769,7 +1769,7 @@ export function processWeekAndAdvance(state: GameState) {
     }
   }
 
-  // southern lore: a Rugby Championship clean sweep is the south's Slam -
+  // southern lore: a Southern Championship clean sweep is the south's Slam -
   // six from six against the hardest room in the sport
   {
     const trc = state.comps['trc']
@@ -1785,7 +1785,7 @@ export function processWeekAndAdvance(state: GameState) {
           subject: `⚡ ${name} are 80 minutes from a Championship clean sweep`,
           body: yours
             ? `Five from five in the hardest championship on earth, one to play. Win it and your side join the shortest of lists. The south does not hand these out.`
-            : `${name} have won all five and can complete a Rugby Championship clean sweep in the final round. The southern hemisphere holds its breath.`,
+            : `${name} have won all five and can complete a Southern Championship clean sweep in the final round. The southern hemisphere holds its breath.`,
         })
       }
     }
@@ -1799,17 +1799,17 @@ export function processWeekAndAdvance(state: GameState) {
           if (yours && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 10, 0, 100)
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: `👑 CLEAN SWEEP: ${name} win every Rugby Championship match`,
+            subject: `👑 CLEAN SWEEP: ${name} win every Southern Championship match`,
             body: yours
-              ? `Six from six against the best the south can field. A clean sweep of the Rugby Championship, and your name on it. In a hundred years they will still be reading this list out.`
-              : `${name} complete a perfect Rugby Championship - six wins from six. The other three nations go home to their reviews.`,
+              ? `Six from six against the best the south can field. A clean sweep of the Southern Championship, and your name on it. In a hundred years they will still be reading this list out.`
+              : `${name} complete a perfect Southern Championship - six wins from six. The other three nations go home to their reviews.`,
           })
         }
       }
     }
   }
 
-  // the World Cup post-mortem: the seed said one thing - what did the
+  // the World Championship post-mortem: the seed said one thing - what did the
   // tournament say back?
   {
     const wcFinal = state.fixtures.find(f => f.compId === 'wc' && f.stage === 'F' && f.played && f.week === state.week)
@@ -1833,7 +1833,7 @@ export function processWeekAndAdvance(state: GameState) {
           body: [
             (state.season * 5 + state.week * 3) % 2 === 0
               ? `${champName} are champions of the world, and ${names} ${winners.length === 1 ? 'was' : 'were'} in the squad that did it. The shirt goes in a frame; the aura comes back to training with ${winners.length === 1 ? 'him' : 'them'}.`
-              : `When the confetti settled on the World Cup final, ${names} of ${champName} ${winners.length === 1 ? 'was' : 'were'} under it - your player${winners.length > 1 ? 's' : ''}, world champion${winners.length > 1 ? 's' : ''}.`,
+              : `When the confetti settled on the World Championship final, ${names} of ${champName} ${winners.length === 1 ? 'was' : 'were'} under it - your player${winners.length > 1 ? 's' : ''}, world champion${winners.length > 1 ? 's' : ''}.`,
             `Whatever happens for the rest of ${winners.length === 1 ? 'his' : 'their'} career${winners.length > 1 ? 's' : ''}, nobody can take this away.`,
           ].join(' '),
           playerId: winners[0].id,
@@ -1866,9 +1866,9 @@ export function processWeekAndAdvance(state: GameState) {
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Cup post-mortem: ${name}`,
+          subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Championship post-mortem: ${name}`,
           body: [
-            `${name} finish the World Cup as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
+            `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
             deepest === 1 ? `Whatever else happens in your career, they can never take this away.` : parWord,
           ].filter(Boolean).join(' '),
         })
@@ -2423,7 +2423,7 @@ export function processWeekAndAdvance(state: GameState) {
   }
 
   // THE RELEGATION PLAYOFF (21A). In England the trapdoor is no longer
-  // automatic: once week 43 has crowned both champions, the Premiership's
+  // automatic: once week 43 has crowned both champions, the Premier Division's
   // bottom club hosts the Championship winner in week 44 - eighty minutes
   // for a place in the top flight, playable like any other fixture when it
   // is yours. The rollover reads this game's result instead of swapping the
@@ -2445,7 +2445,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `⚔️ The relegation playoff: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
-          body: `One game for a Premiership place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
+          body: `One game for a Premier Division place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
           fixtureId: fx.id,
         })
       }
@@ -2563,7 +2563,7 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🌍 ${nat} want you as national head coach`,
-          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Cup. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+          body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
         })
       }
     }
@@ -2692,7 +2692,7 @@ export function processWeekAndAdvance(state: GameState) {
       }
     }
 
-    // the Six Nations window is a big deal - a round-up lands every week
+    // the Northern Championship window is a big deal - a round-up lands every week
     if (state.comps['sn'] && SIX_NATIONS_WEEKS.includes(state.week)) {
       const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)
       if (round.length) {
@@ -2700,7 +2700,7 @@ export function processWeekAndAdvance(state: GameState) {
         const leader = order[0] ? nationByCode(order[0].teamId)?.name : null
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🏆 Six Nations round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
+          subject: `🏆 Northern Championship round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
           body: [
             ...round.map(f => `${nationByCode(f.homeId)?.name} ${f.homeScore}–${f.awayScore} ${nationByCode(f.awayId)?.name}`),
             leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',

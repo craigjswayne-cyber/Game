@@ -43,19 +43,19 @@ export interface Challenge {
 export const CHALLENGES: Challenge[] = [
   {
     id: 'sapiac', clubId: 'montauban', title: 'Sauvez Sapiac',
-    desc: 'Tiny Montauban are back in the Top 14 with the smallest budget in the land. Keep them up. Become immortal in the Tarn-et-Garonne.',
+    desc: 'Tiny Montauban are back in the Elite 14 with the smallest budget in the land. Keep them up. Become immortal in the Tarn-et-Garonne.',
   },
   {
     id: 'redbull', clubId: 'newcastle', title: 'The Energy Project',
-    desc: 'New owners, big ambitions, bottom-four squad. Turn Newcastle from perennial strugglers into Premiership champions.',
+    desc: 'New owners, big ambitions, bottom-four squad. Turn Newcastle from perennial strugglers into Premier Division champions.',
   },
   {
     id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
-    desc: 'Leinster hoover up every trophy in Ireland. From Thormond Park, end their reign - win the URC and the Champions Cup.',
+    desc: 'Leinster hoover up every trophy in Ireland. From Thormond Park, end their reign - win the UPC and the Continental Cup.',
   },
   {
     id: 'pirates', clubId: 'pirates', title: 'The Cornwall Dream',
-    desc: 'Penzance to the Premiership: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last.',
+    desc: 'Penzance to the Premier Division: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last.',
   },
 ]
 
@@ -69,8 +69,8 @@ export interface LeagueDef {
 }
 
 /** The press verdict on a club, judged INSIDE its own league (user, scanning
- *  National League One: "they all say relegation zone"). The old label read
- *  absolute reputation on a scale calibrated for the Premiership, so a whole
+ *  English National One: "they all say relegation zone"). The old label read
+ *  absolute reputation on a scale calibrated for the Premier Division, so a whole
  *  lower division wore the same bottom tag - in a league with no relegation
  *  and no playoffs, both words it used were impossible. A club is favourites
  *  or written off relative to the teams it actually plays, and the words only
@@ -88,14 +88,14 @@ export function mediaVerdict(club: { id: string }, league: LeagueDef): string {
 }
 
 export const LEAGUE_DEFS: () => LeagueDef[] = () => [
-  { id: 'prem', name: 'Gallagher Premiership', short: 'Premiership', double: true, playoffTeams: 4, clubs: [...PREM_A, ...PREM_B] },
-  { id: 'top14', name: 'Top 14', short: 'Top 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
-  { id: 'urc', name: 'United Rugby Championship', short: 'URC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
-  { id: 'srp', name: 'Super Rugby Pacific', short: 'Super Rugby', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
+  { id: 'prem', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: [...PREM_A, ...PREM_B] },
+  { id: 'top14', name: 'French Elite 14', short: 'Elite 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
+  { id: 'urc', name: 'United Provinces Championship', short: 'UPC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
+  { id: 'srp', name: 'Pacific Championship', short: 'Pacific', double: true, playoffTeams: 6, clubs: [...SRP_A, ...SRP_B] },
   { id: 'champ', name: 'English Championship', short: 'Championship', double: true, playoffTeams: 4, clubs: CHAMP },
-  { id: 'prod2', name: 'Pro D2', short: 'Pro D2', double: true, playoffTeams: 6, clubs: PROD2 },
-  { id: 'jl1', name: 'Japan League One', short: 'League One', double: true, playoffTeams: 4, clubs: JL1 },
-  { id: 'natl1', name: 'National League One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
+  { id: 'prod2', name: 'French Elite 2', short: 'Elite 2', double: true, playoffTeams: 6, clubs: PROD2 },
+  { id: 'jl1', name: 'Japan Division One', short: 'Japan D1', double: true, playoffTeams: 4, clubs: JL1 },
+  { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
 export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach'): GameState {
@@ -146,8 +146,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
   const seenNames = new Set<string>()
 
-  // the Sapiac challenge's premise is that Montauban ARE in the Top 14 -
-  // make it true at boot: they come up, the weakest Top 14 side goes down
+  // the Sapiac challenge's premise is that Montauban ARE in the Elite 14 -
+  // make it true at boot: they come up, the weakest Elite 14 side goes down
   const defs = LEAGUE_DEFS()
   if (challengeId === 'sapiac') {
     const top14 = defs.find(d => d.id === 'top14')
@@ -396,7 +396,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     )
   }
 
-  // Champions Cup: best 16 by rep from prem/top14/urc (Europe)
+  // Continental Cup: best 16 by rep from prem/top14/urc (Europe)
   const euro = Object.values(state.clubs)
     .filter(c => ['prem', 'top14', 'urc'].includes(c.leagueId))
     .sort((a, b) => b.rep - a.rep)
@@ -404,8 +404,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     .map(c => c.id)
   state.comps['cc'] = buildChampionsCup(euro, rng, state)
 
-  // Challenge Cup: the next 16 - Championship winners' pot and mid-table
-  // Europe. Champions Cup clubs are excluded outright: re-sorting with the
+  // Continental Shield: the next 16 - Championship winners' pot and mid-table
+  // Europe. Continental Cup clubs are excluded outright: re-sorting with the
   // champ clubs mixed in used to let a CC qualifier slip into both cups.
   const ccSet = new Set(euro)
   const chc = Object.values(state.clubs)
@@ -413,7 +413,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     .sort((a, b) => b.rep - a.rep)
     .slice(0, 16)
     .map(c => c.id)
-  state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'European Challenge Cup', short: 'Challenge Cup' })
+  state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
 
   buildInternationals(rng, state, isWorldCupSeason(0))
   schedulePreseason(state, rng)

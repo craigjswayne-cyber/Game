@@ -61,7 +61,7 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   },
   {
     id: 'cup',
-    text: () => 'Reach the Champions Cup knockouts',
+    text: () => 'Reach the Continental Cup knockouts',
     met: s => s.fixtures.some(f => f.compId === 'cc' && !!f.stage &&
       (f.homeId === s.userClubId || f.awayId === s.userClubId)),
     applies: s => (s.comps['cc']?.teamIds ?? []).includes(s.userClubId),

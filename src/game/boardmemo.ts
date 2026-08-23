@@ -96,8 +96,8 @@ function pick<T>(list: T[], season: number, week: number, salt: number): T {
  * THIS USED TO READ THE ARRAY ORDER, not the standings. It was a local copy of a
  * function schedule.ts already had, and the copy did `table.findIndex(...) + 1` on
  * an unsorted table - so it reported the club's slot in storage as its league
- * position. Measured: a save top of the Premiership on 19 points from 4 wins was
- * told "8th in the Premiership", which is how the user found it ("mixed messages in
+ * position. Measured: a save top of the Premier Division on 19 points from 4 wins was
+ * told "8th in the Premier Division", which is how the user found it ("mixed messages in
  * this board review"). Four wins from four next to 8th is not a wording problem.
  *
  * schedule.leaguePos sorts, and returns 0 rather than null before any game is
@@ -142,7 +142,7 @@ export function boardMemo(state: GameState): void {
   // in this board review. needs to be clearer to read"). It used to read
   //
   //   Results: 4W 0D 0L from 4, 116 points to the good. Best of them 66-14 away at
-  //   Bristol. 8th in the Premiership.
+  //   Bristol. 8th in the Premier Division.
   //
   // which is three different measures in one breath and two of them fight. The
   // record is the last six weeks and the table place is the whole season, so 4 wins

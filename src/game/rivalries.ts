@@ -2,20 +2,20 @@
 // hotter tempers, and results that echo louder in the boardroom.
 
 const PAIRS: [string, string, string][] = [
-  // Premiership
+  // Premier Division
   ['leicester', 'northampton', 'The East Midlands Derby'],
   ['bath', 'gloucester', 'The West Country Derby'],
   ['bath', 'bristol', 'The Heineken West Derby'],
   ['saracens', 'harlequins', 'The London Derby'],
   ['sale', 'newcastle', 'The Northern Derby'],
-  // Top 14
+  // Elite 14
   ['toulouse', 'stade_francais', 'Le Classico'],
   ['racing92', 'stade_francais', 'The Paris Derby'],
   ['toulouse', 'castres', 'The Occitanie Derby'],
   ['bayonne', 'pau', 'The Derby de l\'Adour'],
   ['montpellier', 'perpignan', 'The Mediterranean Derby'],
   ['clermont', 'lyon', 'The Rhône Derby'],
-  // URC
+  // UPC
   ['leinster', 'munster', 'The Irish Derby'],
   ['ulster', 'connacht', 'The North-West Derby'],
   ['glasgow', 'edinburgh', 'The 1872 Cup'],
@@ -27,7 +27,7 @@ const PAIRS: [string, string, string][] = [
   // Championship
   ['richmond', 'lscottish', 'The Oldest Fixture - the Richmond Derby'],
   ['ealing', 'richmond', 'The West London Derby'],
-  // Super Rugby Pacific
+  // Pacific Championship
   ['blues', 'chiefs', 'The North Island Derby'],
   ['crusaders', 'highlanders', 'The South Island Derby'],
   ['blues', 'moana', 'The Auckland Derby'],

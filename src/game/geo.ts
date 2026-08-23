@@ -3,9 +3,9 @@
  *
  * Every match in this game used to be played in the same place. Not literally -
  * the fixture knew whose ground it was, and the crowd was counted - but nothing
- * about WHERE the ground is ever reached the pitch. A URC side flew from Belfast
+ * about WHERE the ground is ever reached the pitch. A UPC side flew from Belfast
  * to Pretoria, climbed thirteen hundred metres, and played exactly the match it
- * would have played at home in the rain. Super Rugby sent Fijian sides to Dunedin
+ * would have played at home in the rain. Pacific Championship sent Fijian sides to Dunedin
  * and Perth sides across a continent, and it cost them nothing.
  *
  * So this is the geography: real coordinates, real altitudes, city-level
