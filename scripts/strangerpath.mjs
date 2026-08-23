@@ -223,7 +223,7 @@ try {
   })
   const gates = [
     ['step 1, no competition chosen', async () => {}],
-    ['step 2, no club chosen', async () => { await page.click('text=Gallagher Premiership'); await page.waitForTimeout(400) }],
+    ['step 2, no club chosen', async () => { await page.click('text=English Premier Division'); await page.waitForTimeout(400) }],
     ['step 3, no name typed', async () => {
       await page.click('.tile >> text=Northampton'); await page.waitForTimeout(300)
       await page.locator('.action-bar button').last().click(); await page.waitForTimeout(400)

@@ -92,8 +92,8 @@ try {
 
   // New career
   await page.click('text=New Career')
-  await page.waitForSelector('text=Gallagher Premiership')
-  await page.click('text=Gallagher Premiership')
+  await page.waitForSelector('text=English Premier Division')
+  await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Leicester')
   await page.waitForSelector('text=Star Player')

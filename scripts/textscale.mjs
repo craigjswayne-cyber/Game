@@ -70,8 +70,8 @@ try {
 
   // ---- 4. the game is playable at 1.3 ----
   await page.click('text=New Career')
-  await page.waitForSelector('text=Gallagher Premiership')
-  await page.click('text=Gallagher Premiership')
+  await page.waitForSelector('text=English Premier Division')
+  await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')
   await page.click('.tile >> text=Northampton')
   await page.waitForSelector('text=Star Player')
