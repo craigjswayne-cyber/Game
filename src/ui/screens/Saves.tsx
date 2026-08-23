@@ -55,15 +55,54 @@ export default function Saves() {
 
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const doExport = () => {
+  const saveName = () => {
     const club = game.clubs[game.userClubId]
+    return `phase-rugby-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
+  }
+
+  const doExport = () => {
     const blob = new Blob([JSON.stringify(game)], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `phase-rugby-${club?.short?.toLowerCase().replace(/\W+/g, '') ?? 'save'}-s${game.season + 1}w${game.week}.json`
+    a.download = saveName()
     a.click()
     URL.revokeObjectURL(a.href)
     setMsg(t('world.svExported'))
+  }
+
+  /**
+   * THE BACKUP THAT LEAVES THE PHONE.
+   *
+   * Export writes a file into Downloads, which is on the same device as the
+   * career it is meant to protect - and the risk this whole section exists for
+   * is losing the device or having the browser clear its storage. The share
+   * sheet is the phone's own answer: two taps into a cloud drive, a chat with
+   * yourself, or an e-mail, with no account here and nothing uploaded by the
+   * game (the OS hands the file to whatever the player picks).
+   *
+   * Offered only where the browser really can share a FILE - canShare({files})
+   * is the question, because plain navigator.share exists in places that will
+   * only take text and would silently drop the save.
+   */
+  const canShareSave = (() => {
+    try {
+      return typeof navigator !== 'undefined' && typeof navigator.canShare === 'function'
+        && navigator.canShare({ files: [new File(['{}'], 'probe.json', { type: 'application/json' })] })
+    } catch { return false }
+  })()
+
+  const doShare = async () => {
+    try {
+      await navigator.share({
+        files: [new File([JSON.stringify(game)], saveName(), { type: 'application/json' })],
+        title: saveName(),
+      })
+      setMsg(t('world.svShared'))
+    } catch (e) {
+      // a share the player backs out of rejects too, and calling that a failure
+      // is how a button earns a reputation for not working
+      if ((e as Error)?.name !== 'AbortError') setMsg(t('world.svShareFailed'))
+    }
   }
 
   const doImport = (file: File) => {
@@ -136,6 +175,14 @@ export default function Saves() {
         <div className="meta" style={{ marginBottom: 8 }}>
           {t('world.svBackupBody')}
         </div>
+        {canShareSave && (
+          <>
+            <button className="btn gold block" style={{ marginBottom: 8 }} onClick={() => { void doShare() }}>
+              {t('world.svShare')}
+            </button>
+            <div className="meta" style={{ marginBottom: 8 }}>{t('world.svBackupPhone')}</div>
+          </>
+        )}
         <div className="btn-row" style={{ margin: 0 }}>
           <button className="btn" onClick={doExport}>{t('world.svExport')}</button>
           <button className="btn ghost" onClick={() => fileRef.current?.click()}>{t('world.svImport')}</button>

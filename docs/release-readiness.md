@@ -313,3 +313,140 @@ seasons. There is no compounding drift, which was the question that mattered.
 **No change shipped.** A recalibration was written, measured, and reverted
 once the baseline turned out to be self-referential. Checklist line 12 stands
 as a pass with the note removed rather than the code altered.
+
+---
+
+## The owner's decision, revised (23 August 2026)
+
+The earlier decision recorded above - stay a free personal project - has been
+reversed by the owner:
+
+> "im aware the players arent licensed but im saying we continue on"
+
+So the game is being prepared for sale, **with the real player names in it**.
+What that changes, and what it does not:
+
+* Checklist line 1 moves from "closed as accepted (not for sale)" to **accepted
+  risk on a commercial release**, which is a materially different thing and is
+  set out plainly below. It is the owner's call to make and it has been made;
+  this report's job is to state the exposure accurately rather than to relitigate
+  it.
+* Everything else in the audit becomes live again: the listing, the packaging,
+  the privacy surface and the questionnaires are now real deliverables rather
+  than hypothetical ones. They are done - see the addendum below.
+
+### What the real-name database actually exposes, at today's build
+
+The picture is much better than it was at v1.0.1, because the club, competition,
+venue and sponsor marks were removed in the v1.0.3 rename and `scripts/ipprobe.mjs`
+now fails the deploy if one comes back. What ships today:
+
+* **Fictional**: every club, ground, competition and sponsor. No badges, no kits,
+  no logos.
+* **Real**: about 1,600 player names, with attributes, ages, nationalities and
+  positions.
+
+The remaining exposure is therefore **name and likeness**, not trademark:
+
+* Publicity/personality rights vary by jurisdiction - strongest in the United
+  States, real in France and parts of the EU, weaker but not absent in the UK
+  (passing off). Commercial use raises the stakes over private use, which is
+  precisely the change being made.
+* Both stores' IP complaint processes are takedown-first: a listing is suspended
+  on a credible report and argued about afterwards. The practical risk is not a
+  lawsuit, it is losing the listing.
+* The mitigations that are in place - unofficial/unaffiliated statements on the
+  title screen, in the About page, in the privacy policy and in the store
+  listing, no official imagery, and a named contact who will remove anybody on
+  request - are the standard ones and they help. They do not make the underlying
+  use licensed.
+
+**The cheap insurance, if it is ever wanted, already exists in the code**: the
+game generates names for every regen it mints (`nations.ts`), so a
+fictional-name edition is a build flag rather than a project. This report
+recommends keeping that option open and does not treat it as a blocker, because
+the decision has been made.
+
+---
+
+## Remediation addendum 2 - the store release (23 August 2026)
+
+Shipped since the last addendum, each behind a probe that runs in the suite:
+
+* **French.** The entire game, not the chrome: every screen, the day room and
+  match day included, plus the engine's rendered-at-read prose (the analyst, the
+  coach's verdict, the match billing, the referee's notes). The boundary is
+  written down in `docs/i18n.md` - a screen follows the reader, a save keeps the
+  language it was written in - and the match commentary is English by design
+  because it is written into the report the save keeps. `i18nprobe` and
+  `langprobe` hold it; langprobe walks a French career to a final whistle.
+* **A monetisation layer that cannot reach the network** (`docs/monetisation.md`).
+  The game never talks to a store; a packaged shell attaches a bridge and the web
+  build has none, so it has no purchase door and no ad frame. One non-consumable
+  Supporter unlock, restorable, fails open, and touches nothing in the
+  simulation. `netprobe`, `moneyprobe` and `storeprobe`.
+* **The legal surface**: an About & legal page in the game carrying the build,
+  the unofficial statement, the contact address and the privacy policy;
+  `public/privacy.html` shipped and precached so it opens offline; the
+  title-screen disclaimer rewritten for a build that is for sale.
+* **The listing**: `docs/store-listing.md` has every field for both consoles in
+  English and French, within its character limit, plus the Data Safety, IARC,
+  Apple privacy and export-compliance answers.
+* **The packaging**: `packaging/twa/` has the Bubblewrap config, the asset-links
+  template and the walk-through, including the GitHub Pages asset-links trap that
+  otherwise leaves an address bar across the top of the app.
+* **The artwork**: `scripts/storeart.mjs` produces both stores' screenshot sizes
+  in both languages, the 1024x500 feature graphic and an opaque 1024 icon.
+* **The backup that leaves the phone**: the Saves screen now offers the share
+  sheet where the browser can take a file, so a career can go to a cloud drive or
+  a chat in two taps rather than into Downloads on the same device it is backing
+  up. `backupreach` checks that what is handed over is a real save.
+
+### Sign-off checklist, at this build
+
+| # | Check | Verdict | Evidence |
+|---|-------|---------|----------|
+| 1 | IP scrub: no real club/competition/venue/sponsor marks | **PASS** | All fictional since v1.0.3; `ipprobe` fails the deploy on a regression |
+| 1b | Real player names | **ACCEPTED RISK** | ~1,600 real names ship. Owner's decision, recorded above; mitigations in place, use is unlicensed |
+| 2 | Real badges/logos shipped | **PASS** | Generated crests only |
+| 3 | User-content isolation | **PASS** | Local files only, nothing uploads |
+| 4 | Device permissions | **PASS** | None requested; `netprobe` bans the APIs outright |
+| 5 | Network and data collection | **PASS** | `netprobe` sweeps every shipped file for transports, SDKs, remote fonts and absolute URLs |
+| 6 | Force-close during save | **PASS** | savefuzz, cloneprobe |
+| 7 | Mid-match interrupt/resume | **PASS** | resumeprobe |
+| 8 | Corrupt/legacy save handling | **PASS** | migrate() + savefuzz |
+| 9 | Save bloat over 15 seasons | **PASS** | releasesim |
+| 10 | Long-sim stability | **PASS** | releasesim, breakit |
+| 11 | Population and retirement | **PASS** | releasesim |
+| 12 | Regen attribute drift | **PASS** | Flat at equilibrium; the earlier "+13%" finding was withdrawn (correction above) |
+| 13 | Financial long-run balance | **PASS** (with note) | Stable equilibrium; lower-league deficits remain a balance question, not a release gate |
+| 14 | Multi-resolution layout | **PASS** | devicematrix |
+| 15 | Extreme aspect ratios | **PASS** | geosweep |
+| 16 | Portrait QA and tap targets | **PASS** | portraitqa, tapsize |
+| 17 | Notch/safe-area handling | **PASS** | env(safe-area-inset-*), devicematrix |
+| 18 | Max text scaling | **PASS** | Text Size on the title screen; textscale probe |
+| 19 | Orientation in the store package | **PASS** | No lock; manifest "any"; shelllint |
+| 20 | Store shell branding | **PASS** | Night ground read from tokens.css by shelllint |
+| 21 | IAP edge cases | **PASS** | All five outcomes handled including pending; restore path; moneyprobe + storeprobe |
+| 22 | Ad implementation | **PASS (none shipped)** | No provider, no frame, no SDK; the slot renders nothing without a bridge |
+| 23 | Cross-device state | **MITIGATED** | Still single-device by design (no backend, no accounts). Share-sheet backup, export/import, once-a-season reminder, save-failure banner. Platform cloud saves would need a wrapper feature, not a web change |
+| 24 | Offline behaviour | **PASS** | Service worker; privacy policy precached with the shell |
+| 25 | Store packaging exists | **CONFIGURED, NOT BUILT** | `packaging/twa/` is ready to build; it needs the owner's domain, keystore and Play account. iOS needs a wrapper project that does not exist yet |
+| 26 | Store listing and questionnaires | **PASS** | `docs/store-listing.md`, both languages, within limits |
+| 27 | Privacy policy reachable | **PASS** | In-game and at `/privacy.html`; storeprobe checks both |
+
+**Verdict: everything that can be done inside this repository is done.** What
+remains is not code:
+
+1. a domain (or the asset-links file in the `user.github.io` root repo), because
+   a project-page URL cannot verify a TWA;
+2. a Play developer account, a signing keystore backed up somewhere safe, and the
+   `phase.supporter` product created and activated - or a decision to sell up
+   front instead, which is `VITE_EDITION=paid` and no purchase UI at all;
+3. an iOS wrapper project, if Apple is wanted: Capacitor or a bare WKWebView,
+   plus the StoreKit half of the bridge (`docs/monetisation.md` has its shape);
+4. the owner's eyes on the listing text and the screenshots in `storeart/`.
+
+The one thing this report will not sign off is line 1b, because it is not an
+engineering question. It is stated as accepted risk, with the cheap insurance
+noted, and the decision belongs to the owner - who has made it.
