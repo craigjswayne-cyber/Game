@@ -5,12 +5,20 @@ import { assistantJudgement, autoSelect, availablePlayers } from '../../game/mat
 import { effAt } from '../../game/attributes'
 import { AvailTag, FormPill, PosBadge, SectionTitle, Stars } from '../components'
 import { benchSeats, splitFor } from '../../game/bench'
+import { t } from '../../game/i18n'
 
+/* Keys, not words: this array is built once at module load and the language
+   can change afterwards. The English wording is in src/locales/en.json.
+
+   `desc` is not translated because nothing renders it - it has been dead since
+   the leadership grid was written, and a translated string nobody can read is
+   dead weight in every language rather than one. Left in English, and left
+   alone: giving it a home is a product decision, not a translation. */
 const PORTFOLIOS = [
-  { id: 'pack' as const, icon: '🐘', name: 'Leads the Pack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
-  { id: 'defence' as const, icon: '🛡', name: 'Calls the Line', desc: 'The defensive system, taken off attacking shape.' },
-  { id: 'attack' as const, icon: '⚡', name: 'Runs the Attack', desc: 'Attacking shape, taken off the defensive line.' },
-  { id: 'culture' as const, icon: '🤝', name: 'Sets the Standards', desc: 'The room and the discipline. No unit moves.' },
+  { id: 'pack' as const, icon: '🐘', name: 'selection.pfPack', desc: 'Set piece and the breakdown, at the cost of the general lift.' },
+  { id: 'defence' as const, icon: '🛡', name: 'selection.pfDefence', desc: 'The defensive system, taken off attacking shape.' },
+  { id: 'attack' as const, icon: '⚡', name: 'selection.pfAttack', desc: 'Attacking shape, taken off the defensive line.' },
+  { id: 'culture' as const, icon: '🤝', name: 'selection.pfCulture', desc: 'The room and the discipline. No unit moves.' },
 ]
 
 /**
@@ -30,7 +38,9 @@ export default function SelectionPane() {
   const [sel, setSel] = useState<number | null>(null)
 
   const club = game.clubs[game.userClubId]
-  const t = club.tactic
+  // `tac`, not `t`: t() is the translator now, and a shadow here would be
+  // invisible to the typechecker and fatal on screen
+  const tac = club.tactic
 
   /** This sheet is his now.
    *
@@ -39,24 +49,28 @@ export default function SelectionPane() {
    *  sure if you make changes to the match day 23 it's actually putting those
    *  players on the pitch"). Every edit on this screen stamps the sheet as the
    *  manager's, and the engine leaves a manager's sheet alone. */
-  const claim = () => { t.userPicked = true }
+  const claim = () => { tac.userPicked = true }
 
   /** Why a man in a leadership list cannot play this week. The armband is a
    *  season-long appointment, so a captain away with his country stays captain
    *  and the vice leads in his place - but the list should say so rather than
    *  leave the manager wondering ("petti hasn't been part of the squad for ages
    *  because of international duty but still captain"). */
-  const awayNote = (p: Player) =>
-    p.injury ? ' - injured' : p.bans > 0 ? ' - suspended'
-      : p.natSquad ? ' - on Test duty' : p.onLoan ? ' - out on loan' : ''
+  const awayReason = (p: Player) =>
+    p.injury ? t('selection.injured') : p.bans > 0 ? t('selection.suspended')
+      : p.natSquad ? t('selection.onTestDuty') : p.onLoan ? t('selection.outOnLoan') : null
+  const awayNote = (p: Player) => {
+    const why = awayReason(p)
+    return why ? t('selection.awaySuffix', { why }) : ''
+  }
 
   const setSlot = (slot: number, pid: number | null) => {
     // remove pid from any other slot first
     if (pid != null) {
-      const other = t.lineup.indexOf(pid)
-      if (other >= 0) t.lineup[other] = t.lineup[slot]
+      const other = tac.lineup.indexOf(pid)
+      if (other >= 0) tac.lineup[other] = tac.lineup[slot]
     }
-    t.lineup[slot] = pid
+    tac.lineup[slot] = pid
     claim()
     setPickSlot(null)
     setSel(null)
@@ -68,9 +82,9 @@ export default function SelectionPane() {
   const tapSlot = (slot: number) => {
     if (sel == null) { setSel(slot); return }
     if (sel === slot) { setSel(null); setPickSlot(slot); return }
-    const a = t.lineup[sel]
-    t.lineup[sel] = t.lineup[slot]
-    t.lineup[slot] = a
+    const a = tac.lineup[sel]
+    tac.lineup[sel] = tac.lineup[slot]
+    tac.lineup[slot] = a
     claim()
     setSel(null)
     touch()
@@ -86,7 +100,7 @@ export default function SelectionPane() {
     if (slot < 15) return XV_SLOTS[slot].pos
     const seat = seats[slot - 15]
     if (seat.open) {
-      const id = t.lineup[slot]
+      const id = tac.lineup[slot]
       const p = id != null ? game.players[id] : null
       if (p) return p.pos
     }
@@ -96,7 +110,7 @@ export default function SelectionPane() {
   const renderSlot = (slot: number) => {
     const shirt = slot < 15 ? XV_SLOTS[slot].shirt : seats[slot - 15].shirt
     const pos = slotPos(slot)
-    const pid = t.lineup[slot]
+    const pid = tac.lineup[slot]
     const p = pid != null ? game.players[pid] : null
     const problem = p && (p.injury || p.bans > 0 || p.natSquad || p.clubId !== club.id)
     return (
@@ -104,7 +118,7 @@ export default function SelectionPane() {
         className={`${problem ? 'prob-row' : ''}${sel === slot ? ' held-row' : ''}`}>
         <td className="num" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{shirt}</td>
         <td><PosBadge pos={pos} /></td>
-        <td className="name">{p ? p.name : <span className="muted">- tap to select -</span>}
+        <td className="name">{p ? p.name : <span className="muted">{t('selection.tapToSelect')}</span>}
           {p && club.captain === p.id && <b style={{ color: 'var(--gold)' }}> (C)</b>}
           {p && <> <AvailTag p={p} g={game} /></>}</td>
         <td>{p && <Stars ca={effAt(p, pos)} />}</td>
@@ -127,16 +141,16 @@ export default function SelectionPane() {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="grab" />
           <div style={{ padding: '0 12px 10px' }}>
-            <SectionTitle sub={`slot ${pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt}`}>
-              {openSeat ? 'Pick anybody - the shirt takes his position' : `Pick a ${pos}`}
+            <SectionTitle sub={t('selection.slot', { shirt: pickSlot < 15 ? XV_SLOTS[pickSlot].shirt : seats[pickSlot - 15].shirt })}>
+              {openSeat ? t('selection.pickAnybody') : t('selection.pickA', { pos })}
             </SectionTitle>
             <table className="dtable">
               <tbody>
                 {pool.map(p => (
                   <tr key={p.id} onClick={() => setSlot(pickSlot, p.id)}
-                    style={t.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
+                    style={tac.lineup.includes(p.id) ? { opacity: .55 } : undefined}>
                     <td><PosBadge pos={p.pos} /></td>
-                    <td className="name">{p.name}{t.lineup.includes(p.id) ? ' (selected)' : ''}</td>
+                    <td className="name">{p.name}{tac.lineup.includes(p.id) ? t('selection.selected') : ''}</td>
                     <td><Stars ca={effAt(p, pos)} /></td>
                     <td><FormPill v={p.form} /></td>
                     <td className="num">{Math.round(p.cond)}%</td>
@@ -144,7 +158,7 @@ export default function SelectionPane() {
                 ))}
               </tbody>
             </table>
-            <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>Clear Slot</button>
+            <button className="btn ghost block" onClick={() => setSlot(pickSlot, null)}>{t('selection.clearSlot')}</button>
           </div>
         </div>
       </div>
@@ -157,7 +171,7 @@ export default function SelectionPane() {
           one line"). The heading, the hint and the auto-pick share the row;
           .sub stays on one line and ellipsises. */}
       <SectionTitle
-        sub={sel != null ? `moving ${game.players[t.lineup[sel] ?? -1]?.name ?? 'empty slot'}` : 'tap two to swap'}
+        sub={sel != null ? t('selection.moving', { player: game.players[tac.lineup[sel] ?? -1]?.name ?? t('selection.emptySlot') }) : t('selection.tapTwo')}
         right={
           /* One auto-pick, not two. In-Form XV is gone at the user's request:
              two buttons that both silently rewrite the whole team sheet is one
@@ -178,8 +192,8 @@ export default function SelectionPane() {
             // second-guess a sheet the manager put there on purpose
             claim()
             touch()
-          }}>Best XV</button>
-        }>Starting XV</SectionTitle>
+          }}>{t('selection.bestXV')}</button>
+        }>{t('selection.startingXV')}</SectionTitle>
       {/* forwards left, backs right in landscape: 23 rows in one column was four
           swipes deep. They do NOT "stack identically" in portrait, which is what
           this comment used to claim: see the fixed .xv-split columns in theme.css
@@ -191,9 +205,9 @@ export default function SelectionPane() {
       {/* an unclaimed sheet is the assistant's, and the manager deserves to be
           told so BEFORE match day - the moment he touches a shirt this line
           goes away, because the sheet is his from then on */}
-      {!t.userPicked && (
+      {!tac.userPicked && (
         <div className="muted" style={{ padding: '4px 2px 0' }}>
-          Untouched sheet: your assistant named this side, with his eye for it, not yours - and nobody is updating it for form or fitness. Change a shirt and it becomes your team.
+          {t('selection.untouched')}
         </div>
       )}
       {/* the bench and the armband sit side by side in landscape: stacked,
@@ -201,14 +215,14 @@ export default function SelectionPane() {
           filled the screen. Portrait keeps them in order. */}
       <div className="sel-split">
       <div>
-      <SectionTitle>Replacements</SectionTitle>
+      <SectionTitle>{t('selection.replacements')}</SectionTitle>
       <div className="xv-split">
         <table className="dtable"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
         <table className="dtable"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
       </div>
       </div>
       <div>
-      <SectionTitle sub="the armband, and who takes responsibility for what">Leadership</SectionTitle>
+      <SectionTitle sub={t('selection.leadershipSub')}>{t('selection.leadership')}</SectionTitle>
       {/* one card, two rows. As two cards in a half-width column each one
           wrapped its select onto a second line and the pair came to 447px,
           taller than the bench it was meant to sit beside. */}
@@ -216,27 +230,27 @@ export default function SelectionPane() {
       <div className="card">
         <div className="lead-row">
           <span className="lead-tag">©</span>
-          <span className="fact-label">Captain</span>
+          <span className="fact-label">{t('selection.captain')}</span>
           <select className="inline-input"
             value={club.captain ?? ''}
             onChange={e => { club.captain = e.target.value ? Number(e.target.value) : null; touch() }}>
             {club.players.map(id => game.players[id]).filter(Boolean)
               .sort((a, b) => b.a.lea - a.a.lea)
               .map(p => (
-                <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea}){awayNote(p)}</option>
+                <option key={p.id} value={p.id}>{t('selection.leaderOption', { player: p.name, lea: p.a.lea })}{awayNote(p)}</option>
               ))}
           </select>
         </div>
         <div className="lead-row">
           <span className="lead-tag">VC</span>
-          <span className="fact-label">Vice</span>
+          <span className="fact-label">{t('selection.vice')}</span>
           <select className="inline-input"
             value={club.vice ?? ''}
             onChange={e => { club.vice = e.target.value ? Number(e.target.value) : null; touch() }}>
             {club.players.map(id => game.players[id]).filter(p => p && p.id !== club.captain)
               .sort((a, b) => b.a.lea - a.a.lea)
               .map(p => (
-                <option key={p.id} value={p.id}>{p.name} (Ldr {p.a.lea}){awayNote(p)}</option>
+                <option key={p.id} value={p.id}>{t('selection.leaderOption', { player: p.name, lea: p.a.lea })}{awayNote(p)}</option>
               ))}
           </select>
         </div>
@@ -268,7 +282,7 @@ export default function SelectionPane() {
           return (
             <div className="lead-row" key={pf.id}>
               <span className="lead-tag">{pf.icon}</span>
-              <span className="fact-label">{pf.name}</span>
+              <span className="fact-label">{t(pf.name)}</span>
               <select className="inline-input" value={cur ?? ''}
                 onChange={e => {
                   club.leaders = { ...(club.leaders ?? {}) }
@@ -282,13 +296,12 @@ export default function SelectionPane() {
                   club.leaders[pf.id] = v
                   touch()
                 }}>
-                <option value="">Nobody has it</option>
+                <option value="">{t('selection.nobodyHasIt')}</option>
                 {[...squad].sort((a, b) => b.a.lea - a.a.lea).map(p => {
-                  const away = p.injury ? 'injured' : p.bans > 0 ? 'suspended'
-                    : p.natSquad ? 'on Test duty' : p.onLoan ? 'out on loan' : null
+                  const away = awayReason(p)
                   return (
                     <option key={p.id} value={p.id}>
-                      {p.name} (Ldr {p.a.lea}){away ? ` - ${away}` : ''}
+                      {t('selection.leaderOption', { player: p.name, lea: p.a.lea })}{away ? t('selection.awaySuffix', { why: away }) : ''}
                     </option>
                   )
                 })}
@@ -298,9 +311,7 @@ export default function SelectionPane() {
         })}
         </div>
         <div className="meta" style={{ marginTop: 5 }}>
-          The skipper lifts attack and defence and calms tempers; the vice leads at half effect
-          when he is missing. A portfolio below that does not add strength, it concentrates it:
-          only XV men with real authority carry one, and a real leader can carry more than one.
+          {t('selection.leadershipNote')}
         </div>
       </div>
       </div>

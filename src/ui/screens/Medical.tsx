@@ -4,6 +4,7 @@ import { fmtMoney, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { BADGE } from '../../game/staff'
 import { PosBadge, SectionTitle } from '../components'
+import { t } from '../../game/i18n'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
 export default function Medical() {
@@ -78,58 +79,58 @@ export default function Medical() {
     <>
       <div className="card" style={{ borderLeft: '4px solid var(--gold)', padding: '8px 14px' }}>
         <div className="meta">
-          🏥 <b>{game.staffPeople?.physio ? `${game.staffPeople.physio.name} (${BADGE[game.staff.physio].toLowerCase()} badge)` : 'Head Physio'}</b>
+          🏥 <b>{game.staffPeople?.physio
+            ? t('medical.physioNamed', { name: game.staffPeople.physio.name, badge: BADGE[game.staff.physio].toLowerCase() })
+            : t('medical.headPhysio')}</b>
           {game.staff.physio === 0
-            ? ' · post vacant - injuries run their full course (Training → Backroom Staff)'
-            : ` · injuries roughly ${game.staff.physio * 12}% shorter`}
+            ? t('medical.physioVacant')
+            : t('medical.physioShorter', { pct: game.staff.physio * 12 })}
         </div>
       </div>
 
       <div style={{ padding: '6px 14px 0' }}>
-        <input className="inline-input" placeholder="Find a player…" value={query}
+        <input className="inline-input" placeholder={t('medical.findPlayer')} value={query}
           onChange={e => setQuery(e.target.value)}
           style={{ margin: 0, maxWidth: 240, padding: '4px 8px', fontSize: 12 }} />
       </div>
 
       {allClear && (
         <div className="card center" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>{q ? 'Nothing on him' : '✅ A quiet treatment room'}</h3>
-          <div className="meta">{q
-            ? 'No player matching that search is injured, suspended, rusty or short of a gallop.'
-            : 'Nobody injured, suspended, rusty or running on empty. Enjoy it - it never lasts.'}</div>
+          <h3 style={{ fontSize: 15 }}>{t(q ? 'medical.nothingOnHim' : 'medical.quietRoom')}</h3>
+          <div className="meta">{t(q ? 'medical.nothingOnHimSub' : 'medical.quietRoomSub')}</div>
         </div>
       )}
 
-      {section('Treatment Room', `ruled out - a specialist consult (${fmtMoney(SPECIALIST_FEE)}) can shorten a long lay-off`, injured, p => (
+      {section(t('medical.treatmentRoom'), t('medical.treatmentSub', { fee: fmtMoney(SPECIALIST_FEE) }), injured, p => (
         <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>
-          {p.injury!.desc} · {Math.max(1, p.injury!.until - game.week)}w
+          {p.injury!.desc} · {t('common.weeksOut', { n: Math.max(1, p.injury!.until - game.week) })}
           {!p.specialist && p.injury!.until - game.week >= 3 && (
             <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: specialistConsult(game, p.id) }); touch() }}>
-              🩺 Specialist
+              {t('medical.specialist')}
             </button>
           )}
         </span>
       ))}
 
-      {section('Red Zone - season load', '1,300+ minutes: they break easier and tire faster. Rest them.', loaded, p => (
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>🔋 {p.stats.mins}′ this season</span>
+      {section(t('medical.redZone'), t('medical.redZoneSub'), loaded, p => (
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{t('medical.minsThisSeason', { mins: p.stats.mins })}</span>
       ))}
 
-      {section('Returning from Injury', 'playable, but a rushed return risks a breakdown · one man a week can be wrapped in cotton wool', rusty, p => (
+      {section(t('medical.returning'), t('medical.returningSub'), rusty, p => (
         <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>
-          ⚠ RUSTY {p.rust}w
+          {t('medical.rusty', { n: p.rust ?? 0 })}
           {game.cottonWk !== game.season * 100 + game.week && (
             <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
               onClick={e => { e.stopPropagation(); setMsg({ id: p.id, text: cottonWool(game, p.id) }); touch() }}>
-              🛌 Cotton wool
+              {t('medical.cottonWool')}
             </button>
           )}
         </span>
       ))}
 
-      {section('Suspended', 'serving bans', banned, p => (
-        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{p.bans} match{p.bans > 1 ? 'es' : ''}</span>
+      {section(t('medical.suspended'), t('medical.suspendedSub'), banned, p => (
+        <span style={{ color: 'var(--text-negative)', fontWeight: 700, fontSize: 12 }}>{t('medical.banMatches', { n: p.bans })}</span>
       ))}
 
       {/* The figure is honest for a STARTER and overstates the problem for a
@@ -138,12 +139,12 @@ export default function Medical() {
           the hour sitting down (matchEngine.ts). Saying "consider resting" flat
           out told half a squad something untrue, so the line now names who it
           is actually talking to. */}
-      {section('Running on Fumes', 'condition under 62% - it costs a starter; off the bench he still comes on at 60%', tired, p => (
+      {section(t('medical.onFumes'), t('medical.onFumesSub'), tired, p => (
         <span style={{ fontWeight: 700, fontSize: 12 }}>{Math.round(p.cond)}%</span>
       ))}
 
-      {section('Away from the Club', 'international duty & loans', away, p => (
-        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>{p.onLoan ? 'ON LOAN' : 'INTL DUTY'}</span>
+      {section(t('medical.awayFromClub'), t('medical.awayFromClubSub'), away, p => (
+        <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: 12 }}>{t(p.onLoan ? 'medical.onLoan' : 'medical.intlDuty')}</span>
       ))}
       <div className="spacer" />
     </>

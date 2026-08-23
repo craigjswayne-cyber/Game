@@ -242,6 +242,87 @@ try {
   ok(!menuOverflow.over, `the submenu fits the screen in French (${menuOverflow.w}px wide, ${menuOverflow.left}..${menuOverflow.right})`)
   ok(menuOverflow.clipped.length === 0, `no submenu item is cut off${menuOverflow.clipped.length ? ': ' + menuOverflow.clipped.join(', ') : ''}`)
 
+  // ---- the weekly loop: Team, then the treatment room ----------------------
+  //
+  // The squad tables are the tightest layout in the game: fixed colgroups down
+  // to 26px, with headings that are already abbreviations in English. "Sél" for
+  // "Pkd" and "CJ" for "YC" have to fit the same columns, and a heading that
+  // wraps costs a row on every one of 42 players.
+  await page.locator('.submenu-item', { hasText: 'Équipe' }).first().click()
+  await page.waitForSelector('.tab-bar')
+  const tabs = await page.locator('.tab-bar button').allInnerTexts()
+  say(`  squad tabs in French: ${tabs.join(' | ')}`)
+  ok(tabs.some(x => x.toLowerCase().includes('composition')), 'the squad tabs are French')
+
+  // the team sheet itself
+  const sheetHeads = await page.locator('.section-title').allInnerTexts()
+  ok(/xv de départ/i.test(sheetHeads.join(' ')), `the team sheet is French (${sheetHeads[0]?.replace(/\s+/g, ' ').trim()})`)
+
+  // MEASURED AGAINST ENGLISH, NOT AGAINST ZERO.
+  //
+  // The first version of this asserted that no heading in the squad table
+  // clips, and it went red on "Mor" - which clips in English too, in a 26px
+  // column, and has done since the column was written. That is a real layout
+  // bug and it is not this feature's, so an absolute assertion here would
+  // either be permanently red or force an unrelated fix into a translation
+  // commit. What this probe owns is the DIFFERENCE: a heading that the longer
+  // language breaks and English does not.
+  const squadHeadings = async () => {
+    await page.locator('.tab-bar button').nth(1).click()   // General, by position
+    await page.waitForSelector('.dtable thead')
+    await page.waitForTimeout(200)
+    return page.evaluate(() => {
+      const out = { clipped: [], text: [], over: document.documentElement.scrollWidth - document.documentElement.clientWidth }
+      for (const th of document.querySelectorAll('.dtable thead th')) {
+        const label = th.textContent.replace(/[▾▴]/g, '').trim()
+        out.text.push(label)
+        // width, not height: these headings are `white-space: nowrap`, so a
+        // long one overflows its column rather than wrapping
+        if (th.scrollWidth > th.clientWidth + 1) out.clipped.push(label)
+      }
+      return out
+    })
+  }
+  const frCols = await squadHeadings()
+  say(`  general columns (fr): ${frCols.text.join(' | ')}`)
+  ok(frCols.over <= 1, `the squad table does not scroll sideways in French (${frCols.over}px over)`)
+
+  // back to English on the same career, to see which of those clip anyway
+  await page.evaluate(() => localStorage.setItem('rm-lang', 'en'))
+  await page.reload()
+  await page.waitForSelector('.bottom-nav', { timeout: 15000 })
+  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.waitForSelector('.submenu')
+  await page.waitForTimeout(400)
+  await page.locator('.submenu-item', { hasText: 'Team' }).first().click()
+  await page.waitForSelector('.tab-bar')
+  const enCols = await squadHeadings()
+  say(`  general columns (en): ${enCols.text.join(' | ')}`)
+  if (enCols.clipped.length) say(`  (already clipped in English, not this feature's: ${enCols.clipped.join(', ')})`)
+
+  // same position, so compare by index rather than by label
+  const newlyClipped = frCols.text
+    .map((label, i) => ({ label, i }))
+    .filter(({ label, i }) => frCols.clipped.includes(label) && !enCols.clipped.includes(enCols.text[i]))
+    .map(({ label, i }) => `${label} (was ${enCols.text[i]})`)
+  ok(newlyClipped.length === 0, `no column heading is broken by French that English fits${newlyClipped.length ? ': ' + newlyClipped.join(', ') : ''}`)
+  ok(enCols.over <= 1, `and the English table is still clean too (${enCols.over}px over)`)
+
+  // put it back for the rest of the run
+  await page.evaluate(() => localStorage.setItem('rm-lang', 'fr'))
+  await page.reload()
+  await page.waitForSelector('.bottom-nav', { timeout: 15000 })
+
+  // the treatment room, whose section subtitles are full sentences
+  await page.locator('.bottom-nav button', { hasText: '▸' }).first().click()
+  await page.waitForSelector('.submenu')
+  await page.locator('.submenu-item', { hasText: 'Infirmerie' }).click()
+  await page.waitForSelector('.inline-input')
+  const physio = await page.locator('.card .meta').first().innerText()
+  say(`  medical header: "${physio.replace(/\s+/g, ' ').trim().slice(0, 70)}"`)
+  ok(/kiné|blessures|poste vacant/i.test(physio), 'the medical header is French')
+  ok(await page.getAttribute('.inline-input', 'placeholder') === 'Chercher un joueur…', 'and so is the search placeholder')
+
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs.slice(0, 3).join(' | ') : ''}`)
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))

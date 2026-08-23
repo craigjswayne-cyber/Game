@@ -92,10 +92,13 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
 // extraction passes every check above. Namespaces reached by a computed key are
 // exempt, since their members are unreachable by a text search.
 {
-  const computedNs = new Set([...dynamic].map(p => p.replace(/\.$/, '')))
+  // A computed prefix is a raw string, not a namespace path: t(`titles.${s}`)
+  // gives "titles." and t(`squad.status${id}`) gives "squad.status", and the
+  // second one reaches squad.statusKey without any dot after it. Both are
+  // exempt by string prefix rather than by first segment.
   const blob = files.map(f => readFileSync(f, 'utf8')).join('\n')
   const idle = [...enKeys].filter(k => {
-    if (computedNs.has(k.split('.')[0])) return false
+    if ([...dynamic].some(p => p && k.startsWith(p))) return false
     return !blob.includes(`'${k}'`) && !blob.includes(`\`${k}`)
   })
   ok(idle.length === 0, `no key sits in en.json unused${idle.length ? ` (${idle.length}): ${idle.slice(0, 8).join(', ')}` : ''}`)
@@ -103,9 +106,8 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
 
 // a dynamic key's prefix must name a real namespace, or the whole family is dead
 for (const prefix of dynamic) {
-  const ns = prefix.replace(/\.$/, '')
-  const hit = [...enKeys].some(k => k.startsWith(ns + '.'))
-  ok(hit, `the computed key t(\`${prefix}\${...}\`) points at a namespace that exists`)
+  const hit = prefix !== '' && [...enKeys].some(k => k.startsWith(prefix))
+  ok(hit, `the computed key t(\`${prefix}\${...}\`) reaches keys that exist`)
 }
 
 // ---- and every language answers the same questions ------------------------
