@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, ATTR_NAMES, POS_NAMES, SEASON_WEEKS, TRAIT_INFO, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationByCode } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
-import { attrRange, fuzzedCa, knowledge, persKnown, reportStage, STAGE_WORD } from '../../game/scout'
+import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { loanOut, loanRecall } from '../../game/loans'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
+import { attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
 
 export default function PlayerScreen({ playerId }: { playerId: number }) {
   const game = useStore(s => s.game)!
@@ -59,7 +60,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [ptab, setPtab] = useState<'profile' | 'attrs' | 'career'>('profile')
 
   const p = game.players[playerId]
-  if (!p) return <div className="muted" style={{ padding: 14 }}>Player no longer in the game world (retired or released).</div>
+  if (!p) return <div className="muted" style={{ padding: 14 }}>{t('player.gone')}</div>
 
   const club = p.clubId ? game.clubs[p.clubId] : null
   const mine = p.clubId === game.userClubId
@@ -70,9 +71,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const toggleShortlist = useStore(s => s.toggleShortlist)
 
   const groups: [string, (keyof Attrs)[]][] = [
-    ['Set Piece & Contact', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
-    ['Skills', ['han', 'pas', 'kic', 'goa', 'vis', 'dec']],
-    ['Physical & Mental', ['pac', 'agi', 'sta', 'pos', 'wor', 'lea']],
+    ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
+    ['player.grpSkills', ['han', 'pas', 'kic', 'goa', 'vis', 'dec']],
+    ['player.grpPhysical', ['pac', 'agi', 'sta', 'pos', 'wor', 'lea']],
   ]
 
   // one-tap comparison: this man against your best in the same shirt
@@ -84,9 +85,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   return (
     <>
       <div className="tab-bar">
-        <button className={ptab === 'profile' ? 'active' : ''} onClick={() => setPtab('profile')}>Profile</button>
-        <button className={ptab === 'attrs' ? 'active' : ''} onClick={() => setPtab('attrs')}>Attributes</button>
-        <button className={ptab === 'career' ? 'active' : ''} onClick={() => setPtab('career')}>Career</button>
+        <button className={ptab === 'profile' ? 'active' : ''} onClick={() => setPtab('profile')}>{t('player.tabProfile')}</button>
+        <button className={ptab === 'attrs' ? 'active' : ''} onClick={() => setPtab('attrs')}>{t('player.tabAttributes')}</button>
+        <button className={ptab === 'career' ? 'active' : ''} onClick={() => setPtab('career')}>{t('player.tabCareer')}</button>
       </div>
       {ptab === 'profile' && <>
       <div className="card">
@@ -94,12 +95,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <div>
             <h3 style={{ fontSize: 20 }}>{p.name}</h3>
             <div className="meta">
-              <PosBadge pos={p.pos} /> {POS_NAMES[p.pos]}
-              {p.alt.length > 0 && <span className="muted"> (also {p.alt.join(', ')})</span>}
+              <PosBadge pos={p.pos} /> {posName(p.pos)}
+              {p.alt.length > 0 && <span className="muted">{t('player.alsoPlays', { pos: p.alt.join(', ') })}</span>}
             </div>
             <div className="meta" style={{ marginTop: 3 }}>
-              {flagOf(p.nat)} {nationByCode(p.nat)?.name ?? p.nat} · {p.age} yrs
-              {p.intl ? ' · International' : ''}{p.youth ? ' · Academy graduate' : ''}
+              {t('player.natLine', { flag: flagOf(p.nat), country: nationByCode(p.nat)?.name ?? p.nat, age: p.age })}
+              {p.intl ? t('player.international') : ''}{p.youth ? t('player.academyGrad') : ''}
             </div>
             {club && (
               <button className="meta club-link" style={{ color: 'var(--info)', fontWeight: 600, marginTop: 2 }}
@@ -109,7 +110,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             )}
           </div>
           <div style={{ textAlign: 'right' }}>
-            <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title="Estimated - scout him for certainty"> ?</span>}
+            <Stars ca={fuzzedCa(game, p)} />{know < 95 && <span className="muted" title={t('player.estimated')}> ?</span>}
             <div style={{ marginTop: 4 }}><FormPill v={p.form} /></div>
           </div>
         </div>
@@ -127,38 +128,38 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </div>
 
       <div className="chips">
-        <span className="chip" title="his overall standard out of 100, and the one number that decides most matches">
-          Overall <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
-        <span className="chip" title="how he behaves: it drives contract talks, team talks and whether he mentors well">Character <b>{persKnown(game, p) ? p.pers : 'Unknown'}</b>{!persKnown(game, p) && <span className="muted" title="Who a man is takes the longest to scout - the full file reveals it"> ?</span>}</span>
-        {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> caps</span>}
-        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={TRAIT_INFO[p.trait]} style={{ color: 'var(--info)', fontWeight: 700 }}>✨ {p.trait}</span>}
+        <span className="chip" title={t('player.overallTitle')}>
+          {t('player.overall')} <b style={{ fontSize: 13 }}>{Math.round(fuzzedCa(game, p))}</b><span className="muted">/100</span></span>
+        <span className="chip" title={t('player.characterTitle')}>{t('player.character')} <b>{persKnown(game, p) ? persName(p.pers) : t('player.unknown')}</b>{!persKnown(game, p) && <span className="muted" title={t('player.characterUnknownTitle')}> ?</span>}</span>
+        {(p.caps ?? 0) > 0 && <span className="chip">🌍 <b>{p.caps}</b> {t('player.caps')}</span>}
+        {p.trait && reportStage(game, p) >= 2 && <span className="chip" title={traitInfo(p.trait)} style={{ color: 'var(--info)', fontWeight: 700 }}>✨ {traitName(p.trait)}</span>}
         {!mine && <span className="chip" style={know < 55 ? { color: 'var(--gold)' } : undefined}>
-          Scouted <b>{Math.round(know)}%</b></span>}
+          {t('player.scouted')} <b>{Math.round(know)}%</b></span>}
       </div>
       {!mine && (
         <div className="meta" style={{ padding: '2px 16px 4px', fontSize: 11.5 }}>
-          🔍 {STAGE_WORD[reportStage(game, p)]}
+          🔍 {t(`scoutStage.${reportStage(game, p)}`)}
         </div>
       )}
       <div className="chips">
-        <span className="chip" title="what the market says he is worth, not what a club would accept">Value <b>{fmtMoney(p.value)}</b></span>
-        <span className="chip" title="what he costs you every week of the year">Wage <b>{fmtWage(p.wage)}/wk</b></span>
-        <span className="chip" title="the summer his deal runs out. Leave it too late and he can sign elsewhere for nothing">Contract to <b>{2026 + p.contractEnds}</b></span>
+        <span className="chip" title={t('player.valueTitle')}>{t('player.value')} <b>{fmtMoney(p.value)}</b></span>
+        <span className="chip" title={t('player.wageTitle')}>{t('player.wage')} <b>{fmtWage(p.wage)}{t('common.perWeek')}</b></span>
+        <span className="chip" title={t('player.contractToTitle')}>{t('player.contractTo')} <b>{2026 + p.contractEnds}</b></span>
         {(p.wantsDeal ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontWeight: 700 }}>
-          💼 Agent wants new terms</span>}
+          {t('player.agentWantsTerms')}</span>}
         {(p.wantsOut ?? 0) > 0 && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)', fontWeight: 700 }}
-          title="he asked to leave over game time - pick him and he may withdraw it">
-          🚪 Transfer request in</span>}
-        <span className="chip" title="how happy he is here. Unhappy men play worse and ask to leave">Morale <b>{moraleWord(p.morale)}</b></span>
-        <span className="chip" title="how fresh his legs are. Below 70% he tires badly in the last quarter">Fitness <b>{Math.round(p.cond)}%</b></span>
-        <span className="chip" title="match rhythm. A man back from injury is fit but not sharp, and it shows">Sharpness <b>{Math.round(p.sharp)}%</b></span>
+          title={t('player.transferRequestTitle')}>
+          {t('player.transferRequest')}</span>}
+        <span className="chip" title={t('player.moraleTitle')}>{t('player.morale')} <b>{moraleWord(p.morale)}</b></span>
+        <span className="chip" title={t('player.fitnessTitle')}>{t('player.fitness')} <b>{Math.round(p.cond)}%</b></span>
+        <span className="chip" title={t('player.sharpnessTitle')}>{t('player.sharpness')} <b>{Math.round(p.sharp)}%</b></span>
         {p.injury && <span className="chip" style={{ borderColor: 'var(--text-negative)', color: 'var(--text-negative)' }}>
-          Injured: {p.injury.desc} (~{Math.max(0, p.injury.until - game.week)}w)</span>}
-        {p.bans > 0 && <span className="chip" style={{ color: 'var(--text-negative)' }}>Suspended {p.bans} match{p.bans > 1 ? 'es' : ''}</span>}
-        {p.acad && <span className="chip" style={{ color: 'var(--info)', fontWeight: 700 }}>🎓 Academy squad</span>}
-        {p.natSquad && <span className="chip">On international duty</span>}
-        {p.onLoan && <span className="chip" style={{ color: 'var(--gold)' }}>Away on season loan</span>}
-        {p.transferListed && <span className="chip" style={{ color: 'var(--gold)' }}>Transfer listed</span>}
+          {t('player.injuredChip', { desc: p.injury.desc, n: Math.max(0, p.injury.until - game.week) })}</span>}
+        {p.bans > 0 && <span className="chip" style={{ color: 'var(--text-negative)' }}>{t(p.bans === 1 ? 'player.suspendedChipOne' : 'player.suspendedChip', { n: p.bans })}</span>}
+        {p.acad && <span className="chip" style={{ color: 'var(--info)', fontWeight: 700 }}>{t('player.academySquad')}</span>}
+        {p.natSquad && <span className="chip">{t('player.onIntlDuty')}</span>}
+        {p.onLoan && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.awayOnLoan')}</span>}
+        {p.transferListed && <span className="chip" style={{ color: 'var(--gold)' }}>{t('player.transferListed')}</span>}
       </div>
 
       {/* THE OFFICE (audit 20D). Players used to knock on the manager's door;
@@ -167,20 +168,20 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           personality's, not a dice roll - see chats.ts. */}
       {mine && !p.onLoan && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <div className="fact-label">The Office</div>
+          <div className="fact-label">{t('player.theOffice')}</div>
           {chatMsg
             ? <div className="meta" style={{ fontStyle: 'italic' }}>{chatMsg}</div>
             : canChat(game, p)
-              ? <div className="meta muted">Call him in. {chatBudget(game)} conversation{chatBudget(game) === 1 ? '' : 's'} left this week.</div>
-              : <div className="meta muted">{p.lastChatWk === game.season * SEASON_WEEKS + game.week ? 'You have spoken to him this week already.' : 'No conversations left this week - the words have to keep their value.'}</div>}
+              ? <div className="meta muted">{t(chatBudget(game) === 1 ? 'player.callHimInOne' : 'player.callHimIn', { n: chatBudget(game) })}</div>
+              : <div className="meta muted">{t(p.lastChatWk === game.season * SEASON_WEEKS + game.week ? 'player.spokenAlready' : 'player.noConversations')}</div>}
           {!chatMsg && canChat(game, p) && (
             <div className="btn-row" style={{ marginTop: 6 }}>
               <button className="btn ghost" style={{ flex: 1 }}
-                title={p.form >= 6.8 ? 'tell him his form has been noticed' : 'careful: praising a man out of form can read as sarcasm'}
-                onClick={() => { setChatMsg(praisePlayer(game, p)); touch() }}>👏 Praise his form</button>
+                title={t(p.form >= 6.8 ? 'player.praiseTitleGood' : 'player.praiseTitleBad')}
+                onClick={() => { setChatMsg(praisePlayer(game, p)); touch() }}>{t('player.praiseForm')}</button>
               <button className="btn ghost" style={{ flex: 1 }}
-                title={p.form < 6.8 ? 'a quiet word about his standards' : 'careful: warning a man in form insults him'}
-                onClick={() => { setChatMsg(warnPlayer(game, p)); touch() }}>⚠️ A quiet word</button>
+                title={t(p.form < 6.8 ? 'player.warnTitleGood' : 'player.warnTitleBad')}
+                onClick={() => { setChatMsg(warnPlayer(game, p)); touch() }}>{t('player.quietWord')}</button>
             </div>
           )}
         </div>
@@ -190,23 +191,23 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {ptab === 'attrs' && rival && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ flex: 1 }}>
-            <div className="fact-label">Compare</div>
+            <div className="fact-label">{t('player.compare')}</div>
             <div className="meta">
-              Your best {p.pos}: <b>{rival.name}</b> ({Math.round(rival.ca)} overall, {rival.age} yrs, {fmtWage(rival.wage)}/wk)
-              {compare ? ' - his numbers shown beside each bar.' : ''}
+              {t('player.yourBest', { pos: p.pos })}<b>{rival.name}</b> {t('player.rivalMeta', { ca: Math.round(rival.ca), age: rival.age, wage: fmtWage(rival.wage) })}
+              {compare ? t('player.shownBeside') : ''}
             </div>
           </div>
           <button className={`btn ${compare ? 'gold' : 'ghost'}`} onClick={() => setCompare(!compare)}>
-            {compare ? '✓ Comparing' : '⚖ Compare'}
+            {t(compare ? 'player.comparing' : 'player.compareBtn')}
           </button>
         </div>
       )}
       {ptab === 'attrs' && <>
-      <SectionTitle sub={compare && rival ? `${rival.name.split(' ').slice(-1)[0]}'s numbers beside each chip` : 'every attribute, rated 1 to 100'}>Attributes</SectionTitle>
+      <SectionTitle sub={compare && rival ? t('player.attrsSubCompare', { name: rival.name.split(' ').slice(-1)[0] }) : t('player.attrsSub')}>{t('player.attributes')}</SectionTitle>
       <div className="fm-attrs">
         {groups.map(([title, keys]) => (
           <div className="fm-col" key={title}>
-            <div className="fm-col-head">{title}</div>
+            <div className="fm-col-head">{t(title)}</div>
             {keys.map(k => {
               const [lo, hi] = attrRange(game, p, k)
               const exact = lo === hi
@@ -218,7 +219,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               const rv = compare && rival ? fineAttr(rival.id, idx, rival.a[k]) : null
               return (
                 <div className="fm-attr" key={k}>
-                  <span className="fm-name">{ATTR_NAMES[k]}</span>
+                  <span className="fm-name">{attrName(k)}</span>
                   {rv != null && (
                     <b className="fm-rival" style={{ color: v > rv ? 'var(--text-positive)' : v < rv ? 'var(--text-negative)' : 'var(--text-muted)' }}>{rv}</b>
                   )}
@@ -234,38 +235,38 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 
       </>}
       {ptab === 'profile' && <>
-      <SectionTitle sub={`avg rating ${avg ? avg.toFixed(2) : '-'}`}>This Season</SectionTitle>
+      <SectionTitle sub={t('player.avgRating', { n: avg ? avg.toFixed(2) : '-' })}>{t('player.thisSeason')}</SectionTitle>
       <div className="chips">
-        <span className="chip">Apps <b>{p.stats.apps}</b> ({p.stats.starts} starts)</span>
-        <span className="chip">Tries <b>{p.stats.tries}</b></span>
-        <span className="chip">Points <b>{p.stats.points}</b></span>
-        <span className="chip">Cons <b>{p.stats.cons}</b></span>
-        <span className="chip">Pens <b>{p.stats.pens}</b></span>
-        {p.stats.drops > 0 && <span className="chip">Drop goals <b>{p.stats.drops}</b></span>}
-        <span className="chip">Cards <b>{p.stats.yc}Y {p.stats.rc}R</b></span>
-        {p.stats.motm > 0 && <span className="chip">⭐ MOTM <b>{p.stats.motm}</b></span>}
-        {(p.lions ?? 0) > 0 && <span className="chip">🦁 Lions tourist{(p.lions ?? 0) > 1 ? <b> ×{p.lions}</b> : null}</span>}
-        {(p.wcWins ?? 0) > 0 && <span className="chip">🏆 World Championship winner{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}
-        {p.lastR != null && <span className="chip">Last match <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
+        <span className="chip">{t('player.apps')} <b>{p.stats.apps}</b> {t('player.appsStarts', { n: p.stats.starts })}</span>
+        <span className="chip">{t('player.tries')} <b>{p.stats.tries}</b></span>
+        <span className="chip">{t('player.points')} <b>{p.stats.points}</b></span>
+        <span className="chip">{t('player.cons')} <b>{p.stats.cons}</b></span>
+        <span className="chip">{t('player.pens')} <b>{p.stats.pens}</b></span>
+        {p.stats.drops > 0 && <span className="chip">{t('player.drops')} <b>{p.stats.drops}</b></span>}
+        <span className="chip">{t('player.cards')} <b>{p.stats.yc}{t('squad.colYC').slice(0, 1)} {p.stats.rc}{t('squad.colRC').slice(0, 1)}</b></span>
+        {p.stats.motm > 0 && <span className="chip">{t('player.motm')} <b>{p.stats.motm}</b></span>}
+        {(p.lions ?? 0) > 0 && <span className="chip">{t('player.lions')}{(p.lions ?? 0) > 1 ? <b> ×{p.lions}</b> : null}</span>}
+        {(p.wcWins ?? 0) > 0 && <span className="chip">{t('player.wcWinner')}{(p.wcWins ?? 0) > 1 ? <b> ×{p.wcWins}</b> : null}</span>}
+        {p.lastR != null && <span className="chip">{t('player.lastMatch')} <b>{Math.min(10, Math.max(1, p.lastR)).toFixed(1)}</b></span>}
         {(p.ca - (p.ca0 ?? p.ca)) !== 0 && (
-          <span className="chip">Development <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? 'var(--text-positive)' : 'var(--text-negative)' }}>
+          <span className="chip">{t('player.development')} <b style={{ color: p.ca > (p.ca0 ?? p.ca) ? 'var(--text-positive)' : 'var(--text-negative)' }}>
             {p.ca > (p.ca0 ?? p.ca) ? '▲' : '▼'} {Math.abs(p.ca - (p.ca0 ?? p.ca))}
           </b></span>
         )}
-        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}>🌟 <b>Wonderkid</b></span>}
+        {p.age <= 21 && p.pa >= 86 && <span className="chip" style={{ borderColor: 'var(--gold)' }}>🌟 <b>{t('player.wonderkid')}</b></span>}
         {(p.poty ?? 0) > 0 && (
           <span className="chip" style={{ borderColor: 'var(--gold)' }}>
-            🏅 <b>World POTY{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
+            🏅 <b>{t('player.worldPoty')}{(p.poty ?? 0) > 1 ? ` ×${p.poty}` : ''}</b>
           </span>
         )}
         {p.retiring && !p.farewell && (
-          <span className="chip" style={{ borderColor: 'var(--danger)' }} title="He has announced this season is his last">
-            🎤 <b>Retiring in the summer</b>
+          <span className="chip" style={{ borderColor: 'var(--danger)' }} title={t('player.retiringTitle')}>
+            🎤 <b>{t('player.retiringSummer')}</b>
           </span>
         )}
         {(game.pledges ?? []).some(pl => pl.playerId === p.id) && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (
-          <span className="chip" style={{ borderColor: 'var(--gold)' }} title="You made him a promise in the office - keep it or wear it">
-            🤝 <b>Promise made</b>
+          <span className="chip" style={{ borderColor: 'var(--gold)' }} title={t('player.promiseTitle')}>
+            🤝 <b>{t('player.promiseMade')}</b>
           </span>
         )}
         {(() => {
@@ -275,7 +276,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           const incoming = pc.toClubId === game.userClubId
           return (
             <span className="chip" style={{ borderColor: incoming ? 'var(--gold)' : 'var(--danger)' }}>
-              🖊 <b>Pre-contract: {to?.short ?? '?'}</b>
+              🖊 <b>{t('player.preContract', { club: to?.short ?? '?' })}</b>
             </span>
           )
         })()}
@@ -284,9 +285,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       </>}
       {ptab === 'career' && (p.career.length > 0 || (p.hist?.apps ?? 0) > 0) && (
         <>
-          <SectionTitle>Career</SectionTitle>
+          <SectionTitle>{t('player.career')}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>Season</th><th>Club</th><th className="num">Apps</th><th className="num">Tries</th><th className="num">Pts</th></tr></thead>
+            <thead><tr><th>{t('player.colSeason')}</th><th>{t('player.colClub')}</th><th className="num">{t('club.colApps')}</th><th className="num">{t('club.colTries')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
               {[...p.career].reverse().map((c, i) => (
                 <tr key={i}>
@@ -299,16 +300,16 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               ))}
               {(p.hist?.apps ?? 0) > 0 && (
                 <tr className="muted">
-                  <td>pre 2025</td>
-                  <td>{p.exClub && game.clubs[p.exClub] ? `incl. ${game.clubs[p.exClub].short} (${p.exApps})` : 'earlier career'}</td>
+                  <td>{t('player.pre2025')}</td>
+                  <td>{p.exClub && game.clubs[p.exClub] ? t('player.inclClub', { club: game.clubs[p.exClub].short, apps: p.exApps ?? 0 }) : t('player.earlierCareer')}</td>
                   <td className="num">{p.hist!.apps}</td>
                   <td className="num">{p.hist!.tries}</td>
                   <td className="num">{p.hist!.points}</td>
                 </tr>
               )}
               <tr style={{ fontWeight: 700 }}>
-                <td>TOTAL</td>
-                <td className="muted">incl. this season</td>
+                <td>{t('player.total')}</td>
+                <td className="muted">{t('player.inclThisSeason')}</td>
                 <td className="num">{p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)}</td>
                 <td className="num">{p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)}</td>
                 <td className="num">{p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)}</td>
@@ -326,38 +327,38 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             setMsg(r.msg); setCounter(r.counter ?? null)
             if (r.ok) { setTermsFee(counter); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
             touch()
-          }}>Meet their price ({fmtMoney(counter)})</button>
+          }}>{t('player.meetTheirPrice', { fee: fmtMoney(counter) })}</button>
         )}
       </div>}
 
       {termsFee != null && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>✍️ Personal terms - fee agreed at {fmtMoney(termsFee)}</h3>
-          <div className="meta" style={{ margin: '4px 0' }}>His camp opens at <b>£{personalTermsDemand(game, p).toLocaleString()}/wk</b>. A signing bonus or a first-team promise softens the wage.</div>
+          <h3 style={{ fontSize: 15 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
+          <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>£{personalTermsDemand(game, p).toLocaleString()}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
-            <span className="fact-label" style={{ width: 84 }}>Wage /wk</span>
+            <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
             <button className="btn ghost" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
             <b style={{ minWidth: 76, textAlign: 'center' }}>£{wage.toLocaleString()}</b>
             <button className="btn ghost" onClick={() => { setWage(wage + 500) }}>+</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
-            <span className="fact-label" style={{ width: 84 }}>Sign-on</span>
+            <span className="fact-label" style={{ width: 84 }}>{t('player.signOn')}</span>
             <button className="btn ghost" onClick={() => { setSignOn(Math.max(0, signOn - 25_000)) }}>−</button>
             <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtMoney(signOn)}</b>
             <button className="btn ghost" onClick={() => { setSignOn(signOn + 25_000) }}>+</button>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 13 }}>
             <input type="checkbox" checked={promiseMin} onChange={e => setPromiseMin(e.target.checked)} />
-            Promise first-team rugby (a real pledge - he will hold you to it)
+            {t('player.promiseFirstTeam')}
           </label>
           <div className="btn-row" style={{ marginTop: 8 }}>
-            <button className="btn ghost" onClick={() => { setTermsFee(null); setMsg('You walk away from the table. The fee agreement lapses.') }}>Walk away</button>
+            <button className="btn ghost" onClick={() => { setTermsFee(null); setMsg(t('player.walkedAway')) }}>{t('player.walkAway')}</button>
             <button className="btn gold" style={{ flex: 1.6 }} onClick={() => {
               const r = signOnTerms(game, p.id, termsFee, wage, signOn, promiseMin)
               setMsg(r.msg)
               if (r.ok) setTermsFee(null)
               touch()
-            }}>✍️ Agree terms</button>
+            }}>{t('player.agreeTerms')}</button>
           </div>
         </div>
       )}
@@ -366,7 +367,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <button className="btn ghost block" onClick={() => {
           setMsg(loanOut(game, p.id).msg)
           touch()
-        }}>Send on Season Loan (develops faster)</button>
+        }}>{t('player.sendOnLoan')}</button>
       )}
       {/* the loan is visible from here too (16B, user: "there should be a
           report on how they are doing... they should also be able to be
@@ -374,25 +375,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           own deterministic roll, so the page and the letters agree. */}
       {mine && p.onLoan && (() => {
         const boost = 2 + Math.floor(mulberry32(game.seed + p.id)() * 3)
-        const verdict = p.ca >= p.pa
-          ? 'Playing every week and doing his job. Their coaches like him; they also quietly think this is his level.'
-          : boost >= 4
-          ? 'The first name on their team sheet. Their coach says he is running games at that level.'
-          : boost === 3
-          ? 'Growing into it nicely. Good marks most weeks, and the education is clearly taking.'
-          : 'Getting the minutes he went for. Steady rather than spectacular.'
+        const verdict = t(p.ca >= p.pa ? 'player.loanHisLevel'
+          : boost >= 4 ? 'player.loanFirstName'
+          : boost === 3 ? 'player.loanGrowing'
+          : 'player.loanSteady')
         return (
           <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-            <div className="fact-label">🧳 Out on loan</div>
+            <div className="fact-label">{t('player.outOnLoan')}</div>
             <div className="meta" style={{ marginTop: 4 }}>{verdict}</div>
             <div className="meta" style={{ marginTop: 4 }}>
-              He is due back next summer. Recall him early and he returns match-fit,
-              but a cut-short season pays less of the development the loan promised.
+              {t('player.loanRecallNote')}
             </div>
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => {
               setMsg(loanRecall(game, p.id).msg)
               touch()
-            }}>↩ Recall from Loan</button>
+            }}>{t('player.recallFromLoan')}</button>
           </div>
         )
       })()}
@@ -412,9 +409,9 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door - his work here is done.`,
             playerId: p.id,
           })
-          setMsg(`${p.name} joins first-team training. He'll never forget today.`)
+          setMsg(t('player.promotedMsg', { name: p.name }))
           touch()
-        }}>🎓 Promote to First Team</button>
+        }}>{t('player.promoteFirstTeam')}</button>
       )}
       {mine && !p.acad && (() => {
         const club = game.clubs[game.userClubId]
@@ -425,21 +422,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <button className={`btn ${isMarquee ? '' : 'ghost'} block`} onClick={() => {
             club.marquee = isMarquee ? marquee.filter(id => id !== p.id) : [...marquee, p.id]
             setMsg(isMarquee
-              ? `${p.name} loses marquee status - his wage counts against the cap again.`
-              : `${p.name} designated a marquee player: his wage now sits outside the salary cap (${2 - marquee.length - 1} slot${2 - marquee.length - 1 === 1 ? '' : 's'} left).`)
+              ? t('player.marqueeLost', { name: p.name })
+              : t(2 - marquee.length - 1 === 1 ? 'player.marqueeGivenOne' : 'player.marqueeGiven', { name: p.name, n: 2 - marquee.length - 1 }))
             touch()
           }}>
-            {isMarquee ? '⭐ Marquee Player - tap to remove' : `⭐ Designate Marquee (${2 - marquee.length} slot${2 - marquee.length === 1 ? '' : 's'} free)`}
+            {isMarquee ? t('player.marqueeRemove') : t(2 - marquee.length === 1 ? 'player.marqueeDesignateOne' : 'player.marqueeDesignate', { n: 2 - marquee.length })}
           </button>
         )
       })()}
       {mine && !p.onLoan && (
         <div className="btn-row">
           <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'praise')); touch() }}>
-            🗣 Praise His Form
+            {t('player.praiseHisForm')}
           </button>
           <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'word')); touch() }}>
-            ⚠️ Have a Word
+            {t('player.haveAWord')}
           </button>
         </div>
       )}
@@ -447,7 +444,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
         <>
           {negotiating && (
             <div className="card">
-              <h3>Contract talks with {p.name.split(' ').slice(-1)[0]}'s agent</h3>
+              <h3>{t('player.contractTalks', { name: p.name.split(' ').slice(-1)[0] })}</h3>
               {/* THE TALKS ANSWER THEMSELVES, IN THE CARD.
                   The outcome used to go only to the message card at the top of
                   this page, so meeting a player's asking wage looked like nothing
@@ -459,27 +456,27 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     {talkSigned ? '🖊 ' : '💬 '}{talkOutcome}
                   </div>
                   {talkSigned
-                    ? <div className="meta">He is on {fmtWage(p.wage)}/wk until the summer of {2026 + p.contractEnds}.</div>
+                    ? <div className="meta">{t('player.heIsOn', { wage: fmtWage(p.wage), year: 2026 + p.contractEnds })}</div>
                     : null}
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     {!talkSigned && (
-                      <button className="btn" onClick={() => setTalkOutcome(null)}>Keep talking</button>
+                      <button className="btn" onClick={() => setTalkOutcome(null)}>{t('player.keepTalking')}</button>
                     )}
                     <button className="btn ghost" onClick={() => {
                       setNegotiating(false); setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
-                    }}>{talkSigned ? 'Done' : 'Leave it there'}</button>
+                    }}>{t(talkSigned ? 'player.done' : 'player.leaveItThere')}</button>
                   </div>
                   {!talkSigned && wageCounter != null && (
                     <button className="btn gold" style={{ marginTop: 8, width: '100%' }} onClick={() => {
                       const r = offerRenewalAt(game, p.id, wageCounter)
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); setWageText(String(wageCounter)); touch()
-                    }}>Meet their number ({fmtWage(wageCounter)}/wk)</button>
+                    }}>{t('player.meetTheirNumber', { wage: fmtWage(wageCounter) })}</button>
                   )}
                 </>
               ) : (
                 <>
-                  <div className="meta">His camp wants {fmtWage(renewalDemand(p))}/wk (he is on {fmtWage(p.wage)}). Lowball at your peril.</div>
+                  <div className="meta">{t('player.campWants', { demand: fmtWage(renewalDemand(p)), wage: fmtWage(p.wage) })}</div>
                   <input className="inline-input" type="text" inputMode="numeric" value={wageText}
                     onChange={e => setWageText(e.target.value.replace(/[^0-9]/g, ''))} />
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
@@ -487,8 +484,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                       const r = offerRenewalAt(game, p.id, wageOffer)
                       setMsg(r.msg); setTalkOutcome(r.msg); setTalkSigned(r.ok)
                       setWageCounter(r.counter ?? null); touch()
-                    }}>Offer £{wageOffer.toLocaleString()}/wk</button>
-                    <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>Walk Away</button>
+                    }}>{t('player.offerWage', { amount: wageOffer.toLocaleString() })}</button>
+                    <button className="btn ghost" onClick={() => { setNegotiating(false); setWageCounter(null) }}>{t('player.walkAwayCaps')}</button>
                   </div>
                 </>
               )}
@@ -499,19 +496,19 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               <button className="btn" onClick={() => {
                 setNegotiating(true); setWageText(String(Math.round(renewalDemand(p) * 0.9 / 50) * 50))
                 setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
-              }}>Open Contract Talks</button>
+              }}>{t('player.openContractTalks')}</button>
             )}
             <button className={`btn ${p.transferListed ? 'ghost' : 'danger'}`} onClick={() => {
               p.transferListed = !p.transferListed
-              setMsg(p.transferListed ? `${p.name} placed on the transfer list.` : `${p.name} removed from the list.`)
+              setMsg(t(p.transferListed ? 'player.listedMsg' : 'player.unlistedMsg', { name: p.name }))
               touch()
-            }}>{p.transferListed ? 'Unlist' : 'Transfer List'}</button>
+            }}>{t(p.transferListed ? 'player.unlist' : 'player.transferList')}</button>
           </div>
         </>
       ) : club ? (
         <>
           <button className={`btn ${shortlisted ? '' : 'ghost'} block`} onClick={() => toggleShortlist(p.id)}>
-            {shortlisted ? '★ On Shortlist - scouts filing reports' : '☆ Shortlist & Scout'}
+            {t(shortlisted ? 'player.onShortlist' : 'player.shortlistScout')}
           </button>
           {!bidding
             ? <>
@@ -519,7 +516,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 <button className="btn gold block" onClick={() => {
                   setMsg(agreePreContract(game, p.id).msg); touch()
                 }}>
-                  🖊 Agree pre-contract - free this summer
+                  {t('player.agreePreContract')}
                 </button>
               )}
               <button className="btn gold block" onClick={() => {
@@ -528,7 +525,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 if (r.ok) { setTermsFee(ask); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
                 touch()
               }}>
-                ⚡ Offer asking price ({fmtMoney(ask)})
+                {t('player.offerAskingPrice', { fee: fmtMoney(ask) })}
               </button>
               {/* WHERE THE SELLING CLUB STANDS.
                   Asked in live play: "would they ever accept under?" They would,
@@ -540,32 +537,32 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 const w = sellerWillingness(game, p)
                 return (
                   <div className="card" style={{ marginTop: 4 }}>
-                    <div className="fact-label">Where {club.short} Stand</div>
+                    <div className="fact-label">{t('player.whereTheyStand', { club: club.short })}</div>
                     {w.discount > 0 ? (
                       <>
                         <div className="meta">
-                          They would listen below the ask, down towards <b>{fmtMoney(floorPrice(game, p))}</b>.
+                          {t('player.wouldListen')}<b>{fmtMoney(floorPrice(game, p))}</b>.
                         </div>
                         {w.reasons.map((r, i) => <div className="meta muted" key={i}>· {r.charAt(0).toUpperCase()}{r.slice(1)}</div>)}
                       </>
                     ) : (
                       <div className="meta">
-                        No reason to sell cheap: he is wanted, he is playing, and they are under no pressure. It is the asking price or nothing.
+                        {t('player.noReasonToSell')}
                       </div>
                     )}
                   </div>
                 )
               })()}
               <button className="btn ghost block" style={{ marginTop: 4 }} onClick={() => { setBidding(true); setBid(ask) }}>
-                Haggle a different fee…
+                {t('player.haggle')}
               </button>
             </>
             : (
               <div className="card">
-                <h3 style={{ fontSize: 15 }}>Your offer to {club.short}</h3>
-                <div className="meta">Asking price {fmtMoney(ask)} · your budget {fmtMoney(game.clubs[game.userClubId].budget)}</div>
+                <h3 style={{ fontSize: 15 }}>{t('player.yourOffer', { club: club.short })}</h3>
+                <div className="meta">{t('player.askAndBudget', { ask: fmtMoney(ask), budget: fmtMoney(game.clubs[game.userClubId].budget) })}</div>
                 {floorPrice(game, p) < ask - 50_000 && (
-                  <div className="meta muted">They may go as low as {fmtMoney(floorPrice(game, p))}.</div>
+                  <div className="meta muted">{t('player.asLowAs', { floor: fmtMoney(floorPrice(game, p)) })}</div>
                 )}
                 {/* THE STEPPER IS A GRID, NOT A ROW (user, on a 412px phone:
                     "the reduce or plus 500 go off the screen and dont fit in
@@ -584,13 +581,13 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   <button className="btn ghost" onClick={() => setBid(bid + 500_000)}>+500k</button>
                 </div>
                 <div className="btn-row">
-                  <button className="btn ghost" onClick={() => setBidding(false)}>Cancel</button>
+                  <button className="btn ghost" onClick={() => setBidding(false)}>{t('player.cancel')}</button>
                   <button className="btn gold" style={{ flex: 1.6 }} onClick={() => {
                     const r = agreeFee(game, p.id, bid)
                     setMsg(r.msg); setCounter(r.counter ?? null); setBidding(false)
                     if (r.ok) { setTermsFee(bid); setWage(personalTermsDemand(game, p)); setSignOn(0); setPromiseMin(false) }
                     touch()
-                  }}>Submit Bid</button>
+                  }}>{t('player.submitBid')}</button>
                 </div>
               </div>
             )}
@@ -601,7 +598,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           // the old inline version skipped the first two
           setMsg(signFreeAgent(game, p.id).msg)
           touch()
-        }}>Sign Free Agent</button>
+        }}>{t('player.signFreeAgent')}</button>
       )}
       <div className="spacer" />
     </>
@@ -609,8 +606,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
 }
 
 function moraleWord(m: number): string {
-  return m >= 8.5 ? 'Superb' : m >= 7.5 ? 'Very Good' : m >= 6 ? 'Good'
-    : m >= 5 ? 'Fair' : m >= 3.5 ? 'Poor' : 'Very Poor'
+  return t(m >= 8.5 ? 'player.moraleSuperb' : m >= 7.5 ? 'player.moraleVeryGood' : m >= 6 ? 'player.moraleGood'
+    : m >= 5 ? 'player.moraleFair' : m >= 3.5 ? 'player.moralePoor' : 'player.moraleVeryPoor')
 }
 
 /**
@@ -624,35 +621,38 @@ function moraleWord(m: number): string {
 function verdictLine(game: GameState, p: Player, mine: boolean): string {
   const ca = Math.round(fuzzedCa(game, p))
   const know = knowledge(game, p)
-  const standard = ca >= 85 ? 'a genuine star'
-    : ca >= 75 ? 'a first-choice man at this level'
-    : ca >= 65 ? 'a solid squad player'
-    : ca >= 55 ? 'squad filler who can do a job'
-    : 'one for the future or the second team'
+  const standard = t(ca >= 85 ? 'player.vStar'
+    : ca >= 75 ? 'player.vFirstChoice'
+    : ca >= 65 ? 'player.vSolid'
+    : ca >= 55 ? 'player.vFiller'
+    : 'player.vFuture')
   const bits: string[] = []
-  bits.push(`${p.age}-year-old ${POS_NAMES[p.pos].toLowerCase()}, ${standard}${!mine && know < 60 ? ' on what little you have seen of him' : ''}.`)
+  bits.push(t('player.vOpening', {
+    age: p.age, pos: posName(p.pos).toLowerCase(), standard,
+    caveat: !mine && know < 60 ? t('player.vCaveat') : '',
+  }))
   if (p.injury) {
     const wks = Math.max(0, p.injury.until - game.week)
-    bits.push(`Out with ${p.injury.desc.toLowerCase()} for about ${wks} more week${wks === 1 ? '' : 's'}.`)
+    bits.push(t(wks === 1 ? 'player.vInjuredOne' : 'player.vInjured', { desc: p.injury.desc.toLowerCase(), n: wks }))
   } else if (p.bans > 0) {
-    bits.push(`Suspended for ${p.bans} more match${p.bans > 1 ? 'es' : ''}.`)
+    bits.push(t(p.bans === 1 ? 'player.vSuspendedOne' : 'player.vSuspended', { n: p.bans }))
   } else if (p.natSquad) {
-    bits.push('Away with his country, so unavailable to you.')
+    bits.push(t('player.vAway'))
   } else if (p.onLoan) {
-    bits.push('Out on loan for the season.')
+    bits.push(t('player.vOnLoan'))
   } else if (p.cond < 72) {
-    bits.push(`Available but only ${Math.round(p.cond)}% fit, so he will fade.`)
+    bits.push(t('player.vUnfit', { pct: Math.round(p.cond) }))
   } else {
-    bits.push('Fit and available.')
+    bits.push(t('player.vFit'))
   }
   if (mine) {
-    if (p.contractEnds <= game.season) bits.push('His deal runs out this summer and he can walk for nothing.')
-    else if ((p.wantsOut ?? 0) > 0) bits.push('A transfer request is on your desk. Minutes would talk him round; nothing else will.')
-    else if ((p.wantsDeal ?? 0) > 0) bits.push('His agent is asking for improved terms.')
-    else if (p.morale <= 4) bits.push('He is unhappy, and it will start showing on the pitch.')
-    else if (p.form >= 7.5) bits.push('In the best form of anyone in the building.')
+    if (p.contractEnds <= game.season) bits.push(t('player.vExpiring'))
+    else if ((p.wantsOut ?? 0) > 0) bits.push(t('player.vWantsOut'))
+    else if ((p.wantsDeal ?? 0) > 0) bits.push(t('player.vWantsDeal'))
+    else if (p.morale <= 4) bits.push(t('player.vUnhappy'))
+    else if (p.form >= 7.5) bits.push(t('player.vInForm'))
   } else if (p.transferListed) {
-    bits.push('His club have listed him, so a fair offer would be heard.')
+    bits.push(t('player.vListed'))
   }
   return bits.join(' ')
 }

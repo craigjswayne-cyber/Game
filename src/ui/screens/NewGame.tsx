@@ -185,8 +185,8 @@ export default function NewGame() {
                   <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>
                     {chClub && <Crest club={chClub} size={28} mr={10} />}
                     <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
-                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--text-primary)' }}>{ch.title}</b>
-                      <span className="meta" style={{ fontSize: 11.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{ch.desc}</span>
+                      <b style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--text-primary)' }}>{t(ch.title)}</b>
+                      <span className="meta" style={{ fontSize: 11.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{t(ch.desc)}</span>
                     </span>
                   </button>
                 )
@@ -248,8 +248,8 @@ export default function NewGame() {
             <div className="wizard-hint">{t('wizard.profileAt', { club: club.name })}</div>
             {challenge && (
               <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-                <h3 style={{ fontSize: 15 }}>{t('wizard.challengeAccepted', { title: challenge.title })}</h3>
-                <div className="meta">{challenge.desc}</div>
+                <h3 style={{ fontSize: 15 }}>{t('wizard.challengeAccepted', { title: t(challenge.title) })}</h3>
+                <div className="meta">{t(challenge.desc)}</div>
               </div>
             )}
             {/* the name field and the philosophy tiles were one 385px card, so
@@ -295,7 +295,7 @@ export default function NewGame() {
                 <div><label>{t('wizard.competition')}</label><span>{league.name}</span></div>
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>2025-26</span></div>
-                {challenge && <div><label>{t('wizard.challenge')}</label><span>{challenge.title}</span></div>}
+                {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
                 <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
               </div>
             </div>

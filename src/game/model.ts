@@ -1398,12 +1398,12 @@ export function trustFactor(state: GameState): number {
 }
 
 export function trustWord(v: number): string {
-  return v >= 85 ? 'They would run through a wall'
-    : v >= 68 ? 'The room is with you'
-    : v >= 50 ? 'Warming to you'
-    : v >= 32 ? 'Still making their minds up'
-    : v >= 16 ? 'Not convinced'
-    : 'They do not believe a word'
+  return t(v >= 85 ? 'profile.trustWall'
+    : v >= 68 ? 'profile.trustWithYou'
+    : v >= 50 ? 'profile.trustWarming'
+    : v >= 32 ? 'profile.trustUndecided'
+    : v >= 16 ? 'profile.trustUnconvinced'
+    : 'profile.trustDisbelief')
 }
 
 /** World Championship years: 2027, 2031, ... (in-game season index) */

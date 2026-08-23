@@ -5,13 +5,14 @@ import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
 import { flagOf, nationByCode } from '../../game/nations'
 import { SectionTitle } from '../components'
+import { t } from '../../game/i18n'
 
 /** Coaching badge tiers, earned through reputation. */
 export function badgeOf(rep: number): { name: string; icon: string; color: string; next: string | null; at: number | null } {
-  if (rep >= 85) return { name: 'Platinum Badge', icon: '💎', color: 'var(--info)', next: null, at: null }
-  if (rep >= 70) return { name: 'Gold Badge', icon: '🥇', color: 'var(--gold)', next: 'Platinum', at: 85 }
-  if (rep >= 55) return { name: 'Silver Badge', icon: '🥈', color: 'var(--text-secondary)', next: 'Gold', at: 70 }
-  return { name: 'Bronze Badge', icon: '🥉', color: 'var(--prop-tee-edge)', next: 'Silver', at: 55 }
+  if (rep >= 85) return { name: t('profile.badgePlatinum'), icon: '💎', color: 'var(--info)', next: null, at: null }
+  if (rep >= 70) return { name: t('profile.badgeGold'), icon: '🥇', color: 'var(--gold)', next: t('profile.nextPlatinum'), at: 85 }
+  if (rep >= 55) return { name: t('profile.badgeSilver'), icon: '🥈', color: 'var(--text-secondary)', next: t('profile.nextGold'), at: 70 }
+  return { name: t('profile.badgeBronze'), icon: '🥉', color: 'var(--prop-tee-edge)', next: t('profile.nextSilver'), at: 55 }
 }
 
 interface Speciality {
@@ -25,59 +26,59 @@ interface Speciality {
 
 const SPECIALITIES: Speciality[] = [
   {
-    id: 'youth', name: 'Youth Developer', icon: '🌱',
-    desc: 'Trusts the academy and makes kids into men.',
+    id: 'youth', name: 'profile.specYouth', icon: '🌱',
+    desc: 'profile.specYouthDesc',
     earned: g => Object.values(g.players).filter(p =>
       p.clubId === g.userClubId && p.youth && (p.stats.apps > 0 || p.career.some(c => c.apps > 0))).length >= 3,
-    hint: 'Give 3+ academy graduates real minutes.',
+    hint: 'profile.specYouthHint',
   },
   {
-    id: 'dealer', name: 'Wheeler-Dealer', icon: '🤝',
-    desc: 'Lives on the phone. The market bends to him.',
+    id: 'dealer', name: 'profile.specDealer', icon: '🤝',
+    desc: 'profile.specDealerDesc',
     earned: g => g.mgr.signings >= 8,
-    hint: 'Complete 8 signings.',
+    hint: 'profile.specDealerHint',
   },
   {
-    id: 'tactician', name: 'Tactician', icon: '🧠',
-    desc: 'Wins the chess match more often than not.',
+    id: 'tactician', name: 'profile.specTactician', icon: '🧠',
+    desc: 'profile.specTacticianDesc',
     earned: g => g.mgr.m >= 20 && g.mgr.w / Math.max(1, g.mgr.m) >= 0.6,
-    hint: 'Keep a 60% win rate over 20+ matches.',
+    hint: 'profile.specTacticianHint',
   },
   {
-    id: 'winner', name: 'Serial Winner', icon: '🏆',
-    desc: 'Silverware follows him around.',
+    id: 'winner', name: 'profile.specWinner', icon: '🏆',
+    desc: 'profile.specWinnerDesc',
     earned: g => g.mgr.trophies.length >= 2,
-    hint: 'Lift 2 trophies.',
+    hint: 'profile.specWinnerHint',
   },
   {
-    id: 'euro', name: 'Continental Royalty', icon: '👑',
-    desc: 'Conquered Europe\'s biggest prize.',
+    id: 'euro', name: 'profile.specEuro', icon: '👑',
+    desc: 'profile.specEuroDesc',
     earned: g => g.mgr.trophies.some(t => t.compId === 'cc'),
-    hint: 'Win the Continental Cup.',
+    hint: 'profile.specEuroHint',
   },
   {
-    id: 'manman', name: 'Man-Manager', icon: '🫂',
-    desc: 'Players run through walls for him.',
+    id: 'manman', name: 'profile.specManman', icon: '🫂',
+    desc: 'profile.specManmanDesc',
     earned: g => {
       const squad = g.clubs[g.userClubId]?.players.map(id => g.players[id]).filter(Boolean) ?? []
       return squad.length > 0 && squad.reduce((s, p) => s + p!.morale, 0) / squad.length >= 7.4
     },
-    hint: 'Keep average squad morale above 7.4.',
+    hint: 'profile.specManmanHint',
   },
   {
-    id: 'survivor', name: 'The Survivor', icon: '🛡️',
-    desc: 'Boards come and go; he remains.',
+    id: 'survivor', name: 'profile.specSurvivor', icon: '🛡️',
+    desc: 'profile.specSurvivorDesc',
     earned: g => g.mgr.finishes.length >= 3,
-    hint: 'Complete 3 full seasons.',
+    hint: 'profile.specSurvivorHint',
   },
   {
-    id: 'miracle', name: 'Miracle Worker', icon: '✨',
-    desc: 'Won it all with a club nobody backed.',
+    id: 'miracle', name: 'profile.specMiracle', icon: '✨',
+    desc: 'profile.specMiracleDesc',
     earned: g => g.mgr.trophies.some(t => {
       const club = g.clubs[g.userClubId]
       return club && club.rep < 80 && t.compId === club.leagueId
     }),
-    hint: 'Win a league title with an unfancied club.',
+    hint: 'profile.specMiracleHint',
   },
 ]
 
@@ -99,7 +100,7 @@ export default function Profile() {
       <div className="card" style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 44, lineHeight: 1 }}>{badge.icon}</div>
         <h3 style={{ fontSize: 19, marginTop: 6 }}>{game.managerName}</h3>
-        <div className="meta">{game.unemployed ? 'Unemployed - between challenges' : `Director of Rugby · ${club.name}`}</div>
+        <div className="meta">{game.unemployed ? t('profile.unemployed') : t('profile.directorOfRugby', { club: club.name })}</div>
         <div style={{ marginTop: 8, fontFamily: 'var(--cond)', fontWeight: 700, letterSpacing: 1, color: badge.color, textTransform: 'uppercase' }}>
           {badge.name}
         </div>
@@ -110,7 +111,7 @@ export default function Profile() {
             <div style={{ width: `${Math.max(0, Math.min(100, Math.round(((rep - 20) / 75) * 100)))}%`, height: '100%', background: badge.color }} />
           </div>
           <div className="meta" style={{ marginTop: 4 }}>
-            Reputation {rep}{badge.next ? ` · ${badge.at! - rep} more to the ${badge.next} badge` : ' · the summit'}
+            {t('profile.reputationLine', { rep, next: badge.next ? t('profile.moreToBadge', { n: badge.at! - rep, badge: badge.next }) : t('profile.theSummit') })}
           </div>
           {/* Trust has to be visible or it is just a hidden coefficient - the
               same mistake the analyst's read made before it paid out. */}
@@ -118,11 +119,10 @@ export default function Profile() {
             <div style={{ width: `${Math.round(trust)}%`, height: '100%', background: trust >= 68 ? 'var(--text-positive)' : trust >= 40 ? 'var(--gold)' : 'var(--danger)' }} />
           </div>
           <div className="meta" style={{ marginTop: 4 }}>
-            Dressing room {Math.round(trust)}/100 · {trustWord(trust)}
+            {t('profile.dressingRoomLine', { n: Math.round(trust), word: trustWord(trust) })}
           </div>
           <div className="meta" style={{ marginTop: 2, fontSize: 11 }}>
-            A team talk is worth {Math.round(trustFactor(game) * standing(game).talk * 100)}% of its full effect while they feel like this.
-            Win and it climbs; lose and it slides.
+            {t('profile.teamTalkWorth', { pct: Math.round(trustFactor(game) * standing(game).talk * 100) })}
           </div>
           {(() => {
             // THE AUTHORITY LINE (pillar 1): the room compares your name to its
@@ -131,8 +131,8 @@ export default function Profile() {
             if (game.unemployed) return null
             return (
               <div className="meta" style={{ marginTop: 6, fontSize: 11, color: a.bite > 0.35 ? 'var(--text-negative)' : undefined }}>
-                Squad standing {a.profile}/100 against your {a.rep}. {standingWord(a)}
-                {a.bite > 0.05 && ` Training patterns take ${Math.round((1 - a.familiarity) * 100)}% longer to drill while it lasts.`}
+                {t('profile.squadStanding', { profile: a.profile, rep: a.rep, word: standingWord(a) })}
+                {a.bite > 0.05 && t('profile.drillLonger', { pct: Math.round((1 - a.familiarity) * 100) })}
               </div>
             )
           })()}
@@ -141,14 +141,11 @@ export default function Profile() {
 
       {game.natOffer && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>🌍 {game.natOffer.nat} want you as national head coach</h3>
-          <div className="meta">
-            Coach the national side alongside your club. In Test windows you take charge on match day when your
-            club is free - and every championship they win goes in your trophy cabinet.
-          </div>
+          <h3 style={{ fontSize: 15 }}>{t('profile.natOffer', { nat: game.natOffer.nat })}</h3>
+          <div className="meta">{t('profile.natOfferBody')}</div>
           <div className="btn-row" style={{ marginTop: 10 }}>
-            <button className="btn ghost" onClick={() => answerNatOffer(false)}>Decline</button>
-            <button className="btn gold" style={{ flex: 1.4 }} onClick={() => answerNatOffer(true)}>Accept the Job</button>
+            <button className="btn ghost" onClick={() => answerNatOffer(false)}>{t('profile.decline')}</button>
+            <button className="btn gold" style={{ flex: 1.4 }} onClick={() => answerNatOffer(true)}>{t('profile.acceptJob')}</button>
           </div>
         </div>
       )}
@@ -156,17 +153,17 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 22 }}>🌍</span>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 14 }}>National head coach: {game.natTeam}</h3>
+            <h3 style={{ fontSize: 14 }}>{t('profile.natHeadCoach', { nat: game.natTeam })}</h3>
             <div className="meta">
-              Test weeks are yours when the club calendar allows.
+              {t('profile.testWeeksYours')}
               {game.natConfidence != null && (
-                <> Union confidence: <b>{Math.round(game.natConfidence)}%</b></>
+                <>{t('profile.unionConfidence')}<b>{Math.round(game.natConfidence)}%</b></>
               )}
             </div>
           </div>
           {confirmNatResign
-            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>Confirm</button>
-            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => setConfirmNatResign(true)}>Step down…</button>}
+            ? <button className="btn danger" style={{ fontSize: 12 }} onClick={() => { resignNat(); setConfirmNatResign(false) }}>{t('profile.confirm')}</button>
+            : <button className="btn ghost" style={{ fontSize: 12, color: 'var(--text-negative)' }} onClick={() => setConfirmNatResign(true)}>{t('profile.stepDown')}</button>}
         </div>
       )}
       {/* the international record outlives the job (user: "your international
@@ -174,25 +171,25 @@ export default function Profile() {
           current, stays on the CV for good */}
       {((game.natHistory ?? []).length > 0 || (game.natTeam && game.natRecord)) && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
-          <h3 style={{ fontSize: 15 }}>🌍 International Record</h3>
-          {(game.natHistory ?? []).map((t, i) => (
+          <h3 style={{ fontSize: 15 }}>{t('profile.intlRecord')}</h3>
+          {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(t.nat)} <b>{nationByCode(t.nat)?.name ?? t.nat}</b> · {t.m} Test{t.m === 1 ? '' : 's'} · {t.w}W {t.d}D {t.l}L
+              {flagOf(ten.nat)} <b>{nationByCode(ten.nat)?.name ?? ten.nat}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
             </div>
           ))}
           {game.natTeam && game.natRecord && (
             <div className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(game.natTeam)} <b>{nationByCode(game.natTeam)?.name ?? game.natTeam}</b> · {game.natRecord.m} Test{game.natRecord.m === 1 ? '' : 's'} · {game.natRecord.w}W {game.natRecord.d}D {game.natRecord.l}L <span className="muted">(current)</span>
+              {flagOf(game.natTeam)} <b>{nationByCode(game.natTeam)?.name ?? game.natTeam}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
             </div>
           )}
         </div>
       )}
       {(game.challengesDone ?? []).length > 0 && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>🏅 Challenges Conquered</h3>
+          <h3 style={{ fontSize: 15 }}>{t('profile.challengesConquered')}</h3>
           {(game.challengesDone ?? []).map(id => (
             <div key={id} className="meta" style={{ padding: '3px 0', fontWeight: 700 }}>
-              {CHALLENGES.find(c => c.id === id)?.title ?? id}
+              {t(CHALLENGES.find(c => c.id === id)?.title ?? id)}
             </div>
           ))}
         </div>
@@ -201,25 +198,25 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 22 }}>🎯</span>
           <div>
-            <h3 style={{ fontSize: 14 }}>{CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge}</h3>
-            <div className="meta">The challenge is live. Judged at each season's end.</div>
+            <h3 style={{ fontSize: 14 }}>{t(CHALLENGES.find(c => c.id === game.challenge)?.title ?? game.challenge)}</h3>
+            <div className="meta">{t('profile.challengeLive')}</div>
           </div>
         </div>
       )}
-      <SectionTitle>Career Record</SectionTitle>
+      <SectionTitle>{t('profile.careerRecord')}</SectionTitle>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '0 14px' }}>
-        <span className="chip">Matches <b>{m.m}</b></span>
-        <span className="chip">Won <b>{m.w}</b></span>
-        <span className="chip">Drawn <b>{m.d}</b></span>
-        <span className="chip">Lost <b>{m.l}</b></span>
-        <span className="chip">Win rate <b>{winPct}%</b></span>
+        <span className="chip">{t('profile.matches')} <b>{m.m}</b></span>
+        <span className="chip">{t('profile.won')} <b>{m.w}</b></span>
+        <span className="chip">{t('profile.drawn')} <b>{m.d}</b></span>
+        <span className="chip">{t('profile.lost')} <b>{m.l}</b></span>
+        <span className="chip">{t('profile.winRate')} <b>{winPct}%</b></span>
         {/* Signings is gone at the user's request: it counted a number nothing
             else in the game reads, on the row that is meant to be your record. */}
-        {(m.moms ?? 0) > 0 && <span className="chip">🥇 Manager of the Month <b>×{m.moms}</b></span>}
+        {(m.moms ?? 0) > 0 && <span className="chip">{t('profile.managerOfMonth')} <b>×{m.moms}</b></span>}
       </div>
       {!game.unemployed && (
         <div style={{ padding: '8px 14px 0' }}>
-          <div className="fact-label">Board Confidence</div>
+          <div className="fact-label">{t('profile.boardConfidence')}</div>
           <div style={{ height: 9, background: 'var(--border-strong)', borderRadius: 5, overflow: 'hidden', marginTop: 4 }}>
             <div style={{
               width: `${club.boardConfidence}%`, height: '100%',
@@ -229,22 +226,22 @@ export default function Profile() {
         </div>
       )}
 
-      <SectionTitle sub="earned through deeds, not words">Coaching Specialities</SectionTitle>
+      <SectionTitle sub={t('profile.specialitiesSub')}>{t('profile.specialities')}</SectionTitle>
       <div className="spec-grid">
         {SPECIALITIES.map(s => {
           const has = s.earned(game)
           return (
             <div key={s.id} className={`spec-tile${has ? ' on' : ''}`}>
               <span className="ico">{s.icon}</span>
-              <b>{s.name}</b>
-              <span className="d">{has ? s.desc : s.hint}</span>
+              <b>{t(s.name)}</b>
+              <span className="d">{t(has ? s.desc : s.hint)}</span>
             </div>
           )
         })}
       </div>
 
       {(game.decisions?.length ?? 0) > 0 && <>
-        <SectionTitle sub="what you chose, and what it did">Decisions</SectionTitle>
+        <SectionTitle sub={t('profile.decisionsSub')}>{t('profile.decisions')}</SectionTitle>
         <div className="card" style={{ padding: '6px 10px' }}>
           {game.decisions!.slice(0, 12).map((d, i) => (
             <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '3px 0', borderTop: i ? '1px solid var(--border)' : undefined }}>
@@ -260,9 +257,9 @@ export default function Profile() {
         </div>
       </>}
 
-      <SectionTitle>Trophy Cabinet</SectionTitle>
+      <SectionTitle>{t('profile.trophyCabinet')}</SectionTitle>
       {m.trophies.length === 0
-        ? <div className="meta" style={{ padding: '0 16px 8px' }}>Bare shelves - for now. Go and fill them.</div>
+        ? <div className="meta" style={{ padding: '0 16px 8px' }}>{t('profile.bareShelves')}</div>
         : (
           <div className="tblwrap"><table className="dtable"><tbody>
             {m.trophies.map((t, i) => (
@@ -275,12 +272,12 @@ export default function Profile() {
           </tbody></table></div>
         )}
 
-      <SectionTitle>Season by Season</SectionTitle>
+      <SectionTitle>{t('profile.seasonBySeason')}</SectionTitle>
       {m.finishes.length === 0
-        ? <div className="meta" style={{ padding: '0 16px 8px' }}>Your first season is still being written.</div>
+        ? <div className="meta" style={{ padding: '0 16px 8px' }}>{t('profile.firstSeason')}</div>
         : (
           <div className="tblwrap"><table className="dtable">
-            <thead><tr><th>Season</th><th>League</th><th className="num">Finish</th></tr></thead>
+            <thead><tr><th>{t('profile.colSeason')}</th><th>{t('profile.colLeague')}</th><th className="num">{t('profile.colFinish')}</th></tr></thead>
             <tbody>
               {[...m.finishes].reverse().map((f, i) => (
                 <tr key={i}>
@@ -294,12 +291,12 @@ export default function Profile() {
         )}
 
       <div className="btn-row" style={{ marginTop: 12 }}>
-        <button className="btn ghost" onClick={() => go('saves')}>💾 Save / Load</button>
-        <button className="btn ghost" onClick={() => go('legacy')}>📜 Full Legacy</button>
+        <button className="btn ghost" onClick={() => go('saves')}>{t('profile.saveLoad')}</button>
+        <button className="btn ghost" onClick={() => go('legacy')}>{t('profile.fullLegacy')}</button>
         {!game.unemployed && (
           confirmResign
-            ? <button className="btn danger" onClick={() => resign()}>Confirm - Walk Away</button>
-            : <button className="btn ghost" style={{ color: 'var(--text-negative)' }} onClick={() => setConfirmResign(true)}>Resign…</button>
+            ? <button className="btn danger" onClick={() => resign()}>{t('profile.confirmWalkAway')}</button>
+            : <button className="btn ghost" style={{ color: 'var(--text-negative)' }} onClick={() => setConfirmResign(true)}>{t('profile.resign')}</button>
         )}
       </div>
       <div className="spacer" />

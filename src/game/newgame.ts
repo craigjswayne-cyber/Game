@@ -43,20 +43,20 @@ export interface Challenge {
 
 export const CHALLENGES: Challenge[] = [
   {
-    id: 'sapiac', clubId: 'montauban', title: 'Sauvez Sapiac',
-    desc: 'Tiny Montauban are back in the Elite 14 with the smallest budget in the land. Keep them up. Become immortal in the Tarn-et-Garonne.',
+    id: 'sapiac', clubId: 'montauban', title: 'challenges.sapiac',
+    desc: 'challenges.sapiacDesc',
   },
   {
-    id: 'redbull', clubId: 'newcastle', title: 'The Energy Project',
-    desc: 'New owners, big ambitions, bottom-four squad. Turn Newcastle from perennial strugglers into Premier Division champions.',
+    id: 'redbull', clubId: 'newcastle', title: 'challenges.redbull',
+    desc: 'challenges.redbullDesc',
   },
   {
-    id: 'dynasty', clubId: 'munster', title: 'Break the Dynasty',
-    desc: 'Leinster hoover up every trophy in Ireland. From Thormond Park, end their reign - win the UPC and the Continental Cup.',
+    id: 'dynasty', clubId: 'munster', title: 'challenges.dynasty',
+    desc: 'challenges.dynastyDesc',
   },
   {
-    id: 'pirates', clubId: 'pirates', title: 'The Cornwall Dream',
-    desc: 'Penzance to the Premier Division: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last.',
+    id: 'pirates', clubId: 'pirates', title: 'challenges.pirates',
+    desc: 'challenges.piratesDesc',
   },
 ]
 
@@ -517,8 +517,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // 1. the appointment
   state.news.push({
     id: state.nextId++, week: 1, season: 0, type: 'board', read: false,
-    subject: challenge ? `THE CHALLENGE: ${challenge.title}` : `Welcome to ${uc.name}`,
-    body: `${challenge ? challenge.desc + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
+    subject: challenge ? `THE CHALLENGE: ${tIn('en', challenge.title)}` : `Welcome to ${uc.name}`,
+    body: `${challenge ? tIn('en', challenge.desc) + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
   })
 
   // 2. what the terraces made of it

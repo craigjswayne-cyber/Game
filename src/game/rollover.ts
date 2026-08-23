@@ -1708,7 +1708,7 @@ function challengeCheck(state: GameState) {
   if (!done) return
   state.challenge = undefined
   ;(state.challengesDone ??= []).push(ch)
-  const title = CHALLENGES.find(c => c.id === ch)?.title ?? ch
+  const title = tIn('en', CHALLENGES.find(c => c.id === ch)?.title ?? ch)
   const line =
     ch === 'sapiac' ? 'Montauban stay in the Elite 14. Sapiac is safe, and the Tarn-et-Garonne will sing your name for a generation.'
     : ch === 'redbull' ? 'Newcastle are champions of England. From bottom-four squad to the summit - the project is complete.'

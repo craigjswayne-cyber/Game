@@ -165,6 +165,14 @@ export function ord(n: number): string {
  *  English because it is used inside stored news bodies. */
 export const posName = (pos: string): string => t(`pos.${pos}`)
 
+/** Values that are STORED in English - an attribute key, a personality, a trait
+ *  name - shown in the reader's language. The stored value never changes: it is
+ *  what the engine matches on and it is inside every save already. */
+export const attrName = (k: string): string => t(`attrs.${k}`)
+export const persName = (p: string): string => t(`pers.${p}`)
+export const traitName = (name: string): string => t(`traits.${name}`)
+export const traitInfo = (name: string): string => t(`traits.${name}Info`)
+
 /** For a probe, or anything that needs a language it is not currently in. */
 export function tIn(lang: Lang, key: string, vars?: Vars): string {
   const prev = current
