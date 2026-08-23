@@ -12,6 +12,24 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM 
 const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2 })
 
 const errors = []
+let fails = 0
+const ok = (cond, what) => {
+  console.log(`${cond ? '  ok  ' : 'FAIL  '}${what}`)
+  if (!cond) fails++
+}
+/** what the store says the career actually is, for the milestones below */
+const careerState = async () => page.evaluate(() => {
+  const s = window.rugbyStore.getState()
+  return {
+    hasGame: !!s.game,
+    club: s.game?.userClubId ?? null,
+    week: s.game?.week ?? 0,
+    season: s.game?.season ?? 0,
+    played: s.game?.fixtures.filter(f => f.played).length ?? 0,
+    squad: s.game ? (s.game.clubs[s.game.userClubId]?.players.length ?? 0) : 0,
+    picked: s.game ? (s.game.clubs[s.game.userClubId]?.tactic.lineup ?? []).filter(x => x != null).length : 0,
+  }
+})
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', e => errors.push(String(e)))
 
@@ -91,6 +109,15 @@ try {
   await shot('01-title')
 
   // New career
+  // ---- MILESTONES. This walk had no assertions at all: it clicked its way
+  // through the whole game, printed what it saw, and then exited 0 from a
+  // finally block - so even the catch that prints "E2E FAILED" still reported
+  // success to suite.sh. A flow test that cannot fail is a walkthrough with a
+  // log, and this one has been green through every regression this session.
+  //
+  // The milestones below are the flow the brief cares about: a career is
+  // created, a side is picked, a match is played to a result, the week
+  // advances, the inbox serves, and a reload comes back to the same career.
   await page.click('text=New Career')
   await page.waitForSelector('text=English Premier Division')
   await page.click('text=English Premier Division')
@@ -107,6 +134,12 @@ try {
   // the box swallows its own taps now, so a click on the veil's centre lands on
   // the box and does nothing. Use the button a real thumb would use.
   await page.click('.tut-close .btn')
+  {
+    const s = await careerState()
+    ok(s.hasGame && !!s.club, `a career was created (${s.club})`)
+    ok(s.squad >= 30, `and it has a squad to pick from (${s.squad} players)`)
+  }
+
   // ---- the opening sequence, in order ----
   // A new manager is introduced by four letters and nothing may jump the queue
   // (user: "it has already shared a scout report so you wouldnt see it. can we do
@@ -155,6 +188,11 @@ try {
   await shot('06-selection')
   if (await page.locator('text=In-Form XV').count()) throw new Error('In-Form XV button is back')
   await page.click('text=Best XV')
+  await page.waitForTimeout(400)
+  {
+    const s = await careerState()
+    ok(s.picked >= 15, `Best XV filled the team sheet (${s.picked} shirts named)`)
+  }
   await page.waitForTimeout(200)
   await page.click('.bottom-nav button[title="Hub"]')
   await page.click('.submenu-item >> text=Tactics')
@@ -408,14 +446,30 @@ try {
   console.log(`continue tile: "${ct.text}" is ${ct.h}px tall (one line is about ${ct.lh}px)`)
   if (ct.h > ct.lh * 1.6) throw new Error(`the Continue tile wrapped (${ct.h}px)`)
 
+  {
+    const s = await careerState()
+    ok(s.played >= 1, `at least one fixture was played to a result (${s.played} played)`)
+    ok(s.week > 1 || s.season > 0, `the week advanced (season ${s.season}, week ${s.week})`)
+  }
+
   console.log(`offers answered during the walk: ${offersAnswered}`)
   console.log('E2E FLOW COMPLETE')
 } catch (e) {
   await shot('99-failure')
   console.error('E2E FAILED:', e.message)
+  fails++
 } finally {
   console.log('console errors:', errors.length ? errors.slice(0, 10) : 'none')
+  // A CONSOLE ERROR IS A FAILURE. The walk collected them and printed them for
+  // somebody to read, which meant nobody did.
+  if (errors.length) {
+    console.error(`FAIL  ${errors.length} console error(s) during the walk`)
+    fails++
+  }
   await browser.close()
   server.stop()
-  process.exit(0)
+  console.log(fails
+    ? `E2E FAILED (${fails})`
+    : 'E2E PASSED: a career is created, a side picked, a match played, the week advanced')
+  process.exit(fails ? 1 : 0)
 }
