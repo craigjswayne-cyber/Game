@@ -4,6 +4,7 @@ import { leaguePos, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { CrestT, SectionTitle } from '../components'
 import { ord, t } from '../../game/i18n'
+import { AdSlot } from '../AdSlot'
 
 /** The full-time round-up: everyone else's scores and the table as it
  *  stands, shown straight after your own final whistle. */
@@ -95,6 +96,9 @@ export default function WeekResults({ param }: { param: string }) {
         <button className="btn ghost block" onClick={() => go('tables', compId)}>{t('week.wrViewComp')}</button>
       )}
       <button className="btn gold block" style={{ margin: '12px 14px' }} onClick={back}>{t('week.wrBack')}</button>
+      {/* below the button that leaves, so it can never sit between a tap and
+          what the tap was for - and nothing at all in this build */}
+      <AdSlot place="results-foot" />
       <div className="spacer" />
     </>
   )

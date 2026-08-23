@@ -3361,3 +3361,27 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
    anything the header carried before. */
 .masthead > * { min-width: 0; }
 .masthead .date { overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- the store release -------------------------------------------------- */
+
+/* The supporter's mark on the title screen. Small, gold, and the only place in
+   the game where money is visible - see src/game/monetise.ts for why that is
+   the whole of what a purchase buys. */
+.supporter-mark {
+  font-family: var(--cond);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: .9;
+}
+
+/* An ad slot, which in this build is never rendered at all (ui/AdSlot.tsx).
+   No min-height and no background on purpose: an empty grey box that says
+   "advertisement" costs the layout the same room whether or not anybody is
+   paying for it, and it is the thing players remember about a free game. When a
+   provider IS attached, it owns everything inside this element. */
+.ad-slot {
+  margin: 10px 14px 0;
+  overflow: hidden;
+}

@@ -1,0 +1,54 @@
+{
+  "_comment": [
+    "Bubblewrap configuration for the Play Store build. Two values MUST be",
+    "replaced before this builds anything real: 'host'/'startUrl'/'webManifestUrl'",
+    "(the address the game is actually served from) and 'signingKey' (the keystore",
+    "that will sign every future update - lose it and the listing cannot be",
+    "updated again). See README.md in this folder.",
+    "",
+    "appVersionCode goes UP by one on every upload, forever. Play rejects a",
+    "repeat, and a mismatched pair is the most common failed upload there is."
+  ],
+  "packageId": "com.phaserugbymanager.app",
+  "host": "REPLACE-ME.github.io",
+  "name": "PHASE: Rugby Manager",
+  "launcherName": "PHASE",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#1a201e",
+  "themeColorDark": "#1a201e",
+  "navigationColor": "#1a201e",
+  "navigationColorDark": "#1a201e",
+  "navigationDividerColor": "#1a201e",
+  "navigationDividerColorDark": "#1a201e",
+  "backgroundColor": "#1a201e",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://REPLACE-ME.github.io/icon-512.png",
+  "maskableIconUrl": "https://REPLACE-ME.github.io/icon-512.png",
+  "webManifestUrl": "https://REPLACE-ME.github.io/manifest.webmanifest",
+  "fullScopeUrl": "https://REPLACE-ME.github.io/",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "phase"
+  },
+  "appVersionName": "1.1.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": true
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 23,
+  "fingerprints": []
+}

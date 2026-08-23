@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client'
 import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
 import { installCrashCapture } from './game/bugreport'
+import { attachPlayBilling } from './game/playbilling'
+import { restore } from './game/monetise'
+import { useStore } from './store'
+import { t } from './game/i18n'
 import './ui/tokens.css'
 import './ui/theme.css'
 
@@ -13,6 +17,20 @@ import './ui/theme.css'
 // Those are the ones players report as "it just stopped responding" - the
 // report screen attaches them, so they no longer depend on being noticed.
 installCrashCapture()
+
+/**
+ * A RESTORE NOBODY HAS TO ASK FOR.
+ *
+ * Reinstalling, or moving to a new phone, loses the receipt in localStorage but
+ * not the purchase on the store account. So the store is asked once at boot,
+ * quietly: it grants, it never revokes, and everywhere that is not a
+ * billing-enabled wrapper it does nothing at all and costs one rejected promise.
+ * Deliberately not awaited - a slow store must not hold up the first paint.
+ */
+void attachPlayBilling()
+  .then(() => restore())
+  .then(changed => { if (changed) useStore.getState().claimSupporter() })
+  .catch(() => { /* no store, no bridge, nothing to restore */ })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -35,7 +53,7 @@ if ('serviceWorker' in navigator && !location.hostname.includes('localhost')) {
         if (document.getElementById('upd-pill')) return
         const el = document.createElement('button')
         el.id = 'upd-pill'
-        el.textContent = '⬆ Update ready - tap to refresh'
+        el.textContent = t('common.updateReady')
         el.onclick = () => location.reload()
         Object.assign(el.style, {
           position: 'fixed', left: '50%', bottom: '18px', transform: 'translateX(-50%)',
