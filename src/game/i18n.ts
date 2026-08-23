@@ -161,6 +161,10 @@ export function ord(n: number): string {
   return `${n}${t(d === 1 ? 'common.ord1' : d === 2 ? 'common.ord2' : d === 3 ? 'common.ord3' : 'common.ordN')}`
 }
 
+/** A position's full name, in the reader's language. model.POS_NAMES stays
+ *  English because it is used inside stored news bodies. */
+export const posName = (pos: string): string => t(`pos.${pos}`)
+
 /** For a probe, or anything that needs a language it is not currently in. */
 export function tIn(lang: Lang, key: string, vars?: Vars): string {
   const prev = current

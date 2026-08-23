@@ -1,5 +1,6 @@
 import type { GameState, Personality, Player } from './model'
 import { facLevel } from './model'
+import { t, tIn } from './i18n'
 
 /**
  * ---- HOW WELL THE PAIR ACTUALLY GET ON ----
@@ -199,28 +200,46 @@ export function mentorBoost(senior: Player, kid: Player): number {
   return Math.max(0.4, Math.min(1.6, 1 + (fit - MEAN_FIT) * PER_POINT))
 }
 
-export function fitWord(fit: number): string {
-  return fit >= 80 ? 'Inseparable'
-    : fit >= 66 ? 'Working well'
-    : fit >= 50 ? 'Coming along'
-    : fit >= 36 ? 'Polite, no more'
-    : fit >= 22 ? 'Not taking'
-    : 'A waste of both their time'
+/** The key for a fit band. Screens pass it through t(); the news bodies below
+ *  pass it through tIn('en', …), because a career's paperwork does not change
+ *  language when the manager does. */
+export function fitKey(fit: number): string {
+  return fit >= 80 ? 'training.fitInseparable'
+    : fit >= 66 ? 'training.fitWorkingWell'
+    : fit >= 50 ? 'training.fitComingAlong'
+    : fit >= 36 ? 'training.fitPolite'
+    : fit >= 22 ? 'training.fitNotTaking'
+    : 'training.fitWaste'
 }
 
+export const fitWord = (fit: number): string => t(fitKey(fit))
+
 /** One line explaining WHY, so the number is not just a number. */
-export function fitReason(senior: Player, kid: Player): string {
-  const t = TEACHER[senior.pers] ?? 0.5
+function reasonOf(senior: Player, kid: Player): { key: string; vars: Record<string, string | number> } {
+  // `teach`, not `t`: t() is the translator
+  const teach = TEACHER[senior.pers] ?? 0.5
   const l = LEARNER[kid.pers] ?? 0.5
   const chem = chemistry(senior.pers, kid.pers)
   const gap = senior.age - kid.age
-  if (chem <= -0.1) return `${senior.pers} and ${kid.pers} was never going to work.`
-  if (t >= 0.85 && l >= 0.85) return `A ${senior.pers.toLowerCase()} teaching a ${kid.pers.toLowerCase()}: he could not have picked a better example.`
-  if (t < 0.4) return `${senior.name.split(' ').slice(-1)[0]} is a fine player and an indifferent teacher.`
-  if (l < 0.45) return `The kid is not listening as closely as he might.`
-  if (gap >= 16) return `${gap} years between them, and it shows in what they talk about.`
-  if (senior.a.lea >= 15) return `${senior.name.split(' ').slice(-1)[0]} leads by example and the boy has noticed.`
-  return `Steady enough: extras after training, and the odd word that lands.`
+  const last = senior.name.split(' ').slice(-1)[0]
+  if (chem <= -0.1) return { key: 'training.reasonNever', vars: { sPers: senior.pers, kPers: kid.pers } }
+  if (teach >= 0.85 && l >= 0.85) return { key: 'training.reasonBest', vars: { sPers: senior.pers.toLowerCase(), kPers: kid.pers.toLowerCase() } }
+  if (teach < 0.4) return { key: 'training.reasonPoorTeacher', vars: { senior: last } }
+  if (l < 0.45) return { key: 'training.reasonNotListening', vars: {} }
+  if (gap >= 16) return { key: 'training.reasonAgeGap', vars: { gap } }
+  if (senior.a.lea >= 15) return { key: 'training.reasonLeads', vars: { senior: last } }
+  return { key: 'training.reasonSteady', vars: {} }
+}
+
+export function fitReason(senior: Player, kid: Player): string {
+  const r = reasonOf(senior, kid)
+  return t(r.key, r.vars)
+}
+
+/** The same line, pinned to English, for anything written into a save. */
+export function fitReasonEn(senior: Player, kid: Player): string {
+  const r = reasonOf(senior, kid)
+  return tIn('en', r.key, r.vars)
 }
 
 /**
@@ -249,7 +268,7 @@ export function mentorReports(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: `🎓 ${last} is thriving under ${s.name.split(' ').slice(-1)[0]}`,
-        body: `${fitWord(fit)}. ${fitReason(s, k)} The academy coach says ${k.name} has started doing the unglamorous parts without being asked, `
+        body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} The academy coach says ${k.name} has started doing the unglamorous parts without being asked, `
           + `which is the bit you cannot coach. He is developing faster for it.`,
         playerId: k.id,
       })
@@ -257,7 +276,7 @@ export function mentorReports(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
         subject: `The ${s.name.split(' ').slice(-1)[0]} and ${last} pairing is not taking`,
-        body: `${fitWord(fit)}. ${fitReason(s, k)} ${k.name} is getting very little out of it. `
+        body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} ${k.name} is getting very little out of it. `
           + `Nothing has gone wrong between them; it simply is not working. `
           + `End the pairing on the Training and Staff screen and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
         playerId: k.id,
