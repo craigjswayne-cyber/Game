@@ -5,6 +5,7 @@ import { weekDate } from '../../game/model'
 import { CrestT, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
+import { t } from '../../game/i18n'
 
 export default function Tables({ initial }: { initial?: string }) {
   const game = useStore(s => s.game)!
@@ -25,24 +26,24 @@ export default function Tables({ initial }: { initial?: string }) {
             {game.comps[id].short}
           </button>
         ))}
-        <button onClick={() => go('nations')}>Internationals</button>
-        <button onClick={() => go('history')}>Honours</button>
-        <button onClick={() => go('legacy')}>Manager</button>
-        <button onClick={() => go('jobs')}>Jobs</button>
+        <button onClick={() => go('nations')}>{t('tables.internationals')}</button>
+        <button onClick={() => go('history')}>{t('tables.honours')}</button>
+        <button onClick={() => go('legacy')}>{t('tables.manager')}</button>
+        <button onClick={() => go('jobs')}>{t('tables.jobs')}</button>
       </div>
-      <SectionTitle sub={comp.champion ? `Champions: ${teamShort(game, comp.champion)}` : undefined}>{comp.name}</SectionTitle>
+      <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: teamShort(game, comp.champion) }) : undefined}>{comp.name}</SectionTitle>
       {/* the table itself lives in ../LeagueTable so that the copy on Fixtures &
           Results is the same table rather than a second one */}
       <LeagueTable compId={compId} />
       <Leaders compId={compId} />
       {ko.length > 0 && (
         <>
-          <SectionTitle>Knockout Stages</SectionTitle>
+          <SectionTitle>{t('tables.knockoutStages')}</SectionTitle>
           <div className="tblwrap"><table className="dtable"><tbody>
             {ko.map(f => (
               <tr key={f.id}>
                 <td className="muted">{stageName(f.stage!)}</td>
-                <td className="name"><CrestT g={game} teamId={f.homeId} size={15} />{teamShort(game, f.homeId)} v <CrestT g={game} teamId={f.awayId} size={15} />{teamShort(game, f.awayId)}</td>
+                <td className="name"><CrestT g={game} teamId={f.homeId} size={15} />{teamShort(game, f.homeId)} {t('common.v')} <CrestT g={game} teamId={f.awayId} size={15} />{teamShort(game, f.awayId)}</td>
                 <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : weekDate(game.season, f.week).slice(0, -5)}</td>
               </tr>
             ))}
@@ -68,7 +69,7 @@ function Leaders({ compId }: { compId: string }) {
     .sort((a, b) => b.stats.ratingSum / b.stats.apps - a.stats.ratingSum / a.stats.apps).slice(0, 5)
   const block = (title: string, rows: typeof tries, val: (p: (typeof tries)[0]) => string) => (
     <>
-      <SectionTitle sub="all comps, this season">{title}</SectionTitle>
+      <SectionTitle sub={t('tables.allCompsThisSeason')}>{title}</SectionTitle>
       <div className="tblwrap"><table className="dtable"><tbody>
         {rows.map((p, i) => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
@@ -83,9 +84,9 @@ function Leaders({ compId }: { compId: string }) {
   )
   return (
     <>
-      {block('Top Try Scorers', tries, p => String(p.stats.tries))}
-      {block('Top Points Scorers', points, p => String(p.stats.points))}
-      {rated.length > 0 && block('Form Players', rated, p => (p.stats.ratingSum / p.stats.apps).toFixed(2))}
+      {block(t('tables.topTryScorers'), tries, p => String(p.stats.tries))}
+      {block(t('tables.topPointsScorers'), points, p => String(p.stats.points))}
+      {rated.length > 0 && block(t('tables.formPlayers'), rated, p => (p.stats.ratingSum / p.stats.apps).toFixed(2))}
     </>
   )
 }

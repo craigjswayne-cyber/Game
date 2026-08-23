@@ -143,6 +143,24 @@ export function t(key: string, vars?: Vars): string {
   return fill(entry, vars)
 }
 
+/**
+ * A number with its ordinal ending: 1st, 2nd, 3rd, 11th - 1er, 2e, 11e.
+ *
+ * Deliberately NOT the same function as gossip.ordinal(), which the engine uses
+ * inside stored news bodies. Those sentences are written once, in English, and
+ * saved into the career; giving them French endings would produce "You finished
+ * 3e" inside an otherwise English paragraph. This one is for the interface,
+ * where the whole line is translated.
+ *
+ * The 11th-to-13th exception is an English rule and costs nothing elsewhere:
+ * French answers "e" for all three anyway.
+ */
+export function ord(n: number): string {
+  const v = Math.abs(n) % 100
+  const d = v > 10 && v < 14 ? 0 : Math.abs(n) % 10
+  return `${n}${t(d === 1 ? 'common.ord1' : d === 2 ? 'common.ord2' : d === 3 ? 'common.ord3' : 'common.ordN')}`
+}
+
 /** For a probe, or anything that needs a language it is not currently in. */
 export function tIn(lang: Lang, key: string, vars?: Vars): string {
   const prev = current

@@ -10,8 +10,8 @@
 import { useStore } from '../store'
 import { sortTable } from '../game/schedule'
 import { teamShort } from '../game/matchEngine'
-import { ordinal } from '../game/gossip'
 import { CrestT } from './components'
+import { ord, t } from '../game/i18n'
 
 import { RELEGATES } from '../game/model'
 
@@ -39,9 +39,9 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
       <div className="tblwrap fitwrap"><table className="dtable ltable fit">
         <colgroup><col width="26" /><col /><col width="24" /><col width="24" /><col width="24" /><col width="24" /><col width="42" /><col width="26" /><col width="34" /></colgroup>
         <thead>
-          <tr><th>#</th><th>Team</th><th className="num">P</th><th className="num">W</th>
-            <th className="num">D</th><th className="num">L</th><th className="num">+/-</th>
-            <th className="num">BP</th><th className="num">Pts</th></tr>
+          <tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
+            <th className="num">{t('common.d')}</th><th className="num">{t('common.l')}</th><th className="num">{t('tables.colDiff')}</th>
+            <th className="num">{t('tables.colBP')}</th><th className="num">{t('squad.colPts')}</th></tr>
         </thead>
         <tbody>
           {rows.map((r, i) => {
@@ -74,11 +74,11 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
       </table></div>
       {!compact && (playoffLine || relegates || game.preds?.[game.userClubId] != null) && (
         <div className="meta" style={{ padding: '4px 16px', fontSize: 11.5 }}>
-          {playoffLine ? `🟡 Top ${playoffLine}: playoff places` : ''}
+          {playoffLine ? t('tables.playoffLine', { n: playoffLine }) : ''}
           {playoffLine && relegates ? ' · ' : ''}
-          {relegates ? '🔻 Bottom: relegation' : ''}
+          {relegates ? t('tables.relegationLine') : ''}
           {comp.teamIds.includes(game.userClubId) && game.preds?.[game.userClubId] != null
-            ? `${playoffLine || relegates ? ' · ' : ''}🎙 Pundits predicted you ${ordinal(game.preds[game.userClubId])}`
+            ? `${playoffLine || relegates ? ' · ' : ''}${t('tables.punditsPredicted', { place: ord(game.preds[game.userClubId]) })}`
             : ''}
         </div>
       )}
