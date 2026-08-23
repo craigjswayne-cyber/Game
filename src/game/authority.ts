@@ -14,6 +14,7 @@
 import type { GameState, Player } from './model'
 import { mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
+import { t } from './i18n'
 
 const absWeek = (state: GameState) => state.season * SEASON_WEEKS + state.week
 
@@ -72,14 +73,10 @@ export function standing(state: GameState): Standing {
 
 /** One sentence for the Profile screen, honest about which way it points. */
 export function standingWord(s: Standing): string {
-  if (s.bite <= 0.05) {
-    return s.gap >= 10
-      ? 'Your name carries this room before you say a word.'
-      : 'The room takes you at face value. Results will do the talking.'
-  }
-  if (s.bite < 0.35) return 'A few senior heads still ask who you are. Keep winning and they will stop.'
-  if (s.bite < 0.65) return 'The room outranks your record and trains like it knows it.'
-  return 'A squad of internationals, a manager without a name: every instruction is quietly re-examined.'
+  if (s.bite <= 0.05) return t(s.gap >= 10 ? 'profile.standCarries' : 'profile.standFaceValue')
+  if (s.bite < 0.35) return t('profile.standSomeAsk')
+  if (s.bite < 0.65) return t('profile.standOutranks')
+  return t('profile.standNoName')
 }
 
 // ---------------------------------------------------------------------------
