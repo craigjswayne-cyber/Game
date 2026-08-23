@@ -16,6 +16,7 @@ import { fmtMoney, formGuide, grudgeBetween, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { ordinal } from '../../game/gossip'
 import { natRankOrder } from '../../game/natrank'
+import { t } from '../../game/i18n'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -70,21 +71,21 @@ export default function Home() {
   const leagueOrder = sortTable(game.comps[club.leagueId]?.table ?? [])
   // 0 until a league game is played, so the widget's dash actually shows
   const pos = leaguePos(game.comps[club.leagueId]?.table, club.id)
-  const finState = club.balance >= 3_000_000 ? ['Rich', 'var(--text-positive)']
-    : club.balance >= 500_000 ? ['Secure', 'var(--text-positive)']
-    : club.balance >= 0 ? ['Okay', 'var(--border-strong)'] : ['In the red', 'var(--text-negative)']
+  const finState = club.balance >= 3_000_000 ? ['wizard.rich', 'var(--text-positive)']
+    : club.balance >= 500_000 ? ['wizard.secure', 'var(--text-positive)']
+    : club.balance >= 0 ? ['wizard.okay', 'var(--border-strong)'] : ['home.inTheRed', 'var(--text-negative)']
 
   if (game.unemployed) {
     return (
       <>
         <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('jobs')}>
-          <h3>📋 The Job Centre</h3>
-          <div className="meta">You're between jobs. {game.vacancies.length} vacanc{game.vacancies.length === 1 ? 'y' : 'ies'} open - apply, or press Continue and wait for the right one.</div>
+          <h3>{t('home.jobCentre')}</h3>
+          <div className="meta">{t('home.betweenJobs', { n: game.vacancies.length })}</div>
         </button>
         {/* With no club there is no summary to separate the inbox from, so it
             stays inline here. */}
-        <SectionTitle sub="the rugby world keeps turning">Inbox</SectionTitle>
+        <SectionTitle sub={t('home.inboxSub')}>{t('home.inbox')}</SectionTitle>
         <InboxList compact />
         <div className="spacer" />
       </>
@@ -101,8 +102,7 @@ export default function Home() {
           weeks of a first season, then it is gone for good. */}
       {game.season === 0 && game.mgr.m === 0 && (
         <div className="first-hint">
-          <b>Continue is the game.</b> It moves the week on and brings the next
-          thing to you. Everything else on this screen can wait until you want it.
+          <b>{t('home.hintBold')}</b> {t('home.hintRest')}
         </div>
       )}
       <div className="card-grid">
@@ -112,18 +112,18 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('nations')}
             style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold)' }}>🏆 {(game.comps['sn']?.name ?? 'The Championship').toUpperCase()} - THE GREATEST CHAMPIONSHIP</div>
+            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (game.comps['sn']?.name ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
-                {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : 'v'} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
+                {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
               </div>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
               <div className="meta" style={{ color: 'var(--text-muted)', marginTop: 5 }}>
-                Table: {rows.map((r, i) => `${i + 1}. ${nationByCode(r.teamId)?.name} (${r.pts})`).join(' · ')}
+                {t('home.snTable', { rows: rows.map((r, i) => `${i + 1}. ${nationByCode(r.teamId)?.name} (${r.pts})`).join(' · ') })}
               </div>
             )}
-            <div className="meta" style={{ color: 'var(--gold)', marginTop: 3 }}>Tap for the full championship ▸</div>
+            <div className="meta" style={{ color: 'var(--gold)', marginTop: 3 }}>{t('home.snTap')}</div>
           </div>
         )
       })()}
@@ -131,10 +131,10 @@ export default function Home() {
         // the hook: why THIS week matters - the reason to press Continue
         const grudge = fx ? grudgeBetween(game, fx.homeId, fx.awayId) : null
         const derby = fx ? derbyName(fx.homeId, fx.awayId) : null
-        const hook = derby ? `⚔️ ${derby.toUpperCase()} WEEK`
-          : grudge ? `🔥 GRUDGE MATCH: ${grudge.reason}`
-          : fx?.stage ? `🏆 KNOCKOUT RUGBY: ${stageName(fx.stage)} this week`
-          : game.week === 7 || game.week === 27 ? '🚨 DEADLINE WEEK: the window slams shut'
+        const hook = derby ? t('home.derbyWeek', { derby: derby.toUpperCase() })
+          : grudge ? t('home.grudge', { reason: grudge.reason })
+          : fx?.stage ? t('home.knockout', { stage: stageName(fx.stage) })
+          : game.week === 7 || game.week === 27 ? t('home.deadlineWeek')
           : null
         // streak framing: the cheapest dopamine in sport
         const res = game.fixtures.filter(f => f.played && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
@@ -147,7 +147,7 @@ export default function Home() {
           else if (us <= them && unbeaten === 0) winless++
           else break
         }
-        const streak = unbeaten >= 3 ? `🔥 Unbeaten in ${unbeaten}` : winless >= 3 ? `❄️ ${winless} without a win` : null
+        const streak = unbeaten >= 3 ? t('home.unbeaten', { n: unbeaten }) : winless >= 3 ? t('home.winless', { n: winless }) : null
         if (!hook && !streak) return null
         return (
           <div className="card" style={{ borderLeft: `4px solid ${winless >= 3 ? 'var(--text-negative)' : 'var(--gold)'}`, display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -161,17 +161,17 @@ export default function Home() {
           borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
-            Next match · {comp?.name ?? (fx.compId === 'fr' ? 'Club Friendly' : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
+            {t('home.nextMatch')} · {comp?.name ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           {/* a class, not an inline font-size: inline wins over any media query,
               so portrait could not shrink this and "Northampton v La Rochelle"
               lost 20px off the end of the opponent's name at 412px */}
           <h3 className="fx-line">
-            <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} v <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
+            <CrestT g={game} teamId={fx.homeId} size={20} />{teamShort(game, fx.homeId)} {t('common.v')} <CrestT g={game} teamId={fx.awayId} size={20} />{teamShort(game, fx.awayId)}
           </h3>
           <div className="meta">
-            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? 'Neutral venue'} · {weekDate(game.season, fx.week)}
-            {fx.venue ? ' · Neutral ground' : fx.homeId === club.id ? ' · Home' : ' · Away'}
+            {fx.venue?.name ?? game.clubs[fx.homeId]?.stadium ?? t('common.neutralVenue')} · {weekDate(game.season, fx.week)}
+            {fx.venue ? t('home.atNeutral') : fx.homeId === club.id ? t('home.atHome') : t('home.atAway')}
           </div>
           {/* WHAT THIS MATCH MEANS. The engine has always known - the table
               maths, the boardroom, the grudge, the man one try short of fifty -
@@ -185,9 +185,7 @@ export default function Home() {
             ) : null
           })()}
           <div className="muted" style={{ marginTop: 6 }}>
-            {isThisWeek
-              ? 'Tap to set your team, then press Continue to play.'
-              : 'No match this week - Continue advances to the next round.'}
+            {isThisWeek ? t('home.tapSetTeam') : t('home.noMatchWeek')}
           </div>
         </div>
       )}
@@ -207,21 +205,19 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid var(--text-positive)' }}>
             <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
-              Head coach · {nat?.name ?? game.natTeam}{rank > 0 ? ` · world No. ${rank}` : ''}{game.natConfidence != null ? ` · union ${Math.round(game.natConfidence)}%` : ''}
+              {t('home.headCoach')} · {nat?.name ?? game.natTeam}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
             </div>
             {next ? (
               <>
                 <h3 className="fx-line">
-                  {flagOf(next.homeId)} {nationByCode(next.homeId)?.name ?? next.homeId} v {flagOf(next.awayId)} {nationByCode(next.awayId)?.name ?? next.awayId}
+                  {flagOf(next.homeId)} {nationByCode(next.homeId)?.name ?? next.homeId} {t('common.v')} {flagOf(next.awayId)} {nationByCode(next.awayId)?.name ?? next.awayId}
                 </h3>
                 <div className="muted" style={{ marginTop: 6 }}>
-                  {testWeek
-                    ? `🌍 TEST WEEK: this Saturday is your country's. Your assistant minds any club fixture.`
-                    : `Next Test ${weekDate(game.season, next.week)}.`}
+                  {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
                 </div>
               </>
             ) : (
-              <div className="muted">No Test on the calendar - the union watches your club work in the meantime.</div>
+              <div className="muted">{t('home.noTest')}</div>
             )}
           </div>
         )
@@ -238,7 +234,7 @@ export default function Home() {
         return (
           <button className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}
             onClick={() => go('legacy')}>
-            <div className="fact-label">{d.progress.done ? '★ THE DREAM, REALISED' : '★ THE DREAM'}</div>
+            <div className="fact-label">{t(d.progress.done ? 'home.dreamDone' : 'home.dream')}</div>
             <div style={{ fontWeight: 700, fontSize: 14.5, marginTop: 2 }}>{d.title}</div>
             <div style={{ height: 6, background: 'var(--border-strong)', borderRadius: 3, overflow: 'hidden', margin: '7px 0 4px' }}>
               <div style={{ width: `${pct}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
@@ -261,24 +257,26 @@ export default function Home() {
         return (
           <button className="card" onClick={() => go('transfers')}
             style={{ borderLeft: '4px solid var(--prop-red, var(--danger))' }}>
-            <div className="fact-label">👀 Circling</div>
+            <div className="fact-label">{t('home.circling')}</div>
             <div style={{ marginTop: 4 }}>{line}</div>
           </button>
         )
       })()}
 
       {(() => {
-        const soon = seasonTentpoles(game).filter(t => t.week >= game.week).slice(0, 3)
+        // `tp`, not `t`: the i18n t() is in scope here now, and shadowing it
+        // inside the map is how a screen ends up rendering "[object Object]"
+        const soon = seasonTentpoles(game).filter(tp => tp.week >= game.week).slice(0, 3)
         if (!soon.length) return null
         return (
           <button className="card" onClick={() => go('fixtures')}>
-            <div className="fact-label">📅 The Season Ahead</div>
+            <div className="fact-label">{t('home.seasonAhead')}</div>
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px', marginTop: 2 }}>
-              {soon.map(t => (
-                <span key={`${t.week}-${t.label}`}>
-                  {t.icon} {t.label}
+              {soon.map(tp => (
+                <span key={`${tp.week}-${tp.label}`}>
+                  {tp.icon} {tp.label}
                   <b style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
-                    {t.week === game.week ? ' this week' : ` in ${t.week - game.week} wk${t.week - game.week === 1 ? '' : 's'}`}
+                    {tp.week === game.week ? t('home.tentpoleThisWeek') : t('home.tentpoleIn', { n: tp.week - game.week })}
                   </b>
                 </span>
               ))}
@@ -303,7 +301,7 @@ export default function Home() {
                 derby won) is ticked the moment it happens, because it cannot be
                 lost. One that is merely TRUE TODAY reads as on course until the
                 season is actually over - see ObjectiveDef.banked. */}
-            <div className="fact-label">🎯 Season Objectives · {objs.filter(o => o!.met(game)).length}/{objs.length} on track</div>
+            <div className="fact-label">{t('home.objectives', { met: objs.filter(o => o!.met(game)).length, total: objs.length })}</div>
             <div className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
               {objs.map(o => {
                 const met = o!.met(game)
@@ -311,7 +309,7 @@ export default function Home() {
                 return (
                   <span key={o!.id} style={{ color: done ? 'var(--text-positive)' : met ? 'var(--info)' : 'var(--text-secondary)' }}>
                     {done ? '✓' : met ? '◍' : '○'} {o!.text(game)}
-                    {met && !o!.banked ? ' (on course)' : ''}
+                    {met && !o!.banked ? t('home.onCourse') : ''}
                   </span>
                 )
               })}
@@ -322,15 +320,15 @@ export default function Home() {
       {game.review && game.review.season === game.season - 1 && game.week <= 6 && (
         <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('seasonreview')}>
-          <h3>📖 The Annual is out</h3>
-          <div className="meta">Last season on one page - the league, the cups, the stars and the money. Tap to read.</div>
+          <h3>{t('home.annualOut')}</h3>
+          <div className="meta">{t('home.annualSub')}</div>
         </button>
       )}
       {pressOpen > 0 && (
         <button className="card" style={{ borderLeft: '4px solid var(--gold)' }}
           onClick={() => go('press')}>
-          <h3>🗞️ The press want a word</h3>
-          <div className="meta">{pressOpen} question{pressOpen > 1 ? 's' : ''} awaiting your reply - your answers move morale.</div>
+          <h3>{t('home.pressWord')}</h3>
+          <div className="meta">{t('home.pressSub', { n: pressOpen })}</div>
         </button>
       )}
       {!fx && !game.unemployed && (() => {
@@ -342,14 +340,14 @@ export default function Home() {
         if (!idle.length) return null
         return (
           <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-            <div className="fact-label">Blank Weekend</div>
+            <div className="fact-label">{t('home.blankWeekend')}</div>
             <div className="meta" style={{ marginBottom: 6 }}>
-              No fixture this week. A friendly banks sharpness and combinations for the squad - but injuries in a meaningless game sting twice as much.
+              {t('home.blankSub')}
             </div>
             <div className="chips" style={{ padding: 0 }}>
               {idle.map(c => (
                 <button key={c.id} className="chip" onClick={() => { arrangeFriendly(game, c.id); touch() }}>
-                  🤝 {c.short} (rep {c.rep})
+                  {t('home.friendlyChip', { club: c.short, rep: c.rep })}
                 </button>
               ))}
             </div>
@@ -359,28 +357,30 @@ export default function Home() {
       </div>
       <div className="hub-row">
         <button className="hub-widget" onClick={() => go('tables')}>
-          <label>League</label>
-          <b>{pos > 0 ? `${pos}${pos === 1 ? 'st' : pos === 2 ? 'nd' : pos === 3 ? 'rd' : 'th'}` : '-'}</b>
+          <label>{t('home.wLeague')}</label>
+          <b>{pos > 0 ? `${pos}${t(pos === 1 ? 'common.ord1' : pos === 2 ? 'common.ord2' : pos === 3 ? 'common.ord3' : 'common.ordN')}` : '-'}</b>
           <span>{game.comps[club.leagueId]?.short}</span>
         </button>
         <button className="hub-widget" onClick={() => go('fixtures')}>
-          <label>Form</label>
+          <label>{t('home.wForm')}</label>
           <b style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
-            {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>no games</span> : recent.map((r, i) => (
-              <span key={i} className={`form-pip ${r}`}>{r}</span>
+            {recent.length === 0 ? <span style={{ fontSize: 12, fontWeight: 400 }}>{t('home.noGames')}</span> : recent.map((r, i) => (
+              // the class stays W/L/D - it is what colours the pip - while the
+              // letter shown follows the language (V/N/D in French)
+              <span key={i} className={`form-pip ${r}`}>{t(r === 'W' ? 'common.w' : r === 'L' ? 'common.l' : 'common.d')}</span>
             ))}
           </b>
-          <span>{recent.length ? `last ${recent.length} match${recent.length > 1 ? 'es' : ''}` : 'season ahead'}</span>
+          <span>{recent.length ? t('home.lastMatches', { n: recent.length }) : t('home.seasonAheadShort')}</span>
         </button>
         <button className="hub-widget" onClick={() => go('report')}>
-          <label>Board</label>
+          <label>{t('home.wBoard')}</label>
           {/* rule 4: a key number renders in text-primary - colour belongs on
               the delta beside it, never on the figure itself */}
           <b>{Math.round(club.boardConfidence)}%</b>
-          <span>confidence</span>
+          <span>{t('home.confidence')}</span>
         </button>
         <button className="hub-widget" onClick={() => go('club', club.id)}>
-          <label>Fans</label>
+          <label>{t('home.wFans')}</label>
           {(() => {
             const m = game.fanMood ?? 60
             const word = m >= 80 ? '🔥' : m >= 62 ? '😊' : m >= 45 ? '😐' : m >= 30 ? '😠' : '🤬'
@@ -388,7 +388,7 @@ export default function Home() {
           })()}
           <span>{(() => {
             const m = game.fanMood ?? 60
-            return m >= 80 ? 'bouncing' : m >= 62 ? 'behind you' : m >= 45 ? 'watching' : m >= 30 ? 'restless' : 'mutinous'
+            return t(m >= 80 ? 'home.fanBouncing' : m >= 62 ? 'home.fanBehind' : m >= 45 ? 'home.fanWatching' : m >= 30 ? 'home.fanRestless' : 'home.fanMutinous')
           })()}</span>
         </button>
       </div>
@@ -412,14 +412,14 @@ export default function Home() {
         return (
           <div className="dash-row">
             <button className="dash-panel" onClick={() => go('fixtures')}>
-              <div className="dash-head">Fixtures & Results</div>
+              <div className="dash-head">{t('home.dashFixtures')}</div>
               {played.map(f => {
                 const r = resStr(f)
                 return (
                   <div key={f.id} className="dash-line">
-                    <span className="muted dl-wk">wk{f.week}</span>
+                    <span className="muted dl-wk">{t('common.wk', { n: f.week })}</span>
                     <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
-                    <span>{f.homeId === club.id ? 'H' : 'A'}</span>
+                    <span>{t(f.homeId === club.id ? 'common.h' : 'common.a')}</span>
                     <b style={{ color: r.c }}>{r.txt}</b>
                   </div>
                 )
@@ -431,30 +431,30 @@ export default function Home() {
                   in the space a glance panel actually has. */}
               {coming.map(f => (
                 <div key={f.id} className="dash-line">
-                  <span className="muted dl-wk">wk{f.week}</span>
+                  <span className="muted dl-wk">{t('common.wk', { n: f.week })}</span>
                   <span className="dl-t">{teamShort(game, f.homeId === club.id ? f.awayId : f.homeId)}</span>
-                  <span>{f.homeId === club.id ? 'H' : 'A'}</span>
+                  <span>{t(f.homeId === club.id ? 'common.h' : 'common.a')}</span>
                   <span className="muted">{game.comps[f.compId] ? f.compId.toUpperCase() : 'FR'}</span>
                 </div>
               ))}
             </button>
             <button className="dash-panel" onClick={() => go('finances')}>
-              <div className="dash-head">Finances</div>
-              <div className="dash-line"><span>State</span><b style={{ color: finState[1] }}>{finState[0]}</b></div>
-              <div className="dash-line"><span>Balance</span><b>{fmtMoney(club.balance)}</b></div>
-              <div className="dash-line"><span>Transfer budget</span><b>{fmtMoney(club.budget)}</b></div>
-              <div className="dash-line"><span>Wage room</span><b>{fmtMoney(Math.max(0, wageRoom))}/wk</b></div>
+              <div className="dash-head">{t('home.dashFinances')}</div>
+              <div className="dash-line"><span>{t('home.state')}</span><b style={{ color: finState[1] }}>{t(finState[0])}</b></div>
+              <div className="dash-line"><span>{t('home.balance')}</span><b>{fmtMoney(club.balance)}</b></div>
+              <div className="dash-line"><span>{t('home.transferBudget')}</span><b>{fmtMoney(club.budget)}</b></div>
+              <div className="dash-line"><span>{t('home.wageRoom')}</span><b>{fmtMoney(Math.max(0, wageRoom))}{t('common.perWeek')}</b></div>
             </button>
             <button className="dash-panel" onClick={() => go('medical')}>
-              <div className="dash-head">Medical Centre</div>
-              {out.length === 0 && <div className="dash-line"><span className="muted">A clean bill of health</span></div>}
+              <div className="dash-head">{t('home.dashMedical')}</div>
+              {out.length === 0 && <div className="dash-line"><span className="muted">{t('home.cleanBill')}</span></div>}
               {out.slice(0, 4).map(p => (
                 <div key={p!.id} className="dash-line">
                   <span className="dl-t" style={{ color: 'var(--text-negative)' }}>{p!.name.split(' ').slice(-1)[0]}</span>
-                  <span className="muted">{Math.max(1, p!.injury!.until - game.week)}w</span>
+                  <span className="muted">{t('common.weeksOut', { n: Math.max(1, p!.injury!.until - game.week) })}</span>
                 </div>
               ))}
-              {out.length > 4 && <div className="dash-line"><span className="muted">+{out.length - 4} more</span></div>}
+              {out.length > 4 && <div className="dash-line"><span className="muted">{t('home.andMore', { n: out.length - 4 })}</span></div>}
             </button>
             {(() => {
               // rival watch: their misery is your dopamine, all season long.
@@ -471,11 +471,11 @@ export default function Home() {
                 const them = rf.homeId === rival ? rf.awayScore : rf.homeScore
                 // W/L/D, not won/LOST/drew: the words plus the eyes emoji cost
                 // this half-width row 40px and the rival's name paid for it
-                return { txt: `${us > them ? 'W' : us < them ? 'L' : 'D'} ${us}-${them}`, c: us < them ? 'var(--text-positive)' : us > them ? 'var(--text-negative)' : undefined }
+                return { txt: `${t(us > them ? 'common.w' : us < them ? 'common.l' : 'common.d')} ${us}-${them}`, c: us < them ? 'var(--text-positive)' : us > them ? 'var(--text-negative)' : undefined }
               })() : null
               return (
                 <button className="dash-panel" onClick={() => go('club', rival)}>
-                  <div className="dash-head">Rival Watch</div>
+                  <div className="dash-head">{t('home.rivalWatch')}</div>
                   <div className="dash-line">
                     <span className="dl-t">{teamShort(game, rival)}</span>
                     {rr && <b style={{ color: rr.c }}>{rr.txt}</b>}
@@ -499,7 +499,7 @@ export default function Home() {
           served and marked. */}
       {unread > 0 && (
         <button className="card inbox-cue" onClick={() => useStore.getState().openInbox()}>
-          <h3>✉ {unread} unread message{unread === 1 ? '' : 's'}</h3>
+          <h3>{t('home.unread', { n: unread })}</h3>
           <div className="meta">{unreadItems[0]?.subject ?? ''}</div>
         </button>
       )}
@@ -508,6 +508,9 @@ export default function Home() {
   )
 }
 
+/** Shared with Tables, Fixtures and MatchDay, which is why it lives in the
+ *  common namespace rather than under home. */
 export function stageName(s: string): string {
-  return { QF: 'Quarter-Final', SF: 'Semi-Final', F: 'FINAL', BAR: 'Play-off' }[s] ?? s
+  const key = { QF: 'common.stageQF', SF: 'common.stageSF', F: 'common.stageF', BAR: 'common.stageBAR' }[s]
+  return key ? t(key) : s
 }

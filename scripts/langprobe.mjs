@@ -158,6 +158,47 @@ try {
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
 
+  // ---- Home, the screen a manager sees every week --------------------------
+  //
+  // The dashboard is the densest thing in the game outside match day: four
+  // half-width hub widgets and four half-width dash panels, all of them sized
+  // for English words. "Transfer budget" becomes "Budget transferts" and
+  // "confidence" becomes "confiance"; either can push a panel out of its row.
+  const hub = await page.locator('.hub-widget label').allInnerTexts()
+  say(`  hub widgets in French: ${hub.join(' | ')}`)
+  ok(hub.some(h => h.toLowerCase().includes('championnat')), 'the hub widgets are French')
+
+  const dashHeads = await page.locator('.dash-head').allInnerTexts()
+  say(`  dash panels in French: ${dashHeads.join(' | ')}`)
+  ok(dashHeads.length > 2, `the dashboard rendered (${dashHeads.length} panels)`)
+  ok(dashHeads.some(h => h.toLowerCase().includes('calendrier')), 'and its panel headings are French')
+
+  const homeOverflow = await page.evaluate(() => {
+    const w = document.documentElement.clientWidth
+    const bad = []
+    for (const el of document.querySelectorAll('.hub-widget span, .hub-widget label, .dash-head, .dash-line span, .dash-line b')) {
+      const r = el.getBoundingClientRect()
+      if (r.width === 0) continue
+      // clipped by its own box, or hanging off the screen
+      if (el.scrollWidth > el.clientWidth + 1 || r.right > w + 1) {
+        bad.push((el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 24))
+      }
+    }
+    return { w, bad, docOver: document.documentElement.scrollWidth - w }
+  })
+  ok(homeOverflow.bad.length === 0, `nothing on the dashboard is cut off in French${homeOverflow.bad.length ? ': ' + homeOverflow.bad.slice(0, 5).join(', ') : ''}`)
+  ok(homeOverflow.docOver <= 1, `and Home does not scroll sideways (${homeOverflow.docOver}px over)`)
+
+  // no English left where a French sentence should be. Club, competition and
+  // player names are data and stay as they are; these are the ones the screen
+  // says for itself, and they are the ones that betray a missed extraction.
+  const leftovers = await page.evaluate(() => {
+    const words = ['Fixtures', 'Finances Balance', 'Wage room', 'confidence', 'Transfer budget', 'unread message', 'Season Objectives', 'Next match']
+    const text = document.querySelector('.content')?.innerText ?? ''
+    return words.filter(w => text.includes(w))
+  })
+  ok(leftovers.length === 0, `no English left on Home${leftovers.length ? ': ' + leftovers.join(', ') : ''}`)
+
   const labels = await page.locator('.bottom-nav .nlbl').allInnerTexts()
   say(`  bottom nav in French: ${labels.join(' | ')}`)
   ok(labels.some(l => l.startsWith('Accueil')), 'the nav rail is in French')
