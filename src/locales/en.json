@@ -3961,6 +3961,15 @@
     "ledgerMore": "{asst} has been through the team sheets:\n\n{rows_ll}\n...and {rest} more on the ledger.\n\n{tail_k}",
     "ledgerMan": "{name} ({status_k}): {actual} of the {expected} games he was promised.",
     "ledgerWatch": "{worst} is the one to watch - another month of this and his agent starts dialling.",
-    "ledgerCalm": "Nobody has downed tools yet. Fix it with selection, or an honest word on Team ▸ Game Time."
+    "ledgerCalm": "Nobody has downed tools yet. Fix it with selection, or an honest word on Team ▸ Game Time.",
+    "mentGraduatesSubj": "🎓 {kid} graduates from {seniorLast}'s wing",
+    "mentGraduates": "The pairing has run its course. {why_k} {senior} shook his hand after training and the mentoring slot is free for the next one.",
+    "mentAdopted": "He carries himself like {senior} now, which was the whole point.",
+    "mentCeiling": "The coaches agree there is nothing left on the syllabus - he is the player he was going to be.",
+    "mentAged": "At {age} he is a senior pro in his own right, and senior pros do not get lifts to the ground.",
+    "mentThrivingSubj": "🎓 {last} is thriving under {seniorLast}",
+    "mentThriving": "{fit_k}. {reason_k} The academy coach says {kid} has started doing the unglamorous parts without being asked, which is the bit you cannot coach. He is developing faster for it.",
+    "mentFailingSubj": "The {seniorLast} and {last} pairing is not taking",
+    "mentFailing": "{fit_k}. {reason_k} {kid} is getting very little out of it. Nothing has gone wrong between them; it simply is not working. End the pairing on the Training and Staff screen and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay."
   }
 }
