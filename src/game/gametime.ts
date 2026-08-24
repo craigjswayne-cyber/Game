@@ -219,6 +219,8 @@ export function settleGameTime(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `🚪 ${p.name} hands in a transfer request`,
         body: `He was told where he stood - ${STATUS_BY_ID[row.status].name.toLowerCase()} - and the team sheets say ${row.actual} appearance${row.actual === 1 ? '' : 's'} from ${played} matches. This morning a formal transfer request landed on your desk. Pick him and he may yet be talked round; leave it and every agent in the league will know he is gettable.`,
+        k: 'news.transferRequest',
+        v: { player: p.name, status_k: `squad.status${row.status[0].toUpperCase()}${row.status.slice(1)}`, n: row.actual, played },
         playerId: p.id,
       })
     }
@@ -229,6 +231,7 @@ export function settleGameTime(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `🤝 ${p.name} withdraws his transfer request`,
         body: `The team sheets did the talking: the minutes came, and the grievance went with them. The request is withdrawn - quietly, the way these things end when they end well.`,
+        k: 'news.requestWithdrawn', v: { player: p.name },
         playerId: p.id,
       })
     }
@@ -270,6 +273,10 @@ export function gameTimeReview(state: GameState): void {
   // Three named men and a count is enough to act on: the five-line version ran
   // to 819 characters of paragraph (brevity pass 19A). The subject still counts
   // everyone the ledger flagged.
+  const ledgerRows = rows.slice(0, 3).map(r => ({
+    k: 'news.ledgerMan', name: r.p.name, status_k: `squad.status${r.status[0].toUpperCase()}${r.status.slice(1)}`,
+    actual: r.actual, expected: r.expected,
+  }))
   const lines = rows.slice(0, 3).map(r => {
     const d = STATUS_BY_ID[r.status]
     return `${r.p.name} (${d.name.toLowerCase()}): ${r.actual} of the ${r.expected} games he was promised.`
@@ -288,6 +295,12 @@ export function gameTimeReview(state: GameState): void {
         ? `${worst.p.name} is the one to watch - another month of this and his agent starts dialling.`
         : `Nobody has downed tools yet. Fix it with selection, or an honest word on Team ▸ Game Time.`,
     ].join('\n'),
+    k: rows.length > 3 ? 'news.ledgerMore' : 'news.ledger',
+    v: {
+      n: rows.length, asst, rest: rows.length - 3, worst: worst.p.name,
+      rows_ll: JSON.stringify(ledgerRows),
+      tail_k: worst.mood === 'unhappy' ? 'news.ledgerWatch' : 'news.ledgerCalm',
+    },
     playerId: worst.p.id,
   })
 }
