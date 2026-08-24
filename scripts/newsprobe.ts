@@ -17,16 +17,20 @@
 //   3. Does every language have it? A key that exists only in English is a
 //      French reader falling back to English and nobody noticing.
 //
-// THE BUDGET below is a ratchet. It exists because the conversion was done over
-// many commits and a probe that cannot pass is a probe somebody switches off.
-// It may go DOWN and never up. At zero it stops being a budget and becomes what
-// it was always for: a story without a key fails the build.
+// THE BUDGET below was a ratchet. It existed because the conversion was done
+// over many commits and a probe that cannot pass is a probe somebody switches
+// off, so it started at the number of story sites still writing raw English and
+// was only ever allowed to fall.
+//
+// It is now ZERO, which is what it was for: a story filed without a key fails
+// the build. Do not raise it. If a new story cannot carry a key, the thing to
+// change is the story.
 //
 // Run: npx vite-node scripts/newsprobe.ts
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
-const BUDGET = 7
+const BUDGET = 0
 
 const say = (s: string) => console.log(s)
 let fails = 0

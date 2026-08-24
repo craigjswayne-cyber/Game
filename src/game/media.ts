@@ -6,6 +6,7 @@ import { derbyName, isDerby } from './rivalries'
 import { nationByCode } from './nations'
 import { applyResponse } from './authority'
 import { clamp, pick, type Rng } from './rng'
+import { tIn } from './i18n'
 
 const OUTLETS = [
   'The Rugby Chronicle', 'Oval Times', 'The Breakdown Podcast', 'Rugby World Weekly',
@@ -795,10 +796,19 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       if (upheld && p.bans > 0) {
         p.bans -= 1
         logDecision(state, `Appealed ${p.name}'s red card: upheld, a match knocked off the ban.`, true)
+        // The tail is a whole clause and it pluralises, so it travels as a key
+        // with `n` on it rather than as a stitched-together string: English
+        // switches at one and French at two, and only the reader's dictionary
+        // knows which.
+        const v = {
+          player: p.name, n: p.bans,
+          rest_k: p.bans > 0 ? 'news.appealStillToServe' : 'news.appealFreeToPlay',
+        }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-          subject: `⚖️ Appeal upheld: ${p.name}'s ban reduced`,
-          body: `The panel reviewed the footage frame by frame and knocked a match off the suspension. ${p.bans > 0 ? `${p.bans} match${p.bans === 1 ? '' : 'es'} still to serve.` : 'He is free to play this weekend.'}`,
+          subject: tIn('en', 'news.appealUpheldSubj', v),
+          body: tIn('en', 'news.appealUpheld', v),
+          k: 'news.appealUpheld', v,
           playerId: p.id,
         })
       } else {
@@ -806,10 +816,12 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         const c = state.clubs[state.userClubId]
         c.boardConfidence = clamp(c.boardConfidence - 2, 0, 100)
         logDecision(state, `Appealed ${p.name}'s red card: dismissed, a match added and the board unimpressed.`, false)
+        const v = { player: p.name, n: p.bans }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-          subject: `⚖️ Appeal dismissed: ${p.name}'s ban extended`,
-          body: `The panel called the challenge "without merit" and added a match for its trouble. The chairman's jaw tightens upstairs. ${p.bans} match${p.bans === 1 ? '' : 'es'} to serve.`,
+          subject: tIn('en', 'news.appealDismissedSubj', v),
+          body: tIn('en', 'news.appealDismissed', v),
+          k: 'news.appealDismissed', v,
           playerId: p.id,
         })
       }
@@ -855,8 +867,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       logDecision(state, 'Warm-weather camp: £400k spent, squad sharpness up 12 and a tighter dressing room.', true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `☀️ Camp report: sharp, brown and slightly broken`,
-        body: `A week of double sessions in serious heat. The GPS numbers are the best the staff have ever logged in pre-season, and the group tightened the way only shared suffering manages. £400k well spent, probably.`,
+        subject: tIn('en', 'news.campHeatSubj'),
+        body: tIn('en', 'news.campHeat'),
+        k: 'news.campHeat',
       })
     } else if (opt.camp === 'home') {
       state.fanMood = clamp((state.fanMood ?? 60) + 6, 10, 95)
@@ -864,8 +877,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       logDecision(state, 'Community week at home: nothing spent, the terraces 6 points warmer.', true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `🏟 Community week: the town turns out`,
-        body: `Open training drew a four-figure crowd on a Tuesday. Every school in the area got a visit, every junior club got a coach. It cost almost nothing and bought the kind of goodwill money cannot.`,
+        subject: tIn('en', 'news.campHomeSubj'),
+        body: tIn('en', 'news.campHome'),
+        k: 'news.campHome',
       })
     } else {
       c.balance += 600_000
@@ -874,8 +888,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
       logDecision(state, "Sponsor's tour: £600k banked, the squad 8% flatter and the fans 3 points cooler.", false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-        subject: `✈️ Exhibition tour: the cheque clears`,
-        body: `Two exhibition matches, three time zones, one very happy sponsor and £600k in the bank. The supporters grumble about a pre-season spent in departure lounges, and the squad starts the year with heavy legs.`,
+        subject: tIn('en', 'news.campTourSubj'),
+        body: tIn('en', 'news.campTour'),
+        k: 'news.campTour',
       })
     }
   }
@@ -926,8 +941,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   if (prev < 4 && tone >= 4) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-      subject: `Swagger alert: is all that praise going to their heads?`,
-      body: `Your players can't stop telling the press how good they are - because you keep telling the press how good they are. The assistant's note is blunt: "Training tempo has dipped. They think they only need to turn up." Expect flat performances until someone puts a shift in - or until you sharpen your tongue.`,
+      subject: tIn('en', 'news.toneSwaggerSubj'),
+      body: tIn('en', 'news.toneSwagger'),
+      k: 'news.toneSwagger',
     })
   }
   if (prev > -4 && tone <= -4) {
@@ -937,8 +953,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-      subject: `Dressing room bruised by public criticism`,
-      body: `Week after week of hard words in press conferences has landed. Senior players are reportedly "sick of being thrown under the bus" and morale has sagged across the squad. A little public warmth would go a long way.`,
+      subject: tIn('en', 'news.toneBruisedSubj'),
+      body: tIn('en', 'news.toneBruised'),
+      k: 'news.toneBruised',
     })
   }
 }

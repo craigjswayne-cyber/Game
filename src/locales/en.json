@@ -4234,6 +4234,28 @@
     "mrVenueNamed": "{venue}",
     "mrTheGround": "the ground",
     "mrCompNamed": "{comp}",
-    "mrFriendly": "Friendly"
+    "mrFriendly": "Friendly",
+    "appealUpheldSubj": "⚖️ Appeal upheld: {player}'s ban reduced",
+    "appealUpheld": "The panel reviewed the footage frame by frame and knocked a match off the suspension. {rest_k}",
+    "appealStillToServe": {
+      "one": "{n} match still to serve.",
+      "other": "{n} matches still to serve."
+    },
+    "appealFreeToPlay": "He is free to play this weekend.",
+    "appealDismissedSubj": "⚖️ Appeal dismissed: {player}'s ban extended",
+    "appealDismissed": {
+      "one": "The panel called the challenge \"without merit\" and added a match for its trouble. The chairman's jaw tightens upstairs. {n} match to serve.",
+      "other": "The panel called the challenge \"without merit\" and added a match for its trouble. The chairman's jaw tightens upstairs. {n} matches to serve."
+    },
+    "campHeatSubj": "☀️ Camp report: sharp, brown and slightly broken",
+    "campHeat": "A week of double sessions in serious heat. The GPS numbers are the best the staff have ever logged in pre-season, and the group tightened the way only shared suffering manages. £400k well spent, probably.",
+    "campHomeSubj": "🏟 Community week: the town turns out",
+    "campHome": "Open training drew a four-figure crowd on a Tuesday. Every school in the area got a visit, every junior club got a coach. It cost almost nothing and bought the kind of goodwill money cannot.",
+    "campTourSubj": "✈️ Exhibition tour: the cheque clears",
+    "campTour": "Two exhibition matches, three time zones, one very happy sponsor and £600k in the bank. The supporters grumble about a pre-season spent in departure lounges, and the squad starts the year with heavy legs.",
+    "toneSwaggerSubj": "Swagger alert: is all that praise going to their heads?",
+    "toneSwagger": "Your players can't stop telling the press how good they are - because you keep telling the press how good they are. The assistant's note is blunt: \"Training tempo has dipped. They think they only need to turn up.\" Expect flat performances until someone puts a shift in - or until you sharpen your tongue.",
+    "toneBruisedSubj": "Dressing room bruised by public criticism",
+    "toneBruised": "Week after week of hard words in press conferences has landed. Senior players are reportedly \"sick of being thrown under the bus\" and morale has sagged across the squad. A little public warmth would go a long way."
   }
 }
