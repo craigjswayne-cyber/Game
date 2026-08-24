@@ -979,6 +979,13 @@ export function rebuildSeason(state: GameState) {
             ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
             : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
         ].join(' '),
+        k: seriesWon ? 'news.lionsHomeWon' : 'news.lionsHome',
+        v: {
+          tour: comp?.name ?? tIn('en', 'news.theLionsTour'),
+          names: lionsHome.map(p => p.name).join(', '),
+          him_k: lionsHome.length === 1 ? 'news.himOne' : 'news.himMany',
+          come_k: lionsHome.length === 1 ? 'news.comesOne' : 'news.comeMany',
+        },
         playerId: lionsHome[0].id,
       })
     }
@@ -1254,6 +1261,7 @@ export function rebuildSeason(state: GameState) {
       }
       // secondary objectives: side quests with real consequences
       const sideLines: string[] = []
+      const sideRows: Vars[] = []
       for (const id of state.objectives ?? []) {
         const def = objectiveById(id)
         if (!def || !def.applies(state)) continue
@@ -1261,6 +1269,7 @@ export function rebuildSeason(state: GameState) {
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
         if (ok) { objBonus += 250_000; state.boardOwed = true }
         sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.text(state))}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
+        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.text(state) })
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -1268,6 +1277,13 @@ export function rebuildSeason(state: GameState) {
         body: `The objective was to ${tIn('en', obj.text)}. You finished ${ordinal(pos)}${wonLeague ? ' and won the title' : ''}. ${met
           ? 'The chairman shakes your hand warmly - keep building.'
           : 'The chairman expects markedly better next season.'}${sideLines.length ? '\n\n' + sideLines.join('\n') : ''}`,
+        k: met ? 'news.boardHappy' : 'news.boardUnhappy',
+        v: {
+          aim_k: obj.text, pos_o: pos,
+          title_k: wonLeague ? 'news.wonTitleToo' : 'common.nothing',
+          side_k: sideRows.length ? 'news.sideList' : 'common.nothing',
+          rows_ll: JSON.stringify(sideRows),
+        },
       })
     }
   }
@@ -1649,6 +1665,8 @@ export function rebuildSeason(state: GameState) {
           id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
           subject: `🎗 The last dance: ${cand.p.name} announces his farewell season`,
           body: `${cand.p.name} (${cand.p.age}, ${cand.p.pos}) has told the squad this season will be his last. ${cand.apps} appearances in the shirt, and one year left to add to them. His testimonial is set for the pre-season fixture at ${club.stadium} in week ${home.week} - pick him, and give the ground its goodbye.`,
+          k: 'news.lastDance',
+          v: { player: cand.p.name, age: cand.p.age, pos: cand.p.pos, apps: cand.apps, stadium: club.stadium, week: home.week },
           playerId: cand.p.id,
         })
       }
@@ -1659,6 +1677,7 @@ export function rebuildSeason(state: GameState) {
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
       subject: `🏆 A WORLD CHAMPIONSHIP season`,
       body: `The ${2025 + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
+      k: 'news.wcSeason', v: { year: 2025 + state.season },
     })
   }
 
@@ -1762,6 +1781,7 @@ export function rebuildSeason(state: GameState) {
           id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
           subject: `💷 The war chest is yours to keep`,
           body: `You told the world to judge you in May, and May agreed. The ${fmtMoney(state.stanceFund)} the board put behind the promise stays spent with their blessing, and the chairman is already quoting you in the season-ticket letter.`,
+          k: 'news.warChestKept', v: { fund: fmtMoney(state.stanceFund) },
         })
       } else if (pred != null) {
         // The interest rate is measured, not argued (scripts/stancecheck.ts,
@@ -1776,6 +1796,8 @@ export function rebuildSeason(state: GameState) {
           id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
           subject: `💷 The board recalls the war chest`,
           body: `Last summer you aimed high and the board paid for the privilege: a ${fmtMoney(state.stanceFund)} advance against a promise to beat the pundits. The pundits said ${ordinal(pred)}; you finished ${ordinal(userFinishPos)}. The accountants have taken ${fmtMoney(claw)} off this season's budget - the advance, plus interest for the nervousness. Your budget stands at ${fmtMoney(club.budget)}.`,
+          k: 'news.warChestBack',
+          v: { fund: fmtMoney(state.stanceFund), pred_o: pred, pos_o: userFinishPos, claw: fmtMoney(claw), budget: fmtMoney(club.budget) },
         })
       }
     }
@@ -1835,6 +1857,7 @@ export function rebuildSeason(state: GameState) {
       + `Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust `
       + `and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. `
       + `Takes one tap. Worth doing at every rollover.`,
+    k: 'news.backItUp', v: { season: seasonLabel(state.season - 1) },
   })
 
   punditPredictions(state, rng)
@@ -1859,15 +1882,18 @@ function challengeCheck(state: GameState) {
   state.challenge = undefined
   ;(state.challengesDone ??= []).push(ch)
   const title = tIn('en', CHALLENGES.find(c => c.id === ch)?.title ?? ch)
-  const line =
-    ch === 'sapiac' ? 'Montauban stay in the Elite 14. Sapiac is safe, and the Tarn-et-Garonne will sing your name for a generation.'
-    : ch === 'redbull' ? 'Newcastle are champions of England. From bottom-four squad to the summit - the project is complete.'
-    : ch === 'dynasty' ? 'The UPC and the Continental Cup both live at Thormond Park now. The dynasty is broken, and it broke on your watch.'
-    : 'Penzance to the Premier Division. Cornwall has a top-flight club at last, and it is yours.'
+  const lineKey =
+    ch === 'sapiac' ? 'news.chalSapiac'
+    : ch === 'redbull' ? 'news.chalRedbull'
+    : ch === 'dynasty' ? 'news.chalDynasty'
+    : 'news.chalPirates'
+  const line = tIn('en', lineKey)
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'award', read: false,
     subject: `🏅 CHALLENGE COMPLETE: ${title}`,
     body: `${line}\n\nThe badge goes on your profile, forever. Whatever happens next, nobody can take this one away.`,
+    k: 'news.challengeDone',
+    v: { title_k: CHALLENGES.find(c => c.id === ch)?.title ?? ch, line_k: lineKey },
   })
   // the full-screen moment - deliberately after promotion sets its own, so
   // the rarer achievement wins the confetti
@@ -1894,6 +1920,7 @@ export function invinciblesCheck(state: GameState) {
     id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
     subject: `🛡️ THE INVINCIBLES: ${club.name} finish the season unbeaten`,
     body: `${mine.length} competitive matches. Zero defeats. Whatever else this club ever does, this season now lives outside the record books, in the place where the game keeps its legends. They will name teams after this side. ${state.managerName} built the team nobody could beat.`,
+    k: 'news.invincibles', v: { club: club.name, n: mine.length, manager: state.managerName },
   })
   state.celebration = {
     headline: 'THE INVINCIBLES',
