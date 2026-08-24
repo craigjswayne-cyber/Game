@@ -3891,6 +3891,22 @@
     "gazumpedSubj": "💔 DOUBLÉ : {player} signe un pré-contrat avec {short}",
     "gazumped": "Vous avez laissé sa prolongation traîner trop longtemps sur le bureau. {player} a conclu un pré-contrat avec {to} et partira pour rien à la fin de la saison. L'accord est contraignant - pas d'indemnité, pas de négociation, pas de retour en arrière.",
     "extendsSubj": "{player} prolonge",
-    "extends": "{player} a signé un nouveau contrat à {club} de {wage}/semaine, courant jusqu'en {until}."
+    "extends": "{player} a signé un nouveau contrat à {club} de {wage}/semaine, courant jusqu'en {until}.",
+    "coachOutSubj": "{short} se sépare de {coach}",
+    "coachOut": "{club} cherche un nouveau directeur du rugby après une série de résultats de {pos_o}. Le poste est vacant.",
+    "coachOutPoorSubj": "{short} se sépare de {coach}",
+    "coachOutPoor": "{club} cherche un nouveau directeur du rugby après une mauvaise série de résultats. Le poste est vacant.",
+    "jobCallSubj": "{short} veut vous parler",
+    "jobCall": "Votre téléphone sonne : {club} vous veut pour son poste vacant. Candidatez depuis le Centre d'emploi - la porte est ouverte.",
+    "courtedSubj": "🤝 {short} vous observe",
+    "courted": "Les pages sportives ont placé votre nom en tête de la liste {poss} pour leur banc vacant, et pour une fois les pages sportives ont raison - leurs gens ont pris contact discrètement. Un club plus grand, un budget plus grand, le projet de quelqu'un d'autre. Candidatez depuis le Centre d'emploi si vous êtes tenté ; ne dites rien et l'histoire mourra d'ici vendredi. Votre président a lu les journaux aussi, et il observe le temps que vous mettez à démentir.",
+    "brokeVowSubj": "🗞 « Je ne vais nulle part » - une phrase qui a mal vieilli",
+    "brokeVow": "Tous les journaux passent le même extrait : {manager}, il y a quelques semaines, la main sur le cœur, ne partant nulle part. Le transfert est fait et personne ne peut le défaire, mais votre nouveau conseil a noté à quel prix la dernière promesse s'était vendue, et le parcage visiteur a un nouveau chant prêt pour votre retour.",
+    "appointedSubj": "Nomination : {manager} prend les rênes de {club}",
+    "appointed": "Un nouveau chapitre. Le conseil attend des progrès réguliers, le vestiaire observe, et les fidèles de {stadium} vous jugeront bien assez tôt. Votre budget transferts est de {budget}.",
+    "jobRejectedSubj": "{short} prend une autre direction",
+    "jobRejected": "{club} vous remercie de votre intérêt mais a décidé de poursuivre avec d'autres candidats.",
+    "resignedSubj": "{manager} démissionne de {club}",
+    "resigned": "Vous videz votre bureau à vos propres conditions. {era} La rumeur se met en marche immédiatement - et maintenant ?"
   }
 }

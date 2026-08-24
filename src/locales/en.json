@@ -3891,6 +3891,22 @@
     "gazumpedSubj": "💔 GAZUMPED: {player} signs pre-contract with {short}",
     "gazumped": "You left his renewal on the desk too long. {player} has agreed a pre-contract with {to} and will walk for nothing when the season ends. The deal is binding - there is no fee, no negotiation, and no way back.",
     "extendsSubj": "{player} extends",
-    "extends": "{player} has signed a new deal at {club} worth {wage}/week, running until {until}."
+    "extends": "{player} has signed a new deal at {club} worth {wage}/week, running until {until}.",
+    "coachOutSubj": "{short} part company with {coach}",
+    "coachOut": "{club} are searching for a new Director of Rugby after a {pos_o}-placed run of form. The position is open.",
+    "coachOutPoorSubj": "{short} part company with {coach}",
+    "coachOutPoor": "{club} are searching for a new Director of Rugby after a poor run of form. The position is open.",
+    "jobCallSubj": "{short} want to talk",
+    "jobCall": "Your phone rings: {club} are keen on you for their vacant post. Apply from the Job Centre - the door is open.",
+    "courtedSubj": "🤝 {short} are watching you",
+    "courted": "The back pages have put your name at the top of {poss} shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.",
+    "brokeVowSubj": "🗞 'I am going nowhere' - a quote that aged badly",
+    "brokeVow": "Every paper runs the same clip: {manager}, weeks ago, hand on heart, going nowhere. The move is done and nobody can undo it, but your new board noted how cheaply the last promise was sold, and the away end has a new song ready for your return.",
+    "appointedSubj": "Appointed: {manager} takes over at {club}",
+    "appointed": "A new chapter. The board expects steady progress, the dressing room is watching, and the {stadium} faithful will judge you soon enough. Your transfer budget is {budget}.",
+    "jobRejectedSubj": "{short} go in a different direction",
+    "jobRejected": "{club} thank you for your interest but have decided to pursue other candidates.",
+    "resignedSubj": "{manager} resigns at {club}",
+    "resigned": "You clear your desk on your own terms. {era} The rumour mill starts turning immediately - where next?"
   }
 }
