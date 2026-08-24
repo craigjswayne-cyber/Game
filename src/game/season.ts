@@ -1583,6 +1583,8 @@ export function processWeekAndAdvance(state: GameState) {
         ...bargains.map(b => `• ${b}`),
         `Move fast if you're buying - and don't be shocked if someone comes for one of yours before midnight.`,
       ].join('\n'),
+      k: bargains.length ? 'news.deadlineList' : 'news.deadline',
+      v: { list: bargains.map(b => `• ${b}`).join('\n') },
     })
   }
 
@@ -1592,14 +1594,20 @@ export function processWeekAndAdvance(state: GameState) {
       n.week === state.week - 1 && n.subject.includes(' joins ') && n.playerId != null)
     if (deals.length >= 2) {
       const TIMES = ['08:10', '09:45', '11:30', '13:05', '14:40', '16:15', '18:00', '19:35', '21:10', '22:55']
-      const lines: string[] = []
+      const rows: { k: string; [x: string]: string | number }[] = []
       deals.slice(0, 5).forEach((n, i) => {
         const p = state.players[n.playerId!]
         const to = p?.clubId ? state.clubs[p.clubId] : null
         if (!p || !to) return
-        const fee = n.body.match(/for a fee of (.+?)\. The /)?.[1] ?? 'an undisclosed fee'
+        // read back out of the STORED ENGLISH body, which is why that body is
+        // never translated in place - see model.ts NewsItem
+        const fee = n.body.match(/for a fee of (.+?)\. The /)?.[1] ?? null
         const mine = to.id === state.userClubId || n.body.includes(`from ${state.clubs[state.userClubId].name}`)
-        lines.push(`${TIMES[i]} - DONE DEAL: ${p.name} (${p.pos}) to ${to.short}, ${fee}.${mine ? ' Your business.' : ''}`)
+        rows.push({
+          k: 'news.ddDeal', time: TIMES[i], player: p.name, pos: p.pos, to: to.short,
+          fee: fee ?? '', fee_k: fee ? 'news.ddFeeKnown' : 'news.ddFeeUndisclosed',
+          mine_k: mine ? 'news.ddYours' : 'news.ddNone',
+        })
       })
       const flop = Object.values(state.players)
         .filter(p => p.clubId && p.clubId !== state.userClubId && p.ca >= 76 && p.transferListed)
@@ -1609,10 +1617,16 @@ export function processWeekAndAdvance(state: GameState) {
         subject: `📻 Deadline day, as it happened`,
         body: [
           `The window is shut. ${deals.length} deals crossed the line on the final day${deals.length > 5 ? ', the biggest of them' : ''}:`,
-          ...lines,
+          ...rows.map(r => tIn('en', r.k, r)),
           ...(flop ? [`23:40 - COLLAPSED: ${flop.name}'s move fell apart at the medical. He stays at ${state.clubs[flop.clubId!]?.short} - for now.`] : []),
           `Back to rugby.`,
         ].join('\n'),
+        k: flop ? 'news.ddRoundupFlop' : 'news.ddRoundup',
+        v: {
+          n: deals.length, rows_ll: JSON.stringify(rows),
+          big_k: deals.length > 5 ? 'news.ddBiggest' : 'news.ddNone',
+          flop: flop?.name ?? '', flopClub: flop?.clubId ? state.clubs[flop.clubId]?.short ?? '' : '',
+        },
       })
     }
   }
@@ -1646,6 +1660,8 @@ export function processWeekAndAdvance(state: GameState) {
           body: pl.kind === 'plans' ? `You told ${p.name} he was in your plans, and the team sheets backed it up. He knocks on your door after training: "You did not have to promise me anything, and you kept it anyway. Thank you, coach." The dressing room has not forgotten the conversation either. Trust like that is worth points.`
             : pl.kind === 'minutes' ? `${p.name} got the minutes you promised him. He finds you in the corridor after the session: "You said I would get my chance and you kept your word. I will not forget that, coach." The academy coach is purring too: "That is how you grow one." The kid would run through a wall for you now.`
             : `${p.name} has his new deal, just as you said he would. The senior pros noticed: this is a club where a handshake still means something.`,
+          k: pl.kind === 'plans' ? 'news.keptPlans' : pl.kind === 'minutes' ? 'news.keptMinutes' : 'news.keptDeal',
+          v: { player: p.name },
           playerId: p.id,
         })
       } else {
@@ -1656,6 +1672,8 @@ export function processWeekAndAdvance(state: GameState) {
           body: pl.kind === 'plans' ? `You told ${p.name} he was in your plans ${state.week - pl.week} weeks ago. He has barely seen the pitch since. The conversation has leaked to the squad, and his agent is already briefing that "the manager's word means nothing at this club."`
             : pl.kind === 'minutes' ? `${p.name} was promised minutes and got none. He trained with headphones in all week, and the academy coach has stopped defending you in the canteen.`
             : `${p.name} is still waiting for the deal you as good as promised him. He held off other offers on your word - now he feels strung along, and the older heads in the squad are watching how this ends.`,
+          k: pl.kind === 'plans' ? 'news.brokePlans' : pl.kind === 'minutes' ? 'news.brokeMinutes' : 'news.brokeDeal',
+          v: { player: p.name, n: state.week - pl.week },
           playerId: p.id,
         })
       }
@@ -1683,6 +1701,8 @@ export function processWeekAndAdvance(state: GameState) {
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `🏗 The new ${tIn('en', info.name).toLowerCase()} opens`,
       body: `The builders are gone and the ribbon is cut: your ${tIn('en', info.name).toLowerCase()} is now level ${b.level}. ${tIn('en', info.desc)} The squad found it within minutes; the coaches found it first.`,
+      k: 'news.facOpens',
+      v: { name_k: info.name, desc_k: info.desc, lvl: b.level },
     })
   }
 
@@ -1710,8 +1730,12 @@ export function processWeekAndAdvance(state: GameState) {
       if (fit.length >= grp.need || all.length <= grp.need) continue
       if (state.week - (state.crisisAt[grp.key] ?? -99) < 6) continue
       state.crisisAt[grp.key] = state.week
-      const down = all.filter(p => p.injury || p.bans > 0)
-        .map(p => p.injury ? `${p.name} (back wk ${p.injury.until})` : `${p.name} (suspended)`)
+      const downRows: Vars[] = all.filter(p => p.injury || p.bans > 0)
+        .map(p => ({
+          k: p.injury ? 'news.crisisInjured' : 'news.crisisBanned',
+          name: p.name, wk: p.injury?.until ?? 0,
+        }))
+      const down = downRows.map(r => tIn('en', String(r.k), r))
       const cover = loanTargets(state).filter(p => grp.pos.includes(p.pos)).slice(0, 3)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
@@ -1722,6 +1746,13 @@ export function processWeekAndAdvance(state: GameState) {
             ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}. Transfers screen, Loans tab.`
             : `The loan market has nothing suitable this week. Youth, patience, or a positional reshuffle - your call.`,
         ].join('\n'),
+        k: cover.length ? 'news.crisisCover' : 'news.crisis',
+        v: {
+          unit_k: grp.label, fit: fit.length, all: all.length,
+          out_k: down.length ? 'news.crisisOut' : 'news.ddNone',
+          outList_l: downRows.length ? JSON.stringify(downRows) : '[]',
+          cover: cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', '),
+        },
       })
     }
   }
@@ -1744,7 +1775,8 @@ export function processWeekAndAdvance(state: GameState) {
       const cv = (p: typeof stars[0]) => {
         const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
         const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
-        return `${p.name} (${p.age}, ${state.clubs[p.clubId!]?.name}), ${apps} appearances${tries ? ` and ${tries} tries` : ''}`
+        return tIn('en', tries ? 'news.cvTries' : 'news.cv',
+          { name: p.name, age: p.age, club: state.clubs[p.clubId!]?.name ?? '', apps, tries })
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -1752,6 +1784,11 @@ export function processWeekAndAdvance(state: GameState) {
           ? `🎤 Signing off: ${stars[0].name} calls time`
           : `🎤 Signing off: ${stars.map(p => p.name).join(' and ')} call time`,
         body: `${stars.length === 1 ? 'One of the game\'s great careers ends in the summer' : 'Two of the game\'s great careers end in the summer'}. ${stars.map(cv).join('. ')}. The next few months are the farewell tour, and every ground they visit will stand for them. One last shot at silverware first.`,
+        k: stars.length === 1 ? 'news.bowOne' : 'news.bowTwo',
+        v: {
+          names: stars.map(p => p.name).join(stars.length === 1 ? '' : tIn('en', 'news.andJoin')),
+          cvs: stars.map(cv).join('. '),
+        },
         playerId: stars[0].id,
       })
     }
