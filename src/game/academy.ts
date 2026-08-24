@@ -30,6 +30,7 @@
 //   every one of those would need a special case. state.academy is invisible until
 //   the Academy screen asks for it.
 import type { Club, GameState, Player, Pos, TableRow } from './model'
+import { type Vars } from './i18n'
 import { clamp, mulberry32, type Rng } from './rng'
 import { facLevel, XV_SLOTS } from './model'
 // A League fixtures share the senior league's match weeks: in the real game the A
@@ -428,6 +429,7 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
   const coachName = state.staffPeople?.academyCoach?.name
   const pos = acadStandings(l).findIndex(r => r.teamId === state.userClubId) + 1
   const lines: string[] = []
+  const rows: Vars[] = []
   for (const fx of mine) {
     const homeMine = fx.homeId === state.userClubId
     const oppId = homeMine ? fx.awayId : fx.homeId
@@ -435,11 +437,17 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
     const ts = homeMine ? fx.awayScore : fx.homeScore
     const verdict = ms > ts ? 'Won' : ms === ts ? 'Drew' : 'Lost'
     lines.push(`${verdict} ${ms}-${ts} ${homeMine ? 'at home to' : 'away at'} ${clubName(state, oppId)} A.`)
+    rows.push({
+      k: 'news.aLeagueRow',
+      verdict_k: ms > ts ? 'news.aWon' : ms === ts ? 'news.aDrew' : 'news.aLost',
+      us: ms, them: ts, where_k: homeMine ? 'news.aHome' : 'news.aAway', opp: clubName(state, oppId),
+    })
     const names = (fx.scorers ?? []).map(id => state.players[id]?.name).filter(Boolean) as string[]
     if (names.length) {
       const tally = new Map<string, number>()
       for (const n of names) tally.set(n, (tally.get(n) ?? 0) + 1)
       lines.push(`Tries: ${[...tally].map(([n, c]) => (c > 1 ? `${n} (${c})` : n)).join(', ')}.`)
+      rows.push({ k: 'news.aTries', names: [...tally].map(([n, c]) => (c > 1 ? `${n} (${c})` : n)).join(', ') })
     }
   }
   const won = mine.some(f => (f.homeId === state.userClubId ? f.homeScore > f.awayScore : f.awayScore > f.homeScore))
@@ -449,6 +457,7 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
   // flavour must not be able to move the sim stream (the ES/EK lesson).
   const sign = won ? WON_LINES : LOST_LINES
   const tail = sign[mine[0].round % sign.length]
+  const tailKey = `news.${won ? 'aWonLine' : 'aLostLine'}${mine[0].round % sign.length}`
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
     subject: `🎓 A League: ${mine.map(f => {
@@ -461,6 +470,15 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
       pos > 0 ? `That leaves the A side ${ordinal(pos)} in the ${l.name}.` : '',
       tail,
     ].filter(Boolean).join('\n'),
+    k: pos > 0 ? 'news.aLeaguePos' : 'news.aLeague',
+    v: {
+      scores: mine.map(f => {
+        const hm = f.homeId === state.userClubId
+        return `${hm ? f.homeScore : f.awayScore}-${hm ? f.awayScore : f.homeScore} v ${clubName(state, hm ? f.awayId : f.homeId)}`
+      }).join(', '),
+      coach_k: coachName ? 'news.aCoachNamed' : 'news.aCoachAnon', coach: coachName ?? '',
+      rows_ll: JSON.stringify(rows), pos_o: pos, comp: l.name, tail_k: tailKey,
+    },
     playerIds: ids.slice(0, 6),
   })
 }
