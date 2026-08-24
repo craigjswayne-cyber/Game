@@ -1808,6 +1808,11 @@ export function processWeekAndAdvance(state: GameState) {
             ? `The chief scout has already been through the files for the ${p.pos} shirt: ${succ.map(c => `${c.name} (${c.age}, ${state.clubs[c.clubId!]?.short}, ${fmtMoney(c.value)})`).join(', ')}. The succession starts now, not in the summer.`
             : `The chief scout has been through the files and does not love the ${p.pos} market this year. The academy may have to answer this one.`,
         ].join('\n'),
+        k: succ.length ? 'news.retiresSucc' : 'news.retires',
+        v: {
+          player: p.name, age: p.age, pos: p.pos,
+          succ: succ.map(c => `${c.name} (${c.age}, ${state.clubs[c.clubId!]?.short}, ${fmtMoney(c.value)})`).join(', '),
+        },
         playerId: p.id,
       })
     }
@@ -1826,18 +1831,20 @@ export function processWeekAndAdvance(state: GameState) {
         const tries = BACKS.includes(p.pos) ? Math.floor(lrng() * 3) : lrng() < 0.25 ? 1 : 0
         const maxed = p.ca >= p.pa
         const boost = 2 + Math.floor(mulberry32(state.seed + p.id)() * 3)
-        const verdict = maxed
-          ? `playing every week and doing his job. Their coaches like him; they also quietly think this is his level.`
-          : boost >= 4
-          ? `the first name on their team sheet. Their coach says he is running games at that level - expect a different player back in the summer.`
-          : boost === 3
-          ? `growing into it nicely. Good marks most weeks, and the education is clearly taking.`
-          : `getting the minutes he went for. Steady rather than spectacular, but every week down there is a week he was not carrying tackle bags here.`
+        const verdictKey = maxed ? 'news.loanLevel'
+          : boost >= 4 ? 'news.loanStar'
+          : boost === 3 ? 'news.loanGrowing'
+          : 'news.loanSteady'
         // **name** renders bold in the reader, and the club he is at is named
         // (round 25, user: "bold the names ... say what club they are playing
         // for") - loanClub is set at loan time; older loans fall back gracefully
-        const at = p.loanClub && state.clubs[p.loanClub] ? ` at ${state.clubs[p.loanClub].name}` : ''
-        return `**${p.name}** (${p.pos}, ${p.age}${at}): ${apps} starts this month${tries ? `, ${tries} ${tries === 1 ? 'try' : 'tries'}` : ''} - ${verdict}`
+        return {
+          k: tries ? 'news.loanRowTries' : 'news.loanRow',
+          name: p.name, pos: p.pos, age: p.age,
+          at_k: p.loanClub && state.clubs[p.loanClub] ? 'news.loanAt' : 'common.nothing',
+          at: p.loanClub && state.clubs[p.loanClub] ? state.clubs[p.loanClub].name : '',
+          apps, n: tries, verdict_k: verdictKey,
+        }
       })
       // four in full, the rest counted: club names made each line ~20
       // characters longer, and five would breach the 800-character ceiling
@@ -1850,9 +1857,13 @@ export function processWeekAndAdvance(state: GameState) {
           : `🧳 Loan watch: news from the feeder clubs`,
         body: [
           `The academy manager files his loan report:`,
-          ...shown,
+          ...shown.map(r => tIn('en', String(r.k), r)),
           ...(rest > 0 ? [`And ${rest} more out getting their minutes.`] : []),
         ].join('\n'),
+        k: out.length === 1
+          ? (rest > 0 ? 'news.loanOneMore' : 'news.loanOne')
+          : (rest > 0 ? 'news.loanManyMore' : 'news.loanMany'),
+        v: { who: out[0].name, rows_ll: JSON.stringify(shown), rest },
         playerId: out.length === 1 ? out[0].id : undefined,
       })
     }
@@ -2464,6 +2475,7 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: 'FINAL WARNING from the board',
         body: 'The chairman has made it plain: results must turn around immediately, or the club will seek a new Director of Rugby.',
+        k: 'news.finalWarning', v: {},
       })
     }
     if (club.boardConfidence <= 3 && state.week > 8) {
@@ -2475,6 +2487,7 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `SACKED: ${club.name} part company with ${state.managerName}`,
         body: `A brutal end - but not the end. ${eraSummary(state)} Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
+        k: 'news.sacked', v: { club: club.name, manager: state.managerName, era: eraSummary(state) },
       })
     }
   }
@@ -2514,6 +2527,15 @@ export function processWeekAndAdvance(state: GameState) {
           `${a.short} arrive on ${formGuide(state, a.id).join(' ') || 'no form to speak of'}${sa ? `, ${sa.name} the man to watch` : ''}. ${b.short} answer with ${formGuide(state, b.id).join(' ') || 'nothing played'}${sb ? ` and ${sb.name} in the form of his life` : ''}.`,
           usIn ? `Finals are won by the side that handles the day - and the day starts now.` : `Somebody in that stadium is going to remember Saturday forever.`,
         ].join('\n'),
+        k: 'news.bigOne',
+        v: {
+          a: a.short, b: b.short, comp: comp.name, short: comp.short, where,
+          aForm: formGuide(state, a.id).join(' ') || tIn('en', 'news.noForm'),
+          bForm: formGuide(state, b.id).join(' ') || tIn('en', 'news.nothingPlayed'),
+          aStar_k: sa ? 'news.bigOneStarA' : 'common.nothing', aStar: sa?.name ?? '',
+          bStar_k: sb ? 'news.bigOneStarB' : 'common.nothing', bStar: sb?.name ?? '',
+          tail_k: usIn ? 'news.bigOneYours' : 'news.bigOneTheirs',
+        },
         fixtureId: fx.id,
       })
       // the adverts (finals week is the one week the sport buys the town):
@@ -2521,15 +2543,18 @@ export function processWeekAndAdvance(state: GameState) {
       // not lean on any rng stream
       if (usIn) {
         const v = fx.venue
-        const ads = [
-          `You cannot move for it. The final is on the side of every bus${v ? ` in ${v.city}` : ' in town'}, the kit sponsor has taken out a full page in the nationals, and the club shop sold out of scarves by Tuesday lunchtime. A TV advert runs your captain's face in slow motion over a drumbeat. The players pretend not to have seen it. They have all seen it.`,
-          `The broadcaster's trailer dropped this morning: thunder, mud, your crest filling the screen${v ? `, then ${v.name} rising out of the dark` : ''}. The lads played it in the team room eleven times. The kit man has ironed everything twice. Finals week does something to a building.`,
-          `Sponsors' week: the shirt partner wants the squad for a photo shoot, the brewery has renamed a beer after the back row, and there is a countdown clock in the town square${v ? ` with a coach ready for ${v.city}` : ''}. Keep the schedule tight and the eyes on Saturday - the noise is the reward for getting here, not the job.`,
-        ]
+        const ADS = ['news.adsA', 'news.adsB', 'news.adsC']
+        const adKey = ADS[(state.season * 7 + state.week) % ADS.length]
+        const adV = {
+          city_k: v ? 'news.adsCity' : 'news.adsTown', city: v?.city ?? '',
+          venue_k: v ? 'news.adsVenue' : 'common.nothing', venue: v?.name ?? '',
+          coach_k: v ? 'news.adsCoach' : 'common.nothing',
+        }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `📺 Finals week: the adverts have landed`,
-          body: ads[(state.season * 7 + state.week) % ads.length],
+          body: tIn('en', adKey, adV),
+          k: adKey, v: adV,
           fixtureId: fx.id,
         })
       }
