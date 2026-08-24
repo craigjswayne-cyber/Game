@@ -186,7 +186,8 @@
     "w": "W",
     "weeksOut": "{n}w",
     "wk": "wk{n}",
-    "listSep": ", "
+    "listSep": ", ",
+    "ordByDigit": "1"
   },
   "home": {
     "jobCentre": "📋 The Job Centre",
@@ -3496,8 +3497,8 @@
     "intakeGradeE": "His verdict: \"Between us? Start scouting elsewhere.\"",
     "halfTermSubj": "🏛 Half-term report card: grade {grade}",
     "halfTerm": "The board's mid-season review has landed on your desk.\n{pos_k}{objs_k}Boardroom confidence: {conf}%.\n{verdict_k}",
-    "htPos": "League: {pos}.\n",
-    "htPosPred": "League: {pos} (pundits predicted {pred}).\n",
+    "htPos": "League: {pos_o}.\n",
+    "htPosPred": "League: {pos_o} (pundits predicted {pred_o}).\n",
     "htObjs": "Season objectives: {met}/{total} on track.\n",
     "htGradeA": "Verdict: \"Exceptional. Whatever you are doing, keep doing it.\"",
     "htGradeB": "Verdict: \"Ahead of expectations. The room is pleased.\"",
