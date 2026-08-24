@@ -83,13 +83,16 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   const approve = club.boardConfidence >= 45 && club.balance >= clubShare * 1.25
   if (!approve) {
     state.facilityAskCooldown = abs + 8
-    const why = club.boardConfidence < 45 ? 'results have not earned a project like this'
-      : club.balance < clubShare ? 'the club cannot find its share'
-      : 'the reserves are too thin for a project this size'
+    const whyKey = club.boardConfidence < 45 ? 'news.facNoResults'
+      : club.balance < clubShare ? 'news.facNoShare'
+      : 'news.facNoReserves'
+    const why = tIn('en', whyKey)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `🏛 Board says no: ${tIn('en', info.name)}`,
       body: `Your request for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()} was heard, considered and declined - ${why}. The door reopens in a couple of months; better results and a healthier balance reopen it faster.`,
+      k: 'news.facDeclined',
+      v: { name_k: info.name, lvl: lvl + 1, why_k: whyKey },
     })
     logDecision(state, `Asked the board for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}: declined, ${why}.`, false)
     return `Declined - ${why}.`
@@ -104,6 +107,11 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
     body: `${fmtMoney(cost)} signed off on a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}${boardPut > 0
       ? ` - the board underwrite ${fmtMoney(boardPut)} of it and the club funds the remaining ${fmtMoney(clubShare)}`
       : `, all of it from club funds`}. The builders move in on Monday and it opens in about five weeks. ${tIn('en', info.desc)}`,
+    k: boardPut > 0 ? 'news.facApprovedShared' : 'news.facApproved',
+    v: {
+      name_k: info.name, desc_k: info.desc, lvl: lvl + 1,
+      cost: fmtMoney(cost), board: fmtMoney(boardPut), club: fmtMoney(clubShare),
+    },
   })
   return boardPut > 0
     ? `Approved. The board put up ${fmtMoney(boardPut)}, the club ${fmtMoney(clubShare)} - about five weeks to build.`
@@ -147,14 +155,17 @@ export function requestExpansion(state: GameState): string {
   const approve = enoughDemand && club.balance >= cost * 1.3 && club.boardConfidence >= 50
   if (!approve) {
     state.facilityAskCooldown = abs + 8
-    const why = played < 3 ? 'there is not enough of a season to judge the demand yet'
-      : fill < 0.9 ? `the ground is only ${Math.round(fill * 100)}% full as it is`
-      : club.balance < cost * 1.3 ? 'the reserves will not carry a build this size'
-      : 'the board wants better results before it pours concrete'
+    const whyKey = played < 3 ? 'news.expNoEarly'
+      : fill < 0.9 ? 'news.expNoEmpty'
+      : club.balance < cost * 1.3 ? 'news.expNoReserves'
+      : 'news.expNoResults'
+    const why = tIn('en', whyKey, { pct: Math.round(fill * 100) })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `🏛 Board says no: expanding ${club.stadium}`,
       body: `Your case for ${seats.toLocaleString()} more seats was heard and declined - ${why}. Fill the ground week after week and the argument makes itself.`,
+      k: 'news.expDeclined',
+      v: { stadium: club.stadium, seats, why_k: whyKey, pct: Math.round(fill * 100) },
     })
     logDecision(state, `Asked to expand ${club.stadium}: declined, ${why}.`, false)
     return `Declined - ${why}.`
@@ -167,6 +178,8 @@ export function requestExpansion(state: GameState): string {
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏗 ${club.stadium} grows by ${seats.toLocaleString()} seats`,
     body: `The board has signed off on a new stand: ${fmtMoney(cost)}, and ${club.stadium} now holds ${club.capacity.toLocaleString()}. The waiting list finally moves, and every one of those seats pays its way at the turnstile.`,
+    k: 'news.expApproved',
+    v: { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity },
   })
   return `Approved. ${seats.toLocaleString()} new seats for ${fmtMoney(cost)} - capacity now ${club.capacity.toLocaleString()}.`
 }
@@ -295,7 +308,8 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
     if (mine.includes(home) || mine.includes(away)) {
       const us = mine.includes(home) ? home : away
       const opp = us === home ? away : home
-      const stg = { QF: 'quarter-final', SF: 'semi-final', F: 'FINAL', BAR: 'playoff barrage', R16: 'last sixteen' }[stage] ?? stage
+      const stgKey = { QF: 'news.stgQF', SF: 'news.stgSF', F: 'news.stgF', BAR: 'news.stgBAR', R16: 'news.stgR16' }[stage]
+      const stg = stgKey ? tIn('en', stgKey) : stage
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎟 The ${comp.short} ${stg} draw: ${teamShort(state, opp)}`,
@@ -304,6 +318,14 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
           : us === home
             ? `The balls have been drawn. You host ${teamShort(state, opp)} in the ${comp.name} ${stg} - win, and the road continues. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Get the place rocking.'}`
             : `The balls have been drawn. You travel to ${teamShort(state, opp)} for the ${comp.name} ${stg}. ${stg === 'FINAL' ? 'One match. Everything on it.' : 'Quiet the crowd early and anything is possible.'}`,
+        k: fx.venue ? 'news.drawFinal' : us === home ? 'news.drawHome' : 'news.drawAway',
+        v: {
+          opp: teamShort(state, opp), comp: comp.name, short: comp.short,
+          stg_k: stgKey ?? '', stage,
+          venue: fx.venue?.name ?? '', city: fx.venue?.city ?? '', seats: fx.venue?.capacity ?? 0,
+          tail_k: stg === 'FINAL' ? 'news.drawTailFinal'
+            : us === home ? 'news.drawTailHome' : 'news.drawTailAway',
+        },
       })
     }
   }
@@ -386,6 +408,8 @@ function maybeCreateKnockouts(state: GameState, comp: Competition, rng: Rng) {
             `${v.name} will stage both European finals this season: the Continental Shield under Friday lights, the Continental Cup on the Saturday. ${v.capacity.toLocaleString()} seats, one city, the whole sport in town for a weekend.`,
             `Eight quarter-finalists still stand in each competition, and every one of them circled the date this morning and priced the trip to ${v.city}.`,
           ].join('\n'),
+          k: 'news.finalsWeekend',
+          v: { venue: v.name, city: v.city, seats: v.capacity },
         })
       }
     }
@@ -547,6 +571,12 @@ function manageInternationals(state: GameState, rng: Rng) {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
             subject: `📋 Your ${nationByCode(nat)?.name ?? nat} squad is announced`,
+            k: 'news.natSquad',
+            v: {
+              nation: nationByCode(nat)?.name ?? nat, n: pool.length,
+              caps_k: newCaps ? 'news.natSquadNew' : 'news.natSquadCapped', newCaps,
+              fwd: fwd.map(line).join('; '), bks: bks.map(line).join('; '),
+            },
             body: [
               `The federation has published your ${pool.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
               '',
@@ -566,6 +596,14 @@ function manageInternationals(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: `🦁 LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+          k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
+          v: {
+            n: lionsCalls.length, names, tour,
+            who: lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : String(lionsCalls.length),
+            subj_k: lionsCalls.length === 1 ? 'news.lionsSubjOne' : 'news.lionsSubjMany',
+            is_k: lionsCalls.length === 1 ? 'news.isOne' : 'news.isMany',
+            he_k: lionsCalls.length === 1 ? 'news.heOne' : 'news.heMany',
+          },
           body: [
             (state.season * 5 + state.week * 3) % 2 === 0
               ? `The call every player in these islands dreams of: ${names} ${lionsCalls.length === 1 ? 'is' : 'are'} going on ${tour}. The whole club walks taller this morning.`
@@ -582,11 +620,17 @@ function manageInternationals(state: GameState, rng: Rng) {
           n.week === state.week && n.season === state.season && n.subject === 'International call-ups')
         if (existing) {
           existing.body += ` Also called up: ${names}.`
+          // and the same names into the key's variables, or a French reader sees
+          // the first window's list and never the second. The engine finds this
+          // story by its English subject, which is why that stays put.
+          if (existing.v) existing.v.names = `${existing.v.names}, ${names}`
         } else {
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
             subject: `International call-ups`,
             body: `The following players have been called up and will be unavailable during the international window: ${names}.`,
+            k: 'news.callUps',
+            v: { names },
           })
         }
       }
@@ -622,6 +666,13 @@ function manageInternationals(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+          k: seriesWon ? 'news.lionsHomeWon' : 'news.lionsHome',
+          v: {
+            tour: comp?.name ?? 'the Lions tour',
+            names: lionsHome.map(p => p.name).join(', '),
+            him_k: lionsHome.length === 1 ? 'news.himOne' : 'news.himMany',
+            come_k: lionsHome.length === 1 ? 'news.comesOne' : 'news.comeMany',
+          },
           body: [
             `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
             seriesWon
@@ -637,6 +688,8 @@ function manageInternationals(state: GameState, rng: Rng) {
           id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
           subject: `Internationals return - leggy`,
           body: `Back in club colours: ${returnedMine.join(', ')}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call.`,
+          k: 'news.intlBack',
+          v: { names: returnedMine.join(', ') },
         })
       }
     }
