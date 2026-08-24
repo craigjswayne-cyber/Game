@@ -4042,6 +4042,20 @@
     "noteD2": "J'ai vu mieux, mais quelqu'un le paiera.",
     "noteD3": "Classé pour être complet.",
     "notePlenty": " Il a encore beaucoup à donner.",
-    "noteSome": " Il lui reste un peu de marge."
+    "noteSome": " Il lui reste un peu de marge.",
+    "wcDrawSubj": "🏆 Tirage de la Coupe du monde : le classement compose les poules",
+    "wcDraw": "Les poules de la Coupe du monde sont faites, sur la base du classement mondial. Têtes de série : {top}.\nQuatre poules, cinq nations chacune, et quelque part là-dedans une poule de la mort.",
+    "wcDrawSeededSubj": "🏆 Tirage de la Coupe du monde : le classement compose les poules",
+    "wcDrawSeeded": "Les poules de la Coupe du monde sont faites, sur la base du classement mondial. Têtes de série : {top}.\n{nation} y entre en tant que {seed_o} tête de série - tout ce qui sera moins que {bar_k}.",
+    "wcBarSemi": "les demi-finales sera un échec",
+    "wcBarQuarter": "les quarts de finale soulèvera des questions",
+    "wcBarKnockout": "les phases finales resterait dans la norme",
+    "sponsorSignedSubj": "{sponsor} signe avec {short}",
+    "sponsorSigned": "{sponsor} prend {slot_k} pour {yrs} à {weekly} par semaine. Le service commercial est content de lui, et l'argent commence à arriver vendredi.{naming_k}",
+    "sponsorSignedClauseSubj": "{sponsor} signe avec {short}",
+    "sponsorSignedClause": "{sponsor} prend {slot_k} pour {yrs} à {weekly} par semaine, avec une clause : {clause_k} Tenez-la et c'est le meilleur contrat de la maison. Sinon, vous avez vendu à bas prix.{naming_k}",
+    "sponsorNaming": " Les camions de signalétique arrivent lundi : le stade s'appellera {stadium} pour toute la durée du contrat.",
+    "sponsorExpiresSubj": "{icon} Le contrat {sponsor} expire",
+    "sponsorExpires": "{slot_k} est sans contrat : {sponsor} est arrivé au terme de son engagement. Plutôt que de le laisser vide, le service commercial a pris un accord glissant avec {newSponsor} à {rate} par semaine, ce qui est sous le tarif du marché parce que personne n'a négocié pour vous. De meilleures offres sont disponibles quand vous le voudrez, et vous pouvez remplacer celle-ci à tout moment."
   }
 }

@@ -258,6 +258,12 @@ function buildWorldCup(rng: Rng, state: GameState) {
       userSeed > 0 ? `${nationByCode(state.natTeam!)?.name ?? state.natTeam} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
         : `Four pools, five nations each, and somewhere in there a group of death.`,
     ].join('\n'),
+    k: userSeed > 0 ? 'news.wcDrawSeeded' : 'news.wcDraw',
+    v: {
+      top: top4.join(', '), nation: nationByCode(state.natTeam!)?.name ?? state.natTeam ?? '',
+      seed_o: userSeed,
+      bar_k: userSeed <= 4 ? 'news.wcBarSemi' : userSeed <= 8 ? 'news.wcBarQuarter' : 'news.wcBarKnockout',
+    },
   })
   pools.forEach(pool => {
     const rounds = roundRobin(pool, rng, false)

@@ -4042,6 +4042,20 @@
     "noteD2": "I have seen better, but somebody will pay for him.",
     "noteD3": "Filed for completeness.",
     "notePlenty": " Plenty still to come.",
-    "noteSome": " A bit left in him."
+    "noteSome": " A bit left in him.",
+    "wcDrawSubj": "🏆 World Championship draw: the rankings pick the pools",
+    "wcDraw": "The World Championship pools are set, seeded from the world rankings. Top seeds: {top}.\nFour pools, five nations each, and somewhere in there a group of death.",
+    "wcDrawSeededSubj": "🏆 World Championship draw: the rankings pick the pools",
+    "wcDrawSeeded": "The World Championship pools are set, seeded from the world rankings. Top seeds: {top}.\n{nation} go in as the {seed_o} seed - anything short of {bar_k}.",
+    "wcBarSemi": "the semi-finals will be a failure",
+    "wcBarQuarter": "the quarter-finals will raise questions",
+    "wcBarKnockout": "the knockouts would still be par",
+    "sponsorSignedSubj": "{sponsor} sign on with {short}",
+    "sponsorSigned": "{sponsor} take the {slot_k} for {yrs} at {weekly} a week. The commercial department is pleased with itself, and the money starts arriving on Friday.{naming_k}",
+    "sponsorSignedClauseSubj": "{sponsor} sign on with {short}",
+    "sponsorSignedClause": "{sponsor} take the {slot_k} for {yrs} at {weekly} a week, with a clause: {clause_k} Deliver and it is the best deal in the building. Do not, and you have sold cheap.{naming_k}",
+    "sponsorNaming": " The signage vans arrive Monday: the ground plays as {stadium} for the length of the deal.",
+    "sponsorExpiresSubj": "{icon} {sponsor} deal expires",
+    "sponsorExpires": "The {slot_k} is out of contract: {sponsor} have come to the end of their term. Rather than leave it blank the commercial department has taken a rolling arrangement with {newSponsor} at {rate} a week, which is under the going rate because nobody argued for you. Better offers are on the table whenever you want them, and you can replace this one at any time."
   }
 }
