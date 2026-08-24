@@ -733,7 +733,10 @@
     "breakTitle": "60' - a break in play, final quarter ahead",
     "brinkApps": "makes career appearance number {n} if he takes the field",
     "brinkLine": " ({pos}) {what}. The ground will know the moment it happens.",
-    "brinkPts": "needs {n} points to reach {mark} in his career",
+    "brinkPts": {
+      "one": "needs {n} point to reach {mark} in his career",
+      "other": "needs {n} points to reach {mark} in his career"
+    },
     "brinkTry": "is one try away from {n} in his career, and he is in the form to get it",
     "callFirst": "The touchline call is yours first",
     "casualty": " is off",
@@ -961,7 +964,10 @@
     "settingsTitle": "Match settings: speed and sound",
     "showCommentary": "📜 Commentary ({n})",
     "showRatings": "⭐ Player ratings",
-    "sixGap": "{n} points between you",
+    "sixGap": {
+      "one": "{n} point between you",
+      "other": "{n} points between you"
+    },
     "sixLevel": "level on points",
     "skip": "Skip ▸",
     "soundAndBuzz": "Sound and buzz",
@@ -993,12 +999,21 @@
     "stPossession": "Possession",
     "stTries": "Tries",
     "stakes": "The Stakes",
-    "stakesAboveDrop": "{n} points above the bottom two.",
+    "stakesAboveDrop": {
+      "one": "{n} point above the bottom two.",
+      "other": "{n} points above the bottom two."
+    },
     "stakesBottomTwo": "You are in the bottom two. Every point is survival.",
     "stakesClimb": "A win is worth at least four: close enough to climb today.",
     "stakesKnockout": "Knockout rugby. Win and the {comp} run goes on; lose and it ends this afternoon.",
-    "stakesPlayoffGap": "The playoff line: {n} points to make up on {pos}.",
-    "stakesPlayoffHold": "You hold a playoff place, {n} points inside the line.",
+    "stakesPlayoffGap": {
+      "one": "The playoff line: {n} point to make up on {pos}.",
+      "other": "The playoff line: {n} points to make up on {pos}."
+    },
+    "stakesPlayoffHold": {
+      "one": "You hold a playoff place, {n} point inside the line.",
+      "other": "You hold a playoff place, {n} points inside the line."
+    },
     "stakesPos": "{pos} in the {comp} on {pts} points - {above} above by {gapUp}.",
     "stakesPosBoth": "{pos} in the {comp} on {pts} points - {above} above by {gapUp}, {below} below by {gapDown}.",
     "stakesRelBar": "The relegation playoff. Eighty minutes for a Premier Division place: the winner plays top-flight rugby next season, the loser spends a year in the Championship.",
@@ -2539,7 +2554,10 @@
     "coTests": "Tests",
     "coNoTests": "No Tests on the calendar yet this season.",
     "coFullTables": "Full tables and every competition live on the International Rugby screen.",
-    "coCaps": " · {n} caps",
+    "coCaps": {
+      "one": " · {n} cap",
+      "other": " · {n} caps"
+    },
     "coUncapped": " · uncapped",
     "coDrop": "Drop",
     "coCallUp": "Call up",
@@ -2550,7 +2568,10 @@
     "srChampions": "CHAMPIONS",
     "srInLeague": "in the league",
     "srWon": " won",
-    "srTries": "🏉 {name}, {n} tries",
+    "srTries": {
+      "one": "🏉 {name}, {n} try",
+      "other": "🏉 {name}, {n} tries"
+    },
     "srPoints": "🎯 {name}, {n} pts",
     "srHeadTrophies": "🏆 {list}",
     "srHeadLeaders": "🏆 League leaders",
