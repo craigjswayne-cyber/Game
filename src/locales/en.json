@@ -185,7 +185,8 @@
     "v": "v",
     "w": "W",
     "weeksOut": "{n}w",
-    "wk": "wk{n}"
+    "wk": "wk{n}",
+    "listSep": ", "
   },
   "home": {
     "jobCentre": "📋 The Job Centre",
@@ -3058,6 +3059,29 @@
     "lionsHomeWonSubj": "🦁 The Lions come home as series winners",
     "lionsHomeWon": "Back in club colours after {tour}: {names}. A series win in the luggage, and the kind of standing money cannot buy. Expect {him_k} to walk taller here too. The medical staff still counsel care: a Lions summer empties the tank like nothing else.",
     "intlBackSubj": "Internationals return - leggy",
-    "intlBack": "Back in club colours: {names}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call."
+    "intlBack": "Back in club colours: {names}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call.",
+    "hisMentor": "his mentor",
+    "mentorLostSubj": "{last} loses his mentor",
+    "mentorLost": "With {mentor} gone, {kid} is training alone again. The academy coach will keep an eye on him - but it isn't the same.",
+    "wantsTermsSubj": "💼 {player} wants improved terms",
+    "wantsTerms": {
+      "one": "{player}'s agent has been on the phone: his client is playing the house down (avg {avg}) on {wage}/week, and the market rate is well north of that. He has {n} year left, but leave it unresolved and his head will drop - and other clubs will smell it. Offer a new deal from his player page.",
+      "other": "{player}'s agent has been on the phone: his client is playing the house down (avg {avg}) on {wage}/week, and the market rate is well north of that. He has {n} years left, but leave it unresolved and his head will drop - and other clubs will smell it. Offer a new deal from his player page."
+    },
+    "agentPublicSubj": "💼 {player}'s agent goes public",
+    "agentPublic": "Two months of silence from the club, so the agent has taken it to the papers: \"{player} is one of the best-performing players in the league and the club knows our position.\" Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.",
+    "becomesMentorSubj": "{last} is turning into his mentor",
+    "becomesMentor": "The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. {player} is starting to carry himself like {mentor}. Character: now {pers_k}.",
+    "aheadOfScheduleSubj": "{player} ahead of schedule",
+    "aheadOfSchedule": "Good news from the treatment table: {player} ({injury}) has smashed his rehab targets and is available again this week - earlier than anyone dared hope.",
+    "backInTrainingSubj": {
+      "one": "{who} back in training",
+      "other": "{who} back in training"
+    },
+    "backInTraining": "Available for selection again: {men_l}. Pick a rusty man now and he could break down again; ease him back and he will be right.",
+    "rustyMan": {
+      "one": "{name} ({pos}), rusty for {n} week",
+      "other": "{name} ({pos}), rusty for {n} weeks"
+    }
   }
 }

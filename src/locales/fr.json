@@ -185,7 +185,8 @@
     "v": "vs",
     "w": "V",
     "weeksOut": "{n}s",
-    "wk": "s{n}"
+    "wk": "s{n}",
+    "listSep": ", "
   },
   "home": {
     "jobCentre": "📋 La bourse aux postes",
@@ -3058,6 +3059,29 @@
     "lionsHomeWonSubj": "🦁 Les Lions rentrent vainqueurs de la série",
     "lionsHomeWon": "De retour aux couleurs du club après {tour} : {names}. Une série gagnée dans les bagages, et un statut que l'argent n'achète pas. Attendez-vous à {him_k} voir marcher la tête haute ici aussi. Le staff médical conseille tout de même la prudence : un été avec les Lions vide le réservoir comme rien d'autre.",
     "intlBackSubj": "Retour des internationaux - les jambes lourdes",
-    "intlBack": "De retour aux couleurs du club : {names}. L'avis du staff médical est sans détour : le rugby international vide le réservoir, et aucun d'eux n'est à pleine fraîcheur cette semaine. Faites tourner ou prenez le risque - à vous de voir."
+    "intlBack": "De retour aux couleurs du club : {names}. L'avis du staff médical est sans détour : le rugby international vide le réservoir, et aucun d'eux n'est à pleine fraîcheur cette semaine. Faites tourner ou prenez le risque - à vous de voir.",
+    "hisMentor": "son mentor",
+    "mentorLostSubj": "{last} perd son mentor",
+    "mentorLost": "{mentor} parti, {kid} s'entraîne de nouveau seul. L'entraîneur du centre de formation gardera un œil sur lui - mais ce n'est pas pareil.",
+    "wantsTermsSubj": "💼 {player} veut de meilleures conditions",
+    "wantsTerms": {
+      "one": "L'agent de {player} a appelé : son client crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Il lui reste {n} an de contrat, mais laissez traîner et il baissera la tête - et les autres clubs le sentiront. Proposez un nouveau contrat depuis sa fiche.",
+      "other": "L'agent de {player} a appelé : son client crève l'écran (moyenne {avg}) pour {wage}/semaine, et le prix du marché est bien au-dessus. Il lui reste {n} ans de contrat, mais laissez traîner et il baissera la tête - et les autres clubs le sentiront. Proposez un nouveau contrat depuis sa fiche."
+    },
+    "agentPublicSubj": "💼 L'agent de {player} sort dans la presse",
+    "agentPublic": "Deux mois de silence du club, alors l'agent a porté l'affaire dans les journaux : « {player} est l'un des joueurs les plus performants du championnat et le club connaît notre position. » Les clubs rivaux l'auront remarqué. Réglez un nouveau contrat sur sa fiche - ou préparez-vous aux offres.",
+    "becomesMentorSubj": "{last} devient son mentor",
+    "becomesMentor": "Les entraîneurs l'ont remarqué dans les détails - les extras après l'entraînement, sa façon de parler dans la mêlée d'avant-match. {player} commence à se comporter comme {mentor}. Caractère : désormais {pers_k}.",
+    "aheadOfScheduleSubj": "{player} en avance sur les délais",
+    "aheadOfSchedule": "Bonne nouvelle de la table de soins : {player} ({injury}) a pulvérisé ses objectifs de rééducation et est de nouveau disponible cette semaine - plus tôt que personne n'osait l'espérer.",
+    "backInTrainingSubj": {
+      "one": "{who} de retour à l'entraînement",
+      "other": "{who} de retour à l'entraînement"
+    },
+    "backInTraining": "De nouveau disponibles pour la sélection : {men_l}. Alignez un homme encore rouillé maintenant et il peut rechuter ; réintégrez-le en douceur et il sera bon.",
+    "rustyMan": {
+      "one": "{name} ({pos}), rouillé depuis {n} semaine",
+      "other": "{name} ({pos}), rouillé depuis {n} semaines"
+    }
   }
 }
