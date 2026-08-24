@@ -2547,6 +2547,12 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${teamShort(state, comp.champion)} win the ${comp.name}!`,
         body: `${teamShort(state, comp.champion)} defeated ${teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId)} ${Math.max(final.homeScore, final.awayScore)}-${Math.min(final.homeScore, final.awayScore)} in the ${comp.name} final.`,
+        k: 'news.cupWon',
+        v: {
+          champ: teamShort(state, comp.champion), comp: comp.name,
+          loser: teamShort(state, final.homeId === comp.champion ? final.awayId : final.homeId),
+          hi: Math.max(final.homeScore, final.awayScore), lo: Math.min(final.homeScore, final.awayScore),
+        },
       })
       if (comp.champion === state.userClubId || (state.natTeam != null && comp.champion === state.natTeam)) {
         state.celebration = {
@@ -2559,6 +2565,7 @@ export function processWeekAndAdvance(state: GameState) {
           id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
           subject: `🏆 CHAMPIONS! The ${comp.name} is yours`,
           body: `Scenes of pure joy as ${state.clubs[state.userClubId].name} lift the ${comp.name}. The city will talk about this night for years - and the board have noted exactly who delivered it.`,
+          k: 'news.youWonCup', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
         })
         state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
       }
@@ -2580,6 +2587,7 @@ export function processWeekAndAdvance(state: GameState) {
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `🏆 CHAMPIONS! The ${comp.name} title is yours`,
             body: `${state.clubs[state.userClubId].name} finish top of the pile. Promotion won, history made - the town will remember this season.`,
+            k: 'news.youWonLeague', v: { comp: comp.name, club: state.clubs[state.userClubId].name },
           })
           state.clubs[state.userClubId].boardConfidence = clamp(state.clubs[state.userClubId].boardConfidence + 20, 0, 100)
         }
@@ -2591,12 +2599,14 @@ export function processWeekAndAdvance(state: GameState) {
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
             subject: `🏆 CHAMPIONS! You've won the ${comp.name} with ${comp.champion}`,
             body: `A nation celebrates. Your name goes into the record books as the coach who delivered the ${comp.name}.`,
+            k: 'news.youWonIntl', v: { comp: comp.name, nat: comp.champion },
           })
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: `${teamShort(state, comp.champion)} win the ${comp.name}`,
           body: `${teamShort(state, comp.champion)} have been crowned ${comp.name} champions.`,
+          k: 'news.leagueWon', v: { champ: teamShort(state, comp.champion), comp: comp.name },
         })
       }
     }
@@ -2660,6 +2670,7 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: trySubj,
         body: `The weekend brought up try number ${cTries} of ${p.name}'s career. The video team has already cut the montage.`,
+        k: 'news.careerTries', v: { player: p.name, n: cTries, n_o: cTries },
         playerId: p.id,
       })
     } else if ((cPts === 500 || cPts === 1000) && !state.news.some(n => n.subject === ptsSubj)) {
@@ -2667,6 +2678,7 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: ptsSubj,
         body: `A milestone from the tee: ${p.name} passed ${cPts.toLocaleString()} career points at the weekend. Metronomes get remembered too.`,
+        k: 'news.careerPoints', v: { player: p.name, n: cPts },
         playerId: p.id,
       })
     }
@@ -2676,17 +2688,18 @@ export function processWeekAndAdvance(state: GameState) {
   }
   if (appSalutes.length) {
     const { p, total } = appSalutes.sort((a, b) => b.total - a.total)[0]
-    const bodies = [
-      `A guard of honour at training this week - ${p.name} brought up his ${total}th senior appearance at the weekend.`,
-      `They lined the tunnel for him on Monday morning: ${total} senior appearances for ${p.name}, and he shrugged it off like a man who intends to double it.`,
-      `${p.name} reached ${total} senior appearances at the weekend. The kitman found the old shirts, somebody found the old photographs, and the young lads learned who he used to be.`,
-    ]
+    const KEYS = ['news.guardA', 'news.guardB', 'news.guardC']
     // deterministic pick: the same week and the same man always read the same
-    const pickIdx = (p.id * 7 + state.week * 13 + state.season * 3) % bodies.length
+    const pickIdx = (p.id * 7 + state.week * 13 + state.season * 3) % KEYS.length
+    const v = {
+      player: p.name, n: total, n_o: total,
+      tail_k: total >= 300 ? 'news.guardTail300' : total >= 200 ? 'news.guardTail200' : 'news.guardTail100',
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `👏 ${p.name}: ${total} career appearances`,
-      body: `${bodies[pickIdx]} ${total >= 300 ? 'They will name something after him one day.' : total >= 200 ? 'A one-club legend in the making.' : 'The first big number of many, the coaches hope.'}`,
+      body: tIn('en', KEYS[pickIdx], v),
+      k: KEYS[pickIdx], v,
       playerId: p.id,
     })
   }
