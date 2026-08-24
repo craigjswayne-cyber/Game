@@ -450,3 +450,34 @@ remains is not code:
 The one thing this report will not sign off is line 1b, because it is not an
 engineering question. It is stated as accepted risk, with the cheap insurance
 noted, and the decision belongs to the owner - who has made it.
+
+### The step before all four: the work has to be on `main`
+
+Found the hard way, 24 August 2026. The owner opened the game, looked at the
+title screen and reported that there was no language choice on it - and there
+was not, on the build they were looking at. Everything above had been written,
+probed and pushed to a feature branch, and `.github/workflows/pages.yml`
+deploys **only from `main`**. The live site was still v1.0.4: no French, no
+About page, no Supporter door, no privacy policy at `/privacy.html`.
+
+This is not a housekeeping detail, because of what a TWA is. The Play build
+produced by `packaging/twa/` is a shell around the **hosted** URL - it ships no
+web assets of its own. So whatever `main` has deployed is, literally, the app
+Play users get, and it keeps being the app they get after every future deploy.
+Uploading a TWA built against a stale site ships the stale site.
+
+Two consequences worth keeping:
+
+* **Merge before packaging, always.** The order is: land on `main`, wait for the
+  Pages deploy, open the live URL and check the build stamp on the title screen
+  reads the version you think you are shipping - *then* run Bubblewrap. The
+  build stamp exists for exactly this and takes four seconds to read.
+* **A green suite is not a shipped game.** Every probe in this repository runs
+  against a local `npm run build`. They can all pass on a branch nobody has
+  deployed, which is precisely what happened. Nothing automated can tell you
+  the difference; only the live URL can.
+
+The iOS wrapper does not share this trap, because `packaging/ios/` bundles
+`dist/` on disk deliberately (see its README) - but it does share the other
+half: it bundles whatever `npm run build` produced on the checkout you built
+from, so build from the merged tree.

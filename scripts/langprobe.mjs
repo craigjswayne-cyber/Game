@@ -54,6 +54,29 @@ try {
   ok(!!size && !!lang && lang.top >= size.bottom, 'and it is below the text size control, as asked')
   ok(!!lang && lang.left >= 0 && lang.right <= 412, 'the row fits a 412px screen')
 
+  // ---- and it is ON SCREEN on the smallest phone --------------------------
+  //
+  // A setting nobody scrolls to is a setting nobody has. 360x640 is the floor
+  // this game supports, and the title screen is the one place where everything
+  // has to fit at once: wordmark, four buttons, text size, language, the
+  // unofficial line. If the picker slips under the fold there, the first
+  // report will be "there is no language choice" - which is what it looks
+  // like from the outside.
+  {
+    const small = await browser.newPage({ viewport: { width: 360, height: 640 }, locale: 'en-GB' })
+    await small.addInitScript(() => localStorage.setItem('rm-night', '1'))
+    await small.goto('http://localhost:4207/')
+    await small.waitForSelector('.lang-row')
+    const r = await small.evaluate(() => {
+      const b = document.querySelector('.lang-row').getBoundingClientRect()
+      return { bottom: b.bottom, left: b.left, right: b.right }
+    })
+    say(`  on a 360x640 phone the row ends at ${Math.round(r.bottom)}px of 640`)
+    ok(r.bottom <= 640, 'the picker is above the fold on the smallest supported phone')
+    ok(r.left >= 0 && r.right <= 360, 'and inside a 360px screen')
+    await small.close()
+  }
+
   // both languages are offered, each written in its own language
   ok(await page.locator('.lang-btn').count() === 2, 'two languages are offered')
   ok(await page.locator('.lang-btn >> text=English').count() === 1, 'English is named English')
