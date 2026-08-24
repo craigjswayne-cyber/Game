@@ -16,12 +16,16 @@
 //               is English in that history for the life of the career.
 //   press       the questions the media ask and the answers on the buttons.
 //   touchline   what the game says back when a touchline button is pressed.
+//   replies     and what it says back everywhere else: the transfer table, the
+//               office, the treatment room, the board. These are toasts rather
+//               than records, so they are translated where they are returned -
+//               there is nothing to keep and nothing to migrate.
 //
 // Run: npx vite-node scripts/proseprobe.ts
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** ONLY EVER DECREASE. */
-const BUDGET = { decisions: 0, press: 0, touchline: 0 }
+const BUDGET = { decisions: 0, press: 0, touchline: 0, replies: 3 }
 
 const say = (s: string) => console.log(s)
 let fails = 0
@@ -41,7 +45,12 @@ const files = readdirSync(GAME).filter(f => f.endsWith('.ts')).map(f => `${GAME}
 const isProse = (arg: string): boolean => {
   const quoted = [...arg.matchAll(/`([^`]*)`|'([^']*)'|"([^"]*)"/g)]
     .map(m => m[1] ?? m[2] ?? m[3] ?? '')
-  return quoted.some(q => q.trim().length > 12 && /\s/.test(q))
+  // Strip the ${...} holes before judging. `${date} ${month} ${year}` is three
+  // spaces and no English at all, and counting it made the money formatter and
+  // the date formatter look like prose that needed translating.
+  return quoted
+    .map(q => q.replace(/\$\{[^}]*\}/g, ' '))
+    .some(q => /[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(q))
 }
 
 /** The argument after `fn(state, ` in a call, to the comma that closes it. */
@@ -115,6 +124,43 @@ if (touchline.length) say('  ' + touchline.slice(0, 10).join('\n  ') + (touchlin
 ok(touchline.length <= BUDGET.touchline, `no touchline reply beyond the budget of ${BUDGET.touchline} is written as English`)
 if (touchline.length < BUDGET.touchline) {
   ok(false, `THE TOUCHLINE BUDGET IS STALE: ${touchline.length} left but it still says ${BUDGET.touchline}. Lower it`)
+}
+
+say('\n--- 4. and what it says back everywhere else')
+// Everything in the engine that returns a sentence for a screen to show. The
+// touchline files are counted above and skipped here so one line is not two
+// failures; everything else in src/game is fair game, because a reply is a
+// reply whichever screen asked for it.
+const replies: string[] = []
+for (const f of files) {
+  if (f.endsWith('matchEngine.ts')) continue
+  const src = readFileSync(f, 'utf8')
+  // A few functions return something that LOOKS like a sentence and is not: a
+  // trait's id, which traitName() turns into a key, and the English body a
+  // story stores next to its own key. Both are correct as they stand and both
+  // would be made wrong by "fixing" them, so they are bracketed in the source
+  // with i18n-exempt-start / i18n-exempt-end and skipped here. The marker is
+  // deliberately ugly and greppable: it should be hard to add without meaning
+  // to, and easy to find when auditing what this probe does not see.
+  const exempt: [number, number][] = []
+  for (const m of src.matchAll(/i18n-exempt-start/g)) {
+    const end = src.indexOf('i18n-exempt-end', m.index)
+    exempt.push([m.index!, end === -1 ? src.length : end])
+  }
+  for (const m of src.matchAll(/\breturn\s+(`(?:[^`\\]|\\.)*`|'(?:[^'\\]|\\.)*')/g)) {
+    if (exempt.some(([a, b]) => m.index! > a && m.index! < b)) continue
+    if (isProse(m[1])) replies.push(`${f}:${src.slice(0, m.index).split('\n').length}`)
+  }
+}
+const byFile = new Map<string, number>()
+for (const r of replies) byFile.set(r.split(':')[0], (byFile.get(r.split(':')[0]) ?? 0) + 1)
+say(`  ${replies.length} repl${replies.length === 1 ? 'y' : 'ies'} written as English (budget ${BUDGET.replies})`)
+if (byFile.size) {
+  say('  ' + [...byFile].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([f, n]) => `${n} ${f}`).join('\n  '))
+}
+ok(replies.length <= BUDGET.replies, `no reply beyond the budget of ${BUDGET.replies} is written as English`)
+if (replies.length < BUDGET.replies) {
+  ok(false, `THE REPLIES BUDGET IS STALE: ${replies.length} left but it still says ${BUDGET.replies}. Lower it`)
 }
 
 say(fails ? `\nPROSE PROBE FAILED (${fails})` : '\nPROSE PROBE PASSED: nothing reaches a reader in a language they did not choose')

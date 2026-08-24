@@ -3,6 +3,7 @@
 
 import type { GameState } from './model'
 import { clamp, mulberry32 } from './rng'
+import { t } from './i18n'
 
 export const SPECIALIST_FEE = 50_000
 
@@ -10,10 +11,10 @@ export const SPECIALIST_FEE = 50_000
 export function specialistConsult(state: GameState, pid: number): string {
   const p = state.players[pid]
   const club = state.clubs[state.userClubId]
-  if (!p?.injury) return 'He is not injured.'
-  if (p.specialist) return 'He has already seen the specialist for this injury.'
-  if (p.injury.until - state.week < 3) return 'He is too close to returning - a consult would change nothing.'
-  if (club.balance < SPECIALIST_FEE) return 'The club cannot afford the consult right now.'
+  if (!p?.injury) return t('reply.notInjured')
+  if (p.specialist) return t('reply.alreadySawSpecialist')
+  if (p.injury.until - state.week < 3) return t('reply.tooCloseToReturn')
+  if (club.balance < SPECIALIST_FEE) return t('reply.noMoneyForConsult')
   club.balance -= SPECIALIST_FEE
   p.specialist = true
   // A PAID CONSULT DOES SOMETHING, EVERY TIME (user: "if you hit specialist
@@ -33,18 +34,18 @@ export function specialistConsult(state: GameState, pid: number): string {
       k: 'news.specialist', v: { player: p.name, injury_k: p.injury.dk ?? 'common.nothing', n: cut },
       playerId: p.id,
     })
-    return `${p.name} responds brilliantly - back ${cut} week${cut > 1 ? 's' : ''} earlier.`
+    return t('reply.consultWorked', { player: p.name, n: cut })
   }
 }
 
 /** One player per week can be rested through his rust safely. */
 export function cottonWool(state: GameState, pid: number): string {
   const abs = state.season * 100 + state.week
-  if (state.cottonWk === abs) return 'The physio room can only wrap one man per week.'
+  if (state.cottonWk === abs) return t('reply.physioRoomBusy')
   const p = state.players[pid]
-  if (!p || (p.rust ?? 0) <= 0) return 'He does not need wrapping.'
+  if (!p || (p.rust ?? 0) <= 0) return t('reply.noWrapNeeded')
   state.cottonWk = abs
   p.rust = Math.max(0, (p.rust ?? 1) - 1)
   p.cond = clamp(p.cond + 12, 20, 100)
-  return `${p.name} spends the week in cotton wool - ${(p.rust ?? 0) === 0 ? 'rust cleared, ' : ''}legs freshened.`
+  return t('reply.wrapped', { player: p.name, rust_k: (p.rust ?? 0) === 0 ? 'reply.wrappedRustCleared' : 'common.nothing' })
 }

@@ -264,7 +264,11 @@ export function eraSummary(state: GameState): string {
     else if (us < them) l++
   }
   const legend = (state.legendOf ?? []).includes(club.id)
-  return `The era in numbers: ${tenure} ${tenure === 1 ? 'season' : 'seasons'}, ${w} wins, ${l} defeats, ${cups} ${cups === 1 ? 'trophy' : 'trophies'}.${legend ? ' The legend status stays - that was voted, not loaned.' : ''}`
+  return t('reply.eraInNumbers', {
+    n: tenure, seasons_k: tenure === 1 ? 'reply.oneSeason' : 'reply.manySeasons',
+    w, l, cups, cups_k: cups === 1 ? 'reply.oneTrophy' : 'reply.manyTrophies',
+    legend_k: legend ? 'reply.legendStays' : 'common.nothing',
+  })
 }
 
 export function resignJob(state: GameState) {

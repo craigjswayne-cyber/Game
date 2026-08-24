@@ -11,6 +11,7 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
+import { t } from './i18n'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 
@@ -56,16 +57,16 @@ export function natEligible(state: GameState): Player[] {
  *  refusal the screen prints. */
 export function natCallUp(state: GameState, playerId: number): string | null {
   const nat = state.natTeam
-  if (!nat) return 'You do not hold a national job.'
+  if (!nat) return t('reply.noNationalJob')
   const w = natWindow(state)
   const squad = state.natSquads[nat]
-  if (!w || !squad) return 'No window is open. Call-ups happen when the federation opens camp.'
+  if (!w || !squad) return t('reply.noCampWindow')
   const p = state.players[playerId]
-  if (!p) return 'No such player.'
-  if (squad.includes(playerId) || p.natSquad) return `${p.name} is already in a Test squad.`
-  if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return `${p.name} is not qualified for this squad.`
-  if (p.injury) return `${p.name} is injured. The medical staff will not pass him.`
-  if (squad.length >= w.size) return `The federation caps the squad at ${w.size}. Drop a name first.`
+  if (!p) return t('reply.noSuchPlayer')
+  if (squad.includes(playerId) || p.natSquad) return t('reply.alreadyInTestSquad', { player: p.name })
+  if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return t('reply.notQualified', { player: p.name })
+  if (p.injury) return t('reply.injuredNotPassed', { player: p.name })
+  if (squad.length >= w.size) return t('reply.squadCapped', { n: w.size })
   squad.push(playerId)
   p.natSquad = true
   p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
@@ -78,13 +79,13 @@ export function natCallUp(state: GameState, playerId: number): string | null {
  *  refusal the screen prints. */
 export function natDrop(state: GameState, playerId: number): string | null {
   const nat = state.natTeam
-  if (!nat) return 'You do not hold a national job.'
+  if (!nat) return t('reply.noNationalJob')
   const w = natWindow(state)
   const squad = state.natSquads[nat]
-  if (!w || !squad) return 'No window is open.'
+  if (!w || !squad) return t('reply.noWindow')
   const idx = squad.indexOf(playerId)
-  if (idx < 0) return 'He is not in the squad.'
-  if (squad.length <= NAT_SQUAD_FLOOR) return `A Test squad cannot go below ${NAT_SQUAD_FLOOR} - call a replacement up first.`
+  if (idx < 0) return t('reply.notInSquad')
+  if (squad.length <= NAT_SQUAD_FLOOR) return t('reply.squadFloor', { n: NAT_SQUAD_FLOOR })
   const p = state.players[playerId]
   squad.splice(idx, 1)
   if (p) {

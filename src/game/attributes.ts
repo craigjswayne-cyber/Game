@@ -275,8 +275,13 @@ export function deriveCaps(p: { id: number; age: number; intl: boolean; ca: numb
   return Math.min(130, Math.round(yrs * perYr))
 }
 
+// i18n-exempt-start
 /** Deterministic signature trait: roughly 40% of players carry one, decided
- *  by id and attribute profile so saves and fresh worlds always agree. */
+ *  by id and attribute profile so saves and fresh worlds always agree.
+ *
+ *  What comes back is a trait ID, not prose. The profile screen renders it
+ *  through traitName(), which looks it up under `traits.`; translating it here
+ *  would break that lookup and put a French string where a key belongs. */
 export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] }): string | null {
   if (p.id % 5 >= 2) return null
   const { a, pos } = p
@@ -292,6 +297,7 @@ export function deriveTrait(p: { id: number; pos: Player['pos']; a: Player['a'] 
   if (a.lea >= 14) return 'Big-Game Player'
   return null
 }
+// i18n-exempt-end
 
 export function buildPlayer(raw: RawPlayer, clubId: string | null, seed: number, seasonNow: number): Player {
   const a = deriveAttrs(raw, seed)

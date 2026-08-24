@@ -1,5 +1,5 @@
 import type { GameState, Player } from './model'
-import { tIn } from './i18n'
+import { t, tIn } from './i18n'
 import { clubIntent } from './living'
 import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
@@ -55,7 +55,7 @@ function capBreak(state: GameState, clubId: string, wage: number, replacing = 0)
   const club = state.clubs[clubId]
   const after = capBill(state, club) - replacing + wage
   if (after <= cap) return null
-  return `Those terms would put the club ${fmtMoney(after - cap)}/wk over the ${fmtMoney(cap)}/wk salary cap. Free up room, or name him a marquee player.`
+  return t('reply.overCap', { over: fmtMoney(after - cap), cap: fmtMoney(cap) })
 }
 
 /** Is the club barred from signing anybody for a cap breach? */
@@ -544,14 +544,14 @@ export function userBid(state: GameState, playerId: number, fee: number): { ok: 
 /** Demand more for a player an AI club has bid on. They may pay up or walk. */
 export function counterIncomingOffer(state: GameState, offerId: number): string {
   const o = state.offers.find(x => x.id === offerId)
-  if (!o || o.status !== 'pending') return 'Offer no longer available.'
+  if (!o || o.status !== 'pending') return t('reply.offerGone')
   // one round of haggling: the fee rises 18% on a 55% roll and the bid stays
   // pending, so an unlimited counter would be a money printer
-  if (o.countered) return 'You have already been back to them once. Answer the offer.'
+  if (o.countered) return t('reply.alreadyCountered')
   o.countered = true
   const p = state.players[o.playerId]
   const bidder = state.clubs[o.fromClubId]
-  if (!p || !bidder) { o.status = 'rejected'; return 'Offer withdrawn.' }
+  if (!p || !bidder) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
   // THE RAISE IS ANCHORED TO THE PLAYER, NOT TO THE BID (user: "sometimes they
   // offer more... but it should be balanced so not crazy that it makes the game
   // easy"). A flat +18% rewarded holding out on a bid that was already generous
@@ -571,22 +571,22 @@ export function counterIncomingOffer(state: GameState, offerId: number): string 
     // the old code walked them 100% of the time, without even rolling. A
     // club that tabled big money does not tear the cheque up because you
     // asked; it just stops moving. Greed now costs the raise, not the sale.
-    return `${bidder.short} do not blink - the money is already above the odds, and ${fmtMoney(o.fee)} is their best and final. Answer the offer.`
+    return t('reply.bidderFinal', { club: bidder.short, fee: fmtMoney(o.fee) })
   }
   if (rng() < 0.55) {
     o.fee = newFee
-    return `${bidder.short} grumble... then agree to ${fmtMoney(newFee)}. Accept while it lasts - and know that ${p.name.split(' ').slice(-1)[0]} will hear a bid this size was on the table.`
+    return t('reply.bidderRaises', { club: bidder.short, fee: fmtMoney(newFee), last: p.name.split(' ').slice(-1)[0] })
   }
   o.status = 'rejected'
-  return `${bidder.short} walk away from the table. The offer is gone.`
+  return t('reply.bidderWalks', { club: bidder.short })
 }
 
 export function respondToOffer(state: GameState, offerId: number, accept: boolean): string {
   const o = state.offers.find(x => x.id === offerId)
-  if (!o || o.status !== 'pending') return 'Offer no longer available.'
+  if (!o || o.status !== 'pending') return t('reply.offerGone')
   const p = state.players[o.playerId]
   const bidder = state.clubs[o.fromClubId]
-  if (!p || !bidder) { o.status = 'rejected'; return 'Offer withdrawn.' }
+  if (!p || !bidder) { o.status = 'rejected'; return t('reply.offerWithdrawn') }
   if (accept) {
     // THE BOARD'S SQUAD FLOOR (chaos sweep finding). There is no release
     // button in this game, so accepting incoming bids is the one lever that
@@ -601,11 +601,11 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
       .map(id => state.players[id]).filter(x => x && !x.acad).length
     if (p.clubId === state.userClubId && !p.acad && seniors - 1 < 18) {
       o.status = 'rejected'
-      return `The board vetoes the sale. ${seniors - 1} senior players cannot fulfil a fixture list, and they will not let the club become the league's ghost ship - build the squad back up before selling again.`
+      return t('reply.boardVetoesSale', { n: seniors - 1 })
     }
     o.status = 'accepted'
     executeTransfer(state, p, bidder.id, o.fee)
-    return `${p.name} sold to ${bidder.name} for ${fmtMoney(o.fee)}.`
+    return t('reply.sold', { player: p.name, club: bidder.name, fee: fmtMoney(o.fee) })
   }
   o.status = 'rejected'
   const sulky = p.pers === 'Ambitious' || p.pers === 'Mercenary' || p.pers === 'Temperamental'
@@ -616,13 +616,13 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
   // is the cost of refusing it.
   if (o.countered && o.fee >= p.value * 1.2) {
     p.morale = clamp(p.morale - (sulky ? 1.8 : 0.9), 1, 10)
-    return `Bid rejected. ${p.name} knows ${bidder.short} came back with more and you still said no - ${sulky ? 'he is furious, and his agent is already on the phone' : 'he accepts it, but something has soured'}.`
+    return t('reply.bidRejectedKnew', { player: p.name, club: bidder.short, mood_k: sulky ? 'reply.bidRejectedFurious' : 'reply.bidRejectedSoured' })
   }
   if (p.morale <= 4 || (sulky && bidder.rep > (state.clubs[state.userClubId]?.rep ?? 0))) {
     p.morale = clamp(p.morale - (sulky ? 1.4 : 0.5), 1, 10)
-    return `Bid rejected. ${p.name} (${p.pers.toLowerCase()}) is frustrated the move was blocked.`
+    return t('reply.bidRejectedFrustrated', { player: p.name, pers_k: `persLower.${p.pers}` })
   }
-  return `Bid rejected. ${p.name} stays.`
+  return t('reply.bidRejectedStays', { player: p.name })
 }
 
 // ------------------------------------------------------------------
@@ -633,9 +633,9 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
  *  Reaction depends on whether it's deserved and on his personality. */
 export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' | 'word'): string {
   const p = state.players[playerId]
-  if (!p || p.clubId !== state.userClubId) return 'Not your player.'
+  if (!p || p.clubId !== state.userClubId) return t('reply.notYourPlayer')
   const now = state.season * 100 + state.week
-  if (p.talkWk != null && now - p.talkWk < 3) return `You pulled him aside only recently - leave it a week or two, or the words lose their weight.`
+  if (p.talkWk != null && now - p.talkWk < 3) return t('reply.spokeTooRecently')
   p.talkWk = now
   const rng = mulberry32(((state.season * 53 + state.week) * 7919) ^ (playerId * 2654435761))
   const first = p.name.split(' ')[0]
@@ -646,31 +646,31 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
     if (goodForm) {
       bump(p.pers === 'Temperamental' ? 1.3 : 0.9)
       switch (p.pers) {
-        case 'Leader': return `${first} nods once. "Standards, gaffer." He walks out an inch taller - the rest of the room noticed.`
-        case 'Professional': return `A brief handshake and back to his stretches. He appreciated it - you can tell by the extra ten minutes he stays out kicking.`
-        case 'Temperamental': return `${first} beams like you've handed him the captaincy. He'll play like a superstar this week - mind he doesn't try to do it all himself.`
-        case 'Mercenary': return `"Good of you to notice." He's purring - and no doubt filing it away for the next contract chat.`
-        default: return `${first} leaves your office with his chest out. The praise landed - morale is up.`
+        case 'Leader': return t('reply.praiseLeader', { first })
+        case 'Professional': return t('reply.praiseProfessional')
+        case 'Temperamental': return t('reply.praiseTemperamental', { first })
+        case 'Mercenary': return t('reply.praiseMercenary')
+        default: return t('reply.praiseDefault', { first })
       }
     }
     if (p.pers === 'Professional' || p.pers === 'Leader') {
       bump(-0.4)
-      return `${first} frowns. He knows his form has been poor, and empty flattery insults him. That one backfired.`
+      return t('reply.praiseBackfired', { first })
     }
     bump(0.35)
-    return `He laps it up - though the coaches exchange a look. Praising poor form is a dangerous habit.`
+    return t('reply.praiseLapsItUp')
   }
 
   // 'word' - the quiet (or not so quiet) chat about standards
   if (!goodForm) {
     if (p.pers === 'Professional' || p.pers === 'Leader' || p.pers === 'Loyal') {
       bump(0.55)
-      return `${first} takes it on the chin. "You're right, gaffer. It's not good enough." He's first out to training the next morning.`
+      return t('reply.warnTakesIt', { first })
     }
     if (p.pers === 'Ambitious') {
-      if (rng() < 0.5) { bump(0.65); return `${first} bristles, then burns. He wants the big time and knows this form won't get him there - expect a response.` }
+      if (rng() < 0.5) { bump(0.65); return t('reply.warnBristles', { first }) }
       bump(-0.8)
-      return `${first} folds his arms and stares at the floor. The message was fair; the reaction wasn't. He'll sulk for a while.`
+      return t('reply.warnSulks', { first })
     }
     bump(-1.1)
     if (rng() < 0.4) {
@@ -681,9 +681,9 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
         k: 'news.dressingDown', v: { player: p.name },
         playerId: p.id,
       })
-      return `${first} storms out and slams the door. By Thursday it's in the group chat. That could fester.`
+      return t('reply.warnStormsOut', { first })
     }
-    return `${first} goes quiet and stares through you. The message may have landed, but the mood has soured.`
+    return t('reply.warnGoesQuiet', { first })
   }
   bump(p.pers === 'Temperamental' ? -1.5 : -0.8)
   return p.pers === 'Temperamental'

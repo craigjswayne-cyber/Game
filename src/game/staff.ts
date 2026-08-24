@@ -258,7 +258,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
     },
   })
   logDecision(state, 'dec.appointedStaff', { name: c.name, role_k: info.name, badge_k: `staff.badge${c.tier}`, fee: fmt(c.fee), wage: fmt(c.wage), out_k: outgoing ? 'dec.andHeLeft' : 'common.nothing', out: outgoing?.name ?? '' }, true)
-  return `${c.name} is your new ${tIn('en', info.name).toLowerCase()}. ${fmt(c.fee)} compensation paid.`
+  return t('reply.staffAppointed', { name: c.name, role_k: info.name, fee: fmt(c.fee) })
 }
 
 /**
@@ -332,7 +332,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
       k: 'news.badgePass',
       v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) },
     })
-    return `${p.name} passed. He is ${badge}-badged from today, and on ${fmt(p.wage)} a week.`
+    return t('reply.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, wage: fmt(p.wage) })
   }
   p.failed = (p.failed ?? 0) + 1
   p.retakeAt = abs + RETAKE_WEEKS
@@ -344,7 +344,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     k: 'news.badgeFail',
     v: { name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) },
   })
-  return `${p.name} fell short. The ${fmt(fee)} is gone and he cannot sit it again for a month.`
+  return t('reply.badgeFailed', { name: p.name, fee: fmt(fee) })
 }
 
 
