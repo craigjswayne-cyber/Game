@@ -3,6 +3,7 @@
 import type { GameState, Player } from './model'
 import { SEASON_WEEKS, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
+import { tIn } from './i18n'
 import { clamp, mulberry32 } from './rng'
 
 /** Young talent parked on big-club benches, available for a season's loan. */
@@ -80,6 +81,7 @@ export function loanIn(state: GameState, playerId: number): string {
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `Loan signing: ${p.name} arrives from ${parent.short}`,
     body: `${p.name} (${p.age}, ${p.pos}) joins on loan until the end of the season. ${parent.short} cover half his wage - they want him playing, so play him.`,
+    k: 'news.loanIn', v: { player: p.name, age: p.age, pos: p.pos, parent: parent.short },
     playerId: p.id,
   })
   // keep the parent's lineup coherent
@@ -122,6 +124,7 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: true,
     subject: `${p.name} heads out on loan`,
     body: `${p.name} joins ${feeder ? feeder.name : 'a feeder club'} for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.`,
+    k: 'news.loanOut', v: { player: p.name, club: feeder?.name ?? tIn('en', 'news.aFeederClub') },
     playerId: p.id,
   })
   return { ok: true, msg: `${p.name} will spend the season on loan${feeder ? ` at ${feeder.name}` : ''}. He returns next summer, better for it.` }
@@ -178,6 +181,8 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
     body: halfServed
       ? `${p.name} (${p.pos}, ${p.age}) is back in the building, match-fit from weekly rugby and visibly improved by the months away. The feeder club are sorry to lose him, which is the best reference there is.`
       : `${p.name} (${p.pos}, ${p.age}) is back in the building, match-fit from weekly rugby. The move home this early cuts the education short - the development the loan promised needed the season to pay in full.`,
+    k: halfServed ? 'news.recalledFull' : 'news.recalledEarly',
+    v: { player: p.name, pos: p.pos, age: p.age },
     playerId: p.id,
   })
   return { ok: true, msg: `${p.name} reports back to training in the morning.` }

@@ -3932,6 +3932,21 @@
     "inheritedMan": "{name} ({role_k})",
     "inheritedRole": "{role_k}",
     "runinTopFinalSeedSubj": "🏁 FINAL DAY: top seed in your hands",
-    "runinTopFinalSeed": "Top of the table, {lead_k}. {push_k}\n{rows_ll}"
+    "runinTopFinalSeed": "Top of the table, {lead_k}. {push_k}\n{rows_ll}",
+    "aFeederClub": "a feeder club",
+    "loanInSubj": "Loan signing: {player} arrives from {parent}",
+    "loanIn": "{player} ({age}, {pos}) joins on loan until the end of the season. {parent} cover half his wage - they want him playing, so play him.",
+    "loanOutSubj": "{player} heads out on loan",
+    "loanOut": "{player} joins {club} for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.",
+    "recalledFullSubj": "🧳 {player} recalled from loan",
+    "recalledFull": "{player} ({pos}, {age}) is back in the building, match-fit from weekly rugby and visibly improved by the months away. The feeder club are sorry to lose him, which is the best reference there is.",
+    "recalledEarlySubj": "🧳 {player} recalled from loan",
+    "recalledEarly": "{player} ({pos}, {age}) is back in the building, match-fit from weekly rugby. The move home this early cuts the education short - the development the loan promised needed the season to pay in full.",
+    "huntPaperSubj": "Paper talk: {short} admire {player}",
+    "huntPaper": "A paragraph at the bottom of a transfer column, nothing more: {club} \"hold a long-standing admiration\" for {player}. That is how these always start, and most of them come to nothing.",
+    "huntAskedSubj": "{poss} coach is asked about {player}, and does not deny it",
+    "huntAsked": "Put to him directly in a press conference, {club}'s head coach called {player} \"a wonderful player at a club he is happy at\" and moved on to the next question. Nobody in the room believed the second half of that sentence.\n\nHe is under contract. That has never been the same thing as being unavailable.",
+    "huntBidSubj": "🚨 {short} bid {fee} for {player}",
+    "huntBid": "So it was not paper talk. {club} have made {player} a formal offer of {fee}, comfortably above his valuation, and they have been building to this since the autumn.\n\nYou have known it was coming for months. Now you answer it."
   }
 }

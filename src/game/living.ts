@@ -143,6 +143,7 @@ export function advanceHunt(state: GameState): void {
       id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
       subject: `Paper talk: ${club.short} admire ${p.name}`,
       body: `A paragraph at the bottom of a transfer column, nothing more: ${club.name} "hold a long-standing admiration" for ${p.name}. That is how these always start, and most of them come to nothing.`,
+      k: 'news.huntPaper', v: { short: club.short, club: club.name, player: p.name },
       playerId: p.id,
     })
   } else if (nextStage === 2) {
@@ -150,6 +151,7 @@ export function advanceHunt(state: GameState): void {
       id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
       subject: `${poss(club.short)} coach is asked about ${p.name}, and does not deny it`,
       body: `Put to him directly in a press conference, ${club.name}'s head coach called ${p.name} "a wonderful player at a club he is happy at" and moved on to the next question. Nobody in the room believed the second half of that sentence.\n\nHe is under contract. That has never been the same thing as being unavailable.`,
+      k: 'news.huntAsked', v: { poss: poss(club.short), club: club.name, player: p.name },
       playerId: p.id,
     })
   } else {
@@ -162,6 +164,7 @@ export function advanceHunt(state: GameState): void {
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
       subject: `🚨 ${club.short} bid ${fmtMoney(fee)} for ${p.name}`,
       body: `So it was not paper talk. ${club.name} have made ${p.name} a formal offer of ${fmtMoney(fee)}, comfortably above his valuation, and they have been building to this since the autumn.\n\nYou have known it was coming for months. Now you answer it.`,
+      k: 'news.huntBid', v: { short: club.short, club: club.name, player: p.name, fee: fmtMoney(fee) },
       playerId: p.id,
     })
   }
