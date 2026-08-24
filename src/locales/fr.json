@@ -3947,6 +3947,20 @@
     "huntAskedSubj": "L'entraîneur {poss} est interrogé sur {player}, et ne dément pas",
     "huntAsked": "Interrogé directement en conférence de presse, l'entraîneur principal de {club} a qualifié {player} de « joueur formidable, dans un club où il est heureux » avant de passer à la question suivante. Personne dans la salle n'a cru la seconde moitié de cette phrase.\n\nIl est sous contrat. Cela n'a jamais voulu dire indisponible.",
     "huntBidSubj": "🚨 {short} offre {fee} pour {player}",
-    "huntBid": "Ce n'étaient donc pas de simples bruits de couloir. {club} a fait à {player} une offre formelle de {fee}, nettement au-dessus de sa valeur, et ils construisent ça depuis l'automne.\n\nVous saviez que cela arriverait depuis des mois. Maintenant, vous devez répondre."
+    "huntBid": "Ce n'étaient donc pas de simples bruits de couloir. {club} a fait à {player} une offre formelle de {fee}, nettement au-dessus de sa valeur, et ils construisent ça depuis l'automne.\n\nVous saviez que cela arriverait depuis des mois. Maintenant, vous devez répondre.",
+    "transferRequestSubj": "🚪 {player} dépose une demande de transfert",
+    "transferRequest": {
+      "one": "On lui avait dit où il en était - {status_k} - et les feuilles de match disent {n} apparition sur {played} rencontres. Ce matin, une demande de transfert formelle a atterri sur votre bureau. Alignez-le et il pourra peut-être être raisonné ; laissez traîner et tous les agents du championnat sauront qu'il est prenable.",
+      "other": "On lui avait dit où il en était - {status_k} - et les feuilles de match disent {n} apparitions sur {played} rencontres. Ce matin, une demande de transfert formelle a atterri sur votre bureau. Alignez-le et il pourra peut-être être raisonné ; laissez traîner et tous les agents du championnat sauront qu'il est prenable."
+    },
+    "requestWithdrawnSubj": "🤝 {player} retire sa demande de transfert",
+    "requestWithdrawn": "Les feuilles de match ont parlé : le temps de jeu est venu, et le grief est parti avec. La demande est retirée - discrètement, comme ces choses se terminent quand elles se terminent bien.",
+    "ledgerSubj": "📋 Temps de jeu : {n} joueurs n'ont pas ce qu'on leur avait annoncé",
+    "ledger": "{asst} a épluché les feuilles de match :\n\n{rows_ll}\n\n{tail_k}",
+    "ledgerMoreSubj": "📋 Temps de jeu : {n} joueurs n'ont pas ce qu'on leur avait annoncé",
+    "ledgerMore": "{asst} a épluché les feuilles de match :\n\n{rows_ll}\n...et {rest} autres sur le registre.\n\n{tail_k}",
+    "ledgerMan": "{name} ({status_k}) : {actual} des {expected} matches promis.",
+    "ledgerWatch": "{worst} est celui à surveiller - encore un mois comme ça et son agent décroche son téléphone.",
+    "ledgerCalm": "Personne n'a encore posé les outils. Corrigez par la composition, ou par une conversation honnête dans Équipe ▸ Temps de jeu."
   }
 }

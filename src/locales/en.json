@@ -3947,6 +3947,20 @@
     "huntAskedSubj": "{poss} coach is asked about {player}, and does not deny it",
     "huntAsked": "Put to him directly in a press conference, {club}'s head coach called {player} \"a wonderful player at a club he is happy at\" and moved on to the next question. Nobody in the room believed the second half of that sentence.\n\nHe is under contract. That has never been the same thing as being unavailable.",
     "huntBidSubj": "🚨 {short} bid {fee} for {player}",
-    "huntBid": "So it was not paper talk. {club} have made {player} a formal offer of {fee}, comfortably above his valuation, and they have been building to this since the autumn.\n\nYou have known it was coming for months. Now you answer it."
+    "huntBid": "So it was not paper talk. {club} have made {player} a formal offer of {fee}, comfortably above his valuation, and they have been building to this since the autumn.\n\nYou have known it was coming for months. Now you answer it.",
+    "transferRequestSubj": "🚪 {player} hands in a transfer request",
+    "transferRequest": {
+      "one": "He was told where he stood - {status_k} - and the team sheets say {n} appearance from {played} matches. This morning a formal transfer request landed on your desk. Pick him and he may yet be talked round; leave it and every agent in the league will know he is gettable.",
+      "other": "He was told where he stood - {status_k} - and the team sheets say {n} appearances from {played} matches. This morning a formal transfer request landed on your desk. Pick him and he may yet be talked round; leave it and every agent in the league will know he is gettable."
+    },
+    "requestWithdrawnSubj": "🤝 {player} withdraws his transfer request",
+    "requestWithdrawn": "The team sheets did the talking: the minutes came, and the grievance went with them. The request is withdrawn - quietly, the way these things end when they end well.",
+    "ledgerSubj": "📋 Game time: {n} men are not getting what they were told",
+    "ledger": "{asst} has been through the team sheets:\n\n{rows_ll}\n\n{tail_k}",
+    "ledgerMoreSubj": "📋 Game time: {n} men are not getting what they were told",
+    "ledgerMore": "{asst} has been through the team sheets:\n\n{rows_ll}\n...and {rest} more on the ledger.\n\n{tail_k}",
+    "ledgerMan": "{name} ({status_k}): {actual} of the {expected} games he was promised.",
+    "ledgerWatch": "{worst} is the one to watch - another month of this and his agent starts dialling.",
+    "ledgerCalm": "Nobody has downed tools yet. Fix it with selection, or an honest word on Team ▸ Game Time."
   }
 }
