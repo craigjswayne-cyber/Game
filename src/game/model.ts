@@ -202,20 +202,32 @@ export interface SeasonReview {
 export const grudgeBetween = (state: GameState, x: string, y: string) =>
   state.grudges?.find(g => ((g.a === x && g.b === y) || (g.a === y && g.b === x)) && g.until >= state.season) ?? null
 
-/** Record (or refresh) bad blood between two clubs; news if the user is in it. */
-export function addGrudge(state: GameState, a: string, b: string, reason: string, seasons = 2) {
+/** Why two clubs are not speaking, in the reader's language - or in the English
+ *  it was recorded in, on a save written before grudges carried a key. */
+export const grudgeReason = (g: { reason: string; rk?: string; rv?: Record<string, string | number> }): string =>
+  (g.rk ? t(g.rk, g.rv) : g.reason)
+
+/** Record (or refresh) bad blood between two clubs; news if the user is in it.
+ *
+ *  The reason arrives as a key and its values rather than as a sentence,
+ *  because it is quoted in three places a reader sees - the club's rifts card,
+ *  the fixture line on the home screen, and the kick-off commentary - and a
+ *  sentence recorded in English is English in all three, for the two seasons
+ *  the grudge lasts. */
+export function addGrudge(state: GameState, a: string, b: string, rk: string, rv?: Record<string, string | number>, seasons = 2) {
   if (!state.clubs[a] || !state.clubs[b] || a === b) return
+  const reason = tIn('en', rk, rv)
   state.grudges ??= []
   const ex = state.grudges.find(g => (g.a === a && g.b === b) || (g.a === b && g.b === a))
-  if (ex) { ex.reason = reason; ex.until = Math.max(ex.until, state.season + seasons); return }
-  state.grudges.push({ a, b, reason, until: state.season + seasons })
+  if (ex) { ex.reason = reason; ex.rk = rk; ex.rv = rv; ex.until = Math.max(ex.until, state.season + seasons); return }
+  state.grudges.push({ a, b, reason, rk, rv, until: state.season + seasons })
   if (a === state.userClubId || b === state.userClubId) {
     const opp = a === state.userClubId ? b : a
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
       body: `There is genuine needle between the clubs now - ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
-      k: 'news.badBlood', v: { short: state.clubs[opp].short, reason },
+      k: 'news.badBlood', v: { short: state.clubs[opp].short, reason_k: rk, ...(rv ?? {}) },
     })
   }
 }
@@ -594,10 +606,30 @@ export interface MatchEvent {
   teamId: string
   playerId?: number
   playerName?: string
+  /** The line as it was CALLED, in English, always - and not display text.
+   *
+   *  Same rule as NewsItem.body, and for the same reason: the engine reads its
+   *  own commentary back. The pitch mock-up decides whether to draw a scrum, a
+   *  lineout or a maul by looking at the last line's wording, and a save keeps
+   *  its events for as long as the career lasts. Translating this in place
+   *  would break the reader on a save written by an older build, which is the
+   *  one failure a player can neither see coming nor undo.
+   *
+   *  So the line travels twice: this English, for the engine, and `k` plus `v`
+   *  for the reader. Screens render eventText(), never this. */
   text: string
+  /** The commentary key, and the values that go in its holes. Absent on events
+   *  from a save written before the commentary was keyed, which is exactly why
+   *  eventText() falls back to `text` rather than to the key's name. */
+  k?: string
+  v?: Record<string, string | number>
   homeScore: number
   awayScore: number
 }
+
+/** A commentary line in the reader's language, or the English it was called in
+ *  if this event predates the key. */
+export const eventText = (e: MatchEvent): string => (e.k ? t(e.k, e.v) : e.text)
 
 export interface NewsItem {
   id: number
@@ -1224,7 +1256,11 @@ export interface GameState {
   chem?: Record<string, number>
   /** dynamic bad blood between clubs: cup eliminations, poached stars,
    *  ill-tempered matches. Expires after `until` season. */
-  grudges?: { a: string; b: string; reason: string; until: number }[]
+  /** `reason` is the English the grudge was recorded in and is what an old save
+   *  carries; `rk`/`rv` are the key and values a reader sees. Same rule as the
+   *  inbox: the stored English is not display text, and grudgeReason() prefers
+   *  the key when the save has one. */
+  grudges?: { a: string; b: string; reason: string; rk?: string; rv?: Record<string, string | number>; until: number }[]
   /** structured snapshot of the user's last completed season */
   review?: SeasonReview | null
   /** terrace mood at the user's club, 5-98 - swings with results, colours

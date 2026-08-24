@@ -12,7 +12,7 @@ import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
-import { fmtMoney, formGuide, grudgeBetween, newsSubject, weekDate } from '../../game/model'
+import { fmtMoney, formGuide, grudgeBetween, grudgeReason, newsSubject, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t } from '../../game/i18n'
@@ -132,7 +132,7 @@ export default function Home() {
         const grudge = fx ? grudgeBetween(game, fx.homeId, fx.awayId) : null
         const derby = fx ? derbyName(fx.homeId, fx.awayId) : null
         const hook = derby ? t('home.derbyWeek', { derby: derby.toUpperCase() })
-          : grudge ? t('home.grudge', { reason: grudge.reason })
+          : grudge ? t('home.grudge', { reason: grudgeReason(grudge) })
           : fx?.stage ? t('home.knockout', { stage: stageName(fx.stage) })
           : game.week === 7 || game.week === 27 ? t('home.deadlineWeek')
           : null

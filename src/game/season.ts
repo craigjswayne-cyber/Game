@@ -2388,7 +2388,12 @@ export function processWeekAndAdvance(state: GameState) {
     const loser = winner === fx.homeId ? fx.awayId : fx.homeId
     const comp = state.comps[fx.compId]
     addGrudge(state, loser, winner,
-      `they broke our hearts in the ${comp?.short ?? 'cup'} ${fx.stage === 'F' ? 'final' : 'semi-final'}`)
+      fx.stage === 'F' ? 'news.grudgeBrokeHeartsFinal' : 'news.grudgeBrokeHeartsSemi',
+      // A competition's short name is a proper noun and travels as a variable;
+      // "the cup", when there is no competition to name, is a WORD, and a word
+      // passed in as a variable is English hiding inside a French sentence. So
+      // the slot picks between two keys instead.
+      { comp_k: comp?.short ? 'news.grudgeCompNamed' : 'news.grudgeCup', comp: comp?.short ?? '' })
   }
 
   // The user's match, whoever played it.

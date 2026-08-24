@@ -1130,144 +1130,144 @@ export interface SimResult {
 }
 
 const TRY_LINES = [
-  (n: string) => `TRY! ${n} crashes over from close range!`,
-  (n: string) => `TRY! ${n} finishes superbly in the corner!`,
-  (n: string) => `TRY! ${n} slices through the defence!`,
-  (n: string) => `TRY! ${n} powers over off the back of the maul!`,
-  (n: string) => `TRY! ${n} steps inside and dives under the posts!`,
-  (n: string) => `TRY! Sweeping move, and ${n} applies the finish!`,
-  (n: string) => `TRY! Quick tap by ${n} catches the defence napping!`,
-  (n: string) => `TRY! ${n} gathers a clever grubber and touches down!`,
-  (n: string) => `TRY! ${n} arcs outside his man and won't be caught!`,
-  (n: string) => `TRY! ${n} picks from the base and burrows over!`,
-  (n: string) => `TRY! A monstrous fend from ${n} and he strolls in!`,
-  (n: string) => `TRY! ${n} takes the offload one-handed and finishes!`,
-  (n: string) => `TRY! Fifty-metre intercept - ${n} all the way!`,
-  (n: string) => `TRY! ${n} chips, regathers, scores. Outrageous.`,
-  (n: string) => `TRY! Pick-and-go, pick-and-go, and ${n} forces it down!`,
-  (n: string) => `TRY! ${n} hits a scything line off the shoulder - untouched!`,
-  (n: string) => `TRY! The wraparound sends ${n} through the front door!`,
-  (n: string) => `TRY! ${n} bumps off three tacklers on his way to the line!`,
-  (n: string) => `TRY! ${n} shows and goes - nobody within five metres of him!`,
-  (n: string) => `TRY! Eight phases of patience, and ${n} finds the shortest of short sides!`,
-  (n: string) => `TRY! ${n} straightens, sits the last man down and strolls under the sticks!`,
-  (n: string) => `TRY! The blindside wing comes off his line and it is ${n} who finishes it!`,
-  (n: string) => `TRY! ${n} takes it flat and hits the line like a train - no stopping that!`,
-  (n: string) => `TRY! Turnover ball, three passes, and ${n} is away - breathless rugby!`,
-  (n: string) => `TRY! ${n} reaches through the tackle and plants it one-handed - the TMO checks and it is GOOD!`,
-  (n: string) => `TRY! A no-look pass sends ${n} in at the flag - cheek and class in one movement!`,
+  'comm.try1',
+  'comm.try2',
+  'comm.try3',
+  'comm.try4',
+  'comm.try5',
+  'comm.try6',
+  'comm.try7',
+  'comm.try8',
+  'comm.try9',
+  'comm.try10',
+  'comm.try11',
+  'comm.try12',
+  'comm.try13',
+  'comm.try14',
+  'comm.try15',
+  'comm.try16',
+  'comm.try17',
+  'comm.try18',
+  'comm.try19',
+  'comm.try20',
+  'comm.try21',
+  'comm.try22',
+  'comm.try23',
+  'comm.try24',
+  'comm.try25',
+  'comm.try26',
 ]
 const TRY_LINES_WET = [
-  (n: string) => `TRY! ${n} follows a slithering kick through and wins the race!`,
-  (n: string) => `TRY! The greasy ball squirts loose and ${n} pounces!`,
-  (n: string) => `TRY! ${n} aquaplanes over in the corner - the crowd doesn't care!`,
-  (n: string) => `TRY! ${n} surfs a puddle over the line - filthy conditions, beautiful result!`,
-  (n: string) => `TRY! The maul splashes over and ${n} emerges from the swamp with the ball!`,
+  'comm.tryWet1',
+  'comm.tryWet2',
+  'comm.tryWet3',
+  'comm.tryWet4',
+  'comm.tryWet5',
 ]
 const TRY_LINES_DERBY = [
-  (n: string) => `TRY! ${n} scores - and cups an ear to the away end! Bedlam!`,
-  (n: string) => `TRY! ${n} settles a hundred pub arguments with that one!`,
-  (n: string) => `TRY! ${n} through a wall of bodies - this derby has everything!`,
-  (n: string) => `TRY! ${n} scores in front of the travelling fans and just stands there, arms wide!`,
-  (n: string) => `TRY! The town will be unbearable for a week - ${n} has scored in the derby!`,
+  'comm.tryDerby1',
+  'comm.tryDerby2',
+  'comm.tryDerby3',
+  'comm.tryDerby4',
+  'comm.tryDerby5',
 ]
 const PEN_LINES = [
-  (n: string) => `${n} slots the penalty.`,
-  (n: string) => `${n} makes no mistake from the tee.`,
-  (n: string) => `${n} strikes it true - three more points.`,
-  (n: string) => `${n} bisects the uprights from distance.`,
-  (n: string) => `${n} takes his time... and drills it.`,
-  (n: string) => `No radar needed - ${n} splits them from 45 metres.`,
-  (n: string) => `${n} scrapes it over off the left post. They all count.`,
-  (n: string) => `Ice in the veins: ${n} silences the whistlers.`,
-  (n: string) => `${n} thumps it over from halfway - the big boot pays the bills.`,
-  (n: string) => `A horrible angle, and ${n} makes it look like a warm-up.`,
-  (n: string) => `${n} wipes the mud off the ball, wipes the rain off his face, and nails it.`,
+  'comm.pen1',
+  'comm.pen2',
+  'comm.pen3',
+  'comm.pen4',
+  'comm.pen5',
+  'comm.pen6',
+  'comm.pen7',
+  'comm.pen8',
+  'comm.pen9',
+  'comm.pen10',
+  'comm.pen11',
 ]
 const CON_LINES = [
-  (n: string) => `${n} adds the extras.`,
-  (n: string) => `${n} curls the conversion over.`,
-  (n: string) => `${n} converts from the touchline!`,
-  (n: string) => `${n} strokes the conversion straight through the middle.`,
-  (n: string) => `Routine for ${n} - the lead grows.`,
-  (n: string) => `${n} bends it home against the breeze.`,
-  (n: string) => `${n} barely looks at it. Over. Next job.`,
-  (n: string) => `From the chalk of the touchline, ${n} draws it inside the far post - kicking coaches will replay that one.`,
+  'comm.con1',
+  'comm.con2',
+  'comm.con3',
+  'comm.con4',
+  'comm.con5',
+  'comm.con6',
+  'comm.con7',
+  'comm.con8',
 ]
 const FLAVOR_GRASSROOTS = [
-  (n: string, t: string) => `${n} wins a scrappy one at the back of a collapsing maul - proper National 1 rugby, this.`,
-  (n: string, t: string) => `A dog has briefly joined the ${t} defensive line. Play carries on regardless.`,
-  (n: string, t: string) => `${n} slips in the mud where the winter pitch never quite recovers. The crowd, all four hundred of them, enjoy that.`,
-  (n: string, t: string) => `Huge cheer from the clubhouse balcony as ${n} flattens his man. Someone rings the bell.`,
-  (n: string, t: string) => `${t} work it through nine phases - patient stuff for this level, and the tea hut has gone quiet.`,
-  (n: string, t: string) => `${n}, a schoolteacher on Monday mornings, sends the fly-half the wrong way. Class dismissed.`,
-  (n: string, t: string) => `The touch judge is a club volunteer and takes a moment to find his flag. ${t} tap and go.`,
-  (n: string, t: string) => `${n} charges down the clearance! The ball ricochets off the beer tent guy-rope and stays in.`,
+  'comm.flavGrass1',
+  'comm.flavGrass2',
+  'comm.flavGrass3',
+  'comm.flavGrass4',
+  'comm.flavGrass5',
+  'comm.flavGrass6',
+  'comm.flavGrass7',
+  'comm.flavGrass8',
 ]
 
 const FLAVOR_PACIFIC = [
-  (n: string, t: string) => `${n} throws the wildest offload you'll see all year - and it sticks! ${t} pour forward.`,
-  (n: string, t: string) => `The drums in the stands haven't stopped since kick-off. ${n} feeds off it with a rampaging carry.`,
-  (n: string, t: string) => `Footwork from ${n} that ought to be illegal - three defenders grasp at air.`,
-  (n: string, t: string) => `${t} run it from their own line, because of course they do. The crowd loves every metre.`,
-  (n: string, t: string) => `A hit from ${n} you can hear over the sea breeze. The flags in the crowd shake with approval.`,
-  (n: string, t: string) => `One-handed take above his head from ${n} - Pacific rugby, no notes.`,
+  'comm.flavPac1',
+  'comm.flavPac2',
+  'comm.flavPac3',
+  'comm.flavPac4',
+  'comm.flavPac5',
+  'comm.flavPac6',
 ]
 
 const FLAVOR = [
-  (n: string, t: string) => `Big carry from ${n} takes ${t} into the 22.`,
-  (n: string, t: string) => `${n} makes a searing half-break for ${t}.`,
-  (n: string, t: string) => `Turnover! ${n} wins the breakdown battle for ${t}.`,
-  (n: string, t: string) => `Monster scrum from the ${t} pack - penalty advantage.`,
-  (n: string, t: string) => `${n} claims the high ball under pressure.`,
-  (n: string, t: string) => `Rolling maul from ${t} eats up twenty metres.`,
-  (n: string, t: string) => `${n} clears the lines with a booming touch-finder.`,
-  (n: string, t: string) => `Thunderous hit by ${n} - the crowd roars.`,
-  (n: string, t: string) => `${n} steals the lineout - ${t} ball against the throw!`,
-  (n: string, t: string) => `Grubber in behind from ${n}; the ${t} chase is ferocious.`,
-  (n: string, t: string) => `${n} slips the tackle and ${t} are suddenly on the front foot.`,
-  (n: string, t: string) => `Choke tackle! ${n} holds him up and it's a ${t} scrum.`,
-  (n: string, t: string) => `${n} puts in a 50:22! What a strike - ${t} lineout deep in the corner.`,
-  (n: string, t: string) => `Offload of the season from ${n} - ${t} swarm forward.`,
-  (n: string, t: string) => `The ${t} defence blitzes and ${n} smashes the carrier behind the gain line.`,
-  (n: string, t: string) => `${n} is everywhere - third jackal attempt in ten minutes for ${t}.`,
-  (n: string, t: string) => `Cross-field kick... ${n} climbs highest but it goes to ground. Scrappy stuff.`,
-  (n: string, t: string) => `${n} takes a quick lineout - the ref waves play on and ${t} counter.`,
-  (n: string, t: string) => `Show-and-go from ${n} splits the seam - ${t} are in behind!`,
-  (n: string, t: string) => `${n} wins the aerial duel and ${t} have a platform at last.`,
-  (n: string, t: string) => `The ${t} scrum inches forward... and forward... the ref's arm comes out.`,
-  (n: string, t: string) => `${n} throws a cut-out pass that misses three men - vision, that.`,
-  (n: string, t: string) => `A try-saver from ${n}! Ankle-tapped a metre from the corner flag.`,
-  (n: string, t: string) => `${n} carries three defenders five metres. The ${t} crowd stands to applaud a carry.`,
-  (n: string, t: string) => `Miscommunication in midfield and ${n} pounces on the loose ball for ${t}.`,
-  (n: string, t: string) => `${n} shapes to drop a goal... dummies... and ${t} keep it alive!`,
+  'comm.flav1',
+  'comm.flav2',
+  'comm.flav3',
+  'comm.flav4',
+  'comm.flav5',
+  'comm.flav6',
+  'comm.flav7',
+  'comm.flav8',
+  'comm.flav9',
+  'comm.flav10',
+  'comm.flav11',
+  'comm.flav12',
+  'comm.flav13',
+  'comm.flav14',
+  'comm.flav15',
+  'comm.flav16',
+  'comm.flav17',
+  'comm.flav18',
+  'comm.flav19',
+  'comm.flav20',
+  'comm.flav21',
+  'comm.flav22',
+  'comm.flav23',
+  'comm.flav24',
+  'comm.flav25',
+  'comm.flav26',
 ]
 const FLAVOR_WET = [
-  (n: string, t: string) => `The rain hammers down as ${n} trudges to another ${t} scrum.`,
-  (n: string, t: string) => `Knock-on! The soap-bar ball squirts out of ${n}'s grasp.`,
-  (n: string, t: string) => `Box kick from ${n} disappears into the murk - ${t} chase hard.`,
-  (n: string, t: string) => `Mud everywhere. ${n}'s number is barely readable now.`,
-  (n: string, t: string) => `${n} calls for the high ball, loses it in the floodlights and the rain. ${t} scramble.`,
-  (n: string, t: string) => `The ${t} forwards would rather be nowhere else - ${n} leads another wallow at the ruck.`,
+  'comm.flavWet1',
+  'comm.flavWet2',
+  'comm.flavWet3',
+  'comm.flavWet4',
+  'comm.flavWet5',
+  'comm.flavWet6',
 ]
 const FLAVOR_WIND = [
-  (n: string, t: string) => `${n}'s clearance hangs in the gale and barely makes ten metres.`,
-  (n: string, t: string) => `The wind grabs the restart - ${n} does well to gather for ${t}.`,
-  (n: string, t: string) => `${n} aims for the corner and the gale carries it dead. Kicking into a hurricane out there.`,
-  (n: string, t: string) => `A ${t} pass sails on the wind and ${n} has to climb for it two metres off course.`,
+  'comm.flavWind1',
+  'comm.flavWind2',
+  'comm.flavWind3',
+  'comm.flavWind4',
 ]
 const FLAVOR_DERBY = [
-  (n: string, t: string) => `Handbags after the whistle! ${n} in the middle of it - the ref calls the captains.`,
-  (n: string, t: string) => `The noise is deafening every time ${n} touches it for ${t}.`,
-  (n: string, t: string) => `Derby rugby: ${n} launched into the tackle a heartbeat late. The crowd howls.`,
-  (n: string, t: string) => `A ${t} clearance goes straight into the away end, who keep the ball. The ref sighs.`,
-  (n: string, t: string) => `${n} and his opposite number exchange words at the lineout. Neither is discussing the weather.`,
+  'comm.flavDerby1',
+  'comm.flavDerby2',
+  'comm.flavDerby3',
+  'comm.flavDerby4',
+  'comm.flavDerby5',
 ]
 const TIRED_LINES = [
-  (n: string) => `${n} has his hands on his knees - the tank is emptying.`,
-  (n: string) => `${n} is blowing hard out there.`,
-  (n: string) => `${n} takes an age to get up from that ruck. The bench is warming up.`,
-  (n: string) => `Cramp for ${n} - he waves away the physio, but the legs have gone.`,
+  'comm.tired1',
+  'comm.tired2',
+  'comm.tired3',
+  'comm.tired4',
 ]
 
 /** Live match context. The match is simulated tick by tick (4 minutes per
@@ -1314,7 +1314,29 @@ export interface LiveCtx {
   momoHist?: number[]
 }
 
-function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null, text: string, playerId?: number) {
+/**
+ * A commentary line, filed as a key and its values.
+ *
+ * This is the one to use. pushEvent below takes finished English and is what
+ * every line used to be; scripts/commprobe.ts counts what is left of it and
+ * the count may only fall, because a line called as English is English in a
+ * French match for ever, including in saves written before the fix.
+ *
+ * The English is still computed and still stored, because the engine reads its
+ * own commentary back - see MatchEvent.text. It is stored, not shown.
+ */
+function pushLine(
+  state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
+  k: string, v?: Record<string, string | number>, playerId?: number,
+) {
+  if (!ctx.detail) return
+  pushEvent(state, ctx, min, type, side, tIn('en', k, v), playerId, k, v)
+}
+
+function pushEvent(
+  state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
+  text: string, playerId?: number, k?: string, v?: Record<string, string | number>,
+) {
   if (!ctx.detail) return
   if (type !== 'HT' && type !== 'FT') {
     min = Math.max(min, ctx.lastMin)
@@ -1323,7 +1345,7 @@ function pushEvent(state: GameState, ctx: LiveCtx, min: number, type: MatchEvent
   ctx.events.push({
     min, type, teamId: side?.teamId ?? '',
     playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
-    text, homeScore: ctx.home.score, awayScore: ctx.away.score,
+    text, k, v, homeScore: ctx.home.score, awayScore: ctx.away.score,
   })
 }
 
@@ -1618,42 +1640,47 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     const shift = analystShift(state, side.teamId)
     if (!shift) continue
     for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)
-    pushEvent(state, ctx, 0, 'SUB', side,
-      `${state.clubs[side.teamId]?.coach ?? 'The opposition coach'} has done his homework: ${teamShort(state, side.teamId)} are set up specifically for ${PATTERN_WORD[shift.pattern]}. Change the picture, or play through the plan.`)
+    pushLine(state, ctx, 0, 'SUB', side, state.clubs[side.teamId]?.coach ? 'comm.oppCoachNamed' : 'comm.oppCoach', {
+      coach: state.clubs[side.teamId]?.coach ?? '',
+      team: teamShort(state, side.teamId),
+      pattern_k: `comm.pattern${shift.pattern[0].toUpperCase()}${shift.pattern.slice(1)}`,
+    })
   }
   if (fx.venue) {
-    pushEvent(state, ctx, 0, 'KO', home, `FINAL DAY at ${fx.venue.name}. ${fx.att ? `${fx.att.toLocaleString()} inside and` : 'A full house and'} the noise rolling around ${fx.venue.city} - two sets of supporters, one trophy. Kick-off!`)
+    pushLine(state, ctx, 0, 'KO', home, fx.att ? 'comm.koFinalDayGate' : 'comm.koFinalDay',
+      { venue: fx.venue.name, city: fx.venue.city, att: fx.att ?? 0 })
   } else if (derby) {
-    pushEvent(state, ctx, 0, 'KO', home, `${derbyName(fx.homeId, fx.awayId)}! ${fx.att ? `${fx.att.toLocaleString()} packed in and` : 'The crowd is'} making an almighty noise. Kick-off!`)
+    pushLine(state, ctx, 0, 'KO', home, fx.att ? 'comm.koDerbyGate' : 'comm.koDerby',
+      { derby: derbyName(fx.homeId, fx.awayId) ?? '', att: fx.att ?? 0 })
   } else if (grudge) {
-    pushEvent(state, ctx, 0, 'KO', home, `Bad blood in the air - ${grudge.reason}, and nobody here has forgotten it. Kick-off!`)
+    pushLine(state, ctx, 0, 'KO', home, 'comm.koGrudge', { reason_k: grudge.rk ?? 'common.nothing', ...(grudge.rv ?? {}) })
   } else {
-    pushEvent(state, ctx, 0, 'KO', home, `Kick-off!${weather === 'Rain' ? ' Rain sheeting across the pitch.' : weather === 'Wind' ? ' A swirling wind will test the kickers.' : weather === 'Snow' ? ' Snow flurries - proper old-school rugby weather.' : ''}`)
+    pushLine(state, ctx, 0, 'KO', home, 'comm.koPlain', {
+      wx_k: weather === 'Rain' ? 'comm.koRain' : weather === 'Wind' ? 'comm.koWind' : weather === 'Snow' ? 'comm.koSnow' : 'common.nothing',
+    })
   }
   if (uncontested) {
     const short = !homeFR.legal
       ? teamShort(state, fx.homeId)
       : teamShort(state, fx.awayId)
-    pushEvent(state, ctx, 1, 'SUB', null,
-      `The referee has ordered UNCONTESTED SCRUMS - ${short} cannot cover all three front-row positions. No shove, no scrum penalties, and every set piece is a formality.`)
+    pushLine(state, ctx, 1, 'SUB', null, 'comm.uncontested', { team: short })
   }
   if (fx.homeId === state.userClubId) {
     const mood = state.fanMood ?? 60
-    if (mood >= 80) pushEvent(state, ctx, 1, 'SUB', home, `The ground is absolutely bouncing - the supporters are in full voice before a ball is kicked.`)
-    else if (mood <= 30) pushEvent(state, ctx, 1, 'SUB', home, `A flat, edgy atmosphere. The crowd is waiting to be given a reason.`)
+    if (mood >= 80) pushLine(state, ctx, 1, 'SUB', home, 'comm.crowdBouncing')
+    else if (mood <= 30) pushLine(state, ctx, 1, 'SUB', home, 'comm.crowdFlat')
   }
   if (fx.testimonial != null && state.players[fx.testimonial]) {
     const hero = state.players[fx.testimonial]
-    pushEvent(state, ctx, 1, 'SUB', home,
-      `${hero.name}'s testimonial. He leads the teams out with his kids at his side, the ground on its feet, scarves above every head. Then the whistle blows and it is a rugby match again.`,
-      hero.id)
+    pushLine(state, ctx, 1, 'SUB', home, 'comm.testimonial', { player: hero.name }, hero.id)
   }
   if (returnee && returneeApps >= 10) {
     const exSide = home.exIds.has(returnee.id) ? home : away
     const oldClub = teamShort(state, exSide === home ? fx.awayId : fx.homeId)
-    pushEvent(state, ctx, 1, 'SUB', exSide,
-      `A familiar face out there: ${returnee.name} lines up against ${oldClub}, where he made ${returneeApps} appearances. ${exSide === home ? 'He knows this opposition inside out.' : 'A polite reception from the home crowd - for now.'}`,
-      returnee.id)
+    pushLine(state, ctx, 1, 'SUB', exSide, 'comm.oldBoy', {
+      player: returnee.name, oldClub, n: returneeApps,
+      tail_k: exSide === home ? 'comm.oldBoyKnowsThem' : 'comm.oldBoyPolite',
+    }, returnee.id)
   }
   // a landmark afternoon announced at kickoff: the appearance he is about
   // to make sits on the salute ladder
@@ -1665,8 +1692,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
         if (!p) continue
         const cApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0) + 1
         if ([50, 100, 150, 200, 250].includes(cApps)) {
-          pushEvent(state, ctx, 1, 'SUB', side,
-            `A milestone afternoon: ${p.name} makes career appearance number ${cApps}. The tunnel applauds him out; the scoreboard will not care.`, p.id)
+          pushLine(state, ctx, 1, 'SUB', side, 'comm.milestoneApps', { player: p.name, n: cApps }, p.id)
         }
       }
     }
@@ -1787,14 +1813,26 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
       kicker.stats.pens += 1; kicker.stats.points += 3
       side.ratings.set(kicker.id, (side.ratings.get(kicker.id) ?? 6) + 0.15)
     }
-    pushEvent(state, ctx, min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
+    // The banks hold keys now, and the draw is unchanged: one call to rng(),
+    // the same index, the same line. Where a bank's line names the kicker and
+    // there is no kicker to name, "The kicker" is a WORD and gets a key of its
+    // own rather than being passed in as a variable.
+    pushLine(state, ctx, min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)],
+      { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else if (detail && rng() < 0.7) {
-    pushEvent(state, ctx, min, 'SUB', side, `${kicker?.name ?? 'The kicker'} pushes the penalty attempt wide.`, kicker?.id)
+    pushLine(state, ctx, min, 'SUB', side, kicker ? 'comm.penWideNamed' : 'comm.penWide',
+      { player: kicker?.name ?? '' }, kicker?.id)
   }
 }
 
 /** Score a try (+ conversion attempt) for a side - shared by open play and set-piece strikes. */
-function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, line?: string, forceScorer?: Player | null) {
+/** `line`/`lineV` let a set-piece strike supply its own wording - a maul that
+ *  rumbles over reads better than the generic bank - and it is a KEY, not a
+ *  sentence, for the same reason everything else here is. */
+function scoreTry(
+  state: GameState, ctx: LiveCtx, side: SideCtx, min: number,
+  line?: string, forceScorer?: Player | null, lineV?: Record<string, string | number>,
+) {
   const { rng, goalPenalty } = ctx
   const scorer = forceScorer ?? tryScorer(state, side, rng)
   side.score += 5
@@ -1826,7 +1864,11 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   const wetTry = (ctx.weather === 'Rain' || ctx.weather === 'Snow') && rng() < 0.25
   const derbyTry = ctx.derby && rng() < 0.3
   const tryPool = derbyTry ? TRY_LINES_DERBY : wetTry ? TRY_LINES_WET : TRY_LINES
-  pushEvent(state, ctx, min, 'TRY', side, line ?? (scorer ? tryPool[Math.floor(rng() * tryPool.length)](scorer.name) : 'TRY! The pack drives over the line!'), scorer?.id)
+  // `line` is a set-piece strike's own wording, already a key, and it wins
+  // when the caller supplied one.
+  if (line) pushLine(state, ctx, min, 'TRY', side, line, lineV, scorer?.id)
+  else if (scorer) pushLine(state, ctx, min, 'TRY', side, tryPool[Math.floor(rng() * tryPool.length)], { player: scorer.name }, scorer.id)
+  else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
   if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
     pushEvent(state, ctx, min + 1, 'SUB', side, `Career try number ${cTries} for ${scorer.name}! Both sets of supporters know a milestone when they see one - the applause takes a while to die down.`, scorer.id)
@@ -1852,9 +1894,10 @@ function scoreTry(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, li
   if (rng() < pCon) {
     side.score += 2
     if (kicker) { kicker.stats.cons += 1; kicker.stats.points += 2 }
-    pushEvent(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)](kicker?.name ?? 'The kicker'), kicker?.id)
+    pushLine(state, ctx, min + 1, 'CON', side, CON_LINES[Math.floor(rng() * CON_LINES.length)],
+      { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else {
-    pushEvent(state, ctx, min + 1, 'SUB', side, `The conversion drifts wide.`)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.conWide')
   }
 }
 
@@ -1888,7 +1931,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
         .map(id => id != null ? state.players[id] : null)
         .filter((p): p is Player => !!p && mine.onPitch.has(p.id))
       const scorer = forwards.length ? forwards[Math.floor(rng() * forwards.length)] : null
-      scoreTry(state, ctx, mine, min + 1, scorer ? `TRY! The maul rumbles over and ${scorer.name} grounds it!` : undefined, scorer)
+      scoreTry(state, ctx, mine, min + 1, scorer ? 'comm.tryMaulRumbles' : undefined, scorer, scorer ? { player: scorer.name } : undefined)
       return 'The maul delivers - tries win matches.'
     }
     if (rng() < 0.5) {
@@ -2267,7 +2310,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         const p = ps[Math.floor(rng() * ps.length)]
         const e = side.energy.get(p.id) ?? 70
         if (e < 22 && rng() < 0.5) {
-          pushEvent(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(rng() * TIRED_LINES.length)](p.name), p.id)
+          pushLine(state, ctx, min, 'SUB', side, TIRED_LINES[Math.floor(rng() * TIRED_LINES.length)], { player: p.name }, p.id)
         } else {
           const wet = ctx.weather === 'Rain' || ctx.weather === 'Snow'
           const pool = derby && rng() < 0.3 ? FLAVOR_DERBY
@@ -2276,7 +2319,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             : wet && rng() < 0.3 ? FLAVOR_WET
             : ctx.weather === 'Wind' && rng() < 0.25 ? FLAVOR_WIND
             : FLAVOR
-          pushEvent(state, ctx, min, 'SUB', side, pool[Math.floor(rng() * pool.length)](p.name, teamShort(state, side.teamId)), p.id)
+          pushLine(state, ctx, min, 'SUB', side, pool[Math.floor(rng() * pool.length)],
+            { player: p.name, team: teamShort(state, side.teamId) }, p.id)
         }
       }
     }
@@ -2884,7 +2928,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   // an ill-tempered afternoon starts a feud of its own
   const totalCards = home.yellowUntil.size + home.sent + away.yellowUntil.size + away.sent
   if (totalCards >= 5 && state.clubs[fx.homeId] && state.clubs[fx.awayId] && !isDerby(fx.homeId, fx.awayId)) {
-    addGrudge(state, fx.homeId, fx.awayId, `the last meeting boiled over - ${totalCards} cards and a tunnel full of pushing`, 1)
+    addGrudge(state, fx.homeId, fx.awayId, 'news.grudgeBoiledOver', { cards: totalCards }, 1)
   }
 
   // the testimonial's morning after: the gate goes to the club, the day
