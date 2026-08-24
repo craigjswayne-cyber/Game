@@ -2899,7 +2899,14 @@ export function processWeekAndAdvance(state: GameState) {
             JSON.stringify(rivalResults(ids).map(r => ({ k: 'news.runinRival', label_k: label, r })))
           if (idx === 0 && gapTop === 0) {
             const chasers = order.slice(1, 3).map(r => r.teamId)
-            k = roundsLeft === 1 ? 'news.runinTopFinal' : 'news.runinTopRace'
+            // FINAL DAY SAYS WHAT IS ACTUALLY ON OFFER. In a league with
+            // playoffs the last round crowns a top seed, not a champion, and
+            // the first version of this conversion collapsed both headlines
+            // into the title one - caught by occasionprobe, which exists for
+            // exactly that promise.
+            k = roundsLeft === 1
+              ? (seeded ? 'news.runinTopFinalSeed' : 'news.runinTopFinal')
+              : 'news.runinTopRace'
             v = {
               n: roundsLeft, seeded: seeded ? 1 : 0,
               lead_k: order[1] ? 'news.runinClearOf' : 'news.runinClear',
