@@ -8,9 +8,10 @@
 // and rendered when it is read. pushLine() does that; pushEvent() takes
 // finished English and is what every line used to be. So:
 //
-//   1. How many lines are still called as English? THE BUDGET is a ratchet -
-//      it may fall and never rise. At zero, pushEvent stops being reachable
-//      from anywhere but pushLine and a line called as English fails the build.
+//   1. How many lines are still called as English? THE BUDGET was a ratchet and
+//      is now ZERO: pushEvent is reachable only from pushLine, and a line
+//      called as English fails the build. Do not raise it. If a new line
+//      cannot carry a key, the thing to change is the line.
 //   2. Does every key a line names exist, in every language?
 //   3. Do the two languages fill the same holes? A French line that forgets
 //      {player} renders a sentence with a hole in it.
@@ -24,7 +25,7 @@
 import { readFileSync } from 'node:fs'
 
 /** Commentary lines still called as finished English. ONLY EVER DECREASE. */
-const BUDGET = 35
+const BUDGET = 0
 
 const say = (s: string) => console.log(s)
 let fails = 0

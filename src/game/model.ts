@@ -233,7 +233,13 @@ export function addGrudge(state: GameState, a: string, b: string, rk: string, rv
 }
 
 export interface Injury {
+  /** The complaint as it was recorded, in English, always - and not display
+   *  text. It is quoted in five places a reader sees, and injuryDesc() prefers
+   *  `dk` when the save has one. Kept because a save written before injuries
+   *  carried a key still has to name the injury. */
   desc: string
+  /** The complaint's key. See injuryDesc(). */
+  dk?: string
   /** week the player returns */
   until: number
   /** total weeks out (severity), used to size the rusty spell afterwards */
@@ -1536,6 +1542,10 @@ export function closeNatTenure(state: GameState) {
  *  and live for years, and a save begun in v1.0.5 will still be opened in v2. */
 export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
 export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
+
+/** What is wrong with him, in the reader's language - or in the English it was
+ *  recorded in, on a save written before injuries carried a key. */
+export const injuryDesc = (inj: { desc: string; dk?: string }): string => (inj.dk ? t(inj.dk) : inj.desc)
 
 export const monthName = (m: number): string => t(`date.mon${m}`)
 export const dayAbbr = (d: number): string => t(`date.day${d}`)

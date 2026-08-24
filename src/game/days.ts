@@ -1,5 +1,5 @@
 import type { GameState, NewsItem } from './model'
-import { dayAbbr, fixtureDayOff, monthName, weekDate } from './model'
+import { dayAbbr, fixtureDayOff, injuryDesc, monthName, weekDate } from './model'
 import { userMatchThisWeek } from './season'
 import { t } from './i18n'
 
@@ -207,7 +207,7 @@ export function medicalNews(state: GameState): { out: string[]; back: string[] }
       const weeks = p.injury.until - state.week
       // the injury's own description stays as it was written into the save; the
       // sentence around it is rebuilt in the language on screen
-      if (weeks > 0) out.push(t('dayroom.medOut', { player: p.name, desc: p.injury.desc, n: weeks }))
+      if (weeks > 0) out.push(t('dayroom.medOut', { player: p.name, desc: injuryDesc(p.injury), n: weeks }))
     } else if (p.sharp < 70) {
       back.push(t('dayroom.medBack', { player: p.name, pct: Math.round(p.sharp) }))
     }
