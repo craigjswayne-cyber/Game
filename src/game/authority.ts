@@ -154,6 +154,8 @@ export function disciplineWeek(state: GameState) {
           `${senior?.name ?? 'A delegation of senior players'} comes to the office and closes the door. The message is polite and blunt: the room has watched two situations drift, and it wants to know who is in charge of this squad.`,
           `A manager with silverware shrugs this off. Right now, you have to answer it with results - settle the open incidents, win on Saturday, and the door stops opening.`,
         ].join('\n'),
+        k: senior ? 'news.deputationNamed' : 'news.deputation',
+        v: { player: senior?.name ?? '' },
         playerId: senior?.id,
       })
     }
@@ -203,6 +205,7 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `The ${p.name} situation drifts`,
       body: `Two weeks on, nothing said. The squad has noticed that ${p.name} got away with it, and the standard you walk past is the standard you accept.`,
+      k: 'news.incidentDrifts', v: { player: p.name },
       playerId: p.id,
     })
     return ''

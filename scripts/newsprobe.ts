@@ -26,7 +26,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
-const BUDGET = 36
+const BUDGET = 32
 
 const say = (s: string) => console.log(s)
 let fails = 0

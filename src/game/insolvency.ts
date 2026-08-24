@@ -107,6 +107,8 @@ export function settleInsolvency(state: GameState): string[] {
           'You start the season on minus ten. Get out of it.',
         ].join('\n')
         : `${club.name} have gone into administration after a season they could not pay for. The league will dock them ${ADMIN_PENALTY} points, and two senior men have already been released as the administrators cut the wage bill.`,
+      k: mine ? 'news.adminMine' : 'news.adminOther',
+      v: { short: club.short, club: club.name, n: ADMIN_PENALTY },
     })
   }
   return gone
@@ -134,5 +136,7 @@ export function insolvencyWarning(state: GameState): void {
       '',
       'Sell somebody, cut the wage bill, or fill the ground. There is still time, and there is not much of it.',
     ].join('\n'),
+    k: 'news.insolvencyWarning',
+    v: { short: club.short, n: ADMIN_PENALTY },
   })
 }
