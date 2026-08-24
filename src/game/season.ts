@@ -2682,6 +2682,11 @@ export function processWeekAndAdvance(state: GameState) {
         body: `Out of contract in the summer: ${named.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}`
           + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more - full list on Team ▸ Contracts` : ''}.`
           + ` Offer new deals from their profiles or they walk for free.`,
+        k: expiring.length > named.length ? 'news.expiringMore' : 'news.expiring',
+        v: {
+          n: expiring.length, more: expiring.length - named.length,
+          men_l: JSON.stringify(named.map(x => ({ k: 'news.expiringMan', name: x.name, pos: x.pos, age: x.age }))),
+        },
       })
     }
   }
@@ -2705,6 +2710,7 @@ export function processWeekAndAdvance(state: GameState) {
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🌍 ${nat} want you as national head coach`,
           body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+          k: 'news.natOffer', v: { nat },
         })
       }
     }
