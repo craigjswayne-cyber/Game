@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
+import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
 import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
 import { flagOf, nationByCode } from '../../game/nations'
@@ -251,7 +251,7 @@ export default function Profile() {
               <span style={{ flexShrink: 0, color: d.good === true ? 'var(--text-positive)' : d.good === false ? 'var(--text-negative)' : 'var(--border-strong)', fontWeight: 700 }}>
                 {d.good === true ? '▲' : d.good === false ? '▼' : '•'}
               </span>
-              <span className="meta" style={{ fontSize: 11.5 }}>{d.text}</span>
+              <span className="meta" style={{ fontSize: 11.5 }}>{decisionText(d)}</span>
             </div>
           ))}
         </div>

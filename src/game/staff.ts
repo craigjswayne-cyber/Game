@@ -257,7 +257,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
       rows_l: JSON.stringify(chemRows),
     },
   })
-  logDecision(state, `Appointed ${c.name} as ${tIn('en', info.name).toLowerCase()} (${BADGE[c.tier].toLowerCase()} badge): ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} left.` : ''}`, true)
+  logDecision(state, 'dec.appointedStaff', { name: c.name, role_k: info.name, badge_k: `staff.badge${c.tier}`, fee: fmt(c.fee), wage: fmt(c.wage), out_k: outgoing ? 'dec.andHeLeft' : 'common.nothing', out: outgoing?.name ?? '' }, true)
   return `${c.name} is your new ${tIn('en', info.name).toLowerCase()}. ${fmt(c.fee)} compensation paid.`
 }
 
@@ -324,7 +324,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     p.wage = Math.round((p.wage * 1.15) / 100) * 100
     p.passed = (p.passed ?? 0) + 1
     state.staff[role] = p.tier
-    logDecision(state, `${p.name} passed his ${badge} badge: a better ${tIn('en', info.name).toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
+    logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) }, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎓 ${p.name} passes his ${badge} badge`,
@@ -336,7 +336,7 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
   }
   p.failed = (p.failed ?? 0) + 1
   p.retakeAt = abs + RETAKE_WEEKS
-  logDecision(state, `${p.name} failed his ${badge} badge. The ${fmt(fee)} is gone and he cannot resit for a month.`, false)
+  logDecision(state, 'dec.badgeFailedFee', { name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) }, false)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${p.name} falls short of his ${badge} badge`,
@@ -370,7 +370,7 @@ export function resolveCourses(state: GameState) {
       p.wage = Math.round((p.wage * 1.15) / 100) * 100
       p.passed = (p.passed ?? 0) + 1
       state.staff[key] = p.tier
-      logDecision(state, `${p.name} passed his ${BADGE[p.tier].toLowerCase()} badge: a better ${tIn('en', info.name).toLowerCase()}, and ${fmt(p.wage)} a week now.`, true)
+      logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) }, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
@@ -381,7 +381,7 @@ export function resolveCourses(state: GameState) {
     } else {
       p.failed = (p.failed ?? 0) + 1
       p.retakeAt = abs + RETAKE_WEEKS
-      logDecision(state, `${p.name} failed his ${BADGE[toTier].toLowerCase()} badge. The course fee is gone and he resits in four weeks.`, false)
+      logDecision(state, 'dec.badgeFailedCourse', { name: p.name, badge_k: `staff.badge${toTier}` }, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${p.name} falls short of his ${BADGE[toTier].toLowerCase()} badge`,

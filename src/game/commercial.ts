@@ -347,7 +347,10 @@ export function signOffer(state: GameState, offer: Offer): string {
   // without a single letter changing over the gates was the complaint
   if (offer.slot === 'naming') applyStadiumName(state, offer.sponsor)
   const yrs = offer.years === 1 ? 'one season' : `${offer.years} seasons`
-  logDecision(state, `Signed ${offer.sponsor} for the ${tIn('en', SLOT_BY_ID[offer.slot].name).toLowerCase()}: ${fmtMoney(offer.weekly)} a week over ${yrs}.`, true)
+  logDecision(state, 'dec.signedSponsor', {
+    sponsor: offer.sponsor, slot_k: SLOT_BY_ID[offer.slot].name,
+    weekly: fmtMoney(offer.weekly), n: offer.years,
+  }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${SLOT_BY_ID[offer.slot].icon} ${offer.sponsor} sign on with ${club.short}`,

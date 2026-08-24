@@ -985,15 +985,32 @@ export interface Decision {
   abs: number
   season: number
   week: number
+  /** The decision as it was RECORDED, in English, always - and not display
+   *  text. Same rule as NewsItem.body: kept so a save written before decisions
+   *  carried a key still reads, and so nothing that inspects the history has
+   *  to know about keys. The profile screen renders decisionText(). */
   text: string
+  /** The key and values a reader sees. See decisionText(). */
+  k?: string
+  v?: Record<string, string | number>
   /** true it went your way, false it cost you, undefined for a cost you chose */
   good?: boolean
 }
 
-/** Record a decision and its consequence. Newest first, last 40 kept. */
-export function logDecision(state: GameState, text: string, good?: boolean) {
+/** A line of the manager's own history, in the reader's language - or in the
+ *  English it was recorded in, on a save written before decisions carried a
+ *  key. A career keeps forty of these and lives for years, so the fallback is
+ *  not a stopgap. */
+export const decisionText = (d: Decision): string => (d.k ? t(d.k, d.v) : d.text)
+
+/** Record a decision and its consequence. Newest first, last 40 kept.
+ *
+ *  The decision arrives as a key and its values rather than as a sentence,
+ *  because the profile screen reads this history back for as long as the
+ *  career lasts - a sentence recorded in English is English there for ever. */
+export function logDecision(state: GameState, k: string, v?: Record<string, string | number>, good?: boolean) {
   state.decisions = [
-    { abs: state.season * 100 + state.week, season: state.season, week: state.week, text, good },
+    { abs: state.season * 100 + state.week, season: state.season, week: state.week, text: tIn('en', k, v), k, v, good },
     ...(state.decisions ?? []),
   ].slice(0, 40)
 }

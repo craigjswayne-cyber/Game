@@ -47,12 +47,12 @@ export function praisePlayer(state: GameState, p: Player): string {
   if (p.pers === 'Temperamental' && p.form < 6.8) {
     p.morale = clamp(p.morale - 0.4, 1, 10)
     trust(state, -1)
-    logDecision(state, `Praised ${p.name} out of form - he took it as a wind-up.`, false)
+    logDecision(state, 'dec.praisedOutOfForm', { player: p.name }, false)
     return `He squints at you. "Am I being set up here?" The compliment lands like a slap.`
   }
   p.morale = clamp(p.morale + (p.pers === 'Ambitious' ? 0.7 : 0.5), 1, 10)
   if (p.form >= 7.5) trust(state, 1)
-  logDecision(state, `Praised ${p.name} in the office.`, true)
+  logDecision(state, 'dec.praised', { player: p.name }, true)
   switch (p.pers) {
     case 'Loyal': return `"Means a lot, boss." He walks out an inch taller.`
     case 'Professional': return `A short nod. "Just doing the job." But he is smiling on the way out.`
@@ -70,10 +70,10 @@ export function warnPlayer(state: GameState, p: Player): string {
   if (p.form >= 6.8) {
     p.morale = clamp(p.morale - 0.6, 1, 10)
     trust(state, -2)
-    logDecision(state, `Warned ${p.name} while he was in form - the room noticed.`, false)
+    logDecision(state, 'dec.warnedInForm', { player: p.name }, false)
     return `He stares. "Have you watched the games?" Word of this gets around the dressing room.`
   }
-  logDecision(state, `A quiet word with ${p.name} about his form.`, true)
+  logDecision(state, 'dec.quietWord', { player: p.name }, true)
   switch (p.pers) {
     case 'Professional':
     case 'Loyal':

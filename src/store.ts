@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
-import { getLang, initLang, setLang as applyLang, type Lang } from './game/i18n'
+import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i18n'
 import { hasSupporter } from './game/monetise'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
@@ -957,7 +957,7 @@ export const useStore = create<Store>((set, get) => ({
 
   halfTimeSub: (outId, inId) => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
     // The cursor has to follow the new commentary line, or the panel you made
     // the change from disappears underneath you.
     //
@@ -982,7 +982,7 @@ export const useStore = create<Store>((set, get) => ({
 
   injuryCover: (onId, inId) => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
     get().noteCmd({ kind: 'cover', onId, inId })
     const msg = swapInjuryCover(game, liveMatch.ctx, onId, inId)
     set(s => ({ tick: s.tick + 1 }))
@@ -991,7 +991,7 @@ export const useStore = create<Store>((set, get) => ({
 
   undoSub: () => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
     // same cursor discipline as halfTimeSub: the undo pushes its own line
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
     get().noteCmd({ kind: 'undo' })
@@ -1007,7 +1007,7 @@ export const useStore = create<Store>((set, get) => ({
 
   swapPositions: (aId, bId) => {
     const { game, liveMatch } = get()
-    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return 'Play has resumed.'
+    if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return t('touch.playResumed')
     const wasCaughtUp = liveMatch.cursor >= liveMatch.ctx.events.length
     get().noteCmd({ kind: 'swap', aId, bId })
     const msg = swapShirts(game, liveMatch.ctx, aId, bId)

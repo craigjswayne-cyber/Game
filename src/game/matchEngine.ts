@@ -1915,7 +1915,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   const rng = ctx.rng
   if (choice === 'posts') {
     takePenaltyShot(state, ctx, mine, min)
-    return 'Points on the board - or so you hope.'
+    return t('touch.pointsOnBoard')
   }
   if (choice === 'corner') {
     // THE MAUL IS A SET-PIECE CONTEST, so it reads the set piece: your lineout
@@ -1935,24 +1935,24 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
         .filter((p): p is Player => !!p && mine.onPitch.has(p.id))
       const scorer = forwards.length ? forwards[Math.floor(rng() * forwards.length)] : null
       scoreTry(state, ctx, mine, min + 1, scorer ? 'comm.tryMaulRumbles' : undefined, scorer, scorer ? { player: scorer.name } : undefined)
-      return 'The maul delivers - tries win matches.'
+      return t('touch.maulDelivers')
     }
     if (rng() < 0.5) {
       pushLine(state, ctx, min + 1, 'SUB', opp, 'comm.maulHeldUp', { team: teamShort(state, opp.teamId) })
-      return 'Nothing. The gamble came up empty this time.'
+      return t('touch.gambleEmpty')
     }
     mine.poss += 1.2
     pushLine(state, ctx, min + 1, 'SUB', mine, 'comm.maulRepelledPenalty')
-    return 'No points yet, but you have them pinned.'
+    return t('touch.pinnedNoPoints')
   }
   // tap and go
   mine.poss += 1.4
   if (rng() < 0.17) {
     scoreTry(state, ctx, mine, min, undefined)
-    return 'Brilliant! The quick tap catches them asleep!'
+    return t('touch.quickTapWorks')
   }
   pushLine(state, ctx, min, 'SUB', mine, 'comm.quickTapPhases', { team: teamShort(state, mine.teamId) })
-  return 'Tempo lifted - the momentum is yours even without points.'
+  return t('touch.tempoLifted')
 }
 
 /** AI (and injury-forced) bench management: tired starters are replaced. */
@@ -2601,7 +2601,7 @@ export function playHalf(state: GameState, ctx: LiveCtx) {
 
 /** Pre-match dressing-room speech. One per match, chosen before kick-off. */
 export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fire' | 'underdog' | 'expect'): string {
-  if (ctx.preTalk) return 'The speech has been made.'
+  if (ctx.preTalk) return t('touch.speechMade')
   ctx.preTalk = kind
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
@@ -2684,7 +2684,7 @@ export function applyPreTalk(state: GameState, ctx: LiveCtx, kind: 'calm' | 'fir
 
 /** Half-time team talk for the user's side. One per match. */
 export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'calm' | 'praise' | 'demand'): string {
-  if (ctx.talkUsed) return 'The talk has been given.'
+  if (ctx.talkUsed) return t('touch.talkGiven')
   ctx.talkUsed = true
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
@@ -2738,16 +2738,16 @@ export function applyTeamTalk(state: GameState, ctx: LiveCtx, kind: 'fire' | 'ca
 /** Substitution for the user's side (MAX_SUBS tactical subs), any time play is stopped. */
 export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, inId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  if (ctx.seg === 3) return 'The match is over.'
-  if (ctx.subsUsed >= MAX_SUBS) return `All ${MAX_SUBS} replacements used.`
+  if (ctx.seg === 3) return t('touch.matchOver')
+  if (ctx.subsUsed >= MAX_SUBS) return t('touch.allSubsUsed', { n: MAX_SUBS })
   const slotOut = mine.lineup.indexOf(outId)
   const slotIn = mine.lineup.indexOf(inId)
   const pin = state.players[inId]
   const pout = state.players[outId]
-  if (slotOut < 0 || slotOut > 14 || !pout) return 'That player is not in the starting side.'
+  if (slotOut < 0 || slotOut > 14 || !pout) return t('touch.notInStartingXV')
   // Law 3: a side may not replace a sin-binned player during his ten minutes
-  if (mine.binned.has(outId)) return 'He is in the sin bin - the ten minutes must be served before that shirt can change.'
-  if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return 'He is not available.'
+  if (mine.binned.has(outId)) return t('touch.inTheBin')
+  if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return t('touch.notAvailable')
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
   mine.onPitch.delete(outId)
@@ -2770,7 +2770,7 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   }
   pushLine(state, ctx, min, 'SUB', mine, 'comm.subFromBench',
     { on: pin.name, off: pout.name, brief_k: brief ?? 'common.nothing' }, pin.id)
-  return `${pin.name} will come on for ${pout.name}.`
+  return t('touch.willComeOn', { on: pin.name, off: pout.name })
 }
 
 /** Override the man the assistant sent on to cover an injury.
@@ -2786,13 +2786,13 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
  *  the UI only offers it at the moment of the injury. */
 export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, inId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  if (ctx.seg === 3) return 'The match is over.'
+  if (ctx.seg === 3) return t('touch.matchOver')
   const slotOn = mine.lineup.indexOf(onId)
   const slotIn = mine.lineup.indexOf(inId)
   const pon = state.players[onId]
   const pin = state.players[inId]
-  if (slotOn < 0 || slotOn > 14 || !pon || !mine.onPitch.has(onId)) return 'He is not on the pitch.'
-  if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId)) return 'He is not available.'
+  if (slotOn < 0 || slotOn > 14 || !pon || !mine.onPitch.has(onId)) return t('touch.notOnPitch')
+  if (!pin || pin.injury || mine.onPitch.has(inId) || mine.ratings.has(inId)) return t('touch.notAvailable')
   mine.lineup[slotOn] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = onId
   mine.onPitch.delete(onId)
@@ -2820,7 +2820,7 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   forcedSwitchCost(state, ctx, mine, onId, pin, min)
   pushLine(state, ctx, min, 'SUB', mine, 'comm.subChangeOfPlan',
     { on: pin.name, off: pon.name, brief_k: brief ?? 'common.nothing' }, pin.id)
-  return `${pin.name} takes the shirt instead of ${pon.name}.`
+  return t('touch.takesShirtInstead', { on: pin.name, off: pon.name })
 }
 
 /** Take back the last tactical substitution, at the same stoppage it was made
@@ -2833,14 +2833,14 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
 export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const u = ctx.lastSub
-  if (!u) return 'Nothing to take back.'
-  if (ctx.seg === 3) return 'The match is over.'
+  if (!u) return t('touch.nothingToUndo')
+  if (ctx.seg === 3) return t('touch.matchOver')
   const { outId, inId } = u
   const slotIn = mine.lineup.indexOf(inId)
   const slotOut = mine.lineup.indexOf(outId)
   const pout = state.players[outId]
   const pin = state.players[inId]
-  if (slotIn < 0 || slotIn > 14 || !pout || pout.injury) { ctx.lastSub = null; return 'Too late to take that back.' }
+  if (slotIn < 0 || slotIn > 14 || !pout || pout.injury) { ctx.lastSub = null; return t('touch.tooLateToUndo') }
   mine.lineup[slotIn] = outId
   if (slotOut >= 0) mine.lineup[slotOut] = inId
   mine.onPitch.delete(inId)
@@ -2869,7 +2869,7 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   pushLine(state, ctx, min, 'SUB', mine, pin ? 'comm.subUndoneNamed' : 'comm.subUndone',
     { off: pout.name, on: pin?.name ?? '' }, pout.id)
-  return `${pout.name} stays on.`
+  return t('touch.staysOn', { player: pout.name })
 }
 
 /** Swap two on-pitch men's shirts (16B, user: "i want to be able to swap
@@ -2878,13 +2878,13 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
  *  the units are rebuilt so the shape change genuinely reaches the pitch. */
 export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: number): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
-  if (ctx.seg === 3) return 'The match is over.'
+  if (ctx.seg === 3) return t('touch.matchOver')
   const ai = mine.lineup.indexOf(aId)
   const bi = mine.lineup.indexOf(bId)
   const pa = state.players[aId]
   const pb = state.players[bId]
-  if (ai < 0 || ai > 14 || bi < 0 || bi > 14 || !pa || !pb) return 'Both men must be in the XV.'
-  if (!mine.onPitch.has(aId) || !mine.onPitch.has(bId)) return 'Both men must be on the pitch.'
+  if (ai < 0 || ai > 14 || bi < 0 || bi > 14 || !pa || !pb) return t('touch.bothInXV')
+  if (!mine.onPitch.has(aId) || !mine.onPitch.has(bId)) return t('touch.bothOnPitch')
   mine.lineup[ai] = bId
   mine.lineup[bi] = aId
   // a switch after an undo would otherwise resurrect a stale record
@@ -2893,7 +2893,7 @@ export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: num
   const min = Math.min(79, Math.max(1, ctx.lastMin))
   pushLine(state, ctx, min, 'SUB', mine, 'comm.shirtSwap',
     { team: teamShort(state, mine.teamId), a: pa.name, b: pb.name }, pa.id)
-  return `${pa.name} and ${pb.name} swap positions.`
+  return t('touch.swapPositions', { a: pa.name, b: pb.name })
 }
 
 /** Rebuild a side's unit strengths from its current lineup, tactics and conditions. */
