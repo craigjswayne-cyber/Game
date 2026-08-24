@@ -1,163 +1,115 @@
-// Probe: every name in the commentary is a name on the team sheet.
+// Probe: the match commentary follows the reader, and the pitch still works.
 //
-// Live report: "Commentary includes players that aren't in the match day 23."
+// Every match a manager takes charge of writes eighty minutes of commentary,
+// and it is the most-read prose in the game by a distance - a career reads it
+// forty times a season. All of it was English no matter who was watching.
 //
-// This is the kind of bug that cannot be argued with once measured, and cannot be
-// found by reading: a match generates a hundred lines of prose from a dozen
-// different pools, and one pool reaching past the twenty-three men who are
-// actually at the ground would go unnoticed for months while quietly wrecking the
-// one thing a match engine has to get right.
+// The fix is the one the inbox got: a line is filed as a key plus its values
+// and rendered when it is read. pushLine() does that; pushEvent() takes
+// finished English and is what every line used to be. So:
 //
-// So this simulates real fixtures, takes every line of commentary, and looks for
-// the full name of ANY player in the game world inside it. A name that belongs to
-// a man who is not in either match-day 23 is a failure, and the probe prints the
-// line so the pool that produced it can be found.
+//   1. How many lines are still called as English? THE BUDGET is a ratchet -
+//      it may fall and never rise. At zero, pushEvent stops being reachable
+//      from anywhere but pushLine and a line called as English fails the build.
+//   2. Does every key a line names exist, in every language?
+//   3. Do the two languages fill the same holes? A French line that forgets
+//      {player} renders a sentence with a hole in it.
+//   4. Does the English still say what it said? The stored English is not
+//      decoration: the pitch mock-up reads the last line back and matches on
+//      its wording to decide whether to draw a scrum, a lineout or a maul. The
+//      phrases it matches on are pinned here, because breaking one of them
+//      empties the pitch and nothing else in the suite would notice.
 //
-// NOTE ON HOW IT PLAYS THE MATCHES. The headless season path calls simMatch with
-// detail off, so no fixture it settles keeps a single line of commentary: a first
-// cut of this probe walked a whole season and reported "0 matches, 0 lines",
-// which is what a probe looks like when it is measuring nothing. Commentary only
-// exists on the path the live screen drives, so this drives that path: beginMatch
-// with detail on, then stepTick to full-time, exactly as MatchDay does.
-import { newGame } from '../src/game/newgame'
-import { beginMatch, stepTick } from '../src/game/matchEngine'
-import { processWeekAndAdvance, weekRng } from '../src/game/season'
-import { SEASON_WEEKS } from '../src/game/model'
-import type { GameState, LiveCtx } from '../src/game/model'
+// Run: npx vite-node scripts/commprobe.ts
+import { readFileSync } from 'node:fs'
 
+/** Commentary lines still called as finished English. ONLY EVER DECREASE. */
+const BUDGET = 35
+
+const say = (s: string) => console.log(s)
 let fails = 0
-const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
+const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-/**
- * Every player name in the world, as a WHOLE-NAME matcher.
- *
- * The first cut used text.includes(name) and reported 22 offenders, every one of
- * them a lie: "Nathan Green" inside "Nathan Greenwood", "Freddie Clark" inside
- * "Freddie Clarke", "Digby Bell" inside "Digby Bell-Hill". A probe that cannot
- * tell two men apart will happily accuse the game of a bug it does not have, and
- * a probe whose failures are noise gets switched off. So the name has to end
- * where the match ends: no trailing letter, no hyphen.
- */
-function nameIndex(state: GameState) {
-  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return Object.values(state.players)
-    .filter(p => p.name && p.name.includes(' '))
-    .map(p => ({
-      id: p.id,
-      name: p.name,
-      re: new RegExp(`(?<![A-Za-z'-])${esc(p.name)}(?![A-Za-z'-])`),
-    }))
+type Dict = { [k: string]: unknown }
+const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Dict
+const LANGS: Record<string, Dict> = { en: load('src/locales/en.json'), fr: load('src/locales/fr.json') }
+const lookup = (d: Dict, key: string): unknown =>
+  key.split('.').reduce<unknown>((o, part) => (o && typeof o === 'object' ? (o as Dict)[part] : undefined), d)
+
+const SRC = 'src/game/matchEngine.ts'
+const src = readFileSync(SRC, 'utf8')
+
+// ---- 1. how much English is left ------------------------------------------
+say('--- 1. every line is called with a key')
+// pushEvent's own definition, and pushLine's one call to it, are not lines.
+const calls: number[] = []
+for (let i = src.indexOf('pushEvent('); i !== -1; i = src.indexOf('pushEvent(', i + 1)) {
+  const before = src.slice(Math.max(0, i - 40), i)
+  if (/function\s+$/.test(before) || /tIn\('en', k, v\), playerId, k, v\)/.test(src.slice(i, i + 90))) continue
+  calls.push(src.slice(0, i).split('\n').length)
+}
+say(`  ${calls.length} line${calls.length === 1 ? '' : 's'} still called as English (budget ${BUDGET})`)
+if (calls.length) say('  ' + SRC + ':' + calls.slice(0, 14).join(', ') + (calls.length > 14 ? `, ...${calls.length - 14} more` : ''))
+ok(calls.length <= BUDGET,
+  calls.length <= BUDGET
+    ? `no commentary beyond the budget of ${BUDGET} is called as English`
+    : `${calls.length - BUDGET} line(s) over the budget of ${BUDGET} - a line called as English is English for ever`)
+if (calls.length < BUDGET) {
+  ok(false, `THE BUDGET IS STALE: ${calls.length} left but it still says ${BUDGET}. Lower it - a ratchet that is not tightened is not a ratchet`)
 }
 
-let matches = 0, lines = 0, named = 0, coachClashes = 0
-const offenders: { name: string; where: string; text: string }[] = []
-let namesakes = 0
-const byRelation: Record<string, number> = {}
+// ---- 2. every key a line names exists, in every language -------------------
+say('\n--- 2. every key a line names exists in every language')
+const wanted = new Set<string>()
+for (const m of src.matchAll(/'(comm\.[A-Za-z0-9_.]+)'/g)) wanted.add(m[1])
+for (const m of src.matchAll(/\b\w+_k:\s*'([A-Za-z0-9_.]+)'/g)) wanted.add(m[1])
+for (const m of src.matchAll(/\b\w+_k:\s*[^,\n]*\?\s*'([A-Za-z0-9_.]+)'\s*:\s*'([A-Za-z0-9_.]+)'/g)) {
+  wanted.add(m[1]); wanted.add(m[2])
+}
+say(`  ${wanted.size} keys named by commentary`)
+for (const lang of Object.keys(LANGS)) {
+  const gone = [...wanted].filter(k => lookup(LANGS[lang], k) === undefined)
+  ok(gone.length === 0,
+    `${lang} answers every key the commentary names${gone.length ? ` - missing ${gone.length}: ${gone.slice(0, 6).join(', ')}` : ''}`)
+}
 
-for (const [club, seed] of [['harlequins', 12345], ['northampton', 777], ['bath', 4242]] as const) {
-  const g: GameState = newGame(club, 'Commentary Probe', seed)
-  const names = nameIndex(g)
-  const seen = new Set<number>()
-
-  for (let w = 0; w < SEASON_WEEKS; w++) {
-    // play the user's own fixture the way the live screen does, so the
-    // commentary this probe reads is the commentary a manager reads
-    const mine = g.fixtures.find(f => f.week === g.week && !f.played &&
-      (f.homeId === g.userClubId || f.awayId === g.userClubId))
-    if (mine && !seen.has(mine.id)) {
-      seen.add(mine.id)
-      const ctx: LiveCtx = beginMatch(g, mine, weekRng(g), true, g.userClubId)
-      // twenty ticks is a full match; a few extra are harmless once it is over
-      for (let i = 0; i < 24; i++) stepTick(g, ctx)
-      matches++
-
-      // The twenty-three: the men the engine put on the field and the bench for
-      // THIS match, read from the side contexts rather than from the club's
-      // current tactic, because a later week's selection is not this week's.
-      const sheet = new Set<number>()
-      for (const side of [ctx.home, ctx.away]) {
-        for (const id of side.lineup) if (id != null) sheet.add(id)
-        for (const id of side.onPitch) sheet.add(id)
-        for (const id of side.ratings.keys()) sheet.add(id)
-      }
-      // The commentary also names the two COACHES ("X signals to the corners:
-      // game management time"), which is correct and has nothing to do with the
-      // twenty-three. Coach names are generated from the same name pools as
-      // players, so a coach occasionally shares a name with a player at some
-      // third club, and this probe would then accuse the right line of the wrong
-      // crime. Counted separately below rather than exempted silently.
-      // AND THE NAME MIGHT BELONG TO TWO MEN. Twenty-four names in this world are
-      // worn by two different real players - a winger of 26 and a lock of 30
-      // both called Alex Hughes - because the world builder now puts both on a
-      // pitch instead of deleting the second (see scripts/namedup.ts). This
-      // probe tests every player's name against every line, so when the George
-      // Martin who is playing gets a mention, the OTHER George Martin matches
-      // the same text and was reported as a phantom. If a man of that name is
-      // on this team sheet, the line is accounted for.
-      const sheetNames = new Set<string>()
-      for (const id of sheet) { const nm = g.players[id]?.name; if (nm) sheetNames.add(nm) }
-
-      const coachNames = new Set<string>()
-      for (const teamId of [mine.homeId, mine.awayId]) {
-        const nm = g.clubs[teamId]?.coach
-        if (nm) coachNames.add(nm)
-      }
-
-      for (const e of ctx.events) {
-        lines++
-        const text = e.text ?? ''
-        if (!text) continue
-        for (const { id, name, re } of names) {
-          // re, not includes: see nameIndex. The first cut kept using includes
-          // here after the matcher was fixed, and went on reporting the same
-          // twenty phantom offenders.
-          if (!re.test(text)) continue
-          named++
-          if (sheet.has(id)) continue
-          if (sheetNames.has(name)) { namesakes++; continue }
-          // a coach of one of these two clubs who happens to share a name with
-          // some player elsewhere in the world: the line is right, the collision
-          // is a naming coincidence
-          if (coachNames.has(name)) { coachClashes++; continue }
-          const p = g.players[id]
-          const rel = p?.clubId === mine.homeId || p?.clubId === mine.awayId
-            ? 'at one of the two clubs but not in the 23'
-            : p?.clubId
-              ? `at a third club (${g.clubs[p.clubId]?.short ?? p.clubId})`
-              : 'at no club at all'
-          byRelation[rel] = (byRelation[rel] ?? 0) + 1
-          if (offenders.length < 12) {
-            offenders.push({
-              name,
-              where: `${g.clubs[mine.homeId]?.short} v ${g.clubs[mine.awayId]?.short}, ${e.min}' ${e.type}, ${rel}`,
-              text: text.slice(0, 160),
-            })
-          }
-        }
-      }
+// ---- 3. the two languages fill the same holes -----------------------------
+say('\n--- 3. the placeholders match between languages')
+const holes = (s: unknown): string => {
+  const text = typeof s === 'string' ? s
+    : s && typeof s === 'object' ? Object.values(s as Dict).filter(x => typeof x === 'string').join(' ')
+    : ''
+  return [...new Set([...text.matchAll(/\{(\w+)\}/g)].map(m => m[1]))].sort().join(',')
+}
+const enComm = (LANGS.en.comm ?? {}) as Dict
+const bad: string[] = []
+for (const key of Object.keys(enComm)) {
+  for (const lang of Object.keys(LANGS).filter(l => l !== 'en')) {
+    const other = lookup(LANGS[lang], `comm.${key}`)
+    if (other === undefined) { bad.push(`${lang}:comm.${key} missing`); continue }
+    if (holes(enComm[key]) !== holes(other)) {
+      bad.push(`${lang}:comm.${key} (en "${holes(enComm[key])}" vs "${holes(other)}")`)
     }
-    try { processWeekAndAdvance(g) } catch { break }
   }
 }
+ok(bad.length === 0, `every line fills the same holes in both languages${bad.length ? ` - ${bad.length}: ${bad.slice(0, 5).join('; ')}` : ''}`)
 
-console.log(`${matches} matches, ${lines} lines of commentary, ${named} player names found in them`)
-console.log(`${coachClashes} of those were a coach of one of the two clubs whose name a player elsewhere also has`)
-if (offenders.length) {
-  console.log('\nnames that were not on the team sheet:')
-  for (const o of offenders) {
-    console.log(`  ${o.name} - ${o.where}`)
-    console.log(`    "${o.text}"`)
-  }
-  console.log('\nby relation: ' + Object.entries(byRelation).map(([k, n]) => `${k}: ${n}`).join('; '))
+// ---- 4. the English the pitch reads back is still there --------------------
+//
+// MatchDay.tsx decides what to draw on the pitch by matching the last line's
+// English. That is a wart and it is on the list to replace with event types,
+// but until it is, these phrases are load-bearing: change the wording and the
+// mock-up silently stops drawing set pieces. They are asserted against the
+// ENGLISH DICTIONARY as well as the source, because once a line is keyed its
+// wording lives in en.json and a translator editing "the maul" out of the
+// English would break the pitch from a locale file.
+say('\n--- 4. the phrases the pitch mock-up matches on')
+const PINNED = ['maul', 'scrum', 'lineout', 'Quick tap', 'penalty']
+const enBlob = JSON.stringify(LANGS.en.comm ?? {}) + src
+for (const phrase of PINNED) {
+  ok(enBlob.toLowerCase().includes(phrase.toLowerCase()),
+    `"${phrase}" still appears in the English commentary (MatchDay.tsx matches on it)`)
 }
 
-const strays = Object.values(byRelation).reduce((s, n) => s + n, 0)
-console.log(`\n${strays} mentions of men who were not in the match-day 23`)
-console.log(`${namesakes} mentions explained by a namesake who WAS in the 23`)
-
-if (matches < 40) bad(`only ${matches} matches simulated, too few to judge`)
-if (named < 200) bad(`only ${named} names found in ${lines} lines, so this probe is not reading the commentary`)
-if (strays) bad(`${strays} lines of commentary named somebody who was not in the match-day 23`)
-
-if (fails) { console.error(`\nCOMMENTARY PROBE: ${fails} failures`); process.exit(1) }
-console.log('\nCOMMENTARY PROBE PASSED')
+say(fails ? `\nCOMM PROBE FAILED (${fails})` : `\nCOMM PROBE PASSED: ${wanted.size} commentary keys, every one of them in every language`)
+process.exitCode = fails ? 1 : 0

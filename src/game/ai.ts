@@ -169,7 +169,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   const to = state.clubs[toClubId]
   // losing a star you didn't want to sell leaves a mark on the fixture list
   if (from && p.ca >= 80 && !p.transferListed && fee > 0) {
-    addGrudge(state, from.id, toClubId, `they came and took ${p.name}`)
+    addGrudge(state, from.id, toClubId, 'news.grudgeTookHim', { player: p.name })
   }
   if (from) {
     from.players = from.players.filter(id => id !== p.id)
@@ -735,7 +735,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   }
   state.preContracts.push({ playerId: p.id, toClubId: user.id, week: state.week })
   p.morale = clamp(p.morale + 0.5, 1, 10)
-  if (seller && p.ca >= 80) addGrudge(state, seller.id, user.id, `they signed ${p.name} on a pre-contract under our noses`)
+  if (seller && p.ca >= 80) addGrudge(state, seller.id, user.id, 'news.grudgePreContract', { player: p.name })
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
     subject: `🖊 Pre-contract agreed: ${p.name}`,

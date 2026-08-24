@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, POS_ORDER } from '../../game/model'
+import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { nationByCode } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
@@ -355,7 +355,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
                 const opp = g.a === club.id ? g.b : g.a
                 return (
                   <div key={`f${i}`} className="meta" style={{ padding: '3px 0' }}>
-                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {g.reason} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
+                    🔥 <b>{game.clubs[opp]?.short ?? opp}</b> - {grudgeReason(g)} <span className="muted">{t('club.feudRuns', { years: `${2025 + g.until}-${String((g.until + 26) % 100).padStart(2, '0')}` })}</span>
                   </div>
                 )
               })}

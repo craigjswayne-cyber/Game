@@ -4,7 +4,7 @@ import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
@@ -1337,10 +1337,17 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
   const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
+  // DELIBERATELY THE STORED ENGLISH, not eventText(). The line the reader sees
+  // is translated; the line the engine matches on is not, and must not be -
+  // these patterns decide what gets drawn on the pitch, and a save keeps its
+  // events for the life of the career. Reading the rendered text here would
+  // mean the mock-up worked in English and drew nothing in French.
+  //
+  // It is still a wart: the right answer is a set-piece field on the event
+  // rather than a regular expression over prose. scripts/commprobe.ts pins the
+  // phrases in the meantime, because breaking one empties the pitch and
+  // nothing else in the suite would notice.
   const txt = last?.text ?? ''
-  // THE COMMENTARY IS ENGLISH AND STAYS ENGLISH - it is written into the match
-  // report the save keeps (see docs/i18n.md), so these patterns keep matching
-  // whatever language the screen is in. Only the label on the mock-up moves.
   const setPiece = showFx && evType === 'SUB'
     ? (/scrum/i.test(txt) ? 'SCRUM' : /lineout|against the throw/i.test(txt) ? 'LINEOUT' : /maul/i.test(txt) ? 'MAUL' : null)
     : null
@@ -1841,7 +1848,7 @@ function Live() {
           {last && (
             <div key={cursor} className={`now-line ${cls(last)}`}>
               <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">{icon(last)} {last.text}</span>
+              <span className="txt">{icon(last)} {eventText(last)}</span>
             </div>
           )}
         </div>
@@ -1931,7 +1938,7 @@ function Live() {
             {showLog && shown.map((e, i) => (
               <div key={i} className={`tick-event ${cls(e)}`}>
                 <span className="min">{e.min}'</span>
-                <span className="txt">{icon(e)} {e.text}</span>
+                <span className="txt">{icon(e)} {eventText(e)}</span>
               </div>
             ))}
             <button className="btn gold block" style={{ margin: '10px 14px 14px' }} onClick={finishMatch}>
@@ -2130,7 +2137,7 @@ function Highlights() {
       <h3 style={{ fontSize: 14 }}>{t('matchday.highlightsTitle')}</h3>
       {picks.map((e, i) => (
         <div key={i} className="meta" style={{ padding: '3px 0' }}>
-          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> - {e.text}
+          <b style={{ fontFamily: 'var(--cond)' }}>{e.min}'</b> - {eventText(e)}
         </div>
       ))}
     </div>
