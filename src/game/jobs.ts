@@ -2,7 +2,7 @@
 // FM Mobile format - wait for the right job, or take what's available.
 
 import type { GameState } from './model'
-import { mgrReputation, poss } from './model'
+import { fmtMoney, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
@@ -99,6 +99,8 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${club.short} part company with ${exCoach}`,
         body: `${club.name} are searching for a new Director of Rugby after a ${ord} run of form. The position is open.`,
+        k: pos <= 0 ? 'news.coachOutPoor' : 'news.coachOut',
+        v: { short: club.short, club: club.name, coach: exCoach, pos_o: pos },
       })
       break
     }
@@ -113,6 +115,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `${club.short} want to talk`,
         body: `Your phone rings: ${club.name} are keen on you for their vacant post. Apply from the Job Centre - the door is open.`,
+        k: 'news.jobCall', v: { short: club.short, club: club.name },
       })
     }
   }
@@ -135,6 +138,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
           id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
           subject: `🤝 ${suitor.short} are watching you`,
           body: `The back pages have put your name at the top of ${poss(suitor.name)} shortlist for their empty dugout, and for once the back pages are right - their people have made discreet contact. A bigger club, a bigger budget, somebody else's project. Apply from the Job Centre if your head is turned; say nothing and the story dies by Friday. Your chairman has read the papers too, and he is watching how long you take to deny it.`,
+          k: 'news.courted', v: { short: suitor.short, poss: poss(suitor.name) },
         })
       }
     }
@@ -219,12 +223,15 @@ export function applyForJob(state: GameState, clubId: string): string {
         id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
         subject: `🗞 'I am going nowhere' - a quote that aged badly`,
         body: `Every paper runs the same clip: ${state.managerName}, weeks ago, hand on heart, going nowhere. The move is done and nobody can undo it, but your new board noted how cheaply the last promise was sold, and the away end has a new song ready for your return.`,
+        k: 'news.brokeVow', v: { manager: state.managerName },
       })
     }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `Appointed: ${state.managerName} takes over at ${club.name}`,
       body: `A new chapter. The board expects steady progress, the dressing room is watching, and the ${club.stadium} faithful will judge you soon enough. Your transfer budget is £${(club.budget / 1e6).toFixed(1)}m.`,
+      k: 'news.appointed',
+      v: { manager: state.managerName, club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
     })
     return t('world.jbHired', { club: club.name })
   }
@@ -232,6 +239,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${club.short} go in a different direction`,
     body: `${club.name} thank you for your interest but have decided to pursue other candidates.`,
+    k: 'news.jobRejected', v: { short: club.short, club: club.name },
   })
   return t('world.jbPassed', { club: club.short })
 }
@@ -272,5 +280,6 @@ export function resignJob(state: GameState) {
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `${state.managerName} resigns at ${club.name}`,
     body: `You clear your desk on your own terms. ${eraSummary(state)} The rumour mill starts turning immediately - where next?`,
+    k: 'news.resigned', v: { manager: state.managerName, club: club.name, era: eraSummary(state) },
   })
 }
