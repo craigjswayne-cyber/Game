@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { dreamState, dreamPct } from '../../game/dream'
+import { dreamNote, dreamPct, dreamState, dreamTitle } from '../../game/dream'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
@@ -35,11 +35,11 @@ export default function Legacy() {
           <>
             <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${d.progress.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15.5 }}>{d.title}</div>
+              <div style={{ fontWeight: 700, fontSize: 15.5 }}>{dreamTitle(d.def, d.ctx)}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${dreamPct(d.progress)}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
-              <div className="meta">{d.progress.note}</div>
+              <div className="meta">{dreamNote(d.progress)}</div>
             </div>
           </>
         )

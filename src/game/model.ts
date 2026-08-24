@@ -195,7 +195,19 @@ export interface SeasonReview {
   trophies: string[]
   /** where the career's Dream stood when this season closed. Optional: seasons
    *  reviewed before dreams existed have none, and a save may have no dream. */
-  dream?: { title: string; note: string; at: number; goal: number; done: boolean; moved: number | null }
+  dream?: {
+    /** English, as it was written; the keys below are what a screen renders. */
+    title: string
+    titleK?: string
+    titleV?: Record<string, string | number>
+    note: string
+    noteK?: string
+    noteV?: Record<string, string | number>
+    at: number
+    goal: number
+    done: boolean
+    moved: number | null
+  }
 }
 
 /** Live grudge between two clubs, if any. */

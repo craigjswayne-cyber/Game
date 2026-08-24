@@ -25,7 +25,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** ONLY EVER DECREASE. */
-const BUDGET = { decisions: 0, press: 0, touchline: 0, replies: 3 }
+const BUDGET = { decisions: 0, press: 0, touchline: 0, replies: 0 }
 
 const say = (s: string) => console.log(s)
 let fails = 0

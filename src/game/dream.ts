@@ -29,6 +29,7 @@
  */
 import { LEAGUE_TIER } from './model'
 import type { GameState } from './model'
+import { t, tIn, type Vars } from './i18n'
 
 /** What the wizard knows when it offers the choice: no GameState exists yet. */
 export interface DreamContext {
@@ -43,21 +44,38 @@ export interface DreamProgress {
   at: number
   /** how far there is to go */
   goal: number
-  /** the honest state of it, in the manager's language */
-  note: string
+  /** The honest state of it, as a key and the values that fill it. A note is
+   *  a sentence and it is written into the season review, which is kept for
+   *  the life of the career - so it travels as a key, and dreamNote() renders
+   *  it in whatever language the reader has chosen this year. */
+  noteK: string
+  noteV?: Vars
   done: boolean
 }
 
 export interface DreamDef {
   id: string
-  /** the ambition, as the manager would say it out loud */
-  title: (ctx: DreamContext) => string
+  /** The ambition, as the manager would say it out loud - a key, filled by
+   *  titleVars where the wording names his club. */
+  titleK: string
+  /** The same ambition phrased for the middle of a sentence. The CV line used
+   *  to lowercase the title, which is right in English and impossible anywhere
+   *  else: lowercasing an English sentence gives a lowercase English one. */
+  titleLowerK: string
+  titleVars?: (ctx: DreamContext) => Vars
   /** what taking it on actually means */
-  blurb: string
+  blurbK: string
   /** offered only where it means something */
   applies: (ctx: DreamContext) => boolean
   progress: (state: GameState) => DreamProgress
 }
+
+/** The ambition in the reader's language. */
+export const dreamTitle = (def: DreamDef, ctx: DreamContext): string => t(def.titleK, def.titleVars?.(ctx))
+/** And phrased for the middle of a sentence. */
+export const dreamTitleLower = (def: DreamDef, ctx: DreamContext): string => t(def.titleLowerK, def.titleVars?.(ctx))
+/** Where the dream stands, in the reader's language. */
+export const dreamNote = (p: { noteK: string; noteV?: Vars }): string => t(p.noteK, p.noteV)
 
 /** The club the dream was declared about, which is not always where you work now. */
 const dreamClub = (state: GameState): string => state.dream?.clubId ?? state.userClubId
@@ -76,8 +94,9 @@ const topFlightSeasons = (state: GameState): number => {
 export const DREAMS: DreamDef[] = [
   {
     id: 'topflight',
-    title: ctx => `Take ${ctx.clubName} into the top flight`,
-    blurb: 'Win promotion, then prove it was not a fluke by surviving a season up there. Two of the hardest years in the game, back to back.',
+    titleK: 'dream.topflight', titleLowerK: 'dream.topflightLower',
+    titleVars: ctx => ({ club: ctx.clubName }),
+    blurbK: 'dream.topflightBlurb',
     // only a club that is not already there can dream of getting there
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) > 1,
     progress: state => {
@@ -87,18 +106,19 @@ export const DREAMS: DreamDef[] = [
       return {
         at: Math.min(2, seasons),
         goal: 2,
-        note: seasons >= 2 ? 'established in the top flight'
-          : seasons === 1 ? 'one season up: survive another'
-          : upNow ? 'promoted - now stay there'
-          : `still in the ${club?.leagueId === 'champ' ? 'Championship' : 'lower leagues'}`,
+        noteK: seasons >= 2 ? 'dream.topflightEstablished'
+          : seasons === 1 ? 'dream.topflightOneSeason'
+          : upNow ? 'dream.topflightPromoted'
+          : club?.leagueId === 'champ' ? 'dream.topflightStillChamp'
+          : 'dream.topflightStillLower',
         done: seasons >= 2,
       }
     },
   },
   {
     id: 'europe',
-    title: () => 'Win the Continental Cup',
-    blurb: 'The biggest prize in club rugby. Qualify, survive the pool, and win four knockout ties against the best sides on the continent.',
+    titleK: 'dream.europe', titleLowerK: 'dream.europeLower',
+    blurbK: 'dream.europeBlurb',
     applies: () => true,
     progress: state => {
       const n = won(state, 'cc')
@@ -106,17 +126,19 @@ export const DREAMS: DreamDef[] = [
       return {
         at: Math.min(1, n),
         goal: 1,
-        note: n > 0 ? `won it${n > 1 ? ` ${n} times` : ''}`
-          : chc > 0 ? 'a Continental Shield on the shelf: the big one is still out there'
-          : 'not yet',
+        noteK: n > 1 ? 'dream.europeWonTimes' : n > 0 ? 'dream.europeWon'
+          : chc > 0 ? 'dream.europeShieldOnly'
+          : 'dream.europeNotYet',
+        noteV: { n },
         done: n > 0,
       }
     },
   },
   {
     id: 'double',
-    title: ctx => `Win the league and Europe with ${ctx.clubName}`,
-    blurb: 'The double that defines an era: your domestic title and the Continental Cup, both with this club. They need not be the same season.',
+    titleK: 'dream.double', titleLowerK: 'dream.doubleLower',
+    titleVars: ctx => ({ club: ctx.clubName }),
+    blurbK: 'dream.doubleBlurb',
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) === 1,
     progress: state => {
       const club = dreamClub(state)
@@ -126,17 +148,17 @@ export const DREAMS: DreamDef[] = [
       return {
         at: have,
         goal: 2,
-        note: have === 2 ? 'both, and nobody can take either back'
-          : have === 1 ? (league ? 'league won - Europe left' : 'Europe won - the league left')
-          : 'neither yet',
+        noteK: have === 2 ? 'dream.doubleBoth'
+          : have === 1 ? (league ? 'dream.doubleLeagueDone' : 'dream.doubleEuropeDone')
+          : 'dream.doubleNeither',
         done: have === 2,
       }
     },
   },
   {
     id: 'dynasty',
-    title: () => 'Win the league three seasons running',
-    blurb: 'Anyone can have one good year. A dynasty is what happens when the whole league builds itself to stop you and cannot.',
+    titleK: 'dream.dynasty', titleLowerK: 'dream.dynastyLower',
+    blurbK: 'dream.dynastyBlurb',
     applies: () => true,
     progress: state => {
       // the longest run of consecutive title-winning seasons on the record
@@ -150,18 +172,18 @@ export const DREAMS: DreamDef[] = [
       return {
         at: Math.min(3, best),
         goal: 3,
-        note: best >= 3 ? 'a dynasty, on the record'
-          : best === 2 ? 'two in a row: one more'
-          : best === 1 ? 'one title so far'
-          : 'no titles yet',
+        noteK: best >= 3 ? 'dream.dynastyDone'
+          : best === 2 ? 'dream.dynastyTwo'
+          : best === 1 ? 'dream.dynastyOne'
+          : 'dream.dynastyNone',
         done: best >= 3,
       }
     },
   },
   {
     id: 'academy',
-    title: () => 'Build a first team out of your own academy',
-    blurb: 'Eight graduates of your own academy, all with senior rugby behind them, on the books at once. The slowest dream in the game and the one that outlives you.',
+    titleK: 'dream.academy', titleLowerK: 'dream.academyLower',
+    blurbK: 'dream.academyBlurb',
     applies: () => true,
     progress: state => {
       const club = state.clubs[state.userClubId]
@@ -171,17 +193,18 @@ export const DREAMS: DreamDef[] = [
       return {
         at: Math.min(8, n),
         goal: 8,
-        note: n >= 8 ? 'a team of your own making'
-          : n === 0 ? 'no graduates in the senior squad yet'
-          : `${n} graduate${n === 1 ? '' : 's'} with senior rugby behind them`,
+        noteK: n >= 8 ? 'dream.academyDone'
+          : n === 0 ? 'dream.academyNone'
+          : 'dream.academySome',
+        noteV: { n },
         done: n >= 8,
       }
     },
   },
   {
     id: 'world',
-    title: () => 'Coach a nation to the World Championship',
-    blurb: 'Club rugby is the day job. Take a Test side as well, and win the tournament that only comes round every four years.',
+    titleK: 'dream.world', titleLowerK: 'dream.worldLower',
+    blurbK: 'dream.worldBlurb',
     applies: () => true,
     progress: state => {
       const wc = won(state, 'wc')
@@ -190,25 +213,26 @@ export const DREAMS: DreamDef[] = [
       return {
         at: wc > 0 ? 2 : everHad ? 1 : 0,
         goal: 2,
-        note: wc > 0 ? 'champions of the world'
-          : hasJob ? 'in the job: now win it'
-          : everHad ? 'you have coached a Test side - get another job and finish it'
-          : 'no international job yet',
+        noteK: wc > 0 ? 'dream.worldDone'
+          : hasJob ? 'dream.worldInTheJob'
+          : everHad ? 'dream.worldOnceHad'
+          : 'dream.worldNoJob',
         done: wc > 0,
       }
     },
   },
   {
     id: 'immortal',
-    title: () => 'Retire with fifteen major trophies',
-    blurb: 'No single miracle - a career of them. Fifteen pieces of silverware is Hall of Fame territory and takes most of a working life.',
+    titleK: 'dream.immortal', titleLowerK: 'dream.immortalLower',
+    blurbK: 'dream.immortalBlurb',
     applies: () => true,
     progress: state => {
       const n = state.mgr.trophies.length
       return {
         at: Math.min(15, n),
         goal: 15,
-        note: n === 0 ? 'the cabinet is empty' : `${n} in the cabinet`,
+        noteK: n === 0 ? 'dream.immortalEmpty' : 'dream.immortalCount',
+        noteV: { n },
         done: n >= 15,
       }
     },
@@ -225,7 +249,9 @@ export function dreamById(id: string | undefined): DreamDef | undefined {
 }
 
 /** The live state of the save's dream, or null when there is not one. */
-export function dreamState(state: GameState): { def: DreamDef; title: string; progress: DreamProgress } | null {
+export function dreamState(state: GameState): {
+  def: DreamDef; ctx: DreamContext; title: string; titleK: string; titleV?: Vars; progress: DreamProgress
+} | null {
   const def = dreamById(state.dream?.id)
   if (!def) return null
   const club = state.clubs[state.dream!.clubId]
@@ -235,7 +261,16 @@ export function dreamState(state: GameState): { def: DreamDef; title: string; pr
     leagueId: club?.leagueId ?? 'prem',
     rep: club?.rep ?? 70,
   }
-  return { def, title: def.title(ctx), progress: def.progress(state) }
+  // Both the key and the English are returned: the season review keeps a copy
+  // of this for the life of the career, and stored English is what an old save
+  // reads back when it was written before dreams carried keys.
+  return {
+    def, ctx,
+    title: tIn('en', def.titleK, def.titleVars?.(ctx)),
+    titleK: def.titleK,
+    titleV: def.titleVars?.(ctx),
+    progress: def.progress(state),
+  }
 }
 
 /** 0-100 for a progress bar, never past either end. */
@@ -252,7 +287,8 @@ export function dreamVerdict(state: GameState, before: DreamProgress | null): st
   const now = dreamState(state)
   if (!now) return null
   const moved = before ? now.progress.at - before.at : 0
-  if (now.progress.done) return `THE DREAM IS DONE: ${now.title}. Whatever comes next is a bonus.`
-  if (moved > 0) return `The dream moved this season: ${now.title} - ${now.progress.note}.`
-  return `No closer to the dream: ${now.title} - ${now.progress.note}.`
+  const v = { title_k: now.titleK, ...(now.titleV ?? {}), note_k: now.progress.noteK, ...(now.progress.noteV ?? {}) }
+  if (now.progress.done) return t('dream.verdictDone', v)
+  if (moved > 0) return t('dream.verdictMoved', v)
+  return t('dream.verdictStalled', v)
 }

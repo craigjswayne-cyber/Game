@@ -149,9 +149,21 @@ export function careerVerdict(state: GameState): Verdict {
   if (topFlight) rows.push({ k: topFlight === 1 ? 'legacy.cvTopFlightOne' : 'legacy.cvTopFlight', n: topFlight })
   if (legends) rows.push({ k: legends === 1 ? 'legacy.cvLegendOne' : 'legacy.cvLegends', n: legends })
   if (d) {
+    // The dream is named in the middle of a sentence, so it uses the title's
+    // mid-sentence key rather than .toLowerCase() on the headline one:
+    // lowercasing an English sentence gives a lowercase English sentence, and
+    // nothing at all in French.
+    //
+    // The note used to START the second sentence, capitalised by hand off its
+    // first character. That is the same trick and it fails the same way, so the
+    // line was rewritten to carry the note in the middle instead - one turn of
+    // phrase, against a second copy of all twenty-six notes.
     rows.push(dreamDone
-      ? { k: 'legacy.cvDreamDone', dream: d.title.toLowerCase() }
-      : { k: 'legacy.cvDreamMissed', dream: d.title.toLowerCase(), note: `${d.progress.note[0].toUpperCase()}${d.progress.note.slice(1)}` })
+      ? { k: 'legacy.cvDreamDone', dream_k: d.def.titleLowerK, ...(d.titleV ?? {}) }
+      : {
+        k: 'legacy.cvDreamMissed', dream_k: d.def.titleLowerK, ...(d.titleV ?? {}),
+        note_k: d.progress.noteK, ...(d.progress.noteV ?? {}),
+      })
   }
   rows.push({ k: 'legacy.cvRepEnd', rep: mgrReputation(state) })
 

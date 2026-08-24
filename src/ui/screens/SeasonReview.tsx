@@ -92,15 +92,22 @@ export default function SeasonReview() {
           <>
             <SectionTitle sub={t('legacy.srDreamSub')}>{t('legacy.lgTheDream')}</SectionTitle>
             <div className="card" style={{ borderLeft: `4px solid ${r.dream.done ? 'var(--primary)' : 'var(--gold)'}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>{r.dream.title}</div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>{r.dream.titleK ? t(r.dream.titleK, r.dream.titleV) : r.dream.title}</div>
               <div style={{ height: 7, background: 'var(--border-strong)', borderRadius: 4, overflow: 'hidden', margin: '8px 0 5px' }}>
                 <div style={{ width: `${Math.min(100, Math.round((r.dream.at / Math.max(1, r.dream.goal)) * 100))}%`, height: '100%', background: r.dream.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
               <div className="meta">
-                {r.dream.done ? t('legacy.srDreamDone')
-                  : r.dream.moved != null && r.dream.moved > 0 ? t('legacy.srDreamCloser', { note: r.dream.note })
-                  : r.dream.moved != null ? t('legacy.srDreamNoCloser', { note: r.dream.note })
-                  : r.dream.note}
+                {/* The keys when the review has them, the English it was written
+                    in when it does not: a review kept from an older build is
+                    still a review, and a key that is not there renders its own
+                    name, which is the ugliest failure on the screen. */}
+                {(() => {
+                  const note = r.dream.noteK ? t(r.dream.noteK, r.dream.noteV) : r.dream.note
+                  return r.dream.done ? t('legacy.srDreamDone')
+                    : r.dream.moved != null && r.dream.moved > 0 ? t('legacy.srDreamCloser', { note })
+                    : r.dream.moved != null ? t('legacy.srDreamNoCloser', { note })
+                    : note
+                })()}
               </div>
             </div>
           </>

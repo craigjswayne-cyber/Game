@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
-import { dreamsFor, type DreamContext } from '../../game/dream'
+import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
 import { Crest, Jersey } from '../components'
@@ -308,8 +308,8 @@ export default function NewGame() {
                 {dreams.map(d => (
                   <button key={d.id} className={`speech-tile${dream === d.id ? ' sel' : ''}`}
                     onClick={() => setDreamId(d.id)}>
-                    <b>{d.title(dreamCtx!)}</b>
-                    <span className="d">{d.blurb}</span>
+                    <b>{dreamTitle(d, dreamCtx!)}</b>
+                    <span className="d">{t(d.blurbK)}</span>
                   </button>
                 ))}
               </div>
