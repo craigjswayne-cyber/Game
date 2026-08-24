@@ -3352,6 +3352,27 @@
     "trophyOne": "trophy",
     "trophyMany": "trophies",
     "careerGamesSubj": "📇 Match {m} in the dugout",
-    "careerGames": "You have now taken charge of {m} matches: {w} won, {d} drawn, {l} lost ({pct}%). Very few last this long in the job. The trick, as ever, is the next one."
+    "careerGames": "You have now taken charge of {m} matches: {w} won, {d} drawn, {l} lost ({pct}%). Very few last this long in the job. The trick, as ever, is the next one.",
+    "recordGateSubj": "🎟 RECORD GATE: {att} at {stadium}",
+    "recordGate": "The biggest crowd of your era watched the {opp} match - {att}, beating the old mark of {old}. The commercial team is giddy; the ground staff want a word about the queues. Full houses follow winning teams.",
+    "recordBookSubj": "📕 A record under you: {us}-{them}",
+    "recordBook": "{mark_k} It goes in the book, where the next side to visit can read it.",
+    "recordWin": "A club record win under you: {us}-{them}, beating {pus}-{pthem}.",
+    "fansUpSubj": "🎶 The terraces are in full voice",
+    "fansUp": "The songs have new verses and away allocations are selling out. The supporters believe in this team - and {stadium} is becoming a genuinely hard place to visit.",
+    "fansDownSubj": "😤 Boos at full-time",
+    "fansDown": "Sections of the support turned on the team this week. Banners are being painted and the phone-ins are merciless. Results are the only medicine - and until they come, home games will feel colder.",
+    "friendlySubj": "🤝 Friendly arranged: {short} this week",
+    "friendly": "{club} have agreed to a run-out at your place. Minutes for the fringe men, sharpness for the returners - just don't get anyone hurt.",
+    "capsSubj": "🌍 {home} {hs}-{as} {away}: how your men got on",
+    "caps": "{rows_ll}",
+    "capsMoreSubj": "🌍 {home} {hs}-{as} {away}: how your men got on",
+    "capsMore": "{rows_ll}\nAnd {n} more of yours came through it fine.",
+    "capLine": "**{player}** ({nat}) {rating} - {word_k}.",
+    "capRan": "ran the game",
+    "capExcellent": "excellent",
+    "capJob": "did his job well",
+    "capSteady": "steady enough",
+    "capQuiet": "quiet by his standards"
   }
 }

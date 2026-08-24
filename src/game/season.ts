@@ -1331,6 +1331,8 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `🎟 RECORD GATE: ${fx.att.toLocaleString()} at ${club.stadium}`,
           body: `The biggest crowd of your era watched the ${state.clubs[oppId]?.short ?? oppId} match - ${fx.att.toLocaleString()}, beating the old mark of ${prev.att.toLocaleString()}. The commercial team is giddy; the ground staff want a word about the queues. Full houses follow winning teams.`,
+          k: 'news.recordGate',
+          v: { att: fx.att, stadium: club.stadium, opp: state.clubs[oppId]?.short ?? oppId, old: prev.att },
           fixtureId: fx.id,
         })
       }
@@ -1344,7 +1346,9 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `📕 A record under you: ${us}-${them}`,
-        body: `${mark} It goes in the book, where the next side to visit can read it.`,
+        body: `${tIn('en', mark.k, mark)} It goes in the book, where the next side to visit can read it.`,
+        k: 'news.recordBook',
+        v: { ...mark, us, them, mark_k: mark.k },
         fixtureId: fx.id,
       })
     }
@@ -1373,12 +1377,14 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎶 The terraces are in full voice`,
       body: `The songs have new verses and away allocations are selling out. The supporters believe in this team - and ${state.clubs[state.userClubId].stadium} is becoming a genuinely hard place to visit.`,
+      k: 'news.fansUp', v: { stadium: state.clubs[state.userClubId].stadium },
     })
   } else if (before > 30 && state.fanMood <= 30) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `😤 Boos at full-time`,
       body: `Sections of the support turned on the team this week. Banners are being painted and the phone-ins are merciless. Results are the only medicine - and until they come, home games will feel colder.`,
+      k: 'news.fansDown', v: {},
     })
   }
 }
@@ -1410,6 +1416,7 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `🤝 Friendly arranged: ${opp.short} this week`,
     body: `${opp.name} have agreed to a run-out at your place. Minutes for the fringe men, sharpness for the returners - just don't get anyone hurt.`,
+    k: 'news.friendly', v: { short: opp.short, club: opp.name },
   })
   return `Friendly arranged against ${opp.name} this week.`
 }
@@ -1529,9 +1536,10 @@ export function processWeekAndAdvance(state: GameState) {
         const rr = mulberry32((state.seed ^ Math.imul(fx.id, 31) ^ Math.imul(p.id, 2654435761)) >>> 0)
         const won = nat === fx.homeId ? fx.homeScore > fx.awayScore : fx.awayScore > fx.homeScore
         const rating = Math.min(9.4, 6 + rr() * 2.6 + (won ? 0.3 : 0))
-        const word = rating >= 8.4 ? 'ran the game' : rating >= 7.6 ? 'excellent'
-          : rating >= 6.9 ? 'did his job well' : rating >= 6.3 ? 'steady enough' : 'quiet by his standards'
-        return { rating, text: `**${p.name}** (${nat}) ${rating.toFixed(1)} - ${word}.` }
+        const wordKey = rating >= 8.4 ? 'news.capRan' : rating >= 7.6 ? 'news.capExcellent'
+          : rating >= 6.9 ? 'news.capJob' : rating >= 6.3 ? 'news.capSteady' : 'news.capQuiet'
+        const row = { k: 'news.capLine', player: p.name, nat, rating: rating.toFixed(1), word_k: wordKey }
+        return { rating, row, text: tIn('en', row.k, row) }
       }).sort((a, b) => b.rating - a.rating)
       const shown = lines.slice(0, 4).map(l => l.text)
       const more = lines.length - shown.length
@@ -1539,6 +1547,11 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
         subject: `🌍 ${hName} ${fx.homeScore}-${fx.awayScore} ${aName}: how your men got on`,
         body: shown.join('\n') + (more > 0 ? `\nAnd ${more} more of yours came through it fine.` : ''),
+        k: more > 0 ? 'news.capsMore' : 'news.caps',
+        v: {
+          home: hName, away: aName, hs: fx.homeScore, as: fx.awayScore,
+          rows_ll: JSON.stringify(lines.slice(0, 4).map(l => l.row)), n: more,
+        },
         playerIds: away.slice(0, 6).map(x => x.p.id),
         fixtureId: fx.id,
       })

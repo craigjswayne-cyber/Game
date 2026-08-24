@@ -3352,6 +3352,27 @@
     "trophyOne": "trophée",
     "trophyMany": "trophées",
     "careerGamesSubj": "📇 Match n° {m} sur le banc",
-    "careerGames": "Vous avez désormais dirigé {m} matches : {w} gagnés, {d} nuls, {l} perdus ({pct}%). Très peu durent aussi longtemps dans ce métier. L'astuce, comme toujours, c'est le suivant."
+    "careerGames": "Vous avez désormais dirigé {m} matches : {w} gagnés, {d} nuls, {l} perdus ({pct}%). Très peu durent aussi longtemps dans ce métier. L'astuce, comme toujours, c'est le suivant.",
+    "recordGateSubj": "🎟 RECORD D'AFFLUENCE : {att} à {stadium}",
+    "recordGate": "La plus grosse affluence de votre ère a assisté au match contre {opp} - {att}, battant l'ancien record de {old}. Le service commercial exulte ; l'intendance veut vous parler des files d'attente. Les stades pleins suivent les équipes qui gagnent.",
+    "recordBookSubj": "📕 Un record sous vos ordres : {us}-{them}",
+    "recordBook": "{mark_k} Cela entre dans le livre, où la prochaine équipe en visite pourra le lire.",
+    "recordWin": "Un record du club sous vos ordres : {us}-{them}, battant {pus}-{pthem}.",
+    "fansUpSubj": "🎶 Les tribunes donnent de la voix",
+    "fansUp": "Les chants ont de nouveaux couplets et les parcages visiteurs se vendent d'avance. Les supporters croient en cette équipe - et {stadium} devient un déplacement vraiment difficile.",
+    "fansDownSubj": "😤 Sifflets au coup de sifflet final",
+    "fansDown": "Une partie du public s'est retournée contre l'équipe cette semaine. Des banderoles se préparent et les émissions d'auditeurs sont impitoyables. Les résultats sont le seul remède - et en attendant, les matches à domicile seront plus froids.",
+    "friendlySubj": "🤝 Match amical organisé : {short} cette semaine",
+    "friendly": "{club} a accepté une rencontre chez vous. Du temps de jeu pour les remplaçants, du rythme pour ceux qui reviennent - évitez juste les blessures.",
+    "capsSubj": "🌍 {home} {hs}-{as} {away} : comment vos joueurs s'en sont sortis",
+    "caps": "{rows_ll}",
+    "capsMoreSubj": "🌍 {home} {hs}-{as} {away} : comment vos joueurs s'en sont sortis",
+    "capsMore": "{rows_ll}\nEt {n} autres des vôtres s'en sont sortis sans encombre.",
+    "capLine": "**{player}** ({nat}) {rating} - {word_k}.",
+    "capRan": "a dirigé le match",
+    "capExcellent": "excellent",
+    "capJob": "a fait son travail",
+    "capSteady": "correct",
+    "capQuiet": "discret pour son niveau"
   }
 }

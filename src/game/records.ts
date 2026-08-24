@@ -42,16 +42,19 @@ export interface RecordBook {
  * Returns the headline if a mark fell, so the caller can put it in the news -
  * a record nobody is told about is a record nobody is chasing.
  */
+/** The record line this result earns, as a key and its variables rather than a
+ *  sentence: it is dropped into a news story the reader may be reading in
+ *  either language, so it cannot be prose. Null when the result beats nothing. */
 export function offerResult(
   state: GameState, oppId: string, us: number, them: number,
-): string | null {
+): { k: string; us: number; them: number; pus: number; pthem: number } | null {
   const r = (state.era ??= {})
   const margin = us - them
   if (margin > 0) {
     const prev = r.biggestWin
     if (!prev || margin > prev.us - prev.them) {
       r.biggestWin = { oppId, us, them, season: state.season }
-      if (prev) return `A club record win under you: ${us}-${them}, beating ${prev.us}-${prev.them}.`
+      if (prev) return { k: 'news.recordWin', us, them, pus: prev.us, pthem: prev.them }
     }
   } else if (margin < 0) {
     const prev = r.worstLoss
