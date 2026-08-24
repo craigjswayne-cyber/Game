@@ -2256,8 +2256,8 @@
     "jbProspects": "Chances à l'entretien : ",
     "jbPutBack": "↩ Le remettre sur la liste",
     "jbQualify": " Vous êtes éligible - l'appel peut arriver à tout moment.",
-    "jbRepBuilt": " - bâtie sur {m} matchs, {pct} % de victoires, {n} trophées.",
-    "jbRepBuiltOne": " - bâtie sur {m} matchs, {pct} % de victoires, {n} trophée.",
+    "jbRepBuilt": " - bâtie sur {m} {matches_k}, {pct} % de victoires, {n} trophées.",
+    "jbRepBuiltOne": " - bâtie sur {m} {matches_k}, {pct} % de victoires, {n} trophée.",
     "jbResignFrom": "Démissionner de {club}",
     "jbShowTurned": "▸ {n} refusés",
     "jbStay": "Rester",
@@ -3435,8 +3435,8 @@
     "bowTwoSubj": "🎤 Fin de parcours : {names} raccrochent",
     "bowTwo": "Deux des grandes carrières de ce sport s'achèvent cet été. {cvs}. Les prochains mois seront la tournée d'adieu, et chaque stade visité se lèvera pour eux. Une dernière chance de trophée d'abord.",
     "andJoin": " et ",
-    "cv": "{name} ({age} ans, {club}), {apps} matches",
-    "cvTries": "{name} ({age} ans, {club}), {apps} matches et {tries} essais",
+    "cv": "{name} ({age}, {club}), {apps} {apps_k}",
+    "cvTries": "{name} ({age}, {club}), {apps} {apps_k} et {tries} {tries_k}",
     "expiringSubj": {
       "one": "{n} contrat expire",
       "other": "{n} contrats expirent"
@@ -3734,13 +3734,19 @@
     "annualSubj": "📖 L'Annuaire {season} - trophées et records",
     "annual": "{rows_ll}\n\nÉquipe de la saison - Avants : {pack}.\nArrières : {backs}.",
     "annPotm": "Joueur de la saison : {name} ({club}) - note moyenne {avg}",
-    "annPoints": "Meilleur réalisateur : {name} - {n} points",
-    "annTries": "Meilleur marqueur d'essais : {name} - {n} essais",
+    "annPoints": {
+      "one": "Meilleur réalisateur : {name} — {n} point",
+      "other": "Meilleur réalisateur : {name} — {n} points"
+    },
+    "annTries": {
+      "one": "Meilleur marqueur d'essais : {name} — {n} essai",
+      "other": "Meilleur marqueur d'essais : {name} — {n} essais"
+    },
     "annBiggest": "Plus large victoire : {home} {hs}-{as} {away}",
     "annAtt": "Meilleure affluence : {n} à {stadium}",
     "potySubj": "🏅 Joueur mondial de l'année : {player}",
     "poty": "Le rugby mondial désigne son meilleur joueur. La liste :\n{rows_ll}\n{tail_k}",
-    "potyLine": "{rank}. {name} ({pos}, {club}) - moyenne {avg}, {n} essais{again_k}",
+    "potyLine": "{rank}. {name} ({pos}, {club}) — moy. {avg}, {n} {tries_k}{again_k}",
     "potyAgain": " (trophée n° {poty})",
     "potyYours": "Il est À VOUS. Tout le rugby vient de regarder votre joueur recevoir son plus grand prix - savourez, car le marché va tourner autour de lui dès demain.",
     "potyPodium": "L'un des vôtres est sur le podium. Les recruteurs l'ont remarqué ; son agent aussi.",
@@ -3813,9 +3819,9 @@
     "totsHere": "Il reçoit le trophée au dîner de fin de saison sous la plus forte ovation de la soirée.",
     "totsGone": "Il n'est plus au club pour le recevoir, ce qui rend l'ovation plus longue, pas plus courte.",
     "natSackedSubj": "🌍 LIMOGÉ : {nat} vous retire la sélection",
-    "natSacked": "Le bilan annuel de la fédération a été bref. {w} victoires en test-matches contre {l} défaites n'était pas la trajectoire pour laquelle ils vous avaient recruté, et le poste de {nat} ne vous appartient plus. Le travail en club continue - et les fédérations ont la mémoire courte quand les résultats reviennent.",
+    "natSacked": "Le bilan annuel de la fédération a été bref. {w} {wins_k} en test-match contre {l} {defeats_k} n'était pas la trajectoire pour laquelle ils vous avaient recruté, et le poste de {nat} ne vous appartient plus. Le travail en club continue - et les fédérations ont la mémoire courte quand les résultats reviennent.",
     "natReviewSubj": "🌍 Bilan annuel de la fédération : {word_k}",
-    "natReview": "La fédération {nat} a terminé son bilan annuel du programme national : {w} victoires en test-matches, {l} défaites cette saison. La confiance envers le sélectionneur s'établit à {conf}%. {tail_k}",
+    "natReview": "La fédération {nat} a terminé son bilan annuel du programme national : {w} {wins_k} en test-match, {l} {defeats_k} cette saison. La confiance envers le sélectionneur s'établit à {conf}%. {tail_k}",
     "natGlowing": "élogieux",
     "natSatisfactory": "satisfaisant",
     "natConcerned": "préoccupé",
@@ -3976,9 +3982,15 @@
     },
     "requestWithdrawnSubj": "🤝 {player} retire sa demande de transfert",
     "requestWithdrawn": "Les feuilles de match ont parlé : le temps de jeu est venu, et le grief est parti avec. La demande est retirée - discrètement, comme ces choses se terminent quand elles se terminent bien.",
-    "ledgerSubj": "📋 Temps de jeu : {n} joueurs n'ont pas ce qu'on leur avait annoncé",
+    "ledgerSubj": {
+      "one": "📋 Temps de jeu : {n} joueur n'obtient pas ce qu'on lui a promis",
+      "other": "📋 Temps de jeu : {n} joueurs n'obtiennent pas ce qu'on leur a promis"
+    },
     "ledger": "{asst} a épluché les feuilles de match :\n\n{rows_ll}\n\n{tail_k}",
-    "ledgerMoreSubj": "📋 Temps de jeu : {n} joueurs n'ont pas ce qu'on leur avait annoncé",
+    "ledgerMoreSubj": {
+      "one": "📋 Temps de jeu : {n} joueur n'obtient pas ce qu'on lui a promis",
+      "other": "📋 Temps de jeu : {n} joueurs n'obtiennent pas ce qu'on leur a promis"
+    },
     "ledgerMore": "{asst} a épluché les feuilles de match :\n\n{rows_ll}\n...et {rest} autres sur le registre.\n\n{tail_k}",
     "ledgerMan": "{name} ({status_k}) : {actual} des {expected} matches promis.",
     "ledgerWatch": "{worst} est celui à surveiller - encore un mois comme ça et son agent décroche son téléphone.",
@@ -4040,8 +4052,11 @@
     },
     "postcardKeen": "J'ai vu {player} deux fois maintenant et je mettrais mon nom sur lui. {age} ans, {pos_k} à {club}, et il fait les choses qui ne s'enseignent pas.",
     "postcardMaybe": "{player} mérite d'être mentionné. {age} ans, {pos_k} à {club}. Pas la réponse à lui seul, mais je ne l'écarterais pas.",
-    "scoutReportSubj": "🔭 {scout} dépose son rapport : {n} noms",
-    "scoutReport": "{months} mois, {n} noms, {good} d'entre eux qu'il signerait demain. En tête de liste : {player}, {age} ans, {pos_k} à {club} - {note_k} Le rapport complet est au Centre des transferts, et chaque homme qui y figure est désormais bien connu de votre cellule de recrutement.",
+    "scoutReportSubj": {
+      "one": "🔭 {scout} rend son rapport : {n} nom",
+      "other": "🔭 {scout} rend son rapport : {n} noms"
+    },
+    "scoutReport": "{months} mois, {n} {names_k}, {good} d'entre eux qu'il signerait demain. En tête de liste : {player}, {age} ans, {pos_k} à {club} - {note_k} Le rapport complet est au Centre des transferts, et chaque homme qui y figure est désormais bien connu de votre cellule de recrutement.",
     "scoutNote": "{open_k} {body_k}{growth_k}",
     "noteOpen1": "{grade_k}.",
     "noteOpen2": "{grade_k}, tout bien pesé.",
@@ -4543,7 +4558,7 @@
       "other": "Signé {sponsor} pour {slot_k} : {weekly} par semaine sur {n} saisons."
     },
     "scoutBrief": "Envoyé {scout} en mission de {months} mois : {fee} de frais, rapport dans {weeks} semaines.",
-    "scoutBriefBack": "La mission de {months} mois est revenue avec {n} noms, dont {good} valent une signature. Le meilleur : {best}.",
+    "scoutBriefBack": "La mission de {months} mois est revenue avec {n} {names_k}, dont {good} valent une signature. Le meilleur : {best}.",
     "appealUpheld": "Fait appel du carton rouge de {player} : accepté, un match retiré de la suspension.",
     "appealDismissed": "Fait appel du carton rouge de {player} : rejeté, un match ajouté et un conseil peu impressionné.",
     "agreedLoan": "Accepté la demande de prêt de {player}. Il part pour la saison.",
@@ -4678,11 +4693,7 @@
     "badgePassed": "{name} a réussi. Il est diplômé {badge_k} à partir d'aujourd'hui, et passe à {wage} par semaine.",
     "badgeFailed": "{name} a échoué. Les {fee} sont perdus et il ne peut pas repasser avant un mois.",
     "capRefusal": "Ces conditions vous mettraient {over}/sem au-dessus du plafond salarial de {cap}/sem. Libérez de la place, ou faites-en l'un de vos {n} joueurs vedettes.",
-    "eraInNumbers": "L'ère en chiffres : {n} {seasons_k}, {w} victoires, {l} défaites, {cups} {cups_k}.{legend_k}",
-    "oneSeason": "saison",
-    "manySeasons": "saisons",
-    "oneTrophy": "trophée",
-    "manyTrophies": "trophées",
+    "eraInNumbers": "L'ère en chiffres : {n} {seasons_k}, {w} {wins_k}, {l} {defeats_k}, {cups} {cups_k}.{legend_k}",
     "legendStays": " Le statut de légende reste — il a été voté, pas prêté.",
     "protegeLine": "{n} de vos joueurs formés au club évoluent ailleurs{best_k}{capped_k}.",
     "protegeBest": ", le meilleur d'entre eux étant {best} à {club}",
@@ -4751,5 +4762,23 @@
     "verdictDone": "LE RÊVE EST ACCOMPLI : {title_k}. Tout ce qui viendra ensuite est un bonus.",
     "verdictMoved": "Le rêve a avancé cette saison : {title_k} — {note_k}.",
     "verdictStalled": "Pas plus près du rêve : {title_k} — {note_k}."
+  },
+  "count": {
+    "matchOne": "match",
+    "matchMany": "matchs",
+    "winOne": "victoire",
+    "winMany": "victoires",
+    "defeatOne": "défaite",
+    "defeatMany": "défaites",
+    "tryOne": "essai",
+    "tryMany": "essais",
+    "nameOne": "nom",
+    "nameMany": "noms",
+    "seasonOne": "saison",
+    "seasonMany": "saisons",
+    "appearanceOne": "match",
+    "appearanceMany": "matchs",
+    "trophyOne": "trophée",
+    "trophyMany": "trophées"
   }
 }

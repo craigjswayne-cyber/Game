@@ -1775,8 +1775,13 @@ export function processWeekAndAdvance(state: GameState) {
       const cv = (p: typeof stars[0]) => {
         const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
         const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
-        return tIn('en', tries ? 'news.cvTries' : 'news.cv',
-          { name: p.name, age: p.age, club: state.clubs[p.clubId!]?.name ?? '', apps, tries })
+        // A young man's CV can read "1 appearance", so the nouns come from the
+        // shared count fragments rather than being pluralised in the sentence.
+        return tIn('en', tries ? 'news.cvTries' : 'news.cv', {
+          name: p.name, age: p.age, club: state.clubs[p.clubId!]?.name ?? '', apps, tries,
+          apps_k: apps === 1 ? 'count.appearanceOne' : 'count.appearanceMany',
+          tries_k: tries === 1 ? 'count.tryOne' : 'count.tryMany',
+        })
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,

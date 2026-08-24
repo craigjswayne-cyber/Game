@@ -34,7 +34,7 @@
 import { readFileSync } from 'node:fs'
 
 /** English entries that hard-code a plural next to a count. ONLY EVER DECREASE. */
-const BUDGET = 64
+const BUDGET = 51
 
 const say = (s: string) => console.log(s)
 let fails = 0

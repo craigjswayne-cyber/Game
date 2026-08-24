@@ -265,8 +265,10 @@ export function eraSummary(state: GameState): string {
   }
   const legend = (state.legendOf ?? []).includes(club.id)
   return t('reply.eraInNumbers', {
-    n: tenure, seasons_k: tenure === 1 ? 'reply.oneSeason' : 'reply.manySeasons',
-    w, l, cups, cups_k: cups === 1 ? 'reply.oneTrophy' : 'reply.manyTrophies',
+    n: tenure, seasons_k: tenure === 1 ? 'count.seasonOne' : 'count.seasonMany',
+    w, wins_k: w === 1 ? 'count.winOne' : 'count.winMany',
+    l, defeats_k: l === 1 ? 'count.defeatOne' : 'count.defeatMany',
+    cups, cups_k: cups === 1 ? 'count.trophyOne' : 'count.trophyMany',
     legend_k: legend ? 'reply.legendStays' : 'common.nothing',
   })
 }
