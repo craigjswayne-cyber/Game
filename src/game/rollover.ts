@@ -514,6 +514,8 @@ function agePlayers(state: GameState, rng: Rng) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
           subject: `Academy buzz: the next ${p.name.split(' ').slice(-1)[0]}?`,
           body: `${heir.name}, a ${heir.age}-year-old ${heir.pos}, has joined the academy - and the coaches whisper he has everything ${p.name} had at that age. Handle with care.`,
+          k: 'news.academyBuzz',
+          v: { last: p.name.split(' ').slice(-1)[0], heir: heir.name, age: heir.age, pos: heir.pos, player: p.name },
           playerId: heir.id,
         })
       }
@@ -524,6 +526,8 @@ function agePlayers(state: GameState, rng: Rng) {
       id: state.nextId++, week: 1, season: state.season + 1, type: 'general', read: false,
       subject: 'Retirements',
       body: `Hanging up the boots: ${userRetirees.map(p => `${p.name} (${p.age})`).join(', ')}. The dressing room won't be the same.`,
+      k: 'news.retirements',
+      v: { men_l: JSON.stringify(userRetirees.map(x => ({ k: 'news.retireeMan', name: x.name, age: x.age }))) },
     })
     // the send-offs: a farewell-season man gets his shirt retired (his
     // testimonial already happened in pre-season); a surprise retiree
@@ -543,6 +547,7 @@ function agePlayers(state: GameState, rng: Rng) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎗 The shirt goes up: ${legend.p.name} retires`,
           body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it. The game moves on; days like his are why it matters.`,
+          k: 'news.shirtUp', v: { player: legend.p.name, apps: legend.apps },
         })
       } else {
         const gate = Math.round(club.capacity * 32)
@@ -551,6 +556,8 @@ function agePlayers(state: GameState, rng: Rng) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎗 Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
           body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.`,
+          k: 'news.testimonial',
+          v: { player: legend.p.name, apps: legend.apps, stadium: club.stadium, gate: fmtMoney(gate) },
         })
       }
     }
@@ -644,6 +651,7 @@ function handleContracts(state: GameState, rng: Rng) {
       id: state.nextId++, week: 1, season: state.season + 1, type: 'contract', read: false,
       subject: 'Contracts expired',
       body: `Departed on free transfers after their deals expired: ${freed.map(p => p.name).join(', ')}.`,
+      k: 'news.contractsExpired', v: { names: freed.map(p => p.name).join(', ') },
     })
   }
 }
@@ -721,6 +729,7 @@ function youthIntake(state: GameState, rng: Rng) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
           subject: `🌟 WONDERKID: the academy has struck gold`,
           body: `The coaches are calling ${p.name} (${p.age}, ${p.pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything.`,
+          k: 'news.wonderkid', v: { player: p.name, age: p.age, pos: p.pos },
           playerId: p.id,
         })
       }

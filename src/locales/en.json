@@ -3747,6 +3747,19 @@
     "hofNotYoursOne": "The game stands to applaud one of its greats.",
     "hofYoursNamed": "{mineName} finishes as one of yours - a career your club will claim for generations.",
     "hofYoursMany": "{mineN} of them finish as yours - careers your club will claim for generations.",
-    "hofNotYoursMany": "The game stands to applaud them all."
+    "hofNotYoursMany": "The game stands to applaud them all.",
+    "academyBuzzSubj": "Academy buzz: the next {last}?",
+    "academyBuzz": "{heir}, a {age}-year-old {pos}, has joined the academy - and the coaches whisper he has everything {player} had at that age. Handle with care.",
+    "retirementsSubj": "Retirements",
+    "retirements": "Hanging up the boots: {men_l}. The dressing room won't be the same.",
+    "retireeMan": "{name} ({age})",
+    "shirtUpSubj": "🎗 The shirt goes up: {player} retires",
+    "shirtUp": "The farewell tour is over. {player} finishes with {apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it. The game moves on; days like his are why it matters.",
+    "testimonialSubj": "🎗 Testimonial: {player} - {apps} games of service",
+    "testimonial": "A full {stadium} rises for {player}. {apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts ({gate}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.",
+    "contractsExpiredSubj": "Contracts expired",
+    "contractsExpired": "Departed on free transfers after their deals expired: {names}.",
+    "wonderkidSubj": "🌟 WONDERKID: the academy has struck gold",
+    "wonderkid": "The coaches are calling {player} ({age}, {pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything."
   }
 }
