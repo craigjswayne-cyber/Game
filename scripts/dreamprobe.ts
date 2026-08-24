@@ -27,6 +27,7 @@
  * Run: npx vite-node scripts/dreamprobe.ts
  */
 import * as D from '../src/game/dream'
+import { setLang } from '../src/game/i18n'
 import { newGame } from '../src/game/newgame'
 import type { GameState } from '../src/game/model'
 
@@ -71,8 +72,23 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
       const st = D.dreamState(g)!
       ok(st.progress.at === 0 && !st.progress.done,
         `${clubId}/${def.id}: week one reads zero, not done (at ${st.progress.at})`)
-      ok(st.progress.note.length > 0 && st.title.length > 0,
-        `${clubId}/${def.id}: says something honest about where it stands`)
+      // IN BOTH LANGUAGES. A dream is a key now, and the failure this catches is
+      // a note whose French was never written: t() falls back to English, so
+      // the screen looks fine and a French manager reads his own career in the
+      // wrong language for a decade. Comparing the two rendered strings is the
+      // only thing that sees it - a missing key renders as English, which has
+      // a length and passes any test that only asks whether something is there.
+      for (const lang of ['en', 'fr'] as const) {
+        setLang(lang)
+        ok(D.dreamNote(st.progress).length > 0 && D.dreamTitle(def, ctx).length > 0,
+          `${clubId}/${def.id}/${lang}: says something honest about where it stands`)
+      }
+      setLang('fr')
+      const fr = { title: D.dreamTitle(def, ctx), note: D.dreamNote(st.progress) }
+      setLang('en')
+      const en = { title: D.dreamTitle(def, ctx), note: D.dreamNote(st.progress) }
+      ok(fr.title !== en.title, `${clubId}/${def.id}: the title is actually translated, not falling back`)
+      ok(fr.note !== en.note, `${clubId}/${def.id}: and so is the note ("${en.note}")`)
     }
   }
 }
@@ -138,7 +154,11 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   const g = newGame('ealing', 'Dreamer', 51)
   const uid = g.userClubId
   g.dream = { id: 'topflight', clubId: uid, season: 0 }
-  ok(!D.dreamState(g)!.progress.done && D.dreamState(g)!.progress.note.includes('Championship'),
+  // The KEY, not the words. The note used to be a sentence and this matched on
+  // "Championship" inside it; now the distinction between "still in the
+  // Championship" and "still in the lower leagues" lives in which key is
+  // chosen, and matching the rendered text would only ever test English.
+  ok(!D.dreamState(g)!.progress.done && D.dreamState(g)!.progress.noteK === 'dream.topflightStillChamp',
     'topflight: a Championship side is told exactly where it still is')
   g.mgr.finishes.push({ season: 1, leagueId: 'prem', pos: 9, clubId: uid })
   ok(D.dreamState(g)!.progress.at === 1, 'topflight: one season up is halfway')
