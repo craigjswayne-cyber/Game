@@ -4126,6 +4126,27 @@
     "retiredChosenSubj": "{manager} range le tableau blanc",
     "retiredChosen": "Vous le leur aviez dit en fin de saison, et vous le pensiez. À {age} ans, c'est ainsi.\n\n{title_k}.\n\n{rows_ll}",
     "notOutSubj": "{age} ans et toujours là",
-    "notOut": "Vous avez eu {age} ans cet été, ce qui dans ce métier est l'âge où l'on commence à poser la question en conférence de presse.\n\nRien ne presse. Vous pouvez prendre la saison prochaine, et celle d'après, et personne ne vous en voudra - mais la porte est ouverte à partir d'ici quand vous le voudrez, et elle se referme d'elle-même à {forced} ans.\n\nVotre écran Héritage vous dira ce que le rugby dirait de vous si vous vous arrêtiez aujourd'hui."
+    "notOut": "Vous avez eu {age} ans cet été, ce qui dans ce métier est l'âge où l'on commence à poser la question en conférence de presse.\n\nRien ne presse. Vous pouvez prendre la saison prochaine, et celle d'après, et personne ne vous en voudra - mais la porte est ouverte à partir d'ici quand vous le voudrez, et elle se referme d'elle-même à {forced} ans.\n\nVotre écran Héritage vous dira ce que le rugby dirait de vous si vous vous arrêtiez aujourd'hui.",
+    "aTitleMineSubj": "🏆 Vos espoirs remportent {comp}",
+    "aTitleMine": "L'équipe espoirs termine en tête de {comp} : {w} victoires en {p} matches, {pf} points inscrits. Personne n'accroche de fanion pour ça, et chaque entraîneur de la maison sait ce que cela signifie - la filière fonctionne, et ceux qui l'ont gagnée sont ceux que vous alignerez dans trois ans.",
+    "aTitleOtherSubj": "🎓 {club} remporte {comp}",
+    "aTitleOther": "{name} remporte {comp} avec {pts} points en {p} matches.{pos_k} Les classements de formation ne sont pas des classements de championnat, mais les clubs qui les dominent sont souvent ceux qui produisent des joueurs.",
+    "aTitleYours": " Vos espoirs ont terminé {pos_o}.",
+    "takeoverTightSubj": "📉 RACHAT FINALISÉ : on serre la ceinture à {club}",
+    "takeoverTight": "Les nouveaux propriétaires de {club} sont arrivés avec des comptables, pas de l'ambition. Attendez-vous à ce que leurs meilleurs joueurs soient discrètement disponibles - au bon prix.",
+    "takeoverTightMineSubj": "📉 RACHAT FINALISÉ : on serre la ceinture à {club}",
+    "takeoverTightMine": "L'affaire est faite - et le premier acte des nouveaux propriétaires est un audit, le second une note de service. Votre budget transferts est ramené à {budget} et chaque contrat sera « réexaminé au regard de sa valeur ». Vendez avant d'acheter, et attendez-vous à ce que le nouveau président regarde chaque résultat.",
+    "takeoverRichSubj": "🤝 RACHAT FINALISÉ : nouveaux propriétaires à {club}",
+    "takeoverRich": "C'est fait. Le consortium a finalisé son rachat de {club} et promis immédiatement de nouveaux investissements. Le reste du championnat en prend note : {short} vient de devenir dangereux sur le marché.",
+    "takeoverRichMineSubj": "🤝 RACHAT FINALISÉ : nouveaux propriétaires à {club}",
+    "takeoverRichMine": "C'est fait. Votre nouveau propriétaire arpente le centre d'entraînement dès le premier jour et laisse un message à votre secrétaire : le budget transferts augmente de {boost}, le plafond salarial est relevé - et la médiocrité n'est plus au menu. Les deux prochains mois sont votre audition.",
+    "predictionsSubj": "🎙 Les pronostics des experts pour {comp} sont tombés",
+    "predictions": "Titre : {title}. Poursuivants : {a}, {b}.\nDernier : {bottom}.\nVous : {pos_o} au pronostic.\n{verdict_k}",
+    "predTitle": "{club} est le favori de tous pour le titre - tout ce qui sera moins sera un échec.",
+    "predPlayoffs": "{club} est annoncé en phases finales. La pression est là dès le premier jour.",
+    "predMid": "{club} est classé en milieu de tableau - « solide, sans éclat » est le consensus. Donnez-leur tort.",
+    "predLast": "Les experts voient {club} bon dernier. On parle déjà de cuillère de bois. Servez-vous-en.",
+    "predRelegation": "{club} fait partie des favoris à la relégation. Personne n'attend grand-chose - l'endroit parfait pour commencer.",
+    "predBottom": "{club} est annoncé dans la seconde moitié de tableau. Personne n'attend grand-chose - l'endroit parfait pour commencer."
   }
 }

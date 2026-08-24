@@ -524,5 +524,12 @@ export function closeAcademySeason(state: GameState) {
     body: mine
       ? `The A side finish top of the ${l.name}: ${top.w} wins from ${top.p}, ${top.pf} points scored. Nobody hangs a flag for it, and every coach in the building knows what it means - the pipeline is working, and the men who won it are the ones you will be picking in three years.`
       : `${state.clubs[top.teamId]?.name ?? top.teamId} win the ${l.name} with ${top.pts} points from ${top.p} games.${pos > 0 ? ` Your academy finished ${ordinal(pos)}.` : ''} Development tables are not league tables, but the clubs at the top of them tend to be the clubs producing players.`,
+    k: mine ? 'news.aTitleMine' : 'news.aTitleOther',
+    v: {
+      comp: l.name, club: clubName(state, top.teamId),
+      name: state.clubs[top.teamId]?.name ?? top.teamId,
+      w: top.w, p: top.p, pf: top.pf, pts: top.pts,
+      pos_k: pos > 0 ? 'news.aTitleYours' : 'common.nothing', pos_o: pos,
+    },
   })
 }
