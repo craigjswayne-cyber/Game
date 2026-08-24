@@ -27,6 +27,7 @@
  * would double-count every result.
  */
 import { AWARD_EVERY, monthRun } from './awards'
+import { tIn, type Vars } from './i18n'
 import { billOf, capPosition } from './cap'
 import { fmtMoney, squadTrust, type GameState } from './model'
 import { leaguePos } from './schedule'
@@ -215,6 +216,39 @@ export function boardMemo(state: GameState): void {
     'Verdict: your position is under review. There is no gentler way to put it.',
   ]
   const verdict = pick(verdicts, state.season, state.week, Math.abs(state.seed))
+  // the same deterministic pick, over keys rather than sentences
+  const band = conf >= 80 ? 'A' : conf >= 62 ? 'B' : conf >= 45 ? 'C' : conf >= 28 ? 'D' : 'E'
+  const verdictKey = pick(
+    [0, 1, 2].map(i => `news.memoV${band}${i}`), state.season, state.week, Math.abs(state.seed))
+
+  // every line of the memo, as a row with its own key
+  const memoRows: Vars[] = []
+  memoRows.push(run.matches === 0
+    ? { k: 'news.memoNoRugby' }
+    : {
+      k: run.bestWin ? 'news.memoFormBest' : 'news.memoForm',
+      w: run.wins, d: run.draws, l: run.losses, m: run.matches,
+      diff_k: run.diff > 0 ? 'news.memoDiffUp' : run.diff < 0 ? 'news.memoDiffDown' : 'common.nothing',
+      diff: Math.abs(run.diff),
+      us: run.bestWin?.us ?? 0, them: run.bestWin?.them ?? 0,
+      where_k: run.bestWin?.away ? 'news.runAway' : 'news.runHome',
+      opp: run.bestWin ? state.clubs[run.bestWin.oppId]?.short ?? tIn('en', 'news.runThem') : '',
+    })
+  if (pos) memoRows.push({ k: 'news.memoTable', pos_o: pos, comp: state.comps[club.leagueId]?.short ?? tIn('en', 'news.theLeague') })
+  memoRows.push({
+    k: 'news.memoRoom', n: trust,
+    word_k: trust >= 75 ? 'news.roomBehind' : trust >= 55 ? 'news.roomWith' : trust >= 35 ? 'news.roomUnsure' : 'news.roomCold',
+  })
+  memoRows.push({
+    k: 'news.memoTerraces', n: mood,
+    word_k: mood >= 78 ? 'news.terrLoving' : mood >= 60 ? 'news.terrContent' : mood >= 42 ? 'news.terrPatient' : 'news.terrUnhappy',
+  })
+  memoRows.push({
+    k: cap.cap ? (cap.over ? 'news.memoMoneyOver' : 'news.memoMoneyCap') : 'news.memoMoney',
+    word_k: club.balance < 0 ? 'news.moneyOverdrawn' : club.balance < bill * 4 ? 'news.moneyTight' : 'news.moneyHealthy',
+    bal: fmtMoney(club.balance), budget: fmtMoney(club.budget),
+    bill: fmtMoney(bill), cap: fmtMoney(cap.cap ?? 0), room: fmtMoney(cap.headroom ?? 0),
+  })
 
   const kind = conf >= 62 ? '👔' : conf >= 45 ? '👔' : '⚠️'
   state.news.push({
@@ -237,5 +271,10 @@ export function boardMemo(state: GameState): void {
       '',
       verdict,
     ].join('\n'),
+    k: 'news.boardMemo',
+    v: {
+      kind, short: club.short, conf, weeks,
+      rows_ll: JSON.stringify(memoRows), verdict_k: verdictKey,
+    },
   })
 }
