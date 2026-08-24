@@ -555,11 +555,14 @@ export function refNotes(r: Referee): string[] {
   return out
 }
 
+/** The complaint is a KEY. It is quoted on the medical screen, in the day
+ *  room, in two stories and in the match commentary, and a complaint recorded
+ *  as English is English in all five for as long as the lay-off lasts. */
 const INJURIES = [
-  ['bruised ribs', 1, 2], ['dead leg', 1, 1], ['sprained ankle', 2, 4],
-  ['hamstring strain', 2, 5], ['concussion', 2, 3], ['shoulder injury', 3, 8],
-  ['knee ligament damage', 6, 16], ['broken hand', 4, 6], ['calf strain', 2, 4],
-  ['groin strain', 2, 5], ['torn bicep', 8, 14], ['ruptured achilles', 16, 30],
+  ['injury.ribs', 1, 2], ['injury.deadLeg', 1, 1], ['injury.ankle', 2, 4],
+  ['injury.hamstring', 2, 5], ['injury.concussion', 2, 3], ['injury.shoulder', 3, 8],
+  ['injury.kneeLigament', 6, 16], ['injury.brokenHand', 4, 6], ['injury.calf', 2, 4],
+  ['injury.groin', 2, 5], ['injury.bicep', 8, 14], ['injury.achilles', 16, 30],
 ] as const
 
 /** In-match multipliers that must outlive a unit recompute. */
@@ -1871,23 +1874,23 @@ function scoreTry(
   else pushLine(state, ctx, min, 'TRY', side, 'comm.tryPackDrive')
   const cTries = scorer ? scorer.career.reduce((s, c) => s + c.tries, 0) + scorer.stats.tries + (scorer.hist?.tries ?? 0) : 0
   if (scorer && ctx.detail && [25, 50, 75, 100].includes(cTries)) {
-    pushEvent(state, ctx, min + 1, 'SUB', side, `Career try number ${cTries} for ${scorer.name}! Both sets of supporters know a milestone when they see one - the applause takes a while to die down.`, scorer.id)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryCareerMilestone', { n: cTries, player: scorer.name }, scorer.id)
   } else if (scorer && ctx.detail && [10, 15, 20, 25].includes(scorer.stats.tries)) {
-    pushEvent(state, ctx, min + 1, 'SUB', side, `That's try number ${scorer.stats.tries} of the season for ${scorer.name} - some campaign he's having.`, scorer.id)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.trySeasonCount', { n: scorer.stats.tries, player: scorer.name }, scorer.id)
   } else if (scorer && ctx.detail && scorer.id === ctx.fx.testimonial) {
-    pushEvent(state, ctx, min + 1, 'SUB', side, `Of all the people. ${scorer.name} scores at his own testimonial and the ground refuses to sit down. Write the script yourself - you could not do better.`, scorer.id)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryAtTestimonial', { player: scorer.name }, scorer.id)
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.3)
   } else if (scorer && ctx.detail && side.exIds.has(scorer.id) && (min + scorer.id) % 4 < 3) {
     // deterministic gates on all detail-only flavour: commentary must never
     // consume the shared rng stream (the EK/ER lesson, applied everywhere)
-    pushEvent(state, ctx, min + 1, 'SUB', side, `No celebration from ${scorer.name} against his old club - hands raised in apology, but the damage is done.`, scorer.id)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryNoCelebration', { player: scorer.name }, scorer.id)
     side.ratings.set(scorer.id, (side.ratings.get(scorer.id) ?? 6) + 0.2)
   } else if (scorer && ctx.detail && scorer.retiring && (scorer.ca >= 72 || (scorer.caps ?? 0) >= 25) && (min + scorer.id) % 5 < 3) {
-    pushEvent(state, ctx, min + 1, 'SUB', side, `The whole ground rises for ${scorer.name} - friend and foe alike. He retires in the summer, and nobody here wants to forget watching him do that.`, scorer.id)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryRetiringOvation', { player: scorer.name }, scorer.id)
   } else if (scorer && ctx.detail && (scorer.rust ?? 0) >= 2 && (min + scorer.id) % 10 < 7) {
     // gate is deterministic (minute + id), not an rng draw: commentary must
     // never move the sim stream - see the EK lesson
-    pushEvent(state, ctx, min + 1, 'SUB', side, `${scorer.name} scores on the comeback trail - weeks of rehab, tackle bags and dark mornings, and that try is the answer to all of it. Look at his face.`, scorer.id)
+    pushLine(state, ctx, min + 1, 'SUB', side, 'comm.tryComeback', { player: scorer.name }, scorer.id)
   }
   const kicker = side.units.kickerId != null ? state.players[side.units.kickerId] : null
   const pCon = kickChance(state, kicker, 0.45, 32, goalPenalty, side)
@@ -1925,7 +1928,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     const drive = mine.units.lineout * 0.6 + mine.units.scrum * 0.4
     const stop = opp.units.defence * 0.5 + opp.units.breakdown * 0.5
     const pTry = clamp(0.34 + (drive - stop) * 0.030, 0.15, 0.62)
-    pushEvent(state, ctx, min, 'SUB', mine, `To the corner! The maul assembles five metres out...`)
+    pushLine(state, ctx, min, 'SUB', mine, 'comm.maulToCorner')
     if (rng() < pTry) {
       const forwards = mine.lineup.slice(0, 8)
         .map(id => id != null ? state.players[id] : null)
@@ -1935,11 +1938,11 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
       return 'The maul delivers - tries win matches.'
     }
     if (rng() < 0.5) {
-      pushEvent(state, ctx, min + 1, 'SUB', opp, `Held up! ${teamShort(state, opp.teamId)} survive and win the scrum.`)
+      pushLine(state, ctx, min + 1, 'SUB', opp, 'comm.maulHeldUp', { team: teamShort(state, opp.teamId) })
       return 'Nothing. The gamble came up empty this time.'
     }
     mine.poss += 1.2
-    pushEvent(state, ctx, min + 1, 'SUB', mine, `They repel the maul but concede another penalty - pressure stays on.`)
+    pushLine(state, ctx, min + 1, 'SUB', mine, 'comm.maulRepelledPenalty')
     return 'No points yet, but you have them pinned.'
   }
   // tap and go
@@ -1948,7 +1951,7 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     scoreTry(state, ctx, mine, min, undefined)
     return 'Brilliant! The quick tap catches them asleep!'
   }
-  pushEvent(state, ctx, min, 'SUB', mine, `Quick tap! ${teamShort(state, mine.teamId)} go through the phases, camped on the line...`)
+  pushLine(state, ctx, min, 'SUB', mine, 'comm.quickTapPhases', { team: teamShort(state, mine.teamId) })
   return 'Tempo lifted - the momentum is yours even without points.'
 }
 
@@ -2040,9 +2043,8 @@ function applyFinishers(state: GameState, ctx: LiveCtx, side: SideCtx, min: numb
   // one line, and only when the plan is genuinely on the field. Deterministic:
   // no roll of the shared match rng decides whether the manager hears about it.
   if (ctx.detail && side.isUser && on >= 3) {
-    pushEvent(state, ctx, min, 'SUB', side, def.id === '6-2'
-      ? `${teamShort(state, side.teamId)} have emptied a six-two bench. Everything from here goes through the middle.`
-      : `${teamShort(state, side.teamId)} have four fresh backs on. They will try to win this in the wide channels.`)
+    pushLine(state, ctx, min, 'SUB', side, def.id === '6-2' ? 'comm.benchSixTwo' : 'comm.benchFiveThree',
+      { team: teamShort(state, side.teamId) })
   }
 }
 
@@ -2086,6 +2088,9 @@ const IMPACT_TOPUP = 8
  *  Capped at three briefed replacements a side: eight stacking instructions
  *  would be a bigger swing than any tactic in the game, and a bench is not a
  *  cheat code. Returns the phrase to hang on the substitution line, or null. */
+/** The one-line note that comes with a bench instruction, as a KEY - it is
+ *  appended to the substitution's commentary, so it has to travel the same way
+ *  the commentary does. */
 function applyBrief(state: GameState, side: SideCtx, inId: number): string | null {
   const club = state.clubs[side.teamId]
   const seat = side.seatOf.get(inId)
@@ -2100,17 +2105,17 @@ function applyBrief(state: GameState, side: SideCtx, inId: number): string | nul
       layer(side, 'defence', 0.99)
       // a top-up on what he brought, never a reset to full (see benchTank)
       side.energy.set(inId, Math.min(100, (side.energy.get(inId) ?? benchTank(state.players[inId])) + IMPACT_TOPUP))
-      return 'He is on to go through them.'
+      return 'comm.briefImpact'
     case 'shore':
       layer(side, 'defence', 1.025)
       layer(side, 'attack', 0.99)
       layer(side, 'card', 0.96)
-      return 'He is on to shut the door.'
+      return 'comm.briefShore'
     case 'manage':
       layer(side, 'kicking', 1.03)
       layer(side, 'attack', 0.995)
       layer(side, 'tempo', 0.97)
-      return 'He is on to play the corners and kill the clock.'
+      return 'comm.briefManage'
     default:
       return null
   }
@@ -2154,8 +2159,8 @@ function forcedSwitchCost(state: GameState, ctx: LiveCtx, side: SideCtx, outId: 
   layer(side, 'attack', COVER_ATT)
   layer(side, 'defence', COVER_DEF)
   if (ctx.detail) {
-    pushEvent(state, ctx, min, 'SUB', side,
-      `${teamShort(state, side.teamId)} are out of cover. ${inP.name}, a ${inP.pos}, finishes the game at ${shirtPos} and both sides know it.`, inP.id)
+    pushLine(state, ctx, min, 'SUB', side, 'comm.outOfCover',
+      { team: teamShort(state, side.teamId), player: inP.name, pos: inP.pos, shirt: shirtPos }, inP.id)
   }
 }
 
@@ -2274,7 +2279,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           opp.binned.add(p.id)
           p.stats.yc += 1
           opp.ratings.set(p.id, (opp.ratings.get(p.id) ?? 6) - 0.7)
-          pushEvent(state, ctx, min, 'YC', opp, `Repeated infringements! That's ${opp.consPens} penalties against ${teamShort(state, opp.teamId)} and the referee has seen enough - ${p.name} takes ten in the bin for the team.`, p.id)
+          pushLine(state, ctx, min, 'YC', opp, 'comm.ycRepeated',
+            { n: opp.consPens, team: teamShort(state, opp.teamId), player: p.name }, p.id)
         }
       }
       // A standing instruction answers the call for you (F3). Being asked every
@@ -2284,7 +2290,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (detail && side.isUser && !ctx.decision) {
         ctx.decision = { kind: 'penalty', min }
         if (standing === 'ask') {
-          pushEvent(state, ctx, min, 'SUB', side, `PENALTY to ${teamShort(state, side.teamId)} - kickable range. The captain looks to the touchline for the call...`)
+          pushLine(state, ctx, min, 'SUB', side, 'comm.penKickableAsk', { team: teamShort(state, side.teamId) })
         } else {
           // resolveDecision reads ctx.decision and works out the side itself, so
           // the instruction goes through exactly the path a tap would take
@@ -2298,7 +2304,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (fh && rng() < 0.3 + fh.a.kic / 40) {
         side.score += 3
         fh.stats.drops += 1; fh.stats.points += 3
-        pushEvent(state, ctx, min, 'DG', side, `Drop goal! ${fh.name} from the pocket!`, fh.id)
+        pushLine(state, ctx, min, 'DG', side, 'comm.dropGoal', { player: fh.name }, fh.id)
       }
     }
 
@@ -2338,7 +2344,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           p.stats.rc += 1
           p.bans += 2 + Math.floor(rng() * 2)
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
-          pushEvent(state, ctx, min, 'RC', side, `RED CARD! ${p.name} is sent off!`, p.id)
+          pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: p.name }, p.id)
         } else {
           side.yellowUntil.set(p.id, min + 10)
           // he SITS the ten minutes: off the pitch pools, so a man in the bin
@@ -2348,7 +2354,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           side.binned.add(p.id)
           p.stats.yc += 1
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
-          pushEvent(state, ctx, min, 'YC', side, `Yellow card - ${p.name} to the bin for ten.`, p.id)
+          pushLine(state, ctx, min, 'YC', side, 'comm.yellowCard', { player: p.name }, p.id)
         }
       }
     }
@@ -2368,21 +2374,24 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           return rustF * tiredF * loadF
         })
         const p = wpick(rng, ps, w)
-        const [desc, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
+        const [dk, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
         let weeks = lo + Math.floor(rng() * (hi - lo + 1))
         if (weeks <= 1 && (p.rust ?? 0) === 0 && rng() < 0.55) {
           // a knock, not a casualty: he plays on with heavy legs
           side.energy.set(p.id, Math.max(5, (side.energy.get(p.id) ?? 70) - 28))
-          pushEvent(state, ctx, min, 'SUB', side, `${p.name} takes a heavy knock - he waves the physio away, but he's moving gingerly.`, p.id)
+          pushLine(state, ctx, min, 'SUB', side, 'comm.heavyKnock', { player: p.name }, p.id)
         } else {
           if (p.clubId === state.userClubId) {
             // the physio and the recovery centre both shorten a lay-off
             const care = (state.staff?.physio ?? 0) * 0.12 + facLevel(state, 'recovery') * 0.03
             if (care > 0) weeks = Math.max(1, Math.round(weeks * (1 - care)))
           }
-          p.injury = { desc, until: state.week + weeks, weeks }
+          p.injury = { desc: tIn('en', dk), dk, until: state.week + weeks, weeks }
           side.onPitch.delete(p.id)
-          pushEvent(state, ctx, min, 'INJ', side, `${p.name} is down... ${desc}, he can't continue.${(p.rust ?? 0) > 0 ? ' He was rushed back too soon.' : ''}`, p.id)
+          pushLine(state, ctx, min, 'INJ', side, 'comm.injuryDown', {
+            player: p.name, injury_k: dk,
+            rush_k: (p.rust ?? 0) > 0 ? 'comm.injuryRushedBack' : 'common.nothing',
+          }, p.id)
           const sub = pickBenchSub(state, side, p.id)
           if (sub) {
             side.onPitch.add(sub.id)
@@ -2395,7 +2404,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
               if (bSlot >= 0) side.lineup[bSlot] = p.id
             }
             const brief = applyBrief(state, side, sub.id)
-            pushEvent(state, ctx, min, 'SUB', side, `${sub.name} comes on in his place.${brief ? ` ${brief}` : ''}`, sub.id)
+            pushLine(state, ctx, min, 'SUB', side, 'comm.subComesOn',
+              { player: sub.name, brief_k: brief ?? 'common.nothing' }, sub.id)
             // and if the bench had nobody who plays there, the side pays (F4)
             forcedSwitchCost(state, ctx, side, p.id, sub, min)
           }
@@ -2416,11 +2426,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const slot = side.lineup.indexOf(pid)
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
-          pushEvent(state, ctx, min, 'INJ', side, `${p.name} FAILS his Head Injury Assessment - concussion protocols, no further part. ${sub.name} stays on.`, pid)
+          pushLine(state, ctx, min, 'INJ', side, 'comm.hiaFailed', { player: p.name, sub: sub.name }, pid)
         } else {
           side.onPitch.delete(subId)
           side.onPitch.add(pid)
-          pushEvent(state, ctx, min, 'SUB', side, `${p.name} passes his HIA and jogs back into the fray.`, pid)
+          pushLine(state, ctx, min, 'SUB', side, 'comm.hiaPassed', { player: p.name }, pid)
         }
       }
       side.hia = undefined
@@ -2435,7 +2445,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
         side.ratings.set(sub.id, 6)
         side.energy.set(sub.id, benchTank(sub))
         side.hia = { pid: p.id, subId: sub.id, failed: rng() < 0.4, returnTick: ctx.tick + 3 }
-        pushEvent(state, ctx, min, 'INJ', side, `${p.name} is led away for a Head Injury Assessment - ${sub.name} on while the doctors do their work.`, p.id)
+        pushLine(state, ctx, min, 'INJ', side, 'comm.hiaLedAway', { player: p.name, sub: sub.name }, p.id)
       }
     }
 
@@ -2444,14 +2454,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       const ids = [...side.onPitch]
       const p = ids.length ? state.players[ids[Math.floor(rng() * ids.length)]] : null
       if (p) {
-        const lines = [
-          `${p.name} drops the ball over the line with the try begging! White-line fever at its cruellest.`,
-          `${p.name} kicks it dead from halfway - absolutely nothing on. The coach turns away.`,
-          `Oh no - ${p.name} throws a wild offload straight to the opposition. Cheap turnover.`,
-          `${p.name} completely misses the restart. It bounces once and rolls into touch. Chaos.`,
-          `${p.name} runs a lap of honour before grounding it... and the cover knocks it loose! Unforgivable.`,
-        ]
-        pushEvent(state, ctx, min, 'SUB', side, lines[Math.floor(rng() * lines.length)], p.id)
+        const lines = ['comm.howler1', 'comm.howler2', 'comm.howler3', 'comm.howler4', 'comm.howler5']
+        pushLine(state, ctx, min, 'SUB', side, lines[Math.floor(rng() * lines.length)], { player: p.name }, p.id)
         side.ratings.set(p.id, clamp((side.ratings.get(p.id) ?? 6) - 0.5, 1, 10))
         ctx.momo = clamp(ctx.momo + (side === home ? -0.3 : 0.3), -1, 1)
       }
@@ -2485,15 +2489,21 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   if (ctx.tick === 10) {
     ctx.seg = 1
     ctx.awaiting = 'HT'
-    pushEvent(state, ctx, 40, 'HT', null, `Half-time: ${teamShort(state, ctx.fx.homeId)} ${ctx.home.score} - ${ctx.away.score} ${teamShort(state, ctx.fx.awayId)}`)
+    pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
+      home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
+      hs: ctx.home.score, ascore: ctx.away.score,
+    })
     const possTotal = ctx.home.poss + ctx.away.poss || 1
-    pushEvent(state, ctx, 40, 'SUB', null, `First-half numbers: possession ${Math.round((ctx.home.poss / possTotal) * 100)}%–${Math.round((ctx.away.poss / possTotal) * 100)}%, tries ${ctx.home.tries}–${ctx.away.tries}, penalty goals ${ctx.home.pens}–${ctx.away.pens}.`)
+    pushLine(state, ctx, 40, 'SUB', null, 'comm.halfTimeNumbers', {
+      hposs: Math.round((ctx.home.poss / possTotal) * 100), aposs: Math.round((ctx.away.poss / possTotal) * 100),
+      htries: ctx.home.tries, atries: ctx.away.tries, hpens: ctx.home.pens, apens: ctx.away.pens,
+    })
     return 'HT'
   }
   if (ctx.tick === 15) {
     ctx.seg = 2
     ctx.awaiting = 'BRK'
-    pushEvent(state, ctx, 60, 'BRK', null, `Hour mark - a lull in play. Time to change the picture from the sideline.`)
+    pushLine(state, ctx, 60, 'BRK', null, 'comm.hourMark')
     return 'BRK'
   }
   if (ctx.tick === 20) {
@@ -2526,27 +2536,29 @@ function aiTacticShift(state: GameState, ctx: LiveCtx) {
         const loud = loudestDial(state.clubs[opp.teamId]?.tactic ?? { style: 50, tempo: 50, kicking: 50, aggression: 50 })
         if (loud) {
           side.reacted = (side.reacted ?? 0) + 1
-          const say = (what: string, how: string) => pushEvent(state, ctx, min, 'SUB', side,
-            `${who} has seen the problem: ${what}. ${teamShort(state, side.teamId)} ${how}`)
+          // `what` and `how` are the two halves of a sentence and each is a
+          // key: a French coach cannot see the problem in English.
+          const say = (what: string, how: string) => pushLine(state, ctx, min, 'SUB', side, 'comm.coachSees',
+            { who, what_k: what, how_k: how, team: teamShort(state, side.teamId) })
           if (loud.dial === 'style' && loud.v > 50) {
             layer(side, 'defence', 1.05); layer(side, 'breakdown', 0.96)
-            say('the width is killing them', 'push their wings out to meet it, and thin out the rucks to do so.')
+            say('comm.seesWidth', 'comm.doesWidth')
           } else if (loud.dial === 'style') {
             layer(side, 'breakdown', 1.06); layer(side, 'defence', 0.97)
-            say('everything is coming through the middle', 'stack the breakdown and dare the ball to go wide.')
+            say('comm.seesMiddle', 'comm.doesMiddle')
           } else if (loud.dial === 'kicking' && loud.v > 50) {
             layer(side, 'defence', 1.04); layer(side, 'attack', 0.97)
-            say('the aerial bombardment', 'drop a man deep and keep the back three home.')
+            say('comm.seesAerial', 'comm.doesAerial')
           } else if (loud.dial === 'tempo' && loud.v > 50) {
             layer(side, 'tempo', 0.92); layer(side, 'defence', 1.03)
-            say('the pace of the game', 'slow everything - every scrum reset, every mark, every tying of a bootlace.')
+            say('comm.seesPace', 'comm.doesPace')
           } else if (loud.dial === 'aggression' && loud.v > 50) {
             layer(side, 'card', 0.85); layer(side, 'breakdown', 1.03)
-            say('the physical battle', 'refuse the scrap, keep fifteen on the field and let the referee do the tidying.')
+            say('comm.seesPhysical', 'comm.doesPhysical')
           } else {
             // a quiet, conservative habit: press it
             layer(side, 'tempo', 1.08); layer(side, 'defence', 0.98)
-            say('how passive this all is', 'raise the tempo and force the game to be played.')
+            say('comm.seesPassive', 'comm.doesPassive')
           }
         }
       }
@@ -2558,15 +2570,13 @@ function aiTacticShift(state: GameState, ctx: LiveCtx) {
       layer(side, 'defence', 0.95)
       layer(side, 'tempo', 1.14)
       layer(side, 'card', 1.15)
-      pushEvent(state, ctx, min, 'SUB', side,
-        `${who} has seen enough - shackles off, bench emptied. ${teamShort(state, side.teamId)} will run everything as they chase the game.`)
+      pushLine(state, ctx, min, 'SUB', side, 'comm.coachChases', { who, team: teamShort(state, side.teamId) })
     } else if (ctx.tick >= 16 && diff >= 10) {
       side.shifted = true
       layer(side, 'defence', 1.05)
       layer(side, 'attack', 0.94)
       layer(side, 'tempo', 0.88)
-      pushEvent(state, ctx, min, 'SUB', side,
-        `${who} signals to the corners: game management time. ${teamShort(state, side.teamId)} will strangle the clock from here.`)
+      pushLine(state, ctx, min, 'SUB', side, 'comm.coachManages', { who, team: teamShort(state, side.teamId) })
     }
   }
 }
@@ -2758,7 +2768,8 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
     briefed: (mine.briefsUsed ?? 0) > briefsBefore,
     blewCover: !coverBefore && !!mine.coverBlown,
   }
-  pushEvent(state, ctx, min, 'SUB', mine, `Change from the bench: ${pin.name} replaces ${pout.name}.${brief ? ` ${brief}` : ''}`, pin.id)
+  pushLine(state, ctx, min, 'SUB', mine, 'comm.subFromBench',
+    { on: pin.name, off: pout.name, brief_k: brief ?? 'common.nothing' }, pin.id)
   return `${pin.name} will come on for ${pout.name}.`
 }
 
@@ -2807,8 +2818,8 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   }
   const brief = applyBrief(state, mine, inId)
   forcedSwitchCost(state, ctx, mine, onId, pin, min)
-  pushEvent(state, ctx, min, 'SUB', mine,
-    `Change of plan on the touchline: ${pin.name} goes on instead of ${pon.name}.${brief ? ` ${brief}` : ''}`, pin.id)
+  pushLine(state, ctx, min, 'SUB', mine, 'comm.subChangeOfPlan',
+    { on: pin.name, off: pon.name, brief_k: brief ?? 'common.nothing' }, pin.id)
   return `${pin.name} takes the shirt instead of ${pon.name}.`
 }
 
@@ -2856,8 +2867,8 @@ export function undoSubstitution(state: GameState, ctx: LiveCtx): string {
   recomputeSideUnits(state, ctx, mine)
   ctx.lastSub = null
   const min = Math.min(79, Math.max(1, ctx.lastMin))
-  pushEvent(state, ctx, min, 'SUB', mine,
-    `Change of heart on the touchline: ${pout.name} stays on and ${pin?.name ?? 'the replacement'} sits back down.`, pout.id)
+  pushLine(state, ctx, min, 'SUB', mine, pin ? 'comm.subUndoneNamed' : 'comm.subUndone',
+    { off: pout.name, on: pin?.name ?? '' }, pout.id)
   return `${pout.name} stays on.`
 }
 
@@ -2880,8 +2891,8 @@ export function swapShirts(state: GameState, ctx: LiveCtx, aId: number, bId: num
   ctx.lastSub = null
   recomputeSideUnits(state, ctx, mine)
   const min = Math.min(79, Math.max(1, ctx.lastMin))
-  pushEvent(state, ctx, min, 'SUB', mine,
-    `Positional switch for ${teamShort(state, mine.teamId)}: ${pa.name} and ${pb.name} swap shirts.`, pa.id)
+  pushLine(state, ctx, min, 'SUB', mine, 'comm.shirtSwap',
+    { team: teamShort(state, mine.teamId), a: pa.name, b: pb.name }, pa.id)
   return `${pa.name} and ${pb.name} swap positions.`
 }
 
@@ -2919,7 +2930,10 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
   fx.awayScore = away.score
   fx.homeTries = home.tries
   fx.awayTries = away.tries
-  pushEvent(state, ctx, 80, 'FT', null, `Full-time: ${teamShort(state, fx.homeId)} ${home.score} - ${away.score} ${teamShort(state, fx.awayId)}`)
+  pushLine(state, ctx, 80, 'FT', null, 'comm.fullTime', {
+    home: teamShort(state, fx.homeId), away: teamShort(state, fx.awayId),
+    hs: home.score, ascore: away.score,
+  })
   if (detail) fx.events = ctx.events
 
   // Test rugby keeps score beyond the scoreboard: the world rankings move

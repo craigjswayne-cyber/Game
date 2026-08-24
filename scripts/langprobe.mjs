@@ -492,6 +492,24 @@ try {
       const l10 = await page.locator('.l10-label').innerText().catch(() => '')
       ok(!/PENALTIES/i.test(l10), `and the possession strip is French ("${l10}")`)
 
+      // THE COMMENTARY. Eighty minutes of it is the most-read prose in the game
+      // and it was English for every reader until it was keyed, so a live line
+      // is read off the screen and checked rather than taken on trust. The
+      // words below are ones no French commentary line contains and several
+      // English ones do; the stored English behind the event is untouched and
+      // deliberately so, which is exactly why looking at the SCREEN is the only
+      // check worth making here.
+      const commEng = /\b(TRY!|Kick-off!|Half-time|Full-time|Yellow card|RED CARD|comes on|Drop goal!|the crowd|penalty)\b/i
+      let commSeen = ''
+      for (let i = 0; i < 14 && !commSeen; i++) {
+        const lines = await page.locator('.tick-event .txt, .now-line .txt').allInnerTexts().catch(() => [])
+        commSeen = lines.filter(Boolean).join(' \u00b7 ')
+        if (!commSeen) { await page.locator('.ctrl-btn').first().click().catch(() => {}); await page.waitForTimeout(500) }
+      }
+      say(`  commentary: "${commSeen.slice(0, 120)}${commSeen.length > 120 ? '...' : ''}"`)
+      ok(commSeen.length > 0, 'the commentary is on screen')
+      ok(!commEng.test(commSeen), `the commentary is French${commEng.test(commSeen) ? ` - found "${(commSeen.match(commEng) ?? [''])[0]}"` : ''}`)
+
       // to full time: Skip, and press through half-time and the hour
       for (let i = 0; i < 30 && !(await page.locator('.ft-stamp').count()); i++) {
         const skip = page.locator('.speed-controls .btn', { hasText: 'Passer' })

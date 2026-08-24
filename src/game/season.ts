@@ -953,7 +953,7 @@ function weeklyTraining(state: GameState, rng: Rng) {
             subject: `${p.name} ahead of schedule`,
             body: `Good news from the treatment table: ${p.name} (${p.injury.desc}) has smashed his rehab targets and is available again this week - earlier than anyone dared hope.`,
             k: 'news.aheadOfSchedule',
-            v: { player: p.name, injury: p.injury.desc },
+            v: { player: p.name, injury_k: p.injury.dk ?? 'common.nothing' },
             playerId: p.id,
           })
         }
