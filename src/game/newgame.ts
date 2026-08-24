@@ -408,6 +408,8 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   const scoutCircular = watchList.length ? {
     subject: `🌟 The scouts' ones to watch`,
     body: `The pre-season list of academy talents with genuinely special ceilings: ${watchList.join('; ')}.\n\nUnattached prodigies are also drifting around the free-agent market - first club to move wins. Tap a name below, or see World ▸ Team of the Season ▸ Ones to Watch.`,
+    k: 'news.watchList',
+    v: { list: watchList.join('; ') },
     playerIds: watchIds,
   } : null
 
@@ -519,6 +521,13 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     id: state.nextId++, week: 1, season: 0, type: 'board', read: false,
     subject: challenge ? `THE CHALLENGE: ${tIn('en', challenge.title)}` : `Welcome to ${uc.name}`,
     body: `${challenge ? tIn('en', challenge.desc) + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
+    k: challenge ? 'news.appointChallenge' : 'news.appoint',
+    v: {
+      club: uc.name, manager: managerName, stadium: uc.stadium,
+      money: fmtMoney(uc.budget),
+      expect_k: uc.rep >= 85 ? 'news.expectHigh' : uc.rep >= 75 ? 'news.expectMid' : 'news.expectLow',
+      ...(challenge ? { title_k: challenge.title, desc_k: challenge.desc } : {}),
+    },
   })
 
   // 2. what the terraces made of it
@@ -602,36 +611,23 @@ function fanReaction(state: GameState, managerName: string, rng: () => number): 
   const big = uc.rep >= 80
   const mid = uc.rep >= 68
   // three voices, so the card reads like a message board rather than a verdict
-  const sceptics = [
-    'Never heard of him. Hope the board know something we do not.',
-    'An unproven appointment at a club this size. That is a gamble with our season.',
-    'I will judge him in May, not August. Prove it on the pitch.',
-  ]
-  const hopefuls = [
-    'Fresh ideas, finally. Anything is better than what we had.',
-    'Give him two seasons and a bit of money and see what happens.',
-    'He has said the right things. Now let him pick a team.',
-  ]
-  const patient = [
-    'Steady on. New man, new voice, same old fixture list.',
-    'The squad is the squad. He can only work with what is in the building.',
-    'First home game will tell us plenty about how he wants to play.',
-  ]
+  // The voices are KEYS, and the English body below is rendered from them with
+  // tIn('en', ...). One table, two outputs: the stored English the engine and
+  // the old saves rely on, and the key the reader's language is rendered from.
+  const sceptics = ['news.fanSceptic1', 'news.fanSceptic2', 'news.fanSceptic3']
+  const hopefuls = ['news.fanHopeful1', 'news.fanHopeful2', 'news.fanHopeful3']
+  const patient = ['news.fanPatient1', 'news.fanPatient2', 'news.fanPatient3']
   const pick = (xs: string[]) => xs[Math.floor(rng() * xs.length)]
-  const voices = big
+  const voiceKeys = big
     ? [pick(sceptics), pick(patient), pick(hopefuls)]
     : mood >= 62
       ? [pick(hopefuls), pick(patient), pick(sceptics)]
       : [pick(hopefuls), pick(hopefuls), pick(patient)]
-  const headline = big
-    ? `The terraces are not convinced yet`
-    : mid ? `Cautious welcome from the ${uc.short} faithful`
-    : `The ${uc.short} support are ready to get behind you`
-  const opener = big
-    ? `A crowd used to winning has been handed a manager nobody has heard of, and the supporters' forums have noticed.`
-    : mid
-      ? `The reaction around ${uc.city} is wait-and-see. Nobody is thrilled, nobody is furious.`
-      : `There is genuine relief around ${uc.city} that somebody has taken the job, and a fair amount of goodwill going with it.`
+  const voices = voiceKeys.map(k => tIn('en', k))
+  const headKey = big ? 'news.fanHeadBig' : mid ? 'news.fanHeadMid' : 'news.fanHeadSmall'
+  const openKey = big ? 'news.fanOpenBig' : mid ? 'news.fanOpenMid' : 'news.fanOpenSmall'
+  const headline = tIn('en', headKey, { short: uc.short })
+  const opener = tIn('en', openKey, { city: uc.city })
   // Three voices are still DRAWN (the pick count feeds the shared rng stream,
   // and one draw fewer shifts every fixture id in the world), but only two are
   // printed: the user's brevity pass (19A) cut every letter to what a phone
@@ -643,6 +639,13 @@ function fanReaction(state: GameState, managerName: string, rng: () => number): 
     subject: `🗣 ${headline}`,
     body: `${opener}\n\n"${voices[0]}"\n\n"${voices[1]}"\n\n`
       + `Terrace mood is ${mood >= 80 ? 'bouncing' : mood >= 62 ? 'behind you' : mood >= 45 ? 'watching' : mood >= 30 ? 'restless' : 'mutinous'}. Results will move it.`,
+    k: 'news.terraces',
+    v: {
+      head_k: headKey, open_k: openKey, one_k: voiceKeys[0], two_k: voiceKeys[1],
+      city: uc.city, short: uc.short,
+      mood_k: mood >= 80 ? 'news.moodBouncing' : mood >= 62 ? 'news.moodBehind'
+        : mood >= 45 ? 'news.moodWatching' : mood >= 30 ? 'news.moodRestless' : 'news.moodMutinous',
+    },
   }
 }
 
@@ -675,13 +678,17 @@ function squadAssessment(state: GameState): NewsItem {
     const b = squad.filter(p => BACKS.includes(p.pos))
     return b.length ? b.reduce((s, p) => s + p.ca, 0) / b.length : 0
   })()
-  const lean = packCa - backsCa >= 3 ? 'the pack is the stronger half of this side'
-    : backsCa - packCa >= 3 ? 'the strength is out wide, not up front'
-    : 'the two halves of the side are about level'
-  const ageWord = avgAge >= 28.5 ? 'an experienced group nearing the end of a cycle'
-    : avgAge >= 26.5 ? 'a settled group in its prime years'
-    : avgAge >= 24.5 ? 'a young squad with room to grow'
-    : 'a very young squad that will need patience'
+  const leanKey = packCa - backsCa >= 3 ? 'news.leanPack'
+    : backsCa - packCa >= 3 ? 'news.leanBacks'
+    : 'news.leanLevel'
+  const ageKey = avgAge >= 28.5 ? 'news.ageOld'
+    : avgAge >= 26.5 ? 'news.agePrime'
+    : avgAge >= 24.5 ? 'news.ageYoung'
+    : 'news.ageVeryYoung'
+  const lean = tIn('en', leanKey)
+  const ageWord = tIn('en', ageKey)
+  const bestList = best.map(p => `${p.name} (${p.pos}, ${Math.round(p.ca)})`).join(', ')
+  const wages = squad.reduce((sum, p) => sum + p.wage, 0)
   return {
     id: state.nextId++, week: 1, season: 0, type: 'general', read: false,
     subject: `📋 Your assistant's read on the squad`,
@@ -696,5 +703,14 @@ function squadAssessment(state: GameState): NewsItem {
         : `Every position has cover.\n`)
       + `Board expects you to ${tIn('en', boardObjective(uc.rep).text)}. Budget ${fmtMoney(uc.budget)}, wages ${fmtMoney(squad.reduce((s, p) => s + p.wage, 0))} a week.\n\n`
       + `I will have a read on the first opponent by Friday."`,
+    k: 'news.squadRead',
+    v: {
+      n: senior, age: avgAge.toFixed(1), age_k: ageKey, ca: Math.round(avgCa), lean_k: leanKey,
+      best: bestList,
+      depth_k: thin.length ? 'news.depthThin' : 'news.depthFull',
+      thin: thin.join(', '),
+      aim_k: boardObjective(uc.rep).text,
+      budget: fmtMoney(uc.budget), wages: fmtMoney(wages),
+    },
   }
 }

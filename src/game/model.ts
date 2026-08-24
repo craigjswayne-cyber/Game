@@ -603,8 +603,31 @@ export interface NewsItem {
   week: number
   season: number
   type: 'result' | 'transfer' | 'injury' | 'intl' | 'board' | 'award' | 'contract' | 'general' | 'youth' | 'gossip'
+  /** The story as it was FILED, in English, always.
+   *
+   *  These two are not display strings and must not be translated in place. The
+   *  engine reads its own post back and matches on this prose - season.ts pulls a
+   *  fee out of a transfer body with a regular expression, the call-up story is
+   *  found by its exact subject and appended to, media and insolvency look for
+   *  phrases - so a French save would quietly stop doing those things. They are
+   *  also what every save written before this field existed contains.
+   *
+   *  What the READER sees is `k`/`v` below, when the story has them. */
   subject: string
   body: string
+  /** The same story as a translation key, so the inbox follows the reader.
+   *
+   *  Storing prose froze a career into whatever language it was begun in: switch
+   *  to French and the news stayed English forever, which is not "paperwork keeps
+   *  its language" but "half the game is untranslated" (owner, 24 Aug, looking at
+   *  a French inbox full of English). A key plus its variables is the same story
+   *  in any language, rendered at the moment it is read.
+   *
+   *  `k` is the body's key; the subject's is `k + 'Subj'` by convention. Absent on
+   *  stories filed before this existed, and on the handful the engine assembles
+   *  from other stories - newsBody() falls back to the English for those. */
+  k?: string
+  v?: Record<string, string | number>
   read: boolean
   /** optional linked entity */
   playerId?: number
@@ -1464,6 +1487,19 @@ export function closeNatTenure(state: GameState) {
  *  French the moment the language changes, and nothing in the save has to move.
  *  French keeps the same order as English (16 août 2025), which is why the
  *  format strings below need no translation of their own. */
+/** What the reader sees, in the reader's language.
+ *
+ *  Every screen that shows a story goes through these two and nothing reads
+ *  `.subject` or `.body` directly any more. A story filed with a key renders it
+ *  now, in whatever language the manager is reading in this minute; one without
+ *  falls back to the English it was filed in, which is what a save from before
+ *  this change - or a story the engine assembled by appending to another - has.
+ *
+ *  The fallback is not a stopgap to be removed later. Careers are on the device
+ *  and live for years, and a save begun in v1.0.5 will still be opened in v2. */
+export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
+export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
+
 export const monthName = (m: number): string => t(`date.mon${m}`)
 export const dayAbbr = (d: number): string => t(`date.day${d}`)
 

@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { fmtMoney, unbeatenRun } from '../../game/model'
+import { fmtMoney, newsSubject, unbeatenRun } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
 import {
   dayDate, dayName, daySub, dayTheme, medicalNews, pressWaiting, storiesForDay, today,
@@ -78,7 +78,7 @@ export default function DayRoom() {
             {stories.map(n => (
               <button key={n.id} className="day-story" onClick={() => openWire(stories.map(s => s.id), n.id)}>
                 <span className="ds-ico">{TYPE_ICON[n.type] ?? '📰'}</span>
-                <span className="ds-subj">{n.subject}</span>
+                <span className="ds-subj">{newsSubject(n)}</span>
                 <span className="ds-go">›</span>
               </button>
             ))}

@@ -1,7 +1,7 @@
 import { paragraphs } from '../components'
 import { useEffect, useRef } from 'react'
 import { useStore } from '../../store'
-import { weekDate, type NewsItem } from '../../game/model'
+import { newsBody, newsSubject, weekDate, type NewsItem } from '../../game/model'
 import { RECALL_DAYS, daysLeft, inInbox, markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 
@@ -74,8 +74,8 @@ export function InboxList({ compact }: { compact?: boolean }) {
         <button key={n.id} className={`news-item${n.read ? '' : ' unread'}`}
           onClick={() => { markRead(game, n); touch() }}>
           <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}</div>
-          <div className="subj">{n.subject}</div>
-          <div className="body">{n.body}</div>
+          <div className="subj">{newsSubject(n)}</div>
+          <div className="body">{newsBody(n)}</div>
         </button>
       ))}
     </>
@@ -154,7 +154,7 @@ export default function Inbox() {
 
       <article className="reader">
         <div className="when">{TYPE_ICON[n.type] ?? '📰'} {weekDate(n.season, n.week)}{shelf}</div>
-        <h2>{n.subject}</h2>
+        <h2>{newsSubject(n)}</h2>
         {/* Real paragraphs, no spacer divs. A blank line in the source used to
             render an empty 6px div, so the spacing between paragraphs depended on
             how the engine happened to punctuate the story: some had 6px, some had
@@ -163,7 +163,7 @@ export default function Inbox() {
         {/* **name** renders bold: the loan postcards mark the player names so a
             five-man report can be scanned (round 25). Odd segments of the split
             are the marked ones; a body with no markers passes through intact. */}
-        {paragraphs(n.body).map((para, k) => (
+        {paragraphs(newsBody(n)).map((para, k) => (
           <p key={k}>{para.split(/\*\*(.+?)\*\*/g).map((seg, j) => j % 2 === 1 ? <b key={j}>{seg}</b> : seg)}</p>
         ))}
         <PeopleChips n={n} />

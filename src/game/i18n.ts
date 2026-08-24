@@ -98,6 +98,22 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
   return text.replace(/\{(\w+)\}/g, (whole, name: string) => {
     const v = vars[name]
     if (v == null) return whole
+    // A VARIABLE THAT IS ITSELF A KEY, marked by a _k suffix on its name.
+    //
+    // News stories are saved as a key plus variables, and some of those
+    // variables are fragments of the sentence that vary - "sky-high: silverware
+    // is demanded" against "modest: steady the ship". Storing the English
+    // fragment would put English back inside a French paragraph, which is the
+    // exact bug this whole mechanism exists to remove; giving every combination
+    // its own key would multiply four stories into forty.
+    //
+    // So a `_k` variable holds a key and is looked up in the reader's language
+    // on the way in. One level only - a fragment cannot carry fragments - which
+    // keeps this a substitution rather than a template language.
+    if (name.endsWith('_k') && typeof v === 'string') {
+      const frag = lookup(DICTS[lang], v) ?? lookup(DICTS.en, v)
+      return typeof frag === 'string' ? frag : v
+    }
     return typeof v === 'number' ? v.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB') : String(v)
   })
 }
