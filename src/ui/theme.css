@@ -636,12 +636,58 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
 
 /* ================= Title screen ================= */
+/* THE KEY ART, as a floor rather than a wall.
+ *
+ * public/title-bg.webp is the desk from the poster - lamp-light, a team sheet,
+ * the mug - cropped below the poster's own wordmark (this screen draws a live
+ * one that scales and translates) and above its badge strip (other people's
+ * marks, and a rating that has not been awarded).
+ *
+ * It sits at the BOTTOM and fades out upward, so the half of the screen that
+ * carries the wordmark and the buttons is still flat ground. Three layers
+ * stack over it, in order: the brand tint, a scrim that guarantees the text
+ * contrast whatever the art is doing underneath, and the canvas colour as the
+ * base so a browser that cannot decode webp still gets the old screen exactly.
+ *
+ * Under prefers-reduced-data it is dropped entirely - it is decoration, and a
+ * metered connection should not pay for it. */
 .title-screen {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
   background:
     radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
     var(--canvas);
   color: var(--text-primary); text-align: center; padding: 24px;
+}
+
+/* NIGHT ONLY, and that is not a limitation - it is what the art is.
+ *
+ * The key art is a desk under a lamp at night. Laid under the daylight theme
+ * it fought everything: the wordmark went dark-on-dark, the unofficial line
+ * disappeared into the team sheet, and the top of the frame faded to white
+ * against a black photograph. There is no scrim that fixes a night photograph
+ * under a pale-ground theme; there is only a washed-out version of a good
+ * picture. So daylight keeps the flat ground it was designed with.
+ *
+ * The stack, bottom to top: the canvas colour as the base, so a browser that
+ * cannot decode webp gets exactly the old screen; the art at the bottom of the
+ * frame; a scrim that guarantees the text contrast whatever the art does
+ * underneath; the brand tint over everything.
+ *
+ * Dropped under prefers-reduced-data - it is decoration, and a metered
+ * connection should not pay for it. */
+.app.night .title-screen {
+  background:
+    radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+    linear-gradient(to bottom, var(--canvas) 0%, rgba(0, 0, 0, 0.5) 40%, rgba(0, 0, 0, 0.68) 100%),
+    url('./title-bg.webp') center center / cover no-repeat,
+    var(--canvas);
+}
+@media (prefers-reduced-data: reduce) {
+  .app.night .title-screen {
+    background:
+      radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
+      var(--canvas);
+  }
 }
 .title-screen .rules { width: 64px; border: none; border-top: 2px solid var(--text-primary); margin: 16px auto; }
 /* PHASE carries the action green, RUGBY MANAGER the chalk: a two-tone wordmark
