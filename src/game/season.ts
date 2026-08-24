@@ -2227,7 +2227,7 @@ export function processWeekAndAdvance(state: GameState) {
       v: {
         grade,
         pos_k: posNow ? (pred ? 'news.htPosPred' : 'news.htPos') : 'news.ddNone',
-        pos: posNow, pred: pred ?? 0,
+        pos_o: posNow, pred_o: pred ?? 0,
         objs_k: objs.length ? 'news.htObjs' : 'news.ddNone', met, total: objs.length,
         conf: Math.round(club.boardConfidence),
         verdict_k: `news.htGrade${grade}`,

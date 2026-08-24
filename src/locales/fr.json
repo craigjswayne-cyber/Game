@@ -186,7 +186,8 @@
     "w": "V",
     "weeksOut": "{n}s",
     "wk": "s{n}",
-    "listSep": ", "
+    "listSep": ", ",
+    "ordByDigit": ""
   },
   "home": {
     "jobCentre": "📋 La bourse aux postes",
@@ -3496,8 +3497,8 @@
     "intakeGradeE": "Son verdict : « Entre nous ? Commencez à prospecter ailleurs. »",
     "halfTermSubj": "🏛 Bulletin de mi-saison : note {grade}",
     "halfTerm": "La revue de mi-saison du conseil est arrivée sur votre bureau.\n{pos_k}{objs_k}Confiance du conseil : {conf}%.\n{verdict_k}",
-    "htPos": "Championnat : {pos}e.\n",
-    "htPosPred": "Championnat : {pos}e (les experts prévoyaient {pred}e).\n",
+    "htPos": "Championnat : {pos_o}.\n",
+    "htPosPred": "Championnat : {pos_o} (les experts prévoyaient {pred_o}).\n",
     "htObjs": "Objectifs de la saison : {met}/{total} en bonne voie.\n",
     "htGradeA": "Verdict : « Exceptionnel. Quoi que vous fassiez, continuez. »",
     "htGradeB": "Verdict : « Au-dessus des attentes. Le conseil est satisfait. »",

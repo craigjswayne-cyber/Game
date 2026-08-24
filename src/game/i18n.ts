@@ -89,6 +89,32 @@ function lookup(dict: Dict, key: string): unknown {
   return node
 }
 
+/**
+ * The ending on an ordinal, in a given language.
+ *
+ * ENGLISH PICKS ON THE LAST DIGIT - 1st, 22nd, 33rd - with the 11th-to-13th
+ * exception. FRENCH DOES NOT: only 1 takes "er", and 21 is "21e", not "21er".
+ * Applying the English rule to French produced exactly that, on the half-term
+ * report card and everywhere ord() was already used.
+ *
+ * So which rule to use is itself a property of the language and lives in the
+ * dictionary: common.ordByDigit is set for English and empty for French.
+ */
+function ordSuffix(n: number, lang: Lang = current): string {
+  const byDigit = !!lookup(DICTS[lang], 'common.ordByDigit')
+  const abs = Math.abs(n)
+  let key = 'common.ordN'
+  if (byDigit) {
+    const v = abs % 100
+    const d = v > 10 && v < 14 ? 0 : abs % 10
+    key = d === 1 ? 'common.ord1' : d === 2 ? 'common.ord2' : d === 3 ? 'common.ord3' : 'common.ordN'
+  } else if (abs === 1) {
+    key = 'common.ord1'
+  }
+  const s = lookup(DICTS[lang], key) ?? lookup(DICTS.en, key)
+  return typeof s === 'string' ? s : ''
+}
+
 /** Filled into {braces}. Numbers are localised; everything else is inserted as
  *  given, because a club name is a club name in any language. */
 export type Vars = Record<string, string | number>
@@ -142,6 +168,15 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // with the list separator that language uses. Malformed JSON renders as the
     // raw string rather than throwing, because this is a save file and a save
     // file outlives the code that wrote it.
+    // AN ORDINAL, marked by _o. English needs 1st/2nd/3rd/4th picked per number
+    // and French answers 1er then e for everything else, so this cannot be
+    // formatted before the story is filed - the reader's language decides it.
+    // Dropping the suffix entirely was the first attempt and it made the
+    // English worse ("League: 4"), which is not a trade this change may make.
+    if (name.endsWith('_o')) {
+      const num = Number(v)
+      if (Number.isFinite(num)) return `${num}${ordSuffix(num, lang)}`
+    }
     // _ll joins one to a line instead - a power-rankings table, a squad list,
     // anything that is a column rather than a sentence. Checked FIRST, because
     // '_ll' also ends with '_l'.
@@ -214,9 +249,7 @@ export function t(key: string, vars?: Vars): string {
  * French answers "e" for all three anyway.
  */
 export function ord(n: number): string {
-  const v = Math.abs(n) % 100
-  const d = v > 10 && v < 14 ? 0 : Math.abs(n) % 10
-  return `${n}${t(d === 1 ? 'common.ord1' : d === 2 ? 'common.ord2' : d === 3 ? 'common.ord3' : 'common.ordN')}`
+  return `${n}${ordSuffix(n)}`
 }
 
 /** A position's full name, in the reader's language. model.POS_NAMES stays
