@@ -3932,6 +3932,21 @@
     "inheritedMan": "{name} ({role_k})",
     "inheritedRole": "{role_k}",
     "runinTopFinalSeedSubj": "🏁 DERNIÈRE JOURNÉE : la première place est entre vos mains",
-    "runinTopFinalSeed": "En tête du classement, {lead_k}. {push_k}\n{rows_ll}"
+    "runinTopFinalSeed": "En tête du classement, {lead_k}. {push_k}\n{rows_ll}",
+    "aFeederClub": "un club partenaire",
+    "loanInSubj": "Arrivée en prêt : {player} arrive de {parent}",
+    "loanIn": "{player} ({age} ans, {pos}) arrive en prêt jusqu'à la fin de la saison. {parent} prend en charge la moitié de son salaire - ils le veulent sur le terrain, alors faites-le jouer.",
+    "loanOutSubj": "{player} part en prêt",
+    "loanOut": "{player} rejoint {club} pour le reste de la saison. Du rugby régulier en équipe première devrait accélérer sa progression - attendez-vous à le retrouver plus affûté cet été.",
+    "recalledFullSubj": "🧳 {player} rappelé de prêt",
+    "recalledFull": "{player} ({pos}, {age} ans) est de retour dans la maison, en rythme grâce aux matches hebdomadaires et visiblement grandi par ces mois au dehors. Le club partenaire est triste de le perdre, ce qui est la meilleure des références.",
+    "recalledEarlySubj": "🧳 {player} rappelé de prêt",
+    "recalledEarly": "{player} ({pos}, {age} ans) est de retour dans la maison, en rythme grâce aux matches hebdomadaires. Ce retour anticipé écourte la formation - la progression que le prêt promettait avait besoin de la saison entière pour payer.",
+    "huntPaperSubj": "Bruits de couloir : {short} apprécie {player}",
+    "huntPaper": "Un paragraphe en bas d'une colonne transferts, rien de plus : {club} « nourrit une admiration de longue date » pour {player}. C'est toujours comme ça que ça commence, et la plupart n'aboutissent à rien.",
+    "huntAskedSubj": "L'entraîneur {poss} est interrogé sur {player}, et ne dément pas",
+    "huntAsked": "Interrogé directement en conférence de presse, l'entraîneur principal de {club} a qualifié {player} de « joueur formidable, dans un club où il est heureux » avant de passer à la question suivante. Personne dans la salle n'a cru la seconde moitié de cette phrase.\n\nIl est sous contrat. Cela n'a jamais voulu dire indisponible.",
+    "huntBidSubj": "🚨 {short} offre {fee} pour {player}",
+    "huntBid": "Ce n'étaient donc pas de simples bruits de couloir. {club} a fait à {player} une offre formelle de {fee}, nettement au-dessus de sa valeur, et ils construisent ça depuis l'automne.\n\nVous saviez que cela arriverait depuis des mois. Maintenant, vous devez répondre."
   }
 }
