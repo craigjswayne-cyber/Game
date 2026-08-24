@@ -4147,6 +4147,30 @@
     "predMid": "{club} are pegged mid-table - \"solid, unspectacular\" is the consensus. Prove them wrong.",
     "predLast": "The pundits have {club} dead last. Wooden spoon talk already. Use it.",
     "predRelegation": "{club} are among the relegation favourites. Nobody expects much - the perfect place to start.",
-    "predBottom": "{club} are picked for the bottom half. Nobody expects much - the perfect place to start."
+    "predBottom": "{club} are picked for the bottom half. Nobody expects much - the perfect place to start.",
+    "testimonialDaySubj": "🎗 {player}'s testimonial: {att} say thank you",
+    "testimonialDay": "{stadium} was full for {player}'s testimonial{scored_k}. The gate receipts ({gate}) go to the club at his insistence. One season left in the shirt: make it a good one.",
+    "testimonialScored": " - and he scored, because of course he did",
+    "oldBoyWeWonSubj": "Old boy {player} crosses against his former club",
+    "oldBoyWeWon": "{player}, once of this parish, went over for {opp} - no celebration, just a nod to the away end. Your side had the last word on the scoreboard, which is all that matters.",
+    "oldBoyWeLostSubj": "Old boy {player} crosses against his former club",
+    "oldBoyWeLost": "Of course it was him. {player} - {apps} appearances in your colours before he left - crossed against his old club and the ground knew it was coming. The oldest story in sport, and it found you today.",
+    "firstCapSubj": "🌍 First cap: {player}",
+    "firstCap": "{player} won his first Test cap for {nation} this week. The shirt gets framed; the club that made him gets the reflected glow.",
+    "capMilestoneSubj": "🌍 {player}: {n} Test caps",
+    "capMilestone": "{player} brought up his {n_o} cap for {nation} this week - a special jersey, a guard of honour, and a proud week around the club.",
+    "suspendedSubj": "{player} suspended {n} matches",
+    "suspended": {
+      "one": "The disciplinary panel has banned {player} for {n} match following his red card. He will be unavailable until the ban is served.",
+      "other": "The disciplinary panel has banned {player} for {n} matches following his red card. He will be unavailable until the ban is served."
+    },
+    "tottingUpSubj": "{player} banned - totting up",
+    "tottingUp": "{n} yellow cards this season have earned {player} a one-match suspension from the citing commissioner.",
+    "debutAcademySubj": "🌟 A debut to tell his grandkids about: {player}",
+    "debutAcademy": "{player} ({age}, {pos}) made his first-team debut today - the academy's own, first competitive rugby of his life.{scored_k}{motm_k} Rated {rating} by the press box. The supporters have a new song by Tuesday.",
+    "debutSigningSubj": "🌟 Dream debut for {player}",
+    "debutSigning": "First competitive appearance in the shirt for {player} ({pos}), and he made it count.{scored_k}{motm_k} Rated {rating} by the press box. The supporters have a new song by Tuesday.",
+    "debutScored": " He scored, because new signings who cost the coaching staff sleep always do.",
+    "debutMotm": " The sponsors gave him the match award before he had learned everyone's names."
   }
 }
