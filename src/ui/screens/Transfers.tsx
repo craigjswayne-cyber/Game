@@ -426,7 +426,9 @@ function ScoutCommission() {
                   <td className="name">
                     {p.name}
                     <span className="muted" style={{ fontWeight: 400 }}> {p.age} · {p.clubId ? game.clubs[p.clubId]?.short : t('transfers.free')}</span>
-                    <div className="meta" style={{ fontSize: 11 }}>{f.note}</div>
+                    <div className="meta" style={{ fontSize: 11 }}>
+                      {typeof f.note === 'string' ? f.note : t(f.note.k, f.note)}
+                    </div>
                   </td>
                   <td><Stars ca={fuzzedCa(game, p)} /></td>
                   <td className="num" style={{ color: col, fontWeight: 700, fontSize: 11 }}>{'★'.repeat(f.grade + 1)}</td>

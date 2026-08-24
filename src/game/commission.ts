@@ -2,6 +2,7 @@
 // 3, 6 or 9-month brief. He comes back with a shortlist of mixed quality - the
 // longer the trip and the better his badge, the more of it is worth signing.
 import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos } from './model'
+import { tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { bumpKnowledge } from './scout'
 import { BADGE } from './staff'
@@ -24,11 +25,24 @@ export interface Commission {
   sent?: number[]
 }
 
+/** The scout's line, stored as a key and its fragments rather than a sentence:
+ *  it sits in the save and is read on the Transfer Centre for weeks. */
+export interface NoteRef {
+  k: string
+  open_k: string
+  body_k: string
+  grade_k: string
+  growth_k: string
+  /** so it can be passed straight to t() as its own variables */
+  [x: string]: string
+}
+
 export interface ScoutFind {
   playerId: number
   /** the scout's verdict, 0 (a punt) to 3 (bring him in) */
   grade: number
-  note: string
+  /** a string on saves written before the note became a key */
+  note: NoteRef | string
 }
 
 const GRADE_WORD = ['a punt', 'worth watching', 'a good fit', 'sign him']
@@ -60,6 +74,12 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man.name} sent out on a ${months}-month brief`,
     body: `${fmtMoney(fee)} of expenses, a hire car and a brief: ${pos === 'any' ? 'anyone who can play' : POS_NAMES[pos].toLowerCase()}, in ${where}. ${man.name} (${BADGE[tier].toLowerCase()} badge) files his report in ${SEARCH_WEEKS[months]} weeks. A longer trip sees more rugby and less of it in the rain.`,
+    k: 'news.briefSent',
+    v: {
+      scout: man.name, months, fee: fmtMoney(fee), where,
+      brief_k: pos === 'any' ? 'news.briefAnyone' : `pos.${pos}`,
+      badge_k: `staff.badge${tier}`, n: SEARCH_WEEKS[months],
+    },
   })
   logDecision(state, `Sent ${man.name} out on a ${months}-month brief: ${fmtMoney(fee)} of expenses, report in ${SEARCH_WEEKS[months]} weeks.`)
   return `${man.name} is on the road. ${fmtMoney(fee)} spent, report in ${SEARCH_WEEKS[months]} weeks.`
@@ -122,6 +142,12 @@ export function scoutPostcard(state: GameState) {
       : `${p.name} is worth a mention. ${p.age}, ${POS_NAMES[p.pos].toLowerCase()} at ${club?.name ?? 'a club abroad'}. Not the answer on his own, but I would not rule him out.`}`
       + ` I will keep looking - about ${weeksLeft} week${weeksLeft === 1 ? '' : 's'} until I write it all up."\n\n`
       + `He is properly scouted now, so his page shows what he actually is rather than a range.`,
+    k: 'news.postcard',
+    v: {
+      scout: man.name, player: p.name, weeksIn, n: weeksLeft,
+      verdict_k: keen ? 'news.postcardKeen' : 'news.postcardMaybe',
+      age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? tIn('en', 'news.aClubAbroad'),
+    },
     playerId: p.id,
   })
 }
@@ -171,28 +197,42 @@ export function resolveCommission(state: GameState) {
   state.scoutFinds = finds
   const best = state.players[finds[0].playerId]
   const good = finds.filter(f => f.grade >= 2).length
+  // built by noteFor just above, so it is always the object form here
+  const note = finds[0].note as NoteRef
   logDecision(state, `The ${c.months}-month brief came back with ${finds.length} names, ${good} of them worth signing. Best: ${best.name}.`, good > 0)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,
-    body: `${c.months} months, ${finds.length} names, ${good} of them he would sign tomorrow. Top of the list: ${best.name}, ${best.age}, ${POS_NAMES[best.pos].toLowerCase()} at ${state.clubs[best.clubId ?? '']?.name ?? 'a club abroad'} - ${finds[0].note} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.`,
+    body: `${c.months} months, ${finds.length} names, ${good} of them he would sign tomorrow. Top of the list: ${best.name}, ${best.age}, ${POS_NAMES[best.pos].toLowerCase()} at ${state.clubs[best.clubId ?? '']?.name ?? 'a club abroad'} - ${tIn('en', note.k, note)} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.`,
+    k: 'news.scoutReport',
+    v: {
+      scout: man?.name ?? tIn('en', 'news.theChiefScout'), n: finds.length, months: c.months, good,
+      player: best.name, age: best.age, pos_k: `pos.${best.pos}`,
+      club: state.clubs[best.clubId ?? '']?.name ?? tIn('en', 'news.aClubAbroad'),
+      note_k: note.k, ...note,
+    },
     playerIds: finds.slice(0, 6).map(f => f.playerId),
   })
 }
 
-function noteFor(p: Player, grade: number, upside: number, rng: () => number): string {
-  const opener = [
-    `${GRADE_WORD[grade]}.`,
-    `${GRADE_WORD[grade]}, on balance.`,
-    `Verdict: ${GRADE_WORD[grade]}.`,
-  ][Math.floor(rng() * 3)]
-  const body = grade >= 3
-    ? [`Ready now and he would walk into your XV.`, `The best in his position I have watched all trip.`, `Do not let this one get away.`]
-    : grade === 2
-      ? [`Would strengthen the squad and grow into more.`, `A season of proper coaching and he is a starter.`, `Solid, sensible, no fuss.`]
-      : grade === 1
-        ? [`Squad depth, nothing more, but honest with it.`, `Useful in a crisis. Not one to build around.`, `Worth a look if the price is right.`]
-        : [`One good afternoon does not make a career.`, `I have seen better, but somebody will pay for him.`, `Filed for completeness.`]
-  const growth = upside >= 12 ? ' Plenty still to come.' : upside >= 6 ? ' A bit left in him.' : ''
-  return `${opener} ${body[Math.floor(rng() * body.length)]}${growth}`
+/** The scout's line on one man, as a key and its variables.
+ *
+ *  STORED in state.scoutFinds and read on the Transfer Centre for weeks
+ *  afterwards, so it cannot be prose: it would be the scout speaking English
+ *  inside a French report. The three-way pick stays deterministic on the same
+ *  rng draws it always took. */
+function noteFor(p: Player, grade: number, upside: number, rng: () => number): NoteRef {
+  const openers = ['news.noteOpen1', 'news.noteOpen2', 'news.noteOpen3']
+  const bodies = grade >= 3 ? ['news.noteA1', 'news.noteA2', 'news.noteA3']
+    : grade === 2 ? ['news.noteB1', 'news.noteB2', 'news.noteB3']
+    : grade === 1 ? ['news.noteC1', 'news.noteC2', 'news.noteC3']
+    : ['news.noteD1', 'news.noteD2', 'news.noteD3']
+  const open_k = openers[Math.floor(rng() * 3)]
+  const body_k = bodies[Math.floor(rng() * bodies.length)]
+  void p
+  return {
+    k: 'news.scoutNote', open_k, body_k,
+    grade_k: `news.grade${grade}`,
+    growth_k: upside >= 12 ? 'news.notePlenty' : upside >= 6 ? 'news.noteSome' : 'common.nothing',
+  }
 }
