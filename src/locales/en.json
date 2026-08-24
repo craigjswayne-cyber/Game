@@ -3930,6 +3930,8 @@
       "other": "{filled} of the eight coaching posts are filled: {men_l}. The {jobs_l} jobs are vacant. Badges and hiring are on the Coaching page."
     },
     "inheritedMan": "{name} ({role_k})",
-    "inheritedRole": "{role_k}"
+    "inheritedRole": "{role_k}",
+    "runinTopFinalSeedSubj": "🏁 FINAL DAY: top seed in your hands",
+    "runinTopFinalSeed": "Top of the table, {lead_k}. {push_k}\n{rows_ll}"
   }
 }

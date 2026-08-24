@@ -3930,6 +3930,8 @@
       "other": "{filled} des huit postes du staff sont pourvus : {men_l}. Les postes de {jobs_l} sont vacants. Les badges et les recrutements sont sur la page Encadrement."
     },
     "inheritedMan": "{name} ({role_k})",
-    "inheritedRole": "{role_k}"
+    "inheritedRole": "{role_k}",
+    "runinTopFinalSeedSubj": "🏁 DERNIÈRE JOURNÉE : la première place est entre vos mains",
+    "runinTopFinalSeed": "En tête du classement, {lead_k}. {push_k}\n{rows_ll}"
   }
 }
