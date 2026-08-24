@@ -62,7 +62,7 @@ function boardReinvests(state: GameState) {
     const lvl = club.facilities?.[weakest] ?? 0
     if (spend >= facilityCost(FACILITY_INFO[weakest], lvl)) {
       club.facilities = { ...(club.facilities ?? {}), [weakest]: lvl + 1 }
-      built = `${tIn('en', FACILITY_INFO[weakest].name)} goes to level ${lvl + 1}`
+      built = tIn('en', 'news.reinvestBuilt', { name_k: FACILITY_INFO[weakest].name, lvl: lvl + 1 })
     }
   }
   state.fanMood = clamp((state.fanMood ?? 60) + 2, 0, 100)
@@ -70,6 +70,12 @@ function boardReinvests(state: GameState) {
     id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
     subject: `💼 The board reinvests ${fmtMoney(spend)}`,
     body: `The accounts closed in rude health, and the board has no intention of letting the money sit in a deposit account while the club stands still. ${fmtMoney(spend)} goes back into ${club.name} over the summer: ${built ? `${built}, ` : ''}the last of the ground debt cleared, the academy funded for another cycle, and the community programme kept in the schools that feed this place. Your reserve stands at ${fmtMoney(club.balance)}, which is a season of wages and change. Spend the transfer budget on players, not on interest.`,
+    k: built ? 'news.reinvestBuild' : 'news.reinvest',
+    v: {
+      spend: fmtMoney(spend), club: club.name, reserve: fmtMoney(club.balance),
+      name_k: weakest ? FACILITY_INFO[weakest].name : 'common.nothing',
+      lvl: weakest ? (club.facilities?.[weakest] ?? 0) : 0,
+    },
   })
   logDecision(state, `Board reinvested ${fmtMoney(spend)} in the club`, true)
 }
@@ -116,6 +122,19 @@ function seasonAwards(state: GameState) {
       `Team of the Season - Pack: ${tots.slice(0, 8).map(t => t.replace(/^\d+\. /, '')).join(', ')}.`,
       `Backs: ${tots.slice(8).map(t => t.replace(/^\d+\. /, '')).join(', ')}.`,
     ].filter(Boolean).join('\n'),
+    k: 'news.annual',
+    v: {
+      season: seasonLabel(state.season),
+      rows_ll: JSON.stringify([
+        { k: 'news.annPotm', name: potm.name, club: state.clubs[potm.clubId!]?.short ?? '', avg: (potm.stats.ratingSum / Math.max(1, potm.stats.apps)).toFixed(2) },
+        { k: 'news.annPoints', name: topPoints.name, n: topPoints.stats.points },
+        { k: 'news.annTries', name: topTries.name, n: topTries.stats.tries },
+        ...(biggest ? [{ k: 'news.annBiggest', home: state.clubs[biggest.homeId]?.short ?? '', hs: biggest.homeScore, as: biggest.awayScore, away: state.clubs[biggest.awayId]?.short ?? '' }] : []),
+        ...(bestAtt?.att ? [{ k: 'news.annAtt', n: bestAtt.att, stadium: state.clubs[bestAtt.homeId]?.stadium ?? '' }] : []),
+      ]),
+      pack: tots.slice(0, 8).map(t => t.replace(/^\d+\. /, '')).join(', '),
+      backs: tots.slice(8).map(t => t.replace(/^\d+\. /, '')).join(', '),
+    },
   })
 }
 
@@ -141,6 +160,12 @@ function worldPlayerOfTheYear(state: GameState) {
     clubName: state.clubs[win.p.clubId!]?.name ?? 'Unknown',
   })
   const mine = (x: typeof win) => x.p.clubId === state.userClubId
+  const row = (x: typeof win, rank: number) => ({
+    k: 'news.potyLine', rank, name: x.p.name, pos: x.p.pos,
+    club: state.clubs[x.p.clubId!]?.short ?? '', avg: x.avg.toFixed(2), n: x.p.stats.tries,
+    again_k: rank === 1 && (x.p.poty ?? 0) > 1 ? 'news.potyAgain' : 'common.nothing',
+    poty: x.p.poty ?? 0,
+  })
   const line = (x: typeof win) =>
     `${x.p.name} (${x.p.pos}, ${state.clubs[x.p.clubId!]?.short}) - avg ${x.avg.toFixed(2)}, ${x.p.stats.tries} tries`
   state.news.push({
@@ -155,6 +180,13 @@ function worldPlayerOfTheYear(state: GameState) {
         : mine(second) || mine(third) ? `One of yours made the podium. The scouts noticed; so did his agent.`
         : `The bar for next season is set.`,
     ].join('\n'),
+    k: 'news.poty',
+    v: {
+      player: win.p.name,
+      rows_ll: JSON.stringify([row(win, 1), row(second, 2), row(third, 3)]),
+      tail_k: mine(win) ? 'news.potyYours'
+        : mine(second) || mine(third) ? 'news.potyPodium' : 'news.potyBar',
+    },
     playerId: win.p.id,
   })
 }
@@ -178,6 +210,8 @@ function settleRecords(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
         subject: `📖 RECORD BROKEN: most points in a ${comp.short} season`,
         body: `${topP.name} finishes with ${topP.stats.points} points - beating ${rec.pts.name}'s record of ${rec.pts.val} (${seasonLabel(rec.pts.season)}). The record book gets a new page.`,
+        k: 'news.recPoints',
+        v: { comp: comp.short, name: topP.name, n: topP.stats.points, old: rec.pts.name, oldN: rec.pts.val, season: seasonLabel(rec.pts.season) },
         playerId: topP.id,
       })
       state.records[comp.id].pts = { name: topP.name, val: topP.stats.points, season: state.season }
@@ -187,6 +221,8 @@ function settleRecords(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
         subject: `📖 RECORD BROKEN: most tries in a ${comp.short} season`,
         body: `${topT.name} crosses ${topT.stats.tries} times - past ${rec.tries.name}'s ${rec.tries.val} (${seasonLabel(rec.tries.season)}). Wingers everywhere take note.`,
+        k: 'news.recTries',
+        v: { comp: comp.short, name: topT.name, n: topT.stats.tries, old: rec.tries.name, oldN: rec.tries.val, season: seasonLabel(rec.tries.season) },
         playerId: topT.id,
       })
       state.records[comp.id].tries = { name: topT.name, val: topT.stats.tries, season: state.season }
