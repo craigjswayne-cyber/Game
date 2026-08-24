@@ -1250,8 +1250,15 @@ export function rebuildSeason(state: GameState) {
           const prev = state.annals && state.annals.length > 1
             ? state.annals[state.annals.length - 2]?.dream?.at ?? null : null
           state.review.dream = {
+            // The English AND the keys. The review is kept for the life of the
+            // career, so it renders through the keys - and the English is what
+            // a review written before dreams carried keys still reads back.
             title: d.title,
-            note: d.progress.note,
+            titleK: d.titleK,
+            titleV: d.titleV,
+            note: tIn('en', d.progress.noteK, d.progress.noteV),
+            noteK: d.progress.noteK,
+            noteV: d.progress.noteV,
             at: d.progress.at,
             goal: d.progress.goal,
             done: d.progress.done,
