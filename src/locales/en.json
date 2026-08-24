@@ -3415,6 +3415,19 @@
     "bowTwo": "Two of the game's great careers end in the summer. {cvs}. The next few months are the farewell tour, and every ground they visit will stand for them. One last shot at silverware first.",
     "andJoin": " and ",
     "cv": "{name} ({age}, {club}), {apps} appearances",
-    "cvTries": "{name} ({age}, {club}), {apps} appearances and {tries} tries"
+    "cvTries": "{name} ({age}, {club}), {apps} appearances and {tries} tries",
+    "expiringSubj": {
+      "one": "{n} contract expiring",
+      "other": "{n} contracts expiring"
+    },
+    "expiring": "Out of contract in the summer: {men_l}. Offer new deals from their profiles or they walk for free.",
+    "expiringMoreSubj": {
+      "one": "{n} contract expiring",
+      "other": "{n} contracts expiring"
+    },
+    "expiringMore": "Out of contract in the summer: {men_l} and {more} more - full list on Team ▸ Contracts. Offer new deals from their profiles or they walk for free.",
+    "expiringMan": "{name} ({pos}, {age})",
+    "natOfferSubj": "🌍 {nat} want you as national head coach",
+    "natOffer": "The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long."
   }
 }

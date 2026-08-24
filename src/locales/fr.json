@@ -3415,6 +3415,19 @@
     "bowTwo": "Deux des grandes carrières de ce sport s'achèvent cet été. {cvs}. Les prochains mois seront la tournée d'adieu, et chaque stade visité se lèvera pour eux. Une dernière chance de trophée d'abord.",
     "andJoin": " et ",
     "cv": "{name} ({age} ans, {club}), {apps} matches",
-    "cvTries": "{name} ({age} ans, {club}), {apps} matches et {tries} essais"
+    "cvTries": "{name} ({age} ans, {club}), {apps} matches et {tries} essais",
+    "expiringSubj": {
+      "one": "{n} contrat expire",
+      "other": "{n} contrats expirent"
+    },
+    "expiring": "En fin de contrat cet été : {men_l}. Proposez de nouveaux contrats depuis leur fiche ou ils partiront libres.",
+    "expiringMoreSubj": {
+      "one": "{n} contrat expire",
+      "other": "{n} contrats expirent"
+    },
+    "expiringMore": "En fin de contrat cet été : {men_l} et {more} autres - liste complète dans Équipe ▸ Contrats. Proposez de nouveaux contrats depuis leur fiche ou ils partiront libres.",
+    "expiringMan": "{name} ({pos}, {age} ans)",
+    "natOfferSubj": "🌍 {nat} vous veut comme sélectionneur",
+    "natOffer": "La fédération suit votre travail et souhaite vous confier la sélection nationale en parallèle de votre poste en club - fenêtres internationales, campagnes de championnat, peut-être une Coupe du monde. Acceptez ou refusez depuis votre profil d'entraîneur. L'offre ne restera pas ouverte longtemps."
   }
 }
