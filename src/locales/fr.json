@@ -3864,6 +3864,33 @@
     "invincibles": "{n} matches officiels. Zéro défaite. Quoi que ce club fasse d'autre un jour, cette saison vit désormais hors des livres de records, à l'endroit où ce sport range ses légendes. On donnera le nom de cette équipe à d'autres. {manager} a bâti l'équipe que personne ne pouvait battre.",
     "theLionsTour": "la tournée des Lions",
     "backItUpSubj": "📦 {season} est dans les livres : faites une sauvegarde",
-    "backItUp": "Une saison entière achevée, et chaque minute vit dans le stockage de ce navigateur et nulle part ailleurs. L'écran État de la partie a un bouton Exporter la carrière qui écrit le tout dans un seul fichier : gardez-le dans un endroit sûr et vous pourrez remettre cette carrière sur ce téléphone, ou l'emporter sur un autre, quoi que fasse le navigateur entre-temps. Une seule touche. À faire à chaque intersaison."
+    "backItUp": "Une saison entière achevée, et chaque minute vit dans le stockage de ce navigateur et nulle part ailleurs. L'écran État de la partie a un bouton Exporter la carrière qui écrit le tout dans un seul fichier : gardez-le dans un endroit sûr et vous pourrez remettre cette carrière sur ce téléphone, ou l'emporter sur un autre, quoi que fasse le navigateur entre-temps. Une seule touche. À faire à chaque intersaison.",
+    "freeAgency": "un statut d'agent libre",
+    "preVoidSubj": "Pré-contrat annulé : {player}",
+    "preVoid": "{player} a été vendu avant l'expiration de son contrat, et ce transfert annule le pré-contrat qu'il avait signé avec vous. Votre recrue estivale s'envole - les juristes disent qu'il n'y a rien à faire.",
+    "transferDoneSubj": "{player} rejoint {to}",
+    "transferDone": "{to} a finalisé la signature de {player} en provenance de {from} pour un montant de {fee}. Le joueur de {age} ans s'est mis d'accord sur {wage}/semaine jusqu'en {until}.",
+    "bidInSubj": "Offre reçue : {player}",
+    "bidIn": "{bidder} a déposé une offre de {fee} pour {player}. Répondez depuis l'écran Transferts - l'offre ne restera pas ouverte longtemps.",
+    "bidDeadlineSubj": "🚨 Offre du dernier jour : {player}",
+    "bidDeadline": "{bidder} arrive tardivement sur {player} - {fee}, prime de panique comprise. Le mercato ferme dans quelques jours : répondez depuis l'écran Transferts ou l'offre disparaîtra avec lui.",
+    "biddingWarSubj": "💰 Enchères : {short} surenchérit pour {player}",
+    "biddingWar": "{rival} a coiffé {ousted} au poteau : l'offre sur votre bureau pour {player} affiche désormais {fee}{tail_k}. Répondez depuis l'écran Transferts.",
+    "bidDone": ", et le marché a fini d'enchérir - répondez",
+    "bidMore": ". Gardez votre sang-froid et le prix peut encore monter ; attendez trop et le mercato fera ce que font les mercatos",
+    "offersLapseSubj": {
+      "one": "Mercato fermé - une offre expire",
+      "other": "Mercato fermé - {n} offres expirent"
+    },
+    "offersLapse": "Le mercato est fermé et toute offre restée sans réponse est caduque. Les offres pour {names} ne sont plus sur la table jusqu'à sa réouverture.",
+    "dressingDownSubj": "Rumeurs de vestiaire : {player} mal vécu son recadrage",
+    "dressingDown": "Il a filtré que {player} a été convoqué par l'entraîneur au sujet de sa forme récente - et qu'il ne l'a pas bien pris. Ses coéquipiers disent qu'il s'est entraîné seul mardi.",
+    "preAgreedSubj": "🖊 Pré-contrat conclu : {player}",
+    "preAgreed": "{player} ({pos}, {age} ans) a signé un pré-contrat avec {club}. Il termine la saison à {seller}, puis rejoint librement à {wage}/semaine. {tail_k}",
+    "preSellerFound": "{sellerShort} l'a appris par le communiqué de presse.",
+    "gazumpedSubj": "💔 DOUBLÉ : {player} signe un pré-contrat avec {short}",
+    "gazumped": "Vous avez laissé sa prolongation traîner trop longtemps sur le bureau. {player} a conclu un pré-contrat avec {to} et partira pour rien à la fin de la saison. L'accord est contraignant - pas d'indemnité, pas de négociation, pas de retour en arrière.",
+    "extendsSubj": "{player} prolonge",
+    "extends": "{player} a signé un nouveau contrat à {club} de {wage}/semaine, courant jusqu'en {until}."
   }
 }

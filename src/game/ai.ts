@@ -1,4 +1,5 @@
 import type { GameState, Player } from './model'
+import { tIn } from './i18n'
 import { clubIntent } from './living'
 import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
@@ -188,6 +189,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
         id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
         subject: `Pre-contract void: ${p.name}`,
         body: `${p.name} has been sold before his deal expired, and the move voids the pre-contract he signed with you. Your summer signing is off - the lawyers say there is nothing to be done.`,
+        k: 'news.preVoid', v: { player: p.name },
         playerId: p.id,
       })
     }
@@ -216,6 +218,11 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `${p.name} joins ${to.name}`,
     body: `${to.name} have completed the signing of ${p.name} from ${from?.name ?? 'free agency'} for a fee of ${fmtMoney(fee)}. The ${p.age}-year-old has agreed terms of ${fmtMoney(p.wage)}/week until ${2026 + p.contractEnds}.`,
+    k: 'news.transferDone',
+    v: {
+      player: p.name, to: to.name, from: from?.name ?? tIn('en', 'news.freeAgency'),
+      fee: fmtMoney(fee), age: p.age, wage: fmtMoney(p.wage), until: 2026 + p.contractEnds,
+    },
     playerId: p.id,
   })
   ensureCaptains(state) // reappoint leaders wherever the move vacated an armband
@@ -308,6 +315,8 @@ export function aiTransfers(state: GameState, rng: Rng) {
       body: deadline
         ? `${bidder.name} have come in late for ${p.name} - ${fmtMoney(fee)}, and the panic premium is baked in. The window shuts within days: respond from the Transfers screen or the offer dies with it.`
         : `${bidder.name} have tabled a bid of ${fmtMoney(fee)} for ${p.name}. Respond via the Transfers screen - the offer will not stay open for long.`,
+      k: deadline ? 'news.bidDeadline' : 'news.bidIn',
+      v: { player: p.name, bidder: bidder.name, fee: fmtMoney(fee) },
       playerId: p.id,
     })
   }
@@ -345,6 +354,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
       id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
       subject: `💰 Bidding war: ${rival.short} top the offer for ${p.name}`,
       body: `${rival.name} have gazumped ${ousted}: the bid on your desk for ${p.name} now reads ${fmtMoney(o.fee)}${(o.raises ?? 0) >= 3 ? ', and that is the market done bidding - answer it' : '. Hold your nerve and the price may climb again; wait too long and the window does what windows do'}. Respond from the Transfers screen.`,
+      k: 'news.biddingWar',
+      v: {
+        player: p.name, rival: rival.name, short: rival.short, ousted, fee: fmtMoney(o.fee),
+        tail_k: (o.raises ?? 0) >= 3 ? 'news.bidDone' : 'news.bidMore',
+      },
       playerId: p.id,
     })
   }
@@ -363,6 +377,7 @@ export function aiTransfers(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
         subject: `Window shut - ${lapsed.length === 1 ? 'an offer lapses' : `${lapsed.length} offers lapse`}`,
         body: `The transfer window has closed and every unanswered bid is void. Offers for ${names} are off the table until it reopens.`,
+        k: 'news.offersLapse', v: { n: lapsed.length, names },
       })
     }
   }
@@ -663,6 +678,7 @@ export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' 
         id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
         subject: `Dressing room whispers: ${p.name} unhappy after dressing-down`,
         body: `Word has leaked that ${p.name} was hauled in front of the coach over his recent form - and didn't take it well. Team-mates say he trained on his own on Tuesday.`,
+        k: 'news.dressingDown', v: { player: p.name },
         playerId: p.id,
       })
       return `${first} storms out and slams the door. By Thursday it's in the group chat. That could fester.`
@@ -724,6 +740,12 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
     subject: `🖊 Pre-contract agreed: ${p.name}`,
     body: `${p.name} (${p.pos}, ${p.age}) has signed a pre-contract with ${user.name}. He sees the season out at ${seller?.name ?? 'his club'}, then joins on a free at terms of ${fmtMoney(wage)}/week. ${seller ? `${seller.short} found out from the press release.` : ''}`,
+    k: 'news.preAgreed',
+    v: {
+      player: p.name, pos: p.pos, age: p.age, club: user.name,
+      seller: seller?.name ?? tIn('en', 'news.hisClub'), wage: fmtMoney(wage),
+      tail_k: seller ? 'news.preSellerFound' : 'common.nothing', sellerShort: seller?.short ?? '',
+    },
     playerId: p.id,
   })
   return { ok: true, msg: `${p.name} joins on a free this summer (${fmtMoney(wage)}/wk agreed).` }
@@ -753,6 +775,7 @@ export function aiPreContractPoach(state: GameState, rng: Rng) {
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
     subject: `💔 GAZUMPED: ${p.name} signs pre-contract with ${to.short}`,
     body: `You left his renewal on the desk too long. ${p.name} has agreed a pre-contract with ${to.name} and will walk for nothing when the season ends. The deal is binding - there is no fee, no negotiation, and no way back.`,
+    k: 'news.gazumped', v: { player: p.name, to: to.name, short: to.short },
     playerId: p.id,
   })
 }
@@ -846,6 +869,8 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
     id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
     subject: `${p.name} extends`,
     body: `${p.name} has signed a new deal at ${user.name} worth ${fmtMoney(wage)}/week, running until ${2026 + p.contractEnds}.`,
+    k: 'news.extends',
+    v: { player: p.name, club: user.name, wage: fmtMoney(wage), until: 2026 + p.contractEnds },
     playerId: p.id,
   })
   return { ok: true, msg: `${p.name} signs until ${2026 + p.contractEnds} (${fmtMoney(wage)}/wk).` }

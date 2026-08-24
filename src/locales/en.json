@@ -3864,6 +3864,33 @@
     "invincibles": "{n} competitive matches. Zero defeats. Whatever else this club ever does, this season now lives outside the record books, in the place where the game keeps its legends. They will name teams after this side. {manager} built the team nobody could beat.",
     "theLionsTour": "the Lions tour",
     "backItUpSubj": "📦 {season} is in the books: back it up",
-    "backItUp": "A whole season done, and every minute of it lives in this browser's storage and nowhere else. Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. Takes one tap. Worth doing at every rollover."
+    "backItUp": "A whole season done, and every minute of it lives in this browser's storage and nowhere else. Game Status has an Export Career button that writes the lot to a single file: keep it somewhere you trust and you can put this career back on this phone, or carry it to another one, whatever the browser does in the meantime. Takes one tap. Worth doing at every rollover.",
+    "freeAgency": "free agency",
+    "preVoidSubj": "Pre-contract void: {player}",
+    "preVoid": "{player} has been sold before his deal expired, and the move voids the pre-contract he signed with you. Your summer signing is off - the lawyers say there is nothing to be done.",
+    "transferDoneSubj": "{player} joins {to}",
+    "transferDone": "{to} have completed the signing of {player} from {from} for a fee of {fee}. The {age}-year-old has agreed terms of {wage}/week until {until}.",
+    "bidInSubj": "Bid received: {player}",
+    "bidIn": "{bidder} have tabled a bid of {fee} for {player}. Respond via the Transfers screen - the offer will not stay open for long.",
+    "bidDeadlineSubj": "🚨 Deadline-day bid: {player}",
+    "bidDeadline": "{bidder} have come in late for {player} - {fee}, and the panic premium is baked in. The window shuts within days: respond from the Transfers screen or the offer dies with it.",
+    "biddingWarSubj": "💰 Bidding war: {short} top the offer for {player}",
+    "biddingWar": "{rival} have gazumped {ousted}: the bid on your desk for {player} now reads {fee}{tail_k}. Respond from the Transfers screen.",
+    "bidDone": ", and that is the market done bidding - answer it",
+    "bidMore": ". Hold your nerve and the price may climb again; wait too long and the window does what windows do",
+    "offersLapseSubj": {
+      "one": "Window shut - an offer lapses",
+      "other": "Window shut - {n} offers lapse"
+    },
+    "offersLapse": "The transfer window has closed and every unanswered bid is void. Offers for {names} are off the table until it reopens.",
+    "dressingDownSubj": "Dressing room whispers: {player} unhappy after dressing-down",
+    "dressingDown": "Word has leaked that {player} was hauled in front of the coach over his recent form - and didn't take it well. Team-mates say he trained on his own on Tuesday.",
+    "preAgreedSubj": "🖊 Pre-contract agreed: {player}",
+    "preAgreed": "{player} ({pos}, {age}) has signed a pre-contract with {club}. He sees the season out at {seller}, then joins on a free at terms of {wage}/week. {tail_k}",
+    "preSellerFound": "{sellerShort} found out from the press release.",
+    "gazumpedSubj": "💔 GAZUMPED: {player} signs pre-contract with {short}",
+    "gazumped": "You left his renewal on the desk too long. {player} has agreed a pre-contract with {to} and will walk for nothing when the season ends. The deal is binding - there is no fee, no negotiation, and no way back.",
+    "extendsSubj": "{player} extends",
+    "extends": "{player} has signed a new deal at {club} worth {wage}/week, running until {until}."
   }
 }
