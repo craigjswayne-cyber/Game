@@ -2473,6 +2473,12 @@ export function processWeekAndAdvance(state: GameState) {
         : us < them
         ? 'He hands the week back with an apology and a full debrief already on your desk.'
         : 'He hands the week back all square.'} The board judges the result the way it judges any other - the routines are yours even when the voice is not.`,
+      k: 'news.assistantRan',
+      v: {
+        opp: opp?.short ?? tIn('en', 'news.theLeague'), us, them,
+        verb_k: us > them ? 'news.assWon' : us < them ? 'news.assLost' : 'news.assDrew',
+        hand_k: us > them ? 'news.assHandWin' : us < them ? 'news.assHandLoss' : 'news.assHandDraw',
+      },
       fixtureId: cfx.id,
     })
   }
@@ -2671,6 +2677,11 @@ export function processWeekAndAdvance(state: GameState) {
           id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
           subject: `⚔️ The relegation playoff: ${teamShort(state, bottom)} v ${teamShort(state, up)}`,
           body: `One game for a Premier Division place. ${state.clubs[bottom].name} finished bottom and get to defend their status at home; ${state.clubs[up].name} won the Championship and come to take it. Winner plays top-flight rugby next season.`,
+          k: 'news.barrage',
+          v: {
+            a: teamShort(state, bottom), b: teamShort(state, up),
+            aName: state.clubs[bottom].name, bName: state.clubs[up].name,
+          },
           fixtureId: fx.id,
         })
       }
@@ -2863,39 +2874,59 @@ export function processWeekAndAdvance(state: GameState) {
           // promise the format cannot keep. Leagues without playoffs keep the
           // old words - there, the table IS the title.
           const seeded = line > 0
-          let subject = ''
-          let body = ''
+          let k = ''
+          let v: Vars = {}
+          // the rival scores that go under each of these, as rows so the label
+          // in front of them ("Chasers:", "Down there:") translates too
+          const rows = (label: string, ids: string[]) =>
+            JSON.stringify(rivalResults(ids).map(r => ({ k: 'news.runinRival', label_k: label, r })))
           if (idx === 0 && gapTop === 0) {
             const chasers = order.slice(1, 3).map(r => r.teamId)
-            subject = roundsLeft === 1
-              ? (seeded ? `🏁 FINAL DAY: top seed in your hands` : `🏁 FINAL DAY: the title is in your hands`)
-              : `🏁 TITLE RACE: you lead with ${roundsLeft} to play`
-            body = [`Top of the table, ${order[1] ? `${me.pts - order[1].pts} clear of ${teamShort(state, order[1].teamId)}` : 'clear'}. ${roundsLeft === 1
-              ? (seeded ? 'Win and you finish top - the playoff road runs through your ground, and the title is settled there.' : 'Win and it is yours. Simple as that.')
-              : (seeded ? 'Every point is gold now - top spot means the playoffs come to you.' : 'Every point is gold now.')}`,
-              ...rivalResults(chasers).map(r => `Chasers: ${r}`)].join('\n')
+            k = roundsLeft === 1 ? 'news.runinTopFinal' : 'news.runinTopRace'
+            v = {
+              n: roundsLeft, seeded: seeded ? 1 : 0,
+              lead_k: order[1] ? 'news.runinClearOf' : 'news.runinClear',
+              gap: order[1] ? me.pts - order[1].pts : 0,
+              rival: order[1] ? teamShort(state, order[1].teamId) : '',
+              push_k: roundsLeft === 1
+                ? (seeded ? 'news.runinWinSeed' : 'news.runinWinTitle')
+                : (seeded ? 'news.runinGoldSeed' : 'news.runinGold'),
+              rows_ll: rows('news.runinChasers', chasers),
+            }
           } else if (gapTop <= 6) {
-            subject = roundsLeft === 1
-              ? (seeded ? `🏁 FINAL DAY: top seed still alive` : `🏁 FINAL DAY: title still alive`)
-              : `🏁 TITLE RACE: ${gapTop} behind with ${roundsLeft} to play`
-            body = [`${teamShort(state, top.teamId)} lead you by ${gapTop}. ${roundsLeft === 1 ? 'You need a win and a favour.' : 'Keep winning and keep watching the wires.'}`,
-              ...rivalResults([top.teamId]).map(r => `The leaders: ${r}`)].join('\n')
+            k = roundsLeft === 1 ? 'news.runinChaseFinal' : 'news.runinChaseRace'
+            v = {
+              n: roundsLeft, gap: gapTop, leader: teamShort(state, top.teamId),
+              seed_k: seeded ? 'news.runinSeedWord' : 'news.runinTitleWord',
+              push_k: roundsLeft === 1 ? 'news.runinNeedFavour' : 'news.runinKeepWinning',
+              rows_ll: rows('news.runinLeaders', [top.teamId]),
+            }
           } else if (lineRow && lineRow.pts - me.pts <= 6) {
-            subject = `🎯 PLAYOFF PUSH: ${lineRow.pts - me.pts === 0 ? 'level on points' : `${lineRow.pts - me.pts} off the line`} with ${roundsLeft} to play`
-            body = [`${teamShort(state, lineRow.teamId)} hold the last playoff spot. ${roundsLeft <= 2 ? 'It comes down to these last afternoons.' : 'Time to go on a run.'}`,
-              ...rivalResults([lineRow.teamId]).map(r => `Your rivals: ${r}`)].join('\n')
+            k = 'news.runinPush'
+            v = {
+              n: roundsLeft, holder: teamShort(state, lineRow.teamId),
+              off_k: lineRow.pts - me.pts === 0 ? 'news.runinLevel' : 'news.runinOffLine',
+              off: lineRow.pts - me.pts,
+              push_k: roundsLeft <= 2 ? 'news.runinLastAfternoons' : 'news.runinGoOnARun',
+              rows_ll: rows('news.runinRivals', [lineRow.teamId]),
+            }
           } else if (idx === order.length - 1 || gapDown <= 4) {
             const above = order[order.length - 2]
-            subject = roundsLeft === 1 ? `🚨 FINAL DAY: survival on the line` : `🚨 RELEGATION FIGHT: ${roundsLeft} rounds to save the season`
-            body = [idx === order.length - 1
-              ? `Bottom, ${above ? `${above.pts - me.pts} from safety` : 'and sinking'}. ${roundsLeft === 1 ? 'Win or go down.' : 'Every ruck is a relegation battle now.'}`
-              : `Only ${gapDown} points above the drop. Look over your shoulder at your peril - but look.`,
-              ...rivalResults([bottom.teamId, above?.teamId].filter(Boolean) as string[]).map(r => `Down there: ${r}`)].join('\n')
+            k = idx === order.length - 1
+              ? (roundsLeft === 1 ? 'news.runinBottomFinal' : 'news.runinBottom')
+              : (roundsLeft === 1 ? 'news.runinNearFinal' : 'news.runinNear')
+            v = {
+              n: roundsLeft, gap: gapDown,
+              safe_k: above ? 'news.runinFromSafety' : 'news.runinSinking',
+              safe: above ? above.pts - me.pts : 0,
+              push_k: roundsLeft === 1 ? 'news.runinWinOrDown' : 'news.runinEveryRuck',
+              rows_ll: rows('news.runinDownThere', [bottom.teamId, above?.teamId].filter(Boolean) as string[]),
+            }
           }
-          if (subject) {
+          if (k) {
             state.news.push({
               id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-              subject, body,
+              subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v,
             })
           }
           // MATHEMATICAL PLAYOFF QUALIFICATION GETS SAID OUT LOUD (user: "no
@@ -2919,6 +2950,8 @@ export function processWeekAndAdvance(state: GameState) {
                 id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
                 subject: `🎟 PLAYOFFS SECURED: ${club2.short} are mathematically in`,
                 body: `Whatever happens from here, ${club2.name} will be in the ${comp.short} playoffs - no combination of results can push you out of the top ${line}. The seeding is still worth fighting for: finish higher and the knockout rounds come to ${club2.stadium}. The office has already had a call about semi-final ticketing.`,
+                k: 'news.clinch',
+                v: { short: club2.short, club: club2.name, comp: comp.short, line, stadium: club2.stadium },
               })
             }
           }
@@ -2939,6 +2972,16 @@ export function processWeekAndAdvance(state: GameState) {
             ...round.map(f => `${nationByCode(f.homeId)?.name} ${f.homeScore}–${f.awayScore} ${nationByCode(f.awayId)?.name}`),
             leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',
           ].filter(Boolean).join('\n'),
+          k: leader ? 'news.snRoundLeader' : 'news.snRound',
+          v: {
+            n: SIX_NATIONS_WEEKS.indexOf(state.week) + 1,
+            rows_ll: JSON.stringify(round.map(f => ({
+              k: 'news.snRow', home: nationByCode(f.homeId)?.name ?? f.homeId,
+              hs: f.homeScore, as: f.awayScore, away: nationByCode(f.awayId)?.name ?? f.awayId,
+            }))),
+            leader: leader ?? '',
+            sight_k: order[0] && order[0].p >= 4 ? 'news.snSight' : 'common.nothing',
+          },
         })
       }
     }
@@ -3018,6 +3061,8 @@ export function processWeekAndAdvance(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
         subject: `✅ Board objective met: ${tIn('en', def.text(state)).split(':')[0]}`,
         body: `One of the season's briefs is in the bank: "${tIn('en', def.text(state))}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
+        k: 'news.objectiveMet',
+        v: { head: tIn('en', def.text(state)).split(':')[0], text_k: def.text(state) },
       })
     }
   }
