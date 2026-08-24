@@ -3,6 +3,7 @@
 // chief scout. Your own squad is always fully known.
 
 import type { Attrs, GameState, Player, Pos } from './model'
+import { tIn } from './i18n'
 import { ATTR_KEYS, fmtMoney } from './model'
 import { clamp, hashString, mulberry32 } from './rng'
 
@@ -107,16 +108,20 @@ export function weeklyScouting(state: GameState) {
   for (const id of state.shortlist) {
     const p = state.players[id]
     if (!p || !p.clubId || p.clubId === state.userClubId || state.slAlerted.includes(id)) continue
-    const alert = p.transferListed ? `has been TRANSFER LISTED by ${state.clubs[p.clubId]?.short}. He can be had cheap - move before someone else does.`
-      : p.contractEnds <= state.season ? `is out of contract this summer. ${state.clubs[p.clubId]?.short} haven't tied him down - a free transfer in the making.`
-      : p.form >= 8.2 ? `is in the form of his life (${p.form.toFixed(1)}). His price is climbing by the week.`
+    const alertKey = p.transferListed ? 'news.slListed'
+      : p.contractEnds <= state.season ? 'news.slExpiring'
+      : p.form >= 8.2 ? 'news.slForm'
       : null
+    const alertV = { short: state.clubs[p.clubId]?.short ?? '', form: p.form.toFixed(1) }
+    const alert = alertKey ? tIn('en', alertKey, alertV) : null
     if (alert) {
       state.slAlerted.push(id)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
         subject: `🔔 Shortlist alert: ${p.name}`,
         body: `The chief scout rings it in: ${p.name} (${p.pos}, ${state.clubs[p.clubId]?.short}) ${alert}`,
+        k: 'news.shortlistAlert',
+        v: { player: p.name, pos: p.pos, ...alertV, alert_k: alertKey! },
         playerId: p.id,
       })
     }

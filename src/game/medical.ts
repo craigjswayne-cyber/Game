@@ -30,6 +30,7 @@ export function specialistConsult(state: GameState, pid: number): string {
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
       subject: `🩺 Specialist verdict: ${p.name} ahead of schedule`,
       body: `The consultant found a better rehab route for ${p.name}'s ${p.injury.desc}. He should be back ${cut} week${cut > 1 ? 's' : ''} earlier than feared.`,
+      k: 'news.specialist', v: { player: p.name, injury: p.injury.desc, n: cut },
       playerId: p.id,
     })
     return `${p.name} responds brilliantly - back ${cut} week${cut > 1 ? 's' : ''} earlier.`
