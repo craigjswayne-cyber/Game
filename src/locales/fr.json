@@ -2483,10 +2483,10 @@
     "cvSeasons": "{n} saisons sur le banc, {games} matchs, {pct} % de victoires.",
     "cvSeasonsOne": "{n} saison sur le banc, {games} matchs, {pct} % de victoires.",
     "cvShort": "Une carrière terminée avant même une saison complète.",
-    "cvTrophies": "{n} trophées majeurs{titles}.",
-    "cvTrophyOne": "{n} trophée majeur{titles}.",
-    "cvInclTitles": ", dont {n} titres de champion",
-    "cvInclTitleOne": ", dont {n} titre de champion",
+    "cvTrophies": "{n} trophées majeurs{titles_k}.",
+    "cvTrophyOne": "Un trophée majeur{titles_k}.",
+    "cvInclTitles": ", dont {tn} titres de champion",
+    "cvInclTitleOne": ", dont un titre de champion",
     "cvNoTrophy": "Aucun trophée majeur. Beaucoup de bons entraîneurs n'en gagnent jamais, et c'est quand même la première chose qu'on dira.",
     "cvTopFlight": "{n} saisons dans l'élite.",
     "cvTopFlightOne": "{n} saison dans l'élite.",
@@ -4120,6 +4120,12 @@
     "memoVD2": "Verdict : nous ne sommes pas là où quiconque l'attendait. Il nous faut une réaction.",
     "memoVE0": "Verdict : ceci est un avertissement formel. Le conseil discute de votre poste.",
     "memoVE1": "Verdict : les administrateurs ont perdu patience. Des résultats maintenant, ou une décision sera prise pour vous.",
-    "memoVE2": "Verdict : votre poste est réexaminé. Il n'y a pas de façon plus douce de le dire."
+    "memoVE2": "Verdict : votre poste est réexaminé. Il n'y a pas de façon plus douce de le dire.",
+    "retiredForcedSubj": "Le dernier coup de sifflet : {manager} raccroche",
+    "retiredForced": "À {age} ans, la décision vous a échappé. C'est ici que la route s'arrête.\n\n{title_k}.\n\n{rows_ll}",
+    "retiredChosenSubj": "{manager} range le tableau blanc",
+    "retiredChosen": "Vous le leur aviez dit en fin de saison, et vous le pensiez. À {age} ans, c'est ainsi.\n\n{title_k}.\n\n{rows_ll}",
+    "notOutSubj": "{age} ans et toujours là",
+    "notOut": "Vous avez eu {age} ans cet été, ce qui dans ce métier est l'âge où l'on commence à poser la question en conférence de presse.\n\nRien ne presse. Vous pouvez prendre la saison prochaine, et celle d'après, et personne ne vous en voudra - mais la porte est ouverte à partir d'ici quand vous le voudrez, et elle se referme d'elle-même à {forced} ans.\n\nVotre écran Héritage vous dira ce que le rugby dirait de vous si vous vous arrêtiez aujourd'hui."
   }
 }

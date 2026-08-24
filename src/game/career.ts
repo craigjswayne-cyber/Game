@@ -26,7 +26,7 @@
 import { LEAGUE_TIER, mgrReputation } from './model'
 import type { GameState } from './model'
 import { dreamState } from './dream'
-import { t } from './i18n'
+import { t, type Vars } from './i18n'
 
 /** Youngest a manager may start; the wizard offers a spread around this. */
 export const START_AGE = 42
@@ -75,6 +75,10 @@ export interface Verdict {
   title: string
   /** the case for that verdict, in the manager's own numbers */
   lines: string[]
+  /** the same case as keys, for anything that files it into a save */
+  rows: Vars[]
+  /** the title's key, for the same reason */
+  titleKey: string
   /** 0-100, for a bar */
   score: number
 }
@@ -112,6 +116,13 @@ export function careerVerdict(state: GameState): Verdict {
   const grade = score >= 88 ? 'A+' : score >= 76 ? 'A' : score >= 64 ? 'B'
     : score >= 50 ? 'C' : score >= 34 ? 'D' : score >= 18 ? 'E' : 'F'
 
+  const titleKey = score >= 88 ? 'legacy.cvTitleGreat'
+    : score >= 76 ? 'legacy.cvTitleBigger'
+    : score >= 64 ? 'legacy.cvTitleSerious'
+    : score >= 50 ? 'legacy.cvTitleGood'
+    : score >= 34 ? 'legacy.cvTitleWorking'
+    : score >= 18 ? 'legacy.cvTitleTried'
+    : 'legacy.cvTitleNever'
   const title = t(score >= 88 ? 'legacy.cvTitleGreat'
     : score >= 76 ? 'legacy.cvTitleBigger'
     : score >= 64 ? 'legacy.cvTitleSerious'
@@ -120,26 +131,33 @@ export function careerVerdict(state: GameState): Verdict {
     : score >= 18 ? 'legacy.cvTitleTried'
     : 'legacy.cvTitleNever')
 
-  const lines: string[] = []
-  lines.push(seasons
-    ? t(seasons === 1 ? 'legacy.cvSeasonsOne' : 'legacy.cvSeasons', { n: seasons, games, pct: Math.round(winPct * 100) })
-    : t('legacy.cvShort'))
-  lines.push(trophies
-    ? t(trophies === 1 ? 'legacy.cvTrophyOne' : 'legacy.cvTrophies', {
-        n: trophies,
-        titles: titles ? t(titles === 1 ? 'legacy.cvInclTitleOne' : 'legacy.cvInclTitles', { n: titles }) : '',
-      })
-    : t('legacy.cvNoTrophy'))
-  if (topFlight) lines.push(t(topFlight === 1 ? 'legacy.cvTopFlightOne' : 'legacy.cvTopFlight', { n: topFlight }))
-  if (legends) lines.push(t(legends === 1 ? 'legacy.cvLegendOne' : 'legacy.cvLegends', { n: legends }))
+  // ROWS FIRST, sentences second. The screen wants the sentences and the
+  // retirement letter wants the rows: that letter is filed into a save and read
+  // for the rest of the career, so it cannot keep the words of the day it was
+  // written.
+  const rows: Vars[] = []
+  rows.push(seasons
+    ? { k: seasons === 1 ? 'legacy.cvSeasonsOne' : 'legacy.cvSeasons', n: seasons, games, pct: Math.round(winPct * 100) }
+    : { k: 'legacy.cvShort' })
+  rows.push(trophies
+    ? {
+        k: trophies === 1 ? 'legacy.cvTrophyOne' : 'legacy.cvTrophies', n: trophies,
+        titles_k: titles ? (titles === 1 ? 'legacy.cvInclTitleOne' : 'legacy.cvInclTitles') : 'common.nothing',
+        tn: titles,
+      }
+    : { k: 'legacy.cvNoTrophy' })
+  if (topFlight) rows.push({ k: topFlight === 1 ? 'legacy.cvTopFlightOne' : 'legacy.cvTopFlight', n: topFlight })
+  if (legends) rows.push({ k: legends === 1 ? 'legacy.cvLegendOne' : 'legacy.cvLegends', n: legends })
   if (d) {
-    lines.push(dreamDone
-      ? t('legacy.cvDreamDone', { dream: d.title.toLowerCase() })
-      : t('legacy.cvDreamMissed', { dream: d.title.toLowerCase(), note: `${d.progress.note[0].toUpperCase()}${d.progress.note.slice(1)}` }))
+    rows.push(dreamDone
+      ? { k: 'legacy.cvDreamDone', dream: d.title.toLowerCase() }
+      : { k: 'legacy.cvDreamMissed', dream: d.title.toLowerCase(), note: `${d.progress.note[0].toUpperCase()}${d.progress.note.slice(1)}` })
   }
-  lines.push(t('legacy.cvRepEnd', { rep: mgrReputation(state) }))
+  rows.push({ k: 'legacy.cvRepEnd', rep: mgrReputation(state) })
 
-  return { grade, title, lines, score }
+  const lines = rows.map(r => t(String(r.k), r))
+
+  return { grade, title, titleKey, lines, rows, score }
 }
 
 /**
@@ -163,6 +181,11 @@ export function retire(state: GameState, forced = false): string {
       '',
       ...v.lines,
     ].join('\n'),
+    k: forced ? 'news.retiredForced' : 'news.retiredChosen',
+    v: {
+      manager: state.managerName, age: mgrAge(state),
+      title_k: v.titleKey, rows_ll: JSON.stringify(v.rows),
+    },
   })
   return forced
     ? `Retired at ${mgrAge(state)}. ${v.title}.`
@@ -185,6 +208,8 @@ export function ageManager(state: GameState): void {
         '',
         'Your legacy screen will tell you what the game would say about you if you stopped today.',
       ].join('\n'),
+      k: 'news.notOut',
+      v: { age: RETIRE_OPEN, forced: RETIRE_FORCED },
     })
   }
 }

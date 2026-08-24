@@ -2483,10 +2483,10 @@
     "cvSeasons": "{n} seasons in the dugout, {games} matches, {pct}% of them won.",
     "cvSeasonsOne": "{n} season in the dugout, {games} matches, {pct}% of them won.",
     "cvShort": "A career that ended before a full season was completed.",
-    "cvTrophies": "{n} major trophies{titles}.",
-    "cvTrophyOne": "{n} major trophy{titles}.",
-    "cvInclTitles": ", including {n} league titles",
-    "cvInclTitleOne": ", including {n} league title",
+    "cvTrophies": "{n} major trophies{titles_k}.",
+    "cvTrophyOne": "One major trophy{titles_k}.",
+    "cvInclTitles": ", including {tn} league titles",
+    "cvInclTitleOne": ", including a league title",
     "cvNoTrophy": "No major trophy. Plenty of good managers never win one, and it is still the first thing anybody will say.",
     "cvTopFlight": "{n} seasons at the top table.",
     "cvTopFlightOne": "{n} season at the top table.",
@@ -4120,6 +4120,12 @@
     "memoVD2": "Verdict: we are not where anybody expected to be. We need a response.",
     "memoVE0": "Verdict: this is a formal warning. The board is discussing your position.",
     "memoVE1": "Verdict: the directors have lost patience. Results now, or a decision gets made for you.",
-    "memoVE2": "Verdict: your position is under review. There is no gentler way to put it."
+    "memoVE2": "Verdict: your position is under review. There is no gentler way to put it.",
+    "retiredForcedSubj": "The last whistle: {manager} retires",
+    "retiredForced": "At {age}, the decision has been taken out of your hands. This is where the road ends.\n\n{title_k}.\n\n{rows_ll}",
+    "retiredChosenSubj": "{manager} hangs up the clipboard",
+    "retiredChosen": "You told them at the end of the season, and you meant it. At {age}, that is that.\n\n{title_k}.\n\n{rows_ll}",
+    "notOutSubj": "{age} not out",
+    "notOut": "You turned {age} this summer, which in this trade is the age people start asking the question in press conferences.\n\nThere is no hurry. You can take the next season, and the one after that, and nobody will think less of you - but the door is open from here whenever you want it, and it closes on its own at {forced}.\n\nYour legacy screen will tell you what the game would say about you if you stopped today."
   }
 }

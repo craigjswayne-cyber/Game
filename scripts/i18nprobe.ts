@@ -78,10 +78,15 @@ for (const f of files) {
   // t(`titles.${cur.screen}`) - the prefix is checkable even when the tail is
   // not, and an unknown prefix is as broken as an unknown key
   for (const m of src.matchAll(/\bt\(\s*`([\w.]*)\$\{/g)) dynamic.add(m[1])
-  // and a fragment variable whose value is built the same way: a story writes
-  // `verdict_k: \`news.htGrade${grade}\``, which reaches five keys no text
-  // search will ever find. Same rule as t(), different shape.
-  for (const m of src.matchAll(/\b\w+_k:\s*`([\w.]*)\$\{/g)) dynamic.add(m[1])
+  // AND ANY TEMPLATE LITERAL THAT LOOKS LIKE A KEY, wherever it sits.
+  //
+  // Three shapes have turned up so far and only the first was covered: a
+  // fragment variable (`verdict_k: \`news.htGrade${grade}\``), a key built into
+  // a local first (`const tailKey = \`news.${won ? 'aWonLine' : 'aLostLine'}
+  // ${n}\``), and one assembled inside a map. Rather than chase the position,
+  // match the VALUE: a backtick string whose first characters are a namespace
+  // and a dot, followed by an interpolation, is a computed key.
+  for (const m of src.matchAll(/`([a-z][\w]*\.[\w.]*)\$\{/gi)) dynamic.add(m[1])
 }
 
 const enKeys = new Set(leaves(en as Dict))
