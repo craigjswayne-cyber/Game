@@ -3,7 +3,7 @@
 import type { GameState, Player } from './model'
 import { SEASON_WEEKS, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
-import { tIn } from './i18n'
+import { t, tIn } from './i18n'
 import { clamp, mulberry32 } from './rng'
 
 /** Young talent parked on big-club benches, available for a season's loan. */
@@ -62,10 +62,10 @@ export function loanIn(state: GameState, playerId: number): string {
   // letter was advertising players nobody could sign. A fresh world carries
   // 41 seniors; the AI summer cull tolerates 46, so 46 is the hoarding line.
   const seniors = user.players.filter(id => state.players[id] && !state.players[id].acad).length
-  if (seniors >= 46) return 'Your senior squad is full.'
-  if (!loanTargets(state).some(t => t.id === playerId)) return `${parent.short} won't loan him right now.`
+  if (seniors >= 46) return t('reply.seniorSquadFull')
+  if (!loanTargets(state).some(t => t.id === playerId)) return t('reply.parentWontLoan', { club: parent.short })
   // sulky stars want a transfer, not a loan
-  if (p.pers === 'Mercenary' && p.morale < 5) return `${p.name}'s agent wants a permanent move, not a loan.`
+  if (p.pers === 'Mercenary' && p.morale < 5) return t('reply.agentWantsPermanent', { player: p.name })
   parent.players = parent.players.filter(id => id !== p.id)
   parent.tactic.lineup = parent.tactic.lineup.map(id => (id === p.id ? null : id))
   user.players.push(p.id)
@@ -86,7 +86,7 @@ export function loanIn(state: GameState, playerId: number): string {
   })
   // keep the parent's lineup coherent
   parent.tactic.lineup = autoSelect(state, parent.players.map(id => state.players[id]).filter(Boolean))
-  return `${p.name} joins on loan for the season.`
+  return t('reply.joinsOnLoan', { player: p.name })
 }
 
 /**

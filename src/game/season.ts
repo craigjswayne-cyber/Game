@@ -95,7 +95,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
       v: { name_k: info.name, lvl: lvl + 1, why_k: whyKey },
     })
     logDecision(state, 'dec.facilityDeclined', { lvl: lvl + 1, fac_k: info.name, why_k: whyKey }, false)
-    return `Declined - ${why}.`
+    return t('reply.declined', { why_k: whyKey })
   }
   club.balance -= clubShare
   state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
@@ -137,19 +137,19 @@ export function expansionPlan(state: GameState) {
 export function requestExpansion(state: GameState): string {
   const club = state.clubs[state.userClubId]
   const abs = state.season * 100 + state.week
-  if (club.capacity >= 82_000) return `${club.stadium} is one of the biggest grounds in the game. There is nowhere left to build.`
+  if (club.capacity >= 82_000) return t('reply.groundAlreadyHuge', { stadium: club.stadium })
   // the Infrastructure page greys the button out at this point, and the engine
   // has to agree with it: a board does not lay seats it cannot sell
   if (club.capacity >= demandCeiling(club) * 0.95) {
-    return `${club.stadium} already holds just about everyone who would come. More seats would be empty seats.`
+    return t('reply.groundBigEnough', { stadium: club.stadium })
   }
-  if (state.facilityBuild) return 'The builders are already on site elsewhere. One project at a time.'
-  if ((state.facilityAskCooldown ?? 0) > abs) return 'The board made itself clear last time. Give it a few weeks before asking again.'
+  if (state.facilityBuild) return t('reply.buildersBusy')
+  if ((state.facilityAskCooldown ?? 0) > abs) return t('reply.boardSaidNoRecently')
   const { seats, cost, fill, played } = expansionPlan(state)
   // one stand a season: builders, planning permission and a season ticket
   // renewal cycle all take their time
   if (state.expandedSeason === state.season) {
-    return 'The ground has already been extended this season. The next phase waits for the summer.'
+    return t('reply.groundExtendedThisSeason')
   }
   const enoughDemand = played >= 3 && fill >= 0.9
   const approve = enoughDemand && club.balance >= cost * 1.3 && club.boardConfidence >= 50
@@ -168,7 +168,7 @@ export function requestExpansion(state: GameState): string {
       v: { stadium: club.stadium, seats, why_k: whyKey, pct: Math.round(fill * 100) },
     })
     logDecision(state, 'dec.expandDeclined', { stadium: club.stadium, why_k: whyKey, pct: Math.round(fill * 100) }, false)
-    return `Declined - ${why}.`
+    return t('reply.declined', { why_k: whyKey, pct: Math.round(fill * 100) })
   }
   club.balance -= cost
   club.capacity += seats
@@ -181,7 +181,7 @@ export function requestExpansion(state: GameState): string {
     k: 'news.expApproved',
     v: { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity },
   })
-  return `Approved. ${seats.toLocaleString()} new seats for ${fmtMoney(cost)} - capacity now ${club.capacity.toLocaleString()}.`
+  return t('reply.expandApproved', { seats, cost: fmtMoney(cost), cap: club.capacity })
 }
 
 // ------------------------------------------------------------------
@@ -1402,11 +1402,11 @@ export function userFixtureThisWeek(state: GameState): Fixture | undefined {
 /** Idle-week friendly: a home run-out against another idle club. Sharpness
  *  and combinations for the squad - but the injury risk is real. */
 export function arrangeFriendly(state: GameState, oppId: string): string {
-  if (userFixtureThisWeek(state)) return 'You already have a match this week.'
+  if (userFixtureThisWeek(state)) return t('reply.alreadyPlayingThisWeek')
   const opp = state.clubs[oppId]
-  if (!opp) return 'No such club.'
+  if (!opp) return t('reply.noSuchClub')
   const busy = state.fixtures.some(f => f.week === state.week && !f.played && (f.homeId === oppId || f.awayId === oppId))
-  if (busy) return `${opp.short} have a fixture of their own this week.`
+  if (busy) return t('reply.oppHasFixture', { club: opp.short })
   state.fixtures.push({
     id: state.nextId++, compId: 'fr', round: 0, week: state.week,
     homeId: state.userClubId, awayId: oppId,
@@ -1418,7 +1418,7 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
     body: `${opp.name} have agreed to a run-out at your place. Minutes for the fringe men, sharpness for the returners - just don't get anyone hurt.`,
     k: 'news.friendly', v: { short: opp.short, club: opp.name },
   })
-  return `Friendly arranged against ${opp.name} this week.`
+  return t('reply.friendlyArranged', { club: opp.name })
 }
 
 /** The national side's fixture this week, when the user also coaches one.

@@ -277,10 +277,16 @@ export function gameTimeReview(state: GameState): void {
     k: 'news.ledgerMan', name: r.p.name, status_k: `squad.status${r.status[0].toUpperCase()}${r.status.slice(1)}`,
     actual: r.actual, expected: r.expected,
   }))
+  // i18n-exempt-start
+  // The English the story is FILED as, sitting next to the ledgerRows that
+  // carry its keys. Stored English is not display text - see NewsItem.body -
+  // and translating it here would put a French sentence into a save that the
+  // engine reads back and matches on.
   const lines = rows.slice(0, 3).map(r => {
     const d = STATUS_BY_ID[r.status]
     return `${r.p.name} (${d.name.toLowerCase()}): ${r.actual} of the ${r.expected} games he was promised.`
   })
+  // i18n-exempt-end
   if (rows.length > 3) lines.push(`...and ${rows.length - 3} more on the ledger.`)
   const worst = rows[0]
   state.news.push({

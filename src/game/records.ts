@@ -98,9 +98,11 @@ export function protegeLine(state: GameState): string | null {
   const best = list[0]
   const club = state.clubs[best.clubId!]
   const intl = list.filter(p => p.intl).length
-  return `${list.length} of your graduates are playing elsewhere` +
-    `${club ? `, the best of them ${best.name} at ${club.short}` : ''}` +
-    `${intl ? ` - ${intl} of them capped` : ''}.`
+  return t('reply.protegeLine', {
+    n: list.length,
+    best_k: club ? 'reply.protegeBest' : 'common.nothing', best: best.name, club: club?.short ?? '',
+    capped_k: intl ? 'reply.protegeCapped' : 'common.nothing', intl,
+  })
 }
 
 export interface Nemesis {

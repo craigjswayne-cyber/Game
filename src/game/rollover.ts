@@ -1492,6 +1492,9 @@ export function rebuildSeason(state: GameState) {
       subject: down === state.userClubId
         ? `💔 RELEGATED: ${state.clubs[down].name} go down`
         : `🎉 PROMOTED: ${state.clubs[up].name} are going up!`,
+      // i18n-exempt-start
+      // The English the story is FILED as, next to the key below it. Stored
+      // English is not display text - see NewsItem.body.
       body: (() => {
         const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
         const how = bar
@@ -1499,6 +1502,7 @@ export function rebuildSeason(state: GameState) {
           : `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
         return `${how}${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`
       })(),
+      // i18n-exempt-end
       k: down === state.userClubId ? 'news.relegated' : 'news.promoted',
       v: (() => {
         const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null

@@ -192,15 +192,15 @@ function raiseIncident(state: GameState, p: Player, kind: Incident['kind']) {
  *  same fine is discipline from a proven manager and provocation from an
  *  unproven one - which is the user's complaint made mechanical. */
 export function applyResponse(state: GameState, inc: Incident, response: 'fine' | 'word' | 'ignore', silent = false): string {
-  if (inc.state !== 'flagged') return 'That moment has passed.'
+  if (inc.state !== 'flagged') return t('reply.momentPassed')
   const p = state.players[inc.pid]
-  if (!p) { inc.state = 'handled'; return 'He has already left the club.' }
+  if (!p) { inc.state = 'handled'; return t('reply.alreadyLeftClub') }
   const a = standing(state)
 
   if (response === 'ignore') {
     inc.state = 'festering'
     p.morale = clamp(p.morale - 0.3, 1, 10)
-    if (!silent) return `You let it go. ${p.name} reads the silence as permission, and so does the room.`
+    if (!silent) return t('reply.incidentIgnored', { player: p.name })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `The ${p.name} situation drifts`,
@@ -215,7 +215,7 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
   if (response === 'word') {
     inc.state = 'handled'
     p.morale = clamp(p.morale - 0.1, 1, 10)
-    return `A closed door and five quiet minutes. ${p.name} nods, the matter ends, and nobody outside the room ever hears of it.`
+    return t('reply.incidentWord', { player: p.name })
   }
 
   // the fine: deterministic on the incident id, biased by standing
@@ -224,7 +224,7 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
     inc.state = 'handled'
     p.morale = clamp(p.morale - 0.2, 1, 10)
     state.mgrTrust = clamp((state.mgrTrust ?? 30) + 1, 0, 100)
-    return `The fine is posted on the noticeboard and ${p.name} pays it without a word. The room registers that the line is where you said it was.`
+    return t('reply.incidentFineLands', { player: p.name })
   }
   inc.state = 'challenged'
   p.morale = clamp(p.morale - 1.0, 1, 10)
@@ -234,5 +234,5 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
     const ally = state.players[id]
     if (ally && ally !== p && !ally.acad && ally.pos === p.pos) ally.morale = clamp(ally.morale - 0.3, 1, 10)
   }
-  return `${p.name} takes the fine badly and says so, loudly, with the room listening - and the room takes his side. A manager with a bigger name makes this stick. Today it cost you more than him.`
+  return t('reply.incidentFineChallenged', { player: p.name })
 }

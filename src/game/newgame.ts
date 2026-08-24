@@ -32,7 +32,7 @@ import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
 import { mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
-import { tIn } from './i18n'
+import { t, tIn } from './i18n'
 
 export interface Challenge {
   id: string
@@ -81,11 +81,11 @@ export function mediaVerdict(club: { id: string }, league: LeagueDef): string {
   const i = Math.max(0, order.findIndex(c => c.id === club.id))
   const n = order.length
   const quarter = Math.max(2, Math.ceil(n / 4))
-  if (i === 0) return 'Title favourites'
-  if (i < quarter) return league.playoffTeams > 0 ? 'Playoff contenders' : 'Promotion chasers'
-  if (i < Math.ceil(n / 2)) return 'Dark horses'
-  if (i < n - quarter) return 'Mid-table battlers'
-  return RELEGATES.includes(league.id) ? 'Relegation-zone rated' : 'Written off by the press'
+  if (i === 0) return t('verdict.titleFavourites')
+  if (i < quarter) return t(league.playoffTeams > 0 ? 'verdict.playoffContenders' : 'verdict.promotionChasers')
+  if (i < Math.ceil(n / 2)) return t('verdict.darkHorses')
+  if (i < n - quarter) return t('verdict.midTable')
+  return t(RELEGATES.includes(league.id) ? 'verdict.relegationZone' : 'verdict.writtenOff')
 }
 
 export const LEAGUE_DEFS: () => LeagueDef[] = () => [

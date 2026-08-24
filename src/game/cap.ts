@@ -183,8 +183,7 @@ export function capRefusal(state: GameState, clubId: string, wage: number, repla
   if (pos.cap == null) return null
   const after = pos.bill - replacing + wage
   if (after <= pos.cap) return null
-  return `Those terms would put you ${fmtMoney(after - pos.cap)}/wk over the salary cap of ${fmtMoney(pos.cap)}/wk. ` +
-    `Free up room, or name him one of your ${MARQUEE_SLOTS} marquee players.`
+  return t('reply.capRefusal', { over: fmtMoney(after - pos.cap), cap: fmtMoney(pos.cap), n: MARQUEE_SLOTS })
 }
 
 /**

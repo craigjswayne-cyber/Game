@@ -2,7 +2,7 @@
 // 3, 6 or 9-month brief. He comes back with a shortlist of mixed quality - the
 // longer the trip and the better his badge, the more of it is worth signing.
 import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos } from './model'
-import { tIn } from './i18n'
+import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
 import { bumpKnowledge } from './scout'
 import { BADGE } from './staff'
@@ -54,18 +54,18 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   const man = state.staffPeople?.scout
   // only the three briefs on offer, and only positions that exist: a stale
   // screen or a hand-edited save must not book a trip of NaN weeks
-  if (!SEARCH_WEEKS[months]) return 'The scout takes a three, six or nine-month brief, nothing else.'
+  if (!SEARCH_WEEKS[months]) return t('reply.briefLengths')
   if (pos !== 'any' && (!Object.prototype.hasOwnProperty.call(POS_NAMES, pos) || typeof POS_NAMES[pos] !== 'string')) {
-    return 'That is not a position anyone plays.'
+    return t('reply.noSuchPosition')
   }
-  if (!club) return 'You have no club to scout for.'
-  if (tier <= 0 || !man) return 'You have no chief scout to send. Appoint one from Training & Coaching first.'
+  if (!club) return t('reply.noClubToScoutFor')
+  if (tier <= 0 || !man) return t('reply.noChiefScout')
   if (state.commission) {
     const left = Math.max(1, state.commission.done - (state.season * 100 + state.week))
-    return `${man.name} is already out on a brief. He reports back in about ${left} week${left === 1 ? '' : 's'}.`
+    return t('reply.scoutAlreadyOut', { scout: man.name, n: left })
   }
   const fee = searchFee(months, tier)
-  if (club.balance < fee) return `A ${months}-month brief costs ${fmtMoney(fee)} in expenses and the money is not there.`
+  if (club.balance < fee) return t('reply.briefTooDear', { months, fee: fmtMoney(fee) })
   club.balance -= fee
   const abs = state.season * 100 + state.week
   state.commission = { pos, months, done: abs + SEARCH_WEEKS[months], fee, leagueId: state.scoutFocus ?? null }
@@ -82,7 +82,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
     },
   })
   logDecision(state, 'dec.scoutBrief', { scout: man.name, months, fee: fmtMoney(fee), weeks: SEARCH_WEEKS[months] })
-  return `${man.name} is on the road. ${fmtMoney(fee)} spent, report in ${SEARCH_WEEKS[months]} weeks.`
+  return t('reply.scoutOnTheRoad', { scout: man.name, fee: fmtMoney(fee), weeks: SEARCH_WEEKS[months] })
 }
 
 /**

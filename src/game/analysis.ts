@@ -1,5 +1,6 @@
 // Squad analysis: star players, team values, assistant advice.
 
+import { t } from './i18n'
 import type { GameState, Pos } from './model'
 import { XV_SLOTS } from './model'
 import { effAt } from './attributes'
@@ -66,7 +67,7 @@ export function squadValue(state: GameState, clubId: string): number {
 /** The assistant's read on the squad's weakest starting position. */
 export function assistantAdvice(state: GameState): string {
   if (state.staff.assistant === 0) {
-    return 'Hire an assistant coach (Training screen) for selection advice.'
+    return t('reply.noAssistant')
   }
   const club = state.clubs[state.userClubId]
   const lineup = club.tactic.lineup
@@ -75,7 +76,7 @@ export function assistantAdvice(state: GameState): string {
     .map(id => id != null ? state.players[id] : null)
     .filter(p => p && p.cond < 65)
   if (tired.length >= 4) {
-    return `Assistant: ${tired.length} of the starting XV are running on empty (<65% fit). Rotate this week - tired legs concede late tries and pick up injuries.`
+    return t('reply.assistantTired', { n: tired.length })
   }
   let worst: { label: string; eff: number; pos: Pos } | null = null
   for (let i = 0; i < 15; i++) {
@@ -85,7 +86,7 @@ export function assistantAdvice(state: GameState): string {
     const eff = p ? effAt(p, slot.pos) * (0.75 + 0.25 * (p.cond / 100)) : 0
     if (!worst || eff < worst.eff) worst = { label: `${slot.shirt}. ${p?.name ?? 'EMPTY'}`, eff, pos: slot.pos }
   }
-  if (!worst) return 'The XV looks set.'
+  if (!worst) return t('reply.xvLooksSet')
   // is there a better option in reserve?
   const better = club.players
     .map(id => state.players[id])
@@ -93,7 +94,7 @@ export function assistantAdvice(state: GameState): string {
     .filter(p => effAt(p!, worst!.pos) * (0.75 + 0.25 * (p!.cond / 100)) > worst!.eff * 1.05)
     .sort((a, b) => effAt(b!, worst!.pos) - effAt(a!, worst!.pos))[0]
   if (better) {
-    return `Assistant: our weak link is ${worst.label} - ${better.name} looks the stronger option at ${worst.pos} right now.`
+    return t('reply.assistantWeakLink', { label: worst.label, better: better.name, pos_k: `pos.${worst.pos}` })
   }
-  return `Assistant: ${worst.label} is our thinnest position, but nothing better is available in the squad.`
+  return t('reply.assistantThinnest', { label: worst.label })
 }
