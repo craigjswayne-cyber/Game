@@ -2,7 +2,7 @@
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
 import { STAFF_INFO, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
-import { t, tIn } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
 
@@ -233,6 +233,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   // already in the room? One line each, and the manager learns the pairs
   // the way MSM taught them - by reading the news, not a tooltip
   const chemLines: string[] = []
+  const chemRows: Vars[] = []
   for (const [otherRole, other] of Object.entries(state.staffPeople)) {
     if (otherRole === role || !other) continue
     const r = relation(c.trait, other.trait)
@@ -240,11 +241,21 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
     chemLines.push(r.kind === 'click'
       ? `The staff room approves: he and ${other.name} click - ${tIn('en', r.note)}.`
       : `One cloud on the horizon: he and ${other.name} see the game very differently - ${tIn('en', r.note)}.`)
+    chemRows.push({ k: r.kind === 'click' ? 'news.staffClick' : 'news.staffClash', other: other.name, note_k: r.note })
   }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${c.name} appointed ${tIn('en', info.name)}`,
     body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
+    k: 'news.staffHired',
+    v: {
+      name: c.name, age: c.age, club: club.name, role_k: info.name,
+      badge_k: `staff.badge${c.tier}`, trait_k: `traits.${c.trait}`,
+      fee: fmt(c.fee), wage: fmt(c.wage),
+      out_k: outgoing ? 'news.staffOut' : 'common.nothing', out: outgoing?.name ?? '',
+      chem_k: chemRows.length ? 'news.staffChem' : 'common.nothing',
+      rows_l: JSON.stringify(chemRows),
+    },
   })
   logDecision(state, `Appointed ${c.name} as ${tIn('en', info.name).toLowerCase()} (${BADGE[c.tier].toLowerCase()} badge): ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} left.` : ''}`, true)
   return `${c.name} is your new ${tIn('en', info.name).toLowerCase()}. ${fmt(c.fee)} compensation paid.`
@@ -318,6 +329,8 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎓 ${p.name} passes his ${badge} badge`,
       body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had this morning. His pay rises to ${fmt(p.wage)} a week.`,
+      k: 'news.badgePass',
+      v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) },
     })
     return `${p.name} passed. He is ${badge}-badged from today, and on ${fmt(p.wage)} a week.`
   }
@@ -328,6 +341,8 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${p.name} falls short of his ${badge} badge`,
     body: `The examiners wanted more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. The ${fmt(fee)} is spent either way, and the next intake will not take him for a month.`,
+    k: 'news.badgeFail',
+    v: { name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) },
   })
   return `${p.name} fell short. The ${fmt(fee)} is gone and he cannot sit it again for a month.`
 }
@@ -360,6 +375,8 @@ export function resolveCourses(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
         body: `Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmt(p.wage)} a week.`,
+        k: 'news.badgePassAuto',
+        v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) },
       })
     } else {
       p.failed = (p.failed ?? 0) + 1
@@ -369,6 +386,8 @@ export function resolveCourses(state: GameState) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${p.name} falls short of his ${BADGE[toTier].toLowerCase()} badge`,
         body: `The examiners want more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. He can sit it again in four weeks.`,
+        k: 'news.badgeFailAuto',
+        v: { name: p.name, badge_k: `staff.badge${toTier}` },
       })
     }
   }
@@ -405,6 +424,14 @@ export function inheritStaff(state: GameState, quiet = false) {
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: 'The backroom staff you have inherited',
     body: `${filled.length} of the eight coaching posts are filled: ${filled.map(k => `${state.staffPeople?.[k]?.name} (${tIn('en', STAFF_INFO[k].name).toLowerCase()})`).join(', ')}.${vacant.length ? ` The ${vacant.map(k => tIn('en', STAFF_INFO[k].name).toLowerCase()).join(' and ')} job${vacant.length > 1 ? 's are' : ' is'} vacant.` : ''} Badges and hiring are on the Coaching page.`,
+    k: vacant.length ? 'news.inheritedStaffVacant' : 'news.inheritedStaff',
+    v: {
+      n: vacant.length, filled: filled.length,
+      men_l: JSON.stringify(filled.map(k => ({
+        k: 'news.inheritedMan', name: state.staffPeople?.[k]?.name ?? '', role_k: STAFF_INFO[k].name,
+      }))),
+      jobs_l: JSON.stringify(vacant.map(k => ({ k: 'news.inheritedRole', role_k: STAFF_INFO[k].name }))),
+    },
   })
 }
 

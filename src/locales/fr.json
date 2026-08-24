@@ -3907,6 +3907,29 @@
     "jobRejectedSubj": "{short} prend une autre direction",
     "jobRejected": "{club} vous remercie de votre intérêt mais a décidé de poursuivre avec d'autres candidats.",
     "resignedSubj": "{manager} démissionne de {club}",
-    "resigned": "Vous videz votre bureau à vos propres conditions. {era} La rumeur se met en marche immédiatement - et maintenant ?"
+    "resigned": "Vous videz votre bureau à vos propres conditions. {era} La rumeur se met en marche immédiatement - et maintenant ?",
+    "staffHiredSubj": "{name} nommé {role_k}",
+    "staffHired": "{club} tient son homme : {name}, {age} ans, {role_k} au badge {badge_k}, réputé {trait_k}. {fee} d'indemnité, {wage} par semaine.{out_k}{chem_k}",
+    "staffOut": " {out} part avec les remerciements du club.",
+    "staffChem": " {rows_l}",
+    "staffClick": "La salle du staff approuve : lui et {other} s'entendent - {note_k}.",
+    "staffClash": "Un nuage à l'horizon : lui et {other} voient le rugby très différemment - {note_k}.",
+    "badgePassSubj": "🎓 {name} obtient son badge {badge_k}",
+    "badgePass": "Une journée d'écrit et une séance évaluée devant des examinateurs qui ont tout vu, et {name} en est sorti vainqueur. Certificat encadré, poignée de main au centre d'entraînement, et un meilleur {role_k} que celui que le club avait ce matin. Son salaire passe à {wage} par semaine.",
+    "badgeFailSubj": "{name} échoue à son badge {badge_k}",
+    "badgeFail": "Les examinateurs en voulaient davantage de {name} sur la séance évaluée. Il l'a bien pris, a demandé le retour par écrit et l'a punaisé au-dessus de son bureau. Les {fee} sont dépensés dans tous les cas, et la prochaine session ne le prendra pas avant un mois.",
+    "badgePassAutoSubj": "🎓 {name} obtient son badge {badge_k}",
+    "badgePassAuto": "Certificat encadré, poignée de main au centre d'entraînement, et un meilleur {role_k} que celui que le club avait le mois dernier. {name} est désormais titulaire du badge {badge_k}, et son salaire passe à {wage} par semaine.",
+    "badgeFailAutoSubj": "{name} échoue à son badge {badge_k}",
+    "badgeFailAuto": "Les examinateurs en veulent davantage de {name} sur la séance évaluée. Il l'a bien pris, a demandé le retour par écrit et l'a punaisé au-dessus de son bureau. Il pourra le repasser dans quatre semaines.",
+    "inheritedStaffSubj": "Le staff dont vous héritez",
+    "inheritedStaff": "{filled} des huit postes du staff sont pourvus : {men_l}. Les badges et les recrutements sont sur la page Encadrement.",
+    "inheritedStaffVacantSubj": "Le staff dont vous héritez",
+    "inheritedStaffVacant": {
+      "one": "{filled} des huit postes du staff sont pourvus : {men_l}. Le poste de {jobs_l} est vacant. Les badges et les recrutements sont sur la page Encadrement.",
+      "other": "{filled} des huit postes du staff sont pourvus : {men_l}. Les postes de {jobs_l} sont vacants. Les badges et les recrutements sont sur la page Encadrement."
+    },
+    "inheritedMan": "{name} ({role_k})",
+    "inheritedRole": "{role_k}"
   }
 }

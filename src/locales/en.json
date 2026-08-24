@@ -3907,6 +3907,29 @@
     "jobRejectedSubj": "{short} go in a different direction",
     "jobRejected": "{club} thank you for your interest but have decided to pursue other candidates.",
     "resignedSubj": "{manager} resigns at {club}",
-    "resigned": "You clear your desk on your own terms. {era} The rumour mill starts turning immediately - where next?"
+    "resigned": "You clear your desk on your own terms. {era} The rumour mill starts turning immediately - where next?",
+    "staffHiredSubj": "{name} appointed {role_k}",
+    "staffHired": "{club} have their man: {name}, {age}, a {badge_k}-badge {role_k} known as a {trait_k}. {fee} compensation, {wage} a week.{out_k}{chem_k}",
+    "staffOut": " {out} leaves with the club's thanks.",
+    "staffChem": " {rows_l}",
+    "staffClick": "The staff room approves: he and {other} click - {note_k}.",
+    "staffClash": "One cloud on the horizon: he and {other} see the game very differently - {note_k}.",
+    "badgePassSubj": "🎓 {name} passes his {badge_k} badge",
+    "badgePass": "A day of written work and an assessed session in front of examiners who have seen it all, and {name} came through it. Framed certificate, handshake at the training ground, and a better {role_k} than the club had this morning. His pay rises to {wage} a week.",
+    "badgeFailSubj": "{name} falls short of his {badge_k} badge",
+    "badgeFail": "The examiners wanted more from {name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. The {fee} is spent either way, and the next intake will not take him for a month.",
+    "badgePassAutoSubj": "🎓 {name} passes his {badge_k} badge",
+    "badgePassAuto": "Framed certificate, handshake at the training ground, and a better {role_k} than the club had last month. {name} is now {badge_k}-badged, and his pay rises to {wage} a week.",
+    "badgeFailAutoSubj": "{name} falls short of his {badge_k} badge",
+    "badgeFailAuto": "The examiners want more from {name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. He can sit it again in four weeks.",
+    "inheritedStaffSubj": "The backroom staff you have inherited",
+    "inheritedStaff": "{filled} of the eight coaching posts are filled: {men_l}. Badges and hiring are on the Coaching page.",
+    "inheritedStaffVacantSubj": "The backroom staff you have inherited",
+    "inheritedStaffVacant": {
+      "one": "{filled} of the eight coaching posts are filled: {men_l}. The {jobs_l} job is vacant. Badges and hiring are on the Coaching page.",
+      "other": "{filled} of the eight coaching posts are filled: {men_l}. The {jobs_l} jobs are vacant. Badges and hiring are on the Coaching page."
+    },
+    "inheritedMan": "{name} ({role_k})",
+    "inheritedRole": "{role_k}"
   }
 }
