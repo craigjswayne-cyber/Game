@@ -3570,6 +3570,26 @@
     "loanLevel": "il joue chaque semaine et fait son travail. Leurs entraîneurs l'apprécient ; ils pensent aussi discrètement que c'est son niveau.",
     "loanStar": "le premier nom sur leur feuille de match. Leur entraîneur dit qu'il dirige les matches à ce niveau - attendez-vous à un joueur différent cet été.",
     "loanGrowing": "il grandit bien dedans. De bonnes notes la plupart des semaines, et la formation prend visiblement.",
-    "loanSteady": "il a le temps de jeu pour lequel il est parti. Régulier plutôt que spectaculaire, mais chaque semaine là-bas est une semaine où il ne portait pas de boucliers ici."
+    "loanSteady": "il a le temps de jeu pour lequel il est parti. Régulier plutôt que spectaculaire, mais chaque semaine là-bas est une semaine où il ne portait pas de boucliers ici.",
+    "slamEveSubj": "⚡ {nation} est à 80 minutes du Grand Chelem",
+    "slamEve": "{nation} a gagné ses quatre matches et aborde la dernière journée avec le Grand Chelem en jeu. Tout le championnat s'arrête pour regarder.",
+    "slamEveYoursSubj": "⚡ {nation} est à 80 minutes du Grand Chelem",
+    "slamEveYours": "Quatre sur quatre, un à jouer. Votre équipe est à une victoire du Grand Chelem - la semaine dont rêve chaque entraîneur et pendant laquelle aucun ne dort. Gérez l'événement, pas seulement l'adversaire.",
+    "slamSubj": "👑 GRAND CHELEM : {nation} gagne tout",
+    "slam": "{nation} réalise le Grand Chelem - cinq victoires en cinq matches. Le reste du championnat applaudit en serrant les dents.",
+    "slamYoursSubj": "👑 GRAND CHELEM : {nation} gagne tout",
+    "slamYours": "Cinq sur cinq. Un GRAND CHELEM pour {nation}, et votre nom dessus pour toujours. Des titres, on en gagne presque chaque année ; les Chelems se retiennent sur des décennies. Profitez de chaque minute de la semaine qui suit.",
+    "spoonSubj": "🥄 La Cuillère de bois revient à {nation}",
+    "spoon": "{nation} termine le championnat sans la moindre victoire et rapporte la Cuillère de bois. Son bilan sera brutal.",
+    "spoonYoursSubj": "🥄 La Cuillère de bois revient à {nation}",
+    "spoonYours": "Cinq défaites en cinq matches. La Cuillère de bois est pour {nation} - et pour vous. Le bilan de la fédération tombe la semaine prochaine, et la presse ne sera pas tendre. Quelque chose doit changer, à commencer par le résultat.",
+    "sweepEveSubj": "⚡ {nation} est à 80 minutes d'un sans-faute",
+    "sweepEve": "{nation} a gagné ses cinq matches et peut réaliser un sans-faute dans le Championnat du Sud lors de la dernière journée. L'hémisphère sud retient son souffle.",
+    "sweepEveYoursSubj": "⚡ {nation} est à 80 minutes d'un sans-faute",
+    "sweepEveYours": "Cinq sur cinq dans le championnat le plus dur de la planète, un à jouer. Gagnez-le et votre équipe rejoint la plus courte des listes. Le Sud ne distribue pas ça.",
+    "sweepSubj": "👑 SANS-FAUTE : {nation} gagne tous ses matches du Championnat du Sud",
+    "sweep": "{nation} réalise un Championnat du Sud parfait - six victoires en six matches. Les trois autres nations rentrent faire leur bilan.",
+    "sweepYoursSubj": "👑 SANS-FAUTE : {nation} gagne tous ses matches du Championnat du Sud",
+    "sweepYours": "Six sur six contre ce que le Sud peut aligner de mieux. Un sans-faute dans le Championnat du Sud, et votre nom dessus. Dans cent ans, on lira encore cette liste à voix haute."
   }
 }
