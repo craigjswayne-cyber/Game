@@ -94,13 +94,13 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
       k: 'news.facDeclined',
       v: { name_k: info.name, lvl: lvl + 1, why_k: whyKey },
     })
-    logDecision(state, `Asked the board for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}: declined, ${why}.`, false)
+    logDecision(state, 'dec.facilityDeclined', { lvl: lvl + 1, fac_k: info.name, why_k: whyKey }, false)
     return `Declined - ${why}.`
   }
   club.balance -= clubShare
   state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
   const boardPut = cost - clubShare
-  logDecision(state, `Won board backing for a level ${lvl + 1} ${tIn('en', info.name).toLowerCase()}: ${fmtMoney(cost)}, open in five weeks.`, true)
+  logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost) }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏛 Board approves: ${tIn('en', info.name)} to level ${lvl + 1}`,
@@ -167,13 +167,13 @@ export function requestExpansion(state: GameState): string {
       k: 'news.expDeclined',
       v: { stadium: club.stadium, seats, why_k: whyKey, pct: Math.round(fill * 100) },
     })
-    logDecision(state, `Asked to expand ${club.stadium}: declined, ${why}.`, false)
+    logDecision(state, 'dec.expandDeclined', { stadium: club.stadium, why_k: whyKey, pct: Math.round(fill * 100) }, false)
     return `Declined - ${why}.`
   }
   club.balance -= cost
   club.capacity += seats
   state.expandedSeason = state.season
-  logDecision(state, `${club.stadium} extended by ${seats.toLocaleString()} seats for ${fmtMoney(cost)}: capacity now ${club.capacity.toLocaleString()}.`, true)
+  logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: `🏗 ${club.stadium} grows by ${seats.toLocaleString()} seats`,
@@ -1696,7 +1696,7 @@ export function processWeekAndAdvance(state: GameState) {
     const uc = state.clubs[state.userClubId]
     if (uc) uc.facilities = { ...(uc.facilities ?? {}), [b.id]: b.level }
     state.facilityBuild = null
-    logDecision(state, `The level ${b.level} ${tIn('en', info.name).toLowerCase()} opened. ${tIn('en', info.desc)}`, true)
+    logDecision(state, 'dec.facilityOpened', { lvl: b.level, fac_k: info.name, desc_k: info.desc }, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `🏗 The new ${tIn('en', info.name).toLowerCase()} opens`,

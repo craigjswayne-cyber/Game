@@ -158,9 +158,8 @@ export function settleAnalyst(state: GameState, oppId: string) {
   // crowd out the boardroom, the market and the courses.
   if (r.confidence >= 0.85) {
     const opp = state.clubs[oppId]?.short ?? 'them'
-    logDecision(state, r.right
-      ? `Backed the analyst's strongest read at ${opp} (${UNIT_LABEL[r.unit].toLowerCase()}): he had it right, and it showed.`
-      : `Backed the analyst's strongest read at ${opp} (${UNIT_LABEL[r.unit].toLowerCase()}): he was wrong, and the week was wasted.`, r.right)
+    logDecision(state, r.right ? 'dec.analystRight' : 'dec.analystWrong',
+      { opp, unit_k: `analyst.unit${r.unit[0].toUpperCase()}${r.unit.slice(1)}` }, r.right)
   }
 }
 

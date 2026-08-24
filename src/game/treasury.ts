@@ -48,6 +48,6 @@ export function releaseToBudget(state: GameState): { ok: boolean; msg: string } 
   const club = state.clubs[state.userClubId]
   club.balance -= RELEASE_STEP
   club.budget += RELEASE_STEP
-  logDecision(state, `Moved ${fmtMoney(RELEASE_STEP)} from the bank into the transfer budget.`, true)
+  logDecision(state, 'dec.movedToTransferBudget', { amount: fmtMoney(RELEASE_STEP) }, true)
   return { ok: true, msg: t('finances.treasuryMoved', { step: fmtMoney(RELEASE_STEP), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }) }
 }

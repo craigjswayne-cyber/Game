@@ -81,7 +81,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
       badge_k: `staff.badge${tier}`, n: SEARCH_WEEKS[months],
     },
   })
-  logDecision(state, `Sent ${man.name} out on a ${months}-month brief: ${fmtMoney(fee)} of expenses, report in ${SEARCH_WEEKS[months]} weeks.`)
+  logDecision(state, 'dec.scoutBrief', { scout: man.name, months, fee: fmtMoney(fee), weeks: SEARCH_WEEKS[months] })
   return `${man.name} is on the road. ${fmtMoney(fee)} spent, report in ${SEARCH_WEEKS[months]} weeks.`
 }
 
@@ -199,7 +199,7 @@ export function resolveCommission(state: GameState) {
   const good = finds.filter(f => f.grade >= 2).length
   // built by noteFor just above, so it is always the object form here
   const note = finds[0].note as NoteRef
-  logDecision(state, `The ${c.months}-month brief came back with ${finds.length} names, ${good} of them worth signing. Best: ${best.name}.`, good > 0)
+  logDecision(state, 'dec.scoutBriefBack', { months: c.months, n: finds.length, good, best: best.name }, good > 0)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,

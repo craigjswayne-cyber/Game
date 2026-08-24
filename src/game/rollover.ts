@@ -77,7 +77,7 @@ function boardReinvests(state: GameState) {
       lvl: weakest ? (club.facilities?.[weakest] ?? 0) : 0,
     },
   })
-  logDecision(state, `Board reinvested ${fmtMoney(spend)} in the club`, true)
+  logDecision(state, 'dec.boardReinvested', { amount: fmtMoney(spend) }, true)
 }
 
 function seasonAwards(state: GameState) {
