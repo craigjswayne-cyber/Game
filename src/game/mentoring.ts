@@ -307,10 +307,9 @@ export function mentorReports(state: GameState) {
     const last = s.name.split(' ').slice(-1)[0]
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
-      subject: `${last} is spread a bit thin`,
-      body: `${s.name} has two kids under his wing and he mentioned it after training - politely, but he mentioned it. `
-        + `The extras get split two ways, so each lad is learning at about three-quarter speed. `
-        + `Move one of them to another senior pro on the Training and Staff screen, or accept the slower pace.`,
+      subject: tIn('en', 'news.mentorSpreadSubj', { last }),
+      body: tIn('en', 'news.mentorSpread', { name: s.name }),
+      k: 'news.mentorSpread', v: { name: s.name, last },
       playerId: s.id,
     })
   }

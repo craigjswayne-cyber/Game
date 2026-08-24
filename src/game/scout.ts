@@ -170,19 +170,25 @@ export function recruitmentMeeting(state: GameState): void {
   const POSN: Pos[] = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8', 'SH', 'FH', 'CE', 'WG', 'FB']
   const at = (pos: Pos) => seniors.filter(p => p.pos === pos || p.alt.includes(pos))
   const bestAt = (pos: Pos) => at(pos).reduce((m, p) => Math.max(m, p.ca), 0)
-  const needs: { pos: Pos; why: string }[] = []
-  for (const pos of POSN) if (at(pos).length < 2) needs.push({ pos, why: 'one injury from a crisis there' })
+  // The reason a shirt is on the board is a clause inside the line about the
+  // man proposed for it, so it cannot be hoisted out of the list: it travels
+  // as its own key and is rendered per row. `who`/`yrs` rather than name/age,
+  // because the incumbent whose clock is honest is not the recruit named in
+  // the same line and two `name`s in one row would collide.
+  type Need = { pos: Pos; whyK: string; whyV?: Record<string, string | number> }
+  const needs: Need[] = []
+  for (const pos of POSN) if (at(pos).length < 2) needs.push({ pos, whyK: 'news.scoutWhyThin' })
   for (const pos of POSN) {
     if (needs.length >= 3 || needs.some(n => n.pos === pos)) continue
     const best = seniors.filter(p => p.pos === pos).sort((a, b) => b.ca - a.ca)[0]
-    if (best && best.age >= 32) needs.push({ pos, why: `${best.name} is ${best.age} and the clock is honest` })
+    if (best && best.age >= 32) needs.push({ pos, whyK: 'news.scoutWhyOld', whyV: { who: best.name, yrs: best.age } })
   }
   for (const pos of [...POSN].sort((a, b) => bestAt(a) - bestAt(b))) {
     if (needs.length >= 3) break
-    if (!needs.some(n => n.pos === pos)) needs.push({ pos, why: 'the weakest shirt in the side' })
+    if (!needs.some(n => n.pos === pos)) needs.push({ pos, whyK: 'news.scoutWhyWeakest' })
   }
   const wageRoom = club.wageBudget - club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
-  const picks: { p: Player; why: string; fee: number }[] = []
+  const picks: { p: Player; need: Need; fee: number }[] = []
   for (const need of needs.slice(0, 3)) {
     const cand = Object.values(state.players)
       .filter(p => p.clubId && p.clubId !== club.id && !p.acad && p.pos === need.pos &&
@@ -191,15 +197,32 @@ export function recruitmentMeeting(state: GameState): void {
       .filter(x => x.fee <= club.budget && x.p.wage <= Math.max(20_000, wageRoom))
       .filter(x => fuzzedCa(state, x.p) >= bestAt(need.pos) - 4)
       .sort((a, b) => (fuzzedCa(state, b.p) - b.p.age * 0.4) - (fuzzedCa(state, a.p) - a.p.age * 0.4))[0]
-    if (cand) picks.push({ p: cand.p, why: need.why, fee: cand.fee })
+    if (cand) picks.push({ p: cand.p, need, fee: cand.fee })
   }
   if (!picks.length) return
+  // Two row keys rather than one with an "abroad" variable in it: a variable
+  // holds a club's short name, which is the same word in any language, and the
+  // moment it can also hold the WORD "abroad" it is smuggling English into a
+  // French line. The fallback is a sentence, so it gets a sentence's key.
+  const rows = picks.map(x => ({
+    k: state.clubs[x.p.clubId!]?.short ? 'news.scoutRow' : 'news.scoutRowAbroad',
+    pname: x.p.name,
+    ppos: x.p.pos,
+    page: x.p.age,
+    pclub: state.clubs[x.p.clubId!]?.short ?? '',
+    why_k: x.need.whyK,
+    ...(x.need.whyV ?? {}),
+    fee: fmtMoney(x.fee),
+    wage: fmtMoney(x.p.wage),
+  }))
+  const names_k = picks.length === 1 ? 'news.scoutOneName'
+    : picks.length === 2 ? 'news.scoutTwoNames' : 'news.scoutThreeNames'
+  const v = { rows_ll: JSON.stringify(rows), names_k }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false, tag: 'scout',
-    subject: `🤝 Recruitment meeting: ${picks.length === 1 ? 'one name' : picks.length === 2 ? 'two names' : 'three names'} on the board`,
-    body: picks.map(x =>
-      `${x.p.name} (${x.p.pos}, ${x.p.age}, ${state.clubs[x.p.clubId!]?.short ?? 'abroad'}) - ${x.why}. About ${fmtMoney(x.fee)}, ${fmtMoney(x.p.wage)}/wk.`,
-    ).join('\n') + '\n\nTap a name to open his profile and make the bid. The window does not wait.',
+    subject: tIn('en', 'news.scoutMeetingSubj', v),
+    body: tIn('en', 'news.scoutMeeting', v),
+    k: 'news.scoutMeeting', v,
     playerIds: picks.map(x => x.p.id),
   })
 }

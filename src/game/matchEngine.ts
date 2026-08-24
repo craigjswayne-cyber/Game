@@ -8,7 +8,7 @@ import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationByCode } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
-import { t } from './i18n'
+import { t, tIn } from './i18n'
 import { venueEffect } from './venue'
 import { clamp, gauss, mulberry32, wpick, type Rng } from './rng'
 import { DEFAULT_LINEOUT, DEFAULT_SCRUM, ROUTINE_BY_ID, playbookOf, routineEffect } from './playbook'
@@ -3132,52 +3132,68 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
     }
     const motm = motmId != null ? state.players[motmId] : null
     // the one line the gaffer reads after every match: rotate the phrasing
-    // so twenty seasons of Monday papers do not all start the same way
+    // so twenty seasons of Monday papers do not all start the same way.
+    //
+    // The variants are keys rather than sentences, and say() draws exactly as
+    // it did when they were sentences - one draw, same index, same variant -
+    // so a world generated before this change and one generated after it are
+    // the same world. Every opener is handed both team names whether its own
+    // wording uses them or not, because which one a translation reaches for is
+    // the translation's business.
     const say = (opts: string[]) => opts[Math.floor(rng() * opts.length)]
-    const opener = margin >= 20 ? say([
-        `A statement. ${teamShort(state, us.teamId)} were ruthless from the first whistle.`,
-        `${oppName} will not want to watch that back. Total control, first minute to last.`,
-        `One of those afternoons when everything you drew on the whiteboard actually happened.`,
-      ])
-      : margin > 7 ? say([
-        `A convincing afternoon's work, controlled from the front.`,
-        `Professional. Ahead early, managed from there, nobody hurt. Take it and move on.`,
-        `The scoreboard says comfortable. The forwards' knuckles say earned.`,
-      ])
-      : margin > 0 ? say([
-        `Tight, tense - and yours. Games like this one win seasons.`,
-        `Ugly wins count double in the dressing room. Nobody sings about the performance; everybody sings.`,
-        `Decided by inches and nerve. Yours held.`,
-      ])
-      : margin === 0 ? say([
-        `Honours even, and nobody quite sure how to feel about it.`,
-        `A draw that will feel like two points dropped or one rescued, depending on the day you had.`,
-        `All square. The handshakes were polite and nobody meant them.`,
-      ])
-      : margin >= -7 ? say([
-        `The finest of margins, the wrong side of them. It will sting for a few days.`,
-        `Close enough to touch, and that is what makes it worse. One moment, either way.`,
-        `Beaten, barely. The review will find three plays that would have flipped it.`,
-      ])
-      : say([
-        `A day to forget. The video session on Monday will be a long one.`,
-        `${oppName} were better in every department, and the score was honest about it.`,
-        `Second to everything, including the excuses. Training just got harder.`,
-      ])
+    const openerK = margin >= 20 ? say(['news.mrRout1', 'news.mrRout2', 'news.mrRout3'])
+      : margin > 7 ? say(['news.mrComfort1', 'news.mrComfort2', 'news.mrComfort3'])
+      : margin > 0 ? say(['news.mrNarrow1', 'news.mrNarrow2', 'news.mrNarrow3'])
+      : margin === 0 ? say(['news.mrDraw1', 'news.mrDraw2', 'news.mrDraw3'])
+      : margin >= -7 ? say(['news.mrNearMiss1', 'news.mrNearMiss2', 'news.mrNearMiss3'])
+      : say(['news.mrBeaten1', 'news.mrBeaten2', 'news.mrBeaten3'])
+
+    // The report is a column, so it is filed as a _ll list of fragment keys.
+    // Where a slot can hold either a name or a word - the ground with no name,
+    // the fixture with no competition - the WORD gets its own key rather than
+    // being passed in as a variable, because a variable holding "the ground"
+    // is English hiding inside a French sentence, which is the entire bug this
+    // mechanism exists to remove. A club's name and a stadium's name are not
+    // translated and travel as variables, which is what variables are for.
+    const usName = teamShort(state, us.teamId)
+    const ourTries = scorers(us), theirTries = scorers(them)
+    const lines: { k: string; [x: string]: string | number }[] = [
+      { k: openerK, us: usName, opp: oppName },
+      ourTries ? { k: 'news.mrTries', tries: ourTries } : { k: 'news.mrNoTries', us: usName },
+    ]
+    if (theirTries) lines.push({ k: 'news.mrOppTries', opp: oppName, tries: theirTries })
+    if (motm) lines.push({ k: 'news.mrMotm', motm: motm.name, rating: motmR.toFixed(1) })
+    if (fx.att) {
+      const stadium = state.clubs[fx.homeId]?.stadium
+      const compName = state.comps[fx.compId]?.name
+      const comp_k = compName ? 'news.mrCompNamed' : fx.compId === 'fr' ? 'news.mrFriendly' : ''
+      const weather_k = fx.weather && fx.weather !== 'Dry' ? `matchday.wx${fx.weather}` : ''
+      lines.push({
+        k: comp_k && weather_k ? 'news.mrGateCompWx'
+          : comp_k ? 'news.mrGateComp'
+          : weather_k ? 'news.mrGateWx'
+          : 'news.mrGate',
+        att: fx.att,
+        venue_k: stadium ? 'news.mrVenueNamed' : 'news.mrTheGround',
+        venue: stadium ?? '',
+        comp_k, comp: compName ?? '',
+        weather_k,
+      })
+    }
+    // The headline is the scoreline, so it goes through the key as well. A body
+    // key implies a subject key - newsSubject() puts Subj on the end of it -
+    // and leaving the subject as a template would have quietly replaced the
+    // score with whatever that key happened to say.
+    const v = {
+      lines_ll: JSON.stringify(lines),
+      home: teamShort(state, fx.homeId), away: teamShort(state, fx.awayId),
+      hs: home.score, ascore: away.score,
+    }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: true,
-      subject: `📰 ${teamShort(state, fx.homeId)} ${home.score}–${away.score} ${teamShort(state, fx.awayId)}`,
-      body: [
-        opener,
-        scorers(us) ? `Tries: ${scorers(us)}` : `No tries for ${teamShort(state, us.teamId)} today.`,
-        scorers(them) ? `${oppName} tries: ${scorers(them)}` : '',
-        motm ? `Man of the match: ${motm.name} (${motmR.toFixed(1)})` : '',
-        fx.att ? [
-          `${fx.att.toLocaleString()} at ${state.clubs[fx.homeId]?.stadium ?? 'the ground'}`,
-          state.comps[fx.compId]?.name ?? (fx.compId === 'fr' ? 'Friendly' : ''),
-          fx.weather && fx.weather !== 'Dry' ? fx.weather : '',
-        ].filter(Boolean).join(' · ') : '',
-      ].filter(Boolean).join('\n'),
+      subject: tIn('en', 'news.matchReportSubj', v),
+      body: tIn('en', 'news.matchReport', v),
+      k: 'news.matchReport', v,
       playerId: motm?.id,
     })
 

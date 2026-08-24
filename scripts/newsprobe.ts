@@ -26,7 +26,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
-const BUDGET = 12
+const BUDGET = 7
 
 const say = (s: string) => console.log(s)
 let fails = 0
@@ -53,6 +53,39 @@ function objectAt(src: string, openIdx: number): string {
     else if (c === '}') { depth--; if (depth === 0) return src.slice(openIdx, i + 1) }
   }
   return src.slice(openIdx)
+}
+
+/** The names spread into this object at its OWN top level: `{ ...circular }`.
+ *  A story may be assembled somewhere else and spread in at the push, and the
+ *  key comes with it - newgame's pre-season scout circular is built two hundred
+ *  lines above the push that files it. */
+function spreadsOf(obj: string): string[] {
+  const out: string[] = []
+  let depth = 0
+  for (let i = 0; i < obj.length; i++) {
+    const c = obj[i]
+    if (c === '{' || c === '[' || c === '(') depth++
+    else if (c === '}' || c === ']' || c === ')') depth--
+    else if (depth === 1 && obj.startsWith('...', i)) {
+      const m = /^\.\.\.([A-Za-z_$][\w$]*)/.exec(obj.slice(i))
+      if (m) out.push(m[1])
+    }
+  }
+  return out
+}
+
+/** The object literal a name is bound to in this file, if it is bound to one:
+ *  `const scoutCircular = watchList.length ? { ... } : null`. Enough to see
+ *  whether the story spread in from it carries a key. */
+function boundObject(src: string, name: string): string | null {
+  const m = new RegExp(`\\b(?:const|let|var)\\s+${name}\\s*=`).exec(src)
+  if (!m) return null
+  const open = src.indexOf('{', m.index)
+  if (open === -1) return null
+  // Only if the brace belongs to this binding rather than to the next block:
+  // a `= foo(` before it means the object is an argument, not the value.
+  if (/[;\n]/.test(src.slice(m.index + m[0].length, open))) return null
+  return objectAt(src, open)
 }
 
 /** Does this object literal set `k:` at its OWN top level? A `{ k: '...' }`
@@ -116,7 +149,15 @@ for (const f of files) {
   const marker = 'state.news.push({'
   for (let i = src.indexOf(marker); i !== -1; i = src.indexOf(marker, i + 1)) {
     const open = src.indexOf('{', i + marker.length - 1)
-    const obj = objectAt(src, open)
+    let obj = objectAt(src, open)
+    // Follow one top-level spread to the object it came from, so a story
+    // assembled elsewhere is judged on the key it actually carries.
+    if (!hasTopLevelKey(obj)) {
+      for (const name of spreadsOf(obj)) {
+        const from = boundObject(src, name)
+        if (from && hasTopLevelKey(from)) { obj = from; break }
+      }
+    }
     if (!hasTopLevelKey(obj)) naked.push(`${f}:${src.slice(0, i).split('\n').length}`)
     else for (const k of storyKeysOf(obj)) storyKeys.add(k)
   }
