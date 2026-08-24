@@ -1885,6 +1885,8 @@ export function processWeekAndAdvance(state: GameState) {
           body: yours
             ? `Four from four, one to play. Your side stand one win from a Grand Slam - the week every coach dreams about and none sleeps through. Handle the occasion, not just the opposition.`
             : `${name} have won all four and go into the final round with a Grand Slam on the table. The whole championship stops to watch.`,
+          k: yours ? 'news.slamEveYours' : 'news.slamEve',
+          v: { nation: name },
         })
       }
     }
@@ -1904,6 +1906,8 @@ export function processWeekAndAdvance(state: GameState) {
             body: yours
               ? `Five from five. A GRAND SLAM for ${name}, and your name goes on it forever. Titles are won most years; Slams are remembered in decades. Enjoy every minute of the week that follows.`
               : `${name} complete the Grand Slam - five wins from five. The rest of the championship applauds through gritted teeth.`,
+            k: yours ? 'news.slamYours' : 'news.slam',
+            v: { nation: name },
           })
         }
         if (bottom && bottom.w === 0 && bottom.d === 0) {
@@ -1915,6 +1919,8 @@ export function processWeekAndAdvance(state: GameState) {
             body: yours
               ? `Five defeats from five. The Wooden Spoon is ${name}'s - and yours. The union's review lands next week, and the press will not be gentle. Something has to change, starting with the result.`
               : `${name} finish the championship without a win and take the Wooden Spoon home. Their review will be brutal.`,
+            k: yours ? 'news.spoonYours' : 'news.spoon',
+            v: { nation: name },
           })
         }
       }
@@ -1938,6 +1944,8 @@ export function processWeekAndAdvance(state: GameState) {
           body: yours
             ? `Five from five in the hardest championship on earth, one to play. Win it and your side join the shortest of lists. The south does not hand these out.`
             : `${name} have won all five and can complete a Southern Championship clean sweep in the final round. The southern hemisphere holds its breath.`,
+          k: yours ? 'news.sweepEveYours' : 'news.sweepEve',
+          v: { nation: name },
         })
       }
     }
@@ -1955,6 +1963,8 @@ export function processWeekAndAdvance(state: GameState) {
             body: yours
               ? `Six from six against the best the south can field. A clean sweep of the Southern Championship, and your name on it. In a hundred years they will still be reading this list out.`
               : `${name} complete a perfect Southern Championship - six wins from six. The other three nations go home to their reviews.`,
+            k: yours ? 'news.sweepYours' : 'news.sweep',
+            v: { nation: name },
           })
         }
       }

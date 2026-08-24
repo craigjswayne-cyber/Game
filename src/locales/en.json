@@ -3570,6 +3570,26 @@
     "loanLevel": "playing every week and doing his job. Their coaches like him; they also quietly think this is his level.",
     "loanStar": "the first name on their team sheet. Their coach says he is running games at that level - expect a different player back in the summer.",
     "loanGrowing": "growing into it nicely. Good marks most weeks, and the education is clearly taking.",
-    "loanSteady": "getting the minutes he went for. Steady rather than spectacular, but every week down there is a week he was not carrying tackle bags here."
+    "loanSteady": "getting the minutes he went for. Steady rather than spectacular, but every week down there is a week he was not carrying tackle bags here.",
+    "slamEveSubj": "⚡ {nation} are 80 minutes from a Grand Slam",
+    "slamEve": "{nation} have won all four and go into the final round with a Grand Slam on the table. The whole championship stops to watch.",
+    "slamEveYoursSubj": "⚡ {nation} are 80 minutes from a Grand Slam",
+    "slamEveYours": "Four from four, one to play. Your side stand one win from a Grand Slam - the week every coach dreams about and none sleeps through. Handle the occasion, not just the opposition.",
+    "slamSubj": "👑 GRAND SLAM: {nation} win them all",
+    "slam": "{nation} complete the Grand Slam - five wins from five. The rest of the championship applauds through gritted teeth.",
+    "slamYoursSubj": "👑 GRAND SLAM: {nation} win them all",
+    "slamYours": "Five from five. A GRAND SLAM for {nation}, and your name goes on it forever. Titles are won most years; Slams are remembered in decades. Enjoy every minute of the week that follows.",
+    "spoonSubj": "🥄 The Wooden Spoon goes to {nation}",
+    "spoon": "{nation} finish the championship without a win and take the Wooden Spoon home. Their review will be brutal.",
+    "spoonYoursSubj": "🥄 The Wooden Spoon goes to {nation}",
+    "spoonYours": "Five defeats from five. The Wooden Spoon is {nation}'s - and yours. The union's review lands next week, and the press will not be gentle. Something has to change, starting with the result.",
+    "sweepEveSubj": "⚡ {nation} are 80 minutes from a Championship clean sweep",
+    "sweepEve": "{nation} have won all five and can complete a Southern Championship clean sweep in the final round. The southern hemisphere holds its breath.",
+    "sweepEveYoursSubj": "⚡ {nation} are 80 minutes from a Championship clean sweep",
+    "sweepEveYours": "Five from five in the hardest championship on earth, one to play. Win it and your side join the shortest of lists. The south does not hand these out.",
+    "sweepSubj": "👑 CLEAN SWEEP: {nation} win every Southern Championship match",
+    "sweep": "{nation} complete a perfect Southern Championship - six wins from six. The other three nations go home to their reviews.",
+    "sweepYoursSubj": "👑 CLEAN SWEEP: {nation} win every Southern Championship match",
+    "sweepYours": "Six from six against the best the south can field. A clean sweep of the Southern Championship, and your name on it. In a hundred years they will still be reading this list out."
   }
 }
