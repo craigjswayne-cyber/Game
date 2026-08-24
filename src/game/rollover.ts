@@ -22,7 +22,7 @@ import { resetFamiliarity } from './playbook'
 import { closeAcademySeason, ensureAcademyLeague, topUpAcademy } from './academy'
 import { mentorBoost } from './mentoring'
 import { staffChem } from './staff'
-import { tIn } from './i18n'
+import { tIn, type Vars } from './i18n'
 
 const ordinal = (n: number) =>
   n <= 0 ? '-' : `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`
@@ -1309,6 +1309,8 @@ export function rebuildSeason(state: GameState) {
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
         subject: `🏗 ${club.stadium} to grow - ${add.toLocaleString()} new seats`,
         body: `Full houses all season have convinced the board. Diggers arrive this summer: capacity rises to ${club.capacity.toLocaleString()} at a cost of ${fmtMoney(cost)}. Keep winning and we'll fill that too.`,
+        k: 'news.groundGrows',
+        v: { stadium: club.stadium, add, cap: club.capacity, cost: fmtMoney(cost) },
       })
     }
   }
@@ -1343,6 +1345,7 @@ export function rebuildSeason(state: GameState) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
           subject: `${p.name} returns from loan`,
           body: `A season of regular rugby has done ${p.name} the world of good. He reports back noticeably sharper.`,
+          k: 'news.loanBack', v: { player: p.name },
           playerId: p.id,
         })
       }
@@ -1409,6 +1412,7 @@ export function rebuildSeason(state: GameState) {
   // near-identical "X up, Y down" items were three of the fourteen in the
   // final week of the year.
   const swaps: string[] = []
+  const swapRows: Vars[] = []
   for (const [topId, lowId, topName] of PYRAMID) {
     const topComp = state.comps[topId]
     const lowComp = state.comps[lowId]
@@ -1427,7 +1431,11 @@ export function rebuildSeason(state: GameState) {
       if (bar) {
         const winner = bar.homeScore > bar.awayScore ? bar.homeId : bar.awayId
         if (winner === down) {
-          const line = `${state.clubs[down].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} and keep their Premier Division place; ${state.clubs[up].name} stay down`
+          const lineV = {
+            k: 'news.barKept', kept: state.clubs[down].name, stay: state.clubs[up].name,
+            hi: Math.max(bar.homeScore, bar.awayScore), lo: Math.min(bar.homeScore, bar.awayScore),
+          }
+          const line = tIn('en', lineV.k, lineV)
           if (down === state.userClubId || up === state.userClubId) {
             state.news.push({
               id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -1435,9 +1443,12 @@ export function rebuildSeason(state: GameState) {
                 ? `😅 SURVIVED: ${state.clubs[down].short} win the playoff`
                 : `💔 SO CLOSE: ${state.clubs[up].short} lose the playoff`,
               body: `${line}.${down === state.userClubId ? ' The great escape, done on your own patch. The board exhales - now never come this close again.' : ' Champions of the second tier, beaten in one game for everything. The board keeps faith: win the league again and finish the job.'}`,
+              k: down === state.userClubId ? 'news.barSurvived' : 'news.barSoClose',
+              v: { ...lineV, line_k: lineV.k, short: state.clubs[down === state.userClubId ? down : up].short },
             })
           } else {
             swaps.push(line)
+            swapRows.push(lineV)
           }
           continue
         }
@@ -1457,6 +1468,7 @@ export function rebuildSeason(state: GameState) {
     const userInvolved = down === state.userClubId || up === state.userClubId
     if (!userInvolved) {
       swaps.push(`${topName}: ${state.clubs[up].name} up, ${state.clubs[down].name} down`)
+      swapRows.push({ k: 'news.swapRow', comp: topName, up: state.clubs[up].name, down: state.clubs[down].name })
       continue
     }
     state.news.push({
@@ -1471,6 +1483,16 @@ export function rebuildSeason(state: GameState) {
           : `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
         return `${how}${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`
       })(),
+      k: down === state.userClubId ? 'news.relegated' : 'news.promoted',
+      v: (() => {
+        const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
+        return {
+          up: state.clubs[up].name, down: state.clubs[down].name, comp: topName,
+          how_k: bar ? 'news.upDownBar' : 'news.upDownAuto',
+          hi: bar ? Math.max(bar.homeScore, bar.awayScore) : 0,
+          lo: bar ? Math.min(bar.homeScore, bar.awayScore) : 0,
+        }
+      })(),
     })
   }
   if (swaps.length) {
@@ -1478,6 +1500,7 @@ export function rebuildSeason(state: GameState) {
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `Up and down: the trapdoors swing across the leagues`,
       body: `${swaps.join('. ')}. Fortunes made and unmade in a single afternoon, and next season's fixture lists are redrawn accordingly.`,
+      k: 'news.upAndDown', v: { rows_l: JSON.stringify(swapRows) },
     })
   }
 
@@ -1773,6 +1796,7 @@ export function rebuildSeason(state: GameState) {
         id: state.nextId++, week: 1, season: state.season, type: 'transfer', read: false,
         subject: `${p.name} returns to ${state.clubs[p.clubId]?.short} after his loan`,
         body: `The loan is over. ${p.name} heads back to his parent club having grown from the rugby you gave him.`,
+        k: 'news.loanEnds', v: { player: p.name, club: state.clubs[p.clubId]?.short ?? '' },
         playerId: p.id,
       })
     }
@@ -1795,6 +1819,8 @@ export function rebuildSeason(state: GameState) {
     id: state.nextId++, week: 1, season: state.season, type: 'board', read: false,
     subject: `The ${seasonLabel(state.season)} season begins`,
     body: `Pre-season is over. Your transfer budget has been set at ${fmtMoney(state.clubs[state.userClubId].budget)}. Bring us silverware.`,
+    k: 'news.seasonBegins',
+    v: { season: seasonLabel(state.season), budget: fmtMoney(state.clubs[state.userClubId].budget) },
   })
 
   // A SEASON IS WORTH BACKING UP, and the rollover is the one moment in the year
