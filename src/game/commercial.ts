@@ -355,6 +355,12 @@ export function signOffer(state: GameState, offer: Offer): string {
       ? `${offer.sponsor} take the ${tIn('en', SLOT_BY_ID[offer.slot].name).toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week. The commercial department is pleased with itself, and the money starts arriving on Friday.`
       : `${offer.sponsor} take the ${tIn('en', SLOT_BY_ID[offer.slot].name).toLowerCase()} for ${yrs} at ${fmtMoney(offer.weekly)} a week, with a clause: ${tIn('en', CLAUSES[offer.clause].text).toLowerCase()} Deliver and it is the best deal in the building. Do not, and you have sold cheap.`)
       + (offer.slot === 'naming' ? ` The signage vans arrive Monday: the ground plays as ${club.stadium} for the length of the deal.` : ''),
+    k: offer.clause === 'none' ? 'news.sponsorSigned' : 'news.sponsorSignedClause',
+    v: {
+      sponsor: offer.sponsor, short: club.short, slot_k: SLOT_BY_ID[offer.slot].name,
+      yrs, weekly: fmtMoney(offer.weekly), clause_k: CLAUSES[offer.clause]?.text ?? 'common.nothing',
+      naming_k: offer.slot === 'naming' ? 'news.sponsorNaming' : 'common.nothing', stadium: club.stadium,
+    },
   })
   return t('finances.dealDone', { sponsor: offer.sponsor, weekly: fmtMoney(offer.weekly), years: offer.years === 1 ? t('finances.oneSeason') : t('finances.seasons', { n: offer.years }) })
 }
@@ -388,6 +394,11 @@ export function expireDeals(state: GameState) {
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `${slot.icon} ${d.sponsor} deal expires`,
       body: `The ${slot.name.toLowerCase()} is out of contract: ${d.sponsor} have come to the end of their term. Rather than leave it blank the commercial department has taken a rolling arrangement with ${names[h % names.length]} at ${fmtMoney(rate)} a week, which is under the going rate because nobody argued for you. Better offers are on the table whenever you want them, and you can replace this one at any time.`,
+      k: 'news.sponsorExpires',
+      v: {
+        icon: slot.icon, sponsor: d.sponsor, slot_k: slot.name,
+        newSponsor: names[h % names.length], rate: fmtMoney(rate),
+      },
     })
   }
 }
