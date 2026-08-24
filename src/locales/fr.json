@@ -3970,6 +3970,20 @@
     "mentThrivingSubj": "🎓 {last} s'épanouit sous la houlette de {seniorLast}",
     "mentThriving": "{fit_k}. {reason_k} L'entraîneur du centre de formation dit que {kid} s'est mis à faire les tâches ingrates sans qu'on le lui demande, et c'est précisément ce qui ne s'enseigne pas. Il progresse plus vite pour ça.",
     "mentFailingSubj": "Le binôme {seniorLast} - {last} ne prend pas",
-    "mentFailing": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre eux ; cela ne fonctionne simplement pas. Mettez fin au binôme sur l'écran Entraînement et staff et associez-le à quelqu'un d'autre - il y a un bouton Terminer sur la ligne, et la saison est assez longue pour qu'un nouveau départ paie."
+    "mentFailing": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre eux ; cela ne fonctionne simplement pas. Mettez fin au binôme sur l'écran Entraînement et staff et associez-le à quelqu'un d'autre - il y a un bouton Terminer sur la ligne, et la saison est assez longue pour qu'un nouveau départ paie.",
+    "specialistSubj": "🩺 Verdict du spécialiste : {player} en avance sur le calendrier",
+    "specialist": {
+      "one": "Le consultant a trouvé une meilleure voie de rééducation pour {injury} de {player}. Il devrait revenir {n} semaine plus tôt que craint.",
+      "other": "Le consultant a trouvé une meilleure voie de rééducation pour {injury} de {player}. Il devrait revenir {n} semaines plus tôt que craint."
+    },
+    "rankTopSubj": "🥇 {nation} est la meilleure équipe du monde",
+    "rankTop": "Le nouveau classement mondial est tombé et {nation} trône au sommet. Chaque adversaire que vous croiserez désormais donnera son maximum - la cible dans votre dos est officielle.",
+    "rankThreeSubj": "📈 {nation} entre dans le top trois mondial",
+    "rankThree": "Le classement place {nation} au {pos}e rang mondial, le meilleur de votre mandat jusqu'ici. Les experts ont commencé à dire tout haut ce qu'ils pensaient tout bas : cette équipe peut tout gagner.",
+    "shortlistAlertSubj": "🔔 Alerte liste de suivi : {player}",
+    "shortlistAlert": "Le chef recruteur le signale : {player} ({pos}, {short}) {alert_k}",
+    "slListed": "a été PLACÉ SUR LA LISTE DES TRANSFERTS par {short}. Il peut se prendre à bas prix - bougez avant quelqu'un d'autre.",
+    "slExpiring": "est en fin de contrat cet été. {short} ne l'a pas prolongé - un transfert libre en préparation.",
+    "slForm": "est dans la forme de sa vie ({form}). Son prix grimpe chaque semaine."
   }
 }
