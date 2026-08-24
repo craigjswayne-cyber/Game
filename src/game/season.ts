@@ -33,7 +33,7 @@ import { loanTargets } from './loans'
 import { eraSummary, refreshVacancies } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
-import { t, tIn } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
@@ -990,9 +990,12 @@ export function runSpotlight(state: GameState, fx: Fixture, us: number, them: nu
   const club = state.clubs[state.userClubId]
   if (!club) return
   const run = unbeatenRun(state, club.id) // includes the match just played
-  const push = (subject: string, body: string) => state.news.push({
+  // Same shape as gossip's wire(): the key is required and the English is
+  // rendered from the dictionary, so a milestone letter cannot be added in one
+  // language only.
+  const push = (k: string, v: Vars) => state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject, body, fixtureId: fx.id,
+    subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v, fixtureId: fx.id,
   })
   if (us < them) {
     // the run that just ended is everything unbeaten BEFORE this fixture
@@ -1008,20 +1011,16 @@ export function runSpotlight(state: GameState, fx: Fixture, us: number, them: nu
       ended++
     }
     if (ended >= 8) {
-      push(`💔 The run dies at ${ended}`,
-        `${ended} competitive games unbeaten, and it ends here. The dressing room is silent; the phone-ins are not. Runs like that are not replaced, they are rebuilt, one week at a time - and every side in the league sleeps a little easier tonight.`)
+      push('news.runDies', { n: ended })
     }
     return
   }
   if (run === 8) {
-    push(`📈 Eight unbeaten: the league has noticed`,
-      `${club.name} have not lost a competitive game in two months, and the fixture list changes character from here: nobody circles a mid-table trip, everybody circles the unbeaten side. Expect every opponent to play their cup final against you. The old heads in your squad will carry the weight; watch the young ones.`)
+    push('news.run8', { club: club.name })
   } else if (run === 12) {
-    push(`🎯 Twelve unbeaten: the target on the shirt is real`,
-      `A dozen without defeat. Opposition coaches now plan their whole week around you, and the neutrals have started turning up to watch the run end. Pressure is a tax the well-led pay at a discount: keep the room right and the run breathes; let it wobble and the weight does the opposition's work for them.`)
+    push('news.run12', {})
   } else if (run === 16) {
-    push(`🛡️ Sixteen unbeaten: say the word`,
-      `Nobody at the club is allowed to say it, so everybody outside it is saying it for them: invincible. Sixteen competitive matches without defeat is the kind of season grandchildren get told about. Every week from here is a final, for both teams on the pitch.`)
+    push('news.run16', {})
   }
 }
 
@@ -1079,6 +1078,8 @@ function weeklyFinance(state: GameState, rng: Rng) {
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: debtM >= 8 ? 'Board demands the books are balanced' : 'Board concerned by finances',
       body: `The club is ${fmtMoney(Math.abs(club.balance))} in the red. The board urges you to balance the books - consider player sales.`,
+      k: debtM >= 8 ? 'news.debtDemand' : 'news.debtConcern',
+      v: { debt: fmtMoney(Math.abs(club.balance)) },
     })
   }
 }
@@ -1096,16 +1097,24 @@ function matchReport(state: GameState, fx: Fixture) {
     .filter(e => e.type === 'TRY' && e.playerName)
     .map(e => `${e.playerName} (${e.min}')`)
   const motm = fx.motm != null ? state.players[fx.motm] : null
-  const lines = [
-    `${teamShort(state, fx.homeId)} ${fx.homeScore} - ${fx.awayScore} ${teamShort(state, fx.awayId)}`,
-    fx.att ? `Att: ${fx.att.toLocaleString()} at ${fx.venue?.name ?? state.clubs[fx.homeId]?.stadium ?? 'a neutral venue'}` : '',
-    scorers.length ? `Tries: ${scorers.join(', ')}` : 'No tries scored.',
-    motm ? `Player of the match: ${motm.name}` : '',
-  ].filter(Boolean)
+  const rows: { k: string; [x: string]: string | number }[] = [
+    { k: 'news.resScore', home: teamShort(state, fx.homeId), hs: fx.homeScore, as: fx.awayScore, away: teamShort(state, fx.awayId) },
+  ]
+  if (fx.att) rows.push({ k: 'news.resAtt', att: fx.att, venue: fx.venue?.name ?? state.clubs[fx.homeId]?.stadium ?? tIn('en', 'news.resNeutral') })
+  rows.push(scorers.length ? { k: 'news.resTries', tries: scorers.join(', ') } : { k: 'news.resNoTries' })
+  if (motm) rows.push({ k: 'news.resMotm', player: motm.name })
+  const lines = rows.map(r => tIn('en', r.k, r))
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'result', read: false,
     subject: `${verdict}: ${us}-${them} ${us >= them ? 'over' : 'to'} ${teamShort(state, isHome ? fx.awayId : fx.homeId)} (${comp?.short})`,
     body: lines.join('\n'),
+    k: 'news.result',
+    v: {
+      verdict_k: us > them ? 'news.resWin' : us < them ? 'news.resLoss' : 'news.resDraw',
+      us, them, over_k: us >= them ? 'news.resOver' : 'news.resTo',
+      opp: teamShort(state, isHome ? fx.awayId : fx.homeId), comp: comp?.short ?? '',
+      rows_ll: JSON.stringify(rows),
+    },
     fixtureId: fx.id,
   })
 }
@@ -1119,12 +1128,13 @@ function milestones(state: GameState, rng: Rng) {
     const totApps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps + (p.hist?.apps ?? 0)
     const totTries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries + (p.hist?.tries ?? 0)
     const totPts = p.career.reduce((s, c) => s + c.points, 0) + p.stats.points + (p.hist?.points ?? 0)
-    const hits: string[] = []
-    if ([50, 100, 150, 200, 250].includes(totApps)) hits.push(`${totApps} career appearances`)
-    if ([25, 50, 75, 100].includes(totTries)) hits.push(`${totTries} career tries`)
-    if ([250, 500, 1000, 1500].includes(totPts)) hits.push(`${totPts} career points`)
+    const hits: { k: string; n: number }[] = []
+    if ([50, 100, 150, 200, 250].includes(totApps)) hits.push({ k: 'news.mileApps', n: totApps })
+    if ([25, 50, 75, 100].includes(totTries)) hits.push({ k: 'news.mileTries', n: totTries })
+    if ([250, 500, 1000, 1500].includes(totPts)) hits.push({ k: 'news.milePts', n: totPts })
     for (const h of hits) {
-      const body = `${p.name} has reached ${h}. A presentation is made before training.`
+      const v = { player: p.name, what_k: h.k, n: h.n }
+      const body = tIn('en', 'news.milestone', v)
       // a player parked exactly on a number (no tries this week) must not
       // be saluted again - one presentation per milestone
       if (state.news.some(n => n.body === body)) continue
@@ -1132,6 +1142,7 @@ function milestones(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `Milestone: ${p.name}`,
         body,
+        k: 'news.milestone', v,
         playerId: p.id,
       })
     }
@@ -1144,12 +1155,16 @@ function leagueRoundUp(state: GameState) {
     f.compId === leagueId && f.week === state.week && f.played &&
     f.homeId !== state.userClubId && f.awayId !== state.userClubId)
   if (!round.length) return
-  const lines = round.map(f =>
-    `${teamShort(state, f.homeId)} ${f.homeScore}-${f.awayScore} ${teamShort(state, f.awayId)}`)
+  const rows = round.map(f => ({
+    k: 'news.roundRow', home: teamShort(state, f.homeId), hs: f.homeScore,
+    as: f.awayScore, away: teamShort(state, f.awayId),
+  }))
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${state.comps[leagueId]?.short} round-up`,
-    body: lines.join('\n'),
+    body: rows.map(r => tIn('en', r.k, r)).join('\n'),
+    k: 'news.roundUp',
+    v: { comp: state.comps[leagueId]?.short ?? '', rows_ll: JSON.stringify(rows) },
   })
 }
 
@@ -1177,6 +1192,8 @@ function mgrMilestones(state: GameState, won: boolean) {
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: `🏅 Career win number ${m.w}`,
       body: `That was the ${m.w}th win of your managerial career - ${m.w} from ${m.m} matches (${pct}%), with ${m.trophies.length} ${m.trophies.length === 1 ? 'trophy' : 'trophies'} in the cabinet. The staff mark it with a quiet round of applause in the corridor. Back to work.`,
+      k: 'news.careerWin',
+      v: { w: m.w, m: m.m, pct, n: m.trophies.length, cup_k: m.trophies.length === 1 ? 'news.trophyOne' : 'news.trophyMany' },
     })
   }
   if (gameMarks.includes(m.m)) {
@@ -1184,6 +1201,8 @@ function mgrMilestones(state: GameState, won: boolean) {
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: `📇 Match ${m.m} in the dugout`,
       body: `You have now taken charge of ${m.m} matches: ${m.w} won, ${m.d} drawn, ${m.l} lost (${pct}%). Very few last this long in the job. The trick, as ever, is the next one.`,
+      k: 'news.careerGames',
+      v: { m: m.m, w: m.w, d: m.d, l: m.l, pct },
     })
   }
 }
