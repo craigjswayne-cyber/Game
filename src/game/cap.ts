@@ -257,6 +257,8 @@ export function auditCaps(state: GameState) {
       body: repeat
         ? `A second breach in two seasons. The league fine ${club.name} ${fmtMoney(fine)} and impose a transfer embargo for next season: no signings, in or out of the window, until the wage bill is back inside ${fmtMoney(pos.cap)}/wk. The board are furious, and they are right to be. Bring the bill down or the sanction repeats.`
         : `${club.name} finished the season ${fmtMoney(over)}/wk over the ${fmtMoney(pos.cap)}/wk salary cap. The league fine the club ${fmtMoney(fine)} and put it on notice: breach it again next season and the punishment is a transfer embargo. Two men can be named marquee and taken out of the calculation, and academy players never counted.`,
+      k: repeat ? 'news.capEmbargo' : 'news.capFine',
+      v: { club: club.name, fine: fmtMoney(fine), cap: fmtMoney(pos.cap ?? 0), over: fmtMoney(over) },
     })
   }
 }

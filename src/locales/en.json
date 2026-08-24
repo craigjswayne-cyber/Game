@@ -3984,6 +3984,16 @@
     "shortlistAlert": "The chief scout rings it in: {player} ({pos}, {short}) {alert_k}",
     "slListed": "has been TRANSFER LISTED by {short}. He can be had cheap - move before someone else does.",
     "slExpiring": "is out of contract this summer. {short} haven't tied him down - a free transfer in the making.",
-    "slForm": "is in the form of his life ({form}). His price is climbing by the week."
+    "slForm": "is in the form of his life ({form}). His price is climbing by the week.",
+    "armbandSubj": "🧢 The armband passes to {player}",
+    "armband": "The captaincy fell vacant and the dressing room has looked to its senior man: {player} ({age}, {pos}){how_k}. He is the natural choice on leadership and years of service. If you see it differently, hand it to someone else from the Tactics screen.",
+    "armbandVice": ", the vice-captain, steps up",
+    "armbandTakes": " takes the armband",
+    "badBloodSubj": "🔥 Bad blood with {short}",
+    "badBlood": "There is genuine needle between the clubs now - {reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.",
+    "capEmbargoSubj": "⚖ Salary cap: transfer embargo",
+    "capEmbargo": "A second breach in two seasons. The league fine {club} {fine} and impose a transfer embargo for next season: no signings, in or out of the window, until the wage bill is back inside {cap}/wk. The board are furious, and they are right to be. Bring the bill down or the sanction repeats.",
+    "capFineSubj": "⚖ Salary cap: the club is fined",
+    "capFine": "{club} finished the season {over}/wk over the {cap}/wk salary cap. The league fine the club {fine} and put it on notice: breach it again next season and the punishment is a transfer embargo. Two men can be named marquee and taken out of the calculation, and academy players never counted."
   }
 }

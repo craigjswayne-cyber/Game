@@ -215,6 +215,7 @@ export function addGrudge(state: GameState, a: string, b: string, reason: string
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🔥 Bad blood with ${state.clubs[opp].short}`,
       body: `There is genuine needle between the clubs now - ${reason}. The next meeting will be spicy: expect cards, a hostile crowd and a match where the form book means nothing.`,
+      k: 'news.badBlood', v: { short: state.clubs[opp].short, reason },
     })
   }
 }

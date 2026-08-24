@@ -3984,6 +3984,16 @@
     "shortlistAlert": "Le chef recruteur le signale : {player} ({pos}, {short}) {alert_k}",
     "slListed": "a été PLACÉ SUR LA LISTE DES TRANSFERTS par {short}. Il peut se prendre à bas prix - bougez avant quelqu'un d'autre.",
     "slExpiring": "est en fin de contrat cet été. {short} ne l'a pas prolongé - un transfert libre en préparation.",
-    "slForm": "est dans la forme de sa vie ({form}). Son prix grimpe chaque semaine."
+    "slForm": "est dans la forme de sa vie ({form}). Son prix grimpe chaque semaine.",
+    "armbandSubj": "🧢 Le brassard passe à {player}",
+    "armband": "Le capitanat était vacant et le vestiaire s'est tourné vers son cadre : {player} ({age} ans, {pos}){how_k}. C'est le choix naturel sur le leadership et les années de service. Si vous voyez les choses autrement, confiez-le à quelqu'un d'autre depuis l'écran Tactique.",
+    "armbandVice": ", le vice-capitaine, prend du galon",
+    "armbandTakes": " reçoit le brassard",
+    "badBloodSubj": "🔥 Tensions avec {short}",
+    "badBlood": "Il y a une vraie animosité entre les deux clubs désormais - {reason}. La prochaine rencontre sera électrique : attendez-vous à des cartons, un public hostile et un match où les statistiques ne comptent pour rien.",
+    "capEmbargoSubj": "⚖ Plafond salarial : interdiction de recrutement",
+    "capEmbargo": "Deuxième infraction en deux saisons. La ligue inflige à {club} une amende de {fine} et impose une interdiction de recrutement la saison prochaine : aucune signature, entrante ou sortante, tant que la masse salariale n'est pas revenue sous {cap}/semaine. Le conseil est furieux, et il a raison de l'être. Faites baisser la masse ou la sanction se répétera.",
+    "capFineSubj": "⚖ Plafond salarial : le club est sanctionné",
+    "capFine": "{club} a terminé la saison à {over}/semaine au-dessus du plafond de {cap}/semaine. La ligue inflige au club une amende de {fine} et le met en garde : une nouvelle infraction la saison prochaine et la sanction sera une interdiction de recrutement. Deux joueurs peuvent être désignés joueurs d'exception et sortis du calcul, et les joueurs du centre de formation n'ont jamais compté."
   }
 }
