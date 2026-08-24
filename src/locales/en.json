@@ -2,7 +2,8 @@
   "_meta": {
     "//": "SOURCE OF TRUTH FOR EVERY OTHER LANGUAGE. Every key that exists here must exist in every other file in this directory, with the same placeholders in it - scripts/i18nprobe.ts fails the build otherwise. The English values are also load-bearing in another way: forty browser harnesses select elements by their visible text, so changing a string here is changing a test selector.",
     "name": "English",
-    "locale": "en-GB"
+    "locale": "en-GB",
+    "ordByDigit": "1"
   },
   "menu": {
     "continue": "▸ Continue - {manager}, {club}",
@@ -187,7 +188,7 @@
     "weeksOut": "{n}w",
     "wk": "wk{n}",
     "listSep": ", ",
-    "ordByDigit": "1"
+    "nothing": ""
   },
   "home": {
     "jobCentre": "📋 The Job Centre",
@@ -3301,7 +3302,6 @@
     "wKid2": "{player}, {age}, is the name scouts keep writing down twice. {club} know exactly what they have; the question is how long they can keep it quiet.",
     "wKid3Subj": "WONDERKID WATCH: {player}",
     "wKid3": "The stopwatch brigade were out in force again for {clubPoss} {pos} {player}. He is {age}. The men in the stand with clipboards were not there for the tea.",
-    "wMercNone": "",
     "wMerc1": " - and his agent is already dialling",
     "wMerc2": ", and his agent says it loudest",
     "wMerc3": " - and this one pays an agent to be loud",
@@ -3384,7 +3384,6 @@
     "ddRoundupFlopSubj": "📻 Deadline day, as it happened",
     "ddRoundupFlop": "The window is shut. {n} deals crossed the line on the final day{big_k}:\n{rows_ll}\n23:40 - COLLAPSED: {flop}'s move fell apart at the medical. He stays at {flopClub} - for now.\nBack to rugby.",
     "ddBiggest": ", the biggest of them",
-    "ddNone": "",
     "ddDeal": "{time} - DONE DEAL: {player} ({pos}) to {to}, {fee_k}.{mine_k}",
     "ddFeeKnown": "{fee}",
     "ddFeeUndisclosed": "an undisclosed fee",

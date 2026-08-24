@@ -78,6 +78,10 @@ for (const f of files) {
   // t(`titles.${cur.screen}`) - the prefix is checkable even when the tail is
   // not, and an unknown prefix is as broken as an unknown key
   for (const m of src.matchAll(/\bt\(\s*`([\w.]*)\$\{/g)) dynamic.add(m[1])
+  // and a fragment variable whose value is built the same way: a story writes
+  // `verdict_k: \`news.htGrade${grade}\``, which reaches five keys no text
+  // search will ever find. Same rule as t(), different shape.
+  for (const m of src.matchAll(/\b\w+_k:\s*`([\w.]*)\$\{/g)) dynamic.add(m[1])
 }
 
 const enKeys = new Set(leaves(en as Dict))
@@ -140,8 +144,17 @@ for (const { code, label } of LANGS) {
   }
   ok(bad.length === 0, `${label} carries the same placeholders${bad.length ? ': ' + bad.slice(0, 4).join(' | ') : ''}`)
 
-  // nothing renders as a raw key or an empty box
-  const blanks = [...theirs].filter(k => tIn(code as Lang, k).trim() === '' || tIn(code as Lang, k) === k)
+  // nothing renders as a raw key or an empty box.
+  //
+  // EXCEPT common.nothing, which is the ONE sanctioned empty string in the
+  // game. A story writes `merc_k: merc ? 'news.wMerc1' : 'common.nothing'` so
+  // that a clause either appears or does not, and the absent side has to render
+  // as nothing at all. One key rather than a naming rule, because the first
+  // attempt exempted every key ending None and there are already keys called
+  // finishersNone and prepNone that mean "none" and say so out loud.
+  const BLANK_OK = 'common.nothing'
+  const blanks = [...theirs].filter(k =>
+    k !== BLANK_OK && (tIn(code as Lang, k).trim() === '' || tIn(code as Lang, k) === k))
   ok(blanks.length === 0, `${label} has no blank or unresolved strings${blanks.length ? ': ' + blanks.slice(0, 4).join(', ') : ''}`)
 }
 

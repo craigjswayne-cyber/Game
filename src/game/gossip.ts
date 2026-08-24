@@ -460,9 +460,9 @@ function gameTimeGrumbles(state: GameState, rng: Rng) {
   const merc = p.pers === 'Mercenary'
   wire(state, voice(state, 33, ['news.wGrumble1', 'news.wGrumble2', 'news.wGrumble3']), {
     player: p.name, pos: p.pos,
-    merc1_k: merc ? 'news.wMerc1' : 'news.wMercNone',
-    merc2_k: merc ? 'news.wMerc2' : 'news.wMercNone',
-    merc3_k: merc ? 'news.wMerc3' : 'news.wMercNone',
+    merc1_k: merc ? 'news.wMerc1' : 'common.nothing',
+    merc2_k: merc ? 'news.wMerc2' : 'common.nothing',
+    merc3_k: merc ? 'news.wMerc3' : 'common.nothing',
   }, p.id)
 }
 
