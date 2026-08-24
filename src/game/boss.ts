@@ -128,7 +128,7 @@ export function rivalBeat(state: GameState): { k: string; v: Vars } | null {
  * who spent October telling the press to judge him in May sometimes did not last
  * until May.
  */
-export function rivalVerdict(state: GameState): { subject: string; body: string } | null {
+export function rivalVerdict(state: GameState): { k: string; v: Vars } | null {
   const me = state.clubs[state.userClubId]
   const comp = state.comps[me?.leagueId ?? '']
   if (!me || !comp || comp.type !== 'league') return null
@@ -138,27 +138,13 @@ export function rivalVerdict(state: GameState): { subject: string; body: string 
   if (!myPos) return null
 
   // no rival with a coach in post: the man who was there in October is gone
-  if (!r) {
-    return {
-      subject: `📋 Your rival did not last the season`,
-      body: `Whatever else the year did, it took the other dugout with it: the man who spent the autumn talking `
-        + `about ${me.short} is not in a job any more, and his club will appoint somebody new before you play them `
-        + `again. You finished ${myPos}${myPos === 1 ? 'st' : myPos === 2 ? 'nd' : myPos === 3 ? 'rd' : 'th'}. `
-        + `Somebody else gets to have an opinion about that next year.`,
-    }
-  }
+  if (!r) return { k: 'news.rivalGone', v: { meShort: me.short, pos_o: myPos } }
+
   const hisPos = order.findIndex(t => t.teamId === r.club.id) + 1
   if (!hisPos) return null
   const above = myPos < hisPos
   return {
-    subject: above
-      ? `📋 You finished above ${r.boss}`
-      : `📋 ${r.boss} finished above you`,
-    body: above
-      ? `${myPos} against ${hisPos}. ${r.boss} spent the season telling anybody who asked what he made of `
-        + `${me.short}, and the table has answered him. He is still in a job, he will still have plenty to say, and `
-        + `you now have a full year of it to look forward to from the right side of the argument.`
-      : `${hisPos} against ${myPos}. ${r.boss} was right, or at least the table says he was, which in this job is `
-        + `the same thing until next May. He will not have forgotten a word of it and neither should you.`,
+    k: above ? 'news.rivalBelowYou' : 'news.rivalAboveYou',
+    v: { boss: r.boss, meShort: me.short, mine: myPos, his: hisPos },
   }
 }
