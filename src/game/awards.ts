@@ -35,6 +35,7 @@
 // six months where nobody deserved one, NO winner on two matches or fewer, none
 // on nil points, and the user's own club taking three of the 36 rather than
 // seven of the 60. Most winners now come in on three wins from three.
+import { tIn, type Vars } from './i18n'
 import type { GameState } from './model'
 
 /** Three matches, or it is not a month's work.
@@ -169,11 +170,22 @@ export function managerOfMonth(state: GameState, leagueId: string, from: number,
 }
 
 /** One line describing the winning month, for the award story. */
+/** The month a Manager of the Month put together, as a key and its variables.
+ *
+ *  A sentence would be English inside a story the reader may be reading in
+ *  French - the same trap offerResult() was in. */
+export function runVars(state: GameState, r: MonthRun): Vars {
+  return {
+    w: r.wins, d: r.draws, l: r.losses, m: r.matches,
+    diff_k: r.diff > 0 ? 'news.runDiffUp' : r.diff < 0 ? 'news.runDiffDown' : 'common.nothing',
+    diff: Math.abs(r.diff),
+    best_k: r.bestWin ? 'news.runBest' : 'common.nothing',
+    us: r.bestWin?.us ?? 0, them: r.bestWin?.them ?? 0,
+    where_k: r.bestWin?.away ? 'news.runAway' : 'news.runHome',
+    opp: r.bestWin ? state.clubs[r.bestWin.oppId]?.short ?? tIn('en', 'news.runThem') : '',
+  }
+}
+
 export function runLine(state: GameState, r: MonthRun): string {
-  const rec = `${r.wins}W ${r.draws}D ${r.losses}L from ${r.matches}`
-  const best = r.bestWin
-    ? ` The pick of them: ${r.bestWin.us}-${r.bestWin.them} ${r.bestWin.away ? 'away at' : 'against'} ${state.clubs[r.bestWin.oppId]?.short ?? 'them'}.`
-    : ''
-  const diff = r.diff > 0 ? `, ${r.diff} points to the good` : r.diff < 0 ? `, ${-r.diff} points down on aggregate` : ''
-  return `${rec}${diff}.${best}`
+  return tIn('en', 'news.runLine', runVars(state, r))
 }

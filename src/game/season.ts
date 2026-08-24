@@ -6,7 +6,7 @@ import { offerResult, offerRun } from './records'
 import { rivalBeat } from './boss'
 import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
-import { AWARD_EVERY, managerOfMonth, runLine } from './awards'
+import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
@@ -2344,6 +2344,22 @@ export function processWeekAndAdvance(state: GameState) {
               : 'Player of the Month: not awarded.',
             userWon ? 'The board notice these things - and so does the crowd.' : ourMan ? 'A proud week for the club and a lift for the man himself.' : '',
           ].filter(Boolean).join('\n'),
+          k: userWon ? 'news.momYou' : ourMan ? 'news.momOurs' : 'news.momOther',
+          v: {
+            comp: comp.short, player: pom?.name ?? '',
+            mgr_k: best && bestClub ? 'news.momMgr' : 'news.momMgrNone',
+            mgrName: best && bestClub
+              ? (userWon ? state.managerName : state.clubs[bestClub]?.coach ?? tIn('en', 'news.theCoach'))
+              : '',
+            mgrClub: bestClub ? state.clubs[bestClub]?.short ?? '' : '',
+            run_k: best ? 'news.runLine' : 'common.nothing',
+            ...(best ? runVars(state, best) : {}),
+            pom_k: pom ? 'news.momPlayer' : 'news.momPlayerNone',
+            pomClub: pom ? state.clubs[pom.clubId!]?.short ?? '-' : '',
+            avg: pom ? monthAvg(pom).toFixed(1) : '',
+            n: pom?.stats.mApps ?? 0,
+            tail_k: userWon ? 'news.momTailYou' : ourMan ? 'news.momTailOurs' : 'common.nothing',
+          },
           playerId: pom?.id,
         })
       }
@@ -2836,7 +2852,8 @@ export function processWeekAndAdvance(state: GameState) {
     if (beat) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-        subject: beat.subject, body: beat.body,
+        subject: tIn('en', `${beat.k}Subj`, beat.v), body: tIn('en', beat.k, beat.v),
+        k: beat.k, v: beat.v,
       })
     }
   }

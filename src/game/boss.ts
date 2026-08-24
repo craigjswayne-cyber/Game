@@ -17,6 +17,7 @@
 // the fixture comes round again.
 //
 // So: one identified rival per season, and a voice that moves with the table.
+import { tIn, type Vars } from './i18n'
 import { poss, type Club, type GameState } from './model'
 
 /** Who is in the other dugout, or null for a club between coaches. */
@@ -70,7 +71,7 @@ const voice = (state: GameState, salt: number, opts: string[]) =>
  * Once every five weeks at most. He is meant to be a presence, not a pen pal, and
  * the inbox already carries a news pressure tripwire that would fail if he were.
  */
-export function rivalBeat(state: GameState): { subject: string; body: string } | null {
+export function rivalBeat(state: GameState): { k: string; v: Vars } | null {
   const r = rivalBoss(state)
   if (!r) return null
   if (state.week % 5 !== 0) return null
@@ -83,60 +84,37 @@ export function rivalBeat(state: GameState): { subject: string; body: string } |
 
   const ahead = his.pts - mine.pts
   const runIn = state.week >= 30
+  const base: Vars = {
+    boss: r.boss, club: r.club.name, short: r.club.short,
+    me: me.name, meShort: me.short, mePoss: poss(me.short),
+  }
 
   if (runIn && Math.abs(ahead) <= 4) {
     const gap = Math.abs(ahead)
     return {
-      subject: voice(state, 3, [
-        `🎙 ${r.boss}: "It goes to the last day"`,
-        `🎙 ${r.boss} on the run-in: "We are better in the tight five"`,
-        `🎙 ${r.boss} makes it personal`,
-      ]),
-      // the gap is quoted rather than hardcoded: the first draft said "Four points
-      // between you" whether it was four, one or none
-      body: `${r.club.name}'s ${r.boss} was asked about you this morning and did not bother pretending. `
-        + `"${ahead > 0 ? 'We are ahead' : ahead < 0 ? 'They are ahead' : 'There is nothing in it'}, `
-        + `with everything still to play for. I have watched every game they have played this year. They are good. `
-        + `We are better in the tight five, and I think that is what decides it." `
-        + `${gap === 0 ? 'Level on points' : `${gap} point${gap === 1 ? '' : 's'} between you`}, and he has just `
-        + `made it personal.`,
+      k: 'news.bossTight',
+      v: {
+        ...base, n: gap,
+        subj_k: voice(state, 3, ['news.bossTightSubjA', 'news.bossTightSubjB', 'news.bossTightSubjC']),
+        who_k: ahead > 0 ? 'news.bossWeAhead' : ahead < 0 ? 'news.bossTheyAhead' : 'news.bossNothingIn',
+        // the gap is quoted rather than hardcoded: the first draft said "Four
+        // points between you" whether it was four, one or none
+        gap_k: gap === 0 ? 'news.bossLevel' : 'news.bossPoints',
+      },
     }
   }
   if (ahead >= 12) {
-    return {
-      subject: `🎙 ${r.boss} on the gap: "We are not looking down"`,
-      body: `${r.boss} has been enjoying himself. "Somebody asked whether I keep an eye on ${me.name}. I keep an `
-        + `eye on the table, and the table says what it says." That is ${ahead} points of table he is inviting you `
-        + `to look at. Pin it up somewhere useful.`,
-    }
+    return { k: 'news.bossNotLookingDown', v: { ...base, n: ahead } }
   }
   if (ahead <= -12) {
-    return {
-      subject: `🎙 ${r.boss} under pressure: "Judge me in May"`,
-      body: `A rough morning for ${r.club.short}, where ${r.boss} was asked twice whether he still has the dressing `
-        + `room. "Judge me in May." He was then asked about the ${Math.abs(ahead)}-point gap to ${me.short} and `
-        + `moved on to the next question. Boards read those transcripts too.`,
-    }
+    return { k: 'news.bossPressure', v: { ...base, n: Math.abs(ahead) } }
   }
   return {
-    subject: voice(state, 1, [
-      `🎙 ${r.boss} sizes you up`,
-      `🎙 ${r.boss} asked about ${me.short}: "Organised"`,
-      `🎙 ${r.boss} keeps one eye on ${me.short}`,
-      `🎙 ${r.boss} plays it straight about ${me.short}`,
-    ]),
-    body: voice(state, 2, [
-      `${r.boss} was polite about ${me.name} and meant almost none of it. "A well-coached side. Organised. They `
-        + `know exactly what they are, which is a compliment, whatever anybody hears in it." Nothing between you in `
-        + `the table, and not much between you in the press room either.`,
-      `Asked to name the side he least wants to draw, ${r.boss} went somewhere else entirely. "I would not give `
-        + `anybody that headline." Pressed on ${me.short} specifically, he said they were "hard to play against on `
-        + `their day", which is a sentence with a trapdoor in it.`,
-      `${r.boss} says he has stopped watching the table. "It is August somewhere in my head. I will look in April." `
-        + `He then named ${poss(me.short)} last three results from memory, in order, which rather gave the game away.`,
-      `A short one from ${r.boss} this morning. "${me.short}? Good club, good crowd, good coach." Three compliments `
-        + `and not one word about their rugby. He knows exactly what he is doing.`,
-    ]),
+    k: voice(state, 2, ['news.bossSize1', 'news.bossSize2', 'news.bossSize3', 'news.bossSize4']),
+    v: {
+      ...base,
+      subj_k: voice(state, 1, ['news.bossSizeSubj1', 'news.bossSizeSubj2', 'news.bossSizeSubj3', 'news.bossSizeSubj4']),
+    },
   }
 }
 
