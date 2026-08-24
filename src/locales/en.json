@@ -3994,6 +3994,18 @@
     "capEmbargoSubj": "⚖ Salary cap: transfer embargo",
     "capEmbargo": "A second breach in two seasons. The league fine {club} {fine} and impose a transfer embargo for next season: no signings, in or out of the window, until the wage bill is back inside {cap}/wk. The board are furious, and they are right to be. Bring the bill down or the sanction repeats.",
     "capFineSubj": "⚖ Salary cap: the club is fined",
-    "capFine": "{club} finished the season {over}/wk over the {cap}/wk salary cap. The league fine the club {fine} and put it on notice: breach it again next season and the punishment is a transfer embargo. Two men can be named marquee and taken out of the calculation, and academy players never counted."
+    "capFine": "{club} finished the season {over}/wk over the {cap}/wk salary cap. The league fine the club {fine} and put it on notice: breach it again next season and the punishment is a transfer embargo. Two men can be named marquee and taken out of the calculation, and academy players never counted.",
+    "deputationSubj": "🚪 The senior players ask for a meeting",
+    "deputation": "A delegation of senior players comes to the office and closes the door. The message is polite and blunt: the room has watched two situations drift, and it wants to know who is in charge of this squad.\nA manager with silverware shrugs this off. Right now, you have to answer it with results - settle the open incidents, win on Saturday, and the door stops opening.",
+    "deputationNamedSubj": "🚪 {player} asks for a meeting",
+    "deputationNamed": "{player} comes to the office and closes the door. The message is polite and blunt: the room has watched two situations drift, and it wants to know who is in charge of this squad.\nA manager with silverware shrugs this off. Right now, you have to answer it with results - settle the open incidents, win on Saturday, and the door stops opening.",
+    "incidentDriftsSubj": "The {player} situation drifts",
+    "incidentDrifts": "Two weeks on, nothing said. The squad has noticed that {player} got away with it, and the standard you walk past is the standard you accept.",
+    "adminMineSubj": "🚨 {short} go into administration",
+    "adminMine": "The club could not pay what it owed, and the board has filed. {short} enter administration.\n\nThe debt is gone: the creditors have taken their haircut and the books open next season nearly clean. Everything else about this is a punishment. The league docks {n} points before a ball is kicked, two of the wage bill's biggest names have been let go, and every rival in the division now knows exactly how much trouble you are in.\n\nYou start the season on minus ten. Get out of it.",
+    "adminOtherSubj": "{short} go into administration",
+    "adminOther": "{club} have gone into administration after a season they could not pay for. The league will dock them {n} points, and two senior men have already been released as the administrators cut the wage bill.",
+    "insolvencyWarningSubj": "⚠ The board: we cannot go on like this",
+    "insolvencyWarning": "The finance director has put a number in front of the board and it is not one they can live with. {short} are spending money the club does not have, and at this rate the accounts will not survive the summer.\n\nWhat happens then is not a warning letter. A club that cannot pay goes into administration, and the league docks it {n} points the following season. The debt would be written off and so would the season.\n\nSell somebody, cut the wage bill, or fill the ground. There is still time, and there is not much of it."
   }
 }
