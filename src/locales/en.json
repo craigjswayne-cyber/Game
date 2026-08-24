@@ -3727,6 +3727,26 @@
     "recPointsSubj": "📖 RECORD BROKEN: most points in a {comp} season",
     "recPoints": "{name} finishes with {n} points - beating {old}'s record of {oldN} ({season}). The record book gets a new page.",
     "recTriesSubj": "📖 RECORD BROKEN: most tries in a {comp} season",
-    "recTries": "{name} crosses {n} times - past {old}'s {oldN} ({season}). Wingers everywhere take note."
+    "recTries": "{name} crosses {n} times - past {old}'s {oldN} ({season}). Wingers everywhere take note.",
+    "lastYearOneSubj": "⏳ {who}'s last academy year",
+    "lastYearOne": "Development deals run out at 21, and this season is the last one for {men_l}. Promote him to a professional contract from his player page before next summer, or the deal expires and he walks for nothing.",
+    "lastYearManySubj": "⏳ Last academy year for {n} of your prospects",
+    "lastYearMany": "Development deals run out at 21, and this season is the last one for {men_l}. Promote each of them to a professional contract from their player page before next summer, or the deal expires and they walk for nothing.",
+    "lastYearMan": "{name} ({age}, {pos})",
+    "releasedOneSubj": "🚪 {who}'s development deal expires - he leaves",
+    "releasedOne": "No professional terms were offered, so at 21 the academy road ends: {men_l} leaves as a free agent. The academy coach clears his locker and starts again with the next intake.",
+    "releasedManySubj": "🚪 {n} academy deals expire - they leave",
+    "releasedMany": "No professional terms were offered, so at 21 the academy road ends: {men_l} leave as free agents. The academy coach clears their lockers and starts again with the next intake.",
+    "releasedMan": "{name} ({pos})",
+    "hofOneSubj": "🏛 {who} enters the Hall of Fame",
+    "hofOne": "{men_l} retires with numbers that close the argument. {mine_k} His plaque goes up alongside the immortals.",
+    "hofManySubj": "🏛 {n} enter the Hall of Fame",
+    "hofMany": "The class of {season} is confirmed. {men_l}. {mine_k} The plaques go up alongside the immortals.",
+    "hofMan": "{name} ({pos}, {apps} apps, {tries} tries, {pts} pts)",
+    "hofYoursOne": "He finishes as one of yours - a career your club will claim for generations.",
+    "hofNotYoursOne": "The game stands to applaud one of its greats.",
+    "hofYoursNamed": "{mineName} finishes as one of yours - a career your club will claim for generations.",
+    "hofYoursMany": "{mineN} of them finish as yours - careers your club will claim for generations.",
+    "hofNotYoursMany": "The game stands to applaud them all."
   }
 }

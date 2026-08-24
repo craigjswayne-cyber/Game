@@ -389,6 +389,11 @@ function agePlayers(state: GameState, rng: Rng) {
         ? `⏳ ${lastYear[0].name}'s last academy year`
         : `⏳ Last academy year for ${lastYear.length} of your prospects`,
       body: `Development deals run out at 21, and this season is the last one for ${lastYear.map(p => `${p.name} (${p.age}, ${p.pos})`).join(', ')}. Promote ${lastYear.length === 1 ? 'him' : 'each of them'} to a professional contract from ${lastYear.length === 1 ? 'his' : 'their'} player page before next summer, or the deal expires and ${lastYear.length === 1 ? 'he walks' : 'they walk'} for nothing.`,
+      k: lastYear.length === 1 ? 'news.lastYearOne' : 'news.lastYearMany',
+      v: {
+        n: lastYear.length, who: lastYear[0].name,
+        men_l: JSON.stringify(lastYear.map(x => ({ k: 'news.lastYearMan', name: x.name, age: x.age, pos: x.pos }))),
+      },
       playerId: lastYear[0].id,
     })
   }
@@ -400,6 +405,11 @@ function agePlayers(state: GameState, rng: Rng) {
         ? `🚪 ${released[0].name}'s development deal expires - he leaves`
         : `🚪 ${released.length} academy deals expire - they leave`,
       body: `No professional terms were offered, so at 21 the academy road ends: ${released.map(p => `${p.name} (${p.pos})`).join(', ')} ${released.length === 1 ? 'leaves' : 'leave'} as ${released.length === 1 ? 'a free agent' : 'free agents'}. The academy coach clears ${released.length === 1 ? 'his locker' : 'their lockers'} and starts again with the next intake.`,
+      k: released.length === 1 ? 'news.releasedOne' : 'news.releasedMany',
+      v: {
+        n: released.length, who: released[0].name,
+        men_l: JSON.stringify(released.map(x => ({ k: 'news.releasedMan', name: x.name, pos: x.pos }))),
+      },
       playerId: released[0].id,
     })
   }
@@ -451,6 +461,17 @@ function agePlayers(state: GameState, rng: Rng) {
       body: one
         ? `${line(inductees[0])} retires with numbers that close the argument. ${mine.length ? 'He finishes as one of yours - a career your club will claim for generations.' : 'The game stands to applaud one of its greats.'} His plaque goes up alongside the immortals.`
         : `The class of ${state.season + 1} is confirmed. ${inductees.map(line).join('. ')}. ${mine.length ? `${mine.length === 1 ? `${mine[0].p.name} finishes` : `${mine.length} of them finish`} as ${mine.length === 1 ? 'one of yours' : 'yours'} - careers your club will claim for generations.` : 'The game stands to applaud them all.'} The plaques go up alongside the immortals.`,
+      k: one ? 'news.hofOne' : 'news.hofMany',
+      v: {
+        who: inductees[0].p.name, n: inductees.length, season: state.season + 1,
+        men_l: JSON.stringify(inductees.map(i => ({
+          k: 'news.hofMan', name: i.p.name, pos: i.p.pos, apps: i.apps, tries: i.tries, pts: i.pts,
+        }))),
+        mine_k: mine.length === 0 ? (one ? 'news.hofNotYoursOne' : 'news.hofNotYoursMany')
+          : mine.length === 1 ? (one ? 'news.hofYoursOne' : 'news.hofYoursNamed')
+          : 'news.hofYoursMany',
+        mineName: mine[0]?.p.name ?? '', mineN: mine.length,
+      },
     })
   }
   for (const p of retirees) {
