@@ -40,6 +40,23 @@ The game currently deploys to GitHub Pages. Two cases:
 stable home, an e-mail address that matches, and somewhere to host the privacy
 policy that is not a personal account URL.
 
+## 0b. The step that is easy to skip: deploy first, then package
+
+A TWA ships **no web assets**. It is a shell around the live URL, so the app
+Play users get is whatever that address is currently serving - at install and at
+every launch afterwards. Build a TWA against a stale deploy and you have shipped
+the stale deploy, and no amount of green probes will tell you, because every
+probe in this repository runs against a local `npm run build`.
+
+So before `bubblewrap build`, every time:
+
+1. the release work is merged to `main` (Pages deploys from `main` only);
+2. the Pages workflow has finished;
+3. you have opened the live URL on a phone and read the build stamp under the
+   wordmark on the title screen. It carries the version and the build time, and
+   it is there for this. If it does not say the version you are about to put in
+   `appVersionName`, stop - you are packaging something else.
+
 ## 1. Tools
 
 ```sh
