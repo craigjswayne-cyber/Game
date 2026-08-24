@@ -3961,6 +3961,15 @@
     "ledgerMore": "{asst} a épluché les feuilles de match :\n\n{rows_ll}\n...et {rest} autres sur le registre.\n\n{tail_k}",
     "ledgerMan": "{name} ({status_k}) : {actual} des {expected} matches promis.",
     "ledgerWatch": "{worst} est celui à surveiller - encore un mois comme ça et son agent décroche son téléphone.",
-    "ledgerCalm": "Personne n'a encore posé les outils. Corrigez par la composition, ou par une conversation honnête dans Équipe ▸ Temps de jeu."
+    "ledgerCalm": "Personne n'a encore posé les outils. Corrigez par la composition, ou par une conversation honnête dans Équipe ▸ Temps de jeu.",
+    "mentGraduatesSubj": "🎓 {kid} sort de l'aile de {seniorLast}",
+    "mentGraduates": "Le binôme a fait son temps. {why_k} {senior} lui a serré la main après l'entraînement et la place de tuteur est libre pour le suivant.",
+    "mentAdopted": "Il se comporte comme {senior} désormais, ce qui était tout l'objectif.",
+    "mentCeiling": "Les entraîneurs s'accordent : il ne reste rien au programme - il est le joueur qu'il allait devenir.",
+    "mentAged": "À {age} ans, c'est un cadre à part entière, et les cadres ne se font pas conduire au stade.",
+    "mentThrivingSubj": "🎓 {last} s'épanouit sous la houlette de {seniorLast}",
+    "mentThriving": "{fit_k}. {reason_k} L'entraîneur du centre de formation dit que {kid} s'est mis à faire les tâches ingrates sans qu'on le lui demande, et c'est précisément ce qui ne s'enseigne pas. Il progresse plus vite pour ça.",
+    "mentFailingSubj": "Le binôme {seniorLast} - {last} ne prend pas",
+    "mentFailing": "{fit_k}. {reason_k} {kid} n'en retire quasiment rien. Rien ne s'est mal passé entre eux ; cela ne fonctionne simplement pas. Mettez fin au binôme sur l'écran Entraînement et staff et associez-le à quelqu'un d'autre - il y a un bouton Terminer sur la ligne, et la saison est assez longue pour qu'un nouveau départ paie."
   }
 }

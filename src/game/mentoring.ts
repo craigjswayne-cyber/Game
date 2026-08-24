@@ -111,15 +111,17 @@ export function mentorGraduations(state: GameState) {
     // into his mentor, not that the two were always cut from the same cloth
     const adopted = mp.pers0 != null && k.pers === s.pers && k.pers !== mp.pers0
     if (!aged && !ceiling && !adopted) { keep.push(mp); continue }
-    const why = adopted
-      ? `He carries himself like ${s.name} now, which was the whole point.`
-      : ceiling
-        ? `The coaches agree there is nothing left on the syllabus - he is the player he was going to be.`
-        : `At ${k.age} he is a senior pro in his own right, and senior pros do not get lifts to the ground.`
+    const whyKey = adopted ? 'news.mentAdopted' : ceiling ? 'news.mentCeiling' : 'news.mentAged'
+    const why = tIn('en', whyKey, { senior: s.name, age: k.age })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
       subject: `🎓 ${k.name.split(' ').slice(-1)[0]} graduates from ${s.name.split(' ').slice(-1)[0]}'s wing`,
       body: `The pairing has run its course. ${why} ${s.name} shook his hand after training and the mentoring slot is free for the next one.`,
+      k: 'news.mentGraduates',
+      v: {
+        kid: k.name.split(' ').slice(-1)[0], seniorLast: s.name.split(' ').slice(-1)[0],
+        senior: s.name, age: k.age, why_k: whyKey,
+      },
       playerId: k.id,
     })
   }
@@ -270,6 +272,11 @@ export function mentorReports(state: GameState) {
         subject: `🎓 ${last} is thriving under ${s.name.split(' ').slice(-1)[0]}`,
         body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} The academy coach says ${k.name} has started doing the unglamorous parts without being asked, `
           + `which is the bit you cannot coach. He is developing faster for it.`,
+        k: 'news.mentThriving',
+        v: {
+          last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name,
+          fit_k: fitKey(fit), reason_k: reasonOf(s, k).key, ...reasonOf(s, k).vars,
+        },
         playerId: k.id,
       })
     } else if (fit < 36) {
@@ -279,6 +286,11 @@ export function mentorReports(state: GameState) {
         body: `${tIn('en', fitKey(fit))}. ${fitReasonEn(s, k)} ${k.name} is getting very little out of it. `
           + `Nothing has gone wrong between them; it simply is not working. `
           + `End the pairing on the Training and Staff screen and put him with somebody else - there is an End button on the row, and the season is long enough for a fresh start to pay.`,
+        k: 'news.mentFailing',
+        v: {
+          last, seniorLast: s.name.split(' ').slice(-1)[0], kid: k.name,
+          fit_k: fitKey(fit), reason_k: reasonOf(s, k).key, ...reasonOf(s, k).vars,
+        },
         playerId: k.id,
       })
     }
