@@ -1977,6 +1977,8 @@ export function processWeekAndAdvance(state: GameState) {
               : `When the confetti settled on the World Championship final, ${names} of ${champName} ${winners.length === 1 ? 'was' : 'were'} under it - your player${winners.length > 1 ? 's' : ''}, world champion${winners.length > 1 ? 's' : ''}.`,
             `Whatever happens for the rest of ${winners.length === 1 ? 'his' : 'their'} career${winners.length > 1 ? 's' : ''}, nobody can take this away.`,
           ].join(' '),
+          k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.wcHomeA' : 'news.wcHomeB',
+          v: { n: winners.length, nation: champName, names },
           playerId: winners[0].id,
         })
       }
@@ -2008,6 +2010,15 @@ export function processWeekAndAdvance(state: GameState) {
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Championship post-mortem: ${name}`,
+          k: deepest === 1 ? 'news.wcWon' : seed > 0 ? 'news.wcOutSeeded' : 'news.wcOut',
+          v: {
+            nation: name, seed,
+            finish_k: deepest === 1 ? 'news.wcFinChamps' : deepest === 2 ? 'news.wcFinBeaten'
+              : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : 'news.wcFinPools',
+            par_k: seed > 0 && deepest < seed ? 'news.wcParOver'
+              : seed > 0 && deepest === seed ? 'news.wcParEven'
+              : seed > 0 ? 'news.wcParUnder' : 'news.ddNone',
+          },
           body: [
             `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
             deepest === 1 ? `Whatever else happens in your career, they can never take this away.` : parWord,
@@ -2044,6 +2055,12 @@ export function processWeekAndAdvance(state: GameState) {
           : youWon
             ? `${score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; the town will talk about this one for years.`
             : `${score} in the ${state.comps[best.fx.compId]?.name ?? 'cup'}. ${win?.name} beat a side a class above them on paper, and the whole sport smiles - except in ${lose?.city ?? 'one town'}.`,
+        k: youLost ? 'news.giantLost' : youWon ? 'news.giantWon' : 'news.giantOther',
+        v: {
+          score, comp: state.comps[best.fx.compId]?.name ?? tIn('en', 'news.theCup'),
+          win: win?.short ?? '', winName: win?.name ?? '', lose: lose?.short ?? '',
+          loseCity: lose?.city ?? tIn('en', 'news.oneTown'),
+        },
         fixtureId: best.fx.id,
       })
     }
@@ -2079,6 +2096,12 @@ export function processWeekAndAdvance(state: GameState) {
           v ? `And it is at ${v.name}. ${v.capacity.toLocaleString()} people in ${v.city}, half of them yours. Days like this are why anybody does this job.` : '',
           `Nobody remembers a beaten finalist. Pick the team that wins it.`,
         ].filter(Boolean).join('\n'),
+        k: v ? 'news.finalVenue' : 'news.final',
+        v: {
+          comp: compName,
+          opp_k: oppName ? 'news.finalOpp' : 'news.ddNone', opp: oppName ?? '',
+          venue: v?.name ?? '', city: v?.city ?? '', seats: v?.capacity ?? 0,
+        },
         fixtureId: sf.id,
       })
     }
@@ -2094,8 +2117,9 @@ export function processWeekAndAdvance(state: GameState) {
       const opp = state.clubs[oppId]
       const home = next.homeId === state.userClubId
       const rec = state.derbyBook?.[oppId]
+      const played = rec ? rec.w + rec.d + rec.l : 0
       const pl = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
-      const recLine = rec && rec.w + rec.d + rec.l > 0
+      const recLine = rec && played > 0
         ? `Your record against them since you took charge: ${pl(rec.w, 'win')}, ${pl(rec.d, 'draw')}, ${pl(rec.l, 'defeat')}.`
         : `Your first meeting with them in this job. First impressions last a lifetime in fixtures like this.`
       state.news.push({
@@ -2106,6 +2130,14 @@ export function processWeekAndAdvance(state: GameState) {
           recLine,
           `Nobody remembers the league position of a derby winner. Everybody remembers the score.`,
         ].join('\n'),
+        k: home ? 'news.derbyHome' : 'news.derbyAway',
+        v: {
+          name: derbyName(next.homeId, next.awayId) ?? '',
+          opp: opp?.name ?? tIn('en', 'news.oldEnemy'),
+          ground: home ? state.clubs[state.userClubId].stadium : opp?.stadium ?? tIn('en', 'news.theirPlace'),
+          rec_k: rec && played > 0 ? 'news.derbyRec' : 'news.derbyFirst',
+          w: rec?.w ?? 0, d: rec?.d ?? 0, l: rec?.l ?? 0,
+        },
         fixtureId: next.id,
       })
     }

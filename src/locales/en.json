@@ -3428,6 +3428,57 @@
     "expiringMore": "Out of contract in the summer: {men_l} and {more} more - full list on Team ▸ Contracts. Offer new deals from their profiles or they walk for free.",
     "expiringMan": "{name} ({pos}, {age})",
     "natOfferSubj": "🌍 {nat} want you as national head coach",
-    "natOffer": "The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long."
+    "natOffer": "The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.",
+    "wcHomeASubj": {
+      "one": "🏆 World champion in the building",
+      "other": "🏆 World champions in the building"
+    },
+    "wcHomeA": {
+      "one": "{nation} are champions of the world, and {names} was in the squad that did it. The shirt goes in a frame; the aura comes back to training with him. Whatever happens for the rest of his career, nobody can take this away.",
+      "other": "{nation} are champions of the world, and {names} were in the squad that did it. The shirt goes in a frame; the aura comes back to training with them. Whatever happens for the rest of their careers, nobody can take this away."
+    },
+    "wcHomeBSubj": {
+      "one": "🏆 World champion in the building",
+      "other": "🏆 World champions in the building"
+    },
+    "wcHomeB": {
+      "one": "When the confetti settled on the World Championship final, {names} of {nation} was under it - your player, world champion. Whatever happens for the rest of his career, nobody can take this away.",
+      "other": "When the confetti settled on the World Championship final, {names} of {nation} were under it - your players, world champions. Whatever happens for the rest of their careers, nobody can take this away."
+    },
+    "wcWonSubj": "🏆 {nation}: CHAMPIONS OF THE WORLD",
+    "wcWon": "{nation} finish the World Championship as {finish_k}. Whatever else happens in your career, they can never take this away.",
+    "wcOutSubj": "🌍 World Championship post-mortem: {nation}",
+    "wcOut": "{nation} finish the World Championship as {finish_k}.",
+    "wcOutSeededSubj": "🌍 World Championship post-mortem: {nation}",
+    "wcOutSeeded": "{nation} finish the World Championship as {finish_k}, having gone in seeded {seed} of 20. {par_k}",
+    "wcFinChamps": "WORLD CHAMPIONS",
+    "wcFinBeaten": "beaten finalists",
+    "wcFinSemi": "semi-finalists",
+    "wcFinQuarter": "quarter-finalists",
+    "wcFinPools": "out in the pools",
+    "wcParOver": "You over-delivered on the seeding, and the country knows it.",
+    "wcParEven": "Par on the seeding. The review will be fair, if unsentimental.",
+    "wcParUnder": "Short of the seeding - expect the post-mortem to use your name.",
+    "theCup": "cup",
+    "oneTown": "one town",
+    "oldEnemy": "The old enemy",
+    "theirPlace": "their place",
+    "giantLostSubj": "💀 GIANT-KILLED: {win} dump you out",
+    "giantLost": "{score}. The {comp} run ends at the hands of a side nobody rated - and that is exactly how the papers will write it. Cup rugby forgives nothing.",
+    "giantWonSubj": "⚔️ GIANT-KILLING: you dump out {lose}",
+    "giantWon": "{score}. Your side knocked out a club a class above on paper, and paper lost. The players cut souvenirs from the net of the changing room whiteboard; the town will talk about this one for years.",
+    "giantOtherSubj": "⚔️ GIANT-KILLING: {win} shock {lose}",
+    "giantOther": "{score} in the {comp}. {winName} beat a side a class above them on paper, and the whole sport smiles - except in {loseCity}.",
+    "finalSubj": "🏆 YOU ARE IN THE FINAL: {comp}",
+    "final": "The semi-final is won and there is one game left in the {comp}{opp_k}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.\nNobody remembers a beaten finalist. Pick the team that wins it.",
+    "finalVenueSubj": "🏆 YOU ARE IN THE FINAL: {comp}",
+    "finalVenue": "The semi-final is won and there is one game left in the {comp}{opp_k}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.\nAnd it is at {venue}. {seats} people in {city}, half of them yours. Days like this are why anybody does this job.\nNobody remembers a beaten finalist. Pick the team that wins it.",
+    "finalOpp": " - {opp}, winner takes the trophy",
+    "derbyHomeSubj": "🔥 DERBY WEEK: {name}",
+    "derbyHome": "{opp} come to {ground} on Saturday, and the town already knows it. Tickets went an hour after release. Training gates will be busier than usual this week.\n{rec_k}\nNobody remembers the league position of a derby winner. Everybody remembers the score.",
+    "derbyAwaySubj": "🔥 DERBY WEEK: {name}",
+    "derbyAway": "{opp} await at {ground} on Saturday, and the town already knows it. Tickets went an hour after release. Training gates will be busier than usual this week.\n{rec_k}\nNobody remembers the league position of a derby winner. Everybody remembers the score.",
+    "derbyRec": "Your record against them since you took charge: {w} W, {d} D, {l} L.",
+    "derbyFirst": "Your first meeting with them in this job. First impressions last a lifetime in fixtures like this."
   }
 }

@@ -3428,6 +3428,57 @@
     "expiringMore": "En fin de contrat cet été : {men_l} et {more} autres - liste complète dans Équipe ▸ Contrats. Proposez de nouveaux contrats depuis leur fiche ou ils partiront libres.",
     "expiringMan": "{name} ({pos}, {age} ans)",
     "natOfferSubj": "🌍 {nat} vous veut comme sélectionneur",
-    "natOffer": "La fédération suit votre travail et souhaite vous confier la sélection nationale en parallèle de votre poste en club - fenêtres internationales, campagnes de championnat, peut-être une Coupe du monde. Acceptez ou refusez depuis votre profil d'entraîneur. L'offre ne restera pas ouverte longtemps."
+    "natOffer": "La fédération suit votre travail et souhaite vous confier la sélection nationale en parallèle de votre poste en club - fenêtres internationales, campagnes de championnat, peut-être une Coupe du monde. Acceptez ou refusez depuis votre profil d'entraîneur. L'offre ne restera pas ouverte longtemps.",
+    "wcHomeASubj": {
+      "one": "🏆 Un champion du monde dans la maison",
+      "other": "🏆 Des champions du monde dans la maison"
+    },
+    "wcHomeA": {
+      "one": "{nation} est championne du monde, et {names} faisait partie du groupe qui l'a fait. Le maillot part sous cadre ; l'aura revient à l'entraînement avec lui. Quoi qu'il arrive dans le reste de sa carrière, personne ne pourra lui enlever ça.",
+      "other": "{nation} est championne du monde, et {names} faisaient partie du groupe qui l'a fait. Les maillots partent sous cadre ; l'aura revient à l'entraînement avec eux. Quoi qu'il arrive dans le reste de leur carrière, personne ne pourra leur enlever ça."
+    },
+    "wcHomeBSubj": {
+      "one": "🏆 Un champion du monde dans la maison",
+      "other": "🏆 Des champions du monde dans la maison"
+    },
+    "wcHomeB": {
+      "one": "Quand les confettis sont retombés sur la finale de la Coupe du monde, {names}, de {nation}, était dessous - votre joueur, champion du monde. Quoi qu'il arrive dans le reste de sa carrière, personne ne pourra lui enlever ça.",
+      "other": "Quand les confettis sont retombés sur la finale de la Coupe du monde, {names}, de {nation}, étaient dessous - vos joueurs, champions du monde. Quoi qu'il arrive dans le reste de leur carrière, personne ne pourra leur enlever ça."
+    },
+    "wcWonSubj": "🏆 {nation} : CHAMPIONS DU MONDE",
+    "wcWon": "{nation} termine la Coupe du monde en tant que {finish_k}. Quoi qu'il arrive d'autre dans votre carrière, on ne pourra jamais leur enlever ça.",
+    "wcOutSubj": "🌍 Bilan de la Coupe du monde : {nation}",
+    "wcOut": "{nation} termine la Coupe du monde en tant que {finish_k}.",
+    "wcOutSeededSubj": "🌍 Bilan de la Coupe du monde : {nation}",
+    "wcOutSeeded": "{nation} termine la Coupe du monde en tant que {finish_k}, après y être entrée en tant que {seed}e tête de série sur 20. {par_k}",
+    "wcFinChamps": "CHAMPIONS DU MONDE",
+    "wcFinBeaten": "finalistes malheureux",
+    "wcFinSemi": "demi-finalistes",
+    "wcFinQuarter": "quarts de finalistes",
+    "wcFinPools": "éliminée en poules",
+    "wcParOver": "Vous avez fait mieux que votre statut, et le pays le sait.",
+    "wcParEven": "Conforme au statut. Le bilan sera juste, sinon sentimental.",
+    "wcParUnder": "En deçà du statut - attendez-vous à ce que le bilan cite votre nom.",
+    "theCup": "coupe",
+    "oneTown": "une ville",
+    "oldEnemy": "Le vieil ennemi",
+    "theirPlace": "chez eux",
+    "giantLostSubj": "💀 ÉLIMINÉ PAR PLUS PETIT : {win} vous sort",
+    "giantLost": "{score}. Le parcours en {comp} s'achève face à une équipe que personne ne voyait - et c'est exactement ainsi que les journaux l'écriront. Le rugby de coupe ne pardonne rien.",
+    "giantWonSubj": "⚔️ EXPLOIT : vous sortez {lose}",
+    "giantWon": "{score}. Votre équipe a éliminé un club d'un niveau au-dessus sur le papier, et le papier a perdu. Les joueurs ont découpé des souvenirs dans le filet du tableau blanc du vestiaire ; la ville en parlera pendant des années.",
+    "giantOtherSubj": "⚔️ EXPLOIT : {win} crée la surprise contre {lose}",
+    "giantOther": "{score} en {comp}. {winName} a battu une équipe d'un niveau au-dessus sur le papier, et tout le rugby sourit - sauf à {loseCity}.",
+    "finalSubj": "🏆 VOUS ÊTES EN FINALE : {comp}",
+    "final": "La demi-finale est gagnée et il reste un match en {comp}{opp_k}. La ville organise sa semaine autour, l'entraînement se ferme au public, et toutes vos connaissances vous demandent des billets.\nPersonne ne se souvient d'un finaliste battu. Alignez l'équipe qui la gagne.",
+    "finalVenueSubj": "🏆 VOUS ÊTES EN FINALE : {comp}",
+    "finalVenue": "La demi-finale est gagnée et il reste un match en {comp}{opp_k}. La ville organise sa semaine autour, l'entraînement se ferme au public, et toutes vos connaissances vous demandent des billets.\nEt ce sera à {venue}. {seats} personnes à {city}, la moitié pour vous. C'est pour des journées comme celle-là qu'on fait ce métier.\nPersonne ne se souvient d'un finaliste battu. Alignez l'équipe qui la gagne.",
+    "finalOpp": " - {opp}, le vainqueur prend le trophée",
+    "derbyHomeSubj": "🔥 SEMAINE DE DERBY : {name}",
+    "derbyHome": "{opp} vient à {ground} samedi, et la ville le sait déjà. Les billets sont partis une heure après leur mise en vente. Les grilles de l'entraînement seront plus fréquentées que d'habitude cette semaine.\n{rec_k}\nPersonne ne se souvient du classement du vainqueur d'un derby. Tout le monde se souvient du score.",
+    "derbyAwaySubj": "🔥 SEMAINE DE DERBY : {name}",
+    "derbyAway": "{opp} vous attend à {ground} samedi, et la ville le sait déjà. Les billets sont partis une heure après leur mise en vente. Les grilles de l'entraînement seront plus fréquentées que d'habitude cette semaine.\n{rec_k}\nPersonne ne se souvient du classement du vainqueur d'un derby. Tout le monde se souvient du score.",
+    "derbyRec": "Votre bilan contre eux depuis votre arrivée : {w} V, {d} N, {l} D.",
+    "derbyFirst": "Votre première rencontre avec eux à ce poste. Les premières impressions durent toute une vie dans ce genre de match."
   }
 }
