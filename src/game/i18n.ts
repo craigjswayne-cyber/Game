@@ -142,11 +142,14 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // with the list separator that language uses. Malformed JSON renders as the
     // raw string rather than throwing, because this is a save file and a save
     // file outlives the code that wrote it.
-    if (name.endsWith('_l') && typeof v === 'string') {
+    // _ll joins one to a line instead - a power-rankings table, a squad list,
+    // anything that is a column rather than a sentence. Checked FIRST, because
+    // '_ll' also ends with '_l'.
+    if ((name.endsWith('_ll') || name.endsWith('_l')) && typeof v === 'string') {
       try {
         const items = JSON.parse(v) as { k: string; [x: string]: string | number }[]
         if (!Array.isArray(items)) return v
-        const sep = (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
+        const sep = name.endsWith('_ll') ? '\n' : (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
         return items.map(it => {
           const frag = lookup(DICTS[lang], it.k) ?? lookup(DICTS.en, it.k)
           return render(frag, it as Vars, lang) ?? it.k
