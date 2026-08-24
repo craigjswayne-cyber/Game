@@ -26,7 +26,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
-const BUDGET = 161
+const BUDGET = 154
 
 const say = (s: string) => console.log(s)
 let fails = 0
@@ -82,8 +82,11 @@ function storyKeysOf(obj: string): string[] {
     if (c === '{' || c === '[' || c === '(') depth++
     else if (c === '}' || c === ']' || c === ')') depth--
     else if (depth === 1 && obj.startsWith('k:', i) && /[\s,{]/.test(obj[i - 1] ?? '')) {
+      // to the end of the VALUE, which may be a ternary spanning lines, and
+      // only the dotted names off it: `k: pl.kind === 'plans' ? 'news.keptPlans'
+      // : ...` mentions 'plans', which is the condition, not a key.
       const line = obj.slice(i, obj.indexOf('\n', i) + 1 || undefined)
-      for (const m of line.matchAll(/'([A-Za-z0-9_.]+)'/g)) out.push(m[1])
+      for (const m of line.matchAll(/'([A-Za-z0-9_]+\.[A-Za-z0-9_.]+)'/g)) out.push(m[1])
     }
   }
   return out
