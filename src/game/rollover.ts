@@ -890,6 +890,7 @@ function replenishSquads(state: GameState, rng: Rng) {
           id: state.nextId++, week: 1, season: state.season, type: 'transfer', read: false,
           subject: `Board signing: ${fa.name}`,
           body: `With the squad short of numbers, the board moved to sign free agent ${fa.name} (${fa.pos}, ${fa.age}) on a one-year deal.`,
+          k: 'news.boardSigning', v: { player: fa.name, pos: fa.pos, age: fa.age },
           playerId: fa.id,
         })
       }
@@ -916,6 +917,11 @@ function tryOfTheSeason(state: GameState) {
         ? `He collects the award at the end-of-season dinner to the loudest cheer of the night.`
         : `He is not at the club to collect it, which makes the ovation longer, not shorter.`,
     ].join('\n'),
+    k: 'news.tryOfSeason',
+    v: {
+      player: t.name, min_o: t.min, opp: t.opp, club: club.name, text: t.text,
+      tail_k: scorer && scorer.clubId === state.userClubId ? 'news.totsHere' : 'news.totsGone',
+    },
     playerId: t.playerId,
   })
 }
@@ -938,7 +944,8 @@ export function rebuildSeason(state: GameState) {
     if (v) {
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'general', read: false,
-        subject: v.subject, body: v.body,
+        subject: tIn('en', `${v.k}Subj`, v.v), body: tIn('en', v.k, v.v),
+        k: v.k, v: v.v,
       })
     }
   }
@@ -996,6 +1003,7 @@ export function rebuildSeason(state: GameState) {
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
         subject: `🌍 SACKED: ${nat} relieve you of the national job`,
         body: `The union's annual review was short. ${w} Test wins against ${l} defeats was not the trajectory they hired you for, and the ${nat} job is no longer yours. The club work continues - and unions have short memories when results turn.`,
+        k: 'news.natSacked', v: { nat, w, l },
       })
     } else {
       state.news.push({
@@ -1007,6 +1015,12 @@ export function rebuildSeason(state: GameState) {
             : conf >= 45 ? `Steady as she goes - but unions measure everything in World Championships.`
             : `The knives are not out yet, but the drawer is open. The next window matters.`,
         ].join(' '),
+        k: 'news.natReview',
+        v: {
+          nat, w, l, conf,
+          word_k: conf >= 70 ? 'news.natGlowing' : conf >= 45 ? 'news.natSatisfactory' : 'news.natConcerned',
+          tail_k: conf >= 70 ? 'news.natTailGood' : conf >= 45 ? 'news.natTailOk' : 'news.natTailBad',
+        },
       })
       // summers soften opinions a little, in both directions - but they do
       // not launder a losing record
