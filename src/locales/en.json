@@ -4126,6 +4126,27 @@
     "retiredChosenSubj": "{manager} hangs up the clipboard",
     "retiredChosen": "You told them at the end of the season, and you meant it. At {age}, that is that.\n\n{title_k}.\n\n{rows_ll}",
     "notOutSubj": "{age} not out",
-    "notOut": "You turned {age} this summer, which in this trade is the age people start asking the question in press conferences.\n\nThere is no hurry. You can take the next season, and the one after that, and nobody will think less of you - but the door is open from here whenever you want it, and it closes on its own at {forced}.\n\nYour legacy screen will tell you what the game would say about you if you stopped today."
+    "notOut": "You turned {age} this summer, which in this trade is the age people start asking the question in press conferences.\n\nThere is no hurry. You can take the next season, and the one after that, and nobody will think less of you - but the door is open from here whenever you want it, and it closes on its own at {forced}.\n\nYour legacy screen will tell you what the game would say about you if you stopped today.",
+    "aTitleMineSubj": "🏆 Your academy win the {comp}",
+    "aTitleMine": "The A side finish top of the {comp}: {w} wins from {p}, {pf} points scored. Nobody hangs a flag for it, and every coach in the building knows what it means - the pipeline is working, and the men who won it are the ones you will be picking in three years.",
+    "aTitleOtherSubj": "🎓 {club} take the {comp}",
+    "aTitleOther": "{name} win the {comp} with {pts} points from {p} games.{pos_k} Development tables are not league tables, but the clubs at the top of them tend to be the clubs producing players.",
+    "aTitleYours": " Your academy finished {pos_o}.",
+    "takeoverTightSubj": "📉 TAKEOVER COMPLETE: belts tighten at {club}",
+    "takeoverTight": "{club}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.",
+    "takeoverTightMineSubj": "📉 TAKEOVER COMPLETE: belts tighten at {club}",
+    "takeoverTightMine": "The deal is done - and the new owners' first act is an audit, their second a memo. Your transfer budget is cut to {budget} and every contract will be \"reviewed for value\". Sell before you buy, and expect the new chairman to watch every result.",
+    "takeoverRichSubj": "🤝 TAKEOVER COMPLETE: new owners at {club}",
+    "takeoverRich": "It's done. The consortium has completed its purchase of {club} and immediately pledged fresh investment. The rest of the league takes note: {short} just became dangerous in the market.",
+    "takeoverRichMineSubj": "🤝 TAKEOVER COMPLETE: new owners at {club}",
+    "takeoverRichMine": "It's done. Your new owner walks the training ground on day one and leaves a message with your secretary: the transfer budget is up {boost}, the wage ceiling is raised - and mediocrity is no longer on the menu. The next two months are your audition.",
+    "predictionsSubj": "🎙 Pundits' {comp} predictions are in",
+    "predictions": "Title: {title}. Chasing: {a}, {b}.\nBottom: {bottom}.\nYou: predicted {pos_o}.\n{verdict_k}",
+    "predTitle": "{club} are everyone's title pick - anything less is failure.",
+    "predPlayoffs": "{club} are tipped for the playoffs. The pressure is on from day one.",
+    "predMid": "{club} are pegged mid-table - \"solid, unspectacular\" is the consensus. Prove them wrong.",
+    "predLast": "The pundits have {club} dead last. Wooden spoon talk already. Use it.",
+    "predRelegation": "{club} are among the relegation favourites. Nobody expects much - the perfect place to start.",
+    "predBottom": "{club} are picked for the bottom half. Nobody expects much - the perfect place to start."
   }
 }

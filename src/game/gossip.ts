@@ -286,6 +286,8 @@ function moneyMen(state: GameState, rng: Rng) {
           body: club.id === state.userClubId
             ? `The deal is done - and the new owners' first act is an audit, their second a memo. Your transfer budget is cut to ${fmtMoney(club.budget)} and every contract will be "reviewed for value". Sell before you buy, and expect the new chairman to watch every result.`
             : `${club.name}'s new owners have arrived with accountants, not ambition. Expect their best players to be quietly available - at the right price.`,
+          k: club.id === state.userClubId ? 'news.takeoverTightMine' : 'news.takeoverTight',
+          v: { club: club.name, budget: fmtMoney(club.budget) },
         })
       } else {
         const boost = 4_000_000 + Math.round(rng() * 10_000_000 / 500_000) * 500_000
@@ -299,6 +301,8 @@ function moneyMen(state: GameState, rng: Rng) {
           body: club.id === state.userClubId
             ? `It's done. Your new owner walks the training ground on day one and leaves a message with your secretary: the transfer budget is up ${fmtMoney(boost)}, the wage ceiling is raised - and mediocrity is no longer on the menu. The next two months are your audition.`
             : `It's done. The consortium has completed its purchase of ${club.name} and immediately pledged fresh investment. The rest of the league takes note: ${club.short} just became dangerous in the market.`,
+          k: club.id === state.userClubId ? 'news.takeoverRichMine' : 'news.takeoverRich',
+          v: { club: club.name, short: club.short, boost: fmtMoney(boost) },
         })
       }
       // a new boss upstairs: the slate is half-wiped, and for two months
@@ -692,17 +696,13 @@ export function postPredictionsNews(state: GameState) {
   const myPos = state.preds[club.id]
   if (!myPos) return
   const nm = (id: string) => state.clubs[id]?.short ?? id
-  const verdict = myPos === 1
-    ? `${nm(club.id)} are everyone's title pick - anything less is failure.`
-    : myPos <= Math.max(3, comp.playoffTeams)
-      ? `${nm(club.id)} are tipped for the playoffs. The pressure is on from day one.`
-      : myPos <= Math.ceil(order.length / 2)
-        ? `${nm(club.id)} are pegged mid-table - "solid, unspectacular" is the consensus. Prove them wrong.`
-        : myPos === order.length
-          ? `The pundits have ${nm(club.id)} dead last. Wooden spoon talk already. Use it.`
-          : RELEGATES.includes(club.leagueId)
-            ? `${nm(club.id)} are among the relegation favourites. Nobody expects much - the perfect place to start.`
-            : `${nm(club.id)} are picked for the bottom half. Nobody expects much - the perfect place to start.`
+  const verdictKey = myPos === 1 ? 'news.predTitle'
+    : myPos <= Math.max(3, comp.playoffTeams) ? 'news.predPlayoffs'
+    : myPos <= Math.ceil(order.length / 2) ? 'news.predMid'
+    : myPos === order.length ? 'news.predLast'
+    : RELEGATES.includes(club.leagueId) ? 'news.predRelegation'
+    : 'news.predBottom'
+  const verdict = tIn('en', verdictKey, { club: nm(club.id) })
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
     subject: `🎙 Pundits' ${comp.name} predictions are in`,
@@ -712,6 +712,11 @@ export function postPredictionsNews(state: GameState) {
       `You: predicted ${ordinal(myPos)}.`,
       verdict,
     ].join('\n'),
+    k: 'news.predictions',
+    v: {
+      comp: comp.name, title: nm(order[0]), a: nm(order[1]), b: nm(order[2]),
+      bottom: nm(order[order.length - 1]), pos_o: myPos, verdict_k: verdictKey,
+    },
   })
 }
 
