@@ -163,6 +163,7 @@ function worldPlayerOfTheYear(state: GameState) {
   const row = (x: typeof win, rank: number) => ({
     k: 'news.potyLine', rank, name: x.p.name, pos: x.p.pos,
     club: state.clubs[x.p.clubId!]?.short ?? '', avg: x.avg.toFixed(2), n: x.p.stats.tries,
+    tries_k: x.p.stats.tries === 1 ? 'count.tryOne' : 'count.tryMany',
     again_k: rank === 1 && (x.p.poty ?? 0) > 1 ? 'news.potyAgain' : 'common.nothing',
     poty: x.p.poty ?? 0,
   })
@@ -1010,7 +1011,12 @@ export function rebuildSeason(state: GameState) {
         id: state.nextId++, week: 1, season: state.season + 1, type: 'board', read: false,
         subject: `🌍 SACKED: ${nat} relieve you of the national job`,
         body: `The union's annual review was short. ${w} Test wins against ${l} defeats was not the trajectory they hired you for, and the ${nat} job is no longer yours. The club work continues - and unions have short memories when results turn.`,
-        k: 'news.natSacked', v: { nat, w, l },
+        k: 'news.natSacked',
+        v: {
+          nat, w, l,
+          wins_k: w === 1 ? 'count.winOne' : 'count.winMany',
+          defeats_k: l === 1 ? 'count.defeatOne' : 'count.defeatMany',
+        },
       })
     } else {
       state.news.push({
@@ -1025,6 +1031,8 @@ export function rebuildSeason(state: GameState) {
         k: 'news.natReview',
         v: {
           nat, w, l, conf,
+          wins_k: w === 1 ? 'count.winOne' : 'count.winMany',
+          defeats_k: l === 1 ? 'count.defeatOne' : 'count.defeatMany',
           word_k: conf >= 70 ? 'news.natGlowing' : conf >= 45 ? 'news.natSatisfactory' : 'news.natConcerned',
           tail_k: conf >= 70 ? 'news.natTailGood' : conf >= 45 ? 'news.natTailOk' : 'news.natTailBad',
         },

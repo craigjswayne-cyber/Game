@@ -98,6 +98,7 @@ export default function Jobs() {
           {t('world.jbYourRep')}<b style={{ color: 'var(--info)' }}>{rep}/95</b>
           {t(game.mgr.trophies.length === 1 ? 'world.jbRepBuiltOne' : 'world.jbRepBuilt', {
             m: game.mgr.m,
+            matches_k: game.mgr.m === 1 ? 'count.matchOne' : 'count.matchMany',
             pct: game.mgr.m ? Math.round((game.mgr.w / game.mgr.m) * 100) : 0,
             n: game.mgr.trophies.length,
           })}

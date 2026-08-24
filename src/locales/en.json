@@ -2256,8 +2256,8 @@
     "jbProspects": "Interview prospects: ",
     "jbPutBack": "↩ Put it back on the list",
     "jbQualify": " You qualify - the call can come any time.",
-    "jbRepBuilt": " - built on {m} matches, {pct}% won, {n} trophies.",
-    "jbRepBuiltOne": " - built on {m} matches, {pct}% won, {n} trophy.",
+    "jbRepBuilt": " - built on {m} {matches_k}, {pct}% won, {n} trophies.",
+    "jbRepBuiltOne": " - built on {m} {matches_k}, {pct}% won, {n} trophy.",
     "jbResignFrom": "Resign from {club}",
     "jbShowTurned": "▸ {n} turned down",
     "jbStay": "Stay",
@@ -3435,8 +3435,8 @@
     "bowTwoSubj": "🎤 Signing off: {names} call time",
     "bowTwo": "Two of the game's great careers end in the summer. {cvs}. The next few months are the farewell tour, and every ground they visit will stand for them. One last shot at silverware first.",
     "andJoin": " and ",
-    "cv": "{name} ({age}, {club}), {apps} appearances",
-    "cvTries": "{name} ({age}, {club}), {apps} appearances and {tries} tries",
+    "cv": "{name} ({age}, {club}), {apps} {apps_k}",
+    "cvTries": "{name} ({age}, {club}), {apps} {apps_k} and {tries} {tries_k}",
     "expiringSubj": {
       "one": "{n} contract expiring",
       "other": "{n} contracts expiring"
@@ -3734,13 +3734,19 @@
     "annualSubj": "📖 The {season} Annual - awards & records",
     "annual": "{rows_ll}\n\nTeam of the Season - Pack: {pack}.\nBacks: {backs}.",
     "annPotm": "Player of the Season: {name} ({club}) - avg rating {avg}",
-    "annPoints": "Top Points Scorer: {name} - {n} points",
-    "annTries": "Top Try Scorer: {name} - {n} tries",
+    "annPoints": {
+      "one": "Top Points Scorer: {name} - {n} point",
+      "other": "Top Points Scorer: {name} - {n} points"
+    },
+    "annTries": {
+      "one": "Top Try Scorer: {name} - {n} try",
+      "other": "Top Try Scorer: {name} - {n} tries"
+    },
     "annBiggest": "Biggest win: {home} {hs}-{as} {away}",
     "annAtt": "Best attendance: {n} at {stadium}",
     "potySubj": "🏅 World Player of the Year: {player}",
     "poty": "The world game names its best. The shortlist:\n{rows_ll}\n{tail_k}",
-    "potyLine": "{rank}. {name} ({pos}, {club}) - avg {avg}, {n} tries{again_k}",
+    "potyLine": "{rank}. {name} ({pos}, {club}) - avg {avg}, {n} {tries_k}{again_k}",
     "potyAgain": " (award number {poty})",
     "potyYours": "He is YOURS. The whole sport just watched your man collect its biggest prize - enjoy the market circling him, because it starts tomorrow.",
     "potyPodium": "One of yours made the podium. The scouts noticed; so did his agent.",
@@ -3813,9 +3819,9 @@
     "totsHere": "He collects the award at the end-of-season dinner to the loudest cheer of the night.",
     "totsGone": "He is not at the club to collect it, which makes the ovation longer, not shorter.",
     "natSackedSubj": "🌍 SACKED: {nat} relieve you of the national job",
-    "natSacked": "The union's annual review was short. {w} Test wins against {l} defeats was not the trajectory they hired you for, and the {nat} job is no longer yours. The club work continues - and unions have short memories when results turn.",
+    "natSacked": "The union's annual review was short. {w} Test {wins_k} against {l} {defeats_k} was not the trajectory they hired you for, and the {nat} job is no longer yours. The club work continues - and unions have short memories when results turn.",
     "natReviewSubj": "🌍 Union annual review: {word_k}",
-    "natReview": "The {nat} union has completed its annual review of the national programme: {w} Test wins, {l} defeats this season. Confidence in the head coach stands at {conf}%. {tail_k}",
+    "natReview": "The {nat} union has completed its annual review of the national programme: {w} Test {wins_k}, {l} {defeats_k} this season. Confidence in the head coach stands at {conf}%. {tail_k}",
     "natGlowing": "glowing",
     "natSatisfactory": "satisfactory",
     "natConcerned": "concerned",
@@ -3976,9 +3982,15 @@
     },
     "requestWithdrawnSubj": "🤝 {player} withdraws his transfer request",
     "requestWithdrawn": "The team sheets did the talking: the minutes came, and the grievance went with them. The request is withdrawn - quietly, the way these things end when they end well.",
-    "ledgerSubj": "📋 Game time: {n} men are not getting what they were told",
+    "ledgerSubj": {
+      "one": "📋 Game time: {n} man is not getting what he was told",
+      "other": "📋 Game time: {n} men are not getting what they were told"
+    },
     "ledger": "{asst} has been through the team sheets:\n\n{rows_ll}\n\n{tail_k}",
-    "ledgerMoreSubj": "📋 Game time: {n} men are not getting what they were told",
+    "ledgerMoreSubj": {
+      "one": "📋 Game time: {n} man is not getting what he was told",
+      "other": "📋 Game time: {n} men are not getting what they were told"
+    },
     "ledgerMore": "{asst} has been through the team sheets:\n\n{rows_ll}\n...and {rest} more on the ledger.\n\n{tail_k}",
     "ledgerMan": "{name} ({status_k}): {actual} of the {expected} games he was promised.",
     "ledgerWatch": "{worst} is the one to watch - another month of this and his agent starts dialling.",
@@ -4040,8 +4052,11 @@
     },
     "postcardKeen": "Watched {player} twice now and I would put my name to him. {age}, {pos_k} at {club}, and he does the things you cannot teach.",
     "postcardMaybe": "{player} is worth a mention. {age}, {pos_k} at {club}. Not the answer on his own, but I would not rule him out.",
-    "scoutReportSubj": "🔭 {scout} files his report: {n} names",
-    "scoutReport": "{months} months, {n} names, {good} of them he would sign tomorrow. Top of the list: {player}, {age}, {pos_k} at {club} - {note_k} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.",
+    "scoutReportSubj": {
+      "one": "🔭 {scout} files his report: {n} name",
+      "other": "🔭 {scout} files his report: {n} names"
+    },
+    "scoutReport": "{months} months, {n} {names_k}, {good} of them he would sign tomorrow. Top of the list: {player}, {age}, {pos_k} at {club} - {note_k} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.",
     "scoutNote": "{open_k} {body_k}{growth_k}",
     "noteOpen1": "{grade_k}.",
     "noteOpen2": "{grade_k}, on balance.",
@@ -4543,7 +4558,7 @@
       "other": "Signed {sponsor} for the {slot_k}: {weekly} a week over {n} seasons."
     },
     "scoutBrief": "Sent {scout} out on a {months}-month brief: {fee} of expenses, report in {weeks} weeks.",
-    "scoutBriefBack": "The {months}-month brief came back with {n} names, {good} of them worth signing. Best: {best}.",
+    "scoutBriefBack": "The {months}-month brief came back with {n} {names_k}, {good} of them worth signing. Best: {best}.",
     "appealUpheld": "Appealed {player}'s red card: upheld, a match knocked off the ban.",
     "appealDismissed": "Appealed {player}'s red card: dismissed, a match added and the board unimpressed.",
     "agreedLoan": "Agreed to {player}'s loan request. He goes out for the season.",
@@ -4678,11 +4693,7 @@
     "badgePassed": "{name} passed. He is {badge_k}-badged from today, and on {wage} a week.",
     "badgeFailed": "{name} fell short. The {fee} is gone and he cannot sit it again for a month.",
     "capRefusal": "Those terms would put you {over}/wk over the salary cap of {cap}/wk. Free up room, or name him one of your {n} marquee players.",
-    "eraInNumbers": "The era in numbers: {n} {seasons_k}, {w} wins, {l} defeats, {cups} {cups_k}.{legend_k}",
-    "oneSeason": "season",
-    "manySeasons": "seasons",
-    "oneTrophy": "trophy",
-    "manyTrophies": "trophies",
+    "eraInNumbers": "The era in numbers: {n} {seasons_k}, {w} {wins_k}, {l} {defeats_k}, {cups} {cups_k}.{legend_k}",
     "legendStays": " The legend status stays - that was voted, not loaned.",
     "protegeLine": "{n} of your graduates are playing elsewhere{best_k}{capped_k}.",
     "protegeBest": ", the best of them {best} at {club}",
@@ -4751,5 +4762,23 @@
     "verdictDone": "THE DREAM IS DONE: {title_k}. Whatever comes next is a bonus.",
     "verdictMoved": "The dream moved this season: {title_k} - {note_k}.",
     "verdictStalled": "No closer to the dream: {title_k} - {note_k}."
+  },
+  "count": {
+    "matchOne": "match",
+    "matchMany": "matches",
+    "winOne": "win",
+    "winMany": "wins",
+    "defeatOne": "defeat",
+    "defeatMany": "defeats",
+    "tryOne": "try",
+    "tryMany": "tries",
+    "nameOne": "name",
+    "nameMany": "names",
+    "seasonOne": "season",
+    "seasonMany": "seasons",
+    "appearanceOne": "appearance",
+    "appearanceMany": "appearances",
+    "trophyOne": "trophy",
+    "trophyMany": "trophies"
   }
 }

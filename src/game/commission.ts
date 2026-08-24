@@ -199,7 +199,10 @@ export function resolveCommission(state: GameState) {
   const good = finds.filter(f => f.grade >= 2).length
   // built by noteFor just above, so it is always the object form here
   const note = finds[0].note as NoteRef
-  logDecision(state, 'dec.scoutBriefBack', { months: c.months, n: finds.length, good, best: best.name }, good > 0)
+  logDecision(state, 'dec.scoutBriefBack', {
+    months: c.months, n: finds.length, good, best: best.name,
+    names_k: finds.length === 1 ? 'count.nameOne' : 'count.nameMany',
+  }, good > 0)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man?.name ?? 'The chief scout'} files his report: ${finds.length} names`,
@@ -207,6 +210,7 @@ export function resolveCommission(state: GameState) {
     k: 'news.scoutReport',
     v: {
       scout: man?.name ?? tIn('en', 'news.theChiefScout'), n: finds.length, months: c.months, good,
+      names_k: finds.length === 1 ? 'count.nameOne' : 'count.nameMany',
       player: best.name, age: best.age, pos_k: `pos.${best.pos}`,
       club: state.clubs[best.clubId ?? '']?.name ?? tIn('en', 'news.aClubAbroad'),
       note_k: note.k, ...note,
