@@ -3800,6 +3800,21 @@
     "natConcerned": "préoccupé",
     "natTailGood": "Ils parlent déjà de prolonger votre mandat.",
     "natTailOk": "On garde le cap - mais les fédérations mesurent tout en Coupes du monde.",
-    "natTailBad": "Les couteaux ne sont pas encore sortis, mais le tiroir est ouvert. La prochaine fenêtre comptera."
+    "natTailBad": "Les couteaux ne sont pas encore sortis, mais le tiroir est ouvert. La prochaine fenêtre comptera.",
+    "tenureSubj": "🎉 {n} ans à {club}",
+    "tenure": "Le club célèbre votre {n_o} saison aux commandes : {w} victoires, {l} défaites et {cups} {cup_k} sur la période. Le programme publie une rétrospective ; le président fait un discours ; le calendrier, comme toujours, s'en moque. On continue.",
+    "clubLegendSubj": "🗽 LÉGENDE DU CLUB : la ville vous adopte",
+    "clubLegend": "{n} saisons. {cups} trophées. L'association des supporters a voté à l'unanimité : vous êtes une légende de {club}, quoi qu'il arrive désormais. On parle d'une statue devant {stadium}, et le sculpteur a déjà demandé dans quelle position vous souhaitiez poser. Les résultats peuvent baisser ; cela ne peut plus vous être enlevé.",
+    "seasonReviewSubj": "📋 Votre bilan de la saison {season}",
+    "seasonReview": "{rows_ll}\n{pred}",
+    "srRecord": "Bilan : {w}V {d}N {l}D en {m} matches.",
+    "srBest": "Plus belle victoire : {line}",
+    "srPoints": "Meilleur réalisateur : {name} ({n})",
+    "srTries": "Meilleur marqueur : {name} ({n})",
+    "awardsNightSubj": "🥂 Soirée des trophées du club : {player} rafle tout",
+    "awardsNight": "La saison se termine comme il se doit - tout le groupe dans une seule salle, à se raconter des histoires.\n\n{rows_ll}",
+    "anPoty": "Joueur de la saison : {name} (moyenne {avg})",
+    "anYoung": "Jeune joueur de la saison : {name} ({age} ans)",
+    "anTries": "Meilleur marqueur d'essais : {name} ({n})"
   }
 }

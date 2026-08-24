@@ -3800,6 +3800,21 @@
     "natConcerned": "concerned",
     "natTailGood": "They are already talking about extending your tenure.",
     "natTailOk": "Steady as she goes - but unions measure everything in World Championships.",
-    "natTailBad": "The knives are not out yet, but the drawer is open. The next window matters."
+    "natTailBad": "The knives are not out yet, but the drawer is open. The next window matters.",
+    "tenureSubj": "🎉 {n} years at {club}",
+    "tenure": "The club marks your {n_o} season in charge: {w} wins, {l} defeats and {cups} {cup_k} in the era. The programme runs a retrospective; the chairman makes a speech; the fixture list, as ever, does not care. On we go.",
+    "clubLegendSubj": "🗽 CLUB LEGEND: the city claims you as its own",
+    "clubLegend": "{n} seasons. {cups} trophies. The supporters' trust has voted unanimously: you are a legend of {club}, whatever happens from here. There is talk of a statue outside {stadium}, and the artist has already asked how you would like to be posed. Results can dip; this cannot be taken away.",
+    "seasonReviewSubj": "📋 Your {season} season in review",
+    "seasonReview": "{rows_ll}\n{pred}",
+    "srRecord": "Record: {w}W {d}D {l}L from {m} matches.",
+    "srBest": "Best win: {line}",
+    "srPoints": "Top points: {name} ({n})",
+    "srTries": "Top tries: {name} ({n})",
+    "awardsNightSubj": "🥂 Club awards night: {player} sweeps the room",
+    "awardsNight": "The season ends the way it should - the whole squad in one room, telling lies about each other.\n\n{rows_ll}",
+    "anPoty": "Player of the Season: {name} (avg {avg})",
+    "anYoung": "Young Player of the Season: {name} ({age})",
+    "anTries": "Top Try Scorer: {name} ({n})"
   }
 }

@@ -1124,6 +1124,9 @@ export function rebuildSeason(state: GameState) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎉 ${tenure} years at ${club0.name}`,
           body: `The club marks your ${tenure}th season in charge: ${eraW} wins, ${eraL} defeats and ${eraCups} ${eraCups === 1 ? 'trophy' : 'trophies'} in the era. The programme runs a retrospective; the chairman makes a speech; the fixture list, as ever, does not care. On we go.`,
+          k: 'news.tenure',
+          v: { n: tenure, n_o: tenure, club: club0.name, w: eraW, l: eraL, cups: eraCups,
+               cup_k: eraCups === 1 ? 'news.trophyOne' : 'news.trophyMany' },
         })
       }
       state.legendOf ??= []
@@ -1134,6 +1137,8 @@ export function rebuildSeason(state: GameState) {
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🗽 CLUB LEGEND: the city claims you as its own`,
           body: `${tenure} seasons. ${eraCups} trophies. The supporters' trust has voted unanimously: you are a legend of ${club0.name}, whatever happens from here. There is talk of a statue outside ${club0.stadium}, and the artist has already asked how you would like to be posed. Results can dip; this cannot be taken away.`,
+          k: 'news.clubLegend',
+          v: { n: tenure, cups: eraCups, club: club0.name, stadium: club0.stadium },
         })
       }
     }
@@ -1147,6 +1152,17 @@ export function rebuildSeason(state: GameState) {
         topTry?.stats.tries ? `Top tries: ${topTry.name} (${topTry.stats.tries})` : '',
         predLine,
       ].filter(Boolean).join('\n'),
+      k: 'news.seasonReview',
+      v: {
+        season: seasonLabel(state.season),
+        rows_ll: JSON.stringify([
+          { k: 'news.srRecord', w, d, l, m: uf.length },
+          ...(best ? [{ k: 'news.srBest', line: best.line }] : []),
+          ...(topPts?.stats.points ? [{ k: 'news.srPoints', name: topPts.name, n: topPts.stats.points }] : []),
+          ...(topTry?.stats.tries ? [{ k: 'news.srTries', name: topTry.name, n: topTry.stats.tries }] : []),
+        ]),
+        pred: predLine,
+      },
     })
 
     // the end-of-season awards dinner - black tie, white wine, in-jokes
@@ -1169,6 +1185,15 @@ export function rebuildSeason(state: GameState) {
           young ? `Young Player of the Season: ${young.name} (${young.age})` : '',
           tryKing.stats.tries > 0 ? `Top Try Scorer: ${tryKing.name} (${tryKing.stats.tries})` : '',
         ].filter(Boolean).join('\n'),
+        k: 'news.awardsNight',
+        v: {
+          player: poty.name,
+          rows_ll: JSON.stringify([
+            { k: 'news.anPoty', name: poty.name, avg: avgR(poty).toFixed(2) },
+            ...(young ? [{ k: 'news.anYoung', name: young.name, age: young.age }] : []),
+            ...(tryKing.stats.tries > 0 ? [{ k: 'news.anTries', name: tryKing.name, n: tryKing.stats.tries }] : []),
+          ]),
+        },
         playerId: poty.id,
       })
     }
