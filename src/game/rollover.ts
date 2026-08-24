@@ -618,6 +618,17 @@ function handleContracts(state: GameState, rng: Rng) {
         ? `${freeMoves[0].p.name} joins ${freeMoves[0].to.name} on a free`
         : `${freeMoves.length} free transfers go through`,
       body: `${one ? 'The pre-contract agreed in the spring goes through' : 'The pre-contracts agreed in the spring go through'}: ${shown.map(line).join('. ')}.${rest > 0 ? ` And ${rest} more deal${rest === 1 ? '' : 's'} of the same kind, done quietly.` : ''} Not a penny changed hands.`,
+      k: one ? 'news.freeOne' : 'news.freeMany',
+      v: {
+        player: freeMoves[0].p.name, to: freeMoves[0].to.name, n: freeMoves.length,
+        men_l: JSON.stringify(shown.map(m => ({
+          k: m.from ? 'news.freeManFrom' : 'news.freeMan',
+          name: m.p.name, pos: m.p.pos, age: m.p.age, to: m.to.name,
+          wage: fmtMoney(m.p.wage), until: 2026 + m.p.contractEnds,
+          from: m.from?.short ?? '', value: fmtMoney(m.p.value),
+        }))),
+        rest_k: rest > 0 ? 'news.freeRest' : 'common.nothing', rest,
+      },
       playerId: shown[0].p.id,
     })
   }
@@ -702,6 +713,7 @@ function youthIntake(state: GameState, rng: Rng) {
   if (userClub) {
     const spec = state.intakeClass?.length ? state.intakeClass : rollIntakeClass(state, rng)
     const report: string[] = []
+    const reportRows: { k: string; [x: string]: string | number }[] = []
     spec.forEach((s, i) => {
       const raw = { name: s.name, pos: s.pos, age: s.age, nat: userClub.country, q: s.q, gk: s.gk }
       const a = deriveAttrs(raw, state.seed + state.season * 977 + i)
@@ -724,6 +736,11 @@ function youthIntake(state: GameState, rng: Rng) {
       state.players[p.id] = p
       userClub.players.push(p.id)
       report.push(`${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))} ${p.name} - ${p.pos}, ${p.age}`)
+      reportRows.push({
+        k: 'news.intakeRow',
+        stars: `${'★'.repeat(paStars(s.pa))}${'☆'.repeat(5 - paStars(s.pa))}`,
+        name: p.name, pos: p.pos, age: p.age,
+      })
       if (s.wonder) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
@@ -748,6 +765,8 @@ function youthIntake(state: GameState, rng: Rng) {
           : grade === 'D' ? `A thin year. The coaches are already talking about next season's group.`
           : `A year to forget. The academy coach has asked that nobody frame this list.`,
       ].join('\n'),
+      k: 'news.intakeDay',
+      v: { grade, rows_ll: JSON.stringify(reportRows), verdict_k: `news.intakeDay${grade}` },
     })
     state.intakeClass = null
   }

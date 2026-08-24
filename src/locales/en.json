@@ -3760,6 +3760,24 @@
     "contractsExpiredSubj": "Contracts expired",
     "contractsExpired": "Departed on free transfers after their deals expired: {names}.",
     "wonderkidSubj": "🌟 WONDERKID: the academy has struck gold",
-    "wonderkid": "The coaches are calling {player} ({age}, {pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything."
+    "wonderkid": "The coaches are calling {player} ({age}, {pos}) the best prospect the academy has produced in a generation. Handle him right - game time, a development focus, patience - and he could be anything.",
+    "freeOneSubj": "{player} joins {to} on a free",
+    "freeOne": "The pre-contract agreed in the spring goes through: {men_l}.{rest_k} Not a penny changed hands.",
+    "freeManySubj": "{n} free transfers go through",
+    "freeMany": "The pre-contracts agreed in the spring go through: {men_l}.{rest_k} Not a penny changed hands.",
+    "freeMan": "{name} ({pos}, {age}) to {to} on {wage}/week until {until}",
+    "freeManFrom": "{name} ({pos}, {age}) to {to} on {wage}/week until {until}, leaving {from} watching a {value} asset walk out the door",
+    "freeRest": {
+      "one": " And {rest} more deal of the same kind, done quietly.",
+      "other": " And {rest} more deals of the same kind, done quietly."
+    },
+    "intakeDaySubj": "🎓 Intake day: the class arrives - grade {grade}",
+    "intakeDay": "The academy has promoted this year's crop. The coaches' potential ratings:\n{rows_ll}\n{verdict_k}",
+    "intakeRow": "{stars} {name} - {pos}, {age}",
+    "intakeDayA": "A vintage year. Protect them from the vultures and this class will define the club.",
+    "intakeDayB": "A strong group - at least one of these boys should make the first team his own.",
+    "intakeDayC": "A decent, honest class. Squad players, with a chance one over-delivers.",
+    "intakeDayD": "A thin year. The coaches are already talking about next season's group.",
+    "intakeDayE": "A year to forget. The academy coach has asked that nobody frame this list."
   }
 }
