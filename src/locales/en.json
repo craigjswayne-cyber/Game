@@ -1110,7 +1110,10 @@
     "tabPrep": "Prep",
     "tabPlan": "Game Plan",
     "condCoach": "The conditioning coach wants a word",
-    "condLine": "{n} weeks running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats himself, too. Two weeks nearer the middle walks both back.",
+    "condLine": {
+      "one": "{n} week running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats himself, too. Two weeks nearer the middle walks both back.",
+      "other": "{n} weeks running at the same extreme on {dial}. The GPS numbers say the squad is running {pct}% hotter than it should, and the last twenty minutes are where you feel that. The league reads a manager who repeats himself, too. Two weeks nearer the middle walks both back."
+    },
     "dialDefLine": "defensive line",
     "dialTempo": "tempo",
     "dialAggression": "aggression",
@@ -3706,7 +3709,10 @@
       "other": "{n} points between you"
     },
     "bossNotLookingDownSubj": "🎙 {boss} on the gap: \"We are not looking down\"",
-    "bossNotLookingDown": "{boss} has been enjoying himself. \"Somebody asked whether I keep an eye on {me}. I keep an eye on the table, and the table says what it says.\" That is {n} points of table he is inviting you to look at. Pin it up somewhere useful.",
+    "bossNotLookingDown": {
+      "one": "{boss} has been enjoying himself. \"Somebody asked whether I keep an eye on {me}. I keep an eye on the table, and the table says what it says.\" That is {n} point of table he is inviting you to look at. Pin it up somewhere useful.",
+      "other": "{boss} has been enjoying himself. \"Somebody asked whether I keep an eye on {me}. I keep an eye on the table, and the table says what it says.\" That is {n} points of table he is inviting you to look at. Pin it up somewhere useful."
+    },
     "bossPressureSubj": "🎙 {boss} under pressure: \"Judge me in May\"",
     "bossPressure": "A rough morning for {short}, where {boss} was asked twice whether he still has the dressing room. \"Judge me in May.\" He was then asked about the {n}-point gap to {meShort} and moved on to the next question. Boards read those transcripts too.",
     "bossSizeSubj1": "🎙 {boss} sizes you up",

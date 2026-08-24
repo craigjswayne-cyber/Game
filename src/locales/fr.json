@@ -1110,7 +1110,10 @@
     "tabPrep": "Prépa",
     "tabPlan": "Plan de jeu",
     "condCoach": "Le préparateur physique veut vous parler",
-    "condLine": "{n} semaines de suite au même extrême sur {dial}. Le GPS dit que l'effectif tourne {pct} % plus chaud qu'il ne devrait, et c'est dans les vingt dernières minutes que ça se sent. Le championnat lit aussi un entraîneur qui se répète. Deux semaines plus près du milieu remettent les deux d'aplomb.",
+    "condLine": {
+      "one": "{n} semaine de suite au même extrême sur {dial}. Le GPS dit que l'effectif tourne {pct} % plus chaud qu'il ne devrait, et c'est dans les vingt dernières minutes que ça se sent. Le championnat lit aussi un entraîneur qui se répète. Deux semaines plus près du milieu remettent les deux d'aplomb.",
+      "other": "{n} semaines de suite au même extrême sur {dial}. Le GPS dit que l'effectif tourne {pct} % plus chaud qu'il ne devrait, et c'est dans les vingt dernières minutes que ça se sent. Le championnat lit aussi un entraîneur qui se répète. Deux semaines plus près du milieu remettent les deux d'aplomb."
+    },
     "dialDefLine": "la ligne défensive",
     "dialTempo": "le rythme",
     "dialAggression": "l'engagement",
@@ -3706,7 +3709,10 @@
       "other": "{n} points entre vous"
     },
     "bossNotLookingDownSubj": "🎙 {boss} sur l'écart : « Nous ne regardons pas en bas »",
-    "bossNotLookingDown": "{boss} s'amuse. « Quelqu'un m'a demandé si je gardais un œil sur {me}. Je garde un œil sur le classement, et le classement dit ce qu'il dit. » Cela fait {n} points de classement qu'il vous invite à regarder. Punaisez ça quelque part d'utile.",
+    "bossNotLookingDown": {
+      "one": "{boss} s'amuse. « Quelqu'un m'a demandé si je gardais un œil sur {me}. Je garde un œil sur le classement, et le classement dit ce qu'il dit. » Cela fait {n} point de classement qu'il vous invite à regarder. Punaisez ça quelque part d'utile.",
+      "other": "{boss} s'amuse. « Quelqu'un m'a demandé si je gardais un œil sur {me}. Je garde un œil sur le classement, et le classement dit ce qu'il dit. » Cela fait {n} points de classement qu'il vous invite à regarder. Punaisez ça quelque part d'utile."
+    },
     "bossPressureSubj": "🎙 {boss} sous pression : « Jugez-moi en mai »",
     "bossPressure": "Matinée difficile pour {short}, où {boss} s'est vu demander deux fois s'il avait toujours le vestiaire. « Jugez-moi en mai. » On l'a ensuite interrogé sur les {n} points d'écart avec {meShort} et il est passé à la question suivante. Les conseils lisent ces transcriptions aussi.",
     "bossSizeSubj1": "🎙 {boss} vous jauge",

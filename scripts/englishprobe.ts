@@ -16,11 +16,16 @@
 //    that it cannot happen. An entry that hard-codes the plural is a sentence
 //    that is wrong one time in however many.
 //
-//    THE BUDGET is a ratchet, and it starts high on purpose: most of these
-//    cannot actually be 1 - a stadium is never extended by one seat, a career
-//    milestone is never the first match - and rewriting all of them blind
-//    would be churn, not care. It falls as each one is checked against its
-//    call site and either fixed or shown to be unreachable.
+//    THE BUDGET started at 71 and is now ZERO, and it got there the slow way:
+//    every entry read at its call site and then either given a plural or
+//    written into CANNOT_BE_ONE with the thing that bounds its number. Most
+//    could not be one - a stadium is never extended by one seat, a career
+//    milestone is never the first match - and rewriting those would have been
+//    churn rather than care.
+//
+//    A wrong entry in CANNOT_BE_ONE is worse than no probe: it is a claim that
+//    outlives whoever made it. If a gate changes, move the entry out and give
+//    the sentence its plural.
 //
 // 2. NO ENGLISH ENTRY IS EMPTY. A blank string is what a hurried conversion
 //    leaves behind when a fragment turns out to be awkward, and it renders as
@@ -34,7 +39,7 @@
 import { readFileSync } from 'node:fs'
 
 /** English entries that hard-code a plural next to a count. ONLY EVER DECREASE. */
-const BUDGET = 51
+const BUDGET = 0
 
 const say = (s: string) => console.log(s)
 let fails = 0
@@ -68,17 +73,87 @@ const PLURALS = new Set([
   'appearances', 'years', 'players', 'men', 'names', 'graduates', 'titles',
   'places', 'seats', 'months', 'days', 'times', 'sides', 'clubs', 'wins', 'defeats',
 ])
-/** Some entries pair with a hand-written singular - `titlesWon` next to
- *  `titleWon`, `courseResits` next to `courseResitsOne` - and the caller picks
- *  between them. That is a plural, written the long way, and it is correct; it
- *  is only counted here if the singular is missing. */
+/** Entries whose singular is a sibling the naming does not give away. The
+ *  caller picks between the two, so the plural is handled - it just is not
+ *  handled by a name this probe can derive. Each one was read at its call site.
+ *  KEY -> the sibling that covers the singular. */
+const PAIRED: Record<string, string> = {
+  'inbox.shelfDaysLeft': 'inbox.shelfOneDay',
+  'week.annualNTrophies': 'week.annualOneTrophy',
+  'club.titlesWon': 'club.titleWon',
+  'legacy.hzSeasonsDone': 'legacy.hzSeasonDone',
+  'finances.seasons': 'finances.oneSeason',
+  'world.jbRepBuilt': 'world.jbRepBuiltOne',
+}
+
+/** Counts that cannot be one, with the reason. This is how the budget reaches
+ *  zero honestly: not by rewriting sentences that were never wrong, but by
+ *  someone reading the call site and writing down what they found. A wrong
+ *  entry here is a lie that outlives the person who told it, so the reason has
+ *  to name the thing that bounds the number. */
+const CANNOT_BE_ONE: Record<string, string> = {
+  'matchday.oldBoyOurs': 'the old-boy beat needs 10+ appearances at the old club',
+  'matchday.oldBoyTheirs': 'same gate: 10+ appearances',
+  'comm.oldBoy': 'same gate: returneeApps >= 10',
+  'news.oldBoyWeLost': 'same gate',
+  'transfers.months': 'a brief is three, six or nine months - never one',
+  'news.scoutReport': 'the {months} of a brief, as above',
+  'dec.scoutBrief': 'SEARCH_WEEKS for a brief, all above one',
+  'news.briefSent': 'SEARCH_WEEKS, as above',
+  'reply.scoutOnTheRoad': 'SEARCH_WEEKS, as above',
+  'finances.marqueeSub': 'MARQUEE_SLOTS is a constant greater than one',
+  'stakes.beatenRun': 'only fires on a streak of three or more',
+  'world.infSeats': 'a stand is thousands of seats',
+  'world.infSeatsCost': 'as above',
+  'news.expApprovedSubj': 'as above',
+  'dec.expandApproved': 'as above',
+  'news.drawFinal': 'a final venue capacity',
+  'news.finalsWeekend': 'as above',
+  'news.careerWin': 'WIN_MARKS starts at 50',
+  'news.careerGames': 'GAME_MARKS starts at 100',
+  'legacy.hzMatches': 'GAME_MARKS, as above',
+  'legacy.hzSeasonsInCharge': 'the next decade mark: 10, 20, 30',
+  'news.recPoints': 'a season points record',
+  'news.recTries': 'a season try record',
+  'news.hofMan': 'a Hall of Fame career',
+  'news.shirtUp': 'a shirt is only retired after a long service',
+  'news.testimonial': 'a testimonial is earned over years',
+  'news.testimonialSubj': 'as above',
+  'news.lastDance': 'a farewell season follows a career',
+  'news.clubLegend': 'legend status takes several seasons',
+  'news.suspendedSubj': 'a red card carries two matches or three, and the story is filed before any appeal',
+  'news.adminMine': 'the administration deduction is a fixed penalty',
+  'news.adminOther': 'as above',
+  'news.insolvencyWarning': 'as above',
+  'legacy.cvSeasonsOne': 'the matches in a season, not the seasons',
+  'legacy.srRecordLine': 'a season of fixtures',
+  'news.srRecord': 'as above',
+  'finances.lgMen': 'a senior squad, not a man',
+  'club.duoLine': 'a partnership needs games behind it to register at all',
+  'news.brokePlans': 'a promise falls due six or eight weeks after it is made',
+  'news.boardMemo': 'the memo names its own six-week window',
+  'news.tenureSubj': 'tenure milestones are 5, 10, 15, 20, 25 years',
+  'news.tenure': 'the wins and defeats of an era five seasons long',
+  'news.aTitleMine': 'winning an A League takes more than one win',
+  'dream.europeWonTimes': 'the caller picks this only when n is above one',
+}
+
 const hasSingularSibling = (path: string): boolean => {
+  if (PAIRED[path] && lookupIn(EN, PAIRED[path]) !== undefined) return true
+  if (CANNOT_BE_ONE[path]) return true
   const cut = path.lastIndexOf('.')
   const leaf = path.slice(cut + 1)
   const parent = (cut === -1 ? EN : lookupIn(EN, path.slice(0, cut))) as Dict | undefined
   if (!parent || typeof parent !== 'object') return false
-  const stems = [leaf, leaf.replace(/s$/, ''), leaf.replace(/ies$/, 'y')]
-  return stems.some(st => `${st}One` in parent || `${st.replace(/s$/, '')}One` in parent)
+  // titlesWon -> titleWon, courseResits -> courseResitsOne, and the same with
+  // the -ies plural: every way the codebase has spelled "the singular one".
+  const stems = new Set([leaf, leaf.replace(/s$/, ''), leaf.replace(/ies$/, 'y'),
+    leaf.replace(/s([A-Z])/, '$1'), leaf.replace(/ies([A-Z])/, 'y$1')])
+  for (const st of stems) {
+    if (st !== leaf && st in parent) return true
+    if (`${st}One` in parent) return true
+  }
+  return false
 }
 const lookupIn = (d: Dict, key: string): unknown =>
   key.split('.').reduce<unknown>((o, part) => (o && typeof o === 'object' ? (o as Dict)[part] : undefined), d)
