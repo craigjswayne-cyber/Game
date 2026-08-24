@@ -26,7 +26,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
-const BUDGET = 175
+const BUDGET = 174
 
 const say = (s: string) => console.log(s)
 let fails = 0
@@ -64,7 +64,10 @@ function hasTopLevelKey(obj: string): boolean {
     const c = obj[i]
     if (c === '{' || c === '[' || c === '(') depth++
     else if (c === '}' || c === ']' || c === ')') depth--
-    else if (depth === 1 && obj.startsWith('k:', i) && /[\s,{]/.test(obj[i - 1] ?? '')) return true
+    // `k: 'news.x'` and the shorthand `k,` both count. The shorthand is what
+    // the wire() helper writes, and missing it made the probe report a file it
+    // had just finished converting as untouched.
+    else if (depth === 1 && obj.startsWith('k', i) && /[\s,{]/.test(obj[i - 1] ?? '') && /^[:,\s]/.test(obj[i + 1] ?? '')) return true
   }
   return false
 }

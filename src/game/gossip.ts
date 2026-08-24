@@ -5,16 +5,34 @@ import type { GameState, Player } from './model'
 import { RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
+import { tIn, type Vars } from './i18n'
 
-function wire(state: GameState, subject: string, body: string, playerId?: number) {
+/** File a Wire story.
+ *
+ *  The key is the story and it is REQUIRED - that is the point of the
+ *  signature. The English subject and body are RENDERED FROM THE DICTIONARY
+ *  rather than passed in, so there is one copy of every sentence instead of two
+ *  that drift apart, and the stored English the engine reads back (gossip
+ *  dedupes on the community-day subject, media.ts looks for "joins {club}")
+ *  stays exactly what it always was.
+ *
+ *  There is no way to file a Wire story without a key, which is deliberate: the
+ *  compiler is a better reminder than a probe, and a better one still than
+ *  hoping somebody remembers. */
+function wire(state: GameState, k: string, v: Vars, playerId?: number) {
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'gossip',
-    read: false, subject, body, playerId,
+    read: false,
+    subject: tIn('en', `${k}Subj`, v),
+    body: tIn('en', k, v),
+    k, v, playerId,
   })
 }
 
 // deterministic voicing: the same story wears different words from week to
-// week without drawing on the shared rng, so the world stream is untouched
+// week without drawing on the shared rng, so the world stream is untouched.
+// The options are KEYS now - picking the wording and picking the language are
+// different questions, and this one only answers the first.
 const voice = (state: GameState, salt: number, opts: string[]) =>
   opts[(state.season * 5 + state.week * 3 + salt) % opts.length]
 
@@ -91,15 +109,15 @@ export function reconcileFeud(state: GameState, index: number, rng: Rng): { ok: 
     if (i >= 0) list.splice(i, 1)
     a.morale = clamp(a.morale + 1.1, 1, 10)
     b.morale = clamp(b.morale + 1.1, 1, 10)
-    wire(state, `Peace brokered: ${a.name.split(' ').slice(-1)[0]} and ${b.name.split(' ').slice(-1)[0]}`,
-      `The manager got them in a room and shut the door. Both men came out and trained. Nobody is pretending they are friends, but the squad can get on with its week.`, a.id)
+    wire(state, 'news.wPeaceBrokered',
+      { a: a.name.split(' ').slice(-1)[0], b: b.name.split(' ').slice(-1)[0] }, a.id)
     return { ok: true, msg: `Handshakes. ${a.name} and ${b.name} will play together.` }
   }
   // a failed intervention is worse than none: now the room knows he tried
   a.morale = clamp(a.morale - 0.5, 1, 10)
   b.morale = clamp(b.morale - 0.5, 1, 10)
-  wire(state, `Clear-the-air talks fail at ${state.clubs[state.userClubId].short}`,
-    `The manager tried to settle it between ${a.name} and ${b.name} and got nowhere. Worse, the squad knows the meeting happened - and that it did not work.`, a.id)
+  wire(state, 'news.wTalksFail',
+    { short: state.clubs[state.userClubId].short, a: a.name, b: b.name }, a.id)
   return { ok: false, msg: `${a.name} would not shake on it. That has cost you: the room knows you tried and failed.` }
 }
 
@@ -125,21 +143,13 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
       active.splice(i, 1)
       pa.morale = clamp(pa.morale + 0.8, 1, 10)
       pb.morale = clamp(pb.morale + 0.8, 1, 10)
-      wire(state, `Peace breaks out: ${pa.name.split(' ').slice(-1)[0]} and ${pb.name.split(' ').slice(-1)[0]}`,
-        voice(state, 21, [
-          `Clear-the-air talks at the training ground this week. ${pa.name} and ${pb.name} trained together on Thursday and the squad say the atmosphere has lifted. One senior player: "It's done. We move."`,
-          `Whatever was said between ${pa.name} and ${pb.name}, it worked: the pair ran the same drills all week and shared a bench at lunch. The squad has quietly exhaled.`,
-          `${pa.name} and ${pb.name} shook hands in front of the group on Monday, which is how these things end in rugby: no statement, no ceremony, back to work.`,
-        ]), pa.id)
+      wire(state, voice(state, 21, ['news.wPeace1', 'news.wPeace2', 'news.wPeace3']),
+        { a: pa.name, b: pb.name, aLast: pa.name.split(' ').slice(-1)[0], bLast: pb.name.split(' ').slice(-1)[0] }, pa.id)
     } else if (rng() < 0.25) {
       pa.morale = clamp(pa.morale - 0.4, 1, 10)
       pb.morale = clamp(pb.morale - 0.4, 1, 10)
-      wire(state, `Still frosty at ${state.clubs[state.userClubId].short}`,
-        voice(state, 22, [
-          `Sources close to the squad say ${pa.name} and ${pb.name} are still not speaking. Team-mates are starting to pick sides - the sort of thing that costs points.`,
-          `${pa.name} and ${pb.name} warmed up at opposite ends of the pitch again this week. The coaches pretend not to notice. The players notice everything.`,
-          `No thaw yet between ${pa.name} and ${pb.name}: separate gym slots, separate tables, one very tired captain shuttling between them.`,
-        ]), pa.id)
+      wire(state, voice(state, 22, ['news.wFrosty1', 'news.wFrosty2', 'news.wFrosty3']),
+        { short: state.clubs[state.userClubId].short, a: pa.name, b: pb.name }, pa.id)
     }
   }
 
@@ -163,8 +173,9 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
         'a training-ground bust-up witnessed by the whole squad',
         'a disagreement that started at the gym and followed them onto the pitch',
       ])
-      wire(state, `EXCLUSIVE: ${a.name.split(' ').slice(-1)[0]} and ${b.name.split(' ').slice(-1)[0]} in dressing-room rift`,
-        `The Wire understands ${a.name} (${a.pers.toLowerCase()}) and ${b.name} (${b.pers.toLowerCase()}) had ${flash}. Coaches separated the pair. Expect the mood to suffer until it's resolved - keep winning and these things heal quicker.`, a.id)
+      wire(state, 'news.wRift',
+        { a: a.name, b: b.name, aLast: a.name.split(' ').slice(-1)[0], bLast: b.name.split(' ').slice(-1)[0],
+          aPers_k: `pers.${a.pers}`, bPers_k: `pers.${b.pers}`, flash }, a.id)
       break
     }
   }
@@ -221,37 +232,19 @@ function midweekMoment(state: GameState, rng: Rng) {
     n.season === state.season && n.subject === `Community day at ${club.short}` && state.week - n.week < 10)
   if (roll < 0.3 && !recentCommunity) {
     for (const p of squad) p.morale = clamp(p.morale + 0.15, 1, 10)
-    wire(state, `Community day at ${club.short}`,
-      voice(state, 27, [
-        `The whole squad spent Wednesday coaching at local schools and visiting the children's ward. Corny? Maybe. But the group came back closer, and the town noticed.`,
-        `School visits, hospital wards, a hundred wonky selfies: the squad gave the town its Wednesday. The bus home was loud in the good way.`,
-      ]))
+    wire(state, voice(state, 27, ['news.wCommunity1', 'news.wCommunity2']), { short: club.short })
   } else if (roll < 0.5 && star) {
     star.morale = clamp(star.morale + 0.5, 1, 10)
-    wire(state, `${star.name.split(' ').slice(-1)[0]} lands a boot deal`,
-      voice(state, 28, [
-        `${star.name} has signed a personal sponsorship with a boot manufacturer. His locker now contains fourteen boxes of boots and one very smug grin.`,
-        `A boot brand has put ${star.name} on a personal deal. The first shipment arrived in club colours; the second, mysteriously, in gold. The forwards have thoughts.`,
-      ]), star.id)
+    wire(state, voice(state, 28, ['news.wBoot1', 'news.wBoot2']),
+      { player: star.name, last: star.name.split(' ').slice(-1)[0] }, star.id)
   } else if (roll < 0.7) {
-    wire(state, `Groundsman wars at ${club.stadium}`,
-      voice(state, 29, [
-        `The head groundsman has banned the forwards from 'his' pitch until Thursday after last week's scrummaging session left it looking ploughed. The pack are training on the back field, muttering.`,
-        `An uneasy truce at ${club.stadium}: the groundsman has chalked a line beyond which "no scrummaging shall occur". The pack are testing its legal force one metre at a time.`,
-      ]))
+    wire(state, voice(state, 29, ['news.wGround1', 'news.wGround2']), { stadium: club.stadium })
   } else if (roll < 0.85 && star) {
-    wire(state, `${star.name.split(' ').slice(-1)[0]} spotted filming an advert`,
-      voice(state, 30, [
-        `${star.name} spent his day off filming a regional car dealership advert. Team-mates have already obtained the script. Training may include dramatic readings.`,
-        `${star.name} is the new face of a local bathroom showroom. The billboard goes up next month. The dressing room has already ordered a framed print for his locker.`,
-      ]), star.id)
+    wire(state, voice(state, 30, ['news.wAdvert1', 'news.wAdvert2']),
+      { player: star.name, last: star.name.split(' ').slice(-1)[0] }, star.id)
   } else {
     const chef = ['a new nutritionist', 'a sleep consultant', 'a breathing coach', 'an ice-bath guru'][Math.floor(rng() * 4)]
-    wire(state, `${club.short} hire ${chef}`,
-      voice(state, 31, [
-        `The performance department has brought in ${chef} for the rest of the season. The senior pros are sceptical. The young lads are all-in. Someone has already broken the new equipment.`,
-        `${club.short} have added ${chef} to the backroom staff. Week one verdict from the front row: "interesting". Week one verdict from the academy: total religious conversion.`,
-      ]))
+    wire(state, voice(state, 31, ['news.wChef1', 'news.wChef2']), { short: club.short, chef })
   }
 }
 
@@ -263,12 +256,8 @@ function sicknessSweep(state: GameState, rng: Rng) {
   if (squad.length < 6) return
   const hit = [...squad].sort(() => rng() - 0.5).slice(0, 2 + Math.floor(rng() * 3))
   for (const p of hit) p.cond = clamp(p.cond - (12 + rng() * 10), 20, 100)
-  wire(state, `A bug sweeps the camp`,
-    voice(state, 26, [
-      `The medical room is standing-room only: ${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} have all been laid low by a virus doing the rounds. They'll play if picked, but the tanks won't be full this week. The kit man is bleaching everything.`,
-      `${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} all called in pale and shivering this week. The doctor's diagnosis: "the thing that's going round." They can play, but do not expect eighty full-blooded minutes.`,
-      `A virus has worked through the squad faster than any defensive drill: ${hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ')} are all below par. Training moved outdoors, soup was served, and the physio room smells of eucalyptus.`,
-    ]))
+  wire(state, voice(state, 26, ['news.wBug1', 'news.wBug2', 'news.wBug3']),
+    { names: hit.map(p => p.name.split(' ').slice(-1)[0]).join(', ') })
 }
 
 /** Money men circle the modern game - most of it is smoke, occasionally
@@ -281,8 +270,7 @@ function moneyMen(state: GameState, rng: Rng) {
     if (state.week - t.week < 2 || rng() > 0.5) return
     if (t.stage === 0) {
       state.takeover = { ...t, week: state.week, stage: 1 }
-      wire(state, `Takeover talk hardens at ${club.short}`,
-        `The consortium linked with ${club.name} has reportedly entered exclusivity. Due diligence is under way; the current owners are said to be "open to the right offer". Supporters dare to dream of a war chest.`)
+      wire(state, 'news.wTakeoverHardens', { short: club.short, club: club.name })
       return
     }
     // resolution: most collapse, some complete - and not every buyer
@@ -320,8 +308,7 @@ function moneyMen(state: GameState, rng: Rng) {
         state.newOwnerUntil = Math.min(state.week + 8, 45)
       }
     } else {
-      wire(state, `Takeover collapses at ${club.short}`,
-        `After weeks of whispers, the money men have walked away from ${club.name} - "valuation gap", say sources. The club statement thanks supporters for their patience and says it remains "well capitalised". Nobody is convinced.`)
+      wire(state, 'news.wTakeoverOff', { short: club.short, club: club.name })
     }
     return
   }
@@ -330,8 +317,7 @@ function moneyMen(state: GameState, rng: Rng) {
   if (!candidates.length) return
   const club = pick(rng, candidates)
   state.takeover = { clubId: club.id, week: state.week, stage: 0 }
-  wire(state, `Money men circle ${club.short}`,
-    `A wealthy consortium - the names change depending on who you ask - has been linked with a takeover of ${club.name}. A private jet at the local airfield has done a lot of heavy lifting in the fan forums. Most of these stories die quietly; some don't.`)
+  wire(state, 'news.wTakeoverCircle', { short: club.short, club: club.name })
 }
 
 /** Rumours live where deals live: the windows (weeks 1-4, 22-25). */
@@ -349,13 +335,11 @@ function transferRumour(state: GameState, rng: Rng) {
   const t = pick(rng, targets)
   const owner = state.clubs[t.clubId!]
   const fee = Math.round(t.value * (1.1 + rng() * 0.5) / 100_000) * 100_000
-  const line = pick(rng, [
-    `${buyer.name} have sent scouts to ${poss(owner.short)} last three matches - the man they're watching is ${t.name}.`,
-    `Agents claim ${buyer.short} are readying a ${fmtMoney(fee)} bid for ${t.name}. ${owner.short} insist he is going nowhere.`,
-    `${t.name} to ${buyer.short}? A source at the player's management agency says "there is interest, and it's serious."`,
-    `Whispers from ${buyer.city}: ${poss(buyer.short)} head coach has made ${t.name} his number one target.`,
-  ])
-  wire(state, `RUMOUR MILL: ${t.name} linked with ${buyer.short}`, line, t.id)
+  const line = pick(rng, ['news.wRumour1', 'news.wRumour2', 'news.wRumour3', 'news.wRumour4'])!
+  wire(state, line, {
+    player: t.name, buyer: buyer.short, buyerName: buyer.name, buyerCity: buyer.city,
+    owner: owner.short, ownerPoss: poss(owner.short), buyerPoss: poss(buyer.short), fee: fmtMoney(fee),
+  }, t.id)
   // being talked about turns some heads
   if (t.clubId === state.userClubId && (t.pers === 'Mercenary' || t.pers === 'Ambitious') && rng() < 0.5) {
     t.morale = clamp(t.morale - 0.5, 1, 10)
@@ -367,12 +351,7 @@ function contractSaga(state: GameState, rng: Rng) {
   const expiring = squad.filter(p => p && p.contractEnds <= state.season && p.ca >= 74)
   if (!expiring.length) return
   const p = pick(rng, expiring)!
-  wire(state, `Agent talk: ${p.name}'s future`,
-    voice(state, 23, [
-      `${p.name} is out of contract at the end of the season and his agent is doing the media rounds: "My client loves the club, but he wants to feel loved back. We are listening to what's out there." Sort a new deal - or cash in.`,
-      `Six months left on ${p.name}'s deal and his agent has started answering the phone on the first ring. "No comment" has never carried so much comment. Renew him or price him.`,
-      `The contract clock is ticking on ${p.name}, and this week his agent was photographed at lunch with two directors of rugby who were not yours. Draw your own conclusions - everyone else has.`,
-    ]), p.id)
+  wire(state, voice(state, 23, ['news.wAgent1', 'news.wAgent2', 'news.wAgent3']), { player: p.name }, p.id)
 }
 
 function powerRankings(state: GameState) {
@@ -382,11 +361,11 @@ function powerRankings(state: GameState) {
   const order = sortTable(comp.table).slice(0, 5)
   const lines = order.map((r, i) => {
     const c = state.clubs[r.teamId]
-    const tag = i === 0 ? 'The team to beat.' : i === 1 ? 'Breathing down their necks.'
-      : i === 2 ? 'Quietly excellent.' : i === 3 ? 'Dangerous on their day.' : 'The dark horses.'
-    return `${i + 1}. ${c?.short ?? r.teamId} - ${tag}`
+    const tagKey = i === 0 ? 'news.wRank1' : i === 1 ? 'news.wRank2'
+      : i === 2 ? 'news.wRank3' : i === 3 ? 'news.wRank4' : 'news.wRank5'
+    return { k: 'news.wRankLine', n: i + 1, club: c?.short ?? r.teamId, tag_k: tagKey }
   })
-  wire(state, `THE WIRE POWER RANKINGS`, lines.join('\n'))
+  wire(state, 'news.wPowerRankings', { rows_ll: JSON.stringify(lines) })
 }
 
 function streakWatch(state: GameState, rng: Rng) {
@@ -434,19 +413,10 @@ function streakWatch(state: GameState, rng: Rng) {
     const subj = `Terrace pulse: believers at ${club.short}`
     if (fire && quietFor(subj)) {
       stamp(subj)
-      wire(state, subj, fresh
-        ? voice(state, 24, [
-          `Three wins on the spin and the ${club.stadium} bars are humming. A supporters' podcast this week: "Whisper it, but this ${state.managerName} side might actually be building something."`,
-          `Three straight wins and the queue at the club shop has opinions about silverware. The older heads keep saying "long season" and grinning while they say it.`,
-          `The terraces have a new song and it has ${state.managerName} in it. Three wins running will do that. Keep winning and they will add verses.`,
-          `Three on the bounce, and the man who runs the burger van says takings are up - "winning makes them hungry." The most honest economic indicator in rugby.`,
-          `A lad in the family stand has started bringing a homemade cardboard trophy. Three straight wins. His dad keeps apologising to the row behind and nobody minds.`,
-        ])
-        : voice(state, 26, [
-          `The winning run rolls on and the ground has stopped whispering about it. Away fans arrive expecting the worst now, which is the highest compliment a terrace can pay.`,
-          `Still winning. The older heads have given up saying "long season" and started asking about final tickets, quietly, in case saying it out loud breaks something.`,
-          `The run goes on, and the club shop has sold out of scarves in October. Somebody in the sponsors' lounge used the word "era". Nobody laughed.`,
-        ]))
+      wire(state, fresh
+        ? voice(state, 24, ['news.wWin1', 'news.wWin2', 'news.wWin3', 'news.wWin4', 'news.wWin5'])
+        : voice(state, 26, ['news.wWinOn1', 'news.wWinOn2', 'news.wWinOn3']),
+        { short: club.short, stadium: club.stadium, manager: state.managerName })
     }
   } else if (results.every(r => r === 'L')) {
     const fire = rng() < 0.8
@@ -454,19 +424,10 @@ function streakWatch(state: GameState, rng: Rng) {
     const subj = `Terrace pulse: grumbles at ${club.short}`
     if (fire && quietFor(subj)) {
       stamp(subj)
-      wire(state, subj, fresh
-        ? voice(state, 25, [
-          `Three straight defeats and the phone-ins have turned. One season-ticket holder of 30 years: "I don't see a plan out there." Win this weekend and it all goes quiet - that's football... no, that's rugby.`,
-          `Three losses in a row and the fan forum's match thread got locked by midnight. The mood is not mutinous yet, but the mods are stretching.`,
-          `The drive home after a third straight defeat is where seasons are judged, and this week's radio callers judged hard. One result changes the weather. You need it.`,
-          `Third defeat running and the club shop has quietly moved the replica shirts away from the window. Nobody ordered that. Everybody understood it.`,
-          `After a third straight loss the fanzine ran a blank page with the caption "analysis". Cruel, brief, and pinned up in three pubs by Sunday lunchtime.`,
-        ])
-        : voice(state, 27, [
-          `The losing run has outlasted the anger. The phone-ins have gone quiet, which every manager knows is worse: nobody argues about a side they have given up on.`,
-          `Still no win. The terraces have moved from fury to gallows humour, and the away end knows all the punchlines. One result would change everything, and everyone knows which result.`,
-          `The slump goes on and the man with the flask in row F has started bringing a book. He has renewed every year since 1987. He will renew again. He would just like a reason.`,
-        ]))
+      wire(state, fresh
+        ? voice(state, 25, ['news.wLose1', 'news.wLose2', 'news.wLose3', 'news.wLose4', 'news.wLose5'])
+        : voice(state, 27, ['news.wLoseOn1', 'news.wLoseOn2', 'news.wLoseOn3']),
+        { short: club.short, stadium: club.stadium, manager: state.managerName })
     }
   }
 }
@@ -477,12 +438,11 @@ function wonderkidWatch(state: GameState, rng: Rng) {
   if (!kids.length) return
   const k = pick(rng, kids)!
   const club = state.clubs[k.clubId!]
-  wire(state, `WONDERKID WATCH: ${k.name}`,
-    voice(state, 32, [
-      `Every scout in the league has ${poss(club?.short ?? 'his club')} ${k.age}-year-old ${k.pos} ${k.name} in their notebook. Coaches say he's added real polish this season. One director of rugby: "He'll cost a fortune in a year. Move now or regret it."`,
-      `${k.name}, ${k.age}, is the name scouts keep writing down twice. ${club?.short ?? 'His club'} know exactly what they have; the question is how long they can keep it quiet.`,
-      `The stopwatch brigade were out in force again for ${poss(club?.short ?? 'his club')} ${k.pos} ${k.name}. He is ${k.age}. The men in the stand with clipboards were not there for the tea.`,
-    ]), k.id)
+  wire(state, voice(state, 32, ['news.wKid1', 'news.wKid2', 'news.wKid3']), {
+    player: k.name, age: k.age, pos: k.pos,
+    club: club?.short ?? tIn('en', 'news.hisClub'),
+    clubPoss: poss(club?.short ?? tIn('en', 'news.hisClub')),
+  }, k.id)
 }
 
 /** Fringe stars want minutes: too good to sit, and they'll say so. */
@@ -497,15 +457,16 @@ function gameTimeGrumbles(state: GameState, rng: Rng) {
   const p = pick(rng, bench)!
   const swing = p.pers === 'Temperamental' ? 1.6 : p.pers === 'Ambitious' ? 1.3 : 1
   p.morale = clamp(p.morale - 0.7 * swing, 1, 10)
-  wire(state, `${p.name} frustrated by lack of rugby`,
-    voice(state, 33, [
-      `Sources say ${p.name} (${p.pos}, rated among your best) trained away from the main group on Monday. His camp's message: "He didn't come here to hold tackle bags." Play him, sell him, or watch the mood sour${p.pers === 'Mercenary' ? ' - and his agent is already dialling' : ''}.`,
-      `${p.name} has started every week the same way: brilliant in training, absent from the team sheet. People around him have begun saying "situation" out loud${p.pers === 'Mercenary' ? ', and his agent says it loudest' : ''}. Minutes or a move - it is heading one way.`,
-      `The cameras caught ${p.name} watching the warm-up from the bench again, jaw set. A ${p.pos} of his standing does not stay quiet forever${p.pers === 'Mercenary' ? ' - and this one pays an agent to be loud' : ''}. The dressing room is watching how you handle it.`,
-    ]), p.id)
+  const merc = p.pers === 'Mercenary'
+  wire(state, voice(state, 33, ['news.wGrumble1', 'news.wGrumble2', 'news.wGrumble3']), {
+    player: p.name, pos: p.pos,
+    merc1_k: merc ? 'news.wMerc1' : 'news.wMercNone',
+    merc2_k: merc ? 'news.wMerc2' : 'news.wMercNone',
+    merc3_k: merc ? 'news.wMerc3' : 'news.wMercNone',
+  }, p.id)
 }
 
-interface Take { id: string; subject: string; body: string; who?: number }
+interface Take { id: string; k: string; who?: number }
 
 /**
  * Which wire takes have been used, and when.
@@ -553,145 +514,64 @@ function socialBuzz(state: GameState, rng: Rng) {
   const takes: Take[] = []
 
   if (star) takes.push(
-    { id: 'forum-exit', who: star.id,
-      subject: `FAN FORUM: "${last(star)} to leave?" thread hits 400 replies in a night`,
-      body: `One unsourced post claiming ${star.name} has "told friends he wants out" has produced four hundred replies, two spin-off threads and a poll. There is no agent, no journalist and no evidence. Page nine is arguing about the stadium car park. One moderator: "Every year. Same thread. Same fella posting it."` },
-    { id: 'social-clip', who: star.id,
-      subject: `SOCIAL: eleven seconds of ${star.name} in training breaks containment`,
-      body: `Two million views and counting for a clip of ${star.name} doing something that should not be physically available to a man that size. The comments are split between awe and accusations of a smaller pitch. ${poss(club.short)} media team have posted it, deleted it, and posted it again with worse music.` },
-    { id: 'podcast-kebab', who: star.id,
-      subject: `PODCAST: ${star.name}'s cheat meal confession divides the nation`,
-      body: `Forty minutes of genuinely excellent lineout detail earned nothing. One sentence about a Friday kebab has produced eight hundred quote tweets and a statement from a rival takeaway offering him a sponsorship. The ${club.short} nutritionist has requested a right of reply and has been told the slot is full.` },
-    { id: 'ai-graphic', who: star.id,
-      subject: `BROADCAST: graphics package gives ${last(star)} six fingers and a new name`,
-      body: `The pre-match player card rendered ${star.name} with an extra finger, a surname spelled two different ways in the same graphic, and a career-tries figure that would make him the leading scorer in the sport's history. The broadcaster has apologised. The screenshot is already a profile picture.` },
-    { id: 'stat-account',
-      subject: `STATS ACCOUNT: ${club.short} are top of a table nobody asked for`,
-      body: `A popular numbers account has crunched carries into contact per phase in the opposition 22 on grounds above sea level and declared ${club.short} the best team in the league. Fans of ${club.short} have adopted the metric as gospel. Everyone else has pointed out that it also ranks a pub side above the world champions.` },
+    { id: 'forum-exit', who: star.id, k: 'news.grForumExit' },
+    { id: 'social-clip', who: star.id, k: 'news.grSocialClip' },
+    { id: 'podcast-kebab', who: star.id, k: 'news.grPodcastKebab' },
+    { id: 'ai-graphic', who: star.id, k: 'news.grAiGraphic' },
+    { id: 'stat-account', k: 'news.grStatAccount' },
   )
 
   if (kid) takes.push(
-    { id: 'pundit-gem', who: kid.id,
-      subject: `PUNDIT COLUMN: "${club.short} have unearthed a gem"`,
-      body: `This week's big read calls ${kid.name}, ${kid.age}, "the most natural ${kid.pos} of his generation" and notes that half the league already knows. ${club.short} supporters have spent the day politely asking the columnist to be quiet, delete it, and consider a career in something else. The columnist has replied to eleven of them individually. He is enjoying this enormously.` },
-    { id: 'school-visit', who: kid.id,
-      subject: `WHOLESOME: ${kid.name} shows up to a school assembly and stays two hours`,
-      body: `A local primary asked the ${club.short} academy whether anyone could hand out a reading prize. ${kid.name} arrived early, stayed two hours and signed everything put in front of him including the lectern and one teacher's laptop lid. The video has more views than the club's last three tries combined.` },
-    { id: 'kid-fifa', who: kid.id,
-      subject: `SOCIAL: ${last(kid)} discovers his own rating and takes it personally`,
-      body: `${kid.name} has found out what a video game thinks of his acceleration and has posted a screenshot with no caption, which on the internet counts as a declaration of war. The developers have replied with a shrug emoji. Three teammates have replied agreeing with the game.` },
+    { id: 'pundit-gem', who: kid.id, k: 'news.grPunditGem' },
+    { id: 'school-visit', who: kid.id, k: 'news.grSchoolVisit' },
+    { id: 'kid-fifa', who: kid.id, k: 'news.grKidFifa' },
   )
 
   if (target && other) takes.push(
-    { id: 'agent-flattered', who: target!.id,
-      subject: `AGENT TALK: ${target!.name} "flattered" by the interest, says everyone`,
-      body: `${target!.name}'s representatives declined every opportunity to hose this down: "My client is very happy at ${other.short}. But every player listens." Rugby's translation service has been working overtime. The fan forums did the rest before lunch.` },
-    { id: 'forum-dream', who: target!.id,
-      subject: `FAN FORUM: the "realistic transfer targets" thread is anything but`,
-      body: `The ${club.short} thread is titled "realistic targets" and ${target!.name} appears on every page of it. The finances are impossible, the positional fit is questionable and the enthusiasm is absolute. Somebody has made a graphic. Somebody else has made a better one.` },
+    { id: 'agent-flattered', who: target!.id, k: 'news.grAgentFlattered' },
+    { id: 'forum-dream', who: target!.id, k: 'news.grForumDream' },
   )
 
   if (prop) takes.push(
-    { id: 'ref-mic',
-      subject: `REF MIC: the clip every group chat is quoting`,
-      body: `A referee's exchange with a front row from the weekend has escaped containment: "You are not bound. You have never been bound." Refereeing socials are calling it a masterclass in communication. Props are calling it slander and have opened a group chat of their own.` },
-    { id: 'prop-gym', who: prop.id,
-      subject: `SOCIAL: ${last(prop)} lifts something he should not have lifted`,
-      body: `${prop.name} has posted a gym clip that the strength coach describes, on the record, as "not a programmed movement". It has a hundred thousand views and a duet from a professional strongman who appears genuinely concerned. The ${club.short} physio has commented on it too. His comment is one full stop.` },
-    { id: 'prop-marathon', who: prop.id,
-      subject: `CHARITY: ${last(prop)} agrees to a half marathon before reading the word half`,
-      body: `A supporters' club raffle has committed ${prop.name} to thirteen miles for charity. He accepted on camera, confidently, then asked a follow-up question that revealed he had heard "half an hour". The fundraising total has tripled since the clip went up.` },
+    { id: 'ref-mic', k: 'news.grRefMic' },
+    { id: 'prop-gym', who: prop.id, k: 'news.grPropGym' },
+    { id: 'prop-marathon', who: prop.id, k: 'news.grPropMarathon' },
   )
 
   if (nine) takes.push(
-    { id: 'nine-mic', who: nine.id,
-      subject: `REF MIC: ${last(nine)} spends eighty minutes coaching the referee`,
-      body: `The audio from the weekend has ${nine.name} offering the official guidance on the offside line, the tackle height, the clock and, at one point, the official's own positioning. The referee's reply has been turned into a ringtone. Nobody involved regrets anything.` },
+    { id: 'nine-mic', who: nine.id, k: 'news.grNineMic' },
   )
 
   // and the ones that need nothing but a club
   takes.push(
-    { id: 'kit-leak',
-      subject: `SOCIAL: ${poss(club.short)} new shirt leaks a day early, on a bad mannequin`,
-      body: `Next season's kit appeared on a reseller feed before the launch, photographed on a mannequin with one arm and a haunted expression. The club is furious. The fans have moved past the club's feelings and are now conducting a full referendum on the collar. Verdict: divisive.` },
-    { id: 'groundsman',
-      subject: `GROUNDSMAN WATCH: visiting coach calls the ${club.stadium} pitch "a ploughed field"`,
-      body: `The head groundsman has responded through visibly gritted teeth that "the surface rewards a team willing to keep the ball in hand". The visiting coach has kept a boot as evidence and photographed it next to a ruler. The groundsman has photographed the ruler.` },
-    { id: 'mascot',
-      subject: `MASCOT INCIDENT: the ${club.short} mascot is trending for all the wrong reasons`,
-      body: `A half-time penalty shootout ended with the mascot taking out a nine-year-old at the knees and celebrating in front of the family stand. The club has issued an apology. The mascot has issued nothing, because the mascot is committed to the bit, and gained forty thousand followers overnight.` },
-    { id: 'announcer',
-      subject: `STADIUM PA: announcer reads out the wrong team, then doubles down`,
-      body: `The ${club.stadium} announcer named the entire opposition XV as the home side, realised at fifteen, and elected to finish the list anyway "for consistency". The crowd applauded every name. Away supporters have started a petition to have him do their team sheet every week.` },
-    { id: 'pie',
-      subject: `CATERING: the ${club.short} pie has been reviewed, and the review is 900 words`,
-      body: `A widely followed food account has awarded the ground's steak pie a mark of 6.4 with the note "structurally ambitious, emotionally cold". The club has responded by putting the score on a chalkboard outside the kiosk. Sales are up thirty per cent. The pie has not changed.` },
-    { id: 'drone',
-      subject: `TRAINING LEAK: a drone over ${club.short} training gets exactly nothing`,
-      body: `Somebody flew a drone over a closed session hoping for the team sheet and captured forty minutes of a squad doing a passing drill in complete silence, plus one man tying a lace for nine of them. The footage has been posted anyway. It has done numbers.` },
-    { id: 'seagull',
-      subject: `WILDLIFE: a seagull holds up play at ${club.stadium} for two minutes`,
-      body: `A single gull occupied the 22 and declined every invitation to leave, including one from a second row who tried reasoning. Play resumed when the bird took a pie from row three and departed on its own terms. It now has a fan account with more followers than two of the players.` },
-    { id: 'merch-typo',
-      subject: `MERCH: ${club.short} sell out of a shirt with a spelling mistake on it`,
-      body: `A print run went out with the club motto missing a letter, which the club discovered from a supporter's post rather than from the supplier. The recall lasted ninety minutes before somebody noticed the mistaken ones were reselling for triple. The recall has been quietly cancelled.` },
-    { id: 'banner',
-      subject: `TERRACES: ${club.short} fans unveil a banner nobody can read`,
-      body: `Months of planning went into a full-length tifo for the weekend, and it went up upside down and back to front. From the far stand it appears to say something rude about ${club.short} themselves. The group behind it has declared this "the intended reading all along" and is taking commissions.` },
-    { id: 'stream',
-      subject: `BROADCAST: the ${club.short} stream cuts to a fixed shot of a car park for six minutes`,
-      body: `A gallery mix-up sent the live feed to an unmanned camera pointed at the players' entrance during the busiest passage of the match. Nineteen thousand people watched a car park and, by minute four, were commentating on it. The clip has outperformed the highlights.` },
-    { id: 'sponsor',
-      subject: `SPONSORS: ${poss(club.short)} new partner is a funeral director and the fans love it`,
-      // A JOKE HAS TO LAND (user: "what is the funny line? the game needs
-      // humour"). The first cut teased "one genuinely brilliant" slogan and
-      // never printed it, which is a setup with the punchline torn off.
-      body: `The commercial team expected a mild reaction to the sleeve deal and instead got the best day their social accounts have ever had. Supporters were asked for a slogan and thousands answered, most unprintable. The winner goes on the sleeve next week: "With you at the death."` },
-    { id: 'weather',
-      subject: `WEATHER: hail stops the ${club.short} warm-up and starts a snowball fight`,
-      body: `Sixty seconds of freak hail emptied the pitch and produced footage of two professional squads abandoning their preparation to pelt each other in front of an empty stand. Both head coaches have described it as "not ideal". Both clubs' accounts have posted it.` },
-    { id: 'bus',
-      subject: `LOGISTICS: the ${club.short} team bus takes a wrong turn into a wedding`,
-      body: `A satnav sent the coach down a lane and into the car park of a hotel mid-reception. The squad were applauded in, photographed with the couple, and applauded out. The bride's cousin has since been photographed at ${club.stadium} in a replica shirt.` },
-    { id: 'quiz',
-      subject: `SOCIAL: ${club.short} players fail a quiz about their own club, publicly`,
-      body: `The media team filmed a light-hearted club history quiz and released it without watching it back. Nobody named the ground's record attendance, one man guessed the club was founded in 1998, and the captain named a competition that has never existed. It is the club's most watched video of the season.` },
-    { id: 'cat',
-      subject: `WILDLIFE: a cat is now a member of the ${club.short} coaching staff`,
-      body: `A stray that adopted the training ground gates has been photographed sitting in on the forwards' meeting, on the whiteboard side of the room. The club has given it a name, a bowl and, this week, a squad number in the region of 47. The kit man is drafting a shirt.` },
-    { id: 'tmo',
-      subject: `TMO: eight minutes to decide something everybody in the ground had decided`,
-      body: `The weekend's showpiece stopped for eight minutes while officials examined a grounding from eleven angles, four of them worse than the naked eye. The eventual decision matched the first replay. Broadcasters have cut it into a montage with a ticking clock and it is doing very well.` },
-    { id: 'kicker-net',
-      subject: `SOCIAL: a supporter lands a halfway kick and the internet demands a contract`,
-      body: `A half-time competition entrant in jeans and work boots struck one from inside his own half and straight through. He then did it again for the cameras. Two clubs have posted the clip. One head coach has been asked about it in a press conference and did not entirely rule it out.` },
+    { id: 'kit-leak', k: 'news.grKitLeak' },
+    { id: 'groundsman', k: 'news.grGroundsman' },
+    { id: 'mascot', k: 'news.grMascot' },
+    { id: 'announcer', k: 'news.grAnnouncer' },
+    { id: 'pie', k: 'news.grPie' },
+    { id: 'drone', k: 'news.grDrone' },
+    { id: 'seagull', k: 'news.grSeagull' },
+    { id: 'merch-typo', k: 'news.grMerchTypo' },
+    { id: 'banner', k: 'news.grBanner' },
+    { id: 'stream', k: 'news.grStream' },
+    { id: 'sponsor', k: 'news.grSponsor' },
+    { id: 'weather', k: 'news.grWeather' },
+    { id: 'bus', k: 'news.grBus' },
+    { id: 'quiz', k: 'news.grQuiz' },
+    { id: 'cat', k: 'news.grCat' },
+    { id: 'tmo', k: 'news.grTmo' },
+    { id: 'kicker-net', k: 'news.grKickerNet' },
     // THE WILD ONES (16B, user: "weird and wonderful local rugby stories -
     // made up. just for fun. think wild"). House rule from the funeral
     // sponsor: every joke lands its punchline on the page.
-    { id: 'sheep',
-      subject: `VILLAGE RUGBY: match abandoned when forty sheep occupy the home 22`,
-      body: `A gate left open at a sixth-tier fixture admitted an entire flock at a penalty advantage. The referee consulted both captains, consulted the sheep, and abandoned the game with the immortal full-time line: "Gentlemen, they have more numbers and better shape than either defence." The league has ordered a replay. The farmer has ordered a season ticket.` },
-    { id: 'trophy-lost',
-      subject: `SILVERWARE: a village club has been polishing the wrong trophy for 41 years`,
-      body: `During an insurance valuation, the county junior cup a village side has displayed since 1984 turned out to be a regional best-kept-allotment award with a rugby ball soldered on. Nobody knows where the real cup went. The club has voted unanimously to keep the allotment one, on the grounds that "we definitely won something, and this is shinier."` },
-    { id: 'postman',
-      subject: `GRASSROOTS: fourth-tier club discovers their postman has been at every away game for 20 years`,
-      body: `A club historian assembling an anniversary album noticed the same man at the edge of every away photograph since 2006. It is their postman. He has never mentioned it once on his round. Asked why, he said he did not want to make it about him. The club has retired the number 24 in his honour: one for every away shirt he never asked for.` },
-    { id: 'dog-try',
-      subject: `VILLAGE RUGBY: a dog scores the decisive try and the league has to rule on it`,
-      body: `A spaniel invaded a promotion decider, intercepted a flat pass and crossed the line to what witnesses describe as the loudest cheer in the ground's history. The referee disallowed it for offside, reasoning the dog "entered from in front of the kicker". The league has upheld the decision but named the spaniel in its team of the week, at openside.` },
-    { id: 'anthem',
-      subject: `MATCHDAY: the wrong anthem plays and both teams commit to it completely`,
-      body: `An admin error at a cup tie played the theme from a daytime antiques programme instead of the national anthem. Neither side broke formation. Thirty professional rugby players stood at full attention through ninety seconds of light harpsichord, hands on hearts, and the crowd joined in humming. The clip has more views than the match.` },
-    { id: 'scrum-cafe',
-      subject: `COMMUNITY: a front row opens a coffee shop where everything is scrum-named and nothing is explained`,
-      body: `Three retired props have opened a cafe with a menu that includes the Loosehead Latte, the Tighthead Flat White and a pastry called the Collapsed Maul, which arrives deliberately flattened. Tourists keep asking why the sugar sachets say "BIND" on them. The owners refuse to say. It is the best-reviewed coffee shop in the county.` },
-    { id: 'lineout-ladder',
-      subject: `GRASSROOTS: club banned from using their new lineout tactic involving an actual stepladder`,
-      body: `An eighth-tier side unveiled a routine in which the hooker threw to a jumper standing on a stepladder painted in club colours. It worked three times before the referee found the relevant law, which took eleven minutes, because nobody had ever needed it before. The league's written ruling begins "with reluctant admiration" and the ladder now hangs in the clubhouse.` },
-    { id: 'fog-match',
-      subject: `WEATHER: two teams play twelve minutes in fog before discovering the ball went home`,
-      body: `A cup tie in dense fog continued in fine spirit until both packs converged on a ruck that turned out to be a training bag. Investigation revealed a clearing kick in the third minute had left the ground entirely, and a spectator, believing the game over, had taken the ball home for his son. The league has ordered a replay. The son is keeping the ball.` },
+    { id: 'sheep', k: 'news.grSheep' },
+    { id: 'trophy-lost', k: 'news.grTrophyLost' },
+    { id: 'postman', k: 'news.grPostman' },
+    { id: 'dog-try', k: 'news.grDogTry' },
+    { id: 'anthem', k: 'news.grAnthem' },
+    { id: 'scrum-cafe', k: 'news.grScrumCafe' },
+    { id: 'lineout-ladder', k: 'news.grLineoutLadder' },
+    { id: 'fog-match', k: 'news.grFogMatch' },
   )
 
   if (!takes.length) return
@@ -709,7 +589,13 @@ function socialBuzz(state: GameState, rng: Rng) {
     .map((t, i) => ({ t, i }))
     .sort((a, b) => ((log[a.t.id] ?? -1) - (log[b.t.id] ?? -1)) || (order(a.i) - order(b.i)))[0].t
   log[chosen.id] = stamp
-  wire(state, chosen.subject, chosen.body, chosen.who)
+  wire(state, chosen.k, {
+    short: club.short, shortPoss: poss(club.short), stadium: club.stadium,
+    star: star?.name ?? '', starLast: star ? last(star) : '',
+    kid: kid?.name ?? '', kidAge: kid?.age ?? 0, kidPos: kid?.pos ?? '', kidLast: kid ? last(kid) : '',
+    target: target?.name ?? '', prop: prop?.name ?? '', propLast: prop ? last(prop) : '',
+    other: other?.short ?? '', nine: nine?.name ?? '', nineLast: nine ? last(nine) : '',
+  }, chosen.who)
 }
 
 /** Clubhouse tales: warm, daft, deeply rugby stories with no losers.
@@ -724,55 +610,46 @@ function clubhouseTales(state: GameState, rng: Rng) {
   const nine = squad.find(p => p.pos === 'SH')
   const ten = squad.find(p => p.pos === 'FH')
   const wing = squad.find(p => p.pos === 'WG')
-  const tales: [string, string, number?][] = []
+  const tales: [string, number?][] = []
   if (prop) tales.push(
-    [`CLUBHOUSE: ${prop.name.split(' ').slice(-1)[0]} wins the squad golf day, refuses to be humble`,
-      `${prop.name} shot the round of his life at the team golf day and has already had the scorecard laminated. It is now blu-tacked inside his locker at eye level. The backs have demanded a recount; the referee (the kit man) says the result stands.`, prop.id],
-    [`CLUBHOUSE: ice bath declared too small for the front row`,
-      `The new recovery suite opened this week, and within a day the front row lodged a formal complaint that the ice bath "fits one and a half props maximum". A rota has been posted. ${prop.name} has annexed the 6pm slot indefinitely and laminated that too.`, prop.id],
+    ['news.chTale1', prop.id],
+    ['news.chTale2', prop.id],
   )
   if (lock) tales.push(
-    [`CLUBHOUSE: ${lock.name.split(' ').slice(-1)[0]} adopts the groundsman's dog, sort of`,
-      `The groundsman's terrier has decided ${lock.name} is its favourite person on earth and now attends every session, sitting neatly beside the tackle bags. The club shop is printing a tiny replica shirt. Nobody has told the groundsman where his dog spends its days, but he probably knows.`, lock.id],
+    ['news.chTale3', lock.id],
   )
   if (nine && ten) tales.push(
-    [`CLUBHOUSE: half-backs in bus playlist standoff`,
-      `${nine.name} and ${ten.name} have shared control of the team bus playlist for two seasons, and the arrangement has finally collapsed over what the squad describe only as "the incident with the sea shanties". A peace deal now alternates song by song. The forwards, who wanted silence, have lost again.`, nine.id],
+    ['news.chTale4', nine.id],
   )
   if (wing) tales.push(
-    [`CLUBHOUSE: ${wing.name.split(' ').slice(-1)[0]} loses race to a schoolboy, demands rematch`,
-      `At a community visit this week the fastest man at the club was beaten over 40 metres by a twelve-year-old wearing school shoes. ${wing.name} maintains the start was jumped and has formally requested a rematch "on a proper track, with blocks". The twelve-year-old's PE teacher is considering terms.`, wing.id],
+    ['news.chTale5', wing.id],
   )
   tales.push(
-    [`CLUBHOUSE: team-room quiz night ends in googling scandal`,
-      `Wednesday's quiz night was abandoned at the sports round when one table of forwards answered a question about 1987 with suspicious speed and in full sentences. Phones are now surrendered at the door, and the quizmaster (the physio) has been given "full disciplinary powers". He has had a lanyard made. Nobody knows how to tell him it has gone too far.`],
-    [`CLUBHOUSE: the kit man's biannual sock audit strikes fear into all`,
-      `It is sock audit week. The kit man has counted out, counted back, and found the squad collectively nine pairs short. An amnesty box has appeared outside the changing room with a sign reading "NO QUESTIONS ASKED (THIS TIME)". Three pairs have already been returned under cover of darkness.`],
-    [`CLUBHOUSE: bus driver gets a guard of honour for his 200th away trip`,
-      `Two hundred away trips, zero breakdowns, one legendary flask. The squad formed a guard of honour in the car park this week for the team bus driver, who described it as "completely unnecessary" while visibly delighted. He has been presented with a shirt with WHEELS 1 on the back.`],
+    ['news.chTale6'],
+    ['news.chTale7'],
+    ['news.chTale8'],
   )
   if (!tales.length) return
   const t = tales[(state.season * 11 + state.week * 7) % tales.length]
-  wire(state, t[0], t[1], t[2])
+  wire(state, t[0], {
+    prop: prop?.name ?? '', propLast: prop ? prop.name.split(' ').slice(-1)[0] : '',
+    lock: lock?.name ?? '', lockLast: lock ? lock.name.split(' ').slice(-1)[0] : '',
+    nine: nine?.name ?? '', ten: ten?.name ?? '',
+    wing: wing?.name ?? '', wingLast: wing ? wing.name.split(' ').slice(-1)[0] : '',
+  }, t[1])
 }
 
 /** Once or twice a year the world governing body floats something outrageous, purely to
  *  see the fans combust. Nothing ever comes of it. Nothing ever will. */
 function lawWatch(state: GameState, rng: Rng) {
   if (rng() > 0.033) return
-  const proposals: [string, string][] = [
-    ['LAW WATCH: 25-point "super try" floated for length-of-the-field scores',
-      `A working group has proposed quintuple points for tries begun behind a team's own 22. Coaches call it "bingo rugby". Fans have already built entire imaginary seasons around it. The world governing body stresses it is "one idea among many", which is committee language for never.`],
-    ['LAW WATCH: proposal to reduce teams to 13 players "under review"',
-      `A discussion paper suggests trimming the XV to thirteen to "open space and cut collisions". The northern unions are apoplectic, the southern unions intrigued, and one existing sport with exactly that player count is watching with its arms folded. Expect a quiet burial by autumn.`],
-    ['LAW WATCH: shot clock for scrums - 30 seconds or a free-kick',
-      `The proposal: packs get half a minute from mark to engagement or concede the put-in. Front rows everywhere describe the idea as "a war crime". Referees privately love it. The trial is earmarked for a development competition nobody can name, which tells you everything.`],
-    ['LAW WATCH: kicks at goal worth less in the final quarter, says think-tank',
-      `Penalties would drop to two points after the hour "to encourage ambition". Kickers are furious, flankers delighted, and the fan forums have run the numbers on every classic final and declared history itself invalid. The world governing body thanks the think-tank for its input.`],
-    ['LAW WATCH: unlimited substitutions trial mooted for pre-season',
-      `Rolling subs, all match, every match. Conditioning coaches are drooling; purists are drafting strongly worded letters with footnotes. The proposal is "at concept stage", a phrase that has preceded precisely nothing becoming law in the sport's history.`],
-    ['LAW WATCH: golden point extra time for all league matches "on the table"',
-      `No more draws, ever, says the paper - first score after 80 wins it. The romantics mourn the honourable draw; the broadcasters have already cut a trailer. The league's fixture staff, asked to model the overtime, sent back a single spreadsheet cell reading "no".`],
+  const proposals: [string][] = [
+    ['news.lawWatch1'],
+    ['news.lawWatch2'],
+    ['news.lawWatch3'],
+    ['news.lawWatch4'],
+    ['news.lawWatch5'],
+    ['news.lawWatch6'],
   ]
   const pick2 = proposals[(state.season * 7 + state.week * 5) % proposals.length]
   // Never twice in quick succession - one wind-up at a time. The clock is a
@@ -783,7 +660,7 @@ function lawWatch(state: GameState, rng: Rng) {
   const now = state.season * SEASON_WEEKS + state.week
   if (state.lawWatchAt != null && now - state.lawWatchAt < 12) return
   state.lawWatchAt = now
-  wire(state, pick2[0], pick2[1])
+  wire(state, pick2[0], {})
 }
 
 /** Preseason pundit predictions for the user's league. Stored on state.preds
@@ -864,12 +741,10 @@ export function generateGossip(state: GameState, rng: Rng) {
   if (rng() < 0.8) socialBuzz(state, rng)
   if (windowOpen(state) && rng() < 0.45) transferRumour(state, rng)
   if (state.week === 25) {
-    wire(state, `⏰ DEADLINE DAYS AHEAD`,
-      `The mid-season market reaches its climax over the next two rounds. Chairmen panic, agents feast, medicals happen in car parks at midnight. If you're planning a move - for a signing or a sale - now is the moment. Expect the phone to ring.`)
+    wire(state, 'news.wDeadlineAhead', {})
   }
   if (state.week === 28) {
-    wire(state, `🚪 The window slams shut`,
-      `Deadline chaos over. Sporting directors emerge blinking into the daylight to explain themselves. Business can still be done, but the frenzy is over for another year.`)
+    wire(state, 'news.wWindowShut', {})
   }
   const wheel = rng()
   if (state.week % 6 === 3) powerRankings(state)
