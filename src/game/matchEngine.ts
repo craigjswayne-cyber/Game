@@ -2903,6 +2903,12 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
         subject: `🎗 ${hero.name}'s testimonial: ${fx.att.toLocaleString()} say thank you`,
         body: `${club.stadium} was full for ${hero.name}'s testimonial${hero.name && ctx.events.some(e => e.type === 'TRY' && e.playerId === hero.id) ? ' - and he scored, because of course he did' : ''}. The gate receipts (${fmtMoney(gate)}) go to the club at his insistence. One season left in the shirt: make it a good one.`,
+        k: 'news.testimonialDay',
+        v: {
+          player: hero.name, att: fx.att ?? 0, stadium: club.stadium, gate: fmtMoney(gate),
+          scored_k: ctx.events.some(e => e.type === 'TRY' && e.playerId === hero.id)
+            ? 'news.testimonialScored' : 'common.nothing',
+        },
         playerId: hero.id,
         fixtureId: fx.id,
       })
@@ -2924,6 +2930,8 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         body: weWon
           ? `${haunter.name}, once of this parish, went over for ${oppClub.short} - no celebration, just a nod to the away end. Your side had the last word on the scoreboard, which is all that matters.`
           : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming. The oldest story in sport, and it found you today.`,
+        k: weWon ? 'news.oldBoyWeWon' : 'news.oldBoyWeLost',
+        v: { player: haunter.name, opp: oppClub.short, apps: oldBoyApps(haunter, state.userClubId) },
         playerId: haunter.id,
         fixtureId: fx.id,
       })
@@ -3005,6 +3013,8 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
             body: p.caps === 1
               ? `${p.name} won his first Test cap for ${nationByCode(side.teamId)?.name ?? side.teamId} this week. The shirt gets framed; the club that made him gets the reflected glow.`
               : `${p.name} brought up his ${p.caps}th cap for ${nationByCode(side.teamId)?.name ?? side.teamId} this week - a special jersey, a guard of honour, and a proud week around the club.`,
+            k: p.caps === 1 ? 'news.firstCap' : 'news.capMilestone',
+            v: { player: p.name, nation: nationByCode(side.teamId)?.name ?? side.teamId, n: p.caps, n_o: p.caps },
             playerId: p.id,
           })
         }
@@ -3047,6 +3057,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
               id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
               subject: `${p.name} suspended ${p.bans} matches`,
               body: `The disciplinary panel has banned ${p.name} for ${p.bans} matches following his red card. He will be unavailable until the ban is served.`,
+              k: 'news.suspended', v: { player: p.name, n: p.bans },
               playerId: p.id,
             })
           }
@@ -3056,6 +3067,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
               id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
               subject: `${p.name} banned - totting up`,
               body: `${p.stats.yc} yellow cards this season have earned ${p.name} a one-match suspension from the citing commissioner.`,
+              k: 'news.tottingUp', v: { player: p.name, n: p.stats.yc },
               playerId: p.id,
             })
           }
@@ -3090,6 +3102,12 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         isMotm ? `The sponsors gave him the match award before he had learned everyone's names.` : '',
         `Rated ${r.toFixed(1)} by the press box. The supporters have a new song by Tuesday.`,
       ].filter(Boolean).join(' '),
+      k: homegrown ? 'news.debutAcademy' : 'news.debutSigning',
+      v: {
+        player: p.name, age: p.age, pos: p.pos, rating: r.toFixed(1),
+        scored_k: scored ? 'news.debutScored' : 'common.nothing',
+        motm_k: isMotm ? 'news.debutMotm' : 'common.nothing',
+      },
       playerId: p.id,
       fixtureId: fx.id,
     })

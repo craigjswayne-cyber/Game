@@ -4147,6 +4147,30 @@
     "predMid": "{club} est classé en milieu de tableau - « solide, sans éclat » est le consensus. Donnez-leur tort.",
     "predLast": "Les experts voient {club} bon dernier. On parle déjà de cuillère de bois. Servez-vous-en.",
     "predRelegation": "{club} fait partie des favoris à la relégation. Personne n'attend grand-chose - l'endroit parfait pour commencer.",
-    "predBottom": "{club} est annoncé dans la seconde moitié de tableau. Personne n'attend grand-chose - l'endroit parfait pour commencer."
+    "predBottom": "{club} est annoncé dans la seconde moitié de tableau. Personne n'attend grand-chose - l'endroit parfait pour commencer.",
+    "testimonialDaySubj": "🎗 Jubilé de {player} : {att} personnes disent merci",
+    "testimonialDay": "{stadium} était plein pour le jubilé de {player}{scored_k}. La recette ({gate}) revient au club à sa demande expresse. Une saison encore sous le maillot : qu'elle soit belle.",
+    "testimonialScored": " - et il a marqué, évidemment",
+    "oldBoyWeWonSubj": "L'ancien {player} marque contre son ancien club",
+    "oldBoyWeWon": "{player}, jadis de la maison, est allé aplatir pour {opp} - pas de célébration, juste un signe de tête au parcage visiteur. Votre équipe a eu le dernier mot au tableau d'affichage, et c'est tout ce qui compte.",
+    "oldBoyWeLostSubj": "L'ancien {player} marque contre son ancien club",
+    "oldBoyWeLost": "Évidemment que c'était lui. {player} - {apps} matches sous vos couleurs avant son départ - a franchi la ligne contre son ancien club et tout le stade savait que ça arriverait. La plus vieille histoire du sport, et elle vous est tombée dessus aujourd'hui.",
+    "firstCapSubj": "🌍 Première sélection : {player}",
+    "firstCap": "{player} a décroché sa première sélection avec {nation} cette semaine. Le maillot passe sous cadre ; le club qui l'a formé récolte la lumière réfléchie.",
+    "capMilestoneSubj": "🌍 {player} : {n} sélections",
+    "capMilestone": "{player} a disputé sa {n_o} sélection avec {nation} cette semaine - un maillot spécial, une haie d'honneur, et une belle semaine de fierté au club.",
+    "suspendedSubj": "{player} suspendu {n} matches",
+    "suspended": {
+      "one": "La commission de discipline a suspendu {player} pour {n} match après son carton rouge. Il sera indisponible jusqu'à ce que la sanction soit purgée.",
+      "other": "La commission de discipline a suspendu {player} pour {n} matches après son carton rouge. Il sera indisponible jusqu'à ce que la sanction soit purgée."
+    },
+    "tottingUpSubj": "{player} suspendu - cumul de cartons",
+    "tottingUp": "{n} cartons jaunes cette saison valent à {player} une suspension d'un match prononcée par le commissaire à la citation.",
+    "debutAcademySubj": "🌟 Des débuts à raconter à ses petits-enfants : {player}",
+    "debutAcademy": "{player} ({age} ans, {pos}) a fait ses débuts en équipe première aujourd'hui - un pur produit du centre, le premier match officiel de sa vie.{scored_k}{motm_k} Noté {rating} par la tribune de presse. Les supporters auront un chant pour lui d'ici mardi.",
+    "debutSigningSubj": "🌟 Des débuts de rêve pour {player}",
+    "debutSigning": "Première apparition officielle sous le maillot pour {player} ({pos}), et il en a profité.{scored_k}{motm_k} Noté {rating} par la tribune de presse. Les supporters auront un chant pour lui d'ici mardi.",
+    "debutScored": " Il a marqué, comme le font toujours les recrues qui empêchent le staff de dormir.",
+    "debutMotm": " Les sponsors lui ont remis le trophée du match avant qu'il ait retenu le prénom de tout le monde."
   }
 }
