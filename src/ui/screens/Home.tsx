@@ -12,7 +12,7 @@ import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
-import { fmtMoney, formGuide, grudgeBetween, weekDate } from '../../game/model'
+import { fmtMoney, formGuide, grudgeBetween, newsSubject, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t } from '../../game/i18n'
@@ -500,7 +500,7 @@ export default function Home() {
       {unread > 0 && (
         <button className="card inbox-cue" onClick={() => useStore.getState().openInbox()}>
           <h3>{t('home.unread', { n: unread })}</h3>
-          <div className="meta">{unreadItems[0]?.subject ?? ''}</div>
+          <div className="meta">{unreadItems[0] ? newsSubject(unreadItems[0]) : ''}</div>
         </button>
       )}
       {/* Renders nothing at all unless a packaged shell has attached an ad

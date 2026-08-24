@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, fmtWage, POS_ORDER, weekDate, type Pos } from '../../game/model'
+import { fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
@@ -469,9 +469,9 @@ function ScoutReports() {
           <div key={n.id} style={{ padding: '6px 0', borderTop: i ? '1px solid var(--border)' : undefined }}
             onClick={() => setOpenId(openId === n.id ? null : n.id)}>
             <div className="meta" style={{ fontSize: 10.5 }}>{weekDate(n.season, n.week)}</div>
-            <div style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{n.subject}</div>
+            <div style={{ fontWeight: 700, fontSize: 12.5, lineHeight: 1.3 }}>{newsSubject(n)}</div>
             {openId === n.id && (
-              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 11.5, marginTop: 3 }}>{n.body}</div>
+              <div className="meta" style={{ whiteSpace: 'pre-line', fontSize: 11.5, marginTop: 3 }}>{newsBody(n)}</div>
             )}
           </div>
         ))}

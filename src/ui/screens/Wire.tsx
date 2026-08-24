@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { PeopleChips } from './Inbox'
 import { paragraphs } from '../components'
-import { weekDate } from '../../game/model'
+import { newsBody, newsSubject, weekDate } from '../../game/model'
 import { markRead } from '../../game/days'
 import { t } from '../../game/i18n'
 
@@ -51,7 +51,7 @@ export default function Wire() {
           <span>{t('week.wirePos', { i: idx + 1, n: items.length })}</span>
         </div>
         <h2 style={{ fontSize: 19, lineHeight: 1.3, margin: '8px 0 10px' }}>
-          {TYPE_ICON[n.type] ?? '📰'} {n.subject}
+          {TYPE_ICON[n.type] ?? '📰'} {newsSubject(n)}
         </h2>
         {/* PARAGRAPHS, not a wall (user: "news graphics seem so messy, tidy them
             up. use paragraphs"). pre-line honours the newlines the engine writes
@@ -59,7 +59,7 @@ export default function Wire() {
             odd gaps in it. Real paragraphs get real air between them, and a blank
             line in the source no longer produces an empty one on screen. */}
         <div className="wire-body" style={{ flex: 1, overflowY: 'auto' }}>
-          {paragraphs(n.body).map((para, i) => <p key={i}>{para}</p>)}
+          {paragraphs(newsBody(n)).map((para, i) => <p key={i}>{para}</p>)}
         </div>
         {/* the same chip row the inbox reader uses, so a name looks tappable in
             the same way wherever the story is being read (10F) */}

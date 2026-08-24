@@ -99,6 +99,15 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
   const blob = files.map(f => readFileSync(f, 'utf8')).join('\n')
   const idle = [...enKeys].filter(k => {
     if ([...dynamic].some(p => p && k.startsWith(p))) return false
+    // A news story's subject key is its body key with Subj on the end - see
+    // newsSubject() in model.ts. Only the body key is ever written down, so the
+    // subject is reachable exactly when its body is, and looking for it
+    // literally finds nothing. Checked against the body rather than waved
+    // through: a Subj with no story behind it is still dead weight.
+    if (k.startsWith('news.') && k.endsWith('Subj')) {
+      const body = k.slice(0, -4)
+      return !blob.includes(`'${body}'`) && !blob.includes(`\`${body}`)
+    }
     return !blob.includes(`'${k}'`) && !blob.includes(`\`${k}`)
   })
   ok(idle.length === 0, `no key sits in en.json unused${idle.length ? ` (${idle.length}): ${idle.slice(0, 8).join(', ')}` : ''}`)
