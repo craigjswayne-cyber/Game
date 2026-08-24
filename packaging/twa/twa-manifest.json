@@ -25,7 +25,7 @@
   "enableNotifications": false,
   "startUrl": "/",
   "iconUrl": "https://REPLACE-ME.github.io/icon-512.png",
-  "maskableIconUrl": "https://REPLACE-ME.github.io/icon-512.png",
+  "maskableIconUrl": "https://REPLACE-ME.github.io/icon-maskable-512.png",
   "webManifestUrl": "https://REPLACE-ME.github.io/manifest.webmanifest",
   "fullScopeUrl": "https://REPLACE-ME.github.io/",
   "splashScreenFadeOutDuration": 300,

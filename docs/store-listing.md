@@ -324,6 +324,7 @@ languages, from the real build.
 | Play | 2-8 phone shots, 16:9 or 9:16, min 320px | `storeart/play/en/*.png`, `storeart/play/fr/*.png` (1080×2340) |
 | Play | feature graphic, exactly 1024×500 | `storeart/play/feature-graphic.png` |
 | Play | icon, 512×512 | `public/icon-512.png` |
+| Play | adaptive/maskable icon | `public/icon-maskable-512.png` - declared in the web manifest, so the launcher crops the padding rather than the logo |
 | App Store | 6.7" shots, 1290×2796 | `storeart/ios/en/*.png`, `storeart/ios/fr/*.png` |
 | App Store | icon, 1024×1024, no alpha | `storeart/ios/icon-1024.png` |
 

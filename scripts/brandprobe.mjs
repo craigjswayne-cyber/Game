@@ -37,6 +37,51 @@ try {
   ok(t.mfName === 'PHASE: Rugby Manager' && t.mfShort === 'PHASE',
     `the PWA manifest carries the new name (saw "${t.mfName}" / "${t.mfShort}")`)
   ok(t.body.includes('v' + version), `the title screen shows the release, v${version}`)
+
+  // ---- the home screen icon, which is the first impression ----------------
+  //
+  // Android never shows the icon you give it: the launcher crops it to a
+  // circle, squircle or teardrop and guarantees only the middle 80%. An icon
+  // that is merely pretty at 512x512 comes out clipped, and there is no way to
+  // find that out from this repository except by measuring it.
+  //
+  // So measure it. Everything outside the safe circle must be flat brand
+  // green - no artwork out there to lose - and the corners must be opaque,
+  // because a maskable icon that does not bleed to the edge gets a grey card
+  // drawn behind it instead.
+  const icon = await page.evaluate(async () => {
+    const mf = await fetch('./manifest.webmanifest').then(r => r.json())
+    const m = (mf.icons ?? []).find(i => (i.purpose ?? '').split(/\s+/).includes('maskable'))
+    if (!m) return { declared: false }
+    const img = new Image()
+    img.src = m.src
+    await img.decode()
+    const c = document.createElement('canvas')
+    c.width = img.width; c.height = img.height
+    c.getContext('2d').drawImage(img, 0, 0)
+    const { data } = c.getContext('2d').getImageData(0, 0, c.width, c.height)
+    const at = (x, y) => { const i = (y * c.width + x) * 4; return [data[i], data[i + 1], data[i + 2], data[i + 3]] }
+    const mid = c.width / 2, safe = c.width * 0.4          // radius of the middle 80%
+    const bg = at(2, 2)
+    let strays = 0, clear = 0
+    for (let y = 0; y < c.height; y += 4) {
+      for (let x = 0; x < c.width; x += 4) {
+        if (Math.hypot(x - mid, y - mid) <= safe) continue  // inside the guarantee
+        const [r, g, b, a] = at(x, y)
+        if (a < 250) clear++
+        else if (Math.abs(r - bg[0]) + Math.abs(g - bg[1]) + Math.abs(b - bg[2]) > 24) strays++
+      }
+    }
+    return { declared: true, src: m.src, size: c.width, strays, clear,
+             corners: [at(1, 1)[3], at(c.width - 2, 1)[3], at(1, c.height - 2)[3], at(c.width - 2, c.height - 2)[3]] }
+  })
+  ok(icon.declared, 'the manifest declares a maskable icon, so launchers stop cropping the logo')
+  if (icon.declared) {
+    ok(icon.size >= 512, `it is at least 512px (${icon.size})`)
+    ok(icon.strays === 0, `no artwork sits outside the middle 80% a launcher guarantees (${icon.strays} stray pixels)`)
+    ok(icon.clear === 0, `and it bleeds to the edge rather than letterboxing (${icon.clear} transparent)`)
+    ok(icon.corners.every(a => a === 255), 'including the corners, which a squircle keeps and a circle does not')
+  }
   console.log(fails ? `BRAND PROBE FAILED (${fails})` : `BRAND PROBE PASSED: PHASE: Rugby Manager, v${version}`)
   process.exitCode = fails ? 1 : 0
 } catch (e) {
