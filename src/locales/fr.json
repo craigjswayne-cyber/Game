@@ -2,7 +2,8 @@
   "_meta": {
     "//": "Français. Keys and placeholders must match en.json exactly; the wording is free to move, which is the whole point of naming the placeholders rather than numbering them.",
     "name": "Français",
-    "locale": "fr-FR"
+    "locale": "fr-FR",
+    "ordByDigit": ""
   },
   "menu": {
     "continue": "▸ Reprendre - {manager}, {club}",
@@ -187,7 +188,7 @@
     "weeksOut": "{n}s",
     "wk": "s{n}",
     "listSep": ", ",
-    "ordByDigit": ""
+    "nothing": ""
   },
   "home": {
     "jobCentre": "📋 La bourse aux postes",
@@ -3195,7 +3196,6 @@
     "wKid2": "{player}, {age} ans, est le nom que les recruteurs écrivent deux fois. {club} sait exactement ce qu'il a ; la question est de savoir combien de temps il pourra le garder secret.",
     "wKid3Subj": "ESPOIR À SUIVRE : {player}",
     "wKid3": "La brigade des chronomètres était encore là en nombre pour {player}, {pos} {clubPoss}. Il a {age} ans. Les hommes en tribune avec des tablettes n'étaient pas venus pour le thé.",
-    "wMercNone": "",
     "wMerc1": " - et son agent compose déjà le numéro",
     "wMerc2": ", et son agent le dit le plus fort",
     "wMerc3": " - et celui-ci paie un agent pour faire du bruit",
@@ -3384,7 +3384,6 @@
     "ddRoundupFlopSubj": "📻 Le dernier jour du mercato, minute par minute",
     "ddRoundupFlop": "Le mercato est fermé. {n} transferts ont été bouclés le dernier jour{big_k} :\n{rows_ll}\n23h40 - ÉCHEC : le transfert de {flop} a capoté à la visite médicale. Il reste à {flopClub} - pour l'instant.\nRetour au rugby.",
     "ddBiggest": ", dont les plus gros",
-    "ddNone": "",
     "ddDeal": "{time} - C'EST FAIT : {player} ({pos}) à {to}, {fee_k}.{mine_k}",
     "ddFeeKnown": "{fee}",
     "ddFeeUndisclosed": "pour un montant non dévoilé",

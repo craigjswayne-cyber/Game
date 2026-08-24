@@ -98,10 +98,10 @@ function lookup(dict: Dict, key: string): unknown {
  * report card and everywhere ord() was already used.
  *
  * So which rule to use is itself a property of the language and lives in the
- * dictionary: common.ordByDigit is set for English and empty for French.
+ * dictionary: _meta.ordByDigit is set for English and empty for French.
  */
 function ordSuffix(n: number, lang: Lang = current): string {
-  const byDigit = !!lookup(DICTS[lang], 'common.ordByDigit')
+  const byDigit = !!lookup(DICTS[lang], '_meta.ordByDigit')
   const abs = Math.abs(n)
   let key = 'common.ordN'
   if (byDigit) {

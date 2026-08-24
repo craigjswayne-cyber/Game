@@ -1606,7 +1606,7 @@ export function processWeekAndAdvance(state: GameState) {
         rows.push({
           k: 'news.ddDeal', time: TIMES[i], player: p.name, pos: p.pos, to: to.short,
           fee: fee ?? '', fee_k: fee ? 'news.ddFeeKnown' : 'news.ddFeeUndisclosed',
-          mine_k: mine ? 'news.ddYours' : 'news.ddNone',
+          mine_k: mine ? 'news.ddYours' : 'common.nothing',
         })
       })
       const flop = Object.values(state.players)
@@ -1624,7 +1624,7 @@ export function processWeekAndAdvance(state: GameState) {
         k: flop ? 'news.ddRoundupFlop' : 'news.ddRoundup',
         v: {
           n: deals.length, rows_ll: JSON.stringify(rows),
-          big_k: deals.length > 5 ? 'news.ddBiggest' : 'news.ddNone',
+          big_k: deals.length > 5 ? 'news.ddBiggest' : 'common.nothing',
           flop: flop?.name ?? '', flopClub: flop?.clubId ? state.clubs[flop.clubId]?.short ?? '' : '',
         },
       })
@@ -1749,7 +1749,7 @@ export function processWeekAndAdvance(state: GameState) {
         k: cover.length ? 'news.crisisCover' : 'news.crisis',
         v: {
           unit_k: grp.label, fit: fit.length, all: all.length,
-          out_k: down.length ? 'news.crisisOut' : 'news.ddNone',
+          out_k: down.length ? 'news.crisisOut' : 'common.nothing',
           outList_l: downRows.length ? JSON.stringify(downRows) : '[]',
           cover: cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', '),
         },
@@ -2017,7 +2017,7 @@ export function processWeekAndAdvance(state: GameState) {
               : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : 'news.wcFinPools',
             par_k: seed > 0 && deepest < seed ? 'news.wcParOver'
               : seed > 0 && deepest === seed ? 'news.wcParEven'
-              : seed > 0 ? 'news.wcParUnder' : 'news.ddNone',
+              : seed > 0 ? 'news.wcParUnder' : 'common.nothing',
           },
           body: [
             `${name} finish the World Championship as ${finishWord}${seed > 0 ? `, having gone in seeded ${seed} of 20` : ''}.`,
@@ -2099,7 +2099,7 @@ export function processWeekAndAdvance(state: GameState) {
         k: v ? 'news.finalVenue' : 'news.final',
         v: {
           comp: compName,
-          opp_k: oppName ? 'news.finalOpp' : 'news.ddNone', opp: oppName ?? '',
+          opp_k: oppName ? 'news.finalOpp' : 'common.nothing', opp: oppName ?? '',
           venue: v?.name ?? '', city: v?.city ?? '', seats: v?.capacity ?? 0,
         },
         fixtureId: sf.id,
@@ -2226,9 +2226,9 @@ export function processWeekAndAdvance(state: GameState) {
       k: 'news.halfTerm',
       v: {
         grade,
-        pos_k: posNow ? (pred ? 'news.htPosPred' : 'news.htPos') : 'news.ddNone',
+        pos_k: posNow ? (pred ? 'news.htPosPred' : 'news.htPos') : 'common.nothing',
         pos_o: posNow, pred_o: pred ?? 0,
-        objs_k: objs.length ? 'news.htObjs' : 'news.ddNone', met, total: objs.length,
+        objs_k: objs.length ? 'news.htObjs' : 'common.nothing', met, total: objs.length,
         conf: Math.round(club.boardConfidence),
         verdict_k: `news.htGrade${grade}`,
       },
