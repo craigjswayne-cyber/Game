@@ -82,11 +82,26 @@ function storyKeysOf(obj: string): string[] {
     if (c === '{' || c === '[' || c === '(') depth++
     else if (c === '}' || c === ']' || c === ')') depth--
     else if (depth === 1 && obj.startsWith('k:', i) && /[\s,{]/.test(obj[i - 1] ?? '')) {
-      // to the end of the VALUE, which may be a ternary spanning lines, and
-      // only the dotted names off it: `k: pl.kind === 'plans' ? 'news.keptPlans'
-      // : ...` mentions 'plans', which is the condition, not a key.
-      const line = obj.slice(i, obj.indexOf('\n', i) + 1 || undefined)
-      for (const m of line.matchAll(/'([A-Za-z0-9_]+\.[A-Za-z0-9_.]+)'/g)) out.push(m[1])
+      // TO THE END OF THE VALUE, not the end of the line.
+      //
+      // The value may be a ternary spanning several lines, and the line may
+      // also carry the `v:` that follows it - `k: 'news.loanOut', v: { club:
+      // ... tIn('en', 'news.aFeederClub') }` put a FRAGMENT key in the story
+      // list and the probe then demanded a headline for it. So: walk to the
+      // comma that closes this field at this depth.
+      //
+      // And only the dotted names off it: `k: pl.kind === 'plans' ?
+      // 'news.keptPlans' : ...` mentions 'plans', which is the condition.
+      let end = i + 2
+      let d = 0
+      for (; end < obj.length; end++) {
+        const q = obj[end]
+        if (q === '{' || q === '[' || q === '(') d++
+        else if (q === '}' || q === ']' || q === ')') { if (d === 0) break; d-- }
+        else if (q === ',' && d === 0) break
+      }
+      const value = obj.slice(i, end)
+      for (const m of value.matchAll(/'([A-Za-z0-9_]+\.[A-Za-z0-9_.]+)'/g)) out.push(m[1])
     }
   }
   return out
