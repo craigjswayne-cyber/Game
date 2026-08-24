@@ -4234,6 +4234,28 @@
     "mrVenueNamed": "à {venue}",
     "mrTheGround": "au stade",
     "mrCompNamed": "{comp}",
-    "mrFriendly": "Match amical"
+    "mrFriendly": "Match amical",
+    "appealUpheldSubj": "⚖️ Appel accepté : la suspension de {player} réduite",
+    "appealUpheld": "La commission a revu les images image par image et a retiré un match à la suspension. {rest_k}",
+    "appealStillToServe": {
+      "one": "Encore {n} match à purger.",
+      "other": "Encore {n} matchs à purger."
+    },
+    "appealFreeToPlay": "Il est libre de jouer ce week-end.",
+    "appealDismissedSubj": "⚖️ Appel rejeté : la suspension de {player} alourdie",
+    "appealDismissed": {
+      "one": "La commission a jugé le recours « sans fondement » et a ajouté un match pour la peine. À l'étage, la mâchoire du président se crispe. {n} match à purger.",
+      "other": "La commission a jugé le recours « sans fondement » et a ajouté un match pour la peine. À l'étage, la mâchoire du président se crispe. {n} matchs à purger."
+    },
+    "campHeatSubj": "☀️ Rapport de stage : affûtés, bronzés et un peu cassés",
+    "campHeat": "Une semaine de double séance sous une vraie chaleur. Les données GPS sont les meilleures jamais relevées par le staff en présaison, et le groupe s'est soudé comme seule la souffrance partagée sait le faire. 400 k£ bien dépensés, sans doute.",
+    "campHomeSubj": "🏟 Semaine citoyenne : la ville répond présent",
+    "campHome": "L'entraînement ouvert a attiré plus de mille personnes un mardi. Chaque école du secteur a eu sa visite, chaque club de jeunes son éducateur. Cela n'a presque rien coûté et a acheté une bienveillance que l'argent ne procure pas.",
+    "campTourSubj": "✈️ Tournée d'exhibition : le chèque est encaissé",
+    "campTour": "Deux matchs d'exhibition, trois fuseaux horaires, un sponsor très heureux et 600 k£ en banque. Les supporters râlent d'une présaison passée en salle d'embarquement, et le groupe entame l'année avec les jambes lourdes.",
+    "toneSwaggerSubj": "Alerte grosse tête : tous ces compliments leur montent-ils au crâne ?",
+    "toneSwagger": "Vos joueurs n'arrêtent pas d'expliquer à la presse à quel point ils sont bons — parce que vous n'arrêtez pas d'expliquer à la presse à quel point ils sont bons. La note de l'adjoint est sans détour : « Le rythme à l'entraînement a baissé. Ils pensent qu'il suffit de se présenter. » Attendez-vous à des prestations plates jusqu'à ce que quelqu'un retrousse ses manches — ou jusqu'à ce que vous durcissiez le ton.",
+    "toneBruisedSubj": "Un vestiaire meurtri par les critiques publiques",
+    "toneBruised": "Semaine après semaine, les mots durs en conférence de presse ont fait mouche. Les cadres en auraient « assez de servir de fusibles » et le moral s'est effondré dans tout le groupe. Un peu de chaleur en public ferait beaucoup de bien."
   }
 }
