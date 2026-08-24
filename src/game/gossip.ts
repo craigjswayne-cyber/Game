@@ -195,28 +195,32 @@ function trainingReport(state: GameState, rng: Rng) {
   const kid = club.players.map(id => state.players[id])
     .filter((p): p is Player => !!p && !!p.acad)
     .sort((a, b) => b.pa - a.pa)[0]
+  // The report is a column of independent paragraphs, so it is filed as a _ll
+  // list of fragment keys rather than one sentence with holes in it. The draws
+  // happen in exactly the order and the number they did when the variants were
+  // English strings - pick() over four keys draws the same as pick() over four
+  // sentences, and the `kid && rng() < 0.5` still short-circuits before rng()
+  // when there is no academy man. A world generated before this change and one
+  // generated after it must agree, and the fingerprint test says whether they
+  // do.
+  const lines: { k: string; [x: string]: string | number }[] = [
+    { k: pick(rng, ['news.trBestA', 'news.trBestB', 'news.trBestC', 'news.trBestD']), name: star.name },
+  ]
+  if (pushing) {
+    lines.push({ k: pick(rng, ['news.trPushA', 'news.trPushB', 'news.trPushC']), name: pushing.name })
+  }
+  if (kid && rng() < 0.5) {
+    lines.push({ k: pick(rng, ['news.trKidA', 'news.trKidB', 'news.trKidC']), name: kid.name })
+  }
+  lines.push(state.matchPrep
+    ? { k: 'news.trFocus', prep_k: `news.prep${state.matchPrep[0].toUpperCase()}${state.matchPrep.slice(1)}` }
+    : { k: 'news.trNoPrep' })
+  const v = { lines_ll: JSON.stringify(lines), week: state.week }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject: `📋 Training report, week ${state.week}`,
-    body: [
-      pick(rng, [
-        `Best on the grass: ${star.name} - sharp all week.`,
-        `${star.name} trained like the ball was on a string. Best of the week by a distance.`,
-        `The staff vote for the week's best on the paddock was unanimous: ${star.name}.`,
-        `${star.name} finished every drill first and every session smiling. Ominous for the opposition.`,
-      ]),
-      pushing ? pick(rng, [
-        `Knocking on the door: ${pushing.name} is training like a man who wants the shirt.`,
-        `${pushing.name} spent the week making the selection meeting awkward. Good.`,
-        `If team sheets were picked on a Tuesday, ${pushing.name} starts this weekend.`,
-      ]) : '',
-      kid && rng() < 0.5 ? pick(rng, [
-        `From the academy pitches: the coaches keep mentioning ${kid.name}. One for the notebook.`,
-        `${kid.name} trained up with the seniors on Thursday and did not look out of place.`,
-        `The academy staff have started staying late to watch ${kid.name}. That usually means something.`,
-      ]) : '',
-      state.matchPrep ? `Focus this week: ${state.matchPrep} work, as ordered.` : `No match preparation set - the week ran on autopilot.`,
-    ].filter(Boolean).join('\n'),
+    subject: tIn('en', 'news.trainingReportSubj', v),
+    body: tIn('en', 'news.trainingReport', v),
+    k: 'news.trainingReport', v,
     playerId: star.id,
   })
 }
