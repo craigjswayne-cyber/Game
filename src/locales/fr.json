@@ -733,7 +733,10 @@
     "breakTitle": "60e - arrêt de jeu, dernier quart d'heure à venir",
     "brinkApps": "disputera son {n}e match en carrière s'il entre sur le terrain",
     "brinkLine": " ({pos}) {what}. Le stade saura à l'instant où cela arrivera.",
-    "brinkPts": "a besoin de {n} points pour atteindre {mark} en carrière",
+    "brinkPts": {
+      "one": "a besoin de {n} point pour atteindre {mark} en carrière",
+      "other": "a besoin de {n} points pour atteindre {mark} en carrière"
+    },
     "brinkTry": "n'est qu'à un essai de son {n}e en carrière, et il est en forme pour le marquer",
     "callFirst": "La décision de touche vous revient d'abord",
     "casualty": " sort",
@@ -961,7 +964,10 @@
     "settingsTitle": "Réglages du match : vitesse et son",
     "showCommentary": "📜 Commentaire ({n})",
     "showRatings": "⭐ Notes des joueurs",
-    "sixGap": "{n} points d'écart entre vous",
+    "sixGap": {
+      "one": "{n} point d'écart entre vous",
+      "other": "{n} points d'écart entre vous"
+    },
     "sixLevel": "à égalité de points",
     "skip": "Passer ▸",
     "soundAndBuzz": "Son et vibration",
@@ -993,12 +999,21 @@
     "stPossession": "Possession",
     "stTries": "Essais",
     "stakes": "L'enjeu",
-    "stakesAboveDrop": "{n} points d'avance sur les deux derniers.",
+    "stakesAboveDrop": {
+      "one": "{n} point au-dessus des deux derniers.",
+      "other": "{n} points au-dessus des deux derniers."
+    },
     "stakesBottomTwo": "Vous êtes dans les deux derniers. Chaque point compte pour survivre.",
     "stakesClimb": "Une victoire vaut au moins quatre points : de quoi grimper dès aujourd'hui.",
     "stakesKnockout": "Match couperet. Gagnez et le parcours en {comp} continue ; perdez et il s'arrête cet après-midi.",
-    "stakesPlayoffGap": "La barre des barrages : {n} points à reprendre sur le {pos}.",
-    "stakesPlayoffHold": "Vous tenez une place en barrages, avec {n} points de marge.",
+    "stakesPlayoffGap": {
+      "one": "La barre des phases finales : {n} point à reprendre sur le {pos}.",
+      "other": "La barre des phases finales : {n} points à reprendre sur le {pos}."
+    },
+    "stakesPlayoffHold": {
+      "one": "Vous tenez une place de phases finales, avec {n} point de marge.",
+      "other": "Vous tenez une place de phases finales, avec {n} points de marge."
+    },
     "stakesPos": "{pos} de {comp} avec {pts} points - {above} devant vous de {gapUp}.",
     "stakesPosBoth": "{pos} de {comp} avec {pts} points - {above} devant vous de {gapUp}, {below} derrière de {gapDown}.",
     "stakesRelBar": "Le barrage de relégation. Quatre-vingts minutes pour une place en Premier Division : le vainqueur joue dans l'élite la saison prochaine, le perdant passe un an en Championship.",
@@ -2539,7 +2554,10 @@
     "coTests": "Tests",
     "coNoTests": "Aucun test au calendrier cette saison pour l'instant.",
     "coFullTables": "Les classements complets et toutes les compétitions sont sur l'écran Rugby international.",
-    "coCaps": " · {n} sélections",
+    "coCaps": {
+      "one": " · {n} sélection",
+      "other": " · {n} sélections"
+    },
     "coUncapped": " · jamais sélectionné",
     "coDrop": "Écarter",
     "coCallUp": "Convoquer",
@@ -2550,7 +2568,10 @@
     "srChampions": "CHAMPIONS",
     "srInLeague": "au classement",
     "srWon": " de victoires",
-    "srTries": "🏉 {name}, {n} essais",
+    "srTries": {
+      "one": "🏉 {name}, {n} essai",
+      "other": "🏉 {name}, {n} essais"
+    },
     "srPoints": "🎯 {name}, {n} pts",
     "srHeadTrophies": "🏆 {list}",
     "srHeadLeaders": "🏆 En tête du championnat",
