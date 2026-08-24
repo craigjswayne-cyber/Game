@@ -771,6 +771,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
           id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
           subject: `${k2.name.split(' ').slice(-1)[0]} loses his mentor`,
           body: `With ${s2 ? s2.name : 'his mentor'} gone, ${k2.name} is training alone again. The academy coach will keep an eye on him - but it isn't the same.`,
+          k: 'news.mentorLost',
+          v: { kid: k2.name, last: k2.name.split(' ').slice(-1)[0], mentor: s2 ? s2.name : tIn('en', 'news.hisMentor') },
           playerId: k2.id,
         })
       }
@@ -823,6 +825,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `💼 ${p.name} wants improved terms`,
         body: `${p.name}'s agent has been on the phone: his client is playing the house down (avg ${(p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2)}) on ${fmtMoney(p.wage)}/week, and the market rate is well north of that. He has ${p.contractEnds - state.season} year${p.contractEnds - state.season > 1 ? 's' : ''} left, but leave it unresolved and his head will drop - and other clubs will smell it. Offer a new deal from his player page.`,
+        k: 'news.wantsTerms',
+        v: {
+          player: p.name, avg: (p.stats.ratingSum / Math.max(1, p.stats.apps)).toFixed(2),
+          wage: fmtMoney(p.wage), n: p.contractEnds - state.season,
+        },
         playerId: p.id,
       })
     }
@@ -888,6 +895,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
             id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
             subject: `💼 ${p.name}'s agent goes public`,
             body: `Two months of silence from the club, so the agent has taken it to the papers: "${p.name} is one of the best-performing players in the league and the club knows our position." Rival clubs will have noticed. Sort a new deal on his player page - or brace for bids.`,
+            k: 'news.agentPublic',
+            v: { player: p.name },
             playerId: p.id,
           })
         }
@@ -922,6 +931,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
             id: state.nextId++, week: state.week, season: state.season, type: 'youth', read: false,
             subject: `${p.name.split(' ').slice(-1)[0]} is turning into his mentor`,
             body: `The coaches have noticed it in the little things - the extras after training, the way he talks in the huddle. ${p.name} is starting to carry himself like ${senior.name}. Character: now ${senior.pers.toLowerCase()}.`,
+            k: 'news.becomesMentor',
+            v: { player: p.name, last: p.name.split(' ').slice(-1)[0], mentor: senior.name, pers_k: `pers.${senior.pers}` },
             playerId: p.id,
           })
         }
@@ -941,6 +952,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
             id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
             subject: `${p.name} ahead of schedule`,
             body: `Good news from the treatment table: ${p.name} (${p.injury.desc}) has smashed his rehab targets and is available again this week - earlier than anyone dared hope.`,
+            k: 'news.aheadOfSchedule',
+            v: { player: p.name, injury: p.injury.desc },
             playerId: p.id,
           })
         }
@@ -959,6 +972,11 @@ function weeklyTraining(state: GameState, rng: Rng) {
       id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
       subject: one ? `${returned[0].name} back in training` : `${returned.length} back in training`,
       body: `${one ? 'Available for selection again' : 'Available for selection again'}: ${returned.map(line).join(', ')}. Pick a rusty man now and he could break down again; ease him back and he will be right.`,
+      k: 'news.backInTraining',
+      v: {
+        n: returned.length, who: one ? returned[0].name : String(returned.length),
+        men_l: JSON.stringify(returned.map(pl => ({ k: 'news.rustyMan', name: pl.name, pos: pl.pos, n: pl.rust ?? 1 }))),
+      },
       playerId: returned[0].id,
     })
   }

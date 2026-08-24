@@ -93,6 +93,22 @@ function lookup(dict: Dict, key: string): unknown {
  *  given, because a club name is a club name in any language. */
 export type Vars = Record<string, string | number>
 
+/** One dictionary entry rendered: a plain string, or a { one, other } plural
+ *  picked on vars.n. Shared by t() and by the _l list fragments, which is the
+ *  whole point - a fragment inside a list gets the same plural rules as a
+ *  sentence, and "1 semaine" against "2 semaines" is exactly the case that
+ *  showed the list path had quietly skipped them. */
+function render(entry: unknown, vars: Vars | undefined, lang: Lang): string | null {
+  if (typeof entry === 'string') return fill(entry, vars, lang)
+  if (entry && typeof entry === 'object' && 'other' in (entry as object)) {
+    const forms = entry as { one?: string; other: string }
+    const n = Number(vars?.n ?? 0)
+    const singular = lang === 'fr' ? Math.abs(n) < 2 : n === 1
+    return fill(singular && forms.one ? forms.one : forms.other, vars, lang)
+  }
+  return null
+}
+
 function fill(text: string, vars?: Vars, lang: Lang = current): string {
   if (!vars) return text
   return text.replace(/\{(\w+)\}/g, (whole, name: string) => {
@@ -112,7 +128,30 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // keeps this a substitution rather than a template language.
     if (name.endsWith('_k') && typeof v === 'string') {
       const frag = lookup(DICTS[lang], v) ?? lookup(DICTS.en, v)
-      return typeof frag === 'string' ? frag : v
+      return render(frag, vars, lang) ?? v
+    }
+    // A LIST OF TRANSLATED FRAGMENTS, marked by a _l suffix.
+    //
+    // Several stories name a group of players and say something about each -
+    // "Dupont (FL), rusty for 2 weeks". The clause is per-man, so it cannot be
+    // hoisted out of the list into the sentence around it, and a plain joined
+    // string freezes whatever language it was built in.
+    //
+    // So a _l variable holds a JSON array of { k, ...vars } objects: each is
+    // rendered like any other key, in the reader's language, and they are joined
+    // with the list separator that language uses. Malformed JSON renders as the
+    // raw string rather than throwing, because this is a save file and a save
+    // file outlives the code that wrote it.
+    if (name.endsWith('_l') && typeof v === 'string') {
+      try {
+        const items = JSON.parse(v) as { k: string; [x: string]: string | number }[]
+        if (!Array.isArray(items)) return v
+        const sep = (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
+        return items.map(it => {
+          const frag = lookup(DICTS[lang], it.k) ?? lookup(DICTS.en, it.k)
+          return render(frag, it as Vars, lang) ?? it.k
+        }).join(sep)
+      } catch { return v }
     }
     return typeof v === 'number' ? v.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB') : String(v)
   })
