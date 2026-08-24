@@ -427,6 +427,7 @@ Shipped since the last addendum, each behind a probe that runs in the suite:
 | 18 | Max text scaling | **PASS** | Text Size on the title screen; textscale probe |
 | 19 | Orientation in the store package | **PASS** | No lock; manifest "any"; shelllint |
 | 20 | Store shell branding | **PASS** | Night ground read from tokens.css by shelllint |
+| 20b | Home screen icon under a launcher mask | **PASS** | Maskable icon declared in the manifest; brandprobe walks the pixels outside the guaranteed middle 80% and the corners (fixed 24 Aug: the square icon put its ring at 86.6% and would have been clipped) |
 | 21 | IAP edge cases | **PASS** | All five outcomes handled including pending; restore path; moneyprobe + storeprobe |
 | 22 | Ad implementation | **PASS (none shipped)** | No provider, no frame, no SDK; the slot renders nothing without a bridge |
 | 23 | Cross-device state | **MITIGATED** | Still single-device by design (no backend, no accounts). Share-sheet backup, export/import, once-a-season reminder, save-failure banner. Platform cloud saves would need a wrapper feature, not a web change |
