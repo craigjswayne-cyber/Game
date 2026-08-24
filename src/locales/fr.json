@@ -3727,6 +3727,26 @@
     "recPointsSubj": "📖 RECORD BATTU : le plus de points sur une saison de {comp}",
     "recPoints": "{name} termine avec {n} points - battant le record de {old}, {oldN} ({season}). Le livre des records gagne une page.",
     "recTriesSubj": "📖 RECORD BATTU : le plus d'essais sur une saison de {comp}",
-    "recTries": "{name} franchit la ligne {n} fois - dépassant les {oldN} de {old} ({season}). Les ailiers du monde entier prennent note."
+    "recTries": "{name} franchit la ligne {n} fois - dépassant les {oldN} de {old} ({season}). Les ailiers du monde entier prennent note.",
+    "lastYearOneSubj": "⏳ Dernière année de formation pour {who}",
+    "lastYearOne": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez-le en contrat professionnel depuis sa fiche avant l'été prochain, sinon le contrat expire et il part pour rien.",
+    "lastYearManySubj": "⏳ Dernière année de formation pour {n} de vos espoirs",
+    "lastYearMany": "Les contrats de formation expirent à 21 ans, et cette saison est la dernière pour {men_l}. Promouvez chacun d'eux en contrat professionnel depuis leur fiche avant l'été prochain, sinon les contrats expirent et ils partent pour rien.",
+    "lastYearMan": "{name} ({age} ans, {pos})",
+    "releasedOneSubj": "🚪 Le contrat de formation de {who} expire - il s'en va",
+    "releasedOne": "Aucun contrat professionnel n'a été proposé, alors à 21 ans la route du centre de formation s'arrête : {men_l} part libre. L'entraîneur du centre vide son casier et repart avec la promotion suivante.",
+    "releasedManySubj": "🚪 {n} contrats de formation expirent - ils s'en vont",
+    "releasedMany": "Aucun contrat professionnel n'a été proposé, alors à 21 ans la route du centre de formation s'arrête : {men_l} partent libres. L'entraîneur du centre vide leurs casiers et repart avec la promotion suivante.",
+    "releasedMan": "{name} ({pos})",
+    "hofOneSubj": "🏛 {who} entre au Panthéon",
+    "hofOne": "{men_l} prend sa retraite avec des chiffres qui clouent le débat. {mine_k} Sa plaque rejoint celles des immortels.",
+    "hofManySubj": "🏛 {n} entrent au Panthéon",
+    "hofMany": "La promotion {season} est confirmée. {men_l}. {mine_k} Les plaques rejoignent celles des immortels.",
+    "hofMan": "{name} ({pos}, {apps} matches, {tries} essais, {pts} pts)",
+    "hofYoursOne": "Il termine comme l'un des vôtres - une carrière que votre club revendiquera pendant des générations.",
+    "hofNotYoursOne": "Le rugby se lève pour applaudir l'un de ses grands.",
+    "hofYoursNamed": "{mineName} termine comme l'un des vôtres - une carrière que votre club revendiquera pendant des générations.",
+    "hofYoursMany": "{mineN} d'entre eux terminent comme les vôtres - des carrières que votre club revendiquera pendant des générations.",
+    "hofNotYoursMany": "Le rugby se lève pour les applaudir tous."
   }
 }
