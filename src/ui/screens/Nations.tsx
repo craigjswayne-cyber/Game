@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
-import { flagOf, nationByCode } from '../../game/nations'
+import { flagOf, nationName } from '../../game/nations'
 import { SectionTitle } from '../components'
 import { weekDate } from '../../game/model'
 import { t } from '../../game/i18n'
@@ -28,7 +28,7 @@ export default function Nations() {
     <>
       {myNat && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 14 }}>{t('world.natYouCoach', { nat: nationByCode(myNat)?.name ?? myNat })}</h3>
+          <h3 style={{ fontSize: 14 }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>
           <div className="meta">
             {mySquad.length
               ? t('world.natWindowOpen', { n: mySquad.length })
@@ -53,14 +53,14 @@ export default function Nations() {
       </div>
       {comp && comp.table.length > 0 && (
         <>
-          <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationByCode(comp.champion)?.name ?? comp.champion }) : undefined}>{comp.name}</SectionTitle>
+          <SectionTitle sub={comp.champion ? t('fixtures.champions', { club: nationName(comp.champion) }) : undefined}>{comp.name}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
             <thead><tr><th>{t('tables.colRank')}</th><th>{t('world.natColNation')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th><th className="num">{t('tables.colDiff')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
             <tbody>
               {sortTable(comp.table).map((r, i) => (
                 <tr key={r.teamId}>
                   <td className="num muted">{i + 1}</td>
-                  <td className="name">{flagOf(r.teamId)} {nationByCode(r.teamId)?.name ?? r.teamId}</td>
+                  <td className="name">{flagOf(r.teamId)} {nationName(r.teamId)}</td>
                   <td className="num">{r.p}</td>
                   <td className="num">{r.w}</td>
                   <td className="num">{r.pf - r.pa}</td>
@@ -76,7 +76,7 @@ export default function Nations() {
         {game.fixtures.filter(f => f.compId === compId).sort((a, b) => a.week - b.week).map(f => (
           <tr key={f.id}>
             <td className="muted">{weekDate(game.season, f.week).slice(0, -5)}</td>
-            <td className="name">{flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {t('common.v')} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}</td>
+            <td className="name">{flagOf(f.homeId)} {nationName(f.homeId)} {t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}</td>
             <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : '-'}</td>
           </tr>
         ))}

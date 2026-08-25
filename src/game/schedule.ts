@@ -1,7 +1,7 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
 import { shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
-import { nationByCode } from './nations'
+import { nationNameIn, nationVars } from './nations'
 
 const ordinalWord = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th'}`
 
@@ -248,19 +248,21 @@ function buildWorldCup(rng: Rng, state: GameState) {
     pools[idx].push(n)
   })
   comp.pools = pools
-  const top4 = seeded.slice(0, 4).map(c => nationByCode(c)?.name ?? c)
+  const top4 = seeded.slice(0, 4).map(c => nationNameIn('en', c))
+  // the seeds are countries, so the list travels as fragment keys
+  const top_l = JSON.stringify(seeded.slice(0, 4).map(c => ({ k: `nation.${c}` })))
   const userSeed = state.natTeam ? seeded.indexOf(state.natTeam) + 1 : 0
   state.news.push({
     id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
     subject: `🏆 World Championship draw: the rankings pick the pools`,
     body: [
       `The World Championship pools are set, seeded from the world rankings. Top seeds: ${top4.join(', ')}.`,
-      userSeed > 0 ? `${nationByCode(state.natTeam!)?.name ?? state.natTeam} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
+      userSeed > 0 ? `${nationNameIn('en', state.natTeam!)} go in as the ${ordinalWord(userSeed)} seed - anything short of ${userSeed <= 4 ? 'the semi-finals will be a failure' : userSeed <= 8 ? 'the quarter-finals will raise questions' : 'the knockouts would still be par'}.`
         : `Four pools, five nations each, and somewhere in there a group of death.`,
     ].join('\n'),
     k: userSeed > 0 ? 'news.wcDrawSeeded' : 'news.wcDraw',
     v: {
-      top: top4.join(', '), nation: nationByCode(state.natTeam!)?.name ?? state.natTeam ?? '',
+      top_l, ...nationVars(state.natTeam ?? ''),
       seed_o: userSeed,
       bar_k: userSeed <= 4 ? 'news.wcBarSemi' : userSeed <= 8 ? 'news.wcBarQuarter' : 'news.wcBarKnockout',
     },

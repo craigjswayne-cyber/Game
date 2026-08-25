@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SIX_NATIONS_WEEKS } from '../../game/schedule'
-import { nationByCode, flagOf } from '../../game/nations'
+import { nationByCode, nationName, flagOf } from '../../game/nations'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
@@ -115,12 +115,12 @@ export default function Home() {
             <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (game.comps['sn']?.name ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
-                {flagOf(f.homeId)} {nationByCode(f.homeId)?.name} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationByCode(f.awayId)?.name} {flagOf(f.awayId)}
+                {flagOf(f.homeId)} {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}
               </div>
             ))}
             {rows.length > 0 && rows[0].p > 0 && (
               <div className="meta" style={{ color: 'var(--text-muted)', marginTop: 5 }}>
-                {t('home.snTable', { rows: rows.map((r, i) => `${i + 1}. ${nationByCode(r.teamId)?.name} (${r.pts})`).join(' · ') })}
+                {t('home.snTable', { rows: rows.map((r, i) => `${i + 1}. ${nationName(r.teamId)} (${r.pts})`).join(' · ') })}
               </div>
             )}
             <div className="meta" style={{ color: 'var(--gold)', marginTop: 3 }}>{t('home.snTap')}</div>
@@ -205,12 +205,12 @@ export default function Home() {
         return (
           <div className="card" onClick={() => go('country')} style={{ borderLeft: '4px solid var(--text-positive)' }}>
             <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
-              {t('home.headCoach')} · {nat?.name ?? game.natTeam}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
+              {t('home.headCoach')} · {nationName(game.natTeam)}{rank > 0 ? t('home.worldNo', { rank }) : ''}{game.natConfidence != null ? t('home.unionPct', { pct: Math.round(game.natConfidence) }) : ''}
             </div>
             {next ? (
               <>
                 <h3 className="fx-line">
-                  {flagOf(next.homeId)} {nationByCode(next.homeId)?.name ?? next.homeId} {t('common.v')} {flagOf(next.awayId)} {nationByCode(next.awayId)?.name ?? next.awayId}
+                  {flagOf(next.homeId)} {nationName(next.homeId)} {t('common.v')} {flagOf(next.awayId)} {nationName(next.awayId)}
                 </h3>
                 <div className="muted" style={{ marginTop: 6 }}>
                   {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}

@@ -4,7 +4,7 @@ import { fmtMoney } from '../../game/model'
 import type { GameState } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
 import { natRankOrder } from '../../game/natrank'
-import { nationByCode } from '../../game/nations'
+import { nationByCode, nationName } from '../../game/nations'
 import { CrestT, Nat, PosBadge, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 
@@ -58,7 +58,7 @@ export default function Agency() {
                       : <span className="muted">·</span>}
                   </td>
                   <td className="name" style={mine ? { fontWeight: 800 } : undefined}>
-                    {n?.flag ?? ''} {n?.name ?? code}{mine ? t('world.agYou') : ''}
+                    {n?.flag ?? ''} {nationName(code)}{mine ? t('world.agYou') : ''}
                   </td>
                   {/* breathing room on the table's outer edge - the points sat
                       flush against the screen (round 25, from a screenshot) */}

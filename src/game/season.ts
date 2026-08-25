@@ -21,7 +21,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
-import { nationByCode, regenName, worldNames } from './nations'
+import { nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -570,10 +570,10 @@ function manageInternationals(state: GameState, rng: Rng) {
           const newCaps = pool.filter(p => (p.caps ?? 0) === 0).length
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-            subject: `📋 Your ${nationByCode(nat)?.name ?? nat} squad is announced`,
+            subject: `📋 Your ${nationNameIn('en', nat)} squad is announced`,
             k: 'news.natSquad',
             v: {
-              nation: nationByCode(nat)?.name ?? nat, n: pool.length,
+              ...nationVars(nat), n: pool.length,
               caps_k: newCaps ? 'news.natSquadNew' : 'news.natSquadCapped', newCaps,
               fwd: fwd.map(line).join('; '), bks: bks.map(line).join('; '),
             },
@@ -1530,8 +1530,8 @@ export function processWeekAndAdvance(state: GameState) {
           .filter((p): p is Player => !!p && p.clubId === state.userClubId)
           .map(p => ({ p, nat })))
       if (!away.length) continue
-      const hName = nationByCode(fx.homeId)?.name ?? fx.homeId
-      const aName = nationByCode(fx.awayId)?.name ?? fx.awayId
+      const hName = nationNameIn('en', fx.homeId)
+      const aName = nationNameIn('en', fx.awayId)
       const lines = away.map(({ p, nat }) => {
         const rr = mulberry32((state.seed ^ Math.imul(fx.id, 31) ^ Math.imul(p.id, 2654435761)) >>> 0)
         const won = nat === fx.homeId ? fx.homeScore > fx.awayScore : fx.awayScore > fx.homeScore
@@ -1897,7 +1897,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (sn && state.week === penultWk) {
       const leader = sortTable(sn.table)[0]
       if (leader && leader.w === 4 && leader.d === 0 && leader.l === 0) {
-        const name = nationByCode(leader.teamId)?.name ?? leader.teamId
+        const name = nationNameIn('en', leader.teamId)
         const yours = state.natTeam === leader.teamId
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -1906,7 +1906,7 @@ export function processWeekAndAdvance(state: GameState) {
             ? `Four from four, one to play. Your side stand one win from a Grand Slam - the week every coach dreams about and none sleeps through. Handle the occasion, not just the opposition.`
             : `${name} have won all four and go into the final round with a Grand Slam on the table. The whole championship stops to watch.`,
           k: yours ? 'news.slamEveYours' : 'news.slamEve',
-          v: { nation: name },
+          v: { ...nationVars(leader.teamId) },
         })
       }
     }
@@ -1917,7 +1917,7 @@ export function processWeekAndAdvance(state: GameState) {
         const top = rows[0]
         const bottom = rows[rows.length - 1]
         if (top && top.w === 5) {
-          const name = nationByCode(top.teamId)?.name ?? top.teamId
+          const name = nationNameIn('en', top.teamId)
           const yours = state.natTeam === top.teamId
           if (yours && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 12, 0, 100)
           state.news.push({
@@ -1927,11 +1927,11 @@ export function processWeekAndAdvance(state: GameState) {
               ? `Five from five. A GRAND SLAM for ${name}, and your name goes on it forever. Titles are won most years; Slams are remembered in decades. Enjoy every minute of the week that follows.`
               : `${name} complete the Grand Slam - five wins from five. The rest of the championship applauds through gritted teeth.`,
             k: yours ? 'news.slamYours' : 'news.slam',
-            v: { nation: name },
+            v: { ...nationVars(top.teamId) },
           })
         }
         if (bottom && bottom.w === 0 && bottom.d === 0) {
-          const name = nationByCode(bottom.teamId)?.name ?? bottom.teamId
+          const name = nationNameIn('en', bottom.teamId)
           const yours = state.natTeam === bottom.teamId
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -1940,7 +1940,7 @@ export function processWeekAndAdvance(state: GameState) {
               ? `Five defeats from five. The Wooden Spoon is ${name}'s - and yours. The union's review lands next week, and the press will not be gentle. Something has to change, starting with the result.`
               : `${name} finish the championship without a win and take the Wooden Spoon home. Their review will be brutal.`,
             k: yours ? 'news.spoonYours' : 'news.spoon',
-            v: { nation: name },
+            v: { ...nationVars(bottom.teamId) },
           })
         }
       }
@@ -1956,7 +1956,7 @@ export function processWeekAndAdvance(state: GameState) {
     if (trc && state.week === penultWk) {
       const leader = sortTable(trc.table)[0]
       if (leader && leader.w === 5 && leader.d === 0 && leader.l === 0) {
-        const name = nationByCode(leader.teamId)?.name ?? leader.teamId
+        const name = nationNameIn('en', leader.teamId)
         const yours = state.natTeam === leader.teamId
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -1965,7 +1965,7 @@ export function processWeekAndAdvance(state: GameState) {
             ? `Five from five in the hardest championship on earth, one to play. Win it and your side join the shortest of lists. The south does not hand these out.`
             : `${name} have won all five and can complete a Southern Championship clean sweep in the final round. The southern hemisphere holds its breath.`,
           k: yours ? 'news.sweepEveYours' : 'news.sweepEve',
-          v: { nation: name },
+          v: { ...nationVars(leader.teamId) },
         })
       }
     }
@@ -1974,7 +1974,7 @@ export function processWeekAndAdvance(state: GameState) {
       if (fx.length && fx.every(f => f.played)) {
         const top = sortTable(trc.table)[0]
         if (top && top.w === 6) {
-          const name = nationByCode(top.teamId)?.name ?? top.teamId
+          const name = nationNameIn('en', top.teamId)
           const yours = state.natTeam === top.teamId
           if (yours && state.natConfidence != null) state.natConfidence = clamp(state.natConfidence + 10, 0, 100)
           state.news.push({
@@ -1984,7 +1984,7 @@ export function processWeekAndAdvance(state: GameState) {
               ? `Six from six against the best the south can field. A clean sweep of the Southern Championship, and your name on it. In a hundred years they will still be reading this list out.`
               : `${name} complete a perfect Southern Championship - six wins from six. The other three nations go home to their reviews.`,
             k: yours ? 'news.sweepYours' : 'news.sweep',
-            v: { nation: name },
+            v: { ...nationVars(top.teamId) },
           })
         }
       }
@@ -2007,7 +2007,7 @@ export function processWeekAndAdvance(state: GameState) {
           p.morale = clamp(p.morale + 1, 1, 10)
           p.wcWins = (p.wcWins ?? 0) + 1
         }
-        const champName = nationByCode(champ)?.name ?? champ
+        const champName = nationNameIn('en', champ)
         const names = winners.map(p => p.name).join(', ')
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
@@ -2019,7 +2019,7 @@ export function processWeekAndAdvance(state: GameState) {
             `Whatever happens for the rest of ${winners.length === 1 ? 'his' : 'their'} career${winners.length > 1 ? 's' : ''}, nobody can take this away.`,
           ].join(' '),
           k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.wcHomeA' : 'news.wcHomeB',
-          v: { n: winners.length, nation: champName, names },
+          v: { n: winners.length, ...nationVars(champ), names },
           playerId: winners[0].id,
         })
       }
@@ -2036,7 +2036,7 @@ export function processWeekAndAdvance(state: GameState) {
         : wcFx.some(f => f.stage === 'SF') ? 4
         : wcFx.some(f => f.stage === 'QF') ? 8
         : 16
-      const name = nationByCode(nat)?.name ?? nat
+      const name = nationNameIn('en', nat)
       const finishWord = deepest === 1 ? 'WORLD CHAMPIONS' : deepest === 2 ? 'beaten finalists'
         : deepest === 4 ? 'semi-finalists' : deepest === 8 ? 'quarter-finalists' : 'out in the pools'
       const parWord = seed > 0 && deepest < seed ? 'You over-delivered on the seeding, and the country knows it.'
@@ -2053,7 +2053,7 @@ export function processWeekAndAdvance(state: GameState) {
           subject: deepest === 1 ? `🏆 ${name}: CHAMPIONS OF THE WORLD` : `🌍 World Championship post-mortem: ${name}`,
           k: deepest === 1 ? 'news.wcWon' : seed > 0 ? 'news.wcOutSeeded' : 'news.wcOut',
           v: {
-            nation: name, seed,
+            ...nationVars(nat), seed,
             finish_k: deepest === 1 ? 'news.wcFinChamps' : deepest === 2 ? 'news.wcFinBeaten'
               : deepest === 4 ? 'news.wcFinSemi' : deepest === 8 ? 'news.wcFinQuarter' : 'news.wcFinPools',
             par_k: seed > 0 && deepest < seed ? 'news.wcParOver'
@@ -2127,7 +2127,7 @@ export function processWeekAndAdvance(state: GameState) {
       const oppId = otherSf?.played
         ? (otherSf.homeScore > otherSf.awayScore ? otherSf.homeId : otherSf.awayId)
         : null
-      const oppName = oppId ? (state.clubs[oppId]?.name ?? nationByCode(oppId)?.name ?? oppId) : null
+      const oppName = oppId ? (state.clubs[oppId]?.name ?? nationNameIn('en', oppId)) : null
       const v = state.clubs[mine] ? finalVenue(state, sf.compId) : null
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -3023,20 +3023,20 @@ export function processWeekAndAdvance(state: GameState) {
       const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)
       if (round.length) {
         const order = sortTable(state.comps['sn'].table)
-        const leader = order[0] ? nationByCode(order[0].teamId)?.name : null
+        const leader = order[0] ? nationNameIn('en', order[0].teamId) : null
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
           subject: `🏆 Northern Championship round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
           body: [
-            ...round.map(f => `${nationByCode(f.homeId)?.name} ${f.homeScore}–${f.awayScore} ${nationByCode(f.awayId)?.name}`),
+            ...round.map(f => `${nationNameIn('en', f.homeId)} ${f.homeScore}–${f.awayScore} ${nationNameIn('en', f.awayId)}`),
             leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',
           ].filter(Boolean).join('\n'),
           k: leader ? 'news.snRoundLeader' : 'news.snRound',
           v: {
             n: SIX_NATIONS_WEEKS.indexOf(state.week) + 1,
             rows_ll: JSON.stringify(round.map(f => ({
-              k: 'news.snRow', home: nationByCode(f.homeId)?.name ?? f.homeId,
-              hs: f.homeScore, as: f.awayScore, away: nationByCode(f.awayId)?.name ?? f.awayId,
+              k: 'news.snRow', home: nationNameIn('en', f.homeId),
+              hs: f.homeScore, as: f.awayScore, away: nationNameIn('en', f.awayId),
             }))),
             leader: leader ?? '',
             sight_k: order[0] && order[0].p >= 4 ? 'news.snSight' : 'common.nothing',

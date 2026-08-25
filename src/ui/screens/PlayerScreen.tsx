@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms, talkToPlayer } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
-import { flagOf, nationByCode } from '../../game/nations'
+import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { loanOut, loanRecall } from '../../game/loans'
@@ -99,7 +99,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               {p.alt.length > 0 && <span className="muted">{t('player.alsoPlays', { pos: p.alt.join(', ') })}</span>}
             </div>
             <div className="meta" style={{ marginTop: 3 }}>
-              {t('player.natLine', { flag: flagOf(p.nat), country: nationByCode(p.nat)?.name ?? p.nat, age: p.age })}
+              {t('player.natLine', { flag: flagOf(p.nat), country: nationName(p.nat), age: p.age })}
               {p.intl ? t('player.international') : ''}{p.youth ? t('player.academyGrad') : ''}
             </div>
             {club && (
