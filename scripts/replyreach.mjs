@@ -90,6 +90,42 @@ try {
   const applyBtns = page.locator('.card button:has-text("Apply")')
   const n = await applyBtns.count()
   ok(n >= 5, `the vacancy list renders every job (${n} Apply buttons)`)
+
+  // The club's answer is a seeded roll - mulberry32(seed ^ (week*31 + club.rep))
+  // against a chance clamped to [0.05, 0.95] - so the probe picks the seed and
+  // tests BOTH answers. The first cut took whichever answer the career's random
+  // seed gave, which left the hired path untested until a main run landed on a
+  // hiring seed and found "You're in. Welcome to Gloucester RFC." rendering
+  // 901px off-screen: a hire removes the vacancy from the pile, so its reply
+  // falls back to the slot above the list, out of sight of the thumb that asked.
+  const readCards = () => page.evaluate(() => {
+    const g = window.rugbyStore.getState().game
+    return g.vacancies
+      .filter(v => !v.passed && !v.applied && g.clubs[v.clubId])
+      .map(v => ({ clubId: v.clubId, rep: g.clubs[v.clubId].rep }))
+      .sort((a, b) => b.rep - a.rep) // the screen's own order
+  })
+  /** Force the next application at this club to land in [lo, hi). */
+  const rigSeed = (rep, lo, hi) => page.evaluate(([rep, lo, hi]) => {
+    const g = window.rugbyStore.getState().game
+    const roll = (seed) => { // mulberry32's first output, as jobs.ts draws it
+      let a = ((seed ^ (g.week * 31 + rep)) >>> 0)
+      a = (a + 0x6d2b79f5) | 0
+      let t = Math.imul(a ^ (a >>> 15), 1 | a)
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    }
+    for (let s = 1; s < 200000; s++) {
+      const r = roll(s)
+      if (r >= lo && r < hi) { g.seed = s; return s }
+    }
+    return null
+  }, [rep, lo, hi])
+
+  // ---- refusal on the LAST card: the reply lands in that card, by the thumb ----
+  let cards = await readCards()
+  ok(await rigSeed(cards[cards.length - 1].rep, 0.96, 1) != null,
+    'a seed exists on which the last club says no')
   const last = applyBtns.nth(n - 1)
   await last.scrollIntoViewIfNeeded()
   const btnBox = await last.boundingBox()
@@ -99,7 +135,7 @@ try {
   // Assert on the rendered reply itself rather than on guessed wording: the
   // club's answer is one of several sentences (hired, passed, already applied)
   // and the first cut of this probe failed on needles, not on behaviour.
-  const jobReplies = await page.evaluate(() => [...document.querySelectorAll('.sheet-log')].map(e => {
+  const readReplies = () => page.evaluate(() => [...document.querySelectorAll('.sheet-log')].map(e => {
     const r = e.getBoundingClientRect()
     return {
       text: (e.textContent ?? '').replace(/\s+/g, ' ').trim(),
@@ -107,6 +143,7 @@ try {
       onScreen: r.bottom > 0 && r.top < window.innerHeight && r.height > 0,
     }
   }))
+  const jobReplies = await readReplies()
   ok(jobReplies.length === 1,
     `Jobs: the tap produces exactly one answer, in one card (${jobReplies.length})`)
   // length check as well as every(): every() on an empty array is true, so the
@@ -117,6 +154,24 @@ try {
     const d = Math.abs(jobReplies[0].top - btnBox.y)
     ok(d < 420, `Jobs: it lands beside the button that asked (${Math.round(d)}px away)`)
   } else ok(false, 'Jobs: no visible reply to measure against the button')
+
+  // ---- hire on the new bottom card: the card leaves the pile, and the answer
+  // must bring the screen to itself rather than sit 900px above the thumb ----
+  cards = await readCards() // the refused club is applied now, so it has left this list
+  const hireClub = cards[cards.length - 1]
+  ok(await rigSeed(hireClub.rep, 0, 0.05) != null,
+    'a seed exists on which the bottom club says yes')
+  const hireBtn = applyBtns.nth(n - 2) // the screen sorts by rep, so bottom-most un-applied
+  await hireBtn.scrollIntoViewIfNeeded()
+  await hireBtn.click()
+  await page.waitForTimeout(300)
+  const hired = await page.evaluate(() => window.rugbyStore.getState().game.userClubId)
+  ok(hired === hireClub.clubId, `Jobs: the rigged application succeeds (now at ${hired})`)
+  const hireReplies = await readReplies()
+  ok(hireReplies.length === 1,
+    `Jobs: the hire produces exactly one answer (${hireReplies.length})`)
+  ok(hireReplies.length > 0 && hireReplies.every(h => h.onScreen),
+    `Jobs: and the welcome is on screen ("${hireReplies[0]?.text.slice(0, 48) ?? 'none'}")`)
 
   // ---- OFFERS: one answer, one card ----
   const offers = await page.evaluate(() => {
