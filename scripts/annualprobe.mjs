@@ -109,9 +109,30 @@ try {
     let lastMark = ''
     let movedAt = Date.now()
     window.__annualStall = null
+    try {
+    const startSeason = window.rugbyStore.getState().game?.season ?? 0
     for (let guard = 0; guard < 20000; guard++) {
       const st = window.rugbyStore.getState()
       if (!st.game || st.game.annual) break
+      // THE PROBE'S SUBJECT IS THE GATE, NOT SURVIVAL. Autopilot - instant
+      // results, press unanswered, the board ignored - gets sacked about every
+      // other run, and a sacked manager gets no Annual: rollover.ts stamps it
+      // only when employed. So the loop rolled through twenty-seven seasons of
+      // unemployment and the guard ran out in silence. That, not load, was
+      // every "passed alone, failed in the suite" this probe has ever had.
+      // Keep the board content; survival is careerprobe's business.
+      const club = st.game.clubs?.[st.game.userClubId]
+      if (club && !st.game.unemployed) club.boardConfidence = Math.max(club.boardConfidence ?? 50, 70)
+      // and if the gate STILL fails to engage, say the true thing loudly: a
+      // rollover has happened and no Annual was stamped
+      if ((st.game.season ?? 0) > startSeason) {
+        window.__annualStall = `rolled into season ${st.game.season} with no Annual (unemployed: ${!!st.game.unemployed})`
+        break
+      }
+      if (st.game.unemployed) {
+        window.__annualStall = `the manager was sacked in week ${st.game.week} - no club, no Annual`
+        break
+      }
       const lm = st.liveMatch
       const mark = [
         (st.game.season ?? 0) * 100 + (st.game.week ?? 0),
@@ -133,6 +154,12 @@ try {
       else if (screen === 'matchday') { st.instantResult() }
       else st.continueWeek()
       await new Promise(r => setTimeout(r, 5))
+      if (guard === 19999) window.__annualStall = 'the 20000-iteration guard ran out - the loop was alive but the season never ended'
+    }
+    } catch (e) {
+      // the loop used to die into a silent catch and surface three asserts
+      // later as a failure about the Annual. Name the actual killer.
+      window.__annualStall = `the drive loop THREW: ${e && e.stack ? e.stack.split('\n').slice(0, 4).join(' | ') : e}`
     }
   }).catch(() => {})
   await page.waitForTimeout(600)
