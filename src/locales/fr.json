@@ -769,7 +769,7 @@
     "derbyBody": "Les statistiques partent à la poubelle, les cartons sortent, et la ville retient le score plus longtemps que le classement.",
     "derbyFirst": " Votre premier. Gagnez-le et ils chanteront votre nom ; perdez-le et ils s'en souviendront aussi.",
     "derbyLedger": " Votre bilan contre {club} : ",
-    "derbyTag": " · {derby} - attendez-vous à un chaudron",
+    "derbyTag": "{derby} - attendez-vous à un chaudron",
     "doneChanges": {
       "one": "▸ Terminé ({n} changement effectué)",
       "other": "▸ Terminé ({n} changements effectués)"

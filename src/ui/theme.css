@@ -1752,6 +1752,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @keyframes kc-verdict-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes kc-fade { 0% { opacity: 0; } 10% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 
+/* The derby billing on the match-day card: its own line, its own colour,
+   and it wraps like a sentence rather than trailing off the weather. */
+.derby-line { color: var(--danger); line-height: 1.45; }
+.derby-line b { font-weight: 700; }
+
 /* ---- the now-line: one commentary line at a time, broadcast style ---- */
 .now-line {
   display: flex; gap: 10px; align-items: flex-start;
