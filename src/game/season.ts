@@ -3119,14 +3119,14 @@ export function processWeekAndAdvance(state: GameState) {
       state.objDone.push(id)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: `✅ Board objective met: ${tIn('en', def.text(state)).split(':')[0]}`,
-        body: `One of the season's briefs is in the bank: "${tIn('en', def.text(state))}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
+        subject: `✅ Board objective met: ${tIn('en', def.textKey(state)).split(':')[0]}`,
+        body: `One of the season's briefs is in the bank: "${tIn('en', def.textKey(state))}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
         k: 'news.objectiveMet',
         // The headline used to be the objective rendered to English and cut at
         // its colon, so the subject line was English in a French inbox. Each
         // objective has its own short form now; splitting a sentence on
         // punctuation is not a translation strategy.
-        v: { head_k: `${def.text(state)}Head`, text_k: def.text(state) },
+        v: { head_k: `${def.textKey(state)}Head`, text_k: def.textKey(state) },
       })
     }
   }

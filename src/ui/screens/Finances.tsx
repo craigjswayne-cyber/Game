@@ -336,7 +336,7 @@ export default function Finances() {
             <div key={id} style={{ display: 'flex', gap: 8, marginTop: 8, fontSize: 12.5, alignItems: 'flex-start' }}>
               <span>{done ? '✅' : ok ? '🕗' : '⬜'}</span>
               <span style={{ color: done ? 'var(--text-positive)' : 'var(--text-secondary)' }}>
-                {t(def.text(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
+                {t(def.textKey(game))}{ok && !def.banked ? t('finances.onCourseSettled') : ''}
                 {' '}<b style={{ color: 'var(--text-muted)' }}>{t('finances.objReward')}</b>
               </span>
             </div>
