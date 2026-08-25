@@ -1283,8 +1283,8 @@ export function rebuildSeason(state: GameState) {
         const ok = def.met(state)
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
         if (ok) { objBonus += 250_000; state.boardOwed = true }
-        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.text(state))}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
-        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.text(state) })
+        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.textKey(state))}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
+        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state) })
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
