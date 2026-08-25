@@ -30,7 +30,7 @@
 //   every one of those would need a special case. state.academy is invisible until
 //   the Academy screen asks for it.
 import type { Club, GameState, Player, Pos, TableRow } from './model'
-import { type Vars } from './i18n'
+import { t, type Vars } from './i18n'
 import { clamp, mulberry32, type Rng } from './rng'
 import { facLevel, XV_SLOTS } from './model'
 // A League fixtures share the senior league's match weeks: in the real game the A
@@ -249,6 +249,13 @@ export function buildAcademyLeague(state: GameState, seed: number): AcadLeague |
     fixtures,
     table: teams.map(emptyRow),
   }
+}
+
+/** The competition's name in the reader's language. `name` on the record is
+ *  built once and saved, so it is English wherever it was built - and it is
+ *  what the Academy screen was printing. */
+export function acadLeagueName(state: GameState, l: AcadLeague): string {
+  return t('report.acLeagueName', { comp: state.comps[l.leagueId]?.short ?? '' })
 }
 
 /** Ensure the A League exists and belongs to this season and this league. Called
@@ -472,12 +479,19 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
     ].filter(Boolean).join('\n'),
     k: pos > 0 ? 'news.aLeaguePos' : 'news.aLeague',
     v: {
-      scores: mine.map(f => {
+      // the subject's " v " is English and l.name ends in "A League", so both
+      // travel as fragments: the scoreline as a list, the competition as its
+      // short name with each language supplying its own word for the grade
+      scores_l: JSON.stringify(mine.map(f => {
         const hm = f.homeId === state.userClubId
-        return `${hm ? f.homeScore : f.awayScore}-${hm ? f.awayScore : f.homeScore} v ${clubName(state, hm ? f.awayId : f.homeId)}`
-      }).join(', '),
+        return {
+          k: 'news.aScore',
+          us: hm ? f.homeScore : f.awayScore, them: hm ? f.awayScore : f.homeScore,
+          opp: clubName(state, hm ? f.awayId : f.homeId),
+        }
+      })),
       coach_k: coachName ? 'news.aCoachNamed' : 'news.aCoachAnon', coach: coachName ?? '',
-      rows_ll: JSON.stringify(rows), pos_o: pos, comp: l.name, tail_k: tailKey,
+      rows_ll: JSON.stringify(rows), pos_o: pos, comp: state.comps[l.leagueId]?.short ?? '', tail_k: tailKey,
     },
     playerIds: ids.slice(0, 6),
   })

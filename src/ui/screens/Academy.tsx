@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { fixtureDate } from '../../game/model'
 import { CrestT, PosBadge, SectionTitle, Stars } from '../components'
-import { acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
+import { acadLeagueName, acadStandings, academySquad, academyStrength, academyXV, ensureAcademyLeague, ACADEMY_SIZE } from '../../game/academy'
 import { ord, t } from '../../game/i18n'
 
 /** The academy section: the squad, the A League table, and the fixtures.
@@ -46,7 +46,7 @@ export default function Academy() {
         <div className="meta">
           {t('report.acRegistered', { n: squad.length, max: ACADEMY_SIZE })}
           {coach ? t('report.acCoachRuns', { name: coach }) : t(level > 0 ? 'report.acCoachGeneric' : 'report.acNoCoach')}
-          {l ? (pos > 0 ? t('report.acLeaguePos', { league: l.name, pos: ord(pos) }) : t('report.acLeagueNoPos', { league: l.name })) : ''}
+          {l ? (pos > 0 ? t('report.acLeaguePos', { league: acadLeagueName(game, l), pos: ord(pos) }) : t('report.acLeagueNoPos', { league: acadLeagueName(game, l) })) : ''}
         </div>
         <div className="meta">
           {t('report.acStrength', { n: Math.round(academyStrength(game, club)) })}
@@ -87,7 +87,7 @@ export default function Academy() {
 
       {tab === 'table' && l && (
         <>
-          <SectionTitle sub={l.champion ? t('fixtures.champions', { club: teamShort(game, l.champion) }) : t('report.acPlayedOf', { played: l.fixtures.filter(f => f.played).length, total: l.fixtures.length })}>{l.name}</SectionTitle>
+          <SectionTitle sub={l.champion ? t('fixtures.champions', { club: teamShort(game, l.champion) }) : t('report.acPlayedOf', { played: l.fixtures.filter(f => f.played).length, total: l.fixtures.length })}>{acadLeagueName(game, l)}</SectionTitle>
           <div className="tblwrap"><table className="dtable">
             <thead><tr><th>{t('tables.colRank')}</th><th>{t('tables.colTeam')}</th><th className="num">{t('tables.colP')}</th><th className="num">{t('common.w')}</th>
               <th className="num">{t('common.d')}</th><th className="num">{t('common.l')}</th><th className="num">{t('tables.colDiff')}</th>
