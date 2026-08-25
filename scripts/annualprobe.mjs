@@ -92,17 +92,37 @@ try {
     // machine. It failed inside the suite and passed alone on the identical
     // build, twice, which is the signature.
     //
-    // So the stall is eight SECONDS of the week not moving. That number means
-    // the same thing on a loaded machine as on an empty one, which is the only
-    // property that matters here.
-    let lastWeek = -1
+    // So the stall is counted in SECONDS, which means the same thing on a loaded
+    // machine as on an empty one. That was right and still not enough: it
+    // watched the WEEK, and the week is the one thing that legitimately does
+    // not move while a match is being resolved. Deep in the browser suite, a
+    // matchday can spend longer than the stall window with the loop working
+    // perfectly - and it failed on main, having passed alone on the same build,
+    // for the fourth time in this loop's life.
+    //
+    // Progress is now anything moving: the week, the match appearing or
+    // finishing, its cursor advancing through the events, the screen changing.
+    // A stall is none of those for twenty seconds, and the loop SAYS it stalled
+    // rather than leaving the next reader to infer it from a failed assertion
+    // three lines further down - which is how the last three of these were
+    // diagnosed, slowly and twice.
+    let lastMark = ''
     let movedAt = Date.now()
+    window.__annualStall = null
     for (let guard = 0; guard < 20000; guard++) {
       const st = window.rugbyStore.getState()
       if (!st.game || st.game.annual) break
-      const clock = (st.game.season ?? 0) * 100 + (st.game.week ?? 0)
-      if (clock !== lastWeek) { lastWeek = clock; movedAt = Date.now() }
-      else if (Date.now() - movedAt > 8000) break
+      const lm = st.liveMatch
+      const mark = [
+        (st.game.season ?? 0) * 100 + (st.game.week ?? 0),
+        lm ? `m${lm.cursor}${lm.done ? 'd' : ''}` : 'no-match',
+        st.nav[st.nav.length - 1]?.screen ?? '',
+      ].join('|')
+      if (mark !== lastMark) { lastMark = mark; movedAt = Date.now() }
+      else if (Date.now() - movedAt > 20000) {
+        window.__annualStall = `nothing moved for 20s at ${mark} (iteration ${guard})`
+        break
+      }
       for (const o of st.game.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
       for (const n of st.game.news) { n.read = true }
       for (const q of st.game.press) q.answered = true
@@ -116,6 +136,12 @@ try {
     }
   }).catch(() => {})
   await page.waitForTimeout(600)
+
+  // if the settle loop gave up, say so HERE. Every previous time this happened
+  // it surfaced as "the rollover stamped the Annual" failing, which is a true
+  // statement about a symptom and tells you nothing about the cause.
+  const stalled = await page.evaluate(() => window.__annualStall ?? null)
+  if (stalled) console.log(`  note  the settle loop stalled: ${stalled}`)
 
   const annualSet = await page.evaluate(() => !!window.rugbyStore.getState().game.annual)
   if (!annualSet) {
