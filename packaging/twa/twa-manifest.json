@@ -7,7 +7,13 @@
     "updated again). See README.md in this folder.",
     "",
     "appVersionCode goes UP by one on every upload, forever. Play rejects a",
-    "repeat, and a mismatched pair is the most common failed upload there is."
+    "repeat, and a mismatched pair is the most common failed upload there is.",
+    "",
+    "It is 1 because nothing has been uploaded yet. appVersionName tracks the",
+    "release the game calls itself (package.json, and the build stamp on the",
+    "title screen); appVersionCode counts UPLOADS, not releases, so it becomes",
+    "2 on the second thing Play ever receives - even if that is the same",
+    "appVersionName rebuilt."
   ],
   "packageId": "com.phaserugbymanager.app",
   "host": "REPLACE-ME.github.io",
@@ -33,7 +39,7 @@
     "path": "./android.keystore",
     "alias": "phase"
   },
-  "appVersionName": "1.0.5",
+  "appVersionName": "1.0.6",
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",

@@ -2,7 +2,7 @@
 
 First audited 2026-08-22 at commit 52fa566, against v1.0.1. Kept current since:
 the IP rename landed in v1.0.3, the store surfaces in v1.0.4, and the language
-work in v1.0.5 - see the addendum at the end, which is where anything newer
+work in v1.0.5 and shipped as v1.0.6 - see the addendum at the end, which is where anything newer
 than the original audit is recorded rather than edited into it.
 
 Audit date: 2026-08-22, at commit 52fa566. Conducted as a store-submission audit
@@ -549,9 +549,14 @@ probes.
 through the content as well as the interface, guarded by the five probes above.
 The store listing may declare French support without qualification.
 
-**A version question, not an engineering one.** v1.0.5 was set before this work
-was done, and the work is a content release rather than a patch - the whole
-inbox, the whole commentary, the decision history. Whether that ships as 1.0.5
-or as something larger is the owner's call; nothing in the repository depends on
-the answer, and `appVersionCode` in the TWA manifest goes up by one either way.
+**The version: 1.0.6.** v1.0.5 was set before this work was done, and what
+landed is a content release rather than a patch - the whole inbox, the whole
+commentary, the decision history, plus the pitch and plural fixes. The owner
+called it as 1.0.6 on 25 August, and package.json, the TWA manifest and the
+service worker cache all say so. The title screen's build stamp is defined from
+package.json in vite.config.ts, so it cannot drift from it.
+
+`appVersionCode` stays at 1, because it counts UPLOADS rather than releases and
+nothing has been uploaded yet. It becomes 2 on the second thing Play receives,
+even if that is this same version rebuilt.
 

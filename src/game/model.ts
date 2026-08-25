@@ -1579,7 +1579,8 @@ export function closeNatTenure(state: GameState) {
  *  this change - or a story the engine assembled by appending to another - has.
  *
  *  The fallback is not a stopgap to be removed later. Careers are on the device
- *  and live for years, and a save begun in v1.0.5 will still be opened in v2. */
+ *  and live for years, and a save begun on the release that shipped this will
+ *  still be opened in v2. */
 export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
 export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
 
