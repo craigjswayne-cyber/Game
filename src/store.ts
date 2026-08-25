@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
 import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i18n'
-import { LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
+import { EDITOR_SKU, LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
 import { applyCharter, applyInjection, type InjectTier } from './game/grants'
+import { editClub as editorClubWrite, editPlayer as editorPlayerWrite, type ClubEdit, type PlayerEdit } from './game/editor'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
@@ -51,7 +52,7 @@ export type Screen =
   | 'offers' | 'academy' | 'day' | 'draw' | 'annual'
   // the two the store release added: what this is and who made it, and the one
   // till in the game (which has a door only where a store exists to open it)
-  | 'about' | 'supporter'
+  | 'about' | 'supporter' | 'editor'
 
 interface NavEntry {
   screen: Screen
@@ -171,6 +172,11 @@ interface Store {
   boardInject: (tier: InjectTier) => boolean
   /** The Owner's Charter, applied to this save for good. */
   signCharter: () => boolean
+  /** In-Game Editor writes (game/editor.ts): clamped, stamped, and refused
+   *  outright without the receipt - the engine functions are free code, the
+   *  door is not. */
+  editorPlayer: (id: number, edit: PlayerEdit) => boolean
+  editorClub: (clubId: string, edit: ClubEdit) => boolean
   toggleShortlist: (playerId: number) => void
   /** Put a loaded save in play. keepPlace is Continue: resume the bookmarked
    *  screen instead of Home. */
@@ -1107,6 +1113,22 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g) return false
     const done = applyCharter(g)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  editorPlayer: (id, edit) => {
+    const g = get().game
+    if (!g || !hasEntitlement(EDITOR_SKU)) return false
+    const done = editorPlayerWrite(g, id, edit)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  editorClub: (clubId, edit) => {
+    const g = get().game
+    if (!g || !hasEntitlement(EDITOR_SKU)) return false
+    const done = editorClubWrite(g, clubId, edit)
     if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return done
   },

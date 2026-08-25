@@ -58,7 +58,8 @@
     "training": "Training & Staff",
     "transfers": "Transfer Centre",
     "unemployed": "Unemployed",
-    "wire": "News"
+    "wire": "News",
+    "editor": "Editor"
   },
   "groups": {
     "about": "About & legal",
@@ -5327,6 +5328,40 @@
     "licenseThanks": "Thank you. The final step of your next new career will offer it.",
     "stampLicensed": "Licensed start",
     "stampEdited": "Edited world",
-    "stampCharter": "Owner's Charter"
+    "stampCharter": "Owner's Charter",
+    "editorTitle": "In-Game Editor",
+    "editorSub": "your world, your rules",
+    "editorBody": "Unlock the Editor on the Game Status screen: edit player attributes, ages and positions, rename players, clubs and stadiums, set kit colours, budgets and balances - in any save. The first change stamps that save with a small 🔧, permanently, and everything still counts.",
+    "editorOwned": "The Editor is yours. Its door is on the Game Status screen, in every career.",
+    "editorThanks": "Thank you. The Editor's door is now on the Game Status screen."
+  },
+  "editor": {
+    "locked": "The Editor is not unlocked on this device. It lives on the Supporter page, where there is a store to buy it from.",
+    "warning": "Your world, your rules: names, kits, attributes and money, rewritten by hand. The first change stamps this save with a small 🔧, permanently - records and dreams still count, and the badge says how they were built.",
+    "stamped": "🔧 This world has been edited. The stamp is part of the save now; everything still counts, and the badge says how it was built.",
+    "clubTitle": "Clubs",
+    "clubSub": "names, colours and money",
+    "playerTitle": "Players",
+    "playerSub": "the man, remade",
+    "pickPlayer": "Choose a player…",
+    "fldName": "Name",
+    "fldShort": "Short name",
+    "fldStadium": "Stadium",
+    "fldColours": "Kit colours",
+    "fldBudget": "Transfer budget (£)",
+    "fldBalance": "Bank balance (£)",
+    "fldAge": "Age",
+    "fldPosition": "Position",
+    "fldAbility": "Ability (1-100)",
+    "fldPotential": "Potential (1-100)",
+    "fldAttrs": "Attributes (1-100)",
+    "apply": "Apply the changes",
+    "applied": "Written: {what} is as you set it. Out-of-range figures were brought into range.",
+    "refused": "Nothing was written - the Editor is not unlocked on this device.",
+    "nowMoney": "Budget {budget}, balance {balance}.",
+    "doorTitle": "In-Game Editor",
+    "doorBody": "Unlocked on this account. The first change stamps the save with a small 🔧, permanently.",
+    "doorStamped": "🔧 This save has been edited. The Editor is open as ever.",
+    "doorOpen": "Open the Editor"
   }
 }

@@ -21,6 +21,7 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { applyCharter, applyInjection, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
 import { capPosition } from '../src/game/cap'
+import { editClub, editPlayer } from '../src/game/editor'
 import { mgrReputation, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
 
@@ -140,6 +141,27 @@ console.log('\n--- 7. a licensed save is a proven name from day one\n')
   ok(rep < 40, `an unlicensed fresh career still starts cold (${rep})`)
   cold.licensed = true
   ok(mgrReputation(cold) === 95, 'licensed, the same career is at the top of the scale (95)')
+}
+
+console.log("\n--- 8. the Editor writes are clamped, and the first one stamps\n")
+{
+  const g = newGame('northampton', 'Grant Probe', 7107)
+  ok(!g.edited, 'a fresh save is unstamped')
+  const pid = g.clubs[g.userClubId].players[0]
+  const p = g.players[pid]!
+  ok(editPlayer(g, pid, { name: '   ', age: 99, ca: 400, pa: -3, attrs: { pac: 1000 } }),
+    'an edit full of nonsense is accepted rather than thrown')
+  ok(p.name.length > 0, 'but a blank rename never lands - the old name survives')
+  ok(p.age === 45 && p.ca === 100 && p.pa === 100 && p.a.pac === 100,
+    'and every number is brought into the range the engine was balanced for')
+  ok(g.edited === true, 'the first edit stamps the save for good')
+  const c = g.clubs[g.userClubId]
+  editClub(g, c.id, { budget: -5, balance: -2_000_000, colors: ['#12ab34', 'not-a-colour'] })
+  ok(c.budget === 0 && c.balance === -2_000_000,
+    'a budget floors at nothing, a balance may honestly be under water')
+  ok(c.colors[0] === '#12ab34' && c.colors[1] !== 'not-a-colour',
+    'a real colour lands and a non-colour is ignored, never painted')
+  ok(!editPlayer(g, 999999, { age: 20 }), 'a player who does not exist is refused, not invented')
 }
 
 if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }

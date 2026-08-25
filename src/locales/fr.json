@@ -58,7 +58,8 @@
     "training": "Entraînement et staff",
     "transfers": "Centre des transferts",
     "unemployed": "Sans club",
-    "wire": "Actualités"
+    "wire": "Actualités",
+    "editor": "Éditeur"
   },
   "groups": {
     "about": "À propos",
@@ -5327,6 +5328,40 @@
     "licenseThanks": "Merci. La dernière étape de votre prochaine nouvelle carrière le proposera.",
     "stampLicensed": "Départ sous licence",
     "stampEdited": "Monde édité",
-    "stampCharter": "Charte du propriétaire"
+    "stampCharter": "Charte du propriétaire",
+    "editorTitle": "Éditeur intégré",
+    "editorSub": "votre monde, vos règles",
+    "editorBody": "Débloquez l'Éditeur sur l'écran État de la partie : modifiez attributs, âges et postes des joueurs, renommez joueurs, clubs et stades, réglez couleurs de maillot, budgets et soldes - dans n'importe quelle sauvegarde. La première modification marque cette sauvegarde d'un petit 🔧, définitivement, et tout compte encore.",
+    "editorOwned": "L'Éditeur est à vous. Sa porte se trouve sur l'écran État de la partie, dans chaque carrière.",
+    "editorThanks": "Merci. La porte de l'Éditeur se trouve désormais sur l'écran État de la partie."
+  },
+  "editor": {
+    "locked": "L'Éditeur n'est pas débloqué sur cet appareil. Il se trouve sur la page Soutien, là où une boutique permet de l'acheter.",
+    "warning": "Votre monde, vos règles : noms, maillots, attributs et finances, réécrits à la main. La première modification marque cette sauvegarde d'un petit 🔧, définitivement - les records et les rêves comptent toujours, et l'insigne dit comment ils ont été bâtis.",
+    "stamped": "🔧 Ce monde a été édité. La marque fait désormais partie de la sauvegarde ; tout compte encore, et l'insigne dit comment cela a été bâti.",
+    "clubTitle": "Clubs",
+    "clubSub": "noms, couleurs et finances",
+    "playerTitle": "Joueurs",
+    "playerSub": "l'homme, refaçonné",
+    "pickPlayer": "Choisir un joueur…",
+    "fldName": "Nom",
+    "fldShort": "Nom court",
+    "fldStadium": "Stade",
+    "fldColours": "Couleurs du maillot",
+    "fldBudget": "Budget transferts (£)",
+    "fldBalance": "Solde bancaire (£)",
+    "fldAge": "Âge",
+    "fldPosition": "Poste",
+    "fldAbility": "Niveau (1-100)",
+    "fldPotential": "Potentiel (1-100)",
+    "fldAttrs": "Attributs (1-100)",
+    "apply": "Appliquer les modifications",
+    "applied": "Écrit : {what} est tel que vous l'avez défini. Les valeurs hors limites ont été ramenées dans les bornes.",
+    "refused": "Rien n'a été écrit : l'Éditeur n'est pas débloqué sur cet appareil.",
+    "nowMoney": "Budget {budget}, solde {balance}.",
+    "doorTitle": "Éditeur intégré",
+    "doorBody": "Débloqué sur ce compte. La première modification marque la sauvegarde d'un petit 🔧, définitivement.",
+    "doorStamped": "🔧 Cette sauvegarde a été éditée. L'Éditeur reste ouvert.",
+    "doorOpen": "Ouvrir l'Éditeur"
   }
 }
