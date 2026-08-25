@@ -180,7 +180,12 @@ try {
 
   // Into the second half, past a touchline call and past half-time, so the
   // record has real commands in it and the replay has real work to do.
-  const before = await drive(s => mins(s) >= 48, 90000, 'the match to reach the second half')
+  // A CLEAN RUNNING MOMENT, not just a minute. Stopping on `mins >= 48` alone
+  // could land while a touchline call (or the injury sheet) was up - the
+  // now-strip does not render behind a panel, so "commentary on screen" read
+  // an empty string and the held snapshot compared a panel against a match.
+  const before = await drive(s => mins(s) >= 48 && !s.decision && !s.hurt && !s.interval && !!s.nowTxt,
+    90000, 'the match to reach the second half')
   console.log(`  running: ${before.clock}, ${before.score}, on screen "${before.nowTxt.slice(0, 46)}"`)
   ok(before.onMatch && mins(before) >= 48 && !!before.nowTxt,
     `a match is running in the second half with commentary on screen (${before.clock})`)
