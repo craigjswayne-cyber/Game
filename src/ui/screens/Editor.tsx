@@ -74,8 +74,10 @@ function ClubEditor({ club }: { club: Club }) {
   const [name, setName] = useState(club.name)
   const [short, setShort] = useState(club.short)
   const [stadium, setStadium] = useState(club.stadium)
-  const [c0, setC0] = useState(club.colors[0] ?? '#888888')
-  const [c1, setC1] = useState(club.colors[1] ?? '#444444')
+  // Club.colors is a [string, string] tuple straight from data - club colours
+  // are data, not theme (tokenlint's own words), so no fallback hex exists here
+  const [c0, setC0] = useState(club.colors[0])
+  const [c1, setC1] = useState(club.colors[1])
   const [budget, setBudget] = useState(String(club.budget))
   const [balance, setBalance] = useState(String(club.balance))
   const [msg, setMsg] = useState<string | null>(null)
