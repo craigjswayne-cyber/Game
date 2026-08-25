@@ -239,17 +239,23 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   gap: 2px 10px;
 }
 .section-title > span:first-child { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
-/* A section heading PREFERS one line, and a sub squeezed below ~18 characters
-   wraps to its own line instead of ellipsizing into noise. French made the
-   old rule dishonest: "Classement mondial des nations" left the sub reading
-   "LES POINTS ..." (owner screenshot, 25 Aug) - two words and an ellipsis is
-   not a subtitle. When there is room, nothing changes; when there is not,
-   the sub takes the next line at full width.
+/* A SECTION HEADING PREFERS ONE LINE AND NEVER LIES TO GET IT.
+   Two goes at this. The old rule ellipsized a squeezed sub, which French made
+   dishonest: "Classement mondial des nations" left the sub reading "LES POINTS
+   ..." - two words and an ellipsis is not a subtitle. The first fix let a sub
+   under ~18 characters drop to its own line, and the owner's screenshot of the
+   English Test rankings showed why that was only half of it: on its own line,
+   at full width, "rating points move with every Test - upsets and knockouts
+   move them most" STILL ran out of room and still ended in "KNOCKOU...".
+   So the truncation is gone rather than relocated. The sub wraps - beside the
+   title while it fits, onto its own line when it does not, onto a second line
+   when even that is not enough. A heading one line taller is a heading; a
+   sentence cut mid-word is a defect.
    The old rule: a long sub
    could not move to a second line - it wrapped its own text instead and made the
    row two or three lines tall, which is what pushed Best XV off the Starting XV
    heading. The hint gives way before the heading or the buttons do. */
-.section-title .sub { min-width: min(18ch, 100%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.section-title .sub { min-width: min(18ch, 100%); overflow-wrap: break-word; }
 .section-title .sect-act { flex-shrink: 0; white-space: nowrap; }
 /* There WAS a 16px gold bar here, before every section heading. Under floodlights
    it ran into --gold-dark, a deep brown, and the user could not see it at all
