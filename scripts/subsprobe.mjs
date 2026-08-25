@@ -147,6 +147,25 @@ try {
     // blind press at half-time skipped the very thing being tested and left
     // the run waiting for a panel that was already gone.
     if (await atHalfTime()) { skipped = true; break }
+    // PAUSE FIRST, THEN PRESS. While the match plays, React replaces the
+    // control row's nodes on every tick, and under whole-suite CPU load a
+    // click on a node that keeps detaching times out over and over. On the
+    // failing run the fallback below then pressed Play at each interval -
+    // which LEAVES the interval - and the match rolled through half-time,
+    // the 60' break and on to full time with Skip never landed (the stuck
+    // dump read "controls [⚙]": everything else unrenders once the match is
+    // done). A paused match is a still tree, and a click on a still tree
+    // lands. This is also just what a careful thumb does.
+    await page.evaluate(() => {
+      const st = window.rugbyStore.getState()
+      if (st.liveMatch?.playing) st.matchCursor(st.liveMatch.cursor, false)
+    }).catch(() => {})
+    // the match cannot be skipped once it is over: name that state instead of
+    // grinding the remaining attempts against buttons that no longer exist
+    if (await page.evaluate(() => window.rugbyStore.getState().liveMatch?.done === true)) {
+      console.log('  the match reached FULL TIME while Skip could not be pressed - probe flow failure')
+      break
+    }
     // a short timeout inside the loop, not a check-then-act: asking
     // isEnabled() and then clicking lost the race about one run in eight,
     // because a call can land in the milliseconds between the two
@@ -177,7 +196,7 @@ try {
     const state = await page.evaluate(() => ({
       controls: [...document.querySelectorAll('.speed-controls .btn')]
         .map(b => `${(b.textContent ?? '').trim()}${b.disabled ? '(off)' : ''}`),
-      panels: ['Start Second Half', 'Take the Points', 'Full Time', 'Match Review']
+      panels: ['Start Second Half', 'Take the Points', 'Full Time', 'Match Review', 'Continue to Results']
         .filter(t => document.body.innerText.includes(t)),
       veil: document.querySelector('.modal-veil h3')?.textContent ?? null,
     }))
