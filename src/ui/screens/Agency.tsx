@@ -42,7 +42,7 @@ export default function Agency() {
         </div>
         <SectionTitle sub={t('world.agTestSub')}>{t('world.agTestTitle')}</SectionTitle>
         <div className="tblwrap"><table className="dtable">
-          <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num" style={{ paddingRight: 14 }}>{t('squad.colPts')}</th></tr></thead>
+          <thead><tr><th>{t('tables.colRank')}</th><th></th><th>{t('world.natColNation')}</th><th className="num">{t('squad.colPts')}</th></tr></thead>
           <tbody>
             {order.map((code, i) => {
               const n = nationByCode(code)

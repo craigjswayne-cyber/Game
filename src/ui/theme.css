@@ -233,16 +233,23 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
   color: var(--text-primary);
   padding: 13px 14px 5px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
-  gap: 10px;
+  gap: 2px 10px;
 }
 .section-title > span:first-child { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
-/* A section heading is one line. .section-title does not wrap, so a long sub
+/* A section heading PREFERS one line, and a sub squeezed below ~18 characters
+   wraps to its own line instead of ellipsizing into noise. French made the
+   old rule dishonest: "Classement mondial des nations" left the sub reading
+   "LES POINTS ..." (owner screenshot, 25 Aug) - two words and an ellipsis is
+   not a subtitle. When there is room, nothing changes; when there is not,
+   the sub takes the next line at full width.
+   The old rule: a long sub
    could not move to a second line - it wrapped its own text instead and made the
    row two or three lines tall, which is what pushed Best XV off the Starting XV
    heading. The hint gives way before the heading or the buttons do. */
-.section-title .sub { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.section-title .sub { min-width: min(18ch, 100%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .section-title .sect-act { flex-shrink: 0; white-space: nowrap; }
 /* There WAS a 16px gold bar here, before every section heading. Under floodlights
    it ran into --gold-dark, a deep brown, and the user could not see it at all
@@ -297,6 +304,13 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .dtable.zebra tbody tr:nth-child(even).me td,
 .dtable.zebra tbody tr.me td { background: color-mix(in srgb, var(--club1) 9%, var(--surface-1)); }
 .dtable .num { text-align: right; }
+/* THE LAST COLUMN BREATHES. Points ended 3-6px from the screen edge - inside
+   the viewport, so no probe called it clipped, but on a phone bezel it reads
+   as cut off (owner screenshot, 25 Aug: "cant see points in table"). The
+   gutter lives on the class so every data table gets it, instead of the
+   hand-placed paddingRight the nations table already carried for the same
+   reason. */
+.dtable th:last-child, .dtable td:last-child { padding-right: 16px; }
 .dtable .me td {
   background: color-mix(in srgb, var(--club1) 9%, var(--surface-1));
   color: var(--text-primary);
