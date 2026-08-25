@@ -978,6 +978,10 @@
     },
     "sixLevel": "level on points",
     "skip": "Skip ▸",
+    "skipTook": {
+      "one": "⏭ Skip answered {n} touchline call for you - the points were taken.",
+      "other": "⏭ Skip answered {n} touchline calls for you - the points were taken."
+    },
     "soundAndBuzz": "Sound and buzz",
     "soundOff": "🔇 Silent, and no buzz",
     "soundOn": "🔊 Crowd, whistle and buzz on",
@@ -1052,6 +1056,18 @@
     "tapSwapHintTest": "tap a player, tap another to swap · tap twice for the full squad",
     "tapToPick": "- tap to pick -",
     "teamTalk": "Team Talk",
+    "tenseKick": {
+      "one": "A KICK IN IT · {n} MINUTE LEFT",
+      "other": "A KICK IN IT · {n} MINUTES LEFT"
+    },
+    "tenseLevel": {
+      "one": "ALL SQUARE · {n} MINUTE LEFT",
+      "other": "ALL SQUARE · {n} MINUTES LEFT"
+    },
+    "tenseScore": {
+      "one": "ONE SCORE IN IT · {n} MINUTE LEFT",
+      "other": "ONE SCORE IN IT · {n} MINUTES LEFT"
+    },
     "testBench": "Test Bench",
     "testMatch": "Test Match - {nat}",
     "testSquadSub": "the full Test squad",
