@@ -1,10 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, mgrReputation } from '../../game/model'
 import { jobChance } from '../../game/jobs'
 import { squadValue } from '../../game/analysis'
 import { Crest, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
+
+/** The reply slot for a tap whose card is no longer in the pile. Falling back
+ *  above the list is right (the card it belongs on is gone) but the thumb that
+ *  tapped Apply on the fifth vacancy is 900px below it - which is how "You're
+ *  in. Welcome to Gloucester RFC." rendered off-screen: a HIRE removes the
+ *  vacancy from the pile, so the one sentence of the career you most want to
+ *  read fell into this slot and out of sight (replyreach.mjs caught it on the
+ *  seeds where the last application succeeds). The answer follows the reader:
+ *  when it cannot land beside the button, it brings the screen to itself. */
+function FallbackReply({ text }: { text: string }) {
+  const ref = useRef<HTMLDivElement | null>(null)
+  useEffect(() => { ref.current?.scrollIntoView({ block: 'center' }) }, [text])
+  return (
+    <div ref={ref} className="meta sheet-log" style={{ margin: '0 16px 8px', borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+      {text}
+    </div>
+  )
+}
 
 export default function Jobs() {
   const game = useStore(s => s.game)!
@@ -129,11 +147,7 @@ export default function Jobs() {
           the turned-down line and used to take the sentence with it, so you
           tapped and the screen said nothing. When the club it refers to is no
           longer in the pile, and only then, it falls back to the list. */}
-      {msg && !open.some(o => o.v.clubId === msg.key) && (
-        <div className="meta sheet-log" style={{ margin: '0 16px 8px', borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
-          {msg.text}
-        </div>
-      )}
+      {msg && !open.some(o => o.v.clubId === msg.key) && <FallbackReply text={msg.text} />}
       {open.length === 0 && (
         <div className="muted" style={{ padding: '4px 16px 12px' }}>
           {t(turned.length ? 'world.jbNothingLeft' : 'world.jbNothingOpen')}
