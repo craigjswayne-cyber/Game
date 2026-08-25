@@ -4361,7 +4361,11 @@
     "chef2": "un consultant en sommeil",
     "chef3": "un coach en respiration",
     "chef4": "un gourou du bain glacé",
-    "aScore": "{us}-{them} contre {opp}"
+    "aScore": "{us}-{them} contre {opp}",
+    "boardInjectionSubj": "💷 Le conseil débloque des fonds exceptionnels",
+    "boardInjection": "Le conseil d'administration a voté des fonds exceptionnels : {amount} arrivent immédiatement dans le budget transferts, et les salaires nécessaires sont garantis d'en haut jusqu'à l'été. Le procès-verbal ne pose qu'une condition : dépensez-les à bon escient.",
+    "charterSubj": "🖋 Nouveau propriétaire : la loi salariale ne s'applique plus",
+    "charter": "Les papiers sont signés et les avocats sont rentrés chez eux. {club} n'est plus soumis au plafond salarial de la ligue : plus de plafond, plus d'amendes, plus d'embargos, à compter de ce jour. Le communiqué de la ligue tient en un paragraphe glacial. Les téléphones des agents chauffent déjà."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -4642,7 +4646,9 @@
     "badgePassed": "{name} a obtenu son diplôme {badge_k} : un meilleur {role_k}, et {wage} par semaine désormais.",
     "badgeFailedFee": "{name} a échoué à son diplôme {badge_k}. Les {fee} sont perdus et il ne peut pas repasser avant un mois.",
     "badgeFailedCourse": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et il repasse dans quatre semaines.",
-    "movedToTransferBudget": "Transféré {amount} de la trésorerie vers le budget de transferts."
+    "movedToTransferBudget": "Transféré {amount} de la trésorerie vers le budget de transferts.",
+    "boardInjection": "Injection du conseil : {amount} de fonds exceptionnels votés.",
+    "charter": "La Charte du propriétaire est signée : le plafond salarial ne s'applique plus au club."
   },
   "persLower": {
     "Professional": "professionnel",

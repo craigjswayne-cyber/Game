@@ -4361,7 +4361,11 @@
     "chef2": "a sleep consultant",
     "chef3": "a breathing coach",
     "chef4": "an ice-bath guru",
-    "aScore": "{us}-{them} v {opp}"
+    "aScore": "{us}-{them} v {opp}",
+    "boardInjectionSubj": "💷 The board releases extraordinary funds",
+    "boardInjection": "The board have voted through extraordinary funds: {amount} lands in the transfer budget with immediate effect, and the wages to use it are underwritten from upstairs until the summer. The minutes record one condition - spend it like it matters.",
+    "charterSubj": "🖋 New ownership: the wage law no longer applies",
+    "charter": "The paperwork is signed and the lawyers have gone home. {club} are no longer bound by the league's salary cap - no ceiling, no fines, no embargoes, from this day forward. The league's statement is one cold paragraph. The agents' phones are already warm."
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4642,7 +4646,9 @@
     "badgePassed": "{name} passed his {badge_k} badge: a better {role_k}, and {wage} a week now.",
     "badgeFailedFee": "{name} failed his {badge_k} badge. The {fee} is gone and he cannot resit for a month.",
     "badgeFailedCourse": "{name} failed his {badge_k} badge. The course fee is gone and he resits in four weeks.",
-    "movedToTransferBudget": "Moved {amount} from the bank into the transfer budget."
+    "movedToTransferBudget": "Moved {amount} from the bank into the transfer budget.",
+    "boardInjection": "Board injection: {amount} of extraordinary funds voted through.",
+    "charter": "The Owner's Charter signed: the salary cap no longer applies to the club."
   },
   "persLower": {
     "Professional": "professional",
