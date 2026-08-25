@@ -120,18 +120,6 @@ export function analystShift(state: GameState, clubId: string): AnalystShift | n
   return Object.keys(layers).length ? { layers, pull, pattern: prof.pattern } : null
 }
 
-/** What the touchline sees when the analyst's plan is in effect. */
-export const PATTERN_WORD: Record<NonNullable<TendencyProfile['pattern']>, string> = {
-  pack: 'your forward game',
-  width: 'your wide attack',
-  tempo: 'your quick-ruck tempo',
-  squeeze: 'your kicking game',
-  blitz: 'your rush defence',
-  counter: 'your counter-attack',
-  chaos: 'your loose, physical game',
-  structure: 'your structured phases',
-}
-
 /** The user's loudest current habit, for the reactive coach's live read. */
 export function loudestDial(t: { style: number; tempo: number; kicking: number; aggression: number }): { dial: 'style' | 'tempo' | 'kicking' | 'aggression'; v: number } | null {
   const list = (['style', 'tempo', 'kicking', 'aggression'] as const)

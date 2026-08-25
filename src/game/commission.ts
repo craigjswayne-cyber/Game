@@ -67,7 +67,9 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   club.balance -= fee
   const abs = state.season * 100 + state.week
   state.commission = { pos, months, done: abs + SEARCH_WEEKS[months], fee, leagueId: state.scoutFocus ?? null }
-  const where = state.commission.leagueId ? state.comps[state.commission.leagueId]?.short ?? 'the focus league' : 'wherever the game is played'
+  // 'wherever the game is played' is a phrase, not a competition: it travels as
+  // its own fragment key, never through {where}
+  const where = state.commission.leagueId ? state.comps[state.commission.leagueId]?.short ?? '' : ''
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false, tag: 'scout',
     subject: `🔭 ${man.name} sent out on a ${months}-month brief`,
@@ -75,6 +77,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
     k: 'news.briefSent',
     v: {
       scout: man.name, months, fee: fmtMoney(fee), where,
+      where_k: where ? 'news.inLeague' : 'news.inLeagueAny',
       brief_k: pos === 'any' ? 'news.briefAnyone' : `pos.${pos}`,
       badge_k: `staff.badge${tier}`, n: SEARCH_WEEKS[months],
     },
@@ -144,7 +147,8 @@ export function scoutPostcard(state: GameState) {
     v: {
       scout: man.name, player: p.name, weeksIn, n: weeksLeft,
       verdict_k: keen ? 'news.postcardKeen' : 'news.postcardMaybe',
-      age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? tIn('en', 'news.aClubAbroad'),
+      age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? '',
+      at_k: club ? 'news.atClub' : 'news.atClubAbroad',
     },
     playerId: p.id,
   })
@@ -207,10 +211,12 @@ export function resolveCommission(state: GameState) {
     body: `${c.months} months, ${finds.length} names, ${good} of them he would sign tomorrow. Top of the list: ${best.name}, ${best.age}, ${POS_NAMES[best.pos].toLowerCase()} at ${state.clubs[best.clubId ?? '']?.name ?? 'a club abroad'} - ${tIn('en', note.k, note)} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.`,
     k: 'news.scoutReport',
     v: {
-      scout: man?.name ?? tIn('en', 'news.theChiefScout'), n: finds.length, months: c.months, good,
+      scout: man?.name ?? '', scout_k: man ? 'news.scoutNamed' : 'news.theChiefScout',
+      n: finds.length, months: c.months, good,
       names_k: finds.length === 1 ? 'count.nameOne' : 'count.nameMany',
       player: best.name, age: best.age, pos_k: `pos.${best.pos}`,
-      club: state.clubs[best.clubId ?? '']?.name ?? tIn('en', 'news.aClubAbroad'),
+      club: state.clubs[best.clubId ?? '']?.name ?? '',
+      at_k: state.clubs[best.clubId ?? ''] ? 'news.atClub' : 'news.atClubAbroad',
       note_k: note.k, ...note,
     },
     playerIds: finds.slice(0, 6).map(f => f.playerId),

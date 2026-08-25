@@ -543,7 +543,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                         <div className="meta">
                           {t('player.wouldListen')}<b>{fmtMoney(floorPrice(game, p))}</b>.
                         </div>
-                        {w.reasons.map((r, i) => <div className="meta muted" key={i}>· {r.charAt(0).toUpperCase()}{r.slice(1)}</div>)}
+                        {w.reasons.map((r, i) => { const s = t(r.k, r.v); return <div className="meta muted" key={i}>· {s.charAt(0).toUpperCase()}{s.slice(1)}</div> })}
                       </>
                     ) : (
                       <div className="meta">

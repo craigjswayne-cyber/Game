@@ -1,5 +1,5 @@
 import type { GameState, Player } from './model'
-import { t, tIn } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
 import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
@@ -100,8 +100,10 @@ export function askingPrice(state: GameState, p: Player): number {
 export interface Willingness {
   /** fraction off the asking price the club would accept, 0 to MAX_HAGGLE */
   discount: number
-  /** why, in the manager's language, most persuasive first */
-  reasons: string[]
+  /** why, in the READER's language, most persuasive first: a key and the vars
+   *  it needs, because the player profile renders these straight to the screen
+   *  and an English string here is an English line on a French page */
+  reasons: { k: string; v?: Vars }[]
 }
 
 /** The most any club will ever come down, however desperate. A club that would
@@ -113,13 +115,13 @@ export function sellerWillingness(state: GameState, p: Player): Willingness {
   const club = p.clubId ? state.clubs[p.clubId] : null
   if (!club) return { discount: 0, reasons: [] }
   let d = 0
-  const reasons: string[] = []
+  const reasons: { k: string; v?: Vars }[] = []
 
   // OUT OF CONTRACT is the strongest hand a buyer has: lose him in the summer
   // and they get nothing at all, so a fee now is a fee they nearly lost.
   const yearsLeft = (p.contractEnds ?? state.season) - state.season
-  if (yearsLeft <= 0) { d += 0.18; reasons.push('he is out of contract in the summer and they would lose him for nothing') }
-  else if (yearsLeft === 1) { d += 0.07; reasons.push('he has a year left, and they know it') }
+  if (yearsLeft <= 0) { d += 0.18; reasons.push({ k: 'player.sellOutOfContract' }) }
+  else if (yearsLeft === 1) { d += 0.07; reasons.push({ k: 'player.sellYearLeft' }) }
 
   // NOT PLAYING. Compared with the rest of the senior squad rather than an
   // absolute, because a bit-part player at Toulouse still plays more rugby than
@@ -130,23 +132,23 @@ export function sellerWillingness(state: GameState, p: Player): Willingness {
   const median = played.length ? played[Math.floor(played.length / 2)] : 0
   if (median > 200 && mins < median * 0.4) {
     d += 0.09
-    reasons.push('he has barely played this season')
+    reasons.push({ k: 'player.sellBarelyPlayed' })
   }
 
   // HE WANTS OUT, or at least is not enjoying himself
-  if (p.transferListed) { d += 0.06; reasons.push('they have already listed him') }
-  if (p.morale <= 3.5) { d += 0.06; reasons.push('he is unhappy and the dressing room knows') }
+  if (p.transferListed) { d += 0.06; reasons.push({ k: 'player.sellListed' }) }
+  if (p.morale <= 3.5) { d += 0.06; reasons.push({ k: 'player.sellUnhappy' }) }
 
   // THE CLUB NEEDS THE MONEY. A club in the red will take a deal it would
   // otherwise refuse, which is the oldest transfer-market truth there is.
-  if (club.balance < 0) { d += 0.08; reasons.push(`${club.short} are in the red and need the cash`) }
+  if (club.balance < 0) { d += 0.08; reasons.push({ k: 'player.sellInRed', v: { club: club.short } }) }
 
   // THEY HAVE PLENTY MORE. Three better men in his position and he is surplus.
   const better = squad.filter(x => x!.id !== p.id && x!.pos === p.pos && x!.ca >= p.ca).length
-  if (better >= 3) { d += 0.06; reasons.push('they are well stocked in his position') }
+  if (better >= 3) { d += 0.06; reasons.push({ k: 'player.sellStocked' }) }
 
   // AN AGEING ASSET is worth less to them next year than this year
-  if (p.age >= 33) { d += 0.05; reasons.push('he is the wrong side of 33 and they know the value only falls') }
+  if (p.age >= 33) { d += 0.05; reasons.push({ k: 'player.sellAgeing' }) }
 
   return { discount: Math.min(MAX_HAGGLE, d), reasons }
 }
@@ -214,15 +216,20 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   }
   p.wage = Math.max(p.wage, playerWage(p.ca, p.age))
   p.contractEnds = state.season + 2 + (p.age < 30 ? 1 : 0)
+  // a free agent has no selling club, and 'free agency' is a phrase, not a
+  // name: it cannot ride in through {from} or it reaches a French screen in
+  // English. The clubless case gets its own sentence instead.
+  const k = from ? 'news.transferDone' : 'news.transferDoneFree'
+  const v: Record<string, string | number> = {
+    player: p.name, to: to.name,
+    fee: fmtMoney(fee), age: p.age, wage: fmtMoney(p.wage), until: 2026 + p.contractEnds,
+  }
+  if (from) v.from = from.name
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'transfer', read: false,
     subject: `${p.name} joins ${to.name}`,
-    body: `${to.name} have completed the signing of ${p.name} from ${from?.name ?? 'free agency'} for a fee of ${fmtMoney(fee)}. The ${p.age}-year-old has agreed terms of ${fmtMoney(p.wage)}/week until ${2026 + p.contractEnds}.`,
-    k: 'news.transferDone',
-    v: {
-      player: p.name, to: to.name, from: from?.name ?? tIn('en', 'news.freeAgency'),
-      fee: fmtMoney(fee), age: p.age, wage: fmtMoney(p.wage), until: 2026 + p.contractEnds,
-    },
+    body: tIn('en', k, v),
+    k, v,
     playerId: p.id,
   })
   ensureCaptains(state) // reappoint leaders wherever the move vacated an armband
