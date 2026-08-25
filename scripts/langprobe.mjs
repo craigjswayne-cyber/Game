@@ -500,11 +500,19 @@ try {
       // deliberately so, which is exactly why looking at the SCREEN is the only
       // check worth making here.
       const commEng = /\b(TRY!|Kick-off!|Half-time|Full-time|Yellow card|RED CARD|comes on|Drop goal!|the crowd|penalty)\b/i
+      //
+      // WATCH, DO NOT TOUCH. The first version of this clicked the first
+      // touchline button when no line had appeared yet, to hurry the match
+      // along. That button is Pause. On a slow run it toggled the match to a
+      // stop, so no commentary ever arrived, the match never reached full time
+      // and the click after it timed out - three failures downstream of one
+      // impatient line, and it passed when run alone because the commentary
+      // usually beat it. The match plays itself; this waits.
       let commSeen = ''
-      for (let i = 0; i < 14 && !commSeen; i++) {
+      for (let i = 0; i < 20 && !commSeen; i++) {
         const lines = await page.locator('.tick-event .txt, .now-line .txt').allInnerTexts().catch(() => [])
         commSeen = lines.filter(Boolean).join(' \u00b7 ')
-        if (!commSeen) { await page.locator('.ctrl-btn').first().click().catch(() => {}); await page.waitForTimeout(500) }
+        if (!commSeen) await page.waitForTimeout(400)
       }
       say(`  commentary: "${commSeen.slice(0, 120)}${commSeen.length > 120 ? '...' : ''}"`)
       ok(commSeen.length > 0, 'the commentary is on screen')
