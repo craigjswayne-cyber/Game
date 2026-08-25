@@ -47,7 +47,11 @@ export default function Tactics() {
   // preset system and default to 50 when a save predates them.
   const defSlider = (info: typeof DEF_SLIDER_INFO[number]) => (
     <div className="slider-row" key={info.key}>
-      <div className="lbls"><span>{info.lo}</span><b style={{ color: 'var(--info)' }}>{info.label}</b><span>{info.hi}</span></div>
+      {/* t(), like its sibling above. DEF_SLIDER_INFO's strings became KEYS in
+          the translation sweep and this one render site was left reading them
+          raw, so the live screen showed "tactics.sliderDefLineLo" to anybody
+          who scrolled to Without the Ball (owner screenshot, 25 Aug). */}
+      <div className="lbls"><span>{t(info.lo)}</span><b style={{ color: 'var(--info)' }}>{t(info.label)}</b><span>{t(info.hi)}</span></div>
       <input type="range" min={0} max={100} value={tac[info.key] ?? 50}
         onChange={e => { tac[info.key] = Number(e.target.value); touch() }} />
       <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>{defSliderReadout(info.key, tac[info.key] ?? 50)}</div>
