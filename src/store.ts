@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
 import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i18n'
-import { hasSupporter } from './game/monetise'
+import { LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
+import { applyCharter, applyInjection, type InjectTier } from './game/grants'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
@@ -163,7 +164,13 @@ interface Store {
    *  count comparison provably did not. */
   deskHolds: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, licensed?: boolean) => void
+  /** A board injection bought at the till lands in this career (grants.ts).
+   *  Returns false when the seasonal limit refuses it - the caller must then
+   *  NOT consume the purchase, so the recovery pass keeps it. */
+  boardInject: (tier: InjectTier) => boolean
+  /** The Owner's Charter, applied to this save for good. */
+  signCharter: () => boolean
   toggleShortlist: (playerId: number) => void
   /** Put a loaded save in play. keepPlace is Continue: resume the bookmarked
    *  screen instead of Home. */
@@ -401,7 +408,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   supporter: hasSupporter(),
-  claimSupporter: () => set({ supporter: hasSupporter() }),
+  claimSupporter: () => set(s => ({ supporter: hasSupporter(), tick: s.tick + 1 })),
 
   tut: false,
   openTut: () => set({ tut: true }),
@@ -474,9 +481,14 @@ export const useStore = create<Store>((set, get) => ({
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
-  start: (clubId, managerName, challengeId, origin) => {
+  start: (clubId, managerName, challengeId, origin, licensed) => {
     const seed = (Math.random() * 2 ** 31) | 0
     const g = newGame(clubId, managerName, seed, challengeId, origin)
+    // the Manager's License, chosen at creation and never after: the wizard
+    // only offers the toggle to an owner, and this re-checks the receipt so
+    // nothing else can set the flag (grantprobe holds that it never sets
+    // itself)
+    if (licensed && hasEntitlement(LICENSE_SKU)) g.licensed = true
     // the welcome dialog belongs to a career starting, not to a screen being
     // rendered: Home used to decide this from week 1 / season 0, which fired
     // again every time a brand-new save was re-opened on another device.
@@ -1081,6 +1093,22 @@ export const useStore = create<Store>((set, get) => ({
     if (!g) return
     answerPress(g, pressId, optionIndex)
     set(s => ({ tick: s.tick + 1 }))
+  },
+
+  boardInject: (tier) => {
+    const g = get().game
+    if (!g) return false
+    const done = applyInjection(g, tier)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  signCharter: () => {
+    const g = get().game
+    if (!g) return false
+    const done = applyCharter(g)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
   },
 
   applyJob: (clubId) => {

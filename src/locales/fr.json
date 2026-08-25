@@ -143,7 +143,11 @@
     "mainMenu": "Menu principal",
     "back": "Retour",
     "confirm": "Confirmer",
-    "startCareer": "▸ Démarrer la carrière"
+    "startCareer": "▸ Démarrer la carrière",
+    "licenseTitle": "Licence de manager",
+    "licenseBlurb": "Acquise sur ce compte. Commencez cette carrière en nom établi - réputation 95/95 dès le premier jour, et la sauvegarde porte un petit 🎓. Ou partez de rien, et faites-vous un nom à la longue.",
+    "licenseOn": "Départ en nom établi 🎓",
+    "licenseOff": "Partir de rien - le nom se fera à la longue"
   },
   "common": {
     "a": "E",
@@ -2971,7 +2975,7 @@
     "cancelled": "Rien n'a été débité.",
     "error": "La boutique est injoignable. Rien n'a été débité - réessayez plus tard.",
     "fineprint": "Un paiement unique, géré entièrement par la boutique d'applications. Pas d'abonnement, pas de compte à créer, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
-    "notBody": "Cela n'achète ni joueurs, ni budget, ni forme, ni résultat. Rien derrière la caisse ne touche à la simulation, car un jeu de gestion où le manager qui paie gagne davantage n'est plus un jeu de gestion. Vos carrières, vos sauvegardes et votre effectif sont exactement les mêmes dans les deux cas.",
+    "notBody": "Il n'achète ni joueurs, ni budget, ni forme, ni résultat : le jeu est exactement le même sans lui. Ce qui PEUT s'acheter - les fonds exceptionnels d'un conseil, la charte d'un propriétaire - se trouve dans la salle du conseil, à l'écran Finances, au prix affiché, et marque la sauvegarde qui s'en sert. Cet achat n'y touche pas. Il ne fait qu'effacer les panneaux.",
     "notTitle": "Ce que cela ne fait pas",
     "nothingToRestore": "Rien à restaurer sur ce compte.",
     "ownedBody": "La publicité est coupée et l'écran-titre porte votre marque. Merci, sincèrement. L'achat est unique et suit votre compte : sur un nouveau téléphone, il suffit de Restaurer.",
@@ -5284,5 +5288,45 @@
     "winger": "ailier",
     "fullBack": "arrière",
     "player": "joueur"
+  },
+  "till": {
+    "boardTitle": "Résolutions du conseil",
+    "boardSub": "des fonds exceptionnels, votés en haut lieu",
+    "boardBlurb": "Tout ce qui suit est de l'argent réel via la boutique de l'application, calculé sur le budget d'ouverture de la saison, et inscrit dans les comptes du club dès son arrivée. Le conseil ne retourne pas au puits indéfiniment - et rien ici n'est jamais nécessaire pour gagner.",
+    "injectS": "Injection du conseil (petite)",
+    "injectM": "Injection du conseil (moyenne)",
+    "injectL": "Injection du conseil (grande)",
+    "injectXL": "Le Mécène",
+    "injAdds": "+{amount} au budget transferts.",
+    "injWage": "Le conseil garantit {weekly} de salaires hors plafond jusqu'à l'été.",
+    "injLeft": {
+      "one": "Le conseil en approuverait encore une cette saison.",
+      "other": "Le conseil en approuverait encore {n} cette saison."
+    },
+    "injNone": "Les propriétaires ne retourneront pas au puits cette année.",
+    "buy": "Acheter",
+    "buyFor": "Acheter - {price}",
+    "injLanded": "Les fonds sont arrivés : {amount} ajoutés au budget et aux comptes.",
+    "injHeld": "Payée, et en attente : le conseil ne la votera plus cette saison. Elle reste à vous - cette page la proposera de nouveau quand le puits se remplira.",
+    "pending": "La boutique la traite encore. Rien de plus à faire : dès qu'elle aboutit, cette page la proposera à la carrière ouverte devant vous.",
+    "pendingRow": "Payé et pas encore versé : {product}.",
+    "applyHere": "L'appliquer à cette carrière",
+    "charterTitle": "La Charte du propriétaire",
+    "charterBody": "Un nouveau propriétaire arrive avec ses avocats : le plafond salarial de la ligue ne s'applique plus à ce club. Plus de plafond, plus d'amendes, plus d'embargos - définitif, pour cette sauvegarde seule, et la sauvegarde porte la marque 🖋 pour toujours. Tous les autres clubs restent plafonnés.",
+    "charterApply": "Signer la Charte pour cette sauvegarde",
+    "charterConfirm": "Signer - il n'y a pas de retour",
+    "charterStay": "Pas aujourd'hui",
+    "charterDone": "🖋 Signée. La loi salariale ne s'applique plus au club.",
+    "charterSigned": "La Charte est signée et la sauvegarde porte la marque : plus de plafond, plus d'amendes, plus d'embargos, tant que cette carrière durera.",
+    "charterOwned": "La Charte est à vous. Signez-la ci-dessous quand vous serez certain : elle ne peut pas être annulée.",
+    "fineprint": "Les prix sont ceux de la boutique. Un achat consommable n'est débité qu'une fois visiblement arrivé dans votre carrière ; en cas d'interruption, cette page vous le propose de nouveau. Rien ici ne joue les matchs.",
+    "licenseTitle": "Licence de manager",
+    "licenseSub": "un nom qui compte, dès le premier jour",
+    "licenseBody": "Commencez toute NOUVELLE carrière au sommet de l'échelle de réputation : les postes de l'élite ouverts dès le premier jour, et les fédérations connaissent déjà votre nom. Achetée une fois ; proposée comme un choix à la dernière étape de chaque nouvelle carrière, jamais imposée. Les carrières sous licence portent un petit 🎓.",
+    "licenseOwned": "La Licence est à vous. La dernière étape de chaque nouvelle carrière proposera le départ en nom établi - les carrières existantes ne sont jamais réécrites.",
+    "licenseThanks": "Merci. La dernière étape de votre prochaine nouvelle carrière le proposera.",
+    "stampLicensed": "Départ sous licence",
+    "stampEdited": "Monde édité",
+    "stampCharter": "Charte du propriétaire"
   }
 }

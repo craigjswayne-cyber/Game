@@ -29,6 +29,12 @@ export default function Annual() {
       <SectionTitle sub={t('week.annualSub')}>
         {t('week.annualTitle', { label })}
       </SectionTitle>
+      {(game.licensed || game.edited || game.uncapped) && (
+        <div className="muted" style={{ padding: '0 16px 4px', fontSize: 12 }}>
+          {game.licensed ? '🎓 ' : ''}{game.edited ? '🔧 ' : ''}{game.uncapped ? '🖋 ' : ''}
+          {[game.licensed && t('till.stampLicensed'), game.edited && t('till.stampEdited'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
+        </div>
+      )}
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <div className="meta" style={{ fontSize: 12.5 }}>
           {myPots.length > 0
