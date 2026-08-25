@@ -227,7 +227,44 @@ try {
 
   // the one door out
   await step('the Annual door appears', () => page.waitForSelector('text=Ready for a new season', { timeout: 15000 }))
-  await step('walk through the Annual door', () => page.click('text=Ready for a new season', { timeout: 15000 }))
+
+  // AND IF IT WILL NOT OPEN, SAY WHY. Main run 32901617528 failed here with
+  // 'page.click: Timeout 15000ms exceeded' and nothing else - the button was
+  // visible (the step above passed) and then would not take a click for
+  // fifteen seconds. That message names no cause, and Playwright's actionability
+  // checks are four different failures wearing one word: not stable, not
+  // hit-testable, disabled, or covered. The path reproduces clean here, at 6x
+  // CPU throttling as well, so the next occurrence has to arrive already
+  // diagnosed or it costs another 34-minute round to learn nothing again.
+  //
+  // Every line is FAIL-prefixed on purpose: suite.sh reports a failing probe by
+  // grepping for FAIL, so a diagnosis written any other way does not survive
+  // the trip into the CI log. (It now keeps the three lines under each FAIL
+  // too, but the prefix is what makes this readable on its own.)
+  const doorLook = () => page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find(x => /Ready for a new season/.test(x.textContent || ''))
+    const over = [...document.querySelectorAll('.modal, .tut-box, .sheet, .overlay, .backdrop, .talk-modal')]
+      .map(e => e.className).slice(0, 4)
+    if (!b) return { found: false, over }
+    const r = b.getBoundingClientRect()
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+    const cs = getComputedStyle(b)
+    return {
+      found: true, over,
+      box: `${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)} of ${innerWidth}x${innerHeight}`,
+      inView: r.top >= 0 && r.bottom <= innerHeight,
+      topAtCentre: top ? `${top.tagName}.${top.className}`.slice(0, 60) : '(nothing)',
+      covered: top ? !(top === b || b.contains(top)) : true,
+      disabled: b.disabled, pointerEvents: cs.pointerEvents, animation: cs.animationName,
+    }
+  }).catch(e => ({ lookFailed: String(e).slice(0, 80) }))
+  try {
+    await page.click('text=Ready for a new season', { timeout: 15000 })
+  } catch (e) {
+    say(`FAIL  the Annual door would not take a click: ${JSON.stringify(await doorLook())}`)
+    for (const line of String(e.message || e).split('\n').slice(0, 8)) say(`FAIL    ${line.trim()}`)
+    throw e
+  }
   await page.waitForTimeout(500)
   const after = await page.evaluate(() => {
     const s = window.rugbyStore.getState()

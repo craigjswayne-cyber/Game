@@ -42,9 +42,17 @@ run() {
     # harnesses all mark their own failures with a FAIL prefix, so those lines and
     # anything the probe threw come through here, indented, capped so one broken
     # harness cannot bury the rest of the report.
+    #
+    # AND THE THREE LINES UNDER EACH ONE, because several harnesses print the
+    # diagnosis on the lines FOLLOWING the FAIL - annualprobe's step() reports
+    # the screen it was looking at, its buttons and its text - and this grep
+    # dropped every one of them. Main run 32901617528 said only 'walk through
+    # the Annual door broke: page.click: Timeout 15000ms exceeded' while the
+    # probe had already written down exactly what it was looking at. A harness
+    # that diagnoses itself into a bin is a harness that does not diagnose.
     printf '%s' "$out" \
-      | grep -E '^(FAIL|PROBE THREW|.*(stopped early|stuck with))' \
-      | head -12 | sed 's/^/        /'
+      | grep -E -A 3 --no-group-separator '^(FAIL|PROBE THREW|.*(stopped early|stuck with))' \
+      | head -20 | sed 's/^/        /'
     FAILS=$((FAILS + 1))
   fi
 }
