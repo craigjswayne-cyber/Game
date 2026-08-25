@@ -166,6 +166,14 @@ try {
       console.log('  the match reached FULL TIME while Skip could not be pressed - probe flow failure')
       break
     }
+    // AND CHECK AGAIN, NOW THAT NOTHING TICKS. The guard at the top of the
+    // loop raced: between it and the click the match could tick INTO
+    // half-time, where Skip means leaveInterval(true) - restart and run to
+    // the SIXTY-minute break - so the press skipped the very panel being
+    // tested and the wait below starved (caught under load, 25 Aug). Behind
+    // the pause above the match is frozen, so check-then-act is finally
+    // honest here.
+    if (await atHalfTime()) { skipped = true; break }
     // a short timeout inside the loop, not a check-then-act: asking
     // isEnabled() and then clicking lost the race about one run in eight,
     // because a call can land in the milliseconds between the two
@@ -213,7 +221,27 @@ try {
     if (await atHalfTime()) break
     await settle()
     await clearInjury()
+    // the skip loop pauses the match on purpose; if its press then failed to
+    // restart anything, a frozen first half never reaches the break - nudge it
+    await page.evaluate(() => {
+      const st = window.rugbyStore.getState()
+      const lm = st.liveMatch
+      if (lm && !lm.playing && !lm.done && !lm.ctx.awaiting && !lm.ctx.decision) st.matchCursor(lm.cursor, true)
+    }).catch(() => {})
     await page.waitForTimeout(700)
+  }
+  if (!(await atHalfTime())) {
+    // say what IS on screen before the assert below turns it into a timeout
+    const st = await page.evaluate(() => {
+      const lm = window.rugbyStore.getState().liveMatch
+      return {
+        seg: lm?.ctx.seg, playing: lm?.playing, done: lm?.done,
+        awaiting: lm?.ctx.awaiting ?? null, decision: !!lm?.ctx.decision,
+        panels: ['Start Second Half', 'Play the Final Quarter', 'Take the Points', 'Continue to Results']
+          .filter(t => document.body.innerText.includes(t)),
+      }
+    })
+    console.log(`  never reached half-time: ${JSON.stringify(st)}`)
   }
   await page.waitForSelector('text=Start Second Half', { timeout: 8000 })
   ok(await page.locator('text=Match-Day Squad').count() > 0, 'half-time offers the match-day squad')
