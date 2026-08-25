@@ -1223,7 +1223,22 @@ export interface GameState {
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number
   /** a trophy moment waiting to be celebrated full-screen */
-  celebration?: { headline: string; sub: string; icon: string } | null
+  /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
+   *  challenge finished - the rarest things the game has to show, and every
+   *  one of them was English whatever language the manager had chosen.
+   *
+   *  Same shape as everything else that is written once and read later: the
+   *  English it was filed in stays (a save from before this still has to draw
+   *  something), and `hk`/`sk` plus their values are what a screen renders. */
+  celebration?: {
+    headline: string
+    sub: string
+    icon: string
+    hk?: string
+    hv?: Record<string, string | number>
+    sk?: string
+    sv?: Record<string, string | number>
+  } | null
   /** senior pros paired with academy kids - wisdom rubs off. Capped by
    *  mentoring.mentorCap (four, five with a strong Centre of Excellence).
    *  pers0 is the kid's personality when the pairing was made, so graduation
@@ -1587,6 +1602,12 @@ export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) 
 /** What is wrong with him, in the reader's language - or in the English it was
  *  recorded in, on a save written before injuries carried a key. */
 export const injuryDesc = (inj: { desc: string; dk?: string }): string => (inj.dk ? t(inj.dk) : inj.desc)
+
+/** The two halves of the celebration banner, in the reader's language - or in
+ *  the English they were filed in, on a save from before they carried keys. */
+type Cel = NonNullable<GameState['celebration']>
+export const celebrationHeadline = (c: Cel): string => (c.hk ? t(c.hk, c.hv) : c.headline)
+export const celebrationSub = (c: Cel): string => (c.sk ? t(c.sk, c.sv) : c.sub)
 
 export const monthName = (m: number): string => t(`date.mon${m}`)
 export const dayAbbr = (d: number): string => t(`date.day${d}`)

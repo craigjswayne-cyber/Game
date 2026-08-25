@@ -1433,10 +1433,15 @@ export function rebuildSeason(state: GameState) {
   for (const p of fas.slice(0, 120)) if (p.age >= 35) delete state.players[p.id]
 
   // Promotion & relegation between each top flight and its second tier
+  // The third entry is a KEY, not a name. It used to be the English phrase
+  // "the Championship", passed into the round-up as a variable - so a French
+  // reader got "Doncaster reste en bas, the Championship : Cinderford monte".
+  // The competition's name is a proper noun and does not translate; the
+  // article in front of it does.
   const PYRAMID: [string, string, string][] = [
-    ['prem', 'champ', 'the Premier Division'],
-    ['champ', 'natl1', 'the Championship'],
-    ['top14', 'prod2', 'the Elite 14'],
+    ['prem', 'champ', 'news.pyrPrem'],
+    ['champ', 'natl1', 'news.pyrChamp'],
+    ['top14', 'prod2', 'news.pyrTop14'],
   ]
   // your own promotion or relegation is the story of the season and keeps its
   // own headline. The other divisions' movements are one round-up: three
@@ -1491,15 +1496,17 @@ export function rebuildSeason(state: GameState) {
     state.clubs[up].rep = Math.min(88, state.clubs[up].rep + 5)
     if (up === state.userClubId) {
       state.celebration = {
-        headline: `PROMOTED - ${state.clubs[up].short.toUpperCase()} ARE GOING UP`,
-        sub: `Welcome to ${topName} · ${state.managerName}`,
+        headline: tIn('en', 'cel.promoted', { short: state.clubs[up].short.toUpperCase() }),
+        sub: tIn('en', 'cel.promotedSub', { comp_k: topName, manager: state.managerName }),
         icon: '🎉',
+        hk: 'cel.promoted', hv: { short: state.clubs[up].short.toUpperCase() },
+        sk: 'cel.promotedSub', sv: { comp_k: topName, manager: state.managerName },
       }
     }
     const userInvolved = down === state.userClubId || up === state.userClubId
     if (!userInvolved) {
-      swaps.push(`${topName}: ${state.clubs[up].name} up, ${state.clubs[down].name} down`)
-      swapRows.push({ k: 'news.swapRow', comp: topName, up: state.clubs[up].name, down: state.clubs[down].name })
+      swaps.push(`${tIn('en', topName)}: ${state.clubs[up].name} up, ${state.clubs[down].name} down`)
+      swapRows.push({ k: 'news.swapRow', comp_k: topName, up: state.clubs[up].name, down: state.clubs[down].name })
       continue
     }
     state.news.push({
@@ -1514,7 +1521,7 @@ export function rebuildSeason(state: GameState) {
         const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
         const how = bar
           ? `${state.clubs[up].name} win the relegation playoff ${Math.max(bar.homeScore, bar.awayScore)}-${Math.min(bar.homeScore, bar.awayScore)} away from home and take the Premier Division place. ${state.clubs[down].name} lose it on their own ground and drop into the second tier.`
-          : `${state.clubs[up].name} have won promotion to ${topName}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
+          : `${state.clubs[up].name} have won promotion to ${tIn('en', topName)}. ${state.clubs[down].name} finished bottom and drop into the second tier.`
         return `${how}${down === state.userClubId ? ' The board is wounded and the budget will feel it - win the league and bounce straight back.' : ''}${up === state.userClubId ? ' The big time. The board urges cool heads: survival is the first objective.' : ''}`
       })(),
       // i18n-exempt-end
@@ -1522,7 +1529,7 @@ export function rebuildSeason(state: GameState) {
       v: (() => {
         const bar = topId === 'prem' ? state.fixtures.find(f => f.compId === 'prem' && f.stage === 'BAR' && f.played) : null
         return {
-          up: state.clubs[up].name, down: state.clubs[down].name, comp: topName,
+          up: state.clubs[up].name, down: state.clubs[down].name, comp_k: topName,
           how_k: bar ? 'news.upDownBar' : 'news.upDownAuto',
           hi: bar ? Math.max(bar.homeScore, bar.awayScore) : 0,
           lo: bar ? Math.min(bar.homeScore, bar.awayScore) : 0,
@@ -1916,10 +1923,13 @@ function challengeCheck(state: GameState) {
   })
   // the full-screen moment - deliberately after promotion sets its own, so
   // the rarer achievement wins the confetti
+  const chalTitleK = CHALLENGES.find(c => c.id === ch)?.title ?? ch
   state.celebration = {
-    headline: 'CHALLENGE COMPLETE',
-    sub: `${title} · ${state.managerName}`,
+    headline: tIn('en', 'cel.challenge'),
+    sub: tIn('en', 'cel.challengeSub', { title_k: chalTitleK, manager: state.managerName }),
     icon: '🏅',
+    hk: 'cel.challenge',
+    sk: 'cel.challengeSub', sv: { title_k: chalTitleK, manager: state.managerName },
   }
 }
 
@@ -1942,8 +1952,10 @@ export function invinciblesCheck(state: GameState) {
     k: 'news.invincibles', v: { club: club.name, n: mine.length, manager: state.managerName },
   })
   state.celebration = {
-    headline: 'THE INVINCIBLES',
-    sub: `${club.name} · a whole season unbeaten · ${state.managerName}`,
+    headline: tIn('en', 'cel.invincibles'),
+    sub: tIn('en', 'cel.invinciblesSub', { club: club.name, manager: state.managerName }),
     icon: '🛡️',
+    hk: 'cel.invincibles',
+    sk: 'cel.invinciblesSub', sv: { club: club.name, manager: state.managerName },
   }
 }
