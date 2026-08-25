@@ -71,7 +71,7 @@ const soft = all
 console.log(`${soft.length} genuine bargains on the board`)
 if (!soft.length) bad('nobody in the world can be bought under the asking price')
 for (const d of soft.slice(0, 3)) {
-  console.log(`  ${d.p.name} (ca ${d.p.ca}, ${g.clubs[d.p.clubId!]?.short}): ask ${fmtMoney(d.ask)} floor ${fmtMoney(d.floor)} - ${d.w.reasons[0]}`)
+  console.log(`  ${d.p.name} (ca ${d.p.ca}, ${g.clubs[d.p.clubId!]?.short}): ask ${fmtMoney(d.ask)} floor ${fmtMoney(d.floor)} - ${d.w.reasons[0]?.k}`)
   const at = agreeFee(g, d.p.id, d.floor)
   if (!at.ok) bad(`${d.p.name} was refused at his own floor of ${fmtMoney(d.floor)}: ${at.msg}`)
   if (at.ok && d.floor < d.ask - 50_000 && !/under their asking price/.test(at.msg)) {
@@ -99,7 +99,8 @@ for (const d of soft.slice(0, 3)) {
   const after = sellerWillingness(g, t)
   console.log(`\n${t.name} with his contract running out: ${(before * 100).toFixed(0)}% becomes ${(after.discount * 100).toFixed(0)}%`)
   if (after.discount <= before) bad('an expiring contract did not weaken the selling club')
-  if (!after.reasons.some(r => /out of contract/.test(r))) bad('an expiring contract was not given as a reason')
+  // a reason is a key now, not a sentence - the profile renders it through t()
+  if (!after.reasons.some(r => r.k === 'player.sellOutOfContract')) bad('an expiring contract was not given as a reason')
 }
 
 // ---- and a counter you accept is honoured ----

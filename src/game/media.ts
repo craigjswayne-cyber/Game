@@ -1,12 +1,12 @@
-import type { GameState, OfficeTopic, Player, PressItem } from './model'
+import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
 import { SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
-import { nationByCode } from './nations'
+import { nationNameIn, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { clamp, pick, type Rng } from './rng'
-import { tIn } from './i18n'
+import { tIn, type Vars } from './i18n'
 
 const OUTLETS = [
   'The Rugby Chronicle', 'Oval Times', 'The Breakdown Podcast', 'Rugby World Weekly',
@@ -52,18 +52,37 @@ function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
   state.officeMemo = state.officeMemo.filter(m => absWeek(m.season, m.week) >= cutoff).slice(-200)
 }
 
-function mk(state: GameState, question: string, playerId: number | undefined, options: PressItem['options'], rng: Rng): PressItem {
+/** A question the press ask, as a key and the variables it needs.
+ *
+ *  The whole press room used to be built from English sentences: the question
+ *  positionally, the answers as `label:`, the replies as `reaction:`. None of
+ *  it was ever translated, and proseprobe's press check was looking for field
+ *  names this file does not use, so it reported zero and nobody looked again.
+ *
+ *  A press item is SAVED and read back for weeks, so it stores keys the way
+ *  news, match events and decisions already do: the stored English stays for
+ *  saves written before this existed, and the screen renders the key. */
+type Q = { k: string; v?: Vars }
+
+function mk(state: GameState, q: Q, playerId: number | undefined, options: PressItem['options'], rng: Rng): PressItem {
   return {
     id: state.nextId++,
     week: state.week,
     season: state.season,
     outlet: pick(rng, OUTLETS),
-    question,
+    question: tIn('en', q.k, q.v),
+    qk: q.k,
+    qv: q.v,
     playerId,
     options,
     answered: false,
   }
 }
+
+/** One answer on a button, and what the room says back. Both are keys; both
+ *  keep their English for an item that was saved before they were. */
+const opt = (o: Omit<PressOption, 'label' | 'reaction'> & { lk: string; lv?: Vars; rk: string; rv?: Vars }): PressOption =>
+  ({ ...o, label: tIn('en', o.lk, o.lv), reaction: tIn('en', o.rk, o.rv) })
 
 /** Weekly press generation for the user's club. */
 export function generatePress(state: GameState, rng: Rng) {
@@ -80,14 +99,11 @@ export function generatePress(state: GameState, rng: Rng) {
   // question from the final round of last season
   if (state.week === 1 && !state.press.some(p => p.season === state.season && p.options.some(o => o.camp))) {
     const item = mk(state,
-      voice(20, [
-        `Pre-season, and the performance staff want a decision. The budget stretches to one special week: a warm-weather camp abroad, a community week at home, or the sponsor's exhibition tour. Which is it?`,
-        `Three options are circled on the staff-room whiteboard for the spare pre-season week: the heat camp, the town, or the sponsor's roadshow. The department heads are waiting on you.`,
-      ]),
+      { k: voice(20, ['press.campQ1', 'press.campQ2']) },
       undefined, [
-        { label: 'Warm-weather camp (£400k)', morale: 0, board: 0, camp: 'heat', reaction: `Flights booked. A week of double sessions in the sun - the squad comes home lean, sharp, and united in their hatred of the hill runs.` },
-        { label: 'Community week at home', morale: 0, board: 0, camp: 'home', reaction: `Schools, junior clubs, open training. Costs nothing, and the town will remember it all season.` },
-        { label: `Sponsor's exhibition tour (+£600k)`, morale: 0, board: 0, camp: 'tour', reaction: `Three airports, two black-tie functions, one glossy cheque. The accountants beam. The players' legs file a formal complaint.` },
+        opt({ morale: 0, board: 0, camp: 'heat', lk: 'press.campHeat', rk: 'press.campHeatR' }),
+        opt({ morale: 0, board: 0, camp: 'home', lk: 'press.campHome', rk: 'press.campHomeR' }),
+        opt({ morale: 0, board: 0, camp: 'tour', lk: 'press.campTour', rk: 'press.campTourR' }),
       ], rng)
     item.outlet = OFFICE_OUTLET
     state.press.push(item)
@@ -104,7 +120,7 @@ export function generatePress(state: GameState, rng: Rng) {
   // so it fires past the spam gate and survives the press-expiry sweep.
   if (state.week === 2 && !state.press.some(p => p.season === state.season && p.options.some(o => o.stance))) {
     const pred = state.preds?.[state.userClubId]
-    const predWord = pred ? `The pundits have you ${pred}${pred === 1 ? 'st' : pred === 2 ? 'nd' : pred === 3 ? 'rd' : 'th'}.` : 'The pundits are split on you.'
+    const pred_k = pred ? 'press.punditsHave' : 'press.punditsSplit'
     // Stature: 1 = title favourite, 0 = wooden-spoon pick. The squad's read on
     // each answer scales with it (user: "if a manager picks a top team and
     // selects fight bravely against relegation then... the squad should be
@@ -118,28 +134,20 @@ export function generatePress(state: GameState, rng: Rng) {
     const fund = Math.min(400_000, Math.max(100_000, Math.round((club.budget * 0.12) / 50_000) * 50_000))
     const round1 = (x: number) => Math.round(x * 10) / 10
     const item = mk(state,
-      voice(21, [
-        `Season launch day, and the room wants a number. ${predWord} Where are you telling this club it is going?`,
-        `The chairman, the sponsors and the season-ticket renewal letter all want the same sentence from you. ${predWord} How do you pitch the year?`,
-      ]),
+      { k: voice(21, ['press.stanceQ1', 'press.stanceQ2']), v: { pred_k, pred_o: pred ?? 0 } },
       undefined, [
-        {
-          label: `'Judge us in May - aim high' (+${fmtMoney(fund)} war chest)`,
+        opt({
           morale: round1(0.2 + 0.4 * (1 - stature)), board: 0.3, stance: 'high', fund,
-          reaction: `The headline writes itself and the board puts ${fmtMoney(fund)} behind it - beat the pundits' number or that money comes back out of next summer's budget, with interest. ${stature < 0.45
-            ? 'Nobody rated this squad, and the dressing room walks a foot taller for hearing a manager who does.'
-            : 'The dressing room nods along - a club this size expects the talk.'} From here every win is proof and every defeat is a broken promise: the boardroom needle will swing hard, both ways, all season.`,
-        },
-        {
-          label: `'The board's targets are fair'`, morale: 0.1, board: 0.2, stance: 'board',
-          reaction: `Steady. You and the board are reading from the same page, and results will be judged the way they always were.`,
-        },
-        {
-          label: `'Quiet season - heads down'`, morale: round1(-0.7 * stature), board: 0, stance: 'safe',
-          reaction: `You talk the year down to take the heat off the group. The boardroom needle is muted both ways: defeats cost less, but so does winning - credit is thin for a man who promised nothing.${stature > 0.55
-            ? ` And at a club the pundits fancy, the squad hears something else in it: a manager who does not believe in them.`
-            : ''}`,
-        },
+          lk: 'press.stanceHigh', lv: { fund: fmtMoney(fund) },
+          rk: 'press.stanceHighR',
+          rv: { fund: fmtMoney(fund), room_k: stature < 0.45 ? 'press.stanceHighUnrated' : 'press.stanceHighExpected' },
+        }),
+        opt({ morale: 0.1, board: 0.2, stance: 'board', lk: 'press.stanceBoard', rk: 'press.stanceBoardR' }),
+        opt({
+          morale: round1(-0.7 * stature), board: 0, stance: 'safe',
+          lk: 'press.stanceSafe', rk: 'press.stanceSafeR',
+          rv: { tail_k: stature > 0.55 ? 'press.stanceSafeFancied' : 'common.nothing' },
+        }),
       ], rng)
     item.outlet = OFFICE_OUTLET
     state.press.push(item)
@@ -166,22 +174,19 @@ export function generatePress(state: GameState, rng: Rng) {
     })
     if (won.length) {
       state.silverwareAsk = Math.max(...won.map(f => state.season * SEASON_WEEKS + f.week))
-      const names = won.map(f => state.comps[f.compId]?.name ?? 'the cup')
+      const names = won.map(f => state.comps[f.compId]?.name ?? tIn('en', 'press.theCup'))
       const what = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]
       const double = names.length > 1
       state.press.push(mk(state,
-        voice(23, [
-          double
-            ? `The table in front of you has ${names.length} trophies on it. ${what}, in one weekend. The room is on its feet before the first question: how does a season like this happen?`
-            : `The ${what} is on the table in front of you, still wearing its ribbons. The room wants the story: what wins a final?`,
-          double
-            ? `Nobody in this room has covered a weekend like it: ${what}, back to back. When does it sink in?`
-            : `The champagne is barely dry on the ${what}. Where does this one rank in your career?`,
-        ]),
+        {
+          k: voice(23, double ? ['press.silverDoubleQ1', 'press.silverDoubleQ2']
+            : ['press.silverOneQ1', 'press.silverOneQ2']),
+          v: { what, n: names.length },
+        },
         undefined, [
-          { label: `'This group earned every inch'`, morale: 0.5, board: 0.4, reaction: `The quote runs under every photo of the celebrations. The squad walks into pre-season believing, and the chairman has the front page framed.` },
-          { label: `'The supporters deserve this'`, morale: 0.3, board: 0.3, reaction: `The town takes it personally, in the best way. Season-ticket renewals do not need a letter this year.` },
-          { label: `'We go again - this is a beginning'`, morale: 0.2, board: 0.5, reaction: `Half the room writes "dynasty". The board hears ambition and likes the sound of it; the squad hears the bar going up.` },
+          opt({ morale: 0.5, board: 0.4, lk: 'press.silverGroup', rk: 'press.silverGroupR' }),
+          opt({ morale: 0.3, board: 0.3, lk: 'press.silverFans', rk: 'press.silverFansR' }),
+          opt({ morale: 0.2, board: 0.5, lk: 'press.silverAgain', rk: 'press.silverAgainR' }),
         ], rng))
       return
     }
@@ -195,15 +200,14 @@ export function generatePress(state: GameState, rng: Rng) {
     const suitor = state.clubs[state.courtedBy]
     if (suitor) {
       state.press.push(mk(state,
-        voice(1, [
-          `Every outlet leads with the same story: ${suitor.name} have you on their shortlist. The room goes quiet. Are you staying?`,
-          `The first hand up does not bother with the rugby. "${suitor.name} want you, and everyone in this room knows it. Are you staying?"`,
-          `${poss(suitor.name)} interest in you is on every back page this morning. The room leans forward as one. What is your answer?`,
-        ]),
+        {
+          k: voice(1, ['press.courtQ1', 'press.courtQ2', 'press.courtQ3']),
+          v: { club: suitor.name, poss: poss(suitor.name) },
+        },
         undefined, [
-          { label: `'I am going nowhere'`, morale: 0.5, board: 0.8, vow: true, reaction: `The clip runs on every channel by teatime. The chairman texts a thumbs up; the squad trains like a weight came off. ${suitor.short} move down their list.` },
-          { label: `'We have work to do here'`, morale: 0.2, board: 0.3, reaction: `Measured, professional, just short of a promise. The story cools without quite dying.` },
-          { label: `'I never discuss speculation'`, morale: -0.3, board: -0.6, reaction: `A stonewall the whole room hears as a maybe. The chairman's silence is loud, and the dressing room wonders if the gaffer is half out the door.` },
+          opt({ morale: 0.5, board: 0.8, vow: true, lk: 'press.courtStay', rk: 'press.courtStayR', rv: { short: suitor.short } }),
+          opt({ morale: 0.2, board: 0.3, lk: 'press.courtWork', rk: 'press.courtWorkR' }),
+          opt({ morale: -0.3, board: -0.6, lk: 'press.courtNever', rk: 'press.courtNeverR' }),
         ], rng))
       return
     }
@@ -219,15 +223,11 @@ export function generatePress(state: GameState, rng: Rng) {
     if (banned && (banned.bans ?? 0) >= 1 && !state.press.some(p => p.options.some(o => o.appeal) && p.season === state.season && state.week - p.week <= 2)) {
       const n = banned.bans
       state.press.push(mk(state,
-        voice(19, [
-          `The citing commissioner has upheld ${banned.name}'s red card: a ${n}-match ban. The club has 48 hours to appeal. Do you?`,
-          `${banned.name}'s suspension is confirmed this morning - ${n} match${n === 1 ? '' : 'es'}. Half your inbox is lawyers who fancy the footage. Appeal it?`,
-          `The panel was not moved: ${n} match${n === 1 ? '' : 'es'} for ${banned.name}. The supporters call it a stitch-up. Fight it, or take it?`,
-        ]),
+        { k: voice(19, ['press.banQ1', 'press.banQ2', 'press.banQ3']), v: { player: banned.name, n } },
         banned.id, [
-          { label: 'Lodge the appeal', morale: 0.6, board: 0, appeal: true, reaction: `The paperwork goes in overnight and the hearing is fast-tracked. The verdict lands in your inbox the same day.` },
-          { label: 'Accept the ban with dignity', morale: -0.2, board: 0.4, reaction: `No circus, no lawyers. The panel notes the club's professionalism, and the player serves his time quietly.` },
-          { label: 'Blast the officiating', morale: 0.8, board: -0.5, reaction: `The dressing room loves it. The league office adds a note to your file, and the next fifty-fifty call may remember this.` },
+          opt({ morale: 0.6, board: 0, appeal: true, lk: 'press.banAppeal', rk: 'press.banAppealR' }),
+          opt({ morale: -0.2, board: 0.4, lk: 'press.banAccept', rk: 'press.banAcceptR' }),
+          opt({ morale: 0.8, board: -0.5, lk: 'press.banBlast', rk: 'press.banBlastR' }),
         ], rng))
       return
     }
@@ -244,15 +244,14 @@ export function generatePress(state: GameState, rng: Rng) {
       const compName = state.comps[fin.compId]?.name ?? 'the cup'
       const where = fin.venue ? fin.venue.name : state.clubs[fin.homeId].stadium
       state.press.push(mk(state,
-        voice(26, [
-          `Finals week. The room is three deep, half of them faces you have never seen. ${compName}, ${where}, ${opp.short} on the other side. The first question is the only one they all came for: can you win it?`,
-          `The camera count has tripled and there is a national broadcaster's anchor in the front row. One game, at ${where}, against ${opp.short}, for the ${compName}. How do you handle a week like this?`,
-          `Every seat taken, standing at the back - finals week does this. ${opp.short} at ${where} for the ${compName}. They want a headline. What do you give them?`,
-        ]),
+        {
+          k: voice(26, ['press.finalQ1', 'press.finalQ2', 'press.finalQ3']),
+          v: { comp: compName, where, opp: opp.short },
+        },
         undefined, [
-          { label: `'We are ready. We will win it'`, morale: 0.8, board: -0.3, reaction: `The back pages have their headline and the dressing room walks taller all week. If Saturday goes wrong, that sentence will be read back to you for years.` },
-          { label: 'Respect them, back ourselves', morale: 0.3, board: 0.4, reaction: `Measured and confident. The board approves, the players nod along, and nobody has been handed a team-talk quote.` },
-          { label: `'The occasion is the trap - it is just rugby'`, morale: -0.2, board: 0.2, reaction: `You talk the week down to protect the group. Sensible - though one or two of the younger lads wanted to hear the fire.` },
+          opt({ morale: 0.8, board: -0.3, lk: 'press.finalWin', rk: 'press.finalWinR' }),
+          opt({ morale: 0.3, board: 0.4, lk: 'press.finalRespect', rk: 'press.finalRespectR' }),
+          opt({ morale: -0.2, board: 0.2, lk: 'press.finalTrap', rk: 'press.finalTrapR' }),
         ], rng))
       return
     }
@@ -265,17 +264,13 @@ export function generatePress(state: GameState, rng: Rng) {
   if (hot.length && rng() < 0.6) {
     const p = pick(rng, hot)
     candidates.push(mk(state,
-      voice(2 + p.id, [
-        `${p.name} has been in scintillating form - some are calling him the best ${posNoun(p)} in the competition. Do you agree?`,
-        `The whole league is purring about ${p.name}. Best ${posNoun(p)} in the competition right now: yes or no?`,
-        `${p.name} again at the weekend. The pundits have run out of superlatives - have you?`,
-      ]),
+      { k: voice(2 + p.id, ['press.hotQ1', 'press.hotQ2', 'press.hotQ3']), v: { player: p.name, pos_k: posNounKey(p) } },
       p.id, [
-        { label: 'Heap on the praise', morale: 1.2, board: 0, reaction: `${p.name} is reportedly delighted with your public backing.` },
-        { label: 'Keep his feet on the ground', morale: -0.3, board: 0.5, reaction: `A measured response. ${p.name} knows there is more to do.` },
+        opt({ morale: 1.2, board: 0, lk: 'press.hotPraise', rk: 'press.hotPraiseR', rv: { player: p.name } }),
+        opt({ morale: -0.3, board: 0.5, lk: 'press.hotFeet', rk: 'press.hotFeetR', rv: { player: p.name } }),
         // a fourth way to play it (user: "a bit more variety in press replies")
-        { label: 'Credit the men around him', morale: 0.6, board: 0.2, reaction: `You spread the praise across the whole side. ${p.name} nods along, and the pack notes the mention of the men who win him his ball.` },
-        { label: 'No comment', morale: 0, board: -0.2, reaction: 'The press pack grumbles and moves on.' },
+        opt({ morale: 0.6, board: 0.2, lk: 'press.hotOthers', rk: 'press.hotOthersR', rv: { player: p.name } }),
+        opt({ morale: 0, board: -0.2, lk: 'press.noComment', rk: 'press.noCommentR' }),
       ], rng))
   }
 
@@ -284,16 +279,12 @@ export function generatePress(state: GameState, rng: Rng) {
   if (cold.length && rng() < 0.5) {
     const p = pick(rng, cold)
     candidates.push(mk(state,
-      voice(3 + p.id, [
-        `${p.name} has looked well short of his best in recent weeks. Is his place under threat?`,
-        `Be honest about ${p.name} - the supporters on the message boards already are. What is going wrong for him?`,
-        `${p.name} would struggle to make most sides in this league on current form. Does he keep the shirt?`,
-      ]),
+      { k: voice(3 + p.id, ['press.coldQ1', 'press.coldQ2', 'press.coldQ3']), v: { player: p.name } },
       p.id, [
-        { label: 'Back him publicly', morale: 1.4, board: -0.3, reaction: `${p.name} appreciates the show of faith and vows to repay it.` },
-        { label: 'Admit he must improve', morale: -1.2, board: 0.6, reaction: `Honest, but ${p.name} is stung by the criticism.` },
-        { label: 'Take the blame yourself', morale: 0.9, board: -0.5, reaction: `"If he is short of form, look at how I am using him." The room did not expect that. ${p.name} did not either - and he trains like a man with a debt to repay.` },
-        { label: 'Refuse to single anyone out', morale: 0.2, board: 0, reaction: 'You deflect the question with a straight bat.' },
+        opt({ morale: 1.4, board: -0.3, lk: 'press.coldBack', rk: 'press.coldBackR', rv: { player: p.name } }),
+        opt({ morale: -1.2, board: 0.6, lk: 'press.coldAdmit', rk: 'press.coldAdmitR', rv: { player: p.name } }),
+        opt({ morale: 0.9, board: -0.5, lk: 'press.coldBlame', rk: 'press.coldBlameR', rv: { player: p.name } }),
+        opt({ morale: 0.2, board: 0, lk: 'press.coldNoOne', rk: 'press.coldNoOneR' }),
       ], rng))
   }
 
@@ -305,16 +296,15 @@ export function generatePress(state: GameState, rng: Rng) {
     const suitor = bigClubs.length ? pick(rng, bigClubs) : null
     if (suitor) {
       candidates.push(mk(state,
-        voice(4 + p.id, [
-          `We're hearing strong links between ${p.name} and ${suitor.name}. What's your message to worried supporters?`,
-          `${suitor.name} scouts were in the stand again, and everyone knows who they came to watch. Is ${p.name} for sale?`,
-          `${p.name} to ${suitor.name} is the story that will not die. Kill it now, if you can.`,
-        ]),
+        {
+          k: voice(4 + p.id, ['press.rumourQ1', 'press.rumourQ2', 'press.rumourQ3']),
+          v: { player: p.name, club: suitor.name },
+        },
         p.id, [
-          { label: `He's untouchable`, morale: 0.8, board: 0.3, reaction: `A firm line. ${p.name} feels wanted; ${suitor.short} are said to be undeterred.` },
-          { label: 'Everyone has a price', morale: -1.5, board: 0, unsettle: true, reaction: `${p.name}'s agent has taken note. Expect the phone to ring.` },
-          { label: `'Ask him - he is happy here'`, morale: 0.4, board: 0.1, reaction: `You hand the question to the player, publicly and warmly. ${p.name} obliges with a straight answer about loving the club, which buries the story better than any denial of yours could.` },
-          { label: 'Rumours are rumours', morale: 0, board: 0, reaction: 'You wave the question away.' },
+          opt({ morale: 0.8, board: 0.3, lk: 'press.rumourNever', rk: 'press.rumourNeverR', rv: { player: p.name, short: suitor.short } }),
+          opt({ morale: -1.5, board: 0, unsettle: true, lk: 'press.rumourPrice', rk: 'press.rumourPriceR', rv: { player: p.name } }),
+          opt({ morale: 0.4, board: 0.1, lk: 'press.rumourAsk', rk: 'press.rumourAskR', rv: { player: p.name } }),
+          opt({ morale: 0, board: 0, lk: 'press.rumourNothing', rk: 'press.rumourNothingR' }),
         ], rng))
     }
   }
@@ -327,15 +317,18 @@ export function generatePress(state: GameState, rng: Rng) {
     const oppId = nextFx.homeId === club.id ? nextFx.awayId : nextFx.homeId
     const opp = state.clubs[oppId]
     candidates.push(mk(state,
-      voice(5, [
-        `${derbyName(nextFx.homeId, nextFx.awayId)} this weekend. ${opp?.short ?? 'They'} say the pressure is all on you. Your response?`,
-        `It is ${derbyName(nextFx.homeId, nextFx.awayId)} week and the town talks of nothing else. ${opp?.short ?? 'They'} reckon the pressure sits with you. Does it?`,
-        `${opp?.short ?? 'Their'} players have been talking in the papers all week ahead of ${derbyName(nextFx.homeId, nextFx.awayId)}. Rise to it, or rise above it?`,
-      ]),
+      {
+        k: voice(5, ['press.derbyQ1', 'press.derbyQ2', 'press.derbyQ3']),
+        v: {
+          derby: derbyName(nextFx.homeId, nextFx.awayId) ?? '',
+          opp: opp?.short ?? '', opp_k: opp ? 'press.oppNamed' : 'press.oppThey',
+          poss_k: opp ? 'press.oppNamedPoss' : 'press.oppTheir',
+        },
+      },
       undefined, [
-        { label: 'Fan the flames', morale: 0, board: 0.4, reaction: 'The back pages love it. The town is at boiling point - your players will feel ten feet tall, or feel the heat.' },
-        { label: 'Just another game', morale: 0, board: -0.2, reaction: 'Nobody believes you, least of all your own supporters.' },
-        { label: 'Praise the rivalry', morale: 0, board: 0.2, reaction: 'A statesmanlike answer. Both sets of fans nod approvingly, then go back to hating each other.' },
+        opt({ morale: 0, board: 0.4, lk: 'press.derbyFan', rk: 'press.derbyFanR' }),
+        opt({ morale: 0, board: -0.2, lk: 'press.derbyJust', rk: 'press.derbyJustR' }),
+        opt({ morale: 0, board: 0.2, lk: 'press.derbyPraise', rk: 'press.derbyPraiseR' }),
       ], rng))
   }
 
@@ -344,15 +337,11 @@ export function generatePress(state: GameState, rng: Rng) {
   if (kids.length && rng() < 0.4) {
     const p = pick(rng, kids)
     candidates.push(mk(state,
-      voice(6 + p.id, [
-        `Everyone is talking about ${p.name} - ${p.age} years old and lighting up the league. Is he the future of the club?`,
-        `${p.name}, ${p.age}, and already the first name the supporters sing. How good can he actually be?`,
-        `Scouts, agents, pundits: all of them asking about ${p.name}. Is the club ready for what comes next?`,
-      ]),
+      { k: voice(6 + p.id, ['press.kidQ1', 'press.kidQ2', 'press.kidQ3']), v: { player: p.name, age: p.age } },
       p.id, [
-        { label: 'Crown him now', morale: 1.5, board: 0.2, unsettle: true, reaction: `${p.name} floats out of the press room - and every scout in the hemisphere just circled his name.` },
-        { label: 'Protect the kid', morale: 0.3, board: 0.3, reaction: 'Measured. He keeps developing away from the circus.' },
-        { label: 'He plays when he earns it', morale: -0.6, board: 0.4, reaction: `Old school. ${p.name} bristles, but the senior players approve.` },
+        opt({ morale: 1.5, board: 0.2, unsettle: true, lk: 'press.kidCrown', rk: 'press.kidCrownR', rv: { player: p.name } }),
+        opt({ morale: 0.3, board: 0.3, lk: 'press.kidProtect', rk: 'press.kidProtectR' }),
+        opt({ morale: -0.6, board: 0.4, lk: 'press.kidEarn', rk: 'press.kidEarnR', rv: { player: p.name } }),
       ], rng))
   }
 
@@ -367,15 +356,18 @@ export function generatePress(state: GameState, rng: Rng) {
     const rivalClub = rivalRow && Math.abs(rivalRow.pts - order[myIdx].pts) <= 6 ? state.clubs[rivalRow.teamId] : null
     if (rivalClub) {
       candidates.push(mk(state,
-        voice(7, [
-          `The title race is down to you and ${rivalClub.name}. ${rivalClub.coach ?? 'Their coach'} says his side "handles the big moments better". Care to respond?`,
-          `${rivalClub.coach ?? 'Their coach'} lit the fuse this morning: his ${rivalClub.short} side "handles the big moments better", apparently. Your reply?`,
-          `Two horses left in this race, and the other one is ${rivalClub.name}. They are talking a big game across town. Anything to send back?`,
-        ]),
+        {
+          k: voice(7, ['press.raceQ1', 'press.raceQ2', 'press.raceQ3']),
+          v: {
+            club: rivalClub.name, short: rivalClub.short,
+            coach: rivalClub.coach ?? '',
+            coach_k: rivalClub.coach ? 'press.coachNamed' : 'press.coachTheirs',
+          },
+        },
         undefined, [
-          { label: 'Put the pressure on them', morale: 0.6, board: 0, reaction: `"${rivalClub.short} have everything to lose - we're loving this." The squad walks taller; the run-in just got personal.` },
-          { label: 'Focus on ourselves', morale: 0.2, board: 0.4, reaction: 'Calm, professional, forgettable. The dressing room stays level.' },
-          { label: 'Flatter them into sleep', morale: 0, board: 0.2, reaction: `You call ${rivalClub.short} "the best side in the league". Pundits call it mind games. Maybe it is.` },
+          opt({ morale: 0.6, board: 0, lk: 'press.racePressure', rk: 'press.racePressureR', rv: { short: rivalClub.short } }),
+          opt({ morale: 0.2, board: 0.4, lk: 'press.raceOurselves', rk: 'press.raceOurselvesR' }),
+          opt({ morale: 0, board: 0.2, lk: 'press.raceFlatter', rk: 'press.raceFlatterR', rv: { short: rivalClub.short } }),
         ], rng))
     }
   }
@@ -388,15 +380,14 @@ export function generatePress(state: GameState, rng: Rng) {
   const signing = unveiling?.playerId != null ? state.players[unveiling.playerId] : null
   if (signing && rng() < 0.7) {
     candidates.push(mk(state,
-      voice(8 + signing.id, [
-        `${signing.name} is in the room for his unveiling, shirt in hand. What are you expecting from your new ${posNoun(signing)}?`,
-        `New shirt, new number, cameras everywhere: ${signing.name} is officially yours. What did you sign him to do?`,
-        `${signing.name} has just finished posing for the photographers. Tell the supporters what their new ${posNoun(signing)} brings.`,
-      ]),
+      {
+        k: voice(8 + signing.id, ['press.unveilQ1', 'press.unveilQ2', 'press.unveilQ3']),
+        v: { player: signing.name, pos_k: posNounKey(signing) },
+      },
       signing.id, [
-        { label: 'A marquee moment', morale: 1.2, board: 0.3, reaction: `"He changes everything for us." ${signing.name} beams - and every match report this season will measure him against that sentence.` },
-        { label: 'Time to settle', morale: 0.4, board: 0, reaction: 'Sensible. The pressure valve stays closed while he learns the calls.' },
-        { label: 'He fights for his place', morale: -0.5, board: 0.4, reaction: `A cold shower at his own unveiling. The squad notes that nobody gets given a shirt here.` },
+        opt({ morale: 1.2, board: 0.3, lk: 'press.unveilMarquee', rk: 'press.unveilMarqueeR', rv: { player: signing.name } }),
+        opt({ morale: 0.4, board: 0, lk: 'press.unveilSettle', rk: 'press.unveilSettleR' }),
+        opt({ morale: -0.5, board: 0.4, lk: 'press.unveilFight', rk: 'press.unveilFightR' }),
       ], rng))
   }
 
@@ -406,15 +397,11 @@ export function generatePress(state: GameState, rng: Rng) {
   const losses = recent.filter(r => r === 'L').length
   if (losses >= 3) {
     candidates.push(mk(state,
-      voice(9, [
-        `${losses} defeats in the last ${recent.length}. Supporters are restless. How do you respond to talk of a crisis?`,
-        `${losses} losses from ${recent.length}. The word "crisis" was said on the radio this morning. Is it one?`,
-        `The table does not lie: beaten ${losses} times in your last ${recent.length}. What do you say to supporters who have stopped believing?`,
-      ]),
+      { k: voice(9, ['press.crisisQ1', 'press.crisisQ2', 'press.crisisQ3']), v: { n: losses, of: recent.length } },
       undefined, [
-        { label: 'Take full responsibility', morale: 0.4, board: 0.6, reaction: 'The dressing room respects your honesty.' },
-        { label: 'Blame fine margins', morale: 0, board: -0.6, reaction: 'The board is unimpressed with excuses.' },
-        { label: 'Attack the question', morale: -0.2, board: -0.3, reaction: 'The clip goes viral for the wrong reasons.' },
+        opt({ morale: 0.4, board: 0.6, lk: 'press.crisisOwn', rk: 'press.crisisOwnR' }),
+        opt({ morale: 0, board: -0.6, lk: 'press.crisisMargins', rk: 'press.crisisMarginsR' }),
+        opt({ morale: -0.2, board: -0.3, lk: 'press.crisisAttack', rk: 'press.crisisAttackR' }),
       ], rng))
   }
 
@@ -426,45 +413,40 @@ export function generatePress(state: GameState, rng: Rng) {
   if (carded.length >= 2 && rng() < 0.6) {
     const ev = carded[carded.length - 1]
     candidates.push(mk(state,
-      voice(10, [
-        `${carded.length} cards at the weekend, ${ev.playerName ?? 'your man'} among them. Is there a discipline problem in your squad?`,
-        `${ev.playerName ?? 'Your man'} in the book again - ${carded.length} cards in one afternoon. When does passion become a problem?`,
-        `The disciplinary summary makes grim reading: ${carded.length} cards. Whose fault is that - the players' or the coaching?`,
-      ]),
+      {
+        k: voice(10, ['press.cardsQ1', 'press.cardsQ2', 'press.cardsQ3']),
+        v: {
+          n: carded.length, player: ev.playerName ?? '',
+          man_k: ev.playerName ? 'press.cardsNamed' : 'press.cardsYourMan',
+          Man_k: ev.playerName ? 'press.cardsNamed' : 'press.cardsYourManCap',
+        },
+      },
       ev.playerId, [
-        { label: 'Defend your players', morale: 0.8, board: -0.4, reaction: 'The squad appreciates the shield. The disciplinary panel does not.' },
-        { label: 'Promise it will be addressed', morale: -0.6, board: 0.6, reaction: 'Sternly said. Extra tackling-technique sessions are already booked.' },
-        { label: 'Blame the officiating', morale: 0.4, board: -0.5, reaction: 'The players love it; the league office sends a warning letter.' },
+        opt({ morale: 0.8, board: -0.4, lk: 'press.cardsDefend', rk: 'press.cardsDefendR' }),
+        opt({ morale: -0.6, board: 0.6, lk: 'press.cardsAddress', rk: 'press.cardsAddressR' }),
+        opt({ morale: 0.4, board: -0.5, lk: 'press.cardsBlame', rk: 'press.cardsBlameR' }),
       ], rng))
   }
 
   // the new owner has landed: the room wants your first words on him
   if (state.newOwnerUntil != null && state.newOwnerUntil - state.week >= 6 && rng() < 0.7) {
     candidates.push(mk(state,
-      voice(11, [
-        `The takeover is done and the new owner is in the building. Every manager in your position is one bad month from a "restructure". What is your message to him?`,
-        `New owner, first week. History says managers rarely survive a regime change. Why will you be different?`,
-        `The new owner watched training from the balcony this morning, arms folded. What does he need to hear from you?`,
-      ]),
+      { k: voice(11, ['press.ownerQ1', 'press.ownerQ2', 'press.ownerQ3']) },
       undefined, [
-        { label: 'Judge me on the rugby', morale: 0.4, board: 0.3, reaction: 'Confident, direct - owners like a man who volunteers for the scoreboard.' },
-        { label: 'We are aligned on the vision', morale: 0, board: 0.4, reaction: 'Fluent boardroom-speak. The suits nod; the terraces roll their eyes.' },
-        { label: 'Owners come and go', morale: 0.5, board: -0.6, reaction: 'The dressing room loves the defiance. Upstairs, a note is made.' },
+        opt({ morale: 0.4, board: 0.3, lk: 'press.ownerRugby', rk: 'press.ownerRugbyR' }),
+        opt({ morale: 0, board: 0.4, lk: 'press.ownerVision', rk: 'press.ownerVisionR' }),
+        opt({ morale: 0.5, board: -0.6, lk: 'press.ownerComeGo', rk: 'press.ownerComeGoR' }),
       ], rng))
   }
 
   // the vultures: job speculation when the board is restless
   if (club.boardConfidence <= 42 && rng() < 0.5) {
     candidates.push(mk(state,
-      voice(12, [
-        `There are reports this morning that the board has sounded out potential replacements. Are you fighting for your job?`,
-        `Names are circulating for your job - real names, with real agents. Do you still have the board's backing?`,
-        `A bookmaker suspended betting on the next manager here this morning. How safe are you, honestly?`,
-      ]),
+      { k: voice(12, ['press.vultureQ1', 'press.vultureQ2', 'press.vultureQ3']) },
       undefined, [
-        { label: `I'll be judged on trophies`, morale: 0.3, board: 0.3, reaction: 'Defiant. The players walk a little taller - now you have to deliver.' },
-        { label: 'That is a question for the board', morale: -0.4, board: -0.3, reaction: 'The vacuum fills with more speculation.' },
-        { label: 'Laugh it off', morale: 0.5, board: -0.1, reaction: 'The room chuckles. The chairman, watching the stream, does not.' },
+        opt({ morale: 0.3, board: 0.3, lk: 'press.vultureTrophies', rk: 'press.vultureTrophiesR' }),
+        opt({ morale: -0.4, board: -0.3, lk: 'press.vultureBoard', rk: 'press.vultureBoardR' }),
+        opt({ morale: 0.5, board: -0.1, lk: 'press.vultureLaugh', rk: 'press.vultureLaughR' }),
       ], rng))
   }
 
@@ -474,15 +456,18 @@ export function generatePress(state: GameState, rng: Rng) {
     const pos = [...myComp.table].sort((a, b) => b.pts - a.pts).findIndex(r => r.teamId === club.id) + 1
     if (pos > 0 && pos <= 2) {
       candidates.push(mk(state,
-        voice(13, [
-          `Top ${pos === 1 ? 'of the table' : 'two'} with the season on the line. Can this group handle the pressure of a run-in?`,
-          `${pos === 1 ? 'Top of the pile' : 'Second, and breathing down their necks'} with the business end here. Do your players sleep at night?`,
-          `Every week from now is a final. ${pos === 1 ? 'Leaders' : 'The chasers'} always claim to enjoy it - do you, actually?`,
-        ]),
+        {
+          k: voice(13, ['press.runInQ1', 'press.runInQ2', 'press.runInQ3']),
+          v: {
+            where_k: pos === 1 ? 'press.runInTable' : 'press.runInTwo',
+            pile_k: pos === 1 ? 'press.runInPile' : 'press.runInSecond',
+            who_k: pos === 1 ? 'press.runInLeaders' : 'press.runInChasers',
+          },
+        },
         undefined, [
-          { label: 'We want the target on our backs', morale: 0.6, board: 0.3, reaction: 'Bold. The bookies shorten your odds; the players feed off it.' },
-          { label: 'One game at a time', morale: 0, board: 0.2, reaction: `The oldest line in the book, delivered with a straight face.` },
-          { label: 'Pressure is a privilege', morale: 0.3, board: 0.2, reaction: 'Instant back-page headline. The town believes.' },
+          opt({ morale: 0.6, board: 0.3, lk: 'press.runInTarget', rk: 'press.runInTargetR' }),
+          opt({ morale: 0, board: 0.2, lk: 'press.runInOneGame', rk: 'press.runInOneGameR' }),
+          opt({ morale: 0.3, board: 0.2, lk: 'press.runInPrivilege', rk: 'press.runInPrivilegeR' }),
         ], rng))
     }
   }
@@ -501,28 +486,24 @@ export function generatePress(state: GameState, rng: Rng) {
     state.natAskAt = absNow2
     const optionSets = [
       [
-        { label: 'Proud to produce Test players', morale: 0.4, board: 0.3, reaction: 'Gracious - and the academy parents noticed.' },
-        { label: 'The calendar is broken', morale: 0, board: 0.1, reaction: 'Half the league\'s coaches text you in agreement.' },
-        { label: 'We cope. Next question', morale: 0.2, board: 0, reaction: 'Brisk. The fringe players hear the message: their chance is coming.' },
+        opt({ morale: 0.4, board: 0.3, lk: 'press.intlProud', rk: 'press.intlProudR' }),
+        opt({ morale: 0, board: 0.1, lk: 'press.intlCalendar', rk: 'press.intlCalendarR' }),
+        opt({ morale: 0.2, board: 0, lk: 'press.intlCope', rk: 'press.intlCopeR' }),
       ],
       [
-        { label: 'The fringe get their shot now', morale: 0.5, board: 0.1, reaction: 'Ten men who train all week and watch all weekend just sat up straighter.' },
-        { label: 'We want compensation money', morale: 0, board: 0.4, reaction: 'The chairman applauds from upstairs. The unions send a lawyer\'s letter.' },
-        { label: 'Their families should be proud', morale: 0.3, board: 0.1, reaction: 'A warm line that costs nothing and travels. Two mums frame the clipping.' },
+        opt({ morale: 0.5, board: 0.1, lk: 'press.intlFringe', rk: 'press.intlFringeR' }),
+        opt({ morale: 0, board: 0.4, lk: 'press.intlMoney', rk: 'press.intlMoneyR' }),
+        opt({ morale: 0.3, board: 0.1, lk: 'press.intlFamilies', rk: 'press.intlFamiliesR' }),
       ],
       [
-        { label: 'Judge my squad depth in May', morale: 0.2, board: 0.3, reaction: 'Confident. The pundits write it down for later, which is how promises work.' },
-        { label: 'I pick clubs over country, always', morale: 0.1, board: 0.2, reaction: 'The terraces love it. Three national coaches stop returning your calls.' },
-        { label: 'Honestly? It hurts us', morale: -0.1, board: 0, reaction: 'Candid, and the room respects it - but the headline writes itself: COACH ADMITS CRISIS.' },
+        opt({ morale: 0.2, board: 0.3, lk: 'press.intlDepth', rk: 'press.intlDepthR' }),
+        opt({ morale: 0.1, board: 0.2, lk: 'press.intlClub', rk: 'press.intlClubR' }),
+        opt({ morale: -0.1, board: 0, lk: 'press.intlHurts', rk: 'press.intlHurtsR' }),
       ],
     ]
     const opts = optionSets[(state.season * 5 + state.week * 3 + 14) % optionSets.length]
     candidates.push(mk(state,
-      voice(14, [
-        `${away} of your players are away on international duty. Should clubs be compensated when the Test windows strip their squads?`,
-        `${away} first-teamers gone to the Test window and half your dressing room is empty. Proud, or fed up?`,
-        `The internationals have taken ${away} of yours this window. Is the club-versus-country tug of war broken?`,
-      ]),
+      { k: voice(14, ['press.intlQ1', 'press.intlQ2', 'press.intlQ3']), v: { n: away } },
       undefined, opts, rng))
   }
 
@@ -536,17 +517,13 @@ export function generatePress(state: GameState, rng: Rng) {
   if (state.natTeam && (state.natSquads[state.natTeam]?.length ?? 0) > 0 &&
       (state.natCoachAskAt == null || absNow2 - state.natCoachAskAt >= 6) && rng() < 0.6) {
     state.natCoachAskAt = absNow2
-    const natName = nationByCode(state.natTeam)?.name ?? state.natTeam
+    const nv = nationVars(state.natTeam)
     candidates.push(mk(state,
-      voice(37, [
-        `Your ${natName} squad is in camp and the country is watching. What does this window need to deliver?`,
-        `Two jobs, one weekend: the nation's press want to know where ${natName} sits on your list. Well?`,
-        `The ${natName} squad you named has the phone-ins arguing already. Talk us through your thinking.`,
-      ]),
+      { k: voice(37, ['press.natQ1', 'press.natQ2', 'press.natQ3']), v: nv },
       undefined, [
-        { label: `'${natName} can win the lot'`, morale: 0, board: 0, natConf: 3, reaction: 'The union loves it - and has written it down. Deliver, or this window becomes the stick they beat you with.' },
-        { label: `'Judge us Test by Test'`, morale: 0, board: 0.2, natConf: 0.5, reaction: 'Measured. The federation nods; the phone-ins move on to the referees.' },
-        { label: `'My club pays my wages'`, morale: 0.3, board: 0.4, natConf: -3, reaction: 'Your dressing room walks taller. In the federation offices, someone underlines a clause.' },
+        opt({ morale: 0, board: 0, natConf: 3, lk: 'press.natWinLot', lv: nv, rk: 'press.natWinLotR' }),
+        opt({ morale: 0, board: 0.2, natConf: 0.5, lk: 'press.natTestByTest', rk: 'press.natTestByTestR' }),
+        opt({ morale: 0.3, board: 0.4, natConf: -3, lk: 'press.natClubPays', rk: 'press.natClubPaysR' }),
       ], rng))
   }
 
@@ -560,15 +537,11 @@ export function generatePress(state: GameState, rng: Rng) {
       f.homeId === club.id ? f.homeScore > f.awayScore : f.awayScore > f.homeScore)
     if (allWon && rng() < 0.55) {
       candidates.push(mk(state,
-        voice(31, [
-          `${lg.length} league games, ${lg.length} wins. Nobody has laid a glove on you. Go on - say the word.`,
-          `Still unbeaten in the league. What is the secret, and when does the weight of the run start to tell?`,
-          `An unbeaten season is quietly becoming a real conversation. Is it on?`,
-        ]),
+        { k: voice(31, ['press.unbeatenQ1', 'press.unbeatenQ2', 'press.unbeatenQ3']), v: { n: lg.length } },
         undefined, [
-          { label: 'We have won nothing yet', morale: 0.2, board: 0.3, reaction: 'Straight bat. The senior players nod along.' },
-          { label: 'Say it: the title', morale: 0.5, board: -0.1, reaction: 'The town roars. The board swallows hard - that quote will follow you into every ground.' },
-          { label: 'The run will end. The standard will not', morale: 0.3, board: 0.3, reaction: 'Composed and quotable. Both rooms are happy.' },
+          opt({ morale: 0.2, board: 0.3, lk: 'press.unbeatenNothing', rk: 'press.unbeatenNothingR' }),
+          opt({ morale: 0.5, board: -0.1, lk: 'press.unbeatenSayIt', rk: 'press.unbeatenSayItR' }),
+          opt({ morale: 0.3, board: 0.3, lk: 'press.unbeatenStandard', rk: 'press.unbeatenStandardR' }),
         ], rng))
     }
   }
@@ -585,24 +558,14 @@ export function generatePress(state: GameState, rng: Rng) {
   if (frozen.length && rng() < 0.35) {
     const p = pick(rng, frozen)
     const item = mk(state,
-      pick(rng, [
-        `${p.name} knocks and closes the door behind him. "Boss, I have barely played all season. Tell me straight - am I in your plans or not?"`,
-        `${p.name} has been waiting outside since the end of training. "I watch every session from the sidelines, boss. I need to know if there is a future for me here."`,
-        `${p.name} does not sit down. "I am not here to argue. One question: do you see me in this team? Because right now I cannot."`,
-      ]),
+      { k: pick(rng, ['press.plansQ1', 'press.plansQ2', 'press.plansQ3']), v: { player: p.name } },
       p.id, [
-        { label: 'You are in my plans - stay ready', morale: 1.1, board: 0, pledge: 'plans', reaction: pick(rng, [
-          `${p.name} leaves with his head up. He will hold you to it - pick him soon or this conversation happens again, louder.`,
-          `The tension goes out of his shoulders. A promise in this office is a promise on the team sheet - he will be counting the weeks.`,
-        ]) },
-        { label: 'Honestly? He can find a new club', morale: -0.9, board: 0.3, unsettle: true, reaction: pick(rng, [
-          `A hard truth, kindly delivered. ${p.name} thanks you for being straight - and his agent is making calls within the hour.`,
-          `He goes quiet, then nods. "Appreciate the honesty, boss." The listing will not shock anyone in the dressing room.`,
-        ]) },
-        { label: 'Nobody is owed a shirt here', morale: -0.4, board: 0.2, reaction: pick(rng, [
-          `He nods, jaw tight, and heads back to training. The squad hears about it - the honest ones respect it.`,
-          `"Fine. Then I will take one." He trains like a man possessed all week. That answer either made him or lost him.`,
-        ]) },
+        opt({ morale: 1.1, board: 0, pledge: 'plans', lk: 'press.plansIn',
+          rk: pick(rng, ['press.plansInR1', 'press.plansInR2']), rv: { player: p.name } }),
+        opt({ morale: -0.9, board: 0.3, unsettle: true, lk: 'press.plansOut',
+          rk: pick(rng, ['press.plansOutR1', 'press.plansOutR2']), rv: { player: p.name } }),
+        opt({ morale: -0.4, board: 0.2, lk: 'press.plansEarn',
+          rk: pick(rng, ['press.plansEarnR1', 'press.plansEarnR2']) }),
       ], rng)
     item.outlet = OFFICE
     item.topic = 'plans'
@@ -616,24 +579,14 @@ export function generatePress(state: GameState, rng: Rng) {
   if (restless.length && rng() < 0.3) {
     const p = pick(rng, restless)
     const item = mk(state,
-      pick(rng, [
-        `${p.name}, ${p.age}, is waiting by your office after training. "I am not learning anything carrying tackle bags, boss. Send me on loan - I need real minutes."`,
-        `${p.name} catches you in the corridor, all nerves and rehearsed lines. "Boss, my mates from the age-groups are playing senior rugby every week. I am standing still here. Let me go and prove it somewhere."`,
-        `The academy coach sends ${p.name} up to see you. The lad gets it out in one breath: "Loan me out, boss. I will come back better - or I will come back and you can tell me I was wrong."`,
-      ]),
+      { k: pick(rng, ['press.loanQ1', 'press.loanQ2', 'press.loanQ3']), v: { player: p.name, age: p.age } },
       p.id, [
-        { label: 'Promise him minutes here', morale: 0.9, board: 0, pledge: 'minutes', reaction: pick(rng, [
-          `${p.name} lights up. Play him in the next few weeks or the shine wears off fast.`,
-          `He floats out of the office. A first-team promise at his age is rocket fuel - but it burns fast if the team sheet never shows it.`,
-        ]) },
-        { label: 'Agree - a loan makes sense', morale: 0.5, board: 0.2, loan: true, reaction: pick(rng, [
-          `A smart development call. The loan is agreed the same afternoon, and the reports will come back to you every few weeks.`,
-          `He grins and shakes your hand twice, and the academy coach makes the calls before you have changed your mind: minutes make players, benches make excuses.`,
-        ]) },
-        { label: 'He is not ready to leave', morale: -0.7, board: 0, reaction: pick(rng, [
-          `He trudges out without a word. The academy coach thinks you have just cooled your hottest prospect.`,
-          `"Right." One word, and the door does not slam, which is somehow worse. Keep an eye on his training reports.`,
-        ]) },
+        opt({ morale: 0.9, board: 0, pledge: 'minutes', lk: 'press.loanMinutes',
+          rk: pick(rng, ['press.loanMinutesR1', 'press.loanMinutesR2']), rv: { player: p.name } }),
+        opt({ morale: 0.5, board: 0.2, loan: true, lk: 'press.loanAgree',
+          rk: pick(rng, ['press.loanAgreeR1', 'press.loanAgreeR2']) }),
+        opt({ morale: -0.7, board: 0, lk: 'press.loanStay',
+          rk: pick(rng, ['press.loanStayR1', 'press.loanStayR2']) }),
       ], rng)
     item.outlet = OFFICE
     item.topic = 'loan'
@@ -647,24 +600,14 @@ export function generatePress(state: GameState, rng: Rng) {
   if (fading.length && rng() < 0.35) {
     const p = pick(rng, fading)
     const item = mk(state,
-      pick(rng, [
-        `${p.name}, ${p.age} now, sits down across from you. "My deal is up this summer. I am not asking for promises, boss - I just need to know if I should be planning a life after this place."`,
-        `${p.name} waits until the room is empty. "Twelve years a professional, boss, and this is the conversation you never get used to. My contract is up. Where do I stand?"`,
-        `${p.name} brings two coffees in and sets one down in front of you. "No agents, no lawyers, just us. My deal ends this summer. Tell me what you are thinking."`,
-      ]),
+      { k: pick(rng, ['press.dealQ1', 'press.dealQ2', 'press.dealQ3']), v: { player: p.name, age: p.age } },
       p.id, [
-        { label: 'There is another year in you', morale: 1.2, board: -0.2, pledge: 'deal', reaction: pick(rng, [
-          `${p.name} shakes your hand hard. Offer the terms from his player page before someone else does.`,
-          `Relief, then a grin you have not seen since pre-season. Get the paperwork moving before his agent hears anything else.`,
-        ]) },
-        { label: 'This season is his last here', morale: -1.0, board: 0.4, reaction: pick(rng, [
-          `He takes it with dignity. He will finish the job properly - and the young players just saw how endings are handled here.`,
-          `A long exhale, a nod, a handshake. "Then let us win something on the way out." Class to the end.`,
-        ]) },
-        { label: 'Decide in the run-in', morale: -0.3, board: 0, reaction: pick(rng, [
-          `Honest, but the uncertainty follows him around. His agent quietly starts taking other calls.`,
-          `He expected better than a maybe. The performances will tell you his answer before you give him yours.`,
-        ]) },
+        opt({ morale: 1.2, board: -0.2, pledge: 'deal', lk: 'press.dealYear',
+          rk: pick(rng, ['press.dealYearR1', 'press.dealYearR2']), rv: { player: p.name } }),
+        opt({ morale: -1.0, board: 0.4, lk: 'press.dealLast',
+          rk: pick(rng, ['press.dealLastR1', 'press.dealLastR2']) }),
+        opt({ morale: -0.3, board: 0, lk: 'press.dealWait',
+          rk: pick(rng, ['press.dealWaitR1', 'press.dealWaitR2']) }),
       ], rng)
     item.outlet = OFFICE
     item.topic = 'deal'
@@ -684,51 +627,35 @@ export function generatePress(state: GameState, rng: Rng) {
     let reaction: PressItem | null = null
     if (margin >= 25) {
       reaction = mk(state,
-        voice(15, [
-          `${us}-${them}. A statement performance - the best this team can play, or is there more?`,
-          `${us}-${them}, and it barely flattered you. Where does that rank among performances in your time here?`,
-          `${oppName} had no answers out there. ${us}-${them} - is this side at its ceiling, or still climbing?`,
-        ]),
+        { k: voice(15, ['press.routQ1', 'press.routQ2', 'press.routQ3']), v: { us, them, opp: oppName } },
         undefined, [
-          { label: 'There is more to come', morale: 0.6, board: 0.3, reaction: 'Ominous for the rest of the league. The players believe it too.' },
-          { label: `Credit ${oppName} - they made it hard`, morale: 0.2, board: 0.2, reaction: 'Gracious in victory. Neutrals approve.' },
-          { label: 'We move on immediately', morale: 0, board: 0.2, reaction: 'All business. The standard is the standard.' },
+          opt({ morale: 0.6, board: 0.3, lk: 'press.routMore', rk: 'press.routMoreR' }),
+          opt({ morale: 0.2, board: 0.2, lk: 'press.routCredit', lv: { opp: oppName }, rk: 'press.routCreditR' }),
+          opt({ morale: 0, board: 0.2, lk: 'press.routMoveOn', rk: 'press.routMoveOnR' }),
         ], rng)
     } else if (margin <= -25) {
       reaction = mk(state,
-        voice(16, [
-          `${us}-${them} to ${oppName}. Supporters deserve an explanation. What went wrong out there?`,
-          `${us}-${them}. Some of your supporters left twenty minutes early. What do you owe them?`,
-          `A ${them - us}-point beating. Talk us through it, because nobody in the stands could.`,
-        ]),
+        { k: voice(16, ['press.thrashQ1', 'press.thrashQ2', 'press.thrashQ3']), v: { us, them, opp: oppName, by: them - us } },
         undefined, [
-          { label: 'That was on me, not the players', morale: 0.7, board: -0.2, reaction: 'The dressing room notices who took the bullets.' },
-          { label: 'Some of that was unacceptable', morale: -0.9, board: 0.4, reaction: 'Hard words, publicly delivered. Training will be spiky this week.' },
-          { label: 'One bad day. No drama', morale: 0.1, board: -0.3, reaction: 'Calm - but the phone-ins want blood, not calm.' },
+          opt({ morale: 0.7, board: -0.2, lk: 'press.thrashOnMe', rk: 'press.thrashOnMeR' }),
+          opt({ morale: -0.9, board: 0.4, lk: 'press.thrashUnacceptable', rk: 'press.thrashUnacceptableR' }),
+          opt({ morale: 0.1, board: -0.3, lk: 'press.thrashOneDay', rk: 'press.thrashOneDayR' }),
         ], rng)
     } else if (derby && margin > 0) {
       reaction = mk(state,
-        voice(17, [
-          `Derby day belongs to you. The fans are singing your name outside - a message for them?`,
-          `You could hear your end from the tunnel. A derby won: who does it mean more to, you or them?`,
-          `Bragging rights are yours until the return fixture. Any words for the neighbours?`,
-        ]),
+        { k: voice(17, ['press.derbyWonQ1', 'press.derbyWonQ2', 'press.derbyWonQ3']) },
         undefined, [
-          { label: 'Enjoy every minute of it', morale: 0.5, board: 0.3, reaction: 'The clip of your grin does big numbers. Bragging rights secured.' },
-          { label: 'It is only worth four points', morale: -0.2, board: 0.3, reaction: 'True, technically. Nobody outside the building agrees.' },
-          { label: 'This club owns this city', morale: 0.8, board: -0.1, unsettle: false, reaction: 'Front page. Their fans will keep the receipt - mind the return fixture.' },
+          opt({ morale: 0.5, board: 0.3, lk: 'press.derbyWonEnjoy', rk: 'press.derbyWonEnjoyR' }),
+          opt({ morale: -0.2, board: 0.3, lk: 'press.derbyWonFour', rk: 'press.derbyWonFourR' }),
+          opt({ morale: 0.8, board: -0.1, unsettle: false, lk: 'press.derbyWonCity', rk: 'press.derbyWonCityR' }),
         ], rng)
     } else if (derby && margin < 0) {
       reaction = mk(state,
-        voice(18, [
-          `A derby defeat, and their supporters are letting you know about it. How do you face your own fans this week?`,
-          `They will paint the town their colours tonight. A derby lost - how long does this one hurt?`,
-          `Your supporters filed out in silence; theirs did not. What happens now?`,
-        ]),
+        { k: voice(18, ['press.derbyLostQ1', 'press.derbyLostQ2', 'press.derbyLostQ3']) },
         undefined, [
-          { label: 'We will not hide from this', morale: 0.4, board: 0.3, reaction: 'Straight talk. The fans respect honesty more than excuses.' },
-          { label: 'The performance was actually good', morale: 0, board: -0.4, reaction: 'The stats might back you up. Derby crowds do not deal in stats.' },
-          { label: 'Wait for the return fixture', morale: 0.3, board: 0, reaction: 'A promise. It will be remembered - deliver or else.' },
+          opt({ morale: 0.4, board: 0.3, lk: 'press.derbyLostFace', rk: 'press.derbyLostFaceR' }),
+          opt({ morale: 0, board: -0.4, lk: 'press.derbyLostStats', rk: 'press.derbyLostStatsR' }),
+          opt({ morale: 0.3, board: 0, lk: 'press.derbyLostReturn', rk: 'press.derbyLostReturnR' }),
         ], rng)
     }
     if (reaction && state.press.filter(p => !p.answered).length < 2) state.press.push(reaction)
@@ -757,12 +684,15 @@ export function generatePress(state: GameState, rng: Rng) {
   }
 }
 
-function posNoun(p: Player): string {
+/** "the best FLANKER in the competition" - the everyday word for the shirt,
+ *  not the position label on his profile. A key, because a French reporter
+ *  asks about a troisième ligne aile. */
+function posNounKey(p: Player): string {
   const map: Record<string, string> = {
-    LP: 'prop', TP: 'prop', HK: 'hooker', LK: 'lock', FL: 'flanker', N8: 'number eight',
-    SH: 'scrum-half', FH: 'fly-half', CE: 'centre', WG: 'winger', FB: 'full-back',
+    LP: 'prop', TP: 'prop', HK: 'hooker', LK: 'lock', FL: 'flanker', N8: 'number8',
+    SH: 'scrumHalf', FH: 'flyHalf', CE: 'centre', WG: 'winger', FB: 'fullBack',
   }
-  return map[p.pos] ?? 'player'
+  return `posNoun.${map[p.pos] ?? 'player'}`
 }
 
 /** Apply the chosen answer. */
@@ -773,7 +703,9 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   if (!opt) return
   item.answered = true
   item.answerLabel = opt.label
+  item.alk = opt.lk; item.alv = opt.lv
   item.reaction = opt.reaction
+  item.rk = opt.rk; item.rv = opt.rv
   // a public loyalty vow goes on the record - walk it back and it walks with you
   if (opt.vow) state.vowedAt = state.season * 100 + state.week
   // the national-coach question is heard in the federation offices, not the
@@ -785,7 +717,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   // response lands, and its verdict becomes the printed reaction
   if (opt.disc && item.incidentId != null) {
     const inc = (state.incidents ?? []).find(i => i.id === item.incidentId)
-    if (inc) item.reaction = applyResponse(state, inc, opt.disc)
+    if (inc) { const r = applyResponse(state, inc, opt.disc); item.reaction = r.text; item.rk = r.k; item.rv = r.v }
   }
   // a lodged appeal is heard the same day: deterministic verdict, no shared
   // rng - the same save always gets the same hearing
@@ -836,7 +768,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     if (!r.ok) {
       // he is in the XV, or too old, or already out: say so rather than print a
       // reaction describing a move that did not happen
-      item.reaction = `Agreed in principle, but it stops there for now. ${r.msg}`
+      item.rk = 'press.loanBlocked'; item.rv = { why: r.msg }
+      item.reaction = tIn('en', item.rk, item.rv)
     } else {
       logDecision(state, 'dec.agreedLoan', { player: state.players[item.playerId]?.name ?? '' }, true)
     }

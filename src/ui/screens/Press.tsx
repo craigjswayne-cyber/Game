@@ -1,6 +1,6 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import { weekDate } from '../../game/model'
+import { pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
 import { OFFICE_OUTLET } from '../../game/media'
 import { t } from '../../game/i18n'
 
@@ -27,7 +27,7 @@ export default function Press() {
           <div className="press-outlet">
             {item.outlet === OFFICE_OUTLET ? t('world.prOffice') : t('world.prAsks', { outlet: item.outlet })}
           </div>
-          <div className="press-q">“{item.question}”</div>
+          <div className="press-q">“{pressQuestion(item)}”</div>
           {item.playerId != null && game.players[item.playerId] && (
             <button className="muted" style={{ padding: '0 14px 8px', fontWeight: 600, color: 'var(--info)' }}
               onClick={() => go('player', item.playerId!)}>
@@ -38,7 +38,7 @@ export default function Press() {
             {item.options.map((o, i) => (
               <button key={i} className="btn ghost" style={{ textAlign: 'left' }}
                 onClick={() => answer(item.id, i)}>
-                “{o.label}”
+                “{pressLabel(o)}”
               </button>
             ))}
           </div>
@@ -51,8 +51,8 @@ export default function Press() {
           {past.map(item => (
             <div key={item.id} className="news-item open">
               <div className="when">{item.outlet === OFFICE_OUTLET ? t('world.prPrivate') : item.outlet} · {weekDate(item.season, item.week)}</div>
-              <div className="subj" style={{ fontWeight: 400 }}>“{item.question}”</div>
-              <div className="body">{t('world.prYouSaid', { answer: item.answerLabel ?? '', reaction: item.reaction ?? '' })}</div>
+              <div className="subj" style={{ fontWeight: 400 }}>“{pressQuestion(item)}”</div>
+              <div className="body">{t('world.prYouSaid', { answer: pressAnswer(item), reaction: pressReaction(item) })}</div>
             </div>
           ))}
         </>

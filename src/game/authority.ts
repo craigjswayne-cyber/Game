@@ -11,10 +11,11 @@
 // Everything here is a pure derivation or a deterministic gate (mulberry32 on
 // ids and weeks, never the shared match rng). No new number is hidden: the
 // Profile screen prints the standing, and every consequence says its name.
-import type { GameState, Player } from './model'
+import type { GameState, Player, PressOption } from './model'
 import { mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
-import { t } from './i18n'
+import { t, tIn, type Vars } from './i18n'
+import { OFFICE_OUTLET } from './media'
 
 const absWeek = (state: GameState) => state.season * SEASON_WEEKS + state.week
 
@@ -172,17 +173,21 @@ function raiseIncident(state: GameState, p: Player, kind: Incident['kind']) {
     season: state.season, week: state.week,
   }
   incidentsOf(state).push(inc)
-  const what = kind === 'training'
-    ? `skipped Monday's recovery session and did not think it worth an excuse`
-    : `has been well below his own standard, and the coaches say the effort in review meetings matches the ratings`
+  // this is a press item too, and it was built here rather than in media.ts -
+  // which is how it stayed English while the rest of the press room was
+  // translated. Same shape as everything else now: keys, not sentences.
+  const qk = kind === 'training' ? 'press.discTraining' : 'press.discForm'
+  const qv = { player: p.name }
+  const disc = (lk: string, d: 'fine' | 'word' | 'ignore'): PressOption =>
+    ({ label: tIn('en', lk), lk, morale: 0, board: 0, disc: d, reaction: '' })
   state.press.push({
     id: state.nextId++, week: state.week, season: state.season,
-    outlet: "The Manager's Office", answered: false, playerId: p.id, incidentId: inc.id,
-    question: `The assistant closes the door: ${p.name} ${what}. The squad knows, and the squad is watching what you do about it.`,
+    outlet: OFFICE_OUTLET, answered: false, playerId: p.id, incidentId: inc.id,
+    question: tIn('en', qk, qv), qk, qv,
     options: [
-      { label: "Fine him a week's wages", morale: 0, board: 0, disc: 'fine', reaction: '' },
-      { label: 'A quiet word, man to man', morale: 0, board: 0, disc: 'word', reaction: '' },
-      { label: 'Let it slide', morale: 0, board: 0, disc: 'ignore', reaction: '' },
+      disc('press.discFine', 'fine'),
+      disc('press.discWord', 'word'),
+      disc('press.discSlide', 'ignore'),
     ],
   })
 }
@@ -191,16 +196,25 @@ function raiseIncident(state: GameState, p: Player, kind: Incident['kind']) {
  *  the office prints. Whether a PUNISHMENT lands depends on standing: the
  *  same fine is discipline from a proven manager and provocation from an
  *  unproven one - which is the user's complaint made mechanical. */
-export function applyResponse(state: GameState, inc: Incident, response: 'fine' | 'word' | 'ignore', silent = false): string {
-  if (inc.state !== 'flagged') return t('reply.momentPassed')
+/** The verdict on a disciplinary response.
+ *
+ *  Returns a key and its variables, not a sentence: the press room WRITES this
+ *  onto the item and the coverage list reads it back weeks later, so a string
+ *  translated here would be frozen in whatever language the button was pressed
+ *  in. `text` is the English, kept for the same reason every stored body is. */
+export interface Verdict { k: string; v?: Vars; text: string }
+const verdict = (k: string, v?: Vars): Verdict => ({ k, v, text: tIn('en', k, v) })
+
+export function applyResponse(state: GameState, inc: Incident, response: 'fine' | 'word' | 'ignore', silent = false): Verdict {
+  if (inc.state !== 'flagged') return verdict('reply.momentPassed')
   const p = state.players[inc.pid]
-  if (!p) { inc.state = 'handled'; return t('reply.alreadyLeftClub') }
+  if (!p) { inc.state = 'handled'; return verdict('reply.alreadyLeftClub') }
   const a = standing(state)
 
   if (response === 'ignore') {
     inc.state = 'festering'
     p.morale = clamp(p.morale - 0.3, 1, 10)
-    if (!silent) return t('reply.incidentIgnored', { player: p.name })
+    if (!silent) return verdict('reply.incidentIgnored', { player: p.name })
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `The ${p.name} situation drifts`,
@@ -208,14 +222,14 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
       k: 'news.incidentDrifts', v: { player: p.name },
       playerId: p.id,
     })
-    return ''
+    return verdict('common.nothing')
   }
 
   // a soft response always lands, but only a hard one rebuilds authority
   if (response === 'word') {
     inc.state = 'handled'
     p.morale = clamp(p.morale - 0.1, 1, 10)
-    return t('reply.incidentWord', { player: p.name })
+    return verdict('reply.incidentWord', { player: p.name })
   }
 
   // the fine: deterministic on the incident id, biased by standing
@@ -224,7 +238,7 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
     inc.state = 'handled'
     p.morale = clamp(p.morale - 0.2, 1, 10)
     state.mgrTrust = clamp((state.mgrTrust ?? 30) + 1, 0, 100)
-    return t('reply.incidentFineLands', { player: p.name })
+    return verdict('reply.incidentFineLands', { player: p.name })
   }
   inc.state = 'challenged'
   p.morale = clamp(p.morale - 1.0, 1, 10)
@@ -234,5 +248,5 @@ export function applyResponse(state: GameState, inc: Incident, response: 'fine' 
     const ally = state.players[id]
     if (ally && ally !== p && !ally.acad && ally.pos === p.pos) ally.morale = clamp(ally.morale - 0.3, 1, 10)
   }
-  return t('reply.incidentFineChallenged', { player: p.name })
+  return verdict('reply.incidentFineChallenged', { player: p.name })
 }

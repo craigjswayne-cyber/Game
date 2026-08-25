@@ -92,6 +92,10 @@ const PAIRED: Record<string, string> = {
  *  entry here is a lie that outlives the person who told it, so the reason has
  *  to name the thing that bounds the number. */
 const CANNOT_BE_ONE: Record<string, string> = {
+  'press.silverDoubleQ1': 'the double voicing only fires when two or more finals were won',
+  'press.crisisQ1': 'the crisis question needs 3 defeats in the last 4',
+  'press.crisisQ3': 'same gate: 3 defeats',
+  'press.unbeatenQ1': 'the unbeaten question needs 5 league games, all won',
   'matchday.oldBoyOurs': 'the old-boy beat needs 10+ appearances at the old club',
   'matchday.oldBoyTheirs': 'same gate: 10+ appearances',
   'comm.oldBoy': 'same gate: returneeApps >= 10',

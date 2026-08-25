@@ -1,6 +1,6 @@
 import type { Pos } from '../data/types'
 import { mulberry32 } from './rng'
-import { t, tIn } from './i18n'
+import { t, tIn, type Vars } from './i18n'
 
 export type { Pos }
 
@@ -720,7 +720,15 @@ export interface NewsItem {
 }
 
 export interface PressOption {
+  /** the English label, kept because it is written onto answered items and
+   *  those are saved. New items also carry lk/lv and the screen renders those. */
   label: string
+  /** the label's key, and the variables it needs */
+  lk?: string
+  lv?: Vars
+  /** the reaction's key, and the variables it needs */
+  rk?: string
+  rv?: Vars
   /** morale delta applied to the player concerned */
   morale: number
   /** board confidence delta */
@@ -786,12 +794,23 @@ export interface PressItem {
   week: number
   season: number
   outlet: string
+  /** the English question, kept for saves written before the press room had
+   *  keys. Everything new carries qk/qv and the screen renders those. */
   question: string
+  /** the question's key, and the variables it needs */
+  qk?: string
+  qv?: Vars
   playerId?: number
   options: PressOption[]
   answered: boolean
   answerLabel?: string
+  /** the chosen answer's key and vars, so the coverage list reads back in the
+   *  reader's language rather than the one the button was pressed in */
+  alk?: string
+  alv?: Vars
   reaction?: string
+  rk?: string
+  rv?: Vars
   /** set on office conversations: what he came in to talk about */
   topic?: OfficeTopic
   /** set on discipline conversations: the incident this one resolves */
@@ -1025,6 +1044,17 @@ export interface Decision {
  *  key. A career keeps forty of these and lives for years, so the fallback is
  *  not a stopgap. */
 export const decisionText = (d: Decision): string => (d.k ? t(d.k, d.v) : d.text)
+
+/** The press room in the reader's language.
+ *
+ *  Same shape as eventText and decisionText: a key wins, the stored English is
+ *  the fallback for an item written before the key existed. A press item is
+ *  saved once and read for weeks, so the coverage list has to re-render rather
+ *  than keep whatever language the button was pressed in. */
+export const pressQuestion = (p: PressItem): string => (p.qk ? t(p.qk, p.qv) : p.question)
+export const pressLabel = (o: PressOption): string => (o.lk ? t(o.lk, o.lv) : o.label)
+export const pressAnswer = (p: PressItem): string => (p.alk ? t(p.alk, p.alv) : p.answerLabel ?? '')
+export const pressReaction = (p: PressItem): string => (p.rk ? t(p.rk, p.rv) : p.reaction ?? '')
 
 /** Record a decision and its consequence. Newest first, last 40 kept.
  *
