@@ -1597,17 +1597,24 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 @keyframes dash-l { 0% { transform: translateX(46px) scale(1.55); } 100% { transform: translateX(0) scale(1.55); } }
 
 /* the kick at goal: ball arcs for the posts, end over end */
-.pitch .ball.kick-r { animation: kick-arc-r 1.15s cubic-bezier(.35, .05, .5, 1); }
-.pitch .ball.kick-l { animation: kick-arc-l 1.15s cubic-bezier(.35, .05, .5, 1); }
+/* A KICK AT GOAL FLIES AT THE GOAL, AND STAYS GONE. The old arc rose towards
+   the posts for the first half-second and then spent the LONGER second half
+   returning the ball to the tee - so the dominant visible motion was away
+   from the posts, and the owner read it as the ball flying the wrong way
+   ("it goes in the opposite direction", 25 Aug, and he was right). The ball
+   now sails towards the posts, shrinks with distance and fades out there;
+   the next event re-keys the element and brings the ball back to earth. */
+.pitch .ball.kick-r { animation: kick-arc-r 1.15s cubic-bezier(.3, .08, .55, 1) forwards; }
+.pitch .ball.kick-l { animation: kick-arc-l 1.15s cubic-bezier(.3, .08, .55, 1) forwards; }
 @keyframes kick-arc-r {
-  0% { transform: translate(-50%, -50%) rotate(-25deg); }
-  45% { transform: translate(140%, -340%) rotate(320deg) scale(.8); }
-  100% { transform: translate(-50%, -50%) rotate(695deg); }
+  0% { transform: translate(-50%, -50%) rotate(-25deg); opacity: 1; }
+  55% { transform: translate(420%, -480%) rotate(300deg) scale(.75); opacity: 1; }
+  100% { transform: translate(830%, -640%) rotate(520deg) scale(.5); opacity: 0; }
 }
 @keyframes kick-arc-l {
-  0% { transform: translate(-50%, -50%) rotate(-25deg); }
-  45% { transform: translate(-240%, -340%) rotate(-320deg) scale(.8); }
-  100% { transform: translate(-50%, -50%) rotate(-695deg); }
+  0% { transform: translate(-50%, -50%) rotate(25deg); opacity: 1; }
+  55% { transform: translate(-520%, -480%) rotate(-300deg) scale(.75); opacity: 1; }
+  100% { transform: translate(-930%, -640%) rotate(-520deg) scale(.5); opacity: 0; }
 }
 
 /* broadcast banner sweeping across the pitch */
