@@ -1610,17 +1610,31 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    ("it goes in the opposite direction", 25 Aug, and he was right). The ball
    now sails towards the posts, shrinks with distance and fades out there;
    the next event re-keys the element and brings the ball back to earth. */
-.pitch .ball.kick-r { animation: kick-arc-r 1.15s cubic-bezier(.3, .08, .55, 1) forwards; }
-.pitch .ball.kick-l { animation: kick-arc-l 1.15s cubic-bezier(.3, .08, .55, 1) forwards; }
+/* THE PITCH IS SEEN FROM ABOVE, AND THE POSTS ARE AT THE ENDS.
+   Second correction, because the first one only half-understood the view.
+   The original arc spent its longer half returning the ball to the tee, so
+   the kick read as flying backwards; the fix sent it up and away, which on a
+   TOP-DOWN pitch is not "high", it is across the field towards a touchline -
+   so it then read as sliced to the corner (owner, 25 Aug: "kicks still
+   weirdly go off to the corner even though the kicker scored").
+   The posts sit at top:50%, left/right 7%. A kick that went over therefore
+   travels along the line to them: essentially horizontal, with only enough
+   vertical drift to settle onto the posts' line, swelling as it rises and
+   shrinking as it sails away over the bar. It fades before the far edge, so
+   the flight reads the same wherever on the field it was struck from. */
+.pitch .ball.kick-r { animation: kick-arc-r 1.15s cubic-bezier(.25, .55, .4, 1) forwards; }
+.pitch .ball.kick-l { animation: kick-arc-l 1.15s cubic-bezier(.25, .55, .4, 1) forwards; }
 @keyframes kick-arc-r {
-  0% { transform: translate(-50%, -50%) rotate(-25deg); opacity: 1; }
-  55% { transform: translate(420%, -480%) rotate(300deg) scale(.75); opacity: 1; }
-  100% { transform: translate(830%, -640%) rotate(520deg) scale(.5); opacity: 0; }
+  0% { transform: translate(-50%, -50%) rotate(-25deg) scale(1); opacity: 1; }
+  30% { transform: translate(60%, -80%) rotate(160deg) scale(1.18); opacity: 1; }
+  75% { transform: translate(260%, -40%) rotate(430deg) scale(.72); opacity: .9; }
+  100% { transform: translate(400%, -20%) rotate(600deg) scale(.42); opacity: 0; }
 }
 @keyframes kick-arc-l {
-  0% { transform: translate(-50%, -50%) rotate(25deg); opacity: 1; }
-  55% { transform: translate(-520%, -480%) rotate(-300deg) scale(.75); opacity: 1; }
-  100% { transform: translate(-930%, -640%) rotate(-520deg) scale(.5); opacity: 0; }
+  0% { transform: translate(-50%, -50%) rotate(25deg) scale(1); opacity: 1; }
+  30% { transform: translate(-160%, -80%) rotate(-160deg) scale(1.18); opacity: 1; }
+  75% { transform: translate(-360%, -40%) rotate(-430deg) scale(.72); opacity: .9; }
+  100% { transform: translate(-500%, -20%) rotate(-600deg) scale(.42); opacity: 0; }
 }
 
 /* broadcast banner sweeping across the pitch */
