@@ -91,7 +91,9 @@ console.log('\nPILLAR 1b: an incident is a test of authority, not a morale event
   ok(incidentsOf(g).find(i => i.id === failId)!.state === 'challenged', 'a fine from an unproven manager blows up')
   ok(g.players[pid].morale < before - 0.5, `the player takes it badly (${before.toFixed(1)} -> ${g.players[pid].morale.toFixed(1)})`)
   ok((g.mgrTrust ?? 30) < trustBefore, `and the room takes his side (trust ${trustBefore} -> ${g.mgrTrust})`)
-  ok(line.includes('bigger name'), 'the office says why, in words')
+  // applyResponse returns a key and its English, not a bare sentence: the
+  // verdict is written onto a press item and read back in the reader's language
+  ok(line.k === 'reply.incidentFineChallenged', 'the office says why, in words')
 
   // the same fine from the same manager, on a roll his standing survives
   incidentsOf(g).push({ id: landId, pid, kind: 'training', state: 'flagged', season: g.season, week: g.week })

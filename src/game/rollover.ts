@@ -1619,29 +1619,29 @@ export function rebuildSeason(state: GameState) {
       const offers = offersFor(state, slot.id)
       if (offers.length < 3) continue
       const [lng, sht, cls] = offers
+      // the summer sponsorship call is a press item too, built here rather than
+      // in the press generator - which is how it stayed English after the rest
+      // of the room was translated. The live probe found it by reading the
+      // press room a career actually produces.
+      const qv = { slot_k: slot.name, weekly: fmtMoney(d.weekly) }
+      const sponsorOpt = (o: typeof lng, kind: 'long' | 'short' | 'clause', lk: string, rk: string) => ({
+        morale: 0, board: 0, deal: { slot: slot.id, kind },
+        lk, lv: { sponsor: o.sponsor, weekly: fmtMoney(o.weekly), n: o.years },
+        rk, rv: { n: o.years },
+        label: tIn('en', lk, { sponsor: o.sponsor, weekly: fmtMoney(o.weekly), n: o.years }),
+        reaction: tIn('en', rk, { n: o.years }),
+      })
       state.press.push({
         id: state.nextId++, week: 1, season: state.season, outlet: OFFICE_OUTLET,
-        question: `The ${tIn('en', slot.name).toLowerCase()} is on a stopgap arrangement at ${fmtMoney(d.weekly)} a week - under the going rate. The commercial director has three offers on the desk. Which way do we go?`,
+        question: tIn('en', 'press.slotQ', qv), qk: 'press.slotQ', qv,
         options: [
+          sponsorOpt(lng, 'long', 'press.slotLong', 'press.slotLongR'),
+          sponsorOpt(sht, 'short', 'press.slotShort', 'press.slotShortR'),
+          sponsorOpt(cls, 'clause', 'press.slotClause', 'press.slotClauseR'),
           {
-            label: `${lng.sponsor}: ${fmtMoney(lng.weekly)}/wk, ${lng.years} years`, morale: 0, board: 0,
-            deal: { slot: slot.id, kind: 'long' },
-            reaction: `Signed. Safe money for ${lng.years} years - a touch under market, because the sponsor is buying certainty off you.`,
-          },
-          {
-            label: `${sht.sponsor}: ${fmtMoney(sht.weekly)}/wk, ${sht.years} ${sht.years === 1 ? 'year' : 'years'}`, morale: 0, board: 0,
-            deal: { slot: slot.id, kind: 'short' },
-            reaction: `Signed. Over the market rate, and you are back at this desk in ${sht.years === 1 ? 'a year' : 'two years'} - which is the bet: your reputation will have grown by then.`,
-          },
-          {
-            label: `${cls.sponsor}: ${fmtMoney(cls.weekly)}/wk + clause, ${cls.years} yrs`, morale: 0, board: 0,
-            deal: { slot: slot.id, kind: 'clause' },
-            reaction: `Signed, with the clause. Deliver on the pitch and it is the best deal in the building; fall short and you sold cheap.`,
-          },
-          {
-            label: 'Stay with the stopgap for now', morale: 0, board: 0,
-            deal: { slot: slot.id, kind: 'keep' },
-            reaction: `The stopgap rolls on at a discount. The offers stay on the Finances screen whenever you want them.`,
+            morale: 0, board: 0, deal: { slot: slot.id, kind: 'keep' },
+            lk: 'press.slotKeep', rk: 'press.slotKeepR',
+            label: tIn('en', 'press.slotKeep'), reaction: tIn('en', 'press.slotKeepR'),
           },
         ],
         answered: false,

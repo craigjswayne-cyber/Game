@@ -315,7 +315,7 @@
     "fitKnock": "touché",
     "fitUnfit": "pas apte",
     "fitLabel": "{state}, {pct} pour cent",
-    "fitTitle": "{pct} % de forme",
+    "fitTitle": "{pct} % de condition",
     "abilityUp": "Sa valeur a progressé cette saison",
     "abilityDown": "Sa valeur a baissé cette saison",
     "dealExpires": "contrat expirant cet été",
@@ -415,7 +415,7 @@
       "other": "{n} matchs"
     },
     "onFumes": "À bout de souffle",
-    "onFumesSub": "forme sous 62 % - cela coûte à un titulaire ; sortant du banc il entre quand même à 60 %",
+    "onFumesSub": "condition sous 62 % - cela coûte à un titulaire ; sortant du banc il entre quand même à 60 %",
     "awayFromClub": "Loin du club",
     "awayFromClubSub": "sélections et prêts",
     "onLoan": "EN PRÊT",
@@ -730,7 +730,7 @@
     "bogeySide": "Votre bête noire",
     "bookOnThem": "Ce que disent les archives",
     "breakSixty": "Pause à la 60e",
-    "breakTitle": "60e - arrêt de jeu, dernier quart d'heure à venir",
+    "breakTitle": "60e - arrêt de jeu, dernier quart à venir",
     "brinkApps": "disputera son {n}e match en carrière s'il entre sur le terrain",
     "brinkLine": " ({pos}) {what}. Le stade saura à l'instant où cela arrivera.",
     "brinkPts": {
@@ -779,7 +779,7 @@
     "farewellHome": " C'est la dernière fois que {club} l'amène chez vous. Battez-le, puis applaudissez-le.",
     "farewellPre": " ({age} ans, {pos}) a annoncé que cette saison serait la dernière.",
     "finalBody": "Quatre-vingts minutes vous séparent du titre de {comp}. Toute la saison mène ici - pas de semaine prochaine, pas de match retour, pas de points pour une belle défaite. Gagnez-la.",
-    "finalQuarter": "Dernier quart d'heure",
+    "finalQuarter": "Dernier quart",
     "finalTitle": "🏆 LA FINALE",
     "finalTrophy": "trophée",
     "finishers": "Les finisseurs",
@@ -791,12 +791,15 @@
     "frJoin": " et ",
     "frLoosehead": "pilier gauche",
     "frNone": "personne d'autre capable de jouer {pos}",
-    "frOnly": "seulement {n} capable(s) de jouer {pos}",
+    "frOnly": {
+      "one": "un seul capable de jouer {pos}",
+      "other": "seulement {n} capables de jouer {pos}"
+    },
     "frTighthead": "pilier droit",
     "fullTime": "Fin du match",
     "gamePlanTitle": "Le plan de jeu de l'adjoint",
     "h2hAttack": "Attaque",
-    "h2hBreakdown": "Ruck",
+    "h2hBreakdown": "Jeu au sol",
     "h2hDefence": "Défense",
     "h2hLineout": "Touche",
     "h2hNation": "votre nation à gauche",
@@ -818,7 +821,7 @@
     "hintTap": "Touchez un joueur sur le terrain, puis celui qui entre à sa place. Toucher un second joueur sur le terrain échange leurs postes.",
     "howWatch": "Comment allez-vous suivre ce match ?",
     "inMatchTactics": "Tactique en cours de match",
-    "inTheBin": "Au banc de touche",
+    "inTheBin": "Exclusion temporaire",
     "injDesc": {
       "one": "{desc}, absent {n} semaine",
       "other": "{desc}, absent {n} semaines"
@@ -854,7 +857,7 @@
     "oldBoys": "Les anciens",
     "onTheBrink": "Au bord du record",
     "onThePitch": "Sur le terrain",
-    "oppCoachLine": " (entraîneur en chef de {club}) : « {quote} »",
+    "oppCoachLine": " (entraîneur principal de {club}) : « {quote} »",
     "oppositeNumber": "L'homologue",
     "optCorner": "Taper dans le coin",
     "optCornerD": "Touche à cinq mètres. Maul pour l'essai - tout ou rien.",
@@ -908,7 +911,7 @@
     "planWide2": "Le surnombre au large fera la différence. Deux passes après le ruck et ils sont en retard.",
     "planWide3": "Leurs ailiers rentrent à l'intérieur. Gagnez le coin et les essais suivront.",
     "play": "Lecture",
-    "playFinalQuarter": "▸ Jouer le dernier quart d'heure",
+    "playFinalQuarter": "▸ Jouer le dernier quart",
     "prepAttack": "⚡ Systèmes offensifs - combinaisons travaillées toute la semaine. Attaque affûtée.",
     "prepDefence": "🛡 Ateliers défensifs - le mur est bâti. Défense affûtée.",
     "prepFitness": "🏃 Préparation physique - les jambes tiendront plus longtemps que les leurs.",
@@ -949,7 +952,7 @@
       "other": "🔄 Faire tourner le XV - laisser au repos les hommes signalés"
     },
     "rotCup": "Un match de coupe est la semaine idéale pour faire confiance au groupe. ",
-    "rotFit": "{pct}% de forme",
+    "rotFit": "{pct}% de condition",
     "rotFlagged": "{men} - {count} signalés par le staff médical. Dites un mot et je vous nomme un XV frais autour d'eux.",
     "rotMan": "{player} ({why})",
     "rotRedZone": "zone rouge",
@@ -1093,7 +1096,7 @@
     "warnScrum": "Problème en mêlée : dans tout votre groupe du match, vous avez {missing}. L'arbitre exige 2 hommes pour chaque poste de première ligne, sinon il ordonne des mêlées simulées - plus de poussée, et un pack solide ne vaut plus rien. Mettez davantage de première ligne sur le banc.",
     "warnSixPointer": "MATCH À SIX POINTS : {gap}, et vous visez le même objectif. Battez-les et enterrez-les.",
     "warnTurnaround": "Seulement {n} jours depuis le dernier match - le groupe a moins bien récupéré cette semaine. Surveillez les réservoirs.",
-    "warnUnfit": "{player} n'est qu'à {pct}% de sa forme - son réservoir se videra tôt.",
+    "warnUnfit": "{player} n'est qu'à {pct}% de sa condition - son réservoir se videra tôt.",
     "wxDry": "Sec",
     "wxRain": "Pluie",
     "wxSnow": "Neige",
@@ -1739,7 +1742,7 @@
     "morale": "Moral",
     "moraleTitle": "son bonheur ici. Un joueur malheureux joue moins bien et demande à partir",
     "fitness": "Condition",
-    "fitnessTitle": "la fraîcheur de ses jambes. Sous 70 % il coule dans le dernier quart d'heure",
+    "fitnessTitle": "la fraîcheur de ses jambes. Sous 70 % il coule dans le dernier quart",
     "sharpness": "Rythme",
     "sharpnessTitle": "le rythme de compétition. Un homme de retour de blessure est en forme mais pas dans le rythme, et ça se voit",
     "injuredChip": "Blessé : {desc} (~{n}s)",
@@ -1877,8 +1880,8 @@
     "vSuspendedOne": "Suspendu pour {n} match de plus.",
     "vAway": "Parti avec sa sélection, donc indisponible pour vous.",
     "vOnLoan": "En prêt pour la saison.",
-    "vUnfit": "Disponible mais seulement à {pct} % de forme : il va couler.",
-    "vFit": "En forme et disponible.",
+    "vUnfit": "Disponible mais seulement à {pct} % de condition : il va couler.",
+    "vFit": "Apte et disponible.",
     "vExpiring": "Son contrat expire cet été et il peut partir pour rien.",
     "vWantsOut": "Une demande de transfert est sur votre bureau. Du temps de jeu le ferait changer d'avis ; rien d'autre.",
     "vWantsDeal": "Son agent réclame de meilleures conditions.",
@@ -2219,7 +2222,7 @@
     "dtTitle": "ÉQUIPE TYPE",
     "fxAcademy": "meilleures promotions, {pct} % de pépites en plus",
     "fxBriefing": "préparation du match {pct} % plus efficace",
-    "fxGym": "+{n} de forme récupérée par semaine",
+    "fxGym": "+{n} de condition récupérée par semaine",
     "fxHospitality": "+{pct} % sur chaque recette à domicile",
     "fxKicking": "+{pct} % au tir au but",
     "fxPaddock": "l'entraînement prend {pct} % plus souvent",
@@ -2368,7 +2371,7 @@
     "pitch": "Pelouse",
     "pitchDesc": "Une vraie pelouse : moins de ballons perdus à domicile.",
     "gym": "Salle de musculation",
-    "gymDesc": "Les joueurs récupèrent plus de forme chaque semaine.",
+    "gymDesc": "Les joueurs récupèrent plus de condition chaque semaine.",
     "recovery": "Centre de récupération",
     "recoveryDesc": "Bains froids et piscines : les blessures guérissent plus vite.",
     "paddock": "Terrain d'entraînement",
@@ -2950,7 +2953,7 @@
     "winMark": "Gagnez et ce sera la {n}e victoire de votre carrière."
   },
   "venue": {
-    "altHigh": "L'altitude. Le stade est à {alt} m et l'air est rare : les jambes lâchent plus tôt que ne le dit le chrono. Le dernier quart d'heure fera mal.",
+    "altHigh": "L'altitude. Le stade est à {alt} m et l'air est rare : les jambes lâchent plus tôt que ne le dit le chrono. Le dernier quart fera mal.",
     "altSome": "Une montée notable jusqu'à {alt} m. Pas le highveld, mais assez pour que les avants sentent la seconde période.",
     "cold": "Du froid, et plus froid que ce à quoi ces gars sont faits. Gardez le ballon en l'air et obligez-les à le manier.",
     "heat": "Une chaleur et une humidité auxquelles personne dans ce groupe ne s'entraîne. Hydratation et maîtrise du rythme, sinon ça nous échappe en fin de match.",
@@ -3353,7 +3356,7 @@
     "lawWatch2": "Un document de travail suggère de réduire le XV à treize pour « ouvrir des espaces et réduire les collisions ». Les fédérations du Nord sont furieuses, celles du Sud intriguées, et un sport existant comptant exactement ce nombre de joueurs observe les bras croisés. Attendez-vous à un enterrement discret d'ici l'automne.",
     "lawWatch3Subj": "VEILLE RÈGLEMENT : un chronomètre pour les mêlées - 30 secondes ou coup franc",
     "lawWatch3": "La proposition : les packs disposent de trente secondes entre la marque et l'engagement, sous peine de céder l'introduction. Les premières lignes du monde entier qualifient l'idée de « crime de guerre ». Les arbitres adorent en privé. L'essai est prévu dans une compétition de développement que personne ne sait nommer, ce qui dit tout.",
-    "lawWatch4Subj": "VEILLE RÈGLEMENT : les tirs au but vaudraient moins dans le dernier quart d'heure, selon un groupe de réflexion",
+    "lawWatch4Subj": "VEILLE RÈGLEMENT : les tirs au but vaudraient moins dans le dernier quart, selon un groupe de réflexion",
     "lawWatch4": "Les pénalités tomberaient à deux points après l'heure de jeu « pour encourager l'ambition ». Les buteurs sont furieux, les troisièmes lignes ravis, et les forums de supporters ont refait les calculs de chaque finale historique et déclaré l'histoire elle-même invalide. La fédération internationale remercie le groupe de réflexion pour sa contribution.",
     "lawWatch5Subj": "VEILLE RÈGLEMENT : un essai de remplacements illimités envisagé en présaison",
     "lawWatch5": "Remplacements tournants, tout le match, chaque match. Les préparateurs physiques salivent ; les puristes rédigent des lettres au vitriol avec notes de bas de page. La proposition est « au stade du concept », formule qui n'a jamais précédé l'entrée en vigueur de quoi que ce soit dans l'histoire de ce sport.",
@@ -4116,7 +4119,7 @@
     "sponsorSignedClause": "{sponsor} prend le contrat {slot_k} pour {yrs_k} à {weekly} par semaine, avec une clause : {clause_k} Tenez-la et c'est le meilleur contrat de la maison. Sinon, vous avez vendu à bas prix.{naming_k}",
     "sponsorNaming": " Les camions de signalétique arrivent lundi : le stade s'appellera {stadium} pour toute la durée du contrat.",
     "sponsorExpiresSubj": "{icon} Le contrat {sponsor} expire",
-    "sponsorExpires": "{slot_k} est sans contrat : {sponsor} est arrivé au terme de son engagement. Plutôt que de le laisser vide, le service commercial a pris un accord glissant avec {newSponsor} à {rate} par semaine, ce qui est sous le tarif du marché parce que personne n'a négocié pour vous. De meilleures offres sont disponibles quand vous le voudrez, et vous pouvez remplacer celle-ci à tout moment.",
+    "sponsorExpires": "Le contrat {slot_k} arrive à échéance : {sponsor} est arrivé au terme de son engagement. Plutôt que de le laisser vide, le service commercial a pris un accord glissant avec {newSponsor} à {rate} par semaine, ce qui est sous le tarif du marché parce que personne n'a négocié pour vous. De meilleures offres sont disponibles quand vous le voudrez, et vous pouvez remplacer celle-ci à tout moment.",
     "aLeagueSubj": "🎓 Espoirs : {scores_l}",
     "aLeague": "{coach_k}\n{rows_ll}\n{tail_k}",
     "aLeaguePosSubj": "🎓 Espoirs : {scores_l}",
@@ -4360,8 +4363,8 @@
     "aScore": "{us}-{them} contre {opp}"
   },
   "comm": {
-    "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le tableau, ou jouez à travers leur plan.",
-    "oppCoach": "L'entraîneur adverse a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le tableau, ou jouez à travers leur plan.",
+    "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
+    "oppCoach": "L'entraîneur adverse a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
     "patternPack": "votre jeu d'avants",
     "patternWidth": "votre jeu au large",
     "patternTempo": "votre tempo sur les rucks rapides",
@@ -4400,7 +4403,7 @@
     "try5": "ESSAI ! {player} repique à l'intérieur et plonge sous les poteaux !",
     "try6": "ESSAI ! Mouvement de grande classe, et {player} conclut !",
     "try7": "ESSAI ! Le jeu rapide de {player} prend la défense en défaut !",
-    "try8": "ESSAI ! {player} récupère un petit coup de pied par-dessous et aplatit !",
+    "try8": "ESSAI ! {player} récupère un petit coup de pied rasant et aplatit !",
     "try9": "ESSAI ! {player} déborde son vis-à-vis et personne ne le rattrapera !",
     "try10": "ESSAI ! {player} ramasse à la base et s'enfonce dans l'en-but !",
     "try11": "ESSAI ! Un raffut monumental de {player} et il termine tranquillement !",
@@ -5239,7 +5242,28 @@
     "discForm": "L'adjoint ferme la porte : {player} est très en dessous de son niveau, et le staff dit que son investissement en réunion vidéo est à l'avenant. Le groupe le sait, et le groupe regarde ce que vous allez faire.",
     "discFine": "Lui infliger une amende d'une semaine de salaire",
     "discWord": "Une discussion en tête-à-tête",
-    "discSlide": "Laisser passer"
+    "discSlide": "Laisser passer",
+    "slotQ": "Le contrat {slot_k} tourne sur un accord de dépannage à {weekly} par semaine - sous le tarif du marché. Le directeur commercial a trois offres sur le bureau. On part sur laquelle ?",
+    "slotLong": {
+      "one": "{sponsor} : {weekly}/sem., {n} an",
+      "other": "{sponsor} : {weekly}/sem., {n} ans"
+    },
+    "slotLongR": {
+      "one": "Signé. De l'argent sûr pendant {n} an - un peu sous le marché, parce que le sponsor vous achète de la certitude.",
+      "other": "Signé. De l'argent sûr pendant {n} ans - un peu sous le marché, parce que le sponsor vous achète de la certitude."
+    },
+    "slotShort": {
+      "one": "{sponsor} : {weekly}/sem., {n} an",
+      "other": "{sponsor} : {weekly}/sem., {n} ans"
+    },
+    "slotShortR": {
+      "one": "Signé. Au-dessus du tarif du marché, et vous revenez à ce bureau dans {n} an - c'est le pari : votre réputation aura grandi d'ici là.",
+      "other": "Signé. Au-dessus du tarif du marché, et vous revenez à ce bureau dans {n} ans - c'est le pari : votre réputation aura grandi d'ici là."
+    },
+    "slotClause": "{sponsor} : {weekly}/sem. + clause, {n} ans",
+    "slotClauseR": "Signé, avec la clause. Livrez sur le terrain et c'est le meilleur contrat de la maison ; échouez et vous avez vendu à bas prix.",
+    "slotKeep": "Rester sur le dépannage pour l'instant",
+    "slotKeepR": "Le dépannage continue au rabais. Les offres restent sur l'écran Finances quand vous les voudrez."
   },
   "posNoun": {
     "prop": "pilier",
