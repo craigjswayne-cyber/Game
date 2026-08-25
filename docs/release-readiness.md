@@ -560,3 +560,42 @@ package.json in vite.config.ts, so it cannot drift from it.
 nothing has been uploaded yet. It becomes 2 on the second thing Play receives,
 even if that is this same version rebuilt.
 
+---
+
+### v1.0.7 - 25 August, the same afternoon
+
+**The version: 1.0.7.** package.json, the TWA manifest and the service worker
+cache all say so; `appVersionCode` still counts uploads and still reads 1.
+
+Row 28 was signed off as PASS on the strength of five dictionary probes, and
+that sign-off was true about the DICTIONARY and wrong about the GAME. What the
+probes could not see, in the order it was found:
+
+* **The Press Room was English.** All of it: 28 items, every question voicing,
+  93 button labels, 95 replies, plus the discipline conversation built in
+  authority.ts. proseprobe reported zero because its regex looked for field
+  names media.ts does not use, so a budget of zero read as "finished". It scans
+  every file that pushes onto state.press now, and prints where.
+* **Nations were English.** England, Ireland, New Zealand on eleven French
+  screens - a first cap, a Grand Slam eve, every Test scoreline. Translated
+  now, with the three article forms French needs.
+* **"objectives.youth" was on the Home screen**, in BOTH languages, because a
+  field documented as an i18n key was called `text` and printed raw. It is
+  `textKey`, and keyprobe fails any screen that renders one without t().
+* **Nine more English phrases reached French screens through CODE** rather than
+  through the dictionary - a phrase poured into a slot that otherwise holds a
+  name. That rule already existed; these were the places nothing enforced it.
+* **French that was fluent and named the wrong thing.** The final quarter of an
+  eighty-minute match was a "quart d'heure"; the back five (shirts 4-8) was
+  called "les cinq de devant", which is the TIGHT five, 1-5. Every probe passed
+  on both.
+
+Two guards were added and two were repaired. frliveprobe now derives its
+English word list from the dictionaries themselves rather than a hand-written
+forty, reads the press room, and answers every question on its way past: 5,772
+lines from ten French careers, eight seasons each. Old careers get their press
+coverage back through a migration that matches a stored English sentence
+against the template that produced it.
+
+Row 28 stands, and now it is about the game rather than the dictionary.
+
