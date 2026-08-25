@@ -1318,6 +1318,42 @@ export interface LiveCtx {
 }
 
 /**
+ * WHAT A LINE DEPICTS, where a line depicts something the pitch can draw.
+ *
+ * The mock-up used to work this out by running regular expressions over the
+ * commentary itself. That tied a picture to a wording in one language, and it
+ * was wrong even in that one: comm.doesPace has an opposition coach promising
+ * to "slow every scrum reset", which drew a scrum, and comm.benchFiveThree,
+ * comm.doesMiddle and comm.patternWidth all contain the word "wide", which
+ * rolled the kick-miss camera over a tactical note.
+ *
+ * Only lines that SHOW the thing are listed. A coach talking about scrums is
+ * not a scrum.
+ */
+const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
+  'comm.flav4': 'SCRUM',            // monster scrum, penalty advantage
+  'comm.flav12': 'SCRUM',           // choke tackle, scrum to the other side
+  'comm.flav21': 'SCRUM',           // the scrum inches forward
+  'comm.flavWet1': 'SCRUM',         // trudging to another scrum in the rain
+  'comm.maulHeldUp': 'SCRUM',       // held up, and they win the scrum
+  'comm.uncontested': 'SCRUM',      // the referee orders uncontested scrums
+  'comm.flav9': 'LINEOUT',          // steals the lineout against the throw
+  'comm.flav13': 'LINEOUT',         // a 50:22 and the lineout that follows
+  'comm.flav18': 'LINEOUT',         // a quick lineout taken
+  'comm.flavDerby5': 'LINEOUT',     // words exchanged at the lineout
+  'comm.flav6': 'MAUL',             // rolling maul eats twenty metres
+  'comm.flavGrass1': 'MAUL',        // the back of a collapsing maul
+  'comm.maulToCorner': 'MAUL',      // the maul assembles five metres out
+  'comm.maulRepelledPenalty': 'MAUL',
+  'comm.tryMaulRumbles': 'MAUL',    // and the ones that end in a try
+  'comm.try4': 'MAUL',
+  'comm.tryWet5': 'MAUL',
+  'comm.penWide': 'MISS',           // the kick that misses
+  'comm.penWideNamed': 'MISS',
+  'comm.conWide': 'MISS',
+}
+
+/**
  * A commentary line, filed as a key and its values.
  *
  * This is the one to use. pushEvent below takes finished English and is what
@@ -1333,12 +1369,13 @@ function pushLine(
   k: string, v?: Record<string, string | number>, playerId?: number,
 ) {
   if (!ctx.detail) return
-  pushEvent(state, ctx, min, type, side, tIn('en', k, v), playerId, k, v)
+  pushEvent(state, ctx, min, type, side, tIn('en', k, v), playerId, k, v, DEPICTS[k])
 }
 
 function pushEvent(
   state: GameState, ctx: LiveCtx, min: number, type: MatchEvent['type'], side: SideCtx | null,
   text: string, playerId?: number, k?: string, v?: Record<string, string | number>,
+  fx?: MatchEvent['fx'],
 ) {
   if (!ctx.detail) return
   if (type !== 'HT' && type !== 'FT') {
@@ -1348,7 +1385,7 @@ function pushEvent(
   ctx.events.push({
     min, type, teamId: side?.teamId ?? '',
     playerId, playerName: playerId != null ? state.players[playerId]?.name : undefined,
-    text, k, v, homeScore: ctx.home.score, awayScore: ctx.away.score,
+    text, k, v, fx, homeScore: ctx.home.score, awayScore: ctx.away.score,
   })
 }
 

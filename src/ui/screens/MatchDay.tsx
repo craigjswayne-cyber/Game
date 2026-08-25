@@ -1337,21 +1337,26 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
   const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
-  // DELIBERATELY THE STORED ENGLISH, not eventText(). The line the reader sees
-  // is translated; the line the engine matches on is not, and must not be -
-  // these patterns decide what gets drawn on the pitch, and a save keeps its
-  // events for the life of the career. Reading the rendered text here would
-  // mean the mock-up worked in English and drew nothing in French.
+  // The event says what it depicts (MatchEvent.fx, set in matchEngine's
+  // DEPICTS). What follows is the way it used to be worked out - regular
+  // expressions over the line's stored English - and it is kept ONLY for
+  // events from a save written before the field existed. A career lives for
+  // years and its match events live with it.
   //
-  // It is still a wart: the right answer is a set-piece field on the event
-  // rather than a regular expression over prose. scripts/commprobe.ts pins the
-  // phrases in the meantime, because breaking one empties the pitch and
-  // nothing else in the suite would notice.
+  // The patterns run on `text` rather than eventText() and that is deliberate:
+  // the stored English is the same in every language, so an old save draws its
+  // pitch for a French reader too. What it cannot do is be right - "slow every
+  // scrum reset" drew a scrum - which is what the field fixes going forward.
   const txt = last?.text ?? ''
-  const setPiece = showFx && evType === 'SUB'
-    ? (/scrum/i.test(txt) ? 'SCRUM' : /lineout|against the throw/i.test(txt) ? 'LINEOUT' : /maul/i.test(txt) ? 'MAUL' : null)
-    : null
-  const kickMiss = evType === 'SUB' && /wide/i.test(txt)
+  const legacyFx = (): MatchEvent['fx'] | null =>
+    /scrum/i.test(txt) ? 'SCRUM'
+      : /lineout|against the throw/i.test(txt) ? 'LINEOUT'
+      : /maul/i.test(txt) ? 'MAUL'
+      : /wide/i.test(txt) ? 'MISS'
+      : null
+  const depicts = last ? (last.k ? last.fx ?? null : legacyFx()) : null
+  const setPiece = showFx && evType === 'SUB' && depicts !== 'MISS' ? depicts : null
+  const kickMiss = evType === 'SUB' && depicts === 'MISS'
   const kickCam = showFx && (kickFx || kickMiss)
   const binned = (side: SideCtx) =>
     side.lineup.slice(0, 15)

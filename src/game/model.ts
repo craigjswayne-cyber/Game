@@ -641,6 +641,17 @@ export interface MatchEvent {
    *  eventText() falls back to `text` rather than to the key's name. */
   k?: string
   v?: Record<string, string | number>
+  /** WHAT THE LINE DEPICTS, for the pitch mock-up to draw.
+   *
+   *  The mock-up used to decide this by running regular expressions over the
+   *  commentary - /scrum/i, /maul/i, /\bwide\b/ - which worked only in English
+   *  and was wrong even there: a coach saying he will "slow every scrum reset"
+   *  drew a scrum, and a bench note about "the wide channels" rolled the
+   *  kick-miss camera. This says it instead of inferring it.
+   *
+   *  Absent on saves written before this, which is why MatchDay still falls
+   *  back to the old patterns when it is missing. */
+  fx?: 'SCRUM' | 'LINEOUT' | 'MAUL' | 'MISS'
   homeScore: number
   awayScore: number
 }
