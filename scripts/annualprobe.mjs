@@ -80,22 +80,29 @@ try {
     // anything - the Annual never appeared and the wait timed out on a page that
     // was fine. The desk is cleared here too, which is what the comment above
     // already claimed this loop did.
-    // BOUNDED BY PROGRESS, NOT BY A NUMBER. This loop has been given a bigger
-    // fixed budget twice (900, then 2500) and each time a later change made a
-    // season cost more taps and it silently ran out again - reporting "the
-    // rollover stamped the Annual" as a failure on a page that was perfectly
-    // healthy. It was flaky at 2500: the same build passed one run and failed
-    // the next. So it now watches the CLOCK instead: keep going while the week
-    // is still moving, and stop when it stalls, which is the only thing that
-    // means the loop is genuinely stuck.
+    // BOUNDED BY PROGRESS, AND PROGRESS MEASURED IN SECONDS. This loop has been
+    // given a bigger fixed budget twice (900, then 2500) and each time a later
+    // change made a season cost more taps and it silently ran out again -
+    // reporting "the rollover stamped the Annual" as a failure on a page that
+    // was perfectly healthy. Watching the clock instead of counting taps fixed
+    // that, but the stall was still counted in ITERATIONS (400 of them, 5ms
+    // apart), and an iteration is not a unit of time: under the load of a full
+    // suite - a hundred and fifty probes deep, Chromium after Chromium - the
+    // same 400 iterations buy a fraction of the wall-clock they buy on an idle
+    // machine. It failed inside the suite and passed alone on the identical
+    // build, twice, which is the signature.
+    //
+    // So the stall is eight SECONDS of the week not moving. That number means
+    // the same thing on a loaded machine as on an empty one, which is the only
+    // property that matters here.
     let lastWeek = -1
-    let sinceMoved = 0
+    let movedAt = Date.now()
     for (let guard = 0; guard < 20000; guard++) {
       const st = window.rugbyStore.getState()
       if (!st.game || st.game.annual) break
       const clock = (st.game.season ?? 0) * 100 + (st.game.week ?? 0)
-      if (clock !== lastWeek) { lastWeek = clock; sinceMoved = 0 }
-      else if (++sinceMoved > 400) break
+      if (clock !== lastWeek) { lastWeek = clock; movedAt = Date.now() }
+      else if (Date.now() - movedAt > 8000) break
       for (const o of st.game.offers) if (o.status === 'pending' && o.forUser) o.status = 'rejected'
       for (const n of st.game.news) { n.read = true }
       for (const q of st.game.press) q.answered = true
