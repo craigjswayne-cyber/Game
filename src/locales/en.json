@@ -791,7 +791,10 @@
     "frJoin": " and ",
     "frLoosehead": "loosehead prop",
     "frNone": "nobody else who can play {pos}",
-    "frOnly": "only {n} who can play {pos}",
+    "frOnly": {
+      "one": "only {n} who can play {pos}",
+      "other": "only {n} who can play {pos}"
+    },
     "frTighthead": "tighthead prop",
     "fullTime": "Full Time",
     "gamePlanTitle": "Assistant's Game Plan",
@@ -5239,7 +5242,28 @@
     "discForm": "The assistant closes the door: {player} has been well below his own standard, and the coaches say the effort in review meetings matches the ratings. The squad knows, and the squad is watching what you do about it.",
     "discFine": "Fine him a week's wages",
     "discWord": "A quiet word, man to man",
-    "discSlide": "Let it slide"
+    "discSlide": "Let it slide",
+    "slotQ": "The {slot_k} is on a stopgap arrangement at {weekly} a week - under the going rate. The commercial director has three offers on the desk. Which way do we go?",
+    "slotLong": {
+      "one": "{sponsor}: {weekly}/wk, {n} year",
+      "other": "{sponsor}: {weekly}/wk, {n} years"
+    },
+    "slotLongR": {
+      "one": "Signed. Safe money for {n} year - a touch under market, because the sponsor is buying certainty off you.",
+      "other": "Signed. Safe money for {n} years - a touch under market, because the sponsor is buying certainty off you."
+    },
+    "slotShort": {
+      "one": "{sponsor}: {weekly}/wk, {n} year",
+      "other": "{sponsor}: {weekly}/wk, {n} years"
+    },
+    "slotShortR": {
+      "one": "Signed. Over the market rate, and you are back at this desk in {n} year - which is the bet: your reputation will have grown by then.",
+      "other": "Signed. Over the market rate, and you are back at this desk in {n} years - which is the bet: your reputation will have grown by then."
+    },
+    "slotClause": "{sponsor}: {weekly}/wk + clause, {n} yrs",
+    "slotClauseR": "Signed, with the clause. Deliver on the pitch and it is the best deal in the building; fall short and you sold cheap.",
+    "slotKeep": "Stay with the stopgap for now",
+    "slotKeepR": "The stopgap rolls on at a discount. The offers stay on the Finances screen whenever you want them."
   },
   "posNoun": {
     "prop": "prop",

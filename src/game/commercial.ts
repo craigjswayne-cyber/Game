@@ -159,7 +159,7 @@ export interface Deal {
 
 // Invented brand names, deliberately. Real sponsors would be putting words in
 // the mouths of real companies, and a fictional one reads no worse on a shirt.
-const NAMES: Record<SlotId, string[]> = {
+export const NAMES: Record<SlotId, string[]> = {
   shirt: [
     'Harborne Group', 'Vantail Energy', 'Castlebridge Insurance', 'Norlander Logistics',
     'Pemberton & Ross', 'Ironvale Steel', 'Selkirk Financial', 'Amberline Telecom',

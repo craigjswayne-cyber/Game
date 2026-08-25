@@ -23,6 +23,7 @@
 //
 // Run: npx vite-node scripts/frliveprobe.ts
 import { newGame } from '../src/game/newgame'
+import { NAMES as SPONSORS } from '../src/game/commercial'
 import { processWeekAndAdvance } from '../src/game/season'
 import { answerPress } from '../src/game/media'
 import { newsBody, newsSubject, eventText, decisionText, pressQuestion, pressLabel, pressAnswer, pressReaction, type GameState } from '../src/game/model'
@@ -99,6 +100,9 @@ const properNouns = (g: GameState): Set<string> => {
   for (const c of Object.values(g.comps)) { add(c.name); add(c.short) }
   for (const f of g.fixtures) { add(f.venue?.name); add(f.venue?.city) }
   add(g.managerName)
+  // a sponsor is a name like a club is a name, and it lives in a pool rather
+  // than on the state - "Norlander Logistics" is not the game speaking English
+  for (const pool of Object.values(SPONSORS)) for (const n of pool) add(n)
   return out
 }
 
@@ -124,6 +128,10 @@ for (let i = 0; i < CLUBS.length; i++) {
     // reaction and every answer label unrendered, which is exactly the half of
     // it that stayed English longest. Rotate the button so all of them fire.
     for (const pr of g.press) if (!pr.answered) answerPress(g, pr.id, answers++ % pr.options.length)
+    // every season, not just at the end: a man who retires in season three is
+    // gone from g.players by season eight, and his surname is still sitting in
+    // the story that announced he had left
+    if (w % 44 === 0) for (const n of properNouns(g)) NOUNS.add(n)
   }
   lines.push(...collect(g))
   for (const n of properNouns(g)) NOUNS.add(n)
