@@ -1,7 +1,13 @@
 # Monetisation & Game Economy Specification — v1.1.0
 
-**Status:** design for the developer roadmap. Nothing in this document is
-implemented; §8 is the build order.
+**Status:** implemented through §6 step 5 (25 Aug): bridge v2 with the
+8-SKU catalogue, `grants.ts` and its doors, the Boardroom / shelf / wizard /
+Editor / rewarded surfaces, and the probes (`grantprobe`, `rewardedprobe`,
+extended `moneyprobe`/`storeprobe`). Still open: §6 step 6 - the four-place
+privacy flip, which lands in the same commit as the ad SDK in the Play
+wrapper, deliberately not before - plus the wrapper work itself (Play
+products, Digital Goods bridge, rewarded provider) and the in-game handbook
+section on the stamps.
 **Owner's brief:** balanced, non-predatory monetisation that maximises revenue
 while keeping core simulation fans happy.
 **Prime directive:** every purchasable thing is something the *club* does in

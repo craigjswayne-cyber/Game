@@ -2,7 +2,7 @@
 // Navigations are NETWORK-FIRST so new deploys are picked up immediately;
 // the cache is only a fallback for offline play. Hashed assets are
 // cache-first (their URLs change every build, so they are immutable).
-const CACHE = 'rugby-manager-v107'
+const CACHE = 'rugby-manager-v110'
 
 self.addEventListener('install', (e) => {
   // the privacy policy is precached with the shell: a store reviewer, or a
