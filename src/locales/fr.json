@@ -4370,7 +4370,14 @@
     "boardInjectionSubj": "💷 Le conseil débloque des fonds exceptionnels",
     "boardInjection": "Le conseil d'administration a voté des fonds exceptionnels : {amount} arrivent immédiatement dans le budget transferts, et les salaires nécessaires sont garantis d'en haut jusqu'à l'été. Le procès-verbal ne pose qu'une condition : dépensez-les à bon escient.",
     "charterSubj": "🖋 Nouveau propriétaire : la loi salariale ne s'applique plus",
-    "charter": "Les papiers sont signés et les avocats sont rentrés chez eux. {club} n'est plus soumis au plafond salarial de la ligue : plus de plafond, plus d'amendes, plus d'embargos, à compter de ce jour. Le communiqué de la ligue tient en un paragraphe glacial. Les téléphones des agents chauffent déjà."
+    "charter": "Les papiers sont signés et les avocats sont rentrés chez eux. {club} n'est plus soumis au plafond salarial de la ligue : plus de plafond, plus d'amendes, plus d'embargos, à compter de ce jour. Le communiqué de la ligue tient en un paragraphe glacial. Les téléphones des agents chauffent déjà.",
+    "physioFavourSubj": "🩺 Le consultant du sponsor : {player} en avance",
+    "physioFavour": {
+      "one": "Le sponsor maillot du club a financé l'examen par un consultant du dossier de {player} ({injury_k}). Une meilleure rééducation a été trouvée : retour une semaine plus tôt que prévu.",
+      "other": "Le sponsor maillot du club a financé l'examen par un consultant du dossier de {player} ({injury_k}). Une meilleure rééducation a été trouvée : retour {n} semaines plus tôt que prévu."
+    },
+    "townCollectionSubj": "🪣 La ville fait passer le seau",
+    "townCollection": "L'association des supporters a organisé une collecte pour {club} : {amount}, en pièces, en billets et avec le chèque d'un fermier, remis avant l'entraînement. La ville n'a pas l'intention de perdre ce club."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -4770,7 +4777,11 @@
     "legendStays": " Le statut de légende reste - il a été voté, pas prêté.",
     "protegeLine": "{n} de vos joueurs formés au club évoluent ailleurs{best_k}{capped_k}.",
     "protegeBest": ", le meilleur d'entre eux étant {best} à {club}",
-    "protegeCapped": " - {intl} d'entre eux internationaux"
+    "protegeCapped": " - {intl} d'entre eux internationaux",
+    "favourWorked": {
+      "one": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec une semaine d'avance.",
+      "other": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec {n} semaines d'avance."
+    }
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",
@@ -5333,7 +5344,22 @@
     "editorSub": "votre monde, vos règles",
     "editorBody": "Débloquez l'Éditeur sur l'écran État de la partie : modifiez attributs, âges et postes des joueurs, renommez joueurs, clubs et stades, réglez couleurs de maillot, budgets et soldes - dans n'importe quelle sauvegarde. La première modification marque cette sauvegarde d'un petit 🔧, définitivement, et tout compte encore.",
     "editorOwned": "L'Éditeur est à vous. Sa porte se trouve sur l'écran État de la partie, dans chaque carrière.",
-    "editorThanks": "Merci. La porte de l'Éditeur se trouve désormais sur l'écran État de la partie."
+    "editorThanks": "Merci. La porte de l'Éditeur se trouve désormais sur l'écran État de la partie.",
+    "watchPhysio": "📺 La faveur du sponsor",
+    "watchAgency": "📺 Demander son dossier à l'agence (regarder un spot)",
+    "analystDone": "La lecture complète de l'analyste est sur la carte : le briefing ci-dessus est l'intégralité.",
+    "townTitle": "La collecte de la ville",
+    "townBody": "L'association des supporters fera passer le seau pour un club en vraie difficulté : regardez un spot et la collecte arrive en banque. Elle paie les salaires et la lumière, jamais les joueurs.",
+    "watchTown": "📺 Laisser passer le seau",
+    "townDone": "La collecte a rapporté {amount}. C'est en banque.",
+    "agencyDone": "Le dossier de l'agence sur {name} est arrivé : le tableau du recrutement vient de se préciser.",
+    "spotSkipped": "Le spot a été fermé avant la fin, rien n'a changé : la faveur exige le spot entier.",
+    "spotUnavailable": "Aucun spot n'est disponible pour le moment. Rien n'est perdu : réessayez plus tard.",
+    "favourGone": "Le moment est passé : l'allocation de la semaine était déjà utilisée.",
+    "watchAnalyst": {
+      "one": "📺 L'analyste a une lecture de plus - sa nuit blanche contre un spot",
+      "other": "📺 L'analyste a {n} lectures de plus - sa nuit blanche contre un spot"
+    }
   },
   "editor": {
     "locked": "L'Éditeur n'est pas débloqué sur cet appareil. Il se trouve sur la page Soutien, là où une boutique permet de l'acheter.",

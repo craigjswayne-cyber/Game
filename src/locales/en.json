@@ -4370,7 +4370,14 @@
     "boardInjectionSubj": "💷 The board releases extraordinary funds",
     "boardInjection": "The board have voted through extraordinary funds: {amount} lands in the transfer budget with immediate effect, and the wages to use it are underwritten from upstairs until the summer. The minutes record one condition - spend it like it matters.",
     "charterSubj": "🖋 New ownership: the wage law no longer applies",
-    "charter": "The paperwork is signed and the lawyers have gone home. {club} are no longer bound by the league's salary cap - no ceiling, no fines, no embargoes, from this day forward. The league's statement is one cold paragraph. The agents' phones are already warm."
+    "charter": "The paperwork is signed and the lawyers have gone home. {club} are no longer bound by the league's salary cap - no ceiling, no fines, no embargoes, from this day forward. The league's statement is one cold paragraph. The agents' phones are already warm.",
+    "physioFavourSubj": "🩺 The sponsor's consultant: {player} ahead of schedule",
+    "physioFavour": {
+      "one": "The club's shirt sponsor covered a consultant's review of {player}'s {injury_k}. A better rehab route was found: back a week earlier than feared.",
+      "other": "The club's shirt sponsor covered a consultant's review of {player}'s {injury_k}. A better rehab route was found: back {n} weeks earlier than feared."
+    },
+    "townCollectionSubj": "🪣 The town passes the bucket",
+    "townCollection": "The supporters' trust organised a collection for {club}: {amount}, in coins and notes and one farmer's cheque, handed over before training. The town does not intend to lose this club."
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4770,7 +4777,11 @@
     "legendStays": " The legend status stays - that was voted, not loaned.",
     "protegeLine": "{n} of your graduates are playing elsewhere{best_k}{capped_k}.",
     "protegeBest": ", the best of them {best} at {club}",
-    "protegeCapped": " - {intl} of them capped"
+    "protegeCapped": " - {intl} of them capped",
+    "favourWorked": {
+      "one": "The sponsor's consultant found a quicker route for {player}: back a week early.",
+      "other": "The sponsor's consultant found a quicker route for {player}: back {n} weeks early."
+    }
   },
   "verdict": {
     "titleFavourites": "Title favourites",
@@ -5333,7 +5344,22 @@
     "editorSub": "your world, your rules",
     "editorBody": "Unlock the Editor on the Game Status screen: edit player attributes, ages and positions, rename players, clubs and stadiums, set kit colours, budgets and balances - in any save. The first change stamps that save with a small 🔧, permanently, and everything still counts.",
     "editorOwned": "The Editor is yours. Its door is on the Game Status screen, in every career.",
-    "editorThanks": "Thank you. The Editor's door is now on the Game Status screen."
+    "editorThanks": "Thank you. The Editor's door is now on the Game Status screen.",
+    "watchPhysio": "📺 Sponsor's favour",
+    "watchAgency": "📺 Ask the agency for their file (watch a spot)",
+    "analystDone": "The analyst's full read is on the card - the briefing above is the whole of it.",
+    "townTitle": "The town's collection",
+    "townBody": "The supporters' trust will pass the bucket for a club in real trouble - watch a spot and the collection lands in the bank. It pays wages and lights, never players.",
+    "watchTown": "📺 Let them pass the bucket",
+    "townDone": "The collection came to {amount}. It is in the bank.",
+    "agencyDone": "The agency's file on {name} is in: the scouting picture just sharpened.",
+    "spotSkipped": "The spot was closed early, so nothing changed - the favour needs the whole thing.",
+    "spotUnavailable": "No spot is available right now. Nothing is lost - try again later.",
+    "favourGone": "The moment has passed: the week's allowance was already used.",
+    "watchAnalyst": {
+      "one": "📺 The analyst has one more read - his all-nighter for a spot",
+      "other": "📺 The analyst has {n} more reads - his all-nighter for a spot"
+    }
   },
   "editor": {
     "locked": "The Editor is not unlocked on this device. It lives on the Supporter page, where there is a store to buy it from.",
