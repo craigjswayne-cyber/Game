@@ -148,7 +148,7 @@ export default function Transfers() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700 }}>{p.name}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {t('transfers.incomingLine', { age: p.age, club: p.clubId ? game.clubs[p.clubId]?.short ?? '?' : t('transfers.freeAgency') })}
+                        {t('transfers.incomingLine', { age: p.age, from_k: p.clubId ? 'transfers.fromClub' : 'transfers.fromFree', club: p.clubId ? game.clubs[p.clubId]?.short ?? '?' : '' })}
                       </div>
                     </div>
                     <span className="chip" style={{ borderColor: 'var(--gold)', fontWeight: 700 }}>{t('transfers.agreed')}</span>

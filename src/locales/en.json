@@ -1371,8 +1371,7 @@
     "renewNote": "Tap a player to renew from his page. From week 25 an unrenewed man can sign a pre-contract elsewhere and walk for nothing in the summer.",
     "arrivingSummer": "Arriving In Summer",
     "arrivingSummerSub": "pre-contracts agreed - they arrive when the season ends",
-    "incomingLine": "{age} yrs · from {club} · on a free",
-    "freeAgency": "free agency",
+    "incomingLine": "{age} yrs · {from_k} · on a free",
     "agreed": "🖊 agreed",
     "scoutingAssignment": "Scouting Assignment",
     "assignmentNote": "Point the network at one league - its players get watched every week{unassigned}. Shortlisted men are always tracked, with alerts when their situation changes.",
@@ -1434,7 +1433,9 @@
     "alreadyListed": "✓ Listed",
     "addShortlist": "+ Shortlist",
     "scoutReports": "Scout Reports",
-    "scoutReportsSub": "every postcard and report the department has filed - tap one to read it again"
+    "scoutReportsSub": "every postcard and report the department has filed - tap one to read it again",
+    "fromClub": "from {club}",
+    "fromFree": "out of contract"
   },
   "objectives": {
     "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
