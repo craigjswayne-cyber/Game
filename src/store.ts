@@ -916,6 +916,14 @@ export const useStore = create<Store>((set, get) => ({
         ? nextHighlight(ctx.events, cursor)
         : cursor + 1
       set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor: step }, tick: s.tick + 1 } : {})
+      // THE REVEAL IS PROGRESS TOO. This branch used to return without writing
+      // the record, so while the ticker read out a simulation burst the screen
+      // ran ahead of what was on disk - and a reload mid-reveal came back a
+      // try and a minute short of what the manager was looking at (main run
+      // 32856568841: reloadprobe, 33-25 on screen, 33-20 after the refresh).
+      // The record is small and noteProgress already runs once per simulated
+      // tick, so once per revealed event is the same accepted cost.
+      get().noteProgress()
       return
     }
     if (ctx.awaiting || ctx.seg === 3 || ctx.decision) {
