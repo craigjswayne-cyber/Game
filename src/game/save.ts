@@ -12,6 +12,7 @@ import { seedPhilosophies } from './philosophy'
 import { applyStadiumName, seedDeals } from './commercial'
 import { seedStaffPeople } from './staff'
 import { ensureAcademyLeague, topUpAcademy } from './academy'
+import { migratePress } from './pressmigrate'
 
 // NOT renamed with the game. This string is the key every existing save lives
 // under, so changing it to 'fab-rugby' would not rename anything - it would point
@@ -127,6 +128,10 @@ export function migrate(s: GameState): GameState {
     (v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, T> : {})
   s.news = asList(s.news)
   s.press = asList(s.press)
+  // a career started before the press room had keys carries its coverage list
+  // in English, and answered questions are history the room never sweeps - so
+  // they are read back out of the stored sentences here, once, on the way in
+  migratePress(s.press)
   s.offers = asList(s.offers)
   s.fixtures = asList(s.fixtures)
   s.history = asList(s.history)
