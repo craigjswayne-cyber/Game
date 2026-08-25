@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
-import { seasonLabel } from '../game/model'
+import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep } from '../game/days'
 import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
@@ -124,11 +124,12 @@ function Celebration() {
       ))}
       <div className="celebrate-box">
         <div style={{ fontSize: 64, lineHeight: 1 }}>{cel.icon}</div>
-        <h1>{cel.headline}</h1>
-        <div className="sub">{cel.sub}</div>
-        {/* the headline and its sub come off state.celebration, which was written
-            when the trophy was won - a save's paperwork keeps the language it was
-            filed in (docs/i18n.md). This line is the screen's own. */}
+        {/* THE KEYS, and the English only when a save predates them. This was
+            filed English-only and rendered raw, so the biggest moment the game
+            has - promotion, a title, an unbeaten season - arrived in English
+            for a manager who had chosen French. */}
+        <h1>{celebrationHeadline(cel)}</h1>
+        <div className="sub">{celebrationSub(cel)}</div>
         <div className="muted" style={{ marginTop: 14 }}>{t('common.partyOn')}</div>
       </div>
     </div>

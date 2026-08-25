@@ -106,6 +106,11 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
   // second one reaches squad.statusKey without any dot after it. Both are
   // exempt by string prefix rather than by first segment.
   const blob = files.map(f => readFileSync(f, 'utf8')).join('\n')
+  // Suffixes the code appends to a key it already has. Read out of the source
+  // rather than listed by hand, so a new one cannot be forgotten.
+  const SUFFIXED = [...new Set(
+    [...blob.matchAll(/\$\{[^`{}]*\}([A-Za-z][\w]*)`/g)].map(m => m[1]),
+  )].filter(sfx => sfx.length > 2)
   const idle = [...enKeys].filter(k => {
     if ([...dynamic].some(p => p && k.startsWith(p))) return false
     // A news story's subject key is its body key with Subj on the end - see
@@ -116,6 +121,17 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
     if (k.startsWith('news.') && k.endsWith('Subj')) {
       const body = k.slice(0, -4)
       return !blob.includes(`'${body}'`) && !blob.includes(`\`${body}`)
+    }
+    // A KEY BUILT BY PUTTING A SUFFIX ON ANOTHER ONE. The board objectives are
+    // named `${def.text(state)}Head`, so objectives.triesHead is reachable
+    // exactly when objectives.tries is - and no text search will ever find it,
+    // because the string "objectives.triesHead" appears nowhere. Same shape as
+    // the Subj rule above and checked the same way: the suffix is only a pass
+    // if the key it hangs off is itself used.
+    for (const suf of SUFFIXED) {
+      if (!k.endsWith(suf)) continue
+      const stem = k.slice(0, -suf.length)
+      if (blob.includes(`'${stem}'`) || blob.includes(`\`${stem}`)) return false
     }
     return !blob.includes(`'${k}'`) && !blob.includes(`\`${k}`)
   })

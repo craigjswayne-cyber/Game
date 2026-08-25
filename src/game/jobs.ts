@@ -9,7 +9,7 @@ import { clamp, mulberry32, type Rng } from './rng'
 import { regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
-import { t } from './i18n'
+import { t, tIn } from './i18n'
 
 /** Chance an application succeeds, from reputation vs club stature.
  *
@@ -91,7 +91,11 @@ export function refreshVacancies(state: GameState, rng: Rng) {
     if (r <= 0) {
       state.vacancies.push({ clubId: c.clubId, week: state.week })
       const club = state.clubs[c.clubId]
-      const exCoach = club.coach ?? 'their head coach'
+      // A coach's NAME is data; "their head coach" is a sentence. The two
+      // cannot share a variable, or a French reader gets "Setagaya se sépare
+      // de their head coach" - which is exactly what they got.
+      const exCoach = club.coach ?? tIn('en', 'news.theirHeadCoach')
+      const coachK = club.coach ? 'news.coachNamed' : 'news.theirHeadCoach'
       club.coach = undefined
       const pos = sortTable(state.comps[club.leagueId]?.table ?? []).findIndex(x => x.teamId === c.clubId) + 1
       const ord = pos <= 0 ? 'poor' : `${pos}${pos % 10 === 1 && pos !== 11 ? 'st' : pos % 10 === 2 && pos !== 12 ? 'nd' : pos % 10 === 3 && pos !== 13 ? 'rd' : 'th'}-placed`
@@ -100,7 +104,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
         subject: `${club.short} part company with ${exCoach}`,
         body: `${club.name} are searching for a new Director of Rugby after a ${ord} run of form. The position is open.`,
         k: pos <= 0 ? 'news.coachOutPoor' : 'news.coachOut',
-        v: { short: club.short, club: club.name, coach: exCoach, pos_o: pos },
+        v: { short: club.short, club: club.name, coach: exCoach, coach_k: coachK, pos_o: pos },
       })
       break
     }

@@ -167,15 +167,17 @@ function dressingRoomFallout(state: GameState, rng: Rng) {
       active.push({ a: a.id, b: b.id, week: state.week })
       a.morale = clamp(a.morale - 0.9, 1, 10)
       b.morale = clamp(b.morale - 0.9, 1, 10)
-      const flash = pick(rng, [
-        'a flashpoint in Tuesday\'s contact session',
-        'a row over a missed defensive read',
-        'a training-ground bust-up witnessed by the whole squad',
-        'a disagreement that started at the gym and followed them onto the pitch',
+      // KEYS, not sentences. These are picked and dropped into the middle of
+      // the story, so passing the English through meant a French reader got
+      // "ont eu a disagreement that started at the gym" in the middle of an
+      // otherwise French paragraph. Same draw, same index, same line.
+      const flashK = pick(rng, [
+        'news.riftContact', 'news.riftDefRead', 'news.riftBustUp', 'news.riftGym',
       ])
+      const flash = tIn('en', flashK)
       wire(state, 'news.wRift',
         { a: a.name, b: b.name, aLast: a.name.split(' ').slice(-1)[0], bLast: b.name.split(' ').slice(-1)[0],
-          aPers_k: `pers.${a.pers}`, bPers_k: `pers.${b.pers}`, flash }, a.id)
+          aPers_k: `pers.${a.pers}`, bPers_k: `pers.${b.pers}`, flash, flash_k: flashK }, a.id)
       break
     }
   }
@@ -720,6 +722,11 @@ export function postPredictionsNews(state: GameState) {
     v: {
       comp: comp.name, title: nm(order[0]), a: nm(order[1]), b: nm(order[2]),
       bottom: nm(order[order.length - 1]), pos_o: myPos, verdict_k: verdictKey,
+      // the verdict fragment names the club, and a fragment is rendered with
+      // the STORY'S variables - so the story has to carry it. Without this the
+      // French read "{club} est le favori de tous", braces and all, while the
+      // English was fine because it renders the fragment separately above.
+      club: nm(club.id),
     },
   })
 }

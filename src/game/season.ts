@@ -1712,15 +1712,18 @@ export function processWeekAndAdvance(state: GameState) {
     const club = state.clubs[state.userClubId]
     // 'need' is the number of starting shirts the group fills: an alert
     // means the XV cannot be fielded from fit specialists at all
+    // The label is a KEY. It is the headline of an injury-crisis story and it
+    // sits in the middle of its first sentence, so an English label put "the
+    // back row" into a French inbox twice over.
     const GROUPS: { key: string; label: string; pos: Pos[]; need: number }[] = [
-      { key: 'prop', label: 'the props', pos: ['LP', 'TP'], need: 2 },
-      { key: 'hook', label: 'hooker', pos: ['HK'], need: 1 },
-      { key: 'lock', label: 'the second row', pos: ['LK'], need: 2 },
-      { key: 'back5', label: 'the back row', pos: ['FL', 'N8'], need: 3 },
-      { key: 'nine', label: 'scrum-half', pos: ['SH'], need: 1 },
-      { key: 'ten', label: 'fly-half', pos: ['FH'], need: 1 },
-      { key: 'centre', label: 'the centres', pos: ['CE'], need: 2 },
-      { key: 'back3', label: 'the back three', pos: ['WG', 'FB'], need: 3 },
+      { key: 'prop', label: 'news.unitProps', pos: ['LP', 'TP'], need: 2 },
+      { key: 'hook', label: 'news.unitHooker', pos: ['HK'], need: 1 },
+      { key: 'lock', label: 'news.unitSecondRow', pos: ['LK'], need: 2 },
+      { key: 'back5', label: 'news.unitBackRow', pos: ['FL', 'N8'], need: 3 },
+      { key: 'nine', label: 'news.unitScrumHalf', pos: ['SH'], need: 1 },
+      { key: 'ten', label: 'news.unitFlyHalf', pos: ['FH'], need: 1 },
+      { key: 'centre', label: 'news.unitCentres', pos: ['CE'], need: 2 },
+      { key: 'back3', label: 'news.unitBackThree', pos: ['WG', 'FB'], need: 3 },
     ]
     const squad = club.players.map(id => state.players[id]).filter(Boolean)
     state.crisisAt ??= {}
@@ -1739,9 +1742,9 @@ export function processWeekAndAdvance(state: GameState) {
       const cover = loanTargets(state).filter(p => grp.pos.includes(p.pos)).slice(0, 3)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
-        subject: `🚑 Injury crisis: ${grp.label}`,
+        subject: `🚑 Injury crisis: ${tIn('en', grp.label)}`,
         body: [
-          `The physio's board makes grim reading at ${grp.label}: ${fit.length} fit of ${all.length} on the books.${down.length ? ` Out: ${down.join(', ')}.` : ''}`,
+          `The physio's board makes grim reading at ${tIn('en', grp.label)}: ${fit.length} fit of ${all.length} on the books.${down.length ? ` Out: ${down.join(', ')}.` : ''}`,
           cover.length
             ? `The assistant has three calls he could make tonight - loan cover available: ${cover.map(p => `${p.name} (${p.pos}, ${p.age}, ${state.clubs[p.clubId!]?.short})`).join(', ')}. Transfers screen, Loans tab.`
             : `The loan market has nothing suitable this week. Youth, patience, or a positional reshuffle - your call.`,
@@ -1772,17 +1775,23 @@ export function processWeekAndAdvance(state: GameState) {
     // two names, one story. Week 12 is already the heaviest midwinter inbox of
     // the year and this beat was posting a separate letter for each of them.
     if (stars.length) {
-      const cv = (p: typeof stars[0]) => {
+      // The CV of a man calling time, as a KEY and its values. It used to be
+      // rendered to English here and joined into one string, so the French
+      // story carried "31 appearances and 10 tries" in the middle of it - the
+      // fragment was translatable and the join threw the translation away.
+      const cvVars = (p: typeof stars[0]) => {
         const apps = p.career.reduce((s, c) => s + c.apps, 0) + p.stats.apps
         const tries = p.career.reduce((s, c) => s + c.tries, 0) + p.stats.tries
-        // A young man's CV can read "1 appearance", so the nouns come from the
-        // shared count fragments rather than being pluralised in the sentence.
-        return tIn('en', tries ? 'news.cvTries' : 'news.cv', {
+        return {
+          k: tries ? 'news.cvTries' : 'news.cv',
           name: p.name, age: p.age, club: state.clubs[p.clubId!]?.name ?? '', apps, tries,
+          // A young man's CV can read "1 appearance", so the nouns come from
+          // the shared count fragments rather than the sentence.
           apps_k: apps === 1 ? 'count.appearanceOne' : 'count.appearanceMany',
           tries_k: tries === 1 ? 'count.tryOne' : 'count.tryMany',
-        })
+        }
       }
+      const cv = (p: typeof stars[0]) => tIn('en', cvVars(p).k, cvVars(p))
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: stars.length === 1
@@ -1791,8 +1800,14 @@ export function processWeekAndAdvance(state: GameState) {
         body: `${stars.length === 1 ? 'One of the game\'s great careers ends in the summer' : 'Two of the game\'s great careers end in the summer'}. ${stars.map(cv).join('. ')}. The next few months are the farewell tour, and every ground they visit will stand for them. One last shot at silverware first.`,
         k: stars.length === 1 ? 'news.bowOne' : 'news.bowTwo',
         v: {
+          // "X and Y" was joined here with the English conjunction and passed
+          // in as one variable, so a French headline read "Retallick and
+          // Mostert raccrochent". Two names is the most there can ever be, so
+          // the two of them travel separately and the template joins them.
           names: stars.map(p => p.name).join(stars.length === 1 ? '' : tIn('en', 'news.andJoin')),
+          a: stars[0].name, b: stars[1]?.name ?? '',
           cvs: stars.map(cv).join('. '),
+          cvs_l: JSON.stringify(stars.map(cvVars)),
         },
         playerId: stars[0].id,
       })
@@ -2622,10 +2637,17 @@ export function processWeekAndAdvance(state: GameState) {
         },
       })
       if (comp.champion === state.userClubId || (state.natTeam != null && comp.champion === state.natTeam)) {
+        const mine = comp.champion === state.userClubId
+        const hk = mine ? 'cel.champions' : 'cel.championsOf'
+        const hv: Vars = mine
+          ? { short: teamShort(state, state.userClubId).toUpperCase() }
+          : { comp: comp.name.toUpperCase() }
+        const sv = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
         state.celebration = {
-          headline: comp.champion === state.userClubId ? `${teamShort(state, state.userClubId).toUpperCase()} ARE CHAMPIONS` : `CHAMPIONS OF THE ${comp.name.toUpperCase()}`,
-          sub: `${comp.name} · ${seasonLabel(state.season)} · ${state.managerName}`,
+          headline: tIn('en', hk, hv),
+          sub: tIn('en', 'cel.championsSub', sv),
           icon: '🏆',
+          hk, hv, sk: 'cel.championsSub', sv,
         }
         state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
         state.news.push({
@@ -2645,10 +2667,13 @@ export function processWeekAndAdvance(state: GameState) {
         state.history.push({ season: state.season, compId: comp.id, champion: comp.champion })
         if (comp.type === 'league' && comp.champion === state.userClubId) {
           state.mgr.trophies.push({ compId: comp.id, season: state.season, clubId: state.userClubId })
+          const hv2 = { short: teamShort(state, state.userClubId).toUpperCase() }
+          const sv2 = { comp: comp.name, season: seasonLabel(state.season), manager: state.managerName }
           state.celebration = {
-            headline: `${teamShort(state, state.userClubId).toUpperCase()} ARE CHAMPIONS`,
-            sub: `${comp.name} · ${seasonLabel(state.season)} · ${state.managerName}`,
+            headline: tIn('en', 'cel.champions', hv2),
+            sub: tIn('en', 'cel.championsSub', sv2),
             icon: '🏆',
+            hk: 'cel.champions', hv: hv2, sk: 'cel.championsSub', sv: sv2,
           }
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
@@ -3096,7 +3121,11 @@ export function processWeekAndAdvance(state: GameState) {
         subject: `✅ Board objective met: ${tIn('en', def.text(state)).split(':')[0]}`,
         body: `One of the season's briefs is in the bank: "${tIn('en', def.text(state))}." The board noted it at this morning's meeting, and it will count for you at the end-of-season review whatever else happens between now and May.`,
         k: 'news.objectiveMet',
-        v: { head: tIn('en', def.text(state)).split(':')[0], text_k: def.text(state) },
+        // The headline used to be the objective rendered to English and cut at
+        // its colon, so the subject line was English in a French inbox. Each
+        // objective has its own short form now; splitting a sentence on
+        // punctuation is not a translation strategy.
+        v: { head_k: `${def.text(state)}Head`, text_k: def.text(state) },
       })
     }
   }

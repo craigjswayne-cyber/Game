@@ -26,6 +26,7 @@
 import type { Club, GameState, Player } from './model'
 import { SEASON_WEEKS } from './model'
 import { clamp } from './rng'
+import { tIn } from './i18n'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
 
@@ -269,7 +270,10 @@ export function gameTimeReview(state: GameState): void {
   if (!club) return
   const rows = ledger(state, club).filter(r => r.status !== 'fringe' && r.gap <= -3).slice(0, 5)
   if (!rows.length) return
-  const asst = state.staffPeople?.assistant?.name ?? 'Your assistant'
+  // A name is data; "Your assistant" is a sentence. Splitting them is what
+  // stops a French ledger opening with "Your assistant a épluché les feuilles".
+  const asstK = state.staffPeople?.assistant?.name ? 'news.asstNamed' : 'news.yourAssistant'
+  const asst = state.staffPeople?.assistant?.name ?? tIn('en', 'news.yourAssistant')
   // Three named men and a count is enough to act on: the five-line version ran
   // to 819 characters of paragraph (brevity pass 19A). The subject still counts
   // everyone the ledger flagged.
@@ -303,7 +307,7 @@ export function gameTimeReview(state: GameState): void {
     ].join('\n'),
     k: rows.length > 3 ? 'news.ledgerMore' : 'news.ledger',
     v: {
-      n: rows.length, asst, rest: rows.length - 3, worst: worst.p.name,
+      n: rows.length, asst, asst_k: asstK, rest: rows.length - 3, worst: worst.p.name,
       rows_ll: JSON.stringify(ledgerRows),
       tail_k: worst.mood === 'unhappy' ? 'news.ledgerWatch' : 'news.ledgerCalm',
     },
