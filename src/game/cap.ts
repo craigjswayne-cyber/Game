@@ -1,4 +1,5 @@
 import { capBill } from './ai'
+import { userCap } from './grants'
 import { fmtMoney, type Club, type GameState } from './model'
 import { t } from './i18n'
 
@@ -152,7 +153,12 @@ export interface CapPosition {
 
 export function capPosition(state: GameState, clubId: string): CapPosition {
   const club = state.clubs[clubId]
-  const cap = (club?.leagueId && state.caps?.[club.leagueId]) || null
+  // userCap is the till's one adjustment (v1.1.0): the Charter lifts the
+  // user's ceiling for good, an injection's allowance rents bounded room for
+  // the season. AI clubs pass through untouched - the law still applies to
+  // them - and ai.ts's own capOf() calls the same function, so the Finances
+  // bar and the negotiating table can never disagree about the ceiling.
+  const cap = userCap(state, clubId, (club?.leagueId && state.caps?.[club.leagueId]) || null)
   const bill = club ? capBill(state, club) : 0
   const headroom = cap == null ? 0 : cap - bill
   return {

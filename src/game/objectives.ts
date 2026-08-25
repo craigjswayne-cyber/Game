@@ -73,7 +73,10 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
   {
     id: 'books',
     textKey: () => 'objectives.books',
-    met: s => s.clubs[s.userClubId].balance >= 0,
+    // organic funds only: a board injection (grants.ts) raises the balance and
+    // writes what it added into injectedThisSeason, so a bought pound can be a
+    // rescue but never a ticked objective (grantprobe holds this)
+    met: s => s.clubs[s.userClubId].balance - (s.injectedThisSeason ?? 0) >= 0,
     applies: () => true,
     // NOT BANKED: in credit today says nothing about May.
     banked: false,

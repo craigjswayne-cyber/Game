@@ -3,9 +3,9 @@
  *
  * The game has never made a network call. Not one: no analytics, no SDK, no
  * beacon, no font fetch - `scripts/netprobe.ts` fails the build if one appears,
- * and the release audit's "no data collected" answer to both stores rests on it.
- * Selling something is the obvious way to lose that, because the usual way to
- * take money on the web is to load somebody else's script into the page.
+ * and the release audit's answers to both stores rest on it. Selling something
+ * is the obvious way to lose that, because the usual way to take money on the
+ * web is to load somebody else's script into the page.
  *
  * So the rule this file exists to keep:
  *
@@ -24,15 +24,20 @@
  *     a supporter on a plane is still a supporter. The only thing a failed check
  *     can do is fail to ADD.
  *
- *   NOTHING BEHIND THE TILL CHANGES THE GAME. No result, no rating, no budget,
- *     no fixture. What is bought is the badge and the absence of advertising,
- *     which means a purchase can never be an advantage and the balance harness
- *     never has to know this file exists.
+ *   WHAT THE TILL CHANGES, IT CHANGES THROUGH ONE DOOR. Until v1.1.0 nothing
+ *     behind the till touched the game at all. Now some of it does - board
+ *     injections, the Owner's Charter, the License, the Editor - and every one
+ *     of those effects lives in `grants.ts`: deterministic, additive, outside
+ *     the rng stream, bounded or stamped, and probed (`grantprobe`). This file
+ *     still changes nothing itself; it rings the till and reports the sale.
+ *     No result, no rating, no fixture, and never anything for the AI.
  *
  *   THE SAVE IS NOT A HOSTAGE. Entitlement lives in localStorage beside the
  *     night-mode flag, never in the career. Losing a receipt must not cost
  *     anybody a season, and a save must stay portable between a free phone and
- *     a paid one.
+ *     a paid one. (What a grant wrote INTO a career - cash landed, a Charter
+ *     stamp - is part of that career's story and travels with it, exactly like
+ *     a signing it paid for.)
  */
 
 /** Which build this is.
@@ -54,9 +59,29 @@ export function edition(): Edition {
   return env?.VITE_EDITION === 'paid' ? 'paid' : 'free'
 }
 
-/** The one thing for sale. A single non-consumable: no tiers, no currency, no
- *  consumables, nothing that can be bought twice by accident. */
+/**
+ * ---- THE CATALOGUE ----
+ *
+ * Eight products (docs/monetisation-spec.md §1). Four are owned once and for
+ * ever; four are consumable board resolutions whose effects grants.ts applies
+ * to the one career that bought them.
+ */
 export const SUPPORTER_SKU = 'phase.supporter'
+export const LICENSE_SKU = 'phase.license'
+export const EDITOR_SKU = 'phase.editor'
+export const CHARTER_SKU = 'phase.uncapped'
+export const INJECT_SKUS = {
+  s: 'phase.inject.s',
+  m: 'phase.inject.m',
+  l: 'phase.inject.l',
+  xl: 'phase.inject.xl',
+} as const
+
+/** Owned once, restorable from the store for ever. */
+export const NC_SKUS = [SUPPORTER_SKU, LICENSE_SKU, EDITOR_SKU, CHARTER_SKU] as const
+/** Bought, consumed, buyable again - the store forgets them, the career keeps
+ *  what they did. */
+export const CONSUMABLE_SKUS = Object.values(INJECT_SKUS) as string[]
 
 export type Entitlement = 'free' | 'supporter'
 
@@ -64,7 +89,8 @@ export type Entitlement = 'free' | 'supporter'
  *
  *  'pending' is the one people forget: on Play a purchase can sit unconfirmed
  *  for days (a parent's approval, a slow card), and treating that as a failure
- *  tells somebody who has paid that they have not. */
+ *  tells somebody who has paid that they have not. A pending consumable grants
+ *  nothing until the bridge reports it owned. */
 export type PurchaseOutcome = 'owned' | 'cancelled' | 'pending' | 'unavailable' | 'error'
 
 export interface Product {
@@ -76,8 +102,8 @@ export interface Product {
 }
 
 /**
- * What a packaged shell has to provide. Deliberately three methods: anything
- * bigger is a surface for a wrapper to get wrong.
+ * What a packaged shell has to provide. Deliberately small: anything bigger is
+ * a surface for a wrapper to get wrong.
  *
  * The natural Android implementation is the Digital Goods API inside a TWA
  * (`getDigitalGoodsService`), and the natural iOS one is a StoreKit bridge over
@@ -90,8 +116,15 @@ export interface BillingBridge {
   /** Open the store's own purchase sheet. Never our own UI: a payment form
    *  drawn by the game is the fastest rejection on either store. */
   buy(sku: string): Promise<PurchaseOutcome>
-  /** What this account already owns. Restores a reinstall or a second device. */
+  /** What this account already owns. Restores a reinstall or a second device.
+   *  For consumables, "owned" means bought-and-not-yet-consumed: a purchase
+   *  the game crashed before consuming shows up here, which is the recovery
+   *  path for a paid-but-not-granted injection. */
   owned(): Promise<string[]>
+  /** Mark a consumable spent so the store will sell it again. A shell without
+   *  this cannot honestly offer the consumable SKUs, and buyConsumable treats
+   *  its absence as 'unavailable'. */
+  consume?(sku: string): Promise<void>
 }
 
 const KEY = 'rm-ent'
@@ -103,24 +136,44 @@ export function bridge(): BillingBridge | null {
   return b && typeof b.buy === 'function' && typeof b.owned === 'function' ? b : null
 }
 
-function cached(): Entitlement {
+/** Everything owned, from the cache. The original format was the bare string
+ *  'supporter'; the v1.1.0 format is a comma-joined list of SKU ids with that
+ *  same legacy token grandfathered in, so nobody's receipt is re-litigated by
+ *  an update. */
+function ownedCache(): Set<string> {
   try {
-    return localStorage.getItem(KEY) === 'supporter' ? 'supporter' : 'free'
+    const raw = localStorage.getItem(KEY)
+    if (!raw) return new Set()
+    const set = new Set(raw.split(','))
+    if (set.delete('supporter')) set.add(SUPPORTER_SKU)
+    return set
   } catch {
     // private mode, or storage disabled: not a reason to nag anybody
-    return 'free'
+    return new Set()
   }
 }
 
-/** Write the receipt down. Only ever called with a real 'owned' from a store,
- *  or by the paid edition, which is its own receipt. */
-export function grantSupporter() {
-  try { localStorage.setItem(KEY, 'supporter') } catch { /* private mode */ }
+/** Write a receipt down. Only ever called with a real 'owned' from a store,
+ *  or by the paid edition, which is its own receipt. Consumables are never
+ *  cached - their receipt is what they did to the career. */
+export function grant(sku: string) {
+  if (!(NC_SKUS as readonly string[]).includes(sku)) return
+  const set = ownedCache()
+  set.add(sku)
+  try { localStorage.setItem(KEY, [...set].join(',')) } catch { /* private mode */ }
 }
 
-/** THE ONLY QUESTION THE REST OF THE GAME ASKS. */
+/** Kept for the existing callers and probes; the till grew, the door for the
+ *  original product did not move. */
+export function grantSupporter() { grant(SUPPORTER_SKU) }
+
+export function hasEntitlement(sku: string): boolean {
+  return ownedCache().has(sku)
+}
+
+/** THE QUESTION THE REST OF THE GAME ASKS about advertising. */
 export function hasSupporter(): boolean {
-  return edition() === 'paid' || cached() === 'supporter'
+  return edition() === 'paid' || hasEntitlement(SUPPORTER_SKU)
 }
 
 /** Is there anywhere to buy this? False in the web build, which is why the web
@@ -130,12 +183,18 @@ export function canBuy(): boolean {
   return edition() === 'free' && !!bridge() && !hasSupporter()
 }
 
+/** Is the shop open at all - for anything? The Boardroom and Game Status
+ *  shelves render only behind this, so the web build reads as complete. */
+export function tillOpen(): boolean {
+  return edition() === 'free' && !!bridge()
+}
+
 /** Should the Supporter page be reachable?
  *
  *  Either because something can be bought, or because something already has
  *  been: a receipt somebody paid for is a thing they are entitled to look at. */
 export function supporterDoor(): boolean {
-  return canBuy() || (edition() === 'free' && cached() === 'supporter')
+  return canBuy() || (edition() === 'free' && hasEntitlement(SUPPORTER_SKU))
 }
 
 /**
@@ -143,43 +202,102 @@ export function supporterDoor(): boolean {
  *
  * Returns whether anything changed, so a caller can repaint without repainting
  * on every boot. Swallows every failure by design: see the fail-open rule.
+ * Consumables deliberately do not restore here - an unconsumed injection is
+ * surfaced by the Boardroom's own recovery pass, which applies it to the
+ * career in front of the customer rather than to whichever save happens to be
+ * loaded at boot.
  */
 export async function restore(): Promise<boolean> {
   const b = bridge()
   if (!b) return false
   try {
     const skus = await b.owned()
-    if (Array.isArray(skus) && skus.includes(SUPPORTER_SKU) && !hasSupporter()) {
-      grantSupporter()
-      return true
+    if (!Array.isArray(skus)) return false
+    let changed = false
+    for (const sku of skus) {
+      if ((NC_SKUS as readonly string[]).includes(sku) && !hasEntitlement(sku)) {
+        grant(sku)
+        changed = true
+      }
     }
+    return changed
   } catch { /* offline, or a wrapper mid-update: the cache stands */ }
   return false
 }
 
-/** Open the store's sheet, and write the receipt if it closes with a sale. */
-export async function buySupporter(): Promise<PurchaseOutcome> {
+/** Open the store's sheet for a non-consumable, and write the receipt if it
+ *  closes with a sale. */
+export async function buyOwnable(sku: string): Promise<PurchaseOutcome> {
   const b = bridge()
-  if (!b) return 'unavailable'
+  if (!b || !(NC_SKUS as readonly string[]).includes(sku)) return 'unavailable'
   try {
-    const out = await b.buy(SUPPORTER_SKU)
-    if (out === 'owned') grantSupporter()
+    const out = await b.buy(sku)
+    if (out === 'owned') grant(sku)
     return out
   } catch {
     return 'error'
   }
 }
 
-/** The price to put on the button, or null when we cannot honestly name one. */
-export async function supporterPrice(): Promise<string | null> {
+/** The original single-product door, kept so nothing that learned it moves. */
+export async function buySupporter(): Promise<PurchaseOutcome> {
+  return buyOwnable(SUPPORTER_SKU)
+}
+
+/**
+ * Buy a consumable. Returns 'owned' ONLY once the store has confirmed the
+ * sale; the caller then applies the effect through grants.ts and the consume
+ * is sent so the store will sell it again. If the consume call fails (a crash,
+ * a dropped process), the purchase stays "owned" at the store and the
+ * recovery pass finds it - the customer can lose a moment, never money.
+ */
+export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
+  const b = bridge()
+  if (!b || typeof b.consume !== 'function' || !CONSUMABLE_SKUS.includes(sku)) return 'unavailable'
+  try {
+    const out = await b.buy(sku)
+    return out
+  } catch {
+    return 'error'
+  }
+}
+
+/** Mark a consumable spent, after its grant has been written into the career.
+ *  Failure is swallowed: the store still thinks it is owned, and the recovery
+ *  pass must therefore be idempotent about it (grants.ts seasonal limits make
+ *  a double-apply visible, and the Boardroom asks before re-applying). */
+export async function consume(sku: string): Promise<void> {
+  const b = bridge()
+  if (!b || typeof b.consume !== 'function') return
+  try { await b.consume(sku) } catch { /* the receipt outlives the hiccup */ }
+}
+
+/** An unconsumed consumable purchase - paid for, not yet landed in a career. */
+export async function pendingConsumables(): Promise<string[]> {
+  const b = bridge()
+  if (!b) return []
+  try {
+    const skus = await b.owned()
+    return Array.isArray(skus) ? skus.filter(s => CONSUMABLE_SKUS.includes(s)) : []
+  } catch {
+    return []
+  }
+}
+
+/** The price to put on a button, or null when we cannot honestly name one. */
+export async function skuPrice(sku: string): Promise<string | null> {
   const b = bridge()
   if (!b?.details) return null
   try {
-    const p = await b.details(SUPPORTER_SKU)
+    const p = await b.details(sku)
     return p?.price ?? null
   } catch {
     return null
   }
+}
+
+export async function supporterPrice(): Promise<string | null> {
+  return skuPrice(SUPPORTER_SKU)
 }
 
 /**
@@ -190,14 +308,22 @@ export async function supporterPrice(): Promise<string | null> {
  * leaves the device. There is no house-ad fallback and no placeholder box - an
  * empty frame that says "ad" is worse than no frame.
  *
- * A supporter never sees one, which is the whole of what the purchase buys
- * besides the badge.
+ * A supporter never sees a BANNER, which is the whole of what the purchase buys
+ * besides the badge. Rewarded spots (below) are different in kind: the player
+ * asks for one, by name, in exchange for a favour the fiction prices - so they
+ * survive the Remove Ads purchase rather than punishing the buyer with their
+ * absence.
  */
 export interface AdBridge {
   /** Draw an ad into this element. The provider owns everything inside it. */
   mount(el: HTMLElement, place: string): void
   /** Take it down again on unmount, so a screen change cannot leak a frame. */
   unmount?(el: HTMLElement): void
+  /** Play a rewarded spot the player explicitly asked for. Resolves
+   *  'completed' only when the provider says the whole spot ran - that is the
+   *  only outcome that earns the favour. A shell without this simply has no
+   *  rewarded buttons anywhere in the game. */
+  showRewarded?(place: string): Promise<'completed' | 'skipped' | 'unavailable'>
 }
 
 export function adBridge(): AdBridge | null {
@@ -205,12 +331,39 @@ export function adBridge(): AdBridge | null {
   return a && typeof a.mount === 'function' ? a : null
 }
 
-/** Where an ad may appear at all. Deliberately short, and deliberately nowhere
- *  near a decision: never during a match, never on a modal, never on the title
- *  screen, never between a tap and the thing the tap was for. */
+/** Where a banner may appear at all. Deliberately short, and deliberately
+ *  nowhere near a decision: never during a match, never on a modal, never on
+ *  the title screen, never between a tap and the thing the tap was for. */
 export const AD_PLACES = ['home-foot', 'results-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
 export function adsAllowed(place: string): boolean {
   return !hasSupporter() && !!adBridge() && (AD_PLACES as readonly string[]).includes(place)
+}
+
+/** The four rewarded placements (docs/monetisation-spec.md §2), each mapping
+ *  onto a mechanic the game already has - the spot replaces the FEE, never
+ *  invents a power. Their per-day cap lives in the bridge; their per-save
+ *  ledgers live beside the mechanics they touch. */
+export const REWARDED_PLACES = ['medical', 'scouting', 'matchday', 'collection'] as const
+export type RewardedPlace = typeof REWARDED_PLACES[number]
+
+/** May this rewarded button render at all? Purely "is there a provider":
+ *  eligibility (the right screen, the right club, the ledgers) belongs to the
+ *  surface that draws the button. Note hasSupporter() is absent on purpose. */
+export function rewardedAvailable(place: RewardedPlace): boolean {
+  const a = adBridge()
+  return !!a && typeof a.showRewarded === 'function' && (REWARDED_PLACES as readonly string[]).includes(place)
+}
+
+/** Run the spot. Everything except a confirmed completion is a polite no. */
+export async function showRewarded(place: RewardedPlace): Promise<'completed' | 'skipped' | 'unavailable'> {
+  const a = adBridge()
+  if (!a || typeof a.showRewarded !== 'function') return 'unavailable'
+  try {
+    const out = await a.showRewarded(place)
+    return out === 'completed' ? 'completed' : out === 'skipped' ? 'skipped' : 'unavailable'
+  } catch {
+    return 'unavailable'
+  }
 }

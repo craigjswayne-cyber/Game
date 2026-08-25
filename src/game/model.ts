@@ -432,6 +432,10 @@ export interface Club {
   bossSalt?: number
   leagueId: string
   budget: number
+  /** the season's opening transfer budget, snapshotted at kick-off and at
+   *  every rollover: the base a board injection is priced on (grants.ts), so
+   *  the store row's figure holds all season and spending cannot devalue it */
+  budgetAtOpen?: number
   balance: number
   players: number[] // player ids
   // user/AI tactics
@@ -1293,6 +1297,28 @@ export interface GameState {
    *  finish no better than the pundits said and next season's budget gives it
    *  back with interest. Cleared with the stance each summer. */
   stanceFund?: number
+  /** ---- v1.1.0: what the owner paid for (grants.ts, monetise.ts) ----
+   *  Nothing below is ever set by the game itself - scripts/grantprobe.ts
+   *  holds that a fresh career carries none of it. */
+  /** cap-exempt wage allowance bought this season, as a fraction of the
+   *  league cap (an injection's board-underwritten wages). Stacks per
+   *  purchase, expires at rollover with the cash fiction it came with. */
+  wageBoost?: number
+  /** The Owner's Charter: the wage law no longer applies to this save. Set
+   *  once, never cleared - a stamped save, not a toggle (🖋 in Legacy). */
+  uncapped?: boolean
+  /** Manager's License chosen at career creation: a proven name from day
+   *  one (mgrReputation pays the scale's ceiling; 🎓 in Legacy). */
+  licensed?: boolean
+  /** the In-Game Editor has touched this save at least once - a permanent
+   *  stamp (🔧), so the Hall of Fame stays honest with itself */
+  edited?: boolean
+  /** board injections taken this season, per tier: the well has a bottom
+   *  (two per tier, the Sugar Daddy once) and this is where it is measured */
+  injections?: Partial<Record<'s' | 'm' | 'l' | 'xl', number>>
+  /** purchased cash landed this season, in pounds - the books objective
+   *  reads organic funds only, so a bought pound can never finish it */
+  injectedThisSeason?: number
   /** absolute week (season * SEASON_WEEKS + week) the LAW WATCH wind-up last
    *  aired. The freshness gate used to scan state.news for the last airing,
    *  and the news log is trimmed at 250 items - a busy month pushed the last
@@ -1516,6 +1542,10 @@ export interface GameState {
  * seventies need trophies.
  */
 export function mgrReputation(state: GameState): number {
+  // the Manager's License (v1.1.0): a proven name from day one, chosen at
+  // career creation and stamped on the save. It pays the scale's own ceiling
+  // rather than a made-up number - everything in the game measures /95.
+  if (state.licensed) return 95
   const m = state.mgr
   const games = m.m
   const winPct = games ? m.w / games : 0

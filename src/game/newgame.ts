@@ -189,7 +189,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         id: rc.id, name: rc.name, short: rc.short, city: rc.city,
         country: rc.country, stadium: rc.stadium, capacity: rc.capacity, capacity0: rc.capacity,
         colors: rc.colors, rep: rc.rep, leagueId: def.id,
-        budget: rc.budget, balance: Math.round(rc.budget * 0.6),
+        budget: rc.budget, budgetAtOpen: rc.budget, balance: Math.round(rc.budget * 0.6),
         players: [],
         tactic: { style: 50, tempo: 50, kicking: 50, aggression: 50, lineup: new Array(23).fill(null) },
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),

@@ -1857,6 +1857,15 @@ export function rebuildSeason(state: GameState) {
   // war chest, so the advance dies with it
   state.stance = undefined
   state.stanceFund = undefined
+  // v1.1.0: the purchased season expires with the season it was bought in -
+  // the wage allowance, the injection counts and the objectives ledger all
+  // belong to the campaign that paid for them (grants.ts; grantprobe)
+  state.wageBoost = undefined
+  state.injections = undefined
+  state.injectedThisSeason = undefined
+  // and the new opening budget is snapshotted AFTER the war-chest clawback
+  // above, so a board injection is priced on what the season really opens with
+  for (const club of Object.values(state.clubs)) club.budgetAtOpen = club.budget
   // THE ANNUAL (user: "a forced page that says 'ready for a new season?' with
   // records backed up"). The rollover has just filed the honours, the annals
   // and the record books; the stamp routes Continue to the Annual page, whose

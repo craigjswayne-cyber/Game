@@ -1,6 +1,7 @@
 import type { GameState, Player } from './model'
 import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
+import { userCap } from './grants'
 import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
@@ -45,7 +46,11 @@ const NOT_A_FIGURE = { ok: false as const, msg: 'That is not a figure the club c
 function capOf(state: GameState, clubId: string): number | null {
   const lg = state.clubs[clubId]?.leagueId
   const cap = lg ? state.caps?.[lg] : null
-  return typeof cap === 'number' && Number.isFinite(cap) && cap > 0 ? cap : null
+  // userCap is the till's one adjustment (v1.1.0, grants.ts) - shared with
+  // capPosition so the negotiating table and the Finances bar read the same
+  // ceiling for a Charter or an injection's wage allowance, and the AI's own
+  // law never moves
+  return userCap(state, clubId, typeof cap === 'number' && Number.isFinite(cap) && cap > 0 ? cap : null)
 }
 
 /** Would this weekly wage break the cap? The sentence to show, or null. */

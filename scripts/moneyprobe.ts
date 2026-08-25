@@ -148,7 +148,7 @@ console.log('\n--- 7. a premium listing, where the customer paid before the down
   // edition() reads import.meta.env, which vite-node populates: assert the
   // shape of the rule rather than re-reading the environment
   const src = readFileSync('src/game/monetise.ts', 'utf8')
-  ok(/edition\(\) === 'paid' \|\| cached\(\) === 'supporter'/.test(src),
+  ok(/edition\(\) === 'paid' \|\| hasEntitlement\(SUPPORTER_SKU\)/.test(src),
     'the paid edition is a supporter without any purchase flow at all')
   ok(/canBuy[\s\S]{0,120}edition\(\) === 'free'/.test(src),
     'and shows no purchase UI, because there is nothing left to sell')
@@ -166,6 +166,68 @@ console.log('\n--- 8. the save is not a hostage')
   M.grantSupporter()
   ok(store.size === 1 && [...store.keys()][0] === 'rm-ent',
     `it writes exactly one key, and that key is rm-ent (${[...store.keys()].join(', ')})`)
+}
+
+// ---- 9. the v1.1.0 catalogue: two shelves, and no sku on both ------------
+console.log('\n--- 9. the catalogue')
+clear()
+ok(M.NC_SKUS.length === 4 && M.CONSUMABLE_SKUS.length === 4, 'eight products: four owned for ever, four consumable')
+ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 8, 'and no sku sits on both shelves')
+
+// ---- 10. consumables: the store confirms, the career keeps ---------------
+console.log('\n--- 10. the consumable flow')
+{
+  clear()
+  g.rmBilling = fakeStore({ outcome: 'owned' })
+  ok(await M.buyConsumable(M.INJECT_SKUS.s) === 'unavailable',
+    'a shell that cannot consume cannot sell a consumable at all')
+  const consumed: string[] = []
+  g.rmBilling = { ...fakeStore({ outcome: 'owned' }), consume: async (sku: string) => { consumed.push(sku) } }
+  ok(await M.buyConsumable(M.INJECT_SKUS.s) === 'owned', 'a completed purchase reports owned')
+  ok(!M.hasEntitlement(M.INJECT_SKUS.s),
+    'and is never cached as an entitlement - its receipt is what it did to the career')
+  await M.consume(M.INJECT_SKUS.s)
+  ok(consumed.includes(M.INJECT_SKUS.s), 'the consume is sent, so the store can sell it again')
+  ok(await M.buyConsumable(M.SUPPORTER_SKU) === 'unavailable', 'the consumable door does not sell the ownables')
+  g.rmBilling = { ...fakeStore({ owns: [M.INJECT_SKUS.m, M.SUPPORTER_SKU] }), consume: async () => {} }
+  const pend = await M.pendingConsumables()
+  ok(pend.length === 1 && pend[0] === M.INJECT_SKUS.m,
+    'a paid-but-unconsumed purchase is found for the recovery pass, and ownables are not in the pile')
+  g.rmBilling = { ...fakeStore({ outcome: 'pending' }), consume: async () => {} }
+  ok(await M.buyConsumable(M.INJECT_SKUS.xl) === 'pending', "a parent's approval is pending, not failed, and grants nothing yet")
+}
+
+// ---- 11. restore covers the whole shelf, and the old receipt still stands --
+console.log('\n--- 11. restore, v1.1.0')
+{
+  clear()
+  g.rmBilling = fakeStore({ owns: [...M.NC_SKUS] })
+  ok(await M.restore() === true, 'restore finds everything the account owns')
+  ok(M.NC_SKUS.every(sku => M.hasEntitlement(sku)), 'and grants each of the four')
+  clear()
+  store.set('rm-ent', 'supporter')
+  ok(M.hasSupporter(), 'a receipt written before v1.1.0 still stands, unre-litigated')
+  M.grant(M.EDITOR_SKU)
+  ok(M.hasSupporter() && M.hasEntitlement(M.EDITOR_SKU), 'and survives a new receipt joining it in the cache')
+  ok(store.size === 1 && [...store.keys()][0] === 'rm-ent', 'still exactly one key beside night mode')
+}
+
+// ---- 12. rewarded spots: player-asked, provider-confirmed, never punished --
+console.log('\n--- 12. the rewarded favours')
+{
+  clear()
+  ok(!M.rewardedAvailable('medical'), 'no provider, no rewarded button anywhere in the game')
+  g.rmAds = { mount: () => {} }
+  ok(!M.rewardedAvailable('medical'), 'a banner-only provider still shows no rewarded button')
+  g.rmAds = { mount: () => {}, showRewarded: async () => 'completed' as const }
+  ok(M.rewardedAvailable('medical'), 'a full provider shows it')
+  ok(await M.showRewarded('medical') === 'completed', 'and only a finished spot reports completed')
+  g.rmAds = { mount: () => {}, showRewarded: async () => { throw new Error('provider died') } }
+  ok(await M.showRewarded('medical') === 'unavailable', 'a throwing provider is a polite no, never an error screen')
+  g.rmAds = { mount: () => {}, showRewarded: async () => 'completed' as const }
+  M.grantSupporter()
+  ok(M.rewardedAvailable('medical'), 'Remove Ads never removes the favours - they are asked for, not endured')
+  ok(!M.adsAllowed('home-foot'), 'while the banners stay gone')
 }
 
 console.log(fails ? `\nMONEY PROBE FAILED (${fails})` : '\nMONEY PROBE PASSED: it fails open, it grants once, and the game is not for sale by the yard')
