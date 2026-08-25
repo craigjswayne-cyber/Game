@@ -77,6 +77,11 @@ interface Store {
     done: boolean
     talkMsg: string | null
     preTalkMsg: string | null
+    /** How many touchline calls the last Skip answered on the manager's
+     *  behalf. The owner played four matches and asked whether the feature
+     *  was still in the game; it was, and Skip had been taking every call at
+     *  the posts without a word. Silence is what made it look missing. */
+    skipTook?: number
   } | null
   saveSlot: string
   /** the record that lets a live match survive a reload (game/resume.ts) */
@@ -953,7 +958,8 @@ export const useStore = create<Store>((set, get) => ({
     // resume has to make the same ones. Skipping ahead answers each kickable
     // penalty with 'posts'; if those went unrecorded the replay would stop at the
     // first one waiting for an answer that never came, and the match would drift.
-    const noted = (choice: 'posts') => { get().noteCmd({ kind: 'decide', choice }) }
+    let took = 0
+    const noted = (choice: 'posts') => { took++; get().noteCmd({ kind: 'decide', choice }) }
     while (!ctx.awaiting && ctx.seg < 3) {
       if (ctx.decision) { noted('posts'); resolveDecision(game, ctx, 'posts') }
       r = stepTick(game, ctx)
@@ -962,7 +968,7 @@ export const useStore = create<Store>((set, get) => ({
     }
     if (r === 'FT') settleKnockout(game, ctx)
     set(s => s.liveMatch ? {
-      liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3 },
+      liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3, skipTook: took },
       tick: s.tick + 1,
     } : {})
     get().noteProgress()
@@ -1073,7 +1079,7 @@ export const useStore = create<Store>((set, get) => ({
     if (!game || !liveMatch || liveMatch.ctx.seg >= 3) return
     liveMatch.ctx.awaiting = null
     set(s => ({
-      liveMatch: s.liveMatch ? { ...s.liveMatch, playing: true, done: false } : null,
+      liveMatch: s.liveMatch ? { ...s.liveMatch, playing: true, done: false, skipTook: 0 } : null,
       tick: s.tick + 1,
     }))
   },

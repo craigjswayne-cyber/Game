@@ -78,6 +78,24 @@ widths), `portraitqa` and `devicematrix` (overflow, truncation, unreachable
 content, six geometries), `nightcontrast` (contrast in **both** themes), `e2e`
 (the whole flow end to end), `motionprobe`, `subreach`, `replyreach`.
 
+**The match, as it looks** — `dramaprobe` drives a real match and reads the
+pixels the renderer produced: every ball position is exactly the territory model
+(`50 + momo * 30`, nudged by whose event it was) to a hundredth of a percent,
+and is nothing like the clock sawtooth it replaced in v1.1.1; a one-score finish
+is paced 1.3x slower than a rout on the wall clock; the tension band appears
+only when the game is late **and** close. The last three assertions run on a
+replay — at full time the cursor is wound back and the tail re-revealed with
+rewritten scores, so one real match can be both a nail-biter and a rout without
+the engine being touched. See `docs/match-drama.md`.
+
+**Words on screens** — `keyscreen` opens the game and walks 28 screens and every
+tab in both languages, reading roughly 4,900 rendered strings and failing on any
+that is, or looks like, a dictionary key. It reads no code, on purpose: the bug
+it was written for (`tactics.sliderDefLineLo` on the Tactics screen, found live
+by the owner) was invisible to both `i18nprobe` and `keyprobe` because the key
+existed, the table was right, and the unwrapped read was a plain property rather
+than a call.
+
 **Language** — `i18nprobe` (every key the code asks for exists in English, every
 English key exists in every translation, and the placeholders match on both
 sides) and `langprobe` (the picker is on the title screen under the text size,

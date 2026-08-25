@@ -978,6 +978,10 @@
     },
     "sixLevel": "à égalité de points",
     "skip": "Passer ▸",
+    "skipTook": {
+      "one": "⏭ Passer a répondu à {n} décision à votre place - les points ont été pris.",
+      "other": "⏭ Passer a répondu à {n} décisions à votre place - les points ont été pris."
+    },
     "soundAndBuzz": "Son et vibration",
     "soundOff": "🔇 Silence, sans vibration",
     "soundOn": "🔊 Foule, sifflet et vibration activés",
@@ -1036,7 +1040,7 @@
     "streakLossesRest": " face à cette équipe - il faut bien que quelqu'un brise le sort.",
     "streakWins": "{n} victoires de suite",
     "streakWinsRest": " contre eux - à vous de protéger la série.",
-    "tabBrief": "Briefing",
+    "tabBrief": "Avant-match",
     "tabTalk": "Causerie",
     "tabTeam": "Équipe",
     "tacticsBtn": "📋 Tactique",
@@ -1052,6 +1056,18 @@
     "tapSwapHintTest": "touchez un joueur, puis un autre pour les échanger · touchez deux fois pour le groupe complet",
     "tapToPick": "- touchez pour choisir -",
     "teamTalk": "Causerie",
+    "tenseKick": {
+      "one": "UNE PÉNALITÉ D'ÉCART · {n} MINUTE À JOUER",
+      "other": "UNE PÉNALITÉ D'ÉCART · {n} MINUTES À JOUER"
+    },
+    "tenseLevel": {
+      "one": "À ÉGALITÉ · {n} MINUTE À JOUER",
+      "other": "À ÉGALITÉ · {n} MINUTES À JOUER"
+    },
+    "tenseScore": {
+      "one": "UN ESSAI D'ÉCART · {n} MINUTE À JOUER",
+      "other": "UN ESSAI D'ÉCART · {n} MINUTES À JOUER"
+    },
     "testBench": "Banc international",
     "testMatch": "Test-match - {nat}",
     "testSquadSub": "le groupe international au complet",

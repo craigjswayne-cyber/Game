@@ -1608,13 +1608,6 @@ function Live() {
     return () => document.removeEventListener('visibilitychange', wake)
   }, [])
 
-  useEffect(() => {
-    if (!playing) return
-    // `timer`, not `t`: t() is the translator
-    const timer = setTimeout(() => advanceLive(), SPEEDS[speedIdx].ms)
-    return () => clearTimeout(timer)
-  }, [cursor, playing, speedIdx, events.length])
-
   // stadium sound & haptics on key events (skip when fast-forwarding)
   useEffect(() => {
     if (last && speedIdx < 2 && playing) matchSfx(last.type)
@@ -1660,15 +1653,56 @@ function Live() {
   const as = last?.awayScore ?? 0
   const min = last?.min ?? 0
 
-  // ball position: drift by event team, jump for big events
+  // TERRITORY IS MOMENTUM (v1.1.1).
+  //
+  // This used to be `50 + dir * (10 + min % 20)` - a sawtooth on the CLOCK.
+  // The ball crept up the field for twenty minutes, snapped back, and did it
+  // again, and none of it had the faintest thing to do with the match being
+  // played. The owner watched four games live and said so: "it should reflect
+  // momentum and possession".
+  //
+  // The engine has always known. ctx.momo is a real, tuned figure - possession
+  // delta with a 0.62 decay, shoved 0.3 by a howler - and the scoreboard draws
+  // it as a needle two centimetres above this pitch. So read it:
+  //
+  //   territory  50 + momo * 30   where the pressure is (20..80)
+  //   nudge      +-9              whose work THIS event was
+  //
+  // +1 momo is home dominant and home attacks right, so the signs already
+  // agree with the try-zone colours. Scores stay decisive and unchanged: a try
+  // is at 88/12 because that is where tries happen.
   const ballLeft = useMemo(() => {
     if (!last) return 50
     const towardHome = last.teamId === fixture.homeId
     const base = last.type === 'TRY' ? (towardHome ? 88 : 12)
       : last.type === 'PEN' || last.type === 'DG' ? (towardHome ? 72 : 28)
-      : 50 + (towardHome ? 1 : -1) * (10 + (last.min % 20))
+      : 50 + (ctx.momo ?? 0) * 30 + (towardHome ? 9 : -9)
     return Math.max(6, Math.min(94, base))
   }, [cursor])
+
+  // TENSION IS LATE **AND** CLOSE (v1.1.1), a product and deliberately so:
+  // 3-0 at 20 minutes is not tense, and neither is 40-3 at 78. Both terms
+  // have to be true, and either one alone reads as nothing.
+  const tension = useMemo(() => {
+    if (done || !last) return 0
+    const late = Math.max(0, Math.min(1, (min - 55) / 25))   // nothing before the hour
+    const close = Math.max(0, Math.min(1, 1 - Math.abs(hs - as) / 14)) // one score is 7
+    return late * close
+  }, [min, hs, as, done, last])
+
+  // The heartbeat, and the one thing tension actually buys: the beat between
+  // revealed events stretches by up to 60% when the game is late and close.
+  // The clock will not hurry when you want it to, which is the whole of "make
+  // you edgy". It never SHORTENS - that would race a probe and rob a rout of
+  // its own pace - and Fast is left exactly alone, because a manager who has
+  // asked the game to hurry up is not asking for drama.
+  useEffect(() => {
+    if (!playing) return
+    const drag = speedIdx < 2 ? 1 + 0.6 * tension : 1
+    // `timer`, not `t`: t() is the translator
+    const timer = setTimeout(() => advanceLive(), Math.round(SPEEDS[speedIdx].ms * drag))
+    return () => clearTimeout(timer)
+  }, [cursor, playing, speedIdx, events.length, tension])
 
   const cls = (e: MatchEvent) =>
     e.type === 'TRY' || e.type === 'FT' || e.type === 'DG' ? 'big'
@@ -1746,6 +1780,27 @@ function Live() {
             </div>
           )
         })()}
+        {/* THE SCREEN SAYS SO. Above 0.45 the game names what this now is: a
+            one-score match inside the closing quarter. Static, not a pulse -
+            prefers-reduced-motion collapses every duration in this codebase
+            (motionprobe holds that line), so anything that lives only in
+            movement is information some players never get. */}
+        {/* WHAT SKIP JUST DECIDED FOR YOU. The owner: "ive played 4 games now
+            with no decision making coming like kick for goal etc? is that
+            feature still included?" It was - 2.5 kickable penalties a match,
+            measured over forty of them - but Skip answers every one of them at
+            the posts and had never once said so. A feature that only ever
+            happens silently, on your behalf, is a feature nobody has. */}
+        {!!live.skipTook && (
+          <div className="skip-took">{t('matchday.skipTook', { n: live.skipTook })}</div>
+        )}
+        {!done && tension > 0.45 && (
+          <div className="tense-band">
+            {t(Math.abs(hs - as) === 0 ? 'matchday.tenseLevel'
+              : Math.abs(hs - as) <= 3 ? 'matchday.tenseKick'
+                : 'matchday.tenseScore', { n: Math.max(1, 80 - min) })}
+          </div>
+        )}
       </div>
 
       {done && ctx.userSideId && (() => {

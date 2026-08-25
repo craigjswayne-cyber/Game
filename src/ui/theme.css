@@ -1491,6 +1491,42 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 .pitch .pdot.cap { outline: 1.5px solid var(--gold-fill); outline-offset: 1px; }
 
+/* The tension band (v1.1.1): late AND close, and the scoreboard says so.
+   STATIC on purpose - no pulse, no flash. prefers-reduced-motion collapses
+   every duration in this file, so a state drawn only in movement is a state
+   some players never see. A band, a rule and a word does the job for
+   everybody. */
+/* What Skip decided for you: the one line that turns a silent auto-answer
+   back into a touchline call you know about. Sits on the scoreboard, so it
+   is there whether the skip ended at half-time, the 60' break or full time. */
+.skip-took {
+  margin: 4px 12px 2px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--gold-fill) 35%, transparent);
+  background: color-mix(in srgb, var(--gold-fill) 10%, transparent);
+  color: var(--gold-fill);
+  font-size: 11px; line-height: 1.35;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+.tense-band {
+  margin: 4px 12px 2px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  /* The scoreboard is the hero gradient, and gold on the hero gradient is
+     always --gold-fill, never --gold: --gold goes deep brown in light mode
+     and would vanish into it (see the .hero rule above). */
+  border: 1px solid color-mix(in srgb, var(--gold-fill) 55%, transparent);
+  background: color-mix(in srgb, var(--gold-fill) 14%, transparent);
+  color: var(--gold-fill);
+  font-family: var(--cond); font-weight: 700;
+  font-size: 10.5px; letter-spacing: 1.2px;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
 /* inbox: jump to the next unread message */
 .news-item .next-unread {
   display: none;
