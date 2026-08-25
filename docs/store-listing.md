@@ -20,7 +20,7 @@ the first thing a reviewer sees.
 | Category | Games → Sports (Play), Games → Sports / Simulation (App Store) |
 | Price | free, with one optional in-app purchase (or paid up front - see `docs/monetisation.md`) |
 | Contact e-mail | phaserugbymanager@gmail.com |
-| Privacy policy URL | `https://YOUR-HOST/privacy.html` (ships in `public/`) |
+| Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
 | Support URL | the same page, which carries the contact address |
 | Content rating | 3+ / Everyone (see the questionnaire below) |
 | Languages | English, French |
