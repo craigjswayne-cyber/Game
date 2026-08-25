@@ -6,6 +6,8 @@ import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
+import { canAgencyFile } from '../../game/rewarded'
+import { rewardedAvailable, showRewarded } from '../../game/monetise'
 import { loanOut, loanRecall } from '../../game/loans'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
@@ -69,6 +71,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const know = knowledge(game, p)
   const shortlisted = game.shortlist.includes(p.id)
   const toggleShortlist = useStore(s => s.toggleShortlist)
+  const rewardAgency = useStore(s => s.rewardAgency)
 
   const groups: [string, (keyof Attrs)[]][] = [
     ['player.grpSetPiece', ['scr', 'lin', 'ruc', 'tac', 'str', 'agg']],
@@ -510,6 +513,17 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           <button className={`btn ${shortlisted ? '' : 'ghost'} block`} onClick={() => toggleShortlist(p.id)}>
             {t(shortlisted ? 'player.onShortlist' : 'player.shortlistScout')}
           </button>
+          {/* the agency's file (v1.1.0): what weeks of scout attention learn,
+              shared for a watched spot - once per player a season, three a
+              week, and only where a provider exists (rewarded.ts) */}
+          {rewardedAvailable('scouting') && canAgencyFile(game, p.id) && (
+            <button className="btn ghost block" onClick={() => {
+              void showRewarded('scouting').then(out => {
+                if (out === 'completed') setMsg(rewardAgency(p.id) ? t('till.agencyDone', { name: p.name }) : t('till.favourGone'))
+                else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+              })
+            }}>{t('till.watchAgency')}</button>
+          )}
           {!bidding
             ? <>
               {p.contractEnds <= game.season && game.week >= 25 && !(game.preContracts ?? []).some(x => x.playerId === p.id) && (

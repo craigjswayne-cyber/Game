@@ -1863,6 +1863,7 @@ export function rebuildSeason(state: GameState) {
   state.wageBoost = undefined
   state.injections = undefined
   state.injectedThisSeason = undefined
+  state.rewarded = undefined
   // and the new opening budget is snapshotted AFTER the war-chest clawback
   // above, so a board injection is priced on what the season really opens with
   for (const club of Object.values(state.clubs)) club.budgetAtOpen = club.budget

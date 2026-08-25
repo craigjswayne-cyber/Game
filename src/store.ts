@@ -4,6 +4,7 @@ import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i1
 import { EDITOR_SKU, LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
 import { applyCharter, applyInjection, type InjectTier } from './game/grants'
 import { editClub as editorClubWrite, editPlayer as editorPlayerWrite, type ClubEdit, type PlayerEdit } from './game/editor'
+import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
 import { newGame } from './game/newgame'
@@ -177,6 +178,13 @@ interface Store {
    *  door is not. */
   editorPlayer: (id: number, edit: PlayerEdit) => boolean
   editorClub: (clubId: string, edit: ClubEdit) => boolean
+  /** Rewarded favours (game/rewarded.ts): called ONLY after the ad bridge
+   *  reports a completed view. Each returns what the screen should say, or
+   *  null/false when the ledger refuses. */
+  rewardPhysio: (pid: number) => string | null
+  rewardAgency: (pid: number) => boolean
+  rewardAnalyst: () => void
+  rewardTown: () => number | null
   toggleShortlist: (playerId: number) => void
   /** Put a loaded save in play. keepPlace is Continue: resume the bookmarked
    *  screen instead of Home. */
@@ -1131,6 +1139,38 @@ export const useStore = create<Store>((set, get) => ({
     const done = editorClubWrite(g, clubId, edit)
     if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return done
+  },
+
+  rewardPhysio: (pid) => {
+    const g = get().game
+    if (!g) return null
+    const out = physioFavour(g, pid)
+    if (out != null) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return out
+  },
+
+  rewardAgency: (pid) => {
+    const g = get().game
+    if (!g) return false
+    const done = agencyFile(g, pid)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  rewardAnalyst: () => {
+    const g = get().game
+    if (!g) return
+    armAnalyst(g)
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+  },
+
+  rewardTown: () => {
+    const g = get().game
+    if (!g) return null
+    const amt = townCollection(g)
+    if (amt != null) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return amt
   },
 
   applyJob: (clubId) => {

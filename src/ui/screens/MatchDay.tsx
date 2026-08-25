@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../../store'
+import { analystArmed } from '../../game/rewarded'
+import { rewardedAvailable, showRewarded } from '../../game/monetise'
 import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
@@ -109,6 +111,8 @@ function Preview({ fxId }: { fxId: number }) {
   const [sel, setSel] = useState<number | null>(null)
   const [confirm, setConfirm] = useState(false)
   const [planApplied, setPlanApplied] = useState(false)
+  const [spotMsg, setSpotMsg] = useState<string | null>(null)
+  const rewardAnalyst = useStore(st => st.rewardAnalyst)
   const [ptab, setPtab] = useState<'brief' | 'team' | 'talk'>('team')
   /**
    * The dressing room comes to you (user: "a pre-game team talk should pop up
@@ -333,7 +337,7 @@ function Preview({ fxId }: { fxId: number }) {
     return xv.length ? xv.reduce((s, p) => s + p!.cond, 0) / xv.length : 85
   })()
   const heated = !!derbyName(fx.homeId, fx.awayId) || !!grudgeBetween(game, fx.homeId, fx.awayId)
-  const gamePlan = (() => {
+  const allPlans = (() => {
     // the assistant's voice rotates per fixture (fx.id keeps it stable
     // across re-renders) so the same advice never reads the same twice
     const v = (opts: string[]) => opts[fx.id % opts.length]
@@ -376,8 +380,13 @@ function Preview({ fxId }: { fxId: number }) {
       plans.push({ w: 1.8, text: v([
         t('matchday.planHeated1'), t('matchday.planHeated2'),
       ]), d: { aggression: -8 } })
-    return plans.sort((a, b) => b.w - a.w).slice(0, 3)
+    return plans.sort((a, b) => b.w - a.w)
   })()
+  // the assistant's brief is the top three reads. The analyst's all-nighter
+  // (v1.1.0, rewarded.ts) buys the rest of the list for this match - armed by
+  // a watched spot, marked in the ledger, gone with the week.
+  const fullRead = analystArmed(game)
+  const gamePlan = fullRead ? allPlans : allPlans.slice(0, 3)
   const applyPlan = () => {
     for (const p of gamePlan) {
       for (const [k, dv] of Object.entries(p.d) as [SliderKey, number][]) {
@@ -959,6 +968,16 @@ function Preview({ fxId }: { fxId: number }) {
             <button className="btn ghost block" style={{ marginTop: 8 }} disabled={planApplied} onClick={applyPlan}>
               {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
             </button>
+            {rewardedAvailable('matchday') && !fullRead && allPlans.length > gamePlan.length && (
+              <button className="btn ghost block" style={{ marginTop: 6, fontSize: 12.5 }} onClick={() => {
+                void showRewarded('matchday').then(out => {
+                  if (out === 'completed') rewardAnalyst()
+                  else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+                })
+              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length })}</button>
+            )}
+            {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
+            {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
           </div>
         )}
 

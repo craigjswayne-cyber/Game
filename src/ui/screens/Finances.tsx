@@ -3,8 +3,9 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, INJECT_SKUS, buyConsumable, buyOwnable, consume, hasEntitlement,
-  pendingConsumables, skuPrice, tillOpen,
+  pendingConsumables, rewardedAvailable, showRewarded, skuPrice, tillOpen,
 } from '../../game/monetise'
+import { canTownCollection } from '../../game/rewarded'
 import { INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
@@ -23,6 +24,7 @@ export default function Finances() {
   const [dealMsg, setDealMsg] = useState<string | null>(null)
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  const rewardTown = useStore(s => s.rewardTown)
   const [askMsg, setAskMsg] = useState<string | null>(null)
   const [relMsg, setRelMsg] = useState<string | null>(null)
   const club = game.clubs[game.userClubId]
@@ -152,6 +154,20 @@ export default function Finances() {
         </tbody>
       </table></div>
       {askMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{askMsg}</div>}
+      {rewardedAvailable('collection') && canTownCollection(game) && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <h3 style={{ fontSize: 14 }}>{t('till.townTitle')}</h3>
+          <div className="meta">{t('till.townBody')}</div>
+          <button className="btn ghost block" style={{ marginTop: 6 }} onClick={() => {
+            void showRewarded('collection').then(out => {
+              if (out === 'completed') {
+                const amt = rewardTown()
+                setAskMsg(amt != null ? t('till.townDone', { amount: fmtMoney(amt) }) : t('till.favourGone'))
+              } else setAskMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
+            })
+          }}>{t('till.watchTown')}</button>
+        </div>
+      )}
       <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
         {t(asked ? 'finances.askedThisSeason' : 'finances.askBoard')}
       </button>

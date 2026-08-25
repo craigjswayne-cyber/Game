@@ -1319,6 +1319,24 @@ export interface GameState {
   /** purchased cash landed this season, in pounds - the books objective
    *  reads organic funds only, so a bought pound can never finish it */
   injectedThisSeason?: number
+  /** rewarded-favour ledgers (rewarded.ts): counts timestamped in absolute
+   *  game-weeks so an instant-result marathon cannot farm them. The wrapper's
+   *  bridge holds the per-real-day cap; this holds the per-save one. Cleared
+   *  whole at rollover - everything in it is weekly or seasonal. */
+  rewarded?: {
+    /** physio favours used this game-week: [absWeek, count] */
+    medical?: [number, number]
+    /** agency files this game-week: [absWeek, count] */
+    scout?: [number, number]
+    /** player id -> the season his file was shared (once per season each) */
+    scoutSeen?: Record<number, number>
+    /** the absolute week the analyst's all-nighter is armed for */
+    analyst?: number
+    /** town collection this game-week: [absWeek, count] */
+    town?: [number, number]
+    /** collections this season (three, then the town has given enough) */
+    townSeason?: number
+  }
   /** absolute week (season * SEASON_WEEKS + week) the LAW WATCH wind-up last
    *  aired. The freshness gate used to scan state.news for the last airing,
    *  and the news log is trimmed at 250 items - a busy month pushed the last
