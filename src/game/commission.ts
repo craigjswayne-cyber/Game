@@ -45,8 +45,6 @@ export interface ScoutFind {
   note: NoteRef | string
 }
 
-const GRADE_WORD = ['a punt', 'worth watching', 'a good fit', 'sign him']
-
 /** Send the scout out. Returns the line to show the manager. */
 export function commissionScout(state: GameState, pos: Pos | 'any', months: SearchMonths): string {
   const club = state.clubs[state.userClubId]
