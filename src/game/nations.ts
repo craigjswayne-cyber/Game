@@ -1,4 +1,5 @@
 // International rugby nations, reputations, and regen name pools.
+import { t, tIn, type Lang } from './i18n'
 
 export interface Nation {
   code: string
@@ -37,6 +38,38 @@ export const NATIONS: Nation[] = [
 ]
 
 export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)
+
+/**
+ * A NATION'S NAME IS TRANSLATED. A CLUB'S IS NOT.
+ *
+ * Northampton is called Northampton in Paris, so club names are data and stay
+ * as they are. Countries are not: a French reader expects Angleterre, and the
+ * live probe found "England" on eleven French screens - a first cap, a Grand
+ * Slam eve, a championship won, every Test scoreline.
+ *
+ * French also wants the article, and which article depends on the country, so
+ * there are three forms rather than one:
+ *
+ *   nation      bare, for tables, scorelines and squad labels - "Angleterre"
+ *   nationThe   mid-sentence with its article - "avec l'Angleterre"
+ *   nationCap   the same, capitalised, for the start of a sentence
+ *
+ * English fills all three with the same word, which is the point: the English
+ * templates go on saying {nation} and only the French ones reach for the rest.
+ *
+ * Prepositions: "à" and "de" contract with the article and the contraction
+ * depends on the country ("au Japon", "d'Angleterre"), so the French templates
+ * use prepositions that never contract - avec, pour, sans, contre, chez.
+ */
+export const nationName = (c: string) => (nationByCode(c) ? t(`nation.${c}`) : c)
+export const nationNameIn = (lang: Lang, c: string) => (nationByCode(c) ? tIn(lang, `nation.${c}`) : c)
+
+/** The three forms as news variables, so a story can be written in either
+ *  language without the caller knowing which one will read it. */
+export const nationVars = (c: string) => ({
+  nation: nationName(c),
+  nation_k: `nation.${c}`, nationThe_k: `nationThe.${c}`, nationCap_k: `nationCap.${c}`,
+})
 export const flagOf = (c: string) => nationByCode(c)?.flag ?? '🏉'
 
 /** Regen name pools per country: first names, then surnames.

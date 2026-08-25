@@ -5,7 +5,7 @@ import { standing } from './authority'
 import { analystShift, archetypeOf, loudestDial, repetitionFatigue } from './oppcoach'
 import { updateNatRank } from './natrank'
 import { bigMatchTemper, consistency, effAt } from './attributes'
-import { nationByCode } from './nations'
+import { nationName, nationNameIn, nationVars } from './nations'
 import { derbyName, isDerby } from './rivalries'
 import { analystEdge, settleAnalyst } from './analyst'
 import { t, tIn } from './i18n'
@@ -343,11 +343,11 @@ export function rosterOf(state: GameState, teamId: string): number[] {
 }
 
 export function teamName(state: GameState, teamId: string): string {
-  return state.clubs[teamId]?.name ?? nationByCode(teamId)?.name ?? teamId
+  return state.clubs[teamId]?.name ?? nationName(teamId)
 }
 
 export function teamShort(state: GameState, teamId: string): string {
-  return state.clubs[teamId]?.short ?? nationByCode(teamId)?.name ?? teamId
+  return state.clubs[teamId]?.short ?? nationName(teamId)
 }
 
 export function lineupFor(state: GameState, teamId: string): (number | null)[] {
@@ -3106,10 +3106,10 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
             subject: p.caps === 1 ? `🌍 First cap: ${p.name}`
               : `🌍 ${p.name}: ${p.caps} Test caps`,
             body: p.caps === 1
-              ? `${p.name} won his first Test cap for ${nationByCode(side.teamId)?.name ?? side.teamId} this week. The shirt gets framed; the club that made him gets the reflected glow.`
-              : `${p.name} brought up his ${p.caps}th cap for ${nationByCode(side.teamId)?.name ?? side.teamId} this week - a special jersey, a guard of honour, and a proud week around the club.`,
+              ? `${p.name} won his first Test cap for ${nationNameIn('en', side.teamId)} this week. The shirt gets framed; the club that made him gets the reflected glow.`
+              : `${p.name} brought up his ${p.caps}th cap for ${nationNameIn('en', side.teamId)} this week - a special jersey, a guard of honour, and a proud week around the club.`,
             k: p.caps === 1 ? 'news.firstCap' : 'news.capMilestone',
-            v: { player: p.name, nation: nationByCode(side.teamId)?.name ?? side.teamId, n: p.caps, n_o: p.caps },
+            v: { player: p.name, ...nationVars(side.teamId), n: p.caps, n_o: p.caps },
             playerId: p.id,
           })
         }

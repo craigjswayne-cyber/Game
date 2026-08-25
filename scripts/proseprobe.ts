@@ -89,13 +89,27 @@ if (decisions.length < BUDGET.decisions) {
 }
 
 say('\n--- 2. the press questions and the answers on the buttons')
-// A press item is built with `q:` and its options with `text:`; both reach a
-// button. A key has no spaces in it.
+// THIS COUNTED THE WRONG FIELDS AND SAID ZERO.
+//
+// It looked for `q:` and `text:`. media.ts passes the question POSITIONALLY to
+// mk() and names its option fields `label:` and `reaction:`, so the pattern
+// matched nothing and the budget of zero read as "the press room is done" while
+// every question, every button and every reply in it was English. A probe that
+// cannot see its subject is worse than no probe: it is a green light.
+//
+// So: no field names. Every quoted literal in the file that reads like a
+// sentence, minus the outlet mastheads, which are titles and stay as they are.
 const press: string[] = []
 {
   const src = readFileSync('src/game/media.ts', 'utf8')
-  for (const m of src.matchAll(/\b(q|text):\s*(`[^`]{14,}`|'[^']{14,}')/g)) {
-    if (isProse(m[2])) press.push(`media.ts:${src.slice(0, m.index).split('\n').length}`)
+  const OUTLETS = src.slice(src.indexOf('OUTLETS'), src.indexOf('OUTLETS') + 400)
+  for (const m of src.matchAll(/(`[^`]{14,}`|'[^']{14,}'|"[^"]{14,}")/g)) {
+    const at = src.slice(0, m.index)
+    const line = at.split('\n').length
+    const text = at.slice(at.lastIndexOf('\n') + 1)
+    if (text.trimStart().startsWith('//') || text.trimStart().startsWith('*')) continue
+    if (OUTLETS.includes(m[1])) continue
+    if (isProse(m[1])) press.push(`media.ts:${line}`)
   }
 }
 say(`  ${press.length} press line(s) written as English (budget ${BUDGET.press})`)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { CHEM_SLOTS, chemKey, chemTier, fmtMoney, grudgeReason, POS_ORDER } from '../../game/model'
 import { Crest, FormPill, Jersey, Nat, PosBadge, SectionTitle, Stars } from '../components'
-import { nationByCode } from '../../game/nations'
+import { nationName } from '../../game/nations'
 import { squadValue, starPlayerIds } from '../../game/analysis'
 import { activeFeuds, reconcileChance, reconcileFeud } from '../../game/gossip'
 import { mulberry32 } from '../../game/rng'
@@ -42,7 +42,7 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
           <h3 style={{ fontSize: 20, flex: 1 }}>{club.name}</h3>
           <Jersey club={club} size={52} />
         </div>
-        <div className="meta">{t('club.cityLine', { city: club.city, country: nationByCode(club.country)?.name ?? club.country, league: league?.name ?? '' })}</div>
+        <div className="meta">{t('club.cityLine', { city: club.city, country: nationName(club.country), league: league?.name ?? '' })}</div>
         <div className="meta">{t('club.stadiumLine', { stadium: club.stadium, capacity: club.capacity.toLocaleString() })}</div>
         <div className="meta">{t('club.headCoach', { name: club.id === game.userClubId ? game.managerName : club.coach ?? t('club.vacant') })}</div>
         {/* F23: how this dugout wants the game played. Yours is not listed here

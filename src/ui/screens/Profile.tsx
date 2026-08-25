@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { decisionText, mgrReputation, seasonLabel, squadTrust, trustFactor, trustWord, type GameState, type Player } from '../../game/model'
 import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
-import { flagOf, nationByCode } from '../../game/nations'
+import { flagOf, nationName } from '../../game/nations'
 import { SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 
@@ -174,12 +174,12 @@ export default function Profile() {
           <h3 style={{ fontSize: 15 }}>{t('profile.intlRecord')}</h3>
           {(game.natHistory ?? []).map((ten, i) => (
             <div key={i} className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(ten.nat)} <b>{nationByCode(ten.nat)?.name ?? ten.nat}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
+              {flagOf(ten.nat)} <b>{nationName(ten.nat)}</b> · {t(ten.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: ten.m, w: ten.w, d: ten.d, l: ten.l })}
             </div>
           ))}
           {game.natTeam && game.natRecord && (
             <div className="meta" style={{ padding: '3px 0' }}>
-              {flagOf(game.natTeam)} <b>{nationByCode(game.natTeam)?.name ?? game.natTeam}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
+              {flagOf(game.natTeam)} <b>{nationName(game.natTeam)}</b> · {t(game.natRecord.m === 1 ? 'profile.testLineOne' : 'profile.testLine', { m: game.natRecord.m, w: game.natRecord.w, d: game.natRecord.d, l: game.natRecord.l })} <span className="muted">{t('profile.current')}</span>
             </div>
           )}
         </div>
