@@ -277,6 +277,25 @@ of this stops being true.
 | Third-party SDKs | none |
 | Ads | **No ads** |
 
+### v1.1.0 replacement (owner's decision, 25 Aug 2026 - monetisation-spec.md §7)
+
+These answers replace the table above IN THE SAME COMMIT that puts the
+rewarded-ads SDK into the Play wrapper, and not a moment earlier: the build
+that is live today collects nothing and its listing must keep saying so.
+The web game at the GitHub Pages URL is unaffected either way - the SDK
+never enters the web bundle, and netprobe goes on enforcing that.
+
+| Question | Answer |
+|---|---|
+| Does your app collect or share any of the required user data types? | **Yes** |
+| Data types collected | Device or other IDs (advertising identifier), collected by the ad provider when the player chooses to watch a rewarded ad |
+| Purpose | Advertising or marketing |
+| Is data collection optional? | Yes - rewarded ads are player-initiated; never watching one means never being collected from |
+| Is all of the user data collected by your app encrypted in transit? | Yes (ad provider transport) |
+| Do you provide a way for users to request that their data is deleted? | Per the ad provider's mechanism, linked from the privacy policy |
+| Third-party SDKs | the rewarded-ads provider, in the Android wrapper only |
+| Ads | **Contains ads** (two optional banner slots; rewarded ads at four player-initiated placements; Remove Ads disables the banners permanently) |
+
 ## Play Content rating (IARC questionnaire)
 
 | Question | Answer |

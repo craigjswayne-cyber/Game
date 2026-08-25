@@ -43,6 +43,7 @@ These are constraints the spec builds on, not aspirations:
 | 5 | `phase.inject.xl` | The Sugar Daddy | $7.99 | Consumable |
 | 6 | `phase.license` | Manager's License | $2.99 | Non-consumable |
 | 7 | `phase.editor` | In-Game Editor | $4.99 | Non-consumable |
+| 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
 
 ### 1.1 Remove Ads — $1.99, non-consumable
 
@@ -65,23 +66,30 @@ the Finances ledger — the books stay honest.
 `X = tier% × the season's opening transfer budget`, snapshotted at rollover
 as `club.budgetAtOpen`:
 
-| Tier | % of opening budget | Floor |
-|------|--------------------:|-------|
-| Small (+25%) | 25% | £100k |
-| Medium (+65%) | 65% | £250k |
-| Large (+150%) | 150% | £500k |
-| Sugar Daddy (+350%) | 350% | £1.0m |
+| Tier | % of opening budget | Floor | Cap-exempt wage allowance (this season) |
+|------|--------------------:|-------|------------------------------------------|
+| Small (+25%) | 25% | £100k | +5% of the cap |
+| Medium (+65%) | 65% | £250k | +10% of the cap |
+| Large (+150%) | 150% | £500k | +20% of the cap |
+| Sugar Daddy (+350%) | 350% | £1.0m | +40% of the cap |
+
+**The wage allowance (owner’s decision, 25 Aug):** each injection also
+carries board-underwritten wages *outside* the cap — a percentage of the
+league cap, exempt for the season it was bought in and expiring at rollover
+like the cash fiction it is (`state.wageBoost`, cleared in `rebuildSeason`).
+It stacks across purchases within the seasonal limits of §3.2, the store
+row prints it in pounds per week, and `capBill()` reads it exactly the way it
+already reads marquee exemptions.
 
 * **Snapshot, not current balance** — otherwise buying early beats buying
   late and the product page can't honestly say what you get. The store row
   shows the exact figure before purchase ("+£1.2m to your transfer budget").
 * **Floors** keep the SKU meaningful at a National 1 club or a club in
   administration (opening budget can be ~£0 after `ADMIN_PENALTY`).
-* **What it never buys (§3.4):** wage-cap headroom, marquee slots, objective
-  completion, or anything for the AI. Cash buys transfer fees; the squad you
-  can *pay weekly* is still bounded by the cap. This is the anti-P2W spine:
-  a whale assembles his galaxy squad faster, but inside the same wage law as
-  everyone in his league.
+* **What it never buys (§3.4):** marquee slots, objective completion, match
+  outcomes, or anything for the AI. The wage allowance above is bounded,
+  seasonal, and printed on the tin; permanent freedom from the cap is its own
+  product (§1.5), bought with eyes open and stamped on the save.
 
 ### 1.3 Manager's License — $2.99, non-consumable
 
@@ -108,6 +116,20 @@ as `club.budgetAtOpen`:
 * Editor writes go through the same validation as `savefuzz` healing
   (clamps, not crashes). No rng, no engine bypass: edited attributes simply
   ARE the attributes.
+
+### 1.5 The Owner’s Charter — $9.99, non-consumable
+
+* **Fiction:** new ownership arrives with lawyers; the wage law no longer
+  applies to this club.
+* **Effect:** applied per save from the Boardroom (or at career creation):
+  `state.uncapped = true`, irreversible for that save. `capBill()` returns no
+  ceiling, cap fines and embargoes (`capFine`/`capEmbargo`) never fire, and
+  marquee designation goes moot and hides. AI clubs remain capped — their
+  books were balanced against the law, and the law still applies to them.
+* **Stamped like the Editor:** the save wears a small 🖋 in Legacy and
+  the Annual. Records still count; the badge says how they were built.
+* The whale product sold honestly: no drip of exemptions — one price,
+  total freedom, permanent mark.
 
 ---
 
@@ -171,10 +193,13 @@ read as complete without them (same rule `storeprobe` applies to the till).
 
 ### 3.4 The organic path stays the game
 
-* The wage cap binds identically for everyone (`capprobe`), the AI economy
-  is untouched (`aiecon`), and `difficultyprobe` continues to assert that an
-  engaged free player outperforms a sleepwalker — those three probes are the
-  regression net for "F2P can still reach the top."
+* For a free player the wage cap binds exactly as today (`capprobe`), the AI
+  economy is untouched (`aiecon`), and `difficultyprobe` continues to assert
+  that an engaged free player outperforms a sleepwalker — those three
+  probes are the regression net for "F2P can still reach the top."
+* Paid wage room is bounded and seasonal (§1.2) or total, permanent and
+  stamped (§1.5); `capprobe` gains an uncapped-save exemption plus a new
+  assertion that the flag never sets itself.
 * Nothing purchasable touches attributes, match outcomes, refs, draws, or
   opponents. The Editor can — and stamps the save for it.
 
@@ -215,9 +240,13 @@ read as complete without them (same rule `storeprobe` applies to the till).
 * **Board Injection (Medium)** — "A serious vote of confidence from
   upstairs: +65% of this season's transfer budget to spend in the market."
 * **Board Injection (Large)** — "The owners open the vault: +150% of this
-  season's transfer budget. Sign the men the project needs."
+  season's transfer budget, with the wage room to match. Sign the men the
+  project needs."
 * **The Sugar Daddy** — "New money arrives at the club: +350% of this
-  season's transfer budget. The rest of the league just took note."
+  season's transfer budget, and the board underwrites the wages to match.
+  The rest of the league just took note."
+* **The Owner’s Charter** — "The wage law no longer applies to you. No cap, no
+  fines, no embargoes — build the squad nobody else is allowed to pay."
 * **Manager's License** — "Start any new career as a proven name: 100
   reputation, top-flight vacancies open, federations already calling."
 * **In-Game Editor** — "Your world, your rules: edit players, clubs, kits
@@ -244,20 +273,32 @@ read as complete without them (same rule `storeprobe` applies to the till).
    bounded, seasonal caps enforced, objective exclusion holds).
 6. **Docs:** privacy policy + store listing updates per §7's decision.
 
-## 7. Two decisions that are the owner's, with recommendations
+## 7. Decisions — resolved by the owner, 25 August
 
-1. **Privacy label vs rewarded video.** An ad SDK in the *wrapper* keeps
-   `netprobe` green (web bundle untouched), but the **Play listing's** data
-   declaration changes from "No data collected" to device-ID/ads declarations
-   the moment the SDK ships. **Recommendation:** ship v1.1.0 with IAP only
-   (labels barely change; billing is store-side), hold §2 fully specced for a
-   v1.2 decision once revenue data exists. The four surfaces degrade
-   gracefully to their paid/absent forms.
-2. **Injections vs the salary cap.** **Recommendation as written (§1.2):**
-   cash never buys cap headroom. The alternative — Sugar Daddy raising the
-   ceiling — reads as pay-to-win, breaks `capprobe`'s meaning, and was
-   rejected. If the owner wants a wage lever, the honest version is a third
-   marquee slot as a separate, loudly-flagged SKU — not recommended.
+1. **Rewarded video ships in v1.1.0 and the privacy label changes with it.**
+   The ad SDK lives in the Play wrapper only; the web bundle stays clean and
+   `netprobe` stays green. The "collects nothing" claim lives in exactly four
+   places, and they flip together in the same commit that lands the SDK —
+   not before, because today's live build collects nothing and must keep
+   saying so:
+   * `docs/store-listing.md` — the Data Safety answers (currently "No");
+     the v1.1.0 replacement table now sits alongside them in that file.
+   * `public/privacy.html` — the shipped policy. New form: the game itself
+     collects nothing; the Android app's ad provider uses the advertising
+     identifier when the player chooses to watch a rewarded ad.
+   * `handbook.a79` + `world.privacyBody`, both languages — the same
+     statement in the game's own voice.
+   * The `netprobe` header's store-form note, so the probe's documentation
+     matches the listing it polices.
+2. **Injections carry cap-exempt wage allowances** (§1.2) — bounded,
+   seasonal, priced on the tin.
+3. **The Owner's Charter exists** (§1.5) — total cap removal at $9.99,
+   per-save, permanent, stamped.
+
+The fairness line, restated once for the record: power is sold openly —
+bounded where it is cheap, total where it is dear, and always stamped on the
+save that used it. Single-player, the player's own world, the player's call.
+The free game is untouched.
 
 ## 8. Measurement (wrapper-side only, nothing in the game bundle)
 
