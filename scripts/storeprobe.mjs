@@ -35,11 +35,15 @@ const openPage = async ({ billing = false, ads = false, owns = [] } = {}) => {
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   if (billing) {
     await page.addInitScript(([owned]) => {
-      let bought = false
+      // the same shape a Play TWA's Digital Goods wrapper has (v1.1.0):
+      // non-consumables stay owned once bought; a consumable stays in owned()
+      // until the game consumes it, which is the recovery path under test
+      const bought = new Set()
       globalThis.rmBilling = {
         details: async (sku) => ({ sku, price: '£2.99' }),
-        buy: async () => { bought = true; return 'owned' },
-        owned: async () => (bought ? ['phase.supporter'] : owned),
+        buy: async (sku) => { bought.add(sku); return 'owned' },
+        owned: async () => [...new Set([...owned, ...bought])],
+        consume: async (sku) => { bought.delete(sku) },
       }
     }, [owns])
   }
@@ -96,6 +100,16 @@ try {
     ok(/collects nothing/i.test(about), 'and that it collects nothing')
     ok(!/Support the game/i.test(about), 'with no purchase door, because there is no store behind it')
     ok(await page.locator('a[href="./privacy.html"]').count() === 1, 'the privacy policy is one tap away')
+
+    // v1.1.0: the Boardroom shelf exists only behind a bridge - the free web
+    // build's board tab is confidence and objectives, with not one store row
+    await page.evaluate(() => window.rugbyStore.getState().go('finances'))
+    await page.waitForSelector('.tab-bar')
+    await page.locator('.tab-bar button', { hasText: 'The Board' }).click()
+    await page.waitForTimeout(300)
+    const board = await page.locator('.content').innerText()
+    ok(!/Board resolutions|Buy -|Sugar Daddy|Charter/i.test(board),
+      'the web build board tab sells nothing at all')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
 
     // the policy itself, served from the app's own origin
@@ -124,7 +138,7 @@ try {
     ok(/£2\.99/.test(till), "the price shown is the store's own")
     ok(/no budget|no player|nothing/i.test(till), 'the page says what the money does not buy')
 
-    await page.locator('.btn.gold', { hasText: '£2.99' }).click()
+    await page.locator('.btn.gold', { hasText: 'Support the game - £2.99' }).click()
     await page.waitForTimeout(600)
     ok(await page.locator('.content').innerText().then(t => /Thank you/i.test(t)),
       'a completed purchase is acknowledged on screen')
@@ -143,6 +157,55 @@ try {
     await page.reload()
     await page.waitForSelector('.title-screen', { timeout: 15000 })
     ok(await page.locator('.supporter-mark').count() === 1, 'which is still there after a reload')
+    ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
+    await page.close()
+  }
+
+  // ---- 2b. the Boardroom (v1.1.0): the figure on the row is the figure that lands
+  say('\n--- 2b. the Boardroom, with a store attached')
+  {
+    const page = await openPage({ billing: true })
+    const errs = []
+    page.on('pageerror', e => errs.push(e.message))
+    await startCareer(page)
+    await page.evaluate(() => window.rugbyStore.getState().go('finances'))
+    await page.waitForSelector('.tab-bar')
+    await page.locator('.tab-bar button', { hasText: 'The Board' }).click()
+    await page.waitForSelector('text=Board resolutions')
+    ok(await page.locator('text=The Sugar Daddy').count() === 1, 'the four resolutions render, letterhead included')
+
+    const before = await page.evaluate(() => {
+      const g = window.rugbyStore.getState().game
+      const c = g.clubs[g.userClubId]
+      return { budget: c.budget, balance: c.balance, open: c.budgetAtOpen ?? c.budget, news: g.news.length }
+    })
+    // the small injection: 25% of the opening budget, floored at £100k
+    const want = Math.max(100_000, Math.round((before.open * 0.25) / 10_000) * 10_000)
+    await page.locator('.card', { hasText: 'Board Injection (Small)' }).locator('.btn.gold').click()
+    await page.waitForSelector('text=The funds have landed')
+    const after = await page.evaluate(() => {
+      const g = window.rugbyStore.getState().game
+      const c = g.clubs[g.userClubId]
+      return { budget: c.budget, balance: c.balance, news: g.news.length, wageBoost: g.wageBoost, injected: g.injectedThisSeason }
+    })
+    ok(after.budget === before.budget + want && after.balance === before.balance + want,
+      `the row's figure is the figure that lands (${want.toLocaleString('en-GB')})`)
+    ok(after.wageBoost === 0.05 && after.injected === want, 'with the wage allowance and the objectives ledger written')
+    ok(after.news === before.news + 1, 'and the board letter goes in the inbox')
+    const owed = await page.evaluate(() => globalThis.rmBilling.owned())
+    ok(!owed.includes('phase.inject.s'), 'the purchase is consumed only after the career kept it')
+
+    // the Charter: bought, then signed behind a two-step confirm
+    await page.locator('.card', { hasText: "The Owner's Charter" }).locator('.btn.gold').click()
+    await page.waitForSelector('text=The Charter is yours')
+    await page.locator('button', { hasText: 'Sign the Charter for this save' }).click()
+    await page.locator('button', { hasText: 'Sign it - there is no way back' }).click()
+    await page.waitForSelector('text=The wage law no longer applies')
+    const chartered = await page.evaluate(() => {
+      const g = window.rugbyStore.getState().game
+      return { uncapped: g.uncapped === true, news: g.news.some(n => n.k === 'news.charter') }
+    })
+    ok(chartered.uncapped && chartered.news, 'the save is uncapped and the ownership letter filed')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
     await page.close()
   }

@@ -26,6 +26,19 @@ export default function Legacy() {
         <h3 style={{ fontSize: 21, marginTop: 6 }}>{game.managerName}</h3>
         <div className="meta">{t('legacy.lgDirectorOf', { club: club.name })}</div>
         {challenge && <div className="meta" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 3 }}>{t('legacy.lgChallenge', { title: t(challenge.title) })}</div>}
+        {/* the save's stamps (v1.1.0): visible, not shaming - a licensed start,
+            an edited world and a Charter save all still count, and the badge
+            says how the record was built (docs/monetisation-spec.md) */}
+        {(game.licensed || game.edited || game.uncapped) && (
+          <div className="meta" style={{ marginTop: 3 }}>
+            {game.licensed && <span title={t('till.stampLicensed')}>🎓 </span>}
+            {game.edited && <span title={t('till.stampEdited')}>🔧 </span>}
+            {game.uncapped && <span title={t('till.stampCharter')}>🖋 </span>}
+            <span className="muted" style={{ fontSize: 12 }}>
+              {[game.licensed && t('till.stampLicensed'), game.edited && t('till.stampEdited'), game.uncapped && t('till.stampCharter')].filter(Boolean).join(' · ')}
+            </span>
+          </div>
+        )}
       </div>
 
       {(() => {
