@@ -1,4 +1,9 @@
-# Commercial Release Readiness Report - v1.0.1
+# Commercial Release Readiness Report
+
+First audited 2026-08-22 at commit 52fa566, against v1.0.1. Kept current since:
+the IP rename landed in v1.0.3, the store surfaces in v1.0.4, and the language
+work in v1.0.5 - see the addendum at the end, which is where anything newer
+than the original audit is recorded rather than edited into it.
 
 Audit date: 2026-08-22, at commit 52fa566. Conducted as a store-submission audit
 against Apple App Store Review Guidelines and Google Play policy, on the standard
@@ -435,6 +440,7 @@ Shipped since the last addendum, each behind a probe that runs in the suite:
 | 25 | Store packaging exists | **CONFIGURED, NOT BUILT** | `packaging/twa/` is ready to build; it needs the owner's domain, keystore and Play account. iOS needs a wrapper project that does not exist yet |
 | 26 | Store listing and questionnaires | **PASS** | `docs/store-listing.md`, both languages, within limits |
 | 27 | Privacy policy reachable | **PASS** | In-game and at `/privacy.html`; storeprobe checks both |
+| 28 | Languages: content as well as interface | **PASS** (added 25 Aug) | English and French complete through the inbox, the commentary, the decision history and every reply; newsprobe, commprobe, proseprobe, englishprobe and i18nprobe all at budget zero. See the addendum |
 
 **Verdict: everything that can be done inside this repository is done.** What
 remains is not code:
@@ -482,3 +488,70 @@ The iOS wrapper does not share this trap, because `packaging/ios/` bundles
 `dist/` on disk deliberately (see its README) - but it does share the other
 half: it bundles whatever `npm run build` produced on the checkout you built
 from, so build from the merged tree.
+
+---
+
+## Addendum, 2026-08-25: the game is in two languages, end to end
+
+Recorded here rather than edited into the audit above, because the audit is a
+measurement taken at a commit and rewriting it would destroy the thing that
+makes it worth reading.
+
+### What changed
+
+At the time of the audit the game had a language picker, a translated shell and
+a translated set of screens. What it did not have was translated CONTENT: the
+inbox, the eighty minutes of match commentary, the manager's own decision
+history and everything the game says back when a button is pressed were English
+for every reader, in every language. The owner found it the way owners do -
+switched to French, opened the inbox, and read English.
+
+That is now finished. The mechanism is the same everywhere: a story, a
+commentary line or a decision is FILED as a key plus its values and RENDERED in
+the reader's language at the moment it is read. The English it was filed in is
+kept beside the key and never shown, because the engine reads its own output
+back - season.ts pulls a fee out of a transfer story with a regular expression -
+and because a save written by an older build has to keep working for the life of
+a career, which is years.
+
+### The evidence, all at commit 57896b7
+
+Five probes, each with a budget that may only ever fall, and all five now at
+zero:
+
+| Probe | Guards | State |
+|---|---|---|
+| `newsprobe` | every inbox story carries a key, in both languages | 840 story keys, budget 0 |
+| `commprobe` | every commentary line carries a key | 201 commentary keys, budget 0 |
+| `proseprobe` | the decision log, the touchline replies, the press, and everything else the engine says back | four counters, all 0 |
+| `englishprobe` | the ENGLISH did not get worse to make the French easy | plural budget 0; the two sentences flattened once are pinned |
+| `i18nprobe` | both dictionaries answer every question the code asks | pass |
+
+`langprobe` reads a live commentary line off the screen during a French match
+and fails if it finds English in it. `./scripts/suite.sh fast` is green at 114
+probes.
+
+### Two bugs this found that were not about language
+
+* The match-day pitch mock-up decided what to draw by matching the commentary's
+  wording. Four lines matched a pattern they had nothing to do with - a coach
+  promising to "slow every scrum reset" drew a scrum, and three lines containing
+  the word "wide" rolled the missed-kick camera over a tactical note. Events now
+  carry what they depict.
+* The game-time inbox story fires the moment ONE player is short of what he was
+  promised, and its headline read "1 men are not getting what they were told".
+  Twenty-two sentences of that kind were found and fixed; thirty-eight more were
+  checked and cannot be one, each with the reason written down.
+
+### The one line for the owner
+
+**Sign-off row 28 - Languages: PASS.** English and French, both complete
+through the content as well as the interface, guarded by the five probes above.
+The store listing may declare French support without qualification.
+
+**A version question, not an engineering one.** v1.0.5 was set before this work
+was done, and the work is a content release rather than a patch - the whole
+inbox, the whole commentary, the decision history. Whether that ships as 1.0.5
+or as something larger is the owner's call; nothing in the repository depends on
+the answer, and `appVersionCode` in the TWA manifest goes up by one either way.
+
