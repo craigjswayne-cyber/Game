@@ -210,6 +210,44 @@ try {
     await page.close()
   }
 
+  // ---- 2c. the Editor (v1.1.0): bought on the shelf, opened from Game Status
+  say('\n--- 2c. the Editor, bought and used')
+  {
+    const page = await openPage({ billing: true })
+    const errs = []
+    page.on('pageerror', e => errs.push(e.message))
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Have a look' }).click()
+    await page.waitForSelector('.content')
+    await page.locator('.card', { hasText: 'Unlock the Editor' }).locator('.btn.gold').click()
+    await page.waitForSelector('text=The Editor is yours')
+
+    await page.evaluate(() => window.rugbyStore.getState().go('saves'))
+    await page.waitForSelector('text=In-Game Editor')
+    await page.locator('button', { hasText: 'Open the Editor' }).click()
+    await page.waitForSelector('text=names, kits, attributes and money')
+    ok(true, 'the door is on Game Status, and it opens')
+
+    // rename the club and set its budget: the figure that lands is clamped and real
+    await page.locator('.card', { hasText: 'Transfer budget' }).locator('input').first()
+    const nameBox = page.locator('input.inline-input').first()
+    await nameBox.fill('Edited Tigers RFC')
+    await page.locator('input[inputmode="numeric"]').first().fill('-500')
+    await page.locator('button', { hasText: 'Apply the changes' }).first().click()
+    await page.waitForSelector('text=Written:')
+    const state = await page.evaluate(() => {
+      const g = window.rugbyStore.getState().game
+      const c = g.clubs[g.userClubId]
+      return { name: c.name, budget: c.budget, edited: g.edited === true }
+    })
+    ok(state.name === 'Edited Tigers RFC', `the rename lands (${state.name})`)
+    ok(state.budget === 0, 'a nonsense budget is clamped, not written')
+    ok(state.edited, 'and the save is stamped as edited')
+    ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
+    await page.close()
+  }
+
   // ---- 3. a reinstall: the receipt is gone, the purchase is not ----------
   say('\n--- 3. a new phone, or a reinstall')
   {

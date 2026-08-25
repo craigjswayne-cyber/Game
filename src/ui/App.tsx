@@ -33,6 +33,7 @@ import Medical from './screens/Medical'
 import TeamReport from './screens/TeamReport'
 import Profile from './screens/Profile'
 import Saves from './screens/Saves'
+import Editor from './screens/Editor'
 import DayRoom from './screens/DayRoom'
 import DrawRoom from './screens/DrawRoom'
 import Annual from './screens/Annual'
@@ -56,7 +57,7 @@ const TITLES: readonly string[] = [
   'tables', 'transfers', 'training', 'finances', 'club', 'press', 'player',
   'nations', 'country', 'history', 'legacy', 'jobs', 'medical',
   'report', 'profile', 'saves', 'day', 'draw', 'annual',
-  'dreamteam', 'wire', 'infra', 'handbook', 'bug', 'about', 'supporter',
+  'dreamteam', 'wire', 'infra', 'handbook', 'bug', 'about', 'supporter', 'editor',
 ]
 
 const IcoMoon = () => (
@@ -326,6 +327,7 @@ export default function App() {
       case 'report': return <TeamReport />
       case 'profile': return <Profile />
       case 'saves': return <Saves />
+      case 'editor': return <Editor />
       case 'day': return <DayRoom />
       case 'draw': return <DrawRoom />
       case 'annual': return <Annual />
