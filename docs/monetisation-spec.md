@@ -96,8 +96,9 @@ already reads marquee exemptions.
 * **Fiction:** your career badge-work is done; the game world treats you as a
   proven name.
 * **Effect:** a toggle offered **at career creation** (New Career wizard,
-  final step): "Start with a 100 reputation". Sets `mgrReputation` sources to
-  100 for that save — top-flight vacancies apply-able from day one,
+  final step): "Start as a proven name". Pins `mgrReputation` at the scale's own
+  ceiling (95 — the game measures reputation /95 everywhere) for that save —
+  top-flight vacancies apply-able from day one,
   federations call (the `natOffer` gate at rep ≥ 64 is instantly open).
 * **Per-save opt-in, account-wide entitlement.** It never retro-edits an
   existing career — an honest save stays honest. A licensed save is stamped
@@ -247,7 +248,7 @@ read as complete without them (same rule `storeprobe` applies to the till).
   The rest of the league just took note."
 * **The Owner’s Charter** — "The wage law no longer applies to you. No cap, no
   fines, no embargoes — build the squad nobody else is allowed to pay."
-* **Manager's License** — "Start any new career as a proven name: 100
+* **Manager's License** — "Start any new career as a proven name: maximum
   reputation, top-flight vacancies open, federations already calling."
 * **In-Game Editor** — "Your world, your rules: edit players, clubs, kits
   and finances in any save. Edited careers wear a small badge, and wear it
