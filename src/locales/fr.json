@@ -1261,7 +1261,7 @@
     "focusBalanced": "Équilibré",
     "focusBalancedDesc": "Un programme complet et régulier.",
     "focusScrum": "Mêlée",
-    "focusScrumDesc": "Mêlées réelles et travail de force pour le paquet d'avants.",
+    "focusScrumDesc": "Mêlées réelles et travail de force pour les cinq de devant.",
     "focusLineout": "Touche",
     "focusLineoutDesc": "Précision du lancer, blocs de soutien, annonces.",
     "focusAttack": "Attaque",
@@ -1564,7 +1564,7 @@
     "slotAlreadySold": "Le contrat {slot} est déjà engagé avec {sponsor} jusqu'à la fin de {year}. Vous ne pouvez pas le vendre deux fois.",
     "dealDone": "C'est fait. {sponsor}, {weekly} par semaine, {years}.",
     "unitFrontRow": "Première ligne",
-    "unitBackFive": "Cinq de devant",
+    "unitBackFive": "Deuxième et troisième lignes",
     "unitHalves": "Charnière",
     "unitMidfield": "Centres",
     "unitBackThree": "Triangle arrière"
