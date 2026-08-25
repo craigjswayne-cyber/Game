@@ -98,6 +98,36 @@ try {
       return true
     } catch { return false }
   }
+  // AN INJURY STOPS PLAY AND OPENS THE FORCED SQUAD SHEET (mustDecide): a
+  // modal veil over the whole screen, and nothing restarts the match until a
+  // replacement is named. This probe sat under it twice in one day - once as
+  // "controls enabled, panels [], forty clicks all intercepted", once as a
+  // half-time that never came after a successful Skip. It answered penalties
+  // and never injuries.
+  //
+  // The cheapest legitimate answer is a positional swap: the sheet's own rule
+  // is that a forced stop is satisfied by ANY change, a swap is free, and the
+  // ledger the half-time assertions read stays at 8 of 8. Tap two on-pitch
+  // men (stepping past a pair when the first tap armed the free-cover flow
+  // instead of swapping), then go through the door the change has opened.
+  const clearInjury = async () => {
+    if (!(await page.locator('.sheet-casualty').count())) return false
+    const gold = page.locator('.squad-sheet .btn.gold')
+    const goldOpen = async () => await gold.isEnabled().catch(() => false)
+    if (!(await goldOpen())) {
+      const pitch = page.locator('.squad-sheet .sheet-col').nth(0).locator('.sheet-row:not([disabled])')
+      const n = await pitch.count()
+      for (let i = 0; i + 1 < n && !(await goldOpen()); i++) {
+        // a leftover armed row makes the next tap a swap with the wrong man
+        const armed = page.locator('.squad-sheet .sheet-row.armed')
+        if (await armed.count()) await armed.first().click({ timeout: 800 }).catch(() => {})
+        await pitch.nth(i).click({ timeout: 800 }).catch(() => {})
+        await pitch.nth(i + 1).click({ timeout: 800 }).catch(() => {})
+        await page.waitForTimeout(200)
+      }
+    }
+    try { await gold.click({ timeout: 1500 }); return true } catch { return false }
+  }
   // Press a control that a touchline call may have disabled: answer the call
   // and try again rather than waiting on a button nothing is going to enable.
   const press = async (loc, tries = 30) => {
@@ -127,6 +157,8 @@ try {
     } catch { /* disabled or unreachable: clear whatever is in the way, retry */ }
     // a penalty is pending: take the points and get on with it
     await settle()
+    // or a man is down and the forced sheet is over everything
+    await clearInjury()
     // Or the match is simply paused with a touchline panel open, which on a
     // 390px-tall landscape screen pushes the control row out of view - Skip is
     // enabled but nothing can reach it. Scroll to it, and if the button says
@@ -147,13 +179,24 @@ try {
         .map(b => `${(b.textContent ?? '').trim()}${b.disabled ? '(off)' : ''}`),
       panels: ['Start Second Half', 'Take the Points', 'Full Time', 'Match Review']
         .filter(t => document.body.innerText.includes(t)),
+      veil: document.querySelector('.modal-veil h3')?.textContent ?? null,
     }))
-    console.log(`  stuck with controls [${state.controls.join(' | ')}] and panels [${state.panels.join(', ')}]`)
+    console.log(`  stuck with controls [${state.controls.join(' | ')}] and panels [${state.panels.join(', ')}]${state.veil ? ` under a veil titled ${state.veil}` : ''}`)
   }
   ok(skipped, 'the match could be skipped to the break, answering any touchline call on the way')
   // a full half has to play out here: generous, because under whole-suite CPU
   // load 25s was not enough and the probe died as a false alarm (16D)
-  await page.waitForSelector('text=Start Second Half', { timeout: 60000 })
+  // ...and it has to be a POLL, not a bare wait: a penalty or an injury
+  // landing between Skip and the break pauses the match with a question open,
+  // and a wait that answers nothing waits forever - the second of this
+  // probe's two wedges in one day.
+  for (let w = 0; w < 120; w++) {
+    if (await atHalfTime()) break
+    await settle()
+    await clearInjury()
+    await page.waitForTimeout(700)
+  }
+  await page.waitForSelector('text=Start Second Half', { timeout: 8000 })
   ok(await page.locator('text=Match-Day Squad').count() > 0, 'half-time offers the match-day squad')
   ok(await page.locator('select').count() === 0, 'the quick-sub dropdowns are gone')
 
