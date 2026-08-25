@@ -249,8 +249,8 @@ function midweekMoment(state: GameState, rng: Rng) {
     wire(state, voice(state, 30, ['news.wAdvert1', 'news.wAdvert2']),
       { player: star.name, last: star.name.split(' ').slice(-1)[0] }, star.id)
   } else {
-    const chef = ['a new nutritionist', 'a sleep consultant', 'a breathing coach', 'an ice-bath guru'][Math.floor(rng() * 4)]
-    wire(state, voice(state, 31, ['news.wChef1', 'news.wChef2']), { short: club.short, chef })
+    const chef_k = `news.chef${1 + Math.floor(rng() * 4)}`
+    wire(state, voice(state, 31, ['news.wChef1', 'news.wChef2']), { short: club.short, chef_k })
   }
 }
 

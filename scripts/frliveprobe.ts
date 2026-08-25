@@ -26,20 +26,37 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { newsBody, newsSubject, eventText, decisionText, type GameState } from '../src/game/model'
 import { setLang } from '../src/game/i18n'
+import EN from '../src/locales/en.json'
+import FR from '../src/locales/fr.json'
 
 const say = (s: string) => console.log(s)
 let fails = 0
 const ok = (c: boolean, what: string) => { say(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
-// Words that are English and are not also French. Deliberately short and
-// deliberately common: a longer list finds false positives in proper nouns and
-// stops being read.
-// Words that are English and are NOT also French. The first version of this
-// list had "match", "staff", "coach", "note" and "score" in it, all of which
-// are ordinary French - as are "club" and "but" - and it reported 290 lines - a probe with that many
-// false positives is one nobody reads twice. Everything here is a word that
-// cannot appear in a correct French sentence.
-const ENGLISH = /\b(the|and|with|your|yours|their|theirs|his|hers|from|that|this|these|those|which|when|what|where|there|here|have|has|had|been|was|were|will|would|should|could|shall|might|are|isn|aren|you|they|them|him|its|into|onto|over|under|after|before|about|because|while|until|than|then|only|very|just|also|still|never|always|every|another|through|against|between|during|without|within|upon|says|said|goes|went|came|took|made|gets|got|puts|keeps|looks|feels|seems|wants|needs|week|weeks|season|seasons|player|players|team|teams|board|money|wages|squad|next|last|first|good|better|best|worse|worst|home|away|down|back|again|enough|already|nothing|something|anything|everyone|nobody|somebody)\b/i
+// WHAT COUNTS AS ENGLISH.
+//
+// This was a hand-written list of forty function words, and it passed clean
+// while five English phrases were reaching French screens - "a new
+// nutritionist", "one season", "free agency", "a club abroad", "the chief
+// scout". None of them contains "the" or "with", so none of them was seen.
+//
+// The list is derived now, which is what the header above always claimed: every
+// word that appears somewhere in the English dictionary and NOWHERE in the
+// French one. A word that is French keeps itself out by being used in a French
+// sentence, so "match", "club", "staff", "note" and "week-end" need no special
+// case; a word that is only ever English has nothing to hide behind. Proper
+// nouns are stripped from the line before the test, because a club is called
+// the same thing in both languages.
+const words = (v: unknown, out: Set<string>): Set<string> => {
+  if (typeof v === 'string') {
+    for (const w of v.split(/[^A-Za-z]+/)) if (w.length >= 4) out.add(w.toLowerCase())
+  } else if (v && typeof v === 'object') {
+    for (const x of Object.values(v as Record<string, unknown>)) words(x, out)
+  }
+  return out
+}
+const FR_WORDS = words(FR, new Set<string>())
+const ENGLISH_ONLY = new Set([...words(EN, new Set<string>())].filter(w => !FR_WORDS.has(w)))
 
 type Line = { where: string; text: string }
 
@@ -76,19 +93,23 @@ const properNouns = (g: GameState): Set<string> => {
 setLang('fr')
 const lines: Line[] = []
 const NOUNS = new Set<string>()
-// Six careers across three tiers and both countries, five seasons each. The
-// rarer stories are the point: a testimonial, an unbeaten run, a takeover, a
-// club going into administration, a coach sacked, a challenge finished. Three
-// careers of three seasons found five English leaks; the ones that are left
-// are the ones that need a longer run to appear at all.
-const CLUBS = ['northampton', 'ealing', 'bath', 'toulouse', 'cinderford', 'newcastle']
+// Ten careers across every tier and every country, eight seasons each. The
+// rare stories are the whole point of the length: a testimonial, an unbeaten
+// run, a takeover, administration, a coach sacked, a challenge finished, a
+// squad rift, an injury crisis in one unit. Widening from three careers of
+// three seasons to six of five found three more leaks on its own, so the
+// number is not decoration.
+const CLUBS = [
+  'northampton', 'ealing', 'bath', 'toulouse', 'cinderford', 'newcastle',
+  'leinster', 'perpignan', 'coventry', 'glasgow',
+]
 for (let i = 0; i < CLUBS.length; i++) {
   const g = newGame(CLUBS[i], 'Sondeur', 700 + i * 13)
-  for (let w = 0; w < 44 * 5; w++) processWeekAndAdvance(g)
+  for (let w = 0; w < 44 * 8; w++) processWeekAndAdvance(g)
   lines.push(...collect(g))
   for (const n of properNouns(g)) NOUNS.add(n)
 }
-say(`--- ${lines.length} lines rendered from ${CLUBS.length} French careers, five seasons each`)
+say(`--- ${lines.length} lines rendered from ${CLUBS.length} French careers, eight seasons each`)
 
 // ---- 1. nothing is English ------------------------------------------------
 say(`\n--- 1. nothing the game says is English`)
@@ -97,10 +118,12 @@ for (const l of lines) {
   // proper nouns out first: a club, a stadium, a player and a nation are the
   // same word in every language, and "week-end" is French whatever \bweek\b
   // thinks about it.
-  const stripped = l.text.replace(/week-end/gi, '')
-    .split(/[^A-Za-zÀ-ÿ'-]+/).filter(w => !NOUNS.has(w.toLowerCase())).join(' ')
-  const m = ENGLISH.exec(stripped)
-  if (m) hits.set(`${m[0].toLowerCase()}|${l.where}`, l)
+  for (const w of l.text.split(/[^A-Za-zÀ-ÿ]+/)) {
+    const lw = w.toLowerCase()
+    if (lw.length < 4 || NOUNS.has(lw) || !ENGLISH_ONLY.has(lw)) continue
+    hits.set(`${lw}|${l.where}`, l)
+    break
+  }
 }
 const byWord = new Map<string, number>()
 for (const k of hits.keys()) {

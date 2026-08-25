@@ -2,7 +2,7 @@ import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from 
 import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
-import { analystShift, archetypeOf, loudestDial, PATTERN_WORD, repetitionFatigue } from './oppcoach'
+import { analystShift, archetypeOf, loudestDial, repetitionFatigue } from './oppcoach'
 import { updateNatRank } from './natrank'
 import { bigMatchTemper, consistency, effAt } from './attributes'
 import { nationByCode } from './nations'
