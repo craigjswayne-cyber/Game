@@ -46,7 +46,12 @@ say('--- 1. every line is called with a key')
 const calls: number[] = []
 for (let i = src.indexOf('pushEvent('); i !== -1; i = src.indexOf('pushEvent(', i + 1)) {
   const before = src.slice(Math.max(0, i - 40), i)
-  if (/function\s+$/.test(before) || /tIn\('en', k, v\), playerId, k, v\)/.test(src.slice(i, i + 90))) continue
+  // pushEvent's own definition, and the single call pushLine makes to it -
+  // recognised by the tIn('en', k, v) it passes, which is the one thing about
+  // that call that cannot change without changing what pushLine is for. The
+  // previous test matched the whole argument list and broke the moment the
+  // list grew a `fx`.
+  if (/function\s+$/.test(before) || /tIn\('en', k, v\)/.test(src.slice(i, i + 60))) continue
   calls.push(src.slice(0, i).split('\n').length)
 }
 say(`  ${calls.length} line${calls.length === 1 ? '' : 's'} still called as English (budget ${BUDGET})`)
@@ -104,12 +109,25 @@ ok(bad.length === 0, `every line fills the same holes in both languages${bad.len
 // ENGLISH DICTIONARY as well as the source, because once a line is keyed its
 // wording lives in en.json and a translator editing "the maul" out of the
 // English would break the pitch from a locale file.
-say('\n--- 4. the phrases the pitch mock-up matches on')
+say('\n--- 4. what the pitch mock-up draws')
+// Every key in matchEngine's DEPICTS map has to be a key, or the pitch quietly
+// draws nothing for it and no test anywhere notices. A typo here is invisible.
+const depicted = [...src.matchAll(/'(comm\.[A-Za-z0-9_.]+)':\s*'(SCRUM|LINEOUT|MAUL|MISS)'/g)]
+say(`  ${depicted.length} lines say what they depict`)
+const unknown = depicted.filter(m => lookup(LANGS.en, m[1]) === undefined).map(m => m[1])
+ok(unknown.length === 0,
+  `every line the pitch draws for is a real key${unknown.length ? ` - missing: ${unknown.join(', ')}` : ''}`)
+ok(depicted.length >= 15, `the pitch still knows about scrums, lineouts, mauls and missed kicks (${depicted.length})`)
+
+// AND the old patterns still matter, for as long as saves written before the
+// field do. MatchDay falls back to matching the stored English when an event
+// has a key but no `fx`, which is every event in a career begun on an earlier
+// build. Change these words and those saves stop drawing a pitch.
 const PINNED = ['maul', 'scrum', 'lineout', 'Quick tap', 'penalty']
 const enBlob = JSON.stringify(LANGS.en.comm ?? {}) + src
 for (const phrase of PINNED) {
   ok(enBlob.toLowerCase().includes(phrase.toLowerCase()),
-    `"${phrase}" still appears in the English commentary (MatchDay.tsx matches on it)`)
+    `"${phrase}" still appears in the English commentary (saves from before MatchEvent.fx match on it)`)
 }
 
 say(fails ? `\nCOMM PROBE FAILED (${fails})` : `\nCOMM PROBE PASSED: ${wanted.size} commentary keys, every one of them in every language`)
