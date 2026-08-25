@@ -97,12 +97,14 @@ ok(listedPeak >= 3, `and clubs in trouble put men on the market (peak ${listedPe
 // AND THE DISCOUNT IS REACHABLE, which is the mechanism a manager actually feels.
 {
   const broke = clubs.filter(c => c.balance < 0)
+  // the reasons are keys now, not sentences - the player profile renders them
+  // through t(), so grepping the English would only work in one language
   const withReason = broke.flatMap(c => c.players
     .map(id => g.players[id])
     .filter(p => !!p)
     .slice(0, 3)
-    .map(p => sellerWillingness(g, p!).reasons.join(' | ')))
-  const fires = withReason.filter(r => /in the red/.test(r)).length
+    .map(p => sellerWillingness(g, p!).reasons.map(r => r.k).join(' | ')))
+  const fires = withReason.filter(r => r.includes('player.sellInRed')).length
   console.log(`  cash-strapped     ${fires} of ${withReason.length} sampled men carry the "in the red" reason`)
   ok(fires > 0, 'a club in the red really does come down on its asking price')
 }

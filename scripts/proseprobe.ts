@@ -100,19 +100,42 @@ say('\n--- 2. the press questions and the answers on the buttons')
 // So: no field names. Every quoted literal in the file that reads like a
 // sentence, minus the outlet mastheads, which are titles and stay as they are.
 const press: string[] = []
-{
-  const src = readFileSync('src/game/media.ts', 'utf8')
+// authority.ts as well as media.ts: the discipline conversation is a press item
+// too, built in the incident machine rather than the press generator, and it sat
+// there in English while the whole of media.ts was translated around it. Any
+// file that pushes onto state.press belongs in this list.
+for (const file of ['src/game/media.ts', 'src/game/authority.ts']) {
+  const src = readFileSync(file, 'utf8')
   const OUTLETS = src.slice(src.indexOf('OUTLETS'), src.indexOf('OUTLETS') + 400)
-  for (const m of src.matchAll(/(`[^`]{14,}`|'[^']{14,}'|"[^"]{14,}")/g)) {
-    const at = src.slice(0, m.index)
-    const line = at.split('\n').length
-    const text = at.slice(at.lastIndexOf('\n') + 1)
-    if (text.trimStart().startsWith('//') || text.trimStart().startsWith('*')) continue
-    if (OUTLETS.includes(m[1])) continue
-    if (isProse(m[1])) press.push(`media.ts:${line}`)
-  }
+  // a quoted literal, and NOT across a line break: `[^']*` happily runs from an
+  // apostrophe in one import to a quote three lines later, which is how the
+  // first version of this reported thirty-one imports as English prose
+  let inBlockComment = false
+  // a state.news.push({...}) inside these files carries the SANCTIONED stored
+  // English - the body a save keeps beside its key - and newsprobe already
+  // guarantees every one of them has that key. Skip those blocks, or this
+  // check reports the thing the design asks for.
+  let newsDepth = 0
+  src.split('\n').forEach((raw, i) => {
+    const trimmed = raw.trimStart()
+    if (inBlockComment) { if (raw.includes('*/')) inBlockComment = false; return }
+    if (trimmed.startsWith('/*')) { if (!raw.includes('*/')) inBlockComment = true; return }
+    if (trimmed.startsWith('//') || trimmed.startsWith('*')) return
+    const code = raw.split('//')[0]
+    if (newsDepth === 0 && /state\.news\.push\(/.test(code)) newsDepth = 1
+    if (newsDepth > 0) {
+      newsDepth += (code.match(/\(/g) ?? []).length - (code.match(/\)/g) ?? []).length
+      if (newsDepth <= 0) newsDepth = 0
+      return
+    }
+    for (const m of code.matchAll(/(`[^`\n]{14,}`|'[^'\n]{14,}'|"[^"\n]{14,}")/g)) {
+      if (OUTLETS.includes(m[1])) continue
+      if (isProse(m[1])) press.push(`${file}:${i + 1}`)
+    }
+  })
 }
 say(`  ${press.length} press line(s) written as English (budget ${BUDGET.press})`)
+if (press.length) say('  ' + press.slice(0, 12).join('\n  ') + (press.length > 12 ? `\n  ...and ${press.length - 12} more` : ''))
 ok(press.length <= BUDGET.press, `no press line beyond the budget of ${BUDGET.press} is written as English`)
 if (press.length < BUDGET.press) {
   ok(false, `THE PRESS BUDGET IS STALE: ${press.length} left but it still says ${BUDGET.press}. Lower it`)

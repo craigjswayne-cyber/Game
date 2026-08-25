@@ -1538,7 +1538,7 @@ export function processWeekAndAdvance(state: GameState) {
         const rating = Math.min(9.4, 6 + rr() * 2.6 + (won ? 0.3 : 0))
         const wordKey = rating >= 8.4 ? 'news.capRan' : rating >= 7.6 ? 'news.capExcellent'
           : rating >= 6.9 ? 'news.capJob' : rating >= 6.3 ? 'news.capSteady' : 'news.capQuiet'
-        const row = { k: 'news.capLine', player: p.name, nat, rating: rating.toFixed(1), word_k: wordKey }
+        const row = { k: 'news.capLine', player: p.name, nat_k: `nation.${nat}`, rating: rating.toFixed(1), word_k: wordKey }
         return { rating, row, text: tIn('en', row.k, row) }
       }).sort((a, b) => b.rating - a.rating)
       const shown = lines.slice(0, 4).map(l => l.text)
@@ -1549,7 +1549,8 @@ export function processWeekAndAdvance(state: GameState) {
         body: shown.join('\n') + (more > 0 ? `\nAnd ${more} more of yours came through it fine.` : ''),
         k: more > 0 ? 'news.capsMore' : 'news.caps',
         v: {
-          home: hName, away: aName, hs: fx.homeScore, as: fx.awayScore,
+          home_k: `nation.${fx.homeId}`, away_k: `nation.${fx.awayId}`,
+          hs: fx.homeScore, as: fx.awayScore,
           rows_ll: JSON.stringify(lines.slice(0, 4).map(l => l.row)), n: more,
         },
         playerIds: away.slice(0, 6).map(x => x.p.id),
@@ -3035,10 +3036,10 @@ export function processWeekAndAdvance(state: GameState) {
           v: {
             n: SIX_NATIONS_WEEKS.indexOf(state.week) + 1,
             rows_ll: JSON.stringify(round.map(f => ({
-              k: 'news.snRow', home: nationNameIn('en', f.homeId),
-              hs: f.homeScore, as: f.awayScore, away: nationNameIn('en', f.awayId),
+              k: 'news.snRow', home_k: `nation.${f.homeId}`,
+              hs: f.homeScore, as: f.awayScore, away_k: `nation.${f.awayId}`,
             }))),
-            leader: leader ?? '',
+            leader_k: order[0] ? `nationCap.${order[0].teamId}` : 'common.nothing',
             sight_k: order[0] && order[0].p >= 4 ? 'news.snSight' : 'common.nothing',
           },
         })

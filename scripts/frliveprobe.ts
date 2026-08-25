@@ -24,7 +24,8 @@
 // Run: npx vite-node scripts/frliveprobe.ts
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { newsBody, newsSubject, eventText, decisionText, type GameState } from '../src/game/model'
+import { answerPress } from '../src/game/media'
+import { newsBody, newsSubject, eventText, decisionText, pressQuestion, pressLabel, pressAnswer, pressReaction, type GameState } from '../src/game/model'
 import { setLang } from '../src/game/i18n'
 import EN from '../src/locales/en.json'
 import FR from '../src/locales/fr.json'
@@ -70,6 +71,17 @@ const collect = (g: GameState): Line[] => {
     for (const e of f.events ?? []) out.push({ where: `comm ${e.k ?? '(no key)'}`, text: eventText(e) })
   }
   for (const d of g.decisions ?? []) out.push({ where: `decision ${d.k ?? '(no key)'}`, text: decisionText(d) })
+  // THE PRESS ROOM, which this probe did not read until the whole of it was
+  // found to be English. Every question, every button, every reply the room
+  // gives back - it is one of the few screens a manager touches every week.
+  for (const pr of g.press ?? []) {
+    out.push({ where: `press.q ${pr.qk ?? '(no key)'}`, text: pressQuestion(pr) })
+    for (const o of pr.options) out.push({ where: `press.opt ${o.lk ?? '(no key)'}`, text: pressLabel(o) })
+    if (pr.answered) {
+      out.push({ where: `press.answer ${pr.alk ?? '(no key)'}`, text: pressAnswer(pr) })
+      out.push({ where: `press.reaction ${pr.rk ?? '(no key)'}`, text: pressReaction(pr) })
+    }
+  }
   return out
 }
 
@@ -105,7 +117,14 @@ const CLUBS = [
 ]
 for (let i = 0; i < CLUBS.length; i++) {
   const g = newGame(CLUBS[i], 'Sondeur', 700 + i * 13)
-  for (let w = 0; w < 44 * 8; w++) processWeekAndAdvance(g)
+  let answers = 0
+  for (let w = 0; w < 44 * 8; w++) {
+    processWeekAndAdvance(g)
+    // ANSWER THE PRESS. A career that never opens the press room leaves every
+    // reaction and every answer label unrendered, which is exactly the half of
+    // it that stayed English longest. Rotate the button so all of them fire.
+    for (const pr of g.press) if (!pr.answered) answerPress(g, pr.id, answers++ % pr.options.length)
+  }
   lines.push(...collect(g))
   for (const n of properNouns(g)) NOUNS.add(n)
 }
