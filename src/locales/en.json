@@ -769,7 +769,7 @@
     "derbyBody": "The form book goes in the bin, the cards come out, and the town keeps the score longer than the league table does.",
     "derbyFirst": " Your first one. Win it and they will sing your name; lose it and they will remember that too.",
     "derbyLedger": " Your ledger against {club}: ",
-    "derbyTag": " · {derby} - expect a cauldron",
+    "derbyTag": "{derby} - expect a cauldron",
     "doneChanges": {
       "one": "▸ Done ({n} change made)",
       "other": "▸ Done ({n} changes made)"

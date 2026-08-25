@@ -590,10 +590,20 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="meta">🏟️ {fx.venue
             ? t('matchday.venueNeutral', { name: fx.venue.name, city: fx.venue.city })
             : home ? t('matchday.venueHome', { stadium: home.stadium, city: home.city }) : t('common.neutralVenue')}</div>
+          {/* THE DERBY IS NOT A FOOTNOTE ON THE WEATHER. It used to be glued to
+              the forecast behind a middle dot, so on a phone the two ran
+              together and wrapped into a centred red blob (owner screenshot,
+              25 Aug: "tidy up the text next to weather forecast"). The
+              forecast is a fact; the derby is the reason you are nervous.
+              Separate lines, and the derby carries its own mark. */}
           <div className="meta" style={{ marginTop: 3 }}>
             {WEATHER_ICON[rollWeather(game.week, weekRng(game))]} {t('matchday.forecast', { weather: weatherWord(rollWeather(game.week, weekRng(game))) })}
-            {derbyName(fx.homeId, fx.awayId) && <span style={{ color: 'var(--danger)', fontWeight: 700 }}>{t('matchday.derbyTag', { derby: derbyName(fx.homeId, fx.awayId) ?? '' })}</span>}
           </div>
+          {derbyName(fx.homeId, fx.awayId) && (
+            <div className="meta derby-line" style={{ marginTop: 4 }}>
+              🔥 <b>{t('matchday.derbyTag', { derby: derbyName(fx.homeId, fx.awayId) ?? '' })}</b>
+            </div>
+          )}
           </div>
         </div>
 
