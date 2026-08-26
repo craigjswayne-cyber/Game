@@ -475,6 +475,10 @@ function agePlayers(state: GameState, rng: Rng) {
       },
     })
   }
+  // heirs at the user's club, collected so a heavy summer files one story:
+  // the 20-season soak found week 1 carrying four near-identical "Academy
+  // buzz" cards when four stars retired at once (release audit, 25 Aug)
+  const heirBuzz: { heir: Player; last: string; player: string }[] = []
   for (const p of retirees) {
     const clubId = p.clubId
     if (clubId) {
@@ -511,16 +515,34 @@ function agePlayers(state: GameState, rng: Rng) {
       state.players[heir.id] = heir
       club.players.push(heir.id)
       if (clubId === state.userClubId) {
-        state.news.push({
-          id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
-          subject: `Academy buzz: the next ${p.name.split(' ').slice(-1)[0]}?`,
-          body: `${heir.name}, a ${heir.age}-year-old ${heir.pos}, has joined the academy - and the coaches whisper he has everything ${p.name} had at that age. Handle with care.`,
-          k: 'news.academyBuzz',
-          v: { last: p.name.split(' ').slice(-1)[0], heir: heir.name, age: heir.age, pos: heir.pos, player: p.name },
-          playerId: heir.id,
-        })
+        heirBuzz.push({ heir, last: p.name.split(' ').slice(-1)[0], player: p.name })
       }
     }
+  }
+  if (heirBuzz.length <= 2) {
+    // one or two heirs keep their own headlines, exactly as before
+    for (const { heir, last, player } of heirBuzz) {
+      state.news.push({
+        id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+        subject: `Academy buzz: the next ${last}?`,
+        body: `${heir.name}, a ${heir.age}-year-old ${heir.pos}, has joined the academy - and the coaches whisper he has everything ${player} had at that age. Handle with care.`,
+        k: 'news.academyBuzz',
+        v: { last, heir: heir.name, age: heir.age, pos: heir.pos, player },
+        playerId: heir.id,
+      })
+    }
+  } else if (heirBuzz.length) {
+    // a generation retires together: one story, every name in it
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'youth', read: false,
+      subject: `Academy buzz: ${heirBuzz.length} heirs arrive`,
+      body: `The summer intake reads like a roll of honour: ${heirBuzz.map(x => `${x.heir.name} (${x.heir.age}, ${x.heir.pos}) - the next ${x.last}`).join(', ')}. The coaches ask for patience with every one of them.`,
+      k: 'news.academyBuzzMany',
+      v: {
+        n: heirBuzz.length,
+        heirs_l: JSON.stringify(heirBuzz.map(x => ({ k: 'news.buzzHeir', heir: x.heir.name, age: x.heir.age, pos_k: `pos.${x.heir.pos}`, last: x.last }))),
+      },
+    })
   }
   if (userRetirees.length) {
     state.news.push({

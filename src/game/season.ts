@@ -122,7 +122,14 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
 export function expansionPlan(state: GameState) {
   const club = state.clubs[state.userClubId]
   const seats = Math.round((club.capacity * 0.06) / 100) * 100
-  const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
+  // League and cup gates only. A pre-season friendly is deliberately priced
+  // at 38% interest by the gate model, and this average used to include them
+  // - so a club selling out every Saturday read "77% full" to its own board
+  // and the fill>=0.9 vote below was unreachable for anyone: forty scripted
+  // seasons and a Leicester squeezed into 8,000 seats both built nothing
+  // (release audit, 25 Aug). Every sibling aggregate in this file already
+  // filters 'fr'; this was the one that forgot.
+  const home = state.fixtures.filter(f => f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
   const avg = home.length ? home.reduce((s, f) => s + (f.att ?? 0), 0) / home.length : 0
   // steel and concrete cost more the bigger the ground already is: the easy
   // terrace goes up first, the second tier needs foundations

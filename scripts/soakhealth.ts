@@ -9,6 +9,7 @@ import { commissionScout } from '../src/game/commission'
 import { signOnTerms, askingPrice, personalTermsDemand, capBill } from '../src/game/ai'
 import { loanOut } from '../src/game/loans'
 import { agreePreContract } from '../src/game/ai'
+import { applyForJob } from '../src/game/jobs'
 import { analystRead } from '../src/game/analyst'
 import type { FacilityId } from '../src/game/model'
 import { SEASON_WEEKS, XV_SLOTS } from '../src/game/model'
@@ -62,7 +63,7 @@ const medBuckets: { yc: number; rc: number; matches: number; spells: number; avg
 let farewells = 0, milestoneNews = 0, totsAwards = 0
 let signings = 0, loansOut = 0, preCs = 0
 let retireNews = 0, loanWatch = 0, armbands = 0, debutNews = 0, lionsNews = 0, lionsHomecomings = 0, wcChampBeats = 0
-let taps = 0, brokenVows = 0, courtPressers = 0
+let taps = 0, brokenVows = 0, courtPressers = 0, rehires = 0
 let hearings = 0, appealsWon = 0, appealsLost = 0, campBeats = 0, employedW1 = 0
 // the systems added in the 8-batch: facilities, staff courses, commissions, the analyst
 let facApproved = 0, facDenied = 0, facOpened = 0, standsBuilt = 0
@@ -111,6 +112,19 @@ for (let season = 0; season < Number(process.env.SOAK_SEASONS ?? 20); season++) 
   let guard = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {
     if (g.week === 1 && !g.unemployed) employedW1++
+    // A SACKED MANAGER LOOKS FOR WORK. The first twenty-season run of this
+    // soak reported three systems dead - no facility, no course, no brief in
+    // twenty years - and all three were healthy: the scripted manager was
+    // sacked early, never applied for anything, and seventeen of the twenty
+    // seasons of "a manager who uses everything" quietly did not exist
+    // (employed week-1s: 3/20). Every gate below is `!g.unemployed`, so the
+    // zeros measured the dole queue, not the game.
+    if (g.unemployed) {
+      const best = (g.vacancies ?? [])
+        .filter(v => !v.applied && g.clubs[v.clubId])
+        .sort((a, b) => g.clubs[b.clubId].rep - g.clubs[a.clubId].rep)[0]
+      if (best) { applyForJob(g, best.clubId); if (!g.unemployed) rehires++ }
+    }
     if (!g.unemployed) {
       // a manager who uses everything the game gives him
       if (g.week % 6 === 0) {
@@ -334,6 +348,8 @@ if (lionsHomecomings > lionsNews) console.log('WARN: Lions homecoming without a 
 if (lionsNews === 0) console.log('WARN: no Lions call-up news in 20 seasons (5 tours)')
 console.log(`courtship arc: taps ${taps} · pressers ${courtPressers} · broken vows ${brokenVows}`)
 console.log(`disciplinary hearings: ${hearings} · appeals won ${appealsWon} · lost ${appealsLost} · pre-season decisions ${campBeats}/${employedW1} employed week-1s`)
+console.log(`employment: ${employedW1}/20 week-1s employed · ${rehires} re-hirings`)
+if (employedW1 < 14) console.log('WARN: the scripted career spent most of its life unemployed - system coverage below is hollow')
 if (campBeats < employedW1) console.log('WARN: pre-season decision missing in a season where the manager was employed')
 
 // the 8-batch systems over a full career
