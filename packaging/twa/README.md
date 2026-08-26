@@ -72,16 +72,28 @@ Edit `twa-manifest.json`:
 |---|---|
 | `host`, `startUrl`, `fullScopeUrl`, `iconUrl`, `webManifestUrl` | the real address the game is served from |
 | `packageId` | your reverse-domain id. It can never change: it is the app's identity on Play forever |
-| `signingKey.path` | where the keystore lives. **Back this file up.** Losing it means never updating the listing again |
+| `signingKey.path` | where the keystore lives. **Because the path and alias are already filled in below, `bubblewrap build` assumes the file at that path already exists and goes straight to signing with it - it will NOT offer to create one for you the way a truly blank manifest would.** Create it yourself first (§3) or `bubblewrap build` fails with `FileNotFoundException: ./android.keystore`. **Back the resulting file up.** Losing it means never updating the listing again |
 | `appVersionCode` | 1 for the first upload, then +1 every single upload, forever |
 | `appVersionName` | match `package.json`'s version |
 
 ## 3. Build
 
+The manifest in this folder already has `signingKey` filled in - a location and
+an alias, not a file. Nothing has generated the actual keystore yet, and
+`bubblewrap build` will not offer to (see the note on `signingKey.path` above).
+Create it once, from inside this folder, before the first build ever:
+
 ```sh
 cd packaging/twa
-bubblewrap init --manifest https://YOUR-HOST/manifest.webmanifest   # first time only
-bubblewrap build                                                    # produces app-release-bundle.aab
+keytool -genkeypair -v -keystore android.keystore -alias phase -keyalg RSA -keysize 2048 -validity 10000
+```
+
+It asks for a password (invent one, **write it down**, you will need it every
+build) and some name/organisation fields that are never shown to a player or
+verified by anyone - anything is fine. Then:
+
+```sh
+bubblewrap build   # produces app-release-bundle.aab, signed with the keystore above
 ```
 
 `bubblewrap build` prints the SHA-256 fingerprint of your signing key. Put it in
@@ -138,6 +150,8 @@ Government apps (no), Financial features (no).
 
 | Symptom | Cause |
 |---|---|
+| `FileNotFoundException: ./android.keystore` when signing | the keystore was never created - run the `keytool` command in §3 once, from inside this folder, before building |
+| "Play Billing requires enableNotifications to be true" | `enableNotifications` in `twa-manifest.json` is `false`. Play Billing wires through the same Android notification-channel plumbing and bubblewrap refuses to build without it - set it `true`. The game itself still sends no notification; this is native build plumbing only |
 | An address bar across the top | asset links missing, wrong fingerprint, or wrong scope |
 | The purchase button never appears | billing not enabled in the TWA, or the SKU id does not match, or the product is not activated |
 | "Item not found" on tapping buy | the product exists but the app was not uploaded to a track yet - Play needs the package published (internal testing counts) |
