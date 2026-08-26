@@ -449,13 +449,19 @@ try {
   if (await page.locator('.mday-head').count()) {
     const mTabs = await page.locator('.tab-bar button').allInnerTexts()
     say(`  match-day tabs: ${mTabs.join(' | ')}`)
-    ok(mTabs.some(x => /Équipe/i.test(x)) && mTabs.some(x => /Causerie/i.test(x)), 'the match-day tabs are French')
+    ok(mTabs.some(x => /Équipe/i.test(x)) && mTabs.some(x => /Causerie/i.test(x)) && mTabs.some(x => /Avant-match/i.test(x)),
+      'the match-day tabs are French')
     const kickBtn = await page.locator('.continue-btn').innerText().catch(() => '')
     ok(/Coup d'envoi/i.test(kickBtn), `the kick-off button is French ("${kickBtn.trim()}")`)
 
     // the briefing tab is the sentence-heavy one: stakes, referee, opposition,
     // the assistant's plan, all of them assembled rather than looked up
-    await page.locator('.tab-bar button', { hasText: 'Briefing' }).click()
+    // 'Avant-match', not 'Briefing': the tab was an untranslated anglicism
+    // until the v1.1.1 French pass, and this selector only ever matched
+    // BECAUSE of that bug - the fix renamed the tab and broke the click
+    // (suite3, 26 Aug). Selecting the French word also makes this line an
+    // assertion of its own.
+    await page.locator('.tab-bar button', { hasText: 'Avant-match' }).click()
     await page.waitForTimeout(400)
     const brief = await page.locator('main.content').innerText()
     const briefEng = ['The Stakes', 'The Whistle', 'The Finishers', 'Head to Head', "Assistant's Game Plan",
