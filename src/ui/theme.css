@@ -875,15 +875,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   height: 100%;
   min-height: 0;
   grid-area: 1 / 1 / -1 / -1;
-  /* During live play only four fixed-height pieces stack here (scoreboard,
-     pitch, controls, the one-line ticker) - nothing flex-grows, so on a
-     viewport taller than the composition needs, the leftover space used to
-     sit as bare background below the last piece rather than around the
-     whole thing. Centering distributes it as top-and-bottom margin instead.
-     A no-op the moment the interval/ticker panel is showing, since that
-     panel is flex:1 and consumes every pixel of free space itself. */
-  justify-content: center;
 }
+/* During live play only four fixed-height pieces stack here (scoreboard,
+   pitch, controls, the one-line ticker) - nothing flex-grows by default, so
+   on a viewport taller than the composition needs (found on a Galaxy S25
+   Ultra, whose CSS viewport runs taller than every phone in devicematrix/
+   geosweep), the leftover space sits as bare background somewhere.
+   Centering it top-and-bottom (an earlier attempt) just relocated the gap
+   above the scoreboard instead, which reads worse - it disconnects the
+   score from the status bar. Growing .now-strip instead gives the slack to
+   a panel that is already meant to hold text, top-anchored so a short line
+   doesn't float centred in a tall box. .ticker.panel-area (below) already
+   flex-grows the same way for the interval/decision state, which is enough
+   to keep it clear of the header too - a decision card or half-time panel
+   sitting a long way above the bottom of a very tall screen is a smaller
+   problem than the header one this rule exists to fix. */
+.live-wrap .now-strip { flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: center; }
 .live-wrap .ticker { flex: 1; overflow-y: auto; }
 
 /* ================================================================
