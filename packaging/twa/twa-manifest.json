@@ -14,7 +14,13 @@
     "release the game calls itself (package.json, and the build stamp on the",
     "title screen); appVersionCode counts UPLOADS, not releases, so it becomes",
     "2 on the second thing Play ever receives - even if that is the same",
-    "appVersionName rebuilt."
+    "appVersionName rebuilt.",
+    "",
+    "enableNotifications is true because Play Billing requires it - bubblewrap",
+    "refuses to build otherwise (caught on the owner's first real build, 26",
+    "Aug). It wires the Android notification channel the purchase flow needs",
+    "internally; the game itself never sends a push notification, and the",
+    "store listing's 'no data collected' claim is unaffected - see netprobe."
   ],
   "packageId": "com.phaserugbymanager.app",
   "host": "phaserugbymanager.com",
@@ -29,7 +35,7 @@
   "navigationDividerColor": "#1a201e",
   "navigationDividerColorDark": "#1a201e",
   "backgroundColor": "#1a201e",
-  "enableNotifications": false,
+  "enableNotifications": true,
   "startUrl": "/",
   "iconUrl": "https://phaserugbymanager.com/icon-512.png",
   "maskableIconUrl": "https://phaserugbymanager.com/icon-maskable-512.png",
