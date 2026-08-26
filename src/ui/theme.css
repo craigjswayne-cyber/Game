@@ -557,6 +557,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   overflow: hidden;
   box-shadow: inset 0 2px 14px rgba(0, 0, 0, .3);
 }
+/* On a phone around 900px tall, 132px plus the scoreboard, controls and the
+   now-strip fill the screen and this never mattered. On the Play Store's own
+   screenshot geometry (540x1170, taller than every phone devicematrix and
+   geosweep test) it does not fill: .live-wrap is a flex column and none of
+   its children grow, so live play left the bottom third of the screen as
+   bare background - visible on every store screenshot of a match in progress,
+   and on any real device with a comparably tall viewport (found chasing
+   store-art regeneration for v1.1.1, 26 Aug). Every mark inside the pitch is
+   positioned in percent or centered, so growing it some is free - but a
+   rugby pitch drawn touchline-to-touchline is wide, not tall, and letting it
+   flex-grow uncapped (or even to 60vh) chased the gap onto a viewport this
+   tall by turning the pitch nearly SQUARE, which reads as broken in its own
+   way. 210px keeps it a believable wide strip on anything short of enormous;
+   .live-wrap's justify-content: center (below) takes the rest of the slack
+   as even top-and-bottom margin instead of asking one element to swallow it
+   all. */
+.live-wrap .pitch { height: auto; min-height: 132px; max-height: 210px; flex: 1 1 132px; }
 .pitch .line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,.8); }
 .pitch .line.dashed {
   width: 0;
@@ -858,6 +875,14 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   height: 100%;
   min-height: 0;
   grid-area: 1 / 1 / -1 / -1;
+  /* During live play only four fixed-height pieces stack here (scoreboard,
+     pitch, controls, the one-line ticker) - nothing flex-grows, so on a
+     viewport taller than the composition needs, the leftover space used to
+     sit as bare background below the last piece rather than around the
+     whole thing. Centering distributes it as top-and-bottom margin instead.
+     A no-op the moment the interval/ticker panel is showing, since that
+     panel is flex:1 and consumes every pixel of free space itself. */
+  justify-content: center;
 }
 .live-wrap .ticker { flex: 1; overflow-y: auto; }
 
