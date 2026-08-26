@@ -2459,7 +2459,12 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (p && sub) {
         if (failed) {
           const rtp = 2 + (((pid + ctx.tick) % 2)) // return-to-play: 12-21 days
-          p.injury = { desc: 'concussion (failed HIA)', until: state.week + rtp, weeks: rtp }
+          // desc + dk, like every other injury written in this file: desc is
+          // the stored-English fallback, dk is what a French screen renders.
+          // This line used to store the bare English string, so a failed HIA
+          // was the one complaint on the Medical screen that ignored the
+          // reader's language (release audit, 25 Aug).
+          p.injury = { desc: tIn('en', 'injury.hiaFail'), dk: 'injury.hiaFail', until: state.week + rtp, weeks: rtp }
           const slot = side.lineup.indexOf(pid)
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
