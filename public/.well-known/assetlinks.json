@@ -5,8 +5,7 @@
       "namespace": "android_app",
       "package_name": "com.phaserugbymanager.app",
       "sha256_cert_fingerprints": [
-        "A1:AF:3E:A6:4B:AF:0F:BE:68:DC:E3:0A:4D:53:49:AC:39:CF:6A:27:BC:2F:AA:09:23:32:49:0E:A7:B0:07:0A",
-        "REPLACE:WITH:THE:SHA256:PLAY:APP:SIGNING:GIVES:YOU"
+        "A1:AF:3E:A6:4B:AF:0F:BE:68:DC:E3:0A:4D:53:49:AC:39:CF:6A:27:BC:2F:AA:09:23:32:49:0E:A7:B0:07:0A"
       ]
     }
   }
