@@ -2011,10 +2011,63 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .pitch .pdot.jog { animation-name: pjog; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
 @keyframes pjog {
   0%   { translate: 0 0; }
-  27%  { translate: 1.5px -1.5px; }
-  52%  { translate: -1.5px 1px; }
-  76%  { translate: .5px -1px; }
+  27%  { translate: 2.5px -2px; }
+  52%  { translate: -2.5px 1.5px; }
+  76%  { translate: 1px -1.5px; }
   100% { translate: 0 0; }
+}
+
+/* v1.1.4, "more ball and player movement": the wobble above is a man waiting.
+ * These two are men DOING something, and both are written in `translate` for
+ * exactly the reasons pjog is (composited, composes with the halo and the
+ * dash), and both start and end at zero so reduced-motion's instant-finish
+ * leaves every dot where the layout put it.
+ *
+ * `--adir` is the side's attacking direction (+1 rightwards for home, -1 for
+ * away), set inline by PitchViz. One keyframe set serves both directions.
+ *
+ * The support runner: an attacking back off the ball makes a short angled run
+ * onto it and drifts back out. Staggered per shirt (inline delay), so the back
+ * line ripples rather than lunging as one.  The defensive line: everyone not
+ * at the ruck steps up toward the ball and back off it TOGETHER - same
+ * duration, same phase, no inline override - because a defensive line moving
+ * as one line is what a defensive line is.  Both ride the live beat, so
+ * fast-forward works the pitch harder instead of leaving the dots strolling
+ * through a sprint. */
+.pitch .pdot.supp {
+  animation-name: psupp; animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: calc(var(--tick, 1100ms) * 1.6);
+}
+@keyframes psupp {
+  0%   { translate: 0 0; }
+  38%  { translate: calc(var(--adir, 1) * 8px) -2.5px; }
+  62%  { translate: calc(var(--adir, 1) * 5px) 2px; }
+  100% { translate: 0 0; }
+}
+.pitch .pdot.dline {
+  animation-name: pdrift; animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-duration: calc(var(--tick, 1100ms) * 2);
+}
+@keyframes pdrift {
+  0%, 100% { translate: 0 0; }
+  45% { translate: calc(var(--adir, 1) * 5px) 0; }
+  60% { translate: calc(var(--adir, 1) * 4px) 1px; }
+}
+
+/* The ball is never dead between minutes: a small working loop - shifted at
+ * the base, tipped end over end a few degrees - on the same beat as the men.
+ * `translate`/`rotate` are the individual properties, so they compose with
+ * the centring transform above and with the left/top glide instead of
+ * replacing them; the kick classes below set `animation`, so a kicked ball
+ * flies its arc uninterrupted and the loop resumes on the next mount. */
+.pitch .ball { animation: ballwork calc(var(--tick, 1100ms) * 1.2) ease-in-out infinite; }
+@keyframes ballwork {
+  0%, 100% { translate: 0 0; rotate: 0deg; }
+  30% { translate: 4px -3px; rotate: 13deg; }
+  55% { translate: -4px 1.5px; rotate: -11deg; }
+  80% { translate: 2px -2px; rotate: 5deg; }
 }
 
 /* ---- the trophy moment: full-screen celebration ---- */

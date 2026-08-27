@@ -1486,15 +1486,36 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       y = Math.max(5, Math.min(95, y))
       const hl = last?.playerId === id
       const scorerRun = hl && evType === 'TRY' && showFx
+      // what each man is DOING between repositions (theme.css, v1.1.4):
+      // ruckers work the breakdown (the jog, sped right up), attacking backs
+      // make staggered support runs onto the ball, everyone defending steps up
+      // and off as one line, and non-rucking forwards jog on the spot. The
+      // carrier and the scorer keep their own animations.
+      const motion = scorerRun ? (isHome ? ' run-r' : ' run-l')
+        : hl ? ''
+        : ruck ? ' jog'
+        : attacking && slot >= 8 ? ' supp'
+        : !attacking ? ' dline'
+        : ' jog'
+      // supp and dline own their duration in CSS (it rides --tick); the jog
+      // keeps its per-shirt spread, faster at the ruck than in midfield
+      const timing: CSSProperties = motion === ' jog'
+        ? {
+            animationDuration: ruck ? `${1.05 + (slot % 3) * 0.25}s` : `${2.2 + (slot % 5) * 0.35}s`,
+            animationDelay: `-${((slot * 0.41) % 2.2).toFixed(2)}s`,
+          }
+        : motion === ' supp'
+        ? { animationDelay: `-${((slot * 0.53) % 1.6).toFixed(2)}s` }
+        : {}
       return (
         <div key={id}
-          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${scorerRun ? (isHome ? ' run-r' : ' run-l') : hl ? '' : ' jog'}`}
+          className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}`}
           style={{
             left: `${x}%`, top: `${y}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
-            animationDuration: `${2.2 + (slot % 5) * 0.35}s`,
-            animationDelay: `-${((slot * 0.41) % 2.2).toFixed(2)}s`,
-          }}>
+            '--adir': isHome ? 1 : -1,
+            ...timing,
+          } as CSSProperties}>
           {XV_SLOTS[slot].shirt}
           {hl && <span className="pname">{p.name.split(' ').slice(-1)[0]}</span>}
         </div>
