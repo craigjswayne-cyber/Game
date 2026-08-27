@@ -47,20 +47,53 @@ if (openShare > 0.75) bad(`${(openShare * 100).toFixed(0)}% of the market is neg
 if (sum / Math.max(1, some) > 0.16) bad(`the average discount is ${((sum / some) * 100).toFixed(0)}%, which is a fire sale rather than a haggle`)
 
 // ---- a wanted man is not for sale cheap ----
+// Split by league, because the floor answers a different question on each
+// side of that line since v1.1.3: a club abroad holds at its ask, a club in
+// OUR league wants the ask plus the rival premium, and a derby rival wants
+// silly money. The old assertion (floor === ask, everywhere) failed the day
+// the premium landed - on Bath, correctly.
+const userLeague = g.clubs[g.userClubId].leagueId
 const wanted = all.filter(p => {
   const w = sellerWillingness(g, p)
   return w.discount === 0 && p.ca >= 78
 })
 console.log(`\n${wanted.length} sought-after men with no give in the price`)
 if (!wanted.length) bad('every good player in the world is available at a discount')
-for (const p of wanted.slice(0, 3)) {
+const abroad = wanted.filter(p => g.clubs[p.clubId!].leagueId !== userLeague)
+const domestic = wanted.filter(p => g.clubs[p.clubId!].leagueId === userLeague)
+if (!abroad.length) bad('no sought-after man outside the league to test the plain floor on')
+if (!domestic.length) bad('no sought-after man inside the league to test the premium on')
+for (const p of abroad.slice(0, 3)) {
   const ask = askingPrice(g, p)
   if (floorPrice(g, p) !== Math.round(ask / 50_000) * 50_000) {
-    bad(`${p.name} has no reasons to sell but a floor under his ask`)
+    bad(`${p.name} plays abroad and has no reasons to sell, but his floor is not his ask`)
   }
   // and a bid under the ask must be refused
   const r = agreeFee(g, p.id, Math.round(ask * 0.85))
   if (r.ok) bad(`${p.name}'s club took 15% under the ask with no reason to`)
+}
+for (const p of domestic.slice(0, 3)) {
+  const ask = askingPrice(g, p)
+  const w = sellerWillingness(g, p)
+  if (w.premium <= 0) { bad(`${p.name} is a league rival's man but carries no premium`); continue }
+  const floor = floorPrice(g, p)
+  if (floor <= ask) bad(`${p.name}'s club sell to a direct rival at no premium (floor ${floor} vs ask ${ask})`)
+  // the full ask - a fee his club would take from anyone else - is refused here
+  const r = agreeFee(g, p.id, ask)
+  if (r.ok) bad(`${p.name}'s club took the plain ask from a league rival`)
+  else if (!/rival|league/i.test(r.msg)) bad(`${p.name}'s refusal never mentions the rivalry: "${r.msg.slice(0, 80)}"`)
+  // and the premium is a price, not a wall: meeting the floor still does business
+  const at = agreeFee(g, p.id, floor)
+  if (!at.ok && !/won't discuss terms/.test(at.msg)) bad(`${p.name}'s club refuse their own premium floor: "${at.msg.slice(0, 80)}"`)
+}
+// the rejection message never prints a raw {k,v} object - the [object Object]
+// bug this probe existed to have caught
+{
+  const p = [...domestic, ...abroad].find(x => sellerWillingness(g, x).discount > 0) ?? wanted[0]
+  if (p) {
+    const r = agreeFee(g, p.id, Math.round(askingPrice(g, p) * 0.5))
+    if (/object Object/.test(r.msg)) bad(`a rejection interpolates an object: "${r.msg.slice(0, 80)}"`)
+  }
 }
 
 // ---- a weakened seller does come down, and the message says why ----

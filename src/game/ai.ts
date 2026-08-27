@@ -5,6 +5,7 @@ import { userCap } from './grants'
 import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
+import { rivalsOf } from './rivalries'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 
@@ -105,6 +106,15 @@ export function askingPrice(state: GameState, p: Player): number {
 export interface Willingness {
   /** fraction off the asking price the club would accept, 0 to MAX_HAGGLE */
   discount: number
+  /** fraction ON TOP of the asking price before they will even nod (owner,
+   *  v1.1.3: "signing players from the same league should be tricky as its a
+   *  competitive edge"). Selling abroad loses a player; selling inside your
+   *  own league arms the club you meet twice a season, and a derby rival is
+   *  the club whose fans you answer to. So a same-league buyer pays over the
+   *  odds and a derby rival pays silly money - the discount reasons still
+   *  apply (a club in the red is in the red whoever is asking), which is why
+   *  this is a separate term rather than a clamp on the discount. */
+  premium: number
   /** why, in the READER's language, most persuasive first: a key and the vars
    *  it needs, because the player profile renders these straight to the screen
    *  and an English string here is an English line on a French page */
@@ -118,7 +128,7 @@ export const MAX_HAGGLE = 0.3
 
 export function sellerWillingness(state: GameState, p: Player): Willingness {
   const club = p.clubId ? state.clubs[p.clubId] : null
-  if (!club) return { discount: 0, reasons: [] }
+  if (!club) return { discount: 0, premium: 0, reasons: [] }
   let d = 0
   const reasons: { k: string; v?: Vars }[] = []
 
@@ -155,16 +165,30 @@ export function sellerWillingness(state: GameState, p: Player): Willingness {
   // AN AGEING ASSET is worth less to them next year than this year
   if (p.age >= 33) { d += 0.05; reasons.push({ k: 'player.sellAgeing' }) }
 
-  return { discount: Math.min(MAX_HAGGLE, d), reasons }
+  // SELLING INSIDE THE LEAGUE ARMS A RIVAL. This is the buyer's problem, not
+  // the seller's - the discounts above are about the seller's own position and
+  // stand whoever is asking - so it is a premium on top rather than a smaller
+  // discount: a club in the red still needs the money, it just wants more of
+  // it from a club it has to beat in April. A derby rival dearer again,
+  // because that sale is the one the fans never forgive.
+  let premium = 0
+  const buyer = state.clubs[state.userClubId]
+  if (buyer && club.id !== buyer.id && club.leagueId === buyer.leagueId) {
+    premium = rivalsOf(club.id).includes(buyer.id) ? 0.35 : 0.2
+  }
+
+  return { discount: Math.min(MAX_HAGGLE, d), premium, reasons }
 }
 
-/** The lowest fee his club would shake hands on. */
+/** The lowest fee his club would shake hands on. Can sit ABOVE the asking
+ *  price: a same-league buyer pays the rival premium on top of whatever the
+ *  seller's own weaknesses take off (v1.1.3). */
 export function floorPrice(state: GameState, p: Player): number {
   const ask = askingPrice(state, p)
-  const { discount } = sellerWillingness(state, p)
+  const { discount, premium } = sellerWillingness(state, p)
   // still rounded to a clean figure, because a counter of £1,847,300 reads like
   // a spreadsheet rather than a negotiation
-  return Math.round((ask * (1 - discount)) / 50_000) * 50_000
+  return Math.round((ask * (1 + premium - discount)) / 50_000) * 50_000
 }
 
 export function executeTransfer(state: GameState, p: Player, toClubId: string, fee: number) {
@@ -445,7 +469,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   // and the reasons are quoted back so a rejection teaches you something. A club
   // with no reason to sell still holds out for the full ask, which is what keeps
   // the market where the salary cap was calibrated against it.
-  const { discount, reasons } = sellerWillingness(state, p)
+  const { discount, premium, reasons } = sellerWillingness(state, p)
   const floor = floorPrice(state, p)
   // the counter sits between the floor and the ask: they will not open at their
   // own worst price, but they will not pretend the floor does not exist either
@@ -464,19 +488,32 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   }
   // A near miss names the number that would do it, and says what is weakening
   // their hand, so the next bid is judgement rather than guesswork.
-  const why = reasons.length ? ` They are open to less than the ask: ${reasons[0]}.` : ''
+  // (reasons[0] is a {k, v} pair for the translator - interpolating it raw
+  // printed "[object Object]" into real rejections until v1.1.3. Found while
+  // adding the rival premium; the probe that catches it now lives in
+  // haggleprobe.)
+  const whyText = reasons.length ? t(reasons[0].k, reasons[0].v) : ''
+  const why = whyText ? ` They are open to less than the ask: ${whyText}.` : ''
+  // the rival premium is the one thing a rejection must always teach, because
+  // the number it produces (a floor ABOVE the ask) reads as a bug until the
+  // reason is on the page
+  const rivalWhy = premium > 0
+    ? ` ${t(premium >= 0.35 ? 'player.sellRival' : 'player.sellSameLeague', { club: seller.short })}`
+    : ''
   if (fee >= floor * 0.8) {
     return {
       ok: false,
-      msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.${why}`,
+      msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.${rivalWhy}${why}`,
       counter: counterPrice,
     }
   }
   return {
     ok: false,
-    msg: discount > 0
-      ? `${seller.short} reject the bid out of hand. They want nearer ${fmtMoney(ask)}, though they would listen below it:${why.replace(' They are open to less than the ask:', '')}`
-      : `${seller.short} reject the bid. They value ${p.name} at ${fmtMoney(ask)} and have no reason to take less.`,
+    msg: discount > 0 && premium === 0
+      ? `${seller.short} reject the bid out of hand. They want nearer ${fmtMoney(ask)}, though they would listen below it: ${whyText}.`
+      : premium > 0
+        ? `${seller.short} reject the bid out of hand.${rivalWhy} It would take ${fmtMoney(floor)} to move them.`
+        : `${seller.short} reject the bid. They value ${p.name} at ${fmtMoney(ask)} and have no reason to take less.`,
   }
 }
 
@@ -489,6 +526,22 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   const user = state.clubs[state.userClubId]
   if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
   const seller = state.clubs[p.clubId]
+  // THE INK IS STILL WET, CHECKED AGAIN (owner, v1.1.3: "if a club signs a
+  // player and the player tries to buy for their club the bid should be
+  // rejected as theyve just signed him"). agreeFee runs this gate at stage 1,
+  // but stage 2 is a separate call and the world can move between them - and
+  // the fuzz probes call signOnTerms directly, with no stage 1 at all. A man
+  // who arrived at his club within the half-season is not completed on any
+  // terms short of the same too-big-to-argue-with door stage 1 quotes; without
+  // this, a transfer that would be refused at the fee stage completes cleanly
+  // if you only ever ask about wages.
+  {
+    const now = state.season * SEASON_WEEKS + state.week
+    const weeksIn = p.joinedAt != null ? now - p.joinedAt : null
+    if (weeksIn != null && weeksIn < 22 && fee < askingPrice(state, p) * 2) {
+      return { ok: false, msg: t('reply.inkWetTerms', { club: seller.short, name: p.name }) }
+    }
+  }
   if (fee + signOn > user.budget) return { ok: false, msg: 'Fee plus signing bonus exceeds your transfer budget.' }
   if (embargoed(state, user.id)) {
     return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. Nobody can be signed until it is served.' }

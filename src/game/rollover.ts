@@ -613,7 +613,13 @@ function handleContracts(state: GameState, rng: Rng) {
     }
     to.players.push(p.id)
     p.clubId = to.id
-    p.wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50
+    // the arrival stamp executeTransfer puts on every in-season move (the
+    // "ink is still wet" gate reads it). Pre-contract moves skipped it, so a
+    // man signed in the summer could be bought off his new club in week one
+    // at his plain market price - the exact hole the owner walked through
+    // (v1.1.3). This runs before season += 1, so the stamp dates the move to
+    // the end of the old season and ages correctly into the new one.
+    p.joinedAt = state.season * SEASON_WEEKS + state.week
     p.contractEnds = state.season + 1 + (p.age < 30 ? 2 : 1)
     p.morale = clamp(p.morale + 1, 1, 10)
     p.transferListed = false
