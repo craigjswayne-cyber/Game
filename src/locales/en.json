@@ -4697,7 +4697,10 @@
     "movedToTransferBudget": "Moved {amount} from the bank into the transfer budget.",
     "boardInjection": "Board injection: {amount} of extraordinary funds voted through.",
     "charter": "The Owner's Charter signed: the salary cap no longer applies to the club.",
-    "heal": "Booked the specialist retreat: {n} men restored to full health",
+    "heal": {
+      "one": "Booked the specialist retreat: one man restored to full health",
+      "other": "Booked the specialist retreat: {n} men restored to full health"
+    },
     "estate": "Built the whole estate to its ceiling in one wave",
     "pinnacle": "Sent my name to the federations",
     "boardPushed": "Pressed the board after a refusal: formal warning, respect halved.",
