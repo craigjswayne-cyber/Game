@@ -58,8 +58,15 @@
   --gold-tint: #322914;
   --on-gold: #1f1708;
 
-  /* loss and risk */
+  /* loss and risk. --danger-fill is --danger's hero-safe twin, the same
+     doctrine as --gold-fill: --danger is tuned per theme to sit on the
+     canvas, and on the hero gradient the daylight value measures 1.02:1 -
+     invisible - which is how the sin-bin warning count vanished for anybody
+     in day mode (nightcontrast, 27 Aug). --danger-fill is one value in both
+     modes, 2.7:1 on the hero's lightest stop. Danger ON THE HERO is always
+     --danger-fill, never --danger. */
   --danger: #ef6c63;
+  --danger-fill: #ff9d8f;
   --danger-tint: #3a1f1d;
 
   /* informational - comparison screens, analyst notes, links. Info vs
@@ -110,6 +117,9 @@
   --on-gold: #1f1708;
 
   --danger: #c0362c;
+  /* same value as night on purpose - see the night block: the hero it sits
+     on does not change with the theme, so neither does this */
+  --danger-fill: #ff9d8f;
   --danger-tint: #fbe9e7;
 
   --info: #185fa5;

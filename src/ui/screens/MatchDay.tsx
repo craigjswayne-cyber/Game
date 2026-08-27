@@ -1788,7 +1788,13 @@ function Live() {
           const share = live ? win.reduce((s, x) => s + x, 0) / win.length : 0.5
           const ref = refFor(fixture.id)
           const binAt = ref.style === 'strict' ? 4 : ref.style === 'lenient' ? 7 : 5
-          const penC = (n: number) => n >= binAt ? 'var(--danger)' : n === binAt - 1 ? 'var(--gold)' : undefined
+          // THE -fill FORMS, because these numbers sit on the hero gradient.
+          // The sc-score comment above tells this exact story: --gold goes
+          // deep brown in day mode and measured 1:1 up here - the sin-bin
+          // warning count, invisible to anybody who taps the sun icon - and
+          // --danger has the same disease in both modes (1.0-1.8:1). Found
+          // by nightcontrast the first run after it learned to name names.
+          const penC = (n: number) => n >= binAt ? 'var(--danger-fill)' : n === binAt - 1 ? 'var(--gold-fill)' : undefined
           return (
             <div className="last10">
               <span className="l10-pens" title={t('matchday.pensTitle')}>
