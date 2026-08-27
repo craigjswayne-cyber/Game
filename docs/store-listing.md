@@ -18,7 +18,7 @@ the first thing a reviewer sees.
 | App name | PHASE: Rugby Manager |
 | Package / bundle id | `com.phaserugbymanager.app` |
 | Category | Games → Sports (Play), Games → Sports / Simulation (App Store) |
-| Price | free, with one optional in-app purchase (or paid up front - see `docs/monetisation.md`) |
+| Price | free, with in-app purchases (decided 27 Aug: the free edition, not paid up front - see `docs/monetisation.md`) |
 | Contact e-mail | phaserugbymanager@gmail.com |
 | Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
 | Support URL | the same page, which carries the contact address |
@@ -307,7 +307,7 @@ never enters the web bundle, and netprobe goes on enforcing that.
 | Miscellaneous - gambling | None. No simulated gambling, no loot boxes, no randomised purchase |
 | Users can interact | **No.** No chat, no user-generated content, no social features |
 | Shares location | No |
-| Digital purchases | **Yes** - one non-consumable, if shipping the free edition with the Supporter purchase. No, if shipping paid up front |
+| Digital purchases | **Yes.** The free edition ships the catalogue of `docs/monetisation-spec.md` §1: four non-consumables and four consumables, all one-way, no cash-out |
 | Unrestricted internet access | No |
 
 Expected result: **PEGI 3 / ESRB Everyone / USK 0**.
