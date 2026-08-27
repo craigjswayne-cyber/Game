@@ -552,7 +552,24 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 return (
                   <div className="card" style={{ marginTop: 4 }}>
                     <div className="fact-label">{t('player.whereTheyStand', { club: club.short })}</div>
-                    {w.discount > 0 ? (
+                    {/* THE RIVAL PREMIUM COMES FIRST (v1.1.3): a floor above
+                        the asking price reads as a bug until the reason is on
+                        the page, and "they would listen below the ask" would
+                        be a lie when the league premium has pushed the floor
+                        over it - so that line only renders when it is true. */}
+                    {w.premium > 0 && (
+                      <div className="meta">
+                        {t(w.premium >= 0.35 ? 'player.sellRival' : 'player.sellSameLeague', { club: club.short })}
+                      </div>
+                    )}
+                    {w.premium > 0 ? (
+                      <>
+                        <div className="meta">
+                          {t('player.itWouldTake')}<b>{fmtMoney(floorPrice(game, p))}</b>.
+                        </div>
+                        {w.reasons.map((r, i) => { const s = t(r.k, r.v); return <div className="meta muted" key={i}>· {s.charAt(0).toUpperCase()}{s.slice(1)}</div> })}
+                      </>
+                    ) : w.discount > 0 ? (
                       <>
                         <div className="meta">
                           {t('player.wouldListen')}<b>{fmtMoney(floorPrice(game, p))}</b>.

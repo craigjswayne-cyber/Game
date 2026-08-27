@@ -1920,7 +1920,10 @@
     "sellUnhappy": "he is unhappy and the dressing room knows",
     "sellInRed": "{club} are in the red and need the cash",
     "sellStocked": "they are well stocked in his position",
-    "sellAgeing": "he is the wrong side of 33 and they know the value only falls"
+    "sellAgeing": "he is the wrong side of 33 and they know the value only falls",
+    "sellSameLeague": "Selling inside the league arms a rival: from you, {club} want over the asking price.",
+    "sellRival": "To a derby rival? {club} would sooner not sell to you at all - only silly money moves this.",
+    "itWouldTake": "The number that moves them is about "
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -4696,6 +4699,7 @@
   "reply": {
     "overCap": "Those terms would put the club {over}/wk over the {cap}/wk salary cap. Free up room, or name him a marquee player.",
     "offerGone": "Offer no longer available.",
+    "inkWetTerms": "{club} pull the deal off the table: {name} has only just arrived, and he is going nowhere.",
     "alreadyCountered": "You have already been back to them once. Answer the offer.",
     "offerWithdrawn": "Offer withdrawn.",
     "bidderFinal": "{club} do not blink - the money is already above the odds, and {fee} is their best and final. Answer the offer.",

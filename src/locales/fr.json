@@ -1920,7 +1920,10 @@
     "sellUnhappy": "il est mal dans sa peau et le vestiaire le sait",
     "sellInRed": "{club} est dans le rouge et a besoin de liquidités",
     "sellStocked": "le club est bien fourni à son poste",
-    "sellAgeing": "il a passé 33 ans et le club sait que sa valeur ne fera que baisser"
+    "sellAgeing": "il a passé 33 ans et le club sait que sa valeur ne fera que baisser",
+    "sellSameLeague": "Vendre dans son propre championnat, c'est armer un rival : venant de vous, {club} exigent plus que le prix demandé.",
+    "sellRival": "À un rival de derby ? {club} préféreraient ne rien vous vendre du tout - seule une offre déraisonnable les fera bouger.",
+    "itWouldTake": "Le montant qui les fera bouger tourne autour de "
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -4696,6 +4699,7 @@
   "reply": {
     "overCap": "Ces conditions mettraient le club {over}/sem au-dessus du plafond salarial de {cap}/sem. Libérez de la place, ou désignez-le joueur vedette.",
     "offerGone": "L'offre n'est plus disponible.",
+    "inkWetTerms": "{club} retirent l'accord de la table : {name} vient tout juste d'arriver, et il n'ira nulle part.",
     "alreadyCountered": "Vous êtes déjà revenu vers eux une fois. Répondez à l'offre.",
     "offerWithdrawn": "Offre retirée.",
     "bidderFinal": "{club} ne cille pas - l'argent est déjà au-dessus de la cote, et {fee} est leur dernier mot. Répondez à l'offre.",
