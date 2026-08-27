@@ -1,0 +1,26 @@
+{
+  "_comment": [
+    "The ANDROID AD-CARRYING wrapper's configuration - the sibling of",
+    "packaging/ios/capacitor.config.json, and NOT the TWA in packaging/twa/.",
+    "This shell exists for exactly one reason: an ad SDK is native code and a",
+    "TWA cannot carry any (see README.md in this folder). Same rules as iOS:",
+    "webDir points at the BUILT ASSETS so the app ships them in its bundle,",
+    "and there is no 'server' block at all - adding one turns this back into",
+    "a browser pointed at a website.",
+    "",
+    "The appId MUST stay com.phaserugbymanager.app: Play identifies the app",
+    "by id, so the wrapper replaces the TWA as an update, keeping installs,",
+    "reviews and purchase history. It must be signed with the same upload key.",
+    "",
+    "backgroundColor is the night ground from src/ui/tokens.css. It has to",
+    "match or a white frame flashes between the launch screen and first paint."
+  ],
+  "appId": "com.phaserugbymanager.app",
+  "appName": "PHASE: Rugby Manager",
+  "webDir": "../../dist",
+  "backgroundColor": "#1a201e",
+  "android": {
+    "backgroundColor": "#1a201e",
+    "allowMixedContent": false
+  }
+}
