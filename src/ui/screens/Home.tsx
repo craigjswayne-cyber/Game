@@ -17,6 +17,7 @@ import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
+import { tillOpen } from '../../game/monetise'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -222,6 +223,25 @@ export default function Home() {
           </div>
         )
       })()}
+      {/* THE STORE, above the Dream because that is where the owner asked for
+          it (27 Aug) and because the Dream is the only other card on this
+          screen that is about the save rather than about this week. Everything
+          else here is a job: the fixture, the deadlines, the objectives, the
+          press. A shelf is not a job, so it does not get a badge, it never
+          counts anything, and it sits at the top precisely so it can be
+          ignored on the way past rather than met three taps down inside
+          Finances when somebody finally goes looking.
+
+          The row is tillOpen() like every purchase surface in the game, so the
+          web build renders nothing at all here - the card cannot appear on a
+          page with no bridge, which is the promise storeprobe holds. */}
+      {tillOpen() && (
+        <button className="card store-card" onClick={() => go('supporter')}>
+          <div className="store-word">{t('home.storeLabel')}</div>
+          <div className="store-sub">{t('home.storeTitle')}</div>
+          <div className="store-body">{t('home.storeBody')}</div>
+        </button>
+      )}
       {/* THE DREAM sits above the season objectives on purpose. The board's
           brief expires in May; this does not, and the whole point of putting it
           here is that a manager sees the reason for the save every single week.

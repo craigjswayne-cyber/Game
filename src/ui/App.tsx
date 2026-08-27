@@ -3,6 +3,7 @@ import { useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep } from '../game/days'
+import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
@@ -383,6 +384,19 @@ export default function App() {
         { ico: '🔁', label: t('groups.transfers'), screen: 'transfers', badge: offersOpen },
         { ico: '🏗️', label: t('groups.infra'), screen: 'infra' },
         { ico: '🏟️', label: t('groups.clubInfo'), screen: 'club' },
+        // THE STORE HAD NO NAME ANYWHERE (owner, 27 Aug: "no shop showing").
+        // Everything was reachable and nothing was findable: the door sat on
+        // About & legal, under the manager's own menu, next to the privacy
+        // policy - which is where a store REVIEWER looks for it and the last
+        // place a player would. The Boardroom shelves were worse off again,
+        // three taps down inside Finances. So the word the player is actually
+        // looking for now exists, on the club's own menu, spelled Store.
+        //
+        // Gated on tillOpen() like every other purchase surface, which is what
+        // keeps the web build honest: no bridge, no row, and the menu is the
+        // same eleven items it has always been (storeprobe asserts exactly
+        // this on a page with no bridge attached).
+        ...(tillOpen() ? [{ ico: '🛒', label: t('groups.store'), screen: 'supporter' as Screen }] : []),
       ],
     },
     manager: {
