@@ -604,11 +604,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     top calc(var(--tick, 1100ms) * .7) ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
 }
+/* The club code at each end of the pitch. It sits ON THE TRYZONE, and the
+   tryzone is painted in that club's own colour - which for eleven clubs in
+   the world (Clermont's yellow, Racing's sky blue, Ulster's white...) is
+   light enough that the old bare white text measured as low as 1.4:1. Which
+   is why nightcontrast only failed SOMETIMES: the ratio depended on who was
+   playing that day. Every other chip on the pitch (bin-chip, the scorer's
+   name plate) already owns a dark backing for exactly this reason; this is
+   the one that never got its chip. Worst case now - the chip's dark at .68
+   over Clermont yellow - still measures ~7:1. */
 .pitch .zone-label {
-  position: absolute; bottom: 5px;
-  font-family: var(--cond); font-weight: 700; font-size: 11px; letter-spacing: 2px;
-  color: rgba(255,255,255,.9);
-  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  position: absolute; bottom: 4px;
+  font-family: var(--cond); font-weight: 700; font-size: 10.5px; letter-spacing: 2px;
+  color: rgba(255,255,255,.92);
+  background: rgba(8, 30, 22, .68);
+  padding: 1px 6px 1px 7px; border-radius: 8px;
 }
 
 .ticker { padding: 4px 16px; }

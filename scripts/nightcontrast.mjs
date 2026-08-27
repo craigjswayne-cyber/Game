@@ -154,7 +154,13 @@ async function look(label) {
     return
   }
   const worst = Math.min(...rows.map(x => x.r))
-  console.log(`  ${bad.length ? 'FAIL' : '  ok'} ${label}: ${rows.length} runs of text, worst ratio ${worst}${bad.length ? ` (${new Set(bad.map(b => b.cls)).size} unreadable)` : ''}`)
+  // The FAIL sits at column 0 on purpose. suite.sh keeps only lines matching
+  // ^FAIL (plus the three under each) when a harness goes red - the indented
+  // "  FAIL" this used to print was thrown away with everything else, so main
+  // run 33108669176 said "1 PLACE(S) BELOW 2.2:1" and could not say WHERE,
+  // and finding the place again cost a local reproduction hunt. A harness
+  // that diagnoses itself into a bin does not diagnose.
+  console.log(`${bad.length ? 'FAIL ' : '   ok'} ${label}: ${rows.length} runs of text, worst ratio ${worst}${bad.length ? ` (${new Set(bad.map(b => b.cls)).size} unreadable)` : ''}`)
 }
 
 const hub = async (item, label) => {
@@ -330,9 +336,12 @@ try {
 
 if (findings.length) {
   console.log('\nunreadable in the dark:')
+  // FAIL-prefixed so the lines survive suite.sh's ^FAIL filter into the CI
+  // log - see the note in look(). The element and its colours ARE the
+  // diagnosis; a count without them is a symptom.
   for (const f of findings) {
-    console.log(`  ${f.label}: .${f.cls} at ${f.r}:1 - "${f.text}"`)
-    if (f.fg) console.log(`     ${f.fg} text on ${f.bg}, painted by .${f.on}`)
+    console.log(`FAIL  ${f.label}: .${f.cls} at ${f.r}:1 - "${f.text}"`)
+    if (f.fg) console.log(`FAIL    ${f.fg} text on ${f.bg}, painted by .${f.on}`)
   }
 }
 console.log(`\n${measured} runs of text measured against the background painted behind them, across both themes`)
