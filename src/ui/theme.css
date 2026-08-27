@@ -598,7 +598,10 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 2px solid var(--canvas);
   border-radius: 50%;
   transform: translate(-50%, -50%) rotate(-25deg);
-  transition: left 1.1s cubic-bezier(.45, .05, .35, 1), top .8s ease;
+  /* same beat as the men who are chasing it - see .pitch .pdot */
+  transition:
+    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
+    top calc(var(--tick, 1100ms) * .7) ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, .45);
 }
 .pitch .zone-label {
@@ -1194,7 +1197,21 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 8px; font-weight: 700; line-height: 11px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
-  transition: left 1.1s cubic-bezier(.45, .05, .35, 1), top .9s ease, transform .3s ease;
+  /* TRAVEL IS THE BEAT, not a number somebody liked the look of.
+     This was `left 1.1s, top .9s` flat, against a live beat of 350ms at Normal
+     speed (SPEEDS in MatchDay.tsx) - so a fresh target arrived when the last
+     move was a third finished, the browser restarted the transition from
+     wherever the dot had reached, and no man ever arrived anywhere. The pitch
+     read as fifteen dots drifting because that is literally what it was.
+     --tick is the real beat, set on .pitch from the same number the playback
+     timer uses (so the tension drag stretches it too). .92 lands the man just
+     before the next minute moves him; top is quicker than left because a rugby
+     pitch is wider than it is deep and the across-field move is the longer one.
+     The fallback matters: .pitch renders in places with no live clock. */
+  transition:
+    left calc(var(--tick, 1100ms) * .92) cubic-bezier(.45, .05, .35, 1),
+    top calc(var(--tick, 1100ms) * .78) ease,
+    transform .3s ease;
   z-index: 2;
 }
 .pitch .pdot.hl {
@@ -1967,14 +1984,27 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .review-grid { grid-template-columns: 1fr 1fr; align-items: start; }
 }
 
-/* ---- every player is alive: idle jog between repositions ---- */
+/* ---- every player is alive: idle jog between repositions ----
+ *
+ * IT USED TO ANIMATE `margin`, and the reason was sound: .pdot.hl and the
+ * scorer's dash-l/dash-r both own `transform`, so a jog written in transform
+ * would have been wiped the moment a man was named or scored. Margin was the
+ * one free property. It was also a LAYOUT property, animated infinitely, on up
+ * to thirty dots at once, while left/top transitions ran on the same elements -
+ * so every frame of a match reflowed the whole pitch, on a phone, for a wobble.
+ *
+ * `translate` is the modern individual property: it is NOT `transform`, so it
+ * composes with the halo scale and the dash instead of fighting them, and it is
+ * composited rather than reflowed. Same isolation, none of the layout. The
+ * centring stays in margin where it belongs - it is a constant, not an
+ * animation, and there is no longer anything animating margin to trample it. */
 .pitch .pdot.jog { animation-name: pjog; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
 @keyframes pjog {
-  0%   { margin: -6.5px 0 0 -6.5px; }
-  27%  { margin: -8px 0 0 -5px; }
-  52%  { margin: -5.5px 0 0 -8px; }
-  76%  { margin: -7.5px 0 0 -6px; }
-  100% { margin: -6.5px 0 0 -6.5px; }
+  0%   { translate: 0 0; }
+  27%  { translate: 1.5px -1.5px; }
+  52%  { translate: -1.5px 1px; }
+  76%  { translate: .5px -1px; }
+  100% { translate: 0 0; }
 }
 
 /* ---- the trophy moment: full-screen celebration ---- */
