@@ -64,9 +64,15 @@ export function dayOfStory(n: NewsItem): DayIndex {
     // the squad and the academy
     case 'youth': return 3
     case 'intl': return 3
-    // Friday's paper: whatever the mill has been turning over
-    case 'gossip': return 4
-    default: return 4
+    // REDISTRIBUTED in v1.1.3 (owner: "feels like its matchday far too quick
+    // each week - we must show other things"). Gossip and everything unfiled
+    // both dumped on Friday, so the eve of the match - already the fullest
+    // bulletin of the week - carried the mill's rumours too, while Tuesday
+    // and Wednesday sat empty and Continue skipped straight over them.
+    // Punditry faces the cameras with the press; the unfiled middle of the
+    // week is club business.
+    case 'gossip': return 1
+    default: return 2
   }
 }
 
@@ -229,6 +235,44 @@ export function dayHasSomething(state: GameState, day: DayIndex): boolean {
     if (med.out.length || med.back.length) return true
   }
   if (day === 3 && state.offers.some(o => o.status === 'pending' && o.forUser)) return true
+  // WEDNESDAY WAS A DEAD LETTER (owner, v1.1.3: "feels like its matchday far
+  // too quick each week... It should force the player to think about their
+  // team, their options"). The Club Business bulletin - market, budget,
+  // expiring contracts - existed and was almost never seen, because Wednesday
+  // only stopped when a transfer story happened to land. It now also stops
+  // when the market itself is the story: deadline week (the window slams
+  // shut, and a manager asleep on it deserves to be woken), and the week the
+  // agency publishes fresh rankings, which is the scouting review the owner
+  // asked to see.
+  if (day === 2) {
+    if (state.week === 7 || state.week === 27) return true
+    const at = state.agency?.at
+    if (at && at.season === state.season && state.week - at.week >= 0 && state.week - at.week <= 1) return true
+  }
+  // THURSDAY EARNS ITS STOP FROM THE TEAM SHEET. The Squad bulletin showed
+  // availability and never forced anyone to look at it. It now stops when the
+  // coming match's selection actually has a problem to solve: a picked man
+  // who cannot play, or a bench's worth of starters running on fumes. Quiet
+  // weeks with a fit squad still walk past - a stop with nothing to decide is
+  // the tedium the day flow exists to avoid.
+  if (day === 3 && userMatchThisWeek(state)) {
+    const club = state.clubs[state.userClubId]
+    if (club) {
+      const xv = club.tactic.lineup.slice(0, 15)
+      const out = xv.some(id => {
+        if (id == null) return false
+        const p = state.players[id]
+        return !!p && (!!p.injury || p.bans > 0 || !!p.natSquad || !!p.onLoan)
+      })
+      if (out) return true
+      const tired = xv.filter(id => {
+        if (id == null) return false
+        const p = state.players[id]
+        return !!p && p.cond < 72
+      }).length
+      if (tired >= 4) return true
+    }
+  }
   if (day === 4) {
     // Friday always has the opposition on it when there is a match to come, and
     // otherwise it has the rest of the league's fixtures. A Test week counts:

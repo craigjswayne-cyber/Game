@@ -6,9 +6,10 @@ import {
 } from '../../game/days'
 import { userFixtureThisWeek } from '../../game/season'
 import { leaguePos } from '../../game/schedule'
+import { matchStakes } from '../../game/stakes'
 import { analystClaim, analystRead, prepLabel, unitLabel } from '../../game/analyst'
 import { CrestT, SectionTitle } from '../components'
-import { ord, t } from '../../game/i18n'
+import { ord, posName, t } from '../../game/i18n'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💼', injury: '🏥', intl: '🌍', board: '🏛',
@@ -164,6 +165,42 @@ function MondayBlocks() {
           <div className="meta">{t('dayroom.blankWeekendBody')}</div>
         </div>
       )}
+      {/* THE WEEK'S BEST XV, glanced at on the way past (owner, v1.1.3: the
+          week must "show other things... more team updates"). Team of the Week
+          existed and lived only behind the World menu, which is to say it
+          might as well not have existed. Monday's review is where a paper
+          prints it. Three names, your own men flagged, the full XV a tap
+          away - a read of lastWk/lastR, exactly what the DreamTeam screen
+          reads, so nothing new is computed and the rng never hears about it. */}
+      {leagueId && (() => {
+        const played = game.fixtures.filter(f => f.compId === leagueId && f.played)
+        const wk = played.length ? Math.max(...played.map(f => f.week)) : 0
+        if (!wk) return null
+        const pool = Object.values(game.players)
+          .filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === leagueId && p.lastWk === wk && p.lastR != null)
+          .sort((a, b) => (b.lastR ?? 0) - (a.lastR ?? 0))
+        if (pool.length < 3) return null
+        const top = pool.slice(0, 3)
+        const mineIn = pool.slice(0, 15).filter(p => p.clubId === game.userClubId).length
+        return (
+          <div className="card">
+            <div className="fact-label">{t('dayroom.totw')}</div>
+            {top.map(p => (
+              <div key={p.id} className="meta" style={{ padding: '2px 0' }}>
+                <b>{p.name}</b> <span className="muted">({teamShort(game, p.clubId!)})</span> · {(p.lastR ?? 0).toFixed(1)}
+              </div>
+            ))}
+            {mineIn > 0 && (
+              <div className="meta" style={{ marginTop: 3, color: 'var(--gold)', fontWeight: 700 }}>
+                {t('dayroom.totwYours', { n: mineIn })}
+              </div>
+            )}
+            <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('dreamteam')}>
+              {t('dayroom.totwBtn')}
+            </button>
+          </div>
+        )
+      })()}
       {(med.out.length > 0 || med.back.length > 0) && (
         <>
           <SectionTitle sub={t('dayroom.treatmentSub')}>{t('dayroom.treatmentRoom')}</SectionTitle>
@@ -249,6 +286,43 @@ function WednesdayBlocks() {
           {t('dayroom.transferCentre')}
         </button>
       </div>
+      {/* deadline week gets said out loud, not implied by a date */}
+      {(game.week === 7 || game.week === 26 || game.week === 27) && (
+        <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div className="fact-label">{t('dayroom.deadline')}</div>
+          <div className="meta">{t((game.week === 7 || game.week === 27) ? 'dayroom.deadlineBody' : 'dayroom.deadlineSoonBody')}</div>
+        </div>
+      )}
+      {/* the agency's fresh rankings, the week they land (v1.1.3): the scout
+          review the owner asked the week to show, surfaced where the week
+          happens instead of behind the World menu */}
+      {(() => {
+        const at = game.agency?.at
+        if (!at || at.season !== game.season || game.week - at.week < 0 || game.week - at.week > 1) return null
+        const topSenior = game.agency?.seniors?.[0] != null ? game.players[game.agency.seniors[0]] : null
+        const topKid = game.agency?.kids?.[0] != null ? game.players[game.agency.kids[0]] : null
+        if (!topSenior && !topKid) return null
+        return (
+          <div className="card">
+            <div className="fact-label">{t('dayroom.agencyFresh')}</div>
+            {topSenior && (
+              <div className="meta" style={{ padding: '2px 0' }}>
+                {t('dayroom.agencyTopSenior')}<b>{topSenior.name}</b>
+                {topSenior.clubId ? <span className="muted"> ({teamShort(game, topSenior.clubId)})</span> : null}
+              </div>
+            )}
+            {topKid && (
+              <div className="meta" style={{ padding: '2px 0' }}>
+                {t('dayroom.agencyTopKid')}<b>{topKid.name}</b>
+                {topKid.clubId ? <span className="muted"> ({teamShort(game, topKid.clubId)})</span> : null}
+              </div>
+            )}
+            <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('agency')}>
+              {t('dayroom.agencyBtn')}
+            </button>
+          </div>
+        )
+      })()}
       {expiring > 0 && (
         <div className="card">
           <div className="fact-label">{t('dayroom.paperwork')}</div>
@@ -288,6 +362,35 @@ function ThursdayBlocks() {
           {t('dayroom.trainingStaff')}
         </button>
       </div>
+      {/* THE PROBLEM IN THE XV, named (v1.1.3). This is the card the new
+          Thursday stop exists for: when a picked man cannot play, the day
+          says who, so the stop is a decision and not a notice. Mirrors the
+          predicate in days.ts dayHasSomething - if one changes, change both. */}
+      {(() => {
+        const xv = club.tactic.lineup.slice(0, 15)
+        const out = xv
+          .map(id => (id != null ? game.players[id] : null))
+          .filter(p => p && (p.injury || p.bans > 0 || p.natSquad || p.onLoan)) as NonNullable<typeof squad[0]>[]
+        const tiredXv = xv
+          .map(id => (id != null ? game.players[id] : null))
+          .filter(p => p && p.cond < 72).length
+        if (!out.length && tiredXv < 4) return null
+        return (
+          <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+            <div className="fact-label">{t('dayroom.selection')}</div>
+            {out.slice(0, 3).map(p => (
+              <div key={p.id} className="meta" style={{ padding: '2px 0' }}>
+                ⚠️ <b>{p.name}</b> ({posName(p.pos)}) · {t(p.injury ? 'dayroom.selInjured' : p.bans > 0 ? 'dayroom.selBanned' : p.natSquad ? 'dayroom.selAway' : 'dayroom.selOnLoan')}
+              </div>
+            ))}
+            {out.length > 3 && <div className="meta muted">{t('dayroom.selMore', { n: out.length - 3 })}</div>}
+            {tiredXv >= 4 && <div className="meta" style={{ padding: '2px 0' }}>{t('dayroom.selTired', { n: tiredXv })}</div>}
+            <button className="btn ghost block" style={{ marginTop: 8 }} onClick={() => go('squad')}>
+              {t('dayroom.pickBtn')}
+            </button>
+          </div>
+        )
+      })()}
       {flat > 0 && (
         <div className="card">
           <div className="fact-label">{t('dayroom.dressingRoom')}</div>
@@ -386,6 +489,17 @@ function FridayBlocks() {
                   🛡️ <b>{t('dayroom.unbeatenB', { n: run })}</b>{t('dayroom.unbeatenRest')}
                 </div>
               )
+            })()}
+            {/* what the match is FOR (v1.1.3): the billing line the Home card
+                and the tunnel already carry, said on the eve as well - the
+                night the fixture is actually being thought about */}
+            {(() => {
+              const stakes = matchStakes(game, fx)
+              return stakes ? (
+                <div className="meta" style={{ marginTop: 6 }}>
+                  <b style={{ color: 'var(--gold)' }}>{t('dayroom.billing')}</b> {stakes}
+                </div>
+              ) : null
             })()}
             {read && (
               <div className="meta" style={{ marginTop: 6 }}>
