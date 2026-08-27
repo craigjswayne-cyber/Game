@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
@@ -1346,7 +1346,7 @@ const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
 }
 
-function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC }: {
+function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC, tickMs }: {
   ctx: LiveCtx
   game: ReturnType<typeof useStore.getState>['game'] & object
   last: MatchEvent | undefined
@@ -1356,6 +1356,10 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   /** score banners still fire at fast-forward speeds */
   showBig: boolean
   lastTeamC: [string, string]
+  /** the live beat in ms - how long until the next minute replaces every
+   *  position on this pitch. The dots' travel is derived from it so a man
+   *  ARRIVES before he is sent somewhere else; see --tick in theme.css. */
+  tickMs: number
 }) {
   const fx = ctx.fx
   const homeC = game!.clubs[fx.homeId]?.colors ?? ['var(--gold-fill)', 'var(--ramp-g9)']
@@ -1499,7 +1503,8 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   }
 
   return (
-    <div className={`pitch${showFx && evType === 'TRY' ? (towardHome ? ' try-r' : ' try-l') : ''}`}>
+    <div className={`pitch${showFx && evType === 'TRY' ? (towardHome ? ' try-r' : ' try-l') : ''}`}
+      style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
       <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${homeC[0]}cc, ${homeC[0]}55)` }} />
       <div className="tryzone tz-r" style={{ right: 0, background: `linear-gradient(270deg, ${awayC[0]}cc, ${awayC[0]}55)` }} />
       {[22, 50, 78].map(x => <div key={x} className="line" style={{ left: `${x}%` }} />)}
@@ -1510,12 +1515,24 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, fx.awayId))}</div>
       {dots(ctx.home, true)}
       {dots(ctx.away, false)}
+      {/* ballTop, NOT a second copy of its fallback.
+          ballTop (above) is the carrier's own row, and its comment says what it
+          is for: "the ball is with the carrier instead of drifting on a sawtooth
+          of its own". Every player already reads it - the ruckers converge on
+          it, the carrier is pulled onto it - but the BALL re-derived the
+          sawtooth `38 + ((min * 13) % 25)` inline, which is only ballTop's
+          fallback for the case where nobody is carrying.
+          So in the one situation the whole mechanism exists for - a carrier
+          named in the commentary, which is exactly when a player is watching -
+          thirty men converged on one row while the ball sat at an unrelated
+          height. The ball was the only thing on the pitch that did not know
+          where the ball was. */}
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
         className={`ball${kickFx && showFx ? (towardHome ? ' kick-r' : ' kick-l') : ''}`}
-        style={{ left: `${ballLeft}%`, top: `${38 + ((min * 13) % 25)}%` }} />
+        style={{ left: `${ballLeft}%`, top: `${ballTop}%` }} />
       {setPiece && (
         <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
-          style={{ left: `${ballLeft}%`, top: '48%' }}>
+          style={{ left: `${ballLeft}%`, top: `${ballTop}%` }}>
           {setPiece === 'LINEOUT' ? (
             <>
               <span className="lo-col" style={{ background: homeC[0] }} />
@@ -1696,11 +1713,22 @@ function Live() {
   // you edgy". It never SHORTENS - that would race a probe and rob a rout of
   // its own pace - and Fast is left exactly alone, because a manager who has
   // asked the game to hurry up is not asking for drama.
+  // THE BEAT ITSELF, hoisted out of the effect so the PITCH can be told what it
+  // is. The men on the pitch move by CSS transition, and a transition only
+  // looks like running if it FINISHES before the next minute replaces its
+  // target. It did not: the transition was a flat 1.1s against a beat of 350ms
+  // at Normal, so every new position landed while the previous move was a third
+  // done, the browser restarted from wherever the dot had got to, and the dot
+  // never once arrived anywhere. Fifteen men permanently two-thirds of the way
+  // to somewhere is not a shape, and no amount of easing fixes a duration that
+  // is three times its own cadence.
+  // So the beat is the number, and theme.css divides it (see --tick).
+  const tickMs = Math.round(SPEEDS[speedIdx].ms * (speedIdx < 2 ? 1 + 0.6 * tension : 1))
+
   useEffect(() => {
     if (!playing) return
-    const drag = speedIdx < 2 ? 1 + 0.6 * tension : 1
     // `timer`, not `t`: t() is the translator
-    const timer = setTimeout(() => advanceLive(), Math.round(SPEEDS[speedIdx].ms * drag))
+    const timer = setTimeout(() => advanceLive(), tickMs)
     return () => clearTimeout(timer)
   }, [cursor, playing, speedIdx, events.length, tension])
 
@@ -1818,7 +1846,8 @@ function Live() {
 
       {!panelActive && (
         <PitchViz ctx={ctx} game={game} last={last} ballLeft={ballLeft}
-          fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC} />
+          fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
+          tickMs={tickMs} />
       )}
 
       {/* One row, four jobs: play, skip, touchline, settings. Speed and sound
