@@ -98,7 +98,7 @@ try {
     const about = await page.locator('.content').innerText()
     ok(/Unofficial/i.test(about), 'the About page states the game is unofficial and unaffiliated')
     ok(/collects nothing/i.test(about), 'and that it collects nothing')
-    ok(!/Support the game/i.test(about), 'with no purchase door, because there is no store behind it')
+    ok(!/The Store|Open the Store/i.test(about), 'with no store door, because there is no store behind it')
     ok(await page.locator('a[href="./privacy.html"]').count() === 1, 'the privacy policy is one tap away')
 
     // v1.1.0: the Boardroom shelf exists only behind a bridge - the free web
@@ -122,7 +122,11 @@ try {
     await page.close()
   }
 
-  // ---- 2. a packaged build: the door, the purchase, the mark -------------
+  // ---- 2. a packaged build: the store, one row per product ---------------
+  // Rewritten for the v1.1.4 store: compact rows, everything visible, and
+  // the one honesty gate that matters - "Remove all ads" renders ONLY where
+  // an ad provider actually exists, because selling the absence of ads in a
+  // build that has none is the dishonesty v1.1.3 removed.
   say('\n--- 2. a bridge attached, as a wrapper injects one')
   {
     const page = await openPage({ billing: true })
@@ -130,20 +134,44 @@ try {
     page.on('pageerror', e => errs.push(e.message))
     await startCareer(page)
     await openAbout(page)
-    ok(await page.locator('.content').innerText().then(t => /Support the game/i.test(t)),
-      'the About page grows a Supporter card')
-    await page.locator('.btn.gold', { hasText: 'Have a look' }).click()
+    ok(await page.locator('.content').innerText().then(t => /The Store/i.test(t)),
+      'the About page grows a Store card')
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
     await page.waitForSelector('.content')
     const till = await page.locator('.content').innerText()
-    ok(/£2\.99/.test(till), "the price shown is the store's own")
-    ok(/no budget|no player|nothing/i.test(till), 'the page says what the money does not buy')
+    ok(/£2\.99/.test(till), "the prices shown are the store's own")
+    for (const row of ["Manager's License", 'Full Fitness', 'The International Stage', 'The Estate', "The Owner's Charter", 'Board funding']) {
+      ok(till.includes(row), `the ${row} row is on the shelf`)
+    }
+    ok(!/Remove all ads/i.test(till),
+      'and NO Remove-all-ads row, because this build ships no ads to remove')
+    ok(!/what it does not do/i.test(till), 'the essays are gone - each product is one line')
 
-    await page.locator('.btn.gold', { hasText: 'Support the game - £2.99' }).click()
+    // buy the License from its row: acknowledged, and the row turns into a receipt
+    await page.locator('.card', { hasText: "Manager's License" }).locator('.btn.gold').click()
     await page.waitForTimeout(600)
-    ok(await page.locator('.content').innerText().then(t => /Thank you/i.test(t)),
-      'a completed purchase is acknowledged on screen')
-    ok(await page.locator('.content').innerText().then(t => /already have this/i.test(t)),
-      'and the page turns into a receipt')
+    const after = await page.locator('.card', { hasText: "Manager's License" }).innerText()
+    ok(/Yours/.test(after), 'a completed purchase turns the row into a receipt')
+    ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
+    await page.close()
+  }
+
+  // ---- 2a. ads attached as well: the removal exists, and works -----------
+  say('\n--- 2a. an ad provider attached: Remove all ads appears, and marks the title')
+  {
+    const page = await openPage({ billing: true, ads: true })
+    const errs = []
+    page.on('pageerror', e => errs.push(e.message))
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+    ok(await page.locator('.content').innerText().then(t => /Remove all ads/i.test(t)),
+      'with ads in the build, the removal is on the shelf')
+    await page.locator('.card', { hasText: 'Remove all ads' }).locator('.btn.gold').click()
+    await page.waitForTimeout(600)
+    ok(await page.locator('.card', { hasText: 'Remove all ads' }).innerText().then(t => /Yours/.test(t)),
+      'the purchase completes and the row is a receipt')
 
     // the mark, on the screen it was promised on
     await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
@@ -223,7 +251,7 @@ try {
     page.on('pageerror', e => errs.push(e.message))
     await startCareer(page)
     await openAbout(page)
-    await page.locator('.btn.gold', { hasText: 'Have a look' }).click()
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
     await page.waitForSelector('.content')
     ok(await page.locator('text=In-Game Editor').count() === 0,
       'the shop shelf offers no Editor')

@@ -229,8 +229,6 @@
     "noTest": "No Test on the calendar - the union watches your club work in the meantime.",
     "dream": "★ THE DREAM",
     "storeLabel": "Store",
-    "storeTitle": "Back the game, or take the board's money",
-    "storeBody": "A supporter's mark, a proven name - and, in the Boardroom on the Finances screen, the extraordinary funds. Nothing here plays the matches.",
     "dreamDone": "★ THE DREAM, REALISED",
     "circling": "👀 Circling",
     "seasonAhead": "📅 The Season Ahead",
@@ -3012,25 +3010,13 @@
   "supporter": {
     "alreadyYours": "Already yours - nothing to restore.",
     "badge": "Supporter",
-    "buy": "Support the game",
-    "buyPriced": "Support the game - {price}",
     "cancelled": "Nothing was charged.",
     "error": "The store could not be reached. Nothing was charged - try again later.",
-    "fineprint": "A one-off payment, handled entirely by the app store. There is no subscription, no account to make, and the game still sends nothing about you anywhere.",
-    "notBody": "It buys no players, no budget, no form and no result: the game is exactly the game without it. What CAN be bought - a board's extraordinary funds, an owner's charter - lives in the Boardroom on the Finances screen, is priced on the tin, and stamps the save that uses it. This purchase touches none of that. It changes one mark on the title screen and nothing else.",
-    "notTitle": "What it does not do",
     "nothingToRestore": "Nothing to restore on this account.",
-    "ownedBody": "The title screen carries your mark. Thank you - genuinely. It is bought once and it follows the account, so a new phone only needs Restore.",
-    "ownedTitle": "You already have this",
     "pending": "The store is still processing it. Nothing more to do here - it lands on its own, and Restore will pick it up if you close the game first.",
     "restore": "Restore a previous purchase",
     "restored": "Restored. Thank you again.",
-    "sub": "one payment, once, and nothing in the game changes",
-    "thanks": "Thank you - genuinely. The title screen carries your mark from here.",
-    "title": "Support the game",
-    "unavailable": "There is no store attached to this build, so there is nothing to buy. Nothing is missing from the game.",
-    "whatBody": "It puts a supporter's mark on the title screen, and it puts something behind a game that is otherwise given away. That is the whole of it. There is no advertising in this game, and if there ever is, a supporter will never be shown it. If you have got this far into a career and want to back it, this is the way - and if you would rather not, nothing below this line is ever asked again.",
-    "whatTitle": "What it does"
+    "unavailable": "There is no store attached to this build, so there is nothing to buy. Nothing is missing from the game."
   },
   "about": {
     "buildLabel": "This build",
@@ -3040,16 +3026,13 @@
     "privacyBtn": "Read the privacy policy",
     "privacyLabel": "Your data",
     "sub": "what this is, and what it does with nothing of yours",
-    "supporterBody": "One optional payment, once. It marks the title screen and backs the game, and it changes nothing in the simulation.",
-    "supporterBtn": "Have a look",
-    "supporterLabel": "Support the game",
-    "supporterOwnedBody": "Thank you. The receipt lives on this device and follows your store account - Restore brings it back on a new phone.",
-    "supporterOwnedBtn": "Your purchase",
-    "supporterOwnedLabel": "You have supported this game",
     "thanks": "Built for the love of the game. Thank you for playing it.",
     "title": "About & legal",
     "unofficialBody": "PHASE: Rugby Manager is not affiliated with, endorsed by or licensed by any player, club, league or governing body. Clubs, competitions, grounds and sponsors in the game are fictional. Player names are real, used to identify people in a sporting database and for nothing else - no badges, kits or logos of any real organisation are included.",
-    "unofficialLabel": "Unofficial, and independent"
+    "unofficialLabel": "Unofficial, and independent",
+    "storeLabel": "The Store",
+    "storeBody": "Optional extras - none of it plays the matches.",
+    "storeBtn": "Open the Store"
   },
   "news": {
     "appointSubj": "Welcome to {club}",
@@ -4421,7 +4404,13 @@
       "other": "The club's shirt sponsor covered a consultant's review of {player}'s {injury_k}. A better rehab route was found: back {n} weeks earlier than feared."
     },
     "townCollectionSubj": "🪣 The town passes the bucket",
-    "townCollection": "The supporters' trust organised a collection for {club}: {amount}, in coins and notes and one farmer's cheque, handed over before training. The town does not intend to lose this club."
+    "townCollection": "The supporters' trust organised a collection for {club}: {amount}, in coins and notes and one farmer's cheque, handed over before training. The town does not intend to lose this club.",
+    "healSubj": "🏥 The retreat: a clean bill of health",
+    "heal": "The specialist retreat has done its work: {n} of the squad walked out with a clean bill of health. Every injury cleared, every man fresh. Match sharpness is the one thing medicine cannot buy - that comes back on Saturdays.",
+    "estateSubj": "🏗️ The estate is finished",
+    "estate": "The contractors have gone and the scaffolding with them: every facility at {club} now stands at its ceiling. Nine world-class buildings - and world-class running costs, which the books will feel every week.",
+    "pinnacleSubj": "🌍 The call has been made",
+    "pinnacle": "Your name has gone to the federations, with a full dossier of your work attached. These things move quickly once they move at all: expect an approach within a fortnight."
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4705,7 +4694,10 @@
     "badgeFailedCourse": "{name} failed his {badge_k} badge. The course fee is gone and he resits in four weeks.",
     "movedToTransferBudget": "Moved {amount} from the bank into the transfer budget.",
     "boardInjection": "Board injection: {amount} of extraordinary funds voted through.",
-    "charter": "The Owner's Charter signed: the salary cap no longer applies to the club."
+    "charter": "The Owner's Charter signed: the salary cap no longer applies to the club.",
+    "heal": "Booked the specialist retreat: {n} men restored to full health",
+    "estate": "Built the whole estate to its ceiling in one wave",
+    "pinnacle": "Sent my name to the federations"
   },
   "persLower": {
     "Professional": "professional",
@@ -5378,11 +5370,6 @@
     "charterSigned": "The Charter is signed and the save wears the mark: no cap, no fines, no embargoes, for as long as this career runs.",
     "charterOwned": "The Charter is yours. Sign it below when you are certain - it cannot be unsigned.",
     "fineprint": "Prices are the store's own. A consumable purchase is only ever spent once it has visibly landed in your career; if anything is interrupted, this page offers the purchase back. Nothing here plays the matches.",
-    "licenseTitle": "Manager's License",
-    "licenseSub": "a proven name, from the first day",
-    "licenseBody": "Start any NEW career at the top of the reputation scale: top-flight vacancies open from day one, and the federations already know your name. Bought once; offered as a choice on the final step of every new career, and never forced on one. Licensed careers wear a small 🎓.",
-    "licenseOwned": "The License is yours. Every new career's final step now offers the proven-name start - existing careers are never rewritten.",
-    "licenseThanks": "Thank you. The final step of your next new career will offer it.",
     "stampLicensed": "Licensed start",
     "stampCharter": "Owner's Charter",
     "watchPhysio": "📺 Sponsor's favour",
@@ -5400,5 +5387,39 @@
       "one": "📺 The analyst has one more read - his all-nighter for a spot",
       "other": "📺 The analyst has {n} more reads - his all-nighter for a spot"
     }
+  },
+  "store": {
+    "title": "Store",
+    "sub": "nothing here plays the matches",
+    "owned": "Yours",
+    "bought": "Yours. It follows your store account - Restore brings it back on a new phone.",
+    "needCareer": "Open a career first - the retreat needs a squad to visit.",
+    "removeAds": "Remove all ads",
+    "removeAdsLine": "Every ad in the game, gone for good.",
+    "license": "Manager's License",
+    "licenseLine": "Start any new career as a proven name.",
+    "heal": "Full Fitness",
+    "healLine": "Every injury healed, the whole squad fresh. Up to {n} a season.",
+    "healDone": "Done: the whole squad reports fit.",
+    "healHeld": "Paid, and held: nothing to heal right now, or the season's {n} visits are spent. It stays yours - apply it when it counts.",
+    "healSpent": "The season's visits are spent - the well refills in the summer.",
+    "pinnacle": "The International Stage",
+    "pinnacleLine": "Your name goes to the federations - a national-team offer follows within weeks.",
+    "makeCall": "Make the call",
+    "callMade": "The call is out. Expect the letter within a fortnight.",
+    "callRefused": "Not now: a federation matter is already open, or this career has had its call.",
+    "estate": "The Estate",
+    "estateLine": "Every facility to its maximum, for the club that builds it.",
+    "estateBuild": "Build it at this club",
+    "estateConfirm": "Build it - the whole estate, for good",
+    "estateDone": "🏗️ Done. Nine world-class facilities, and the running costs to match.",
+    "estateRefused": "Nothing to build: the estate is already at its ceiling.",
+    "charter": "The Owner's Charter",
+    "charterLine": "No salary cap, for the save that signs it.",
+    "signInBoardroom": "Sign it in the Boardroom",
+    "funding": "Board funding",
+    "fundingLine": "Four sizes of extraordinary money, priced on this season's budget.",
+    "openBoardroom": "Open the Boardroom",
+    "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere."
   }
 }

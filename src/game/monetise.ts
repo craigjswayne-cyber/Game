@@ -62,27 +62,39 @@ export function edition(): Edition {
 /**
  * ---- THE CATALOGUE ----
  *
- * Seven products (docs/monetisation-spec.md §1). Three are owned once and for
- * ever; four are consumable board resolutions whose effects grants.ts applies
- * to the one career that bought them. There was an eighth - phase.editor, the
- * In-Game Editor - removed on the owner's call (27 Aug, v1.1.3 list) before
- * any store ever sold one, so there is nobody to grandfather.
+ * Ten products (docs/monetisation-spec.md §1). Five are owned once and for
+ * ever; five are consumable resolutions whose effects grants.ts applies to
+ * the one career that bought them. History: the In-Game Editor (phase.editor)
+ * was removed on the owner's call (27 Aug, v1.1.3) before any store sold one;
+ * the heal, the estate and the international stage joined in v1.1.4 on the
+ * owner's overnight brief.
  */
 export const SUPPORTER_SKU = 'phase.supporter'
 export const LICENSE_SKU = 'phase.license'
 export const CHARTER_SKU = 'phase.uncapped'
+/** v1.1.4 (owner's overnight brief): every facility to its maximum, for a
+ *  save that applies it. Charter-shaped: bought once, applied per save,
+ *  stamped for good. */
+export const ESTATE_SKU = 'phase.estate'
+/** v1.1.4: the manager's name goes to the federations - an international
+ *  job offer follows within weeks, in the career that makes the call. */
+export const PINNACLE_SKU = 'phase.pinnacle'
 export const INJECT_SKUS = {
   s: 'phase.inject.s',
   m: 'phase.inject.m',
   l: 'phase.inject.l',
   xl: 'phase.inject.xl',
 } as const
+/** v1.1.4: every injury healed and the whole squad fresh, once per purchase.
+ *  Consumable like the injections: the store forgets it, the career keeps
+ *  what it did. */
+export const HEAL_SKU = 'phase.heal'
 
 /** Owned once, restorable from the store for ever. */
-export const NC_SKUS = [SUPPORTER_SKU, LICENSE_SKU, CHARTER_SKU] as const
+export const NC_SKUS = [SUPPORTER_SKU, LICENSE_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
 /** Bought, consumed, buyable again - the store forgets them, the career keeps
  *  what they did. */
-export const CONSUMABLE_SKUS = Object.values(INJECT_SKUS) as string[]
+export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU] as string[]
 
 export type Entitlement = 'free' | 'supporter'
 

@@ -2850,6 +2850,34 @@ export function processWeekAndAdvance(state: GameState) {
 
   // a union comes calling: dual club-and-country roles for proven managers
   if (state.natOffer && state.week - state.natOffer.week > 3) state.natOffer = null
+  // THE CALL IS ANSWERED (v1.1.4, the International Stage): a purchased
+  // introduction to the federations. Deterministic and rng-free - it fires
+  // the week natCall names, waits politely while the manager is unemployed
+  // or already fielding an offer, and comes from the same ladder as an
+  // earned offer: the best tier the reputation honestly qualifies for, or
+  // the ladder's foot when it qualifies for none, because the product is
+  // the introduction, not the All Blacks job. The offer it places is a
+  // normal natOffer in every way - same letter key, same 3-week shelf
+  // life, same Profile buttons.
+  if (state.natCall != null && !state.natTeam && !state.natOffer && !state.unemployed
+      && state.season * SEASON_WEEKS + state.week >= state.natCall) {
+    const rep = mgrReputation(state)
+    const TIERS: [string, number][] = [
+      ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
+      ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
+      ['ENG', 84], ['FRA', 86], ['RSA', 87], ['IRE', 87], ['NZL', 88],
+    ]
+    const qualified = TIERS.filter(([, need]) => rep >= need)
+    const nat = (qualified.length ? qualified[qualified.length - 1] : TIERS[0])[0]
+    state.natCall = null
+    state.natOffer = { nat, week: state.week }
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: `🌍 ${nat} want you as national head coach`,
+      body: `The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.`,
+      k: 'news.natOffer', v: { nat },
+    })
+  }
   if (!state.natTeam && !state.natOffer && !state.unemployed && (state.week === 6 || state.week === 18)) {
     const rep = mgrReputation(state)
     if (rep >= 64) {

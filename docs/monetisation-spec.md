@@ -42,13 +42,22 @@ These are constraints the spec builds on, not aspirations:
 
 | # | SKU id | Product | Price | Type |
 |---|--------|---------|-------|------|
-| 1 | `phase.supporter` | Remove Ads | $1.99 | Non-consumable |
+| 1 | `phase.supporter` | Remove all ads | $1.99 | Non-consumable |
 | 2 | `phase.inject.s` | Board Injection (Small) | $0.99 | Consumable |
 | 3 | `phase.inject.m` | Board Injection (Medium) | $1.99 | Consumable |
 | 4 | `phase.inject.l` | Board Injection (Large) | $3.99 | Consumable |
 | 5 | `phase.inject.xl` | The Sugar Daddy | $7.99 | Consumable |
 | 6 | `phase.license` | Manager's License | $2.99 | Non-consumable |
 | 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
+| 9 | `phase.heal` | Full Fitness | $0.99 | Consumable |
+| 10 | `phase.estate` | The Estate | $19.99 | Non-consumable |
+| 11 | `phase.pinnacle` | The International Stage | $4.99 | Non-consumable |
+
+Ten products live in the catalogue (`NC_SKUS` + `CONSUMABLE_SKUS` in
+`src/game/monetise.ts`); #7 (`phase.editor`) was removed in v1.1.3 and its
+number is retired. `moneyprobe` asserts the catalogue count and the
+consumable/non-consumable split, so this table and the code cannot drift
+apart silently.
 
 ### 1.1 Remove Ads — $1.99, non-consumable
 
@@ -60,6 +69,11 @@ These are constraints the spec builds on, not aspirations:
   buyer.
 * Reuses the existing `phase.supporter` entitlement so current supporters are
   grandfathered without migration.
+* **v1.1.4:** the store row renders only where an ad provider actually exists
+  (`adBridge()` present) or the removal is already owned. Selling the absence
+  of ads in a build that shows none would be dishonest, so the row appears the
+  day a wrapper ships ads and not an hour before — and the Play product should
+  be created on the same schedule.
 
 ### 1.2 Board Injections — consumable cash, four tiers
 
@@ -115,8 +129,8 @@ already reads marquee exemptions.
 * Was: $4.99 non-consumable (`phase.editor`), an Editor section on Game
   Status, the permanent 🔧 stamp. Removed on the owner's call — "this isnt
   needed for this game" — before any store ever sold one, so nothing is
-  grandfathered and no real save carries the stamp. The catalogue is seven
-  products; the numbering below is kept so cross-references stay stable.
+  grandfathered and no real save carries the stamp. The numbering below is
+  kept so cross-references stay stable.
 
 ### 1.5 The Owner’s Charter — $9.99, non-consumable
 
@@ -131,6 +145,51 @@ already reads marquee exemptions.
   the Annual. Records still count; the badge says how they were built.
 * The whale product sold honestly: no drip of exemptions — one price,
   total freedom, permanent mark.
+
+### 1.6 Full Fitness — $0.99, consumable (v1.1.4)
+
+* **Fiction:** the medical department runs a full recovery camp.
+* **Effect (`applyHeal`, `src/game/grants.ts`):** every player at the club is
+  restored — injury cleared, condition to 100, rust to 0. Sharpness is left
+  alone: match fitness is earned on the pitch and the product does not
+  pretend otherwise.
+* **Limit: 3 per season per save** (`HEALS_PER_SEASON`, ledgered in
+  `state.injections.heal`, reset at rollover with the other consumables). A
+  purchase that cannot land (squad already fit, limit spent, no career) is
+  **held at the store, not swallowed** — same apply-then-consume recovery
+  path the Boardroom injections use.
+* Lands as a club letter (`news.heal`) and a Decisions line (`dec.heal`).
+
+### 1.7 The Estate — $19.99, non-consumable (v1.1.4)
+
+* **Fiction:** an anonymous benefactor rebuilds the club's entire estate.
+* **Effect (`applyEstate`):** all nine facilities to `MAX_FACILITY` at once,
+  any in-flight build folded in, `state.estateMaxed = true`. Applied per save
+  from the store row behind a two-step confirm (it is the catalogue's most
+  expensive product; one mistap must not spend it).
+* **Once per save** — the stamp refuses a second application, and a save whose
+  facilities are already all-max refuses too rather than burning the grant.
+* **What it does not buy:** upkeep. Maxed facilities cost ~£63k/wk to run —
+  the books still have to carry what the benefactor built. AI clubs are
+  untouched.
+* Lands as a board letter (`news.estate`) and a Decisions line (`dec.estate`).
+
+### 1.8 The International Stage — $4.99, non-consumable (v1.1.4)
+
+* **Fiction:** your name is put about at federation level; a call follows.
+* **Effect (`applyPinnacle` + the answer block in `season.ts`):** an
+  international job offer arrives within `NAT_CALL_WEEKS` (2) game-weeks of
+  making the call — the offer is the **best federation the save's reputation
+  honestly qualifies for**, floor Canada, via the existing `natOffer`
+  machinery (same letter, same 3-week expiry, same accept path). The product
+  guarantees the phone rings; it does not hand you New Zealand at rep 22.
+* **Once per career** (`state.pinnacleCalled`); refused while a national job
+  is already held or an offer is already on the table. In a live career the
+  call goes out with the receipt ("an offer follows soon after purchase" —
+  owner's brief); otherwise the store row offers "Make the call" when a
+  career exists.
+* **Price note (27 Aug 2026):** $4.99 chosen by Claude to sit between the
+  License and the Charter — pending the owner's sign-off in the Play Console.
 
 ---
 

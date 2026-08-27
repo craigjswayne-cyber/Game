@@ -141,23 +141,32 @@ That is what makes the browser hand the page a Digital Goods service.
 `src/game/playbilling.ts` builds the bridge from it at boot, and does nothing at
 all anywhere else - which is why the web build has no purchase door.
 
-In Play Console (Monetise → Products → In-app products), create the **seven**
-products of `docs/monetisation-spec.md` §1. (It was eight; the In-Game Editor
-was removed on the owner's call, 27 Aug, before any store sold one — do NOT
-create `phase.editor`.) Until they exist, the store in the
+In Play Console (Monetise → Products → In-app products), create the **nine**
+products below of `docs/monetisation-spec.md` §1. (Do NOT create
+`phase.editor` — the In-Game Editor was removed on the owner's call, 27 Aug,
+before any store sold one. Do NOT create `phase.supporter` yet either — see
+the note under the table.) Until they exist, the store in the
 game is a door with nothing behind it: every shelf shows an unpriced button and
 every purchase ends in "Nothing was charged", which is exactly what the owner's
 first installed build showed (27 Aug).
 
 | Product ID | Play type | Product | Price |
 |---|---|---|---|
-| `phase.supporter` | Managed (non-consumable) | Support the game | $1.99 |
 | `phase.license` | Managed (non-consumable) | Manager's License | $2.99 |
 | `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
+| `phase.estate` | Managed (non-consumable) | The Estate | $19.99 |
+| `phase.pinnacle` | Managed (non-consumable) | The International Stage | $4.99 |
 | `phase.inject.s` | Consumable | Board Injection (Small) | $0.99 |
 | `phase.inject.m` | Consumable | Board Injection (Medium) | $1.99 |
 | `phase.inject.l` | Consumable | Board Injection (Large) | $3.99 |
 | `phase.inject.xl` | Consumable | The Sugar Daddy | $7.99 |
+| `phase.heal` | Consumable | Full Fitness | $0.99 |
+
+The tenth SKU, `phase.supporter` (Remove all ads, Managed, $1.99), exists in
+the code but its store row only renders where an ad provider exists
+(`adBridge()`). Create it in Play Console **on the day a wrapper build ships
+ads**, not before — a purchasable "Remove all ads" in a build that shows no
+ads is a refund magnet and a review risk.
 
 Every id must match `src/game/monetise.ts` **exactly** - a typo does not error,
 it renders an unpriced button that cannot sell. The consumable/managed split

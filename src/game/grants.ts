@@ -22,7 +22,7 @@
  *     inbox, a line in the decisions ledger - in both languages, so a bought
  *     pound is as legible as an earned one.
  */
-import { fmtMoney, logDecision, type GameState } from './model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
 
 export type InjectTier = 's' | 'm' | 'l' | 'xl'
@@ -130,5 +130,123 @@ export function applyCharter(state: GameState): boolean {
     k: 'news.charter', v,
   })
   logDecision(state, 'dec.charter', undefined, true)
+  return true
+}
+
+/**
+ * Full Fitness (v1.1.4, the owner's overnight brief: "restore your team to
+ * full health", 99p): every injury cleared, every man's condition and rust
+ * restored, in one visit. Consumable, and bounded like the injections - the
+ * retreat can only be booked so often a season, because a squad that can be
+ * made new every week is a game where the medical department, the physio
+ * hires, the recovery centre and the rotation puzzle all stop mattering.
+ * Deterministic, additive, no rng: it clears states, it never rolls dice.
+ *
+ * Sharpness is deliberately NOT restored. Health is what medicine buys;
+ * match practice is earned on Saturdays, and a healed man still comes back
+ * needing minutes - which keeps the returning-player story intact.
+ *
+ * Returns false when there is nothing to heal (a fully fit squad) or the
+ * seasonal limit is spent - and the Store holds the purchase un-consumed,
+ * exactly as the Boardroom holds an injection the board will not pass.
+ */
+export const HEALS_PER_SEASON = 3
+
+export function healsLeft(state: GameState): number {
+  return HEALS_PER_SEASON - (state.injections?.heal ?? 0)
+}
+
+export function applyHeal(state: GameState): boolean {
+  if (state.unemployed) return false
+  const club = state.clubs[state.userClubId]
+  if (!club) return false
+  if (healsLeft(state) <= 0) return false
+  let touched = 0
+  for (const id of club.players) {
+    const p = state.players[id]
+    if (!p) continue
+    const hurt = !!p.injury || p.cond < 100 || (p.rust ?? 0) > 0
+    if (!hurt) continue
+    touched++
+    p.injury = null
+    p.specialist = false
+    p.cond = 100
+    p.rust = 0
+  }
+  if (touched === 0) return false
+  state.injections = { ...(state.injections ?? {}), heal: (state.injections?.heal ?? 0) + 1 }
+  const v = { n: touched }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+    subject: tIn('en', 'news.healSubj'),
+    body: tIn('en', 'news.heal', v),
+    k: 'news.heal', v,
+  })
+  logDecision(state, 'dec.heal', { n: String(touched) }, true)
+  return true
+}
+
+/**
+ * The Estate (v1.1.4: "upgrade all facilities to max", £19.99): every one of
+ * the nine facilities raised to its ceiling, at once, for the club this save
+ * manages today. Charter-shaped: bought once from the store, applied to a
+ * save deliberately, stamped for good (🏗️ in Legacy and the Annual).
+ *
+ * What it does NOT wave away: the estate belongs to the CLUB. Walk out of
+ * the job and the buildings stay behind, exactly as a real ground would -
+ * and a maxed estate runs maxed upkeep (operatingCost reads estateSum), so
+ * the purchase buys buildings, not free money. Any half-built project is
+ * completed by the same wave of contractors rather than refunded.
+ */
+export function applyEstate(state: GameState): boolean {
+  if (state.estateMaxed || state.unemployed) return false
+  const club = state.clubs[state.userClubId]
+  if (!club) return false
+  const fids = Object.keys(FACILITY_INFO) as FacilityId[]
+  const before = fids.reduce((s, fid) => s + (club.facilities?.[fid] ?? 0), 0)
+  if (before >= MAX_FACILITY * fids.length) return false
+  club.facilities ??= {}
+  for (const fid of fids) club.facilities[fid] = MAX_FACILITY
+  state.facilityBuild = null
+  state.estateMaxed = true
+  const v = { club: club.name }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: tIn('en', 'news.estateSubj'),
+    body: tIn('en', 'news.estate', v),
+    k: 'news.estate', v,
+  })
+  logDecision(state, 'dec.estate', undefined, true)
+  return true
+}
+
+/**
+ * The International Stage (v1.1.4: "coach on the international stage - an
+ * international job offer follows soon after purchase"): the manager's name
+ * goes to the federations, and within two weeks a real offer arrives through
+ * the same natOffer machinery every earned offer uses - the same letter, the
+ * same 3-week shelf life, the same accept/decline on the Profile. Once per
+ * career: a career whose call was made and whose offer lapsed had its offer.
+ *
+ * Which federation calls is decided when the offer LANDS (season.ts), from
+ * the same tier ladder as earned offers - the best tier the reputation
+ * honestly qualifies for, or the ladder's foot for a reputation that
+ * qualifies for none, because the product is the introduction, not the
+ * All Blacks job.
+ */
+export const NAT_CALL_WEEKS = 2
+
+export function applyPinnacle(state: GameState): boolean {
+  if (state.pinnacleCalled || state.unemployed) return false
+  if (state.natTeam || state.natOffer) return false
+  state.pinnacleCalled = true
+  state.natCall = state.season * SEASON_WEEKS + state.week + NAT_CALL_WEEKS
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: tIn('en', 'news.pinnacleSubj'),
+    body: tIn('en', 'news.pinnacle'),
+    k: 'news.pinnacle',
+  })
+  logDecision(state, 'dec.pinnacle', undefined, true)
   return true
 }
