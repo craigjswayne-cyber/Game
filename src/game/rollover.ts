@@ -1386,7 +1386,12 @@ export function rebuildSeason(state: GameState) {
     p.stats = emptyStats()
     p.avail = 0
     p.form = 6
-    p.morale = clamp(p.morale, 5, 10)
+    // The summer lifts a man one notch - a break does that - but it no longer
+    // resets every grievance to Good (was clamp(morale, 5, 10), which quietly
+    // amnestied a season of mismanagement every July). A truly soured player
+    // reports back still short of settled, and the manager still owes him a
+    // conversation (v1.1.4, "manager choices must matter").
+    p.morale = clamp(p.morale + 1, 4, 10)
     p.cond = 100
     p.sharp = 60
     p.injury = null

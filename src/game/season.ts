@@ -885,11 +885,22 @@ function weeklyTraining(state: GameState, rng: Rng) {
           for (const k of focusMap[state.training]) p.a[k] = clamp(p.a[k] + 1, 1, 20)
         }
       }
-      // FM-style morale: everything drifts toward 'Good' unless events
-      // keep pushing it - form runs and game time do most of the work
+      // Morale drift, made conditional (v1.1.4, owner: "make morale genuinely
+      // tricky - manager choices must matter"). It used to pull every man
+      // toward 6.5 at 6% a week regardless of anything, which meant every
+      // grievance self-healed in a month with the manager doing nothing.
+      // Two changes, both deterministic:
+      //   - the target depends on his rugby: a man getting his game drifts
+      //     toward Good (6.5); a man who is not settles toward Okay (5.5),
+      //     so a big squad's fringe no longer sits contentedly at Good;
+      //   - the pull is asymmetric: morale falls to its target at the old 6%
+      //     but RECOVERS at barely half that, so a soured man needs an actual
+      //     intervention - minutes, a word in the office, a new deal, a sale -
+      //     rather than a fortnight of being ignored.
       if (isUser) {
-        p.morale += (6.5 - p.morale) * 0.06
         const played = (p.lastWk ?? -9) >= state.week - 1
+        const target = played || p.injury || p.natSquad ? 6.5 : 5.5
+        p.morale += (target - p.morale) * (p.morale < target ? 0.035 : 0.06)
         const frozen = !played && (p.lastWk ?? -9) < state.week - 3 && !p.injury && !p.acad && !p.natSquad && p.stats.apps + 3 < state.week
         if (played) p.morale = clamp(p.morale + 0.1, 1, 10)
         else if (frozen) p.morale = clamp(p.morale - (p.pers === 'Mercenary' || p.pers === 'Ambitious' ? 0.35 : 0.2), 1, 10)

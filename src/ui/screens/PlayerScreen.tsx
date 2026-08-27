@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
-import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms, talkToPlayer } from '../../game/ai'
+import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
@@ -433,16 +433,12 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </button>
         )
       })()}
-      {mine && !p.onLoan && (
-        <div className="btn-row">
-          <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'praise')); touch() }}>
-            {t('player.praiseHisForm')}
-          </button>
-          <button className="btn ghost" onClick={() => { setMsg(talkToPlayer(game, p.id, 'word')); touch() }}>
-            {t('player.haveAWord')}
-          </button>
-        </div>
-      )}
+      {/* The praise/quiet-word buttons that used to sit here were the OLD
+          talk economy - per-player cooldown, no weekly budget, so a manager
+          could praise his whole in-form squad every week for free morale.
+          The office block above (canChat/praisePlayer/warnPlayer) is the one
+          conversation system now: two chats a week, squad-wide, and the words
+          keep their value (v1.1.4). */}
       {mine ? (
         <>
           {negotiating && (
