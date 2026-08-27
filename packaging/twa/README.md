@@ -109,6 +109,25 @@ curl https://YOUR-HOST/.well-known/assetlinks.json
 Play Console → Setup → App signing shows the fingerprint it uses; both belong in
 the file, or the address bar comes back the day after release.
 
+**Never leave a placeholder in that array while you wait for Play to show you
+the real value.** The file shipped with
+`"REPLACE:WITH:THE:SHA256:PLAY:APP:SIGNING:GIVES:YOU"` sitting in it as a
+reminder, which is worse than shipping nothing: a fingerprint that is not 32
+colon-separated hex bytes is not a fingerprint, and a validator entitled to
+reject the malformed entry is equally entitled to reject the statement holding
+it. One correct fingerprint is a valid file. One correct fingerprint plus a
+note-to-self is a gamble on someone else's parser.
+
+And the stake is bigger than the address bar, which is only the *symptom* you
+can see. Verification is what puts the app in trusted mode, trusted mode is what
+makes the browser hand the page a Digital Goods service, and that service is the
+whole of `bridge()` in `monetise.ts`. So an unverified TWA has no bridge, which
+means `tillOpen()` is false, which means every shelf in the game renders
+`null` - the Supporter door on About, the Boardroom on Finances, all of it.
+The shop does not fail loudly when asset links are wrong. It is simply not
+there, exactly as it is not there in a browser tab, and it looks like a game
+that was built without one.
+
 ## 4. Billing
 
 `twa-manifest.json` already declares it:
