@@ -4,7 +4,6 @@ import { deleteSave, listSaves, loadGame, migrate, saveGame, type SaveMeta } fro
 import { seasonLabel, weekDate, type GameState } from '../../game/model'
 import { SectionTitle } from '../components'
 import { t } from '../../game/i18n'
-import { EDITOR_SKU, hasEntitlement } from '../../game/monetise'
 
 const SLOTS = ['slot1', 'slot2', 'slot3', 'slot4']
 /* keys, not words - t()d wherever a slot is named */
@@ -131,17 +130,10 @@ export default function Saves() {
         {msg && <div className="meta" style={{ color: 'var(--text-positive)', fontWeight: 700, marginTop: 6 }}>{msg}</div>}
       </div>
 
-      {/* the In-Game Editor's door (v1.1.0): tools live with tools, so the
-          save/load surface hosts it - and only for an owner, so the free game
-          never meets a locked door here */}
-      {hasEntitlement(EDITOR_SKU) && (
-        <div className="card">
-          <h3 style={{ fontSize: 14 }}>{t('editor.doorTitle')}</h3>
-          <div className="meta">{t(game.edited ? 'editor.doorStamped' : 'editor.doorBody')}</div>
-          <button className="btn ghost block" style={{ marginTop: 6 }}
-            onClick={() => useStore.getState().go('editor')}>{t('editor.doorOpen')}</button>
-        </div>
-      )}
+      {/* the In-Game Editor's door lived here (v1.1.0-v1.1.2). Removed on the
+          owner's call, 27 Aug: "this isnt needed for this game". Nothing was
+          ever sold - the product never existed in any store - so there is no
+          owner to grandfather and no stamp on any save. */}
 
       <SectionTitle>{t('world.svSaveSlots')}</SectionTitle>
       {SLOTS.map(slot => {

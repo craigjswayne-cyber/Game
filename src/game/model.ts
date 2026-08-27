@@ -1310,8 +1310,10 @@ export interface GameState {
   /** Manager's License chosen at career creation: a proven name from day
    *  one (mgrReputation pays the scale's ceiling; 🎓 in Legacy). */
   licensed?: boolean
-  /** the In-Game Editor has touched this save at least once - a permanent
-   *  stamp (🔧), so the Hall of Fame stays honest with itself */
+  /** the In-Game Editor's permanent 🔧 stamp lived here (v1.1.0-v1.1.2).
+   *  The Editor was removed before any store sold one, so no real save
+   *  carries it; the field stays optional-and-ignored so an old dev save
+   *  that has it still loads. */
   edited?: boolean
   /** board injections taken this season, per tier: the well has a bottom
    *  (two per tier, the Sugar Daddy once) and this is where it is measured */

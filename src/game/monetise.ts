@@ -26,7 +26,7 @@
  *
  *   WHAT THE TILL CHANGES, IT CHANGES THROUGH ONE DOOR. Until v1.1.0 nothing
  *     behind the till touched the game at all. Now some of it does - board
- *     injections, the Owner's Charter, the License, the Editor - and every one
+ *     injections, the Owner's Charter, the License - and every one
  *     of those effects lives in `grants.ts`: deterministic, additive, outside
  *     the rng stream, bounded or stamped, and probed (`grantprobe`). This file
  *     still changes nothing itself; it rings the till and reports the sale.
@@ -62,13 +62,14 @@ export function edition(): Edition {
 /**
  * ---- THE CATALOGUE ----
  *
- * Eight products (docs/monetisation-spec.md §1). Four are owned once and for
+ * Seven products (docs/monetisation-spec.md §1). Three are owned once and for
  * ever; four are consumable board resolutions whose effects grants.ts applies
- * to the one career that bought them.
+ * to the one career that bought them. There was an eighth - phase.editor, the
+ * In-Game Editor - removed on the owner's call (27 Aug, v1.1.3 list) before
+ * any store ever sold one, so there is nobody to grandfather.
  */
 export const SUPPORTER_SKU = 'phase.supporter'
 export const LICENSE_SKU = 'phase.license'
-export const EDITOR_SKU = 'phase.editor'
 export const CHARTER_SKU = 'phase.uncapped'
 export const INJECT_SKUS = {
   s: 'phase.inject.s',
@@ -78,7 +79,7 @@ export const INJECT_SKUS = {
 } as const
 
 /** Owned once, restorable from the store for ever. */
-export const NC_SKUS = [SUPPORTER_SKU, LICENSE_SKU, EDITOR_SKU, CHARTER_SKU] as const
+export const NC_SKUS = [SUPPORTER_SKU, LICENSE_SKU, CHARTER_SKU] as const
 /** Bought, consumed, buyable again - the store forgets them, the career keeps
  *  what they did. */
 export const CONSUMABLE_SKUS = Object.values(INJECT_SKUS) as string[]
