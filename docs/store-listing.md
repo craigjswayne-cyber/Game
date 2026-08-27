@@ -119,6 +119,18 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.4
+
+```
+• The Store, rebuilt: every product on one shelf, one line each - including
+  Full Fitness, The Estate and The International Stage.
+• Livelier match animation: support runs, a defensive line that moves as one,
+  and a ball that never stands still.
+• Morale is a real job now: grievances stop healing themselves.
+• Boards mean their refusals - push a denied request at your peril.
+```
+*(379)*
+
 ### What's new (500 max) - v1.1.3
 
 ```
@@ -292,6 +304,18 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.4
+
+```
+• La Boutique repensée : chaque produit sur une étagère, une ligne chacun -
+  dont Pleine Forme, Le Domaine et La Scène Internationale.
+• Animation des matchs plus vivante : courses de soutien, ligne défensive qui
+  bouge d'un bloc, ballon jamais immobile.
+• Le moral est un vrai métier : les rancœurs ne guérissent plus toutes seules.
+• Le conseil pense ce qu'il refuse - insister a un prix.
+```
+*(392)*
 
 ### Nouveautés (500 max) - v1.1.3
 
