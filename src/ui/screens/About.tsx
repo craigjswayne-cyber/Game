@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { DEV_CONTACT } from '../../game/bugreport'
-import { supporterDoor } from '../../game/monetise'
+import { tillOpen } from '../../game/monetise'
 import { t } from '../../game/i18n'
 
 /**
@@ -24,7 +24,6 @@ import { t } from '../../game/i18n'
  */
 export default function About() {
   const go = useStore(s => s.go)
-  const supporter = useStore(s => s.supporter)
 
   return (
     <>
@@ -50,12 +49,13 @@ export default function About() {
         </a>
       </div>
 
-      {supporterDoor() && (
+      {/* one card, one line, one door (v1.1.4: the store speaks for itself) */}
+      {tillOpen() && (
         <div className="card">
-          <div className="fact-label">{t(supporter ? 'about.supporterOwnedLabel' : 'about.supporterLabel')}</div>
-          <div className="meta">{t(supporter ? 'about.supporterOwnedBody' : 'about.supporterBody')}</div>
+          <div className="fact-label">{t('about.storeLabel')}</div>
+          <div className="meta">{t('about.storeBody')}</div>
           <button className="btn gold block" style={{ marginTop: 8 }} onClick={() => go('supporter')}>
-            {t(supporter ? 'about.supporterOwnedBtn' : 'about.supporterBtn')}
+            {t('about.storeBtn')}
           </button>
         </div>
       )}

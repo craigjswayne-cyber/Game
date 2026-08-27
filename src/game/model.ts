@@ -1316,8 +1316,23 @@ export interface GameState {
    *  that has it still loads. */
   edited?: boolean
   /** board injections taken this season, per tier: the well has a bottom
-   *  (two per tier, the Sugar Daddy once) and this is where it is measured */
-  injections?: Partial<Record<'s' | 'm' | 'l' | 'xl', number>>
+   *  (two per tier, the Sugar Daddy once) and this is where it is measured.
+   *  'heal' (v1.1.4) rides in the same ledger for the same reason - the
+   *  retreat can only be booked so often - and is wiped at rollover with
+   *  the rest of it. */
+  injections?: Partial<Record<'s' | 'm' | 'l' | 'xl' | 'heal', number>>
+  /** The Estate (v1.1.4): every facility raised to its maximum, bought and
+   *  applied to this save. A permanent stamp like the Charter's - facilities
+   *  live on the club and are left behind with a job change, but the record
+   *  of how the estate was built stays on the save. */
+  estateMaxed?: boolean
+  /** The International Stage (v1.1.4): the call to the federations has been
+   *  made for this save - once per career, however long the career runs. */
+  pinnacleCalled?: boolean
+  /** the week (absolute: season * SEASON_WEEKS + week) the federations answer
+   *  the call: when it arrives, season.ts places a real natOffer through the
+   *  normal machinery. Null/absent when no call is out. */
+  natCall?: number | null
   /** purchased cash landed this season, in pounds - the books objective
    *  reads organic funds only, so a bought pound can never finish it */
   injectedThisSeason?: number

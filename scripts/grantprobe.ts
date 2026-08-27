@@ -19,9 +19,9 @@
 // Run: npx tsx scripts/grantprobe.ts
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { applyCharter, applyInjection, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
+import { HEALS_PER_SEASON, NAT_CALL_WEEKS, applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, healsLeft, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
 import { capPosition } from '../src/game/cap'
-import { mgrReputation, type GameState } from '../src/game/model'
+import { FACILITY_INFO, MAX_FACILITY, mgrReputation, type FacilityId, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
 
 let fails = 0
@@ -145,6 +145,64 @@ console.log('\n--- 7. a licensed save is a proven name from day one\n')
 // Section 8 tested the In-Game Editor's clamped writes. The Editor was removed
 // on the owner's call (27 Aug, v1.1.3) before any store ever sold one, so the
 // writes it clamped no longer exist to clamp.
+
+console.log('\n--- 8. the retreat heals everything, and only so often\n')
+{
+  const g = newGame('northampton', 'Grant Probe', 7108)
+  const club = g.clubs[g.userClubId]
+  const hurtOne = () => {
+    const p = g.players[club.players[0]]!
+    p.injury = { desc: 'ribs', until: g.week + 6, weeks: 6 }
+    p.cond = 55
+    p.rust = 2
+    return p
+  }
+  ok(healsLeft(g) === HEALS_PER_SEASON, `a fresh season has all ${HEALS_PER_SEASON} visits`)
+  const p = hurtOne()
+  ok(applyHeal(g), 'a squad with an injured man takes the retreat')
+  ok(p.injury === null && p.cond === 100 && (p.rust ?? 0) === 0,
+    'and he walks out healed: no injury, full condition, no rust')
+  ok(healsLeft(g) === HEALS_PER_SEASON - 1, 'one visit is spent')
+  ok(g.news.some(n => n.k === 'news.heal'), 'the letter is filed, keyed for both languages')
+  // sharpness is match practice, not medicine
+  const sharpBefore = g.players[club.players[1]]!.sharp
+  ok(g.players[club.players[1]]!.sharp === sharpBefore, 'sharpness is untouched - it comes back on Saturdays')
+  ok(!applyHeal(g), 'a fully fit squad has nothing to heal, and the purchase is held rather than swallowed')
+  ok(healsLeft(g) === HEALS_PER_SEASON - 1, 'the refusal spends no visit')
+  hurtOne(); ok(applyHeal(g), 'visit two lands')
+  hurtOne(); ok(applyHeal(g), 'visit three lands')
+  hurtOne()
+  ok(!applyHeal(g), `visit ${HEALS_PER_SEASON + 1} is refused - the well has a bottom`)
+}
+
+console.log('\n--- 9. the estate rises whole, once, and the builders take their half-built site with them\n')
+{
+  const g = newGame('northampton', 'Grant Probe', 7109)
+  const club = g.clubs[g.userClubId]
+  g.facilityBuild = { id: 'gym', done: 3, level: 2 }
+  ok(applyEstate(g), 'the estate purchase applies')
+  const fids = Object.keys(FACILITY_INFO) as FacilityId[]
+  ok(fids.every(f => (club.facilities?.[f] ?? 0) === MAX_FACILITY), 'every one of the nine facilities stands at its ceiling')
+  ok(g.estateMaxed === true, 'the save wears the stamp')
+  ok(g.facilityBuild === null, 'the half-built project is folded into the wave, not left dangling')
+  ok(g.news.some(n => n.k === 'news.estate'), 'the letter is filed, keyed')
+  ok(!applyEstate(g), 'and it cannot be applied twice')
+}
+
+console.log('\n--- 10. the call to the federations is answered, once per career, whatever the reputation\n')
+{
+  const g = newGame('northampton', 'Grant Probe', 7110)
+  ok(mgrReputation(g) < 64, `a fresh career is nowhere near the earned gate (${mgrReputation(g)})`)
+  ok(applyPinnacle(g), 'the call goes out')
+  ok(g.pinnacleCalled === true && g.natCall != null, 'the save is stamped and the answer is scheduled')
+  ok(g.news.some(n => n.k === 'news.pinnacle'), 'the letter is filed, keyed')
+  ok(!g.natOffer, 'no offer materialises on the spot - federations take a fortnight')
+  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !g.natOffer; i++) processWeekAndAdvance(g)
+  ok(!!g.natOffer, `a real offer arrives within ${NAT_CALL_WEEKS + 1} weeks`)
+  ok(g.natOffer?.nat === 'CAN', 'from the foot of the ladder, because the product is the introduction, not the All Blacks job')
+  ok(g.natCall == null, 'the call is answered and cleared')
+  ok(!applyPinnacle(g), 'a career only gets one call')
+}
 
 if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }
 console.log('\nGRANT PROBE PASSED: every purchase pays the tin, and only the tin')

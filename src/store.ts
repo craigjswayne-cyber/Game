@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
 import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i18n'
 import { LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
-import { applyCharter, applyInjection, type InjectTier } from './game/grants'
+import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure } from './game/model'
@@ -177,6 +177,12 @@ interface Store {
   boardInject: (tier: InjectTier) => boolean
   /** The Owner's Charter, applied to this save for good. */
   signCharter: () => boolean
+  /** v1.1.4 grants (grants.ts): the medical retreat, the maxed estate, and
+   *  the call to the federations. Same contract as the Charter: refused
+   *  cleanly (false) when the save cannot honestly receive the effect. */
+  healSquad: () => boolean
+  buildEstate: () => boolean
+  makeTheCall: () => boolean
   /** Rewarded favours (game/rewarded.ts): called ONLY after the ad bridge
    *  reports a completed view. Each returns what the screen should say, or
    *  null/false when the ledger refuses. */
@@ -1129,6 +1135,30 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     if (!g) return false
     const done = applyCharter(g)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  healSquad: () => {
+    const g = get().game
+    if (!g) return false
+    const done = applyHeal(g)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  buildEstate: () => {
+    const g = get().game
+    if (!g) return false
+    const done = applyEstate(g)
+    if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
+    return done
+  },
+
+  makeTheCall: () => {
+    const g = get().game
+    if (!g) return false
+    const done = applyPinnacle(g)
     if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return done
   },

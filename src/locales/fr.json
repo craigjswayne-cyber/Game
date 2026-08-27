@@ -229,8 +229,6 @@
     "noTest": "Aucun test au calendrier - la fédération vous observe en club en attendant.",
     "dream": "★ LE RÊVE",
     "storeLabel": "Boutique",
-    "storeTitle": "Soutenir le jeu, ou prendre l'argent du conseil",
-    "storeBody": "Une marque de soutien, un nom déjà reconnu - et, dans la salle du conseil à l'écran Finances, les fonds exceptionnels. Rien ici ne joue les matchs.",
     "dreamDone": "★ LE RÊVE, ACCOMPLI",
     "circling": "👀 Ils rôdent",
     "seasonAhead": "📅 La saison à venir",
@@ -3012,25 +3010,13 @@
   "supporter": {
     "alreadyYours": "Déjà à vous - rien à restaurer.",
     "badge": "Soutien",
-    "buy": "Soutenir le jeu",
-    "buyPriced": "Soutenir le jeu - {price}",
     "cancelled": "Rien n'a été débité.",
     "error": "La boutique est injoignable. Rien n'a été débité - réessayez plus tard.",
-    "fineprint": "Un paiement unique, géré entièrement par la boutique d'applications. Pas d'abonnement, pas de compte à créer, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
-    "notBody": "Il n'achète ni joueurs, ni budget, ni forme, ni résultat : le jeu est exactement le même sans lui. Ce qui PEUT s'acheter - les fonds exceptionnels d'un conseil, la charte d'un propriétaire - se trouve dans la salle du conseil, à l'écran Finances, au prix affiché, et marque la sauvegarde qui s'en sert. Cet achat n'y touche pas. Il change une marque sur l'écran-titre, et rien d'autre.",
-    "notTitle": "Ce que cela ne fait pas",
     "nothingToRestore": "Rien à restaurer sur ce compte.",
-    "ownedBody": "L'écran-titre porte votre marque. Merci, sincèrement. L'achat est unique et suit votre compte : sur un nouveau téléphone, il suffit de Restaurer.",
-    "ownedTitle": "Vous l'avez déjà",
     "pending": "La boutique traite encore l'achat. Rien de plus à faire ici : il arrivera tout seul, et Restaurer le récupérera si vous fermez le jeu entre-temps.",
     "restore": "Restaurer un achat précédent",
     "restored": "Restauré. Merci encore.",
-    "sub": "un paiement, une fois, et rien ne change dans le jeu",
-    "thanks": "Merci, sincèrement. L'écran-titre porte votre marque à partir de maintenant.",
-    "title": "Soutenir le jeu",
-    "unavailable": "Aucune boutique n'est rattachée à cette version : il n'y a donc rien à acheter. Rien ne manque au jeu.",
-    "whatBody": "Cela ajoute une marque de soutien sur l'écran-titre et permet d'appuyer un jeu qui est offert par ailleurs. C'est tout. Ce jeu ne comporte aucune publicité, et s'il venait un jour à en comporter, elle ne serait jamais montrée à ceux qui l'ont soutenu. Si vous êtes allé loin dans une carrière et voulez soutenir le projet, c'est par ici - et si vous préférez ne pas le faire, rien de ce qui suit ne vous sera redemandé.",
-    "whatTitle": "Ce que cela fait"
+    "unavailable": "Aucune boutique n'est rattachée à cette version : il n'y a donc rien à acheter. Rien ne manque au jeu."
   },
   "about": {
     "buildLabel": "Cette version",
@@ -3040,16 +3026,13 @@
     "privacyBtn": "Lire la politique de confidentialité",
     "privacyLabel": "Vos données",
     "sub": "ce que c'est, et ce qu'il fait de rien du tout vous concernant",
-    "supporterBody": "Un paiement facultatif, une seule fois. Il marque l'écran-titre et soutient le jeu, et ne change rien à la simulation.",
-    "supporterBtn": "Y jeter un œil",
-    "supporterLabel": "Soutenir le jeu",
-    "supporterOwnedBody": "Merci. Le reçu est conservé sur cet appareil et suit votre compte de boutique - Restaurer le récupère sur un nouveau téléphone.",
-    "supporterOwnedBtn": "Votre achat",
-    "supporterOwnedLabel": "Vous avez soutenu ce jeu",
     "thanks": "Fait par amour du jeu. Merci d'y jouer.",
     "title": "À propos et mentions légales",
     "unofficialBody": "PHASE: Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un club, d'une ligue ou d'une fédération. Les clubs, compétitions, stades et sponsors du jeu sont fictifs. Les noms de joueurs sont réels : ils servent à identifier des personnes dans une base de données sportive, et à rien d'autre - aucun écusson, maillot ou logo d'une organisation réelle n'est inclus.",
-    "unofficialLabel": "Non officiel et indépendant"
+    "unofficialLabel": "Non officiel et indépendant",
+    "storeLabel": "La Boutique",
+    "storeBody": "Des extras facultatifs - rien de tout cela ne joue les matchs.",
+    "storeBtn": "Ouvrir la Boutique"
   },
   "news": {
     "appointSubj": "Bienvenue à {club}",
@@ -4421,7 +4404,13 @@
       "other": "Le sponsor maillot du club a financé l'examen par un consultant du dossier de {player} ({injury_k}). Une meilleure rééducation a été trouvée : retour {n} semaines plus tôt que prévu."
     },
     "townCollectionSubj": "🪣 La ville fait passer le seau",
-    "townCollection": "L'association des supporters a organisé une collecte pour {club} : {amount}, en pièces, en billets et avec le chèque d'un fermier, remis avant l'entraînement. La ville n'a pas l'intention de perdre ce club."
+    "townCollection": "L'association des supporters a organisé une collecte pour {club} : {amount}, en pièces, en billets et avec le chèque d'un fermier, remis avant l'entraînement. La ville n'a pas l'intention de perdre ce club.",
+    "healSubj": "🏥 La retraite médicale : bilan de santé parfait",
+    "heal": "La retraite spécialisée a fait son œuvre : {n} joueurs de l'effectif en sont ressortis avec un bilan de santé parfait. Toutes les blessures soignées, tous les hommes frais. Le rythme, lui, ne s'achète pas - il revient le samedi.",
+    "estateSubj": "🏗️ Le domaine est achevé",
+    "estate": "Les ouvriers sont partis et les échafaudages avec eux : chaque installation de {club} est désormais à son plafond. Neuf bâtiments de classe mondiale - et des frais de fonctionnement de classe mondiale, que les comptes sentiront chaque semaine.",
+    "pinnacleSubj": "🌍 L'appel est passé",
+    "pinnacle": "Votre nom est parti chez les fédérations, accompagné d'un dossier complet sur votre travail. Ces choses vont vite dès qu'elles bougent : attendez-vous à une approche sous quinzaine."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -4705,7 +4694,10 @@
     "badgeFailedCourse": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et il repasse dans quatre semaines.",
     "movedToTransferBudget": "Transféré {amount} de la trésorerie vers le budget de transferts.",
     "boardInjection": "Injection du conseil : {amount} de fonds exceptionnels votés.",
-    "charter": "La Charte du propriétaire est signée : le plafond salarial ne s'applique plus au club."
+    "charter": "La Charte du propriétaire est signée : le plafond salarial ne s'applique plus au club.",
+    "heal": "Retraite médicale réservée : {n} joueurs remis en pleine forme",
+    "estate": "Tout le domaine porté à son plafond en une seule vague",
+    "pinnacle": "Mon nom envoyé aux fédérations"
   },
   "persLower": {
     "Professional": "professionnel",
@@ -5378,11 +5370,6 @@
     "charterSigned": "La Charte est signée et la sauvegarde porte la marque : plus de plafond, plus d'amendes, plus d'embargos, tant que cette carrière durera.",
     "charterOwned": "La Charte est à vous. Signez-la ci-dessous quand vous serez certain : elle ne peut pas être annulée.",
     "fineprint": "Les prix sont ceux de la boutique. Un achat consommable n'est débité qu'une fois visiblement arrivé dans votre carrière ; en cas d'interruption, cette page vous le propose de nouveau. Rien ici ne joue les matchs.",
-    "licenseTitle": "Licence de manager",
-    "licenseSub": "un nom qui compte, dès le premier jour",
-    "licenseBody": "Commencez toute NOUVELLE carrière au sommet de l'échelle de réputation : les postes de l'élite ouverts dès le premier jour, et les fédérations connaissent déjà votre nom. Achetée une fois ; proposée comme un choix à la dernière étape de chaque nouvelle carrière, jamais imposée. Les carrières sous licence portent un petit 🎓.",
-    "licenseOwned": "La Licence est à vous. La dernière étape de chaque nouvelle carrière proposera le départ en nom établi - les carrières existantes ne sont jamais réécrites.",
-    "licenseThanks": "Merci. La dernière étape de votre prochaine nouvelle carrière le proposera.",
     "stampLicensed": "Départ sous licence",
     "stampCharter": "Charte du propriétaire",
     "watchPhysio": "📺 La faveur du sponsor",
@@ -5400,5 +5387,39 @@
       "one": "📺 L'analyste a une lecture de plus - sa nuit blanche contre un spot",
       "other": "📺 L'analyste a {n} lectures de plus - sa nuit blanche contre un spot"
     }
+  },
+  "store": {
+    "title": "Boutique",
+    "sub": "rien ici ne joue les matchs",
+    "owned": "Acquis",
+    "bought": "Acquis. Lié à votre compte de boutique - Restaurer le récupère sur un nouveau téléphone.",
+    "needCareer": "Ouvrez d'abord une carrière - la retraite médicale a besoin d'un effectif à soigner.",
+    "removeAds": "Supprimer toutes les publicités",
+    "removeAdsLine": "Toutes les publicités du jeu, supprimées pour de bon.",
+    "license": "Manager's License",
+    "licenseLine": "Commencez toute nouvelle carrière avec un nom déjà reconnu.",
+    "heal": "Pleine forme",
+    "healLine": "Toutes les blessures soignées, tout l'effectif frais. Jusqu'à {n} par saison.",
+    "healDone": "C'est fait : tout l'effectif est déclaré apte.",
+    "healHeld": "Payé, et en attente : rien à soigner pour l'instant, ou les {n} visites de la saison sont épuisées. Il reste à vous - appliquez-le au bon moment.",
+    "healSpent": "Les visites de la saison sont épuisées - le puits se remplit à l'été.",
+    "pinnacle": "La scène internationale",
+    "pinnacleLine": "Votre nom part chez les fédérations - une offre de sélectionneur suit sous quelques semaines.",
+    "makeCall": "Passer l'appel",
+    "callMade": "L'appel est passé. Attendez la lettre sous quinzaine.",
+    "callRefused": "Pas maintenant : un dossier fédéral est déjà ouvert, ou cette carrière a eu son appel.",
+    "estate": "Le Domaine",
+    "estateLine": "Chaque installation à son maximum, pour le club qui le bâtit.",
+    "estateBuild": "Le bâtir dans ce club",
+    "estateConfirm": "Le bâtir - tout le domaine, pour de bon",
+    "estateDone": "🏗️ C'est fait. Neuf installations de classe mondiale, et les frais de fonctionnement qui vont avec.",
+    "estateRefused": "Rien à bâtir : le domaine est déjà à son plafond.",
+    "charter": "La Charte du propriétaire",
+    "charterLine": "Plus de plafond salarial, pour la sauvegarde qui la signe.",
+    "signInBoardroom": "La signer dans la salle du conseil",
+    "funding": "Fonds du conseil",
+    "fundingLine": "Quatre tailles de fonds exceptionnels, calculés sur le budget de la saison.",
+    "openBoardroom": "Ouvrir la salle du conseil",
+    "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit."
   }
 }

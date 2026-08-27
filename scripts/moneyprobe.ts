@@ -173,8 +173,10 @@ console.log('\n--- 9. the catalogue')
 clear()
 // seven, not eight: the In-Game Editor was removed (owner, 27 Aug v1.1.3)
 // before any store sold one
-ok(M.NC_SKUS.length === 3 && M.CONSUMABLE_SKUS.length === 4, 'seven products: three owned for ever, four consumable')
-ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 7, 'and no sku sits on both shelves')
+// ten as of v1.1.4: the heal, the estate and the international stage joined
+// on the owner's overnight brief
+ok(M.NC_SKUS.length === 5 && M.CONSUMABLE_SKUS.length === 5, 'ten products: five owned for ever, five consumable')
+ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 10, 'and no sku sits on both shelves')
 ok(![...M.NC_SKUS, ...M.CONSUMABLE_SKUS].includes('phase.editor'), 'and the Editor is not quietly back')
 
 // ---- 10. consumables: the store confirms, the career keeps ---------------
