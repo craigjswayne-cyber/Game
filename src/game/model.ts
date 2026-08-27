@@ -1256,6 +1256,17 @@ export interface GameState {
   /** absolute week (season*100+week) before which the board will not hear
    *  another facility request - denials cost you the room for a while */
   facilityAskCooldown?: number
+  /** The board's patience with being asked twice (v1.1.4). One entry per
+   *  request door - 'capital' (facilities and the ground, which share their
+   *  cooldown) and 'funds' - stamped at each denial. Coming back through a
+   *  door the board just closed is a strike: the first draws a formal warning
+   *  and HALVES boardConfidence; the second is the sack, that week, whatever
+   *  the results say. Cleared when the manager takes a new job. */
+  boardAsks?: Record<string, { deniedAt: number; strikes: number; warned?: boolean }>
+  /** season the manager last asked the board for transfer funds - the ask is
+   *  once a season win or lose (engine-owned since v1.1.4; it was an untyped
+   *  flag the Finances screen kept on the save) */
+  fundsAskedSeason?: number
   /** a trophy moment waiting to be celebrated full-screen */
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every

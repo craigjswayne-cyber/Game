@@ -204,6 +204,8 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.tryOfSeason = null // the old club keeps its own best try
     state.facilityBuild = null // the old club's builders finish without you
     state.facilityAskCooldown = 0 // a new board hears you out fresh
+    state.boardAsks = undefined // and holds none of the old board's grudges
+    state.fundsAskedSeason = undefined // the funds ask resets with the desk
     // a new club, a new backroom: the department here is what it is
     state.staffSalt = (state.staffSalt ?? 0) + 1
     inheritStaff(state)
@@ -291,5 +293,26 @@ export function resignJob(state: GameState) {
     subject: `${state.managerName} resigns at ${club.name}`,
     body: `You clear your desk on your own terms. ${eraSummary(state)} The rumour mill starts turning immediately - where next?`,
     k: 'news.resigned', v: { manager: state.managerName, club: club.name, era: eraSummary(state) },
+  })
+}
+
+/** The board's side of the same door. One template for every dismissal,
+ *  whatever earned it - the collapsed-confidence sack in season.ts and the
+ *  pushed-once-too-often sack of the board-request escalation both come
+ *  through here, so the mechanics (offers die with the job, the vacancy
+ *  opens, the letter lands) can never drift apart between reasons. `k` names
+ *  the letter; `extraV` adds anything its text needs beyond the standard
+ *  club/manager/era. */
+export function sackManager(state: GameState, k: string, extraV: Record<string, string | number> = {}) {
+  const club = state.clubs[state.userClubId]
+  state.unemployed = true
+  // bids for the old club's players go with the job (see resignJob)
+  state.offers = []
+  state.vacancies.push({ clubId: club.id, week: state.week })
+  const v = { club: club.name, manager: state.managerName, era: eraSummary(state), ...extraV }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v),
+    k, v,
   })
 }

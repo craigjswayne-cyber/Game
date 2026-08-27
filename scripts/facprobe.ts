@@ -1,7 +1,7 @@
 // Probe: the club estate - starting levels by status, board requests to 5,
 // stadium expansion, and the weekly effects that hang off them.
 import { newGame } from '../src/game/newgame'
-import { expansionPlan, processWeekAndAdvance, requestExpansion, requestFacility } from '../src/game/season'
+import { expansionPlan, processWeekAndAdvance, requestExpansion, requestFacility, requestFunds } from '../src/game/season'
 import { FACILITY_INFO, MAX_FACILITY, estateGrade, type FacilityId } from '../src/game/model'
 
 let fails = 0
@@ -80,6 +80,66 @@ console.log(`after 12w   : ${plan.played} home games, ${plan.avg.toLocaleString(
 console.log('second ask  :', requestExpansion(s2))
 if (plan.fill >= 0.86 && sc.capacity === cap0) bad('a full ground was refused its expansion')
 if (sc.capacity < cap0) bad('capacity went backwards')
+
+// 5. pressing the board (v1.1.4): a denial stamps the ledger; asking again
+// inside it draws the formal warning and HALVES respect; the ask after that
+// is the sack. Both capital doors (facility and ground) share one ledger.
+{
+  const e = newGame('leicester', 'Pushy Probe', 2468)
+  const ec = e.clubs[e.userClubId]
+  ec.boardConfidence = 30 // guarantees the first denial (needs >= 45)
+  ec.balance = 0
+  e.facilityAskCooldown = 0
+  requestFacility(e, 'shop')
+  if (e.facilityBuild) bad('a broke club at confidence 30 got its request approved')
+  if (!e.boardAsks?.capital) bad('a denial did not stamp the escalation ledger')
+  const confAfterDenial = ec.boardConfidence
+  const warned = requestFacility(e, 'shop') // inside the denial: strike one
+  console.log(`pushed once : confidence ${confAfterDenial} -> ${ec.boardConfidence} | ${warned.slice(0, 60)}...`)
+  if (e.unemployed) bad('the FIRST push sacked the manager instead of warning him')
+  if (ec.boardConfidence !== Math.round(confAfterDenial * 0.5)) {
+    bad(`the warning did not halve respect (${confAfterDenial} -> ${ec.boardConfidence})`)
+  }
+  if (!e.news.some(n => n.k === 'news.boardPushed')) bad('no formal warning letter landed')
+  const out = requestFacility(e, 'shop') // past the warning: the sack
+  console.log(`pushed twice: ${out.slice(0, 60)}...`)
+  if (!e.unemployed) bad('pushing past the warning did not cost the job')
+  if (!e.news.some(n => n.k === 'news.sackedPushed')) bad('the dismissal letter is missing')
+  if (!e.vacancies.some(v => v.clubId === ec.id)) bad('the sacking opened no vacancy')
+}
+
+// 6. the funds ask, engine-owned (it was an untyped flag on the save): once
+// a season win or lose, and the same escalation applies to a repeat inside
+// a refusal. An approved ask politely refuses a second try with no strike.
+{
+  const y = newGame('leicester', 'Funds Probe', 1357)
+  const yc = y.clubs[y.userClubId]
+  yc.boardConfidence = 90
+  const before = yc.budget
+  const granted = requestFunds(y)
+  console.log(`funds, adored: budget ${before.toLocaleString()} -> ${yc.budget.toLocaleString()} | ${granted.slice(0, 50)}...`)
+  if (!(yc.budget > before)) bad('an adoring board granted nothing')
+  const afterFirst = yc.budget
+  const again = requestFunds(y)
+  if (y.unemployed || y.news.some(n => n.k === 'news.boardPushed')) {
+    bad('re-asking after a YES escalated - only refusals arm the ledger')
+  }
+  if (yc.budget !== afterFirst) bad('the polite second ask changed the budget')
+  console.log(`funds, again : ${again.slice(0, 50)}...`)
+
+  const n = newGame('leicester', 'Broke Probe', 8642)
+  const nc = n.clubs[n.userClubId]
+  nc.boardConfidence = 50 // denied: not owed, not adored, no tenure
+  requestFunds(n)
+  if (!n.boardAsks?.funds) bad('a funds denial did not stamp the ledger')
+  const c0 = nc.boardConfidence
+  requestFunds(n) // strike one
+  if (n.unemployed) bad('first funds push sacked instead of warning')
+  if (nc.boardConfidence !== Math.round(c0 * 0.5)) bad(`funds warning did not halve respect (${c0} -> ${nc.boardConfidence})`)
+  requestFunds(n) // strike two
+  if (!n.unemployed) bad('pushing the funds door past its warning did not cost the job')
+  console.log(`funds, denied then pushed twice: sacked as promised`)
+}
 
 if (fails) { console.error(`ESTATE PROBE: ${fails} failures`); process.exit(1) }
 console.log('ESTATE PROBE PASSED')

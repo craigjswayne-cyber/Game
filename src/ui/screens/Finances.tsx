@@ -17,6 +17,7 @@ import {
   offersFor, signOffer,
 } from '../../game/commercial'
 import { RELEASE_STEP, cashReserve, releaseBlock, releaseToBudget } from '../../game/treasury'
+import { requestFunds } from '../../game/season'
 
 export default function Finances() {
   // two pages rather than one long scroll
@@ -28,27 +29,14 @@ export default function Finances() {
   const [askMsg, setAskMsg] = useState<string | null>(null)
   const [relMsg, setRelMsg] = useState<string | null>(null)
   const club = game.clubs[game.userClubId]
-  const askedKey = `asked-${game.season}`
-  const asked = (game as unknown as Record<string, unknown>)[askedKey] === true
-
-  const requestFunds = () => {
-    if (asked) return
-    ;(game as unknown as Record<string, boolean>)[askedKey] = true
-    const tenure = game.mgr.finishes.filter(x => x.leagueId === club.leagueId).length
-    // boards say yes when they owe you (objectives delivered), when they
-    // adore you, or when you've built something over the long haul
-    const approved = game.boardOwed || club.boardConfidence >= 82 || (tenure >= 3 && club.boardConfidence >= 68)
-    if (approved) {
-      const extra = Math.round((club.budget * 0.25 + 400_000) / 50_000) * 50_000
-      club.budget += extra
-      setAskMsg(t(game.boardOwed ? 'finances.boardRemembers' : 'finances.boardBacks', { amount: fmtMoney(extra) }))
-      game.boardOwed = false
-    } else {
-      club.boardConfidence = Math.max(0, club.boardConfidence - 3)
-      setAskMsg(t(club.boardConfidence >= 60 ? 'finances.boardDeclinesTalk' : 'finances.boardDeclines'))
-    }
-    touch()
-  }
+  // The ask itself lives in the engine now (requestFunds, season.ts) where
+  // the escalation ledger can see it. The button stays LIVE inside a refusal
+  // on purpose: asking again is a real choice with a real price - warning
+  // and halved respect, then the sack - and the replies say so before the
+  // second tap. It only greys out once this season's ask ended in a yes.
+  const fundsDenied = game.boardAsks?.funds != null &&
+    Math.floor(game.boardAsks.funds.deniedAt / 100) === game.season
+  const asked = game.fundsAskedSeason === game.season && !fundsDenied
   const wages = club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
   const gate = game.fixtures.filter(f => f.played && f.homeId === club.id && f.att)
   const avgAtt = gate.length ? Math.round(gate.reduce((s, f) => s + (f.att ?? 0), 0) / gate.length) : 0
@@ -168,7 +156,11 @@ export default function Finances() {
           }}>{t('till.watchTown')}</button>
         </div>
       )}
-      <button className="btn ghost block" disabled={asked} onClick={requestFunds}>
+      <button className="btn ghost block" disabled={asked} onClick={() => {
+        if (asked) return
+        setAskMsg(requestFunds(game))
+        touch()
+      }}>
         {t(asked ? 'finances.askedThisSeason' : 'finances.askBoard')}
       </button>
       {/* THE TREASURY (user: "should be able to transfer balance into
