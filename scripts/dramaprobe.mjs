@@ -192,7 +192,23 @@ try {
     // at events.length is full time, and full time is not tense, it is over
     let idx = -1
     for (let i = 0; i < evs.length - 1; i++) if (evs[i].min >= atMin) { idx = i; break }
-    if (idx < 0) return { bad: `no event at ${atMin}'` }
+    // NOTHING AT OR PAST THAT MINUTE, which is not a fault and was failing the
+    // suite as though it were. The match is generated fresh each run, so where
+    // its last non-final event lands moves around: one run put it at 79', the
+    // next at 74', and bandAt(_, 76) failed the second - four assertions red on
+    // the shape of one match rather than on anything the game did wrong.
+    // measure() above already solved this for its own window by backing off the
+    // end. Do the same here: these three assertions are about LATE - that the
+    // band reads differently at nought, three and six points - and 74' is as
+    // late as 76'. Fall back to the last event there is, but only while it is
+    // still genuinely late, because tension is nothing before the hour
+    // (dream: late = (min - 55) / 25) and a band that never appears would make
+    // these pass for the wrong reason.
+    if (idx < 0) {
+      const lastIdx = evs.length - 2
+      if (lastIdx >= 0 && evs[lastIdx].min >= 70) idx = lastIdx
+    }
+    if (idx < 0) return { bad: `no event at ${atMin}' and none late enough to stand in (last ${evs[evs.length - 2]?.min}')` }
     S().matchCursor(idx + 1, false)
     await frame()
     const band = document.querySelector('.tense-band')
