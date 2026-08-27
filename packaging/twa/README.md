@@ -141,20 +141,35 @@ That is what makes the browser hand the page a Digital Goods service.
 `src/game/playbilling.ts` builds the bridge from it at boot, and does nothing at
 all anywhere else - which is why the web build has no purchase door.
 
-In Play Console, create one **managed (non-consumable) product** with the id:
+In Play Console (Monetise → Products → In-app products), create the **eight**
+products of `docs/monetisation-spec.md` §1. Until they exist, the store in the
+game is a door with nothing behind it: every shelf shows an unpriced button and
+every purchase ends in "Nothing was charged", which is exactly what the owner's
+first installed build showed (27 Aug).
 
-```
-phase.supporter
-```
+| Product ID | Play type | Product | Price |
+|---|---|---|---|
+| `phase.supporter` | Managed (non-consumable) | Support the game | $1.99 |
+| `phase.license` | Managed (non-consumable) | Manager's License | $2.99 |
+| `phase.editor` | Managed (non-consumable) | In-Game Editor | $4.99 |
+| `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
+| `phase.inject.s` | Consumable | Board Injection (Small) | $0.99 |
+| `phase.inject.m` | Consumable | Board Injection (Medium) | $1.99 |
+| `phase.inject.l` | Consumable | Board Injection (Large) | $3.99 |
+| `phase.inject.xl` | Consumable | The Sugar Daddy | $7.99 |
 
-The id must match `SUPPORTER_SKU` in `src/game/monetise.ts` exactly. Set its
-price, activate it, and test it with a licence-tester account before release:
-purchases by testers are free and refundable, and it is the only way to see the
-acknowledge path (`docs/monetisation.md`) work end to end.
+Every id must match `src/game/monetise.ts` **exactly** - a typo does not error,
+it renders an unpriced button that cannot sell. The consumable/managed split
+matters just as much: a consumable sold as managed can only ever be bought once.
+Set each price, **activate** each one, and test with a licence-tester account
+before release: purchases by testers are free and refundable, and it is the only
+way to see the acknowledge path (`docs/monetisation.md`) work end to end - an
+unacknowledged purchase is auto-refunded by Play after three days.
 
-If you would rather sell the game up front instead, skip all of this, build with
-`VITE_EDITION=paid npm run build`, and set the price on the listing. Everybody
-who can run it is then already a supporter, and the purchase UI never appears.
+(The paid-up-front alternative that used to be described here was decided
+against, 27 Aug: `VITE_EDITION=paid` removes the whole catalogue, not just the
+supporter purchase - see `docs/monetisation.md`. The free edition is the one
+that ships.)
 
 ## 5. Upload
 
@@ -165,6 +180,31 @@ Then the questionnaires, whose answers are already written down in
 `docs/store-listing.md`: Data safety, Content rating, Ads (no), Target audience,
 Government apps (no), Financial features (no).
 
+## 6. Shipping an update
+
+An update is mostly not an upload, because a TWA is a window onto the live
+site: **whatever `main` deploys is what every installed copy plays**, usually
+within a launch or two (the service worker polls every fifteen minutes and
+offers a one-tap refresh pill; it never forces a reload mid-match). Most fixes
+ship by merging to `main` and never touch Play at all.
+
+Upload a new `.aab` only when the *shell* changes - the version the listing
+shows, billing configuration, icons, or anything else in `twa-manifest.json`:
+
+1. Deploy first: the changes must be live on `main` (see §0b - this was
+   learned the hard way).
+2. Bump **both** versions in `twa-manifest.json`: `appVersionCode` one higher
+   than whatever Play has seen (the file's comment block has the rules), and
+   `appVersionName` to match `package.json`.
+3. `bubblewrap build`, signed with the same keystore as last time. A different
+   keystore is a rejected upload - and if the keystore is lost, the listing is
+   over, which is why §3 says to back it up.
+4. Play Console → the testing track you are on → Create new release → upload
+   the `.aab` → roll it out.
+
+The what's-new text for the release-notes field is pre-written, EN and FR, in
+`docs/store-listing.md` ("What's new" / "Nouveautés").
+
 ## What breaks, and what it looks like
 
 | Symptom | Cause |
@@ -174,5 +214,8 @@ Government apps (no), Financial features (no).
 | An address bar across the top | asset links missing, wrong fingerprint, or wrong scope |
 | The purchase button never appears | billing not enabled in the TWA, or the SKU id does not match, or the product is not activated |
 | "Item not found" on tapping buy | the product exists but the app was not uploaded to a track yet - Play needs the package published (internal testing counts) |
+| "You can't rollout this release because it doesn't add or remove any app bundles" | the upload's `appVersionCode` repeats one Play already has (hit 26 Aug re-uploading after the keystore regeneration). Bump it in `twa-manifest.json`, rebuild, upload again |
+| "Doesn't allow existing users to upgrade" | same cause as above: the version code must go up on every upload, no exceptions |
+| The store shelves show buttons with no prices, and buying says nothing was charged | the in-app products have not been created (or not activated) in Play Console - see §4. The bridge is working; the catalogue is empty |
 | A purchase reverses itself after three days | the acknowledge step is not running (see `playbilling.ts`) |
 | The splash screen flashes white | `backgroundColor` in this file must match the manifest's, and both must be `#1a201e` |

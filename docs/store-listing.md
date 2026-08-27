@@ -109,6 +109,16 @@ First release.
 • Fully offline: no account, no tracking, nothing collected.
 ```
 
+### What's new (500 max) - v1.1.2
+
+```
+• The Store is now easy to find: on the club Hub menu and the home screen.
+• Match day: the ball stays with the ball-carrier, and the players keep pace
+  with the commentary.
+• Fixed a layout gap above the scoreboard on very tall screens.
+```
+*(236 - and the French version is under `Nouveautés` in the French listing below)*
+
 ### Tags
 
 `Sports`, `Simulation`, `Strategy`, `Single player`, `Offline`
@@ -259,6 +269,18 @@ d'autre ; le jeu n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d
 club, d'une ligue ou d'une fédération, et ne contient aucun écusson, maillot ou
 logo officiel.
 ```
+
+### Nouveautés (500 max) - v1.1.2
+
+```
+• La Boutique est désormais facile à trouver : dans le menu du club et sur
+  l'écran d'accueil.
+• Jour de match : le ballon reste avec le porteur, et les joueurs suivent le
+  rythme du commentaire.
+• Correction d'un espace vide au-dessus du tableau d'affichage sur les écrans
+  très hauts.
+```
+*(283)*
 
 ---
 
