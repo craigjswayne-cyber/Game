@@ -119,6 +119,17 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.3
+
+```
+• The week breathes: team of the week, fresh scouting rankings, selection
+  warnings and deadline-week reminders between matchdays.
+• Substitute instructions renamed so they say what they do.
+• Transfers: newly signed players stay put, and league rivals demand a premium.
+• Player positions shown when setting training plans.
+```
+*(311)*
+
 ### Tags
 
 `Sports`, `Simulation`, `Strategy`, `Single player`, `Offline`
@@ -281,6 +292,19 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.3
+
+```
+• La semaine respire : équipe de la semaine, nouveau classement du
+  recrutement, alertes de composition et rappels de fin de mercato entre les
+  matchs.
+• Les consignes des remplaçants disent désormais ce qu'elles font.
+• Transferts : les recrues fraîchement signées restent en place, et les rivaux
+  de championnat exigent un supplément.
+• Les postes s'affichent au moment de choisir les plans d'entraînement.
+```
+*(374)*
 
 ---
 
