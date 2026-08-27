@@ -1590,7 +1590,8 @@
     "unitBackFive": "Back five",
     "unitHalves": "Halves",
     "unitMidfield": "Midfield",
-    "unitBackThree": "Back three"
+    "unitBackThree": "Back three",
+    "fundsOnce": "The board heard this season's request already. The window reopens in the summer."
   },
   "club": {
     "tabClub": "The Club",
@@ -2435,8 +2436,7 @@
     "gradeThreadbare": "Threadbare",
     "facNotBuildable": "That is not something the club can build.",
     "facAlreadyWorldClass": "The {facility} is already world class. There is nothing left to build.",
-    "facBuildersBusy": "The builders are already on site ({facility}). One project at a time.",
-    "facCooldown": "The board made itself clear last time. Give it a few weeks before asking again."
+    "facBuildersBusy": "The builders are already on site ({facility}). One project at a time."
   },
   "report": {
     "trWhereWeStand": "Where We Stand",
@@ -4408,7 +4408,11 @@
     "pinnacleSubj": "🌍 The call has been made",
     "pinnacle": "Your name has gone to the federations, with a full dossier of your work attached. These things move quickly once they move at all: expect an approach within a fortnight.",
     "dressingDownSubj": "Dressing room whispers: {player} unhappy after dressing-down",
-    "dressingDown": "Word has leaked that {player} was hauled in front of the coach over his recent form - and didn't take it well. Team-mates say he trained on his own on Tuesday."
+    "dressingDown": "Word has leaked that {player} was hauled in front of the coach over his recent form - and didn't take it well. Team-mates say he trained on his own on Tuesday.",
+    "boardPushedSubj": "FORMAL WARNING: the board's answer stands",
+    "boardPushed": "You were given a decision and you came back at the door regardless. The board takes that as a challenge to its authority, and says so in writing: the answer has not changed, confidence in your judgement is severely dented, and the next repetition of this conversation will be your last at the club.",
+    "sackedPushedSubj": "DISMISSED: {club} part company with {manager}",
+    "sackedPushed": "Warned in writing, and back at the boardroom door within the month anyway. The board decided the club needed a manager who could hear a no. {era} Your reputation travels with you - and so does the story of how this ended."
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4695,7 +4699,11 @@
     "charter": "The Owner's Charter signed: the salary cap no longer applies to the club.",
     "heal": "Booked the specialist retreat: {n} men restored to full health",
     "estate": "Built the whole estate to its ceiling in one wave",
-    "pinnacle": "Sent my name to the federations"
+    "pinnacle": "Sent my name to the federations",
+    "boardPushed": "Pressed the board after a refusal: formal warning, respect halved.",
+    "boardPushedOut": "Pressed the board past its warning: dismissed.",
+    "fundsApproved": "Asked the board for extra transfer funds: {amount} granted.",
+    "fundsDeclined": "Asked the board for extra transfer funds: declined."
   },
   "persLower": {
     "Professional": "professional",
@@ -4736,7 +4744,6 @@
     "groundAlreadyHuge": "{stadium} is one of the biggest grounds in the game. There is nowhere left to build.",
     "groundBigEnough": "{stadium} already holds just about everyone who would come. More seats would be empty seats.",
     "buildersBusy": "The builders are already on site elsewhere. One project at a time.",
-    "boardSaidNoRecently": "The board made itself clear last time. Give it a few weeks before asking again.",
     "groundExtendedThisSeason": "The ground has already been extended this season. The next phase waits for the summer.",
     "declined": "Declined - {why_k}.",
     "expandApproved": "Approved. {seats} new seats for {cost} - capacity now {cap}.",
@@ -4803,7 +4810,9 @@
     "favourWorked": {
       "one": "The sponsor's consultant found a quicker route for {player}: back a week early.",
       "other": "The sponsor's consultant found a quicker route for {player}: back {n} weeks early."
-    }
+    },
+    "boardPushedWarn": "The room goes cold. \"We gave you our answer.\" A formal warning follows within the hour, and the board's respect for you is cut in half. Ask again and you will be clearing your desk.",
+    "boardPushedSacked": "You asked once too often. The chairman stands, offers a handshake nobody means, and the club statement is out before you reach the car park."
   },
   "verdict": {
     "titleFavourites": "Title favourites",

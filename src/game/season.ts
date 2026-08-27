@@ -30,13 +30,42 @@ import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
 import { loanTargets } from './loans'
-import { eraSummary, refreshVacancies } from './jobs'
+import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
 import { t, tIn, type Vars } from './i18n'
 
 export function weekRng(state: GameState): Rng {
   return mulberry32(state.seed ^ (state.season * 131 + state.week * 7919))
+}
+
+/** The manager is back at a door the board just closed (v1.1.4, owner's
+ *  brief: "if they ask again after being denied - warning, respect halved;
+ *  if they continue to push - fired"). Two doors share the ledger key
+ *  'capital' (facilities and the ground share their cooldown); 'funds' is
+ *  its own. The first repeat inside a denial draws the formal warning and
+ *  HALVES the board's confidence; the next is the sack, that week, whatever
+ *  the table says. Deterministic, rng-free, and the reply says exactly what
+ *  pressing again will cost - the dismissal is a choice, never an ambush. */
+function pressBoard(state: GameState, kind: 'capital' | 'funds'): string {
+  const club = state.clubs[state.userClubId]
+  const asks = (state.boardAsks ??= {})
+  const rec = (asks[kind] ??= { deniedAt: 0, strikes: 0 })
+  rec.strikes += 1
+  if (rec.strikes <= 1) {
+    rec.warned = true
+    club.boardConfidence = clamp(Math.round(club.boardConfidence * 0.5), 0, 100)
+    logDecision(state, 'dec.boardPushed', {}, false)
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: tIn('en', 'news.boardPushedSubj'), body: tIn('en', 'news.boardPushed'),
+      k: 'news.boardPushed', v: {},
+    })
+    return t('reply.boardPushedWarn')
+  }
+  logDecision(state, 'dec.boardPushedOut', {}, false)
+  sackManager(state, 'news.sackedPushed')
+  return t('reply.boardPushedSacked')
 }
 
 /** Facility upgrades go through the boardroom (8-batch feedback): the board
@@ -56,7 +85,9 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   if (lvl >= MAX_FACILITY) return t('facilities.facAlreadyWorldClass', { facility: t(info.name).toLowerCase() })
   if (state.facilityBuild) return t('facilities.facBuildersBusy', { facility: t(FACILITY_INFO[state.facilityBuild.id].name) })
   const abs = state.season * 100 + state.week
-  if ((state.facilityAskCooldown ?? 0) > abs) return t('facilities.facCooldown')
+  // inside a denial the polite refusal is gone: asking again is pressing the
+  // board, and pressing the board has a price (pressBoard above)
+  if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
   const cost = facilityCost(info, lvl)
   /**
    * The board underwrites capital projects when it believes in you. That is what
@@ -83,6 +114,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   const approve = club.boardConfidence >= 45 && club.balance >= clubShare * 1.25
   if (!approve) {
     state.facilityAskCooldown = abs + 8
+    ;(state.boardAsks ??= {}).capital = { deniedAt: abs, strikes: 0 }
     const whyKey = club.boardConfidence < 45 ? 'news.facNoResults'
       : club.balance < clubShare ? 'news.facNoShare'
       : 'news.facNoReserves'
@@ -99,6 +131,7 @@ export function requestFacility(state: GameState, fid: FacilityId): string {
   }
   club.balance -= clubShare
   state.facilityBuild = { id: fid, done: abs + 5, level: lvl + 1 }
+  delete state.boardAsks?.capital // a yes wipes the slate
   const boardPut = cost - clubShare
   logDecision(state, 'dec.facilityApproved', { lvl: lvl + 1, fac_k: info.name, cost: fmtMoney(cost) }, true)
   state.news.push({
@@ -151,7 +184,8 @@ export function requestExpansion(state: GameState): string {
     return t('reply.groundBigEnough', { stadium: club.stadium })
   }
   if (state.facilityBuild) return t('reply.buildersBusy')
-  if ((state.facilityAskCooldown ?? 0) > abs) return t('reply.boardSaidNoRecently')
+  // same door as the facilities: inside a denial, asking again is pressing
+  if ((state.facilityAskCooldown ?? 0) > abs) return pressBoard(state, 'capital')
   const { seats, cost, fill, played } = expansionPlan(state)
   // one stand a season: builders, planning permission and a season ticket
   // renewal cycle all take their time
@@ -162,6 +196,7 @@ export function requestExpansion(state: GameState): string {
   const approve = enoughDemand && club.balance >= cost * 1.3 && club.boardConfidence >= 50
   if (!approve) {
     state.facilityAskCooldown = abs + 8
+    ;(state.boardAsks ??= {}).capital = { deniedAt: abs, strikes: 0 }
     const whyKey = played < 3 ? 'news.expNoEarly'
       : fill < 0.9 ? 'news.expNoEmpty'
       : club.balance < cost * 1.3 ? 'news.expNoReserves'
@@ -180,6 +215,7 @@ export function requestExpansion(state: GameState): string {
   club.balance -= cost
   club.capacity += seats
   state.expandedSeason = state.season
+  delete state.boardAsks?.capital // a yes wipes the slate
   logDecision(state, 'dec.expandApproved', { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity }, true)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -189,6 +225,43 @@ export function requestExpansion(state: GameState): string {
     v: { stadium: club.stadium, seats, cost: fmtMoney(cost), cap: club.capacity },
   })
   return t('reply.expandApproved', { seats, cost: fmtMoney(cost), cap: club.capacity })
+}
+
+/**
+ * Ask the board for extra transfer funds. Engine-owned since v1.1.4: it was
+ * an untyped `asked-<season>` flag the Finances screen kept directly on the
+ * save, which meant the one request the board takes most personally was the
+ * one the escalation ledger could not see. Same rules as before - once a
+ * season, boards say yes when they owe you (objectives delivered), when they
+ * adore you, or when tenure has earned it - plus the pressBoard consequences
+ * for coming back inside a refusal.
+ */
+export function requestFunds(state: GameState): string {
+  const club = state.clubs[state.userClubId]
+  if (!club || state.unemployed) return ''
+  const abs = state.season * 100 + state.week
+  // the board said no THIS SEASON and here he is again: that is pressing
+  const rec = state.boardAsks?.funds
+  if (rec && Math.floor(rec.deniedAt / 100) === state.season) return pressBoard(state, 'funds')
+  if (state.fundsAskedSeason === state.season) return t('finances.fundsOnce')
+  state.fundsAskedSeason = state.season
+  const tenure = state.mgr.finishes.filter(x => x.leagueId === club.leagueId).length
+  // boards say yes when they owe you (objectives delivered), when they
+  // adore you, or when you've built something over the long haul
+  const approved = state.boardOwed || club.boardConfidence >= 82 || (tenure >= 3 && club.boardConfidence >= 68)
+  if (approved) {
+    const extra = Math.round((club.budget * 0.25 + 400_000) / 50_000) * 50_000
+    club.budget += extra
+    const owed = state.boardOwed
+    state.boardOwed = false
+    delete state.boardAsks?.funds
+    logDecision(state, 'dec.fundsApproved', { amount: fmtMoney(extra) }, true)
+    return t(owed ? 'finances.boardRemembers' : 'finances.boardBacks', { amount: fmtMoney(extra) })
+  }
+  club.boardConfidence = Math.max(0, club.boardConfidence - 3)
+  ;(state.boardAsks ??= {}).funds = { deniedAt: abs, strikes: 0 }
+  logDecision(state, 'dec.fundsDeclined', {}, false)
+  return t(club.boardConfidence >= 60 ? 'finances.boardDeclinesTalk' : 'finances.boardDeclines')
 }
 
 // ------------------------------------------------------------------
@@ -2555,16 +2628,9 @@ export function processWeekAndAdvance(state: GameState) {
       })
     }
     if (club.boardConfidence <= 3 && state.week > 8) {
-      state.unemployed = true
-      // bids for the old club's players go with the job (see resignJob)
-      state.offers = []
-      state.vacancies.push({ clubId: club.id, week: state.week })
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-        subject: `SACKED: ${club.name} part company with ${state.managerName}`,
-        body: `A brutal end - but not the end. ${eraSummary(state)} Your reputation travels with you. Watch the Job Centre: struggling boards make changes every few weeks, and one of them will gamble on you.`,
-        k: 'news.sacked', v: { club: club.name, manager: state.managerName, era: eraSummary(state) },
-      })
+      // the mechanics live in sackManager (jobs.ts) - shared with the
+      // pushed-once-too-often dismissal of the board-request escalation
+      sackManager(state, 'news.sacked')
     }
   }
 

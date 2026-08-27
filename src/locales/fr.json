@@ -1590,7 +1590,8 @@
     "unitBackFive": "Deuxième et troisième lignes",
     "unitHalves": "Charnière",
     "unitMidfield": "Centres",
-    "unitBackThree": "Triangle arrière"
+    "unitBackThree": "Triangle arrière",
+    "fundsOnce": "Le conseil a déjà entendu la demande de cette saison. Le guichet rouvre à l'été."
   },
   "club": {
     "tabClub": "Le club",
@@ -2435,8 +2436,7 @@
     "gradeThreadbare": "Indigentes",
     "facNotBuildable": "Ce n'est pas quelque chose que le club peut construire.",
     "facAlreadyWorldClass": "{facility} est déjà au niveau mondial. Il n'y a plus rien à construire.",
-    "facBuildersBusy": "Les ouvriers sont déjà sur le chantier ({facility}). Un projet à la fois.",
-    "facCooldown": "Le conseil a été clair la dernière fois. Laissez passer quelques semaines avant de redemander."
+    "facBuildersBusy": "Les ouvriers sont déjà sur le chantier ({facility}). Un projet à la fois."
   },
   "report": {
     "trWhereWeStand": "Où nous en sommes",
@@ -4408,7 +4408,11 @@
     "pinnacleSubj": "🌍 L'appel est passé",
     "pinnacle": "Votre nom est parti chez les fédérations, accompagné d'un dossier complet sur votre travail. Ces choses vont vite dès qu'elles bougent : attendez-vous à une approche sous quinzaine.",
     "dressingDownSubj": "Rumeurs de vestiaire : {player} a mal vécu son recadrage",
-    "dressingDown": "Il a filtré que {player} a été convoqué par l'entraîneur au sujet de sa forme récente - et qu'il ne l'a pas bien pris. Ses coéquipiers disent qu'il s'est entraîné seul mardi."
+    "dressingDown": "Il a filtré que {player} a été convoqué par l'entraîneur au sujet de sa forme récente - et qu'il ne l'a pas bien pris. Ses coéquipiers disent qu'il s'est entraîné seul mardi.",
+    "boardPushedSubj": "AVERTISSEMENT FORMEL : la réponse du conseil est maintenue",
+    "boardPushed": "On vous a donné une décision et vous êtes revenu frapper à la porte malgré tout. Le conseil y voit un défi à son autorité, et l'écrit noir sur blanc : la réponse n'a pas changé, la confiance en votre jugement est sérieusement entamée, et la prochaine répétition de cette conversation sera la dernière au club.",
+    "sackedPushedSubj": "LICENCIÉ : {club} se sépare de {manager}",
+    "sackedPushed": "Averti par écrit, et de retour à la porte du conseil dans le mois quand même. Le conseil a décidé que le club avait besoin d'un entraîneur capable d'entendre un non. {era} Votre réputation vous suit - et l'histoire de cette fin aussi."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -4695,7 +4699,11 @@
     "charter": "La Charte du propriétaire est signée : le plafond salarial ne s'applique plus au club.",
     "heal": "Retraite médicale réservée : {n} joueurs remis en pleine forme",
     "estate": "Tout le domaine porté à son plafond en une seule vague",
-    "pinnacle": "Mon nom envoyé aux fédérations"
+    "pinnacle": "Mon nom envoyé aux fédérations",
+    "boardPushed": "A insisté auprès du conseil après un refus : avertissement formel, respect réduit de moitié.",
+    "boardPushedOut": "A insisté auprès du conseil malgré l'avertissement : licencié.",
+    "fundsApproved": "A demandé au conseil des fonds de transfert supplémentaires : {amount} accordés.",
+    "fundsDeclined": "A demandé au conseil des fonds de transfert supplémentaires : refusé."
   },
   "persLower": {
     "Professional": "professionnel",
@@ -4736,7 +4744,6 @@
     "groundAlreadyHuge": "{stadium} est l'un des plus grands stades du jeu. Il n'y a plus de place pour construire.",
     "groundBigEnough": "{stadium} accueille déjà à peu près tous ceux qui viendraient. Plus de places, ce seraient des places vides.",
     "buildersBusy": "Les ouvriers sont déjà sur un autre chantier. Un projet à la fois.",
-    "boardSaidNoRecently": "Le conseil a été clair la dernière fois. Laissez passer quelques semaines avant de redemander.",
     "groundExtendedThisSeason": "Le stade a déjà été agrandi cette saison. La phase suivante attendra l'été.",
     "declined": "Refusé - {why_k}.",
     "expandApproved": "Approuvé. {seats} nouvelles places pour {cost} - capacité désormais {cap}.",
@@ -4803,7 +4810,9 @@
     "favourWorked": {
       "one": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec une semaine d'avance.",
       "other": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec {n} semaines d'avance."
-    }
+    },
+    "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et vous viderez votre bureau.",
+    "boardPushedSacked": "Vous avez demandé une fois de trop. Le président se lève, tend une poignée de main que personne ne pense, et le communiqué du club sort avant que vous n'atteigniez le parking."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",
