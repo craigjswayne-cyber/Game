@@ -141,8 +141,10 @@ That is what makes the browser hand the page a Digital Goods service.
 `src/game/playbilling.ts` builds the bridge from it at boot, and does nothing at
 all anywhere else - which is why the web build has no purchase door.
 
-In Play Console (Monetise → Products → In-app products), create the **eight**
-products of `docs/monetisation-spec.md` §1. Until they exist, the store in the
+In Play Console (Monetise → Products → In-app products), create the **seven**
+products of `docs/monetisation-spec.md` §1. (It was eight; the In-Game Editor
+was removed on the owner's call, 27 Aug, before any store sold one — do NOT
+create `phase.editor`.) Until they exist, the store in the
 game is a door with nothing behind it: every shelf shows an unpriced button and
 every purchase ends in "Nothing was charged", which is exactly what the owner's
 first installed build showed (27 Aug).
@@ -151,7 +153,6 @@ first installed build showed (27 Aug).
 |---|---|---|---|
 | `phase.supporter` | Managed (non-consumable) | Support the game | $1.99 |
 | `phase.license` | Managed (non-consumable) | Manager's License | $2.99 |
-| `phase.editor` | Managed (non-consumable) | In-Game Editor | $4.99 |
 | `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
 | `phase.inject.s` | Consumable | Board Injection (Small) | $0.99 |
 | `phase.inject.m` | Consumable | Board Injection (Medium) | $1.99 |

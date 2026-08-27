@@ -171,8 +171,11 @@ console.log('\n--- 8. the save is not a hostage')
 // ---- 9. the v1.1.0 catalogue: two shelves, and no sku on both ------------
 console.log('\n--- 9. the catalogue')
 clear()
-ok(M.NC_SKUS.length === 4 && M.CONSUMABLE_SKUS.length === 4, 'eight products: four owned for ever, four consumable')
-ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 8, 'and no sku sits on both shelves')
+// seven, not eight: the In-Game Editor was removed (owner, 27 Aug v1.1.3)
+// before any store sold one
+ok(M.NC_SKUS.length === 3 && M.CONSUMABLE_SKUS.length === 4, 'seven products: three owned for ever, four consumable')
+ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 7, 'and no sku sits on both shelves')
+ok(![...M.NC_SKUS, ...M.CONSUMABLE_SKUS].includes('phase.editor'), 'and the Editor is not quietly back')
 
 // ---- 10. consumables: the store confirms, the career keeps ---------------
 console.log('\n--- 10. the consumable flow')
@@ -203,12 +206,12 @@ console.log('\n--- 11. restore, v1.1.0')
   clear()
   g.rmBilling = fakeStore({ owns: [...M.NC_SKUS] })
   ok(await M.restore() === true, 'restore finds everything the account owns')
-  ok(M.NC_SKUS.every(sku => M.hasEntitlement(sku)), 'and grants each of the four')
+  ok(M.NC_SKUS.every(sku => M.hasEntitlement(sku)), 'and grants each of the three')
   clear()
   store.set('rm-ent', 'supporter')
   ok(M.hasSupporter(), 'a receipt written before v1.1.0 still stands, unre-litigated')
-  M.grant(M.EDITOR_SKU)
-  ok(M.hasSupporter() && M.hasEntitlement(M.EDITOR_SKU), 'and survives a new receipt joining it in the cache')
+  M.grant(M.LICENSE_SKU)
+  ok(M.hasSupporter() && M.hasEntitlement(M.LICENSE_SKU), 'and survives a new receipt joining it in the cache')
   ok(store.size === 1 && [...store.keys()][0] === 'rm-ent', 'still exactly one key beside night mode')
 }
 

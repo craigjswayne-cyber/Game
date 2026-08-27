@@ -1,8 +1,8 @@
 # Monetisation & Game Economy Specification — v1.1.0
 
 **Status:** implemented through §6 step 5 (25 Aug): bridge v2 with the
-8-SKU catalogue, `grants.ts` and its doors, the Boardroom / shelf / wizard /
-Editor / rewarded surfaces, and the probes (`grantprobe`, `rewardedprobe`,
+SKU catalogue, `grants.ts` and its doors, the Boardroom / shelf / wizard /
+rewarded surfaces, and the probes (`grantprobe`, `rewardedprobe`,
 extended `moneyprobe`/`storeprobe`). Still open: §6 step 6 - the four-place
 privacy flip, which lands in the same commit as the ad SDK in the Play
 wrapper, deliberately not before - plus the wrapper work itself (Play
@@ -48,7 +48,6 @@ These are constraints the spec builds on, not aspirations:
 | 4 | `phase.inject.l` | Board Injection (Large) | $3.99 | Consumable |
 | 5 | `phase.inject.xl` | The Sugar Daddy | $7.99 | Consumable |
 | 6 | `phase.license` | Manager's License | $2.99 | Non-consumable |
-| 7 | `phase.editor` | In-Game Editor | $4.99 | Non-consumable |
 | 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
 
 ### 1.1 Remove Ads — $1.99, non-consumable
@@ -111,18 +110,13 @@ already reads marquee exemptions.
   (`state.licensed = true`) and the Legacy screen shows a small 🎓 beside the
   career grade: visible, not shaming.
 
-### 1.4 In-Game Editor — $4.99, non-consumable
+### 1.4 In-Game Editor — REMOVED (v1.1.3, 27 Aug 2026)
 
-* Unlocks an **Editor** section on the Game Status screen (the save/load
-  surface — tools live with tools): edit player attributes/age/positions,
-  rename players/clubs/stadiums, set kit colours, set budgets and balances.
-* First edit stamps `state.edited = true`, permanently: Legacy and the Annual
-  show a 🔧 beside the save. Records, challenges and dreams still function —
-  single-player, their meaning is the player's business — but the stamp keeps
-  the Hall of Fame honest with itself.
-* Editor writes go through the same validation as `savefuzz` healing
-  (clamps, not crashes). No rng, no engine bypass: edited attributes simply
-  ARE the attributes.
+* Was: $4.99 non-consumable (`phase.editor`), an Editor section on Game
+  Status, the permanent 🔧 stamp. Removed on the owner's call — "this isnt
+  needed for this game" — before any store ever sold one, so nothing is
+  grandfathered and no real save carries the stamp. The catalogue is seven
+  products; the numbering below is kept so cross-references stay stable.
 
 ### 1.5 The Owner’s Charter — $9.99, non-consumable
 
@@ -133,7 +127,7 @@ already reads marquee exemptions.
   ceiling, cap fines and embargoes (`capFine`/`capEmbargo`) never fire, and
   marquee designation goes moot and hides. AI clubs remain capped — their
   books were balanced against the law, and the law still applies to them.
-* **Stamped like the Editor:** the save wears a small 🖋 in Legacy and
+* **Stamped:** the save wears a small 🖋 in Legacy and
   the Annual. Records still count; the badge says how they were built.
 * The whale product sold honestly: no drip of exemptions — one price,
   total freedom, permanent mark.
@@ -208,7 +202,8 @@ read as complete without them (same rule `storeprobe` applies to the till).
   stamped (§1.5); `capprobe` gains an uncapped-save exemption plus a new
   assertion that the flag never sets itself.
 * Nothing purchasable touches attributes, match outcomes, refs, draws, or
-  opponents. The Editor can — and stamps the save for it.
+  opponents. (The In-Game Editor was the one exception, stamped for it —
+  removed v1.1.3, so now nothing purchasable touches them at all.)
 
 ---
 
@@ -225,7 +220,7 @@ read as complete without them (same rule `storeprobe` applies to the till).
   actions on unscouted targets.
 * **Matchday (pre-kick-off):** analyst's session appears on the briefing
   card only when there is a weakness to read.
-* **Game Status:** Remove Ads, Manager's License, Editor, and **Restore
+* **Game Status:** Remove Ads, Manager's License, and **Restore
   purchases** — the quiet shelf, where the existing supporter unlock already
   lives.
 * **New Career wizard:** the License toggle, only for owners.
@@ -256,9 +251,6 @@ read as complete without them (same rule `storeprobe` applies to the till).
   fines, no embargoes — build the squad nobody else is allowed to pay."
 * **Manager's License** — "Start any new career as a proven name: maximum
   reputation, top-flight vacancies open, federations already calling."
-* **In-Game Editor** — "Your world, your rules: edit players, clubs, kits
-  and finances in any save. Edited careers wear a small badge, and wear it
-  proudly."
 
 ---
 
@@ -271,7 +263,7 @@ read as complete without them (same rule `storeprobe` applies to the till).
 2. **Grant plumbing:** `applyInjection(tier)`, `licenseNewCareer`,
    `state.edited/licensed/injectedThisSeason`, board letter + ledger line
    (keys in both locales — `newsprobe`/`frenchprobe` extend automatically).
-3. **Editor screen** behind the entitlement.
+3. ~~Editor screen~~ (product removed, v1.1.3).
 4. **Surfaces** (§4), hidden entirely when no bridge.
 5. **Probes before ship:** extend `storeprobe` (no till/no ad buttons in web
    build; all 7 SKUs purchasable in a packaged mock), extend `moneyprobe`

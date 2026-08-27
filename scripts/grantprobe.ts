@@ -21,7 +21,6 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { applyCharter, applyInjection, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
 import { capPosition } from '../src/game/cap'
-import { editClub, editPlayer } from '../src/game/editor'
 import { mgrReputation, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
 
@@ -31,7 +30,7 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  
 console.log('--- 1. a fresh career has bought nothing\n')
 {
   const g = newGame('northampton', 'Grant Probe', 7101)
-  ok(!g.uncapped && !g.licensed && !g.edited, 'no Charter, License or Editor stamp sets itself')
+  ok(!g.uncapped && !g.licensed, 'no Charter or License stamp sets itself')
   ok(!g.wageBoost && !g.injections && !g.injectedThisSeason, 'no injection ledger exists before a purchase')
   ok(g.clubs[g.userClubId].budgetAtOpen === g.clubs[g.userClubId].budget,
     'the opening budget is snapshotted at kick-off, so the store rows can price honestly')
@@ -143,26 +142,9 @@ console.log('\n--- 7. a licensed save is a proven name from day one\n')
   ok(mgrReputation(cold) === 95, 'licensed, the same career is at the top of the scale (95)')
 }
 
-console.log("\n--- 8. the Editor writes are clamped, and the first one stamps\n")
-{
-  const g = newGame('northampton', 'Grant Probe', 7107)
-  ok(!g.edited, 'a fresh save is unstamped')
-  const pid = g.clubs[g.userClubId].players[0]
-  const p = g.players[pid]!
-  ok(editPlayer(g, pid, { name: '   ', age: 99, ca: 400, pa: -3, attrs: { pac: 1000 } }),
-    'an edit full of nonsense is accepted rather than thrown')
-  ok(p.name.length > 0, 'but a blank rename never lands - the old name survives')
-  ok(p.age === 45 && p.ca === 100 && p.pa === 100 && p.a.pac === 100,
-    'and every number is brought into the range the engine was balanced for')
-  ok(g.edited === true, 'the first edit stamps the save for good')
-  const c = g.clubs[g.userClubId]
-  editClub(g, c.id, { budget: -5, balance: -2_000_000, colors: ['#12ab34', 'not-a-colour'] })
-  ok(c.budget === 0 && c.balance === -2_000_000,
-    'a budget floors at nothing, a balance may honestly be under water')
-  ok(c.colors[0] === '#12ab34' && c.colors[1] !== 'not-a-colour',
-    'a real colour lands and a non-colour is ignored, never painted')
-  ok(!editPlayer(g, 999999, { age: 20 }), 'a player who does not exist is refused, not invented')
-}
+// Section 8 tested the In-Game Editor's clamped writes. The Editor was removed
+// on the owner's call (27 Aug, v1.1.3) before any store ever sold one, so the
+// writes it clamped no longer exist to clamp.
 
 if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }
 console.log('\nGRANT PROBE PASSED: every purchase pays the tin, and only the tin')

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import { EDITOR_SKU, LICENSE_SKU, buyOwnable, buySupporter, canBuy, hasSupporter, hasEntitlement, restore, skuPrice, supporterPrice, tillOpen } from '../../game/monetise'
+import { LICENSE_SKU, buyOwnable, buySupporter, canBuy, hasSupporter, hasEntitlement, restore, skuPrice, supporterPrice, tillOpen } from '../../game/monetise'
 import { t } from '../../game/i18n'
 
 /**
@@ -11,8 +11,8 @@ import { t } from '../../game/i18n'
  * web build has no bridge, so this screen has no door in the menu and nobody
  * ever meets a button that cannot work.
  *
- * Remove Ads (the original supporter purchase), the Manager's License and the
- * In-Game Editor live here; what touches a club's money lives in the
+ * The supporter purchase (the original product) and the Manager's License
+ * live here; what touches a club's money lives in the
  * Boardroom on the Finances screen, written as club business. This page still
  * says plainly what each thing does and does not do, because a player who
  * suspects the till of touching the simulation behind his back will never
@@ -171,8 +171,6 @@ export default function Supporter() {
       {msg && <div className="meta sheet-log" style={{ margin: '0 16px' }}>{msg}</div>}
 
       <LicenseShelf />
-      <OwnableShelf sku={EDITOR_SKU} title={t('till.editorTitle')} sub={t('till.editorSub')}
-        body={t('till.editorBody')} owned={t('till.editorOwned')} thanks={t('till.editorThanks')} />
 
       <div className="muted" style={{ padding: '10px 16px', fontSize: 12 }}>{t('supporter.fineprint')}</div>
       <div className="spacer" />

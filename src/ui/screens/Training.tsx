@@ -6,7 +6,7 @@ import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, f
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
-import { t } from '../../game/i18n'
+import { posName, t } from '../../game/i18n'
 
 /* keys, not words - see docs/i18n.md */
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -60,7 +60,10 @@ export default function Training() {
                   : [...game.devFocus, p.id].slice(-3)
                 touch()
               }}>
-              {on ? '● ' : '○ '}{p.name} <b>{p.age}</b>
+              {/* the position sits with the name (owner, v1.1.3): a chip
+                  that says who a man IS makes "who should work on what" a
+                  decision instead of a memory test */}
+              {on ? '● ' : '○ '}{p.name} ({posName(p.pos)}) <b>{p.age}</b>
             </button>
           )
         })}
@@ -90,7 +93,10 @@ export default function Training() {
                     : [...rest, { id: p.id, plan: KINDS[idx].id }].slice(-planCap(game))
                   touch()
                 }}>
-                {cur ? '● ' : '○ '}{p.name}{curName ? <b> · {curName}</b> : ''}
+                {/* same rule as the development chips above: "train this man's
+                    kicking" only reads as a plan if the chip says he is a
+                    fly-half and not a prop (owner, v1.1.3) */}
+                {cur ? '● ' : '○ '}{p.name} ({posName(p.pos)}){curName ? <b> · {curName}</b> : ''}
               </button>
             )
           })
