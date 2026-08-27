@@ -694,67 +694,11 @@ export function respondToOffer(state: GameState, offerId: number, accept: boolea
 // Contracts
 // ------------------------------------------------------------------
 
-/** FM-style one-to-one: praise a player's form or have a quiet word.
- *  Reaction depends on whether it's deserved and on his personality. */
-export function talkToPlayer(state: GameState, playerId: number, kind: 'praise' | 'word'): string {
-  const p = state.players[playerId]
-  if (!p || p.clubId !== state.userClubId) return t('reply.notYourPlayer')
-  const now = state.season * 100 + state.week
-  if (p.talkWk != null && now - p.talkWk < 3) return t('reply.spokeTooRecently')
-  p.talkWk = now
-  const rng = mulberry32(((state.season * 53 + state.week) * 7919) ^ (playerId * 2654435761))
-  const first = p.name.split(' ')[0]
-  const goodForm = p.form >= 6.5
-  const bump = (d: number) => { p.morale = clamp(p.morale + d, 1, 10) }
-
-  if (kind === 'praise') {
-    if (goodForm) {
-      bump(p.pers === 'Temperamental' ? 1.3 : 0.9)
-      switch (p.pers) {
-        case 'Leader': return t('reply.praiseLeader', { first })
-        case 'Professional': return t('reply.praiseProfessional')
-        case 'Temperamental': return t('reply.praiseTemperamental', { first })
-        case 'Mercenary': return t('reply.praiseMercenary')
-        default: return t('reply.praiseDefault', { first })
-      }
-    }
-    if (p.pers === 'Professional' || p.pers === 'Leader') {
-      bump(-0.4)
-      return t('reply.praiseBackfired', { first })
-    }
-    bump(0.35)
-    return t('reply.praiseLapsItUp')
-  }
-
-  // 'word' - the quiet (or not so quiet) chat about standards
-  if (!goodForm) {
-    if (p.pers === 'Professional' || p.pers === 'Leader' || p.pers === 'Loyal') {
-      bump(0.55)
-      return t('reply.warnTakesIt', { first })
-    }
-    if (p.pers === 'Ambitious') {
-      if (rng() < 0.5) { bump(0.65); return t('reply.warnBristles', { first }) }
-      bump(-0.8)
-      return t('reply.warnSulks', { first })
-    }
-    bump(-1.1)
-    if (rng() < 0.4) {
-      state.news.push({
-        id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
-        subject: `Dressing room whispers: ${p.name} unhappy after dressing-down`,
-        body: `Word has leaked that ${p.name} was hauled in front of the coach over his recent form - and didn't take it well. Team-mates say he trained on his own on Tuesday.`,
-        k: 'news.dressingDown', v: { player: p.name },
-        playerId: p.id,
-      })
-      return t('reply.warnStormsOut', { first })
-    }
-    return t('reply.warnGoesQuiet', { first })
-  }
-  bump(p.pers === 'Temperamental' ? -1.5 : -0.8)
-  return p.pers === 'Temperamental'
-    ? `${first} explodes. "In MY form?!" He's got a point - hauling in your in-form players is how dressing rooms are lost.`
-    : `${first} looks baffled - he's been one of your best players. An unjustified rocket dents trust.`
-}
+// talkToPlayer used to live here: the ORIGINAL one-to-one, per-player
+// cooldown, no weekly budget. It and game/chats.ts were two economies for
+// the same conversation, and the uncapped one made squad-wide praise a free
+// morale faucet. Retired v1.1.4 - the office (chats.ts: two a week,
+// deterministic, real costs) is the one way to talk to a player.
 
 /** The wage bill that counts against the cap - marquee men sit outside it. */
 export function capBill(state: GameState, club: { players: number[]; marquee?: number[] }): number {

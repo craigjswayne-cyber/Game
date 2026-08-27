@@ -2,8 +2,9 @@ import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import {
   agreeFee, agreePreContract, askingPrice, counterIncomingOffer, executeTransfer,
-  offerRenewalAt, respondToOffer, signOnTerms, talkToPlayer, userBid,
+  offerRenewalAt, respondToOffer, signOnTerms, userBid,
 } from '../src/game/ai'
+import { canChat, chatBudget, praisePlayer, warnPlayer } from '../src/game/chats'
 import { loanIn, loanOut, loanTargets } from '../src/game/loans'
 import { fmtMoney, type GameState, type Player } from '../src/game/model'
 import { bad, ok, finite, checkWorld, failCount } from './worldcheck'
@@ -208,13 +209,26 @@ console.log('\n--- pre-contracts for the wrong people')
 }
 
 // --------------------------------------------------------------- the office
-console.log('\n--- talking to people who are not there')
+// (talkToPlayer, the old uncapped economy this block used to fuzz, is
+// retired - chats.ts is the one conversation system, and its budget is the
+// thing a tap-happy player would now hammer)
+console.log('\n--- the office, hammered past its budget')
 {
-  for (const id of [999_999, -1]) {
-    for (const kind of ['praise', 'word'] as const) {
-      ok(typeof safe(`talkToPlayer ${id} ${kind}`, () => talkToPlayer(g, id, kind)) === 'string',
-        `a ${kind} with player ${id} answers in words`)
-    }
+  const men = mine().filter(p => !p.acad).slice(0, 6)
+  let answered = 0
+  for (const p of men) {
+    if (!canChat(g, p)) continue
+    const r = safe(`praise ${p.id}`, () => praisePlayer(g, p))
+    if (typeof r === 'string') answered++
+  }
+  ok(answered >= 1, `the office answers in words while the budget lasts (${answered} chats)`)
+  ok(chatBudget(g) === 0, `and the weekly budget runs dry rather than negative (${chatBudget(g)} left)`)
+  const p = men.find(x => !canChat(g, x))
+  ok(!!p, 'past the budget the door is simply shut (canChat false)')
+  if (p) {
+    ok(typeof safe(`warn past budget ${p.id}`, () => warnPlayer(g, p)) === 'string',
+      'a chat forced past the shut door still answers in words rather than throwing')
+    finite(p.morale, 'and his morale stays a number')
   }
 }
 

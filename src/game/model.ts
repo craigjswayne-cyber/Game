@@ -351,7 +351,7 @@ export interface Player {
   /** last match rating and the week it was earned - fuels Team of the Week */
   lastR?: number
   lastWk?: number
-  talkWk?: number // absolute week (season*100+week) of the manager's last word with him
+  talkWk?: number // retired v1.1.4 with talkToPlayer (chats.ts uses lastChatWk); kept so old saves load
   /** week his agent demanded improved terms (0/undefined = content) */
   wantsDeal?: number
   /** week a formal transfer request landed (17A): the game-time ledger's
@@ -1691,6 +1691,15 @@ export function closeNatTenure(state: GameState) {
  *  The fallback is not a stopgap to be removed later. Careers are on the device
  *  and live for years, and a save begun on the release that shipped this will
  *  still be opened in v2. */
+/** News keys nothing WRITES any more but old saves still CARRY: newsBody
+ *  renders t(n.k) for any stored item, so the locale entry for a retired
+ *  story must outlive the code that pushed it or the inbox shows the raw
+ *  key. Listing one here is what keeps i18nprobe's unused-key sweep honest
+ *  about why it stays in the dictionary.
+ *  - 'news.dressingDown' (+Subj): pushed by talkToPlayer, the uncapped talk
+ *    economy retired in v1.1.4. */
+export const LEGACY_NEWS_KEYS = ['news.dressingDown'] as const
+
 export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
 export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
 
