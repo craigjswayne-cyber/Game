@@ -191,13 +191,18 @@ console.log('\none full season, watched:\n')
   ok(meetings.length > 0 && meetings.every(n => n.tag === 'scout'), `recruitment meetings carry the scout tag (${meetings.length} seen)`)
 }
 
-// ---- the terrace cooldown, on a seed the old code provably failed -----------
+// ---- the terrace cooldown, on a seed that provably streaks ------------------
 // A scan of the pre-25B build found back-to-back pulses on seeds 2, 3, 5 and
-// 21 (seed 2: believers in weeks 6 AND 7 of a five-win run). Seed 2 is the
-// regression tripwire; the season above covers whatever its own seed brews.
-console.log('\nthe terrace on seed 2 (old code repeated itself here):\n')
+// 21 (seed 2: believers in weeks 6 AND 7 of a five-win run), and seed 2 was
+// the tripwire until v1.1.4: the morale rebalance re-dealt its season and it
+// no longer brews a three-streak at all, which made both assertions vacuous.
+// A fresh scan (seeds 2-40, 23 of them still pulse) picked seed 11: three
+// pulses in weeks 9/13/19, same subject twice, the tightest spacing found -
+// exactly the season the cooldown exists for. The season above still covers
+// whatever its own seed brews.
+console.log('\nthe terrace on seed 11 (three pulses, close together):\n')
 {
-  const g: GameState = newGame('northampton', 'Probe', 2)
+  const g: GameState = newGame('northampton', 'Probe', 11)
   const start = g.season
   const pulses: { week: number; subject: string }[] = []
   let guard = 0

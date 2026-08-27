@@ -59,9 +59,20 @@ const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : ' FAIL 
   // by a season it considers underachievement. A three-win margin proved
   // nothing once the 20C dials reshuffled a seed into exactly that record;
   // the directional claim needs a genuinely one-sided year.
+  // The middle band used to cap the MAGNITUDE (|drift| < 15), and the v1.1.4
+  // morale rebalance showed why that was the wrong pin: the seed re-dealt to
+  // 11W-16L - a losing year by any human reading, five short of "decisive" -
+  // and its honest 24-point bleed failed a bound meant for even records. The
+  // bug §16C actually guards is the SIGN: a 12W-16L year once NET GAINED
+  // belief. So the middle band now asserts direction with the slack the 16C
+  // comment above already grants ("can honestly net a little LESS belief"):
+  // a losing-ish record must not manufacture conviction, a winning-ish one
+  // must not bleed dry, and only a dead-even record claims mere drift.
   if (g.mgr.w >= g.mgr.l + 6) ok(end > start, `a winning season earns belief (${start} -> ${Math.round(end)})`)
   else if (g.mgr.l >= g.mgr.w + 6) ok(end < start, `a losing season costs it (${start} -> ${Math.round(end)})`)
-  else ok(Math.abs(end - start) < 15, `a near-even season drifts, it does not lurch (${start} -> ${Math.round(end)})`)
+  else if (g.mgr.l > g.mgr.w) ok(end <= start + 4, `a losing-ish season cannot manufacture belief (${start} -> ${Math.round(end)})`)
+  else if (g.mgr.w > g.mgr.l) ok(end >= start - 8, `a winning-ish season cannot bleed the room dry (${start} -> ${Math.round(end)})`)
+  else ok(Math.abs(end - start) < 15, `a dead-even season drifts, it does not lurch (${start} -> ${Math.round(end)})`)
 }
 
 // ---- 4. the talk actually lands harder on a squad that believes in you

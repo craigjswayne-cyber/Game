@@ -4697,7 +4697,10 @@
     "movedToTransferBudget": "Transféré {amount} de la trésorerie vers le budget de transferts.",
     "boardInjection": "Injection du conseil : {amount} de fonds exceptionnels votés.",
     "charter": "La Charte du propriétaire est signée : le plafond salarial ne s'applique plus au club.",
-    "heal": "Retraite médicale réservée : {n} joueurs remis en pleine forme",
+    "heal": {
+      "one": "Retraite médicale réservée : un joueur remis en pleine forme",
+      "other": "Retraite médicale réservée : {n} joueurs remis en pleine forme"
+    },
     "estate": "Tout le domaine porté à son plafond en une seule vague",
     "pinnacle": "Mon nom envoyé aux fédérations",
     "boardPushed": "A insisté auprès du conseil après un refus : avertissement formel, respect réduit de moitié.",

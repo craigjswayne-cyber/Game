@@ -182,7 +182,9 @@ export function applyHeal(state: GameState): boolean {
     body: tIn('en', 'news.heal', v),
     k: 'news.heal', v,
   })
-  logDecision(state, 'dec.heal', { n: String(touched) }, true)
+  // n stays a number: the plural rule reads it, and "1" would still pick
+  // the right form but a number is what it means
+  logDecision(state, 'dec.heal', { n: touched }, true)
   return true
 }
 
