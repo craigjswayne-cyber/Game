@@ -258,6 +258,18 @@ try {
       disabled: b.disabled, pointerEvents: cs.pointerEvents, animation: cs.animationName,
     }
   }).catch(e => ({ lookFailed: String(e).slice(0, 80) }))
+  // A TROPHY COVERS THE DOOR, and it is supposed to. Main run 33060497370
+  // failed the click below with the diagnosis this file was built to give:
+  // topAtCentre DIV.celebrate-veil, covered: true. The season the probe
+  // played happened to end in silverware, and the trophy moment is a
+  // full-screen tap-to-dismiss veil (z-index 200) drawn over whatever is
+  // underneath - including the Annual. A player taps the celebration and
+  // then presses the door; the probe now does the same. Bounded, because
+  // a double can queue a second celebration behind the first.
+  for (let i = 0; i < 5 && await page.locator('.celebrate-veil').count(); i++) {
+    await page.locator('.celebrate-veil').click()
+    await page.waitForTimeout(350)
+  }
   try {
     await page.click('text=Ready for a new season', { timeout: 15000 })
   } catch (e) {
