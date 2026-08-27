@@ -188,27 +188,25 @@ try {
     const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
     const evs = S().liveMatch.ctx.events
     for (const e of evs) { e.homeScore = 40; e.awayScore = 40 - margin }
-    // the LAST event at or past that minute, but never the final one: a cursor
-    // at events.length is full time, and full time is not tense, it is over
+    // An event to stand on - any event, never the final one: a cursor at
+    // events.length is full time, and full time is not tense, it is over.
+    // The minute is then FABRICATED onto it, exactly like the scores above,
+    // and for the same reason. Two rounds of depending on the generated
+    // match's own minutes both lost: asking for an event at 76' failed the
+    // run whose match had nothing past 74', and falling back to the last
+    // event "while it is still late" (≥70') failed the next run, because
+    // late is not one threshold - the band needs late × close > 0.45, so
+    // level shows from 67', a kick in it from 70', but a SCORE in it
+    // (close = 4/7) needs 75' - and a 74' stand-in banded for two margins
+    // and rendered null for the third. This assertion is about what the
+    // band SAYS at a margin, not about where one match's events happened
+    // to land, so the minute is now part of the fixture: park on the event
+    // and make it minute atMin. Every run tests the same three sentences.
     let idx = -1
     for (let i = 0; i < evs.length - 1; i++) if (evs[i].min >= atMin) { idx = i; break }
-    // NOTHING AT OR PAST THAT MINUTE, which is not a fault and was failing the
-    // suite as though it were. The match is generated fresh each run, so where
-    // its last non-final event lands moves around: one run put it at 79', the
-    // next at 74', and bandAt(_, 76) failed the second - four assertions red on
-    // the shape of one match rather than on anything the game did wrong.
-    // measure() above already solved this for its own window by backing off the
-    // end. Do the same here: these three assertions are about LATE - that the
-    // band reads differently at nought, three and six points - and 74' is as
-    // late as 76'. Fall back to the last event there is, but only while it is
-    // still genuinely late, because tension is nothing before the hour
-    // (dream: late = (min - 55) / 25) and a band that never appears would make
-    // these pass for the wrong reason.
-    if (idx < 0) {
-      const lastIdx = evs.length - 2
-      if (lastIdx >= 0 && evs[lastIdx].min >= 70) idx = lastIdx
-    }
-    if (idx < 0) return { bad: `no event at ${atMin}' and none late enough to stand in (last ${evs[evs.length - 2]?.min}')` }
+    if (idx < 0) idx = evs.length - 2
+    if (idx < 0) return { bad: `a match with ${evs.length} events has no event to park on` }
+    evs[idx].min = atMin
     S().matchCursor(idx + 1, false)
     await frame()
     const band = document.querySelector('.tense-band')
