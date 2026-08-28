@@ -50,7 +50,7 @@ These are constraints the spec builds on, not aspirations:
 | 6 | `phase.license` | Manager's License | $2.99 | Non-consumable |
 | 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
 | 9 | `phase.heal` | Full Fitness | $0.99 | Consumable |
-| 10 | `phase.estate` | The Estate | $19.99 | Non-consumable |
+| 10 | `phase.estate` | The Estate | $9.99 | Non-consumable |
 | 11 | `phase.pinnacle` | The International Stage | $4.99 | Non-consumable |
 
 Ten products live in the catalogue (`NC_SKUS` + `CONSUMABLE_SKUS` in
@@ -160,7 +160,7 @@ already reads marquee exemptions.
   path the Boardroom injections use.
 * Lands as a club letter (`news.heal`) and a Decisions line (`dec.heal`).
 
-### 1.7 The Estate — $19.99, non-consumable (v1.1.4)
+### 1.7 The Estate — $9.99, non-consumable (v1.1.4; repriced from $19.99 in v1.1.5, owner: "19.99 is probably too much")
 
 * **Fiction:** an anonymous benefactor rebuilds the club's entire estate.
 * **Effect (`applyEstate`):** all nine facilities to `MAX_FACILITY` at once,

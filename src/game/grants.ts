@@ -202,7 +202,7 @@ export function applyHeal(state: GameState): boolean {
 }
 
 /**
- * The Estate (v1.1.4: "upgrade all facilities to max", £19.99): every one of
+ * The Estate (v1.1.4: "upgrade all facilities to max"; £9.99 since v1.1.5): every one of
  * the nine facilities raised to its ceiling, at once, for the club this save
  * manages today. Charter-shaped: bought once from the store, applied to a
  * save deliberately, stamped for good (🏗️ in Legacy and the Annual).
