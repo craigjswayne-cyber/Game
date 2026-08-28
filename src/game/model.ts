@@ -1348,6 +1348,10 @@ export interface GameState {
    *  the call: when it arrives, season.ts places a real natOffer through the
    *  normal machinery. Null/absent when no call is out. */
   natCall?: number | null
+  /** the federation the buyer chose at the store (v1.1.5 picker) - the
+   *  natCall answers with this nation's offer; absent on a pre-picker call,
+   *  which falls back to the best qualified tier */
+  natCallNat?: string | null
   /** purchased cash landed this season, in pounds - the books objective
    *  reads organic funds only, so a bought pound can never finish it */
   injectedThisSeason?: number

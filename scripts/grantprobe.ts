@@ -198,19 +198,30 @@ console.log('\n--- 9. the estate rises whole, once, and the builders take their 
   ok(!applyEstate(g), 'and it cannot be applied twice')
 }
 
-console.log('\n--- 10. the call to the federations is answered, once per career, whatever the reputation\n')
+console.log('\n--- 10. the call to the federations is answered, once per career, to the nation the buyer picked\n')
 {
   const g = newGame('northampton', 'Grant Probe', 7110)
   ok(mgrReputation(g) < 64, `a fresh career is nowhere near the earned gate (${mgrReputation(g)})`)
-  ok(applyPinnacle(g), 'the call goes out')
-  ok(g.pinnacleCalled === true && g.natCall != null, 'the save is stamped and the answer is scheduled')
+  // v1.1.5: the buyer picks the federation - any rung of the ladder,
+  // reputation notwithstanding, because the choice is the product now
+  ok(!applyPinnacle(g, 'ATLANTIS'), 'a federation that does not exist refuses the call, spending nothing')
+  ok(!g.pinnacleCalled, 'and the career still has its call')
+  ok(applyPinnacle(g, 'NZL'), 'the call goes out to the buyer\'s own pick')
+  ok(g.pinnacleCalled === true && g.natCall != null && g.natCallNat === 'NZL',
+    'the save is stamped and the answer is scheduled for the picked nation')
   ok(g.news.some(n => n.k === 'news.pinnacle'), 'the letter is filed, keyed')
   ok(!g.natOffer, 'no offer materialises on the spot - federations take a fortnight')
   for (let i = 0; i < NAT_CALL_WEEKS + 1 && !g.natOffer; i++) processWeekAndAdvance(g)
   ok(!!g.natOffer, `a real offer arrives within ${NAT_CALL_WEEKS + 1} weeks`)
-  ok(g.natOffer?.nat === 'CAN', 'from the foot of the ladder, because the product is the introduction, not the All Blacks job')
-  ok(g.natCall == null, 'the call is answered and cleared')
-  ok(!applyPinnacle(g), 'a career only gets one call')
+  ok(g.natOffer?.nat === 'NZL', 'and it is the picked federation - the All Blacks, at reputation 22, because that is what was bought')
+  ok(g.natCall == null && g.natCallNat == null, 'the call is answered and cleared')
+  ok(!applyPinnacle(g, 'CAN'), 'a career only gets one call')
+
+  // a call with no pick (an old save mid-call) still lands somewhere honest
+  const h = newGame('northampton', 'Grant Probe', 7111)
+  ok(applyPinnacle(h), 'a pickless call still goes out')
+  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !h.natOffer; i++) processWeekAndAdvance(h)
+  ok(h.natOffer?.nat === 'CAN', 'and falls back to the best tier the reputation honestly qualifies for')
 }
 
 if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }
