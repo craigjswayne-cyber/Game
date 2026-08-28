@@ -144,11 +144,7 @@
     "mainMenu": "Main Menu",
     "back": "Back",
     "confirm": "Confirm",
-    "startCareer": "▸ Start Career",
-    "licenseTitle": "Manager's License",
-    "licenseBlurb": "Owned on this account. Start this career as a proven name - 95/95 reputation from day one, and the save wears a small 🎓. Or begin cold, and make the name the long way.",
-    "licenseOn": "Starting as a proven name 🎓",
-    "licenseOff": "Begin cold - the name gets made the long way"
+    "startCareer": "▸ Start Career"
   },
   "common": {
     "a": "A",
@@ -5401,8 +5397,6 @@
     "needCareer": "Open a career first - the retreat needs a squad to visit.",
     "removeAds": "Remove all ads",
     "removeAdsLine": "Every ad in the game, gone for good.",
-    "license": "Manager's License",
-    "licenseLine": "Start any new career as a proven name.",
     "heal": "Full Fitness",
     "healLine": "Every injury healed, the whole squad fresh. Once per match played.",
     "healDone": "Done: the whole squad reports fit.",
@@ -5425,6 +5419,8 @@
     "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
     "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
     "healWait": "The retreat needs a match between visits - play one and it reopens.",
-    "pickNation": "Yours. Pick the federation you want and make the call - the offer arrives at once."
+    "pickNation": "Yours. Pick the federation you want and make the call - the offer arrives at once.",
+    "support": "Support the game",
+    "supportLine": "A thank-you to the developer. It changes nothing in the game."
   }
 }

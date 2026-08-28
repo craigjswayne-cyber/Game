@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
-  CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, LICENSE_SKU, PINNACLE_SKU, SUPPORTER_SKU,
+  CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
   pendingConsumables, restore, skuPrice, tillOpen,
 } from '../../game/monetise'
@@ -172,7 +172,7 @@ export default function Supporter() {
 
   const adsExist = !!adBridge()
   const ownsAds = hasEntitlement(SUPPORTER_SKU)
-  const ownsLicense = hasEntitlement(LICENSE_SKU)
+  const ownsSupport = hasEntitlement(SUPPORT_SKU)
   const ownsPinnacle = hasEntitlement(PINNACLE_SKU)
   const ownsEstate = hasEntitlement(ESTATE_SKU)
   const ownsCharter = hasEntitlement(CHARTER_SKU)
@@ -186,8 +186,8 @@ export default function Supporter() {
           right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={busy} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />
       )}
 
-      <Row icon="🎓" title={t('store.license')} line={t('store.licenseLine')} msg={msgs[LICENSE_SKU]}
-        right={ownsLicense ? <OwnedChip /> : <BuyBtn sku={LICENSE_SKU} busy={busy} onBuy={() => void buyNC(LICENSE_SKU)} />} />
+      <Row icon="💛" title={t('store.support')} line={t('store.supportLine')} msg={msgs[SUPPORT_SKU]}
+        right={ownsSupport ? <OwnedChip /> : <BuyBtn sku={SUPPORT_SKU} busy={busy} onBuy={() => void buyNC(SUPPORT_SKU)} />} />
 
       <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
         right={<BuyBtn sku={HEAL_SKU} busy={busy} onBuy={() => void buyHeal()} />}>

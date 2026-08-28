@@ -144,11 +144,7 @@
     "mainMenu": "Menu principal",
     "back": "Retour",
     "confirm": "Confirmer",
-    "startCareer": "▸ Démarrer la carrière",
-    "licenseTitle": "Licence de manager",
-    "licenseBlurb": "Acquise sur ce compte. Commencez cette carrière en nom établi - réputation 95/95 dès le premier jour, et la sauvegarde porte un petit 🎓. Ou partez de rien, et faites-vous un nom à la longue.",
-    "licenseOn": "Départ en nom établi 🎓",
-    "licenseOff": "Partir de rien - le nom se fera à la longue"
+    "startCareer": "▸ Démarrer la carrière"
   },
   "common": {
     "a": "E",
@@ -5401,8 +5397,6 @@
     "needCareer": "Ouvrez d'abord une carrière - la retraite médicale a besoin d'un effectif à soigner.",
     "removeAds": "Supprimer toutes les publicités",
     "removeAdsLine": "Toutes les publicités du jeu, supprimées pour de bon.",
-    "license": "Manager's License",
-    "licenseLine": "Commencez toute nouvelle carrière avec un nom déjà reconnu.",
     "heal": "Pleine forme",
     "healLine": "Chaque blessure soignée, tout l'effectif frais. Une fois par match joué.",
     "healDone": "C'est fait : tout l'effectif est déclaré apte.",
@@ -5425,6 +5419,8 @@
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
     "healWait": "La retraite exige un match entre deux visites - jouez-en un et elle rouvre.",
-    "pickNation": "À vous. Choisissez la fédération que vous voulez et passez l'appel - l'offre arrive aussitôt."
+    "pickNation": "À vous. Choisissez la fédération que vous voulez et passez l'appel - l'offre arrive aussitôt.",
+    "support": "Soutenir le jeu",
+    "supportLine": "Un merci au développeur. Cela ne change rien dans le jeu."
   }
 }

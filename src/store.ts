@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
 import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i18n'
-import { LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
+import { hasSupporter } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
 import { dreamState, dreamsFor } from './game/dream'
@@ -171,7 +171,7 @@ interface Store {
    *  count comparison provably did not. */
   deskHolds: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, licensed?: boolean) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
   /** A board injection bought at the till lands in this career (grants.ts).
    *  Returns false when the seasonal limit refuses it - the caller must then
    *  NOT consume the purchase, so the recovery pass keeps it. */
@@ -503,14 +503,15 @@ export const useStore = create<Store>((set, get) => ({
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
-  start: (clubId, managerName, challengeId, origin, licensed) => {
+  start: (clubId, managerName, challengeId, origin) => {
     const seed = (Math.random() * 2 ** 31) | 0
     const g = newGame(clubId, managerName, seed, challengeId, origin)
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets
     // itself)
-    if (licensed && hasEntitlement(LICENSE_SKU)) g.licensed = true
+    // the licensed start went with the Manager's License product (v1.1.6
+    // swapped it for Support the game); old saves keep their stamp
     // the welcome dialog belongs to a career starting, not to a screen being
     // rendered: Home used to decide this from week 1 / season 0, which fired
     // again every time a brand-new save was re-opened on another device.

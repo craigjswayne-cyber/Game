@@ -152,7 +152,7 @@ first installed build showed (27 Aug).
 
 | Product ID | Play type | Product | Price |
 |---|---|---|---|
-| `phase.license` | Managed (non-consumable) | Manager's License | $2.99 |
+| `phase.license` | Managed (non-consumable) | Support the game | $0.99 |
 | `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
 | `phase.estate` | Managed (non-consumable) | The Estate | $9.99 |
 | `phase.pinnacle` | Managed (non-consumable) | The International Stage | $4.99 |

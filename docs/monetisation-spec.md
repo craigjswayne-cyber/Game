@@ -47,7 +47,7 @@ These are constraints the spec builds on, not aspirations:
 | 3 | `phase.inject.m` | Board Injection (Medium) | $1.99 | Consumable |
 | 4 | `phase.inject.l` | Board Injection (Large) | $3.99 | Consumable |
 | 5 | `phase.inject.xl` | The Sugar Daddy | $7.99 | Consumable |
-| 6 | `phase.license` | Manager's License | $2.99 | Non-consumable |
+| 6 | `phase.license` | Support the game | $0.99 | Non-consumable |
 | 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
 | 9 | `phase.heal` | Full Fitness | $0.99 | Consumable |
 | 10 | `phase.estate` | The Estate | $9.99 | Non-consumable |
@@ -111,19 +111,18 @@ already reads marquee exemptions.
   seasonal, and printed on the tin; permanent freedom from the cap is its own
   product (§1.5), bought with eyes open and stamped on the save.
 
-### 1.3 Manager's License — $2.99, non-consumable
+### 1.3 Support the game — $0.99, non-consumable (v1.1.6; was the Manager's License)
 
-* **Fiction:** your career badge-work is done; the game world treats you as a
-  proven name.
-* **Effect:** a toggle offered **at career creation** (New Career wizard,
-  final step): "Start as a proven name". Pins `mgrReputation` at the scale's own
-  ceiling (95 — the game measures reputation /95 everywhere) for that save —
-  top-flight vacancies apply-able from day one,
-  federations call (the `natOffer` gate at rep ≥ 64 is instantly open).
-* **Per-save opt-in, account-wide entitlement.** It never retro-edits an
-  existing career — an honest save stays honest. A licensed save is stamped
-  (`state.licensed = true`) and the Legacy screen shows a small 🎓 beside the
-  career grade: visible, not shaming.
+* **A plain thank-you to the developer. It changes nothing in the game** — no
+  toggle, no stamp, no effect. The one-line store row says exactly that.
+* **History:** this Play id (`phase.license`) sold as the **Manager's License**
+  ($2.99): a proven-name toggle at career creation that pinned `mgrReputation`
+  at 95. The owner swapped it (v1.1.6, "swap manager license for support the
+  game at 0.99") — same permanent product id, renamed and repriced in Play
+  Console. License buyers own Support the game now; a save that started
+  licensed keeps its 🎓 stamp and pinned reputation for good
+  (`state.licensed` remains engine-supported), but no new save can start
+  licensed.
 
 ### 1.4 In-Game Editor — REMOVED (v1.1.3, 27 Aug 2026)
 
@@ -280,7 +279,7 @@ read as complete without them (same rule `storeprobe` applies to the till).
   actions on unscouted targets.
 * **Matchday (pre-kick-off):** analyst's session appears on the briefing
   card only when there is a weakness to read.
-* **Game Status:** Remove Ads, Manager's License, and **Restore
+* **Game Status:** Remove Ads, Support the game, and **Restore
   purchases** — the quiet shelf, where the existing supporter unlock already
   lives.
 * **New Career wizard:** the License toggle, only for owners.
@@ -309,7 +308,7 @@ read as complete without them (same rule `storeprobe` applies to the till).
   The rest of the league just took note."
 * **The Owner’s Charter** — "The wage law no longer applies to you. No cap, no
   fines, no embargoes — build the squad nobody else is allowed to pay."
-* **Manager's License** — "Start any new career as a proven name: maximum
+* **Support the game** (formerly Manager's License) — "Start any new career as a proven name: maximum
   reputation, top-flight vacancies open, federations already calling."
 
 ---
