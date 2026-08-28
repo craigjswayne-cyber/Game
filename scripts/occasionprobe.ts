@@ -80,13 +80,24 @@ const inject = (g: GameState, fx: Fixture, att: number, venue?: { name: string; 
   const comp = g.comps[club.leagueId]
   ok((comp.playoffTeams ?? 0) > 0, `the Premiership settles its title in the playoffs (top ${comp.playoffTeams})`)
   // walk to the run-in, then doctor a table the user has already won: miles
-  // clear on points, one league round left to play
-  for (let i = 0; i < 60 && g.week < 32; i++) processWeekAndAdvance(g)
+  // clear on points, one league round left to play. The board is pinned
+  // content on the way (the annualprobe lesson): an autopilot slump ended
+  // the tenure before week 32 on this seed once the v1.1.6 squad re-deal
+  // met the v1.1.4 morale rules, and an unemployed manager has no run-in.
+  for (let i = 0; i < 60 && g.week < 32; i++) {
+    g.clubs[g.userClubId].boardConfidence = Math.max(70, g.clubs[g.userClubId].boardConfidence)
+    processWeekAndAdvance(g)
+  }
   for (const r of comp.table) r.pts = r.teamId === club.id ? 90 : 40
   const mine = g.fixtures.filter(f =>
     f.compId === comp.id && !f.stage && !f.played &&
     (f.homeId === club.id || f.awayId === club.id))
-  for (const f of mine.slice(1)) { f.played = true; f.tableApplied = true }
+    .sort((a, b) => a.week - b.week)
+  // Keep the LATEST remaining round unplayed, not an arbitrary one: the week
+  // about to be processed plays its own fixtures, and if the kept round is in
+  // it, roundsLeft hits 0 mid-week and the whole run-in block skips. The
+  // 2026-27 squad update re-dealt the calendar into exactly that shape.
+  for (const f of mine.slice(0, -1)) { f.played = true; f.tableApplied = true }
   ok(mine.length >= 1, `a last league round exists to build the final-day story on (${mine.length} unplayed)`)
   processWeekAndAdvance(g)
   const spot = g.news.filter(n => n.subject.includes('FINAL DAY')).pop()
