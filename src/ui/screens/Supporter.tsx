@@ -6,7 +6,7 @@ import {
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
   pendingConsumables, restore, skuPrice, tillOpen,
 } from '../../game/monetise'
-import { HEALS_PER_SEASON, healsLeft } from '../../game/grants'
+import { healReady } from '../../game/grants'
 import { t } from '../../game/i18n'
 
 /**
@@ -114,7 +114,7 @@ export default function Supporter() {
       // squad already fit, or the seasonal limit is spent: the purchase is
       // held at the store, not swallowed
       setHealPending(true)
-      say(HEAL_SKU, t('store.healHeld', { n: HEALS_PER_SEASON }))
+      say(HEAL_SKU, t('store.healHeld'))
     }
   }
   const buyHeal = async () => {
@@ -152,10 +152,10 @@ export default function Supporter() {
       <Row icon="🎓" title={t('store.license')} line={t('store.licenseLine')} msg={msgs[LICENSE_SKU]}
         right={ownsLicense ? <OwnedChip /> : <BuyBtn sku={LICENSE_SKU} busy={busy} onBuy={() => void buyNC(LICENSE_SKU)} />} />
 
-      <Row icon="🏥" title={t('store.heal')} line={t('store.healLine', { n: HEALS_PER_SEASON })} msg={msgs[HEAL_SKU]}
+      <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
         right={<BuyBtn sku={HEAL_SKU} busy={busy} onBuy={() => void buyHeal()} />}>
-        {inCareer && game && healsLeft(game) <= 0 && !healPending && (
-          <div className="meta muted">{t('store.healSpent')}</div>
+        {inCareer && game && !healReady(game) && !healPending && (
+          <div className="meta muted">{t('store.healWait')}</div>
         )}
         {healPending && (
           <button className="btn ghost block" onClick={() => void applyHealNow()}>{t('till.applyHere')}</button>

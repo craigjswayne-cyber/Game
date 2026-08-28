@@ -5395,10 +5395,9 @@
     "license": "Manager's License",
     "licenseLine": "Commencez toute nouvelle carrière avec un nom déjà reconnu.",
     "heal": "Pleine forme",
-    "healLine": "Toutes les blessures soignées, tout l'effectif frais. Jusqu'à {n} par saison.",
+    "healLine": "Chaque blessure soignée, tout l'effectif frais. Une fois par match joué.",
     "healDone": "C'est fait : tout l'effectif est déclaré apte.",
-    "healHeld": "Payé, et en attente : rien à soigner pour l'instant, ou les {n} visites de la saison sont épuisées. Il reste à vous - appliquez-le au bon moment.",
-    "healSpent": "Les visites de la saison sont épuisées - le puits se remplit à l'été.",
+    "healHeld": "Payé, et conservé : rien à soigner pour l'instant, ou aucun match depuis la dernière visite. Il reste à vous - appliquez-le au bon moment.",
     "pinnacle": "La scène internationale",
     "pinnacleLine": "Votre nom part chez les fédérations - une offre de sélectionneur suit sous quelques semaines.",
     "makeCall": "Passer l'appel",
@@ -5416,6 +5415,7 @@
     "funding": "Fonds du conseil",
     "fundingLine": "Quatre tailles de fonds exceptionnels, calculés sur le budget de la saison.",
     "openBoardroom": "Ouvrir la salle du conseil",
-    "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit."
+    "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
+    "healWait": "La retraite exige un match entre deux visites - jouez-en un et elle rouvre."
   }
 }

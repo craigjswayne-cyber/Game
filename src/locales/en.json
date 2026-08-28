@@ -5395,10 +5395,9 @@
     "license": "Manager's License",
     "licenseLine": "Start any new career as a proven name.",
     "heal": "Full Fitness",
-    "healLine": "Every injury healed, the whole squad fresh. Up to {n} a season.",
+    "healLine": "Every injury healed, the whole squad fresh. Once per match played.",
     "healDone": "Done: the whole squad reports fit.",
-    "healHeld": "Paid, and held: nothing to heal right now, or the season's {n} visits are spent. It stays yours - apply it when it counts.",
-    "healSpent": "The season's visits are spent - the well refills in the summer.",
+    "healHeld": "Paid, and held: nothing to heal right now, or no match since the last visit. It stays yours - apply it when it counts.",
     "pinnacle": "The International Stage",
     "pinnacleLine": "Your name goes to the federations - a national-team offer follows within weeks.",
     "makeCall": "Make the call",
@@ -5416,6 +5415,7 @@
     "funding": "Board funding",
     "fundingLine": "Four sizes of extraordinary money, priced on this season's budget.",
     "openBoardroom": "Open the Boardroom",
-    "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere."
+    "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
+    "healWait": "The retreat needs a match between visits - play one and it reopens."
   }
 }

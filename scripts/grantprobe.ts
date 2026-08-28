@@ -19,7 +19,7 @@
 // Run: npx tsx scripts/grantprobe.ts
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { HEALS_PER_SEASON, NAT_CALL_WEEKS, applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, healsLeft, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
+import { NAT_CALL_WEEKS, applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, healReady, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
 import { capPosition } from '../src/game/cap'
 import { FACILITY_INFO, MAX_FACILITY, mgrReputation, type FacilityId, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
@@ -146,7 +146,7 @@ console.log('\n--- 7. a licensed save is a proven name from day one\n')
 // on the owner's call (27 Aug, v1.1.3) before any store ever sold one, so the
 // writes it clamped no longer exist to clamp.
 
-console.log('\n--- 8. the retreat heals everything, and only so often\n')
+console.log('\n--- 8. the retreat heals everything, but never twice without a game\n')
 {
   const g = newGame('northampton', 'Grant Probe', 7108)
   const club = g.clubs[g.userClubId]
@@ -157,22 +157,31 @@ console.log('\n--- 8. the retreat heals everything, and only so often\n')
     p.rust = 2
     return p
   }
-  ok(healsLeft(g) === HEALS_PER_SEASON, `a fresh season has all ${HEALS_PER_SEASON} visits`)
+  ok(healReady(g), 'a fresh career can book the retreat')
   const p = hurtOne()
   ok(applyHeal(g), 'a squad with an injured man takes the retreat')
   ok(p.injury === null && p.cond === 100 && (p.rust ?? 0) === 0,
     'and he walks out healed: no injury, full condition, no rust')
-  ok(healsLeft(g) === HEALS_PER_SEASON - 1, 'one visit is spent')
   ok(g.news.some(n => n.k === 'news.heal'), 'the letter is filed, keyed for both languages')
   // sharpness is match practice, not medicine
   const sharpBefore = g.players[club.players[1]]!.sharp
   ok(g.players[club.players[1]]!.sharp === sharpBefore, 'sharpness is untouched - it comes back on Saturdays')
-  ok(!applyHeal(g), 'a fully fit squad has nothing to heal, and the purchase is held rather than swallowed')
-  ok(healsLeft(g) === HEALS_PER_SEASON - 1, 'the refusal spends no visit')
-  hurtOne(); ok(applyHeal(g), 'visit two lands')
-  hurtOne(); ok(applyHeal(g), 'visit three lands')
+  // v1.1.5: no seasonal bottom, but never back-to-back - a game must be
+  // played between visits, read off the manager's own record
   hurtOne()
-  ok(!applyHeal(g), `visit ${HEALS_PER_SEASON + 1} is refused - the well has a bottom`)
+  ok(!healReady(g) && !applyHeal(g), 'a second visit with no game played is refused')
+  g.mgr.w += 1 // a match managed (any result would do)
+  ok(healReady(g), 'one game later the retreat reopens')
+  ok(applyHeal(g), 'and visit two lands')
+  hurtOne()
+  ok(!applyHeal(g), 'but not visit three in the same breath')
+  g.mgr.l += 1
+  ok(applyHeal(g), 'a defeat counts too - it is a game, not a result, that separates visits')
+  const healedTwiceMore = g.injections?.heal
+  ok(healedTwiceMore === 3, `the ledger still counts every visit (${healedTwiceMore})`)
+  // a fully fit squad still holds the purchase rather than swallowing it
+  g.mgr.w += 1
+  ok(!applyHeal(g), 'a fully fit squad has nothing to heal, and the purchase is held rather than swallowed')
 }
 
 console.log('\n--- 9. the estate rises whole, once, and the builders take their half-built site with them\n')

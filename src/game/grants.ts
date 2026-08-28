@@ -136,31 +136,40 @@ export function applyCharter(state: GameState): boolean {
 /**
  * Full Fitness (v1.1.4, the owner's overnight brief: "restore your team to
  * full health", 99p): every injury cleared, every man's condition and rust
- * restored, in one visit. Consumable, and bounded like the injections - the
- * retreat can only be booked so often a season, because a squad that can be
- * made new every week is a game where the medical department, the physio
- * hires, the recovery centre and the rotation puzzle all stop mattering.
+ * restored, in one visit. Consumable.
  * Deterministic, additive, no rng: it clears states, it never rolls dice.
+ *
+ * The bound changed in v1.1.5 (owner: "can be bought as many times as you
+ * want but not one after another without a game"). The 3-a-season cap is
+ * gone; instead the retreat will not book twice in a row - a match must be
+ * PLAYED between visits, read off the manager's own record (w+d+l, which
+ * only ever counts games actually managed), so back-to-back purchases in
+ * one idle week are refused however deep the wallet. That keeps the one
+ * exploit that mattered - heal, play, heal is spending money to skip the
+ * recovery game, which is the product; heal, heal, heal was skipping the
+ * game itself.
  *
  * Sharpness is deliberately NOT restored. Health is what medicine buys;
  * match practice is earned on Saturdays, and a healed man still comes back
  * needing minutes - which keeps the returning-player story intact.
  *
- * Returns false when there is nothing to heal (a fully fit squad) or the
- * seasonal limit is spent - and the Store holds the purchase un-consumed,
- * exactly as the Boardroom holds an injection the board will not pass.
+ * Returns false when there is nothing to heal (a fully fit squad) or no
+ * match has been played since the last visit - and the Store holds the
+ * purchase un-consumed, exactly as the Boardroom holds an injection the
+ * board will not pass.
  */
-export const HEALS_PER_SEASON = 3
+const mgrGames = (state: GameState) => state.mgr.w + state.mgr.d + state.mgr.l
 
-export function healsLeft(state: GameState): number {
-  return HEALS_PER_SEASON - (state.injections?.heal ?? 0)
+/** May the retreat be booked now? A game must separate two visits. */
+export function healReady(state: GameState): boolean {
+  return state.healAtGames == null || mgrGames(state) > state.healAtGames
 }
 
 export function applyHeal(state: GameState): boolean {
   if (state.unemployed) return false
   const club = state.clubs[state.userClubId]
   if (!club) return false
-  if (healsLeft(state) <= 0) return false
+  if (!healReady(state)) return false
   let touched = 0
   for (const id of club.players) {
     const p = state.players[id]
@@ -174,6 +183,9 @@ export function applyHeal(state: GameState): boolean {
     p.rust = 0
   }
   if (touched === 0) return false
+  state.healAtGames = mgrGames(state)
+  // the ledger keeps counting (the Annual and the decisions log read it);
+  // it no longer gates anything
   state.injections = { ...(state.injections ?? {}), heal: (state.injections?.heal ?? 0) + 1 }
   const v = { n: touched }
   state.news.push({
