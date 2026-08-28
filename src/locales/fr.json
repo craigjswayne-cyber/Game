@@ -2021,7 +2021,10 @@
     "standFaceValue": "Le vestiaire vous prend au mot. Les résultats parleront.",
     "standSomeAsk": "Quelques cadres se demandent encore qui vous êtes. Continuez à gagner et ils arrêteront.",
     "standOutranks": "Le vestiaire a plus d'aura que votre bilan, et il s'entraîne en le sachant.",
-    "standNoName": "Un effectif d'internationaux, un entraîneur sans nom : chaque consigne est discrètement réexaminée."
+    "standNoName": "Un effectif d'internationaux, un entraîneur sans nom : chaque consigne est discrètement réexaminée.",
+    "natKeepClubQ": "Et {club} ? Voulez-vous garder votre poste en club ?",
+    "natResignClub": "Démissionner du club",
+    "natKeepBoth": "Continuer avec les deux"
   },
   "week": {
     "wireQuietWeek": "Une semaine calme. Ça ne dure jamais.",
