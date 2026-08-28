@@ -303,5 +303,96 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   delete gg.PaymentRequest
 }
 
+// ---- 14. the iOS bridge, and the three files that have to agree ------------
+//
+// Section 13 exists because the Android bridge shipped without consume() and
+// no probe had ever executed it. The iOS bridge is written from the same
+// contract across THREE languages, so it has three more ways to rot quietly:
+// the Swift can finish a consumable it should have held, the ObjC macro can
+// forget to expose a method (a method not named there is invisible to the web
+// view, however well it is written), and the StoreKit test config can drift
+// from the catalogue. All four are checked here, in node, before a Mac is
+// ever involved.
+console.log('\n--- 14. the StoreKit bridge and the native files behind it')
+{
+  clear()
+  const finished: string[] = []
+  let held: string[] = []
+  const owns: string[] = []
+  const gg = globalThis as unknown as Record<string, unknown>
+  // the Swift plugin, as Capacitor presents it to the page
+  gg.Capacitor = { Plugins: { PhaseBilling: {
+    details: async ({ skus }: { skus: string[] }) => ({
+      products: skus.map(sku => ({ sku, price: '£0.99', title: 'A thing' })),
+    }),
+    buy: async ({ sku }: { sku: string }) => {
+      if (sku === 'phase.nosuch') return { outcome: 'unavailable' }
+      // a consumable is left UNFINISHED until the career keeps it; a
+      // non-consumable is finished at once and lives in the entitlements
+      if (M.CONSUMABLE_SKUS.includes(sku)) held.push(sku)
+      else { owns.push(sku); finished.push(sku) }
+      return { outcome: 'owned' }
+    },
+    owned: async () => ({ skus: [...owns, ...held] }),
+    consume: async ({ sku }: { sku: string }) => {
+      held = held.filter(s => s !== sku)
+      finished.push(sku)
+      return {}
+    },
+  } } }
+
+  const { storeKitBridge } = await import('../src/game/storekit')
+  const b = storeKitBridge()
+  ok(!!b, 'the iOS shell gets a bridge')
+  ok(typeof b?.consume === 'function', 'and it can CONSUME - the method whose absence cost Android five products')
+
+  g.rmBilling = b!
+  ok(M.tillOpen(), 'the till opens on it')
+  ok(await M.skuPrice(M.HEAL_SKU) === '£0.99', "StoreKit's own displayPrice is passed through untouched")
+  ok(await M.buyConsumable(M.HEAL_SKU) === 'owned', 'a consumable buys')
+  ok((await b!.owned()).includes(M.HEAL_SKU),
+    'and STAYS owned before it is consumed - an interrupted purchase is recoverable, not lost')
+  await M.consume(M.HEAL_SKU)
+  ok(!(await b!.owned()).includes(M.HEAL_SKU), 'consuming finishes it, so the App Store will sell it again')
+  ok(await M.buyOwnable(M.SUPPORT_SKU) === 'owned', 'a non-consumable buys')
+  ok(finished.includes(M.SUPPORT_SKU), 'and is finished at once, because the entitlement is the record')
+  ok(await M.buyOwnable('phase.nosuch') === 'unavailable', 'a SKU the store does not have is unavailable, not an error')
+
+  // ---- the native files, read as text: three ways to disagree ------------
+  const swift = readFileSync('packaging/ios/PhaseBilling.swift', 'utf8')
+  const objc = readFileSync('packaging/ios/PhaseBilling.m', 'utf8')
+  const kit = JSON.parse(readFileSync('packaging/ios/Products.storekit', 'utf8'))
+
+  // (a) Swift's consumables list IS the catalogue's. Miss one and iOS
+  //     finishes it at purchase, which kills the recovery path in silence.
+  const swiftConsumables = new Set(
+    (swift.match(/private static let consumables[\s\S]*?\]/)?.[0] ?? '')
+      .match(/"([a-z0-9.]+)"/g)?.map(x => x.replaceAll('"', '')) ?? [],
+  )
+  ok(swiftConsumables.size === M.CONSUMABLE_SKUS.length &&
+     M.CONSUMABLE_SKUS.every(s => swiftConsumables.has(s)),
+    `PhaseBilling.swift knows the same five consumables as the catalogue (${[...swiftConsumables].length})`)
+
+  // (b) every method the shim calls is exposed by the ObjC macro
+  for (const m of ['details', 'buy', 'owned', 'consume']) {
+    ok(new RegExp(`CAP_PLUGIN_METHOD\\(${m},`).test(objc),
+      `PhaseBilling.m exposes ${m}() to the web view`)
+  }
+
+  // (c) the test config is the catalogue, with the right kinds
+  const kitById = new Map<string, string>(kit.products.map((p: { productID: string; type: string }) => [p.productID, p.type]))
+  const sellable = [...M.NC_SKUS, ...M.CONSUMABLE_SKUS].filter(s => s !== M.SUPPORTER_SKU)
+  ok(sellable.every(s => kitById.has(s)),
+    `Products.storekit carries every sellable product (${kitById.size} of ${sellable.length})`)
+  ok(M.CONSUMABLE_SKUS.every(s => kitById.get(s) === 'Consumable'),
+    'the five consumables are typed Consumable there')
+  ok(sellable.filter(s => !M.CONSUMABLE_SKUS.includes(s)).every(s => kitById.get(s) === 'NonConsumable'),
+    'and the permanent ones NonConsumable')
+  ok(!kitById.has(M.SUPPORTER_SKU),
+    'Remove-all-ads is absent, exactly as it is absent from Play until a build ships ads')
+
+  delete gg.Capacitor
+}
+
 console.log(fails ? `\nMONEY PROBE FAILED (${fails})` : '\nMONEY PROBE PASSED: it fails open, it grants once, and the game is not for sale by the yard')
 if (fails) process.exit(1)

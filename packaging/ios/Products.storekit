@@ -1,0 +1,151 @@
+{
+  "identifier": "PhaseRugbyManager",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "1001",
+      "localizations": [
+        {
+          "description": "A thank-you to the developer. It changes nothing in the game.",
+          "displayName": "Support the game",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.license",
+      "referenceName": "Support the game",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "1002",
+      "localizations": [
+        {
+          "description": "New ownership arrives with lawyers: the wage cap no longer applies to your club. Permanent for the save that signs it.",
+          "displayName": "Remove the Wage Cap",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.uncapped",
+      "referenceName": "Remove the Wage Cap",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "1003",
+      "localizations": [
+        {
+          "description": "Every one of your club's nine facilities raised to its maximum, at once. Once per save.",
+          "displayName": "Max your team facilities",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.estate",
+      "referenceName": "Max your team facilities",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "1004",
+      "localizations": [
+        {
+          "description": "Pick any federation and their offer to coach the national side arrives at once. Once per career.",
+          "displayName": "Become an International Coach",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.pinnacle",
+      "referenceName": "Become an International Coach",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "1005",
+      "localizations": [
+        {
+          "description": "The board votes through 10m of extraordinary funds, plus a season of cap-exempt wages.",
+          "displayName": "Small Cash Injection",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.inject.s",
+      "referenceName": "Small Cash Injection",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "1006",
+      "localizations": [
+        {
+          "description": "The board votes through 25m of extraordinary funds, plus a season of cap-exempt wages.",
+          "displayName": "Medium Cash Injection",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.inject.m",
+      "referenceName": "Medium Cash Injection",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "1007",
+      "localizations": [
+        {
+          "description": "The board votes through 60m of extraordinary funds, plus a season of cap-exempt wages.",
+          "displayName": "Large Cash Injection",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.inject.l",
+      "referenceName": "Large Cash Injection",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "7.99",
+      "familyShareable": false,
+      "internalID": "1008",
+      "localizations": [
+        {
+          "description": "130m of extraordinary money, once a season, plus the biggest cap-exempt wage allowance the board will underwrite.",
+          "displayName": "The Sugar Daddy",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.inject.xl",
+      "referenceName": "The Sugar Daddy",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "1009",
+      "localizations": [
+        {
+          "description": "Every injury healed, the whole squad fresh. Buy it as often as you like, but never twice without a match between.",
+          "displayName": "Full Squad Recovery",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.heal",
+      "referenceName": "Full Squad Recovery",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "",
+    "_developerTeamID": "",
+    "_lastSynchronizedDate": 0
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

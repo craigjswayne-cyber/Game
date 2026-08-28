@@ -38,22 +38,30 @@ review notes, and `docs/store-listing.md` has that text ready.
 
 ---
 
-## The shape of it
+## Building it
+
+Everything below runs on a **Mac with Xcode**. The three files this folder
+holds are the parts that could be written here; the rest is Apple's tooling.
 
 ```sh
-npm i -g @capacitor/cli
-npm i @capacitor/core @capacitor/ios
+npm i @capacitor/core @capacitor/cli @capacitor/ios
 npx cap init "PHASE: Rugby Manager" com.phaserugbymanager.app --web-dir=dist
-npm run build && npx cap add ios && npx cap sync ios
+npm run build && npx cap add ios
+cp packaging/ios/capacitor.config.json ./capacitor.config.json   # see below
+npx cap sync ios
 npx cap open ios          # Xcode from here
 ```
 
 `capacitor.config.json` in this folder is the configuration that matters:
 bundled assets, the night ground behind the web view so no white flash gets
-through, and no server block at all.
+through, and no server block at all. **The appId is
+`com.phaserugbymanager.app`, the same identity as the Android build** - two
+apps, one name, and neither can ever change it.
 
 In Xcode, before the first archive:
 
+* **Signing & Capabilities → + Capability → In-App Purchase.** Without it
+  StoreKit returns nothing and every product reads unavailable.
 * **Info.plist**: `ITSAppUsesNonExemptEncryption` = NO (the app uses no
   encryption and makes no connections).
 * **Orientation**: portrait and landscape both allowed. Portrait is the tuned
@@ -62,81 +70,94 @@ In Xcode, before the first archive:
 * **Icon**: `storeart/ios/icon-1024.png`, produced by `scripts/storeart.mjs`,
   opaque as Apple requires.
 * **Screenshots**: `storeart/ios/en` and `storeart/ios/fr`, already at 1290x2796.
-* **Capabilities**: none. No push, no background modes, no iCloud, no sign-in.
+* **Capabilities beyond IAP**: none. No push, no background modes, no iCloud,
+  no sign-in.
 
 ---
 
-## The StoreKit half of the bridge
+## The purchase bridge: three files, and what each is for
 
-The web side is done and needs nothing: `src/game/monetise.ts` looks for
-`globalThis.rmBilling` and uses it if it is there. On iOS the native side
-injects it, which WKWebView can do properly - a `WKUserScript` at
-`.atDocumentStart` runs before the bundle loads.
+`src/game/monetise.ts` defines one four-method contract - `details`, `buy`,
+`owned`, `consume` - and knows nothing about any store. Android builds that
+contract out of browser APIs (`src/game/playbilling.ts`); iOS gets it from a
+native plugin. Nothing in the game between those two ends knows which platform
+it is running on.
 
-Three methods, matching `BillingBridge`:
+| File | Where it goes | What it does |
+|---|---|---|
+| `PhaseBilling.swift` | drag into the **App** target in Xcode | StoreKit 2: products, purchase sheet, entitlements, finishing |
+| `PhaseBilling.m` | beside it, same target | the ObjC macro that makes those four methods visible to the web view |
+| `src/game/storekit.ts` | already in the web build | dresses the plugin in the contract, and attaches at boot |
 
-```swift
-// Sketch: StoreKit 2, one non-consumable, posting results back to the page.
-import StoreKit
-import WebKit
+Drag both native files into the App target (**Copy items if needed**, target
+membership ticked). Xcode will offer to create a bridging header; accept it.
+Nothing else in the generated project needs editing.
 
-let SKU = "phase.supporter"
+### The one design decision worth reading
 
-// injected at document start, so the page never sees a moment without it
-let bridgeJS = """
-globalThis.rmBilling = {
-  _calls: {}, _n: 0,
-  _send(method, arg) {
-    const id = ++this._n
-    return new Promise(res => {
-      this._calls[id] = res
-      window.webkit.messageHandlers.billing.postMessage({ id, method, arg })
-    })
-  },
-  details(sku) { return this._send('details', sku) },
-  buy(sku)     { return this._send('buy', sku) },
-  owned()      { return this._send('owned') },
-  _resolve(id, value) { const f = this._calls[id]; delete this._calls[id]; if (f) f(value) },
-}
-"""
+**A consumable is bought and deliberately left UNFINISHED** until the game
+calls `consume(sku)`, which it does only after the career has actually kept
+what was bought.
 
-// and on the native side, replying to each call by id:
-//   details -> Product.products(for: [SKU]) -> { sku, price: product.displayPrice }
-//   buy     -> product.purchase() -> .success  => verify, finish(), reply "owned"
-//                                  -> .userCancelled => reply "cancelled"
-//                                  -> .pending      => reply "pending"
-//                                  -> anything else => reply "error"
-//   owned   -> Transaction.currentEntitlements -> [productID]
-```
+That is the recovery path, not a flourish. An unfinished transaction survives
+a crash, a force-quit, a flat battery and a reinstall; StoreKit hands it back
+through `Transaction.unfinished` on the next launch, `owned()` reports it, and
+the game's existing "paid, and held" rows offer it to the career again. Finish
+it at purchase and a customer interrupted between paying and receiving has
+simply lost the money - the one outcome `monetise.ts` exists to prevent.
 
-Four things that decide whether this passes review and whether customers are
-happy, all of which the web side already expects:
+Non-consumables are finished immediately: the entitlement itself is the
+permanent record.
 
-| Rule | Why |
-|---|---|
-| `transaction.finish()` after a verified purchase | an unfinished transaction is re-presented forever and eventually refunded |
-| `.userCancelled` must map to `cancelled`, not `error` | it is not a failure and must not be shouted about |
-| `.pending` must map to `pending` | Ask-to-Buy holds a purchase for days; telling a paying customer it failed is the worst of the five |
-| a visible **Restore** button | Apple requires one for non-consumables. It is already on the Supporter page, which is why that page stays reachable after a purchase |
-
-`Transaction.updates` should also be observed for the whole app lifetime: a
-purchase approved later (Ask-to-Buy) arrives there, and calling back into the
-page with `rmBilling._resolve` is not enough - the page needs to hear about it,
-so post it as a fresh `owned()` result or simply reload the entitlement, which
-`restore()` does at every boot.
+**The five consumables are listed in two places** - `CONSUMABLE_SKUS` in
+`monetise.ts` and `consumables` in `PhaseBilling.swift` - and
+`scripts/moneyprobe.ts` §14 fails if they ever disagree. It also asserts that
+`PhaseBilling.m` exposes all four methods, because a method missing from that
+macro is invisible to the web view however well the Swift is written. That is
+the same class of bug that shipped on Android in v1.1.6 and made five products
+unbuyable, so it is pinned rather than trusted.
 
 ---
 
-## Selling it up front instead
+## Products in App Store Connect
 
-If the answer is a paid app rather than a free one with a Supporter unlock,
-none of the StoreKit work is needed at all:
+The same nine product ids as Play, so one catalogue serves both stores:
 
-```sh
-VITE_EDITION=paid npm run build && npx cap sync ios
-```
+| Product ID | Type | Name | Price |
+|---|---|---|---|
+| `phase.license` | Non-consumable | Support the game | £0.99 |
+| `phase.uncapped` | Non-consumable | Remove the Wage Cap | £9.99 |
+| `phase.estate` | Non-consumable | Max your team facilities | £9.99 |
+| `phase.pinnacle` | Non-consumable | Become an International Coach | £4.99 |
+| `phase.inject.s` | Consumable | Small Cash Injection | £0.99 |
+| `phase.inject.m` | Consumable | Medium Cash Injection | £1.99 |
+| `phase.inject.l` | Consumable | Large Cash Injection | £3.99 |
+| `phase.inject.xl` | Consumable | The Sugar Daddy | £7.99 |
+| `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
 
-Everybody who can run it is already a supporter: no purchase UI, no restore, no
-IAP metadata, no `phase.supporter` product, and one fewer review surface. Set
-the price on the listing and ship. Verified: the paid build shows the supporter
-mark, no ad slot and no purchase card.
+Do **not** create `phase.supporter` (Remove all ads) until a build actually
+ships ads - the store row only renders where an ad provider exists, so the
+product would be sellable nowhere. `phase.editor` was removed in v1.1.3 and
+must never be created.
+
+Apple also requires, before review: a **paid applications agreement** signed
+(products stay "Waiting for review"/unavailable without it), and **Restore
+purchases** reachable in-app - it is the button at the foot of the Store, which
+is why that page stays reachable after every purchase.
+
+### Testing before any of that exists
+
+`Products.storekit` in this folder is a StoreKit configuration file with all
+nine products already defined. In Xcode: **Product → Scheme → Edit Scheme →
+Run → Options → StoreKit Configuration → Products.storekit**. The simulator
+then sells them locally - no App Store Connect, no sandbox account, no
+waiting on review - and Debug → StoreKit lets you force interrupted purchases
+and Ask-to-Buy, which is exactly how to prove the held-consumable path above
+actually works.
+
+## The edition question, already answered
+
+The paid-up-front alternative that used to be described here was decided
+against on 27 Aug: `VITE_EDITION=paid` removes the whole catalogue rather than
+just one purchase, and it is the one configuration no probe has ever executed.
+The free edition with the nine products is what ships on both stores.
