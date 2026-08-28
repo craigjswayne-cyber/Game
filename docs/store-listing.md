@@ -119,6 +119,18 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.5
+
+```
+• The Store grows up: prices on every button, board funding on the shelf,
+  and The International Stage lets you pick your federation.
+• Commercial deals can be ended early - three new offers follow, for
+  better or worse.
+• Take a national job and choose: keep the club, or go all-in on country.
+• Achieve your dream and you can name a new one.
+```
+*(345)*
+
 ### What's new (500 max) - v1.1.4
 
 ```
@@ -304,6 +316,19 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.5
+
+```
+• La Boutique mûrit : prix sur chaque bouton, financement du conseil en
+  rayon, et La Scène Internationale vous laisse choisir votre fédération.
+• Les contrats commerciaux peuvent être rompus - trois nouvelles offres
+  suivent, en mieux ou en pire.
+• Prenez une sélection nationale et choisissez : garder le club, ou tout
+  miser sur le pays.
+• Réalisez votre rêve et vous pourrez en nommer un nouveau.
+```
+*(403)*
 
 ### Nouveautés (500 max) - v1.1.4
 
