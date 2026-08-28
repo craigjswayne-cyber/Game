@@ -24,8 +24,13 @@ import type { GameState } from '../src/game/model'
 const SEASONS = Number(process.env.SEASONS ?? 5)
 /** Real men who genuinely share a name with another real man, counted in the
  *  built world. Measured, not guessed: dataaudit.ts lists the pairs. A number
- *  that can be held, and going up means somebody added one. */
-const NAMESAKE_BUDGET = 24
+ *  that can be held, and going up means somebody added one.
+ *  24 -> 26 in v1.1.6: the owner's window signs Saracens' Harry Wilson (a
+ *  22-year-old wing) to Exeter alongside the Reds' number eight of the same
+ *  name, and Northampton's Tom James (a scrum-half) to Saracens alongside
+ *  the Cornish Pirates full-back. Both pairs are two real men - exactly the
+ *  case the namesake-aware dedup exists for. */
+const NAMESAKE_BUDGET = 26
 let fails = 0
 
 function report(g: GameState, when: string) {

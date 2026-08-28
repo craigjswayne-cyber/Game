@@ -69,8 +69,16 @@ for (const [name, want] of [['Tom West', 'newcastle'], ['Elliot Millar Mills', '
   ['Sam Graham', 'newcastle'], ['George Furbank', 'harlequins']] as [string, string][]) {
   ok(clubOf(name) === want, `${name} -> ${want}${clubOf(name) === want ? '' : ` (found ${clubOf(name) ?? 'nowhere'})`}`)
 }
-ok(clubOf('Tom James') === 'pirates',
-  'Tom James stays a Cornish Pirate - the Saracens man of that name is the one signing this world cannot hold')
+// v1.1.6: the world CAN hold this signing now - the namesake-aware dedup
+// builds both men, so the Saints scrum-half is at Saracens AND the Cornish
+// Pirates full-back keeps his shirt. This used to assert the opposite.
+{
+  const james = Object.values(g.players).filter(x => x.name === 'Tom James')
+  ok(james.some(x => x.clubId === 'saracens' && x.pos === 'SH'),
+    'the Saints scrum-half Tom James signs for Saracens')
+  ok(james.some(x => x.clubId === 'pirates' && x.pos === 'FB'),
+    'and the Cornish Pirates full-back of the same name keeps his shirt')
+}
 
 // ---- 5. the armbands ----
 console.log('\nthe captains the league names:\n')
