@@ -296,12 +296,21 @@ const EXPECTED: string[] = [
   // Not a mechanical change: no dial, no rule, no rating. bandcheck was run
   // first and held every band over four worlds - 6.27 tries, 54.3% home,
   // 2.2% draws, 6.5% blowouts.
-  'harlequins 57-38 exeter',
-  'gloucester 22-24 bristol',
-  'sale 19-3 saracens',
-  'northampton 41-41 newcastle',
-  'bath 43-17 leicester',
-  'bristol 30-22 harlequins',
+  // Rebaselined for the 2026-27 window's second instalment (owner's v1.1.6
+  // list): sixteen more real men enter the world by hand, eight listings
+  // leave it (the new GONE pins - released and out-of-world moves), and the
+  // Premiership's fixture pairings fall differently for it. The first three
+  // scores hold; the back three re-deal.
+  //
+  // Not a mechanical change: no dial, no rule, no rating touched - the same
+  // shape as the namesake rebaseline above, and dataaudit PASSED on the new
+  // world (30 warnings, one fewer than before the window). All six re-deal.
+  'leicester 6-35 gloucester',
+  'saracens 34-17 bath',
+  'newcastle 16-7 northampton',
+  'bristol 9-14 harlequins',
+  'sale 36-27 exeter',
+  'bath 65-12 leicester',
 ]
 
 if (EXPECTED[0] === '@@EXPECTED@@') {

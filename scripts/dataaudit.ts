@@ -5,7 +5,7 @@
 import { LEAGUE_DEFS } from '../src/game/newgame'
 import { newGame } from '../src/game/newgame'
 import { CLUB_CAPTAINS, sameName } from '../src/data/captains'
-import { VERIFIED_CLUB, verifiedClub } from '../src/data/verified'
+import { GONE, VERIFIED_CLUB, verifiedClub } from '../src/data/verified'
 import { EXTRA_PLAYERS } from '../src/data/additions'
 import { POS_ORDER, type Pos } from '../src/game/model'
 
@@ -214,10 +214,13 @@ const splitKey = (k: string) => {
 }
 for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
   const { name, from } = splitKey(key)
-  if (!clubIds.has(want)) bad(`verified table sends ${key} to ${want}, which is not a club`)
+  // GONE is the one non-club target (v1.1.6): a checked departure out of the
+  // world. The listing must exist in the files (there must be something to
+  // remove), and the world checks below assert the removal took.
+  if (want !== GONE && !clubIds.has(want)) bad(`verified table sends ${key} to ${want}, which is not a club`)
   if (from && !clubIds.has(from)) bad(`verified table scopes ${key} to ${from}, which is not a club`)
   const listedAt = allClubs.filter(c => c.players.some(p => p.name.toLowerCase() === name)).map(c => c.id)
-  if (!listedAt.length) bad(`verified table names ${key}, who is in no squad file - nothing to relocate`)
+  if (!listedAt.length) bad(`verified table names ${key}, who is in no squad file - nothing to ${want === GONE ? 'remove' : 'relocate'}`)
   else if (from && !listedAt.includes(from)) {
     bad(`verified table scopes ${key} to ${from}, but he is listed at ${listedAt.join(', ')} - the pin names the wrong club`)
   }
@@ -225,8 +228,16 @@ for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
 {
   const g = world
   for (const [key, want] of Object.entries(VERIFIED_CLUB)) {
-    const { name } = splitKey(key)
+    const { name, from } = splitKey(key)
     const hits = Object.values(g.players).filter(p => p.name.toLowerCase() === name)
+    // A GONE pin succeeds when the SCOPED listing is not in the world: no man
+    // of that name at the scoped club (a namesake elsewhere is not him), or,
+    // for a bare name, no man of that name anywhere.
+    if (want === GONE) {
+      const still = from ? hits.filter(h => h.clubId === from) : hits
+      if (still.length) bad(`${key} is pinned GONE but was still built at ${still.map(h => h.clubId).join(', ')}`)
+      continue
+    }
     // A NAMESAKE IS NOT A DUPLICATE. The builder now puts both men called
     // George Martin on a pitch - the Leicester lock the pin moves, and the
     // Esher winger who is going nowhere - so what this asserts is that ONE of

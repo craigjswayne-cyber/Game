@@ -59,6 +59,14 @@ import { PREM_2526 } from './prem2526'
 // both. The rule used here: prefer the squad he was named in for the season the
 // game will actually simulate.
 
+/** A checked departure OUT OF THE WORLD (v1.1.6): released, retired, or
+ *  signed by a club the game does not model (Worcester, Ampthill, Oundle...).
+ *  A pin to GONE makes the builder skip that listing entirely instead of
+ *  leaving a man at a club that has released him. Same rules as any pin:
+ *  only a checked departure, scoped `name@club` wherever a namesake could
+ *  exist, and the comment says where the answer came from. */
+export const GONE = 'gone'
+
 export const VERIFIED_CLUB: Record<string, string> = {
   // ---- the last two genuine double-listings (release audit) ---------------
   //
@@ -103,8 +111,10 @@ export const VERIFIED_CLUB: Record<string, string> = {
   'jamie bhatti@glasgow': 'bath',
   // -> bayonne
   'rob du preez@sale': 'bayonne',
-  // -> bedford
-  'harry wells@leicester': 'bedford',
+  // -> bristol. The Wikipedia window had Wells to Bedford; the owner's
+  // v1.1.6 list (28 Aug) has him at Oundle and then IN at Bristol, so the
+  // later word wins and the destination is Bristol.
+  'harry wells@leicester': 'bristol',
   // -> blackheath
   'joel grayson@newcastle': 'blackheath',
   // -> blackrams
@@ -188,6 +198,30 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // -> vannes
   'matias alemanno@gloucester': 'vannes',
   'fabien sanconnie': 'montauban',
+
+  // ---- THE 2026-27 WINDOW, SECOND INSTALMENT (owner's v1.1.6 list, 28 Aug).
+  // Same rules as the block above: scoped pins move LISTINGS, and each entry
+  // is scoped to the club the built world actually lists the man at (checked
+  // by building a world, not by grepping files). Departures to clubs the
+  // game does not model - Worcester, Ampthill, Oundle, retirement - are
+  // GONE: the listing is simply not built. The many released names on the
+  // owner's list who were never in this data need nothing.
+  'cameron jordan@gloucester': 'newcastle',
+  'jack singleton@gloucester': GONE,
+  // Newcastle released him per the owner's list; the 25/26 guide had already
+  // resolved his double-listing to Gloucester, so it is that listing that
+  // leaves the world.
+  'freddie clarke@gloucester': GONE,
+  // Max Green left Harlequins for Oundle, out of the world - but the guide's
+  // Quins scrum-half of that name was never authored: the name match was
+  // quietly pulling MOSELEY's 20-year-old full-back namesake to Quins
+  // instead. Self-pinning the Moseley listing (the sam spink@force pattern)
+  // keeps the full-back where he plays and builds no Max Green at Quins,
+  // which is exactly what the departure means.
+  'max green@moseley': 'moseley',
+  // the owner's list has him leaving Newcastle for Grenoble; the world lists
+  // him at the Waratahs (his srp entry), and that is the listing that moves
+  'fergus lee-warner@waratahs': 'grenoble',
 
   // ---- Northampton's published 2026/27 squad list (user's screenshot of
   // the club's own announcement, round 27) names both among the props.
@@ -283,7 +317,10 @@ export const VERIFIED_CLUB: Record<string, string> = {
   // ---- second pass: north-south moves ----
   // Left the Stormers for Exeter in August 2024, so 2025-26 is his second
   // Premiership season.
-  'kwenzo blose': 'exeter',
+  // Exeter released him in the 2026-27 window (owner's v1.1.6 list) - the
+  // pin that used to bring him TO Exeter now takes his listing out of the
+  // world entirely.
+  'kwenzo blose': GONE,
   // Exeter to Cardiff for 2024-25, then a new long-term deal. He has since
   // made his Wales debut.
   'danny southworth': 'cardiff',

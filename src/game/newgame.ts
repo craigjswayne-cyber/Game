@@ -1,6 +1,6 @@
 import type { RawClub, RawPlayer } from '../data/types'
 import { refreshCaps } from './cap'
-import { verifiedClub } from '../data/verified'
+import { GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
 import { prospectsFor } from '../data/prospects'
 import { PREM_A } from '../data/leagues/prem_a'
@@ -214,6 +214,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
         // the 2026-27 window moved four Northampton men to new clubs, the
         // 2025-26 guide still said Northampton and quietly deleted all four.
         const to = handAdded.has(rp.name) ? null : verifiedClub(rp.name, rc.id)
+        // a checked departure out of the world (released, retired, or signed
+        // by a club the game does not model): the listing is not built at all
+        if (to === GONE) continue
         if (to && clubIds.has(to) && to !== rc.id) continue
         // A SHARED NAME IS NOT THE SAME MAN, and keyed on the bare name this
         // deleted 24 real players from every world - a 26-year-old winger and a
