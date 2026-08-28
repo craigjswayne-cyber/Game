@@ -21,7 +21,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
-import { nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_TIERS, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -2929,24 +2929,23 @@ export function processWeekAndAdvance(state: GameState) {
   if (state.natOffer && state.week - state.natOffer.week > 3) state.natOffer = null
   // THE CALL IS ANSWERED (v1.1.4, the International Stage): a purchased
   // introduction to the federations. Deterministic and rng-free - it fires
-  // the week natCall names, waits politely while the manager is unemployed
-  // or already fielding an offer, and comes from the same ladder as an
-  // earned offer: the best tier the reputation honestly qualifies for, or
-  // the ladder's foot when it qualifies for none, because the product is
-  // the introduction, not the All Blacks job. The offer it places is a
-  // normal natOffer in every way - same letter key, same 3-week shelf
+  // the week natCall names and waits politely while the manager is
+  // unemployed or already fielding an offer. Since v1.1.5 the buyer PICKS
+  // the federation at the store (owner: "they should be able to select who
+  // they want to manage"), carried here in natCallNat; a save whose call
+  // was placed before the picker existed falls back to the old ladder rule,
+  // the best tier the reputation honestly qualifies for. The offer placed
+  // is a normal natOffer in every way - same letter key, same 3-week shelf
   // life, same Profile buttons.
   if (state.natCall != null && !state.natTeam && !state.natOffer && !state.unemployed
       && state.season * SEASON_WEEKS + state.week >= state.natCall) {
     const rep = mgrReputation(state)
-    const TIERS: [string, number][] = [
-      ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
-      ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
-      ['ENG', 84], ['FRA', 86], ['RSA', 87], ['IRE', 87], ['NZL', 88],
-    ]
-    const qualified = TIERS.filter(([, need]) => rep >= need)
-    const nat = (qualified.length ? qualified[qualified.length - 1] : TIERS[0])[0]
+    const picked = state.natCallNat && NAT_TIERS.some(([n]) => n === state.natCallNat)
+      ? state.natCallNat : null
+    const qualified = NAT_TIERS.filter(([, need]) => rep >= need)
+    const nat = picked ?? (qualified.length ? qualified[qualified.length - 1] : NAT_TIERS[0])[0]
     state.natCall = null
+    state.natCallNat = null
     state.natOffer = { nat, week: state.week }
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -2958,13 +2957,8 @@ export function processWeekAndAdvance(state: GameState) {
   if (!state.natTeam && !state.natOffer && !state.unemployed && (state.week === 6 || state.week === 18)) {
     const rep = mgrReputation(state)
     if (rep >= 64) {
-      const TIERS: [string, number][] = [
-        ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
-        ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
-        ['ENG', 84], ['FRA', 86], ['RSA', 87], ['IRE', 87], ['NZL', 88],
-      ]
       // offers come from the best jobs you qualify for, not the whole ladder
-      const eligible = TIERS.filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
+      const eligible = NAT_TIERS.filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
       if (eligible.length && rng() < 0.55) {
         const nat = eligible[Math.floor(rng() * eligible.length)]
         state.natOffer = { nat, week: state.week }

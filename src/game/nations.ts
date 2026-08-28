@@ -39,6 +39,17 @@ export const NATIONS: Nation[] = [
 
 export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)
 
+/** The national-job ladder: which federations hire club managers, and the
+ *  reputation each one wants before it calls on its own. One list (it was
+ *  written out twice in season.ts, which is one drift away from two ladders),
+ *  here because the season engine, the store grants and the store UI all
+ *  need it and none of them may import each other. */
+export const NAT_TIERS: [string, number][] = [
+  ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
+  ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
+  ['ENG', 84], ['FRA', 86], ['RSA', 87], ['IRE', 87], ['NZL', 88],
+]
+
 /**
  * A NATION'S NAME IS TRANSLATED. A CLUB'S IS NOT.
  *

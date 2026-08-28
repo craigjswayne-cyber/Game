@@ -7,6 +7,7 @@ import {
   pendingConsumables, restore, skuPrice, tillOpen,
 } from '../../game/monetise'
 import { healReady } from '../../game/grants'
+import { NAT_TIERS, flagOf, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
 
 /**
@@ -83,6 +84,7 @@ export default function Supporter() {
   const [msgs, setMsgs] = useState<Record<string, string | null>>({})
   const [healPending, setHealPending] = useState(false)
   const [estateArm, setEstateArm] = useState(false)
+  const [natPick, setNatPick] = useState<string>(NAT_TIERS[0][0])
   const say = (sku: string, text: string | null) => setMsgs(m => ({ ...m, [sku]: text }))
 
   // a heal paid for and not yet applied (a crash, a full-strength squad, a
@@ -164,14 +166,27 @@ export default function Supporter() {
 
       <Row icon="🌍" title={t('store.pinnacle')} line={t('store.pinnacleLine')} msg={msgs[PINNACLE_SKU]}
         right={ownsPinnacle
-          ? (inCareer && game && !game.pinnacleCalled
-            ? <button className="btn gold" style={{ flexShrink: 0 }} onClick={() => { say(PINNACLE_SKU, makeTheCall() ? t('store.callMade') : t('store.callRefused')) }}>{t('store.makeCall')}</button>
-            : <OwnedChip />)
+          ? (inCareer && game && !game.pinnacleCalled ? undefined : <OwnedChip />)
           : <BuyBtn sku={PINNACLE_SKU} busy={busy} onBuy={() => void buyNC(PINNACLE_SKU, () => {
-              // the owner's brief is "an offer follows soon after purchase":
-              // in a live career the call goes out with the receipt
-              if (inCareer && game && !game.pinnacleCalled && makeTheCall()) say(PINNACLE_SKU, t('store.callMade'))
-            })} />} />
+              if (inCareer && game && !game.pinnacleCalled) say(PINNACLE_SKU, t('store.pickNation'))
+            })} />}>
+        {/* v1.1.5, the owner's brief: the buyer picks the federation. The
+            whole ladder is on offer - the product is the introduction, and
+            the choice is the point of it. */}
+        {ownsPinnacle && inCareer && game && !game.pinnacleCalled && (
+          <div className="btn-row" style={{ alignItems: 'stretch' }}>
+            <select value={natPick} onChange={e => setNatPick(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
+              {NAT_TIERS.map(([code]) => (
+                <option key={code} value={code}>{flagOf(code)} {nationName(code)}</option>
+              ))}
+            </select>
+            <button className="btn gold" style={{ flexShrink: 0 }}
+              onClick={() => { say(PINNACLE_SKU, makeTheCall(natPick) ? t('store.callMade', { nat: nationName(natPick) }) : t('store.callRefused')) }}>
+              {t('store.makeCall')}
+            </button>
+          </div>
+        )}
+      </Row>
 
       <Row icon="🏗️" title={t('store.estate')} line={t('store.estateLine')} msg={msgs[ESTATE_SKU]}
         right={ownsEstate

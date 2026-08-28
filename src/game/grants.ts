@@ -24,6 +24,7 @@
  */
 import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
+import { NAT_TIERS } from './nations'
 
 export type InjectTier = 's' | 'm' | 'l' | 'xl'
 
@@ -242,19 +243,22 @@ export function applyEstate(state: GameState): boolean {
  * same 3-week shelf life, the same accept/decline on the Profile. Once per
  * career: a career whose call was made and whose offer lapsed had its offer.
  *
- * Which federation calls is decided when the offer LANDS (season.ts), from
- * the same tier ladder as earned offers - the best tier the reputation
- * honestly qualifies for, or the ladder's foot for a reputation that
- * qualifies for none, because the product is the introduction, not the
- * All Blacks job.
+ * Which federation calls: the buyer's own pick (v1.1.5, owner: "they should
+ * be able to select who they want to manage out of the international
+ * teams") - any nation on the ladder, chosen at the store when the call is
+ * made and delivered when the offer lands (season.ts). A call placed with
+ * no pick (old saves, defensive callers) falls back to the best tier the
+ * reputation honestly qualifies for.
  */
 export const NAT_CALL_WEEKS = 2
 
-export function applyPinnacle(state: GameState): boolean {
+export function applyPinnacle(state: GameState, nat?: string): boolean {
   if (state.pinnacleCalled || state.unemployed) return false
   if (state.natTeam || state.natOffer) return false
+  if (nat != null && !NAT_TIERS.some(([n]) => n === nat)) return false
   state.pinnacleCalled = true
   state.natCall = state.season * SEASON_WEEKS + state.week + NAT_CALL_WEEKS
+  state.natCallNat = nat ?? null
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     subject: tIn('en', 'news.pinnacleSubj'),

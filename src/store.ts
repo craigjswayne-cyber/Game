@@ -182,7 +182,7 @@ interface Store {
    *  cleanly (false) when the save cannot honestly receive the effect. */
   healSquad: () => boolean
   buildEstate: () => boolean
-  makeTheCall: () => boolean
+  makeTheCall: (nat?: string) => boolean
   /** Rewarded favours (game/rewarded.ts): called ONLY after the ad bridge
    *  reports a completed view. Each returns what the screen should say, or
    *  null/false when the ledger refuses. */
@@ -1155,10 +1155,10 @@ export const useStore = create<Store>((set, get) => ({
     return done
   },
 
-  makeTheCall: () => {
+  makeTheCall: (nat?: string) => {
     const g = get().game
     if (!g) return false
-    const done = applyPinnacle(g)
+    const done = applyPinnacle(g, nat)
     if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return done
   },
