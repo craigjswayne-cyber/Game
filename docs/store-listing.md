@@ -119,6 +119,17 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.6
+
+```
+• Squads updated for the 2026/27 transfer windows - ins and outs across
+  all nine Premiership clubs.
+• The International Stage: pick your federation and the offer arrives at
+  once.
+• New in the Store: Support the game, a 99p thank-you.
+```
+*(237)*
+
 ### What's new (500 max) - v1.1.5
 
 ```
@@ -316,6 +327,17 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.6
+
+```
+• Effectifs à jour des mercatos 2026/27 - arrivées et départs dans les
+  neuf clubs de Premiership.
+• La Scène Internationale : choisissez votre fédération et l'offre
+  arrive aussitôt.
+• Nouveau en Boutique : Soutenir le jeu, un merci à 99p.
+```
+*(242)*
 
 ### Nouveautés (500 max) - v1.1.5
 
