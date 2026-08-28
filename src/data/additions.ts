@@ -36,6 +36,25 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // La Rochelle's other scrum-half. Kerr-Barlow left for Stade Francais at the
   // end of 2024-25, which leaves Iribaren and Berjon sharing the nine shirt;
   // the files only had Berjon.
+  // ---- the 2026-27 window, second instalment (owner's v1.1.6 list) --------
+  exeter: [
+    // Bath's published 2026/27 squad dropped these two with nowhere to go
+    // (see prem2526.ts's Bath note); the owner's list lands them at Exeter.
+    { name: 'Will Butt', pos: 'CE', age: 26, nat: 'WAL', q: 70, intl: true },
+    { name: 'Sam Harris', pos: 'CE', age: 21, nat: 'WAL', q: 62 },
+    // Saracens' young wing, not the Reds number eight of the same name -
+    // different shirt and age, so the dedup builds both.
+    { name: 'Harry Wilson', pos: 'WG', age: 22, nat: 'ENG', q: 64 },
+  ],
+  saracens: [
+    // Bath's squad list dropped Barbeary the same way; the owner's list says
+    // Saracens.
+    { name: 'Alfie Barbeary', pos: 'HK', alt: ['N8'], age: 26, nat: 'ENG', q: 76, intl: true },
+    // The Northampton scrum-half. The note above about "one player per name"
+    // predates the namesake-aware dedup: the Cornish Pirates full-back of
+    // the same name is a different shirt and age, so both now build.
+    { name: 'Tom James', pos: 'SH', age: 25, nat: 'ENG', q: 68 },
+  ],
   la_rochelle: [
     { name: 'Davit Niniashvili', pos: 'FB', alt: ['WG'], age: 24, nat: 'GEO', q: 81, intl: true },
     { name: 'Teddy Iribaren', pos: 'SH', age: 34, nat: 'FRA', q: 74, gk: true },
@@ -102,6 +121,20 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
     { name: 'Tom West', pos: 'LP', age: 29, nat: 'ENG', q: 74 },
     { name: 'Elliot Millar Mills', pos: 'TP', age: 33, nat: 'SCO', q: 72, intl: true },
     { name: 'Sam Graham', pos: 'FL', alt: ['N8'], age: 28, nat: 'ENG', q: 72 },
+    // ---- the 2026-27 window, second instalment (owner's v1.1.6 list, 28
+    // Aug). Same doctrine as the Northampton block above: the list is the
+    // checked source for the MOVE; age, position and quality are judged the
+    // way the rest of this file judges them. Only men whose position and age
+    // this session could state with confidence are here - the rest of the
+    // owner's arrivals (deep academy and overseas fringe names) are left to
+    // the generator, which this file's own header says guesses better.
+    { name: 'Chris Harris', pos: 'CE', age: 36, nat: 'SCO', q: 68, intl: true },
+    // his hand-authored Force entry moves with him (hand-added men are exempt
+    // from the relocation table, so the entry itself changes blocks)
+    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 70, intl: true },
+    { name: 'James Harper', pos: 'SH', age: 23, nat: 'ENG', q: 64 },
+    { name: 'Max Hicks', pos: 'FL', alt: ['LK'], age: 24, nat: 'ENG', q: 62 },
+    { name: 'Rus Tuima', pos: 'LK', age: 21, nat: 'ENG', q: 63 },
   ],
   harlequins: [
     { name: 'George Furbank', pos: 'FB', alt: ['FH'], age: 29, nat: 'ENG', q: 82, intl: true },
@@ -118,10 +151,16 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   leicester: [
     { name: 'Mako Vunipola', pos: 'LP', age: 35, nat: 'ENG', q: 72, intl: true },
     { name: 'Elliott Stooke', pos: 'LK', age: 33, nat: 'ENG', q: 70 },
+    // 2026-27 second instalment (owner's v1.1.6 list): the hookers arriving
+    // from Harlequins and Moana Pasifika.
+    { name: 'Jack Doorey-Palmer', pos: 'HK', age: 23, nat: 'ENG', q: 62 },
+    { name: 'Sam Moli', pos: 'HK', age: 27, nat: 'TGA', q: 66, intl: true },
   ],
   sale: [
     { name: 'Courtney Lawes', pos: 'LK', alt: ['FL'], age: 37, nat: 'ENG', q: 74, intl: true },
     { name: 'Tomas Francis', pos: 'TP', age: 34, nat: 'WAL', q: 70, intl: true },
+    // 2026-27 second instalment (owner's v1.1.6 list): the Drua wing.
+    { name: 'Ponepati Loganimasi', pos: 'WG', age: 24, nat: 'FIJ', q: 70, intl: true },
   ],
   // Ion Neculai's move to Northampton (the club's own published 2026/27
   // squad list, supplied by the user) left Zebre a single real tighthead in
@@ -138,7 +177,6 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   force: [
     { name: 'Sio Tomkinson', pos: 'CE', age: 29, nat: 'NZL', q: 71 },
     { name: 'James Ramm', pos: 'FB', alt: ['WG'], age: 28, nat: 'AUS', q: 67 },
-    { name: 'Franco Molina', pos: 'LK', age: 29, nat: 'ARG', q: 70, intl: true },
     { name: 'George Bridge', pos: 'WG', age: 30, nat: 'NZL', q: 71 },
   ],
 
@@ -153,6 +191,10 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   // untouched: their squads are the clubs' own official lists.
   gloucester: [
     { name: 'Phil Cokanasiga', pos: 'WG', age: 24, nat: 'ENG', q: 66 },
+    // 2026-27 second instalment (owner's v1.1.6 list): the experienced
+    // half-back and lock the window brings in.
+    { name: 'Dan Robson', pos: 'SH', age: 34, nat: 'ENG', q: 70 },
+    { name: 'Joe Joyce', pos: 'LK', age: 31, nat: 'ENG', q: 67 },
   ],
   sharks: [
     { name: 'Andre Esterhuizen', pos: 'CE', age: 32, nat: 'RSA', q: 82, intl: true },
@@ -262,6 +304,8 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   ealing: [
     { name: 'Mikey Summerfield', pos: 'LK', age: 24, nat: 'ENG', q: 58 },
+    // 2026-27 (owner's v1.1.6 list): Gloucester's departing back-three man.
+    { name: 'Jacob Morris', pos: 'WG', alt: ['FB'], age: 24, nat: 'WAL', q: 60 },
   ],
   leinster: [
     { name: 'Joey Carbery', pos: 'FH', alt: ['FB'], age: 30, nat: 'IRE', q: 75, gk: true, intl: true },
@@ -274,6 +318,19 @@ export const EXTRA_PLAYERS: Record<string, RawPlayer[]> = {
   ],
   bristol: [
     { name: 'Matias Moroni', pos: 'CE', age: 35, nat: 'ARG', q: 68, intl: true },
+    // ---- the 2026-27 window, second instalment (owner's v1.1.6 list, 28
+    // Aug). Same doctrine as the Northampton block above: the list is the
+    // checked source for the MOVE; age, position and quality are judged the
+    // way the rest of this file judges them. Only men whose position and age
+    // this session could state with confidence are here - the rest of the
+    // owner's arrivals (deep academy and overseas fringe names) are left to
+    // the generator, which this file's own header says guesses better.
+    { name: 'Ethan Staddon', pos: 'N8', alt: ['FL'], age: 22, nat: 'ENG', q: 63 },
+    { name: 'Josh Caulfield', pos: 'LK', age: 29, nat: 'ENG', q: 63 },
+    // his Newcastle release and Bristol arrival are the same move; the only
+    // Max Clark in the data is a generated namesake, so the real centre is
+    // authored here (different shirt and age, so both build)
+    { name: 'Max Clark', pos: 'CE', age: 31, nat: 'ENG', q: 66 },
   ],
   waratahs: [
     { name: 'Bernard Foley', pos: 'FH', age: 37, nat: 'AUS', q: 71, gk: true, intl: true },
