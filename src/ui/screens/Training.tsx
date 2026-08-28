@@ -93,10 +93,12 @@ export default function Training() {
                     : [...rest, { id: p.id, plan: KINDS[idx].id }].slice(-planCap(game))
                   touch()
                 }}>
-                {/* same rule as the development chips above: "train this man's
-                    kicking" only reads as a plan if the chip says he is a
-                    fly-half and not a prop (owner, v1.1.3) */}
-                {cur ? '● ' : '○ '}{p.name} ({posName(p.pos)}){curName ? <b> · {curName}</b> : ''}
+                {/* the position code, not the full name (owner, v1.1.5: "on
+                    the personal plans just use initials") - these chips also
+                    carry the plan name, and "Fly-Half" plus a programme made
+                    every chip two lines. The codes are the game's own (FH,
+                    HK, N8...), the same ones every team sheet prints. */}
+                {cur ? '● ' : '○ '}{p.name} ({p.pos}){curName ? <b> · {curName}</b> : ''}
               </button>
             )
           })
