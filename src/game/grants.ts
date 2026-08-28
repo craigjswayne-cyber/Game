@@ -22,7 +22,7 @@
  *     inbox, a line in the decisions ledger - in both languages, so a bought
  *     pound is as legible as an earned one.
  */
-import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, type FacilityId, type GameState } from './model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, mgrReputation, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
 import { NAT_TIERS } from './nations'
 
@@ -234,19 +234,17 @@ export function applyEstate(state: GameState): boolean {
 }
 
 /**
- * The International Stage (v1.1.4: "coach on the international stage - an
- * international job offer follows soon after purchase"): the manager's name
- * goes to the federations, and within two weeks a real offer arrives through
- * the same natOffer machinery every earned offer uses - the same letter, the
- * same 3-week shelf life, the same accept/decline on the Profile. Once per
- * career: a career whose call was made and whose offer lapsed had its offer.
+ * The International Stage: the buyer picks the federation (v1.1.5) and the
+ * offer arrives THE MOMENT the call is made (v1.1.6, owner: "they should be
+ * offered an international job immediately") - a real natOffer through the
+ * same machinery every earned offer uses: the same letter, the same 3-week
+ * shelf life, the same accept/decline on the Profile. Once per career: a
+ * career whose call was made and whose offer lapsed had its offer.
  *
- * Which federation calls: the buyer's own pick (v1.1.5, owner: "they should
- * be able to select who they want to manage out of the international
- * teams") - any nation on the ladder, chosen at the store when the call is
- * made and delivered when the offer lands (season.ts). A call placed with
- * no pick (old saves, defensive callers) falls back to the best tier the
- * reputation honestly qualifies for.
+ * A call placed with no pick (defensive callers) falls back to the best
+ * tier the reputation honestly qualifies for - the same ladder rule the
+ * answer block in season.ts keeps for saves whose two-week natCall was
+ * already in flight when the wait was removed.
  */
 export const NAT_CALL_WEEKS = 2
 
@@ -255,13 +253,16 @@ export function applyPinnacle(state: GameState, nat?: string): boolean {
   if (state.natTeam || state.natOffer) return false
   if (nat != null && !NAT_TIERS.some(([n]) => n === nat)) return false
   state.pinnacleCalled = true
-  state.natCall = state.season * SEASON_WEEKS + state.week + NAT_CALL_WEEKS
-  state.natCallNat = nat ?? null
+  const rep = mgrReputation(state)
+  const qualified = NAT_TIERS.filter(([, need]) => rep >= need)
+  const chosen = nat ?? (qualified.length ? qualified[qualified.length - 1] : NAT_TIERS[0])[0]
+  state.natOffer = { nat: chosen, week: state.week }
+  const v = { nat: chosen }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: tIn('en', 'news.pinnacleSubj'),
-    body: tIn('en', 'news.pinnacle'),
-    k: 'news.pinnacle',
+    subject: `🌍 ${chosen} want you as national head coach`,
+    body: tIn('en', 'news.natOffer', v),
+    k: 'news.natOffer', v,
   })
   logDecision(state, 'dec.pinnacle', undefined, true)
   return true

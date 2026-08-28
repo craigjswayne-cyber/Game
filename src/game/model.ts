@@ -1725,8 +1725,11 @@ export function closeNatTenure(state: GameState) {
  *  key. Listing one here is what keeps i18nprobe's unused-key sweep honest
  *  about why it stays in the dictionary.
  *  - 'news.dressingDown' (+Subj): pushed by talkToPlayer, the uncapped talk
- *    economy retired in v1.1.4. */
-export const LEGACY_NEWS_KEYS = ['news.dressingDown'] as const
+ *    economy retired in v1.1.4.
+ *  - 'news.pinnacle' (+Subj): the "your name goes to the federations"
+ *    letter from when the International Stage took two weeks to answer;
+ *    since v1.1.6 the offer itself arrives immediately instead. */
+export const LEGACY_NEWS_KEYS = ['news.dressingDown', 'news.pinnacle'] as const
 
 export const newsBody = (n: NewsItem): string => (n.k ? t(n.k, n.v) : n.body)
 export const newsSubject = (n: NewsItem): string => (n.k ? t(n.k + 'Subj', n.v) : n.subject)
