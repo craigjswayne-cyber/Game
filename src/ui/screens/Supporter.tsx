@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
-  CHARTER_SKU, ESTATE_SKU, HEAL_SKU, LICENSE_SKU, PINNACLE_SKU, SUPPORTER_SKU,
+  CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, LICENSE_SKU, PINNACLE_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
   pendingConsumables, restore, skuPrice, tillOpen,
 } from '../../game/monetise'
-import { healReady } from '../../game/grants'
+import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
+import { fmtMoney, fmtWage } from '../../game/model'
 import { NAT_TIERS, flagOf, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
 
@@ -23,9 +24,10 @@ import { t } from '../../game/i18n'
  *    (adBridge) or the removal is already owned. Selling the absence of ads
  *    in a build that has none is the dishonesty v1.1.3 removed; the row
  *    appears the day a wrapper ships ads, and not an hour before.
- *  - Board funding is a signpost, not a till: the injections are club
- *    business, priced on this season's books, and they live in the
- *    Boardroom where the books are.
+ *  - Board funding sells HERE since v1.1.5 (owner: "board funding should
+ *    all be on the store too, not where it currently is") - four fixed
+ *    resolutions, 10m to 130m, each with its season of cap-exempt wages.
+ *    The Boardroom keeps only the Charter's signing desk.
  *
  * Every ending of a purchase still gets its sentence (cancelled / pending /
  * unavailable / error), one line under the row it belongs to.
@@ -70,6 +72,10 @@ function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () =>
   )
 }
 
+const TIER_KEY: Record<InjectTier, string> = {
+  s: 'till.injectS', m: 'till.injectM', l: 'till.injectL', xl: 'till.injectXL',
+}
+
 const OwnedChip = () => (
   <span className="chip" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>✓ {t('store.owned')}</span>
 )
@@ -79,19 +85,24 @@ export default function Supporter() {
   const go = useStore(s => s.go)
   const claim = useStore(s => s.claimSupporter)
   const { healSquad, buildEstate, makeTheCall } = useStore.getState()
+  const boardInject = useStore(s => s.boardInject)
   useStore(s => s.tick)
   const [busy, setBusy] = useState(false)
   const [msgs, setMsgs] = useState<Record<string, string | null>>({})
   const [healPending, setHealPending] = useState(false)
   const [estateArm, setEstateArm] = useState(false)
   const [natPick, setNatPick] = useState<string>(NAT_TIERS[0][0])
+  const [pendingInj, setPendingInj] = useState<InjectTier[]>([])
   const say = (sku: string, text: string | null) => setMsgs(m => ({ ...m, [sku]: text }))
 
   // a heal paid for and not yet applied (a crash, a full-strength squad, a
   // spent seasonal limit) is surfaced here until it lands - same recovery
   // promise the Boardroom makes for injections
   useEffect(() => {
-    void pendingConsumables().then(skus => setHealPending(skus.includes(HEAL_SKU)))
+    void pendingConsumables().then(skus => {
+      setHealPending(skus.includes(HEAL_SKU))
+      setPendingInj((Object.keys(INJECT_TIERS) as InjectTier[]).filter(tier => skus.includes(INJECT_SKUS[tier])))
+    })
   }, [])
 
   if (!tillOpen()) return null
@@ -125,6 +136,30 @@ export default function Supporter() {
     setBusy(false)
     if (out === 'owned') await applyHealNow()
     else say(HEAL_SKU, t(endingKey(out)))
+  }
+
+  /** Land a paid injection in this career, and only then spend the receipt -
+   *  the same promise the Boardroom shelf used to make: a purchase the career
+   *  refuses stays owned at the store and is offered back until it lands. */
+  const landInjection = async (tier: InjectTier) => {
+    if (!inCareer || !game) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
+    const amount = fmtMoney(injectionCash(game, tier))
+    if (boardInject(tier)) {
+      await consume(INJECT_SKUS[tier])
+      setPendingInj(p => p.filter(x => x !== tier))
+      say(INJECT_SKUS[tier], t('till.injLanded', { amount }))
+    } else {
+      setPendingInj(p => (p.includes(tier) ? p : [...p, tier]))
+      say(INJECT_SKUS[tier], t('till.injHeld'))
+    }
+  }
+  const buyInjection = async (tier: InjectTier) => {
+    if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
+    setBusy(true)
+    const out = await buyConsumable(INJECT_SKUS[tier])
+    if (out === 'owned') await landInjection(tier)
+    else say(INJECT_SKUS[tier], t(endingKey(out)))
+    setBusy(false)
   }
 
   const doRestore = async () => {
@@ -214,8 +249,35 @@ export default function Supporter() {
         )}
       </Row>
 
-      <Row icon="💰" title={t('store.funding')} line={t('store.fundingLine')}
-        right={<button className="btn ghost" style={{ flexShrink: 0 }} onClick={() => go('finances')}>{t('store.openBoardroom')}</button>} />
+      <Row icon="💰" title={t('store.funding')} line={t('store.fundingLine')}>
+        {(Object.keys(INJECT_TIERS) as InjectTier[]).map(tier => {
+          const sku = INJECT_SKUS[tier]
+          const left = game ? injectionsLeft(game, tier) : INJECT_TIERS[tier].perSeason
+          const baseCap = (inCareer && game && game.clubs[game.userClubId]?.leagueId && game.caps?.[game.clubs[game.userClubId].leagueId]) || null
+          return (
+            <div key={tier} style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: '1px solid var(--edge, rgba(128,128,128,.18))', paddingTop: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{t(TIER_KEY[tier])}</div>
+                  <div className="meta" style={{ marginTop: 1 }}>
+                    {t('till.injAdds', { amount: fmtMoney(INJECT_TIERS[tier].amount) })}
+                    {baseCap != null && <> {t('till.injWage', { weekly: fmtWage(Math.round(INJECT_TIERS[tier].wage * baseCap)) })}</>}
+                  </div>
+                </div>
+                {left > 0
+                  ? <BuyBtn sku={sku} busy={busy} onBuy={() => void buyInjection(tier)} />
+                  : <span className="chip muted" style={{ flexShrink: 0 }}>{t('till.injNone')}</span>}
+              </div>
+              {pendingInj.includes(tier) && (
+                <button className="btn ghost block" disabled={busy} onClick={() => { setBusy(true); void landInjection(tier).finally(() => setBusy(false)) }}>
+                  {t('till.applyHere')}
+                </button>
+              )}
+              {msgs[sku] && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msgs[sku]}</div>}
+            </div>
+          )
+        })}
+      </Row>
 
       <button className="btn ghost block" style={{ margin: '4px 14px' }} disabled={busy} onClick={() => { void doRestore() }}>
         {t('supporter.restore')}

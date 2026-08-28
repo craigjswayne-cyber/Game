@@ -81,16 +81,19 @@ apart silently.
 letter in the inbox (`news.boardInjection`, both languages), and as a line in
 the Finances ledger — the books stay honest.
 
-**Effect:** `club.budget += X` and `club.balance += X` where
-`X = tier% × the season's opening transfer budget`, snapshotted at rollover
-as `club.budgetAtOpen`:
+**Effect:** `club.budget += X` and `club.balance += X` at the owner's fixed
+figures (v1.1.5: "go back to what we agreed - 10m, 25m, 60m or 130 million
++ wages increased"; they were percentages of the opening budget before):
 
-| Tier | % of opening budget | Floor | Cap-exempt wage allowance (this season) |
-|------|--------------------:|-------|------------------------------------------|
-| Small (+25%) | 25% | £100k | +5% of the cap |
-| Medium (+65%) | 65% | £250k | +10% of the cap |
-| Large (+150%) | 150% | £500k | +20% of the cap |
-| Sugar Daddy (+350%) | 350% | £1.0m | +40% of the cap |
+| Tier | Adds | Cap-exempt wage allowance (this season) |
+|------|------|------------------------------------------|
+| Small | £10m | +10% of the cap |
+| Medium | £25m | +20% of the cap |
+| Large | £60m | +40% of the cap |
+| Sugar Daddy | £130m | +80% of the cap |
+
+**Where it sells (v1.1.5):** the Store, with the rest of the catalogue - the
+Boardroom keeps only the Charter's signing desk.
 
 **The wage allowance (owner’s decision, 25 Aug):** each injection also
 carries board-underwritten wages *outside* the cap — a percentage of the
@@ -100,11 +103,9 @@ It stacks across purchases within the seasonal limits of §3.2, the store
 row prints it in pounds per week, and `capBill()` reads it exactly the way it
 already reads marquee exemptions.
 
-* **Snapshot, not current balance** — otherwise buying early beats buying
-  late and the product page can't honestly say what you get. The store row
-  shows the exact figure before purchase ("+£1.2m to your transfer budget").
-* **Floors** keep the SKU meaningful at a National 1 club or a club in
-  administration (opening budget can be ~£0 after `ADMIN_PENALTY`).
+* **Fixed, not situational** — every club, Toulouse or a National 1 side
+  fresh out of administration, is paid exactly the number on the tin, and
+  the store row prints it before purchase.
 * **What it never buys (§3.4):** marquee slots, objective completion, match
   outcomes, or anything for the AI. The wage allowance above is bounded,
   seasonal, and printed on the tin; permanent freedom from the cap is its own

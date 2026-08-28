@@ -40,10 +40,10 @@ console.log('\n--- 2. an injection pays the printed figure, and the well has a b
 {
   const g = newGame('northampton', 'Grant Probe', 7101)
   const club = g.clubs[g.userClubId]
-  const open = club.budgetAtOpen ?? club.budget
+  // v1.1.5: the owner's fixed figures - every club gets the number on the tin
   for (const tier of Object.keys(INJECT_TIERS) as InjectTier[]) {
-    const want = Math.max(INJECT_TIERS[tier].floor, Math.round((open * INJECT_TIERS[tier].pct) / 10_000) * 10_000)
-    ok(injectionCash(g, tier) === want, `${tier}: the store row's figure is ${want.toLocaleString('en-GB')} (pct of snapshot, floored)`)
+    ok(injectionCash(g, tier) === INJECT_TIERS[tier].amount,
+      `${tier}: the store row's figure is the fixed ${INJECT_TIERS[tier].amount.toLocaleString('en-GB')}`)
   }
   const before = { budget: club.budget, balance: club.balance, news: g.news.length }
   ok(applyInjection(g, 's'), 'the first small injection goes through')
@@ -66,14 +66,17 @@ console.log('\n--- 2. an injection pays the printed figure, and the well has a b
     'the wage allowance stacks across purchases, to the penny of the percent')
 }
 
-console.log('\n--- 3. the floors hold at a small club\n')
+console.log('\n--- 3. the fixed figures hold at a small club too\n')
 {
+  // pricing used to be a percentage of the opening budget with a floor;
+  // since v1.1.5 the figure is fixed, so a club fresh out of administration
+  // is paid exactly what Toulouse would be - the tin is the tin
   const g = newGame('bedford', 'Grant Probe', 7102)
   const club = g.clubs[g.userClubId]
   club.budgetAtOpen = 0 // a club in administration can open with nothing at all
   for (const tier of Object.keys(INJECT_TIERS) as InjectTier[]) {
-    ok(injectionCash(g, tier) === INJECT_TIERS[tier].floor,
-      `${tier}: an empty opening budget still pays the ${INJECT_TIERS[tier].floor.toLocaleString('en-GB')} floor`)
+    ok(injectionCash(g, tier) === INJECT_TIERS[tier].amount,
+      `${tier}: an empty opening budget still pays the full ${INJECT_TIERS[tier].amount.toLocaleString('en-GB')}`)
   }
 }
 
