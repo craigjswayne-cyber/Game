@@ -26,6 +26,7 @@
  * handshake means no bridge, which means no purchase door, which is exactly what
  * the web build should look like.
  */
+import { CONSUMABLE_SKUS } from './monetise'
 import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
@@ -63,13 +64,22 @@ export async function playBridge(): Promise<BillingBridge | null> {
     return null
   }
 
+  /** Play hands back a value and a currency code; joining them raw prints
+   *  "0.99 GBP" on the button. Intl renders the customer's own convention
+   *  from the store's own numbers - nothing is assembled or converted here,
+   *  and an unknown code falls back to the raw join. */
+  const money = (value: string, currency: string): string => {
+    const n = Number(value)
+    if (!Number.isFinite(n)) return `${value} ${currency}`
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(n)
+    } catch { return `${value} ${currency}` }
+  }
+
   const details = async (sku: string): Promise<Product | null> => {
     try {
       const [d] = await svc.getDetails([sku])
-      // the store formats its own price; a price this code assembled would be
-      // wrong in most of the world, so this is the store's two fields joined
-      // and nothing more
-      return d ? { sku, price: `${d.price.value} ${d.price.currency}`, title: d.title } : null
+      return d ? { sku, price: money(d.price.value, d.price.currency), title: d.title } : null
     } catch { return null }
   }
 
@@ -86,7 +96,9 @@ export async function playBridge(): Promise<BillingBridge | null> {
       // ACKNOWLEDGE, OR PLAY REFUNDS IT. An unacknowledged purchase is
       // automatically refunded after three days, which looks to the customer
       // like the game took their money and then took the badge back.
-      if (token && svc.acknowledge) await svc.acknowledge(token, 'onetime')
+      if (token && svc.acknowledge) {
+        await svc.acknowledge(token, CONSUMABLE_SKUS.includes(sku) ? 'repeatable' : 'onetime')
+      }
       await res.complete('success')
       return 'owned'
     } catch (e) {
@@ -103,7 +115,31 @@ export async function playBridge(): Promise<BillingBridge | null> {
     } catch { return [] }
   }
 
-  return { details, buy, owned }
+  /**
+   * SPEND THE RECEIPT SO PLAY WILL SELL IT AGAIN.
+   *
+   * This was missing until v1.1.7, and its absence was not quiet: monetise's
+   * buyConsumable REFUSES a purchase outright when the bridge has no consume
+   * (there is no honest way to sell a second Full Fitness you can never
+   * clear), so every consumable in the shipped TWA - the heal and all four
+   * board injections - answered "there is no store attached to this build"
+   * with a perfectly good store attached. The owner found it the first
+   * evening the Play products went live.
+   *
+   * monetise's contract is by SKU because that is what a career knows. Play
+   * works in purchase TOKENS, so the token is looked up in the account's open
+   * purchases - which is exactly what listPurchases is for, and the same call
+   * owned() already makes. Digital Goods 2.0 exposes consume(); 1.0 spelled
+   * the same thing acknowledge(token, 'repeatable'), so both are honoured.
+   */
+  const consume = async (sku: string): Promise<void> => {
+    const hit = (await svc.listPurchases()).find(p => p.itemId === sku)
+    if (!hit) return // already spent, or never owned: nothing to clear
+    if (typeof svc.consume === 'function') await svc.consume(hit.purchaseToken)
+    else if (typeof svc.acknowledge === 'function') await svc.acknowledge(hit.purchaseToken, 'repeatable')
+  }
+
+  return { details, buy, owned, consume }
 }
 
 /**

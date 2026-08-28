@@ -119,6 +119,14 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.7
+
+```
+• Fixed: Full Fitness and the four Board Injections could not be bought in
+  the Play build - the store is now attached to all of them.
+```
+*(135)*
+
 ### What's new (500 max) - v1.1.6
 
 ```
@@ -327,6 +335,15 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.7
+
+```
+• Corrigé : Pleine Forme et les quatre financements du conseil ne pouvaient
+  pas être achetés dans la version Play - la boutique leur est désormais
+  bien rattachée.
+```
+*(166)*
 
 ### Nouveautés (500 max) - v1.1.6
 

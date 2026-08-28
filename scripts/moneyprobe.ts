@@ -240,5 +240,68 @@ console.log('\n--- 12. the rewarded favours')
   ok(!M.adsAllowed('home-foot'), 'while the banners stay gone')
 }
 
+// ---- 13. the ANDROID bridge the TWA actually builds ------------------------
+//
+// Sections 1-12 test monetise.ts against a hand-made bridge, and every one of
+// them passed while the shipped Android bridge was missing a method the
+// catalogue cannot sell without. playbilling.ts builds itself out of two
+// browser APIs, so nothing in node had ever executed it - and on the evening
+// the Play products went live, every consumable in the installed game
+// answered "there is no store attached to this build" with a verified store
+// attached: buyConsumable refuses outright when the bridge has no consume,
+// and the bridge was returned as { details, buy, owned }.
+//
+// So the Digital Goods service is stubbed here and the REAL bridge is built
+// on it. What this asserts is the contract monetise depends on, method by
+// method - the check that was missing, not the bug that was found.
+console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service')
+{
+  clear()
+  const calls: string[] = []
+  let purchases = [
+    { itemId: M.HEAL_SKU, purchaseToken: 'tok-heal' },
+    { itemId: M.SUPPORT_SKU, purchaseToken: 'tok-support' },
+  ]
+  const gg = globalThis as unknown as Record<string, unknown>
+  gg.getDigitalGoodsService = async () => ({
+    getDetails: async (skus: string[]) =>
+      skus.map(itemId => ({ itemId, title: 'A thing', price: { value: '0.99', currency: 'GBP' } })),
+    listPurchases: async () => purchases,
+    acknowledge: async (token: string, type: string) => { calls.push(`ack:${token}:${type}`) },
+    consume: async (token: string) => {
+      calls.push(`consume:${token}`)
+      purchases = purchases.filter(p => p.purchaseToken !== token)
+    },
+  })
+  gg.PaymentRequest = class {
+    async show() { return { details: { token: 'tok-new' }, complete: async () => {} } }
+  }
+
+  const { playBridge } = await import('../src/game/playbilling')
+  const b = await playBridge()
+  ok(!!b, 'a billing-enabled container gets a bridge')
+  // THE ONE THAT SHIPPED BROKEN. Named on its own, because "the bridge is
+  // truthy" is what every other check would have said all along.
+  ok(typeof b?.consume === 'function', 'and the bridge can CONSUME - without it the five consumables cannot be sold at all')
+  ok(typeof b?.details === 'function' && typeof b?.buy === 'function' && typeof b?.owned === 'function',
+    'alongside details, buy and owned')
+
+  // the whole contract, driven through monetise the way the game does it
+  g.rmBilling = b!
+  ok(M.tillOpen(), 'the till opens on it')
+  const price = await M.skuPrice(M.HEAL_SKU)
+  ok(price === new Intl.NumberFormat(undefined, { style: 'currency', currency: 'GBP' }).format(0.99),
+    `the store's own figure is rendered as money, not "0.99 GBP" (${price})`)
+  ok(await M.buyConsumable(M.HEAL_SKU) === 'owned', 'a consumable can be bought at all')
+  ok(calls.includes('ack:tok-new:repeatable'), 'and is acknowledged as repeatable, not as a one-time buy')
+  await M.consume(M.HEAL_SKU)
+  ok(calls.includes('consume:tok-heal'), 'consuming by SKU finds the purchase TOKEN and spends it')
+  ok(!(await b!.owned()).includes(M.HEAL_SKU), 'so Play will sell it again')
+  ok(await M.buyOwnable(M.SUPPORT_SKU) === 'owned', 'a non-consumable still buys')
+  ok(calls.includes('ack:tok-new:onetime'), 'and is acknowledged as a one-time purchase')
+  delete gg.getDigitalGoodsService
+  delete gg.PaymentRequest
+}
+
 console.log(fails ? `\nMONEY PROBE FAILED (${fails})` : '\nMONEY PROBE PASSED: it fails open, it grants once, and the game is not for sale by the yard')
 if (fails) process.exit(1)
