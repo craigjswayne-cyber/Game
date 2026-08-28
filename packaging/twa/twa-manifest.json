@@ -50,8 +50,8 @@
     "path": "./android.keystore",
     "alias": "phase"
   },
-  "appVersionName": "1.1.6",
-  "appVersionCode": 7,
+  "appVersionName": "1.1.7",
+  "appVersionCode": 8,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "fallbackType": "customtabs",
