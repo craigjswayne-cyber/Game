@@ -243,7 +243,11 @@ try {
     })
     console.log(`  never reached half-time: ${JSON.stringify(st)}`)
   }
-  await page.waitForSelector('text=Start Second Half', { timeout: 8000 })
+  // 20s, not 8: the first half is driven in real ticks, and under a full
+  // suite (a dozen probes sharing the box) 8s timed out once while the same
+  // run passed three-for-three alone. Every sibling wait on a match
+  // milestone in this file already allows 20s; this one was the outlier.
+  await page.waitForSelector('text=Start Second Half', { timeout: 20000 })
   ok(await page.locator('text=Match-Day Squad').count() > 0, 'half-time offers the match-day squad')
   ok(await page.locator('select').count() === 0, 'the quick-sub dropdowns are gone')
 
