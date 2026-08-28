@@ -139,7 +139,13 @@ try {
     return false
   }
   const skip = page.locator('.speed-controls .btn').filter({ hasText: 'Skip' }).first()
-  const atHalfTime = async () => await page.locator('text=Start Second Half').count() > 0
+  // THE STORE, THEN THE SCREEN. A DOM-only check calls a match "not at
+  // half-time" during the frames between the state arriving and React drawing
+  // it - and the loop below answers that by pressing Skip, which AT an
+  // interval means leaveInterval(true): straight past the panel under test.
+  const atHalfTime = async () =>
+    await page.evaluate(() => window.rugbyStore.getState().liveMatch?.ctx?.awaiting === 'HT').catch(() => false) ||
+    await page.locator('text=Start Second Half').count() > 0
   let skipped = false
   for (let attempt = 0; attempt < 40 && !skipped; attempt++) {
     // Already there? Then do not press Skip. At an interval Skip means
@@ -179,8 +185,23 @@ try {
     // because a call can land in the milliseconds between the two
     try {
       await skip.click({ timeout: 1500 })
-      skipped = true
-      break
+      // A DELIVERED CLICK IS NOT AN ANSWERED ONE, and this cost two rounds to
+      // learn. Playwright reports success once it has dispatched to the node
+      // it found; React replaces the control row's nodes on every tick, so
+      // under whole-suite load the press can land on a node that is already
+      // detached and no handler ever runs. The loop then broke out declaring
+      // victory and the run sat waiting for a panel nobody had asked for -
+      // met the first time by raising the wait from 8s to 20s, which simply
+      // bought the same failure a longer rope (28 Aug).
+      //
+      // So the store is asked whether the press actually took. If it did not,
+      // this is not a failure - it is a retry, which is what the forty
+      // attempts are for.
+      skipped = await page.waitForFunction(
+        () => window.rugbyStore.getState().liveMatch?.ctx?.awaiting === 'HT',
+        { timeout: 2500 },
+      ).then(() => true).catch(() => false)
+      if (skipped) break
     } catch { /* disabled or unreachable: clear whatever is in the way, retry */ }
     // a penalty is pending: take the points and get on with it
     await settle()
