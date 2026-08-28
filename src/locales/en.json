@@ -5408,9 +5408,9 @@
     "healDone": "Done: the whole squad reports fit.",
     "healHeld": "Paid, and held: nothing to heal right now, or no match since the last visit. It stays yours - apply it when it counts.",
     "pinnacle": "The International Stage",
-    "pinnacleLine": "Pick a federation - their offer follows within two weeks.",
+    "pinnacleLine": "Pick a federation - their offer is on your desk at once.",
     "makeCall": "Make the call",
-    "callMade": "The call is out to {nat}. Expect the letter within a fortnight.",
+    "callMade": "Done: {nat}'s offer is waiting on your Manager Profile.",
     "callRefused": "Not now: a federation matter is already open, or this career has had its call.",
     "estate": "The Estate",
     "estateLine": "Every facility to its maximum, for the club that builds it.",
@@ -5425,6 +5425,6 @@
     "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
     "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
     "healWait": "The retreat needs a match between visits - play one and it reopens.",
-    "pickNation": "Yours. Now pick the federation you want and make the call."
+    "pickNation": "Yours. Pick the federation you want and make the call - the offer arrives at once."
   }
 }

@@ -201,7 +201,7 @@ console.log('\n--- 9. the estate rises whole, once, and the builders take their 
   ok(!applyEstate(g), 'and it cannot be applied twice')
 }
 
-console.log('\n--- 10. the call to the federations is answered, once per career, to the nation the buyer picked\n')
+console.log('\n--- 10. the call to the federations is answered AT ONCE, once per career, to the nation the buyer picked\n')
 {
   const g = newGame('northampton', 'Grant Probe', 7110)
   ok(mgrReputation(g) < 64, `a fresh career is nowhere near the earned gate (${mgrReputation(g)})`)
@@ -210,21 +210,26 @@ console.log('\n--- 10. the call to the federations is answered, once per career,
   ok(!applyPinnacle(g, 'ATLANTIS'), 'a federation that does not exist refuses the call, spending nothing')
   ok(!g.pinnacleCalled, 'and the career still has its call')
   ok(applyPinnacle(g, 'NZL'), 'the call goes out to the buyer\'s own pick')
-  ok(g.pinnacleCalled === true && g.natCall != null && g.natCallNat === 'NZL',
-    'the save is stamped and the answer is scheduled for the picked nation')
-  ok(g.news.some(n => n.k === 'news.pinnacle'), 'the letter is filed, keyed')
-  ok(!g.natOffer, 'no offer materialises on the spot - federations take a fortnight')
-  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !g.natOffer; i++) processWeekAndAdvance(g)
-  ok(!!g.natOffer, `a real offer arrives within ${NAT_CALL_WEEKS + 1} weeks`)
-  ok(g.natOffer?.nat === 'NZL', 'and it is the picked federation - the All Blacks, at reputation 22, because that is what was bought')
-  ok(g.natCall == null && g.natCallNat == null, 'the call is answered and cleared')
+  // v1.1.6 (owner): "they should be offered an international job immediately"
+  ok(g.natOffer?.nat === 'NZL', 'the offer is on the desk the same moment - the All Blacks, at reputation 22, because that is what was bought')
+  ok(g.news.some(n => n.k === 'news.natOffer'), 'and the offer letter is filed, keyed')
+  ok(g.natCall == null && g.natCallNat == null, 'no two-week callback is scheduled - there is nothing left to wait for')
   ok(!applyPinnacle(g, 'CAN'), 'a career only gets one call')
 
-  // a call with no pick (an old save mid-call) still lands somewhere honest
+  // a call with no pick still lands somewhere honest, immediately
   const h = newGame('northampton', 'Grant Probe', 7111)
   ok(applyPinnacle(h), 'a pickless call still goes out')
-  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !h.natOffer; i++) processWeekAndAdvance(h)
-  ok(h.natOffer?.nat === 'CAN', 'and falls back to the best tier the reputation honestly qualifies for')
+  ok(h.natOffer?.nat === 'CAN', 'and falls back at once to the best tier the reputation honestly qualifies for')
+
+  // the OLD wait, kept for a save whose call was already in flight when the
+  // wait was removed: the answer block in season.ts still delivers it
+  const old = newGame('northampton', 'Grant Probe', 7113)
+  const { SEASON_WEEKS } = await import('../src/game/model')
+  old.pinnacleCalled = true
+  old.natCall = old.season * SEASON_WEEKS + old.week + NAT_CALL_WEEKS
+  old.natCallNat = 'FIJ'
+  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !old.natOffer; i++) processWeekAndAdvance(old)
+  ok(old.natOffer?.nat === 'FIJ', 'an old save mid-call is still answered by the season engine')
 
   // v1.1.5: accepting the job asks about the club - both answers work
   const { useStore } = await import('../src/store')

@@ -5408,9 +5408,9 @@
     "healDone": "C'est fait : tout l'effectif est déclaré apte.",
     "healHeld": "Payé, et conservé : rien à soigner pour l'instant, ou aucun match depuis la dernière visite. Il reste à vous - appliquez-le au bon moment.",
     "pinnacle": "La scène internationale",
-    "pinnacleLine": "Choisissez une fédération - son offre arrive sous deux semaines.",
+    "pinnacleLine": "Choisissez une fédération - son offre arrive aussitôt sur votre bureau.",
     "makeCall": "Passer l'appel",
-    "callMade": "L'appel est parti vers {nat}. Attendez la lettre sous quinzaine.",
+    "callMade": "C'est fait : l'offre de {nat} vous attend sur votre Profil d'entraîneur.",
     "callRefused": "Pas maintenant : un dossier fédéral est déjà ouvert, ou cette carrière a eu son appel.",
     "estate": "Le Domaine",
     "estateLine": "Chaque installation à son maximum, pour le club qui le bâtit.",
@@ -5425,6 +5425,6 @@
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
     "healWait": "La retraite exige un match entre deux visites - jouez-en un et elle rouvre.",
-    "pickNation": "À vous. Choisissez maintenant la fédération que vous voulez et passez l'appel."
+    "pickNation": "À vous. Choisissez la fédération que vous voulez et passez l'appel - l'offre arrive aussitôt."
   }
 }
