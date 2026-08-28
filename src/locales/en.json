@@ -2021,7 +2021,10 @@
     "standFaceValue": "The room takes you at face value. Results will do the talking.",
     "standSomeAsk": "A few senior heads still ask who you are. Keep winning and they will stop.",
     "standOutranks": "The room outranks your record and trains like it knows it.",
-    "standNoName": "A squad of internationals, a manager without a name: every instruction is quietly re-examined."
+    "standNoName": "A squad of internationals, a manager without a name: every instruction is quietly re-examined.",
+    "natKeepClubQ": "And {club}? Would you like to keep your club job?",
+    "natResignClub": "Resign the club",
+    "natKeepBoth": "Continue with both"
   },
   "week": {
     "wireQuietWeek": "A quiet week. It never lasts.",

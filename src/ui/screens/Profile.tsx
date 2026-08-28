@@ -88,6 +88,7 @@ export default function Profile() {
   const { resign, answerNatOffer, resignNat } = useStore.getState()
   const [confirmResign, setConfirmResign] = useState(false)
   const [confirmNatResign, setConfirmNatResign] = useState(false)
+  const [natAccepting, setNatAccepting] = useState(false)
   const rep = mgrReputation(game)
   const trust = squadTrust(game)
   const badge = badgeOf(rep)
@@ -143,10 +144,31 @@ export default function Profile() {
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 15 }}>{t('profile.natOffer', { nat: game.natOffer.nat })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
-          <div className="btn-row" style={{ marginTop: 10 }}>
-            <button className="btn ghost" onClick={() => answerNatOffer(false)}>{t('profile.decline')}</button>
-            <button className="btn gold" style={{ flex: 1.4 }} onClick={() => answerNatOffer(true)}>{t('profile.acceptJob')}</button>
-          </div>
+          {/* v1.1.5 (owner): taking the national side asks about the club job
+              - keep both, or clear the desk and go all-in on country. An
+              unemployed manager has no desk to keep, so the question is
+              skipped rather than asked emptily. */}
+          {!natAccepting ? (
+            <div className="btn-row" style={{ marginTop: 10 }}>
+              <button className="btn ghost" onClick={() => answerNatOffer(false)}>{t('profile.decline')}</button>
+              <button className="btn gold" style={{ flex: 1.4 }} onClick={() => {
+                if (game.unemployed) answerNatOffer(true)
+                else setNatAccepting(true)
+              }}>{t('profile.acceptJob')}</button>
+            </div>
+          ) : (
+            <>
+              <div className="meta" style={{ marginTop: 8, fontWeight: 700 }}>{t('profile.natKeepClubQ', { club: club.short })}</div>
+              <div className="btn-row" style={{ marginTop: 8 }}>
+                <button className="btn danger" onClick={() => { setNatAccepting(false); answerNatOffer(true, false) }}>
+                  {t('profile.natResignClub')}
+                </button>
+                <button className="btn gold" style={{ flex: 1.3 }} onClick={() => { setNatAccepting(false); answerNatOffer(true, true) }}>
+                  {t('profile.natKeepBoth')}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
       {game.natTeam && (

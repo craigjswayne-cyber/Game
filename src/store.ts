@@ -232,7 +232,7 @@ interface Store {
   /** Say no to a vacancy so it stops asking. Pass false to undo it. */
   passJob: (clubId: string, passed?: boolean) => void
   resign: () => void
-  answerNatOffer: (accept: boolean) => void
+  answerNatOffer: (accept: boolean, keepClub?: boolean) => void
   resignNat: () => void
   answerPressOption: (pressId: number, optionIndex: number) => void
   persist: () => Promise<void>
@@ -1249,7 +1249,7 @@ export const useStore = create<Store>((set, get) => ({
     void get().persist()
   },
 
-  answerNatOffer: (accept) => {
+  answerNatOffer: (accept, keepClub = true) => {
     const g = get().game
     if (!g || !g.natOffer) return
     const nat = g.natOffer.nat
@@ -1261,8 +1261,15 @@ export const useStore = create<Store>((set, get) => ({
       g.news.push({
         id: g.nextId++, week: g.week, season: g.season, type: 'board', read: false,
         subject: `🌍 Appointed: national head coach of ${nat}`,
-        body: `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`,
+        body: keepClub && !g.unemployed
+          ? `A proud day. You now coach ${nat} alongside your club duties. In Test windows, when your club has no fixture, you'll take charge of the national side on match day - and every championship they win goes in YOUR cabinet.`
+          : `A proud day. ${nat} is your whole job now: Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet.`,
       })
+      // v1.1.5 (owner): taking a national job asks whether the club job is
+      // kept. Declining it walks the same resignation the Profile button
+      // walks - desk cleared on your own terms, vacancy opened, offers dying
+      // with the job - with the national post already in hand.
+      if (!keepClub && !g.unemployed) resignJob(g)
     }
     set(s => ({ tick: s.tick + 1 }))
     void get().persist()

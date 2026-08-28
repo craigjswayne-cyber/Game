@@ -225,6 +225,22 @@ console.log('\n--- 10. the call to the federations is answered, once per career,
   ok(applyPinnacle(h), 'a pickless call still goes out')
   for (let i = 0; i < NAT_CALL_WEEKS + 1 && !h.natOffer; i++) processWeekAndAdvance(h)
   ok(h.natOffer?.nat === 'CAN', 'and falls back to the best tier the reputation honestly qualifies for')
+
+  // v1.1.5: accepting the job asks about the club - both answers work
+  const { useStore } = await import('../src/store')
+  useStore.setState({ game: h, persist: async () => {} })
+  useStore.getState().answerNatOffer(true, true)
+  ok(h.natTeam === 'CAN' && !h.unemployed, 'keep both: national coach AND still at the club')
+
+  const j = newGame('northampton', 'Grant Probe', 7112)
+  ok(applyPinnacle(j, 'FIJ'), 'a second career calls Fiji')
+  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !j.natOffer; i++) processWeekAndAdvance(j)
+  const oldClub = j.userClubId
+  useStore.setState({ game: j, persist: async () => {} })
+  useStore.getState().answerNatOffer(true, false)
+  ok(j.natTeam === 'FIJ' && j.unemployed, 'resign the club: national coach, desk cleared')
+  ok(j.vacancies.some(v => v.clubId === oldClub), 'and the old job is a real vacancy')
+  ok(j.news.some(n => n.k === 'news.resigned'), 'with the resignation letter on file')
 }
 
 if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }
