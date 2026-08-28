@@ -4,8 +4,9 @@ import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i1
 import { LICENSE_SKU, hasEntitlement, hasSupporter } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
+import { dreamState, dreamsFor } from './game/dream'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
-import { closeNatTenure } from './game/model'
+import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import {
@@ -183,6 +184,8 @@ interface Store {
   healSquad: () => boolean
   buildEstate: () => boolean
   makeTheCall: (nat?: string) => boolean
+  /** Name a new dream once the current one is realised (v1.1.5). */
+  refocusDream: (id: string) => boolean
   /** Rewarded favours (game/rewarded.ts): called ONLY after the ad bridge
    *  reports a completed view. Each returns what the screen should say, or
    *  null/false when the ledger refuses. */
@@ -1161,6 +1164,28 @@ export const useStore = create<Store>((set, get) => ({
     const done = applyPinnacle(g, nat)
     if (done) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return done
+  },
+
+  refocusDream: (id: string) => {
+    const g = get().game
+    if (!g || g.unemployed || !g.dream) return false
+    const cur = dreamState(g)
+    // only a REALISED dream may be retired: an unachieved one never resets
+    if (!cur?.progress.done) return false
+    const club = g.clubs[g.userClubId]
+    if (!club) return false
+    const ctx = { clubId: g.userClubId, clubName: club.short ?? club.name, leagueId: club.leagueId, rep: club.rep }
+    if (!dreamsFor(ctx).some(dd => dd.id === id)) return false
+    if (id === g.dream.id || (g.dreamsDone ?? []).some(x => x.id === id)) return false
+    // the honour is banked before the ambition moves on (rollover also does
+    // this at the season's end; refocusing mid-season must not lose it)
+    if (!(g.dreamsDone ?? []).some(x => x.id === g.dream!.id)) (g.dreamsDone ??= []).push({ ...g.dream })
+    g.dream = { id, clubId: g.userClubId, season: g.season }
+    const def = dreamsFor(ctx).find(dd => dd.id === id)!
+    logDecision(g, 'dec.dreamRefocus', { dream_k: def.titleLowerK, ...(def.titleVars?.(ctx) ?? {}) }, true)
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+    return true
   },
 
   rewardPhysio: (pid) => {

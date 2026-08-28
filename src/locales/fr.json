@@ -2706,7 +2706,9 @@
     "bgMailRest": ", et la voie e-mail tronque les longs rapports ; Copier et Enregistrer emportent toujours l'ensemble.",
     "bgHideFull": "Masquer ce qui sera envoyé",
     "bgShowFull": "Voir exactement ce qui sera envoyé",
-    "bgShareTitle": "PHASE: Rugby Manager - rapport de bug"
+    "bgShareTitle": "PHASE: Rugby Manager - rapport de bug",
+    "lgRefocus": "Nommer un nouveau rêve",
+    "lgDreamsDone": "Rêves réalisés"
   },
   "handbook": {
     "a1": "Tout part du bouton en haut de l'écran. Il indique Continuer une semaine calme et Match quand vous avez une rencontre. Appuyez et le monde avance : la semaine passe, les autres résultats tombent, et tout ce qui s'est produit arrive dans votre messagerie sur l'écran Accueil.",
@@ -4412,7 +4414,9 @@
     "boardPushedSubj": "AVERTISSEMENT FORMEL : la réponse du conseil est maintenue",
     "boardPushed": "On vous a donné une décision et vous êtes revenu frapper à la porte malgré tout. Le conseil y voit un défi à son autorité, et l'écrit noir sur blanc : la réponse n'a pas changé, la confiance en votre jugement est sérieusement entamée, et la prochaine répétition de cette conversation sera la dernière au club.",
     "sackedPushedSubj": "LICENCIÉ : {club} se sépare de {manager}",
-    "sackedPushed": "Averti par écrit, et de retour à la porte du conseil dans le mois quand même. Le conseil a décidé que le club avait besoin d'un entraîneur capable d'entendre un non. {era} Votre réputation vous suit - et l'histoire de cette fin aussi."
+    "sackedPushed": "Averti par écrit, et de retour à la porte du conseil dans le mois quand même. Le conseil a décidé que le club avait besoin d'un entraîneur capable d'entendre un non. {era} Votre réputation vous suit - et l'histoire de cette fin aussi.",
+    "dreamRefocusSubj": "🌠 Le rêve est réalisé",
+    "dreamRefocus": "Vous vous étiez promis de {dream_k}, et c'est fait. Un entraîneur a besoin d'une raison : quand vous serez prêt, nommez un nouveau rêve depuis l'écran Héritage. Celui que vous avez réalisé reste au palmarès pour toujours."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -4706,7 +4710,8 @@
     "boardPushed": "A insisté auprès du conseil après un refus : avertissement formel, respect réduit de moitié.",
     "boardPushedOut": "A insisté auprès du conseil malgré l'avertissement : licencié.",
     "fundsApproved": "A demandé au conseil des fonds de transfert supplémentaires : {amount} accordés.",
-    "fundsDeclined": "A demandé au conseil des fonds de transfert supplémentaires : refusé."
+    "fundsDeclined": "A demandé au conseil des fonds de transfert supplémentaires : refusé.",
+    "dreamRefocus": "A réalisé un rêve et en a nommé un nouveau : {dream_k}."
   },
   "persLower": {
     "Professional": "professionnel",

@@ -2706,7 +2706,9 @@
     "bgMailRest": ", and the mail route trims long reports; Copy and Save always carry the whole thing.",
     "bgHideFull": "Hide what gets sent",
     "bgShowFull": "Show exactly what gets sent",
-    "bgShareTitle": "PHASE: Rugby Manager - bug report"
+    "bgShareTitle": "PHASE: Rugby Manager - bug report",
+    "lgRefocus": "Name a new dream",
+    "lgDreamsDone": "Dreams realised"
   },
   "handbook": {
     "a1": "Everything runs off the button in the top corner. It reads Continue on a quiet week and Matchday when you have a fixture. Press it and the world moves: the week advances, other results come in, and anything that happened lands in your inbox on the Home screen.",
@@ -4412,7 +4414,9 @@
     "boardPushedSubj": "FORMAL WARNING: the board's answer stands",
     "boardPushed": "You were given a decision and you came back at the door regardless. The board takes that as a challenge to its authority, and says so in writing: the answer has not changed, confidence in your judgement is severely dented, and the next repetition of this conversation will be your last at the club.",
     "sackedPushedSubj": "DISMISSED: {club} part company with {manager}",
-    "sackedPushed": "Warned in writing, and back at the boardroom door within the month anyway. The board decided the club needed a manager who could hear a no. {era} Your reputation travels with you - and so does the story of how this ended."
+    "sackedPushed": "Warned in writing, and back at the boardroom door within the month anyway. The board decided the club needed a manager who could hear a no. {era} Your reputation travels with you - and so does the story of how this ended.",
+    "dreamRefocusSubj": "🌠 The dream is realised",
+    "dreamRefocus": "You set out to {dream_k}, and it is done. A manager needs a reason: when you are ready, name a new dream from the Legacy screen. The one you realised stays on the record for good."
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4706,7 +4710,8 @@
     "boardPushed": "Pressed the board after a refusal: formal warning, respect halved.",
     "boardPushedOut": "Pressed the board past its warning: dismissed.",
     "fundsApproved": "Asked the board for extra transfer funds: {amount} granted.",
-    "fundsDeclined": "Asked the board for extra transfer funds: declined."
+    "fundsDeclined": "Asked the board for extra transfer funds: declined.",
+    "dreamRefocus": "Realised a dream and named a new one: to {dream_k}."
   },
   "persLower": {
     "Professional": "professional",

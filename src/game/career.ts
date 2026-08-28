@@ -25,7 +25,7 @@
  */
 import { LEAGUE_TIER, mgrReputation } from './model'
 import type { GameState } from './model'
-import { dreamState } from './dream'
+import { dreamById, dreamState } from './dream'
 import { t, type Vars } from './i18n'
 
 /** Youngest a manager may start; the wizard offers a spread around this. */
@@ -99,7 +99,9 @@ export function careerVerdict(state: GameState): Verdict {
   const seasons = m.finishes.length
   const legends = state.legendOf?.length ?? 0
   const d = dreamState(state)
-  const dreamDone = !!d?.progress.done
+  // a refocused career (v1.1.5) banks realised dreams in dreamsDone; the CV
+  // bonus honours any of them, not only the ambition currently held
+  const dreamDone = !!d?.progress.done || (state.dreamsDone?.length ?? 0) > 0
 
   // the score. Trophies dominate, because they do; longevity and a good record
   // carry a career that never quite won one.
@@ -158,8 +160,13 @@ export function careerVerdict(state: GameState): Verdict {
     // first character. That is the same trick and it fails the same way, so the
     // line was rewritten to carry the note in the middle instead - one turn of
     // phrase, against a second copy of all twenty-six notes.
-    rows.push(dreamDone
-      ? { k: 'legacy.cvDreamDone', dream_k: d.def.titleLowerK, ...(d.titleV ?? {}) }
+    // a refocused career reads its realised dream, not the fresh ambition
+    // it is still chasing - "the dream went unfulfilled" would be a lie
+    const banked = (state.dreamsDone ?? []).length
+      ? dreamById(state.dreamsDone![state.dreamsDone!.length - 1].id) : undefined
+    const doneDef = d.progress.done ? d.def : banked
+    rows.push(doneDef
+      ? { k: 'legacy.cvDreamDone', dream_k: doneDef.titleLowerK, ...(doneDef === d.def ? d.titleV ?? {} : doneDef.titleVars?.(d.ctx) ?? {}) }
       : {
         k: 'legacy.cvDreamMissed', dream_k: d.def.titleLowerK, ...(d.titleV ?? {}),
         note_k: d.progress.noteK, ...(d.progress.noteV ?? {}),
