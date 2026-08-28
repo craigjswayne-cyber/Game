@@ -217,8 +217,8 @@ console.log('\n--- 11. restore, v1.1.0')
   clear()
   store.set('rm-ent', 'supporter')
   ok(M.hasSupporter(), 'a receipt written before v1.1.0 still stands, unre-litigated')
-  M.grant(M.LICENSE_SKU)
-  ok(M.hasSupporter() && M.hasEntitlement(M.LICENSE_SKU), 'and survives a new receipt joining it in the cache')
+  M.grant(M.SUPPORT_SKU)
+  ok(M.hasSupporter() && M.hasEntitlement(M.SUPPORT_SKU), 'and survives a new receipt joining it in the cache')
   ok(store.size === 1 && [...store.keys()][0] === 'rm-ent', 'still exactly one key beside night mode')
 }
 
