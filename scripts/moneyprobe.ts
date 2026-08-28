@@ -75,7 +75,11 @@ ok(!M.supporterDoor(), 'so the Supporter page has no door in the menu')
 ok(!M.adsAllowed('home-foot'), 'no ad may be drawn anywhere')
 ok(await M.buySupporter() === 'unavailable', 'a purchase attempt says so plainly rather than throwing')
 ok(await M.restore() === false, 'and a restore is a no-op rather than an error')
-ok(await M.supporterPrice() === null, 'no price is invented when there is no store to name one')
+// v1.1.5 (owner: "prices should be displayed"): with no store to ask, the
+// button carries the CATALOGUE's reference price rather than standing blank.
+// The store's own figure still wins whenever a store answers - see below.
+ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
+  'with no store, the catalogue reference price stands in - a row is never priceless')
 
 // ---- 2. a packaged shell puts a bridge in -----------------------------------
 console.log('\n--- 2. a bridge appears, as a TWA or a wrapper would inject one')
@@ -100,7 +104,8 @@ console.log('\n--- 3. failing open: offline, broken, or gone')
   ok(await M.restore() === false, 'a store that throws changes nothing')
   ok(M.hasSupporter(), 'and does not take the purchase away')
   ok(await M.buySupporter() === 'error', 'a throwing purchase reports an error rather than propagating one')
-  ok(await M.supporterPrice() === null, 'and a throwing price lookup just has no price')
+  ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
+    'and a throwing price lookup falls back to the reference price rather than a blank button')
 }
 
 // ---- 4. every ending, and only one of them grants ---------------------------
