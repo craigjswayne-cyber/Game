@@ -154,7 +154,7 @@ first installed build showed (27 Aug).
 |---|---|---|---|
 | `phase.license` | Managed (non-consumable) | Manager's License | $2.99 |
 | `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
-| `phase.estate` | Managed (non-consumable) | The Estate | $19.99 |
+| `phase.estate` | Managed (non-consumable) | The Estate | $9.99 |
 | `phase.pinnacle` | Managed (non-consumable) | The International Stage | $4.99 |
 | `phase.inject.s` | Consumable | Board Injection (Small) | $0.99 |
 | `phase.inject.m` | Consumable | Board Injection (Medium) | $1.99 |

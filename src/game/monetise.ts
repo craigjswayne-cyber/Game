@@ -297,16 +297,37 @@ export async function pendingConsumables(): Promise<string[]> {
   }
 }
 
-/** The price to put on a button, or null when we cannot honestly name one. */
+/** The catalogue's reference prices, in the launch currency. The STORE'S
+ *  answer always wins - regional pricing, sales, the owner repricing in
+ *  Play Console all live there - but a row must never stand priceless
+ *  (owner, v1.1.5: "prices should be displayed"), and until a product is
+ *  created and activated in Play, details() has nothing to say. These are the
+ *  prices of packaging/twa/README.md §4, and changing one there means
+ *  changing it here. */
+export const REFERENCE_PRICES: Record<string, string> = {
+  [SUPPORTER_SKU]: '£1.99',
+  [LICENSE_SKU]: '£2.99',
+  [CHARTER_SKU]: '£9.99',
+  [ESTATE_SKU]: '£9.99',
+  [PINNACLE_SKU]: '£4.99',
+  'phase.inject.s': '£0.99',
+  'phase.inject.m': '£1.99',
+  'phase.inject.l': '£3.99',
+  'phase.inject.xl': '£7.99',
+  [HEAL_SKU]: '£0.99',
+}
+
+/** The price to put on a button: the store's own figure when it will name
+ *  one, the catalogue's reference price when it will not. */
 export async function skuPrice(sku: string): Promise<string | null> {
   const b = bridge()
-  if (!b?.details) return null
-  try {
-    const p = await b.details(sku)
-    return p?.price ?? null
-  } catch {
-    return null
+  if (b?.details) {
+    try {
+      const p = await b.details(sku)
+      if (p?.price) return p.price
+    } catch { /* fall through to the reference */ }
   }
+  return REFERENCE_PRICES[sku] ?? null
 }
 
 export async function supporterPrice(): Promise<string | null> {
