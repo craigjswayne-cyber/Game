@@ -1195,6 +1195,11 @@ export interface GameState {
    * existed simply has none, and the Home screen shows the old horizons instead.
    */
   dream?: { id: string; clubId: string; season: number }
+  /** Dreams already realised (v1.1.5): a realised dream is written here at
+   *  the season's end (or the moment a new one is named), the manager may
+   *  then REFOCUS - name a new dream - and the honour is never erased by
+   *  the new ambition. An unrealised dream is never reset by anything. */
+  dreamsDone?: { id: string; clubId: string; season: number }[]
   /** open managerial vacancies at AI clubs */
   /**
    * `passed` is the manager saying he is not interested.

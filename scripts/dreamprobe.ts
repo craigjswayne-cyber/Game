@@ -173,5 +173,29 @@ ok(Array.isArray(D.DREAMS) && D.DREAMS.length >= 5, `there are dreams to choose 
   ok(D.dreamState(g) === null, 'a career from before dreams existed simply has none')
 }
 
+// ---- the refocus (v1.1.5): realised dreams bank, unrealised ones never reset ----
+{
+  const { useStore } = await import('../src/store')
+  const g = newGame('ealing', 'Dreamer', 71)
+  const uid = g.userClubId
+  g.dream = { id: 'topflight', clubId: uid, season: 0 }
+  // node has no indexedDB: the action's persist must be a no-op here or the
+  // probe's tail is an async "save failed" grumble after its own verdict
+  useStore.setState({ game: g, persist: async () => {} })
+  const refocus = useStore.getState().refocusDream
+  ok(!refocus('academy'), 'an unrealised dream cannot be refocused away')
+  ok(g.dream.id === 'topflight' && !g.dreamsDone?.length, 'and nothing about it moved')
+  // realise it
+  g.mgr.finishes.push({ season: 1, leagueId: 'prem', pos: 9, clubId: uid })
+  g.mgr.finishes.push({ season: 2, leagueId: 'prem', pos: 8, clubId: uid })
+  ok(D.dreamState(g)!.progress.done, 'the dream is realised')
+  ok(!refocus('topflight'), 'the dream just realised is not a valid new pick')
+  ok(refocus('academy'), 'a realised dream may be refocused to a new one')
+  ok(g.dream.id === 'academy', 'the new ambition is held')
+  ok((g.dreamsDone ?? []).some(x => x.id === 'topflight'), 'and the realised one is banked, not erased')
+  ok(!D.dreamState(g)!.progress.done, 'the new dream starts unrealised')
+  ok(!refocus('trophy'), 'an unrealised new dream cannot itself be refocused away')
+}
+
 console.log(fails ? `DREAM PROBE FAILED (${fails})` : 'DREAM PROBE PASSED: the save knows what it is for')
 if (fails) process.exit(1)

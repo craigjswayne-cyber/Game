@@ -1300,6 +1300,22 @@ export function rebuildSeason(state: GameState) {
             done: d.progress.done,
             moved: prev != null ? d.progress.at - prev : null,
           }
+          // THE REFOCUS INVITATION (v1.1.5, owner: "if you achieve your dream
+          // do you get to refocus and pick a new one at the end of season?").
+          // A realised dream is written into the honour roll ONCE, and the
+          // letter says a new one may be named (Legacy screen). An unrealised
+          // dream is untouched - nothing anywhere resets it.
+          if (d.progress.done && state.dream &&
+              !(state.dreamsDone ?? []).some(x => x.id === state.dream!.id)) {
+            ;(state.dreamsDone ??= []).push({ ...state.dream })
+            const v = { dream_k: d.def.titleLowerK, ...(d.titleV ?? {}) }
+            state.news.push({
+              id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+              subject: tIn('en', 'news.dreamRefocusSubj'),
+              body: tIn('en', 'news.dreamRefocus', v),
+              k: 'news.dreamRefocus', v,
+            })
+          }
         }
       }
       // secondary objectives: side quests with real consequences

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { dreamNote, dreamPct, dreamState, dreamTitle } from '../../game/dream'
+import { dreamById, dreamNote, dreamPct, dreamState, dreamTitle, dreamsFor } from '../../game/dream'
 import { fmtMoney, seasonLabel } from '../../game/model'
 import { Crest, SectionTitle } from '../components'
 import { careerVerdict, clockLine, mayRetire, retire } from '../../game/career'
@@ -11,6 +11,7 @@ import { ord, t } from '../../game/i18n'
 
 export default function Legacy() {
   const game = useStore(s => s.game)!
+  const refocusDream = useStore(s => s.refocusDream)
   const touch = useStore(s => s.touch)
   const [confirmRetire, setConfirmRetire] = useState(false)
   const [retireMsg, setRetireMsg] = useState<string | null>(null)
@@ -44,6 +45,15 @@ export default function Legacy() {
       {(() => {
         const d = dreamState(game)
         if (!d) return null
+        // v1.1.5: a REALISED dream invites a refocus - any dream this club
+        // could declare, not yet achieved, not the one just done. An
+        // unrealised dream shows no picker and is reset by nothing.
+        const club = !game.unemployed ? game.clubs[game.userClubId] : null
+        const ctx = club ? { clubId: club.id, clubName: club.short ?? club.name, leagueId: club.leagueId, rep: club.rep } : null
+        const options = d.progress.done && ctx
+          ? dreamsFor(ctx).filter(dd => dd.id !== game.dream!.id && !(game.dreamsDone ?? []).some(x => x.id === dd.id))
+          : []
+        const done = (game.dreamsDone ?? []).filter(x => x.id !== game.dream!.id)
         return (
           <>
             <SectionTitle sub={t(d.progress.done ? 'legacy.lgRealised' : 'legacy.lgWhatFor')}>{t('legacy.lgTheDream')}</SectionTitle>
@@ -53,7 +63,31 @@ export default function Legacy() {
                 <div style={{ width: `${dreamPct(d.progress)}%`, height: '100%', background: d.progress.done ? 'var(--primary)' : 'var(--gold-fill)' }} />
               </div>
               <div className="meta">{dreamNote(d.progress)}</div>
+              {options.length > 0 && (
+                <>
+                  <div className="fact-label" style={{ marginTop: 10 }}>{t('legacy.lgRefocus')}</div>
+                  <div className="chips" style={{ marginTop: 4 }}>
+                    {options.map(dd => (
+                      <button key={dd.id} className="chip" onClick={() => { refocusDream(dd.id) }}>
+                        {dreamTitle(dd, ctx!)}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
+            {done.length > 0 && (
+              <div className="card">
+                <div className="fact-label">{t('legacy.lgDreamsDone')}</div>
+                {done.map(x => {
+                  const def = dreamById(x.id)
+                  const c = game.clubs[x.clubId]
+                  if (!def) return null
+                  const dctx = { clubId: x.clubId, clubName: c?.short ?? c?.name ?? x.clubId, leagueId: c?.leagueId ?? 'prem', rep: c?.rep ?? 70 }
+                  return <div className="meta" key={x.id}>✓ {dreamTitle(def, dctx)}</div>
+                })}
+              </div>
+            )}
           </>
         )
       })()}
