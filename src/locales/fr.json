@@ -1122,7 +1122,10 @@
     "yourKicker": "Votre buteur",
     "yourRatings": "Les notes de vos joueurs",
     "yourTestXV": "Votre XV international",
-    "yourXV": "Votre XV"
+    "yourXV": "Votre XV",
+    "stScrums": "Mêlées G-P",
+    "stLineouts": "Touches G-P",
+    "stTackles": "Plaquages"
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -5418,6 +5421,8 @@
     "funding": "Fonds du conseil",
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
+    "tillSilent": "La boutique ne répond pas sur cette version : les prix ci-dessous sont indicatifs et rien ne peut encore être acheté. Réessayez une fois l'application installée depuis la boutique elle-même.",
+    "tillPartial": "La boutique a tarifé {live} produits sur {asked}. Les autres affichent un prix indicatif et ne peuvent pas encore être achetés.",
     "healWait": "La retraite exige un match entre deux visites - jouez-en un et elle rouvre.",
     "pickNation": "À vous. Choisissez la fédération que vous voulez et passez l'appel - l'offre arrive aussitôt.",
     "support": "Soutenir le jeu",

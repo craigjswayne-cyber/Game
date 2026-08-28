@@ -81,6 +81,19 @@ ok(await M.restore() === false, 'and a restore is a no-op rather than an error')
 ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
   'with no store, the catalogue reference price stands in - a row is never priceless')
 
+// v1.1.9: and the row now says WHOSE price it is. The fallback above was
+// added so nothing stood blank, and it did something nobody asked for too -
+// it made a dead store look alive, which is half of why the v1.1.6 billing
+// fault took an evening to read.
+{
+  const from = await M.skuPriceFrom(M.SUPPORTER_SKU)
+  ok(from.price === M.REFERENCE_PRICES[M.SUPPORTER_SKU] && from.live === false,
+    'a reference price is marked as not the store\'s own')
+  const health = await M.tillHealth()
+  ok(health.live === 0 && health.asked === Object.keys(M.REFERENCE_PRICES).length,
+    `with no store, nothing on the shelf is priced by one (0 of ${Object.keys(M.REFERENCE_PRICES).length})`)
+}
+
 // ---- 2. a packaged shell puts a bridge in -----------------------------------
 console.log('\n--- 2. a bridge appears, as a TWA or a wrapper would inject one')
 clear()
@@ -89,6 +102,12 @@ ok(M.bridge() !== null, 'the bridge is found on globalThis')
 ok(M.canBuy(), 'the purchase door opens')
 ok(M.supporterDoor(), 'and the page becomes reachable')
 ok(await M.supporterPrice() === '£3.49', "the price shown is the store's own, formatted by the store")
+{
+  const from = await M.skuPriceFrom(M.SUPPORTER_SKU)
+  ok(from.live === true, "and it is marked as the store's own, so the shelf keeps quiet about its health")
+  const health = await M.tillHealth()
+  ok(health.live === health.asked, `every product on the shelf is priced by the store (${health.live}/${health.asked})`)
+}
 ok(await M.buySupporter() === 'owned', 'a completed purchase reports owned')
 ok(M.hasSupporter(), 'and the receipt is written down')
 ok(!M.canBuy(), 'the same thing cannot be bought twice')
@@ -106,6 +125,10 @@ console.log('\n--- 3. failing open: offline, broken, or gone')
   ok(await M.buySupporter() === 'error', 'a throwing purchase reports an error rather than propagating one')
   ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
     'and a throwing price lookup falls back to the reference price rather than a blank button')
+  ok((await M.skuPriceFrom(M.SUPPORTER_SKU)).live === false,
+    'and says so - a store that throws is a store that has not priced anything')
+  ok((await M.tillHealth()).live === 0,
+    'so the whole shelf reports itself unpriced, which is what the Store screen tells the player')
 }
 
 // ---- 4. every ending, and only one of them grants ---------------------------

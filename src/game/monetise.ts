@@ -324,17 +324,45 @@ export const REFERENCE_PRICES: Record<string, string> = {
   [HEAL_SKU]: '£0.99',
 }
 
-/** The price to put on a button: the store's own figure when it will name
- *  one, the catalogue's reference price when it will not. */
-export async function skuPrice(sku: string): Promise<string | null> {
+/** The price to put on a button, and WHERE IT CAME FROM.
+ *
+ *  The reference prices above were added so no row would stand priceless, and
+ *  they did something nobody asked for as well: they made a DEAD STORE LOOK
+ *  ALIVE. A build whose products are not yet activated, or whose licence
+ *  testing is not set up, still draws a full shelf at £0.99 and £9.99 - and
+ *  only on the tap does it say "nothing was charged". That is exactly the
+ *  report the owner filed against v1.1.6, and the fallback was half the reason
+ *  it was hard to read.
+ *
+ *  So the origin travels with the price. `live` is true only when the store
+ *  itself named the figure; the Store screen says so when it is false. */
+export async function skuPriceFrom(sku: string): Promise<{ price: string | null; live: boolean }> {
   const b = bridge()
   if (b?.details) {
     try {
       const p = await b.details(sku)
-      if (p?.price) return p.price
+      if (p?.price) return { price: p.price, live: true }
     } catch { /* fall through to the reference */ }
   }
-  return REFERENCE_PRICES[sku] ?? null
+  return { price: REFERENCE_PRICES[sku] ?? null, live: false }
+}
+
+/** The price to put on a button: the store's own figure when it will name
+ *  one, the catalogue's reference price when it will not. */
+export async function skuPrice(sku: string): Promise<string | null> {
+  return (await skuPriceFrom(sku)).price
+}
+
+/** Can this build actually take money right now?
+ *
+ *  Asked of the whole shelf rather than one row, because one product left
+ *  inactive in the console is a different fault from a store that is not
+ *  answering at all, and the screen phrases them differently. Returns the
+ *  count that answered and the count asked. */
+export async function tillHealth(): Promise<{ live: number; asked: number }> {
+  const skus = Object.keys(REFERENCE_PRICES)
+  const got = await Promise.all(skus.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
+  return { live: got.filter(Boolean).length, asked: skus.length }
 }
 
 export async function supporterPrice(): Promise<string | null> {

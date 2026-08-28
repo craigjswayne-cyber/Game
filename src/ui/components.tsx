@@ -168,6 +168,53 @@ export function Stars({ ca }: { ca: number }) {
   )
 }
 
+/**
+ * Club reputation, in stars, over the range the world actually uses.
+ *
+ * The old form was `Math.round(rep / 20)` with a floor of one, and it was
+ * measured before this replaced it: the world's clubs run from 38 (Esher) to
+ * 93 (Toulouse), and that formula rendered the whole of it as FOUR values.
+ * Every National One club read a flat two stars, every Pacific club a flat
+ * four, and Esher against Newcastle - a hammering by any honest reckoning -
+ * came out two against three. The owner put it plainly: "Esher on 2 stars
+ * against Newcastle doesn't sound too much but they would get hammered."
+ *
+ * So the real span is mapped onto ten half-star steps instead of four whole
+ * ones. Esher shows half a star and Newcastle two and a half; Leicester four,
+ * Toulouse five. The numbers underneath are untouched - rep drives budgets,
+ * transfer willingness and the AI's whole economy, and the fault was never in
+ * the data, only in a display that threw five sixths of it away.
+ */
+const REP_FLOOR = 36
+const REP_CEIL = 94
+
+export function clubStars(rep: number): number {
+  const n = Math.round(((rep - REP_FLOOR) / (REP_CEIL - REP_FLOOR)) * 10) / 2
+  return Math.max(0.5, Math.min(5, n))
+}
+
+export function ClubStars({ rep, size = 12 }: { rep: number; size?: number }) {
+  const n = clubStars(rep)
+  const full = Math.floor(n)
+  const half = n - full >= 0.5
+  // the same fixed-width cells as Stars above, and for the same reason: a
+  // half glyph is narrower than a star and a column of them wanders
+  return (
+    <span title={`${n} / 5`} style={{ color: 'var(--gold)', fontSize: size }}>
+      {Array.from({ length: 5 }, (_, i) => {
+        const lit = i < full
+        const isHalf = i === full && half
+        return (
+          <span key={i} style={{ display: 'inline-block', width: '1em', textAlign: 'center',
+            color: lit || isHalf ? undefined : 'var(--text-muted)' }}>
+            {isHalf ? '½' : '★'}
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
 export function availabilityTag(p: Player, week: number): { txt: string; color: string } | null {
   if (p.injury) return { txt: t('common.injTag', { n: Math.max(0, p.injury.until - week) }), color: 'var(--text-negative)' }
   if (p.bans > 0) return { txt: t('common.banTag', { n: p.bans }), color: 'var(--text-negative)' }

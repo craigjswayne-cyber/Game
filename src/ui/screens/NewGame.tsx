@@ -4,7 +4,7 @@ import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
-import { Crest, Jersey } from '../components'
+import { ClubStars, Crest, Jersey } from '../components'
 import { playerValue } from '../../game/attributes'
 import { fmtMoney } from '../../game/model'
 import { t } from '../../game/i18n'
@@ -231,7 +231,7 @@ export default function NewGame() {
                   <Jersey club={club} size={46} />
                 </div>
                 <div className="fact-grid">
-                  <div><label>{t('wizard.reputation')}</label><span style={{ color: 'var(--gold)' }}>{'★'.repeat(Math.max(1, Math.round(club.rep / 20)))}<span style={{ opacity: .3 }}>{'★'.repeat(5 - Math.max(1, Math.round(club.rep / 20)))}</span></span></div>
+                  <div><label>{t('wizard.reputation')}</label><ClubStars rep={club.rep} /></div>
                   <div><label>{t('wizard.finances')}</label><span style={{ color: finances(club.budget)[1], fontWeight: 700 }}>{t(finances(club.budget)[0])}</span></div>
                   <div><label>{t('wizard.starPlayer')}</label><span>⭐ {starPlayer?.name}</span></div>
                   <div><label>{t('wizard.stadium')}</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
