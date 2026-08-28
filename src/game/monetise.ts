@@ -70,7 +70,14 @@ export function edition(): Edition {
  * owner's overnight brief.
  */
 export const SUPPORTER_SKU = 'phase.supporter'
-export const LICENSE_SKU = 'phase.license'
+/** "Support the game", 99p (v1.1.6). The Play id is permanent, so the SKU
+ *  keeps the name it was born with - it sold as the Manager's License
+ *  (proven-name start, £2.99) until the owner swapped it: same product id,
+ *  renamed and repriced in Play Console, now a plain thank-you that changes
+ *  nothing in the game. Anyone who bought the License owns this instead;
+ *  their licensed SAVES keep the 🎓 stamp and the pinned reputation for
+ *  good, but no new save can start licensed. */
+export const SUPPORT_SKU = 'phase.license'
 export const CHARTER_SKU = 'phase.uncapped'
 /** v1.1.4 (owner's overnight brief): every facility to its maximum, for a
  *  save that applies it. Charter-shaped: bought once, applied per save,
@@ -91,7 +98,7 @@ export const INJECT_SKUS = {
 export const HEAL_SKU = 'phase.heal'
 
 /** Owned once, restorable from the store for ever. */
-export const NC_SKUS = [SUPPORTER_SKU, LICENSE_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
+export const NC_SKUS = [SUPPORTER_SKU, SUPPORT_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
 /** Bought, consumed, buyable again - the store forgets them, the career keeps
  *  what they did. */
 export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU] as string[]
@@ -306,7 +313,7 @@ export async function pendingConsumables(): Promise<string[]> {
  *  changing it here. */
 export const REFERENCE_PRICES: Record<string, string> = {
   [SUPPORTER_SKU]: '£1.99',
-  [LICENSE_SKU]: '£2.99',
+  [SUPPORT_SKU]: '£0.99',
   [CHARTER_SKU]: '£9.99',
   [ESTATE_SKU]: '£9.99',
   [PINNACLE_SKU]: '£4.99',

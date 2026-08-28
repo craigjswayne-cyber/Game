@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { LICENSE_SKU, hasEntitlement } from '../../game/monetise'
 import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { COACHING_STYLES } from '../../game/tactics'
@@ -41,7 +40,6 @@ export default function NewGame() {
   // the Manager's License (v1.1.0): offered here and only here, and only to
   // an owner - the receipt is bought on the Supporter page, the choice is made
   // per career, and it is never offered again once the career exists
-  const [licensed, setLicensed] = useState(false)
 
   const league = leagueIdx != null ? defs[leagueIdx] : null
   const club: RawClub | null = clubId
@@ -97,7 +95,7 @@ export default function NewGame() {
     // The origin tiles (18B's "Your Story") were cut at the user's request:
     // "this feature isnt too much of interest". Every career takes the
     // engine's default coach background.
-    start(club.id, name.trim(), challengeId ?? undefined, undefined, licensed)
+    start(club.id, name.trim(), challengeId ?? undefined, undefined)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -319,15 +317,6 @@ export default function NewGame() {
                 ))}
               </div>
             </div>
-            {hasEntitlement(LICENSE_SKU) && (
-              <div className="card">
-                <label className="fact-label">{t('wizard.licenseTitle')}</label>
-                <div className="meta" style={{ marginBottom: 6 }}>{t('wizard.licenseBlurb')}</div>
-                <button className={`btn block ${licensed ? 'gold' : 'ghost'}`} onClick={() => setLicensed(!licensed)}>
-                  {t(licensed ? 'wizard.licenseOn' : 'wizard.licenseOff')}
-                </button>
-              </div>
-            )}
           </>
         )}
       </main>

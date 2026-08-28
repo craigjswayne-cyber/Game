@@ -140,17 +140,18 @@ try {
     await page.waitForSelector('.content')
     const till = await page.locator('.content').innerText()
     ok(/£2\.99/.test(till), "the prices shown are the store's own")
-    for (const row of ["Manager's License", 'Full Fitness', 'The International Stage', 'The Estate', "The Owner's Charter", 'Board funding']) {
+    for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', "The Owner's Charter", 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
     }
     ok(!/Remove all ads/i.test(till),
       'and NO Remove-all-ads row, because this build ships no ads to remove')
     ok(!/what it does not do/i.test(till), 'the essays are gone - each product is one line')
 
-    // buy the License from its row: acknowledged, and the row turns into a receipt
-    await page.locator('.card', { hasText: "Manager's License" }).locator('.btn.gold').click()
+    // buy Support the game from its row: acknowledged, the row turns into a
+    // receipt (v1.1.6: the Manager's License swapped for this thank-you)
+    await page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold').click()
     await page.waitForTimeout(600)
-    const after = await page.locator('.card', { hasText: "Manager's License" }).innerText()
+    const after = await page.locator('.card', { hasText: 'Support the game' }).innerText()
     ok(/Yours/.test(after), 'a completed purchase turns the row into a receipt')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
     await page.close()
