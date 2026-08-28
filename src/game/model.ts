@@ -1267,6 +1267,10 @@ export interface GameState {
    *  once a season win or lose (engine-owned since v1.1.4; it was an untyped
    *  flag the Finances screen kept on the save) */
   fundsAskedSeason?: number
+  /** the manager's total match count (w+d+l) when Full Fitness last applied -
+   *  the retreat refuses to book twice without a game played in between
+   *  (v1.1.5; replaced the 3-a-season cap) */
+  healAtGames?: number | null
   /** a trophy moment waiting to be celebrated full-screen */
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every
