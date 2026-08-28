@@ -581,17 +581,34 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   background: none;
 }
 .pitch .tryzone { position: absolute; top: 0; bottom: 0; width: 8%; }
+/* RUGBY POSTS, SEEN FROM ABOVE (owner, v1.1.9: "the rugby posts need to look
+   more like rugby posts with pad protectors on").
+   
+   The pitch is drawn overhead, so the goal line runs vertically and the two
+   uprights sit at either end of it. What was here drew the bar between them
+   and then put ::before and ::after at the SAME top: 8px - two identical
+   crossbars stacked on each other - so the whole thing read as a tick on a
+   line rather than as posts at all.
+   
+   Now the element is the bar, and the pseudo-elements are the two posts: from
+   directly above a padded upright is a circle, because what you are looking
+   down at is the foam sleeve wrapped round its base. Lit from the same corner
+   as the ball, so the two objects on the pitch that are round agree about
+   where the light is. */
 .pitch .posts {
   position: absolute; top: 50%; transform: translateY(-50%);
   font-size: 0;
   width: 3px; height: 44px; background: rgba(255,255,255,.85); border-radius: 2px;
 }
 .pitch .posts::before, .pitch .posts::after {
-  content: ''; position: absolute; left: -6px; width: 15px; height: 3px;
-  background: rgba(255,255,255,.85); border-radius: 2px;
+  content: ''; position: absolute; left: -3.5px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%,
+    rgba(255, 255, 255, .95), rgba(214, 228, 236, .78) 55%, rgba(126, 146, 156, .6));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .45);
 }
-.pitch .posts::before { top: 8px; }
-.pitch .posts::after { top: 8px; }
+.pitch .posts::before { top: -5px; }
+.pitch .posts::after { top: auto; bottom: -5px; }
 .pitch .ball {
   position: absolute; top: 50%; width: 19px; height: 13px;
   background: radial-gradient(circle at 35% 30%, var(--prop-cream), var(--prop-cream-deep));
@@ -1036,14 +1053,15 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     grid-area: 1 / 1 / -1 / -1;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-    grid-template-areas: 'score' 'main' 'now' 'ctrl';
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: 'score' 'main' 'now' 'stats' 'ctrl';
     height: 100%;
     min-height: 0;
   }
   .live-wrap .scoreboard { grid-area: score; padding-top: 6px; padding-bottom: 4px; }
   .live-wrap .pitch { grid-area: main; height: auto; min-height: 130px; align-self: stretch; margin: 4px 10px; }
   .live-wrap .now-strip { grid-area: now; }
+  .live-wrap .match-stats { grid-area: stats; padding-top: 0; padding-bottom: 2px; }
   .live-wrap .speed-controls { grid-area: ctrl; }
   .app .live-wrap .ticker.panel-area {
     grid-area: main / main / now / now;
@@ -1968,6 +1986,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 }
 
 /* ---- the long rectangle: one commentary line, classic CM ---- */
+/* THE STATS SHEET (v1.1.9). Home | label | away, the way a broadcast
+   graphic reads, in fixed columns so the numbers do not jump about as they
+   tick up. Tabular figures for the same reason. Deliberately quiet: it sits
+   under live commentary and must never compete with it. */
+.match-stats { padding: 2px 12px 4px; display: flex; flex-direction: column; gap: 2px; }
+.ms-row { display: grid; grid-template-columns: 3.4em 1fr 3.4em; align-items: baseline; font-size: 12px; }
+.ms-h { text-align: left; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ms-a { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ms-l {
+  text-align: center; color: var(--text-secondary);
+  font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+}
+
 .now-strip { padding: 0 10px 2px; }
 .now-strip .now-line {
   margin: 0; min-height: 54px; padding: 9px 14px;

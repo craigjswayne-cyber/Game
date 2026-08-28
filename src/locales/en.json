@@ -1122,7 +1122,10 @@
     "yourKicker": "Your kicker",
     "yourRatings": "Your Player Ratings",
     "yourTestXV": "Your Test XV",
-    "yourXV": "Your XV"
+    "yourXV": "Your XV",
+    "stScrums": "Scrums W-L",
+    "stLineouts": "Lineouts W-L",
+    "stTackles": "Tackles"
   },
   "tacticsScreen": {
     "tabRoles": "Roles",
@@ -5418,6 +5421,8 @@
     "funding": "Board funding",
     "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
     "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
+    "tillSilent": "The store is not answering on this build, so the prices below are guide prices and nothing here can be bought yet. Check back once the app has been installed from the store itself.",
+    "tillPartial": "The store priced {live} of {asked} products. The rest show guide prices and cannot be bought yet.",
     "healWait": "The retreat needs a match between visits - play one and it reopens.",
     "pickNation": "Yours. Pick the federation you want and make the call - the offer arrives at once.",
     "support": "Support the game",

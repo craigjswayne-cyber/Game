@@ -29,23 +29,27 @@ const server = await startPreview('4209', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** A page with, or without, a store attached before the app boots. */
-const openPage = async ({ billing = false, ads = false, owns = [] } = {}) => {
+const openPage = async ({ billing = false, ads = false, owns = [], deaf = false } = {}) => {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   if (billing) {
-    await page.addInitScript(([owned]) => {
+    await page.addInitScript(([owned, mute]) => {
       // the same shape a Play TWA's Digital Goods wrapper has (v1.1.0):
       // non-consumables stay owned once bought; a consumable stays in owned()
       // until the game consumes it, which is the recovery path under test
       const bought = new Set()
       globalThis.rmBilling = {
-        details: async (sku) => ({ sku, price: '£2.99' }),
+        // `mute` is a store that is REACHABLE BUT SILENT: the wrapper is
+        // there, the products are not (not activated in the console, licence
+        // testing not set up). It is the exact shape of the v1.1.6 fault, and
+        // before v1.1.9 it was indistinguishable on screen from a working one.
+        details: async (sku) => { if (mute) throw new Error('not available'); return { sku, price: '£2.99' } },
         buy: async (sku) => { bought.add(sku); return 'owned' },
         owned: async () => [...new Set([...owned, ...bought])],
         consume: async (sku) => { bought.delete(sku) },
       }
-    }, [owns])
+    }, [owns, deaf])
   }
   if (ads) {
     await page.addInitScript(() => {
@@ -140,6 +144,8 @@ try {
     await page.waitForSelector('.content')
     const till = await page.locator('.content').innerText()
     ok(/£2\.99/.test(till), "the prices shown are the store's own")
+    ok(!/not answering/i.test(till),
+      'and the shelf says nothing about its health, because there is nothing wrong with it')
     for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', "The Owner's Charter", 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
     }
@@ -272,6 +278,31 @@ try {
   }
 
   // ---- 3. a reinstall: the receipt is gone, the purchase is not ----------
+
+  // ---- 2d. a store that is there but will not price anything -------------
+  //
+  // Owner, on v1.1.6: two screenshots, "Nothing was charged" and "There is no
+  // store attached to this build". The shelf had looked completely normal
+  // right up to the tap, because monetise.ts falls back to catalogue prices
+  // so no row stands priceless. Both things are right on their own and
+  // together they hid the fault. v1.1.9 makes the build say which prices are
+  // its own guesses, before a tap is spent on finding out.
+  say('\n--- 2d. a bridge attached to a store that will not answer')
+  {
+    const page = await openPage({ billing: true, deaf: true })
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+    await page.waitForTimeout(400)
+    const till = await page.locator('.content').innerText()
+    ok(/not answering/i.test(till), 'the shelf says out loud that the store is not answering')
+    ok(/guide prices/i.test(till), 'and that the figures on it are guides, not the store\'s')
+    ok(/£0\.99/.test(till), 'the rows still carry a price, so nothing stands blank')
+    ok(!/£2\.99/.test(till), "and none of them is the store's, because it never gave one")
+    await page.close()
+  }
+
   say('\n--- 3. a new phone, or a reinstall')
   {
     const page = await openPage({ billing: true, owns: ['phase.supporter'] })

@@ -4,7 +4,7 @@ import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  pendingConsumables, restore, skuPrice, tillOpen,
+  pendingConsumables, restore, skuPrice, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
@@ -74,6 +74,31 @@ function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () =>
 
 const TIER_KEY: Record<InjectTier, string> = {
   s: 'till.injectS', m: 'till.injectM', l: 'till.injectL', xl: 'till.injectXL',
+}
+
+/**
+ * IS THE TILL ACTUALLY OPEN?
+ *
+ * tillOpen() only says a bridge object exists. It cannot say whether the
+ * store behind it will answer, and the reference prices (monetise.ts) make a
+ * store that will not answer look exactly like one that will: a full shelf,
+ * priced, until you tap it and it says nothing was charged. That is precisely
+ * the fault the owner hit on v1.1.6, and it cost an evening to read.
+ *
+ * So the shelf reports its own health, in one line, before anybody spends a
+ * tap on it. Silent when the store answers - which is every shipped build that
+ * is set up properly, so nearly all of them.
+ */
+function TillHealth() {
+  const [state, setState] = useState<{ live: number; asked: number } | null>(null)
+  useEffect(() => { void tillHealth().then(setState) }, [])
+  if (!state || state.live === state.asked) return null
+  const key = state.live === 0 ? 'store.tillSilent' : 'store.tillPartial'
+  return (
+    <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
+      <div className="meta">{t(key, { live: state.live, asked: state.asked })}</div>
+    </div>
+  )
 }
 
 const OwnedChip = () => (
@@ -180,6 +205,7 @@ export default function Supporter() {
   return (
     <>
       <SectionTitle sub={t('store.sub')}>{t('store.title')}</SectionTitle>
+      <TillHealth />
 
       {(adsExist || ownsAds) && (
         <Row icon="🚫" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}

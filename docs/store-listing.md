@@ -119,6 +119,19 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.9
+
+```
+• Match day: the commentary now sits directly under the pitch, with a live
+  stats sheet below it - possession, scrums, lineouts and tackles.
+• Club reputations are spread far wider, and shown in half stars, so a
+  small club really does look like one against a giant.
+• The posts on the pitch look like rugby posts now, pad protectors and all.
+• The Store says plainly when it cannot reach the app store, instead of
+  showing guide prices that look real.
+```
+*(455)*
+
 ### What's new (500 max) - v1.1.7
 
 ```
@@ -335,6 +348,20 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.9
+
+```
+• Jour de match : le commentaire passe sous le terrain, avec en dessous
+  les statistiques en direct - possession, mêlées, touches, plaquages.
+• Réputations des clubs bien plus étalées, en demi-étoiles : un petit club
+  ressemble enfin à un petit club face à un géant.
+• Les poteaux ressemblent enfin à des poteaux de rugby, protections
+  comprises.
+• La Boutique dit clairement quand elle ne joint pas le magasin, au lieu
+  d'afficher des prix indicatifs qui font vrais.
+```
+*(471)*
 
 ### Nouveautés (500 max) - v1.1.7
 

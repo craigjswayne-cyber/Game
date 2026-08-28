@@ -1341,6 +1341,31 @@ const SPOTS: [number, number][] = [
   [64, 10], [58, 40], [63, 66], [64, 90], [76, 50], // 11-15
 ]
 
+/** The stats sheet under the pitch: home on the left, away on the right, the
+ *  way every broadcast graphic in the sport lays it out. Small on purpose -
+ *  it is a glance between phases, not a page to study. matchStats explains
+ *  what the numbers are and, just as importantly, what they are not. */
+function MatchStats({ ctx }: { ctx: LiveCtx }) {
+  const s = matchStats(ctx)
+  const rows: [string, string, string][] = [
+    [`${s.possession[0]}%`, t('matchday.stPossession'), `${s.possession[1]}%`],
+    [`${s.scrumsWon[0]}-${s.scrumsLost[0]}`, t('matchday.stScrums'), `${s.scrumsWon[1]}-${s.scrumsLost[1]}`],
+    [`${s.lineoutsWon[0]}-${s.lineoutsLost[0]}`, t('matchday.stLineouts'), `${s.lineoutsWon[1]}-${s.lineoutsLost[1]}`],
+    [String(s.tackles[0]), t('matchday.stTackles'), String(s.tackles[1])],
+  ]
+  return (
+    <div className="match-stats">
+      {rows.map(([h, label, a]) => (
+        <div className="ms-row" key={label}>
+          <span className="ms-h">{h}</span>
+          <span className="ms-l">{label}</span>
+          <span className="ms-a">{a}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   TRY: 'matchday.banTRY', PEN: 'matchday.banPEN', DG: 'matchday.banDG', CON: 'matchday.banCON',
   YC: 'matchday.banYC', RC: 'matchday.banRC', INJ: 'matchday.banINJ',
@@ -1876,6 +1901,23 @@ function Live() {
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
           tickMs={tickMs} />
       )}
+      {!panelActive && (
+        <div className="now-strip">
+          {last && (
+            <div key={cursor} className={`now-line ${cls(last)}`}>
+              <span className="min">{Math.min(80, last.min)}'</span>
+              <span className="txt">{icon(last)} {eventText(last)}</span>
+            </div>
+          )}
+        </div>
+      )}
+      {/* THE STATS SHEET (owner, v1.1.9: "below that during the game there
+          should be basic match stats"). Under the commentary, which is itself
+          now under the pitch - in portrait both used to sit below the control
+          row, which is what "the commentary is far too low on screen" meant.
+          Landscape placed them correctly already, through the grid areas
+          below, so moving the source order costs it nothing. */}
+      {!done && <MatchStats ctx={ctx} />}
 
       {/* One row, four jobs: play, skip, touchline, settings. Speed and sound
           moved into the settings sheet - they are set once a season, and having
@@ -1988,16 +2030,6 @@ function Live() {
         </div>
       )}
 
-      {!panelActive && (
-        <div className="now-strip">
-          {last && (
-            <div key={cursor} className={`now-line ${cls(last)}`}>
-              <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">{icon(last)} {eventText(last)}</span>
-            </div>
-          )}
-        </div>
-      )}
       {panelActive && (
       <div className="content ticker panel-area" ref={tickerRef}>
         {atDecision && <DecisionPanel />}
@@ -2307,6 +2339,9 @@ function StatsPanel() {
       </h3>
       {row(t('matchday.stPossession'), st.possession, true)}
       {row(t('matchday.stTries'), st.tries)}
+      {row(t('matchday.stScrums'), [st.scrumsWon[0], st.scrumsWon[1]])}
+      {row(t('matchday.stLineouts'), [st.lineoutsWon[0], st.lineoutsWon[1]])}
+      {row(t('matchday.stTackles'), st.tackles)}
       {row(t('matchday.stPens'), st.pens)}
       {row(t('matchday.stCards'), st.cards)}
       {row(t('matchday.stEnergy'), st.energy, true)}

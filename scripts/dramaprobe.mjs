@@ -41,6 +41,23 @@ const server = await startPreview(4257, 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
+// Pin the world. store.start() draws its seed from Math.random(), so every run
+// of this probe used to drive a DIFFERENT match, and the sample it measures is
+// one half of it: across three local runs the open-play count came out 12, 19
+// and 17 against a floor of 10. On main @ab1b7e7 it came out 9 and took the
+// Gate red on a commit that had touched nothing but another probe. The
+// measurement here is about the renderer, not about which match turns up, so
+// the match is made repeatable - a real generator, not a constant, because the
+// app is entitled to expect Math.random() to vary.
+await page.addInitScript(() => {
+  let a = 0x9e3779b9
+  Math.random = () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+})
 
 try {
   await page.goto('http://localhost:4257/')
