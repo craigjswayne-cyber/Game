@@ -1276,6 +1276,10 @@ export interface GameState {
    *  the retreat refuses to book twice without a game played in between
    *  (v1.1.5; replaced the 3-a-season cap) */
   healAtGames?: number | null
+  /** per-slot count of commercial deals ended early (v1.1.5): part of the
+   *  offer hash, so each early exit deals three genuinely new offers - the
+   *  gamble - while revisiting the screen still rerolls nothing */
+  dealReroll?: Partial<Record<'shirt' | 'naming' | 'kit', number>>
   /** a trophy moment waiting to be celebrated full-screen */
   /** THE FULL-SCREEN MOMENT. Promotion, a title, an unbeaten season, a
    *  challenge finished - the rarest things the game has to show, and every

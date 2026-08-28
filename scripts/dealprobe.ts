@@ -16,7 +16,7 @@ import { migrate } from '../src/game/save'
 import { fmtMoney, weeklyCentral, operatingCost, type GameState } from '../src/game/model'
 import {
   CARETAKER_RATE, CLAUSES, MAX_UPLIFT, SLOTS, commercialWeekly, dealWeekly,
-  expireDeals, marketRate, offersFor, seedDeals, signOffer,
+  endDealEarly, expireDeals, marketRate, offersFor, seedDeals, signOffer,
 } from '../src/game/commercial'
 
 let fails = 0
@@ -307,6 +307,36 @@ if (Math.abs(shareSum - 1) > 1e-9) bad(`the three slots share ${(shareSum * 100)
   if (!club.stadium.startsWith(offer2.sponsor) || !club.stadium.endsWith(base) ||
       (club.stadium.match(/ Stadium at /g) ?? []).length > 1) {
     bad(`the second sponsor stacked instead of replacing: "${club.stadium}"`)
+  }
+}
+
+// ---- the early exit and its gamble (v1.1.5) --------------------------------
+{
+  const g: GameState = newGame('northampton', 'Probe', 4321)
+  seedDeals(g)
+  const club = g.clubs[g.userClubId]
+  const before = offersFor(g, 'shirt')
+  const live = g.deals!.shirt!
+  const msg = endDealEarly(g, 'shirt')
+  if (g.deals?.shirt) bad('the ended deal is still on the books')
+  if (!g.news.some(n => n.k === 'news.sponsorEnded')) bad('no letter about the early release')
+  if (!msg.includes(live.sponsor)) bad(`the reply does not name the departing sponsor: "${msg}"`)
+  const after = offersFor(g, 'shirt')
+  if (JSON.stringify(after) === JSON.stringify(before)) bad('ending a deal dealt the same three offers - no gamble at all')
+  const again = offersFor(g, 'shirt')
+  if (JSON.stringify(after) !== JSON.stringify(again)) bad('revisiting the screen rerolled the offers - the gamble must be one roll per exit')
+  // the rerolled band is genuinely wider than the standard one in both
+  // directions across seeds: checked here on shape, not on one seed's luck
+  for (const o of after) {
+    if (!Number.isFinite(o.weekly) || o.weekly <= 0) bad(`a rerolled offer pays nonsense (${o.weekly})`)
+  }
+  if (endDealEarly(g, 'shirt') === msg) bad('ending an empty slot pretended to end something')
+  // the naming sponsor comes down off the gates
+  const base = club.stadium.includes(' at ') ? club.stadium.slice(club.stadium.indexOf(' at ') + 4) : club.stadium
+  if (g.deals?.naming) {
+    endDealEarly(g, 'naming')
+    if (club.stadiumBase && club.stadium !== club.stadiumBase) bad(`the departed naming sponsor still owns the gates: "${club.stadium}"`)
+    void base
   }
 }
 

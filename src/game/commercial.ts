@@ -203,13 +203,26 @@ export function offersFor(state: GameState, slot: SlotId): Offer[] {
   const names = NAMES[slot]
   const out: Offer[] = []
 
+  // THE GAMBLE (v1.1.5, owner: "you should be able to end deals early and
+  // once that happens 3 new deals present itself - you may get better ones
+  // but you may get worse"). Ending a deal early bumps a per-slot counter;
+  // the counter is part of every hash key below, so the three offers on the
+  // table genuinely change - and rr widens the bands around the same
+  // midpoints, so a rerolled market can pay well over the odds or well
+  // under them. Still deterministic on (seed, season, slot, counter):
+  // revisiting the screen never rerolls anything, only ending another
+  // signed deal does - and to do that you first have to sign one of these.
+  const rr = state.dealReroll?.[slot] ?? 0
+  const key = (kind: string) => `${slot}|${state.season}|${kind}${rr ? `|r${rr}` : ''}`
+  const spread = rr ? 2 : 1
+
   // A: the long, safe, slightly cheap one
   {
-    const h = hash(state.seed, `${slot}|${state.season}|long`)
+    const h = hash(state.seed, key('long'))
     const years = 3 + (h % 2)                       // 3 or 4
-    // above CARETAKER_RATE, or the safe long deal would be worse than doing
-    // nothing at all and the whole offer would be a trap
-    const vs = 0.95 + ((h >> 4) % 5) / 100          // 0.95 to 0.99
+    // above CARETAKER_RATE at the midpoint; a rerolled long deal can dip a
+    // shade under it, which is the gamble being a gamble
+    const vs = 0.97 - 0.02 * spread + ((h >> 4) % 5) / 100 * spread
     out.push({
       slot, sponsor: names[h % names.length], years,
       weekly: Math.round(mkt * vs), clause: 'none', vsMarket: vs,
@@ -217,9 +230,9 @@ export function offersFor(state: GameState, slot: SlotId): Offer[] {
   }
   // B: the short one at a premium, which asks you to come back and do this again
   {
-    const h = hash(state.seed, `${slot}|${state.season}|short`)
+    const h = hash(state.seed, key('short'))
     const years = 1 + (h % 2)                       // 1 or 2
-    const vs = 1.04 + ((h >> 4) % 7) / 100          // 1.04 to 1.10
+    const vs = 1.07 - 0.03 * spread + ((h >> 4) % 7) / 100 * spread
     out.push({
       slot, sponsor: names[(h + 3) % names.length], years,
       weekly: Math.round(mkt * vs), clause: 'none', vsMarket: vs,
@@ -227,20 +240,48 @@ export function offersFor(state: GameState, slot: SlotId): Offer[] {
   }
   // C: the one with a clause in it
   {
-    const h = hash(state.seed, `${slot}|${state.season}|clause`)
+    const h = hash(state.seed, key('clause'))
     const pool: ClauseId[] = ['top4', 'europe', 'silverware', 'crowds']
     const clause = pool[h % pool.length]
     const years = 2 + (h % 3)                       // 2 to 4
     // The base is BELOW market, and the clause is what lifts it over. That is
     // the trade: you are selling the sponsor your ambition, at a discount if it
     // turns out to be talk.
-    const vs = 0.90 + ((h >> 4) % 6) / 100          // 0.90 to 0.95
+    const vs = 0.925 - 0.025 * spread + ((h >> 4) % 6) / 100 * spread
     out.push({
       slot, sponsor: names[(h + 6) % names.length], years,
       weekly: Math.round(mkt * vs), clause, vsMarket: vs,
     })
   }
   return out
+}
+
+/**
+ * End a live deal early (v1.1.5). The sponsor packs up TODAY - the income
+ * stops with them, a caretaker does not appear mid-season, and the naming
+ * sponsor comes down off the gates - and three new parties present
+ * themselves at once (the reroll above). Refuses when there is nothing in
+ * term to end; an auto caretaker needs no ending, signing over it is free.
+ */
+export function endDealEarly(state: GameState, slot: SlotId): string {
+  const club = state.clubs[state.userClubId]
+  if (!club) return t('finances.treasuryNoClub')
+  const live = state.deals?.[slot]
+  if (!live || live.until < state.season) return t('finances.nothingToEnd')
+  const info = SLOT_BY_ID[slot]
+  delete state.deals![slot]
+  ;(state.dealReroll ??= {})[slot] = (state.dealReroll?.[slot] ?? 0) + 1
+  // the gates keep the club's own name until somebody new pays for them
+  if (slot === 'naming' && club.stadiumBase) club.stadium = club.stadiumBase
+  logDecision(state, 'dec.endedSponsor', { sponsor: live.sponsor, slot_k: info.name }, false)
+  const v = { icon: info.icon, sponsor: live.sponsor, slot_k: info.name, short: club.short }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+    subject: `${info.icon} ${live.sponsor} released early`,
+    body: tIn('en', 'news.sponsorEnded', v),
+    k: 'news.sponsorEnded', v,
+  })
+  return t('finances.dealEnded', { sponsor: live.sponsor })
 }
 
 /** Is this clause paying out right now? Deterministic on the world's own state. */
