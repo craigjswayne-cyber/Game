@@ -4,6 +4,7 @@ import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
 import { installCrashCapture } from './game/bugreport'
 import { attachPlayBilling } from './game/playbilling'
+import { attachStoreKit } from './game/storekit'
 import { restore } from './game/monetise'
 import { useStore } from './store'
 import { t } from './game/i18n'
@@ -26,8 +27,15 @@ installCrashCapture()
  * quietly: it grants, it never revokes, and everywhere that is not a
  * billing-enabled wrapper it does nothing at all and costs one rejected promise.
  * Deliberately not awaited - a slow store must not hold up the first paint.
+ *
+ * Two shells, one door. Android builds its bridge out of browser APIs and iOS
+ * reads a Capacitor plugin; a device has at most one of them, and both refuse
+ * to overwrite a bridge that is already there, so this order is convenience
+ * rather than law. StoreKit is tried after the Play handshake has settled,
+ * which also gives Capacitor's own runtime a tick to register its plugins.
  */
 void attachPlayBilling()
+  .then(attached => attached || attachStoreKit())
   .then(() => restore())
   .then(changed => { if (changed) useStore.getState().claimSupporter() })
   .catch(() => { /* no store, no bridge, nothing to restore */ })
