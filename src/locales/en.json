@@ -1527,14 +1527,12 @@
     "dealLive": "{sponsor} · {weekly}/wk · to the end of {year}",
     "payingNow": "Paying now.",
     "notPaying": "Not paying.",
-    "signedCheaper": "Signed when you were worth less. The going rate for this slot is now {rate}/wk.",
     "unsold": "Unsold.",
     "unsoldRest": " This slot is paying nothing. The going rate is {rate}/wk.",
     "offerMeta": "{weekly}/wk · {years} · {pct}% of market",
     "oneSeason": "1 season",
     "seasons": "{n} seasons",
     "sign": "Sign",
-    "dealAdvice": "A long deal is safe money and pays under the going rate, because the sponsor is buying certainty off you. A short one pays over the odds and sends you back to the market sooner, which is where a good season is worth something. A clause pays best of all, if you deliver it.",
     "salaryCap": "Salary Cap",
     "salaryCapSub": "Your division's ceiling, and the room left",
     "noCap": "This division does not run a salary cap. Your wage budget is the only ceiling.",
@@ -1591,7 +1589,12 @@
     "unitHalves": "Halves",
     "unitMidfield": "Midfield",
     "unitBackThree": "Back three",
-    "fundsOnce": "The board heard this season's request already. The window reopens in the summer."
+    "fundsOnce": "The board heard this season's request already. The window reopens in the summer.",
+    "underMarket": "market is {rate}",
+    "endEarly": "End the deal early",
+    "endConfirm": "End it - the money stops today",
+    "dealEnded": "{sponsor} pack up. Three new parties are already interested - their numbers may be better than what you gave up, or worse.",
+    "nothingToEnd": "There is nothing in term to end."
   },
   "club": {
     "tabClub": "The Club",
@@ -4419,7 +4422,9 @@
     "sackedPushedSubj": "DISMISSED: {club} part company with {manager}",
     "sackedPushed": "Warned in writing, and back at the boardroom door within the month anyway. The board decided the club needed a manager who could hear a no. {era} Your reputation travels with you - and so does the story of how this ended.",
     "dreamRefocusSubj": "🌠 The dream is realised",
-    "dreamRefocus": "You set out to {dream_k}, and it is done. A manager needs a reason: when you are ready, name a new dream from the Legacy screen. The one you realised stays on the record for good."
+    "dreamRefocus": "You set out to {dream_k}, and it is done. A manager needs a reason: when you are ready, name a new dream from the Legacy screen. The one you realised stays on the record for good.",
+    "sponsorEndedSubj": "{icon} {sponsor} released early",
+    "sponsorEnded": "{short} and {sponsor} have parted ways before the end of the {slot_k} deal, at the club's request. The money stops immediately - and three new parties have already been in touch about the vacant slot. Their terms are their own: some markets reward a club back on the market, some make it pay for the interruption."
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4714,7 +4719,8 @@
     "boardPushedOut": "Pressed the board past its warning: dismissed.",
     "fundsApproved": "Asked the board for extra transfer funds: {amount} granted.",
     "fundsDeclined": "Asked the board for extra transfer funds: declined.",
-    "dreamRefocus": "Realised a dream and named a new one: to {dream_k}."
+    "dreamRefocus": "Realised a dream and named a new one: to {dream_k}.",
+    "endedSponsor": "Ended the {sponsor} {slot_k} deal early."
   },
   "persLower": {
     "Professional": "professional",

@@ -12,7 +12,7 @@ import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from 
 import { SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 import {
-  CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, marketRate,
+  CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
   offersFor, signOffer,
 } from '../../game/commercial'
 import { RELEASE_STEP, cashReserve, releaseBlock, releaseToBudget } from '../../game/treasury'
@@ -22,6 +22,7 @@ export default function Finances() {
   // two pages rather than one long scroll
   const [ftab, setFtab] = useState<'money' | 'deals' | 'cap' | 'board'>('money')
   const [dealMsg, setDealMsg] = useState<string | null>(null)
+  const [endArm, setEndArm] = useState<string | null>(null)
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
   const rewardTown = useStore(s => s.rewardTown)
@@ -192,18 +193,25 @@ export default function Finances() {
           {t('finances.commercialDept')}
         </SectionTitle>
         {dealMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}><div className="meta">{dealMsg}</div></div>}
+        {/* v1.1.5, "the commercial page is very messy, too much text": the
+            slot blurbs and the advice card are gone - the label, the deal and
+            the offers say it all. What arrived instead is the early exit: end
+            a live deal and three new parties present themselves at once, on
+            wider terms than the season's standard three - the gamble is real
+            in both directions (offersFor, dealReroll). */}
         {SLOTS.map(slot => {
           const live = game.deals?.[slot.id]
           const inTerm = !!live && live.until >= game.season
           const mkt = marketRate(club.rep, slot.id)
+          const ending = endArm === slot.id
           return (
             <div className="card" key={slot.id}>
               <div className="fact-label">{slot.icon} {t(slot.name)}</div>
-              <div className="meta muted">{t(slot.desc)}</div>
               {inTerm ? (
                 <>
                   <div className="meta" style={{ marginTop: 4 }}>
                     {t('finances.dealLive', { sponsor: live!.sponsor, weekly: fmtMoney(dealWeekly(game, live!)), year: 2026 + live!.until })}
+                    {live!.weekly < mkt * 0.92 && <span className="muted"> · {t('finances.underMarket', { rate: fmtMoney(mkt) })}</span>}
                   </div>
                   {live!.clause !== 'none' && (
                     <div className="meta muted">
@@ -213,13 +221,17 @@ export default function Finances() {
                       </b>
                     </div>
                   )}
-                  {/* a deal signed years ago against a smaller name is worth
-                      knowing about, because it is the cost of having taken the
-                      safe money */}
-                  {live!.weekly < mkt * 0.92 && (
-                    <div className="meta muted">
-                      {t('finances.signedCheaper', { rate: fmtMoney(mkt) })}
+                  {ending ? (
+                    <div className="btn-row" style={{ marginTop: 6 }}>
+                      <button className="btn danger" onClick={() => { setEndArm(null); setDealMsg(endDealEarly(game, slot.id)); touch() }}>
+                        {t('finances.endConfirm')}
+                      </button>
+                      <button className="btn ghost" onClick={() => setEndArm(null)}>{t('till.charterStay')}</button>
                     </div>
+                  ) : (
+                    <button className="btn ghost tiny" style={{ marginTop: 6 }} onClick={() => setEndArm(slot.id)}>
+                      {t('finances.endEarly')}
+                    </button>
                   )}
                 </>
               ) : (
@@ -244,11 +256,6 @@ export default function Finances() {
             </div>
           )
         })}
-        <div className="card">
-          <div className="meta muted">
-            {t('finances.dealAdvice')}
-          </div>
-        </div>
       </>}
 
       {ftab === 'cap' && (() => {

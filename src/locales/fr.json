@@ -1527,14 +1527,12 @@
     "dealLive": "{sponsor} · {weekly}/sem · jusqu'à la fin de {year}",
     "payingNow": "Actif.",
     "notPaying": "Inactif.",
-    "signedCheaper": "Signé quand vous valiez moins. Le tarif du marché pour cet emplacement est désormais de {rate}/sem.",
     "unsold": "Non vendu.",
     "unsoldRest": " Cet emplacement ne rapporte rien. Le tarif du marché est de {rate}/sem.",
     "offerMeta": "{weekly}/sem · {years} · {pct} % du marché",
     "oneSeason": "1 saison",
     "seasons": "{n} saisons",
     "sign": "Signer",
-    "dealAdvice": "Un contrat long, c'est de l'argent sûr, payé sous le tarif du marché, parce que le sponsor vous achète de la certitude. Un contrat court paie au-dessus et vous renvoie plus vite sur le marché, là où une bonne saison vaut quelque chose. Une clause paie mieux que tout, si vous livrez.",
     "salaryCap": "Plafond salarial",
     "salaryCapSub": "Le plafond de votre division, et la marge restante",
     "noCap": "Cette division n'applique pas de plafond salarial. Votre budget salarial est le seul plafond.",
@@ -1591,7 +1589,12 @@
     "unitHalves": "Charnière",
     "unitMidfield": "Centres",
     "unitBackThree": "Triangle arrière",
-    "fundsOnce": "Le conseil a déjà entendu la demande de cette saison. Le guichet rouvre à l'été."
+    "fundsOnce": "Le conseil a déjà entendu la demande de cette saison. Le guichet rouvre à l'été.",
+    "underMarket": "le marché est à {rate}",
+    "endEarly": "Rompre le contrat",
+    "endConfirm": "Rompre - l'argent s'arrête aujourd'hui",
+    "dealEnded": "{sponsor} plie bagage. Trois nouveaux prétendants se manifestent déjà - leurs chiffres seront peut-être meilleurs que ce que vous avez abandonné, ou pires.",
+    "nothingToEnd": "Il n'y a aucun contrat en cours à rompre."
   },
   "club": {
     "tabClub": "Le club",
@@ -4419,7 +4422,9 @@
     "sackedPushedSubj": "LICENCIÉ : {club} se sépare de {manager}",
     "sackedPushed": "Averti par écrit, et de retour à la porte du conseil dans le mois quand même. Le conseil a décidé que le club avait besoin d'un entraîneur capable d'entendre un non. {era} Votre réputation vous suit - et l'histoire de cette fin aussi.",
     "dreamRefocusSubj": "🌠 Le rêve est réalisé",
-    "dreamRefocus": "Vous vous étiez promis de {dream_k}, et c'est fait. Un entraîneur a besoin d'une raison : quand vous serez prêt, nommez un nouveau rêve depuis l'écran Héritage. Celui que vous avez réalisé reste au palmarès pour toujours."
+    "dreamRefocus": "Vous vous étiez promis de {dream_k}, et c'est fait. Un entraîneur a besoin d'une raison : quand vous serez prêt, nommez un nouveau rêve depuis l'écran Héritage. Celui que vous avez réalisé reste au palmarès pour toujours.",
+    "sponsorEndedSubj": "{icon} {sponsor} libéré avant terme",
+    "sponsorEnded": "{short} et {sponsor} se séparent avant la fin du contrat {slot_k}, à la demande du club. L'argent s'arrête immédiatement - et trois nouveaux prétendants se sont déjà manifestés pour la place vacante. Leurs conditions leur appartiennent : certains marchés récompensent un club de retour sur le marché, d'autres lui font payer l'interruption."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -4714,7 +4719,8 @@
     "boardPushedOut": "A insisté auprès du conseil malgré l'avertissement : licencié.",
     "fundsApproved": "A demandé au conseil des fonds de transfert supplémentaires : {amount} accordés.",
     "fundsDeclined": "A demandé au conseil des fonds de transfert supplémentaires : refusé.",
-    "dreamRefocus": "A réalisé un rêve et en a nommé un nouveau : {dream_k}."
+    "dreamRefocus": "A réalisé un rêve et en a nommé un nouveau : {dream_k}.",
+    "endedSponsor": "A rompu le contrat {slot_k} avec {sponsor} avant terme."
   },
   "persLower": {
     "Professional": "professionnel",
