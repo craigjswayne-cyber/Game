@@ -44,29 +44,27 @@ export function userCap(state: GameState, clubId: string, cap: number | null): n
   return cap
 }
 
-/** The board's four resolutions. `pct` of the season's opening transfer
- *  budget, floored so the product means something at a National 1 club or a
- *  club fresh out of administration; `wage` is the cap-exempt allowance as a
- *  fraction of the league cap, board-underwritten for this season only
- *  (owner's decision, 25 Aug). The XL is the Sugar Daddy, and the owners will
- *  not go to the well for him twice in a year. */
-export const INJECT_TIERS: Record<InjectTier, { pct: number; floor: number; wage: number; perSeason: number }> = {
-  s: { pct: 0.25, floor: 100_000, wage: 0.05, perSeason: 2 },
-  m: { pct: 0.65, floor: 250_000, wage: 0.10, perSeason: 2 },
-  l: { pct: 1.50, floor: 500_000, wage: 0.20, perSeason: 2 },
-  xl: { pct: 3.50, floor: 1_000_000, wage: 0.40, perSeason: 1 },
+/** The board's four resolutions, at the owner's fixed figures (v1.1.5:
+ *  "go back to what we agreed - 10m, 25m, 60m or 130 million + wages
+ *  increased"). They were percentages of the season's opening budget; now
+ *  every club, Toulouse or Bedford, gets the number on the tin. `wage` is
+ *  the cap-exempt allowance as a fraction of the league cap,
+ *  board-underwritten for this season only - doubled in the same brief.
+ *  The XL is the Sugar Daddy, and the owners will not go to the well for
+ *  him twice in a year. */
+export const INJECT_TIERS: Record<InjectTier, { amount: number; wage: number; perSeason: number }> = {
+  s: { amount: 10_000_000, wage: 0.10, perSeason: 2 },
+  m: { amount: 25_000_000, wage: 0.20, perSeason: 2 },
+  l: { amount: 60_000_000, wage: 0.40, perSeason: 2 },
+  xl: { amount: 130_000_000, wage: 0.80, perSeason: 1 },
 }
 
-/** What this tier would add today, in pounds: the figure printed on the store
- *  row, and exactly the figure that lands. Priced on the snapshotted opening
- *  budget rather than the live balance, so buying in March is worth what the
- *  row said in September and spending does not devalue the product. */
-export function injectionCash(state: GameState, tier: InjectTier): number {
-  const club = state.clubs[state.userClubId]
-  if (!club) return 0
-  const open = club.budgetAtOpen ?? club.budget
-  const def = INJECT_TIERS[tier]
-  return Math.max(def.floor, Math.round((open * def.pct) / 10_000) * 10_000)
+/** What this tier adds, in pounds: the figure printed on the store row, and
+ *  exactly the figure that lands. Fixed since v1.1.5; the state parameter
+ *  stays so every caller keeps compiling and the signature is ready if
+ *  pricing ever becomes situational again. */
+export function injectionCash(_state: GameState, tier: InjectTier): number {
+  return INJECT_TIERS[tier].amount
 }
 
 /** How many of this tier the board will still vote through this season. */

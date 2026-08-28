@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
-  CHARTER_SKU, INJECT_SKUS, buyConsumable, buyOwnable, consume, hasEntitlement,
-  pendingConsumables, rewardedAvailable, showRewarded, skuPrice, tillOpen,
+  CHARTER_SKU, buyOwnable, hasEntitlement,
+  rewardedAvailable, showRewarded, skuPrice, tillOpen,
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
-import { INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { staffWageBill } from '../../game/staff'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
@@ -375,37 +374,20 @@ export default function Finances() {
   )
 }
 
-const TIER_KEY: Record<InjectTier, string> = {
-  s: 'till.injectS', m: 'till.injectM', l: 'till.injectL', xl: 'till.injectXL',
-}
-const TIER_OF_SKU = Object.fromEntries(
-  (Object.entries(INJECT_SKUS) as [InjectTier, string][]).map(([tier, sku]) => [sku, tier]),
-) as Record<string, InjectTier>
-
 /**
- * The Boardroom shelf (v1.1.0, docs/monetisation-spec.md §4): the four board
- * injections and the Owner's Charter, written as club business - board
- * resolutions with the exact figure each would add - and rendered ONLY where
- * a store bridge exists. The web build never mounts a single row of this, so
- * the free game reads as complete (storeprobe holds that).
- *
- * Money rules the rows keep:
- *   the figure on the row is the figure that lands (injectionCash, priced on
- *     the season's opening budget);
- *   nothing is granted until the store says owned, and the consume is only
- *     sent AFTER the career has kept the effect - a purchase that lands while
- *     the season's limit refuses it stays owned at the store and is offered
- *     back by the recovery rows, so a customer can lose a moment, never money;
- *   the Charter is bought once for the account, then signed per save, behind
- *     a two-step confirm because there is no way back.
+ * The Boardroom desk (v1.1.0; thinned in v1.1.5). The four board injections
+ * sold here until the owner moved all board funding to the Store - what
+ * remains is the Charter, because signing it is club business done at the
+ * club: bought once for the account (here or at the Store), then signed per
+ * save behind a two-step confirm, because there is no way back. Rendered
+ * ONLY where a store bridge exists; the web build never mounts a row of
+ * this, so the free game reads as complete (storeprobe holds that).
  */
 function BoardFunds() {
   const game = useStore(s => s.game)!
-  const boardInject = useStore(s => s.boardInject)
   const signCharter = useStore(s => s.signCharter)
   const claim = useStore(s => s.claimSupporter)
   const [prices, setPrices] = useState<Record<string, string | null>>({})
-  const [pending, setPending] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [confirmCharter, setConfirmCharter] = useState(false)
@@ -415,18 +397,13 @@ function BoardFunds() {
     if (!open) return
     let live = true
     void (async () => {
-      const entries = await Promise.all(
-        [...Object.values(INJECT_SKUS), CHARTER_SKU].map(async sku => [sku, await skuPrice(sku)] as const))
-      if (live) setPrices(Object.fromEntries(entries))
-      const pend = await pendingConsumables()
-      if (live) setPending(pend)
+      const price = await skuPrice(CHARTER_SKU)
+      if (live) setPrices({ [CHARTER_SKU]: price })
     })()
     return () => { live = false }
   }, [open])
   if (!open || game.unemployed) return null
 
-  const club = game.clubs[game.userClubId]
-  const baseCap = (club.leagueId && game.caps?.[club.leagueId]) || null
   const sayOutcome = (key: string, out: string) => setMsg({
     key,
     text: t(out === 'cancelled' ? 'supporter.cancelled'
@@ -434,27 +411,6 @@ function BoardFunds() {
       : out === 'unavailable' ? 'supporter.unavailable'
       : 'supporter.error'),
   })
-
-  /** Land a paid injection in this career, and only then spend the receipt. */
-  const land = async (tier: InjectTier) => {
-    const amount = fmtMoney(injectionCash(game, tier))
-    if (boardInject(tier)) {
-      await consume(INJECT_SKUS[tier])
-      setPending(p => p.filter(sku => sku !== INJECT_SKUS[tier]))
-      setMsg({ key: tier, text: t('till.injLanded', { amount }) })
-    } else {
-      // paid, not landed: the seasonal limit said no, the store still owes it
-      setMsg({ key: tier, text: t('till.injHeld') })
-    }
-  }
-
-  const buyInjection = async (tier: InjectTier) => {
-    setBusy(true)
-    const out = await buyConsumable(INJECT_SKUS[tier])
-    if (out === 'owned') await land(tier)
-    else sayOutcome(tier, out)
-    setBusy(false)
-  }
 
   const buyCharter = async () => {
     setBusy(true)
@@ -464,48 +420,10 @@ function BoardFunds() {
     setBusy(false)
   }
 
-  const pendingTiers = pending.map(sku => TIER_OF_SKU[sku]).filter(Boolean)
-
   return (
     <>
       <SectionTitle sub={t('till.boardSub')}>{t('till.boardTitle')}</SectionTitle>
       <div className="muted" style={{ padding: '0 14px 6px', fontSize: 12.5 }}>{t('till.boardBlurb')}</div>
-      {pendingTiers.map(tier => (
-        <div className="card" key={`pend-${tier}`} style={{ borderLeft: '4px solid var(--gold)' }}>
-          <div className="meta">{t('till.pendingRow', { product: t(TIER_KEY[tier]) })}</div>
-          <button className="btn gold block" style={{ marginTop: 6 }} disabled={busy}
-            onClick={() => { setBusy(true); void land(tier).finally(() => setBusy(false)) }}>
-            {t('till.applyHere')}
-          </button>
-          {msg?.key === tier && <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg.text}</div>}
-        </div>
-      ))}
-      {(Object.keys(INJECT_TIERS) as InjectTier[]).map(tier => {
-        const left = injectionsLeft(game, tier)
-        const price = prices[INJECT_SKUS[tier]]
-        return (
-          <div className="card" key={tier}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h3 style={{ fontSize: 15 }}>{t(TIER_KEY[tier])}</h3>
-                <div className="meta">
-                  {t('till.injAdds', { amount: fmtMoney(injectionCash(game, tier)) })}
-                  {baseCap != null && <> {t('till.injWage', { weekly: fmtWage(Math.round(INJECT_TIERS[tier].wage * baseCap)) })}</>}
-                </div>
-                <div className="meta" style={{ marginTop: 3 }}>
-                  {left > 0 ? t('till.injLeft', { n: left }) : t('till.injNone')}
-                </div>
-              </div>
-              <button className="btn gold" disabled={busy || left === 0} onClick={() => { void buyInjection(tier) }}>
-                {price ? t('till.buyFor', { price }) : t('till.buy')}
-              </button>
-            </div>
-            {msg?.key === tier && !pendingTiers.includes(tier) && (
-              <div className="meta sheet-log" style={{ marginTop: 8, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg.text}</div>
-            )}
-          </div>
-        )
-      })}
 
       {game.uncapped ? (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>

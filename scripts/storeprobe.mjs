@@ -189,27 +189,28 @@ try {
     await page.close()
   }
 
-  // ---- 2b. the Boardroom (v1.1.0): the figure on the row is the figure that lands
-  say('\n--- 2b. the Boardroom, with a store attached')
+  // ---- 2b. board funding sells at the STORE (v1.1.5), and the figure on the
+  // row is the fixed figure that lands; the Boardroom keeps the Charter desk
+  say('\n--- 2b. board funding at the store, the Charter desk in the Boardroom')
   {
     const page = await openPage({ billing: true })
     const errs = []
     page.on('pageerror', e => errs.push(e.message))
     await startCareer(page)
-    await page.evaluate(() => window.rugbyStore.getState().go('finances'))
-    await page.waitForSelector('.tab-bar')
-    await page.locator('.tab-bar button', { hasText: 'The Board' }).click()
-    await page.waitForSelector('text=Board resolutions')
-    ok(await page.locator('text=The Sugar Daddy').count() === 1, 'the four resolutions render, letterhead included')
+    await page.evaluate(() => window.rugbyStore.getState().go('supporter'))
+    await page.waitForSelector('text=Board funding')
+    ok(await page.locator('text=The Sugar Daddy').count() === 1, 'the four resolutions render on the store shelf')
 
     const before = await page.evaluate(() => {
       const g = window.rugbyStore.getState().game
       const c = g.clubs[g.userClubId]
-      return { budget: c.budget, balance: c.balance, open: c.budgetAtOpen ?? c.budget, news: g.news.length }
+      return { budget: c.budget, balance: c.balance, news: g.news.length }
     })
-    // the small injection: 25% of the opening budget, floored at £100k
-    const want = Math.max(100_000, Math.round((before.open * 0.25) / 10_000) * 10_000)
-    await page.locator('.card', { hasText: 'Board Injection (Small)' }).locator('.btn.gold').click()
+    // the small injection: the owner's fixed £10m, every club alike
+    const want = 10_000_000
+    // the tier label sits two divs below its flex row, and the buy button is
+    // that row's only gold button
+    await page.locator('text=Board Injection (Small)').locator('xpath=../..').locator('.btn.gold').click()
     await page.waitForSelector('text=The funds have landed')
     const after = await page.evaluate(() => {
       const g = window.rugbyStore.getState().game
@@ -218,12 +219,18 @@ try {
     })
     ok(after.budget === before.budget + want && after.balance === before.balance + want,
       `the row's figure is the figure that lands (${want.toLocaleString('en-GB')})`)
-    ok(after.wageBoost === 0.05 && after.injected === want, 'with the wage allowance and the objectives ledger written')
+    ok(after.wageBoost === 0.10 && after.injected === want, 'with the doubled wage allowance and the objectives ledger written')
     ok(after.news === before.news + 1, 'and the board letter goes in the inbox')
     const owed = await page.evaluate(() => globalThis.rmBilling.owned())
     ok(!owed.includes('phase.inject.s'), 'the purchase is consumed only after the career kept it')
 
-    // the Charter: bought, then signed behind a two-step confirm
+    // the Boardroom no longer sells funding, and still signs the Charter
+    await page.evaluate(() => window.rugbyStore.getState().go('finances'))
+    await page.waitForSelector('.tab-bar')
+    await page.locator('.tab-bar button', { hasText: 'The Board' }).click()
+    await page.waitForSelector('text=Board resolutions')
+    ok(await page.locator('text=Board Injection (Small)').count() === 0,
+      'the Boardroom sells no injections any more - the store does')
     await page.locator('.card', { hasText: "The Owner's Charter" }).locator('.btn.gold').click()
     await page.waitForSelector('text=The Charter is yours')
     await page.locator('button', { hasText: 'Sign the Charter for this save' }).click()
