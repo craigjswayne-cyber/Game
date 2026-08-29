@@ -128,12 +128,12 @@ function sweep(clubId: string): ClubSweep {
         // fixture yields ONE paired lenient-minus-fussy swing, and the noise
         // that buried the slope cancels inside the pair.
         if (out.aggRefPairs.length < 60) {
-          const dUnder = (fid: number, v: number): number => {
+          const dUnder = (fid: number, v: number, rs: number): number => {
             const c: GameState = structuredClone(g)
             ;(c.clubs[c.userClubId].tactic as unknown as Record<string, number>)['aggression'] = v
             const f = c.fixtures.find(x => x.id === fx.id)!
             f.id = fid
-            simMatch(c, f, mulberry32(((fx.id * 6 + DIALS.indexOf('aggression')) * 2654435761) >>> 0), false)
+            simMatch(c, f, mulberry32(rs), false)
             return (f.homeId === c.userClubId ? 1 : -1) * (f.homeScore - f.awayScore)
           }
           let idL = -1, idF = -1
@@ -144,9 +144,23 @@ function sweep(clubId: string): ClubSweep {
             else if (rp > 1.02 && idF < 0) idF = cand
           }
           if (idL >= 0 && idF >= 0) {
-            const dL = dUnder(idL, 90) - dUnder(idL, 10)
-            const dF = dUnder(idF, 90) - dUnder(idF, 10)
-            out.aggRefPairs.push(dL - dF)
+            // SIX RNG SEEDS PER PAIR, AVERAGED - one was a coin flip in a lab
+            // coat. Measured on eight replicated snapshots (v1.1.10): the true
+            // lenient-minus-fussy slope is about +2.3 a match, and a single
+            // seed's margin noise is sd ~15 - so 120 one-seed pairs put an SE
+            // of ~1.4 under a +2 effect, and the assertion below passed on
+            // luck until the fitness re-tune re-dealt the snapshots and it
+            // sampled -0.53. Averaging each pair over six seeds cuts the SE
+            // to ~0.6, which is what it takes to SEE a slope this size. The
+            // engine side never moved: refPenF has scaled the cost with the
+            // whistle since audit 16D.
+            const R = 6
+            let acc = 0
+            for (let r = 0; r < R; r++) {
+              const rs = (((fx.id * 6 + DIALS.indexOf('aggression')) * 2654435761) + r * 7919) >>> 0
+              acc += (dUnder(idL, 90, rs) - dUnder(idL, 10, rs)) - (dUnder(idF, 90, rs) - dUnder(idF, 10, rs))
+            }
+            out.aggRefPairs.push(acc / R)
           }
         }
       }
