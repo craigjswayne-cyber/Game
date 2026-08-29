@@ -1,7 +1,7 @@
 // Backroom staff as people, not sliders (8-batch feedback): every coach is a
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
-import { STAFF_INFO, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
+import { STAFF_INFO, fmtMoney, fmtWage, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
 import { t, tIn, type Vars } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
@@ -246,18 +246,18 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${c.name} appointed ${tIn('en', info.name)}`,
-    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmt(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
+    body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmtWage(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
     k: 'news.staffHired',
     v: {
       name: c.name, age: c.age, club: club.name, role_k: info.name,
       badge_k: `staff.badge${c.tier}`, trait_k: `traits.${c.trait}`,
-      fee: fmt(c.fee), wage: fmt(c.wage),
+      fee: fmt(c.fee), wage: fmtWage(c.wage),
       out_k: outgoing ? 'news.staffOut' : 'common.nothing', out: outgoing?.name ?? '',
       chem_k: chemRows.length ? 'news.staffChem' : 'common.nothing',
       rows_l: JSON.stringify(chemRows),
     },
   })
-  logDecision(state, 'dec.appointedStaff', { name: c.name, role_k: info.name, badge_k: `staff.badge${c.tier}`, fee: fmt(c.fee), wage: fmt(c.wage), out_k: outgoing ? 'dec.andHeLeft' : 'common.nothing', out: outgoing?.name ?? '' }, true)
+  logDecision(state, 'dec.appointedStaff', { name: c.name, role_k: info.name, badge_k: `staff.badge${c.tier}`, fee: fmt(c.fee), wage: fmtWage(c.wage), out_k: outgoing ? 'dec.andHeLeft' : 'common.nothing', out: outgoing?.name ?? '' }, true)
   return t('reply.staffAppointed', { name: c.name, role_k: info.name, fee: fmt(c.fee) })
 }
 
@@ -324,15 +324,15 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     p.wage = Math.round((p.wage * 1.15) / 100) * 100
     p.passed = (p.passed ?? 0) + 1
     state.staff[role] = p.tier
-    logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) }, true)
+    logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎓 ${p.name} passes his ${badge} badge`,
-      body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had this morning. His pay rises to ${fmt(p.wage)} a week.`,
+      body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had this morning. His pay rises to ${fmtWage(p.wage)} a week.`,
       k: 'news.badgePass',
-      v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) },
+      v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
     })
-    return t('reply.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, wage: fmt(p.wage) })
+    return t('reply.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, wage: fmtWage(p.wage) })
   }
   p.failed = (p.failed ?? 0) + 1
   p.retakeAt = abs + RETAKE_WEEKS
@@ -370,13 +370,13 @@ export function resolveCourses(state: GameState) {
       p.wage = Math.round((p.wage * 1.15) / 100) * 100
       p.passed = (p.passed ?? 0) + 1
       state.staff[key] = p.tier
-      logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) }, true)
+      logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
-        body: `Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmt(p.wage)} a week.`,
+        body: `Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmtWage(p.wage)} a week.`,
         k: 'news.badgePassAuto',
-        v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmt(p.wage) },
+        v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
       })
     } else {
       p.failed = (p.failed ?? 0) + 1
@@ -451,4 +451,6 @@ export function seedStaffPeople(state: GameState) {
   }
 }
 
-const fmt = (n: number) => n >= 1_000_000 ? `£${(n / 1e6).toFixed(1)}m` : n >= 1000 ? `£${Math.round(n / 1000)}k` : `£${n}`
+// one ladder for the whole game: fees and balances read as money, a weekly
+// wage reads as a wage (see model.fmtWage and scripts/moneyfmt.ts)
+const fmt = fmtMoney

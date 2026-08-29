@@ -337,11 +337,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       {termsFee != null && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 15 }}>{t('player.personalTerms', { fee: fmtMoney(termsFee) })}</h3>
-          <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>£{personalTermsDemand(game, p).toLocaleString()}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
+          <div className="meta" style={{ margin: '4px 0' }}>{t('player.campOpensAt')}<b>{fmtWage(personalTermsDemand(game, p))}{t('common.perWeek')}</b>{t('player.campOpensRest')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
             <span className="fact-label" style={{ width: 84 }}>{t('player.wagePerWeek')}</span>
             <button className="btn ghost" onClick={() => { setWage(Math.max(500, wage - 500)) }}>−</button>
-            <b style={{ minWidth: 76, textAlign: 'center' }}>£{wage.toLocaleString()}</b>
+            <b style={{ minWidth: 76, textAlign: 'center' }}>{fmtWage(wage)}</b>
             <button className="btn ghost" onClick={() => { setWage(wage + 500) }}>+</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>

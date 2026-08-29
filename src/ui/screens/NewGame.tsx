@@ -236,7 +236,7 @@ export default function NewGame() {
                   <div><label>{t('wizard.starPlayer')}</label><span>⭐ {starPlayer?.name}</span></div>
                   <div><label>{t('wizard.stadium')}</label><span>{club.stadium} · {club.capacity.toLocaleString()}</span></div>
                   <div><label>{t('wizard.mediaVerdict')}</label><span>{mediaVerdict(club, league ?? defs.find(d => d.clubs.some(c => c.id === club.id))!)}</span></div>
-                  <div><label>{t('wizard.transferBudget')}</label><span>£{(club.budget / 1e6).toFixed(1)}m</span></div>
+                  <div><label>{t('wizard.transferBudget')}</label><span>{fmtMoney(club.budget)}</span></div>
                   <div><label>{t('wizard.squadValue')}</label><span>{fmtMoney(club.players.reduce((s, p) => s + playerValue(p.q, p.age, p.q), 0))}</span></div>
                   <div><label>{t('wizard.squadSize')}</label><span>{club.players.length}</span></div>
                 </div>

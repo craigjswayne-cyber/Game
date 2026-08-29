@@ -1883,7 +1883,15 @@ export function fmtWage(v: number): string {
     const t = k >= 99.95 ? '100' : k.toFixed(1).replace(/\.0$/, '')
     return `${sign}£${t}k`
   }
-  return `${sign}£${Math.round(a / 1_000).toLocaleString()}k`
+  // ONE MILLION IS WHERE THOUSANDS STOP READING. Above this the old line
+  // printed a comma'd "£5,380k" - the only comma-grouped figure anywhere in
+  // the game, sitting in a column of "£25k" and "£130m", and reached by any
+  // club whose wage ceiling passes a million (the Board Injections lift it by
+  // up to 80% each). Hand it to fmtMoney and it reads "£5.4m" like every
+  // other large sum. Below a million, thousands are still the right unit for
+  // a weekly wage, which is the whole reason this function exists.
+  if (a < 1_000_000) return `${sign}£${Math.round(a / 1_000)}k`
+  return fmtMoney(v)
 }
 
 /**

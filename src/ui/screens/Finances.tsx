@@ -59,8 +59,8 @@ export default function Finances() {
         <div className="chips">
           <span className="chip">{t('finances.balance')} <b style={{ color: club.balance < 0 ? 'var(--text-negative)' : 'var(--text-positive)' }}>{fmtMoney(club.balance)}</b></span>
           <span className="chip">{t('finances.transferBudget')} <b>{fmtMoney(club.budget)}</b></span>
-          <span className="chip">{t('finances.wageBill')} <b>{fmtMoney(wages)}{t('common.perWeek')}</b></span>
-          <span className="chip">{t('finances.wageBudget')} <b>{Number.isFinite(userWageBudget(game, club)) ? `${fmtMoney(userWageBudget(game, club))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
+          <span className="chip">{t('finances.wageBill')} <b>{fmtWage(wages)}{t('common.perWeek')}</b></span>
+          <span className="chip">{t('finances.wageBudget')} <b>{Number.isFinite(userWageBudget(game, club)) ? `${fmtWage(userWageBudget(game, club))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
           {ftab === 'money' && <>
             <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
             <span className="chip">{t('finances.avgAttendance')} <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>
@@ -68,7 +68,7 @@ export default function Finances() {
             <span className="chip">{t('finances.weeklyCommercial')} <b>{fmtMoney(weeklyCentral(club) + commercialWeekly(game))}</b></span>
             {/* the ground and the estate cost money every week of the year, and
                 a cost the manager cannot see reads to him as a bug */}
-            <span className="chip">{t('finances.upkeep')} <b>{fmtMoney(operatingCost(game))}{t('common.perWeek')}</b></span>
+            <span className="chip">{t('finances.upkeep')} <b>{fmtWage(operatingCost(game))}{t('common.perWeek')}</b></span>
           </>}
         </div>
         {(game.finHist?.length ?? 0) >= 2 && <div className="fin-chart"><BalanceChart hist={game.finHist!} /></div>}
@@ -275,8 +275,8 @@ export default function Finances() {
               ) : (
                 <>
                   <div className="cap-line">
-                    <b>{fmtMoney(pos.bill)}/wk</b>
-                    <span className="meta">{t('finances.capOf', { cap: fmtMoney(pos.cap) })}</span>
+                    <b>{fmtWage(pos.bill)}/wk</b>
+                    <span className="meta">{t('finances.capOf', { cap: fmtWage(pos.cap) })}</span>
                   </div>
                   <div className="cap-bar">
                     <div className={`cap-fill${pos.over ? ' over' : pos.used > 0.9 ? ' tight' : ''}`}
