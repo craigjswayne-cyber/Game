@@ -15,3 +15,15 @@ storeart/
 # capability) is written down in packaging/ios/README.md instead, because a
 # generated project cannot be trusted to preserve it.
 packaging/ios/ios/
+
+# THE SIGNING KEY, AND EVERYTHING SHAPED LIKE ONE.
+# packaging/twa/ is a tracked folder and bubblewrap signs from inside it, so
+# the keystore lives among tracked files - one `git add -A` away from being
+# published to a public repository forever. It has never been committed; this
+# is what keeps it that way.
+android.keystore
+*.keystore
+*.jks
+*.p12
+packaging/twa/app-release-*.a*
+packaging/twa/app-release-*.apk
