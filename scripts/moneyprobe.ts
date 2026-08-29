@@ -334,6 +334,37 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   ok(await M.buyOwnable(M.SUPPORT_SKU) === 'owned', 'a non-consumable still buys')
   ok(calls.includes('ack:tok-new:onetime'), 'and is acknowledged as a one-time purchase')
 
+  // ---- 13a2. WHICH KIND OF NOTHING ----------------------------------------
+  //
+  // Every console setting checked out - products active, backwards
+  // compatible, 173 countries, licence tester, installed from Play, billing
+  // in the bundle - and the shelf was still empty. A silent `return null`
+  // from details() covers two faults that need opposite fixes, so it now
+  // says which one it hit.
+  {
+    const g2 = globalThis as unknown as Record<string, unknown>
+    const withDetails = (impl: () => Promise<unknown>) => {
+      g2.getDigitalGoodsService = async () => ({
+        getDetails: impl,
+        listPurchases: async () => [],
+        acknowledge: async () => {},
+        consume: async () => {},
+      })
+    }
+    // (a) Play answers, and has nothing for us
+    withDetails(async () => [])
+    let b2 = await playBridge()
+    ok(await b2!.details(M.SUPPORT_SKU) === null, 'an empty answer is still no price')
+    ok((M.billingReason() ?? '').includes('does not offer this product here'),
+      `and says Play answered with nothing ("${(M.billingReason() ?? '').slice(0, 60)}...")`)
+    // (b) the service is attached but broken
+    withDetails(async () => { throw Object.assign(new Error('boom'), { name: 'OperationError' }) })
+    b2 = await playBridge()
+    ok(await b2!.details(M.SUPPORT_SKU) === null, 'a throw is no price either')
+    ok((M.billingReason() ?? '').includes('not answering'),
+      'but it is named as a different fault, because it needs a different fix')
+  }
+
   // ---- 13b. A REFUSAL IS NOT A CANCELLATION -------------------------------
   //
   // Owner, on v1.1.9: "all show products - nothing is charged is still coming

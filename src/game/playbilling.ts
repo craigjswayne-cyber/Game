@@ -77,10 +77,28 @@ export async function playBridge(): Promise<BillingBridge | null> {
   }
 
   const details = async (sku: string): Promise<Product | null> => {
+    // SAY WHICH KIND OF NOTHING THIS IS.
+    //
+    // A silent `return null` covers two completely different faults, and the
+    // owner spent a morning between them: getDetails THROWING means the
+    // Digital Goods service is not really talking to Play, while getDetails
+    // ANSWERING WITH AN EMPTY LIST means Play is talking fine and does not
+    // consider this product sellable to this app, on this account, right now.
+    // Every console setting we could check came back correct, so the next
+    // move is to stop guessing and read what Play actually said.
     try {
-      const [d] = await svc.getDetails([sku])
-      return d ? { sku, price: money(d.price.value, d.price.currency), title: d.title } : null
-    } catch { return null }
+      const got = await svc.getDetails([sku])
+      const [d] = got
+      if (!d) {
+        setBillingReason(`getDetails answered with ${Array.isArray(got) ? got.length : 'no'} items for ${sku} - Play is reachable and does not offer this product here`)
+        return null
+      }
+      return { sku, price: money(d.price.value, d.price.currency), title: d.title }
+    } catch (e) {
+      const err = e as Error
+      setBillingReason(`getDetails threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'} - the billing service is attached but not answering`)
+      return null
+    }
   }
 
   /** A human cannot open Play's sheet, read it and dismiss it inside this
