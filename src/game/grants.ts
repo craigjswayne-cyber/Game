@@ -22,7 +22,7 @@
  *     inbox, a line in the decisions ledger - in both languages, so a bought
  *     pound is as legible as an earned one.
  */
-import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, mgrReputation, type FacilityId, type GameState } from './model'
+import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, mgrReputation, type Club, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
 import { NAT_TIERS } from './nations'
 
@@ -42,6 +42,29 @@ export function userCap(state: GameState, clubId: string, cap: number | null): n
   if (state.uncapped) return null
   if (state.wageBoost) return Math.round(cap * (1 + state.wageBoost))
   return cap
+}
+
+/**
+ * THE OTHER CEILING, AND THE ONE THE CHARTER USED TO MISS.
+ *
+ * A club has TWO wage limits: the league's salary cap (userCap above) and its
+ * own weekly wage budget. The Charter lifted the first and left the second
+ * standing, so an owner who paid £9.99 for "No salary cap, for the save that
+ * signs it" walked to the negotiating table and was told his wage budget
+ * would break - which is true, and is not what he bought. Reported 29 Aug
+ * 2026 with a screenshot of exactly that sentence.
+ *
+ * Same shape as userCap and for the same reason: four checks in ai.ts and the
+ * scout's shopping list all read this budget, and they must agree with each
+ * other and with the Charter. An injection's allowance lifts it in proportion
+ * too, because the board underwriting wages it cannot pay for is the whole
+ * point of the resolution.
+ */
+export function userWageBudget(state: GameState, club: Club): number {
+  if (club.id !== state.userClubId) return club.wageBudget
+  if (state.uncapped) return Number.POSITIVE_INFINITY
+  if (state.wageBoost) return Math.round(club.wageBudget * (1 + state.wageBoost))
+  return club.wageBudget
 }
 
 /** The board's four resolutions, at the owner's fixed figures (v1.1.5:

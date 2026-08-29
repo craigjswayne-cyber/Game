@@ -1594,7 +1594,8 @@
     "endEarly": "Rompre le contrat",
     "endConfirm": "Rompre - l'argent s'arrête aujourd'hui",
     "dealEnded": "{sponsor} plie bagage. Trois nouveaux prétendants se manifestent déjà - leurs chiffres seront peut-être meilleurs que ce que vous avez abandonné, ou pires.",
-    "nothingToEnd": "Il n'y a aucun contrat en cours à rompre."
+    "nothingToEnd": "Il n'y a aucun contrat en cours à rompre.",
+    "noLimit": "Sans limite"
   },
   "club": {
     "tabClub": "Le club",

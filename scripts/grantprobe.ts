@@ -19,7 +19,7 @@
 // Run: npx tsx scripts/grantprobe.ts
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { NAT_CALL_WEEKS, applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, healReady, INJECT_TIERS, injectionCash, injectionsLeft, type InjectTier } from '../src/game/grants'
+import { NAT_CALL_WEEKS, applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, healReady, INJECT_TIERS, injectionCash, injectionsLeft, userCap, userWageBudget, type InjectTier } from '../src/game/grants'
 import { capPosition } from '../src/game/cap'
 import { FACILITY_INFO, MAX_FACILITY, mgrReputation, type FacilityId, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
@@ -246,6 +246,28 @@ console.log('\n--- 10. the call to the federations is answered AT ONCE, once per
   ok(j.natTeam === 'FIJ' && j.unemployed, 'resign the club: national coach, desk cleared')
   ok(j.vacancies.some(v => v.clubId === oldClub), 'and the old job is a real vacancy')
   ok(j.news.some(n => n.k === 'news.resigned'), 'with the resignation letter on file')
+}
+
+
+// ---- THE CHARTER LIFTS BOTH CEILINGS ---------------------------------------
+//
+// A club has TWO wage limits: the league's salary cap and its own weekly wage
+// budget. The Charter lifted the first and left the second standing, so an
+// owner who paid 9.99 for "No salary cap, for the save that signs it" walked
+// to the negotiating table and was told his WAGE BUDGET would break - true,
+// and not what he bought. Reported 29 Aug 2026 with the screenshot.
+{
+  const g = newGame('northampton', 'Charter', 5)
+  const club = g.clubs[g.userClubId]
+  const cap = () => userCap(g, club.id, g.caps?.[club.leagueId] ?? null)
+  ok(typeof cap() === 'number' && (cap() ?? 0) > 0, `a capped league starts capped (${cap()})`)
+  ok(Number.isFinite(userWageBudget(g, club)), 'and the wage budget is a real number')
+  g.uncapped = true
+  ok(cap() === null, 'the Charter lifts the salary cap')
+  ok(!Number.isFinite(userWageBudget(g, club)),
+    'AND the wage budget, which is the ceiling the negotiating table actually quotes')
+  const rival = Object.values(g.clubs).find(c => c.id !== g.userClubId)!
+  ok(Number.isFinite(userWageBudget(g, rival)), 'while every other club keeps its budget')
 }
 
 if (fails) { console.error(`\nGRANT PROBE FAILED (${fails})`); process.exit(1) }

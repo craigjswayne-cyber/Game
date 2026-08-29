@@ -1,7 +1,7 @@
 import type { GameState, Player } from './model'
 import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
-import { userCap } from './grants'
+import { userCap, userWageBudget } from './grants'
 import { offerSigning } from './records'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
@@ -550,7 +550,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (capMsg) return { ok: false, msg: capMsg }
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
-  if (squadWages + wage > user.wageBudget) {
+  if (squadWages + wage > userWageBudget(state, user)) {
     return { ok: false, msg: `Those wages (${fmtMoney(wage)}/wk) would break your wage budget.` }
   }
   const sweet = signOn >= demand * 8 ? 0.06 : signOn >= demand * 4 ? 0.03 : 0
@@ -589,7 +589,7 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   const wage = renewalDemand(p)
   const capMsg = capBreak(state, user.id, wage)
   if (capMsg) return { ok: false, msg: capMsg }
-  if (capBill(state, user) + wage > user.wageBudget) {
+  if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: `His wage demands (£${wage.toLocaleString()}/wk) would exceed your wage budget.` }
   }
   executeTransfer(state, p, user.id, 0)
@@ -735,7 +735,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
     return { ok: false, msg: 'Three pre-contracts already agreed - the board will not register more.' }
   }
   const wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50 // free-agent premium
-  if (capBill(state, user) + wage > user.wageBudget) {
+  if (capBill(state, user) + wage > userWageBudget(state, user)) {
     return { ok: false, msg: `His terms (${fmtMoney(wage)}/wk) would break the wage budget.` }
   }
   const seller = state.clubs[p.clubId]
@@ -824,7 +824,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   const demand = renewalDemand(p)
   const marqueed = (user.marquee ?? []).includes(p.id)
   const squadWages = capBill(state, user)
-  if (!marqueed && squadWages - ((user.marquee ?? []).includes(p.id) ? 0 : p.wage) + offer > user.wageBudget) {
+  if (!marqueed && squadWages - ((user.marquee ?? []).includes(p.id) ? 0 : p.wage) + offer > userWageBudget(state, user)) {
     return { ok: false, msg: 'Those terms would exceed the wage budget.' }
   }
   if (p.pers === 'Ambitious' && p.ca >= 84 && user.rep < 82 && p.morale < 8) {

@@ -17,6 +17,7 @@ import {
 } from '../../game/commercial'
 import { RELEASE_STEP, cashReserve, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
+import { userWageBudget } from '../../game/grants'
 
 export default function Finances() {
   // two pages rather than one long scroll
@@ -59,7 +60,7 @@ export default function Finances() {
           <span className="chip">{t('finances.balance')} <b style={{ color: club.balance < 0 ? 'var(--text-negative)' : 'var(--text-positive)' }}>{fmtMoney(club.balance)}</b></span>
           <span className="chip">{t('finances.transferBudget')} <b>{fmtMoney(club.budget)}</b></span>
           <span className="chip">{t('finances.wageBill')} <b>{fmtMoney(wages)}{t('common.perWeek')}</b></span>
-          <span className="chip">{t('finances.wageBudget')} <b>{fmtMoney(club.wageBudget)}{t('common.perWeek')}</b></span>
+          <span className="chip">{t('finances.wageBudget')} <b>{Number.isFinite(userWageBudget(game, club)) ? `${fmtMoney(userWageBudget(game, club))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
           {ftab === 'money' && <>
             <span className="chip">{club.stadium} <b>{club.capacity.toLocaleString()}</b></span>
             <span className="chip">{t('finances.avgAttendance')} <b>{avgAtt ? avgAtt.toLocaleString() : '-'}</b></span>

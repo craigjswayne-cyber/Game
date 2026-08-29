@@ -142,12 +142,71 @@ export async function playBridge(): Promise<BillingBridge | null> {
     // left the sheet hanging and reported 'error' on a purchase that had been
     // paid for. Now it cannot: the receipt stays in listPurchases and Restore
     // picks it up.
-    if (token && svc.acknowledge) {
-      try {
-        await svc.acknowledge(token, CONSUMABLE_SKUS.includes(sku) ? 'repeatable' : 'onetime')
-      } catch { /* unacknowledged but owned: restore() and consume() both still see it */ }
-    }
+    await settle(sku, token, 'buy')
     return 'owned'
+  }
+
+  /**
+   * ACKNOWLEDGE, OR PLAY TAKES THE MONEY BACK.
+   *
+   * An unacknowledged Play purchase is refunded automatically after three
+   * days. Google emailed the owner exactly that on 29 Aug 2026 - a paid
+   * Estate, cancelled, "you should ensure that all purchases are
+   * acknowledged" - and the reason it happened is visible above: the old code
+   * ran `if (token && svc.acknowledge)`, so on a Digital Goods service that
+   * has no acknowledge() the whole step was skipped IN SILENCE. Nothing was
+   * logged, nothing was shown, and the customer simply lost the thing they
+   * bought seventy-two hours later.
+   *
+   * Digital Goods 1.0 spells it acknowledge(token, type); 2.0 dropped that
+   * and expects the browser to acknowledge a non-consumable when the payment
+   * completes, keeping consume() for the repeatable ones. So both are tried,
+   * in that order, and - this is the part that was missing - if NEITHER is
+   * possible the fact is recorded rather than shrugged off, because a
+   * purchase this code cannot acknowledge is a refund with a three-day fuse.
+   */
+  const settle = async (sku: string, token: string | undefined, why: 'buy' | 'sweep'): Promise<boolean> => {
+    const consumable = CONSUMABLE_SKUS.includes(sku)
+    if (!token) {
+      if (why === 'buy') setBillingReason(`${sku} was paid for but Play returned no purchase token, so it cannot be acknowledged`)
+      return false
+    }
+    try {
+      if (typeof svc.acknowledge === 'function') {
+        await svc.acknowledge(token, consumable ? 'repeatable' : 'onetime')
+        return true
+      }
+      // 2.0: the browser acknowledges a non-consumable itself when the
+      // payment completes, and consume() is the only lever we hold. Spending
+      // a consumable here is right anyway - the game re-grants it from its own
+      // ledger - and it acknowledges as a side effect.
+      if (consumable && typeof svc.consume === 'function') {
+        await svc.consume(token)
+        return true
+      }
+      return !consumable // a 2.0 non-consumable is the browser's to settle
+    } catch (e) {
+      const err = e as Error
+      setBillingReason(`${sku} is PAID but could not be acknowledged (${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'}) - Play refunds an unacknowledged purchase after three days`)
+      return false
+    }
+  }
+
+  /**
+   * THE SWEEP. Every open receipt, settled again, at boot.
+   *
+   * Acknowledgement is idempotent, so this costs nothing when all is well and
+   * rescues a purchase whose acknowledgement failed at the till - including
+   * one made by an older build, which is the only thing that can save it
+   * before the three days run out. It is the difference between a bug that
+   * cost one customer one product and a bug that keeps costing.
+   */
+  const sweep = async (): Promise<void> => {
+    try {
+      for (const p of await svc.listPurchases()) {
+        if (!CONSUMABLE_SKUS.includes(p.itemId)) await settle(p.itemId, p.purchaseToken, 'sweep')
+      }
+    } catch { /* offline at boot: the next launch tries again */ }
   }
 
   const owned = async (): Promise<string[]> => {
@@ -180,6 +239,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
     else if (typeof svc.acknowledge === 'function') await svc.acknowledge(hit.purchaseToken, 'repeatable')
   }
 
+  void sweep()
   return { details, buy, owned, consume }
 }
 

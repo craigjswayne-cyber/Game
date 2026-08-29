@@ -1,4 +1,5 @@
 // Scouting knowledge: attributes of unscouted players show as ranges.
+import { userWageBudget } from './grants'
 // Knowledge grows by shortlisting, playing against them, and via the
 // chief scout. Your own squad is always fully known.
 
@@ -187,7 +188,7 @@ export function recruitmentMeeting(state: GameState): void {
     if (needs.length >= 3) break
     if (!needs.some(n => n.pos === pos)) needs.push({ pos, whyK: 'news.scoutWhyWeakest' })
   }
-  const wageRoom = club.wageBudget - club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
+  const wageRoom = userWageBudget(state, club) - club.players.reduce((s, id) => s + (state.players[id]?.wage ?? 0), 0)
   const picks: { p: Player; need: Need; fee: number }[] = []
   for (const need of needs.slice(0, 3)) {
     const cand = Object.values(state.players)
