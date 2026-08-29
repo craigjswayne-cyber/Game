@@ -495,6 +495,41 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   ok(!kitById.has(M.SUPPORTER_SKU),
     'Remove-all-ads is absent, exactly as it is absent from Play until a build ships ads')
 
+  // ---- 14b. THE SHELL CAN ACTUALLY BE BUILT --------------------------------
+  //
+  // The plugin files existed for two releases while the repository had no
+  // Capacitor toolchain at all, so `npx cap add ios` could not run and the
+  // README's own steps did not work. These are the four things that make the
+  // difference between three source files and a shell somebody can build.
+  const pkg = JSON.parse(readFileSync('packaging/ios/package.json', 'utf8'))
+  const deps = { ...pkg.dependencies, ...pkg.devDependencies }
+  for (const need of ['@capacitor/core', '@capacitor/ios', '@capacitor/cli']) {
+    ok(typeof deps[need] === 'string' && /^\d+\.\d+\.\d+$/.test(deps[need]),
+      `${need} is a dependency of the shell, pinned exactly (${deps[need] ?? 'missing'})`)
+  }
+  // one Capacitor version across the three, or the CLI refuses the platform
+  ok(new Set(['@capacitor/core', '@capacitor/ios', '@capacitor/cli'].map(k => deps[k])).size === 1,
+    'and all three are the same Capacitor version')
+  // the shell is its OWN npm project: a Capacitor dependency in the game's
+  // package.json is a network-capable library one import away from the bundle
+  // netprobe exists to keep clean
+  const rootPkg = JSON.parse(readFileSync('package.json', 'utf8'))
+  const rootDeps = { ...rootPkg.dependencies, ...rootPkg.devDependencies }
+  ok(!Object.keys(rootDeps).some(d => d.startsWith('@capacitor/')),
+    'and the GAME depends on no part of Capacitor - storekit.ts reads globalThis instead')
+  // the header without which PhaseBilling.m cannot compile. Capacitor 8's
+  // template generates no bridging header; verified against a real scaffold.
+  const bridge = readFileSync('packaging/ios/App-Bridging-Header.h', 'utf8')
+  ok(/#import\s+<Capacitor\/Capacitor\.h>/.test(bridge),
+    'the bridging header imports Capacitor, so the ObjC plugin stub compiles')
+  const scaffold = readFileSync('packaging/ios/scaffold.sh', 'utf8')
+  for (const f of ['PhaseBilling.swift', 'PhaseBilling.m', 'App-Bridging-Header.h', 'Products.storekit']) {
+    ok(scaffold.includes(f), `scaffold.sh installs ${f} into the App target`)
+  }
+  ok(/appId["']?\s*:\s*["']com\.phaserugbymanager\.app/.test(
+    readFileSync('packaging/ios/capacitor.config.json', 'utf8')),
+    'and the shell carries the same bundle identity as the Android build')
+
   delete gg.Capacitor
 }
 

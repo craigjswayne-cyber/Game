@@ -40,33 +40,71 @@ review notes, and `docs/store-listing.md` has that text ready.
 
 ## Building it
 
-Everything below runs on a **Mac with Xcode**. The three files this folder
-holds are the parts that could be written here; the rest is Apple's tooling.
+The toolchain is **pinned in this folder's own `package.json`** - Capacitor
+8.5.0, deliberately a separate npm project from the game. The web app must
+never gain a Capacitor dependency: `scripts/netprobe.ts` fails the suite on
+anything in the bundle that could make a network call, and the shipped game
+stays a pure offline PWA. `src/game/storekit.ts` reads `globalThis.Capacitor`
+and imports nothing, which is what lets the two live apart.
 
 ```sh
-npm i @capacitor/core @capacitor/cli @capacitor/ios
-npx cap init "PHASE: Rugby Manager" com.phaserugbymanager.app --web-dir=dist
-npm run build && npx cap add ios
-cp packaging/ios/capacitor.config.json ./capacitor.config.json   # see below
-npx cap sync ios
-npx cap open ios          # Xcode from here
+cd packaging/ios
+npm install        # the pinned toolchain
+./scaffold.sh      # build the game, add the platform, install the plugin
 ```
 
-`capacitor.config.json` in this folder is the configuration that matters:
-bundled assets, the night ground behind the web view so no white flash gets
-through, and no server block at all. **The appId is
-`com.phaserugbymanager.app`, the same identity as the Android build** - two
-apps, one name, and neither can ever change it.
+`scaffold.sh` was verified end to end on Linux: it builds `dist/`, generates
+the Xcode project, bundles the game inside it, and copies the four plugin
+files into the App target. Re-running it syncs instead of regenerating, so it
+is safe to run after every change to the game. The generated `ios/` tree is
+gitignored - it is build output, and it carries a copy of `dist/` inside it.
 
-In Xcode, before the first archive:
+**The bundle identity is `com.phaserugbymanager.app`**, the same identity as
+the Android build - verified in the generated project's
+`PRODUCT_BUNDLE_IDENTIFIER`. Two apps, one name, and neither can ever change
+it.
 
-* **Signing & Capabilities → + Capability → In-App Purchase.** Without it
-  StoreKit returns nothing and every product reads unavailable.
+> A note on `capacitor.config.json`: it lives HERE, not at the repository
+> root, and its `webDir` is `../../dist` - relative to this folder. An earlier
+> version of this file told you to copy it to the repo root, which would have
+> pointed `webDir` outside the repository entirely. Run the CLI from this
+> folder, as `scaffold.sh` does, and the paths resolve.
+
+## Then the Mac
+
+Everything above runs anywhere. Everything below is Xcode, and Xcode is a Mac.
+
+```sh
+npx cap open ios
+```
+
+Four things in Xcode before the first run, in this order:
+
+1. **The four plugin files must be in the App target.** `scaffold.sh` copies
+   them into `ios/App/App/`; if Xcode's navigator does not list them, drag
+   them in (Capacitor 8's template uses classic project references, not
+   Xcode 16 synchronised folders, so a file on disk is not automatically a
+   file in the target).
+2. **Build Settings → Objective-C Bridging Header → `App/App-Bridging-Header.h`.**
+   `PhaseBilling.m` is Objective-C in a Swift target and imports
+   `<Capacitor/Capacitor.h>`; without the bridging header it fails to compile
+   with "file not found", which reads like a broken dependency and is not one.
+   The Capacitor template does not generate this header - that is why one
+   ships in this folder.
+3. **Signing & Capabilities → + Capability → In-App Purchase.** Without it
+   StoreKit returns nothing and every product reads unavailable.
+4. **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
+   → `Products.storekit`.** This is how you test all nine purchases on the
+   simulator without App Store Connect, real money or a review.
+
+And before the first archive:
+
 * **Info.plist**: `ITSAppUsesNonExemptEncryption` = NO (the app uses no
   encryption and makes no connections).
-* **Orientation**: portrait and landscape both allowed. Portrait is the tuned
-  one; the game works either way and locking it is what the release audit
-  removed.
+* **Orientation**: portrait and landscape both allowed - which is what the
+  generated Info.plist already declares, and it matches the web manifest's
+  `"orientation": "any"`. Portrait is the tuned one; the game works either way
+  and locking it is what the release audit removed.
 * **Icon**: `storeart/ios/icon-1024.png`, produced by `scripts/storeart.mjs`,
   opaque as Apple requires.
 * **Screenshots**: `storeart/ios/en` and `storeart/ios/fr`, already at 1290x2796.
@@ -87,6 +125,8 @@ it is running on.
 |---|---|---|
 | `PhaseBilling.swift` | drag into the **App** target in Xcode | StoreKit 2: products, purchase sheet, entitlements, finishing |
 | `PhaseBilling.m` | beside it, same target | the ObjC macro that makes those four methods visible to the web view |
+| `App-Bridging-Header.h` | beside it, same target | lets the ObjC file above see Capacitor's headers - the template does not ship one |
+| `Products.storekit` | beside it, same target | the nine products, for testing purchases with no App Store Connect |
 | `src/game/storekit.ts` | already in the web build | dresses the plugin in the contract, and attaches at boot |
 
 Drag both native files into the App target (**Copy items if needed**, target
