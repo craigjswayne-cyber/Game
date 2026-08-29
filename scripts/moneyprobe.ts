@@ -214,7 +214,12 @@ clear()
 // before any store sold one
 // ten as of v1.1.4: the heal, the estate and the international stage joined
 // on the owner's overnight brief
-ok(M.NC_SKUS.length === 5 && M.CONSUMABLE_SKUS.length === 5, 'ten products: five owned for ever, five consumable')
+// v1.1.12: "Support the game" moved shelves. It grants nothing, so there is
+// nothing to lose by spending the receipt - and a tip jar that takes one coin
+// and greys out is not a tip jar (owner: "it should be repeatable at any
+// point").
+ok(M.NC_SKUS.length === 4 && M.CONSUMABLE_SKUS.length === 6, 'ten products: four owned for ever, six repeatable')
+ok(M.CONSUMABLE_SKUS.includes(M.SUPPORT_SKU), 'and the thank-you is one of the repeatable ones')
 ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 10, 'and no sku sits on both shelves')
 ok(![...M.NC_SKUS, ...M.CONSUMABLE_SKUS].includes('phase.editor'), 'and the Editor is not quietly back')
 
@@ -251,8 +256,8 @@ console.log('\n--- 11. restore, v1.1.0')
   clear()
   store.set('rm-ent', 'supporter')
   ok(M.hasSupporter(), 'a receipt written before v1.1.0 still stands, unre-litigated')
-  M.grant(M.SUPPORT_SKU)
-  ok(M.hasSupporter() && M.hasEntitlement(M.SUPPORT_SKU), 'and survives a new receipt joining it in the cache')
+  M.grant(M.CHARTER_SKU)
+  ok(M.hasSupporter() && M.hasEntitlement(M.CHARTER_SKU), 'and survives a new receipt joining it in the cache')
   ok(store.size === 1 && [...store.keys()][0] === 'rm-ent', 'still exactly one key beside night mode')
 }
 
@@ -331,7 +336,7 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   await M.consume(M.HEAL_SKU)
   ok(calls.includes('consume:tok-heal'), 'consuming by SKU finds the purchase TOKEN and spends it')
   ok(!(await b!.owned()).includes(M.HEAL_SKU), 'so Play will sell it again')
-  ok(await M.buyOwnable(M.SUPPORT_SKU) === 'owned', 'a non-consumable still buys')
+  ok(await M.buyOwnable(M.CHARTER_SKU) === 'owned', 'a non-consumable still buys')
   ok(calls.includes('ack:tok-new:onetime'), 'and is acknowledged as a one-time purchase')
 
   // ---- 13a2. WHICH KIND OF NOTHING ----------------------------------------
@@ -459,7 +464,7 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
     gg.PaymentRequest = abort('AbortError')
     const refreshed = await playBridge()
     g.rmBilling = refreshed!
-    ok(await M.buyOwnable(M.SUPPORT_SKU) === 'refused',
+    ok(await M.buyOwnable(M.CHARTER_SKU) === 'refused',
       'an INSTANT AbortError is a refusal, not a cancellation')
     ok((M.billingReason() ?? '').includes('not available'),
       `and the store's own words are kept for the shelf to show ("${M.billingReason()}")`)
@@ -572,8 +577,8 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
     'and STAYS owned before it is consumed - an interrupted purchase is recoverable, not lost')
   await M.consume(M.HEAL_SKU)
   ok(!(await b!.owned()).includes(M.HEAL_SKU), 'consuming finishes it, so the App Store will sell it again')
-  ok(await M.buyOwnable(M.SUPPORT_SKU) === 'owned', 'a non-consumable buys')
-  ok(finished.includes(M.SUPPORT_SKU), 'and is finished at once, because the entitlement is the record')
+  ok(await M.buyOwnable(M.CHARTER_SKU) === 'owned', 'a non-consumable buys')
+  ok(finished.includes(M.CHARTER_SKU), 'and is finished at once, because the entitlement is the record')
   ok(await M.buyOwnable('phase.nosuch') === 'unavailable', 'a SKU the store does not have is unavailable, not an error')
 
   // ---- the native files, read as text: three ways to disagree ------------
@@ -603,7 +608,7 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   ok(sellable.every(s => kitById.has(s)),
     `Products.storekit carries every sellable product (${kitById.size} of ${sellable.length})`)
   ok(M.CONSUMABLE_SKUS.every(s => kitById.get(s) === 'Consumable'),
-    'the five consumables are typed Consumable there')
+    'every consumable is typed Consumable there')
   ok(sellable.filter(s => !M.CONSUMABLE_SKUS.includes(s)).every(s => kitById.get(s) === 'NonConsumable'),
     'and the permanent ones NonConsumable')
   ok(!kitById.has(M.SUPPORTER_SKU),

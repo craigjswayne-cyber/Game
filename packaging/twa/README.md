@@ -152,7 +152,7 @@ first installed build showed (27 Aug).
 
 | Product ID | Play type | Product | Price |
 |---|---|---|---|
-| `phase.license` | Managed (non-consumable) | Support the game | $0.99 |
+| `phase.license` | Managed (**consumable** from v1.1.12) | Support the game | $0.99 |
 | `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
 | `phase.estate` | Managed (non-consumable) | The Estate | $9.99 |
 | `phase.pinnacle` | Managed (non-consumable) | The International Stage | $4.99 |
@@ -168,9 +168,33 @@ the code but its store row only renders where an ad provider exists
 ads**, not before — a purchasable "Remove all ads" in a build that shows no
 ads is a refund magnet and a review risk.
 
+### The price the customer sees is not always the price you typed
+
+The store row and every `REFERENCE_PRICES` entry in `src/game/monetise.ts` are
+GUIDE prices; Play's own answer always wins, and Play's answer is whatever
+Play Console is set to charge. Two Console settings decide that, and neither
+is in this repository:
+
+1. **Tax-inclusive or tax-exclusive pricing** (Play Console → Monetise →
+   *Manage settings* → *Tax and compliance* → the price-display setting for
+   each country). Set to tax-exclusive, Play ADDS VAT on top of the number you
+   typed, so a £9.99 product is charged at £11.99 in the UK - which is exactly
+   what the refund email showed on 29 Aug 2026. Set it to tax-inclusive and the
+   customer is charged the number on the row.
+2. **The per-country price**, which can drift from the template price if it was
+   ever edited by hand.
+
+Owner's brief, v1.1.12: "support the game should be 99p so adjust whatever the
+additional fee is thats made it higher so it is 99p only." That adjustment is
+made in Play Console on `phase.license`, not in the code - the code already
+says £0.99 and defers to whatever Play answers.
+
 Every id must match `src/game/monetise.ts` **exactly** - a typo does not error,
 it renders an unpriced button that cannot sell. The consumable/managed split
 matters just as much: a consumable sold as managed can only ever be bought once.
+(In Play a "managed product" is repeatable precisely because the APP consumes
+it, so `phase.license` becoming repeatable in v1.1.12 needed no Console edit -
+only the app spending the receipt.)
 Set each price, **activate** each one, and test with a licence-tester account
 before release: purchases by testers are free and refundable, and it is the only
 way to see the acknowledge path (`docs/monetisation.md`) work end to end - an
