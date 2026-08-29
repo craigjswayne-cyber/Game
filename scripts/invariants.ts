@@ -335,5 +335,32 @@ for (let season = 0; season < SEASONS; season++) {
   }
   console.log(`season ${g.season} reached, fails so far: ${fails}`)
 }
+// ---- THE WORLD REFILLS ITSELF -------------------------------------------
+//
+// Owner, v1.1.12: "when players retire do they get replaced with ai people?"
+// It does, by two routes - every academy graduates into its senior squad each
+// summer, and a notable retiree respawns as a newgen of similar potential at
+// the same club (rollover.ts, the heir block) - but nothing in the suite had
+// ever said so, and a world that quietly drains is the kind of fault that only
+// shows up in somebody's fourth season.
+//
+// Measured over eight seasons before this was written: 6,587 players at kick-off
+// settling to about 7,400, squads holding between 54 and 77. So the claim is
+// that five seasons of retirements leave every squad fieldable and the
+// population no smaller than it started.
+{
+  const sizes = Object.values(g.clubs).map(c => c.players.length)
+  const smallest = Math.min(...sizes)
+  const pop = Object.keys(g.players).length
+  const ok2 = (c: boolean, what: string) => {
+    console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
+    if (!c) fails++
+  }
+  ok2(smallest >= 30, `after five seasons of retirements every squad can still field a 23 (smallest ${smallest})`)
+  ok2(pop >= 6000, `and the world has not drained - retirees are replaced (${pop} players)`)
+  const oldest = Math.max(...Object.values(g.players).map(p => p.age))
+  ok2(oldest <= 40, `nobody is playing on for ever (oldest ${oldest})`)
+}
+
 if (fails === 0) console.log('INVARIANT AUDIT PASSED (5 seasons, weekly checks)')
 else { console.error(`INVARIANT AUDIT: ${fails} failures`); process.exit(1) }

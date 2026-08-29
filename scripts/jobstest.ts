@@ -2,7 +2,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
-import { applyForJob } from '../src/game/jobs'
+import { applyForJob, jobChance } from '../src/game/jobs'
 import { mgrReputation } from '../src/game/model'
 
 // This used to set confidence to 4 and hope thirty weeks of Montauban results
@@ -85,4 +85,52 @@ for (let i = 0; i < 6; i++) {
   processWeekAndAdvance(g)
 }
 console.log(`played on to season ${g.season} week ${g.week}, mgr record ${g.mgr.w}W-${g.mgr.d}D-${g.mgr.l}L`)
+// ---- THE BOARD READS THE SEAT YOU ARE SITTING IN -------------------------
+//
+// Owner, v1.1.12: "if you are head coach of a national team and of a top team,
+// other jobs a lot below them should be 100% a chance not a long shot."
+//
+// jobChance compared the manager's REPUTATION with the club's standing and
+// nothing else, and reputation is slow and earned: a coach appointed at
+// Northampton (rep 86) on day one still carries rep 22, so a rep 38
+// second-division board rolled him at 42% and the Job Centre card said Outside
+// shot. Nobody interviews the Northampton head coach for Sedgley Park and
+// wonders whether he is good enough.
+let cvFails = 0
+const cvOk = (c: boolean, what: string) => {
+  console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
+  if (!c) cvFails++
+}
+{
+  const h = newGame('northampton', 'CV', 4242)
+  const byRep = (r: number) => Object.values(h.clubs).sort((a, b) => Math.abs(a.rep - r) - Math.abs(b.rep - r))[0]
+  const small = byRep(38), mid = byRep(55), near = byRep(70), peer = byRep(86), giant = byRep(93)
+  cvOk(mgrReputation(h) < 30, `a day-one coach has nothing on paper yet (rep ${mgrReputation(h)})`)
+  cvOk(jobChance(h, small.id) >= 0.9,
+    `but the ${h.clubs[h.userClubId].short} job makes ${small.short} (rep ${small.rep}) a formality (${jobChance(h, small.id).toFixed(2)})`)
+  cvOk(jobChance(h, mid.id) >= 0.8,
+    `and ${mid.short} (rep ${mid.rep}) a strong favourite (${jobChance(h, mid.id).toFixed(2)})`)
+  cvOk(jobChance(h, near.id) >= 0.5,
+    `a step down is still comfortable (${near.short}, rep ${near.rep}: ${jobChance(h, near.id).toFixed(2)})`)
+  // and the ceiling is untouched: standing is not the same as having earned it
+  cvOk(jobChance(h, peer.id) <= 0.5,
+    `a club as big as your own is not a formality (${peer.short}, rep ${peer.rep}: ${jobChance(h, peer.id).toFixed(2)})`)
+  cvOk(jobChance(h, giant.id) <= 0.2,
+    `and a giant still says no politely (${giant.short}, rep ${giant.rep}: ${jobChance(h, giant.id).toFixed(2)})`)
+
+  // THE TEST JOB IS A CV OF ITS OWN, and it survives losing the club job -
+  // which is the case the owner named, since a national coach between club
+  // posts is exactly who a smaller board should be queuing up for.
+  const j = newGame('montauban', 'CV2', 4243)
+  j.unemployed = true
+  const tiny = Object.values(j.clubs).sort((a, b) => a.rep - b.rep)[0]
+  const before = jobChance(j, tiny.id)
+  j.natTeam = 'SCO'
+  const after = jobChance(j, tiny.id)
+  cvOk(after > before,
+    `coaching a Test side is worth something on its own (${before.toFixed(2)} -> ${after.toFixed(2)} at ${tiny.short})`)
+  cvOk(after >= 0.9, `enough that a rep ${tiny.rep} board is not a gamble (${after.toFixed(2)})`)
+}
+if (cvFails) { console.error(`JOBS TEST FAILED (${cvFails})`); process.exit(1) }
+
 console.log('JOBS TEST PASSED')
