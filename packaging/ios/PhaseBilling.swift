@@ -13,7 +13,7 @@
 //
 //  THE ONE DESIGN DECISION WORTH READING: CONSUMABLES ARE LEFT UNFINISHED.
 //
-//  A consumable (the four board injections and Full Fitness) is bought here
+//  A consumable (the four board injections, Full Fitness and the tip jar) is bought here
 //  and its transaction is deliberately NOT finished at purchase. It is
 //  finished by consume(sku), which the game calls only after the career has
 //  actually kept what was bought.
@@ -36,12 +36,15 @@ import StoreKit
 @objc(PhaseBilling)
 public class PhaseBilling: CAPPlugin {
 
-    /// The five consumables. Everything else in the catalogue is owned for
+    /// The repeatable products. Everything else in the catalogue is owned for
     /// ever. This list is the ONLY place the two kinds are told apart on this
     /// side, and it must match CONSUMABLE_SKUS in src/game/monetise.ts.
     private static let consumables: Set<String> = [
         "phase.inject.s", "phase.inject.m", "phase.inject.l", "phase.inject.xl",
         "phase.heal",
+        // v1.1.12: "Support the game" is a tip jar, and a tip jar takes more
+        // than one coin. It grants nothing, so finishing it costs nothing.
+        "phase.license",
     ]
 
     /// Ask-to-Buy, a purchase approved on another device, a subscription

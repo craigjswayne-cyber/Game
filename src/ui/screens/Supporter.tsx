@@ -4,7 +4,8 @@ import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  billingReason, lookupReason, pendingConsumables, restore, skuPrice, tillHealth, tillOpen,
+  billingReason, lookupReason, pendingConsumables, recordSupport, restore, skuPrice,
+  supportCount, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
@@ -195,6 +196,21 @@ export default function Supporter() {
       say(INJECT_SKUS[tier], t('till.injHeld'))
     }
   }
+  /** THE TIP JAR. A consumable that grants nothing: buy it, spend the receipt
+   *  at once so Play will sell it again, and say thank you by name. Nothing
+   *  here can fail in a way that costs the player anything - a consume that
+   *  does not land just leaves the receipt owned, and the next tap consumes
+   *  it. */
+  const buySupport = async () => {
+    setBusy(true)
+    const out = await buyConsumable(SUPPORT_SKU)
+    if (out === 'owned') {
+      await consume(SUPPORT_SKU)
+      say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
+    } else say(SUPPORT_SKU, endingText(out))
+    setBusy(false)
+  }
+
   const buyInjection = async (tier: InjectTier) => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
     setBusy(true)
@@ -214,7 +230,9 @@ export default function Supporter() {
 
   const adsExist = !!adBridge()
   const ownsAds = hasEntitlement(SUPPORTER_SKU)
-  const ownsSupport = hasEntitlement(SUPPORT_SKU)
+  // v1.1.12: the jar takes as many coins as anyone wants to put in it, so
+  // there is no "owned" state to show - only how many times it has been done
+  const tips = supportCount()
   const ownsPinnacle = hasEntitlement(PINNACLE_SKU)
   const ownsEstate = hasEntitlement(ESTATE_SKU)
   const ownsCharter = hasEntitlement(CHARTER_SKU)
@@ -230,7 +248,9 @@ export default function Supporter() {
       )}
 
       <Row icon="💛" title={t('store.support')} line={t('store.supportLine')} msg={msgs[SUPPORT_SKU]}
-        right={ownsSupport ? <OwnedChip /> : <BuyBtn sku={SUPPORT_SKU} busy={busy} onBuy={() => void buyNC(SUPPORT_SKU)} />} />
+        right={<BuyBtn sku={SUPPORT_SKU} busy={busy} onBuy={() => void buySupport()} />}>
+        {tips > 0 && <div className="meta muted">{t('store.supportThanks', { n: tips })}</div>}
+      </Row>
 
       <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
         right={<BuyBtn sku={HEAL_SKU} busy={busy} onBuy={() => void buyHeal()} />}>

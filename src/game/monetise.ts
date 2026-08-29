@@ -98,10 +98,22 @@ export const INJECT_SKUS = {
 export const HEAL_SKU = 'phase.heal'
 
 /** Owned once, restorable from the store for ever. */
-export const NC_SKUS = [SUPPORTER_SKU, SUPPORT_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
+export const NC_SKUS = [SUPPORTER_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
 /** Bought, consumed, buyable again - the store forgets them, the career keeps
- *  what they did. */
-export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU] as string[]
+ *  what they did.
+ *
+ *  SUPPORT_SKU joined them in v1.1.12 (owner: "Support the game should be
+ *  available more than once - it should be repeatable at any point"). It is
+ *  the one product that grants NOTHING, so there is nothing to lose by
+ *  spending the receipt, and everything to lose by not: a tip jar that
+ *  accepts one coin and then greys out is not a tip jar. On Play a managed
+ *  product is repeatable precisely because the app consumes it, so this is
+ *  the whole change - no new product id, no Console edit.
+ *
+ *  Anyone who bought it as the Manager's License, or as the one-shot thank
+ *  you, keeps that receipt in rm-ent; nothing reads it, and nothing ever
+ *  did. */
+export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU, SUPPORT_SKU] as string[]
 
 export type Entitlement = 'free' | 'supporter'
 
@@ -228,6 +240,28 @@ export function grantSupporter() { grant(SUPPORTER_SKU) }
 
 export function hasEntitlement(sku: string): boolean {
   return ownedCache().has(sku)
+}
+
+/** HOW MANY TIMES THIS DEVICE HAS PUT SOMETHING IN THE JAR.
+ *
+ *  Not an entitlement and not save state: the receipt is consumed the moment
+ *  it lands, so the only record that a thank-you happened is this one. It
+ *  buys nothing - it is there so the store can say thank you properly the
+ *  fourth time as well as the first. A cleared browser forgets it, which
+ *  costs the player exactly nothing. */
+const TIPS_KEY = 'rm-tips'
+
+export function supportCount(): number {
+  try {
+    const n = Number(globalThis.localStorage?.getItem(TIPS_KEY) ?? '0')
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0
+  } catch { return 0 }
+}
+
+export function recordSupport(): number {
+  const n = supportCount() + 1
+  try { globalThis.localStorage?.setItem(TIPS_KEY, String(n)) } catch { /* private mode: the thank-you is still real */ }
+  return n
 }
 
 /** THE QUESTION THE REST OF THE GAME ASKS about advertising. */

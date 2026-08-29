@@ -162,12 +162,19 @@ try {
       'and NO Remove-all-ads row, because this build ships no ads to remove')
     ok(!/what it does not do/i.test(till), 'the essays are gone - each product is one line')
 
-    // buy Support the game from its row: acknowledged, the row turns into a
-    // receipt (v1.1.6: the Manager's License swapped for this thank-you)
+    // buy Support the game from its row. v1.1.12: this is a TIP JAR now
+    // (owner: "it should be repeatable at any point"), so the row does not
+    // turn into a receipt - it thanks you and stays buyable, and the count
+    // goes up every time.
     await page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold').click()
     await page.waitForTimeout(600)
     const after = await page.locator('.card', { hasText: 'Support the game' }).innerText()
-    ok(/Yours/.test(after), 'a completed purchase turns the row into a receipt')
+    ok(/Thank you/i.test(after), 'a completed thank-you is acknowledged in words')
+    ok(!/Yours/.test(after), 'and the row does NOT become a receipt - a tip jar takes more than one coin')
+    await page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold').click()
+    await page.waitForTimeout(600)
+    ok(await page.locator('.card', { hasText: 'Support the game' }).innerText().then(x => /2/.test(x)),
+      'and a second coin goes in, counted')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
     await page.close()
   }

@@ -5439,6 +5439,8 @@
     "healWait": "La retraite exige un match entre deux visites - jouez-en un et elle rouvre.",
     "pickNation": "À vous. Choisissez la fédération et prenez le poste - la nomination est immédiate.",
     "support": "Soutenir le jeu",
-    "supportLine": "Un merci au développeur. Cela ne change rien dans le jeu."
+    "supportLine": "Un merci au développeur. Cela ne change rien dans le jeu.",
+    "supportThanks": "Donné {n} fois. Merci - cela compte vraiment.",
+    "supportDone": "Merci. Cela fait {n} de votre part, et tout repart dans le jeu."
   }
 }

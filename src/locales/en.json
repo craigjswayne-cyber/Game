@@ -5439,6 +5439,8 @@
     "healWait": "The retreat needs a match between visits - play one and it reopens.",
     "pickNation": "Yours. Pick the federation and take the job - the appointment is immediate.",
     "support": "Support the game",
-    "supportLine": "A thank-you to the developer. It changes nothing in the game."
+    "supportLine": "A thank-you to the developer. It changes nothing in the game.",
+    "supportThanks": "Put in {n} times. Thank you - it genuinely matters.",
+    "supportDone": "Thank you. That is {n} from you now, and it goes straight back into the game."
   }
 }
