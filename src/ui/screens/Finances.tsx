@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  rewardedAvailable, showRewarded, skuPrice, tillOpen,
+  billingReason, rewardedAvailable, showRewarded, skuPrice, tillOpen,
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
@@ -413,10 +413,14 @@ function BoardFunds() {
 
   const sayOutcome = (key: string, out: string) => setMsg({
     key,
+    // a refusal names itself here too - the Charter desk is the one shelf row
+    // that did not move to the Store, so it needs the same diagnosis
     text: t(out === 'cancelled' ? 'supporter.cancelled'
       : out === 'pending' ? 'till.pending'
       : out === 'unavailable' ? 'supporter.unavailable'
-      : 'supporter.error'),
+      : out === 'refused' ? 'supporter.refused'
+      : 'supporter.error')
+      + (out === 'refused' && billingReason() ? ` (${billingReason()})` : ''),
   })
 
   const buyCharter = async () => {

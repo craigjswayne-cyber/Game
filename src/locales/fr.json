@@ -3016,6 +3016,7 @@
     "alreadyYours": "Déjà à vous - rien à restaurer.",
     "badge": "Soutien",
     "cancelled": "Rien n'a été débité.",
+    "refused": "La boutique n'a pas voulu ouvrir d'achat pour cet article. Rien n'a été débité. Cela signifie en général que le produit n'est pas encore actif, ou que ce compte n'est pas sur la liste de test des licences.",
     "error": "La boutique est injoignable. Rien n'a été débité - réessayez plus tard.",
     "nothingToRestore": "Rien à restaurer sur ce compte.",
     "pending": "La boutique traite encore l'achat. Rien de plus à faire ici : il arrivera tout seul, et Restaurer le récupérera si vous fermez le jeu entre-temps.",

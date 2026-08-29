@@ -29,6 +29,7 @@
  * is paid for and not yet spent, and the game's existing pendingConsumables
  * recovery rows work on iOS without knowing iOS exists.
  */
+import { setBillingReason } from './monetise'
 import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
 
 /** What the Swift plugin promises. Capacitor hands every method an object and
@@ -53,7 +54,8 @@ type WithCapacitor = {
  *  that guesses in the customer's favour is how a game gives things away, and
  *  one that guesses against them is how it takes money for nothing. */
 const asOutcome = (s: string): PurchaseOutcome =>
-  s === 'owned' || s === 'cancelled' || s === 'pending' || s === 'unavailable' ? s : 'error'
+  s === 'owned' || s === 'cancelled' || s === 'pending' || s === 'unavailable' || s === 'refused'
+    ? s : 'error'
 
 /**
  * Build a bridge if - and only if - this is the iOS shell with the plugin in
@@ -77,10 +79,17 @@ export function storeKitBridge(): BillingBridge | null {
   }
 
   const buy = async (sku: string): Promise<PurchaseOutcome> => {
+    setBillingReason(null)
     try {
       const { outcome } = await p.buy({ sku })
       return asOutcome(outcome)
-    } catch { return 'error' }
+    } catch (e) {
+      // the same rule the Android side learned: a store that would not sell
+      // must say so in its own words, or the fault is invisible from inside
+      // the game
+      setBillingReason((e as Error)?.message ?? 'no detail')
+      return 'refused'
+    }
   }
 
   const owned = async (): Promise<string[]> => {

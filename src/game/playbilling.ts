@@ -26,7 +26,7 @@
  * handshake means no bridge, which means no purchase door, which is exactly what
  * the web build should look like.
  */
-import { CONSUMABLE_SKUS } from './monetise'
+import { CONSUMABLE_SKUS, setBillingReason } from './monetise'
 import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
@@ -83,7 +83,17 @@ export async function playBridge(): Promise<BillingBridge | null> {
     } catch { return null }
   }
 
+  /** A human cannot open Play's sheet, read it and dismiss it inside this
+   *  many milliseconds. An AbortError that arrives faster than this is Play
+   *  refusing to open the sheet at all - the item is not active, the account
+   *  is not a licensed tester, the installed build predates the products -
+   *  and calling that a cancellation is what made the fault invisible. */
+  const HUMAN_MS = 1200
+
   const buy = async (sku: string): Promise<PurchaseOutcome> => {
+    setBillingReason(null)
+    const asked = Date.now()
+    let res: Awaited<ReturnType<InstanceType<NonNullable<WithDigitalGoods['PaymentRequest']>>['show']>>
     try {
       const req = new w.PaymentRequest!(
         [{ supportedMethods: PLAY, data: { sku } }],
@@ -91,22 +101,35 @@ export async function playBridge(): Promise<BillingBridge | null> {
         // its numbers are ignored
         { total: { label: 'Total', amount: { currency: 'GBP', value: '0' } } },
       )
-      const res = await req.show()
-      const token = res.details?.token
-      // ACKNOWLEDGE, OR PLAY REFUNDS IT. An unacknowledged purchase is
-      // automatically refunded after three days, which looks to the customer
-      // like the game took their money and then took the badge back.
-      if (token && svc.acknowledge) {
-        await svc.acknowledge(token, CONSUMABLE_SKUS.includes(sku) ? 'repeatable' : 'onetime')
-      }
-      await res.complete('success')
-      return 'owned'
+      res = await req.show()
     } catch (e) {
+      const err = e as Error
+      const quick = Date.now() - asked < HUMAN_MS
       // a cancel arrives as an AbortError and is not a failure: telling somebody
       // who changed their mind that something went wrong is how a purchase flow
-      // earns a one-star review
-      return (e as Error)?.name === 'AbortError' ? 'cancelled' : 'error'
+      // earns a one-star review. But only a SLOW AbortError is a cancel.
+      if (err?.name === 'AbortError' && !quick) return 'cancelled'
+      setBillingReason(`${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'}`)
+      return 'refused'
     }
+
+    // PAID. From here the money may already be gone, so nothing below may
+    // report a failure that would make the player try again.
+    const token = res.details?.token
+    try { await res.complete('success') } catch { /* the sheet closed itself */ }
+    // ACKNOWLEDGE, OR PLAY REFUNDS IT. An unacknowledged purchase is
+    // automatically refunded after three days, which looks to the customer
+    // like the game took their money and then took the badge back. It used to
+    // run BEFORE complete() and inside the same try, so a failure here both
+    // left the sheet hanging and reported 'error' on a purchase that had been
+    // paid for. Now it cannot: the receipt stays in listPurchases and Restore
+    // picks it up.
+    if (token && svc.acknowledge) {
+      try {
+        await svc.acknowledge(token, CONSUMABLE_SKUS.includes(sku) ? 'repeatable' : 'onetime')
+      } catch { /* unacknowledged but owned: restore() and consume() both still see it */ }
+    }
+    return 'owned'
   }
 
   const owned = async (): Promise<string[]> => {

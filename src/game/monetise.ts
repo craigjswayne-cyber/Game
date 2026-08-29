@@ -111,7 +111,32 @@ export type Entitlement = 'free' | 'supporter'
  *  for days (a parent's approval, a slow card), and treating that as a failure
  *  tells somebody who has paid that they have not. A pending consumable grants
  *  nothing until the bridge reports it owned. */
-export type PurchaseOutcome = 'owned' | 'cancelled' | 'pending' | 'unavailable' | 'error'
+export type PurchaseOutcome = 'owned' | 'cancelled' | 'pending' | 'unavailable' | 'refused' | 'error'
+
+/**
+ * WHY THE LAST PURCHASE ENDED THE WAY IT DID.
+ *
+ * Play rejects a purchase sheet with an AbortError for a whole family of
+ * reasons, and only one of them is "the customer pressed Back": an item that
+ * is not active in the console, an account that is not a licensed tester, a
+ * build older than the products, billing unavailable on the device. Mapping
+ * them all to `cancelled` gave the same blameless "Nothing was charged." line
+ * to a man who had changed his mind and to a store that had refused outright
+ * - which is what the owner spent two evenings looking at.
+ *
+ * So the bridge leaves the reason here and the Store shows it. It is a
+ * diagnostic, not a headline: one small grey line under the row.
+ */
+let lastReason: string | null = null
+export const setBillingReason = (why: string | null) => { lastReason = why }
+/** The bridge's own account of the last refusal wins where it has one: a
+ *  native shell knows more about its store than this module does. The
+ *  built-in Android and iOS bridges use setBillingReason above; a wrapper
+ *  that injects its own rmBilling can implement reason() instead. */
+export const billingReason = (): string | null => {
+  const own = bridge()?.reason?.()
+  return own ?? lastReason
+}
 
 export interface Product {
   sku: string
@@ -136,6 +161,9 @@ export interface BillingBridge {
   /** Open the store's own purchase sheet. Never our own UI: a payment form
    *  drawn by the game is the fastest rejection on either store. */
   buy(sku: string): Promise<PurchaseOutcome>
+  /** Optional: why the last buy() ended in 'refused', in the store's own
+   *  words. Shown as a small diagnostic line, never as the headline. */
+  reason?(): string | null
   /** What this account already owns. Restores a reinstall or a second device.
    *  For consumables, "owned" means bought-and-not-yet-consumed: a purchase
    *  the game crashed before consuming shows up here, which is the recovery

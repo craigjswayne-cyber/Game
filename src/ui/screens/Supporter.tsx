@@ -4,7 +4,7 @@ import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  pendingConsumables, restore, skuPrice, tillHealth, tillOpen,
+  billingReason, pendingConsumables, restore, skuPrice, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
@@ -33,12 +33,23 @@ import { t } from '../../game/i18n'
  * unavailable / error), one line under the row it belongs to.
  */
 
-type Ending = 'owned' | 'cancelled' | 'pending' | 'unavailable' | 'error'
+type Ending = 'owned' | 'cancelled' | 'pending' | 'unavailable' | 'refused' | 'error'
 const endingKey = (out: Ending) =>
   out === 'cancelled' ? 'supporter.cancelled'
     : out === 'pending' ? 'supporter.pending'
     : out === 'unavailable' ? 'supporter.unavailable'
+    : out === 'refused' ? 'supporter.refused'
     : 'supporter.error'
+
+/** What the shelf says when a purchase ends, plus - on a refusal only - the
+ *  store's own words for why. A player who pressed Back gets one short line
+ *  and nothing else; a store that would not open the sheet gets named, because
+ *  otherwise the fault is invisible from inside the game. */
+const endingText = (out: Ending) => {
+  const line = t(endingKey(out))
+  const why = out === 'refused' ? billingReason() : null
+  return why ? `${line} (${why})` : line
+}
 
 /** One product on the shelf: icon, name, one line, one button. */
 function Row({ icon, title, line, right, msg, children }: {
@@ -139,7 +150,7 @@ export default function Supporter() {
     const out = await buyOwnable(sku)
     setBusy(false)
     if (out === 'owned') { claim(); thenApply?.(); say(sku, t('store.bought')) }
-    else say(sku, t(endingKey(out)))
+    else say(sku, endingText(out))
   }
 
   const applyHealNow = async () => {
@@ -160,7 +171,7 @@ export default function Supporter() {
     const out = await buyConsumable(HEAL_SKU)
     setBusy(false)
     if (out === 'owned') await applyHealNow()
-    else say(HEAL_SKU, t(endingKey(out)))
+    else say(HEAL_SKU, endingText(out))
   }
 
   /** Land a paid injection in this career, and only then spend the receipt -
@@ -183,7 +194,7 @@ export default function Supporter() {
     setBusy(true)
     const out = await buyConsumable(INJECT_SKUS[tier])
     if (out === 'owned') await landInjection(tier)
-    else say(INJECT_SKUS[tier], t(endingKey(out)))
+    else say(INJECT_SKUS[tier], endingText(out))
     setBusy(false)
   }
 

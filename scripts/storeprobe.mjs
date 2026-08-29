@@ -29,27 +29,36 @@ const server = await startPreview('4209', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** A page with, or without, a store attached before the app boots. */
-const openPage = async ({ billing = false, ads = false, owns = [], deaf = false } = {}) => {
+const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false } = {}) => {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   if (billing) {
-    await page.addInitScript(([owned, mute]) => {
+    await page.addInitScript(([owned, mute, refuse]) => {
       // the same shape a Play TWA's Digital Goods wrapper has (v1.1.0):
       // non-consumables stay owned once bought; a consumable stays in owned()
       // until the game consumes it, which is the recovery path under test
       const bought = new Set()
+      let why = null
       globalThis.rmBilling = {
         // `mute` is a store that is REACHABLE BUT SILENT: the wrapper is
         // there, the products are not (not activated in the console, licence
         // testing not set up). It is the exact shape of the v1.1.6 fault, and
         // before v1.1.9 it was indistinguishable on screen from a working one.
         details: async (sku) => { if (mute) throw new Error('not available'); return { sku, price: '£2.99' } },
-        buy: async (sku) => { bought.add(sku); return 'owned' },
+        // `refuse` is Play declining to open the sheet at all - an inactive
+        // product, an account off the licence-testing list. The bridge reports
+        // it as a refusal with the store's own words attached, and this checks
+        // those words reach the screen.
+        buy: async (sku) => {
+          if (refuse) { why = 'AbortError: item unavailable'; return 'refused' }
+          bought.add(sku); return 'owned'
+        },
+        reason: () => why,
         owned: async () => [...new Set([...owned, ...bought])],
         consume: async (sku) => { bought.delete(sku) },
       }
-    }, [owns, deaf])
+    }, [owns, deaf, refuse])
   }
   if (ads) {
     await page.addInitScript(() => {
@@ -300,6 +309,31 @@ try {
     ok(/guide prices/i.test(till), 'and that the figures on it are guides, not the store\'s')
     ok(/£0\.99/.test(till), 'the rows still carry a price, so nothing stands blank')
     ok(!/£2\.99/.test(till), "and none of them is the store's, because it never gave one")
+    await page.close()
+  }
+
+
+  // ---- 2e. a store that opens, prices, and then will not sell -------------
+  //
+  // Owner, on v1.1.9: "all show products - nothing is charged is still coming
+  // up". Every ending that was not a clean purchase used to read "Nothing was
+  // charged." - the line for somebody who pressed Back - so a store refusing
+  // outright and a customer changing his mind were the same sentence. This
+  // holds the shelf to naming a refusal, and to repeating the store's own
+  // words for it.
+  say('\n--- 2e. a store that prices happily and then refuses the sale')
+  {
+    const page = await openPage({ billing: true, refuse: true })
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+    await page.locator('.btn.gold', { hasText: 'Buy' }).first().click()
+    await page.waitForTimeout(600)
+    const till = await page.locator('.content').innerText()
+    ok(/would not open a purchase/i.test(till), 'the shelf says the store refused, not that you cancelled')
+    ok(/not active yet|licence-testing/i.test(till), 'and names the two things worth checking')
+    ok(/item unavailable/i.test(till), "with the store's own words carried through for diagnosis")
     await page.close()
   }
 

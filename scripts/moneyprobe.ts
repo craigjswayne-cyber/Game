@@ -322,6 +322,87 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   ok(!(await b!.owned()).includes(M.HEAL_SKU), 'so Play will sell it again')
   ok(await M.buyOwnable(M.SUPPORT_SKU) === 'owned', 'a non-consumable still buys')
   ok(calls.includes('ack:tok-new:onetime'), 'and is acknowledged as a one-time purchase')
+
+  // ---- 13b. A REFUSAL IS NOT A CANCELLATION -------------------------------
+  //
+  // Owner, on v1.1.9: "all show products - nothing is charged is still coming
+  // up". Play rejects show() with an AbortError for a whole family of reasons
+  // and only one of them is a customer pressing Back - an inactive product, an
+  // account that is not a licensed tester, a build older than the products.
+  // Mapping them all to 'cancelled' gave "Nothing was charged." to a man who
+  // had changed his mind AND to a store refusing outright, which is why the
+  // fault could not be read from inside the game.
+  //
+  // The tell is the clock: nobody opens, reads and dismisses a payment sheet
+  // in under 1.2 seconds.
+  {
+    const abort = (name: string) => class {
+      async show(): Promise<never> {
+        const e = new Error('the item is not available'); e.name = name; throw e
+      }
+    }
+    // (a) an instant AbortError is Play refusing, and it says why
+    gg.PaymentRequest = abort('AbortError')
+    const refreshed = await playBridge()
+    g.rmBilling = refreshed!
+    ok(await M.buyOwnable(M.SUPPORT_SKU) === 'refused',
+      'an INSTANT AbortError is a refusal, not a cancellation')
+    ok((M.billingReason() ?? '').includes('not available'),
+      `and the store's own words are kept for the shelf to show ("${M.billingReason()}")`)
+
+    // (b) a slow one really is somebody changing their mind, and says nothing
+    gg.PaymentRequest = class {
+      async show(): Promise<never> {
+        await new Promise(r => setTimeout(r, 1300))
+        const e = new Error('user closed the sheet'); e.name = 'AbortError'; throw e
+      }
+    }
+    const slow = await playBridge()
+    g.rmBilling = slow!
+    ok(await M.buyOwnable(M.ESTATE_SKU) === 'cancelled',
+      'a SLOW AbortError is a customer changing their mind, and is reported as one')
+    ok(M.billingReason() === null, 'with nothing blamed on anybody')
+
+    // (c) any other error names itself too
+    gg.PaymentRequest = abort('NotSupportedError')
+    const other = await playBridge()
+    g.rmBilling = other!
+    ok(await M.buyOwnable(M.ESTATE_SKU) === 'refused', 'and a non-abort failure is a refusal as well')
+    ok((M.billingReason() ?? '').startsWith('NotSupportedError'), 'named by its own error')
+  }
+
+  // ---- 13c. MONEY TAKEN IS MONEY TAKEN ------------------------------------
+  //
+  // acknowledge() used to run BEFORE complete() and inside the same try, so a
+  // failure there reported 'error' - "try again later" - on a purchase Play
+  // had already charged for, and left the sheet hanging. The receipt is in
+  // listPurchases either way, so the honest answer is 'owned'.
+  {
+    let completed = ''
+    gg.PaymentRequest = class {
+      async show() {
+        return {
+          details: { token: 'tok-paid' },
+          complete: async (status: string) => { completed = status },
+        }
+      }
+    }
+    gg.getDigitalGoodsService = async () => ({
+      getDetails: async (skus: string[]) =>
+        skus.map(itemId => ({ itemId, title: 'A thing', price: { value: '0.99', currency: 'GBP' } })),
+      listPurchases: async () => [{ itemId: M.ESTATE_SKU, purchaseToken: 'tok-paid' }],
+      acknowledge: async () => { throw new Error('acknowledge failed') },
+    })
+    const paid = await playBridge()
+    clear()                       // no receipt on file, so this is a fresh buy
+    g.rmBilling = paid!
+    ok(await M.buyOwnable(M.ESTATE_SKU) === 'owned',
+      'a purchase whose acknowledgement fails is still OWNED - the money went')
+    ok(completed === 'success', 'and the payment sheet is closed rather than left hanging')
+    ok((await paid!.owned()).includes(M.ESTATE_SKU),
+      'the receipt is still in the account, so Restore can acknowledge it later')
+  }
+
   delete gg.getDigitalGoodsService
   delete gg.PaymentRequest
 }
