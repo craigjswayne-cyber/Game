@@ -49,6 +49,17 @@ export const IcoTrophy = () => (
   </svg>
 )
 
+/** The country desk. A globe with the meridians a rugby ball's seams suggest -
+ *  it has to read at 20px on a bottom bar beside a trophy and a clipboard, so
+ *  it is three strokes and no more. */
+export const IcoGlobe = () => (
+  <svg viewBox="0 0 24 24" {...S}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M3.5 12h17" />
+    <path d="M12 3.5c2.6 2.4 2.6 14.6 0 17M12 3.5c-2.6 2.4-2.6 14.6 0 17" />
+  </svg>
+)
+
 export const IcoTransfer = () => (
   <svg viewBox="0 0 24 24" {...S}>
     <path d="M4 8.5h12.5M13.5 4.5l4 4-4 4" />

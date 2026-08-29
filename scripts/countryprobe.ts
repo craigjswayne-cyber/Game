@@ -28,8 +28,9 @@
 //   7. Leaving the job moves the Test record to the profile's permanent
 //      history instead of the bin.
 import { newGame } from '../src/game/newgame'
-import { natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
-import { natCallUp, natDrop, natEligible, natWindow, NAT_SQUAD_FLOOR } from '../src/game/country'
+import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
+import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
+import { NAT_SQUAD_SIZE, homeBased } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { Fixture, GameState } from '../src/game/model'
@@ -201,6 +202,48 @@ const hist = g.natHistory ?? []
 const last = hist[hist.length - 1]
 ok(!!last && last.nat === 'SCO' && last.m === before7.m && last.w === before7.w,
   `the Test record moved to the profile's history (${last ? `${last.nat} ${last.w}W ${last.d}D ${last.l}L of ${last.m}` : 'nothing archived'})`)
+
+console.log('\n--- 8. the pinnacle, v1.1.12: one squad size, a home-based rule, a countdown\n')
+{
+  // ONE NUMBER FOR A SQUAD (owner: "squad should be 32"). It used to be 26
+  // for most windows, 28 at a World Cup and 30 for a Lions tour - picked
+  // window by window and never the same twice, so a coach never learned what
+  // a squad was.
+  const g8 = newGame('northampton', 'Country Probe', 8801)
+  const sizes = new Set(activeWindows(g8).map(w => w.size))
+  ok(sizes.size === 1 && sizes.has(NAT_SQUAD_SIZE),
+    `every window names the same ${NAT_SQUAD_SIZE} (${[...sizes].join(', ')})`)
+  ok(NAT_SQUAD_SIZE > NAT_SQUAD_FLOOR, 'and there is room above the matchday 23 to trim into')
+
+  // ENGLAND AND FRANCE PICK AT HOME (owner: "players who dont play in England
+  // should not be able to be selected for England"). It is the real RFU and
+  // FFR rule and nobody else's: applying it everywhere would empty the Pumas
+  // and the Springboks, whose first choices play in Europe.
+  const abroad = Object.values(g8.players).find(p =>
+    p.nat === 'ENG' && p.clubId && g8.clubs[p.clubId] && g8.clubs[p.clubId].country !== 'ENG')
+  ok(!!abroad, `an England-qualified man playing his club rugby abroad exists to test with (${abroad?.name ?? 'none'})`)
+  if (abroad) {
+    ok(!homeBased(g8, abroad, 'ENG'), `${abroad.name} is barred from England while he plays in ${g8.clubs[abroad.clubId!].country}`)
+    ok(homeBased(g8, abroad, 'IRE') && homeBased(g8, abroad, 'RSA'),
+      'and the bar is England and France only - Ireland and South Africa pick abroad, as they really do')
+  }
+  const home = Object.values(g8.players).find(p =>
+    p.nat === 'ENG' && p.clubId && g8.clubs[p.clubId]?.country === 'ENG')
+  ok(!!home && homeBased(g8, home, 'ENG'), 'a Premiership Englishman is picked as he always was')
+  g8.natTeam = 'ENG'
+  const pool8 = natEligible(g8)
+  ok(pool8.length > 200, `and the England pool is still a real pool (${pool8.length})`)
+  ok(pool8.every(p => p.clubId && g8.clubs[p.clubId]?.country === 'ENG'),
+    'with nobody on it who plays his club rugby abroad')
+
+  // THE COUNTDOWN (owner: "could we have days til squad work"). The window
+  // calendar always knew and nothing ever said it.
+  const wks = weeksToSquad(g8)
+  ok(wks != null && wks >= 0, `the next camp is counted down, not guessed (${wks} weeks)`)
+  while (!natWindow(g8) && g8.week < 45) processWeekAndAdvance(g8)
+  ok(natWindow(g8) == null || weeksToSquad(g8) === null,
+    'and the countdown says nothing once the camp is open - there is nothing left to wait for')
+}
 
 console.log(fails ? `\nCOUNTRY PROBE FAILED (${fails})` : '\nCOUNTRY PROBE PASSED: the pinnacle has a desk of its own')
 process.exit(fails ? 1 : 0)

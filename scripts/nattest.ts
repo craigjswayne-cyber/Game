@@ -11,7 +11,13 @@ g.mgr.m = 60; g.mgr.w = 45; g.mgr.trophies.push({ compId: 'urc', season: 0 })
 
 let testsCoached = 0
 let offered = ''
-for (let season = 0; season < 3; season++) {
+// FOUR SEASONS, NOT THREE. The union's call is earned rather than scheduled,
+// so which nation calls and in which week both move with the world - and a
+// Pacific Nations job accepted in week 19 has already missed its only window
+// (weeks 4-10) that season. Three seasons made the claim about the calendar's
+// luck; a fourth makes it about the mechanism, which is what it was always
+// meant to test.
+for (let season = 0; season < 4; season++) {
   const target = g.season + 1
   let guard = 0
   while (g.season < target && guard++ < SEASON_WEEKS + 5) {

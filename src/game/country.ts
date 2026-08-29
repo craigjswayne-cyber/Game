@@ -11,12 +11,18 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
+import { NAT_SQUAD_SIZE, homeBased } from './nations'
 import { t } from './i18n'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 
 /** The floor a Test squad can be trimmed to: a matchday 23 plus cover. */
 export const NAT_SQUAD_FLOOR = 23
+
+// the squad size and the home-based rule live in nations.ts, because the
+// season engine builds the federation's own list and must obey the same two
+// rules the coach does - and country.ts already imports from season.ts
+export { NAT_SQUAD_SIZE, homeBased } from './nations'
 
 /** The open call-up window for the user's nation, or null between windows.
  *  Open means the squad exists AND the calendar says the window is running -
@@ -41,7 +47,7 @@ function callable(state: GameState, p: Player): boolean {
   const nat = state.natTeam
   if (!nat) return false
   const natMatch = nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat
-  return natMatch && !p.injury && !p.natSquad
+  return natMatch && homeBased(state, p, nat) && !p.injury && !p.natSquad
 }
 
 /** The next men in: EVERY qualified player outside the current Test squads,
@@ -65,6 +71,7 @@ export function natCallUp(state: GameState, playerId: number): string | null {
   if (!p) return t('reply.noSuchPlayer')
   if (squad.includes(playerId) || p.natSquad) return t('reply.alreadyInTestSquad', { player: p.name })
   if (!(nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat)) return t('reply.notQualified', { player: p.name })
+  if (!homeBased(state, p, nat)) return t('reply.notHomeBased', { player: p.name, nat })
   if (p.injury) return t('reply.injuredNotPassed', { player: p.name })
   if (squad.length >= w.size) return t('reply.squadCapped', { n: w.size })
   squad.push(playerId)
@@ -94,4 +101,24 @@ export function natDrop(state: GameState, playerId: number): string | null {
   }
   if (state.natLineup?.team === nat) state.natLineup = null
   return null
+}
+
+/**
+ * THE NEXT TIME THE COACH NAMES A SQUAD - in weeks, from right now.
+ *
+ * Owner: "could we have days til squad work." The window calendar has always
+ * known this and nothing ever said it, so a Test job spent most of the season
+ * looking like nothing was happening. Returns null when a window is already
+ * open (there is nothing to count down to) or when the season holds no more
+ * for this nation.
+ */
+export function weeksToSquad(state: GameState): number | null {
+  const nat = state.natTeam
+  if (!nat || natWindow(state)) return null
+  const teams = nat === 'LIO' ? [nat] : [nat, ...(HOME4.includes(nat) ? ['LIO'] : [])]
+  const starts = activeWindows(state)
+    .filter(w => w.nations.some(n => teams.includes(n)) && w.start > state.week)
+    .map(w => w.start)
+    .sort((a, b) => a - b)
+  return starts.length ? starts[0] - state.week : null
 }
