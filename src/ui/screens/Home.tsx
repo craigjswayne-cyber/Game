@@ -12,7 +12,7 @@ import { huntLine } from '../../game/living'
 import { CrestT, SectionTitle } from '../components'
 import { InboxList } from './Inbox'
 import { inInbox } from '../../game/days'
-import { fmtMoney, formGuide, grudgeBetween, grudgeReason, newsSubject, weekDate } from '../../game/model'
+import { fmtMoney, fmtWage, formGuide, grudgeBetween, grudgeReason, newsSubject, weekDate } from '../../game/model'
 import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { natRankOrder } from '../../game/natrank'
 import { ord, t } from '../../game/i18n'
@@ -472,7 +472,7 @@ export default function Home() {
               <div className="dash-line"><span>{t('home.state')}</span><b style={{ color: finState[1] }}>{t(finState[0])}</b></div>
               <div className="dash-line"><span>{t('home.balance')}</span><b>{fmtMoney(club.balance)}</b></div>
               <div className="dash-line"><span>{t('home.transferBudget')}</span><b>{fmtMoney(club.budget)}</b></div>
-              <div className="dash-line"><span>{t('home.wageRoom')}</span><b>{fmtMoney(Math.max(0, wageRoom))}{t('common.perWeek')}</b></div>
+              <div className="dash-line"><span>{t('home.wageRoom')}</span><b>{fmtWage(Math.max(0, wageRoom))}{t('common.perWeek')}</b></div>
             </button>
             <button className="dash-panel" onClick={() => go('medical')}>
               <div className="dash-head">{t('home.dashMedical')}</div>

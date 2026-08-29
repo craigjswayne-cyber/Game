@@ -29,7 +29,7 @@
 import { AWARD_EVERY, monthRun } from './awards'
 import { tIn, type Vars } from './i18n'
 import { billOf, capPosition } from './cap'
-import { fmtMoney, squadTrust, type GameState } from './model'
+import { fmtMoney, fmtWage, squadTrust, type GameState } from './model'
 import { leaguePos } from './schedule'
 
 /** Three weeks off the awards beat, so the two never share an inbox. */
@@ -181,8 +181,8 @@ export function boardMemo(state: GameState): void {
 
   // ---- finances ----
   const capLine = cap.cap
-    ? ` Wage bill ${fmtMoney(bill)}/wk against a ${fmtMoney(cap.cap)} cap${cap.over ? ' - WE ARE OVER IT' : `, ${fmtMoney(cap.headroom)} of room`}.`
-    : ` Wage bill ${fmtMoney(bill)}/wk.`
+    ? ` Wage bill ${fmtWage(bill)}/wk against a ${fmtWage(cap.cap)} cap${cap.over ? ' - WE ARE OVER IT' : `, ${fmtMoney(cap.headroom)} of room`}.`
+    : ` Wage bill ${fmtWage(bill)}/wk.`
   // lower case, because it follows a label like the other four lines. It read
   // "Finances: The books are healthy at ..." - a capital mid-line, and the only
   // line in the memo that started a fresh sentence after its own heading.

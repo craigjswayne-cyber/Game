@@ -235,7 +235,7 @@ export function applyForJob(state: GameState, clubId: string): string {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: `Appointed: ${state.managerName} takes over at ${club.name}`,
-      body: `A new chapter. The board expects steady progress, the dressing room is watching, and the ${club.stadium} faithful will judge you soon enough. Your transfer budget is £${(club.budget / 1e6).toFixed(1)}m.`,
+      body: `A new chapter. The board expects steady progress, the dressing room is watching, and the ${club.stadium} faithful will judge you soon enough. Your transfer budget is ${fmtMoney(club.budget)}.`,
       k: 'news.appointed',
       v: { manager: state.managerName, club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
     })

@@ -551,14 +551,14 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
   if (squadWages + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: `Those wages (${fmtMoney(wage)}/wk) would break your wage budget.` }
+    return { ok: false, msg: `Those wages (${fmtWage(wage)}/wk) would break your wage budget.` }
   }
   const sweet = signOn >= demand * 8 ? 0.06 : signOn >= demand * 4 ? 0.03 : 0
   const floor = Math.round(demand * (1 - sweet - (promiseMinutes ? 0.05 : 0)))
   if (wage < floor) {
     return {
       ok: false,
-      msg: `${p.name}'s camp shake their heads. They opened at £${demand.toLocaleString()}/wk${signOn > 0 || promiseMinutes ? ` and your extras only soften that so far - they need at least £${floor.toLocaleString()}/wk on this package` : ' - a signing bonus or a first-team promise would soften that'}.`,
+      msg: `${p.name}'s camp shake their heads. They opened at ${fmtWage(demand)}/wk${signOn > 0 || promiseMinutes ? ` and your extras only soften that so far - they need at least ${fmtWage(floor)}/wk on this package` : ' - a signing bonus or a first-team promise would soften that'}.`,
     }
   }
   executeTransfer(state, p, user.id, fee)
@@ -570,7 +570,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
       due: Math.min(state.week + 6, 44), baseApps: p.stats.apps,
     })
   }
-  return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} fee, £${wage.toLocaleString()}/wk${signOn > 0 ? `, ${fmtMoney(signOn)} signing bonus` : ''}${promiseMinutes ? ', first-team rugby promised' : ''}.` }
+  return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} fee, ${fmtWage(wage)}/wk${signOn > 0 ? `, ${fmtMoney(signOn)} signing bonus` : ''}${promiseMinutes ? ', first-team rugby promised' : ''}.` }
 }
 
 /** Sign a clubless player: no fee, his wage demand, and the same guards a
@@ -590,12 +590,12 @@ export function signFreeAgent(state: GameState, playerId: number): { ok: boolean
   const capMsg = capBreak(state, user.id, wage)
   if (capMsg) return { ok: false, msg: capMsg }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: `His wage demands (£${wage.toLocaleString()}/wk) would exceed your wage budget.` }
+    return { ok: false, msg: `His wage demands (${fmtWage(wage)}/wk) would exceed your wage budget.` }
   }
   executeTransfer(state, p, user.id, 0)
   p.wage = wage
   p.contractEnds = state.season + 2
-  return { ok: true, msg: `${p.name} signs on a free transfer (£${wage.toLocaleString()}/wk).` }
+  return { ok: true, msg: `${p.name} signs on a free transfer (${fmtWage(wage)}/wk).` }
 }
 
 /** Legacy one-shot bid: agree the fee and sign at his demanded wage. */
@@ -736,7 +736,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   }
   const wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50 // free-agent premium
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: `His terms (${fmtMoney(wage)}/wk) would break the wage budget.` }
+    return { ok: false, msg: `His terms (${fmtWage(wage)}/wk) would break the wage budget.` }
   }
   const seller = state.clubs[p.clubId]
   if (seller && user.rep < seller.rep - 12 && p.morale > 5) {
@@ -757,7 +757,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
     },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} joins on a free this summer (${fmtMoney(wage)}/wk agreed).` }
+  return { ok: true, msg: `${p.name} joins on a free this summer (${fmtWage(wage)}/wk agreed).` }
 }
 
 /** From week 25, rivals circle the user's own expiring players: neglect a
@@ -882,7 +882,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
     v: { player: p.name, club: user.name, wage: fmtMoney(wage), until: 2026 + p.contractEnds },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} signs until ${2026 + p.contractEnds} (${fmtMoney(wage)}/wk).` }
+  return { ok: true, msg: `${p.name} signs until ${2026 + p.contractEnds} (${fmtWage(wage)}/wk).` }
 }
 
 /** AI clubs renew their expiring key players (some slip through to free agency). */

@@ -523,7 +523,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.news.push({
     id: state.nextId++, week: 1, season: 0, type: 'board', read: false,
     subject: challenge ? `THE CHALLENGE: ${tIn('en', challenge.title)}` : `Welcome to ${uc.name}`,
-    body: `${challenge ? tIn('en', challenge.desc) + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is £${(uc.budget / 1e6).toFixed(1)}m.`,
+    body: `${challenge ? tIn('en', challenge.desc) + '\n\n' : ''}The board of ${uc.name} is delighted to confirm the appointment of ${managerName} as the club's new Director of Rugby. Expectations at ${uc.stadium} are ${uc.rep >= 85 ? 'sky-high: silverware is demanded' : uc.rep >= 75 ? 'high: a playoff push is expected' : 'modest: steady the ship and build for the future'}. Your transfer budget this season is ${fmtMoney(uc.budget)}.`,
     k: challenge ? 'news.appointChallenge' : 'news.appoint',
     v: {
       club: uc.name, manager: managerName, stadium: uc.stadium,
