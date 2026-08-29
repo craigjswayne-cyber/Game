@@ -2732,7 +2732,16 @@
     "coShowingAll": "Les {n} meilleurs hors du camp, sur {total}.",
     "coCountdown": "La fédération ouvre le camp dans {n} jours. D'ici là, voici le groupe en forme actuelle.",
     "coNoWindowLeft": "Plus de fenêtre cette saison - le travail du pays est terminé jusqu'à l'été.",
-    "coThin": "JUSTE : {pos}"
+    "coThin": "JUSTE : {pos}",
+    "bgIdeasTitle": "Idées et suggestions",
+    "bgIdeasSub": "l'autre moitié de l'écoute",
+    "bgIdeasBlurb": "Ce jeu est un projet passion, développé par une seule personne qui aime le rugby, et il est toujours ouvert aux nouveautés. Si quelque chose peut l'améliorer - une règle, une compétition, un écran, un morceau du sport qui manque - dites-le. Chaque idée est lue.",
+    "bgIdeaLabel": "Votre idée",
+    "bgIdeaPlaceholder": "Qu'ajouteriez-vous, changeriez-vous ou retireriez-vous ?",
+    "bgIdeaShared": "Merci - c'est vraiment utile.",
+    "bgIdeaEmpty": "Écrivez d'abord l'idée, puis envoyez-la.",
+    "bgIdeaGoesTo": "Les idées vont à ",
+    "bgIdeaRest": ", la même adresse qu'un rapport de bug. Rien d'autre n'est joint - une idée n'a pas besoin de votre sauvegarde."
   },
   "handbook": {
     "a1": "Tout part du bouton en haut de l'écran. Il indique Continuer une semaine calme et Match quand vous avez une rencontre. Appuyez et le monde avance : la semaine passe, les autres résultats tombent, et tout ce qui s'est produit arrive dans votre messagerie sur l'écran Accueil.",

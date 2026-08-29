@@ -2738,7 +2738,16 @@
     "coShowingAll": "The {n} best outside camp, of {total}.",
     "coCountdown": "The federation opens camp in {n} days. Until then this is the squad on current form.",
     "coNoWindowLeft": "No more windows this season - the country's work is done until the summer.",
-    "coThin": "THIN: {pos}"
+    "coThin": "THIN: {pos}",
+    "bgIdeasTitle": "Ideas & Suggestions",
+    "bgIdeasSub": "the other half of listening",
+    "bgIdeasBlurb": "This game is a passion project, built by one person who loves rugby, and it is always open to new features. If something would make it better - a rule, a competition, a screen, a bit of the sport it misses - say so. Every idea gets read.",
+    "bgIdeaLabel": "Your idea",
+    "bgIdeaPlaceholder": "What would you add, change or take out?",
+    "bgIdeaShared": "Thank you - that is genuinely useful.",
+    "bgIdeaEmpty": "Write the idea first, then send it.",
+    "bgIdeaGoesTo": "Ideas go to ",
+    "bgIdeaRest": ", the same address as a bug report. Nothing else is attached - an idea does not need your save."
   },
   "handbook": {
     "a1": "Everything runs off the button in the top corner. It reads Continue on a quiet week and Matchday when you have a fixture. Press it and the world moves: the week advances, other results come in, and anything that happened lands in your inbox on the Home screen.",
