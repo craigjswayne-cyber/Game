@@ -453,6 +453,7 @@ export function migrate(s: GameState): GameState {
   s.grudges ??= []
   s.review ??= null
   s.fanMood ??= 60
+  s.fanCampaign ??= 0
   s.hof ??= []
   s.scoutFocus ??= null
   s.slAlerted ??= []

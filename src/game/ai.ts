@@ -3,6 +3,7 @@ import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
 import { offerSigning } from './records'
+import { transferReaction } from './terraces'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
@@ -198,6 +199,9 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   if (!realMoney(fee)) return
   const from = p.clubId ? state.clubs[p.clubId] : null
   const to = state.clubs[toClubId]
+  // read before the move clears it: the terraces judge a departure partly on
+  // whether the club had said out loud that he was for sale (terraces.ts)
+  const wasListed = !!p.transferListed
   // losing a star you didn't want to sell leaves a mark on the fixture list
   if (from && p.ca >= 80 && !p.transferListed && fee > 0) {
     addGrudge(state, from.id, toClubId, 'news.grudgeTookHim', { player: p.name })
@@ -262,6 +266,11 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
     playerId: p.id,
   })
   ensureCaptains(state) // reappoint leaders wherever the move vacated an armband
+  // THE TERRACES GET A SAY (terraces.ts). A transfer is the loudest thing a
+  // club does between matches and the support had no voice in it at all:
+  // selling a man they loved cost nothing, signing one bought nothing, and
+  // the dressing room did not so much as look up. All three now move.
+  transferReaction(state, p, from?.id ?? null, toClubId, fee, wasListed)
 }
 
 /** Weekly AI transfer activity + bids for user players. */

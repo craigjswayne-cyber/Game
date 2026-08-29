@@ -8,6 +8,7 @@ import { auditCaps, refreshCaps } from './cap'
 import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
+import { terraceWeek } from './terraces'
 import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
@@ -3177,6 +3178,12 @@ export function processWeekAndAdvance(state: GameState) {
     if (state.pressTone) state.pressTone = Math.abs(state.pressTone * 0.8) < 0.5 ? 0 : state.pressTone * 0.8
   }
   generateGossip(state, rng)
+  // WHERE THE SUPPORT'S ANGER HAS GOT TO, and what it costs (terraces.ts).
+  // Before this, fan mood moved the gate, the shop and the atmosphere and
+  // could not by itself cost anybody a job; a sustained campaign presses the
+  // board now, and a support that has fallen for you holds it steady through
+  // a bad run - which is what a manager means by "the fans bought me time".
+  terraceWeek(state)
   // the board's standing monthly item, three weeks off the awards beat so the
   // two never share an inbox (boardmemo.ts)
   boardMemo(state)

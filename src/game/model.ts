@@ -1471,6 +1471,11 @@ export interface GameState {
     revealed: number
   } | null
   fanMood?: number
+  /** How far the terraces' campaign against the manager has got (terraces.ts):
+   *  0 content, 1 grumbling, 2 banners and a hashtag, 3 a plane over the
+   *  ground. Held so each stage files its story once rather than every week
+   *  of a bad autumn, and so a mood that recovers can say so. */
+  fanCampaign?: 0 | 1 | 2 | 3
   /** the game's Hall of Fame: careers immortalised at retirement */
   hof?: { name: string; pos: Pos; nat: string; apps: number; tries: number; points: number; season: number; club: string }[]
   /** league the scouting network is assigned to watch weekly */
