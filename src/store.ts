@@ -690,15 +690,35 @@ export const useStore = create<Store>((set, get) => ({
     if (deskGates(step)) {
       const desk = deskBlock(g)
       if (desk?.kind === 'mail') {
-        // CONTINUE *IS* THE READER'S NEXT BUTTON, which is the literal request:
-        // each tap serves the oldest unread and marks it read.
+        // ONE TAP, EVERY STORY (owner, v1.1.12: "pressing continue should go
+        // through every news story before continuing").
         //
-        // AND IT ONLY HOLDS A BOUNDED NUMBER OF TIMES. A rollover pile is 54
-        // stories deep, and insisting on all of them is a 54-tap summer - see
-        // Store.deskHolds for the soak that measured it.
-        if (get().deskHolds < MAX_DESK_HOLDS) {
-          set(s2 => ({ deskHolds: s2.deskHolds + 1 }))
-          get().openInbox()
+        // It used to serve ONE story per tap, and hold for at most six of them
+        // before relenting - a budget rather than a promise, because insisting
+        // on a fifty-four-story rollover pile one tap at a time is a fifty-four
+        // tap summer, which scripts/soakui.mjs duly called frozen.
+        //
+        // The budget was the wrong shape of answer. The game already owns a
+        // full-screen reader that walks a queue - the Wire, entered from
+        // Continue, with "Next Story", a 3/9 counter and an explicit "Skip the
+        // rest" - so the whole pile goes into it and ONE tap reads all of it.
+        // Fifty-four stories is then fifty-four pages of a reader you can leave
+        // whenever you like, not fifty-four refusals; and because leaving marks
+        // the rest read, the gate always clears in a single pass. No budget, no
+        // soft lock, and the owner's ask met literally.
+        //
+        // AND IT YIELDS FROM INSIDE THE READER, the same shape the press hold
+        // takes and for the same reason: being made to LOOK is a gate, being
+        // unable to leave is a bug. The first tap opens the pile; a tap from
+        // inside it says "I have seen enough", marks the rest read and lets the
+        // week go on. So the gate costs two taps at worst however deep the pile
+        // is, while the reader's own Next Story still walks every word of it.
+        const onWire = get().nav[get().nav.length - 1]?.screen === 'wire'
+        const unread = g.news.filter(n => !n.read && !n.cleared && inInbox(g, n)).sort((a, b) => a.id - b.id)
+        if (onWire) {
+          for (const n of unread) markRead(g, n)
+        } else if (unread.length) {
+          get().openWire(unread.map(n => n.id))
           return
         }
       }
@@ -721,7 +741,8 @@ export const useStore = create<Store>((set, get) => ({
       // block). Being made to LOOK is a gate; being unable to leave is a bug.
       //
       // Mail keeps the hard gate, because there the gate itself does the
-      // clearing: every tap reads one story, so it cannot fail to terminate.
+      // clearing: one tap hands the whole pile to the reader, and leaving the
+      // reader marks the rest read, so it cannot fail to terminate.
       if (desk?.kind === 'press' && get().nav[get().nav.length - 1]?.screen !== 'press') {
         set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
         return

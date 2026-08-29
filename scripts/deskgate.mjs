@@ -107,7 +107,7 @@ try {
   const first = await state()
   say(`  after one tap: screen=${first.screen}, unread=${first.unread}`)
   ok(first.screen !== 'matchday', 'one tap does not walk you past an unread desk into the match')
-  ok(first.screen === 'inbox', `it serves the reader instead (${first.screen})`)
+  ok(first.screen === 'wire', `it serves the full-screen reader instead (${first.screen})`)
   ok(first.unread < setup.unread, `and the pile shrank (${setup.unread} -> ${first.unread})`)
 
   // ---- 2. THE ANTI-LOCK TEST ----------------------------------------------
@@ -135,6 +135,14 @@ try {
     if (s.screen === 'press' && s.press > 0) {
       await page.click('.content .btn.ghost').catch(() => {})
       await page.waitForTimeout(250)
+      continue
+    }
+    // v1.1.12: the mail gate hands the whole pile to the full-screen reader
+    // rather than serving one story per tap, so the reader's own button is
+    // what makes progress while it is up
+    if (s.screen === 'wire') {
+      await page.locator('button', { hasText: /Next Story|On to the Week/ }).first().click().catch(() => {})
+      await page.waitForTimeout(220)
       continue
     }
     await page.click('.continue-btn').catch(() => {})
@@ -187,17 +195,22 @@ try {
   ok(three.screen !== 'press',
     `a second tap from inside the room carries on rather than trapping you (${three.screen})`)
 
-  // ---- 2c. A ROLLOVER PILE DOES NOT BECOME A 54-TAP SUMMER ----------------
+  // ---- 2c. A ROLLOVER PILE IS A READER, NOT FIFTY-FOUR REFUSALS ----------
   //
-  // The measurement that produced MAX_DESK_HOLDS: at a season rollover the
-  // engine writes FIFTY-FOUR stories in one settle - every league's honours, the
-  // playoffs, the awards - and the first gate insisted on all of them. The count
-  // fell perfectly one per tap, so nothing was stuck; the game simply wanted 54
-  // taps, and soakui gave up at 60 and called it frozen. It was right to.
+  // At a season rollover the engine writes FIFTY-FOUR stories in one settle -
+  // every league's honours, the playoffs, the awards. The first gate insisted
+  // on all of them one tap at a time: the count fell perfectly, so nothing was
+  // stuck, but the game wanted 54 taps and soakui gave up at 60 and called it
+  // frozen. It was right to.
   //
-  // So the gate is BUDGETED, and this plants a pile far bigger than the budget
-  // and counts the taps to the match. The bound, not the pile, has to decide.
-  const BUDGET = 6
+  // The answer then was a BUDGET - hold six times, then relent - which met the
+  // soak and not the request. The owner asked again in v1.1.12: "pressing
+  // continue should go through every news story before continuing." So the
+  // whole pile now goes to the full-screen reader the game already had, and
+  // one tap reads all of it: 54 pages with a counter and a "Skip the rest",
+  // rather than 54 refusals. This plants a pile far bigger than the old budget
+  // and asserts the new shape - one tap to the reader, the reader clears it,
+  // and the match is reachable straight after.
   await page.evaluate(() => {
     const st = window.rugbyStore.getState()
     const g = st.game
@@ -211,21 +224,56 @@ try {
     st.touch()
   })
   const bigPile = await state()
-  say(`\n  planted ${bigPile.unread} unread, budget is ${BUDGET}`)
+  say(`\n  planted ${bigPile.unread} unread`)
+  await page.click('.continue-btn').catch(() => {})
+  await page.waitForTimeout(320)
+  const inReader = await state()
+  ok(inReader.screen === 'wire',
+    `one tap hands the whole pile to the reader (${inReader.screen})`)
+  ok(await page.locator('.wire-date').innerText().then(x => /\/\s*\d+/.test(x)).catch(() => false),
+    'and the reader says how many there are, so the pile has a visible end')
+  // leaving the reader marks the rest read: that is what makes the gate
+  // impossible to soft-lock however deep the pile is
+  await page.locator('button', { hasText: 'Skip the rest' }).first().click().catch(() => {})
+  await page.waitForTimeout(320)
+  const cleared = await state()
+  ok(cleared.unread === 0,
+    `and one pass clears every one of them (${bigPile.unread} -> ${cleared.unread})`)
+  // AND THE READER YIELDS FROM INSIDE ITSELF. Being made to LOOK is a gate;
+  // being unable to leave is a bug, and this is the same second-tap escape the
+  // press hold has. Two taps clears any pile, however deep - which is what
+  // stops an unbounded gate becoming the 54-tap summer in another costume.
+  await page.evaluate(() => {
+    const st = window.rugbyStore.getState()
+    const g = st.game
+    st.home()
+    for (let i = 0; i < 30; i++) {
+      g.news.push({ id: g.nextId++, week: g.week, season: g.season, type: 'general', read: false,
+        subject: `Second pile ${i}`, body: 'One of thirty.' })
+    }
+    g.day = 4
+    st.touch()
+  })
+  await page.click('.continue-btn').catch(() => {})
+  await page.waitForTimeout(320)
+  ok((await state()).screen === 'wire', 'the second pile opens the reader too')
+  await page.click('.continue-btn').catch(() => {})
+  await page.waitForTimeout(320)
+  const yielded = await state()
+  ok(yielded.unread === 0 && yielded.screen !== 'wire',
+    `and a tap from inside it carries on rather than trapping you (${yielded.unread} unread, ${yielded.screen})`)
+
   let toMatch = 0
-  for (; toMatch < 30; toMatch++) {
+  for (; toMatch < 8; toMatch++) {
     const s = await state()
     if (s.screen === 'matchday') break
     await page.click('.continue-btn').catch(() => {})
     await page.waitForTimeout(280)
   }
   const end = await state()
-  say(`  reached ${end.screen} in ${toMatch} taps with ${end.unread} still unread`)
-  ok(end.screen === 'matchday', `a huge pile still lets you reach the match (${end.screen})`)
-  ok(toMatch <= BUDGET + 3,
-    `and it takes about the budget, not the pile (${toMatch} taps for ${bigPile.unread} stories)`)
-  ok(end.unread > 0,
-    `the rest waits in the inbox rather than being forced (${end.unread} left)`)
+  say(`  reached ${end.screen} in ${toMatch} further taps`)
+  ok(end.screen === 'matchday', `the match is reachable straight after (${end.screen})`)
+  ok(toMatch <= 2, `without a budget's worth of refusals in between (${toMatch})`)
 
   // ---- 3. the day walk is not gated --------------------------------------
   //
