@@ -1,4 +1,4 @@
-// Probe: the match stats sheet under the pitch (v1.1.9).
+// Probe: the match stats panel's set pieces and tackles (v1.1.9).
 //
 // The sheet is DERIVED - a function of possession the engine really recorded
 // and the two packs' real scrum/lineout/defence numbers - rather than a

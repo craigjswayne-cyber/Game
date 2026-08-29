@@ -1031,10 +1031,16 @@ function Preview({ fxId }: { fxId: number }) {
               {comp?.type !== 'league'
                 ? t('matchday.rotCup')
                 : t('matchday.rotTurnaround', { n: gapDays })}
-              {t('matchday.rotFlagged', {
-                men: rotFlagged.map(p => t('matchday.rotMan', { player: p.name, why: rotReason(p) })).join(', '),
-                count: rotFlagged.length === 2 ? t('matchday.rotBoth') : t('matchday.rotAll', { n: rotFlagged.length }),
-              })}
+              {rotFlagged.length >= 5
+                /* half a squad's worth of names with percentages was a wall
+                   (owner: "the assistant rotation plan is very messy") - the
+                   XV below already shows every man's fitness, so past four the
+                   plan says the count and the button does the work */
+                ? t('matchday.rotSummary', { n: rotFlagged.length })
+                : t('matchday.rotFlagged', {
+                  men: rotFlagged.map(p => t('matchday.rotMan', { player: p.name, why: rotReason(p) })).join(', '),
+                  count: rotFlagged.length === 2 ? t('matchday.rotBoth') : t('matchday.rotAll', { n: rotFlagged.length }),
+                })}
             </div>
             <button className="btn ghost block" style={{ marginTop: 8 }} onClick={rotateXV}>
               {t('matchday.rotButton', { n: rotFlagged.length })}
@@ -1340,31 +1346,6 @@ const SPOTS: [number, number][] = [
   [42, 44], [50, 60],             // 9 10
   [64, 10], [58, 40], [63, 66], [64, 90], [76, 50], // 11-15
 ]
-
-/** The stats sheet under the pitch: home on the left, away on the right, the
- *  way every broadcast graphic in the sport lays it out. Small on purpose -
- *  it is a glance between phases, not a page to study. matchStats explains
- *  what the numbers are and, just as importantly, what they are not. */
-function MatchStats({ ctx }: { ctx: LiveCtx }) {
-  const s = matchStats(ctx)
-  const rows: [string, string, string][] = [
-    [`${s.possession[0]}%`, t('matchday.stPossession'), `${s.possession[1]}%`],
-    [`${s.scrumsWon[0]}-${s.scrumsLost[0]}`, t('matchday.stScrums'), `${s.scrumsWon[1]}-${s.scrumsLost[1]}`],
-    [`${s.lineoutsWon[0]}-${s.lineoutsLost[0]}`, t('matchday.stLineouts'), `${s.lineoutsWon[1]}-${s.lineoutsLost[1]}`],
-    [String(s.tackles[0]), t('matchday.stTackles'), String(s.tackles[1])],
-  ]
-  return (
-    <div className="match-stats">
-      {rows.map(([h, label, a]) => (
-        <div className="ms-row" key={label}>
-          <span className="ms-h">{h}</span>
-          <span className="ms-l">{label}</span>
-          <span className="ms-a">{a}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 const BANNER: Partial<Record<MatchEvent['type'], string>> = {
   TRY: 'matchday.banTRY', PEN: 'matchday.banPEN', DG: 'matchday.banDG', CON: 'matchday.banCON',
@@ -1911,14 +1892,6 @@ function Live() {
           )}
         </div>
       )}
-      {/* THE STATS SHEET (owner, v1.1.9: "below that during the game there
-          should be basic match stats"). Under the commentary, which is itself
-          now under the pitch - in portrait both used to sit below the control
-          row, which is what "the commentary is far too low on screen" meant.
-          Landscape placed them correctly already, through the grid areas
-          below, so moving the source order costs it nothing. */}
-      {!done && <MatchStats ctx={ctx} />}
-
       {/* One row, four jobs: play, skip, touchline, settings. Speed and sound
           moved into the settings sheet - they are set once a season, and having
           them out here is what put two ▶ buttons side by side. */}
