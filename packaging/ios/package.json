@@ -1,0 +1,19 @@
+{
+  "name": "phase-rugby-manager-ios",
+  "version": "1.1.10",
+  "private": true,
+  "description": "The iOS shell: a Capacitor wrapper around the built game, with StoreKit 2 billing. Deliberately its OWN npm project - see README.md section 2.",
+  "scripts": {
+    "shell:add": "npm run shell:build && npx cap add ios",
+    "shell:build": "npm --prefix ../.. run build",
+    "shell:sync": "npm run shell:build && npx cap sync ios",
+    "shell:open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.0",
+    "@capacitor/ios": "8.5.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.0"
+  }
+}

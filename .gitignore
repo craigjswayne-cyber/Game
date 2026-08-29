@@ -7,3 +7,11 @@ scripts/deepsave.json
 shots-*/
 oldwt/
 storeart/
+
+# The generated Xcode project. scaffold.sh rebuilds it from the pinned
+# toolchain in packaging/ios/package.json, and it carries a copy of dist/
+# inside it - so it is build output, not source. Anything the owner must set
+# BY HAND in Xcode (signing, the bridging-header build setting, the IAP
+# capability) is written down in packaging/ios/README.md instead, because a
+# generated project cannot be trusted to preserve it.
+packaging/ios/ios/
