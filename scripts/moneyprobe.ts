@@ -355,14 +355,21 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
     withDetails(async () => [])
     let b2 = await playBridge()
     ok(await b2!.details(M.SUPPORT_SKU) === null, 'an empty answer is still no price')
-    ok((M.billingReason() ?? '').includes('does not offer this product here'),
-      `and says Play answered with nothing ("${(M.billingReason() ?? '').slice(0, 60)}...")`)
+    ok((M.lookupReason() ?? '').includes('does not offer this product here'),
+      `and says Play answered with nothing ("${(M.lookupReason() ?? '').slice(0, 60)}...")`)
     // (b) the service is attached but broken
     withDetails(async () => { throw Object.assign(new Error('boom'), { name: 'OperationError' }) })
     b2 = await playBridge()
     ok(await b2!.details(M.SUPPORT_SKU) === null, 'a throw is no price either')
-    ok((M.billingReason() ?? '').includes('not answering'),
+    ok((M.lookupReason() ?? '').includes('not answering'),
       'but it is named as a different fault, because it needs a different fix')
+    // AND A TAP ON BUY MUST NOT ERASE IT. They shared one slot for an
+    // afternoon, and the owner's screen showed the purchase error where the
+    // lookup diagnosis should have been - so the one line we were waiting on
+    // was overwritten by the act of testing it.
+    M.setBillingReason('AbortError: Invalid state.')
+    ok((M.lookupReason() ?? '').includes('not answering'),
+      'and a failed purchase does not overwrite why the catalogue was empty')
   }
 
   // ---- 13b. A REFUSAL IS NOT A CANCELLATION -------------------------------
