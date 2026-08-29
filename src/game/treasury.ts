@@ -26,28 +26,59 @@ export function cashReserve(state: GameState): number {
   return Math.round(weekly * SEASON_WEEKS + 4_000_000)
 }
 
-/** Why the next 500k cannot move, or null if it can. Read by the BUTTON (to
- *  grey out and say the shortfall) and by the ACTION (to refuse) - the reason
- *  sits in front of the decision, through one predicate both sides share
+/**
+ * THE MOST THAT COULD MOVE TODAY, in pounds, rounded to a tidy step.
+ *
+ * Owner, v1.1.12: "board finances - it should be a sliding bar for money in the
+ * club/transfer money." A slider needs a top end, and the top end is the whole
+ * of the cash above the board's reserve - so the bar's right-hand stop IS the
+ * floor, drawn rather than explained. Zero when there is nothing to move, which
+ * is what makes the control honest at a skint club: the bar has no travel and
+ * the reason is written under it.
+ */
+export function releasable(state: GameState): number {
+  if (state.unemployed) return 0
+  const club = state.clubs[state.userClubId]
+  if (!club) return 0
+  const spare = club.balance - cashReserve(state)
+  if (spare < RELEASE_STEP) return 0
+  // to the step, so the slider lands on round numbers a manager can read
+  return Math.floor(spare / RELEASE_STEP) * RELEASE_STEP
+}
+
+/** Why nothing can move, or null if something can. Read by the CONTROL (to
+ *  disable itself and say the shortfall) and by the ACTION (to refuse) - the
+ *  reason sits in front of the decision, through one predicate both sides share
  *  (the Training.tsx lesson: a row that offers a button and a handler that
  *  refuses it is the bug written twice). */
 export function releaseBlock(state: GameState): string | null {
   if (state.unemployed) return t('finances.treasuryNoClub')
   const club = state.clubs[state.userClubId]
   if (!club) return t('finances.treasuryNoClub')
-  if (club.balance - RELEASE_STEP < cashReserve(state)) {
+  if (releasable(state) <= 0) {
     return t('finances.treasuryFloor', { reserve: fmtMoney(cashReserve(state)) })
   }
   return null
 }
 
-/** Move one 500k slice of the club's cash into the transfer budget. */
-export function releaseToBudget(state: GameState): { ok: boolean; msg: string } {
+/**
+ * Move cash into the transfer budget.
+ *
+ * `amount` is what the slider is sitting on; omitting it moves one step, which
+ * is what the old button did and what every caller written before the slider
+ * still means. Whatever is asked for is clamped to what is actually there, so
+ * a stale control cannot overdraw the reserve - the engine decides, not the
+ * screen.
+ */
+export function releaseToBudget(state: GameState, amount?: number): { ok: boolean; msg: string } {
   const block = releaseBlock(state)
   if (block) return { ok: false, msg: block }
   const club = state.clubs[state.userClubId]
-  club.balance -= RELEASE_STEP
-  club.budget += RELEASE_STEP
-  logDecision(state, 'dec.movedToTransferBudget', { amount: fmtMoney(RELEASE_STEP) }, true)
-  return { ok: true, msg: t('finances.treasuryMoved', { step: fmtMoney(RELEASE_STEP), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }) }
+  const most = releasable(state)
+  const want = amount == null ? RELEASE_STEP : Math.round(amount)
+  const move = Math.max(RELEASE_STEP, Math.min(most, want))
+  club.balance -= move
+  club.budget += move
+  logDecision(state, 'dec.movedToTransferBudget', { amount: fmtMoney(move) }, true)
+  return { ok: true, msg: t('finances.treasuryMoved', { step: fmtMoney(move), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }) }
 }

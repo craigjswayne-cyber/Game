@@ -9,6 +9,7 @@ import { commercialWeekly, expireDeals } from './commercial'
 import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
+import { upkeepWeek } from './upkeep'
 import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
@@ -3184,6 +3185,12 @@ export function processWeekAndAdvance(state: GameState) {
   // board now, and a support that has fallen for you holds it steady through
   // a bad run - which is what a manager means by "the fans bought me time".
   terraceWeek(state)
+  // THE PART OF RUNNING A CLUB THAT IS NOT RUGBY (upkeep.ts, owner: "money
+  // comes and goes, external to rugby - stadium repairs, weather damage, new
+  // pitches, failed events, successful events"). The books were entirely a
+  // function of the sport and therefore entirely predictable; a roof, a storm
+  // and a sportsman's dinner are what make balancing them a job.
+  upkeepWeek(state, rng)
   // the board's standing monthly item, three weeks off the awards beat so the
   // two never share an inbox (boardmemo.ts)
   boardMemo(state)
