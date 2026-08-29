@@ -3170,12 +3170,21 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       }
       if (!isNation && friendly) {
         // friendlies bank rhythm, not records: no apps, minutes or ratings -
-        // but the legs and the sharpness are real
+        // but the legs and the sharpness are real. REAL, NOT RUINED: this used
+        // to run the league-match drain, so a manager who watched his opening
+        // friendly without making a sub had fifteen men on ~22%, one +22 week
+        // of recovery put them on exactly 44%, and the second matchday of a
+        // brand-new career was a wall of flagged names (owner, 29 Aug, with
+        // the screenshot). No coach lets a pre-season run-out empty the tank -
+        // minutes are managed even when the sim plays all eighty - so a
+        // friendly's legs bottom out at 64%, above the 62% rotation flag. The
+        // rng draw on the no-energy path is kept exactly as it was: this
+        // branch may not change the stream (fingerprint).
         p.lastWk = state.week
         const left = side.energy.get(pid)
         p.cond = left != null
-          ? clamp(Math.min(p.cond, left + 8) - 6, 12, 100)
-          : clamp(p.cond - (14 + Math.floor(rng() * 10)), 20, 100)
+          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6, 64), 12, 100)
+          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)), 64), 20, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
       } else if (!isNation) {
         if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }
