@@ -128,8 +128,9 @@ First release.
 • Match day: the commentary sits tight under the pitch; the stats strip is
   gone (the full sheet lives in the half-time and full-time panel).
 • The assistant's rotation plan is one line when half the side is flagged.
+• Pre-season friendlies no longer wreck the squad's fitness.
 ```
-*(414)*
+*(475)*
 
 ### What's new (500 max) - v1.1.9
 
@@ -364,15 +365,16 @@ logo officiel.
 ### Nouveautés (500 max) - v1.1.10
 
 ```
-• Quand la boutique refuse un achat, le jeu le dit désormais - et dit
-  pourquoi - au lieu d'afficher « Rien n'a été débité » pour tout.
+• Quand la boutique refuse un achat, le jeu le dit - et dit pourquoi -
+  au lieu d'afficher « Rien n'a été débité » pour tout.
 • Un achat déjà payé ne peut plus être annoncé comme un échec.
 • Jour de match : le commentaire colle au terrain ; le bandeau de stats
   disparaît (la feuille complète reste dans le panneau de mi-temps).
 • Le plan de rotation de l'adjoint tient en une ligne quand la moitié de
   l'équipe est signalée.
+• Les amicaux de présaison ne ruinent plus la forme de l'effectif.
 ```
-*(438)*
+*(495)*
 
 ### Nouveautés (500 max) - v1.1.9
 
