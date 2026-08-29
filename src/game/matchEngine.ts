@@ -1309,6 +1309,11 @@ export interface LiveCtx {
   preTalk: string | null
   /** a touchline call waiting on the user (kickable penalty etc) */
   decision: { kind: 'penalty'; min: number } | null
+  /** Index of the whistle line for the period that has just ended, while a
+   *  touchline call awarded BEFORE it is still unanswered. The kick belongs
+   *  in front of that line, not behind it - see resolveDecision. Null
+   *  whenever the clock is running. */
+  whistleAt?: number | null
   /** momentum, -1 (away camped in our half) .. +1 (home dominant) */
   momo: number
   /** live bad blood between the clubs (reason string) - derby-lite heat */
@@ -1379,8 +1384,24 @@ function pushEvent(
 ) {
   if (!ctx.detail) return
   if (type !== 'HT' && type !== 'FT') {
-    min = Math.max(min, ctx.lastMin)
-    ctx.lastMin = Math.min(80, min)
+    // NOTHING HAPPENS AFTER THE WHISTLE (owner: "ive noticed a few times a
+    // penalty kick comes after the half-time whistle has blown... this should
+    // never happen should be everything within the time").
+    //
+    // Measured before the fix: 52 first-half lines in 360 matches were stamped
+    // 41', and the clock ran backwards 53 times. Two causes, one shape. A tick
+    // is four minutes and draws its minute as `tick * 4 + rng(0..3) + 1`, so
+    // the last tick of a half can land exactly on the whistle - and the lines
+    // that FOLLOW a score (the conversion, the celebration, the maul held up)
+    // are deliberately stamped `min + 1` so they read a beat later than the
+    // try. On the last tick of a half that beat is past the whistle: 41' in a
+    // half that ends at 40, 81' in a match that ends at 80.
+    //
+    // The half's own end is the ceiling. Clamping here rather than at each of
+    // the forty call sites is the point - a new line cannot reintroduce it.
+    const whistle = ctx.seg === 0 ? 40 : 80
+    min = Math.min(Math.max(min, ctx.lastMin), whistle)
+    ctx.lastMin = min
   }
   ctx.events.push({
     min, type, teamId: side?.teamId ?? '',
@@ -1941,14 +1962,47 @@ function scoreTry(
   }
 }
 
-/** Resolve the user's touchline call on a kickable penalty. */
+/**
+ * Resolve the user's touchline call on a kickable penalty.
+ *
+ * THE WHISTLE WAITS FOR THE KICK (owner: "ive noticed a few times a penalty
+ * kick comes after the half-time whistle has blown... this should never
+ * happen should be everything within the time").
+ *
+ * A penalty awarded in the last four minutes of a half stops the clock, and
+ * the answer - a tap from the manager, a standing instruction, or the 'posts'
+ * default a skip or an instant result takes - arrives after stepTick has
+ * already pushed HALF TIME. Reproduced before the fix: index 42 "PENALTY to
+ * Northampton - kickable range", index 44 "Full-time", index 45 the kick.
+ *
+ * The kick was awarded before time, so it belongs in front of that line. When
+ * a whistle is standing on an unanswered call, everything this function
+ * narrates is spliced in ahead of it - which fixes the live ticker, the skip
+ * and the instant result in one place, and without taking the last decision
+ * of a half away from the manager.
+ */
 export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' | 'corner' | 'tap'): string {
   const d = ctx.decision
   if (!d) return ''
   ctx.decision = null
+  const whistleAt = ctx.whistleAt
+  const before = ctx.events.length
+  const msg = decide(state, ctx, d, choice)
+  if (whistleAt != null && whistleAt <= before) {
+    ctx.events.splice(whistleAt, 0, ...ctx.events.splice(before))
+  }
+  return msg
+}
+
+function decide(
+  state: GameState, ctx: LiveCtx, d: { kind: 'penalty'; min: number },
+  choice: 'posts' | 'corner' | 'tap',
+): string {
   const mine = ctx.home.teamId === ctx.userSideId ? ctx.home : ctx.away
   const opp = mine === ctx.home ? ctx.away : ctx.home
-  const min = Math.min(79, d.min + 1)
+  // the kick belongs to the half the penalty was awarded in, and cannot run
+  // past that half's whistle however late the answer arrives
+  const min = Math.min(d.min <= 40 ? 40 : 79, d.min + 1)
   const rng = ctx.rng
   if (choice === 'posts') {
     takePenaltyShot(state, ctx, mine, min)
@@ -2523,14 +2577,17 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
 export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' | 'FT' {
   if (ctx.tick >= 20) return 'FT'
   // play has resumed: the last substitution has now been played and cannot be
-  // taken back (16B)
+  // taken back (16B), and no whistle is waiting on anything
   ctx.lastSub = null
+  ctx.whistleAt = null
   simTick(state, ctx, ctx.tick)
   ctx.tick += 1
   aiTacticShift(state, ctx)
   if (ctx.tick === 10) {
     ctx.seg = 1
     ctx.awaiting = 'HT'
+    // a penalty awarded before the whistle is still to be kicked
+    if (ctx.decision) ctx.whistleAt = ctx.events.length
     pushLine(state, ctx, 40, 'HT', null, 'comm.halfTime', {
       home: teamShort(state, ctx.fx.homeId), away: teamShort(state, ctx.fx.awayId),
       hs: ctx.home.score, ascore: ctx.away.score,
@@ -2551,6 +2608,7 @@ export function stepTick(state: GameState, ctx: LiveCtx): 'play' | 'HT' | 'BRK' 
   if (ctx.tick === 20) {
     ctx.seg = 3
     ctx.awaiting = null
+    if (ctx.decision) ctx.whistleAt = ctx.events.length
     finalizeMatch(state, ctx)
     return 'FT'
   }
