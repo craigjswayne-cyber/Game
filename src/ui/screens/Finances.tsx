@@ -15,7 +15,7 @@ import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
   offersFor, signOffer,
 } from '../../game/commercial'
-import { RELEASE_STEP, cashReserve, releaseBlock, releaseToBudget } from '../../game/treasury'
+import { RELEASE_STEP, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
 import { userWageBudget } from '../../game/grants'
 
@@ -29,6 +29,9 @@ export default function Finances() {
   const rewardTown = useStore(s => s.rewardTown)
   const [askMsg, setAskMsg] = useState<string | null>(null)
   const [relMsg, setRelMsg] = useState<string | null>(null)
+  /** where the treasury slider is sitting; 0 means "not touched yet", which
+   *  falls back to one step so the control is useful before it is dragged */
+  const [relAmt, setRelAmt] = useState(0)
   const club = game.clubs[game.userClubId]
   // The ask itself lives in the engine now (requestFunds, season.ts) where
   // the escalation ledger can see it. The button stays LIVE inside a refusal
@@ -169,16 +172,42 @@ export default function Finances() {
           (releaseBlock), so when the move is off the button says why - the
           reason in front of the decision, not a refusal after it. */}
       {(() => {
+        // A SLIDING BAR, NOT A BUTTON YOU PRESS EIGHT TIMES (owner, v1.1.12:
+        // "board finances - it should be a sliding bar for money in the
+        // club/transfer money"). Moving £4m used to be eight taps of a fixed
+        // £500k button, and the reserve - the thing that actually governs how
+        // much you have - was a sentence underneath rather than a stop on the
+        // control. The bar's right-hand end IS the reserve: it is drawn now
+        // instead of explained, and at a skint club it simply has no travel.
         const block = releaseBlock(game)
+        const most = releasable(game)
+        const amount = Math.max(RELEASE_STEP, Math.min(most, relAmt || RELEASE_STEP))
         return (
           <>
             {relMsg && <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>{relMsg}</div>}
-            <button className="btn ghost block" disabled={!!block}
-              onClick={() => { const r = releaseToBudget(game); setRelMsg(r.msg); touch() }}>
-              {t('finances.moveMoney', { amount: fmtMoney(RELEASE_STEP) })}
-            </button>
-            <div className="meta" style={{ padding: '2px 16px 8px', fontSize: 11.5 }}>
-              {block ?? t('finances.reserveNote', { reserve: fmtMoney(cashReserve(game)), step: fmtMoney(RELEASE_STEP) })}
+            <div className="card">
+              <div className="fact-label">{t('finances.treasurySlide')}</div>
+              {most > 0 && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 2px' }}>
+                    <input type="range" style={{ flex: 1 }}
+                      min={RELEASE_STEP} max={most} step={RELEASE_STEP}
+                      value={amount}
+                      onChange={e => setRelAmt(Number(e.target.value))} />
+                    <b style={{ minWidth: 74, textAlign: 'right' }}>{fmtMoney(amount)}</b>
+                  </div>
+                  <div className="meta" style={{ fontSize: 11.5, marginBottom: 8 }}>
+                    {t('finances.treasuryMost', { most: fmtMoney(most) })}
+                  </div>
+                </>
+              )}
+              <button className="btn ghost block" disabled={!!block}
+                onClick={() => { const r = releaseToBudget(game, amount); setRelMsg(r.msg); setRelAmt(0); touch() }}>
+                {most > 0 ? t('finances.treasuryMove', { amount: fmtMoney(amount) }) : t('finances.moveMoney', { amount: fmtMoney(RELEASE_STEP) })}
+              </button>
+              <div className="meta" style={{ paddingTop: 6, fontSize: 11.5 }}>
+                {block ?? t('finances.reserveNote', { reserve: fmtMoney(cashReserve(game)), step: fmtMoney(RELEASE_STEP) })}
+              </div>
             </div>
           </>
         )
