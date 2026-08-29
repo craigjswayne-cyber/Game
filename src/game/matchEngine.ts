@@ -3177,14 +3177,21 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // brand-new career was a wall of flagged names (owner, 29 Aug, with
         // the screenshot). No coach lets a pre-season run-out empty the tank -
         // minutes are managed even when the sim plays all eighty - so a
-        // friendly's legs bottom out at 64%, above the 62% rotation flag. The
-        // rng draw on the no-energy path is kept exactly as it was: this
-        // branch may not change the stream (fingerprint).
+        // friendly's legs bottom out at 48%: one ordinary +22 recovery week
+        // puts the same XV at 70, clear of the 62% rotation flag, so the wall
+        // cannot recur - while a manager who never rests anybody still rolls
+        // into the league opener a long way short of the rotated sides. (A
+        // first cut floored at 64 and difficultyprobe caught what that really
+        // was: most of the sleepwalk penalty gone - board-misery gaps
+        // collapsed, a sacking-parity flip, and a title stolen on autopilot.
+        // 48 keeps the owner's fix and the game's teeth.) The rng draw on the
+        // no-energy path is kept exactly as it was: this branch may not
+        // change the stream (fingerprint).
         p.lastWk = state.week
         const left = side.energy.get(pid)
         p.cond = left != null
-          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6, 64), 12, 100)
-          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)), 64), 20, 100)
+          ? clamp(Math.max(Math.min(p.cond, left + 8) - 6, 48), 12, 100)
+          : clamp(Math.max(p.cond - (14 + Math.floor(rng() * 10)), 48), 20, 100)
         p.sharp = clamp(p.sharp + 12, 0, 100)
       } else if (!isNation) {
         if (p.debutPending) { debutants.push({ p, r, kind: p.debutPending }); p.debutPending = null }

@@ -9,7 +9,10 @@
 //
 // The fix is in the friendly branch of finalizeMatch: a pre-season run-out
 // banks rhythm and burns legs, but no coach lets it empty the tank, so a
-// friendly's condition bottoms out at 64% - just above the 62% rotation flag.
+// friendly's condition bottoms out at 48% - one ordinary recovery week puts
+// that XV at 70, clear of the 62% rotation flag. (64 was tried first and
+// difficultyprobe showed it had quietly bought the sleepwalking manager out
+// of his early-season debt; 48 fixes the wall without paying his bills.)
 // League rugby is untouched: an unrotated XV still pays for all eighty
 // minutes, because the bench mattering is load-bearing design.
 //
@@ -42,13 +45,13 @@ const g = newGame('northampton', 'Legs', 7)
   const { fx, xv } = playLiveNoSubs(g, 99)
   ok(fx.compId === 'fr', `week ${g.week} is a friendly`)
   const after = xv.map(id => g.players[id]!.cond)
-  ok(Math.min(...after) >= 64,
-    `no man leaves a friendly under 64% (${Math.round(Math.min(...after))})`)
+  ok(Math.min(...after) >= 48,
+    `no man leaves a friendly under 48% (${Math.round(Math.min(...after))})`)
   ok(Math.min(...after) < 100, 'but the run-out cost something - legs are real')
   processWeekAndAdvance(g)
   const next = xv.map(id => g.players[id]!.cond)
-  ok(Math.min(...next) >= 80,
-    `a week later the same XV is match-fit (${Math.round(Math.min(...next))}%)`)
+  ok(Math.min(...next) >= 68,
+    `a week later the same XV is fit to pick (${Math.round(Math.min(...next))}%)`)
   ok(xv.filter(id => g.players[id]!.cond < 62).length === 0,
     'and nobody is sitting under the rotation flag')
 }
@@ -63,7 +66,7 @@ const g = newGame('northampton', 'Legs', 7)
   const { fx, xv } = playLiveNoSubs(g, 77)
   ok(fx.compId !== 'fr', `week ${g.week} is real rugby (${fx.compId})`)
   const after = xv.map(id => g.players[id]!.cond)
-  ok(Math.min(...after) < 64,
+  ok(Math.min(...after) < 48,
     `an unrotated league XV still pays for all eighty (${Math.round(Math.min(...after))}%) - the bench matters`)
 }
 
