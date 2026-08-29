@@ -153,7 +153,7 @@ try {
     await page.waitForSelector('.content')
     const till = await page.locator('.content').innerText()
     ok(/£2\.99/.test(till), "the prices shown are the store's own")
-    ok(!/not answering/i.test(till),
+    ok(!/named no products|guide prices/i.test(till),
       'and the shelf says nothing about its health, because there is nothing wrong with it')
     for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', "The Owner's Charter", 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
@@ -305,8 +305,12 @@ try {
     await page.waitForSelector('.content')
     await page.waitForTimeout(400)
     const till = await page.locator('.content').innerText()
-    ok(/not answering/i.test(till), 'the shelf says out loud that the store is not answering')
+    ok(/named no products/i.test(till), 'the shelf says out loud that the store named no products')
     ok(/guide prices/i.test(till), 'and that the figures on it are guides, not the store\'s')
+    // v1.1.10: it must NOT tell somebody to install from the store when they
+    // already did - the owner hit exactly that, on a Play build, twice
+    ok(!/installed from the store/i.test(till),
+      'and does not send a Play install back to the store it came from')
     ok(/£0\.99/.test(till), 'the rows still carry a price, so nothing stands blank')
     ok(!/£2\.99/.test(till), "and none of them is the store's, because it never gave one")
     await page.close()

@@ -213,9 +213,26 @@ try {
     // Play rather than Pause, press that instead: a moving match reaches the
     // break on its own.
     try { await skip.scrollIntoViewIfNeeded({ timeout: 1000 }) } catch { /* not laid out yet */ }
-    const play = page.locator('.speed-controls .btn').first()
-    if ((await play.textContent() ?? '').includes('▶')) {
-      try { await play.click({ timeout: 1500 }) } catch { /* disabled too */ }
+    // NEVER PRESS PLAY AT AN INTERVAL, and re-read the store rather than
+    // trusting the flag above. `skipped` is false here for TWO different
+    // reasons: the press never landed, or it landed and the 2.5s confirmation
+    // starved under whole-suite load. In the second case the match is sitting
+    // AT half-time right now, and Play at a break means leaveInterval(true) -
+    // restart and run on to the next one. That is precisely how this probe
+    // ended a run at seg 3, done, "Continue to Results": a skip that had
+    // worked, a confirmation that timed out, and this fallback walking the
+    // match through half-time, through the 60' break and out the far side.
+    //
+    // The earlier fix confirmed the press against the store; it did not stop
+    // the fallback from undoing a press it had decided was lost. This does.
+    const awaiting = await page.evaluate(
+      () => window.rugbyStore.getState().liveMatch?.ctx?.awaiting ?? null).catch(() => null)
+    if (awaiting === 'HT') { skipped = true; break }
+    if (!awaiting) {
+      const play = page.locator('.speed-controls .btn').first()
+      if ((await play.textContent() ?? '').includes('▶')) {
+        try { await play.click({ timeout: 1500 }) } catch { /* disabled too */ }
+      }
     }
     await page.waitForTimeout(400)
   }
