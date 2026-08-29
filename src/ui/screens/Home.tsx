@@ -19,6 +19,7 @@ import { ord, t } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
+import { natWindow, weeksToSquad } from '../../game/country'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -224,6 +225,31 @@ export default function Home() {
                 <div className="muted" style={{ marginTop: 6 }}>
                   {testWeek ? t('home.testWeek') : t('home.nextTest', { date: weekDate(game.season, next.week) })}
                 </div>
+                {/* DAYS UNTIL THE SQUAD (owner: "could we have days til squad
+                    work"). The window calendar always knew this and never said
+                    it, so a Test job spent most of a season looking like
+                    nothing was happening between fixtures. Three states, in
+                    order of urgency: camp open with places to fill, the week
+                    the party is named, and the countdown to the next one. */}
+                {(() => {
+                  const w = natWindow(game)
+                  if (w) {
+                    return (
+                      <div className="muted" style={{ marginTop: 4, fontWeight: 700, color: 'var(--gold)' }}>
+                        {t('home.campOpen', { n: (game.natSquads[game.natTeam!] ?? []).length, size: w.size })}
+                      </div>
+                    )
+                  }
+                  const wks = weeksToSquad(game)
+                  if (wks == null) return null
+                  return (
+                    <div className="muted" style={{ marginTop: 4, fontWeight: 700, color: wks <= 1 ? 'var(--gold)' : undefined }}>
+                      {wks <= 0
+                        ? t('home.squadThisWeek', { nat: nationName(game.natTeam!) })
+                        : t('home.squadIn', { n: wks * 7 })}
+                    </div>
+                  )
+                })()}
               </>
             ) : (
               <div className="muted">{t('home.noTest')}</div>

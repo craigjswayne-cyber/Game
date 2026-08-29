@@ -21,7 +21,8 @@
     "jobs": "Postes",
     "manager": "Manager",
     "hub": "Club",
-    "world": "Monde"
+    "world": "Monde",
+    "country": "Pays"
   },
   "titles": {
     "about": "À propos",
@@ -277,7 +278,10 @@
     "unread": {
       "one": "✉ {n} message non lu",
       "other": "✉ {n} messages non lus"
-    }
+    },
+    "squadIn": "Sélection annoncée dans {n} jours.",
+    "squadThisWeek": "🌍 SEMAINE DE SÉLECTION : vous annoncez votre groupe {nat} cette semaine.",
+    "campOpen": "Le camp est ouvert - {n} sur {size} retenus. Touchez pour composer le groupe."
   },
   "squad": {
     "tabSelection": "Composition",
@@ -1958,7 +1962,7 @@
     "squadStanding": "Aura de l'effectif {profile}/100 face à votre {rep}. {word}",
     "drillLonger": " Les automatismes mettent {pct} % de temps en plus à s'installer tant que cela dure.",
     "natOffer": "🌍 {nat} vous veut comme sélectionneur",
-    "natKeepAskTitle": "ð {nat} - et votre club ?",
+    "natKeepAskTitle": "🌍 {nat} - et votre club ?",
     "natKeepAskBody": "Vous êtes le sélectionneur du {nat}. Reste à trancher si vous continuez à {club}. Gardez les deux et votre adjoint prend le club les samedis de Test ; partez et le pays devient tout votre travail.",
     "natOfferBody": "Dirigez la sélection en parallèle de votre club. Pendant les fenêtres internationales, vous prenez les commandes le jour du match quand votre club est libre - et chaque tournoi remporté rejoint votre armoire à trophées.",
     "decline": "Refuser",
@@ -2632,7 +2636,6 @@
     "coNobodyLeft": "Plus personne en dehors du stage.",
     "coBetweenWindows": "Entre deux fenêtres",
     "coBetweenSub": "les convocations se font à l'ouverture du stage - vous façonnerez le groupe à ce moment-là",
-    "coLikelySquad": "Le groupe probable, selon la forme du moment. À l'ouverture d'une fenêtre, la fédération nomme sa liste et vous la remet.",
     "coTests": "Tests",
     "coNoTests": "Aucun test au calendrier cette saison pour l'instant.",
     "coFullTables": "Les classements complets et toutes les compétitions sont sur l'écran Rugby international.",
@@ -2721,7 +2724,15 @@
     "bgShowFull": "Voir exactement ce qui sera envoyé",
     "bgShareTitle": "PHASE: Rugby Manager - rapport de bug",
     "lgRefocus": "Nommer un nouveau rêve",
-    "lgDreamsDone": "Rêves réalisés"
+    "lgDreamsDone": "Rêves réalisés",
+    "coShape": "Votre structure",
+    "coShapeSub": "combien par poste - les trous indiquent la prochaine sélection",
+    "coFilterAll": "Tous",
+    "coShowing": "Les {n} meilleurs {pos} hors du camp, sur {total}.",
+    "coShowingAll": "Les {n} meilleurs hors du camp, sur {total}.",
+    "coCountdown": "La fédération ouvre le camp dans {n} jours. D'ici là, voici le groupe en forme actuelle.",
+    "coNoWindowLeft": "Plus de fenêtre cette saison - le travail du pays est terminé jusqu'à l'été.",
+    "coThin": "JUSTE : {pos}"
   },
   "handbook": {
     "a1": "Tout part du bouton en haut de l'écran. Il indique Continuer une semaine calme et Match quand vous avez une rencontre. Appuyez et le monde avance : la semaine passe, les autres résultats tombent, et tout ce qui s'est produit arrive dans votre messagerie sur l'écran Accueil.",
@@ -3519,10 +3530,10 @@
     "expiringMore": "En fin de contrat cet été : {men_l} et {more} autres - liste complète dans Équipe ▸ Contrats. Proposez de nouveaux contrats depuis leur fiche ou ils partiront libres.",
     "expiringMan": "{name} ({pos}, {age} ans)",
     "natOfferSubj": "🌍 {nat} vous veut comme sélectionneur",
-    "natAppointedSubj": "ð Nomination : sélectionneur du {nat}",
-    "natAppointed": "C'est officiel. Vous êtes le sélectionneur du {nat} - fenêtres internationales, campagnes de championnat, et chaque trophée remporté rejoint VOTRE armoire. Votre adjoint prend le club chaque samedi où votre pays joue. Reste une chose à trancher : continuez-vous au club ? Répondez sur votre Profil de manager quand vous voulez - tant que vous ne l'avez pas fait, le poste au club est à vous.",
-    "natAppointedOnlySubj": "ð Nomination : sélectionneur du {nat}",
-    "natAppointedOnly": "C'est officiel. Vous êtes le sélectionneur du {nat}. Fenêtres internationales, campagnes de championnat, et chaque trophée remporté rejoint VOTRE armoire - et sans club sur le bureau, le pays a votre semaine entière.",
+    "natAppointedSubj": "🌍 Nomination : sélectionneur du {nat_k}",
+    "natAppointed": "C'est officiel. Vous êtes le sélectionneur du {nat_k} - fenêtres internationales, campagnes de championnat, et chaque trophée remporté rejoint VOTRE armoire. Votre adjoint prend le club chaque samedi où votre pays joue. Reste une chose à trancher : continuez-vous au club ? Répondez sur votre Profil de manager quand vous voulez - tant que vous ne l'avez pas fait, le poste au club est à vous.",
+    "natAppointedOnlySubj": "🌍 Nomination : sélectionneur du {nat_k}",
+    "natAppointedOnly": "C'est officiel. Vous êtes le sélectionneur du {nat_k}. Fenêtres internationales, campagnes de championnat, et chaque trophée remporté rejoint VOTRE armoire - et sans club sur le bureau, le pays a votre semaine entière.",
     "natOffer": "La fédération suit votre travail et souhaite vous confier la sélection nationale en parallèle de votre poste en club - fenêtres internationales, campagnes de championnat, peut-être une Coupe du monde. Acceptez ou refusez depuis votre profil d'entraîneur. L'offre ne restera pas ouverte longtemps.",
     "wcHomeASubj": {
       "one": "🏆 Un champion du monde dans la maison",
@@ -4841,7 +4852,8 @@
       "other": "Le consultant du sponsor a trouvé un chemin plus court pour {player} : retour avec {n} semaines d'avance."
     },
     "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et vous viderez votre bureau.",
-    "boardPushedSacked": "Vous avez demandé une fois de trop. Le président se lève, tend une poignée de main que personne ne pense, et le communiqué du club sort avant que vous n'atteigniez le parking."
+    "boardPushedSacked": "Vous avez demandé une fois de trop. Le président se lève, tend une poignée de main que personne ne pense, et le communiqué du club sort avant que vous n'atteigniez le parking.",
+    "notHomeBased": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat - il devrait d'abord rentrer."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",

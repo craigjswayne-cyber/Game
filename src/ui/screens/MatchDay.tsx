@@ -21,6 +21,7 @@ import { matchStakes } from '../../game/stakes'
 import { dialLine, philosophyOf } from '../../game/philosophy'
 import { venueEffect } from '../../game/venue'
 import { sortTable } from '../../game/schedule'
+import { nationName } from '../../game/nations'
 
 const WEATHER_ICON: Record<string, string> = { Dry: '☀️', Rain: '🌧️', Wind: '💨', Snow: '❄️' }
 
@@ -1209,7 +1210,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="masthead-row">
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
-            <h1>{t('matchday.testMatch', { nat })}</h1>
+            <h1>{t('matchday.testMatch', { nat: nationName(nat) })}</h1>
             <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
           </div>
         </div>
@@ -1328,7 +1329,7 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="modal-veil" onClick={() => setConfirm(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>{t('matchday.readyNation', { nat })}</h3>
+            <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
             <div className="meta">{t('matchday.anthems')}</div>
             {/* the viewing choice sits here, not at the foot of a team sheet (F5) */}
             <ViewPicker view={view} onPick={setView} />

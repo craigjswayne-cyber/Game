@@ -4,7 +4,8 @@ import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep } from '../game/days'
 import { tillOpen } from '../game/monetise'
-import { IcoClipboard, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
+import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
+import { natWindow } from '../game/country'
 import Menu from './screens/Menu'
 import NewGame from './screens/NewGame'
 import Home from './screens/Home'
@@ -273,6 +274,15 @@ export default function App() {
   const pressOpen = game.press.filter(p => !p.answered).length
   const offersOpen = game.offers.filter(o => o.status === 'pending' && o.forUser).length
   const openJobs = game.vacancies.filter(v => !v.passed && !v.applied).length
+  // The Country button's badge is the one thing on that screen that is a JOB
+  // this week: an open camp with places still to fill. A window that is open
+  // and already full is not a red dot, it is a screen worth visiting.
+  const campToDo = (() => {
+    if (!game.natTeam) return 0
+    const w = natWindow(game)
+    if (!w) return 0
+    return Math.max(0, w.size - (game.natSquads[game.natTeam]?.length ?? 0))
+  })()
   // GATED ON THE FIRST MATCH, NOT ON A WEEK COUNT.
   //
   // This was `week <= 3`, and the user was still being told "before your first
@@ -537,6 +547,15 @@ export default function App() {
         ) : (
           <>
             {groupBtn('hub', <IcoClipboard />, t('nav.hub'), offersOpen + injuredCount)}
+            {/* THE COUNTRY DESK IS A JOB, SO IT IS A BUTTON (owner: "i thought
+                we were adding international coach as a new button on the
+                bottom when in charge? and remove when not? needs to be more of
+                an option and clearer"). It appears the moment a Test job is
+                held and disappears with it - a national side is the pinnacle
+                of the career and it was three taps down inside a submenu. The
+                badge is the one thing on that screen that is a job this week:
+                an open camp with names still to call. */}
+            {game.natTeam && navBtn('country', <IcoGlobe />, t('nav.country'), campToDo)}
             {/* Vacancies the manager can still do something about, matching the Job
                 Centre item's own count. Raw vacancies.length lit this dot because
                 somebody somewhere had been sacked, and nothing he could do would

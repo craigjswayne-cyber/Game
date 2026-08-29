@@ -1,5 +1,6 @@
 // International rugby nations, reputations, and regen name pools.
 import { t, tIn, type Lang } from './i18n'
+import type { GameState, Player } from './model'
 
 export interface Nation {
   code: string
@@ -183,4 +184,34 @@ export function regenName(rng: () => number, nat: string, taken?: Set<string>): 
  *  into something that actually holds. */
 export function worldNames(state: { players: Record<number, { name: string }> }): Set<string> {
   return nameRegistry(state, () => Object.values(state.players).map(p => p.name))
+}
+
+/** THE SQUAD IS THIRTY-TWO (owner, v1.1.12: "squad should be 32").
+ *
+ *  It was 26 for most windows, 28 at a World Cup and 30 for a Lions tour -
+ *  numbers picked window by window and never the same twice, so the coach
+ *  never learned what a squad was. One number, every window, every nation:
+ *  thirty-two men, of whom 23 dress on the day. */
+export const NAT_SQUAD_SIZE = 32
+
+/** NATIONS THAT PICK ONLY FROM THEIR OWN LEAGUE.
+ *
+ *  Owner: "players who dont play in England should not be able to be selected
+ *  for England." That is the real rule and only England and France hold it -
+ *  the RFU and the FFR both require a home-based contract, while Ireland,
+ *  Scotland, Wales, Italy, New Zealand, Australia and South Africa all pick
+ *  abroad, and South Africa's whole first-choice pack plays in Europe. So the
+ *  bar is applied where it is true and nowhere else: making it universal
+ *  would empty the Pumas and the Springboks.
+ *
+ *  The Lions are a squad of home-nations players and never a domestic side,
+ *  so the rule does not touch them. */
+const HOME_BASED_ONLY = ['ENG', 'FRA']
+
+/** Does this man's CLUB qualify him for this nation? True everywhere the rule
+ *  above does not apply. */
+export function homeBased(state: GameState, p: Player, nat: string): boolean {
+  if (!HOME_BASED_ONLY.includes(nat)) return true
+  const club = p.clubId ? state.clubs[p.clubId] : null
+  return !!club && club.country === nat
 }

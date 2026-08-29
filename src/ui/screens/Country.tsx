@@ -1,12 +1,13 @@
 import { Fragment, useState } from 'react'
 import { useStore } from '../../store'
-import { weekDate } from '../../game/model'
+import { POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { flagOf, nationByCode, nationName } from '../../game/nations'
 import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
-import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow } from '../../game/country'
+import { NAT_SQUAD_SIZE } from '../../game/nations'
+import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSquad } from '../../game/country'
 import { PosBadge, SectionTitle } from '../components'
-import { ord, t } from '../../game/i18n'
+import { ord, posName, t } from '../../game/i18n'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
 
@@ -25,6 +26,12 @@ export default function Country() {
   const [confirmClub, setConfirmClub] = useState(false)
   const [confirmNat, setConfirmNat] = useState(false)
   const [, redraw] = useState(0)
+  // FM'S ONE AFFORDANCE (owner: "simplify/work on the call up/drop stage - see
+  // how fm do it"): you never scroll a national pool, you filter it to the
+  // shirt you are short of. England's qualified population is two thousand
+  // names, so an unfiltered "next men in" list was not a shortlist, it was a
+  // census.
+  const [posFilter, setPosFilter] = useState<Pos | 'ALL'>('ALL')
 
   const natId = game.natTeam
   if (!natId) {
@@ -161,20 +168,75 @@ export default function Country() {
           <div className="meta" style={{ padding: '0 16px 4px' }}>
             {t('legacy.coWindowOpen')}
           </div>
+          {/* THE SHAPE OF THE SQUAD, BEFORE THE NAMES.
+              A coach picking a party of 32 is not reading a list, he is
+              counting shirts - two hookers is a crisis and four is a waste,
+              and nothing on this screen said either. Each cell is a tap that
+              filters the pool below to that shirt, so seeing a hole and
+              filling it is one gesture rather than a scroll through two
+              thousand qualified names. */}
+          <SectionTitle sub={t('legacy.coShapeSub')}>{t('legacy.coShape')}</SectionTitle>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '0 14px 8px' }}>
+            <button className="chip" onClick={() => setPosFilter('ALL')}
+              style={{ fontWeight: posFilter === 'ALL' ? 800 : 600, borderColor: posFilter === 'ALL' ? 'var(--gold)' : undefined }}>
+              {t('legacy.coFilterAll')}
+            </button>
+            {POS_ORDER.map(pos => {
+              const n = squad.filter(p => p.pos === pos).length
+              // two men in a shirt is one injury from a crisis: the coach
+              // should see it without counting
+              const thin = n < 2
+              return (
+                <button key={pos} className="chip" onClick={() => setPosFilter(posFilter === pos ? 'ALL' : pos)}
+                  title={thin ? t('legacy.coThin', { pos: posName(pos) }) : undefined}
+                  style={{
+                    fontWeight: posFilter === pos ? 800 : 600,
+                    borderColor: posFilter === pos ? 'var(--gold)' : thin ? 'var(--text-negative)' : undefined,
+                    color: thin ? 'var(--text-negative)' : undefined,
+                  }}>
+                  {pos} {n}
+                </button>
+              )
+            })}
+          </div>
           <SectionTitle>{t('legacy.coForwards')}</SectionTitle>
-          {table(squad.filter(p => FWD.includes(p.pos)), true)}
+          {table(squad.filter(p => FWD.includes(p.pos) && (posFilter === 'ALL' || p.pos === posFilter)), true)}
           <SectionTitle>{t('legacy.coBacks')}</SectionTitle>
-          {table(squad.filter(p => !FWD.includes(p.pos)), true)}
+          {table(squad.filter(p => !FWD.includes(p.pos) && (posFilter === 'ALL' || p.pos === posFilter)), true)}
           <SectionTitle sub={t('legacy.coNextMenSub')}>{t('legacy.coNextMen')}</SectionTitle>
-          {pool.length ? table(pool, false) : <div className="meta" style={{ padding: '0 16px' }}>{t('legacy.coNobodyLeft')}</div>}
+          {(() => {
+            // A SHORTLIST, NOT A CENSUS. The qualified population is every
+            // player of the nation in the game - two thousand of them for
+            // England - and the old screen rendered all of it. Twenty of the
+            // best, in the shirt you asked for, is what a selection meeting
+            // actually looks at.
+            const shown = pool.filter(p => posFilter === 'ALL' || p.pos === posFilter)
+            const top = shown.slice(0, 20)
+            if (!top.length) return <div className="meta" style={{ padding: '0 16px' }}>{t('legacy.coNobodyLeft')}</div>
+            return (
+              <>
+                <div className="meta" style={{ padding: '0 16px 4px' }}>
+                  {posFilter === 'ALL'
+                    ? t('legacy.coShowingAll', { n: top.length, total: shown.length })
+                    : t('legacy.coShowing', { n: top.length, pos: posName(posFilter), total: shown.length })}
+                </div>
+                {table(top, false)}
+              </>
+            )
+          })()}
         </>
       ) : (
         <>
           <SectionTitle sub={t('legacy.coBetweenSub')}>{t('legacy.coBetweenWindows')}</SectionTitle>
+          {/* the countdown, in the owner's own unit ("could we have days til
+              squad work") - the calendar knew and never said */}
           <div className="meta" style={{ padding: '0 16px 4px' }}>
-            {t('legacy.coLikelySquad')}
+            {(() => {
+              const wks = weeksToSquad(game)
+              return wks == null ? t('legacy.coNoWindowLeft') : t('legacy.coCountdown', { n: Math.max(0, wks) * 7 })
+            })()}
           </div>
-          {table((pool.length ? pool : squad).slice(0, 26), false)}
+          {table((pool.length ? pool : squad).slice(0, NAT_SQUAD_SIZE), false)}
         </>
       )}
 

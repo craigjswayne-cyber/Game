@@ -299,7 +299,9 @@ export function applyPinnacle(state: GameState, nat?: string): boolean {
   state.natConfidence = 60
   state.natRecord = { m: 0, w: 0, d: 0, l: 0 }
   state.natKeepAsk = state.unemployed ? null : chosen
-  const v = { nat: chosen }
+  // the nation renders in the reader's language: nat_k holds the key, not
+  // the three letters (i18n.ts, the _k convention)
+  const v = { nat_k: `nation.${chosen}` }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
     // newsSubject() derives the subject key by putting Subj on the end of k,

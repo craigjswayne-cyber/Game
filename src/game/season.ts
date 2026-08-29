@@ -21,7 +21,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
-import { NAT_TIERS, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -567,25 +567,25 @@ export interface Window { start: number; end: number; nations: string[]; size: n
 export function activeWindows(state: GameState): Window[] {
   const out: Window[] = []
   if (state.comps['wc']) {
-    out.push({ start: 1, end: WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: 28 })
+    out.push({ start: 1, end: WC_KO_WEEKS[WC_KO_WEEKS.length - 1], nations: state.comps['wc'].teamIds, size: NAT_SQUAD_SIZE })
   }
   if (state.comps['trc']) {
-    out.push({ start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'], size: 26 })
+    out.push({ start: TRC_WEEKS[0] - 1, end: TRC_WEEKS[TRC_WEEKS.length - 1], nations: ['NZL', 'RSA', 'AUS', 'ARG'], size: NAT_SQUAD_SIZE })
   }
   if (state.comps['pnc']) {
-    out.push({ start: PNC_WEEKS[0] - 1, end: PNC_WEEKS[PNC_WEEKS.length - 1], nations: state.comps['pnc'].teamIds, size: 26 })
+    out.push({ start: PNC_WEEKS[0] - 1, end: PNC_WEEKS[PNC_WEEKS.length - 1], nations: state.comps['pnc'].teamIds, size: NAT_SQUAD_SIZE })
   }
   if (state.comps['aut']) {
-    out.push({ start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'], size: 26 })
+    out.push({ start: AUTUMN_WEEKS[0] - 1, end: AUTUMN_WEEKS[AUTUMN_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA', 'NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'], size: NAT_SQUAD_SIZE })
   }
   if (state.comps['sn']) {
-    out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: 26 })
+    out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: NAT_SQUAD_SIZE })
   }
   if (state.comps['tour']) {
-    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['tour'].teamIds, size: 26 })
+    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['tour'].teamIds, size: NAT_SQUAD_SIZE })
   }
   if (state.comps['lions']) {
-    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['lions'].teamIds, size: 30 })
+    out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['lions'].teamIds, size: NAT_SQUAD_SIZE })
   }
   return out
 }
@@ -607,7 +607,12 @@ function manageInternationals(state: GameState, rng: Rng) {
           (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))
         const pool = Object.values(state.players)
           .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
-            p.clubId && !p.injury && !p.onLoan && (usersNat || p.ca >= 68))
+            // England and France pick from their own leagues, and the
+            // federation's own list obeys the rule the coach obeys
+            // (country.ts homeBased) - one predicate, or the announcement
+            // names men the screen then refuses to keep
+            p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
+            (usersNat || p.ca >= 68))
           .sort((a, b) => b.ca - a.ca)
           .slice(0, w.size)
         // emerging nations field home-based internationals our club world

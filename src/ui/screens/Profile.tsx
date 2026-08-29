@@ -142,7 +142,7 @@ export default function Profile() {
 
       {game.natOffer && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
-          <h3 style={{ fontSize: 15 }}>{t('profile.natOffer', { nat: game.natOffer.nat })}</h3>
+          <h3 style={{ fontSize: 15 }}>{t('profile.natOffer', { nat: nationName(game.natOffer.nat) })}</h3>
           <div className="meta">{t('profile.natOfferBody')}</div>
           {/* v1.1.5 (owner): taking the national side asks about the club job
               - keep both, or clear the desk and go all-in on country. An
@@ -189,7 +189,7 @@ export default function Profile() {
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 22 }}>🌍</span>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 14 }}>{t('profile.natHeadCoach', { nat: game.natTeam })}</h3>
+            <h3 style={{ fontSize: 14 }}>{flagOf(game.natTeam)} {t('profile.natHeadCoach', { nat: nationName(game.natTeam) })}</h3>
             <div className="meta">
               {t('profile.testWeeksYours')}
               {game.natConfidence != null && (
