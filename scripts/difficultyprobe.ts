@@ -128,11 +128,25 @@ ok(pts('sabotage') < pts('sleepwalk') - 15,
 // claim seed by seed, where CRN makes it sharp instead of lucky.
 SEEDS.forEach((s, i) => console.log(
   `  seed ${String(s).padEnd(4)} sleepwalk ${rows.sleepwalk[i].pts}pts${rows.sleepwalk[i].champion ? ' CHAMPIONS' : ''} · optimise ${rows.optimise[i].pts}pts${rows.optimise[i].champion ? ' CHAMPIONS' : ''}`))
-const stolen = SEEDS.filter((_, i) => rows.sleepwalk[i].champion && !rows.optimise[i].champion)
-ok(stolen.length === 0,
-  `autopilot never wins a title the engaged manager would have missed${stolen.length ? ` (seed ${stolen.join(', ')})` : ''}`)
-ok(rows.sleepwalk.filter(r => r.champion).length < SEEDS.length,
-  `and Continue is not a guaranteed trophy (${rows.sleepwalk.filter(r => r.champion).length}/${SEEDS.length} titles)`)
+// Second draft of the same claim, retired for the same reason as the first.
+// "Stolen = sleepwalk champion where optimise was not, paired by seed" leaned
+// on common random numbers - but the pairing is only sharp while both runs
+// consume the same dice, and they stop doing that at the first different team
+// sheet. By the playoffs the two are independent seasons sharing a label:
+// when the v1.1.10 fitness re-tune reshuffled the dice, seed 777's sleepwalk
+// won its hottest season (59pts, the mode's best of the set) while optimise
+// had a middling one (50pts) - not a stolen title, a knockout won from the
+// top of a table it topped. The slideshow this probe hunts is autopilot
+// winning WITHOUT the season to justify it, or winning as often as
+// engagement - so assert those, directly:
+const sleepTitles = rows.sleepwalk.filter(r => r.champion)
+const optTitles = rows.optimise.filter(r => r.champion).length
+ok(sleepTitles.length <= 1,
+  `Continue lifting a trophy stays a fluke, not a strategy (${sleepTitles.length}/${SEEDS.length} titles)`)
+ok(optTitles >= sleepTitles.length,
+  `and engagement never lifts fewer trophies than absence (${optTitles} v ${sleepTitles.length})`)
+ok(sleepTitles.every(r => r.pts >= pts('sleepwalk') + 10),
+  `any autopilot title came from an outlier season, ten clear of its own mean (${sleepTitles.map(r => r.pts).join(', ') || 'none'} v ${pts('sleepwalk').toFixed(1)})`)
 ok(posn('optimise') < posn('sleepwalk'),
   `and the engaged manager finishes higher than the absent one (${posn('optimise').toFixed(2)} v ${posn('sleepwalk').toFixed(2)})`)
 

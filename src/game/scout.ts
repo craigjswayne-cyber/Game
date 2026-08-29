@@ -194,7 +194,13 @@ export function recruitmentMeeting(state: GameState): void {
       .filter(p => p.clubId && p.clubId !== club.id && !p.acad && p.pos === need.pos &&
         p.age <= 31 && !p.retiring && !picks.some(x => x.p.id === p.id))
       .map(p => ({ p, fee: Math.round(p.value * 1.15) }))
-      .filter(x => x.fee <= club.budget && x.p.wage <= Math.max(20_000, wageRoom))
+      // nine tenths of the budget, not all of it: the meeting runs BEFORE the
+      // week's value refresh (weeklyTraining), so a man picked at 100.0% of
+      // the budget can drift over it by the time the memo is read - which is
+      // exactly how officeprobe caught it when the v1.1.10 fitness change
+      // nudged the world's values. Advice that spends the whole budget to the
+      // pound was bad advice anyway.
+      .filter(x => x.fee <= club.budget * 0.9 && x.p.wage <= Math.max(20_000, wageRoom))
       .filter(x => fuzzedCa(state, x.p) >= bestAt(need.pos) - 4)
       .sort((a, b) => (fuzzedCa(state, b.p) - b.p.age * 0.4) - (fuzzedCa(state, a.p) - a.p.age * 0.4))[0]
     if (cand) picks.push({ p: cand.p, need, fee: cand.fee })
