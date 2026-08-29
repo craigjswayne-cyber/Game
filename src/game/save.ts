@@ -385,6 +385,19 @@ export function migrate(s: GameState): GameState {
   s.devFocus ??= []
   s.natTeam ??= null
   s.natOffer ??= null
+  s.natKeepAsk ??= null
+  // THE PAID CALL THAT LEFT NOTHING BEHIND (v1.1.12).
+  //
+  // Until now the International Stage placed a natOffer with the same
+  // three-week shelf life every earned offer has, and season.ts clears an
+  // offer older than three weeks. Play three weeks without finding the letter
+  // on the Profile and the purchase was simply gone: pinnacleCalled true, no
+  // national job, and a store that hides the picker precisely because the
+  // call has been made. That is what the owner hit ("paid for this but no job
+  // offer came"). The appointment is immediate now, so this can only be a save
+  // from before the fix - and the honest repair is to give the call back
+  // rather than to appoint a nation nobody chose.
+  if (s.pinnacleCalled && !s.natTeam && !s.natOffer && s.natCall == null) s.pinnacleCalled = false
   s.natLineup ??= null
   s.objectives ??= ['youth', 'derby']
   s.finHist ??= []

@@ -257,12 +257,26 @@ export function applyEstate(state: GameState): boolean {
 }
 
 /**
- * The International Stage: the buyer picks the federation (v1.1.5) and the
- * offer arrives THE MOMENT the call is made (v1.1.6, owner: "they should be
- * offered an international job immediately") - a real natOffer through the
- * same machinery every earned offer uses: the same letter, the same 3-week
- * shelf life, the same accept/decline on the Profile. Once per career: a
- * career whose call was made and whose offer lapsed had its offer.
+ * The International Stage: the buyer picks the federation and IS APPOINTED.
+ *
+ * It used to place a real natOffer - the same letter, the same accept/decline
+ * on the Profile, the same three-week shelf life every earned offer has - on
+ * the reasoning that reusing the earned machinery kept one code path. What
+ * that actually bought the customer was a letter he had to go and find on
+ * another screen, and which QUIETLY EXPIRED if he played three weeks without
+ * finding it (season.ts clears an offer older than three weeks). The owner
+ * paid for it and reported: "paid for this but no job offer came it should be
+ * immediate and automatically installed - it shouldnt even be an offer just an
+ * announcement with a question of will you carry on at the club?"
+ *
+ * He is right, and not only about the bug. An EARNED offer can be declined
+ * because the union chose you; a BOUGHT one cannot sensibly be, because you
+ * chose it and you have already paid. So the job is installed here - the
+ * tenure opens exactly as answerNatOffer would have opened it - the news
+ * carries an appointment rather than an approach, and the single real
+ * decision is left standing in natKeepAsk: do you carry on at the club?
+ * Ignoring that question keeps the club job, so nothing can expire and
+ * nothing can be lost by not finding a screen.
  *
  * A call placed with no pick (defensive callers) falls back to the best
  * tier the reputation honestly qualifies for - the same ladder rule the
@@ -279,13 +293,20 @@ export function applyPinnacle(state: GameState, nat?: string): boolean {
   const rep = mgrReputation(state)
   const qualified = NAT_TIERS.filter(([, need]) => rep >= need)
   const chosen = nat ?? (qualified.length ? qualified[qualified.length - 1] : NAT_TIERS[0])[0]
-  state.natOffer = { nat: chosen, week: state.week }
+  // the appointment itself, on the same terms answerNatOffer sets: a new
+  // tenure starts at nought and the union starts out believing in you
+  state.natTeam = chosen
+  state.natConfidence = 60
+  state.natRecord = { m: 0, w: 0, d: 0, l: 0 }
+  state.natKeepAsk = state.unemployed ? null : chosen
   const v = { nat: chosen }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
-    subject: `🌍 ${chosen} want you as national head coach`,
-    body: tIn('en', 'news.natOffer', v),
-    k: 'news.natOffer', v,
+    // newsSubject() derives the subject key by putting Subj on the end of k,
+    // so both bodies carry their own subject line
+    subject: tIn('en', `news.${state.unemployed ? 'natAppointedOnly' : 'natAppointed'}Subj`, v),
+    body: tIn('en', `news.${state.unemployed ? 'natAppointedOnly' : 'natAppointed'}`, v),
+    k: `news.${state.unemployed ? 'natAppointedOnly' : 'natAppointed'}`, v,
   })
   logDecision(state, 'dec.pinnacle', undefined, true)
   return true
