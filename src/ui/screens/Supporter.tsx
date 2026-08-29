@@ -105,9 +105,15 @@ function TillHealth() {
   useEffect(() => { void tillHealth().then(setState) }, [])
   if (!state || state.live === state.asked) return null
   const key = state.live === 0 ? 'store.tillSilent' : 'store.tillPartial'
+  // and the store's own words for it, when there are any. This is a
+  // diagnostic line, deliberately plain: it is the difference between a
+  // service that will not answer and one answering "I have nothing for you",
+  // which is the difference between a broken build and a console setting.
+  const why = billingReason()
   return (
     <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
       <div className="meta">{t(key, { live: state.live, asked: state.asked })}</div>
+      {why && <div className="meta" style={{ marginTop: 6, opacity: .8 }}>{why}</div>}
     </div>
   )
 }
