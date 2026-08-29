@@ -3016,6 +3016,7 @@
     "alreadyYours": "Already yours - nothing to restore.",
     "badge": "Supporter",
     "cancelled": "Nothing was charged.",
+    "refused": "The store would not open a purchase for this item. Nothing was charged. This usually means the product is not active yet, or this account is not on the licence-testing list.",
     "error": "The store could not be reached. Nothing was charged - try again later.",
     "nothingToRestore": "Nothing to restore on this account.",
     "pending": "The store is still processing it. Nothing more to do here - it lands on its own, and Restore will pick it up if you close the game first.",
