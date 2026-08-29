@@ -246,10 +246,18 @@ This is a single-player, fully offline game. There is no account, no login, no
 server and no network use at all after the download - a reviewer can turn off the
 network entirely and every feature still works.
 
-There is one optional non-consumable in-app purchase ("Supporter", phase.supporter).
-It removes advertising and adds a mark to the title screen; it does not affect
-gameplay in any way. A Restore button is on the same screen (Manager menu →
-About & legal → Support the game).
+There are nine optional in-app purchases, none of which is required to play and
+none of which affects any other manager's game. Four are permanent unlocks
+(Support the game; The International Stage; The Estate; The Owner's Charter) and
+five are consumable club funding (Full Fitness, and four board injections). The
+game is complete without every one of them: they unlock club-management
+conveniences inside a single-player save, and the simulation itself is identical
+either way. A Restore button sits on the same screen (Manager menu → About &
+legal → Open the Store).
+
+The store is reachable only in a packaged build. The free web version at
+phaserugbymanager.com has no store at all, which is why a reviewer running the
+website sees no purchases.
 
 Player names are real, used to identify people in a sporting database. Clubs,
 competitions, grounds and sponsors are fictional and no official badges, kits or
