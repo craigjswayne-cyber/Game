@@ -8,6 +8,7 @@ import { commissionScout, searchFee, type SearchMonths } from '../../game/commis
 import { badgeLabel } from '../../game/staff'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { posName, t } from '../../game/i18n'
+import { userWageBudget } from '../../game/grants'
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -73,7 +74,7 @@ export default function Transfers() {
         borderBottom: '1px solid var(--border)',
       }}>
         <span className="chip">{t('transfers.budget')} <b>{fmtMoney(user.budget)}</b></span>
-        <span className="chip">{t('transfers.wageRoom')} <b>{fmtMoney(Math.max(0, user.wageBudget - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}{t('common.perWeek')}</b></span>
+        <span className="chip">{t('transfers.wageRoom')} <b>{Number.isFinite(userWageBudget(game, user)) ? `${fmtMoney(Math.max(0, userWageBudget(game, user) - user.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)))}${t('common.perWeek')}` : t('finances.noLimit')}</b></span>
         <span className="chip" style={{
           color: (game.week <= 7 || game.week === 26 || game.week === 27) ? 'var(--text-positive)' : 'var(--text-muted)',
           fontWeight: 700,

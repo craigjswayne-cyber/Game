@@ -1594,7 +1594,8 @@
     "endEarly": "End the deal early",
     "endConfirm": "End it - the money stops today",
     "dealEnded": "{sponsor} pack up. Three new parties are already interested - their numbers may be better than what you gave up, or worse.",
-    "nothingToEnd": "There is nothing in term to end."
+    "nothingToEnd": "There is nothing in term to end.",
+    "noLimit": "No limit"
   },
   "club": {
     "tabClub": "The Club",

@@ -18,6 +18,7 @@ import { natRankOrder } from '../../game/natrank'
 import { ord, t } from '../../game/i18n'
 import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
+import { userWageBudget } from '../../game/grants'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -424,7 +425,7 @@ export default function Home() {
           .sort((a, b) => b.week - a.week).slice(0, 2).reverse()
         const coming = game.fixtures.filter(f => !f.played && mine(f)).sort((a, b) => a.week - b.week).slice(0, 3)
         const out = club.players.map(id => game.players[id]).filter(p => p?.injury)
-        const wageRoom = club.wageBudget - club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
+        const wageRoom = userWageBudget(game, club) - club.players.reduce((s, id) => s + (game.players[id]?.wage ?? 0), 0)
         const resStr = (f: typeof played[0]) => {
           const us = f.homeId === club.id ? f.homeScore : f.awayScore
           const them = f.homeId === club.id ? f.awayScore : f.homeScore

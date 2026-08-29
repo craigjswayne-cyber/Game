@@ -372,6 +372,71 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
       'and a failed purchase does not overwrite why the catalogue was empty')
   }
 
+  // ---- 13a3. ACKNOWLEDGE, OR PLAY TAKES THE MONEY BACK --------------------
+  //
+  // Google emailed the owner on 29 Aug 2026: a paid Estate, cancelled and
+  // refunded, "you should ensure that all purchases are acknowledged". The
+  // old code read `if (token && svc.acknowledge)` - so a Digital Goods
+  // service without acknowledge() skipped the step in total silence and the
+  // customer lost the product three days later.
+  {
+    clear()
+    const acks: string[] = []
+    const gg3 = globalThis as unknown as Record<string, unknown>
+    // (a) a 1.0 service: acknowledge() exists and must be called
+    gg3.getDigitalGoodsService = async () => ({
+      getDetails: async (skus: string[]) => skus.map(itemId => ({ itemId, title: 't', price: { value: '9.99', currency: 'GBP' } })),
+      listPurchases: async () => [{ itemId: M.ESTATE_SKU, purchaseToken: 'tok-estate' }],
+      acknowledge: async (t: string, kind: string) => { acks.push(`ack:${t}:${kind}`) },
+      consume: async (t: string) => { acks.push(`consume:${t}`) },
+    })
+    gg3.PaymentRequest = class {
+      async show() { return { details: { token: 'tok-new' }, complete: async () => {} } }
+    }
+    const b1 = await playBridge()
+    g.rmBilling = b1!
+    await M.buyOwnable(M.ESTATE_SKU)
+    ok(acks.includes('ack:tok-new:onetime'),
+      'a non-consumable is acknowledged as a one-time purchase')
+
+    // (b) THE SWEEP: an open receipt is settled again at boot, which is the
+    // only thing that can rescue a purchase an older build left hanging
+    acks.length = 0
+    await playBridge()
+    await new Promise(r => setTimeout(r, 20))
+    ok(acks.includes('ack:tok-estate:onetime'),
+      'and every open receipt is re-acknowledged at boot, before the three days run out')
+
+    // (c) a 2.0 service has NO acknowledge - the old code went silent here
+    acks.length = 0
+    gg3.getDigitalGoodsService = async () => ({
+      getDetails: async (skus: string[]) => skus.map(itemId => ({ itemId, title: 't', price: { value: '0.99', currency: 'GBP' } })),
+      listPurchases: async () => [{ itemId: M.HEAL_SKU, purchaseToken: 'tok-heal' }],
+      consume: async (t: string) => { acks.push(`consume:${t}`) },
+    })
+    const b2 = await playBridge()
+    clear()
+    g.rmBilling = b2!
+    await M.buyConsumable(M.HEAL_SKU)
+    ok(acks.includes('consume:tok-new'),
+      'on a 2.0 service a consumable is settled through consume(), which acknowledges it')
+
+    // (d) and a token Play never returned is REPORTED, not shrugged off
+    clear()
+    gg3.PaymentRequest = class {
+      async show() { return { details: {}, complete: async () => {} } }
+    }
+    const b3 = await playBridge()
+    g.rmBilling = b3!
+    await M.buyOwnable(M.ESTATE_SKU)
+    ok((M.billingReason() ?? '').includes('cannot be acknowledged'),
+      'a purchase with no token says so, because silence here is a refund with a three-day fuse')
+    // leave a working service standing: the sections below build on it
+    gg3.PaymentRequest = class {
+      async show() { return { details: { token: 'tok-new' }, complete: async () => {} } }
+    }
+  }
+
   // ---- 13b. A REFUSAL IS NOT A CANCELLATION -------------------------------
   //
   // Owner, on v1.1.9: "all show products - nothing is charged is still coming
