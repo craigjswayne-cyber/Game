@@ -8,7 +8,7 @@ import {
 } from '../../game/matchEngine'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
-import { natFixtureThisWeek, userFixtureThisWeek, weekRng } from '../../game/season'
+import { assistantFixtureThisWeek, userMatchThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t } from '../../game/i18n'
@@ -33,8 +33,17 @@ export default function MatchDay() {
   const live = useStore(s => s.liveMatch)
   const { back } = useStore.getState()
 
-  const clubFx = game.unemployed ? undefined : userFixtureThisWeek(game)
-  const fx = live?.fixture ?? clubFx ?? natFixtureThisWeek(game)
+  // ONE DECISION POINT, OR THE SCREEN LIES.
+  //
+  // This used to read the CLUB fixture first and fall back to the Test, while
+  // store.kickOff and store.instantResult both read userMatchThisWeek, which
+  // ranks the Test above it. So on a week holding both, this screen previewed
+  // Northampton's Saturday and the button underneath played Scotland's (user:
+  // "it showed my club game, I ran it and it played another international
+  // game"). The preview and the kick-off now read the same function, so they
+  // cannot disagree; the club game the assistant is taking is named below
+  // rather than offered.
+  const fx = live?.fixture ?? userMatchThisWeek(game)
   if (!fx) {
     return (
       <div className="title-screen">
@@ -1215,6 +1224,24 @@ function NationPreview({ fxId }: { fxId: number }) {
           <h3 style={{ fontSize: 19 }}>{t('matchday.vsLine', { home: teamShort(game, fx.homeId), away: teamShort(game, fx.awayId) })}</h3>
           <div className="meta">{t('matchday.intlLine')}</div>
         </div>
+        {/* THE OTHER SATURDAY, NAMED. The club fixture does not vanish because
+            the manager is with his country - it is played by the assistant and
+            reported on Monday. Saying so here is the whole of "clearly
+            separated but work together": one match is being prepared on this
+            screen, the other is somebody else's job, and neither is a
+            surprise. */}
+        {(() => {
+          const cfx = assistantFixtureThisWeek(game)
+          if (!cfx) return null
+          return (
+            <div className="card" style={{ borderLeft: '4px solid var(--border-strong)' }}>
+              <div className="fact-label">{t('matchday.clubSameDay')}</div>
+              <div className="meta" style={{ marginTop: 3 }}>
+                {t('matchday.assistantTakes', { home: teamShort(game, cfx.homeId), away: teamShort(game, cfx.awayId) })}
+              </div>
+            </div>
+          )
+        })()}
         <SectionTitle sub={t('matchday.h2hNation')}>{t('matchday.headToHead')}</SectionTitle>
         {bar(t('matchday.h2hScrum'), myUnits.scrum, oppUnits.scrum)}
         {bar(t('matchday.h2hLineout'), myUnits.lineout, oppUnits.lineout)}
