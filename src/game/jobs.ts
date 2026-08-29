@@ -6,7 +6,7 @@ import { fmtMoney, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
 import { clamp, mulberry32, type Rng } from './rng'
-import { regenName } from './nations'
+import { nationByCode, regenName } from './nations'
 import { inheritStaff } from './staff'
 import { newCoachPhilosophy, seedPhilosophies } from './philosophy'
 import { t, tIn } from './i18n'
@@ -29,7 +29,28 @@ export function jobChance(state: GameState, clubId: string): number {
   const club = state.clubs[clubId]
   if (!club) return 0
   const rep = mgrReputation(state)
-  let c = 0.92 - (club.rep - rep) / 32
+  // THE SEAT YOU ARE SITTING IN IS THE LOUDEST LINE ON THE CV (owner, v1.1.12:
+  // "if you are head coach of a national team and of a top team, other jobs a
+  // lot below them should be 100% a chance not a long shot").
+  //
+  // jobChance read the manager's REPUTATION against the club's standing and
+  // nothing else, and reputation is a slow, earned number: a coach appointed at
+  // Northampton (rep 86) on day one still carries rep 22, so a rep 38
+  // second-division board rolled him at 42% and the card said Outside shot. No
+  // board on earth interviews the Northampton head coach for Sedgley Park and
+  // wonders whether he is good enough - they wonder whether he is serious.
+  //
+  // So the post held SUBSTITUTES for reputation rather than adding to it - the
+  // bigger of the club on your desk and the nation you coach, discounted by
+  // twenty because holding a seat is not the same as having earned it. A Test
+  // job is worth at least the standing of a very good club whichever nation it
+  // is, which is what makes it the pinnacle rather than a badge. The
+  // substitution only ever helps, so nothing below gets worse, and against a
+  // club as big as your own it changes almost nothing: a giant still says no.
+  const natRep = state.natTeam ? Math.max(80, nationByCode(state.natTeam)?.rep ?? 80) : 0
+  const clubRep = state.unemployed ? 0 : (state.clubs[state.userClubId]?.rep ?? 0)
+  const cv = Math.max(rep, Math.max(natRep, clubRep) - 20)
+  let c = 0.92 - (club.rep - cv) / 32
   // FRESH SILVERWARE IS ITS OWN CV (user: "Ive just won the double with
   // Northampton - I shouldn't be a long shot for jobs like la rochelle").
   // Reputation already counts trophies, but slowly and forever; a board
