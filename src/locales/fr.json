@@ -956,6 +956,7 @@
     "rotCup": "Un match de coupe est la semaine idéale pour faire confiance au groupe. ",
     "rotFit": "{pct}% de condition",
     "rotFlagged": "{men} - {count} signalés par le staff médical. Dites un mot et je vous nomme un XV frais autour d'eux.",
+    "rotSummary": "Le staff médical signale {n} joueurs du XV prévu - jambes lourdes ou trop de minutes. Un mot de vous et je nomme un XV frais autour d'eux.",
     "rotMan": "{player} ({why})",
     "rotRedZone": "zone rouge",
     "rotTurnaround": "Avec {n} jours de récupération, pas de place pour des jambes lourdes. ",

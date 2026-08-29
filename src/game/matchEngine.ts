@@ -2954,9 +2954,9 @@ export function applyTacticsChange(state: GameState, ctx: LiveCtx) {
 }
 
 /**
- * Match statistics for the stats panel, and for the sheet under the pitch
- * (owner, v1.1.9: "below that during the game there should be basic match
- * stats - scrums won/lost, lineouts won/lost, tackles made").
+ * Match statistics for the stats panel (scrums, lineouts and tackles joined
+ * it for v1.1.9; the live strip that briefly drew them under the pitch was
+ * removed the next morning at the owner's ask - the panel is the home).
  *
  * Possession, tries, penalties, cards and energy are MEASURED: the engine has
  * been keeping every one of them all along.

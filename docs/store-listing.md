@@ -119,6 +119,18 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.10
+
+```
+• When the store refuses a purchase, the game now says so - and says why -
+  instead of "Nothing was charged" for everything.
+• A purchase that was paid for can no longer be reported as a failure.
+• Match day: the commentary sits tight under the pitch; the stats strip is
+  gone (the full sheet lives in the half-time and full-time panel).
+• The assistant's rotation plan is one line when half the side is flagged.
+```
+*(414)*
+
 ### What's new (500 max) - v1.1.9
 
 ```
@@ -348,6 +360,19 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.10
+
+```
+• Quand la boutique refuse un achat, le jeu le dit désormais - et dit
+  pourquoi - au lieu d'afficher « Rien n'a été débité » pour tout.
+• Un achat déjà payé ne peut plus être annoncé comme un échec.
+• Jour de match : le commentaire colle au terrain ; le bandeau de stats
+  disparaît (la feuille complète reste dans le panneau de mi-temps).
+• Le plan de rotation de l'adjoint tient en une ligne quand la moitié de
+  l'équipe est signalée.
+```
+*(438)*
 
 ### Nouveautés (500 max) - v1.1.9
 

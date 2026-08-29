@@ -956,6 +956,7 @@
     "rotCup": "A cup tie is the week to trust the squad. ",
     "rotFit": "{pct}% fit",
     "rotFlagged": "{men} - {count} flagged by the medical staff. Say the word and I'll name a fresh XV around them.",
+    "rotSummary": "The medical staff have flagged {n} of the intended XV - tired legs or too many minutes. Say the word and I'll name a fresh XV around them.",
     "rotMan": "{player} ({why})",
     "rotRedZone": "red zone",
     "rotTurnaround": "A {n}-day turnaround is no week for heavy legs. ",
