@@ -128,6 +128,17 @@ export type PurchaseOutcome = 'owned' | 'cancelled' | 'pending' | 'unavailable' 
  * diagnostic, not a headline: one small grey line under the row.
  */
 let lastReason: string | null = null
+/** The LOOKUP's account of itself, kept apart from the PURCHASE's.
+ *
+ *  These shared one slot for exactly one afternoon, and it cost a round trip:
+ *  the shelf's health check runs on mount and records why the catalogue came
+ *  back empty, then the first tap on Buy overwrote it with the purchase
+ *  error, so the screen showed the wrong half of the diagnosis to the person
+ *  reading it. They answer different questions and they now have different
+ *  slots. */
+let lastLookup: string | null = null
+export const setLookupReason = (why: string | null) => { lastLookup = why }
+export const lookupReason = (): string | null => lastLookup
 export const setBillingReason = (why: string | null) => { lastReason = why }
 /** The bridge's own account of the last refusal wins where it has one: a
  *  native shell knows more about its store than this module does. The

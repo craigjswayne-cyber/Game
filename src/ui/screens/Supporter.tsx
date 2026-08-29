@@ -4,7 +4,7 @@ import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  billingReason, pendingConsumables, restore, skuPrice, tillHealth, tillOpen,
+  billingReason, lookupReason, pendingConsumables, restore, skuPrice, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
@@ -109,7 +109,7 @@ function TillHealth() {
   // diagnostic line, deliberately plain: it is the difference between a
   // service that will not answer and one answering "I have nothing for you",
   // which is the difference between a broken build and a console setting.
-  const why = billingReason()
+  const why = lookupReason()
   return (
     <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
       <div className="meta">{t(key, { live: state.live, asked: state.asked })}</div>

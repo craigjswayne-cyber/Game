@@ -26,7 +26,7 @@
  * handshake means no bridge, which means no purchase door, which is exactly what
  * the web build should look like.
  */
-import { CONSUMABLE_SKUS, setBillingReason } from './monetise'
+import { CONSUMABLE_SKUS, setBillingReason, setLookupReason } from './monetise'
 import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
@@ -90,13 +90,13 @@ export async function playBridge(): Promise<BillingBridge | null> {
       const got = await svc.getDetails([sku])
       const [d] = got
       if (!d) {
-        setBillingReason(`getDetails answered with ${Array.isArray(got) ? got.length : 'no'} items for ${sku} - Play is reachable and does not offer this product here`)
+        setLookupReason(`getDetails answered with ${Array.isArray(got) ? got.length : 'no'} items for ${sku} - Play is reachable and does not offer this product here`)
         return null
       }
       return { sku, price: money(d.price.value, d.price.currency), title: d.title }
     } catch (e) {
       const err = e as Error
-      setBillingReason(`getDetails threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'} - the billing service is attached but not answering`)
+      setLookupReason(`getDetails threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'} - the billing service is attached but not answering`)
       return null
     }
   }
