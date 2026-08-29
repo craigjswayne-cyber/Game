@@ -22,6 +22,8 @@ export default function BugReport() {
   const saveFail = useStore(s => s.saveFail)
   const saveFailMsg = useStore(s => s.saveFailMsg)
   const [notes, setNotes] = useState('')
+  const [idea, setIdea] = useState('')
+  const [ideaMsg, setIdeaMsg] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [showFull, setShowFull] = useState(false)
 
@@ -70,6 +72,30 @@ export default function BugReport() {
     }
   }
 
+  // an idea is sent as itself: no save, no user agent, no crash ring
+  const ideaBody = `PHASE: RUGBY MANAGER - IDEA\n\n${idea.trim()}\n`
+  const ideaMail = mailtoUrl(ideaBody, 'PHASE: Rugby Manager - an idea')
+
+  const doShareIdea = async () => {
+    if (!idea.trim()) { setIdeaMsg(t('legacy.bgIdeaEmpty')); return }
+    try {
+      await navigator.share({ title: t('legacy.bgIdeasTitle'), text: ideaBody })
+      setIdeaMsg(t('legacy.bgIdeaShared'))
+    } catch (e) {
+      if ((e as Error)?.name !== 'AbortError') setIdeaMsg(t('legacy.bgShareFailed'))
+    }
+  }
+
+  const doCopyIdea = async () => {
+    if (!idea.trim()) { setIdeaMsg(t('legacy.bgIdeaEmpty')); return }
+    try {
+      await navigator.clipboard.writeText(ideaBody)
+      setIdeaMsg(t('legacy.bgCopied'))
+    } catch {
+      setIdeaMsg(t('legacy.bgCopyFailed'))
+    }
+  }
+
   const errs = crashCount()
 
   return (
@@ -104,6 +130,44 @@ export default function BugReport() {
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
           <b>{t('legacy.bgScreenshotB')}</b>{t('legacy.bgScreenshot')}
           {t('legacy.bgMailGoesTo')}<b>{DEV_CONTACT}</b>{t('legacy.bgMailRest')}
+        </div>
+      </div>
+
+      {/* IDEAS, NOT ONLY FAULTS (owner, v1.1.12: "could we add
+          suggestions/feedback to the bug page - explain this is a passion
+          project and always open to adding new features. send ideas to improve
+          the game").
+          Deliberately its OWN box with its own routes out, rather than a line
+          added to the bug notes: somebody with an idea is not reporting a
+          fault, and asking him to file one is how an idea goes unsent. And
+          nothing is attached to it - a suggestion does not need a save file, a
+          user agent or a crash ring, and saying so is the difference between
+          a feedback box and a data collection box. */}
+      <div className="card">
+        <SectionTitle sub={t('legacy.bgIdeasSub')}>{t('legacy.bgIdeasTitle')}</SectionTitle>
+        <div className="muted" style={{ fontSize: 12.5, marginBottom: 8 }}>{t('legacy.bgIdeasBlurb')}</div>
+        <label className="bug-label" htmlFor="idea-notes">{t('legacy.bgIdeaLabel')}</label>
+        <textarea
+          id="idea-notes"
+          className="inline-input bug-notes"
+          value={idea}
+          onChange={e => setIdea(e.target.value)}
+          rows={4}
+          placeholder={t('legacy.bgIdeaPlaceholder')}
+        />
+        <div className="btn-row" style={{ marginTop: 8 }}>
+          {canShare && (
+            <button className="btn gold" onClick={() => { void doShareIdea() }}>{t('legacy.bgShare')}</button>
+          )}
+          <a className="btn" href={ideaMail}
+            onClick={e => { if (!idea.trim()) { e.preventDefault(); setIdeaMsg(t('legacy.bgIdeaEmpty')) } }}>
+            {t('legacy.bgEmail')}
+          </a>
+          <button className="btn" onClick={() => { void doCopyIdea() }}>{t('legacy.bgCopy')}</button>
+        </div>
+        {ideaMsg && <div className="bug-msg">{ideaMsg}</div>}
+        <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
+          {t('legacy.bgIdeaGoesTo')}<b>{DEV_CONTACT}</b>{t('legacy.bgIdeaRest')}
         </div>
       </div>
 

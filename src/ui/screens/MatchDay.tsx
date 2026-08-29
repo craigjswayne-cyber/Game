@@ -1401,6 +1401,32 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   const min = last?.min ?? 0
   const evType = last?.type
   const towardHome = last?.teamId === fx.homeId
+  /**
+   * YOUR TEAM ALWAYS ATTACKS RIGHT (owner, v1.1.12: "kick off is to the left -
+   * put it to the right please").
+   *
+   * The pitch was drawn in the fixture's frame - home defends the left, away
+   * defends the right - which is correct for a broadcast and wrong for a
+   * dugout. Take an away fixture and your side kicked towards the left of the
+   * screen and defended the right, every week, with no way to tell which
+   * colour was yours except by remembering the team sheet.
+   *
+   * So the frame is the MANAGER's now: mirrored whenever he is the away side,
+   * which is exactly half his season. Everything below still computes in the
+   * fixture's frame - the maths, the momentum sign, the comments that explain
+   * them - and only the rendered x is flipped, because reasoning about a
+   * conditionally reversed coordinate system is how a pitch ends up with the
+   * packs on the wrong sides of a scrum.
+   *
+   * A CSS scaleX on the whole pitch would have been one line and is the wrong
+   * tool: the shirt numbers and the carrier's name would read backwards, and
+   * counter-flipping them fights the running animations, which own transform.
+   */
+  const mirror = ctx.userSideId != null && ctx.userSideId === fx.awayId
+  /** fixture frame -> screen. The identity when the manager is at home. */
+  const mx = (x: number): number => (mirror ? 100 - x : x)
+  /** does this side attack towards the right of the SCREEN */
+  const rightward = (isHomeSide: boolean): boolean => isHomeSide !== mirror
   const scoringFx = evType === 'TRY' || evType === 'PEN' || evType === 'DG' || evType === 'CON'
   const kickFx = evType === 'PEN' || evType === 'CON' || evType === 'DG'
   const banner = evType && (showFx || (showBig && scoringFx)) ? BANNER[evType] : undefined
@@ -1525,7 +1551,7 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
       // make staggered support runs onto the ball, everyone defending steps up
       // and off as one line, and non-rucking forwards jog on the spot. The
       // carrier and the scorer keep their own animations.
-      const motion = scorerRun ? (isHome ? ' run-r' : ' run-l')
+      const motion = scorerRun ? (rightward(isHome) ? ' run-r' : ' run-l')
         : hl ? ''
         : ruck ? ' jog'
         : attacking && slot >= 8 ? ' supp'
@@ -1545,9 +1571,9 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
         <div key={id}
           className={`pdot${hl ? ' hl' : ''}${capId === id ? ' cap' : ''}${motion}`}
           style={{
-            left: `${x}%`, top: `${y}%`,
+            left: `${mx(x)}%`, top: `${y}%`,
             background: cols[0], borderColor: cols[1], color: contrastText(cols[0]),
-            '--adir': isHome ? 1 : -1,
+            '--adir': rightward(isHome) ? 1 : -1,
             ...timing,
           } as CSSProperties}>
           {XV_SLOTS[slot].shirt}
@@ -1558,16 +1584,18 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
   }
 
   return (
-    <div className={`pitch${showFx && evType === 'TRY' ? (towardHome ? ' try-r' : ' try-l') : ''}`}
+    <div className={`pitch${showFx && evType === 'TRY' ? (rightward(towardHome) ? ' try-r' : ' try-l') : ''}`}
       style={{ '--tick': `${tickMs}ms` } as CSSProperties}>
-      <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${homeC[0]}cc, ${homeC[0]}55)` }} />
-      <div className="tryzone tz-r" style={{ right: 0, background: `linear-gradient(270deg, ${awayC[0]}cc, ${awayC[0]}55)` }} />
+      {/* each in-goal wears the colours of the side that DEFENDS it, so the
+          zone you are attacking is always the far one on the right */}
+      <div className="tryzone tz-l" style={{ left: 0, background: `linear-gradient(90deg, ${(mirror ? awayC : homeC)[0]}cc, ${(mirror ? awayC : homeC)[0]}55)` }} />
+      <div className="tryzone tz-r" style={{ right: 0, background: `linear-gradient(270deg, ${(mirror ? homeC : awayC)[0]}cc, ${(mirror ? homeC : awayC)[0]}55)` }} />
       {[22, 50, 78].map(x => <div key={x} className="line" style={{ left: `${x}%` }} />)}
       {[36, 64].map(x => <div key={x} className="line dashed" style={{ left: `${x}%` }} />)}
       <div className="posts" style={{ left: '7%' }} />
       <div className="posts" style={{ right: '7%' }} />
-      <div className="zone-label" style={{ left: '2.5%' }}>{clubCode(teamShort(game!, fx.homeId))}</div>
-      <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, fx.awayId))}</div>
+      <div className="zone-label" style={{ left: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.awayId : fx.homeId))}</div>
+      <div className="zone-label" style={{ right: '2.5%' }}>{clubCode(teamShort(game!, mirror ? fx.homeId : fx.awayId))}</div>
       {dots(ctx.home, true)}
       {dots(ctx.away, false)}
       {/* ballTop, NOT a second copy of its fallback.
@@ -1583,20 +1611,22 @@ function PitchViz({ ctx, game, last, ballLeft, fxKey, showFx, showBig, lastTeamC
           height. The ball was the only thing on the pitch that did not know
           where the ball was. */}
       <div key={kickFx && showFx ? `k${fxKey}` : 'ball'}
-        className={`ball${kickFx && showFx ? (towardHome ? ' kick-r' : ' kick-l') : ''}`}
-        style={{ left: `${ballLeft}%`, top: `${ballTop}%` }} />
+        className={`ball${kickFx && showFx ? (rightward(towardHome) ? ' kick-r' : ' kick-l') : ''}`}
+        style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }} />
       {setPiece && (
         <div key={`sp${fxKey}`} className={`setp${setPiece === 'MAUL' ? ' maul' : ''}`}
-          style={{ left: `${ballLeft}%`, top: `${ballTop}%` }}>
+          style={{ left: `${mx(ballLeft)}%`, top: `${ballTop}%` }}>
           {setPiece === 'LINEOUT' ? (
             <>
-              <span className="lo-col" style={{ background: homeC[0] }} />
-              <span className="lo-col away" style={{ background: awayC[0] }} />
+              <span className="lo-col" style={{ background: (mirror ? awayC : homeC)[0] }} />
+              <span className="lo-col away" style={{ background: (mirror ? homeC : awayC)[0] }} />
             </>
           ) : (
             <>
-              <span className="pack l" style={{ background: homeC[0] }} />
-              <span className="pack r" style={{ background: awayC[0] }} />
+              {/* the packs sit on the side each team is defending, so a scrum
+                  mirrors with the rest of the pitch */}
+              <span className="pack l" style={{ background: (mirror ? awayC : homeC)[0] }} />
+              <span className="pack r" style={{ background: (mirror ? homeC : awayC)[0] }} />
             </>
           )}
           <span className="splabel">{t(`matchday.sp${setPiece}`)}</span>
