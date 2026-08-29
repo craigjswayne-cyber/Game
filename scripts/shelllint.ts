@@ -66,5 +66,40 @@ ok(/rel="apple-touch-icon"\s+sizes="180x180"\s+href="\.\/icon-180\.png"/.test(ht
   ok(!locked, 'App.tsx carries no landscape hard-lock')
 }
 
+// ---- THE ASSET LINKS NAME BOTH KEYS -----------------------------------------
+//
+// 29 Aug 2026, and it cost a day. Play App Signing means TWO certificates
+// exist: the UPLOAD key, which signs what you send Google, and the APP
+// SIGNING key, which signs what Google sends the phone. assetlinks.json named
+// only the upload key, so:
+//
+//   the sideloaded build   matched, verified as a TWA, no address bar - but
+//                          Play did not recognise the install, so the store
+//                          returned an empty catalogue
+//   the Play build         did not match, failed verification, fell back to
+//                          Custom Tabs - and a Custom Tab has no billing
+//                          client behind the Digital Goods API at all
+//
+// Both routes broken, for opposite reasons, which is why fixing one never
+// fixed the other and why the address bar appeared only AFTER installing
+// properly from Play. The symptom in the game was
+// "getDetails threw OperationError: clientAppUnavailable".
+//
+// Both fingerprints belong in the file, forever. One is not enough.
+{
+  const al = JSON.parse(readFileSync('public/.well-known/assetlinks.json', 'utf8'))
+  const target = al?.[0]?.target ?? {}
+  const fps: string[] = target.sha256_cert_fingerprints ?? []
+  ok(target.package_name === 'com.phaserugbymanager.app',
+    `the asset links name the app (${target.package_name})`)
+  ok(fps.length >= 2,
+    `and BOTH signing keys, not just one (${fps.length}) - upload key for local builds, Play's app signing key for what users install`)
+  ok(fps.every(f => f.split(':').length === 32),
+    'each fingerprint is a full SHA-256, 32 pairs')
+  ok(fps.every(f => /^[0-9A-F:]+$/.test(f)),
+    'and upper-case hex, which is the only form Android matches')
+  ok(new Set(fps).size === fps.length, 'with no duplicates')
+}
+
 console.log(fails ? `SHELL LINT FAILED (${fails})` : 'SHELL LINT PASSED: the shell matches the game inside it')
 if (fails) process.exit(1)
