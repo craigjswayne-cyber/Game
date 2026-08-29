@@ -85,7 +85,7 @@ const SPECIALITIES: Speciality[] = [
 export default function Profile() {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
-  const { resign, answerNatOffer, resignNat } = useStore.getState()
+  const { resign, answerNatOffer, answerNatKeep, resignNat } = useStore.getState()
   const [confirmResign, setConfirmResign] = useState(false)
   const [confirmNatResign, setConfirmNatResign] = useState(false)
   const [natAccepting, setNatAccepting] = useState(false)
@@ -169,6 +169,20 @@ export default function Profile() {
               </div>
             </>
           )}
+        </div>
+      )}
+      {/* THE BOUGHT APPOINTMENT'S ONE QUESTION (v1.1.12). The International
+          Stage installs the job outright now - it is not an offer and cannot
+          expire - so all that stands here is the club decision, and it stands
+          until it is answered rather than for three weeks. */}
+      {game.natKeepAsk && !game.unemployed && club && (
+        <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
+          <h3 style={{ fontSize: 15 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
+          <div className="meta">{t('profile.natKeepAskBody', { nat: nationName(game.natKeepAsk), club: club.short })}</div>
+          <div className="btn-row" style={{ marginTop: 10 }}>
+            <button className="btn danger" onClick={() => answerNatKeep(false)}>{t('profile.natResignClub')}</button>
+            <button className="btn gold" style={{ flex: 1.3 }} onClick={() => answerNatKeep(true)}>{t('profile.natKeepBoth')}</button>
+          </div>
         </div>
       )}
       {game.natTeam && (

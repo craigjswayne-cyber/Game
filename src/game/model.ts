@@ -1361,6 +1361,14 @@ export interface GameState {
    *  natCall answers with this nation's offer; absent on a pre-picker call,
    *  which falls back to the best qualified tier */
   natCallNat?: string | null
+  /** THE PAID APPOINTMENT'S ONE REMAINING QUESTION (v1.1.12). The
+   *  International Stage installs the job outright rather than offering it
+   *  (owner: "paid for this but no job offer came... it shouldnt even be an
+   *  offer just an announcement with a question of will you carry on at the
+   *  club?"), so the only thing left to ask is the club one. Holds the
+   *  nation code while that question stands; null once answered. Leaving it
+   *  unanswered costs nothing - the club job is kept until it is resigned. */
+  natKeepAsk?: string | null
   /** purchased cash landed this season, in pounds - the books objective
    *  reads organic funds only, so a bought pound can never finish it */
   injectedThisSeason?: number

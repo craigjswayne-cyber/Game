@@ -184,6 +184,7 @@ interface Store {
   healSquad: () => boolean
   buildEstate: () => boolean
   makeTheCall: (nat?: string) => boolean
+  answerNatKeep: (keep: boolean) => void
   /** Name a new dream once the current one is realised (v1.1.5). */
   refocusDream: (id: string) => boolean
   /** Rewarded favours (game/rewarded.ts): called ONLY after the ad bridge
@@ -1272,6 +1273,19 @@ export const useStore = create<Store>((set, get) => ({
       // with the job - with the national post already in hand.
       if (!keepClub && !g.unemployed) resignJob(g)
     }
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+  },
+
+  /** THE ONLY QUESTION A BOUGHT APPOINTMENT LEAVES (v1.1.12). The job is
+   *  already installed by applyPinnacle; this answers "and the club?".
+   *  Keeping it is a no-op beyond clearing the question, which is why an
+   *  unanswered question is safe to leave standing forever. */
+  answerNatKeep: (keep: boolean) => {
+    const g = get().game
+    if (!g || !g.natKeepAsk) return
+    g.natKeepAsk = null
+    if (!keep && !g.unemployed) resignJob(g)
     set(s => ({ tick: s.tick + 1 }))
     void get().persist()
   },

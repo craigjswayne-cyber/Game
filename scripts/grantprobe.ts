@@ -201,7 +201,7 @@ console.log('\n--- 9. the estate rises whole, once, and the builders take their 
   ok(!applyEstate(g), 'and it cannot be applied twice')
 }
 
-console.log('\n--- 10. the call to the federations is answered AT ONCE, once per career, to the nation the buyer picked\n')
+console.log('\n--- 10. the International Stage APPOINTS, once per career, to the nation the buyer picked\n')
 {
   const g = newGame('northampton', 'Grant Probe', 7110)
   ok(mgrReputation(g) < 64, `a fresh career is nowhere near the earned gate (${mgrReputation(g)})`)
@@ -210,16 +210,22 @@ console.log('\n--- 10. the call to the federations is answered AT ONCE, once per
   ok(!applyPinnacle(g, 'ATLANTIS'), 'a federation that does not exist refuses the call, spending nothing')
   ok(!g.pinnacleCalled, 'and the career still has its call')
   ok(applyPinnacle(g, 'NZL'), 'the call goes out to the buyer\'s own pick')
-  // v1.1.6 (owner): "they should be offered an international job immediately"
-  ok(g.natOffer?.nat === 'NZL', 'the offer is on the desk the same moment - the All Blacks, at reputation 22, because that is what was bought')
-  ok(g.news.some(n => n.k === 'news.natOffer'), 'and the offer letter is filed, keyed')
+  // v1.1.12 (owner): "it should be immediate and automatically installed - it
+  // shouldnt even be an offer just an announcement with a question of will you
+  // carry on at the club?" An offer could expire, and did: three weeks of play
+  // without finding the letter and the purchase was gone.
+  ok(g.natTeam === 'NZL', 'he IS the All Blacks head coach - installed, not offered')
+  ok(!g.natOffer, 'nothing was left on a shelf that expires')
+  ok(g.natConfidence === 60 && g.natRecord?.m === 0, 'the tenure opens at nought with the union believing in him')
+  ok(g.news.some(n => n.k === 'news.natAppointed'), 'the announcement is filed, keyed')
+  ok(g.natKeepAsk === 'NZL', 'and the one real question stands: does he carry on at the club?')
   ok(g.natCall == null && g.natCallNat == null, 'no two-week callback is scheduled - there is nothing left to wait for')
   ok(!applyPinnacle(g, 'CAN'), 'a career only gets one call')
 
   // a call with no pick still lands somewhere honest, immediately
   const h = newGame('northampton', 'Grant Probe', 7111)
   ok(applyPinnacle(h), 'a pickless call still goes out')
-  ok(h.natOffer?.nat === 'CAN', 'and falls back at once to the best tier the reputation honestly qualifies for')
+  ok(h.natTeam === 'CAN', 'and appoints at once to the best tier the reputation honestly qualifies for')
 
   // the OLD wait, kept for a save whose call was already in flight when the
   // wait was removed: the answer block in season.ts still delivers it
@@ -231,21 +237,35 @@ console.log('\n--- 10. the call to the federations is answered AT ONCE, once per
   for (let i = 0; i < NAT_CALL_WEEKS + 1 && !old.natOffer; i++) processWeekAndAdvance(old)
   ok(old.natOffer?.nat === 'FIJ', 'an old save mid-call is still answered by the season engine')
 
-  // v1.1.5: accepting the job asks about the club - both answers work
+  // the club question: both answers work, and an unanswered one costs nothing
   const { useStore } = await import('../src/store')
   useStore.setState({ game: h, persist: async () => {} })
-  useStore.getState().answerNatOffer(true, true)
-  ok(h.natTeam === 'CAN' && !h.unemployed, 'keep both: national coach AND still at the club')
+  useStore.getState().answerNatKeep(true)
+  ok(h.natTeam === 'CAN' && !h.unemployed && !h.natKeepAsk, 'keep both: national coach AND still at the club')
 
   const j = newGame('northampton', 'Grant Probe', 7112)
-  ok(applyPinnacle(j, 'FIJ'), 'a second career calls Fiji')
-  for (let i = 0; i < NAT_CALL_WEEKS + 1 && !j.natOffer; i++) processWeekAndAdvance(j)
+  ok(applyPinnacle(j, 'FIJ'), 'a second career takes Fiji')
   const oldClub = j.userClubId
   useStore.setState({ game: j, persist: async () => {} })
-  useStore.getState().answerNatOffer(true, false)
+  useStore.getState().answerNatKeep(false)
   ok(j.natTeam === 'FIJ' && j.unemployed, 'resign the club: national coach, desk cleared')
   ok(j.vacancies.some(v => v.clubId === oldClub), 'and the old job is a real vacancy')
   ok(j.news.some(n => n.k === 'news.resigned'), 'with the resignation letter on file')
+  ok(!j.natKeepAsk, 'and the question is closed either way')
+
+  // THE STRANDED SAVE. Before v1.1.12 the call placed an offer with a
+  // three-week shelf life, so a career that played on without finding the
+  // letter kept `pinnacleCalled` and got nothing at all - which is exactly
+  // what the owner reported. Loading such a save hands the call back.
+  const { migrate } = await import('../src/game/save')
+  const lost = newGame('northampton', 'Grant Probe', 7114) as Record<string, unknown>
+  lost.pinnacleCalled = true
+  lost.natTeam = null
+  lost.natOffer = null
+  lost.natCall = null
+  migrate(lost as never)
+  ok((lost as { pinnacleCalled?: boolean }).pinnacleCalled === false,
+    'a save whose paid offer expired unseen gets its call back on load')
 }
 
 
