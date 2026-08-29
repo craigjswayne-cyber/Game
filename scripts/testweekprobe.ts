@@ -17,6 +17,7 @@
 //   3. The club's afternoon still counts in full - the board reacts and the
 //      report files - and the manager's own record counts only the match his
 //      hands were on.
+import { readFileSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import type { Fixture } from '../src/game/model'
@@ -72,6 +73,35 @@ ok(g.mgr.m === mgrBefore + 1, `the manager's record counts the Test only (${mgrB
 ok(g.natConfidence !== confBefore, `the union's confidence moved on the result (${confBefore} -> ${g.natConfidence})`)
 const clubReport = g.news.find(n => n.fixtureId === clubFx.id && n.id !== note?.id)
 ok(!!clubReport, 'the club match still filed its own report')
+
+// 4. THE SCREENS READ THE SAME DECISION POINT.
+//
+// The engine was right all along and the SCREENS were not: MatchDay picked the
+// club fixture first and fell back to the Test, while store.kickOff read
+// userMatchThisWeek, which ranks the Test above it. So the preview showed one
+// match and the button under it played another (user: "it showed my club game,
+// I ran it and it played another international game"). Claims 1-3 cannot catch
+// that, because it lives in the routing rather than the engine - so the
+// routing is read here. Any surface that decides WHICH MATCH IS BEING PLAYED
+// must go through userMatchThisWeek; userFixtureThisWeek stays legal for the
+// club-only furniture (the analyst's opposition read, the Friday build-up).
+const routing: [string, string][] = [
+  ['src/ui/screens/MatchDay.tsx', 'userMatchThisWeek'],
+  ['src/store.ts', 'userMatchThisWeek'],
+  ['src/game/days.ts', 'userMatchThisWeek'],
+]
+for (const [file, needle] of routing) {
+  const src = readFileSync(file, 'utf8')
+  ok(src.includes(needle), `${file} decides the week's match through ${needle}`)
+}
+const md = readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+ok(!/const fx = live\?\.fixture \?\? clubFx/.test(md),
+  'MatchDay no longer prefers the club fixture over the Test')
+ok(md.includes('assistantFixtureThisWeek'),
+  "the Test preview names the club game the assistant is taking")
+const home = readFileSync('src/ui/screens/Home.tsx', 'utf8')
+ok(home.includes('assistantFixtureThisWeek') && home.includes('home.assistantTakesIt'),
+  'the Home card says the assistant takes the club game on a Test week')
 
 console.log(fails ? `\nTEST WEEK PROBE FAILED (${fails})` : '\nTEST WEEK PROBE PASSED: the pinnacle is on the touchline, not in the round-up')
 process.exit(fails ? 1 : 0)

@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { SIX_NATIONS_WEEKS } from '../../game/schedule'
 import { nationByCode, nationName, flagOf } from '../../game/nations'
 import { leaguePos, sortTable } from '../../game/schedule'
-import { arrangeFriendly, userFixtureThisWeek } from '../../game/season'
+import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
 import { teamShort } from '../../game/matchEngine'
 import { derbyName, rivalsOf } from '../../game/rivalries'
 import { dreamNote, dreamPct, dreamState, dreamTitle } from '../../game/dream'
@@ -64,6 +64,13 @@ export default function Home() {
     .sort((a, b) => a.week - b.week)[0]
   const comp = fx ? game.comps[fx.compId] : null
   const isThisWeek = fx && fx.week === game.week
+  // WHOSE SATURDAY IS THIS. On a week holding both a club fixture and a Test
+  // the manager takes his country (season.userMatchThisWeek) and the assistant
+  // takes the club - so this card must stop inviting a team sheet for a match
+  // the manager is not at (user: "it showed my club game, I ran it and it
+  // played another international game").
+  const assistantFx = assistantFixtureThisWeek(game)
+  const assistants = !!assistantFx && !!fx && assistantFx.id === fx.id
   const pressOpen = game.press.filter(p => !p.answered).length
 
   // hub widgets: form pips, league position, money. The pips sort by week
@@ -159,11 +166,11 @@ export default function Home() {
         )
       })()}
       {fx && (
-        <div className="card" onClick={() => go('tactics')} style={{
-          borderLeft: `4px solid ${game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
+        <div className="card" onClick={() => go(assistants ? 'country' : 'tactics')} style={{
+          borderLeft: `4px solid ${assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>
-            {t('home.nextMatch')} · {comp?.name ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
+            {t(assistants ? 'home.assistantMatch' : 'home.nextMatch')} · {comp?.name ?? (fx.compId === 'fr' ? t('common.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''}
           </div>
           {/* a class, not an inline font-size: inline wins over any media query,
               so portrait could not shrink this and "Northampton v La Rochelle"
@@ -187,7 +194,7 @@ export default function Home() {
             ) : null
           })()}
           <div className="muted" style={{ marginTop: 6 }}>
-            {isThisWeek ? t('home.tapSetTeam') : t('home.noMatchWeek')}
+            {assistants ? t('home.assistantTakesIt') : isThisWeek ? t('home.tapSetTeam') : t('home.noMatchWeek')}
           </div>
         </div>
       )}

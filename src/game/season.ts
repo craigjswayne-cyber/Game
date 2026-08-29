@@ -1537,6 +1537,19 @@ export function userMatchThisWeek(state: GameState): Fixture | undefined {
   return natFixtureThisWeek(state) ?? (state.unemployed ? undefined : userFixtureThisWeek(state))
 }
 
+/** THE CLUB GAME THE ASSISTANT TAKES - the other half of the same decision.
+ *
+ *  Undefined every week without a Test, because every one of those the
+ *  manager takes himself. On a week holding both it is the club fixture, and
+ *  it is what the Home card and the match screen must SAY is the assistant's,
+ *  rather than offering it as the afternoon's work (user: "it showed my club
+ *  game, I ran it and it played another international game. its important
+ *  that they are clearly separated but work together"). */
+export function assistantFixtureThisWeek(state: GameState): Fixture | undefined {
+  if (state.unemployed || !natFixtureThisWeek(state)) return undefined
+  return userFixtureThisWeek(state)
+}
+
 /** how many stories the inbox keeps on the shelf - older ones fall off the bottom */
 export const NEWS_KEEP = 250
 
