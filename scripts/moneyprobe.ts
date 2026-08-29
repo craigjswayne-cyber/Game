@@ -90,8 +90,14 @@ ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
   ok(from.price === M.REFERENCE_PRICES[M.SUPPORTER_SKU] && from.live === false,
     'a reference price is marked as not the store\'s own')
   const health = await M.tillHealth()
-  ok(health.live === 0 && health.asked === Object.keys(M.REFERENCE_PRICES).length,
-    `with no store, nothing on the shelf is priced by one (0 of ${Object.keys(M.REFERENCE_PRICES).length})`)
+  // Remove-all-ads is in the catalogue but in no store until a build ships
+  // ads, so the shelf must not ask about it - or it could never report better
+  // than 9 of 10 and would nag on a perfectly good till.
+  const sellable = Object.keys(M.REFERENCE_PRICES).length - 1
+  ok(health.live === 0 && health.asked === sellable,
+    `with no store, nothing on the shelf is priced by one (0 of ${sellable})`)
+  ok(!(await M.tillHealth()).asked || health.asked === sellable,
+    'and Remove-all-ads is not counted, because this build sells no ads to remove')
 }
 
 // ---- 2. a packaged shell puts a bridge in -----------------------------------
@@ -107,6 +113,11 @@ ok(await M.supporterPrice() === '£3.49', "the price shown is the store's own, f
   ok(from.live === true, "and it is marked as the store's own, so the shelf keeps quiet about its health")
   const health = await M.tillHealth()
   ok(health.live === health.asked, `every product on the shelf is priced by the store (${health.live}/${health.asked})`)
+  // THE ONE THAT WOULD HAVE CAUGHT IT: a working till must report a CLEAN
+  // sheet, or the Store draws its "not answering" line over a store that is
+  // answering perfectly. Counting a product no store has cost exactly that.
+  ok(health.asked === Object.keys(M.REFERENCE_PRICES).length - 1,
+    `a good till reports no shortfall at all (${health.live}/${health.asked}, ads product excluded)`)
 }
 ok(await M.buySupporter() === 'owned', 'a completed purchase reports owned')
 ok(M.hasSupporter(), 'and the receipt is written down')

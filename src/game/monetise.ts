@@ -388,9 +388,16 @@ export async function skuPrice(sku: string): Promise<string | null> {
  *  answering at all, and the screen phrases them differently. Returns the
  *  count that answered and the count asked. */
 export async function tillHealth(): Promise<{ live: number; asked: number }> {
-  const skus = Object.keys(REFERENCE_PRICES)
-  const got = await Promise.all(skus.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
-  return { live: got.filter(Boolean).length, asked: skus.length }
+  // ONLY THE PRODUCTS THIS BUILD ACTUALLY SELLS. Remove-all-ads is in the
+  // catalogue but deliberately NOT in any store until a build ships ads
+  // (packaging/twa/README.md 4; the Store hides its row on the same rule), so
+  // asking about it guaranteed a shelf could never report better than 9 of 10
+  // and the health line would have nagged forever on a perfectly good till.
+  // Found by re-reading this against a real failure rather than a stub.
+  const sellable = Object.keys(REFERENCE_PRICES)
+    .filter(s => s !== SUPPORTER_SKU || !!adBridge())
+  const got = await Promise.all(sellable.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
+  return { live: got.filter(Boolean).length, asked: sellable.length }
 }
 
 export async function supporterPrice(): Promise<string | null> {
