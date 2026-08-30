@@ -147,8 +147,21 @@ it is running on.
 | `Products.storekit` | beside it, same target | the ten products, for testing purchases with no App Store Connect |
 | `src/game/storekit.ts` | already in the web build | dresses the plugin in the contract, and attaches at boot |
 
-Drag both native files into the App target (**Copy items if needed**, target
-membership ticked). Xcode will offer to create a bridging header; accept it.
+Drag the four files into the App target (**Copy items if needed**, target
+membership ticked). Capacitor 8's template uses classic project references, so
+files `scaffold.sh` copied onto disk do NOT appear in the navigator by
+themselves - verified on a real Mac, where the App group listed AppDelegate,
+SceneDelegate and nothing of ours.
+
+**When Xcode offers to create a bridging header, DECLINE it.** This folder ships
+one, and it is the reason `PhaseBilling.m` compiles: it carries the
+`#import <Capacitor/Capacitor.h>` that the CAP_PLUGIN macro needs. Xcode's
+offer creates an EMPTY header at a different path and points the build setting
+at that instead, so you get the empty one, no import, and the build fails with
+"'Capacitor/Capacitor.h' file not found" - which is precisely the failure the
+shipped header exists to prevent, arriving by the route that looks most like
+help. Decline, then set the build setting by hand (§5, item 2).
+
 Nothing else in the generated project needs editing.
 
 ### The one design decision worth reading

@@ -137,6 +137,16 @@ If any is missing:
 3. A box appears. Tick **Copy items if needed**, choose **Create groups**, and —
    this is the one that matters — make sure **App** is ticked under
    *Add to targets*. Click **Finish**.
+4. **Xcode may then offer to create a bridging header. Say no** — *Don't create*.
+   We ship one, and it is the file that makes `PhaseBilling.m` compile. Xcode's
+   version is empty and points the build setting somewhere else, so accepting
+   the offer gives you the exact error the shipped header exists to prevent.
+   Step 8 points at ours by hand.
+
+Expect the navigator to list only `AppDelegate`, `SceneDelegate`,
+`capacitor.config.json`, `Main`, `Assets`, `LaunchScreen`, `Info`, `config` and
+`public` before you do this. That is normal: Capacitor 8's template uses classic
+project references, so a file on disk is not a file in the project.
 
 > **Where this bites.** A file sitting in the folder is not the same as a file
 > in the app. If `PhaseBilling.m` is not in the target, the purchase bridge is
