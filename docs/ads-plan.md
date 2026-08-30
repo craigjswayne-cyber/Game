@@ -117,6 +117,25 @@ Google Play has no equivalent objection.
 That gets ads earning on Android without giving up the working rhythm, and it
 keeps the iOS shell inside Apple's comfort zone.
 
+### DECIDED, 30 Aug 2026: both platforms, content bundled
+
+The owner was shown the table above and the cost in this section, and chose the
+**bundled** route on both platforms rather than the remote-URL split.
+
+So this is settled and the rest of the plan assumes it: `dist/` ships inside
+both wrappers, the app works offline everywhere by construction, neither store
+has a thin-wrapper question to ask - **and every future change, including a
+one-line copy fix, is an upload and a review on both stores.** The same-day
+turnaround this project has run on ends with the first ads release.
+
+Two things follow that are worth doing before that release rather than after:
+
+* **Batch the content work.** With review latency in the loop, a steady drip of
+  single fixes costs more than it did. Group them.
+* **Keep the web build honest.** phaserugbymanager.com stays free, ad-free and
+  auto-updating, so there is still one surface where a fix is live in twenty-five
+  minutes - useful for verifying a fix before it goes into a store build.
+
 ## 3. What actually gets built
 
 One Capacitor project, two platform folders, three plugins:
