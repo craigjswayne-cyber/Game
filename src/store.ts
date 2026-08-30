@@ -39,7 +39,6 @@ export const TAP_GUARD_MS = 220
  * asking for fifty-four taps. Exported so scripts/deskgate.mjs asserts against
  * the same number rather than a copy of it.
  */
-export const MAX_DESK_HOLDS = 6
 
 export type Screen =
   | 'menu' | 'newgame' | 'home' | 'inbox' | 'squad' | 'player' | 'tactics' | 'fixtures'
@@ -148,28 +147,6 @@ interface Store {
   /** When Continue was last honoured, for the double-tap guard. See
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
-  /** How many times the desk gate has held THIS week.
-   *
-   *  A BUDGET, NOT A PROGRESS CHECK, and the difference is the whole bug.
-   *
-   *  The first version released the gate when the unread count came back
-   *  unchanged, on the theory that a hang meant the serving was not landing.
-   *  scripts/soakui.mjs said otherwise and a headless reproduction said why: at
-   *  a season rollover the pile is FIFTY-FOUR stories - every league's honours,
-   *  the playoffs, the awards, all written in one settle - and the count fell
-   *  perfectly, 54, 53, 52, one per tap. Nothing was stuck. The gate was simply
-   *  demanding fifty-four consecutive taps before the week could move, and
-   *  soakui gave up at sixty and called it frozen. It was right to: a manager
-   *  tapping Continue fifty-four times to get out of the summer is a bug even
-   *  though every tap "worked".
-   *
-   *  So the gate insists on a handful and then relents. In an ordinary week the
-   *  pile is four or five, well inside the budget, and the user's ask is met in
-   *  full - nothing walks you past this week's mail into the match. In a rollover
-   *  week it gives up gracefully and the rest waits in the inbox, which is where
-   *  it always was. Bounded means it terminates whatever the cause, which the
-   *  count comparison provably did not. */
-  deskHolds: number
 
   start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
   /** A board injection bought at the till lands in this career (grants.ts).
@@ -390,7 +367,6 @@ export const useStore = create<Store>((set, get) => ({
   game: null,
   tick: 0,
   lastAdvanceAt: 0,
-  deskHolds: 0,
   nav: [{ screen: 'menu' }],
   liveMatch: null,
   matchRec: null,
@@ -765,7 +741,6 @@ export const useStore = create<Store>((set, get) => ({
     // the week is spent: settle it, then start the new Monday. The watermark is
     // what tells the bulletins which stories are new.
     g.newsFrom = g.nextId
-    set(() => ({ deskHolds: 0 }))
     processWeekAndAdvance(g)
     landOnNextWeek(g, set, get)
   },

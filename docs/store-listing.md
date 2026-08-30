@@ -119,6 +119,19 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.12
+
+```
+• Your team now always attacks to the right, whichever end you are at.
+• A penalty given before the whistle is kicked before the whistle.
+• The International Stage appoints you on the spot - no offer to find, nothing
+  to expire. Squads of 32, and England and France pick at home.
+• Country is a button on the bottom bar while you hold the job.
+• Sell a star and the phone-ins start; sign one and the town celebrates.
+• Support the game can now be given as often as you like.
+```
+*(475)*
+
 ### What's new (500 max) - v1.1.10
 
 ```
@@ -369,6 +382,20 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.12
+
+```
+• Votre équipe attaque toujours vers la droite, quel que soit le côté.
+• Une pénalité accordée avant le coup de sifflet est tirée avant celui-ci.
+• La Scène internationale vous nomme aussitôt : rien qui puisse expirer.
+  Groupes à 32, et l'Angleterre sélectionne chez elle.
+• Pays devient un bouton de la barre du bas tant que vous avez le poste.
+• Vendez une star et les radios s'enflamment ; recrutez-en une et la ville
+  fête ça.
+• Soutenir le jeu peut être offert autant de fois que vous voulez.
+```
+*(499)*
 
 ### Nouveautés (500 max) - v1.1.10
 
