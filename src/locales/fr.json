@@ -4507,7 +4507,11 @@
     "upFilmCrewSubj": "🎬 Une équipe de tournage a investi le stade",
     "upFilmCrew": "Un tournage à gros budget et à forte bruine occupe {stadium} pendant quinze jours. Le club gagne {amount}, la cantine n'a jamais été aussi bonne, et trois joueurs de l'académie ont été payés pour faire de la figuration l'air déçu, ce qu'ils ont qualifié d'argent le plus facile de leur vie.",
     "upClubhouseSubj": "🍻 Le club-house est devenu l'endroit où il faut être",
-    "upClubhouse": "Quelqu'un a installé une vraie machine à café, quelqu'un d'autre a lancé un quiz du jeudi, et le club-house de {stadium} est devenu discrètement la salle la plus fréquentée de la ville. Les recettes montent, le comité est ravi, et une équipe de fléchettes locale demande à s'y installer à demeure. {amount} de gagnés."
+    "upClubhouse": "Quelqu'un a installé une vraie machine à café, quelqu'un d'autre a lancé un quiz du jeudi, et le club-house de {stadium} est devenu discrètement la salle la plus fréquentée de la ville. Les recettes montent, le comité est ravi, et une équipe de fléchettes locale demande à s'y installer à demeure. {amount} de gagnés.",
+    "campRoundSubj": "🌍 Nouvelles du rassemblement : {n} des vôtres étaient sur le terrain",
+    "campRound": "{tests} Tests, {n} de vos joueurs concernés, et voici comment s'est passé leur week-end.\n\n{blocks_ll}",
+    "campBlock": "{home_k} {hs}-{as} {away_k} - {best} {rating}, {word_k}{rest_k}",
+    "campBlockRest": " ({n} autres des vôtres dans celui-ci)"
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",

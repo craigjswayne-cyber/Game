@@ -4517,7 +4517,11 @@
     "upFilmCrewSubj": "🎬 A film crew have taken over the ground",
     "upFilmCrew": "Something with a big budget and a lot of drizzle in it is being shot at {stadium} for a fortnight. The club is {amount} up, catering has never been better, and three academy lads have been paid to stand in the background looking disappointed, which they described afterwards as the easiest money of their lives.",
     "upClubhouseSubj": "🍻 The clubhouse has become the place to be",
-    "upClubhouse": "Somebody put a proper coffee machine in, somebody else started a Thursday quiz, and the clubhouse at {stadium} has quietly turned into the busiest room in the town. Takings are up, the committee are delighted, and a local darts team has asked whether they can move in permanently. {amount} to the good."
+    "upClubhouse": "Somebody put a proper coffee machine in, somebody else started a Thursday quiz, and the clubhouse at {stadium} has quietly turned into the busiest room in the town. Takings are up, the committee are delighted, and a local darts team has asked whether they can move in permanently. {amount} to the good.",
+    "campRoundSubj": "🌍 Word from camp: {n} of yours were out there",
+    "campRound": "{tests} Tests, {n} of your men involved, and this is how the weekend went for them.\n\n{blocks_ll}",
+    "campBlock": "{home_k} {hs}-{as} {away_k} - {best} {rating}, {word_k}{rest_k}",
+    "campBlockRest": " ({n} more of yours in that one)"
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
