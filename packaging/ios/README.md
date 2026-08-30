@@ -53,19 +53,23 @@ stays a pure offline PWA. `src/game/storekit.ts` reads `globalThis.Capacitor`
 and imports nothing, which is what lets the two live apart.
 
 ```sh
-pod --version      # CocoaPods, which Xcode does NOT bring with it
 cd packaging/ios
 npm install        # the pinned toolchain
 ./scaffold.sh      # build the game, add the platform, install the plugin
 ```
 
-**CocoaPods is a prerequisite and nothing in this repository can supply it.**
-`cap add ios` finishes by running `pod install`; a clean Mac has no `pod`.
-`brew install cocoapods`, or `sudo gem install cocoapods` without Homebrew.
-This was invisible for as long as the script was only ever run on Linux, where
-the pod step does not happen at all - so `scaffold.sh` now checks for it on
-macOS and stops before building anything rather than failing halfway through
-`cap add` and leaving a partial `ios/` tree.
+**CocoaPods is NOT required.** Capacitor 8 resolves iOS dependencies through
+Swift Package Manager whenever every plugin ships a `Package.swift`, which is
+true of this project - a real run on a Mac prints "All Capacitor plugins have a
+Package.swift file" and writes `Package.swift`, and no `pod install` happens at
+any point. Verified on a clean Mac with neither Homebrew nor CocoaPods
+installed.
+
+A previous revision of this file claimed the opposite, and `scaffold.sh` briefly
+refused to run without `pod`. That guard would have blocked a perfectly good
+setup on every re-run, which matters because this script is meant to be re-run
+after every change to the game. The check that remains fires only if a Podfile
+actually exists - the one circumstance where `pod` is genuinely needed.
 
 `scaffold.sh` was verified end to end on Linux: it builds `dist/`, generates
 the Xcode project, bundles the game inside it, and copies the four plugin
