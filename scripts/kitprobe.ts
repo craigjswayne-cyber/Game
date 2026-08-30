@@ -22,7 +22,7 @@
  * Run: npx vite-node scripts/kitprobe.ts
  */
 import { readFileSync } from 'node:fs'
-import { kitPattern, kitTrim } from '../src/game/kits'
+import { kitPattern, kitQuarters, kitTrim } from '../src/game/kits'
 import { newGame } from '../src/game/newgame'
 
 let fails = 0
@@ -86,6 +86,51 @@ const ok = (c: boolean, what: string) => {
   }
   ok(flat.length === 0, `every patterned club has two colours you can tell apart (${flat.join(', ') || 'none flat'})`)
   ok(invisibleTrim.length === 0, `and every trim stands out from both of them (${invisibleTrim.join(', ') || 'none lost'})`)
+}
+
+// ---- four quarters, four colours, and the sleeve edged rather than cut ----
+{
+  // Owner, v1.1.15: "Quins kit seems to be wrong. Blue lines should be on the
+  // sleeves. 4 quarters should be brown, light blue, red, grey."
+  //
+  // Both halves were real. The quarters were painted out of the club's two
+  // colours, so a shirt whose entire identity is four colours at once came out
+  // a two-colour chequerboard. And the trim that was meant to be the sleeve's
+  // edge was a flat horizontal band laid across a sleeve that runs diagonally -
+  // it cut the sleeve in half instead of edging it.
+  const g = newGame('northampton', 'Quarters', 904)
+  const hex = (c: string): [number, number, number] => {
+    const h = c.replace('#', '')
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+  }
+  const apart = (a: string, b: string) => {
+    const [r1, g1, b1] = hex(a), [r2, g2, b2] = hex(b)
+    return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2)
+  }
+  const q = kitQuarters('harlequins')
+  ok(!!q && q.length === 4, `the quartered club names four colours (${q?.join(' ') ?? 'none'})`)
+  if (q) {
+    // FOUR COLOURS MEANS FOUR. Any pair the eye cannot separate is a
+    // two-colour shirt wearing four names.
+    const same: string[] = []
+    for (let i = 0; i < q.length; i++) {
+      for (let j = i + 1; j < q.length; j++) if (apart(q[i], q[j]) < 60) same.push(`${q[i]}/${q[j]}`)
+    }
+    ok(same.length === 0, `and no two of them are the same colour twice (${same.join(', ') || 'four distinct'})`)
+  }
+  // and nobody has a palette who is not wearing quarters to put it in
+  const misplaced = Object.values(g.clubs).filter(c => kitQuarters(c.id) && kitPattern(c.id) !== 'quarters')
+  ok(misplaced.length === 0,
+    `every four-colour palette is on a quartered club (${misplaced.map(c => c.id).join(', ') || 'none stranded'})`)
+
+  // THE SLEEVE IS EDGED, NOT CUT. The old draw was a <rect> - an axis-aligned
+  // band - over a diagonal sleeve. The fix strokes the sleeve's own outline,
+  // so the test is that the sleeve path is what carries the trim.
+  const ui = readFileSync('src/ui/components.tsx', 'utf8')
+  const sleeveBlock = ui.slice(ui.indexOf('const SLEEVE_L'))
+  ok(/stroke=\{trim\}/.test(sleeveBlock), 'the sleeve trim is a stroke along the sleeve outline')
+  ok(!/<rect[^>]*y="13"[^>]*fill=\{trim\}/.test(ui),
+    'and the flat band that used to lie across the sleeve is gone')
 }
 
 // ---- and every trim belongs to a club that exists ----
