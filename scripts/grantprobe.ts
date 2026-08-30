@@ -104,8 +104,20 @@ console.log('\n--- 4. the wage allowance moves one ceiling, and only for a seaso
     'the purchased season expired with the season it was bought in')
   ok(g.clubs[g.userClubId].budgetAtOpen === g.clubs[g.userClubId].budget,
     'and the new opening budget is snapshotted for the new store rows')
-  ok(capPosition(g, g.userClubId).cap === capPosition(g, rival.id).cap,
-    'the ceiling is the league\'s own again')
+  // THE RIVAL IS PICKED AGAIN AFTER THE ROLLOVER, and it has to be.
+  //
+  // The claim is that the boost expires and the user's ceiling goes back to
+  // being his LEAGUE's - so it must be compared against a club in whatever
+  // league he is now in. Pinning the rival before the season meant the claim
+  // quietly also asserted "and he does not get relegated": an unrelated
+  // v1.1.12 change shifted the world, seed 7103's Northampton went down, the
+  // two clubs ended up under different caps and a working expiry read as a
+  // failure. Board confidence was already pinned here for the same shape of
+  // reason (the annualprobe lesson); the league is the other half of it.
+  const after = Object.values(g.clubs).find(c =>
+    c.id !== g.userClubId && c.leagueId === g.clubs[g.userClubId].leagueId)!
+  ok(capPosition(g, g.userClubId).cap === capPosition(g, after.id).cap,
+    `the ceiling is the league's own again (${g.clubs[g.userClubId].leagueId}, against ${after.short})`)
 }
 
 console.log('\n--- 5. bought cash can never finish the books\n')
