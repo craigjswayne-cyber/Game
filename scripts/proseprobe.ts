@@ -106,7 +106,14 @@ const press: string[] = []
 // file that pushes onto state.press belongs in this list.
 for (const file of ['src/game/media.ts', 'src/game/authority.ts']) {
   const src = readFileSync(file, 'utf8')
-  const OUTLETS = src.slice(src.indexOf('OUTLETS'), src.indexOf('OUTLETS') + 400)
+  // THE MASTHEADS ARE TITLES AND STAY IN ENGLISH, and the whitelist has to say
+  // that by NAME. It used to be the 400 characters after the word OUTLETS,
+  // which whitelisted whatever happened to be sitting nearby: adding one
+  // unrelated constant above OFFICE_OUTLET pushed it out of the window and the
+  // probe reported a masthead as untranslated prose. A window measured in
+  // characters is not a rule, it is a coincidence. Every declaration whose name
+  // ends in OUTLET or OUTLETS, and nothing else.
+  const OUTLETS = [...src.matchAll(/\b\w*OUTLETS?\b[^\n]*=\s*([\s\S]*?)\n\n/g)].map(m => m[1]).join('\n')
   // a quoted literal, and NOT across a line break: `[^']*` happily runs from an
   // apostrophe in one import to a quote three lines later, which is how the
   // first version of this reported thirty-one imports as English prose

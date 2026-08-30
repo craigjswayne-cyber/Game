@@ -1366,6 +1366,10 @@ export interface GameState {
    *  built on, they are still there if you come back, and a new club is a new
    *  job of work. Cleared with the career, like everything else in a save. */
   estateClubs?: string[]
+  /** The absolute week the club went overdrawn, or null while it is not
+   *  (treasury.debtWeek). The board's patience is measured from here: a short
+   *  overdraft to buy a player is a fair gamble, living in one is not. */
+  debtSince?: number | null
   /** The International Stage (v1.1.4): the call to the federations has been
    *  made at least once in this save. A RECORD, not a gate, since v1.1.13 -
    *  the door is closed by holding a national job, not by having held one, so

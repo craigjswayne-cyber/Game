@@ -4525,7 +4525,13 @@
     "campRoundSubj": "🌍 Word from camp: {n} of yours were out there",
     "campRound": "{tests} Tests, {n} of your men involved, and this is how the weekend went for them.\n\n{blocks_ll}",
     "campBlock": "{home_k} {hs}-{as} {away_k} - {best} {rating}, {word_k}{rest_k}",
-    "campBlockRest": " ({n} more of yours in that one)"
+    "campBlockRest": " ({n} more of yours in that one)",
+    "debtPressureSubj": "The overdraft",
+    "debtOpened": "The club is overdrawn by {amount}. The board have asked for a plan to get it back, and they will keep asking.",
+    "debtPressure": "{weeks} weeks overdrawn, now {amount} down. The boardroom is losing patience faster every month this goes on.",
+    "debtClearedSubj": "Back in the black",
+    "debtCleared": "The books balance again after {weeks} weeks in the red. The board say nothing, which is the compliment.",
+    "debtOpenedSubj": "The overdraft"
   },
   "comm": {
     "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",

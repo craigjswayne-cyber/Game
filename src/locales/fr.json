@@ -4525,7 +4525,13 @@
     "campRoundSubj": "🌍 Nouvelles du rassemblement : {n} des vôtres étaient sur le terrain",
     "campRound": "{tests} Tests, {n} de vos joueurs concernés, et voici comment s'est passé leur week-end.\n\n{blocks_ll}",
     "campBlock": "{home_k} {hs}-{as} {away_k} - {best} {rating}, {word_k}{rest_k}",
-    "campBlockRest": " ({n} autres des vôtres dans celui-ci)"
+    "campBlockRest": " ({n} autres des vôtres dans celui-ci)",
+    "debtPressureSubj": "Le découvert",
+    "debtOpened": "Le club est à découvert de {amount}. Le conseil réclame un plan pour revenir à l'équilibre, et il le réclamera encore.",
+    "debtPressure": "{weeks} semaines à découvert, désormais {amount} dans le rouge. Le conseil perd patience un peu plus chaque mois.",
+    "debtClearedSubj": "De retour dans le vert",
+    "debtCleared": "Les comptes sont à l'équilibre après {weeks} semaines dans le rouge. Le conseil ne dit rien, ce qui est un compliment.",
+    "debtOpenedSubj": "Le découvert"
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",

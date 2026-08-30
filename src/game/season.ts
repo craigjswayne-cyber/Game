@@ -15,6 +15,7 @@ import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEng
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
+import { debtWeek } from './treasury'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
@@ -3235,6 +3236,9 @@ export function processWeekAndAdvance(state: GameState) {
   // function of the sport and therefore entirely predictable; a roof, a storm
   // and a sportsman's dinner are what make balancing them a job.
   upkeepWeek(state, rng)
+  // AND THE BOARD COUNTS THE WEEKS IN THE RED. After upkeep, so the week's
+  // non-rugby luck is already in the balance being judged.
+  debtWeek(state)
   // the board's standing monthly item, three weeks off the awards beat so the
   // two never share an inbox (boardmemo.ts)
   boardMemo(state)
