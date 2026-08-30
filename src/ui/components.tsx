@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
-import { kitPattern, kitTrim, type KitPattern } from '../game/kits'
+import { kitPattern, kitQuarters, kitTrim, type KitPattern } from '../game/kits'
 import { t } from '../game/i18n'
 
 
@@ -366,8 +366,13 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
   const [c1, c2] = club.colors
   const pattern = kitPattern(club.id)
   const trim = kitTrim(club.id)
+  const quarters = kitQuarters(club.id)
   const clip = `kit-${club.id}`
   const BODY = 'M14 8 L20 4 H28 L34 8 L38 14 L33 17 L32 15 V30 H16 V15 L15 17 L10 14 Z'
+  /** The two sleeves, as their own outlines - so a trim line can be drawn
+   *  ALONG the sleeve rather than laid across it. */
+  const SLEEVE_L = 'M14 8 L10 14 L15 17 L17 12 Z'
+  const SLEEVE_R = 'M34 8 L38 14 L33 17 L31 12 Z'
   /** A hoop, and the hairline of trim above and below it. */
   const hoop = (y: number) => (
     <g key={y}>
@@ -391,9 +396,29 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
         {pattern === 'stripes' && [18, 26].map(stripe)}
         {pattern === 'quarters' && (
           <>
-            <rect x="24" y="0" width="16" height="17" fill={c2} />
-            <rect x="8" y="17" width="16" height="17" fill={c2} />
-            {trim && (<><rect x="23.4" y="0" width="0.9" height="34" fill={trim} /><rect x="8" y="16.6" width="32" height="0.9" fill={trim} /></>)}
+            {/* FOUR QUARTERS MEANS FOUR COLOURS where the club names them
+                (owner: "4 quarters should be brown, light blue, red, grey").
+                This used to paint two of the four in c2 and leave the other
+                two as the shirt, which is a chequerboard, not quarters. A club
+                with no palette of its own still draws exactly that way. */}
+            {quarters ? (
+              <>
+                <rect x="8" y="0" width="16" height="17" fill={quarters[0]} />
+                <rect x="24" y="0" width="16" height="17" fill={quarters[1]} />
+                <rect x="8" y="17" width="16" height="17" fill={quarters[2]} />
+                <rect x="24" y="17" width="16" height="17" fill={quarters[3]} />
+              </>
+            ) : (
+              <>
+                <rect x="24" y="0" width="16" height="17" fill={c2} />
+                <rect x="8" y="17" width="16" height="17" fill={c2} />
+              </>
+            )}
+            {/* the dividing lines are for a two-colour quartering, where they
+                are the only thing separating panel from shirt. Four named
+                colours divide themselves, and a trim line the same light blue
+                as one of the quarters would vanish into it. */}
+            {trim && !quarters && (<><rect x="23.4" y="0" width="0.9" height="34" fill={trim} /><rect x="8" y="16.6" width="32" height="0.9" fill={trim} /></>)}
           </>
         )}
         {pattern === 'sash' && (
@@ -408,12 +433,23 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
             {trim && <rect x="23.4" y="0" width="0.9" height="34" fill={trim} />}
           </>
         )}
-        {/* sleeves in the second colour for contrast */}
-        <path d="M14 8 L10 14 L15 17 L17 12 Z" fill={c2} opacity=".9" />
-        <path d="M34 8 L38 14 L33 17 L31 12 Z" fill={c2} opacity=".9" />
-        {/* the cuff, which every one of the owner's photographs has and this
-            never did - a thin band of the trim at each sleeve end */}
-        {trim && (<><rect x="9" y="13" width="7" height="1.1" fill={trim} /><rect x="32" y="13" width="7" height="1.1" fill={trim} /></>)}
+        {/* SLEEVES. A quartered club wears them in its base colour - the second
+            colour is one of the four quarters now, and a sleeve in it would
+            read as a fifth panel rather than a sleeve. */}
+        <path d={SLEEVE_L} fill={quarters ? c1 : c2} opacity=".9" />
+        <path d={SLEEVE_R} fill={quarters ? c1 : c2} opacity=".9" />
+        {/* THE TRIM RUNS ALONG THE SLEEVE EDGE, NOT ACROSS THE SLEEVE. This was
+            a flat horizontal band pretending to be a cuff, laid over a sleeve
+            that runs diagonally, so it cut the sleeve in half instead of
+            edging it (owner: "bristol kit light blue sleeves need to be on the
+            sleeve edges. Leicester sleeves are the same"). Stroking the sleeve
+            outline puts the colour where the seam is, at the shoulder, down
+            the outside and round the cuff - which is where every one of the
+            owner's photographs has it. */}
+        {trim && (<>
+          <path d={SLEEVE_L} fill="none" stroke={trim} strokeWidth="1.1" strokeLinejoin="round" />
+          <path d={SLEEVE_R} fill="none" stroke={trim} strokeWidth="1.1" strokeLinejoin="round" />
+        </>)}
       </g>
       <path d={BODY} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.2" />
       {/* the collar: the club's own trim where it has one, cream where it does

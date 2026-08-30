@@ -1,7 +1,7 @@
 // Real kit patterns per club (home kits, approximated from club identity).
 // Colours come from the club data; the pattern says how they're worn.
 
-import { KIT_TRIM } from '../data/kittrim'
+import { KIT_QUARTERS, KIT_TRIM } from '../data/kittrim'
 
 export type KitPattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves'
 
@@ -86,4 +86,10 @@ export function kitPattern(clubId: string): KitPattern {
  *  what it is; tokenlint holds every OTHER hex in src/ to the theme tokens. */
 export function kitTrim(clubId: string): string | undefined {
   return KIT_TRIM[clubId]
+}
+
+/** The four colours a quartered club wears, where two were never enough to
+ *  describe it. Undefined for everyone else, who quarter their own two. */
+export function kitQuarters(clubId: string): [string, string, string, string] | undefined {
+  return KIT_QUARTERS[clubId]
 }

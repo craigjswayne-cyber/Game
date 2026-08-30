@@ -34,3 +34,26 @@ export const KIT_TRIM: Record<string, string> = {
   // Championship
   richmond: '#f2c200',    // old gold, red and black
 }
+
+/**
+ * ---- FOUR QUARTERS, FOUR COLOURS ----
+ *
+ * Owner, v1.1.15: "Quins kit seems to be wrong. Blue lines should be on the
+ * sleeves. 4 quarters should be brown, light blue, red, grey."
+ *
+ * He is right and the shape of the mistake is interesting: a quartered shirt
+ * was drawn out of the same two colours every other pattern uses, so it came
+ * out as a two-colour chequerboard. A club whose whole identity is that it
+ * wears four different colours at once cannot be described by a pair.
+ *
+ * So a quartered club may name its own four, clockwise from the top left:
+ * top-left, top-right, bottom-left, bottom-right. Nobody else has to - a
+ * quartered club with no entry here draws from its two colours exactly as
+ * before.
+ *
+ * The usual line applies: these are colours, not artwork. No badge, no
+ * sponsor, no manufacturer's mark.
+ */
+export const KIT_QUARTERS: Record<string, [string, string, string, string]> = {
+  harlequins: ['#6b4423', '#7fd0f0', '#c8102e', '#98a0a6'], // brown, light blue, red, grey
+}
