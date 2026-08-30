@@ -1989,7 +1989,31 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
   const before = ctx.events.length
   const msg = decide(state, ctx, d, choice)
   if (whistleAt != null && whistleAt <= before) {
-    ctx.events.splice(whistleAt, 0, ...ctx.events.splice(before))
+    const moved = ctx.events.splice(before)
+    // AND THEY TAKE THE WHISTLE'S CLOCK WITH THEM.
+    //
+    // Moving the lines was only half of it. They were narrated live, so they
+    // carry the minute of the tick that resolved them - and the whistle line
+    // they are being placed IN FRONT OF was stamped when the half ended, which
+    // is earlier. A kick awarded at 40' and taken in injury time produced a
+    // ticker reading 41' TRY, 42' CON, 40' Half-time: the timeline ran
+    // backwards, and the half-time card claimed to have happened two minutes
+    // before the score it was reporting.
+    //
+    // Everything spliced here happened BEFORE the whistle by definition - that
+    // is the whole reason it is being moved - so it cannot be stamped later
+    // than the whistle. Clamp, do not renumber: a kick genuinely taken at 41'
+    // in a half that ran to 42' keeps its 41'.
+    //
+    // scripts/stresstest.ts had caught this all along and could not say so: its
+    // timeline invariant exempts HT, FT and BRK, so the whistle line itself was
+    // waved through, and only the half-time NUMBERS line beside it - typed SUB,
+    // because there is no interval type and HT would blow the whistle twice in
+    // ui/audio.ts - was ever checked. It went red the moment a change elsewhere
+    // shifted the rng stream enough to make first halves run long.
+    const whistleMin = ctx.events[whistleAt]?.min ?? d.min
+    for (const e of moved) e.min = Math.min(e.min, whistleMin)
+    ctx.events.splice(whistleAt, 0, ...moved)
   }
   return msg
 }
