@@ -164,6 +164,28 @@ help. Decline, then set the build setting by hand (§5, item 2).
 
 Nothing else in the generated project needs editing.
 
+### How Capacitor 8 actually finds this plugin
+
+**It does not scan the Objective-C runtime.** `CapacitorBridge.registerPlugins()`
+takes five built-in plugins and then reads exactly one thing: `packageClassList`
+in the bundled `capacitor.config.json`. Every class named there is resolved with
+`NSClassFromString` and registered. Nothing else is ever considered.
+
+The CLI builds that list from installed npm plugin PACKAGES. `PhaseBilling` is
+four files copied into the app target rather than a package, so `cap sync`
+writes `"packageClassList": []` and the plugin does not exist as far as the web
+view is concerned.
+
+Everything else can be perfect - the Swift compiles, the `CAP_PLUGIN` macro is
+right, all four files are in Compile Sources - and the game still has no shop,
+because the Store row is gated on a live bridge. There is no error, no log line
+and nothing in Xcode to look at. `Object.keys(Capacitor.Plugins)` in Safari's
+Web Inspector returns the five built-ins and nothing else.
+
+`scaffold.sh` patches the list after every sync, because the CLI rewrites that
+file each time and anything put in the SOURCE `capacitor.config.json` is
+discarded. `scripts/moneyprobe.ts` asserts it still does.
+
 ### The one design decision worth reading
 
 **A consumable is bought and deliberately left UNFINISHED** until the game
