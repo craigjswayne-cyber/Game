@@ -671,6 +671,39 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   ok(!kitById.has(M.SUPPORTER_SKU),
     'Remove-all-ads is absent, exactly as it is absent from Play until a build ships ads')
 
+  // (d) ONE PRICE, ONE CURRENCY, ON BOTH SIDES OF THE FENCE.
+  //
+  // Owner, v1.1.15: "there is a discrepancy in spend? apple says 99 cents,
+  // whereas play is 1.19 pounds for the same thing. I want both scores to be
+  // the same."
+  //
+  // Nine tenths of that is not Apple's number at all. This file is the LOCAL
+  // StoreKit test configuration Xcode reads when there is no App Store behind
+  // the build, and it carried bare decimals with no storefront named - so
+  // Xcode fell back to its default storefront, the United States, and rendered
+  // 0.99 as $0.99. Apple has never quoted a price for these products; they do
+  // not exist in App Store Connect yet.
+  //
+  // So the storefront is named, and the numbers are held to the catalogue's
+  // own reference prices. A tester on a Mac now sees the same figure the game
+  // prints on the button, which is the only sense in which this file can
+  // agree with anything.
+  //
+  // (The £1.19 is real and is Play's, not ours: the Console is set to quote
+  // prices exclusive of tax, so 99p becomes 99p + 20% VAT at the till. That is
+  // a Console setting, not code - noted here because this is where anybody
+  // chasing the discrepancy will look.)
+  ok(kit.settings?._storefront === 'GBR',
+    `the test configuration names a British storefront, so its prices read in pounds (${kit.settings?._storefront ?? 'none'})`)
+  const priceMismatch: string[] = []
+  for (const p of kit.products as { productID: string; displayPrice: string }[]) {
+    const want = M.REFERENCE_PRICES[p.productID]
+    if (!want) continue
+    if (`£${p.displayPrice}` !== want) priceMismatch.push(`${p.productID} ${p.displayPrice} vs ${want}`)
+  }
+  ok(priceMismatch.length === 0,
+    `and every price in it is the catalogue's own (${priceMismatch.join(', ') || 'all agree'})`)
+
   // ---- 14b. THE SHELL CAN ACTUALLY BE BUILT --------------------------------
   //
   // The plugin files existed for two releases while the repository had no
