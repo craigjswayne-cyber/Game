@@ -320,7 +320,12 @@ try {
     ok(row.spread <= 2, `all on one line (${row.spread}px spread)`)
     ok(row.clipped.length === 0, `no filter label is clipped by its own box${row.clipped.length ? ` [${row.clipped.join(', ')}]` : ''}`)
   }
-  ok(fr.length === 2 && fr[0].n === 2 && fr[1].n === 4, `two rows of filters, 2 then 4 (${fr.map(r => r.n).join('+')})`)
+  // 2 then 5 since v1.1.14: the Interested filter joined the second row
+  // (owner: "there needs to be an interested switch on button - for players who
+  // would sign for the club"). The count is pinned so a control cannot be added
+  // without somebody checking it still fits; the clipping claim above is the
+  // one that decides whether it does.
+  ok(fr.length === 2 && fr[0].n === 2 && fr[1].n === 5, `two rows of filters, 2 then 5 (${fr.map(r => r.n).join('+')})`)
   await report('transfers')
 
   // ---- every squad table keeps its heading at the top, and fits the screen

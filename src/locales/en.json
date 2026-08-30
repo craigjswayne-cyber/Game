@@ -1474,7 +1474,7 @@
     "scoutReportsSub": "everything the scouts have filed",
     "fromClub": "from {club}",
     "fromFree": "out of contract",
-    "interested": "🤝 Interested"
+    "interested": "Interested"
   },
   "objectives": {
     "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
@@ -4528,9 +4528,15 @@
     "campBlockRest": " ({n} more of yours in that one)",
     "debtPressureSubj": "The overdraft",
     "debtOpened": "The club is overdrawn by {amount}. The board have asked for a plan to get it back, and they will keep asking.",
-    "debtPressure": "{weeks} weeks overdrawn, now {amount} down. The boardroom is losing patience faster every month this goes on.",
+    "debtPressure": {
+      "one": "{weeks} week overdrawn, now {amount} down. The boardroom is losing patience faster every month this goes on.",
+      "other": "{weeks} weeks overdrawn, now {amount} down. The boardroom is losing patience faster every month this goes on."
+    },
     "debtClearedSubj": "Back in the black",
-    "debtCleared": "The books balance again after {weeks} weeks in the red. The board say nothing, which is the compliment.",
+    "debtCleared": {
+      "one": "The books balance again after {weeks} week in the red. The board say nothing, which is the compliment.",
+      "other": "The books balance again after {weeks} weeks in the red. The board say nothing, which is the compliment."
+    },
     "debtOpenedSubj": "The overdraft"
   },
   "comm": {
@@ -5538,8 +5544,8 @@
     "funding": "Board funding",
     "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
     "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
-    "tillSilent": "The store is connected but named no products, so the prices below are guide prices and nothing here can be bought yet. If this build came from the store, the products may still be propagating.",
-    "tillPartial": "The store priced {live} of {asked} products. The rest show guide prices and cannot be bought yet.",
+    "tillSilent": "The store is connected but named no products, so no price is shown and nothing here can be bought yet. If this build came from the store, the products may still be propagating.",
+    "tillPartial": "The store priced {live} of {asked} products. The rest show no price and cannot be bought yet.",
     "healWait": "The retreat needs a match between visits - play one and it reopens.",
     "pickNation": "Yours. Pick the federation and take the job - the appointment is immediate.",
     "support": "Support the game",

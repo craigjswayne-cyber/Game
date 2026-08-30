@@ -33,12 +33,12 @@ const ok = (c: boolean, what: string) => {
 
 // ---- nothing official, held mechanically ----
 {
-  for (const f of ['src/game/kits.ts', 'src/ui/components.tsx']) {
+  for (const f of ['src/game/kits.ts', 'src/data/kittrim.ts', 'src/ui/components.tsx']) {
     const src = readFileSync(f, 'utf8')
     const art = [...src.matchAll(/["'`][^"'`\n]*\.(png|jpg|jpeg|svg|webp|gif|avif)["'`]/gi)].map(m => m[0])
     ok(art.length === 0, `${f} references no image file at all (${art.join(', ') || 'none'})`)
   }
-  const kits = readFileSync('src/game/kits.ts', 'utf8')
+  const kits = readFileSync('src/game/kits.ts', 'utf8') + readFileSync('src/data/kittrim.ts', 'utf8')
   // a sponsor or manufacturer name would be the other way this goes wrong
   const brands = ['macron', 'castore', "o'neills", 'oneills', 'canterbury', 'umbro', 'kukri', 'gilbert', 'dpd', 'gallagher']
   const found = brands.filter(b => kits.toLowerCase().includes(b))
@@ -91,7 +91,7 @@ const ok = (c: boolean, what: string) => {
 // ---- and every trim belongs to a club that exists ----
 {
   const g = newGame('northampton', 'Kits', 903)
-  const kits = readFileSync('src/game/kits.ts', 'utf8')
+  const kits = readFileSync('src/data/kittrim.ts', 'utf8')
   const trimmed = [...kits.matchAll(/^ {2}(\w+): '#[0-9a-fA-F]{6}',/gm)].map(m => m[1])
   const ghosts = trimmed.filter(id => !g.clubs[id])
   ok(ghosts.length === 0, `${trimmed.length} trims, all of them on a club in the game (${ghosts.join(', ') || 'no ghosts'})`)
