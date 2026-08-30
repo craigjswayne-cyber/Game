@@ -64,11 +64,29 @@ products with fake money.
 
 ### 4. Build the iOS shell
 
+**First, CocoaPods.** It does not come with Xcode, and `cap add ios` needs it:
+
+```sh
+pod --version
+```
+
+If that says "command not found", install it — `brew install cocoapods`, or
+`sudo gem install cocoapods` if you have no Homebrew — and check again.
+`scaffold.sh` stops with the same advice rather than leaving a half-built
+`ios/` directory behind.
+
 ```sh
 cd packaging/ios
 npm install
 ./scaffold.sh
 ```
+
+If `npm install` here warns about install scripts the way the top-level one
+does, approve them by name (`npm approve-scripts <pkg>`) and run it again.
+`packaging/ios` is deliberately its own npm project, so it has its own
+permissions to grant.
+
+If `./scaffold.sh` says "permission denied", run `chmod +x ./scaffold.sh` once.
 
 Builds the game, generates the Xcode project, copies the four purchase files in,
 and prints the bundle identity — check it says `com.phaserugbymanager.app`. Safe
