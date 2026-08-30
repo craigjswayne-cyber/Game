@@ -279,7 +279,10 @@
       "one": "✉ {n} message non lu",
       "other": "✉ {n} messages non lus"
     },
-    "squadIn": "Sélection annoncée dans {n} jours.",
+    "squadIn": {
+      "one": "Sélection annoncée dans {n} jour.",
+      "other": "Sélection annoncée dans {n} jours."
+    },
     "squadThisWeek": "🌍 SEMAINE DE SÉLECTION : vous annoncez votre groupe {nat} cette semaine.",
     "campOpen": "Le camp est ouvert - {n} sur {size} retenus. Touchez pour composer le groupe."
   },
@@ -2733,7 +2736,10 @@
     "coFilterAll": "Tous",
     "coShowing": "Les {n} meilleurs {pos} hors du camp, sur {total}.",
     "coShowingAll": "Les {n} meilleurs hors du camp, sur {total}.",
-    "coCountdown": "La fédération ouvre le camp dans {n} jours. D'ici là, voici le groupe en forme actuelle.",
+    "coCountdown": {
+      "one": "La fédération ouvre le camp dans {n} jour. D'ici là, voici le groupe en forme actuelle.",
+      "other": "La fédération ouvre le camp dans {n} jours. D'ici là, voici le groupe en forme actuelle."
+    },
     "coNoWindowLeft": "Plus de fenêtre cette saison - le travail du pays est terminé jusqu'à l'été.",
     "coThin": "JUSTE : {pos}",
     "bgIdeasTitle": "Idées et suggestions",
@@ -5516,7 +5522,10 @@
     "pickNation": "À vous. Choisissez la fédération et prenez le poste - la nomination est immédiate.",
     "support": "Soutenir le jeu",
     "supportLine": "Un merci au développeur. Cela ne change rien dans le jeu.",
-    "supportThanks": "Donné {n} fois. Merci - cela compte vraiment.",
+    "supportThanks": {
+      "one": "Donné une fois. Merci - cela compte vraiment.",
+      "other": "Donné {n} fois. Merci - cela compte vraiment."
+    },
     "supportDone": "Merci. Cela fait {n} de votre part, et tout repart dans le jeu."
   }
 }

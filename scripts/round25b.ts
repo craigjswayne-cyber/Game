@@ -219,9 +219,39 @@ console.log('\nthe terrace on seed 11 (three pulses, close together):\n')
   const sorted = [...pulses].sort((a, b) => a.week - b.week)
   const b2b = sorted.find((p, i) => i > 0 && sorted[i - 1].subject === p.subject && p.week === sorted[i - 1].week + 1)
   ok(!b2b, `one pulse per streak on the seed that used to repeat${b2b ? ` (weeks ${b2b.week - 1}+${b2b.week})` : ` (${pulses.length} pulses, spaced)`}`)
-  // and the beat is quieter, not dead: the first draft of the gate silenced
-  // this seed's five-win run entirely
-  ok(pulses.length >= 1, `the terraces still get their say (${pulses.length} pulses this season)`)
+}
+
+// ---- and the beat is quieter, not dead -------------------------------------
+//
+// This used to be a second assertion on seed 11 alone - "at least one pulse
+// this season" - because the first draft of the cooldown had silenced that
+// seed's five-win run entirely. One seed is the wrong instrument for it, and
+// v1.1.12 proved so: adding a weekly non-rugby-finances roll (upkeep.ts) drew
+// one more number a week from the world's rng, every downstream draw shifted,
+// and seed 11 stopped producing the streak. Nothing about the terraces had
+// changed - the probe was measuring a reshuffled deck and calling it a dead
+// beat, which is the exact failure difficultyprobe's own comments warn about.
+//
+// So the claim scans a BAND. Measured today: 35 of 39 seeds pulse at least
+// once in a season. The floor is set well under that, because it is guarding
+// against silence, not policing a number.
+{
+  let pulsing = 0
+  for (let seed = 2; seed <= 40; seed++) {
+    const g: GameState = newGame('northampton', 'Probe', seed)
+    const start = g.season
+    const seen = new Set<string>()
+    let guard = 0
+    while (g.season === start && guard++ < 60) {
+      processWeekAndAdvance(g)
+      if (g.season !== start) break
+      for (const n of g.news) {
+        if (n.season === g.season && n.subject.startsWith('Terrace pulse')) seen.add(`${n.week}|${n.subject}`)
+      }
+    }
+    if (seen.size) pulsing++
+  }
+  ok(pulsing >= 20, `the terraces still get their say across the world, not on one lucky seed (${pulsing}/39 seasons pulse)`)
 }
 
 if (fails) { console.error(`\nROUND 25B PROBE: ${fails} failures`); process.exit(1) }
