@@ -203,6 +203,25 @@ try {
   await page.click('.tab-bar >> text=Game Plan')
   await page.waitForSelector('text=Quick Game Plans')
 
+  // THE COUNTER PLAN SPENDS ITSELF (owner, v1.1.15: "again when pressing set
+  // the counter plan it actions but doesnt become unclickable"). It sets four
+  // dials; press it twice and the second press is a no-op that looks like a
+  // decision. So: press it, and the button must go dead and say so.
+  {
+    const btn = page.locator('button', { hasText: 'Set the counter plan' })
+    ok(await btn.count() > 0, 'the opposition read offers a counter plan to set')
+    if (await btn.count()) {
+      ok(await btn.first().isEnabled(), 'and it is live before it is pressed')
+      await btn.first().click()
+      await page.waitForTimeout(250)
+      const spent = page.locator('button', { hasText: 'Counter plan set' })
+      ok(await spent.count() > 0, 'pressing it changes the button to say the plan is set')
+      ok(await spent.first().isDisabled(), 'and the button is dead - it cannot be pressed twice')
+      ok(await page.locator('button', { hasText: 'Set the counter plan' }).count() === 0,
+        'the live label is gone, not sitting beside the spent one')
+    }
+  }
+
   // Club submenu -> Team Report
   await page.click('.bottom-nav button[title="Hub"]')
   await page.waitForSelector('.submenu')

@@ -427,6 +427,10 @@ export default function Tactics() {
           const opp = game.clubs[oppId]
           const ph = philosophyOf(opp)
           const ctr = counterTo(opp?.philosophy)
+          // the club is already playing the counter plan when every dial it
+          // sets is the dial the club is carrying
+          const counterSet = !!ctr && (Object.keys(ctr.dials) as (keyof typeof ctr.dials)[])
+            .every(k => tac[k] === ctr.dials[k])
           if (!ph || !ctr) return null
           return (
             <>
@@ -448,9 +452,17 @@ export default function Tactics() {
                     is the failure this codebase has now fixed in four other
                     costumes. So it answers: the dials it just set, in the same
                     words the opposition's own read is written in. */}
+                {/* AND IT STAYS PRESSED (owner, v1.1.15: "again when pressing
+                    set the counter plan it actions but doesnt become
+                    unclickable"). Read off the dials rather than remembered in
+                    a flag: the plan IS the four numbers, so the button is spent
+                    exactly while the club is carrying them. Move a slider, or
+                    draw a side who wants a different answer, and it comes back
+                    on its own - which a one-shot flag would not do. */}
                 <button className="btn gold block tiny" style={{ marginTop: 6 }}
+                  disabled={counterSet}
                   onClick={() => { Object.assign(tac, ctr.dials); setPlanMsg(dialLine(tac)); touch() }}>
-                  {t('tacticsScreen.setCounterPlan')}
+                  {counterSet ? t('tacticsScreen.counterPlanSet') : t('tacticsScreen.setCounterPlan')}
                 </button>
                 {planMsg && (
                   <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>

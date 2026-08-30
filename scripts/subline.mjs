@@ -69,6 +69,13 @@ const FILL = {
   n: '12', max: '32', floor: '23', amount: '£12.5m', fee: '£25,000', weekly: '£12.5k',
   club: 'Northampton', player: 'Louis Bielle-Biarrey', name: 'Louis Bielle-Biarrey',
   week: '27', season: '2025-26', nat: 'New Zealand', pos: 'Second row', opp: 'Northampton',
+  // TWO CLUB NAMES IN ONE LINE. The dressing-room modal says "{home} v {away}
+  // - one speech, choose the tone" and these two holes had no entry, so they
+  // fell through to the '12' default and the line was measured as "12 v 12 -
+  // one speech, choose the tone". It passed at every size while the owner was
+  // looking at it wrapped on his phone. A hole for a club name gets a club
+  // name, and the longest real one in the game.
+  home: 'Northampton', away: 'Northampton',
   cap: '£6.4m', over: '£240k', step: '£500,000', budget: '£96m', balance: '£12.5m',
 }
 const fill = (s) => String(s).replace(/\{(\w+)(?:_k|_l|_ll)?\}/g, (_m, k) => FILL[k] ?? '12')
