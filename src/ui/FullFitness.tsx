@@ -54,10 +54,20 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
       await consume(HEAL_SKU)
       setPending(false)
       setMsg(t('store.healDone'))
-    } else {
-      setPending(true)
-      setMsg(t('store.healHeld'))
+      return
     }
+    // WHICH REASON, NOT BOTH OF THEM (owner, v1.1.16: "Ive just brought a full
+    // fitness pack in the medical centre and it didnt refresh my players").
+    //
+    // There are exactly two ways this can fail to land, and the one message
+    // used to name both: "nothing to heal right now, or no match since the
+    // last visit". Read that standing on the Medical Centre with four men on
+    // the table and the first half of it is plainly false, so the whole
+    // sentence reads as the game not knowing what it did with the money.
+    // healReady is the second reason on its own, so the two can be told apart
+    // and the card can say the true one.
+    setPending(true)
+    setMsg(t(healReady(game) ? 'store.healNobody' : 'store.healWait'))
   }
 
   const buy = async () => {

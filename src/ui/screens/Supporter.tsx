@@ -172,10 +172,12 @@ export default function Supporter() {
       setHealPending(false)
       say(HEAL_SKU, t('store.healDone'))
     } else {
-      // squad already fit, or the seasonal limit is spent: the purchase is
-      // held at the store, not swallowed
+      // Held, not swallowed - and it says WHICH of the two reasons, because
+      // one message naming both ("nothing to heal, or no match since the last
+      // visit") reads as the game not knowing what it did with the money.
+      // Same two keys the Full Fitness card uses, so the two doors agree.
       setHealPending(true)
-      say(HEAL_SKU, t('store.healHeld'))
+      say(HEAL_SKU, t(game && healReady(game) ? 'store.healNobody' : 'store.healWait'))
     }
   }
   const buyHeal = async () => {
