@@ -94,7 +94,7 @@ Four things in Xcode before the first run, in this order:
 3. **Signing & Capabilities → + Capability → In-App Purchase.** Without it
    StoreKit returns nothing and every product reads unavailable.
 4. **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
-   → `Products.storekit`.** This is how you test all nine purchases on the
+   → `Products.storekit`.** This is how you test all ten purchases on the
    simulator without App Store Connect, real money or a review.
 
 And before the first archive:
@@ -126,7 +126,7 @@ it is running on.
 | `PhaseBilling.swift` | drag into the **App** target in Xcode | StoreKit 2: products, purchase sheet, entitlements, finishing |
 | `PhaseBilling.m` | beside it, same target | the ObjC macro that makes those four methods visible to the web view |
 | `App-Bridging-Header.h` | beside it, same target | lets the ObjC file above see Capacitor's headers - the template does not ship one |
-| `Products.storekit` | beside it, same target | the nine products, for testing purchases with no App Store Connect |
+| `Products.storekit` | beside it, same target | the ten products, for testing purchases with no App Store Connect |
 | `src/game/storekit.ts` | already in the web build | dresses the plugin in the contract, and attaches at boot |
 
 Drag both native files into the App target (**Copy items if needed**, target
@@ -149,7 +149,7 @@ simply lost the money - the one outcome `monetise.ts` exists to prevent.
 Non-consumables are finished immediately: the entitlement itself is the
 permanent record.
 
-**The five consumables are listed in two places** - `CONSUMABLE_SKUS` in
+**The seven consumables are listed in two places** - `CONSUMABLE_SKUS` in
 `monetise.ts` and `consumables` in `PhaseBilling.swift` - and
 `scripts/moneyprobe.ts` §14 fails if they ever disagree. It also asserts that
 `PhaseBilling.m` exposes all four methods, because a method missing from that
@@ -161,19 +161,42 @@ unbuyable, so it is pinned rather than trusted.
 
 ## Products in App Store Connect
 
-The same nine product ids as Play, so one catalogue serves both stores:
+The same ten product ids as Play, so one catalogue serves both stores:
+
+**A PRODUCT'S TYPE CANNOT BE CHANGED AFTER IT IS CREATED**, on either store.
+Get one wrong and the only remedy is a second product id and a migration, which
+is exactly the corner v1.1.14 had to build its way out of on Play. So read the
+Type column before creating anything.
 
 | Product ID | Type | Name | Price |
 |---|---|---|---|
-| `phase.license` | Non-consumable | Support the game | £0.99 |
 | `phase.uncapped` | Non-consumable | Remove the Wage Cap | £9.99 |
 | `phase.estate` | Non-consumable | Max your team facilities | £9.99 |
 | `phase.pinnacle` | Non-consumable | Become an International Coach | £4.99 |
+| `phase.license` | **Consumable** | Support the game | £0.99 |
 | `phase.inject.s` | Consumable | Small Cash Injection | £0.99 |
 | `phase.inject.m` | Consumable | Medium Cash Injection | £1.99 |
 | `phase.inject.l` | Consumable | Large Cash Injection | £3.99 |
 | `phase.inject.xl` | Consumable | The Sugar Daddy | £7.99 |
 | `phase.heal` | Consumable | Full Squad Recovery | £0.99 |
+| `phase.ground` | Consumable | The Estate, at the next ground | £9.99 |
+
+Two of those rows have moved since this table was first written, and both are
+the kind of mistake that cannot be undone:
+
+* **`phase.license` is a CONSUMABLE**, and this file said non-consumable until
+  v1.1.14. It became repeatable in v1.1.12 (owner: "Support the game should be
+  available more than once") - a tip jar that takes one coin and then greys out
+  is not a tip jar. Created as a non-consumable it would sell exactly once per
+  Apple ID, for ever.
+* **`phase.ground` is new in v1.1.14.** The Estate became one build per CLUB
+  rather than one per save, and a non-consumable is sold once, so the repeat at
+  a second ground had to be its own consumable product. `phase.estate` still
+  covers the first ground and is still non-consumable; the two work as a pair.
+
+`scripts/moneyprobe.ts` holds the same split against `PhaseBilling.swift` and
+`Products.storekit`, so the code cannot drift from this table - but nothing can
+check what you typed into App Store Connect.
 
 Do **not** create `phase.supporter` (Remove all ads) until a build actually
 ships ads - the store row only renders where an ad provider exists, so the
@@ -188,7 +211,7 @@ is why that page stays reachable after every purchase.
 ### Testing before any of that exists
 
 `Products.storekit` in this folder is a StoreKit configuration file with all
-nine products already defined. In Xcode: **Product → Scheme → Edit Scheme →
+ten products already defined. In Xcode: **Product → Scheme → Edit Scheme →
 Run → Options → StoreKit Configuration → Products.storekit**. The simulator
 then sells them locally - no App Store Connect, no sandbox account, no
 waiting on review - and Debug → StoreKit lets you force interrupted purchases
@@ -200,4 +223,4 @@ actually works.
 The paid-up-front alternative that used to be described here was decided
 against on 27 Aug: `VITE_EDITION=paid` removes the whole catalogue rather than
 just one purchase, and it is the one configuration no probe has ever executed.
-The free edition with the nine products is what ships on both stores.
+The free edition with the ten products is what ships on both stores.
