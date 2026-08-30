@@ -3219,9 +3219,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   /* THE FORMATION CHIPS. A chip sized itself to the name in it, so "Rakete-
      Stones" made a 110px tile that painted over the hooker beside it. One fixed
      width for all fifteen means the spacing in SPOTS is the spacing you see. */
-  .form-chip { width: 74px; min-width: 0; padding: 3px 4px; }
-  .form-chip .fc-name { font-size: 10.5px; max-width: 66px; }
-  .form-chip .fc-role { font-size: 9px; letter-spacing: .6px; }
+  /* the vertical padding pays back exactly what the smaller name costs: the
+     chip is a touch target first, and tapsize holds it to a 36px floor */
+  .form-chip { width: 74px; min-width: 0; padding: 4px 4px; }
+  /* AND THE NAME COMES DOWN A STEP (owner, v1.1.16: "The names on the roles
+     in tactics are super big - can we reduce them in size?"). This block is
+     the one that governs a phone - the base rule above never applies there -
+     so it is the one to change. The chip width stays 74px, because that fixed
+     width is what makes the spacing in SPOTS the spacing you see; the name
+     just stops filling it to the ellipsis. */
+  .form-chip .fc-name { font-size: 9.5px; max-width: 64px; }
+  .form-chip .fc-role { font-size: 8.5px; letter-spacing: .5px; }
   .form-pitch { height: 460px; }
 
   /* THE TYPE LADDER, one step down across the board. The user asked for smaller
