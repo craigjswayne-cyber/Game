@@ -550,8 +550,20 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   let held: string[] = []
   const owns: string[] = []
   const gg = globalThis as unknown as Record<string, unknown>
-  // the Swift plugin, as Capacitor presents it to the page
-  gg.Capacitor = { Plugins: { PhaseBilling: {
+  // THE STUB HAS TO BEHAVE LIKE CAPACITOR, NOT LIKE THE ANSWER.
+  //
+  // This used to hand-build `Capacitor = { Plugins: { PhaseBilling } }` and
+  // assert against that, which is a world @capacitor/core never produces:
+  // reading its source, `Plugins[name]` is written in exactly ONE place, inside
+  // registerPlugin, and nothing else touches that object. So the probe passed
+  // for months while the shipped iOS bridge looked for the plugin in the one
+  // place it was guaranteed not to be, and the owner's first real run on a Mac
+  // had a perfectly compiled Swift plugin and no shop at all.
+  //
+  // So: PluginHeaders is what the native side injects, Plugins starts EMPTY,
+  // and registerPlugin is the only thing that fills it. Same shape as the real
+  // bridge, which is the only shape worth testing against.
+  const plugin = {
     details: async ({ skus }: { skus: string[] }) => ({
       products: skus.map(sku => ({ sku, price: '£0.99', title: 'A thing' })),
     }),
@@ -569,11 +581,24 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
       finished.push(sku)
       return {}
     },
-  } } }
+  }
+  const Plugins: Record<string, unknown> = {}
+  const capacitor = {
+    isNativePlatform: () => true,
+    getPlatform: () => 'ios',
+    PluginHeaders: [{ name: 'PhaseBilling' }],
+    Plugins,
+    isPluginAvailable: (name: string) => name === 'PhaseBilling',
+    registerPlugin: (name: string) => { Plugins[name] = plugin; return plugin },
+  }
+  gg.Capacitor = capacitor
 
   const { storeKitBridge } = await import('../src/game/storekit')
+  ok(Object.keys(Plugins).length === 0,
+    'Capacitor.Plugins starts empty, exactly as it does on a real device')
   const b = storeKitBridge()
-  ok(!!b, 'the iOS shell gets a bridge')
+  ok(!!b, 'the iOS shell gets a bridge - it REGISTERS the plugin rather than expecting to find it')
+  ok(!!Plugins.PhaseBilling, 'and registering filled Plugins, for anybody who looks there after us')
   ok(typeof b?.consume === 'function', 'and it can CONSUME - the method whose absence cost Android five products')
 
   g.rmBilling = b!
@@ -587,6 +612,31 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   ok(await M.buyOwnable(M.CHARTER_SKU) === 'owned', 'a non-consumable buys')
   ok(finished.includes(M.CHARTER_SKU), 'and is finished at once, because the entitlement is the record')
   ok(await M.buyOwnable('phase.nosuch') === 'unavailable', 'a SKU the store does not have is unavailable, not an error')
+
+  // ---- AND NO BRIDGE WHERE THERE IS NO NATIVE PLUGIN ----
+  //
+  // The other half of the fix, and the one a careless version would break.
+  // registerPlugin hands back a PROXY that answers to every property name, so
+  // `typeof p.buy === 'function'` is true even when nothing native exists. A
+  // bridge built on that would open the shop in a Capacitor WEB build and fail
+  // every purchase in it. PluginHeaders - what the native side actually
+  // injected - is the only honest gate.
+  {
+    const bare: Record<string, unknown> = {}
+    gg.Capacitor = {
+      isNativePlatform: () => false,
+      getPlatform: () => 'web',
+      PluginHeaders: [],
+      Plugins: bare,
+      isPluginAvailable: () => false,
+      registerPlugin: (name: string) => { bare[name] = plugin; return plugin },
+    }
+    delete g.rmBilling
+    ok(storeKitBridge() === null,
+      'a Capacitor build with no native plugin gets NO bridge, however willingly registerPlugin would hand back a proxy')
+    ok(Object.keys(bare).length === 0, 'and nothing was registered on the way to finding that out')
+    ok(!M.tillOpen(), 'so the shop stays shut rather than opening onto a till that cannot sell')
+  }
 
   // ---- the native files, read as text: three ways to disagree ------------
   const swift = readFileSync('packaging/ios/PhaseBilling.swift', 'utf8')
