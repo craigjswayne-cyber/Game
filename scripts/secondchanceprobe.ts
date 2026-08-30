@@ -18,13 +18,22 @@
 //   the ladder still slopes: a lower-rep club is never a worse bet than a
 //     higher-rep one
 //   the giants are unmoved: rep 84 stays a genuine long shot, and an EMPLOYED
-//     manager's odds are exactly what they were - the second chance is for the
+//     manager never receives the second-chance welcome - it is for the
 //     out-of-work, not a market-wide inflation
+//
+// That last claim used to be spelled "an employed manager's odds are EXACTLY
+// the old reputation-gap formula", which was a fair proxy while the unemployed
+// bonus was the only extra term. v1.1.12 added another one deliberately - the
+// SEAT a manager currently holds counts on his CV, so the Northampton head
+// coach is not a long shot for Sedgley Park (owner: "if you are head coach of a
+// national team and of a top team, other jobs a lot below them should be 100% a
+// chance not a long shot") - and the proxy began reporting that intended change
+// as a regression. So the claim is written as what it always meant: the welcome
+// is the unemployed manager's, and the giant's door stays shut to everyone.
 import { newGame } from '../src/game/newgame'
 import { jobChance } from '../src/game/jobs'
 import { mgrReputation } from '../src/game/model'
 import type { GameState } from '../src/game/model'
-import { clamp } from '../src/game/rng'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -77,13 +86,37 @@ ok(vetMid > rookieMid, `a body of work counts: ${middling.short} moves ${(rookie
   ok(sloped, 'walking down the ladder never lowers the odds')
 }
 
-// ---- employed managers are priced exactly as before ------------------------
-g.unemployed = false
-for (const c of [modest, middling, giant]) {
-  const rep = mgrReputation(g)
-  const old = clamp(0.92 - (c.rep - rep) / 32, 0.05, 0.95)
-  const now = jobChance(g, c.id)
-  ok(Math.abs(now - old) < 1e-9, `${c.short} prices an EMPLOYED manager as before (${(now * 100).toFixed(0)}%)`)
+// ---- the welcome belongs to the out-of-work ---------------------------------
+//
+// An employed manager is priced on his own standing and on the seat he sits in,
+// never on the modest-board floor that exists to give somebody a second chance.
+{
+  const h: GameState = newGame('northampton', 'Second Chance', 77)
+  h.mgr.m = 130; h.mgr.w = 55; h.mgr.d = 5; h.mgr.l = 70
+  const smallest = Object.values(h.clubs).sort((a, b) => a.rep - b.rep)[0]
+  const biggest = [...Object.values(h.clubs)].sort((a, b) => b.rep - a.rep)[0]
+
+  h.unemployed = false
+  const employedSmall = jobChance(h, smallest.id)
+  const employedGiant = jobChance(h, biggest.id)
+  h.unemployed = true
+  const jobless = jobChance(h, smallest.id)
+
+  ok(employedSmall >= jobless - 1e-9,
+    `the man in a job is not worse off than the man out of one (${(employedSmall * 100).toFixed(0)}% v ${(jobless * 100).toFixed(0)}% at ${smallest.short})`)
+  ok(employedGiant <= 0.35,
+    `and no seat, however grand, opens a giant's door (${biggest.short} at ${(employedGiant * 100).toFixed(0)}%)`)
+
+  // and the SEAT is what does it: the same record and the same reputation at a
+  // small club prices below the same man at a big one
+  const small: GameState = newGame('esher', 'Second Chance', 77)
+  const large: GameState = newGame('northampton', 'Second Chance', 77)
+  for (const st of [small, large]) { st.mgr.m = 130; st.mgr.w = 55; st.mgr.d = 5; st.mgr.l = 70 }
+  const target = Object.values(large.clubs).find(c => c.rep >= 55 && c.rep <= 65)!
+  const fromSmall = jobChance(small, target.id)
+  const fromLarge = jobChance(large, target.id)
+  ok(fromLarge > fromSmall,
+    `the seat is what the board reads: ${target.short} (rep ${target.rep}) rates the Northampton coach above the Esher one (${(fromLarge * 100).toFixed(0)}% v ${(fromSmall * 100).toFixed(0)}%)`)
 }
 
 if (fails) { console.error(`\nSECOND CHANCE PROBE: ${fails} failures`); process.exit(1) }

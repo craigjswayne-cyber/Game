@@ -218,8 +218,6 @@
     "atNeutral": " · Neutral ground",
     "tapSetTeam": "Tap to set your team, then press Continue to play.",
     "noMatchWeek": "No match this week - Continue advances to the next round.",
-    "assistantMatch": "Assistant's match",
-    "assistantTakesIt": "You are with your country this Saturday - your assistant takes this one and reports back.",
     "headCoach": "Head coach",
     "worldNo": " · world No. {rank}",
     "unionPct": " · union {pct}%",
@@ -281,7 +279,10 @@
     },
     "assistantMatch": "Assistant's match",
     "assistantTakesIt": "You are with your country this Saturday - your assistant takes this one and reports back.",
-    "squadIn": "Squad named in {n} days.",
+    "squadIn": {
+      "one": "Squad named in {n} day.",
+      "other": "Squad named in {n} days."
+    },
     "squadThisWeek": "🌍 SQUAD WEEK: you name your {nat} party this week.",
     "campOpen": "Camp is open - {n} of {size} named. Tap to shape the squad."
   },
@@ -841,8 +842,6 @@
     "injuredFlag": "Injured",
     "instantResult": "Instant Result ▸",
     "intlLine": "🌍 International rugby - the whole country is watching, coach.",
-    "clubSameDay": "YOUR CLUB, THE SAME SATURDAY",
-    "assistantTakes": "{home} v {away} is your assistant's afternoon. He picks the side and files his report - yours is the Test.",
     "keepsShirt": "{player} keeps the shirt.",
     "kickGood": "GOOD!",
     "kickOff": "Kick Off ▸",
@@ -1969,8 +1968,6 @@
     "squadStanding": "Squad standing {profile}/100 against your {rep}. {word}",
     "drillLonger": " Training patterns take {pct}% longer to drill while it lasts.",
     "natOffer": "🌍 {nat} want you as national head coach",
-    "natKeepAskTitle": "🌍 {nat} - and your club?",
-    "natKeepAskBody": "You are the head coach of {nat}. The one thing left to settle is whether you carry on at {club}. Keep both and your assistant takes the club on Test Saturdays; leave and the country is your whole job.",
     "natOfferBody": "Coach the national side alongside your club. In Test windows you take charge on match day when your club is free - and every championship they win goes in your trophy cabinet.",
     "decline": "Decline",
     "acceptJob": "Accept the Job",
@@ -2739,7 +2736,10 @@
     "coFilterAll": "All",
     "coShowing": "The {n} best {pos} outside camp, of {total}.",
     "coShowingAll": "The {n} best outside camp, of {total}.",
-    "coCountdown": "The federation opens camp in {n} days. Until then this is the squad on current form.",
+      "coCountdown": {
+        "one": "The federation opens camp in {n} day. Until then this is the squad on current form.",
+        "other": "The federation opens camp in {n} days. Until then this is the squad on current form."
+      },
     "coNoWindowLeft": "No more windows this season - the country's work is done until the summer.",
     "coThin": "THIN: {pos}",
     "bgIdeasTitle": "Ideas & Suggestions",
@@ -3548,10 +3548,6 @@
     "expiringMore": "Out of contract in the summer: {men_l} and {more} more - full list on Team ▸ Contracts. Offer new deals from their profiles or they walk for free.",
     "expiringMan": "{name} ({pos}, {age})",
     "natOfferSubj": "🌍 {nat} want you as national head coach",
-    "natAppointedSubj": "🌍 Appointed: head coach of {nat_k}",
-    "natAppointed": "It is official. You are the head coach of {nat_k} - Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet. Your assistant takes the club on any Saturday your country is playing. One thing left to settle: whether you carry on at the club. Answer it on your Manager Profile whenever you like - until you do, the club job is yours.",
-    "natAppointedOnlySubj": "🌍 Appointed: head coach of {nat_k}",
-    "natAppointedOnly": "It is official. You are the head coach of {nat_k}. Test windows, championship campaigns, and every trophy they win goes in YOUR cabinet - and with no club on the desk, the country has your whole week.",
     "natOffer": "The union has been watching your work and wants you to take the national side alongside your club job - Test windows, championship campaigns, maybe a World Championship. Accept or decline from your Manager Profile. The offer won't stay open long.",
     "wcHomeASubj": {
       "one": "🏆 World champion in the building",
@@ -5526,9 +5522,10 @@
     "pickNation": "Yours. Pick the federation and take the job - the appointment is immediate.",
     "support": "Support the game",
     "supportLine": "A thank-you to the developer. It changes nothing in the game.",
-    "supportThanks": "Put in {n} times. Thank you - it genuinely matters.",
-    "supportDone": "Thank you. That is {n} from you now, and it goes straight back into the game.",
-    "supportThanks": "Put in {n} times. Thank you - it genuinely matters.",
+    "supportThanks": {
+      "one": "Put in once. Thank you - it genuinely matters.",
+      "other": "Put in {n} times. Thank you - it genuinely matters."
+    },
     "supportDone": "Thank you. That is {n} from you now, and it goes straight back into the game."
   }
 }

@@ -94,10 +94,25 @@ const meanMorale = (g: GameState) => {
   // compression shipped). Candidates are tried in order and the first
   // non-champion season carries the asserts - deterministic for any given
   // engine, robust across engines.
+  // AND THE MANAGER HAS TO STILL BE THERE IN MAY.
+  //
+  // The settlement block is inside `if (!state.unemployed)`, and rightly so: a
+  // board cannot recall a war chest from a man who no longer has the desk. But
+  // that means a candidate season ending in the sack settles as NEITHER kept
+  // nor clawed, and every assertion below reads as a failure on an engine that
+  // is behaving correctly. It happened for real in v1.1.12: an unrelated change
+  // shifted the world, seed 26 started winning silverware, the search fell
+  // through to seed 28 - where the hands-off manager is sacked - and CI
+  // reported three failures in settlement bookkeeping that was working. Seeds
+  // 28 and 33 both do it, which is two of the original five candidates.
+  //
+  // So the acceptance test is what the claims actually need: a season with no
+  // title AND a manager still in a job, from a list wide enough that a
+  // reshuffle has somewhere to land.
   let pre: GameState | null = null
   let s0 = 0
   let seedUsed = 0
-  for (const seed of [26, 28, 33, 41, 47]) {
+  for (const seed of [26, 28, 33, 41, 47, 52, 59, 63, 71, 88, 94, 103]) {
     const g = newGame('northampton', 'Stance', seed)
     const start = g.season
     let snap: GameState | null = null
@@ -107,8 +122,8 @@ const meanMorale = (g: GameState) => {
       if (g.season !== start) snap = s
     }
     const champ = g.history.some(h => h.season === start && h.champion === g.userClubId)
-    if (snap && !champ) { pre = snap; s0 = start; seedUsed = seed; break }
-    console.log(`  (seed ${seed} ends in silverware - trying the next)`)
+    if (snap && !champ && !g.unemployed) { pre = snap; s0 = start; seedUsed = seed; break }
+    console.log(`  (seed ${seed} ${champ ? 'ends in silverware' : g.unemployed ? 'ends in the sack' : 'never turned over'} - trying the next)`)
   }
   ok(!!pre, `captured a title-free season on the eve of its rollover (seed ${seedUsed})`)
   if (pre) {
