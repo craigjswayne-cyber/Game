@@ -45,7 +45,59 @@ type WithCapacitor = {
   Capacitor?: {
     isNativePlatform?: () => boolean
     getPlatform?: () => string
-    Plugins?: { PhaseBilling?: PhaseBillingPlugin }
+    /** What the NATIVE side says it has registered. Injected by Capacitor's
+     *  own bridge before any page script runs, and the only honest answer to
+     *  "is the Swift plugin really in this build". */
+    PluginHeaders?: { name?: string }[]
+    isPluginAvailable?: (name: string) => boolean
+    registerPlugin?: <T>(name: string) => T
+    Plugins?: Record<string, PhaseBillingPlugin | undefined>
+  }
+}
+
+const PLUGIN = 'PhaseBilling'
+
+/**
+ * ---- HOW YOU ACTUALLY GET HOLD OF A CAPACITOR PLUGIN ----
+ *
+ * This used to read `Capacitor.Plugins.PhaseBilling` and stop there, and it
+ * could never have worked on a real device. Reading @capacitor/core's own
+ * source settles it: `Plugins[name]` is assigned in exactly one place, INSIDE
+ * `registerPlugin`, and nothing else ever writes to that object. A native
+ * plugin that no page script has registered is simply not in there.
+ *
+ * So the shipped iOS shell had a correctly compiled Swift plugin, a correctly
+ * registered CAP_PLUGIN macro, and a page that looked for it in the one place
+ * it was guaranteed not to be. The Store row is gated on a live bridge, so the
+ * symptom was the shop silently not existing - no error, nothing in the log.
+ *
+ * The order below is the honest one:
+ *
+ *   1. If something already registered it, use that.
+ *   2. Ask the NATIVE side whether the plugin exists, via PluginHeaders. This
+ *      matters more than it looks: registerPlugin hands back a Proxy that
+ *      answers to every property name, so `typeof p.buy === 'function'` is true
+ *      even when there is no native plugin at all. Without this check a
+ *      Capacitor web build would attach a bridge that fails every call, and
+ *      the game would show a shop it cannot sell from.
+ *   3. Only then register, which also fills Plugins for anybody after us.
+ *
+ * Still no import. registerPlugin and PluginHeaders are both on the global that
+ * Capacitor injects, so the web build gains no dependency and netprobe stays
+ * green - the same reason playbilling.ts reads its two browser APIs off the
+ * global.
+ */
+function phaseBilling(cap: NonNullable<WithCapacitor['Capacitor']>): PhaseBillingPlugin | null {
+  const already = cap.Plugins?.[PLUGIN]
+  if (already) return already
+  const native = cap.PluginHeaders
+    ? cap.PluginHeaders.some(h => h?.name === PLUGIN)
+    : cap.isPluginAvailable?.(PLUGIN) ?? false
+  if (!native) return null
+  try {
+    return cap.registerPlugin?.<PhaseBillingPlugin>(PLUGIN) ?? null
+  } catch {
+    return null
   }
 }
 
@@ -63,7 +115,8 @@ const asOutcome = (s: string): PurchaseOutcome =>
  */
 export function storeKitBridge(): BillingBridge | null {
   const cap = (globalThis as unknown as WithCapacitor).Capacitor
-  const p = cap?.Plugins?.PhaseBilling
+  if (!cap) return null
+  const p = phaseBilling(cap)
   if (!p || typeof p.buy !== 'function' || typeof p.owned !== 'function') return null
 
   const details = async (sku: string): Promise<Product | null> => {
