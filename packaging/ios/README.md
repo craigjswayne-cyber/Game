@@ -9,6 +9,11 @@ Nothing in this folder builds on its own. It is the shape of the project, the
 bridge that has to be written on the native side, and the two review problems
 worth knowing about before starting.
 
+**If you are actually doing a submission rather than reading about one, start
+with `APP-STORE-WALKTHROUGH.md` beside this file.** It is the same ground in the
+order you have to do it in, from an empty Apple account to a submitted build.
+This file is the reference it points back to.
+
 ---
 
 ## The two review problems
