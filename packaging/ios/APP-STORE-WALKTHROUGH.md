@@ -97,35 +97,125 @@ to re-run whenever the game changes; it syncs rather than starting over.
 npx cap open ios
 ```
 
-### 6. Four settings in Xcode, in this order
+### 6. Learn the four bits of the Xcode window
 
-`scaffold.sh` prints these too.
+Everything below is one of these, so it is worth thirty seconds:
 
-1. **Check the four files are in the app.** Under `App` in the left-hand list:
-   `PhaseBilling.swift`, `PhaseBilling.m`, `App-Bridging-Header.h`,
-   `Products.storekit`. If any is missing, drag it in from Finder with *Copy
-   items if needed* ticked and the *App* target ticked.
-2. **Bridging header.** Blue *App* project → *Build Settings* → search
-   "bridging" → *Objective-C Bridging Header* = `App/App-Bridging-Header.h`.
-3. **Capability.** *Signing & Capabilities* → *+ Capability* → *In-App Purchase*.
-4. **Test products.** *Product* → *Scheme* → *Edit Scheme* → *Run* → *Options* →
-   *StoreKit Configuration* → `Products.storekit`.
+* **The left panel** is the file list ("the navigator"). The very top row has a
+  blue icon and says **App** — that is the *project settings*, not a file.
+* **The top bar**, left to right: a **▶ play** button, a **■ stop** button, then
+  **App** (the scheme), then **>** and a device name (the destination).
+* **The middle** is whatever you clicked.
+* **⚠️ and ❌** appear in the top bar when something is wrong. Clicking them
+  shows the list of problems.
 
-> **Where this bites.** Skip the bridging header and the build fails with "file
-> not found", which reads exactly like a broken dependency and is not one. Skip
-> the capability and every product reads unavailable, which reads exactly like
-> broken code and is not that either.
+If it says *Indexing* or *Resolving Package Graph* at the top, let it finish.
+First open takes a minute or two.
 
-### 7. Run it, and try to break the purchases
+### 7. Check the four purchase files are in the app
 
-Pick an iPhone simulator and press ▶. Open the Store from Game Status — with the
-StoreKit configuration set, all ten products work with fake money, no Apple
-account, no waiting.
+In the left panel, click the ▸ next to the yellow **App** folder to open it,
+then the ▸ next to the **App** folder inside that. Look for these four:
 
-> **Test this one properly.** *Debug → StoreKit* can force an interrupted
-> purchase. Buy Full Fitness, interrupt it, force-quit, relaunch: the store
-> should still be offering it. That path is the difference between a customer
-> who pays and receives and one who pays and does not.
+```
+PhaseBilling.swift
+PhaseBilling.m
+App-Bridging-Header.h
+Products.storekit
+```
+
+**If all four are there, skip to step 8.** They are on disk either way —
+`scaffold.sh` put them there — but Xcode does not always notice a file it did
+not add itself.
+
+If any is missing:
+
+1. Right-click the inner **App** folder → **Show in Finder**. A Finder window
+   opens on the right folder.
+2. Select the missing files there (⌘-click for more than one) and drag them into
+   the left panel in Xcode, dropping them onto that same inner **App** folder.
+3. A box appears. Tick **Copy items if needed**, choose **Create groups**, and —
+   this is the one that matters — make sure **App** is ticked under
+   *Add to targets*. Click **Finish**.
+
+> **Where this bites.** A file sitting in the folder is not the same as a file
+> in the app. If `PhaseBilling.m` is not in the target, the purchase bridge is
+> invisible to the game and every product reads unavailable, with no error
+> anywhere to tell you why.
+
+### 8. Point Xcode at the bridging header
+
+1. Click the blue **App** at the very top of the left panel.
+2. In the middle, under **TARGETS**, click **App**.
+3. Along the top of that panel click **Build Settings**.
+4. Just under those tabs, click **All** and **Combined**.
+5. In the search box on the right of that strip, type `bridging`.
+6. One row comes back: **Objective-C Bridging Header**. Double-click the empty
+   space to the right of it and type exactly:
+
+```
+App/App-Bridging-Header.h
+```
+
+7. Press Return.
+
+> **Where this bites.** Without this the build fails with *"'Capacitor/Capacitor.h'
+> file not found"*, which looks like a missing dependency and is nothing of the
+> kind.
+
+### 9. Turn on In-App Purchase
+
+1. Same place — blue **App** → **TARGETS → App**.
+2. Click the **Signing & Capabilities** tab.
+3. Click **+ Capability** (top left of that panel).
+4. A window of capabilities opens. Type `in-app` and double-click
+   **In-App Purchase**. The window closes and it appears in the list.
+
+While you are on this tab you may see a red signing complaint. **For the
+simulator it does not matter.** If you want it gone, tick *Automatically manage
+signing* and pick a **Team**. If the Team dropdown is empty, add your Apple ID:
+**Xcode → Settings** (⌘,) → **Accounts** → **+** → *Apple ID*. Your personal
+Apple ID is fine for now; swap it for the real team when enrolment comes
+through.
+
+### 10. Point the scheme at the test products
+
+1. Menu bar: **Product → Scheme → Edit Scheme…**
+2. In the left of the box that opens, click **Run**.
+3. Along the top, click **Options**.
+4. Find **StoreKit Configuration** and choose **Products.storekit**.
+5. **Close**.
+
+This is what lets you buy all ten products with imaginary money, with no Apple
+account and nothing to wait for.
+
+### 11. Run it
+
+1. In the top bar, click the device name next to **App** and pick any iPhone
+   simulator — **iPhone 16** is fine.
+2. Press **▶**.
+
+First run is slow: Xcode compiles, then the simulator boots. Two or three
+minutes is normal. The game should appear and play.
+
+**If it fails,** click the red ❌ in the top bar to see the list. Nine times out
+of ten it is step 8 or step 7 above.
+
+### 12. Try to break the purchases
+
+Open the Store inside the game (Game Status → the store) and buy things. Every
+product should work.
+
+Then the one that actually matters:
+
+1. Menu bar: **Debug → StoreKit → Enable Interrupted Purchases**.
+2. Buy **Full Fitness**.
+3. Stop the app with the **■** button before the game confirms it.
+4. Press **▶** again.
+
+The store should still be offering you that heal. That is the path between a
+customer who pays and receives and a customer who pays and does not — and it is
+free to test here, which it is not later.
 
 ---
 
@@ -133,7 +223,7 @@ account, no waiting.
 
 App Store Connect, <https://appstoreconnect.apple.com>. Needs the account.
 
-### 8. Sign the Paid Applications Agreement — before anything else
+### 13. Sign the Paid Applications Agreement — before anything else
 
 *Business* (older accounts: *Agreements, Tax and Banking*) → *Paid Applications*
 → accept, then bank and tax details.
@@ -142,7 +232,7 @@ App Store Connect, <https://appstoreconnect.apple.com>. Needs the account.
 > every purchase reads unavailable and it looks exactly like broken code.
 > Verification can take several days, which is why it goes first.
 
-### 9. Create the app record
+### 14. Create the app record
 
 *Apps* → **+** → *New App*:
 
@@ -155,7 +245,7 @@ App Store Connect, <https://appstoreconnect.apple.com>. Needs the account.
   Identifiers*.
 * SKU: anything private, e.g. `phase-rugby-manager`. Customers never see it.
 
-### 10. Create the ten products — read the Type column twice
+### 15. Create the ten products — read the Type column twice
 
 Your app → *Monetization* → *In-App Purchases* → **+**.
 
@@ -181,7 +271,7 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 Do **not** create `phase.supporter` (Remove all ads) until a build actually ships
 ads. Never create `phase.editor` — removed before any store sold one.
 
-### 11. Take the screenshots
+### 16. Take the screenshots
 
 ```sh
 node scripts/storeart.mjs
@@ -193,7 +283,7 @@ size) plus `storeart/ios/icon-1024.png`, opaque as required.
 Upload five, in order: title screen, squad table, team sheet, match day,
 full-time verdict.
 
-### 12. Fill in the listing
+### 17. Fill in the listing
 
 Every field is written out word for word, inside Apple's limits, in
 `docs/store-listing.md`. Copy from there rather than composing at the keyboard.
@@ -211,14 +301,14 @@ The answers people get wrong:
 
 ## Phase 4 — Send it to Apple
 
-### 13. Set the version and build number
+### 18. Set the version and build number
 
 *App* target → *General* → **Version** `1.1.14`, **Build** `1`.
 
 Every upload needs a build number higher than the last. The version can repeat;
 the build number can never go backwards.
 
-### 14. Archive it
+### 19. Archive it
 
 Change the device dropdown from a simulator to **Any iOS Device (arm64)**, then
 *Product* → *Archive*.
@@ -227,7 +317,7 @@ Change the device dropdown from a simulator to **Any iOS Device (arm64)**, then
 > with no explanation. This is the most common "why can't I click it" moment in
 > the whole process, and the fix is that one dropdown.
 
-### 15. Upload it
+### 20. Upload it
 
 Organizer → **Distribute App** → *App Store Connect* → *Upload*. Answer the
 encryption question **No** — the app uses none and makes no network connections.
@@ -235,14 +325,14 @@ encryption question **No** — the app uses none and makes no network connection
 Processing takes five to thirty minutes before the build appears in App Store
 Connect.
 
-### 16. Test it for real, through TestFlight
+### 21. Test it for real, through TestFlight
 
 Your app → *TestFlight* → add yourself as an internal tester, install via the
 TestFlight app. Purchases run in Apple's sandbox: real flow, real sheets, no
 money. **This is the last point where finding a problem is cheap.** Buy one of
 everything.
 
-### 17. Submit for review — and write the review notes
+### 22. Submit for review — and write the review notes
 
 Your app → the version → pick the build → *Add for Review* → *Submit*.
 
@@ -263,11 +353,11 @@ them into the review notes rather than hoping.
 
 ## Phase 5 — Review
 
-### 18. Wait
+### 23. Wait
 
 Usually 24–48 hours, occasionally longer around holidays. Email either way.
 
-### 19. If it comes back rejected, do not rebuild
+### 24. If it comes back rejected, do not rebuild
 
 Apple's message always names a guideline number. Open *Resolution Center* and
 reply to that specific guideline. A first rejection on an app like this is
