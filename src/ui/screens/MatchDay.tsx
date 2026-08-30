@@ -1101,7 +1101,14 @@ function Preview({ fxId }: { fxId: number }) {
           <div className="modal talk-modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
             <div style={{ padding: '0 12px 10px' }}>
-              <SectionTitle sub={t('matchday.talkModalSub', { home: teamShort(game, club.id), away: teamShort(game, opp) })}>
+              {/* THE FIXTURE IS NOT THE POINT OF THIS LINE. It used to read
+                  "{home} v {away} - one speech, choose the tone", which is two
+                  club names before it gets to the thing you actually have to
+                  do, and on a phone the tone clause wrapped to a second line
+                  (owner: "can you get the choose your tone on one line"). The
+                  scoreboard, both crests and both names are on the screen this
+                  modal opened from; the one new instruction is the speech. */}
+              <SectionTitle sub={t('matchday.dressingRoomSub')}>
                 {t('matchday.theDressingRoom')}
               </SectionTitle>
               {/* How you watch it (F5) lives here rather than at the foot of the
