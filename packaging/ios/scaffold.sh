@@ -13,6 +13,28 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# COCOAPODS, BEFORE ANYTHING EXPENSIVE.
+#
+# `cap add ios` ends by running `pod install`, and CocoaPods does NOT come with
+# Xcode - a clean Mac does not have it. This script was verified end to end on
+# Linux, where the pod step is skipped entirely, so the gap never showed up
+# until somebody ran it on the machine it is actually for. Failing here, before
+# the game is built and the platform is scaffolded, costs seconds; failing
+# inside `cap add` costs a confusing half-finished ios/ directory.
+if [ "$(uname)" = "Darwin" ] && ! command -v pod >/dev/null 2>&1; then
+  cat <<'MISSING'
+CocoaPods is not installed, and `cap add ios` needs it.
+
+Install it with ONE of these, then run this script again:
+
+  brew install cocoapods        # if you have Homebrew - the tidier route
+  sudo gem install cocoapods    # if you do not
+
+Check it worked with:  pod --version
+MISSING
+  exit 1
+fi
+
 if [ ! -d node_modules ]; then
   echo "==> installing the shell toolchain (pinned in package.json)"
   npm install

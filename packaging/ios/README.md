@@ -53,10 +53,19 @@ stays a pure offline PWA. `src/game/storekit.ts` reads `globalThis.Capacitor`
 and imports nothing, which is what lets the two live apart.
 
 ```sh
+pod --version      # CocoaPods, which Xcode does NOT bring with it
 cd packaging/ios
 npm install        # the pinned toolchain
 ./scaffold.sh      # build the game, add the platform, install the plugin
 ```
+
+**CocoaPods is a prerequisite and nothing in this repository can supply it.**
+`cap add ios` finishes by running `pod install`; a clean Mac has no `pod`.
+`brew install cocoapods`, or `sudo gem install cocoapods` without Homebrew.
+This was invisible for as long as the script was only ever run on Linux, where
+the pod step does not happen at all - so `scaffold.sh` now checks for it on
+macOS and stops before building anything rather than failing halfway through
+`cap add` and leaving a partial `ios/` tree.
 
 `scaffold.sh` was verified end to end on Linux: it builds `dist/`, generates
 the Xcode project, bundles the game inside it, and copies the four plugin
