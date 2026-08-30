@@ -189,9 +189,23 @@ function statureRun(clubId: string, seed: number, mode: Mode) {
       }
     }
     processWeekAndAdvance(g)
-    if (g.unemployed) { sacked = true; sackWeek = g.week; break }
+    // THE SACKING WEEK IS THE ONE THAT COUNTS, and this used to throw it away:
+    // the break came first, so a run that ended in a dismissal recorded the
+    // confidence of the week BEFORE the collapse and never the collapse
+    // itself. A sacked board is at its floor by definition, so discarding that
+    // reading makes the mean move the wrong way - an EXTRA sacking pulls the
+    // average UP, because the seed that ends early stops accumulating misery
+    // while the survivors go on grinding lower.
+    //
+    // That is not hypothetical. The v1.1.15 squad-depth change shifts the
+    // weekly rng stream by a few draws, one more giant seed ended in a
+    // dismissal (1 of 6 to 2 of 6 - the board got HARSHER), and this mean rose
+    // from 16.7 to 26.0 and failed both lines by tenths of a point. The
+    // property they defend was more true than before, and the statistic said
+    // less. Read the reading, then break.
     const c = g.clubs[clubId]
     if (c) minConf = Math.min(minConf, c.boardConfidence)
+    if (g.unemployed) { sacked = true; sackWeek = g.week; break }
   }
   return { minConf: Math.round(minConf), sacked, sackWeek }
 }

@@ -670,10 +670,13 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    band of Play/Pause sits in the system swipe zone: reaching for Pause during
    a match dismissed the app. The buttons were 38px against a 44/48 floor, and
    they are the four pressed most in eighty minutes. */
+/* The safe-area clearance below has gone with the row's move up the page
+   (v1.1.16): it is no longer the last child of .live-wrap, so it no longer
+   sits over the home indicator and no longer needs to reserve for it. The
+   left/right insets stay - a landscape notch still eats into the row. */
 .speed-controls {
   display: flex; gap: 8px;
-  padding: 10px max(14px, env(safe-area-inset-right))
-           calc(env(safe-area-inset-bottom) + 8px) max(14px, env(safe-area-inset-left));
+  padding: 10px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
 }
 .speed-controls .btn {
   flex: 1; min-height: 48px;
