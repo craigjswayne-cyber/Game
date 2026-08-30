@@ -214,6 +214,11 @@ account and nothing to wait for.
 First run is slow: Xcode compiles, then the simulator boots. Two or three
 minutes is normal. The game should appear and play.
 
+**If it looks like the game will not scroll, click and DRAG.** A scroll wheel or
+a two-finger trackpad swipe often does not map into a WKWebView; holding the
+mouse button and dragging is what simulates a finger on the glass. Verified on a
+real Mac - the app scrolls fine, the Simulator was just refusing the gesture.
+
 **If it fails,** click the red ❌ in the top bar to see the list. Nine times out
 of ten it is step 8 or step 7 above.
 
