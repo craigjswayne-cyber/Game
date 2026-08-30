@@ -14,7 +14,7 @@ import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO,
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
-import { OFFICE_OUTLET, generatePress } from './media'
+import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { generateGossip } from './gossip'
 import { buildPlayer, playerValue, playerWage } from './attributes'
 import { recruitmentMeeting, scoutOpponent, weeklyScouting } from './scout'
@@ -3330,6 +3330,29 @@ export function processWeekAndAdvance(state: GameState) {
   // each question in the same settlement that asked it. Office conversations
   // and internal staff decisions (the pre-season camp) are not press and keep
   // their own clock.
+  // TIDY THE PRESS ROOM (owner, v1.1.14: "tidy the press room up - remove
+  // anything older than 2 weeks"). His screenshot, taken in week 8, had
+  // coverage from 30 August and 23 August still on the page - two months of
+  // answered questions stacked under RECENT COVERAGE, which is neither recent
+  // nor coverage. Answered questions older than a fortnight are dropped from
+  // the save entirely rather than merely hidden: they are the largest thing in
+  // a long career's press list and nothing else reads them.
+  //
+  // UNANSWERED ONES ARE NEVER SWEPT HERE. The loop below auto-answers a
+  // question the manager let pass, and that carries a board and support cost -
+  // deleting it instead would make ignoring the desk free again, which is the
+  // exact hole that loop was written to close.
+  //
+  // MEASURED AGAINST THE WEEK THE ROOM WILL BE READ IN, not the one being
+  // settled. This runs inside the settle for week W and the manager opens the
+  // room in week W+1, so a straight `<= PRESS_KEEP_WEEKS` here left one item
+  // that the screen - which measures from the week it is actually drawn in -
+  // then hid anyway. Same rule, one clock.
+  {
+    const next = state.season * SEASON_WEEKS + state.week + 1
+    state.press = state.press.filter(q =>
+      !q.answered || next - (q.season * SEASON_WEEKS + q.week) <= PRESS_KEEP_WEEKS)
+  }
   for (const q of state.press) {
     if (q.answered || q.topic || q.outlet === OFFICE_OUTLET) continue
     if (q.season < state.season || (q.season === state.season && q.week < state.week)) {

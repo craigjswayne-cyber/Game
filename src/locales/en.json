@@ -1370,7 +1370,10 @@
     "reasonAgeGap": "{gap} years between them, and it shows in what they talk about.",
     "reasonLeads": "{senior} leads by example and the boy has noticed.",
     "reasonSteady": "Steady enough: extras after training, and the odd word that lands.",
-    "chemRest": {"one": "And one more pairing in the room: {clicks} that work, {clashes} that do not.", "other": "And {n} more pairings in the room: {clicks} that work, {clashes} that do not."}
+    "chemRest": {
+      "one": "And one more pairing in the room: {clicks} that work, {clashes} that do not.",
+      "other": "And {n} more pairings in the room: {clicks} that work, {clashes} that do not."
+    }
   },
   "pos": {
     "LP": "Loosehead Prop",
@@ -1470,7 +1473,8 @@
     "scoutReports": "Scout Reports",
     "scoutReportsSub": "every postcard and report the department has filed - tap one to read it again",
     "fromClub": "from {club}",
-    "fromFree": "out of contract"
+    "fromFree": "out of contract",
+    "interested": "🤝 Interested"
   },
   "objectives": {
     "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
@@ -2740,10 +2744,10 @@
     "coFilterAll": "All",
     "coShowing": "The {n} best {pos} outside camp, of {total}.",
     "coShowingAll": "The {n} best outside camp, of {total}.",
-      "coCountdown": {
-        "one": "The federation opens camp in {n} day. Until then this is the squad on current form.",
-        "other": "The federation opens camp in {n} days. Until then this is the squad on current form."
-      },
+    "coCountdown": {
+      "one": "The federation opens camp in {n} day. Until then this is the squad on current form.",
+      "other": "The federation opens camp in {n} days. Until then this is the squad on current form."
+    },
     "coNoWindowLeft": "No more windows this season - the country's work is done until the summer.",
     "coThin": "THIN: {pos}",
     "bgIdeasTitle": "Ideas & Suggestions",
@@ -4935,7 +4939,8 @@
     },
     "boardPushedWarn": "The room goes cold. \"We gave you our answer.\" A formal warning follows within the hour, and the board's respect for you is cut in half. Ask again and you will be clearing your desk.",
     "boardPushedSacked": "You asked once too often. The chairman stands, offers a handshake nobody means, and the club statement is out before you reach the car park.",
-    "notHomeBased": "{player} plays his club rugby abroad. {nat} pick only from their own league - he would have to come home first."
+    "notHomeBased": "{player} plays his club rugby abroad. {nat} pick only from their own league - he would have to come home first.",
+    "wontDropDown": "{club} accept your bid, but {name} will not drop this far down. Only an unhappy man, one his club is pushing out, or a mercenary talks to a club this much smaller."
   },
   "verdict": {
     "titleFavourites": "Title favourites",
@@ -5540,6 +5545,7 @@
     "supportDone": "Thank you. That is {n} from you now, and it goes straight back into the game.",
     "charterActivate": "Activate on this career",
     "charterConfirm": "Turn it off for good",
-    "charterRefused": "Not here: this career has no cap left to lift, or there is no club on the desk."
+    "charterRefused": "Not here: this career has no cap left to lift, or there is no club on the desk.",
+    "estateAgain": "The buildings stayed at your old club. This ground starts again."
   }
 }

@@ -96,6 +96,23 @@ export const INJECT_SKUS = {
  *  Consumable like the injections: the store forgets it, the career keeps
  *  what it did. */
 export const HEAL_SKU = 'phase.heal'
+/**
+ * v1.1.14: THE ESTATE, AT THE NEXT GROUND.
+ *
+ * ESTATE_SKU is a non-consumable and Play will only ever sell it once, which
+ * was fine while the estate was one save-wide flag and fatal the moment it
+ * became one build per club (grants.applyEstate). The owner's rule is "when
+ * you move you have to purchase it again", and a product Play refuses to sell
+ * twice cannot honour that, so the repeat is its own consumable.
+ *
+ * The first ground is covered by ESTATE_SKU - that is the purchase already
+ * made. Every ground after it is one of these.
+ *
+ * PLAY CONSOLE: this must exist as a CONSUMABLE product at £9.99. A product
+ * type cannot be changed after it is created, which is exactly why the repeat
+ * could not simply reuse phase.estate.
+ */
+export const GROUND_SKU = 'phase.ground'
 
 /** Owned once, restorable from the store for ever. */
 export const NC_SKUS = [SUPPORTER_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as const
@@ -113,7 +130,30 @@ export const NC_SKUS = [SUPPORTER_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as
  *  Anyone who bought it as the Manager's License, or as the one-shot thank
  *  you, keeps that receipt in rm-ent; nothing reads it, and nothing ever
  *  did. */
-export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU, SUPPORT_SKU] as string[]
+export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU, SUPPORT_SKU, GROUND_SKU] as string[]
+
+/**
+ * CONSUMABLES THE BOOT SWEEP MAY SPEND WITHOUT ASKING ANYBODY.
+ *
+ * Spending a consumable is the only way Digital Goods 2.0 can acknowledge one,
+ * and an unacknowledged purchase is refunded by Play after three days. So the
+ * sweep has to spend - but spending a receipt whose grant has not yet landed in
+ * a career would destroy the thing that was paid for, which is worse than the
+ * refund.
+ *
+ * The split is simply whether there is anything left to collect:
+ *
+ *   the heal, the four injections   land IN a career, at a moment the manager
+ *                                   picks. The Store surfaces them as pending
+ *                                   until they do. The sweep acknowledges them
+ *                                   where it can and never spends them.
+ *   the tip jar                     lands nowhere. It buys a thank-you and a
+ *                                   counter, both written the instant the sheet
+ *                                   closes. There is nothing to lose by
+ *                                   spending it, and - this is the one that
+ *                                   cost real money - nothing else can save it.
+ */
+export const SPENDABLE_UNASKED: string[] = [SUPPORT_SKU]
 
 export type Entitlement = 'free' | 'supporter'
 
@@ -395,6 +435,7 @@ export const REFERENCE_PRICES: Record<string, string> = {
   'phase.inject.l': '£3.99',
   'phase.inject.xl': '£7.99',
   [HEAL_SKU]: '£0.99',
+  [GROUND_SKU]: '£9.99',
 }
 
 /** The price to put on a button, and WHERE IT CAME FROM.

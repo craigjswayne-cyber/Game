@@ -1473,7 +1473,8 @@
     "scoutReports": "Rapports de recrutement",
     "scoutReportsSub": "toutes les cartes postales et tous les rapports du service - touchez-en un pour le relire",
     "fromClub": "en provenance de {club}",
-    "fromFree": "sans contrat"
+    "fromFree": "sans contrat",
+    "interested": "🤝 Intéressés"
   },
   "objectives": {
     "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs de 21 ans ou moins",
@@ -4938,7 +4939,8 @@
     },
     "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et vous viderez votre bureau.",
     "boardPushedSacked": "Vous avez demandé une fois de trop. Le président se lève, tend une poignée de main que personne ne pense, et le communiqué du club sort avant que vous n'atteigniez le parking.",
-    "notHomeBased": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat - il devrait d'abord rentrer."
+    "notHomeBased": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat - il devrait d'abord rentrer.",
+    "wontDropDown": "{club} acceptent votre offre, mais {name} ne descendra pas si bas. Seul un joueur malheureux, un joueur que son club pousse dehors ou un mercenaire parle à un club aussi petit."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",
@@ -5543,6 +5545,7 @@
     "supportDone": "Merci. Cela fait {n} de votre part, et tout repart dans le jeu.",
     "charterActivate": "Activer sur cette carrière",
     "charterConfirm": "Le supprimer définitivement",
-    "charterRefused": "Pas ici : cette carrière n'a plus de plafond à lever, ou il n'y a aucun club sur le bureau."
+    "charterRefused": "Pas ici : cette carrière n'a plus de plafond à lever, ou il n'y a aucun club sur le bureau.",
+    "estateAgain": "Les installations sont restées dans votre ancien club. Ici, tout est à refaire."
   }
 }

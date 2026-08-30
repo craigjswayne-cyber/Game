@@ -1348,8 +1348,24 @@ export interface GameState {
   /** The Estate (v1.1.4): every facility raised to its maximum, bought and
    *  applied to this save. A permanent stamp like the Charter's - facilities
    *  live on the club and are left behind with a job change, but the record
-   *  of how the estate was built stays on the save. */
+   *  of how the estate was built stays on the save.
+   *
+   *  SUPERSEDED BY estateClubs in v1.1.14 and kept only so an old save can be
+   *  read (save.ts migrates it). It was a single save-wide boolean, which meant
+   *  the moment you built the estate anywhere you could never build it again -
+   *  the owner resigned, took a job with poor facilities, and found the product
+   *  he had paid for greyed out with nothing he could do about it. */
   estateMaxed?: boolean
+  /** THE CLUBS THIS CAREER HAS BUILT THE ESTATE AT (v1.1.14).
+   *
+   *  Owner: "it should ONLY apply to a club when in charge. when you move you
+   *  have to purchase it again. if you go back to the same club though it
+   *  should stay til the game finishes and the coach retires."
+   *
+   *  So it is a list, not a flag: the buildings belong to the ground they were
+   *  built on, they are still there if you come back, and a new club is a new
+   *  job of work. Cleared with the career, like everything else in a save. */
+  estateClubs?: string[]
   /** The International Stage (v1.1.4): the call to the federations has been
    *  made at least once in this save. A RECORD, not a gate, since v1.1.13 -
    *  the door is closed by holding a national job, not by having held one, so

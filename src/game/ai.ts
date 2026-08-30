@@ -7,6 +7,7 @@ import { transferReaction } from './terraces'
 import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
+import { interestPremium, transferInterest } from './interest'
 import { playerValue, playerWage } from './attributes'
 import { clamp, mulberry32, pick, type Rng } from './rng'
 
@@ -434,7 +435,11 @@ export function aiTransfers(state: GameState, rng: Rng) {
 export function personalTermsDemand(state: GameState, p: Player): number {
   const user = state.clubs[state.userClubId]
   const seller = p.clubId ? state.clubs[p.clubId] : null
-  return Math.round(playerWage(p.ca, p.age) * (seller && user.rep < seller.rep ? 1.2 : 1))
+  // A step down costs 20% on top. A REAL step down - past the point where most
+  // men stop taking the call - costs more again, and a mercenary charges most
+  // of all, because the wage is the entire reason he is willing (interest.ts).
+  const step = seller && user.rep < seller.rep ? 1.2 : 1
+  return Math.round(playerWage(p.ca, p.age) * step * interestPremium(state, p))
 }
 
 /** Stage 1 of the 8D bid flow: agree the FEE only - nothing is signed
@@ -484,8 +489,13 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   // own worst price, but they will not pretend the floor does not exist either
   const counterPrice = Math.max(floor, Math.round((floor + (ask - floor) * 0.45) / 50_000) * 50_000)
   if (fee >= floor) {
-    if (user.rep < seller.rep - 12 && p.morale > 5 && !p.transferListed) {
-      return { ok: false, msg: `${seller.short} accepted your bid, but ${p.name} won't discuss terms - the club couldn't convince him.` }
+    // THE SAME CALL THE INTERESTED FILTER MAKES (interest.ts). It used to be
+    // spelled out here and nowhere else, which made it invisible: the only way
+    // to learn that a man would not drop this far was to bid for him and lose
+    // a week. The Transfer Centre asks the same function now, so the chip and
+    // the negotiating table cannot disagree.
+    if (transferInterest(state, p) === 'no') {
+      return { ok: false, msg: t('reply.wontDropDown', { club: seller.short, name: p.name }) }
     }
     const under = ask - fee
     return {
