@@ -119,6 +119,19 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.13
+
+```
+• Kick Off now spans the Match Day header instead of hugging the left edge.
+• The board funding rows no longer collapse once a resolution is spent.
+• "The Owner's Charter" is now "Remove the salary cap" - and if you already
+  own it, a new career activates it rather than asking you to pay again.
+• The International Stage can be used again if you step down from a national
+  job: pick another federation whenever you like.
+• Fewer error messages on the store, and plainer board funding language.
+```
+*(496)*
+
 ### What's new (500 max) - v1.1.12
 
 ```
@@ -382,6 +395,19 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.13
+
+```
+• Le bouton Coup d'envoi occupe toute la largeur au lieu de coller à gauche.
+• Les lignes de financement du conseil ne se déforment plus une fois épuisées.
+• « La Charte du propriétaire » devient « Supprimer le plafond salarial » - et
+  si vous l'avez déjà achetée, une nouvelle carrière l'active sans repayer.
+• La Scène internationale est réutilisable : après une démission, choisissez
+  une autre fédération quand vous voulez.
+• Moins de messages d'erreur sur la boutique.
+```
+*(475)*
 
 ### Nouveautés (500 max) - v1.1.12
 

@@ -3135,6 +3135,16 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   .mast-text .date { flex: 0 0 auto; margin: 0; }
   .mast-ctl { flex: 1 1 100%; display: flex; gap: 8px; align-items: center; }
   .mast-ctl .continue-btn { flex: 1; }
+  /* AND THE SAME FOR A MASTHEAD THAT HAS NO CONTROL GROUP (owner, v1.1.13:
+     "kick off is still left?").
+     Match Day builds its own masthead - back arrow, title block, Kick Off -
+     with the button as a DIRECT child of the row rather than inside .mast-ctl.
+     The rules above only reach the grouped case, so in portrait the title took
+     row one, Kick Off wrapped onto row two at its natural width, and the
+     loudest button on the screen sat hard against the left edge while every
+     other screen's Continue ran full width. It gets the same row now, so the
+     control the thumb is reaching for is in the same place on every screen. */
+  .masthead-row > .continue-btn { flex: 1 1 100%; }
   /* and a size down, because a 412px screen is not a 844px one */
   .masthead h1 { font-size: 17px; }
   .masthead .date { font-size: 11px; }

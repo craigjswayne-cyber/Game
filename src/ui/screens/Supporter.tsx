@@ -4,7 +4,7 @@ import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  billingReason, lookupReason, pendingConsumables, recordSupport, restore, skuPrice,
+  billingReason, pendingConsumables, recordSupport, restore, skuPrice,
   supportCount, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
@@ -106,15 +106,18 @@ function TillHealth() {
   useEffect(() => { void tillHealth().then(setState) }, [])
   if (!state || state.live === state.asked) return null
   const key = state.live === 0 ? 'store.tillSilent' : 'store.tillPartial'
-  // and the store's own words for it, when there are any. This is a
-  // diagnostic line, deliberately plain: it is the difference between a
-  // service that will not answer and one answering "I have nothing for you",
-  // which is the difference between a broken build and a console setting.
-  const why = lookupReason()
+  // ONE LINE, NOT TWO (owner, v1.1.13: "few error messages showing on shop").
+  //
+  // This used to print the store's raw failure underneath - "getDetails threw
+  // OperationError: clientAppUnavailable - the billing service is attached but
+  // not answering". That sentence solved a day-long billing fault and it is
+  // still worth having, but a shopper who came to buy a 99p thank-you should
+  // not meet two stacked paragraphs of apology on the way. It rides in the bug
+  // report now (bugreport.ts), which is where a diagnostic belongs, and the
+  // shelf keeps the one sentence that tells a customer what he can do.
   return (
     <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
       <div className="meta">{t(key, { live: state.live, asked: state.asked })}</div>
-      {why && <div className="meta" style={{ marginTop: 6, opacity: .8 }}>{why}</div>}
     </div>
   )
 }
@@ -127,13 +130,14 @@ export default function Supporter() {
   const game = useStore(s => s.game)
   const go = useStore(s => s.go)
   const claim = useStore(s => s.claimSupporter)
-  const { healSquad, buildEstate, makeTheCall } = useStore.getState()
+  const { healSquad, buildEstate, makeTheCall, signCharter } = useStore.getState()
   const boardInject = useStore(s => s.boardInject)
   useStore(s => s.tick)
   const [busy, setBusy] = useState(false)
   const [msgs, setMsgs] = useState<Record<string, string | null>>({})
   const [healPending, setHealPending] = useState(false)
   const [estateArm, setEstateArm] = useState(false)
+  const [charterArm, setCharterArm] = useState(false)
   const [natPick, setNatPick] = useState<string>(NAT_TIERS[0][0])
   const [pendingInj, setPendingInj] = useState<InjectTier[]>([])
   const say = (sku: string, text: string | null) => setMsgs(m => ({ ...m, [sku]: text }))
@@ -236,6 +240,10 @@ export default function Supporter() {
   const ownsPinnacle = hasEntitlement(PINNACLE_SKU)
   const ownsEstate = hasEntitlement(ESTATE_SKU)
   const ownsCharter = hasEntitlement(CHARTER_SKU)
+  /** Is there a federation door to walk through right now? Owning the product
+   *  is not enough and having used it is no bar: what shuts it is a national
+   *  job already in hand, or an offer still standing. */
+  const canCall = inCareer && !!game && !game.natTeam && !game.natOffer
 
   return (
     <>
@@ -262,16 +270,25 @@ export default function Supporter() {
         )}
       </Row>
 
+      {/* THE DOOR IS CLOSED BY HOLDING THE JOB, NOT BY HAVING HELD IT (owner,
+          v1.1.13: "if you buy the international option, take a job and step
+          down then you should then still have the pick a nation and take offer
+          available to you if you want to").
+          The picker used to disappear the moment the call was made, for ever -
+          a leftover from when this product placed a one-time OFFER rather than
+          an appointment. A coach who resigns has not used up a job he paid
+          for, so the row shows the picker again whenever no national post is
+          in hand. */}
       <Row icon="🌍" title={t('store.pinnacle')} line={t('store.pinnacleLine')} msg={msgs[PINNACLE_SKU]}
         right={ownsPinnacle
-          ? (inCareer && game && !game.pinnacleCalled ? undefined : <OwnedChip />)
+          ? (canCall ? undefined : <OwnedChip />)
           : <BuyBtn sku={PINNACLE_SKU} busy={busy} onBuy={() => void buyNC(PINNACLE_SKU, () => {
-              if (inCareer && game && !game.pinnacleCalled) say(PINNACLE_SKU, t('store.pickNation'))
+              if (canCall) say(PINNACLE_SKU, t('store.pickNation'))
             })} />}>
         {/* v1.1.5, the owner's brief: the buyer picks the federation. The
             whole ladder is on offer - the product is the introduction, and
             the choice is the point of it. */}
-        {ownsPinnacle && inCareer && game && !game.pinnacleCalled && (
+        {ownsPinnacle && canCall && (
           <div className="btn-row" style={{ alignItems: 'stretch' }}>
             <select value={natPick} onChange={e => setNatPick(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
               {NAT_TIERS.map(([code]) => (
@@ -307,8 +324,27 @@ export default function Supporter() {
 
       <Row icon="🖋" title={t('store.charter')} line={t('store.charterLine')} msg={msgs[CHARTER_SKU]}
         right={ownsCharter ? <OwnedChip /> : <BuyBtn sku={CHARTER_SKU} busy={busy} onBuy={() => void buyNC(CHARTER_SKU)} />}>
+        {/* ALREADY PAID FOR MEANS ACTIVATE, NOT PAY AGAIN (owner, v1.1.13: "if
+            they've paid for it previously and started a new game it should be
+            an activate option. but not pay again").
+            The entitlement is for ever and the LAW is per save, so a new career
+            starts capped with the receipt still in hand. That was already true
+            - and the only thing on the row was a link to go and find the
+            boardroom, which reads like being sent away rather than being given
+            what you own. It signs here, behind the same two-tap confirmation
+            the Boardroom uses, because it cannot be undone. */}
         {ownsCharter && inCareer && game && !game.uncapped && (
-          <button className="btn ghost block" onClick={() => go('finances')}>{t('store.signInBoardroom')}</button>
+          charterArm ? (
+            <div className="btn-row">
+              <button className="btn ghost" onClick={() => setCharterArm(false)}>{t('till.charterStay')}</button>
+              <button className="btn gold" style={{ flex: 1.4 }} onClick={() => {
+                setCharterArm(false)
+                say(CHARTER_SKU, signCharter() ? t('till.charterDone') : t('store.charterRefused'))
+              }}>{t('store.charterConfirm')}</button>
+            </div>
+          ) : (
+            <button className="btn ghost block" onClick={() => setCharterArm(true)}>{t('store.charterActivate')}</button>
+          )
         )}
       </Row>
 
@@ -327,10 +363,19 @@ export default function Supporter() {
                     {baseCap != null && <> {t('till.injWage', { weekly: fmtWage(Math.round(INJECT_TIERS[tier].wage * baseCap)) })}</>}
                   </div>
                 </div>
-                {left > 0
-                  ? <BuyBtn sku={sku} busy={busy} onBuy={() => void buyInjection(tier)} />
-                  : <span className="chip muted" style={{ flexShrink: 0 }}>{t('till.injNone')}</span>}
+                {left > 0 && <BuyBtn sku={sku} busy={busy} onBuy={() => void buyInjection(tier)} />}
               </div>
+              {/* SOLD OUT IS A LINE, NOT A CHIP.
+                  A fifty-one character sentence in a `flexShrink: 0` chip
+                  cannot shrink, so the flex row gave it everything and squeezed
+                  the title column to nothing: "The Sugar Daddy" came out one
+                  word per line down the left of the card with the sentence
+                  floating over it. This is what the owner reported as "sugar
+                  daddy money formatting goes weird after purchasing" - the
+                  money was never wrong, the row was. It only ever showed after
+                  a purchase, which is exactly why it read as a consequence of
+                  buying. */}
+              {left <= 0 && <div className="meta muted">{t('till.injNone')}</div>}
               {pendingInj.includes(tier) && (
                 <button className="btn ghost block" disabled={busy} onClick={() => { setBusy(true); void landInjection(tier).finally(() => setBusy(false)) }}>
                   {t('till.applyHere')}

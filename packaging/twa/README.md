@@ -153,7 +153,7 @@ first installed build showed (27 Aug).
 | Product ID | Play type | Product | Price |
 |---|---|---|---|
 | `phase.license` | Managed (**consumable** from v1.1.12) | Support the game | $0.99 |
-| `phase.uncapped` | Managed (non-consumable) | The Owner's Charter | $9.99 |
+| `phase.uncapped` | Managed (non-consumable) | Remove the salary cap | $9.99 |
 | `phase.estate` | Managed (non-consumable) | The Estate | $9.99 |
 | `phase.pinnacle` | Managed (non-consumable) | The International Stage | $4.99 |
 | `phase.inject.s` | Consumable | Board Injection (Small) | $0.99 |
@@ -188,6 +188,14 @@ Owner's brief, v1.1.12: "support the game should be 99p so adjust whatever the
 additional fee is thats made it higher so it is 99p only." That adjustment is
 made in Play Console on `phase.license`, not in the code - the code already
 says £0.99 and defers to whatever Play answers.
+
+### Renaming a product
+
+The product ID is permanent; the NAME on the row is not. `phase.uncapped` shipped
+as "The Owner's Charter" and became "Remove the salary cap" in v1.1.13 (owner:
+"the owners charter sounds weird simplify to remove all salary cap"), which is a
+Play Console edit on the existing product - not a new one. Anyone who bought it
+under the old name still owns it, because the receipt is against the id.
 
 Every id must match `src/game/monetise.ts` **exactly** - a typo does not error,
 it renders an unpriced button that cannot sell. The consumable/managed split

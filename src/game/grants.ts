@@ -286,7 +286,23 @@ export function applyEstate(state: GameState): boolean {
 export const NAT_CALL_WEEKS = 2
 
 export function applyPinnacle(state: GameState, nat?: string): boolean {
-  if (state.pinnacleCalled || state.unemployed) return false
+  // ONCE PER CAREER WAS THE WRONG SHAPE OF LIMIT (owner, v1.1.13: "if you buy
+  // the international option, take a job and step down then you should then
+  // still have the pick a nation and take offer available to you if you want
+  // to").
+  //
+  // He is right, and the old guard was a leftover from when this placed an
+  // OFFER rather than an appointment: an offer is a one-time event, so "once
+  // per career" made sense for it. An appointment is a JOB, and a coach who
+  // resigns a job has not used up his ability to take another - least of all
+  // one he has paid for. So the only thing that blocks the door now is
+  // already being through it: a national job in hand, or an offer standing.
+  //
+  // Being between CLUB jobs is no bar either. It used to be, on the theory
+  // that the federations approach a working coach - but an unemployed man
+  // taking a Test job is entirely ordinary, jobs.ts already treats a Test post
+  // as standing that survives losing the club, and the appointment news has
+  // carried a no-club variant since v1.1.12.
   if (state.natTeam || state.natOffer) return false
   if (nat != null && !NAT_TIERS.some(([n]) => n === nat)) return false
   state.pinnacleCalled = true
