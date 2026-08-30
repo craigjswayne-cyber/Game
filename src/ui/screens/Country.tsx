@@ -7,6 +7,7 @@ import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_SIZE } from '../../game/nations'
 import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSquad } from '../../game/country'
 import { PosBadge, SectionTitle } from '../components'
+import FullFitness from '../FullFitness'
 import { ord, posName, t } from '../../game/i18n'
 
 const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
@@ -159,6 +160,11 @@ export default function Country() {
         </div>
         {!club && <div className="meta">{t('legacy.coNoClubPost')}</div>}
       </div>
+
+      {/* The Thursday of a Test week is the other moment a manager wants a fit
+          squad and cannot get to the shop. Same card, same rules - silent
+          where there is no till and where nobody is hurt. */}
+      <FullFitness compact />
 
       {w ? (
         <>

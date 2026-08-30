@@ -6,6 +6,7 @@ import { canPhysioFavour } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
 import { badgeLabel } from '../../game/staff'
 import { PosBadge, SectionTitle } from '../components'
+import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
 
 /** The Medical Centre: who's out, who's rusty, who's running on fumes. */
@@ -96,6 +97,13 @@ export default function Medical() {
           onChange={e => setQuery(e.target.value)}
           style={{ margin: 0, maxWidth: 240, padding: '4px 8px', fontSize: 12 }} />
       </div>
+
+      {/* THE TREATMENT TABLE IS WHERE YOU WANT A FIT SQUAD, not two menus away
+          in a shop (owner: "ok put the full fitness on the medical screen,
+          country desk but also keep in store"). The card hides itself where
+          there is no till and where there is nobody to heal, so a quiet room
+          stays quiet. */}
+      <FullFitness />
 
       {allClear && (
         <div className="card center" style={{ borderLeft: '4px solid var(--text-positive)' }}>
