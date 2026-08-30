@@ -210,13 +210,28 @@ try {
     const m = /WK\s*(\d+)/i.exec(d ?? '')
     return m ? Number(m[1]) : null
   }
-  // walk the days until the masthead offers the match itself
+  // Walk the days until the masthead offers the match itself.
+  //
+  // AND THE READER IS PART OF THE WALK. Continue hands the week's unread mail
+  // to the full-screen reader (v1.1.12, owner: "pressing continue should go
+  // through every news story before continuing"), so a thumb walking a week
+  // passes through it - which is exactly what e2e.mjs, motionprobe.mjs and
+  // soakui.mjs have always done for it. This loop did not know, blindly tapped
+  // a masthead button that was no longer the control that advances anything,
+  // spent its twenty taps and then clicked into a modal it could not see. The
+  // budget was also a flat number: it is bounded by PROGRESS now, so a future
+  // change that costs another tap a week cannot silently exhaust it.
   let reachedMatch = false
-  for (let i = 0; i < 20; i++) {
+  let idle = 0
+  for (let i = 0; i < 60 && idle < 8; i++) {
     const label = (await page.textContent('.continue-btn').catch(() => '')) ?? ''
     if (/Matchday/i.test(label)) { reachedMatch = true; break }
-    await page.click('.continue-btn').catch(() => {})
+    const reader = page.locator('button', { hasText: /Next Story|On to the Week/ }).first()
+    const before = await weekNow()
+    if (await reader.count()) await reader.click().catch(() => {})
+    else await page.click('.continue-btn').catch(() => {})
     await page.waitForTimeout(220)
+    idle = (await weekNow()) === before && !(await reader.count()) ? idle + 1 : 0
   }
   check(reachedMatch, 'the week walks as far as a matchday')
   const weekBefore = await weekNow()
