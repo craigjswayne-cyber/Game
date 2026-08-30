@@ -64,16 +64,15 @@ products with fake money.
 
 ### 4. Build the iOS shell
 
-**First, CocoaPods.** It does not come with Xcode, and `cap add ios` needs it:
+**You do not need CocoaPods.** Capacitor 8 resolves iOS dependencies through
+Swift Package Manager when every plugin ships a `Package.swift`, which is the
+case here — the run prints "All Capacitor plugins have a Package.swift file" and
+writes `Package.swift` instead of a Podfile. A clean Mac with no CocoaPods, and
+no Homebrew, scaffolds this project perfectly well.
 
-```sh
-pod --version
-```
-
-If that says "command not found", install it — `brew install cocoapods`, or
-`sudo gem install cocoapods` if you have no Homebrew — and check again.
-`scaffold.sh` stops with the same advice rather than leaving a half-built
-`ios/` directory behind.
+(An earlier version of this file said the opposite and sent the owner off to
+install CocoaPods, which failed anyway because macOS's built-in Ruby is 2.6 and
+CocoaPods needs 3.0+. None of it was necessary.)
 
 ```sh
 cd packaging/ios

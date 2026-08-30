@@ -13,28 +13,6 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# COCOAPODS, BEFORE ANYTHING EXPENSIVE.
-#
-# `cap add ios` ends by running `pod install`, and CocoaPods does NOT come with
-# Xcode - a clean Mac does not have it. This script was verified end to end on
-# Linux, where the pod step is skipped entirely, so the gap never showed up
-# until somebody ran it on the machine it is actually for. Failing here, before
-# the game is built and the platform is scaffolded, costs seconds; failing
-# inside `cap add` costs a confusing half-finished ios/ directory.
-if [ "$(uname)" = "Darwin" ] && ! command -v pod >/dev/null 2>&1; then
-  cat <<'MISSING'
-CocoaPods is not installed, and `cap add ios` needs it.
-
-Install it with ONE of these, then run this script again:
-
-  brew install cocoapods        # if you have Homebrew - the tidier route
-  sudo gem install cocoapods    # if you do not
-
-Check it worked with:  pod --version
-MISSING
-  exit 1
-fi
-
 if [ ! -d node_modules ]; then
   echo "==> installing the shell toolchain (pinned in package.json)"
   npm install
@@ -57,6 +35,28 @@ for f in PhaseBilling.swift PhaseBilling.m App-Bridging-Header.h Products.storek
   cp "$f" "$APP/$f"
   echo "    $f"
 done
+
+# COCOAPODS: NOT NEEDED HERE, AND THE CHECK THAT SAID OTHERWISE WAS WRONG.
+#
+# A previous version of this script refused to run on macOS without `pod`, on
+# the general belief that `cap add ios` ends in `pod install`. It does not, for
+# THIS project: Capacitor 8 resolves iOS dependencies through Swift Package
+# Manager when every plugin ships a Package.swift, which is the case here - the
+# real run prints "All Capacitor plugins have a Package.swift file" and writes
+# Package.swift instead. A clean Mac with no CocoaPods scaffolds this project
+# perfectly well, and the guard would have blocked a working setup on every
+# re-run.
+#
+# So the check is now the honest one: complain only if a Podfile actually
+# exists, which is the only circumstance in which `pod` is required.
+if [ -f ios/App/Podfile ] && ! command -v pod >/dev/null 2>&1; then
+  echo
+  echo "This project generated a Podfile, so CocoaPods IS needed after all:"
+  echo "  brew install cocoapods    (or: sudo gem install cocoapods)"
+  echo
+  echo "Note that macOS's built-in Ruby may be too old - CocoaPods needs 3.0+."
+  exit 1
+fi
 
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
 echo
