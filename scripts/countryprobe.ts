@@ -245,5 +245,34 @@ console.log('\n--- 8. the pinnacle, v1.1.12: one squad size, a home-based rule, 
     'and the countdown says nothing once the camp is open - there is nothing left to wait for')
 }
 
+console.log('\n--- 9. a Test weekend is one card, and the names on it are still tappable\n')
+{
+  // Owner: "tighten up the volume of text." Six near-identical word-from-camp
+  // reports in one week - one per Test that happened to use one of your men -
+  // was the worst offender scripts/newspeak.ts could find. Three or more now
+  // collapse into a single round-up.
+  //
+  // And the FIRST draft of that collapse quietly dropped the story's
+  // playerIds, which are what make the men's names tappable in the reader: it
+  // rebuilt them from the rendered row, where the id had never been. Nothing
+  // would have failed; the chips would simply have stopped appearing. So the
+  // claim is both halves - fewer cards, and the cards still carry their men.
+  const g9 = newGame('leicester', 'Country Probe', 77)
+  for (let w = 0; w < 130; w++) processWeekAndAdvance(g9)
+  const singles = g9.news.filter(n => n.k === 'news.caps' || n.k === 'news.capsMore')
+  const rounds = g9.news.filter(n => n.k === 'news.campRound')
+  ok(singles.length > 0 && rounds.length > 0,
+    `both shapes occur over three seasons (${singles.length} single, ${rounds.length} round-ups)`)
+  ok(singles.every(n => (n.playerIds?.length ?? 0) > 0),
+    `every single-Test report still names its men for the reader (${singles.filter(n => (n.playerIds?.length ?? 0) > 0).length}/${singles.length})`)
+  const perWeek = new Map<string, number>()
+  for (const n of [...singles, ...rounds]) {
+    const key = `${n.season}:${n.week}`
+    perWeek.set(key, (perWeek.get(key) ?? 0) + 1)
+  }
+  const worst = Math.max(...perWeek.values())
+  ok(worst <= 2, `and no week files more than two of them (worst week: ${worst})`)
+}
+
 console.log(fails ? `\nCOUNTRY PROBE FAILED (${fails})` : '\nCOUNTRY PROBE PASSED: the pinnacle has a desk of its own')
 process.exit(fails ? 1 : 0)

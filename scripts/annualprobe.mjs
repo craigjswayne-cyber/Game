@@ -74,12 +74,13 @@ try {
     // drive a whole season the way a real thumb would, at machine speed: clear
     // the desk, Continue through the day flow, and hand any matchday to the
     // assistant's Instant Result. Stops the moment the rollover stamps annual.
-    // 900 was sized before the desk gate existed. Continue now spends up to
-    // MAX_DESK_HOLDS taps a week serving mail, so a 44-week season costs a few
-    // hundred more iterations and the loop ran out before the rollover stamped
-    // anything - the Annual never appeared and the wait timed out on a page that
-    // was fine. The desk is cleared here too, which is what the comment above
-    // already claimed this loop did.
+    // 900 was sized before the desk gate existed. Continue spends taps on the
+    // desk now - one to hand the unread pile to the reader and, in v1.1.12,
+    // one more to leave it - so a 44-week season costs more iterations than it
+    // did and the loop ran out before the rollover stamped anything: the
+    // Annual never appeared and the wait timed out on a page that was fine.
+    // The desk is cleared here too, which is what the comment above already
+    // claimed this loop did.
     // BOUNDED BY PROGRESS, AND PROGRESS MEASURED IN SECONDS. This loop has been
     // given a bigger fixed budget twice (900, then 2500) and each time a later
     // change made a season cost more taps and it silently ran out again -

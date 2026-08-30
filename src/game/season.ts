@@ -1643,7 +1643,7 @@ export function processWeekAndAdvance(state: GameState) {
     // or two Tests keep their own headline, because a single man's afternoon
     // deserves its own card; three or more become one word-from-camp round-up
     // with every Test in it.
-    const reports: { fx: Fixture; lines: { rating: number; row: Record<string, string | number>; text: string }[] }[] = []
+    const reports: { fx: Fixture; lines: { id: number; rating: number; row: Record<string, string | number>; text: string }[] }[] = []
     for (const fx of thisWeek) {
       const icomp = state.comps[fx.compId]
       if (!icomp || icomp.type !== 'intl') continue
@@ -1663,7 +1663,7 @@ export function processWeekAndAdvance(state: GameState) {
         const wordKey = rating >= 8.4 ? 'news.capRan' : rating >= 7.6 ? 'news.capExcellent'
           : rating >= 6.9 ? 'news.capJob' : rating >= 6.3 ? 'news.capSteady' : 'news.capQuiet'
         const row = { k: 'news.capLine', player: p.name, nat_k: `nation.${nat}`, rating: rating.toFixed(1), word_k: wordKey }
-        return { rating, row, text: tIn('en', row.k, row) }
+        return { id: p.id, rating, row, text: tIn('en', row.k, row) }
       }).sort((a, b) => b.rating - a.rating)
       reports.push({ fx, lines })
     }
@@ -1684,7 +1684,10 @@ export function processWeekAndAdvance(state: GameState) {
             hs: fx.homeScore, as: fx.awayScore,
             rows_ll: JSON.stringify(lines.slice(0, 4).map(l => l.row)), n: more,
           },
-          playerIds: lines.slice(0, 6).map(l => Number(l.row.playerId ?? 0)).filter(Boolean),
+          // the reader's people-chips: the men this story is about, so their
+          // names are tappable. Carried on the line rather than dug back out of
+          // the rendered row, which is where the first draft of this lost them.
+          playerIds: lines.slice(0, 6).map(l => l.id),
           fixtureId: fx.id,
         })
       }
