@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
-import { kitPattern, type KitPattern } from '../game/kits'
+import { kitPattern, kitTrim, type KitPattern } from '../game/kits'
 import { t } from '../game/i18n'
 
 
@@ -348,29 +348,77 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
   )
 }
 
-/** Home kit jersey rendered from the club's real pattern and colours. */
+/**
+ * Home kit jersey rendered from the club's real pattern and colours.
+ *
+ * THE THIRD COLOUR IS WHAT MAKES IT THEIRS (v1.1.14). Two colours draw a
+ * generic hooped shirt; the gold line either side of Northampton's hoops, the
+ * sky pinstripe between Bristol's, the white between Leicester's green and red
+ * are what let you name the club without reading the label. kits.kitTrim
+ * carries it for the clubs whose identity needs one, and everybody else draws
+ * exactly as they did before.
+ *
+ * Nothing official is reproduced: no badge, no sponsor, no manufacturer mark.
+ * Colours and how they are worn, which is what a league table has always
+ * printed.
+ */
 export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) {
   const [c1, c2] = club.colors
   const pattern = kitPattern(club.id)
+  const trim = kitTrim(club.id)
   const clip = `kit-${club.id}`
   const BODY = 'M14 8 L20 4 H28 L34 8 L38 14 L33 17 L32 15 V30 H16 V15 L15 17 L10 14 Z'
+  /** A hoop, and the hairline of trim above and below it. */
+  const hoop = (y: number) => (
+    <g key={y}>
+      <rect x="8" y={y} width="32" height="4" fill={c2} />
+      {trim && (<><rect x="8" y={y - 0.7} width="32" height="0.7" fill={trim} /><rect x="8" y={y + 4} width="32" height="0.7" fill={trim} /></>)}
+    </g>
+  )
+  const stripe = (x: number) => (
+    <g key={x}>
+      <rect x={x} y="2" width="4" height="32" fill={c2} />
+      {trim && (<><rect x={x - 0.7} y="2" width="0.7" height="32" fill={trim} /><rect x={x + 4} y="2" width="0.7" height="32" fill={trim} /></>)}
+    </g>
+  )
   return (
     <svg viewBox="0 0 48 34" width={size} height={Math.round(size * 34 / 48)} aria-hidden
       style={{ flexShrink: 0 }}>
       <defs><clipPath id={clip}><path d={BODY} /></clipPath></defs>
       <path d={BODY} fill={c1} />
       <g clipPath={`url(#${clip})`}>
-        {pattern === 'hoops' && (<><rect x="8" y="12" width="32" height="4" fill={c2} /><rect x="8" y="20" width="32" height="4" fill={c2} /><rect x="8" y="28" width="32" height="4" fill={c2} /></>)}
-        {pattern === 'stripes' && (<><rect x="18" y="2" width="4" height="32" fill={c2} /><rect x="26" y="2" width="4" height="32" fill={c2} /></>)}
-        {pattern === 'quarters' && (<><rect x="24" y="0" width="16" height="17" fill={c2} /><rect x="8" y="17" width="16" height="17" fill={c2} /></>)}
-        {pattern === 'sash' && <path d="M10 26 L38 6 L38 12 L14 30 L10 30 Z" fill={c2} />}
-        {pattern === 'halves' && <rect x="24" y="0" width="16" height="34" fill={c2} />}
+        {pattern === 'hoops' && [12, 20, 28].map(hoop)}
+        {pattern === 'stripes' && [18, 26].map(stripe)}
+        {pattern === 'quarters' && (
+          <>
+            <rect x="24" y="0" width="16" height="17" fill={c2} />
+            <rect x="8" y="17" width="16" height="17" fill={c2} />
+            {trim && (<><rect x="23.4" y="0" width="0.9" height="34" fill={trim} /><rect x="8" y="16.6" width="32" height="0.9" fill={trim} /></>)}
+          </>
+        )}
+        {pattern === 'sash' && (
+          <>
+            <path d="M10 26 L38 6 L38 12 L14 30 L10 30 Z" fill={c2} />
+            {trim && <path d="M10 26 L38 6 L38 7 L11 27 Z" fill={trim} />}
+          </>
+        )}
+        {pattern === 'halves' && (
+          <>
+            <rect x="24" y="0" width="16" height="34" fill={c2} />
+            {trim && <rect x="23.4" y="0" width="0.9" height="34" fill={trim} />}
+          </>
+        )}
         {/* sleeves in the second colour for contrast */}
         <path d="M14 8 L10 14 L15 17 L17 12 Z" fill={c2} opacity=".9" />
         <path d="M34 8 L38 14 L33 17 L31 12 Z" fill={c2} opacity=".9" />
+        {/* the cuff, which every one of the owner's photographs has and this
+            never did - a thin band of the trim at each sleeve end */}
+        {trim && (<><rect x="9" y="13" width="7" height="1.1" fill={trim} /><rect x="32" y="13" width="7" height="1.1" fill={trim} /></>)}
       </g>
       <path d={BODY} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.2" />
-      <path d="M20 4 L24 8 L28 4" fill="none" stroke="var(--prop-cream)" strokeWidth="1.6" />
+      {/* the collar: the club's own trim where it has one, cream where it does
+          not, because a white V on a white shirt is not a collar */}
+      <path d="M20 4 L24 8 L28 4" fill="none" stroke={trim ?? 'var(--prop-cream)'} strokeWidth="1.6" />
     </svg>
   )
 }

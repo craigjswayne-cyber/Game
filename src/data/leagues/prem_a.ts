@@ -6,7 +6,10 @@ export const PREM_A: RawClub[] = [
     id: 'bath', name: 'Bath RFC', short: 'Bath',
     city: 'Bath', country: 'ENG',
     stadium: 'Recreational Sports Centre', capacity: 14509,
-    colors: ['#003c71', '#000000'],
+    // navy and white hoops, edged in black (kits.ts carries the trim). The
+    // second colour used to be that black, which drew navy hoops on a navy
+    // shirt - a hooped club with no visible hoops.
+    colors: ['#003c71', '#ffffff'],
     rep: 88, budget: 5000000,
     players: [
       { name: 'Beno Obano', pos: 'LP', age: 31, nat: 'ENG', q: 79, intl: true },

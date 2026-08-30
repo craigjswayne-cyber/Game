@@ -11,6 +11,7 @@ import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft
 import { fmtMoney, fmtWage } from '../../game/model'
 import { NAT_TIERS, flagOf, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
+import { endingText } from '../purchase'
 
 /**
  * THE STORE. One row per product, one line per row (owner, v1.1.4: "strip
@@ -34,23 +35,6 @@ import { t } from '../../game/i18n'
  * unavailable / error), one line under the row it belongs to.
  */
 
-type Ending = 'owned' | 'cancelled' | 'pending' | 'unavailable' | 'refused' | 'error'
-const endingKey = (out: Ending) =>
-  out === 'cancelled' ? 'supporter.cancelled'
-    : out === 'pending' ? 'supporter.pending'
-    : out === 'unavailable' ? 'supporter.unavailable'
-    : out === 'refused' ? 'supporter.refused'
-    : 'supporter.error'
-
-/** What the shelf says when a purchase ends, plus - on a refusal only - the
- *  store's own words for why. A player who pressed Back gets one short line
- *  and nothing else; a store that would not open the sheet gets named, because
- *  otherwise the fault is invisible from inside the game. */
-const endingText = (out: Ending) => {
-  const line = t(endingKey(out))
-  const why = out === 'refused' ? billingReason() : null
-  return why ? `${line} (${why})` : line
-}
 
 /** One product on the shelf: icon, name, one line, one button. */
 function Row({ icon, title, line, right, msg, children }: {
