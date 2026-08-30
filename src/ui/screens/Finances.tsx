@@ -15,7 +15,7 @@ import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
   offersFor, signOffer,
 } from '../../game/commercial'
-import { RELEASE_STEP, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
+import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../../game/treasury'
 import { requestFunds } from '../../game/season'
 import { userWageBudget } from '../../game/grants'
 
@@ -196,9 +196,25 @@ export default function Finances() {
                       onChange={e => setRelAmt(Number(e.target.value))} />
                     <b style={{ minWidth: 74, textAlign: 'right' }}>{fmtMoney(amount)}</b>
                   </div>
-                  <div className="meta" style={{ fontSize: 11.5, marginBottom: 8 }}>
-                    {t('finances.treasuryMost', { most: fmtMoney(most) })}
-                  </div>
+                  {/* THE RESERVE IS A LINE ON THE BAR NOW, NOT ITS FAR END
+                      (owner, v1.1.13: "when moving money it doesnt let me
+                      transfer everything?"). It used to stop the slider dead,
+                      which at Northampton's opening balance of £2.4m against a
+                      £17.0m reserve meant no travel at all - the control read
+                      as broken from the first week of every career. The whole
+                      balance moves now, and the readout says which side of the
+                      line the manager is standing on before he commits. */}
+                  {(() => {
+                    const under = belowReserve(game, amount)
+                    const safe = Math.max(0, club.balance - cashReserve(game))
+                    return (
+                      <div className="meta" style={{ fontSize: 11.5, marginBottom: 8, color: under > 0 ? 'var(--text-negative)' : undefined }}>
+                        {under > 0
+                          ? t('finances.treasuryDeep', { under: fmtMoney(under) })
+                          : t('finances.treasurySafe', { safe: fmtMoney(safe) })}
+                      </div>
+                    )
+                  })()}
                 </>
               )}
               <button className="btn ghost block" disabled={!!block}

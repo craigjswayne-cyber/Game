@@ -1222,7 +1222,8 @@
     "withTheBall": "Avec le ballon",
     "withTheBallSub": "comment vous attaquez quand vos quinze ont le ballon",
     "withoutTheBall": "Sans le ballon",
-    "withoutTheBallSub": "comment la ligne défend quand ils l'ont"
+    "withoutTheBallSub": "comment la ligne défend quand ils l'ont",
+    "planSet": "Réglé : {dials}"
   },
   "staff": {
     "roleAssistant": "Entraîneur adjoint",
@@ -1353,7 +1354,7 @@
     "mentorEmpty": "Un Leader ou un Professionnel déteint sur un jeune - progression plus rapide, et son caractère s'imprime. Le caractère décide de la réussite : choisissez le duo plutôt que les noms. Un tutorat s'arrête de lui-même quand le jeune n'a plus rien à apprendre.",
     "seniorPro": "Cadre…",
     "underAge": "Moins de {age} ans…",
-    "mentorOption": "{name} ({pos}, {pers}, {age})",
+    "mentorOption": "{name} · {pos} {age} · {pers_k}",
     "oneKidAlready": " - déjà un jeune",
     "pair": "Associer",
     "fitInseparable": "Inséparables",
@@ -1368,7 +1369,11 @@
     "reasonNotListening": "Le jeune n'écoute pas d'aussi près qu'il le pourrait.",
     "reasonAgeGap": "{gap} ans d'écart, et cela se voit dans ce dont ils parlent.",
     "reasonLeads": "{senior} montre l'exemple et le gamin l'a remarqué.",
-    "reasonSteady": "Correct sans plus : des extras après l'entraînement, et le mot juste de temps en temps."
+    "reasonSteady": "Correct sans plus : des extras après l'entraînement, et le mot juste de temps en temps.",
+    "chemRest": {
+      "one": "Et une autre paire dans le staff : {clicks} qui fonctionnent, {clashes} qui non.",
+      "other": "Et {n} autres paires dans le staff : {clicks} qui fonctionnent, {clashes} qui non."
+    }
   },
   "pos": {
     "LP": "Pilier gauche",
@@ -1580,7 +1585,6 @@
     "capClear": "{amount}/sem sous le plafond",
     "rosterWarn": "{unit} : {count} sous contrat pour {year}, {need} nécessaires",
     "treasuryNoClub": "Pas de club, pas de trésorerie.",
-    "treasuryFloor": "Le conseil garde {reserve} en banque - une saison de salaires plus un matelas - et le solde ne peut pas descendre en dessous.",
     "treasuryMoved": "{step} transférés vers le budget transferts. La banque est à {balance}, le budget à {budget}.",
     "slotShirt": "Face avant du maillot",
     "slotShirtDesc": "Le sponsor principal. Le plus gros chèque de la maison, et celui que les supporters remarquent.",
@@ -1608,8 +1612,11 @@
     "nothingToEnd": "Il n'y a aucun contrat en cours à rompre.",
     "noLimit": "Sans limite",
     "treasurySlide": "Transférer vers le budget transferts",
-    "treasuryMost": "Jusqu'à {most} peut être transféré aujourd'hui - le reste est la réserve que le conseil vous interdit de toucher.",
-    "treasuryMove": "Transférer {amount} ▸"
+    "treasuryMove": "Transférer {amount} ▸",
+    "treasuryEmpty": "Il y a moins de {step} en caisse - rien à transférer.",
+    "treasuryMovedDeep": "{step} transférés. Solde {balance}, budget transferts {budget}. Le conseil a noté que cela entame la réserve salariale.",
+    "treasurySafe": "{safe} sont de la trésorerie disponible. Au-delà, vous entamez la réserve salariale, et le conseil le remarquera.",
+    "treasuryDeep": "⚠ {under} de ce montant sortent de la réserve salariale - l'argent qui fait tourner le club. Le conseil n'appréciera pas."
   },
   "club": {
     "tabClub": "Le club",
@@ -4822,6 +4829,14 @@
     "Mercenary": "mercenaire",
     "Temperamental": "caractériel",
     "Leader": "leader"
+  },
+  "persShort": {
+    "Professional": "Pro",
+    "Loyal": "Loyal",
+    "Ambitious": "Ambitieux",
+    "Mercenary": "Mercenaire",
+    "Temperamental": "Soupe au lait",
+    "Leader": "Leader"
   },
   "reply": {
     "overCap": "Ces conditions mettraient le club {over}/sem au-dessus du plafond salarial de {cap}/sem. Libérez de la place, ou désignez-le joueur vedette.",

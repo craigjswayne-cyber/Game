@@ -26,6 +26,9 @@ export default function Tactics() {
   const touch = useStore(s => s.touch)
   const [ttab, setTtab] = useState<'tactics' | 'setp' | 'bench' | 'prep' | 'plan'>('tactics')
   const [roleSlot, setRoleSlot] = useState<number | null>(null)
+  /** what the last one-tap plan set, so a control whose sliders are three
+   *  screenfuls away still answers the tap that pressed it */
+  const [planMsg, setPlanMsg] = useState<string | null>(null)
 
   const club = game.clubs[game.userClubId]
   // `tac`, not `t`: t() is the translator (src/game/i18n.ts)
@@ -434,10 +437,26 @@ export default function Tactics() {
                 <div className="meta" style={{ marginTop: 6 }}>
                   <b>{t('tacticsScreen.assistant')}</b> {t(ctr.line)}
                 </div>
+                {/* IT ALWAYS WORKED. IT NEVER SAID SO (owner, v1.1.13: "set
+                    the counter plan doesnt do anything when you press it on
+                    tactics").
+                    The tap writes four dials onto the club's tactic - measured
+                    50/50/50/50 before, 38/30/64/44 after - and then the screen
+                    sat there, because the sliders it moved are three screenfuls
+                    further down the same tab. A control whose whole effect is
+                    off-screen and silent is a control that does nothing, which
+                    is the failure this codebase has now fixed in four other
+                    costumes. So it answers: the dials it just set, in the same
+                    words the opposition's own read is written in. */}
                 <button className="btn gold block tiny" style={{ marginTop: 6 }}
-                  onClick={() => { Object.assign(tac, ctr.dials); touch() }}>
+                  onClick={() => { Object.assign(tac, ctr.dials); setPlanMsg(dialLine(tac)); touch() }}>
                   {t('tacticsScreen.setCounterPlan')}
                 </button>
+                {planMsg && (
+                  <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+                    {t('tacticsScreen.planSet', { dials: planMsg })}
+                  </div>
+                )}
               </div>
             </>
           )
@@ -446,11 +465,18 @@ export default function Tactics() {
         <div className="preset-row" style={{ padding: '0 14px' }}>
           {PRESETS.map(p => (
             <button key={p.id} className="preset-chip" title={t(p.desc)}
-              onClick={() => { Object.assign(tac, p.values); touch() }}>
+              onClick={() => { Object.assign(tac, p.values); setPlanMsg(dialLine(tac)); touch() }}>
               {p.icon} {t(p.name)}
             </button>
           ))}
         </div>
+        {/* the quick plans move the same four dials from the same distance, so
+            they get the same answer */}
+        {planMsg && (
+          <div className="meta sheet-log" style={{ margin: '6px 16px 0', borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>
+            {t('tacticsScreen.planSet', { dials: planMsg })}
+          </div>
+        )}
         <SectionTitle sub={t('tacticsScreen.withTheBallSub')}>{t('tacticsScreen.withTheBall')}</SectionTitle>
         {SLIDER_INFO.map(slider)}
         <SectionTitle sub={t('tacticsScreen.withoutTheBallSub')}>{t('tacticsScreen.withoutTheBall')}</SectionTitle>

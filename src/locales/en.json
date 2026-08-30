@@ -1222,7 +1222,8 @@
     "withTheBall": "With the Ball",
     "withTheBallSub": "how you attack when your fifteen have the ball",
     "withoutTheBall": "Without the Ball",
-    "withoutTheBallSub": "how the line defends when they have it"
+    "withoutTheBallSub": "how the line defends when they have it",
+    "planSet": "Set: {dials}"
   },
   "staff": {
     "roleAssistant": "Assistant Coach",
@@ -1353,7 +1354,7 @@
     "mentorEmpty": "A Leader or Professional rubs off on a kid - faster growth, and his character sticks. Character decides how well it takes, so pick the pairing rather than the names. A pairing ends itself when the kid has nothing left to learn.",
     "seniorPro": "Senior pro…",
     "underAge": "Under-{age}…",
-    "mentorOption": "{name} ({pos}, {pers}, {age})",
+    "mentorOption": "{name} · {pos} {age} · {pers_k}",
     "oneKidAlready": " - one kid already",
     "pair": "Pair",
     "fitInseparable": "Inseparable",
@@ -1368,7 +1369,8 @@
     "reasonNotListening": "The kid is not listening as closely as he might.",
     "reasonAgeGap": "{gap} years between them, and it shows in what they talk about.",
     "reasonLeads": "{senior} leads by example and the boy has noticed.",
-    "reasonSteady": "Steady enough: extras after training, and the odd word that lands."
+    "reasonSteady": "Steady enough: extras after training, and the odd word that lands.",
+    "chemRest": {"one": "And one more pairing in the room: {clicks} that work, {clashes} that do not.", "other": "And {n} more pairings in the room: {clicks} that work, {clashes} that do not."}
   },
   "pos": {
     "LP": "Loosehead Prop",
@@ -1580,7 +1582,6 @@
     "capClear": "{amount}/wk clear of the cap",
     "rosterWarn": "{unit}: {count} under contract for {year}, {need} needed",
     "treasuryNoClub": "No club, no treasury.",
-    "treasuryFloor": "The board keeps {reserve} banked - a season of wages plus a float - and the balance cannot dip below it.",
     "treasuryMoved": "{step} moved into the transfer budget. The bank stands at {balance}, the budget at {budget}.",
     "slotShirt": "Front of Shirt",
     "slotShirtDesc": "The main sponsor. The biggest single cheque in the building, and the one the supporters notice.",
@@ -1608,8 +1609,11 @@
     "nothingToEnd": "There is nothing in term to end.",
     "noLimit": "No limit",
     "treasurySlide": "Move to the transfer budget",
-    "treasuryMost": "Up to {most} can move today - the rest is the reserve the board will not let you touch.",
-    "treasuryMove": "Move {amount} ▸"
+    "treasuryMove": "Move {amount} ▸",
+    "treasuryEmpty": "There is less than {step} in the bank - nothing to move.",
+    "treasuryMovedDeep": "{step} moved. Balance {balance}, transfer budget {budget}. The board have noted that this dips into the wage float.",
+    "treasurySafe": "{safe} of this is spare cash. Past that you are spending the wage float, and the board will notice.",
+    "treasuryDeep": "⚠ {under} of this comes out of the wage float - the money the club runs on. The board will not like it."
   },
   "club": {
     "tabClub": "The Club",
@@ -4822,6 +4826,14 @@
     "Mercenary": "mercenary",
     "Temperamental": "temperamental",
     "Leader": "leader"
+  },
+  "persShort": {
+    "Professional": "Pro",
+    "Loyal": "Loyal",
+    "Ambitious": "Ambitious",
+    "Mercenary": "Mercenary",
+    "Temperamental": "Hot-head",
+    "Leader": "Leader"
   },
   "reply": {
     "overCap": "Those terms would put the club {over}/wk over the {cap}/wk salary cap. Free up room, or name him a marquee player.",

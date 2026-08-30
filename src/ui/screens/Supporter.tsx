@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
@@ -245,21 +245,41 @@ export default function Supporter() {
    *  job already in hand, or an offer still standing. */
   const canCall = inCareer && !!game && !game.natTeam && !game.natOffer
 
-  return (
-    <>
-      <SectionTitle sub={t('store.sub')}>{t('store.title')}</SectionTitle>
-      <TillHealth />
+  /**
+   * THE SHELF SORTS ITSELF (owner, v1.1.13: "when you purchase anything in the
+   * store it should move to the bottom of the store so the available products
+   * are at the top").
+   *
+   * Three owned rows had collected at the top - the International Stage, the
+   * Estate and the Charter - pushing Board funding, the one thing still
+   * buyable, below the fold on a phone. A shelf that leads with what you
+   * cannot buy is a shelf nobody scrolls.
+   *
+   * `done` is deliberately NOT "owned": it means there is nothing left to do
+   * with this row right now. A Charter you own but have not applied to this
+   * career still has a button on it, so it stays up top; a tip jar is never
+   * done because it takes another coin whenever you like. The order inside
+   * each group is unchanged, so a shelf nobody has bought from looks exactly
+   * as it always did.
+   */
+  const shelf: { key: string; done: boolean; node: React.ReactNode }[] = []
+  const row = (key: string, done: boolean, node: React.ReactNode) => shelf.push({ key, done, node })
 
-      {(adsExist || ownsAds) && (
-        <Row icon="🚫" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
-          right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={busy} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />
-      )}
+  if (adsExist || ownsAds) {
+    row('ads', ownsAds,
+      <Row icon="🚫" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
+        right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={busy} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
+  }
 
+  // the jar is never done: it takes another coin whenever anybody wants to
+  row('support', false,
       <Row icon="💛" title={t('store.support')} line={t('store.supportLine')} msg={msgs[SUPPORT_SKU]}
         right={<BuyBtn sku={SUPPORT_SKU} busy={busy} onBuy={() => void buySupport()} />}>
         {tips > 0 && <div className="meta muted">{t('store.supportThanks', { n: tips })}</div>}
-      </Row>
+      </Row>)
 
+  // a heal is bought per match played, so the row always has a next time
+  row('heal', false,
       <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
         right={<BuyBtn sku={HEAL_SKU} busy={busy} onBuy={() => void buyHeal()} />}>
         {inCareer && game && !healReady(game) && !healPending && (
@@ -268,17 +288,19 @@ export default function Supporter() {
         {healPending && (
           <button className="btn ghost block" onClick={() => void applyHealNow()}>{t('till.applyHere')}</button>
         )}
-      </Row>
+      </Row>)
 
-      {/* THE DOOR IS CLOSED BY HOLDING THE JOB, NOT BY HAVING HELD IT (owner,
-          v1.1.13: "if you buy the international option, take a job and step
-          down then you should then still have the pick a nation and take offer
-          available to you if you want to").
-          The picker used to disappear the moment the call was made, for ever -
-          a leftover from when this product placed a one-time OFFER rather than
-          an appointment. A coach who resigns has not used up a job he paid
-          for, so the row shows the picker again whenever no national post is
-          in hand. */}
+  // THE DOOR IS CLOSED BY HOLDING THE JOB, NOT BY HAVING HELD IT (owner,
+  // v1.1.13: "if you buy the international option, take a job and step down
+  // then you should then still have the pick a nation and take offer available
+  // to you if you want to").
+  //
+  // The picker used to disappear the moment the call was made, for ever - a
+  // leftover from when this product placed a one-time OFFER rather than an
+  // appointment. A coach who resigns has not used up a job he paid for, so the
+  // row shows the picker again whenever no national post is in hand, and only
+  // counts as done when there is no door to walk through.
+  row('pinnacle', ownsPinnacle && !canCall,
       <Row icon="🌍" title={t('store.pinnacle')} line={t('store.pinnacleLine')} msg={msgs[PINNACLE_SKU]}
         right={ownsPinnacle
           ? (canCall ? undefined : <OwnedChip />)
@@ -301,8 +323,10 @@ export default function Supporter() {
             </button>
           </div>
         )}
-      </Row>
+      </Row>)
 
+  // owned AND this career has already built it (or there is no career to build in)
+  row('estate', ownsEstate && !(inCareer && !!game && !game.estateMaxed),
       <Row icon="🏗️" title={t('store.estate')} line={t('store.estateLine')} msg={msgs[ESTATE_SKU]}
         right={ownsEstate
           ? (inCareer && game && !game.estateMaxed ? undefined : <OwnedChip />)
@@ -320,8 +344,10 @@ export default function Supporter() {
             <button className="btn ghost block" onClick={() => setEstateArm(true)}>{t('store.estateBuild')}</button>
           )
         )}
-      </Row>
+      </Row>)
 
+  // owned AND already applied to this career - an unapplied one still has a button
+  row('charter', ownsCharter && !(inCareer && !!game && !game.uncapped),
       <Row icon="🖋" title={t('store.charter')} line={t('store.charterLine')} msg={msgs[CHARTER_SKU]}
         right={ownsCharter ? <OwnedChip /> : <BuyBtn sku={CHARTER_SKU} busy={busy} onBuy={() => void buyNC(CHARTER_SKU)} />}>
         {/* ALREADY PAID FOR MEANS ACTIVATE, NOT PAY AGAIN (owner, v1.1.13: "if
@@ -346,8 +372,10 @@ export default function Supporter() {
             <button className="btn ghost block" onClick={() => setCharterArm(true)}>{t('store.charterActivate')}</button>
           )
         )}
-      </Row>
+      </Row>)
 
+  // spent for the season across every tier - the well refills at the rollover
+  row('funding', !!game && (Object.keys(INJECT_TIERS) as InjectTier[]).every(tr => injectionsLeft(game, tr) <= 0),
       <Row icon="💰" title={t('store.funding')} line={t('store.fundingLine')}>
         {(Object.keys(INJECT_TIERS) as InjectTier[]).map(tier => {
           const sku = INJECT_SKUS[tier]
@@ -385,7 +413,17 @@ export default function Supporter() {
             </div>
           )
         })}
-      </Row>
+      </Row>)
+
+  return (
+    <>
+      <SectionTitle sub={t('store.sub')}>{t('store.title')}</SectionTitle>
+      <TillHealth />
+
+      {/* a stable sort: what is still buyable first, each group in the order it
+          was declared, so nothing jumps about except across the one boundary */}
+      {[...shelf.filter(r => !r.done), ...shelf.filter(r => r.done)]
+        .map(r => <Fragment key={r.key}>{r.node}</Fragment>)}
 
       <button className="btn ghost block" style={{ margin: '4px 14px' }} disabled={busy} onClick={() => { void doRestore() }}>
         {t('supporter.restore')}

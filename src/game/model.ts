@@ -1714,6 +1714,14 @@ export function closeNatTenure(state: GameState) {
   state.natTeam = null
   state.natConfidence = null
   state.natRecord = null
+  // AND THE QUESTION THAT ONLY EXISTS BECAUSE OF THE JOB (owner, v1.1.13: "im
+  // no longer England coach and this is showing"). natKeepAsk asks whether you
+  // carry on at the CLUB now that you have the country; it was set on
+  // appointment and only ever cleared by answering it, so stepping down left a
+  // card on the Manager Profile asking about a job that no longer exists.
+  // This is the one door out of a tenure - both exits come through here - so
+  // it is the one place the question can be retired for good.
+  state.natKeepAsk = null
 }
 
 /** Month and weekday, short, in the language on screen.

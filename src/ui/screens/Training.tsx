@@ -177,12 +177,39 @@ function StaffPanel() {
             <div className="meta" style={{ fontSize: 11.5, marginBottom: 3 }}>
               {t(net > 0 ? 'training.roomPulling' : net < 0 ? 'training.roomDisagrees' : 'training.roomCancels')}
             </div>
-            {pairs.map((r, i) => (
-              <div key={i} className="meta" style={{ fontSize: 11, padding: '1px 0' }}>
-                <b style={{ color: r.kind === 'click' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{r.kind === 'click' ? '✓' : '✗'}</b>{' '}
-                {t('training.chemPair', { a: r.a, b: r.b, note: t(r.note) })}
-              </div>
-            ))}
+            {/* ONE OF EACH, NOT EIGHT OF THREE (owner, v1.1.13: "the staff
+                disagreements are a too repetitive- simplify").
+                Eight staff make up to twenty-eight pairs and every pair drew
+                its line from the same small bank, so the card listed "the
+                laptop and the caps disagree about everything" twice, "the
+                video sessions are killing the mood" twice and "the dressing
+                room has never hummed like this" twice, one after another. That
+                is not eight facts, it is two facts typed out eight times.
+                The room's SHAPE is the headline above; below it, the best
+                click and the worst clash get named, and the rest is a count.
+                Nothing is hidden - staffChem still counts every pair, and the
+                count says how many there are. */}
+            {(() => {
+              const clicks = pairs.filter(r => r.kind === 'click')
+              const clashes = pairs.filter(r => r.kind === 'clash')
+              const shown = [clicks[0], clashes[0]].filter(Boolean)
+              const rest = pairs.length - shown.length
+              return (
+                <>
+                  {shown.map((r, i) => (
+                    <div key={i} className="meta" style={{ fontSize: 11, padding: '1px 0' }}>
+                      <b style={{ color: r.kind === 'click' ? 'var(--text-positive)' : 'var(--text-negative)' }}>{r.kind === 'click' ? '✓' : '✗'}</b>{' '}
+                      {t('training.chemPair', { a: r.a, b: r.b, note: t(r.note) })}
+                    </div>
+                  ))}
+                  {rest > 0 && (
+                    <div className="meta muted" style={{ fontSize: 11, padding: '1px 0' }}>
+                      {t('training.chemRest', { n: rest, clicks: clicks.length, clashes: clashes.length })}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </div>
         )
       })()}
@@ -342,8 +369,25 @@ function MentorPanel() {
       {/* cap lives in game/mentoring (four slots, five with a Centre of
           Excellence at level 3+) so this screen and the handbook agree */}
       {pairs.length < mentorCap(game) && seniors.length > 0 && kids.length > 0 && (
+        // TWO PICKERS SHARING ONE PHONE ROW IS WHY THE TEXT LOOKED BIGGER
+        // (owner, v1.1.13: "mentoring text seems to have got a lot bigger").
+        //
+        // The labels carry name, position, character and age - three of those
+        // added in an earlier round because a manager could not tell who he was
+        // picking - and at minWidth 130 the two selects sat side by side on a
+        // 380px screen with about 190px each. That is roughly thirty
+        // characters, and "Antoine Dupont (SH, Professional, 28)" is
+        // thirty-seven, so every other option wrapped onto two lines and the
+        // list read as a wall.
+        //
+        // Raising the floor past half the row makes them STACK on a phone,
+        // where each then gets the full width and the whole label fits on one
+        // line; on a wide screen they still sit side by side as before. The
+        // character also gets a short form (persShort) so the longest label -
+        // "Temperamental" at thirteen characters - stops being the thing that
+        // decides the column.
         <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-          <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={seniorId}
+          <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 210 }} value={seniorId}
             onChange={e => setSeniorId(e.target.value ? Number(e.target.value) : '')}>
             <option value="">{t('training.seniorPro')}</option>
             {/* position, character, age - the same three facts in the same
@@ -354,12 +398,12 @@ function MentorPanel() {
                 age, and the pairs row said the senior's character and the
                 kid's age. Character is what the fit is actually built on, so
                 it stays; position is what a manager thinks in. */}
-            {seniors.map(p => <option key={p.id} value={p.id}>{t('training.mentorOption', { name: p.name, pos: p.pos, pers: p.pers, age: p.age })}{kidCount(p.id) > 0 ? t('training.oneKidAlready') : ''}</option>)}
+            {seniors.map(p => <option key={p.id} value={p.id}>{t('training.mentorOption', { name: p.name, pos: p.pos, pers_k: `persShort.${p.pers}`, age: p.age })}{kidCount(p.id) > 0 ? t('training.oneKidAlready') : ''}</option>)}
           </select>
-          <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 130 }} value={kidId}
+          <select className="inline-input" style={{ margin: 0, flex: 1, minWidth: 210 }} value={kidId}
             onChange={e => setKidId(e.target.value ? Number(e.target.value) : '')}>
             <option value="">{t('training.underAge', { age: MENTEE_MAX_AGE + 1 })}</option>
-            {kids.map(p => <option key={p.id} value={p.id}>{t('training.mentorOption', { name: p.name, pos: p.pos, pers: p.pers, age: p.age })}</option>)}
+            {kids.map(p => <option key={p.id} value={p.id}>{t('training.mentorOption', { name: p.name, pos: p.pos, pers_k: `persShort.${p.pers}`, age: p.age })}</option>)}
           </select>
           <button className="btn" disabled={!seniorId || !kidId} onClick={() => {
             if (!seniorId || !kidId) return
