@@ -1969,16 +1969,18 @@ function Live() {
           fxKey={cursor} showFx={showFx} showBig={playing} lastTeamC={lastTeamC}
           tickMs={tickMs} />
       )}
-      {!panelActive && (
-        <div className="now-strip">
-          {last && (
-            <div key={cursor} className={`now-line ${cls(last)}`}>
-              <span className="min">{Math.min(80, last.min)}'</span>
-              <span className="txt">{icon(last)} {eventText(last)}</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* THE CONTROLS SIT UNDER THE PITCH (owner, v1.1.16: "4 buttons in match
+          mode - should be directly underneath the pitch at the top").
+          They used to be the last child of .live-wrap during live play, with
+          the commentary strip growing above them - so on a tall phone the four
+          buttons pressed most in eighty minutes sat alone at the foot of a
+          mostly empty page, 734px lower than the same four buttons in the
+          decision panel, which renders them right under the scoreboard. Two
+          homes for one row, swapping every few seconds of play.
+          One home now, and it is the high one: pitch, then the controls, then
+          the match story growing underneath. The panel state already read this
+          way, so the row no longer moves at all.
+          The advertising box, when there is one, goes below this row. */}
       {/* One row, four jobs: play, skip, touchline, settings. Speed and sound
           moved into the settings sheet - they are set once a season, and having
           them out here is what put two ▶ buttons side by side. */}
@@ -2036,6 +2038,20 @@ function Live() {
           title={t('matchday.settingsTitle')} aria-label={t('matchday.settingsTitle')}
           onClick={() => { setDrawer(false); setSettings(!settings) }}>⚙</button>
       </div>
+
+      {/* THE MATCH STORY, UNDER THE CONTROLS. It grows (theme.css gives
+          .live-wrap .now-strip flex: 1) so it is this panel, not bare
+          background, that takes up whatever a tall phone has spare. */}
+      {!panelActive && (
+        <div className="now-strip">
+          {last && (
+            <div key={cursor} className={`now-line ${cls(last)}`}>
+              <span className="min">{Math.min(80, last.min)}'</span>
+              <span className="txt">{icon(last)} {eventText(last)}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {sheet && !injury && (
         <SquadSheet
