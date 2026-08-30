@@ -161,6 +161,17 @@ first installed build showed (27 Aug).
 | `phase.inject.l` | Consumable | Board Injection (Large) | $3.99 |
 | `phase.inject.xl` | Consumable | The Sugar Daddy | $7.99 |
 | `phase.heal` | Consumable | Full Fitness | $0.99 |
+| `phase.ground` | Consumable | The Estate, at the next ground | $9.99 |
+
+**`phase.ground` is new in v1.1.14 and has to be created before it will sell.**
+The Estate became one build per CLUB rather than one per save (owner: "when you
+move you have to purchase it again. if you go back to the same club though it
+should stay til the game finishes"), and `phase.estate` is a non-consumable that
+Play will only ever sell once. So the first ground is covered by the Estate the
+customer already owns, and every ground after it is one of these. A product's
+type cannot be changed after it is created, which is exactly why the repeat
+could not reuse the same id. Until it exists in Console the Estate row at a
+second club shows a Buy button that ends in "Nothing was charged".
 
 The tenth SKU, `phase.supporter` (Remove all ads, Managed, $1.99), exists in
 the code but its store row only renders where an ad provider exists
@@ -183,6 +194,14 @@ is in this repository:
    customer is charged the number on the row.
 2. **The per-country price**, which can drift from the template price if it was
    ever edited by hand.
+
+**This setting is still wrong as of 30 Aug 2026** and it is the whole of the
+owner's "it says 99p but is charging 1.19": 99p plus 20% UK VAT is £1.19 to the
+penny. Nothing in the code can fix it. What the code does now instead is stop
+advertising a figure it cannot stand behind - the Buy button carries a price
+ONLY when Play itself named one (`skuPriceFrom(...).live`), so a build whose
+till is not answering says "Buy" and lets Play's own sheet name the price.
+Fixing the Console setting brings the numbers back onto the shelf, correct.
 
 Owner's brief, v1.1.12: "support the game should be 99p so adjust whatever the
 additional fee is thats made it higher so it is 99p only." That adjustment is

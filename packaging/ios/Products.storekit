@@ -136,6 +136,21 @@
       "productID": "phase.heal",
       "referenceName": "Full Squad Recovery",
       "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "1010",
+      "localizations": [
+        {
+          "description": "Every facility at your new club raised to its ceiling. The buildings you put up elsewhere stayed with that club; this ground starts again.",
+          "displayName": "The Estate, at the next ground",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.ground",
+      "referenceName": "The Estate, at the next ground",
+      "type": "Consumable"
     }
   ],
   "settings": {

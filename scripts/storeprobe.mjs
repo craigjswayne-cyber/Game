@@ -404,13 +404,28 @@ try {
     await page.waitForTimeout(400)
     const till = await page.locator('.content').innerText()
     ok(/named no products/i.test(till), 'the shelf says out loud that the store named no products')
-    ok(/guide prices/i.test(till), 'and that the figures on it are guides, not the store\'s')
+    ok(/no price is shown/i.test(till), 'and that no price is shown, because it has none to show')
     // v1.1.10: it must NOT tell somebody to install from the store when they
     // already did - the owner hit exactly that, on a Play build, twice
     ok(!/installed from the store/i.test(till),
       'and does not send a Play install back to the store it came from')
-    ok(/£0\.99/.test(till), 'the rows still carry a price, so nothing stands blank')
-    ok(!/£2\.99/.test(till), "and none of them is the store's, because it never gave one")
+    // THE OPPOSITE CLAIM TO THE ONE THIS USED TO MAKE, and deliberately.
+    //
+    // v1.1.5 put a catalogue price on every button so no row stood blank, and
+    // v1.1.14 took it off again, because the fallback told a lie with real
+    // money behind it: the owner's shelf read "Buy - £0.99" while Play charged
+    // £1.19, the same product with UK VAT on top of a tax-exclusive Console
+    // price. Our figure and the store's figure looked identical on the row and
+    // were not, and there is no way for a player to tell which he is reading.
+    // So a price on a button now means the STORE named it, always - and a till
+    // that names nothing shows no numbers at all rather than plausible ones.
+    // A REAL-MONEY price, not any pound sign: this shelf is full of the game's
+    // own money - "+£25m to the transfer budget", "£10m to £130m" - and those
+    // are the product, not the price of it. Every catalogue price is pounds and
+    // pence (£0.99, £9.99), which is a shape the game's millions never take.
+    const priced = till.match(/£\d+\.\d\d\b/g) ?? []
+    ok(priced.length === 0,
+      `and NOT ONE price is on the shelf, because every figure here would be ours rather than the store's (${priced.join(', ') || 'none'})`)
     await page.close()
   }
 

@@ -218,9 +218,16 @@ clear()
 // nothing to lose by spending the receipt - and a tip jar that takes one coin
 // and greys out is not a tip jar (owner: "it should be repeatable at any
 // point").
-ok(M.NC_SKUS.length === 4 && M.CONSUMABLE_SKUS.length === 6, 'ten products: four owned for ever, six repeatable')
+// v1.1.14: eleven. The Estate became one build per CLUB rather than one per
+// save, and Play sells a non-consumable exactly once, so the repeat at a second
+// ground had to be its own consumable (phase.ground). The first ground is still
+// covered by phase.estate, which is why BOTH exist rather than one replacing
+// the other.
+ok(M.NC_SKUS.length === 4 && M.CONSUMABLE_SKUS.length === 7, 'eleven products: four owned for ever, seven repeatable')
 ok(M.CONSUMABLE_SKUS.includes(M.SUPPORT_SKU), 'and the thank-you is one of the repeatable ones')
-ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 10, 'and no sku sits on both shelves')
+ok(M.CONSUMABLE_SKUS.includes(M.GROUND_SKU) && (M.NC_SKUS as readonly string[]).includes(M.ESTATE_SKU),
+   'the Estate is owned for ever and its repeat at a new ground is repeatable - the pair the club-scoping needs')
+ok(new Set([...M.NC_SKUS, ...M.CONSUMABLE_SKUS]).size === 11, 'and no sku sits on both shelves')
 ok(![...M.NC_SKUS, ...M.CONSUMABLE_SKUS].includes('phase.editor'), 'and the Editor is not quietly back')
 
 // ---- 10. consumables: the store confirms, the career keeps ---------------

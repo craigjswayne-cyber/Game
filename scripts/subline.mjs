@@ -193,8 +193,10 @@ if (process.env.SUBLINE_JSON) {
 ok(measured.over.length === 0, `every line under a section title fits on one line, in both languages, at all ${SCALES.length} text sizes`)
 
 await browser.close()
-await done(server)
 say(fails === 0
   ? '\nSUBLINE PASSED: one line under a title, everywhere, in both languages'
   : `\nSUBLINE FAILED: ${fails}`)
-process.exit(fails === 0 ? 0 : 1)
+// done() takes the FAILURE COUNT and exits with it - it is not a server
+// shutdown. Handing it the server object exited 1 on a clean run, which is how
+// this probe reported red while printing every ok.
+done(fails)

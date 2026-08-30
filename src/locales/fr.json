@@ -1474,7 +1474,7 @@
     "scoutReportsSub": "tout ce que les recruteurs ont classé",
     "fromClub": "en provenance de {club}",
     "fromFree": "sans contrat",
-    "interested": "🤝 Intéressés"
+    "interested": "Intéressés"
   },
   "objectives": {
     "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs de 21 ans ou moins",
@@ -4528,9 +4528,15 @@
     "campBlockRest": " ({n} autres des vôtres dans celui-ci)",
     "debtPressureSubj": "Le découvert",
     "debtOpened": "Le club est à découvert de {amount}. Le conseil réclame un plan pour revenir à l'équilibre, et il le réclamera encore.",
-    "debtPressure": "{weeks} semaines à découvert, désormais {amount} dans le rouge. Le conseil perd patience un peu plus chaque mois.",
+    "debtPressure": {
+      "one": "{weeks} semaine à découvert, désormais {amount} dans le rouge. Le conseil perd patience un peu plus chaque mois.",
+      "other": "{weeks} semaines à découvert, désormais {amount} dans le rouge. Le conseil perd patience un peu plus chaque mois."
+    },
     "debtClearedSubj": "De retour dans le vert",
-    "debtCleared": "Les comptes sont à l'équilibre après {weeks} semaines dans le rouge. Le conseil ne dit rien, ce qui est un compliment.",
+    "debtCleared": {
+      "one": "Les comptes sont à l'équilibre après {weeks} semaine dans le rouge. Le conseil ne dit rien, ce qui est un compliment.",
+      "other": "Les comptes sont à l'équilibre après {weeks} semaines dans le rouge. Le conseil ne dit rien, ce qui est un compliment."
+    },
     "debtOpenedSubj": "Le découvert"
   },
   "comm": {
@@ -5538,8 +5544,8 @@
     "funding": "Fonds du conseil",
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
-    "tillSilent": "La boutique est connectée mais n'a indiqué aucun produit : les prix ci-dessous sont indicatifs et rien ne peut encore être acheté. Si cette version vient bien de la boutique, les produits sont peut-être encore en cours de propagation.",
-    "tillPartial": "La boutique a tarifé {live} produits sur {asked}. Les autres affichent un prix indicatif et ne peuvent pas encore être achetés.",
+    "tillSilent": "La boutique est connectée mais n'a nommé aucun produit : aucun prix n'est affiché et rien ne peut encore être acheté ici. Si cette version vient de la boutique, les produits sont peut-être encore en cours de diffusion.",
+    "tillPartial": "La boutique a chiffré {live} produits sur {asked}. Les autres n'affichent aucun prix et ne peuvent pas être achetés.",
     "healWait": "La retraite exige un match entre deux visites - jouez-en un et elle rouvre.",
     "pickNation": "À vous. Choisissez la fédération et prenez le poste - la nomination est immédiate.",
     "support": "Soutenir le jeu",

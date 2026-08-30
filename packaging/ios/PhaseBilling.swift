@@ -45,6 +45,10 @@ public class PhaseBilling: CAPPlugin {
         // v1.1.12: "Support the game" is a tip jar, and a tip jar takes more
         // than one coin. It grants nothing, so finishing it costs nothing.
         "phase.license",
+        // v1.1.14: the Estate is one build per CLUB now, and phase.estate is a
+        // non-consumable the store will only ever sell once. The first ground is
+        // covered by that purchase; every ground after it is one of these.
+        "phase.ground",
     ]
 
     /// Ask-to-Buy, a purchase approved on another device, a subscription
