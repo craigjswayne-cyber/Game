@@ -699,6 +699,32 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   ok(/#import\s+<Capacitor\/Capacitor\.h>/.test(bridge),
     'the bridging header imports Capacitor, so the ObjC plugin stub compiles')
   const scaffold = readFileSync('packaging/ios/scaffold.sh', 'utf8')
+  // ---- AND THE ONE LINE THAT DECIDES WHETHER ANY OF IT LOADS ----
+  //
+  // Capacitor 8 does not scan the Objective-C runtime for plugins. Its
+  // registerPlugins() takes five built-ins and then reads packageClassList out
+  // of the bundled capacitor.config.json - and nothing else, ever. The CLI
+  // builds that list from npm plugin PACKAGES, and PhaseBilling is four files
+  // in the app target rather than a package, so `cap sync` writes an empty list
+  // and the plugin never comes into existence.
+  //
+  // Everything else can be perfect - Swift compiled, CAP_PLUGIN macro correct,
+  // all four files in Compile Sources - and the game still has no shop, because
+  // the Store row is gated on a live bridge. There is no error. The owner's
+  // first run on a Mac lost an evening to exactly this.
+  //
+  // scaffold.sh patches the list after every sync, because the CLI rewrites
+  // that file each time and anything in the SOURCE config is discarded.
+  {
+    const sh = readFileSync('packaging/ios/scaffold.sh', 'utf8')
+    ok(/packageClassList/.test(sh),
+      'scaffold.sh touches packageClassList - without it Capacitor never loads the plugin')
+    ok(/PhaseBilling/.test(sh.slice(sh.indexOf('packageClassList'))),
+      'and it is PhaseBilling that gets registered there')
+    ok(/capacitor\.config\.json/.test(sh),
+      'in the BUNDLED capacitor.config.json, which is the only list the bridge reads')
+  }
+
   for (const f of ['PhaseBilling.swift', 'PhaseBilling.m', 'App-Bridging-Header.h', 'Products.storekit']) {
     ok(scaffold.includes(f), `scaffold.sh installs ${f} into the App target`)
   }

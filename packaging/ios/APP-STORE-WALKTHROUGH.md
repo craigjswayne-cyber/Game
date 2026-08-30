@@ -88,8 +88,14 @@ permissions to grant.
 If `./scaffold.sh` says "permission denied", run `chmod +x ./scaffold.sh` once.
 
 Builds the game, generates the Xcode project, copies the four purchase files in,
-and prints the bundle identity — check it says `com.phaserugbymanager.app`. Safe
-to re-run whenever the game changes; it syncs rather than starting over.
+registers the purchase plugin, and prints the bundle identity — check it says
+`com.phaserugbymanager.app`. Safe to re-run whenever the game changes; it syncs
+rather than starting over.
+
+You should see `registered PhaseBilling in packageClassList` in the output the
+first time. That line is load-bearing: Capacitor 8 finds plugins ONLY through
+that list, and the CLI leaves it empty for a plugin that is not an npm package.
+Without it the app builds and runs perfectly and simply has no shop.
 
 ### 5. Open it in Xcode
 

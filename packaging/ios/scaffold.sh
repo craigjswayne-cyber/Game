@@ -58,6 +58,44 @@ if [ -f ios/App/Podfile ] && ! command -v pod >/dev/null 2>&1; then
   exit 1
 fi
 
+# ---- REGISTER THE PLUGIN, OR IT DOES NOT EXIST ----
+#
+# Capacitor 8 does NOT find plugins by scanning the Objective-C runtime. Its
+# CapacitorBridge.registerPlugins() starts with five built-ins and then reads
+# ONE thing: packageClassList in the bundled capacitor.config.json. Every class
+# named there is looked up with NSClassFromString and registered; nothing else
+# is ever considered.
+#
+# The CLI builds that list from installed npm plugin PACKAGES. PhaseBilling is
+# not a package - it is four files copied into the app target - so `cap sync`
+# writes `"packageClassList": []` and the plugin is invisible to the web view.
+#
+# That is not a subtle failure, but it is a silent one: the Swift compiles, the
+# CAP_PLUGIN macro is correct, Compile Sources lists everything, and the game
+# simply has no shop, because the Store row is gated on a live bridge. The
+# owner's first run on a Mac lost an evening to it, with
+# `Object.keys(Capacitor.Plugins)` returning the five built-ins and nothing else.
+#
+# So the list is patched here, after every sync, because the CLI rewrites this
+# file each time and anything we put in the SOURCE config is discarded.
+CONFIG="$APP/capacitor.config.json"
+if [ -f "$CONFIG" ]; then
+  node -e '
+    const fs = require("fs")
+    const f = process.argv[1]
+    const c = JSON.parse(fs.readFileSync(f, "utf8"))
+    const list = new Set(c.packageClassList ?? [])
+    const had = list.has("PhaseBilling")
+    list.add("PhaseBilling")
+    c.packageClassList = [...list]
+    fs.writeFileSync(f, JSON.stringify(c, null, 2) + "\n")
+    console.log(had ? "    PhaseBilling already registered" : "    registered PhaseBilling in packageClassList")
+  ' "$CONFIG"
+else
+  echo "!! $CONFIG is missing - the plugin cannot be registered and the shop will not appear"
+  exit 1
+fi
+
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
 echo
 echo "the shell is built. bundle identity: $BUNDLE"
