@@ -90,11 +90,21 @@ if (netWeekly < -40_000) fails.push(`weekly ledger runs at ${Math.round(netWeekl
 // than the league, the transfer market stops meaning anything.
 const median = aiBals[Math.floor(aiBals.length / 2)]
 if (median > 0 && bal / median > 6) fails.push(`runaway wealth: ${(bal / median).toFixed(1)}x the AI median`)
-// ---- THE TREASURY: balance moves to budget, above the reserve only ---------
+// ---- THE TREASURY: the whole balance moves, and the ledger still balances ---
 //
-// (user: "should be able to transfer balance into transfer money"). The rule
-// under test: 500k a slice, never below the board's reserve (a season of
-// wages plus the float), and the ledger balances to the pound.
+// (user: "should be able to transfer balance into transfer money", and v1.1.13:
+// "when moving money it doesnt let me transfer everything?").
+//
+// The rule USED to be "never below the board's reserve", and this block held it
+// as a hard wall. It is a line now: a season of wages plus the float is where
+// the readout changes its tone and the board start minding, not where the
+// engine refuses. Measured at Northampton on day one, the wall version left a
+// £17.0m reserve against a £2.4m balance - no travel at all, and a feature that
+// read as broken from the first week of every career.
+//
+// What this still holds, and what actually matters here: every pound that
+// leaves the balance arrives in the budget, whichever side of the line it came
+// from.
 {
   const t = newGame('northampton', 'Treasury', 3)
   const club = t.clubs[t.userClubId]
@@ -107,10 +117,22 @@ if (median > 0 && bal / median > 6) fails.push(`runaway wealth: ${(bal / median)
   }
   const second = releaseToBudget(t)
   if (!second.ok) fails.push('the second affordable slice was refused')
+  // the third slice dips under the line, and is allowed - with the board's
+  // disquiet as its price rather than a refusal
+  const boardBefore = club.boardConfidence
   const third = releaseToBudget(t)
-  if (third.ok) fails.push('a slice that dips below the reserve went through')
-  if (releaseBlock(t) == null) fails.push('the button predicate disagrees with the refusal')
-  if (club.balance < cashReserve(t)) fails.push(`the reserve was breached: ${club.balance} < ${cashReserve(t)}`)
+  if (!third.ok) fails.push('a slice below the reserve was refused - the wall was supposed to be a line')
+  if (club.boardConfidence >= boardBefore) {
+    fails.push(`dipping under the reserve cost the board nothing (${boardBefore} -> ${club.boardConfidence})`)
+  }
+  // and the pounds add up whichever side of the line they came from
+  if (club.balance + club.budget !== bal0 + bud0) {
+    fails.push(`the ledger does not balance: ${bal0 + bud0} in, ${club.balance + club.budget} out`)
+  }
+  // the one refusal left is having nothing to move
+  club.balance = 100_000
+  if (releaseBlock(t) == null) fails.push('an empty account still offers the bar')
+  if (releaseToBudget(t).ok) fails.push('a club with nothing in the bank moved money anyway')
 }
 
 if (fails.length) {
