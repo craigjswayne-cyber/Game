@@ -9,6 +9,7 @@ import { badgeLabel } from '../../game/staff'
 import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { posName, t } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
+import { transferInterest } from '../../game/interest'
 
 export default function Transfers() {
   const game = useStore(s => s.game)!
@@ -20,6 +21,10 @@ export default function Transfers() {
   const [maxAge, setMaxAge] = useState(0)
   const [league, setLeague] = useState('ALL')
   const [listedOnly, setListedOnly] = useState(false)
+  // WHO WOULD ACTUALLY COME? The engine has always refused a bid from a club
+  // far below a happy player's, and never said so until you had spent the bid
+  // (interest.ts). This chip asks that same question up front.
+  const [keenOnly, setKeenOnly] = useState(false)
   const [msort, setMsort] = useState<'ca' | 'value' | 'age' | 'name' | 'form'>('ca')
   const [mdesc, setMdesc] = useState(false)
   // KEYED TO THE ROW, not to the page. Same class of bug as the coach market:
@@ -50,6 +55,7 @@ export default function Transfers() {
     if (league === 'FA') list = list.filter(p => !p.clubId)
     else if (league !== 'ALL') list = list.filter(p => p.clubId && game.clubs[p.clubId]?.leagueId === league)
     if (listedOnly) list = list.filter(p => p.transferListed)
+    if (keenOnly) list = list.filter(p => transferInterest(game, p) !== 'no')
     const dir = mdesc ? -1 : 1
     list.sort((a, b) => {
       switch (msort) {
@@ -61,7 +67,7 @@ export default function Transfers() {
       }
     })
     return list.slice(0, 120)
-  }, [game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, msort, mdesc, game.week])
+  }, [game, game.players, game.clubs, pos, query, maxVal, maxAge, league, listedOnly, keenOnly, msort, mdesc, game.week])
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
   const pageSafe = Math.min(page, pages - 1)
   const pageRows = results.slice(pageSafe * PER_PAGE, (pageSafe + 1) * PER_PAGE)
@@ -301,6 +307,8 @@ export default function Transfers() {
         </select>
         <button className="preset-chip" style={listedOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
           onClick={() => { setListedOnly(!listedOnly); setPage(0) }}>{t('transfers.listed')}</button>
+        <button className="preset-chip" style={keenOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
+          onClick={() => { setKeenOnly(!keenOnly); setPage(0) }}>{t('transfers.interested')}</button>
       </div>
       <div className="tblwrap"><table className="dtable">
         <thead><tr>

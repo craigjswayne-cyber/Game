@@ -175,7 +175,14 @@ export default function Profile() {
           Stage installs the job outright now - it is not an offer and cannot
           expire - so all that stands here is the club decision, and it stands
           until it is answered rather than for three weeks. */}
-      {game.natKeepAsk && !game.unemployed && club && (
+      {/* AND ONLY WHILE THE JOB IS ACTUALLY HELD. The card asks whether you
+          carry on at the club now that you coach a country; without natTeam
+          there is no country, and the owner's screenshot showed exactly that -
+          "still showing this even though im not England coach". save.ts clears
+          a stale ask on load; this is the second lock, so a future path that
+          drops the tenure without clearing the ask cannot put the question
+          back on the screen. */}
+      {game.natKeepAsk && game.natTeam && !game.unemployed && club && (
         <div className="card" style={{ borderLeft: '4px solid var(--text-positive)' }}>
           <h3 style={{ fontSize: 15 }}>{t('profile.natKeepAskTitle', { nat: nationName(game.natKeepAsk) })}</h3>
           <div className="meta">{t('profile.natKeepAskBody', { nat: nationName(game.natKeepAsk), club: club.short })}</div>

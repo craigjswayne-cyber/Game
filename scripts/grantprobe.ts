@@ -19,7 +19,7 @@
 // Run: npx tsx scripts/grantprobe.ts
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { NAT_CALL_WEEKS, applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, healReady, INJECT_TIERS, injectionCash, injectionsLeft, userCap, userWageBudget, type InjectTier } from '../src/game/grants'
+import { NAT_CALL_WEEKS, applyCharter, applyEstate, estateBuiltHere, applyHeal, applyInjection, applyPinnacle, healReady, INJECT_TIERS, injectionCash, injectionsLeft, userCap, userWageBudget, type InjectTier } from '../src/game/grants'
 import { capPosition } from '../src/game/cap'
 import { FACILITY_INFO, MAX_FACILITY, mgrReputation, type FacilityId, type GameState } from '../src/game/model'
 import { OBJECTIVE_DEFS } from '../src/game/objectives'
@@ -210,7 +210,35 @@ console.log('\n--- 9. the estate rises whole, once, and the builders take their 
   ok(g.estateMaxed === true, 'the save wears the stamp')
   ok(g.facilityBuild === null, 'the half-built project is folded into the wave, not left dangling')
   ok(g.news.some(n => n.k === 'news.estate'), 'the letter is filed, keyed')
-  ok(!applyEstate(g), 'and it cannot be applied twice')
+  ok(!applyEstate(g), 'and it cannot be applied twice at the same ground')
+  ok(estateBuiltHere(g), 'the ground is on the list')
+}
+
+// THE ESTATE BELONGS TO THE GROUND, NOT THE MANAGER (v1.1.14).
+//
+// Owner, stuck: "i resigned - i then took a job who had poor facilities, the
+// ability to buy that package again wasnt available to me. it should ONLY apply
+// to a club when in charge. when you move you have to purchase it again. if you
+// go back to the same club though it should stay til the game finishes and the
+// coach retires."
+//
+// So: a new job is a new build, an old job is already built, and the buildings
+// left behind are still standing when you walk back through the door.
+{
+  const g = newGame('northampton', 'Grant Probe', 7119)
+  const first = g.userClubId
+  ok(applyEstate(g), 'built at the first club')
+  const second = Object.keys(g.clubs).find(id => id !== first)!
+  g.userClubId = second
+  ok(!estateBuiltHere(g), 'a new job has no estate on it')
+  ok(applyEstate(g), 'and the estate CAN be built again at the new ground - the fault the owner hit')
+  const fids = Object.keys(FACILITY_INFO) as FacilityId[]
+  ok(fids.every(f => (g.clubs[second].facilities?.[f] ?? 0) === MAX_FACILITY), 'the new ground is maxed too')
+  ok(fids.every(f => (g.clubs[first].facilities?.[f] ?? 0) === MAX_FACILITY),
+     'and the buildings at the old club are exactly where they were left')
+  g.userClubId = first
+  ok(estateBuiltHere(g), 'go back and it is still yours - no second payment for a ground you already built')
+  ok(!applyEstate(g), 'so there is nothing to apply there')
 }
 
 console.log('\n--- 10. the International Stage APPOINTS, once per career, to the nation the buyer picked\n')

@@ -14,6 +14,10 @@ const OUTLETS = [
 ]
 
 /** Not an outlet at all: player conversations behind a closed door. */
+/** How long an answered press question stays in the room. Two weeks: the
+ *  owner's rule, and about as long as anyone remembers a quote for. */
+export const PRESS_KEEP_WEEKS = 2
+
 export const OFFICE_OUTLET = "The Manager's Office"
 
 /**

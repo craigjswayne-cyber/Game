@@ -2,12 +2,12 @@ import { Fragment, useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
-  CHARTER_SKU, ESTATE_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
+  CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
   adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  billingReason, pendingConsumables, recordSupport, restore, skuPrice,
+  billingReason, pendingConsumables, recordSupport, restore, skuPriceFrom,
   supportCount, tillHealth, tillOpen,
 } from '../../game/monetise'
-import { INJECT_TIERS, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
+import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
 import { NAT_TIERS, flagOf, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
@@ -73,10 +73,27 @@ function Row({ icon, title, line, right, msg, children }: {
   )
 }
 
-/** The one-tap buy button, price on its face when the store will say one. */
+/**
+ * The one-tap buy button. IT ONLY NAMES A PRICE THE STORE ITSELF NAMED.
+ *
+ * v1.1.5 put a price on every button and gave the catalogue's reference prices
+ * as a fallback so no row could stand priceless. That fallback then told a lie
+ * with real money behind it: the owner's shelf read "Buy - £0.99" and Play
+ * charged £1.19, because £0.99 was OUR figure, typed into monetise.ts, and
+ * £1.19 was PLAY'S - the same product with UK VAT on top of a tax-exclusive
+ * console price. A shelf price that disagrees with the checkout is worse than
+ * no shelf price at all, and the owner said as much: "maybe dont show the cost
+ * on the store until they click on it".
+ *
+ * So the button carries a figure only when `live` is true - when Play answered
+ * getDetails and that figure IS the one the sheet will charge. Otherwise it
+ * says Buy, and Play's own sheet names the price before a penny moves. The
+ * reference prices stay in the catalogue, where they are still the right tool
+ * for asking whether the till is answering at all (tillHealth).
+ */
 function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () => void }) {
   const [price, setPrice] = useState<string | null>(null)
-  useEffect(() => { void skuPrice(sku).then(setPrice) }, [sku])
+  useEffect(() => { void skuPriceFrom(sku).then(p => setPrice(p.live ? p.price : null)) }, [sku])
   return (
     <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy} onClick={onBuy}>
       {price ? t('till.buyFor', { price }) : t('till.buy')}
@@ -215,6 +232,22 @@ export default function Supporter() {
     setBusy(false)
   }
 
+  /* THE ESTATE AT A SECOND GROUND. Play sells a non-consumable exactly once,
+     so the repeat is its own consumable product - bought, spent, and the
+     buildings go up straight away at the club being managed today. Nothing is
+     cached in rm-ent: the receipt is the ground, and estateClubs remembers it. */
+  const buyGround = async () => {
+    if (!inCareer) { say(ESTATE_SKU, t('store.needCareer')); return }
+    setBusy(true)
+    const out = await buyConsumable(GROUND_SKU)
+    if (out === 'owned') {
+      const built = buildEstate()
+      if (built) await consume(GROUND_SKU)
+      say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
+    } else say(ESTATE_SKU, endingText(out))
+    setBusy(false)
+  }
+
   const buyInjection = async (tier: InjectTier) => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
     setBusy(true)
@@ -325,13 +358,29 @@ export default function Supporter() {
         )}
       </Row>)
 
-  // owned AND this career has already built it (or there is no career to build in)
-  row('estate', ownsEstate && !(inCareer && !!game && !game.estateMaxed),
+  /* ONE ESTATE PER GROUND (v1.1.14). The row used to read one save-wide flag,
+     so the first build anywhere greyed the product out for the rest of the
+     career - the owner resigned, took a job at a club with poor facilities and
+     had no way to use or re-buy the thing he had paid for.
+     Three states now:
+       nothing owned            buy the Estate
+       owned, no ground built   build it here, free - this IS that purchase
+       owned, a ground built    buy the repeat (GROUND_SKU) for this ground
+     and if the estate already stands at THIS club, the row is done and sinks
+     to the foot of the shelf like every other finished product. */
+  const builtHere = inCareer && !!game && estateBuiltHere(game)
+  const groundsBuilt = (game?.estateClubs ?? []).length
+  const canBuildFree = ownsEstate && inCareer && !!game && !builtHere && groundsBuilt === 0
+  const needsRepeat = ownsEstate && inCareer && !!game && !builtHere && groundsBuilt > 0
+  row('estate', ownsEstate && !canBuildFree && !needsRepeat,
       <Row icon="🏗️" title={t('store.estate')} line={t('store.estateLine')} msg={msgs[ESTATE_SKU]}
-        right={ownsEstate
-          ? (inCareer && game && !game.estateMaxed ? undefined : <OwnedChip />)
-          : <BuyBtn sku={ESTATE_SKU} busy={busy} onBuy={() => void buyNC(ESTATE_SKU)} />}>
-        {ownsEstate && inCareer && game && !game.estateMaxed && (
+        right={!ownsEstate
+          ? <BuyBtn sku={ESTATE_SKU} busy={busy} onBuy={() => void buyNC(ESTATE_SKU)} />
+          : needsRepeat
+            ? <BuyBtn sku={GROUND_SKU} busy={busy} onBuy={() => void buyGround()} />
+            : canBuildFree ? undefined : <OwnedChip />}>
+        {needsRepeat && <div className="meta muted">{t('store.estateAgain')}</div>}
+        {canBuildFree && (
           estateArm ? (
             <div className="btn-row">
               <button className="btn ghost" onClick={() => setEstateArm(false)}>{t('till.charterStay')}</button>

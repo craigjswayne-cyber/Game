@@ -233,9 +233,23 @@ export function applyHeal(state: GameState): boolean {
  * and a maxed estate runs maxed upkeep (operatingCost reads estateSum), so
  * the purchase buys buildings, not free money. Any half-built project is
  * completed by the same wave of contractors rather than refunded.
+ *
+ * ONE ESTATE PER CLUB, NOT ONE PER SAVE (v1.1.14). It used to set a single
+ * save-wide flag, and the owner found what that costs: he resigned, took a job
+ * at a club with poor facilities, and the thing he had paid for was greyed out
+ * for the rest of the career with no way to use it and no way to buy it again.
+ * His rule, and it is the right one - "it should ONLY apply to a club when in
+ * charge. when you move you have to purchase it again. if you go back to the
+ * same club though it should stay til the game finishes and the coach retires."
+ * Going back is free because the buildings never left; a new ground is a new
+ * job of work.
  */
+export function estateBuiltHere(state: GameState): boolean {
+  return (state.estateClubs ?? []).includes(state.userClubId)
+}
+
 export function applyEstate(state: GameState): boolean {
-  if (state.estateMaxed || state.unemployed) return false
+  if (state.unemployed || estateBuiltHere(state)) return false
   const club = state.clubs[state.userClubId]
   if (!club) return false
   const fids = Object.keys(FACILITY_INFO) as FacilityId[]
@@ -244,7 +258,8 @@ export function applyEstate(state: GameState): boolean {
   club.facilities ??= {}
   for (const fid of fids) club.facilities[fid] = MAX_FACILITY
   state.facilityBuild = null
-  state.estateMaxed = true
+  state.estateMaxed = true                       // the old stamp, still read by Legacy and the Annual
+  ;(state.estateClubs ??= []).push(club.id)
   const v = { club: club.name }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,

@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import { pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
-import { OFFICE_OUTLET } from '../../game/media'
+import { SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
+import { OFFICE_OUTLET, PRESS_KEEP_WEEKS } from '../../game/media'
 import { t } from '../../game/i18n'
 
 /* THE QUESTIONS AND THE ANSWERS STAY AS THEY WERE ASKED. A press item is written
@@ -15,7 +15,15 @@ export default function Press() {
   const go = useStore(s => s.go)
 
   const open = game.press.filter(p => !p.answered).reverse()
-  const past = game.press.filter(p => p.answered).reverse().slice(0, 12)
+  // RECENT MEANS RECENT. The room used to show the last twelve answers however
+  // old they were, so a week-8 press room carried August (owner: "tidy the
+  // press room up - remove anything older than 2 weeks"). The weekly settle
+  // drops them from the save; this keeps the screen honest in the same week
+  // the rule changed, and on a save loaded mid-week.
+  const now = game.season * SEASON_WEEKS + game.week
+  const past = game.press
+    .filter(p => p.answered && now - (p.season * SEASON_WEEKS + p.week) <= PRESS_KEEP_WEEKS)
+    .reverse()
 
   return (
     <>

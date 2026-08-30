@@ -1,5 +1,5 @@
 import type { Club, FacilityId, GameState } from './model'
-import { ATTR_KEYS, SEASON_WEEKS, emptyStats, finalVenue, initFacilities } from './model'
+import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, emptyStats, finalVenue, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
@@ -393,6 +393,24 @@ export function migrate(s: GameState): GameState {
   // England (owner: "im no longer England coach and this is showing"). Fixed
   // at the source, and healed here for the saves written while it was broken.
   if (s.natKeepAsk && !s.natTeam) s.natKeepAsk = null
+  // THE ESTATE MOVES FROM A FLAG TO A LIST OF GROUNDS (v1.1.14). estateMaxed
+  // was one boolean for the whole save, so building the estate anywhere locked
+  // it everywhere. The list says which grounds actually carry it.
+  //
+  // A save written under the old flag cannot say where it was built, so the
+  // buildings themselves are asked instead: if the club being managed today is
+  // maxed out, that is where it went. If it is NOT - which is precisely the
+  // owner's stuck save, resigned and now at a club with poor facilities - the
+  // application goes back on the shelf. Being generous here costs nothing: the
+  // money was already paid, and the alternative is a product that can never be
+  // used again.
+  if (s.estateClubs == null) {
+    const club = s.clubs?.[s.userClubId]
+    const facs = club?.facilities ?? {}
+    const fids = Object.keys(FACILITY_INFO) as FacilityId[]
+    const maxedHere = !!club && fids.every(fid => (facs[fid] ?? 0) >= MAX_FACILITY)
+    s.estateClubs = s.estateMaxed && maxedHere ? [s.userClubId] : []
+  }
   s.natLineup ??= null
   s.objectives ??= ['youth', 'derby']
   s.finHist ??= []
