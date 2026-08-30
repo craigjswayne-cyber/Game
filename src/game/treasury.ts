@@ -24,8 +24,8 @@
 // cash the summer sweep can no longer turn into facilities.
 
 import type { GameState } from './model'
-import { SEASON_WEEKS, fmtMoney, logDecision } from './model'
-import { t } from './i18n'
+import { SEASON_WEEKS, fmtMoney, logDecision, operatingCost } from './model'
+import { t, tIn } from './i18n'
 
 export const RELEASE_STEP = 500_000
 
@@ -115,5 +115,94 @@ export function releaseToBudget(state: GameState, amount?: number): { ok: boolea
     msg: under > 0
       ? t('finances.treasuryMovedDeep', { step: fmtMoney(move), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) })
       : t('finances.treasuryMoved', { step: fmtMoney(move), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }),
+  }
+}
+
+/**
+ * ---- THE BOARD, WHILE THE CLUB IS OVERDRAWN ----
+ *
+ * v1.1.13 turned the reserve from a wall into a line: a manager may move the
+ * whole balance into the transfer budget, and dipping under the reserve costs
+ * board confidence once, at the moment he decides. The owner's answer to that
+ * named the half that was still missing:
+ *
+ *   "if tou spend it all then yes - if you take the club into debt then the
+ *    pressure is on to fix it and the board grows the longer is stays in debt."
+ *
+ * A one-off charge prices the DECISION. It does not price the CONSEQUENCE, and
+ * the consequence is the interesting part: an overdrawn club is a boardroom
+ * that gets less patient every week nobody fixes it. Without this, going into
+ * the red costs you twelve points of confidence and then nothing at all, for
+ * ever, which makes it a toll rather than a risk.
+ *
+ * HOW HARD IT BITES
+ *
+ *   It starts almost gently and does not stay that way. Week one in the red is
+ *   a raised eyebrow; by the end of a season in the red it is most of a
+ *   boardroom. That shape - patient at first, then not - is the whole point: a
+ *   short overdraft to buy a player in January is a fair gamble, and living
+ *   there is not.
+ *
+ *   Priced in the club's own money, like everything else in the ledger. Being
+ *   £2m down on a £40m turnover is a cashflow wobble; being £2m down at Esher
+ *   is the end. The bite scales with how deep the hole is against a week of
+ *   upkeep, so the same story reads the same at both ends of the game.
+ *
+ *   NO FLOOR. terraceWeek deliberately cannot push a board through the danger
+ *   zone, because a manager cannot directly control what the terraces think.
+ *   This one can go all the way down, because he can: the money is his to fix,
+ *   and insolvency.ts is waiting at the bottom if he does not.
+ *
+ *   It says so. Silent drains are the worst thing a management game does. The
+ *   first week in the red files a letter, and so does every fourth week after
+ *   it, and clearing the debt files the relief.
+ */
+
+/** The most confidence a single week in the red may take. */
+const DEBT_MAX_WEEKLY = 3.5
+
+/** How much of that a club is charged, per week overdrawn and per week of
+ *  upkeep it is down. Small on purpose - the escalation does the work. */
+const DEBT_BITE = 0.18
+
+export function debtWeek(state: GameState): void {
+  const club = state.clubs[state.userClubId]
+  if (!club || state.unemployed) return
+  const now = state.season * SEASON_WEEKS + state.week
+
+  if (club.balance >= 0) {
+    // OUT OF IT. The relief is filed only if there was something to be
+    // relieved about - a club that has never been overdrawn says nothing.
+    if (state.debtSince != null) {
+      const weeks = Math.max(1, now - state.debtSince)
+      state.debtSince = null
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+        subject: tIn('en', 'news.debtClearedSubj'),
+        body: tIn('en', 'news.debtCleared', { weeks }),
+        k: 'news.debtCleared', v: { weeks },
+      })
+    }
+    return
+  }
+
+  state.debtSince ??= now
+  const weeks = now - state.debtSince + 1
+  // How deep, in weeks of upkeep. A club that is one week's upkeep down is
+  // barely overdrawn; one that is ten weeks down is in trouble whatever its
+  // size.
+  const upkeep = Math.max(1, operatingCost(state, club))
+  const depth = Math.min(10, -club.balance / upkeep)
+  const bite = Math.min(DEBT_MAX_WEEKLY, DEBT_BITE * weeks * (0.5 + depth / 4))
+  club.boardConfidence = Math.max(0, club.boardConfidence - bite)
+
+  if (weeks === 1 || weeks % 4 === 0) {
+    const v = { weeks, amount: fmtMoney(-club.balance) }
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: tIn('en', weeks === 1 ? 'news.debtOpenedSubj' : 'news.debtPressureSubj'),
+      body: tIn('en', weeks === 1 ? 'news.debtOpened' : 'news.debtPressure', v),
+      k: weeks === 1 ? 'news.debtOpened' : 'news.debtPressure', v,
+    })
   }
 }
