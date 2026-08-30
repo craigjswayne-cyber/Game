@@ -64,6 +64,59 @@ so Play treats the wrapper as an ordinary update of the existing app.
 shell exists), leave the TWA earning nothing but store revenue, and fold
 Android in later. That is a legitimate order and it is slower to money.
 
+## 2a. The cost nobody costed: you lose same-day updates
+
+Added 30 Aug 2026, because §2's table understates this line and it is the one
+that will actually change how the owner works.
+
+**Today, a Pages deploy reaches every installed copy in minutes.** The TWA is
+Chrome rendering the live site, so shipping a fix is `git push` and about
+twenty-five minutes of CI. On 29-30 Aug alone that route delivered around
+twenty fixes to a phone in the owner's hand, several of them the same morning
+they were reported. There was no Play review in any of it.
+
+**After the Capacitor fold, every one of those becomes a store release.** The
+wrapper bundles `dist/`, so a one-line copy change is a new AAB, an upload, a
+review (hours to days), and a staged rollout. The turnaround this project has
+been running on - report at breakfast, fixed by lunch - stops being available.
+
+That is not an argument against ads. It is the price, and it should be paid
+knowingly rather than discovered afterwards.
+
+### The third route: a native shell that still loads the live site
+
+Capacitor can point at a remote URL (`server.url` in `capacitor.config`)
+instead of serving the bundled `dist/`. The shell is still native - the AdMob
+and billing plugins work exactly as they would otherwise - but the CONTENT is
+still phaserugbymanager.com, so same-day updates survive.
+
+| | TWA (today) | Capacitor, bundled | Capacitor, remote URL |
+|---|---|---|---|
+| Ads possible | **No** | Yes | Yes |
+| Native billing | Digital Goods only | Yes | Yes |
+| Same-day content updates | **Yes** | No | **Yes** |
+| Works with no connection | Yes (service worker) | Yes | Only with a bundled fallback |
+| App-store risk | None today | None | **Apple 4.2 / 2.5.2 scrutiny** |
+
+The risk in the third column is real and specific: Apple rejects apps that are
+thin wrappers around a website, and a shell whose entire content is remote
+invites that reading. The mitigations are to bundle `dist/` as the fallback and
+prefer it when the network is absent (so the app is genuinely functional
+offline and is not "just a web view"), and to keep the native surface
+substantial - billing, ads, and the file-based save export all run natively.
+Google Play has no equivalent objection.
+
+**Recommendation, in order of what this project actually values:**
+
+1. **Android first, Capacitor with a remote URL and a bundled fallback.** Play
+   has no thin-wrapper rule to fall foul of, Android is where the users are,
+   and same-day updates survive on the platform being played on.
+2. **iOS second, Capacitor with the content bundled.** Take the store-release
+   latency where the rules demand it, on the platform with no users yet.
+
+That gets ads earning on Android without giving up the working rhythm, and it
+keeps the iOS shell inside Apple's comfort zone.
+
 ## 3. What actually gets built
 
 One Capacitor project, two platform folders, three plugins:
