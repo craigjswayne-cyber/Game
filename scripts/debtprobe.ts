@@ -63,11 +63,11 @@ const tick = (g: GameState): number => {
 {
   const g = newGame('northampton', 'Debt', 802)
   const club = g.clubs[g.userClubId]
-  club.balance = -2 * operatingCost(g, club)
+  club.balance = -2 * operatingCost(g)
   club.boardConfidence = 100
   const bites: number[] = []
   for (let i = 0; i < 12; i++) {
-    club.balance = -2 * operatingCost(g, club)   // hold the hole steady; only the weeks change
+    club.balance = -2 * operatingCost(g)   // hold the hole steady; only the weeks change
     club.boardConfidence = 100                   // and read each week in isolation
     bites.push(tick(g))
   }
@@ -84,7 +84,7 @@ const tick = (g: GameState): number => {
   const bite = (mult: number): number => {
     const g = newGame('northampton', 'Debt', 803)
     const club = g.clubs[g.userClubId]
-    club.balance = -mult * operatingCost(g, club)
+    club.balance = -mult * operatingCost(g)
     club.boardConfidence = 100
     return tick(g)
   }
@@ -98,15 +98,15 @@ const tick = (g: GameState): number => {
   const g = newGame('northampton', 'Debt', 804)
   const club = g.clubs[g.userClubId]
   club.boardConfidence = 100
-  for (let i = 0; i < 10; i++) { club.balance = -3 * operatingCost(g, club); tick(g) }
-  const deepBite = (() => { club.balance = -3 * operatingCost(g, club); club.boardConfidence = 100; return tick(g) })()
+  for (let i = 0; i < 10; i++) { club.balance = -3 * operatingCost(g); tick(g) }
+  const deepBite = (() => { club.balance = -3 * operatingCost(g); club.boardConfidence = 100; return tick(g) })()
   club.balance = 1_000_000
   const after = tick(g)
   ok(after === 0, 'the week the books balance, the pressure stops dead')
   ok(g.debtSince == null, 'and the clock is cleared')
   ok(g.news.some(n => n.k === 'news.debtCleared'), 'the relief is filed')
   // back in again: the eleventh week of a NEW overdraft is week one, not week eleven
-  club.balance = -3 * operatingCost(g, club)
+  club.balance = -3 * operatingCost(g)
   club.boardConfidence = 100
   const fresh = tick(g)
   ok(fresh < deepBite,
@@ -117,7 +117,7 @@ const tick = (g: GameState): number => {
 {
   const g = newGame('northampton', 'Debt', 805)
   const club = g.clubs[g.userClubId]
-  for (let i = 0; i < 9; i++) { club.balance = -3 * operatingCost(g, club); tick(g) }
+  for (let i = 0; i < 9; i++) { club.balance = -3 * operatingCost(g); tick(g) }
   ok(g.news.some(n => n.k === 'news.debtOpened'), 'the first week in the red files a letter')
   const nags = g.news.filter(n => n.k === 'news.debtPressure').length
   ok(nags >= 2, `and it keeps saying so - ${nags} reminders in nine weeks`)
@@ -129,7 +129,7 @@ const tick = (g: GameState): number => {
   const g = newGame('northampton', 'Debt', 806)
   const club = g.clubs[g.userClubId]
   club.boardConfidence = 40
-  for (let i = 0; i < 40; i++) { club.balance = -8 * operatingCost(g, club); tick(g) }
+  for (let i = 0; i < 40; i++) { club.balance = -8 * operatingCost(g); tick(g) }
   ok(club.boardConfidence < 20,
      `a season spent deep in the red is a boardroom that has run out (${club.boardConfidence.toFixed(1)})`)
   ok(club.boardConfidence >= 0, 'and never goes below nought')

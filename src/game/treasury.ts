@@ -191,7 +191,7 @@ export function debtWeek(state: GameState): void {
   // How deep, in weeks of upkeep. A club that is one week's upkeep down is
   // barely overdrawn; one that is ten weeks down is in trouble whatever its
   // size.
-  const upkeep = Math.max(1, operatingCost(state, club))
+  const upkeep = Math.max(1, operatingCost(state))
   const depth = Math.min(10, -club.balance / upkeep)
   const bite = Math.min(DEBT_MAX_WEEKLY, DEBT_BITE * weeks * (0.5 + depth / 4))
   club.boardConfidence = Math.max(0, club.boardConfidence - bite)
