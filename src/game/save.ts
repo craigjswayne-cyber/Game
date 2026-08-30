@@ -386,6 +386,13 @@ export function migrate(s: GameState): GameState {
   s.natTeam ??= null
   s.natOffer ??= null
   s.natKeepAsk ??= null
+  // A QUESTION ABOUT A JOB THAT IS GONE (v1.1.13). natKeepAsk asks whether you
+  // carry on at the club now that you coach a country; before closeNatTenure
+  // cleared it, resigning the national job left the card standing on the
+  // Manager Profile asking about England for a man who no longer coached
+  // England (owner: "im no longer England coach and this is showing"). Fixed
+  // at the source, and healed here for the saves written while it was broken.
+  if (s.natKeepAsk && !s.natTeam) s.natKeepAsk = null
   s.natLineup ??= null
   s.objectives ??= ['youth', 'derby']
   s.finHist ??= []

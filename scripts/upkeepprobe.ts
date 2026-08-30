@@ -16,7 +16,7 @@
 // a punishment.
 import { newGame } from '../src/game/newgame'
 import { upkeepWeek } from '../src/game/upkeep'
-import { RELEASE_STEP, cashReserve, releasable, releaseBlock, releaseToBudget } from '../src/game/treasury'
+import { RELEASE_STEP, belowReserve, cashReserve, releasable, releaseBlock, releaseToBudget } from '../src/game/treasury'
 import { mulberry32 } from '../src/game/rng'
 
 let fails = 0
@@ -90,29 +90,60 @@ console.log('\n--- 3. a club cannot be ruined by weather it could never have pai
   ok(worst < -200_000, `while a club with money in the bank pays for the whole repair (${k(worst)})`)
 }
 
-console.log('\n--- 4. the treasury is a bar with the reserve as its far end\n')
+console.log('\n--- 4. the treasury moves the whole balance, and says what that costs\n')
 {
+  // Owner, v1.1.13: "when moving money it doesnt let me transfer everything?"
+  //
+  // The reserve - a season of wages plus a four million float - used to stop
+  // the slider dead. Measured at Northampton on day one: a £17.0m reserve
+  // against a £2.4m balance, so the bar had NO TRAVEL AT ALL and the feature
+  // read as broken from the first week of every career. It is a LINE now, not
+  // a wall: the whole balance moves, the readout says which side of it you are
+  // on, and the board charge for the far side.
   const g = newGame('northampton', 'Upkeep', 8)
   const club = g.clubs[g.userClubId]
-  club.balance = cashReserve(g) + 4_000_000
-  const most = releasable(g)
-  ok(most > 0 && most % RELEASE_STEP === 0,
-    `the bar has real travel, in round numbers (${k(most)})`)
-  ok(most <= club.balance - cashReserve(g),
-    'and its far end IS the reserve, drawn rather than explained')
-  const budget0 = club.budget
-  const r = releaseToBudget(g, most)
-  ok(r.ok && club.budget === budget0 + most, `one drag moves the lot (${k(most)} in one go, not ${Math.round(most / RELEASE_STEP)} taps)`)
-  ok(releaseBlock(g) !== null, 'and then the bar is spent, and says so')
+  const reserve = cashReserve(g)
+  ok(club.balance < reserve,
+    `a new club opens BELOW the board's reserve (${k(club.balance)} against ${k(reserve)})`)
+  ok(releasable(g) > 0 && releaseBlock(g) === null,
+    `and the bar still has travel on day one - this is what read as broken (${k(releasable(g))})`)
 
-  // the engine clamps, not the screen: a stale control cannot overdraw
+  club.balance = reserve + 4_000_000
+  const most = releasable(g)
+  ok(most % RELEASE_STEP === 0, `the bar lands on round numbers (${k(most)})`)
+  ok(most > club.balance - reserve,
+    `and its far end is the whole balance, not the reserve (${k(most)} of ${k(club.balance)})`)
+  ok(belowReserve(g, 4_000_000) === 0, 'a move that stays above the line costs nothing')
+  ok(belowReserve(g, most) > 0, 'and one that empties the account is priced')
+
+  // above the line: housekeeping, and the board do not care
+  const boardBefore = club.boardConfidence
+  const budget0 = club.budget
+  const r = releaseToBudget(g, 4_000_000)
+  ok(r.ok && club.budget === budget0 + 4_000_000, `one drag moves the lot (${k(4_000_000)} in one go)`)
+  ok(club.boardConfidence === boardBefore, 'and a move within the spare cash passes without comment')
+
+  // below it: allowed, and it costs
   const h = newGame('northampton', 'Upkeep', 9)
   const hclub = h.clubs[h.userClubId]
   hclub.balance = cashReserve(h) + 1_000_000
-  const asked = releaseToBudget(h, 999_000_000)
-  ok(asked.ok && hclub.balance >= cashReserve(h),
-    `asking for the moon takes only what is there (balance ${k(hclub.balance)}, reserve ${k(cashReserve(h))})`)
+  hclub.boardConfidence = 70
+  const deep = releaseToBudget(h, releasable(h))
+  ok(deep.ok, 'the manager may empty the account if he decides to')
+  ok(hclub.boardConfidence < 70,
+    `and the board mind, in proportion (70 -> ${hclub.boardConfidence.toFixed(1)})`)
+  ok(70 - hclub.boardConfidence <= 12,
+    `but it is disquiet, not a sacking (${(70 - hclub.boardConfidence).toFixed(1)} points)`)
+
+  // the engine clamps, not the screen: a stale control cannot overdraw
+  const j = newGame('northampton', 'Upkeep', 10)
+  const jclub = j.clubs[j.userClubId]
+  const bank = jclub.balance
+  const asked = releaseToBudget(j, 999_000_000)
+  ok(asked.ok && jclub.balance >= 0 && jclub.balance <= bank,
+    `asking for the moon takes only what is there (${k(bank)} -> ${k(jclub.balance)})`)
+  ok(releaseBlock(j) !== null, 'and then the bar is spent, and says so')
 }
 
-console.log(fails ? `\nUPKEEP PROBE FAILED (${fails})` : '\nUPKEEP PROBE PASSED: the year is uneven, and the bar has a far end')
+console.log(fails ? `\nUPKEEP PROBE FAILED (${fails})` : '\nUPKEEP PROBE PASSED: the year is uneven, and the bar moves the lot')
 process.exit(fails ? 1 : 0)

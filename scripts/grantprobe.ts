@@ -273,8 +273,15 @@ console.log('\n--- 10. the International Stage APPOINTS, once per career, to the
   // This also retires the v1.1.12 migration that handed the call back to saves
   // stranded by an expired offer: there is no longer a flag to hand back.
   const { closeNatTenure } = await import('../src/game/model')
+  g.natKeepAsk = g.natTeam
   closeNatTenure(g)
   ok(!g.natTeam, 'he steps down from the national job')
+  // THE QUESTION GOES WITH THE JOB (owner, v1.1.13: "im no longer England
+  // coach and this is showing"). natKeepAsk asks whether you carry on at the
+  // club now that you have the country; it was only ever cleared by answering
+  // it, so stepping down left the Manager Profile asking about a post that no
+  // longer existed.
+  ok(!g.natKeepAsk, 'and the club question goes with it, rather than outliving the job')
   ok(applyPinnacle(g, 'CAN'), 'and the federations are open to him again')
   ok(g.natTeam === 'CAN', `with a nation of his choosing (${g.natTeam})`)
 

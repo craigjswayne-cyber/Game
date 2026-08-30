@@ -1,15 +1,27 @@
 // Moving the club's cash into the transfer budget (user: "should be able to
 // transfer balance into transfer money").
 //
-// The board's own rule, applied to the manager's request: the club keeps a
-// season of wages plus a four million float in the bank - the exact reserve
-// boardReinvests protects before it sweeps surplus into the estate - and
-// anything above it the manager may put to work in the market, in 500k
-// slices, so a fat balance is a series of decisions rather than one button
-// that empties the account. The trade is real, not decorative: cash moved to
-// the budget is cash the summer sweep can no longer turn into facilities,
-// and the reserve floor means a club living on its overdraft cannot buy its
-// way out through this door.
+// THE RESERVE WAS A WALL AND IT IS A LINE (owner, v1.1.13: "when moving money
+// it doesnt let me transfer everything?").
+//
+// The board's rule is that a club keeps a season of wages plus a four million
+// float - the exact reserve boardReinvests protects before it sweeps surplus
+// into the estate - and the first version of this simply refused to move
+// anything below it. Measured at Northampton on day one: a reserve of £17.0m
+// against a balance of £2.4m, so the bar had NO TRAVEL AT ALL and the feature
+// read as broken from the first week of every career. Even at £132m it locked
+// £17m away for ever.
+//
+// A manager may now move the lot. The reserve stops being a wall and becomes
+// the line the readout draws: above it this is housekeeping, below it he is
+// spending the wage bill on players and the screen says so before he commits.
+// The board mind - dipping under costs confidence in proportion, once, at the
+// moment of the decision - and insolvency.ts is still there for a club that
+// takes it to the floor. That is the difference between a rule and a lecture:
+// the game states the risk, prices it, and lets the manager decide.
+//
+// The trade is unchanged in every other respect: cash moved to the budget is
+// cash the summer sweep can no longer turn into facilities.
 
 import type { GameState } from './model'
 import { SEASON_WEEKS, fmtMoney, logDecision } from './model'
@@ -40,10 +52,19 @@ export function releasable(state: GameState): number {
   if (state.unemployed) return 0
   const club = state.clubs[state.userClubId]
   if (!club) return 0
-  const spare = club.balance - cashReserve(state)
-  if (spare < RELEASE_STEP) return 0
+  if (club.balance < RELEASE_STEP) return 0
   // to the step, so the slider lands on round numbers a manager can read
-  return Math.floor(spare / RELEASE_STEP) * RELEASE_STEP
+  return Math.floor(club.balance / RELEASE_STEP) * RELEASE_STEP
+}
+
+/** How much of a move sits UNDER the board's reserve - nothing at all when the
+ *  club stays comfortable, which is the ordinary case. The screen draws this
+ *  and the board charges for it. */
+export function belowReserve(state: GameState, amount: number): number {
+  const club = state.clubs[state.userClubId]
+  if (!club) return 0
+  const after = club.balance - amount
+  return Math.max(0, Math.min(amount, cashReserve(state) - after))
 }
 
 /** Why nothing can move, or null if something can. Read by the CONTROL (to
@@ -55,9 +76,8 @@ export function releaseBlock(state: GameState): string | null {
   if (state.unemployed) return t('finances.treasuryNoClub')
   const club = state.clubs[state.userClubId]
   if (!club) return t('finances.treasuryNoClub')
-  if (releasable(state) <= 0) {
-    return t('finances.treasuryFloor', { reserve: fmtMoney(cashReserve(state)) })
-  }
+  // the only thing that stops a move now is having nothing to move
+  if (releasable(state) <= 0) return t('finances.treasuryEmpty', { step: fmtMoney(RELEASE_STEP) })
   return null
 }
 
@@ -77,8 +97,23 @@ export function releaseToBudget(state: GameState, amount?: number): { ok: boolea
   const most = releasable(state)
   const want = amount == null ? RELEASE_STEP : Math.round(amount)
   const move = Math.max(RELEASE_STEP, Math.min(most, want))
+  const under = belowReserve(state, move)
   club.balance -= move
   club.budget += move
+  // THE BOARD MIND, IN PROPORTION. Emptying the wage float to buy players is a
+  // real decision with a real cost, charged once here rather than as a rule
+  // that refuses. Capped, because this is disquiet rather than a sacking: the
+  // results still decide that, and insolvency.ts owns what happens if the
+  // money actually runs out.
+  if (under > 0) {
+    const reserve = Math.max(1, cashReserve(state))
+    club.boardConfidence = Math.max(0, club.boardConfidence - Math.min(12, (under / reserve) * 14))
+  }
   logDecision(state, 'dec.movedToTransferBudget', { amount: fmtMoney(move) }, true)
-  return { ok: true, msg: t('finances.treasuryMoved', { step: fmtMoney(move), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }) }
+  return {
+    ok: true,
+    msg: under > 0
+      ? t('finances.treasuryMovedDeep', { step: fmtMoney(move), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) })
+      : t('finances.treasuryMoved', { step: fmtMoney(move), balance: fmtMoney(club.balance), budget: fmtMoney(club.budget) }),
+  }
 }

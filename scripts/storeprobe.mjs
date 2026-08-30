@@ -290,6 +290,54 @@ try {
     ok(await page.locator('text=The owners will not go to the well again').count() > 0,
       'with the sold-out line still said, just not in a chip that cannot shrink')
 
+    // ---- WHAT YOU CAN STILL BUY IS AT THE TOP ------------------------------
+    //
+    // Owner, v1.1.13: "when you purchase anything in the store it should move
+    // to the bottom of the store so the available products are at the top."
+    // Three owned rows had collected up top - the International Stage, the
+    // Estate and the Charter - pushing Board funding, the one thing still
+    // buyable, below the fold on a phone.
+    //
+    // `done` is not "owned": a Charter you own but have not applied to this
+    // career still has a button on it and stays up top. So the claim is about
+    // the boundary, not about ownership - once the shelf is sorted, nothing
+    // finished appears above anything unfinished.
+    await page.evaluate(() => {
+      const st = window.rugbyStore.getState(); const g = st.game
+      g.uncapped = true       // Charter: owned and applied - nothing left to do
+      g.estateMaxed = true    // Estate: same
+      g.injections = { s: 9, m: 9, l: 9, xl: 9 }  // funding: spent for the season
+      st.touch()
+    })
+    await page.waitForTimeout(300)
+    const order = await page.evaluate(() => {
+      const done = ['Remove the salary cap', 'The Estate', 'Board funding']
+      const live = ['Support the game', 'Full Fitness']
+      const tops = [...document.querySelectorAll('.card')]
+      const at = (label) => {
+        const i = tops.findIndex(c => c.textContent.includes(label))
+        return { label, i }
+      }
+      return { done: done.map(at), live: live.map(at) }
+    })
+    console.log(`  shelf order: ${[...order.live, ...order.done].sort((a, b) => a.i - b.i).map(x => `${x.label}(${x.i})`).join(' < ')}`)
+    const lastLive = Math.max(...order.live.map(x => x.i))
+    const firstDone = Math.min(...order.done.map(x => x.i))
+    ok(order.live.every(x => x.i >= 0) && order.done.every(x => x.i >= 0),
+      'every row is still on the shelf after the sort')
+    ok(firstDone > lastLive,
+      `nothing finished sits above anything still buyable (last buyable ${lastLive}, first finished ${firstDone})`)
+    // and put the career back, because the Boardroom section below signs the
+    // Charter for real and cannot do it on a save this block already uncapped
+    await page.evaluate(() => {
+      const st = window.rugbyStore.getState(); const g = st.game
+      g.uncapped = false
+      g.estateMaxed = false
+      g.injections = {}
+      st.touch()
+    })
+    await page.waitForTimeout(200)
+
     // the Boardroom no longer sells funding, and still signs the Charter
     await page.evaluate(() => window.rugbyStore.getState().go('finances'))
     await page.waitForSelector('.tab-bar')
