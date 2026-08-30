@@ -1325,6 +1325,22 @@ function NationPreview({ fxId }: { fxId: number }) {
             </button>
           ))}
         </div>
+        {/* HOW YOU WATCH IT BELONGS ON THE PAGE, NOT IN THE SHEET (owner,
+            v1.1.15: "ready to lead in the international bit dimension wise is
+            too big for the screen"). This block - a label, three chips and a
+            line explaining the one you picked - was inside the confirm sheet
+            and is the tallest thing that was ever in there: measured, it took
+            the sheet's content from 202px to 281px on a 412x915 phone at the
+            largest text size.
+            That alone did not hide the buttons at that size - scripts/
+            testsheet.mjs says Take the Field was still reachable - but a sheet
+            is capped at 80dvh and scrolls, so every pixel of it is pixels of
+            margin against a shorter phone. The club side has never carried
+            this weight: its view picker lives in the dressing-room modal and
+            its confirm sheet is three lines and two buttons. This is the same
+            shape - the choice sits on the page beside the team talk, where it
+            can be made in advance, and the sheet asks one question. */}
+        <ViewPicker view={view} onPick={setView} />
         <div className="btn-row" style={{ marginTop: 10 }}>
           <button className="btn gold block" style={{ fontSize: 16, width: '100%' }} onClick={() => setConfirm(true)}>
             {t('matchday.kickOff')}
@@ -1336,10 +1352,16 @@ function NationPreview({ fxId }: { fxId: number }) {
         <div className="modal-veil" onClick={() => setConfirm(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="grab" />
-            <h3 style={{ fontSize: 17, margin: '4px 0 8px' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
-            <div className="meta">{t('matchday.anthems')}</div>
-            {/* the viewing choice sits here, not at the foot of a team sheet (F5) */}
-            <ViewPicker view={view} onPick={setView} />
+            {/* A GUTTER, LIKE ITS CLUB TWIN. .modal sets no horizontal padding
+                of its own, so anything not wrapped runs flush to both edges of
+                the phone - the heading and the anthems line were touching the
+                glass at x=0, which is the other half of "dimension wise is too
+                big for the screen". The club ready sheet has always had this
+                wrapper and this centring; the Test one never did. */}
+            <div style={{ padding: '0 18px 4px' }}>
+              <h3 style={{ fontSize: 17, margin: '2px 0 8px', textAlign: 'center' }}>{t('matchday.readyNation', { nat: nationName(nat) })}</h3>
+              <div className="meta" style={{ margin: '6px 0', textAlign: 'center' }}>{t('matchday.anthems')}</div>
+            </div>
             <div className="btn-row" style={{ marginTop: 12 }}>
               <button className="btn ghost" onClick={() => setConfirm(false)}>{t('matchday.notYet')}</button>
               <button className="btn gold" style={{ flex: 1.5, fontSize: 15 }}
