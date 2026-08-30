@@ -30,6 +30,7 @@
 import { newGame } from '../src/game/newgame'
 import { activeWindows, natFixtureThisWeek, processWeekAndAdvance, userMatchThisWeek } from '../src/game/season'
 import { natCallUp, natDrop, natEligible, natWindow, weeksToSquad, NAT_SQUAD_FLOOR } from '../src/game/country'
+import { NAT_TIERS } from '../src/game/nations'
 import { NAT_SQUAD_SIZE, homeBased } from '../src/game/nations'
 import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
@@ -258,7 +259,22 @@ console.log('\n--- 9. a Test weekend is one card, and the names on it are still 
   // would have failed; the chips would simply have stopped appearing. So the
   // claim is both halves - fewer cards, and the cards still carry their men.
   const g9 = newGame('leicester', 'Country Probe', 77)
-  for (let w = 0; w < 130; w++) processWeekAndAdvance(g9)
+  // THE BEAT ONLY EXISTS FOR A MANAGER IN A JOB - the whole word-from-camp
+  // block sits behind `if (!state.unemployed)`. This probe originally just ran
+  // three seasons and trusted the seed to survive them, which it did until an
+  // unrelated change shifted the weekly RNG stream by a few draws and seed 77
+  // was suddenly sacked in the first winter: 92 of 130 weeks out of work, zero
+  // reports, and a red probe that had found no fault in the thing it tests.
+  // So the job is held open on purpose. The claim is the SHAPE of the reports,
+  // not the manager's luck.
+  for (let w = 0; w < 130; w++) {
+    if (!g9.unemployed) {
+      const club = g9.clubs[g9.userClubId]
+      if (club) club.boardConfidence = Math.max(club.boardConfidence, 55)
+    }
+    processWeekAndAdvance(g9)
+  }
+  ok(!g9.unemployed, 'the manager held his job for the three seasons under test')
   const singles = g9.news.filter(n => n.k === 'news.caps' || n.k === 'news.capsMore')
   const rounds = g9.news.filter(n => n.k === 'news.campRound')
   ok(singles.length > 0 && rounds.length > 0,
@@ -274,5 +290,48 @@ console.log('\n--- 9. a Test weekend is one card, and the names on it are still 
   ok(worst <= 2, `and no week files more than two of them (worst week: ${worst})`)
 }
 
+console.log('\n--- 12. every nation has somebody fighting for the shirt\n')
+{
+  // Owner, coaching a small nation: "its saying nobody is fighting to get into
+  // the squad for an international team so if I drop one player then they are
+  // the only ones available - this shouldn't be the case."
+  //
+  // He was right, and the cause was in the squad generator. A nation our club
+  // world cannot staff - Canada, Tonga, Samoa - has its internationals
+  // generated, and the generator stopped the instant the squad was full. Every
+  // qualified man in the country was therefore IN the squad; natEligible came
+  // back empty and the desk said "Nobody left standing outside camp". Dropping
+  // a man made him the only alternative to himself, which is not selection, it
+  // is a queue of one.
+  //
+  // The claim is the property rather than the number: whoever you coach, there
+  // is a contest. Checked across the whole pickable ladder, because the fault
+  // only ever showed on the nations at the bottom of it - the big ones have
+  // hundreds of natural candidates and always looked fine.
+  const thin: string[] = []
+  const noContest: string[] = []
+  for (const [nat] of NAT_TIERS) {
+    const gn = newGame('northampton', 'Depth', 900 + nat.charCodeAt(0))
+    gn.natTeam = nat
+    gn.natConfidence = 60
+    gn.natRecord = { m: 0, w: 0, d: 0, l: 0 }
+    // walk to the first camp of the season
+    let guard = 0
+    while (!natWindow(gn) && guard++ < 45) processWeekAndAdvance(gn)
+    const w = natWindow(gn)
+    if (!w) continue
+    const squad = gn.natSquads[nat] ?? []
+    const pool = natEligible(gn)
+    if (squad.length < NAT_SQUAD_FLOOR) thin.push(`${nat} squad ${squad.length}`)
+    // A REAL CONTEST, not one spare man. Fifteen is a full team of challengers -
+    // enough that every shirt has somebody behind it.
+    if (pool.length < 15) noContest.push(`${nat} ${pool.length} outside camp`)
+  }
+  ok(thin.length === 0, `every nation fields a legal squad (${thin.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
+  ok(noContest.length === 0,
+     `and every nation has a team's worth of contenders outside it (${noContest.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
+}
+
 console.log(fails ? `\nCOUNTRY PROBE FAILED (${fails})` : '\nCOUNTRY PROBE PASSED: the pinnacle has a desk of its own')
 process.exit(fails ? 1 : 0)
+

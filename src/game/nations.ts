@@ -194,6 +194,18 @@ export function worldNames(state: { players: Record<number, { name: string }> })
  *  thirty-two men, of whom 23 dress on the day. */
 export const NAT_SQUAD_SIZE = 32
 
+/**
+ * How many players beyond the travelling squad a generated nation carries.
+ *
+ * A nation our club world cannot staff has its internationals generated. Fill
+ * exactly the squad and there is nobody outside it: the country desk reads
+ * "Nobody left standing outside camp", and dropping a man makes him instantly
+ * the only alternative to himself. Twenty more is half a squad again with
+ * slack for the treatment room - enough that every shirt has a challenger and
+ * a dropped man has somewhere to fall to.
+ */
+export const NAT_DEPTH = 20
+
 /** NATIONS THAT PICK ONLY FROM THEIR OWN LEAGUE.
  *
  *  Owner: "players who dont play in England should not be able to be selected

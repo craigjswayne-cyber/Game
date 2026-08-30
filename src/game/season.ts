@@ -24,7 +24,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
-import { NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -608,6 +608,8 @@ function manageInternationals(state: GameState, rng: Rng) {
         // so the wider Test world's squad quality is untouched.
         const usersNat = nat === state.natTeam ||
           (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))
+        // the squad, plus the next men in behind it
+        const target = w.size + NAT_DEPTH
         const pool = Object.values(state.players)
           .filter(p => (nat === 'LIO' ? HOME4.includes(p.nat) : p.nat === nat) &&
             // England and France pick from their own leagues, and the
@@ -617,14 +619,42 @@ function manageInternationals(state: GameState, rng: Rng) {
             p.clubId && homeBased(state, p, nat) && !p.injury && !p.onLoan &&
             (usersNat || p.ca >= 68))
           .sort((a, b) => b.ca - a.ca)
-          .slice(0, w.size)
-        // emerging nations field home-based internationals our club world
-        // doesn't carry - generate them so no squad ever turns up empty
-        if (nat !== 'LIO' && pool.length < Math.max(23, Math.floor(w.size * 0.8))) {
+          // READ THE POOL DEEPER THAN THE SQUAD. This used to cut at w.size,
+          // which made the count below useless as a test of a country's depth:
+          // every nation on earth, England included, looked exactly 32 men
+          // deep. Cut at squad-plus-depth and the number means what the next
+          // line asks it to mean - how many men this country can actually put
+          // forward.
+          .slice(0, target)
+        // EMERGING NATIONS NEED A SQUAD AND SOMEBODY TO FIGHT FOR IT.
+        //
+        // Our club world does not carry enough home-based Georgians or Uruguayans
+        // to field a Test squad, so they are generated. The first version stopped
+        // the moment the squad was full, and that is the whole of this bug: every
+        // qualified man in the country was IN the squad, natEligible came back
+        // empty, and the country desk said "Nobody left standing outside camp".
+        // Drop a man and he was instantly the only alternative to himself.
+        //
+        // Owner: "its saying nobody is fighting to get into the squad... if I drop
+        // one player then they are the only ones available - this shouldn't be the
+        // case."
+        //
+        // So it generates a POOL rather than a squad: the 32 who travel plus a
+        // further NAT_DEPTH who did not make it and are visible on the desk as the
+        // next men in. Only the best w.size are capped; the rest stay in the world
+        // uncapped and callable, which is what makes selection a decision.
+        // Big nations are untouched - their natural pool already runs to hundreds.
+        //
+        // The trigger is the POOL, not the squad. It used to fire only when a
+        // nation could not nearly fill its 23, which meant Argentina - who can
+        // field 34 qualified men and not a soul more - never generated anybody
+        // and had exactly two players outside a 32-man camp. Thin is thin
+        // whether you are two short of a squad or two short of a contest.
+        if (nat !== 'LIO' && pool.length < target) {
           const natRep = nationByCode(nat)?.rep ?? 55
           const POS_CYCLE = ['LP', 'HK', 'TP', 'LK', 'LK', 'FL', 'FL', 'N8', 'SH', 'FH', 'CE', 'CE', 'WG', 'WG', 'FB'] as const
           let i = 0
-          while (pool.length < w.size && i < 40) {
+          while (pool.length < target && i < target + 12) {
             const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
             const hp = buildPlayer(
               {
@@ -638,8 +668,14 @@ function manageInternationals(state: GameState, rng: Rng) {
             i++
           }
         }
-        state.natSquads[nat] = pool.map(p => p.id)
-        for (const p of pool) {
+        // THE BEST OF THEM TRAVEL; THE REST ARE THE NEXT MEN IN. Re-sorted
+        // because the generated players were pushed on the end rather than
+        // merged in rating order, and a squad that is not the best of its own
+        // pool is not a selection.
+        pool.sort((a, b) => b.ca - a.ca)
+        const travelling = pool.slice(0, w.size)
+        state.natSquads[nat] = travelling.map(p => p.id)
+        for (const p of travelling) {
           p.natSquad = true
           p.morale = clamp(p.morale + 0.5, 1, 10) // the proudest phone call in rugby
           if (nat === 'LIO') {
@@ -652,21 +688,23 @@ function manageInternationals(state: GameState, rng: Rng) {
         // the national coach announces HIS squad - a proper occasion
         if (nat === state.natTeam || (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))) {
           const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
-          const fwd = pool.filter(p => FWD.includes(p.pos))
-          const bks = pool.filter(p => !FWD.includes(p.pos))
+          // the squad sheet is the men who TRAVEL - the pool now runs deeper
+          // than the squad, and the next men in are not in the announcement
+          const fwd = travelling.filter(p => FWD.includes(p.pos))
+          const bks = travelling.filter(p => !FWD.includes(p.pos))
           const line = (p: Player) => `${p.name}${(p.caps ?? 0) > 0 ? ` (${p.caps})` : ' (uncapped)'}${p.clubId ? ` - ${state.clubs[p.clubId]?.short ?? ''}` : ''}`
-          const newCaps = pool.filter(p => (p.caps ?? 0) === 0).length
+          const newCaps = travelling.filter(p => (p.caps ?? 0) === 0).length
           state.news.push({
             id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
             subject: `📋 Your ${nationNameIn('en', nat)} squad is announced`,
             k: 'news.natSquad',
             v: {
-              ...nationVars(nat), n: pool.length,
+              ...nationVars(nat), n: travelling.length,
               caps_k: newCaps ? 'news.natSquadNew' : 'news.natSquadCapped', newCaps,
               fwd: fwd.map(line).join('; '), bks: bks.map(line).join('; '),
             },
             body: [
-              `The federation has published your ${pool.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
+              `The federation has published your ${travelling.length}-man squad for the window. ${newCaps ? `${newCaps} uncapped name${newCaps > 1 ? 's' : ''} in the room.` : 'A fully capped group.'}`,
               '',
               `FORWARDS: ${fwd.map(line).join('; ')}`,
               '',
