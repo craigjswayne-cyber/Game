@@ -155,7 +155,7 @@ try {
     ok(/£2\.99/.test(till), "the prices shown are the store's own")
     ok(!/named no products|guide prices/i.test(till),
       'and the shelf says nothing about its health, because there is nothing wrong with it')
-    for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', "The Owner's Charter", 'Board funding']) {
+    for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', 'Remove the salary cap', 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
     }
     ok(!/Remove all ads/i.test(till),
@@ -247,6 +247,49 @@ try {
     const owed = await page.evaluate(() => globalThis.rmBilling.owned())
     ok(!owed.includes('phase.inject.s'), 'the purchase is consumed only after the career kept it')
 
+    // ---- AND THE ROW STILL LOOKS LIKE A ROW AFTERWARDS --------------------
+    //
+    // Owner, v1.1.12: "sugar daddy money formatting goes weird after
+    // purchasing." The money was never wrong. The SOLD-OUT state was a
+    // fifty-one character sentence in a `flexShrink: 0` chip, so the flex row
+    // gave it everything and squeezed the title column to nothing: "The Sugar
+    // Daddy" came out one word per line down the left of the card with the
+    // sentence floating over it. It only ever appeared after a purchase, which
+    // is exactly why it read as a consequence of buying - and why the first
+    // fix went to the number formatter instead.
+    //
+    // So the claim is geometric, on the state that produced it: spend every
+    // resolution, then measure that each title still has a column to live in.
+    await page.evaluate(() => {
+      const st = window.rugbyStore.getState(); const g = st.game
+      g.injections = { s: 9, m: 9, l: 9, xl: 9 }
+      st.touch()
+    })
+    await page.waitForTimeout(300)
+    const rows = await page.evaluate(() => {
+      const out = []
+      for (const label of ['Board Injection (Small)', 'Board Injection (Medium)', 'Board Injection (Large)', 'The Sugar Daddy']) {
+        const el = [...document.querySelectorAll('div')].find(d => d.textContent.trim() === label)
+        if (!el) continue
+        const card = el.closest('.card')
+        out.push({
+          label,
+          w: Math.round(el.getBoundingClientRect().width),
+          cardW: Math.round(card.getBoundingClientRect().width),
+          h: Math.round(el.getBoundingClientRect().height),
+        })
+      }
+      return out
+    })
+    console.log(`  sold-out rows: ${rows.map(r => `${r.label} ${r.w}/${r.cardW}px h${r.h}`).join(' | ')}`)
+    ok(rows.length === 4, `all four resolutions still render when spent (${rows.length})`)
+    ok(rows.every(r => r.w > r.cardW * 0.5),
+      `every title keeps a column to live in${rows.filter(r => r.w <= r.cardW * 0.5).map(r => ` [${r.label} ${r.w}px]`).join('')}`)
+    ok(rows.every(r => r.h < 60),
+      `and none of them wraps into a tower${rows.filter(r => r.h >= 60).map(r => ` [${r.label} ${r.h}px tall]`).join('')}`)
+    ok(await page.locator('text=The owners will not go to the well again').count() > 0,
+      'with the sold-out line still said, just not in a chip that cannot shrink')
+
     // the Boardroom no longer sells funding, and still signs the Charter
     await page.evaluate(() => window.rugbyStore.getState().go('finances'))
     await page.waitForSelector('.tab-bar')
@@ -254,10 +297,10 @@ try {
     await page.waitForSelector('text=Board resolutions')
     ok(await page.locator('text=Board Injection (Small)').count() === 0,
       'the Boardroom sells no injections any more - the store does')
-    await page.locator('.card', { hasText: "The Owner's Charter" }).locator('.btn.gold').click()
-    await page.waitForSelector('text=The Charter is yours')
-    await page.locator('button', { hasText: 'Sign the Charter for this save' }).click()
-    await page.locator('button', { hasText: 'Sign it - there is no way back' }).click()
+    await page.locator('.card', { hasText: 'Remove the salary cap' }).locator('.btn.gold').click()
+    await page.waitForSelector('text=You own this')
+    await page.locator('button', { hasText: 'Remove it on this save' }).click()
+    await page.locator('button', { hasText: 'Remove it - there is no way back' }).click()
     await page.waitForSelector('text=The wage law no longer applies')
     const chartered = await page.evaluate(() => {
       const g = window.rugbyStore.getState().game

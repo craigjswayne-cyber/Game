@@ -21,6 +21,7 @@
  * rebuilt from scratch, and it identifies nobody.
  */
 import type { GameState } from './model'
+import { billingReason, lookupReason } from './monetise'
 
 /**
  * Where a report is addressed. ONE constant, because it is the only line to
@@ -171,6 +172,21 @@ export function buildReport(input: ReportInput): string {
   out += line('language', nav.language)
   out += line('browser', nav.userAgent)
   out += '\n'
+
+  // THE TILL'S OWN WORDS BELONG HERE, NOT ON THE SHELF (v1.1.13).
+  //
+  // The store used to print the raw failure under its health line - "getDetails
+  // threw OperationError: clientAppUnavailable" - which is exactly the sentence
+  // that solved a day-long billing fault and exactly the wrong thing to show
+  // somebody who came to buy a 99p thank-you (owner: "few error messages
+  // showing on shop"). It is a diagnostic, so it goes where diagnostics go: in
+  // the report, where it costs nobody a shelf.
+  const till = [lookupReason(), billingReason()].filter(Boolean)
+  if (till.length) {
+    out += 'STORE\n'
+    for (const w of till) out += `${w}\n`
+    out += '\n'
+  }
 
   if (trail.length) {
     out += 'SCREENS BEFORE THIS\n'

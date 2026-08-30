@@ -1,6 +1,6 @@
 {
   "name": "phase-rugby-manager-ios",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "private": true,
   "description": "The iOS shell: a Capacitor wrapper around the built game, with StoreKit 2 billing. Deliberately its OWN npm project - see README.md section 2.",
   "scripts": {

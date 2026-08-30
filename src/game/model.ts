@@ -1351,7 +1351,9 @@ export interface GameState {
    *  of how the estate was built stays on the save. */
   estateMaxed?: boolean
   /** The International Stage (v1.1.4): the call to the federations has been
-   *  made for this save - once per career, however long the career runs. */
+   *  made at least once in this save. A RECORD, not a gate, since v1.1.13 -
+   *  the door is closed by holding a national job, not by having held one, so
+   *  a coach who steps down can pick again (grants.applyPinnacle). */
   pinnacleCalled?: boolean
   /** the week (absolute: season * SEASON_WEEKS + week) the federations answer
    *  the call: when it arrives, season.ts places a real natOffer through the

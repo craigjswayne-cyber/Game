@@ -232,7 +232,7 @@ console.log('\n--- 10. the International Stage APPOINTS, once per career, to the
   ok(g.news.some(n => n.k === 'news.natAppointed'), 'the announcement is filed, keyed')
   ok(g.natKeepAsk === 'NZL', 'and the one real question stands: does he carry on at the club?')
   ok(g.natCall == null && g.natCallNat == null, 'no two-week callback is scheduled - there is nothing left to wait for')
-  ok(!applyPinnacle(g, 'CAN'), 'a career only gets one call')
+  ok(!applyPinnacle(g, 'CAN'), 'and a second call is refused while he holds the job')
 
   // a call with no pick still lands somewhere honest, immediately
   const h = newGame('northampton', 'Grant Probe', 7111)
@@ -265,19 +265,26 @@ console.log('\n--- 10. the International Stage APPOINTS, once per career, to the
   ok(j.news.some(n => n.k === 'news.resigned'), 'with the resignation letter on file')
   ok(!j.natKeepAsk, 'and the question is closed either way')
 
-  // THE STRANDED SAVE. Before v1.1.12 the call placed an offer with a
-  // three-week shelf life, so a career that played on without finding the
-  // letter kept `pinnacleCalled` and got nothing at all - which is exactly
-  // what the owner reported. Loading such a save hands the call back.
-  const { migrate } = await import('../src/game/save')
-  const lost = newGame('northampton', 'Grant Probe', 7114) as Record<string, unknown>
-  lost.pinnacleCalled = true
-  lost.natTeam = null
-  lost.natOffer = null
-  lost.natCall = null
-  migrate(lost as never)
-  ok((lost as { pinnacleCalled?: boolean }).pinnacleCalled === false,
-    'a save whose paid offer expired unseen gets its call back on load')
+  // AND HE CAN PICK AGAIN ONCE HE IS OUT OF IT (owner, v1.1.13: "take a job
+  // and step down then you should then still have the pick a nation and take
+  // offer available to you"). Once-per-career was a leftover from when this
+  // placed a one-time OFFER; an appointment is a job, and resigning a job does
+  // not use up the right to take another - least of all one already paid for.
+  // This also retires the v1.1.12 migration that handed the call back to saves
+  // stranded by an expired offer: there is no longer a flag to hand back.
+  const { closeNatTenure } = await import('../src/game/model')
+  closeNatTenure(g)
+  ok(!g.natTeam, 'he steps down from the national job')
+  ok(applyPinnacle(g, 'CAN'), 'and the federations are open to him again')
+  ok(g.natTeam === 'CAN', `with a nation of his choosing (${g.natTeam})`)
+
+  // being between CLUB jobs is no bar either - jobs.ts already treats a Test
+  // post as standing that survives losing the club
+  const jobless = newGame('northampton', 'Grant Probe', 7115)
+  jobless.unemployed = true
+  ok(applyPinnacle(jobless, 'FIJ'), 'a coach between club jobs can still take a Test job')
+  ok(jobless.natTeam === 'FIJ' && !jobless.natKeepAsk,
+    'and is asked nothing about a club he does not have')
 }
 
 

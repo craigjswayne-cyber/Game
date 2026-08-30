@@ -203,6 +203,47 @@ try {
   await page.waitForTimeout(500)
   await report('fixtures')
 
+  // ---- THE LOUDEST BUTTON ON THE SCREEN, WHEREVER IT IS DRAWN --------------
+  //
+  // Owner, v1.1.13, of Match Day: "kick off is still left?" - and it was.
+  //
+  // Portrait wraps the masthead onto two rows, and the rules that stretch the
+  // control across row two only ever reached the APP masthead, whose moon and
+  // Continue sit inside a .mast-ctl group. Match Day builds its own masthead
+  // with the button as a direct child of the row, so it wrapped at its natural
+  // width and sat hard against the left edge while every other screen's
+  // Continue ran the full width. Two screens, one control, two places for the
+  // thumb to go.
+  //
+  // So the claim is about the control rather than the screen: wherever a
+  // masthead offers Continue in portrait, it spans the row.
+  const mastheadBtn = async (where) => {
+    const m = await page.evaluate(() => {
+      const row = document.querySelector('.masthead-row')
+      const btn = document.querySelector('.masthead .continue-btn')
+      if (!row || !btn) return null
+      const r = row.getBoundingClientRect(), b = btn.getBoundingClientRect()
+      return { rowW: Math.round(r.width), btnW: Math.round(b.width), label: btn.textContent.trim() }
+    })
+    if (!m) { console.log(`--- masthead (${where}): no Continue on this screen`); return }
+    const share = m.btnW / m.rowW
+    console.log(`--- masthead (${where}): "${m.label}" ${m.btnW}px of ${m.rowW}px (${Math.round(share * 100)}%)`)
+    ok(share >= 0.6,
+      `${where}: the masthead button spans its row rather than hugging one edge (${Math.round(share * 100)}%)`)
+  }
+  await mastheadBtn('home')
+  await page.evaluate(() => {
+    const st = window.rugbyStore.getState(); const g = st.game
+    for (const n of g.news) { n.read = true; n.cleared = true }
+    for (const p of g.press) p.answered = true
+    st.go('matchday')
+  })
+  await page.waitForTimeout(600)
+  await mastheadBtn('match day')
+  await report('match day')
+  await page.evaluate(() => window.rugbyStore.getState().home())
+  await page.waitForTimeout(400)
+
   // ---- the day bulletin, which is where Continue now lands between matches
   // The day name is the loudest thing on the screen by design, so it is also the
   // most likely thing to be truncated on 412px. Measured like any other page.
