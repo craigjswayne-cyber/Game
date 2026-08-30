@@ -1,10 +1,19 @@
 // What lands in the inbox on the worst week of the year?
 //
-// The soak says news pressure averages 7.6 items a week with a p95 of 13 and a
-// peak of 33. A 33-item week is a wall of unread mail on a phone: the manager
-// scrolls past the things that matter to find the one that does. This finds the
-// weeks that spike and breaks them down by type and subject, so the fix can be
-// aimed at whichever beat fires in bulk rather than at the feed in general.
+// A wall of unread mail on a phone is a manager scrolling past the things that
+// matter to find the one that does, so this walks six seasons and breaks the
+// worst weeks down by type and by SUBJECT - aiming a fix at whichever beat is
+// firing in bulk rather than at the feed in general.
+//
+// The history is the point of keeping it. It read a peak of 33 when it was
+// written. In v1.1.12 the owner asked again - "tighten up the volume of text.
+// is it essential, is it clear" - and this said exactly where to look: mean
+// 9.7, p95 17, peak 25, with SIX of that peak week's items the same
+// word-from-camp story wearing different flags, one per Test that happened to
+// use one of your men. Collapsing three or more of those into a single
+// round-up (season.ts) took it to mean 7.0, p95 13, peak 23 - and what is left
+// at the peak is a season rollover, which is genuinely the fullest week of the
+// year and is now read in one pass by the Wire rather than one tap per story.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'

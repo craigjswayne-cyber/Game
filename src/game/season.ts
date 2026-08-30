@@ -1629,6 +1629,21 @@ export function processWeekAndAdvance(state: GameState) {
   // should get one report"). Ratings are a deterministic gate on (seed,
   // fixture, player) - never the weekly stream, so the sim is untouched.
   if (!state.unemployed) {
+    // A WEEK OF TESTS IS ONE WEEK, NOT SIX STORIES (owner, v1.1.12: "tighten up
+    // the volume of text. is it essential, is it clear").
+    //
+    // scripts/newspeak.ts measured the worst inbox in six seasons at 25 items,
+    // SIX of them this same story with different flags on it - one per Test
+    // that happened to use one of your men, which on a full international
+    // weekend is most of them. Six near-identical cards is not six pieces of
+    // news, it is one piece of news filed six times, and it is the same fault
+    // the academy heirs and the assistant's Saturday were both fixed for.
+    //
+    // So the reports are gathered first and the count decides the shape: one
+    // or two Tests keep their own headline, because a single man's afternoon
+    // deserves its own card; three or more become one word-from-camp round-up
+    // with every Test in it.
+    const reports: { fx: Fixture; lines: { rating: number; row: Record<string, string | number>; text: string }[] }[] = []
     for (const fx of thisWeek) {
       const icomp = state.comps[fx.compId]
       if (!icomp || icomp.type !== 'intl') continue
@@ -1641,8 +1656,6 @@ export function processWeekAndAdvance(state: GameState) {
           .filter((p): p is Player => !!p && p.clubId === state.userClubId)
           .map(p => ({ p, nat })))
       if (!away.length) continue
-      const hName = nationNameIn('en', fx.homeId)
-      const aName = nationNameIn('en', fx.awayId)
       const lines = away.map(({ p, nat }) => {
         const rr = mulberry32((state.seed ^ Math.imul(fx.id, 31) ^ Math.imul(p.id, 2654435761)) >>> 0)
         const won = nat === fx.homeId ? fx.homeScore > fx.awayScore : fx.awayScore > fx.homeScore
@@ -1652,20 +1665,48 @@ export function processWeekAndAdvance(state: GameState) {
         const row = { k: 'news.capLine', player: p.name, nat_k: `nation.${nat}`, rating: rating.toFixed(1), word_k: wordKey }
         return { rating, row, text: tIn('en', row.k, row) }
       }).sort((a, b) => b.rating - a.rating)
-      const shown = lines.slice(0, 4).map(l => l.text)
-      const more = lines.length - shown.length
+      reports.push({ fx, lines })
+    }
+
+    if (reports.length <= 2) {
+      for (const { fx, lines } of reports) {
+        const hName = nationNameIn('en', fx.homeId)
+        const aName = nationNameIn('en', fx.awayId)
+        const shown = lines.slice(0, 4).map(l => l.text)
+        const more = lines.length - shown.length
+        state.news.push({
+          id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+          subject: `🌍 ${hName} ${fx.homeScore}-${fx.awayScore} ${aName}: how your men got on`,
+          body: shown.join('\n') + (more > 0 ? `\nAnd ${more} more of yours came through it fine.` : ''),
+          k: more > 0 ? 'news.capsMore' : 'news.caps',
+          v: {
+            home_k: `nation.${fx.homeId}`, away_k: `nation.${fx.awayId}`,
+            hs: fx.homeScore, as: fx.awayScore,
+            rows_ll: JSON.stringify(lines.slice(0, 4).map(l => l.row)), n: more,
+          },
+          playerIds: lines.slice(0, 6).map(l => Number(l.row.playerId ?? 0)).filter(Boolean),
+          fixtureId: fx.id,
+        })
+      }
+    } else if (reports.length) {
+      // one card, every Test on it, best man from each named
+      const blocks = reports.map(({ fx, lines }) => ({
+        k: 'news.campBlock',
+        home_k: `nation.${fx.homeId}`, away_k: `nation.${fx.awayId}`,
+        hs: fx.homeScore, as: fx.awayScore,
+        best: lines[0].row.player as string,
+        rating: lines[0].row.rating as string,
+        word_k: lines[0].row.word_k as string,
+        rest_k: lines.length > 1 ? 'news.campBlockRest' : 'common.nothing',
+        n: lines.length - 1,
+      }))
+      const men = reports.reduce((n, r) => n + r.lines.length, 0)
+      const v = { n: men, tests: reports.length, blocks_ll: JSON.stringify(blocks) }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-        subject: `🌍 ${hName} ${fx.homeScore}-${fx.awayScore} ${aName}: how your men got on`,
-        body: shown.join('\n') + (more > 0 ? `\nAnd ${more} more of yours came through it fine.` : ''),
-        k: more > 0 ? 'news.capsMore' : 'news.caps',
-        v: {
-          home_k: `nation.${fx.homeId}`, away_k: `nation.${fx.awayId}`,
-          hs: fx.homeScore, as: fx.awayScore,
-          rows_ll: JSON.stringify(lines.slice(0, 4).map(l => l.row)), n: more,
-        },
-        playerIds: away.slice(0, 6).map(x => x.p.id),
-        fixtureId: fx.id,
+        subject: tIn('en', 'news.campRoundSubj', v),
+        body: tIn('en', 'news.campRound', v),
+        k: 'news.campRound', v,
       })
     }
   }
