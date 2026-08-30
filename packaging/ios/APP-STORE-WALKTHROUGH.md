@@ -292,6 +292,32 @@ Your app → *Monetization* → *In-App Purchases* → **+**.
 Do **not** create `phase.supporter` (Remove all ads) until a build actually ships
 ads. Never create `phase.editor` — removed before any store sold one.
 
+> **Why Xcode said 99 cents and Play says £1.19.** Two different things, and
+> neither of them is a bug in the game.
+>
+> **Xcode's $0.99** was never Apple's price. It came from
+> `packaging/ios/Products.storekit`, the LOCAL test configuration Xcode reads
+> when there is no App Store behind the build. It carried bare decimals with no
+> storefront named, so Xcode used its default one — the United States — and drew
+> `0.99` as `$0.99`. The file now names `"_storefront": "GBR"`, so a test build
+> quotes pounds. Apple has still never quoted a price for these products: they
+> do not exist in App Store Connect until step 15 above creates them.
+>
+> **Play's £1.19** is real, and it is a Console setting rather than code. Play
+> Console → *Monetise* → *Products* → each product → *Set price* has a choice of
+> quoting **inclusive** or **exclusive** of tax, and ours is set to exclusive:
+> 99p becomes 99p + 20% VAT = £1.19 at the till. Switch each product to
+> **tax-inclusive** and the buyer pays the 99p the game's button promises.
+>
+> **When you create the Apple products,** pick the price POINT for £0.99 (Tier
+> "£0.99" in the UK) rather than typing a number. App Store prices shown to UK
+> customers are already tax-inclusive, so £0.99 is what is charged — which makes
+> the two stores agree, which is the point.
+>
+> The catalogue's own figures are in `src/game/monetise.ts` (`REFERENCE_PRICES`),
+> and `scripts/moneyprobe.ts` fails if `Products.storekit` ever drifts from them
+> or loses its storefront.
+
 ### 16. Take the screenshots
 
 ```sh
