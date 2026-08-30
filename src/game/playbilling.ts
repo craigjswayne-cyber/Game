@@ -193,21 +193,35 @@ export async function playBridge(): Promise<BillingBridge | null> {
       if (why === 'buy') setBillingReason(`${sku} was paid for but Play returned no purchase token, so it cannot be acknowledged`)
       return false
     }
-    // EVERY LEVER THIS SERVICE OWNS, IN TURN, UNTIL ONE LANDS.
+    // EVERY LEVER THIS SERVICE OWNS, IN TURN, UNTIL ONE LANDS - AND FOR A
+    // CONSUMABLE, CONSUME IS THE ONE THAT MATTERS.
     //
-    // The old code picked one and stopped: if acknowledge() existed it was
-    // used and consume() was never reached, so an acknowledge() that THREW
-    // took the purchase down with it even where consume() would have settled
-    // it perfectly well. A refund is what a wrong guess costs, so guess twice.
+    // Two bugs have now lived in these six lines, and they are opposites.
+    // The first picked one lever and stopped, so an acknowledge() that THREW
+    // took the purchase down with it. The fix for that built a list and tried
+    // each in turn - but put acknowledge FIRST and returned on the first
+    // success, which means consume() was still never reached on a consumable.
+    //
+    // Those are not interchangeable. Acknowledging stops Play refunding the
+    // purchase in three days; only CONSUMING gives the product back to the
+    // shelf. Acknowledge a consumable and it is paid for, kept, and owned
+    // forever - so the next tap on that row is met with Play's own dialog,
+    // "You already own this item", on a product whose entire point is that you
+    // can buy it again (owner, v1.1.16: "Error message saying i already own
+    // this message but this should be good to buy again and again").
+    //
+    // So the order is by KIND, not by convenience: a consumable spends first
+    // and acknowledges only if spending fails; everything else acknowledges.
+    // Both stay in the list, because either landing beats a refund.
     const levers: { name: string; run: () => Promise<void> }[] = []
+    // The sweep is choosier about WHICH consumables it may spend - see below.
+    const maySpend = consumable && typeof svc.consume === 'function' &&
+      (why === 'buy' || SPENDABLE_UNASKED.includes(sku))
+    if (maySpend) {
+      levers.push({ name: 'consume', run: () => svc.consume!(token) })
+    }
     if (typeof svc.acknowledge === 'function') {
       levers.push({ name: 'acknowledge', run: () => svc.acknowledge!(token, consumable ? 'repeatable' : 'onetime') })
-    }
-    // Spending a consumable acknowledges it as a side effect, which is the
-    // only lever Digital Goods 2.0 offers for one. The sweep is choosier about
-    // WHICH consumables it may spend - see below.
-    if (consumable && typeof svc.consume === 'function' && (why === 'buy' || SPENDABLE_UNASKED.includes(sku))) {
-      levers.push({ name: 'consume', run: () => svc.consume!(token) })
     }
     let last = 'this Digital Goods service offers neither acknowledge() nor consume()'
     for (const lever of levers) {

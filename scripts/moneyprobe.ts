@@ -339,7 +339,22 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   ok(price === new Intl.NumberFormat(undefined, { style: 'currency', currency: 'GBP' }).format(0.99),
     `the store's own figure is rendered as money, not "0.99 GBP" (${price})`)
   ok(await M.buyConsumable(M.HEAL_SKU) === 'owned', 'a consumable can be bought at all')
-  ok(calls.includes('ack:tok-new:repeatable'), 'and is acknowledged as repeatable, not as a one-time buy')
+
+  // A CONSUMABLE IS SPENT, NOT MERELY ACKNOWLEDGED.
+  //
+  // These are not two names for the same call. Acknowledging stops Play
+  // refunding the purchase after three days; only CONSUMING gives the product
+  // back to the shelf. A consumable that is acknowledged and not consumed is
+  // paid for, kept, and owned forever - and the next tap on that row gets
+  // Play's own dialog, "You already own this item", on a product whose entire
+  // point is that it can be bought again (owner, v1.1.16: "Error message
+  // saying i already own this message but this should be good to buy again
+  // and again").
+  //
+  // This probe used to assert the acknowledge and stop, which is why the fault
+  // shipped: the assertion named the lever that leaves the customer stuck.
+  ok(calls.includes('consume:tok-new'),
+    `the purchase just made is SPENT, so the shelf gets it back (${calls.join(' ') || 'nothing called'})`)
   await M.consume(M.HEAL_SKU)
   ok(calls.includes('consume:tok-heal'), 'consuming by SKU finds the purchase TOKEN and spends it')
   ok(!(await b!.owned()).includes(M.HEAL_SKU), 'so Play will sell it again')
