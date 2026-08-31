@@ -24,24 +24,42 @@ interface Speciality {
   hint: string
 }
 
-const SPECIALITIES: Speciality[] = [
+/**
+ * TEN GAMES BEFORE ANY OF THEM (owner, v1.1.17: "you shouldnt earn coaching
+ * specialities before 10 games - with them being harder to get").
+ *
+ * Several of these read the WORLD rather than the manager's record - `manman`
+ * takes the squad's average morale, `youth` counts academy men with an
+ * appearance to their name - and the world is already there when he arrives.
+ * Checked before writing this: no club in the game starts above the old
+ * thresholds, so none of them fired on day one. What was missing is a floor
+ * that says so on purpose rather than by luck, and holds when the world drifts
+ * or a club is added.
+ *
+ * So one gate over all of them - the manager's own match count - and the
+ * cheapest thresholds raised, because "harder to get" is the second half of
+ * the ask and a gate alone would only delay the same rewards to game eleven.
+ */
+export const SPEC_MIN_GAMES = 10
+
+export const SPECIALITIES: Speciality[] = [
   {
     id: 'youth', name: 'profile.specYouth', icon: '🌱',
     desc: 'profile.specYouthDesc',
     earned: g => Object.values(g.players).filter(p =>
-      p.clubId === g.userClubId && p.youth && (p.stats.apps > 0 || p.career.some(c => c.apps > 0))).length >= 3,
+      p.clubId === g.userClubId && p.youth && (p.stats.apps > 0 || p.career.some(c => c.apps > 0))).length >= 5,
     hint: 'profile.specYouthHint',
   },
   {
     id: 'dealer', name: 'profile.specDealer', icon: '🤝',
     desc: 'profile.specDealerDesc',
-    earned: g => g.mgr.signings >= 8,
+    earned: g => g.mgr.signings >= 12,
     hint: 'profile.specDealerHint',
   },
   {
     id: 'tactician', name: 'profile.specTactician', icon: '🧠',
     desc: 'profile.specTacticianDesc',
-    earned: g => g.mgr.m >= 20 && g.mgr.w / Math.max(1, g.mgr.m) >= 0.6,
+    earned: g => g.mgr.m >= 30 && g.mgr.w / Math.max(1, g.mgr.m) >= 0.62,
     hint: 'profile.specTacticianHint',
   },
   {
@@ -61,7 +79,7 @@ const SPECIALITIES: Speciality[] = [
     desc: 'profile.specManmanDesc',
     earned: g => {
       const squad = g.clubs[g.userClubId]?.players.map(id => g.players[id]).filter(Boolean) ?? []
-      return squad.length > 0 && squad.reduce((s, p) => s + p!.morale, 0) / squad.length >= 7.4
+      return squad.length > 0 && squad.reduce((s, p) => s + p!.morale, 0) / squad.length >= 7.8
     },
     hint: 'profile.specManmanHint',
   },
@@ -272,7 +290,9 @@ export default function Profile() {
       <SectionTitle sub={t('profile.specialitiesSub')}>{t('profile.specialities')}</SectionTitle>
       <div className="spec-grid">
         {SPECIALITIES.map(s => {
-          const has = s.earned(game)
+          // the gate is here rather than inside each `earned`, so there is one
+          // rule to read and no way to add a tenth speciality that forgets it
+          const has = game.mgr.m >= SPEC_MIN_GAMES && s.earned(game)
           return (
             <div key={s.id} className={`spec-tile${has ? ' on' : ''}`}>
               <span className="ico">{s.icon}</span>
