@@ -194,6 +194,13 @@ export function worldNames(state: { players: Record<number, { name: string }> })
  *  thirty-two men, of whom 23 dress on the day. */
 export const NAT_SQUAD_SIZE = 32
 
+/** The floor a Test squad can be trimmed to: a matchday 23 plus cover.
+ *
+ *  It lived in country.ts, which imports from season.ts - so season.ts could
+ *  not read it back without a cycle, and season.ts needs it from v1.1.17: the
+ *  coach names his own squad now, and the engine has to know what "named" is. */
+export const NAT_SQUAD_FLOOR = 23
+
 /**
  * How many players beyond the travelling squad a generated nation carries.
  *

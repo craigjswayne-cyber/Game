@@ -24,7 +24,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -673,6 +673,41 @@ function manageInternationals(state: GameState, rng: Rng) {
         // merged in rating order, and a squad that is not the best of its own
         // pool is not a selection.
         pool.sort((a, b) => b.ca - a.ca)
+        // ---- THE COACH NAMES HIS OWN SQUAD ----
+        //
+        // Owner, v1.1.17: "dont auto pick the squad, it should be the coaches
+        // job to pick them."
+        //
+        // Every nation's squad was assembled here, the user's included, and the
+        // country desk was handed a finished list to fiddle with. That is the
+        // wrong way round for the one job the international game is FOR: the
+        // squad is the decision, and it was being made for him before he saw a
+        // name.
+        //
+        // So his nation's camp opens EMPTY and waits. Everybody else's is
+        // picked exactly as before - thirty other federations naming squads is
+        // world simulation, not a decision anybody is taking. The pool is still
+        // built either way, because it is what the desk offers him to pick
+        // from, and because the men in it need to exist.
+        //
+        // The camp cannot stay empty forever: nameNatSquad below fills it from
+        // this same pool if the coach has not named it by the time a Test
+        // arrives, so a Test is never played with twelve men.
+        if (nat === state.natTeam) {
+          state.natSquads[nat] = []
+          // THE SUMMONS, not an announcement. The federation is waiting on him
+          // rather than handing him a team sheet, and it says so in the inbox
+          // as well as holding Continue - one of those is a reminder and the
+          // other is a wall, and a job this big deserves both.
+          const v = { ...nationVars(nat), n: NAT_SQUAD_FLOOR }
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+            subject: tIn('en', 'news.natNameSubj', v),
+            body: tIn('en', 'news.natName', v),
+            k: 'news.natName', v,
+          })
+          continue
+        }
         const travelling = pool.slice(0, w.size)
         state.natSquads[nat] = travelling.map(p => p.id)
         for (const p of travelling) {
@@ -1642,6 +1677,13 @@ export function processWeekAndAdvance(state: GameState) {
   // suite has been measuring a world where the manager's club never had a board
   // reaction. Remembering the fixture here is the fix; the check below no longer
   // depends on who happened to play it.
+  // ---- THE ASSISTANT NAMES WHAT THE COACH DID NOT ----
+  //
+  // The camp opens empty and Continue holds until a legal squad is named, so in
+  // ordinary play this never fires. It exists for the ways round that hold: an
+  // old save loaded mid-window, a nation too thin to reach the floor, a coach
+  // appointed after the camp opened. A Test is never played with twelve men.
+  fillShortNatSquad(state)
   const thisWeek = state.fixtures.filter(f => f.week === state.week && !f.played)
   let simmedUserFx: Fixture | null = null
   for (const fx of thisWeek) {
@@ -3464,3 +3506,42 @@ export function processWeekAndAdvance(state: GameState) {
   // (derby build-up now lives in the pre-advance block above, with the
   // all-time ledger - the old duplicate beat here was removed)
 }
+
+/**
+ * Top a short Test squad up to the floor, from the men actually available.
+ *
+ * Only ever the USER's nation - everyone else's is picked in full by
+ * manageInternationals. Only ever when a Test for that nation falls this week,
+ * because until then the empty sheet IS the job and filling it would be the
+ * auto-pick the owner asked us to stop doing.
+ */
+function fillShortNatSquad(state: GameState) {
+  const nat = state.natTeam
+  if (!nat || state.unemployed) return
+  const playing = state.fixtures.some(f =>
+    !f.played && f.week === state.week && (f.homeId === nat || f.awayId === nat))
+  if (!playing) return
+  const named = state.natSquads[nat] ?? []
+  if (named.length >= NAT_SQUAD_FLOOR) return
+  const inCamp = new Set(named)
+  const spare = Object.values(state.players)
+    .filter(p => !inCamp.has(p.id) && (nat === 'LIO' ? HOME4_NAT.includes(p.nat) : p.nat === nat) &&
+      p.clubId && homeBased(state, p, nat) && !p.injury && !p.natSquad)
+    .sort((a, b) => b.ca - a.ca)
+    .slice(0, NAT_SQUAD_FLOOR - named.length)
+  if (!spare.length) return
+  for (const p of spare) {
+    named.push(p.id)
+    p.natSquad = true
+  }
+  state.natSquads[nat] = named
+  const v = { ...nationVars(nat), n: spare.length }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+    subject: tIn('en', 'news.natFilledSubj', v),
+    body: tIn('en', 'news.natFilled', v),
+    k: 'news.natFilled', v,
+  })
+}
+
+const HOME4_NAT = ['ENG', 'IRE', 'SCO', 'WAL']

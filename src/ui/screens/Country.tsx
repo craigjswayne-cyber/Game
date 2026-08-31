@@ -53,7 +53,22 @@ export default function Country() {
   const club = game.unemployed ? null : game.clubs[game.userClubId]
   const w = natWindow(game)
   const squad = (game.natSquads[natId] ?? []).map(id => game.players[id]).filter(Boolean)
-  const pool = natEligible(game)
+  // ---- THE COACHES' PICKS, AT THE TOP ----
+  //
+  // Owner, v1.1.17: "Showing who is available with recommended/in form at top."
+  //
+  // natEligible ranks on ability alone, which is the honest ranking of who is
+  // BEST and not of who you would pick this month. A selection meeting looks at
+  // the man in form as hard as it looks at the man on paper, so the desk sorts
+  // on both: ability, plus what he has actually been doing. Form runs 1-10 and
+  // sits around 5, so the lift is worth a handful of ability points either way -
+  // enough to move a man up the page, never enough to put a journeyman above a
+  // Lion.
+  const recommend = (p: { ca: number; form: number }) => p.ca + (p.form - 5) * 2.2
+  const pool = [...natEligible(game)].sort((a, b) => recommend(b) - recommend(a))
+  // IN FORM is a fact about the man, not about the sort: it is called out on
+  // the row so the reason he has climbed is visible rather than implied.
+  const inForm = (p: { form: number }) => p.form >= 7
   const testFx = natFixtureThisWeek(game)
   const upcoming = game.fixtures
     .filter(f => !f.played && (f.homeId === natId || f.awayId === natId))
@@ -75,6 +90,9 @@ export default function Country() {
       <td style={{ width: 34 }}><PosBadge pos={p.pos} /></td>
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
         {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
+        {/* the reason he is near the top, said out loud rather than implied by
+            the sort order (owner: "recommended/in form at top") */}
+        {!inSquad && inForm(p) && <span style={{ color: 'var(--text-positive)', fontWeight: 700 }}> {t('legacy.coInForm')}</span>}
       </td>
       <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
       <td style={{ width: 64, textAlign: 'right' }}>
@@ -171,9 +189,36 @@ export default function Country() {
           <SectionTitle sub={t('legacy.coSquadSub', { max: w.size, floor: NAT_SQUAD_FLOOR })}>
             {t('legacy.coTestSquad', { n: squad.length, max: w.size })}
           </SectionTitle>
-          <div className="meta" style={{ padding: '0 16px 4px' }}>
-            {t('legacy.coWindowOpen')}
-          </div>
+          {/* ---- THE SUMMONS ----
+              Owner, v1.1.17: "the game stopping and asking the international
+              coach to select his squad... It needs to be more obvious."
+              The sheet starts blank and Continue is held until it is legal, so
+              the desk has to say what is owed and offer a way through that is
+              still a decision. The suggestion fills the sheet with the coaches'
+              own order - the same recommendation the pool is sorted by - and he
+              is free to tear it up: naming it in one tap is a choice he makes,
+              which is not the same as it being made for him. */}
+          {squad.length < NAT_SQUAD_FLOOR ? (
+            <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
+              <b>{t('legacy.coNameIt', { n: NAT_SQUAD_FLOOR - squad.length })}</b>
+              <div className="meta" style={{ marginTop: 2 }}>{t('legacy.coNameItSub', { floor: NAT_SQUAD_FLOOR, max: w.size })}</div>
+              <button className="btn gold block" style={{ marginTop: 8 }}
+                onClick={() => {
+                  for (const p of pool) {
+                    if ((game.natSquads[natId] ?? []).length >= w.size) break
+                    natCallUp(game, p.id)
+                  }
+                  void persist()
+                  redraw(n => n + 1)
+                }}>
+                {t('legacy.coTakeSuggestion')}
+              </button>
+            </div>
+          ) : (
+            <div className="meta" style={{ padding: '0 16px 4px' }}>
+              {t('legacy.coWindowOpen')}
+            </div>
+          )}
           {/* THE SHAPE OF THE SQUAD, BEFORE THE NAMES.
               A coach picking a party of 32 is not reading a list, he is
               counting shirts - two hookers is a crisis and four is a waste,

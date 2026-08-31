@@ -2133,6 +2133,7 @@
     "day3": "Jeudi",
     "day4": "Vendredi",
     "day5": "Samedi",
+    "deskSquad": "Nommez encore {n} ▸",
     "deskPress": "Salle de presse",
     "deskPressN": "Salle de presse ({n})",
     "deskRead": "Lire ({n})",
@@ -2653,6 +2654,10 @@
     "coTests": "Tests",
     "coNoTests": "Aucun test au calendrier cette saison pour l'instant.",
     "coFullTables": "Les classements complets et toutes les compétitions sont sur l'écran Rugby international.",
+    "coNameIt": "Nommez votre groupe - encore {n}",
+    "coNameItSub": "Au moins {floor}, jusqu'à {max}. Touchez Convoquer sur n'importe qui ci-dessous, ou prenez la liste du staff et changez ce que vous voulez.",
+    "coTakeSuggestion": "Prendre le groupe du staff",
+    "coInForm": "EN FORME",
     "coCaps": {
       "one": " · {n} sélection",
       "other": " · {n} sélections"
@@ -3161,6 +3166,10 @@
     "drawTailAway": "Faites taire le public tôt et tout devient possible.",
     "finalsWeekendSubj": "🏟️ WEEK-END DES FINALES : {city} accueille le sommet européen",
     "finalsWeekend": "{venue} accueillera les deux finales européennes cette saison : le Bouclier continental vendredi soir, la Coupe continentale samedi. {seats} places à {city}, tout le rugby en visite. Huit quarts-de-finalistes tiennent dans chaque épreuve, et tous ont entouré la date.",
+    "natNameSubj": "📋 {nationCap_k} : nommez votre groupe",
+    "natFilledSubj": "📋 {nationCap_k} : l'adjoint a comblé les trous",
+    "natFilled": "Le coup d'envoi approchait et le groupe était incomplet : votre adjoint a ajouté {n} joueurs pour faire le nombre. Ils sont retenus au mérite, pas selon votre jugement - au prochain rassemblement, nommez-le vous-même.",
+    "natName": "Le rassemblement est ouvert et la feuille est vierge. {nationCap_k} doit nommer au moins {n} joueurs avant le premier test - le bureau des sélections présente tous les disponibles, les choix du staff en tête. Celui-là est le vôtre : personne ne le fera à votre place.",
     "natSquadSubj": "📋 Votre sélection {nation_k} est annoncée",
     "natSquad": "La fédération a publié votre groupe de {n} joueurs pour la fenêtre. {caps_k}\n\nAVANTS : {fwd}\n\nARRIÈRES : {bks}\n\nComposez le groupe et choisissez votre XV de départ depuis l'écran Club et sélection avant chaque match.",
     "natSquadNew": {

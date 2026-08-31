@@ -11,18 +11,16 @@
 import type { GameState, Player } from './model'
 import { clamp } from './rng'
 import { activeWindows } from './season'
-import { NAT_SQUAD_SIZE, homeBased } from './nations'
+import { NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, homeBased } from './nations'
 import { t } from './i18n'
 
 const HOME4 = ['ENG', 'IRE', 'SCO', 'WAL']
 
-/** The floor a Test squad can be trimmed to: a matchday 23 plus cover. */
-export const NAT_SQUAD_FLOOR = 23
-
-// the squad size and the home-based rule live in nations.ts, because the
-// season engine builds the federation's own list and must obey the same two
-// rules the coach does - and country.ts already imports from season.ts
-export { NAT_SQUAD_SIZE, homeBased } from './nations'
+// the squad size, the floor and the home-based rule live in nations.ts,
+// because the season engine builds the federation's own list and must obey the
+// same rules the coach does - and country.ts already imports from season.ts,
+// so season.ts cannot import back from here
+export { NAT_SQUAD_SIZE, NAT_SQUAD_FLOOR, homeBased } from './nations'
 
 /** The open call-up window for the user's nation, or null between windows.
  *  Open means the squad exists AND the calendar says the window is running -
@@ -121,4 +119,24 @@ export function weeksToSquad(state: GameState): number | null {
     .map(w => w.start)
     .sort((a, b) => a - b)
   return starts.length ? starts[0] - state.week : null
+}
+
+/**
+ * THE HOLD: does the coach still owe his country a squad?
+ *
+ * One predicate, read by continueWeek (which acts on it) and by the Continue
+ * button (which labels itself from it) - the same contract the press hold uses,
+ * because a button that says Continue and then refuses is the illegible gate
+ * this codebase has now fixed twice.
+ */
+export function natSquadHold(state: GameState): { n: number } | null {
+  const nat = state.natTeam
+  if (!nat || state.unemployed) return null
+  if (!natWindow(state)) return null
+  const named = (state.natSquads[nat] ?? []).length
+  const short = NAT_SQUAD_FLOOR - named
+  if (short <= 0) return null
+  // only a hold that can be cleared is a hold - see days.ts squadBlock
+  if (named + natEligible(state).length < NAT_SQUAD_FLOOR) return null
+  return { n: short }
 }
