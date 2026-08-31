@@ -23,7 +23,7 @@ export const KIT_TRIM: Record<string, string> = {
   // Premier Division
   bath: '#000000',        // navy and white hoops, edged black
   bristol: '#29a8e0',     // sky pinstripes between the navy and white
-  harlequins: '#7fd0f0',  // the light blue among the quarters
+  harlequins: '#ffffff',  // white collar and cuffs, over the four quarters
   leicester: '#ffffff',   // white between the green and the red
   northampton: '#f2c200', // the gold line at every hoop
   // Elite 14
@@ -75,7 +75,10 @@ export const KIT_QUARTERS: Record<string, [string, string, string, string]> = {
  * has always drawn, which is why this file lists one club rather than eleven.
  */
 export const KIT_HOOPS: Record<string, { n: number; h: number }> = {
-  northampton: { n: 5, h: 3 },
+  // Four green bands with black between them of about the same width. Five at
+  // h=3 filled the shirt and it read as a GREEN jersey with gold lines, which
+  // is the opposite of the photograph: Northampton is black, banded green.
+  northampton: { n: 4, h: 2.4 },
 }
 
 /**
@@ -108,5 +111,8 @@ export const KIT_CYCLE: Record<string, string[]> = {
  * keeps two matching sleeves.
  */
 export const KIT_SLEEVES: Record<string, [string, string]> = {
-  harlequins: ['#c8102e', '#1f7a3f'],
+  harlequins: ['#a4193d', '#1f7a3f'],
+  // an all-hoop shirt has no second colour to fall back on, and Bath's sleeves
+  // are plain blue under a white cuff
+  bath: ['#003c71', '#003c71'],
 }

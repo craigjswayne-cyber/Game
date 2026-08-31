@@ -22,7 +22,7 @@
  * Run: npx vite-node scripts/kitprobe.ts
  */
 import { readFileSync } from 'node:fs'
-import { kitHoops, kitPattern, kitQuarters, kitTrim } from '../src/game/kits'
+import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim } from '../src/game/kits'
 import { newGame } from '../src/game/newgame'
 
 let fails = 0
@@ -145,9 +145,27 @@ const ok = (c: boolean, what: string) => {
   ok(def.n === 3 && def.h === 4,
     `a club that names no weight still draws three broad bands (${def.n} x ${def.h})`)
 
-  const bath = kitHoops('bath')
-  ok(bath.n > def.n && bath.h < def.h,
-    `Bath wears more hoops and thinner ones (${bath.n} x ${bath.h} against ${def.n} x ${def.h})`)
+  // NORTHAMPTON is the club that names a weight: black ground, four green
+  // bands, black gaps of about the same width. Five at h=3 filled the shirt and
+  // it read as a GREEN jersey with gold lines, which is the opposite of the
+  // photograph.
+  const saints = kitHoops('northampton')
+  ok(saints.n !== def.n || saints.h !== def.h,
+    `Northampton names its own weight (${saints.n} x ${saints.h} against ${def.n} x ${def.h})`)
+  ok(saints.h * saints.n < 18 * 0.6,
+    `and leaves more shirt than it covers, so the black still reads (${(saints.h * saints.n).toFixed(1)} of 18)`)
+
+  // BATH IS AN ALL-HOOP SHIRT, which is a different thing again: white, blue
+  // and black bands touching the whole way down with no ground showing. It has
+  // no hoop weight because it has no hoops in the "shirt plus bands" sense.
+  const bath = kitCycle('bath')
+  ok(!!bath && bath.length >= 3, `Bath cycles three colours rather than banding a ground (${bath?.join(' ') ?? 'none'})`)
+  ok(kitCycle('leicester') == null, 'and a club with a ground colour names no cycle')
+
+  // TWO SLEEVES THAT DISAGREE. Quins wear one maroon and one green, which no
+  // rule about "the second colour" can produce.
+  const quins = kitSleeves('harlequins')
+  ok(!!quins && quins[0] !== quins[1], `Quins wear two different sleeves (${quins?.join(' / ') ?? 'matching'})`)
 
   // NOBODY ELSE MOVED. The first attempt derived the band positions for every
   // club from the weight, which shifted Leicester, Northampton and Bristol up

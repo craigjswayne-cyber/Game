@@ -165,9 +165,17 @@ try {
   // state.press. A manager who does not realise a question is REQUIRED cannot
   // tell a gate from a bricked save.
   //
-  // So being made to LOOK is the gate, and being unable to leave is the bug.
-  // One tap takes you to the room; a second from inside it carries on, and the
-  // question expires as an unanswered question always has.
+  // THAT CONTRACT CHANGED IN v1.1.17, ON THE OWNER'S INSTRUCTION: "press
+  // questions MUST be answered when they arrive - you shouldn't be able to
+  // continue through the game." The second tap no longer carries on.
+  //
+  // Which puts the whole weight on the OTHER half of the old reasoning, so this
+  // section now tests that half instead and tests it harder. The danger was
+  // never the hold, it was a hold you cannot tell from a frozen game - so:
+  // the first tap must take you to the room, the second must NOT walk you past
+  // the question, and ANSWERING it must let the week go on. That last line is
+  // the one that stands between this gate and the bricked save it caused the
+  // first time it was tried.
   const held = await page.evaluate(() => {
     const st = window.rugbyStore.getState()
     const g = st.game
@@ -192,8 +200,19 @@ try {
   await page.waitForTimeout(400)
   const three = await state()
   say(`  press hold: ${one.screen} -> ${two.screen} -> ${three.screen}`)
-  ok(three.screen !== 'press',
-    `a second tap from inside the room carries on rather than trapping you (${three.screen})`)
+  ok(three.screen === 'press' && three.press > 0,
+    `a second tap does NOT walk you past the question (${three.screen}, ${three.press} open)`)
+  // AND THE WAY THROUGH IS THE ANSWER. A gate with no way through is a bricked
+  // save; this is the way through, and it has to be one tap on the thing the
+  // screen is asking you to do.
+  await page.locator('.content .btn.ghost').first().click({ timeout: 5000 }).catch(() => {})
+  await page.waitForTimeout(300)
+  const answered = await state()
+  ok(answered.press === 0, `answering it clears the room (${answered.press} open)`)
+  await page.click('.continue-btn').catch(() => {})
+  await page.waitForTimeout(400)
+  const moved = await state()
+  ok(moved.screen !== 'press', `and the week goes on once it is answered (${moved.screen})`)
 
   // ---- 2c. A ROLLOVER PILE IS A READER, NOT FIFTY-FOUR REFUSALS ----------
   //

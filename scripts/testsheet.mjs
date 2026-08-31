@@ -78,10 +78,15 @@ try {
       const test = g.fixtures.some(f => !f.played && f.week === g.week &&
         (f.homeId === g.natTeam || f.awayId === g.natTeam))
       if (test) return true
-      // nothing here depends on the market: clear the desk so a bid cannot
-      // stall the walk
+      // CLEAR THE DESK THE WAY A PLAYER DOES. continueWeek returns early on
+      // every hold this release added - unread mail, an unanswered press
+      // question, an unnamed Test squad - so a driver that only calls
+      // continueWeek spins on the spot forever. None of those is what this
+      // probe is about: it is about one sheet, three screens later.
       g.offers = []
       g.bids = []
+      for (const n of g.news) { n.read = true; n.cleared = true }
+      for (const q of g.press) if (!q.answered) q.answered = true
       // AND NAME THE SQUAD, because from v1.1.17 the coach's camp opens blank
       // and Continue is held until it is legal - which is the point of that
       // change and a wall to a driver that only knows Continue. This is what
@@ -106,16 +111,22 @@ try {
   ok(reached, 'the walk reaches a Test week with the England job in hand')
 
   for (let i = 0; i < 80; i++) {
-    // a window can open during this walk too - keep the camp legal
+    // the desk fills again as the week walks, and every hold stops Continue -
+    // keep it clear and the camp legal, then press on to the sheet
     await page.evaluate(() => {
-      const g = window.rugbyStore.getState().game
+      const st = window.rugbyStore.getState()
+      const g = st.game
+      for (const n of g.news) { n.read = true; n.cleared = true }
+      for (const q of g.press) if (!q.answered) q.answered = true
       const camp = g.natSquads?.[g.natTeam]
-      if (!camp || camp.length >= 23) return
-      const spare = Object.values(g.players)
-        .filter(p => p.nat === g.natTeam && p.clubId && !p.injury && !p.natSquad)
-        .sort((a, b) => b.ca - a.ca)
-        .slice(0, 23 - camp.length)
-      for (const p of spare) { camp.push(p.id); p.natSquad = true }
+      if (camp && camp.length < 23) {
+        const spare = Object.values(g.players)
+          .filter(p => p.nat === g.natTeam && p.clubId && !p.injury && !p.natSquad)
+          .sort((a, b) => b.ca - a.ca)
+          .slice(0, 23 - camp.length)
+        for (const p of spare) { camp.push(p.id); p.natSquad = true }
+      }
+      st.touch()
     })
     if (await page.locator('text=YOUR TEST XV').count() &&
         await page.locator('button', { hasText: /Kick Off/i }).count()) break
