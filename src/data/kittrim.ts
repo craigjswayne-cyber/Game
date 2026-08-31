@@ -73,5 +73,5 @@ export const KIT_QUARTERS: Record<string, [string, string, string, string]> = {
  * has always drawn, which is why this file lists one club rather than eleven.
  */
 export const KIT_HOOPS: Record<string, { n: number; h: number }> = {
-  bath: { n: 6, h: 2.2 },
+  bath: { n: 5, h: 2.1 },
 }

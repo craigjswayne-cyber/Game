@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitHoops, kitPattern, kitQuarters, kitTrim, type KitPattern } from '../game/kits'
+import { KIT_HOOPS } from '../data/kittrim'
 import { t } from '../game/i18n'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
@@ -382,13 +383,31 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
   // own. The band positions are derived from it rather than hard-coded, so a
   // club asking for six thin hoops gets them spread down the same shirt.
   const hoops = kitHoops(club.id)
-  const hoopYs = Array.from({ length: hoops.n }, (_, i) =>
-    Math.round((10 + ((22 - hoops.h) * i) / Math.max(1, hoops.n - 1)) * 10) / 10)
+  // WHERE THE BANDS SIT. The three broad ones have been at 12, 20 and 28 since
+  // they were drawn, and every hooped club in the game is set up around them -
+  // so the default is those numbers exactly, not a formula that happens to be
+  // close. Deriving them shifted Leicester, Northampton, Bristol and the rest
+  // up the shirt to fix Bath, which is not what was asked for.
+  //
+  // A club that names its own weight gets the spread instead: the torso runs
+  // from the shoulders at 8 to the hem at 30, and its hoops are laid between 10
+  // and 28 so the top one clears the collar and the bottom one stays on the
+  // shirt.
+  const hoopYs = KIT_HOOPS[club.id]
+    ? Array.from({ length: hoops.n }, (_, i) =>
+        Math.round((10 + (18 - hoops.h) * i / Math.max(1, hoops.n - 1)) * 10) / 10)
+    : [12, 20, 28]
+  // AND THE TRIM SCALES WITH THE HOOP. It was a flat 0.7 above and below,
+  // which is 1.4 of black against a 4-wide band and 1.4 against a 2-wide one -
+  // so the first attempt at Bath's finer hoops came out as a WHITE shirt with
+  // navy lines on it, the ground swallowed by its own edging. A hairline has to
+  // be a hairline at every weight.
+  const tr = Math.min(0.7, hoops.h / 5.5)
   /** A hoop, and the hairline of trim above and below it. */
   const hoop = (y: number) => (
     <g key={y}>
       <rect x="8" y={y} width="32" height={hoops.h} fill={c2} />
-      {trim && (<><rect x="8" y={y - 0.7} width="32" height="0.7" fill={trim} /><rect x="8" y={y + hoops.h} width="32" height="0.7" fill={trim} /></>)}
+      {trim && (<><rect x="8" y={y - tr} width="32" height={tr} fill={trim} /><rect x="8" y={y + hoops.h} width="32" height={tr} fill={trim} /></>)}
     </g>
   )
   const stripe = (x: number) => (

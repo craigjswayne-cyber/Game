@@ -22,7 +22,7 @@
  * Run: npx vite-node scripts/kitprobe.ts
  */
 import { readFileSync } from 'node:fs'
-import { kitPattern, kitQuarters, kitTrim } from '../src/game/kits'
+import { kitHoops, kitPattern, kitQuarters, kitTrim } from '../src/game/kits'
 import { newGame } from '../src/game/newgame'
 
 let fails = 0
@@ -131,6 +131,39 @@ const ok = (c: boolean, what: string) => {
   ok(/stroke=\{trim\}/.test(sleeveBlock), 'the sleeve trim is a stroke along the sleeve outline')
   ok(!/<rect[^>]*y="13"[^>]*fill=\{trim\}/.test(ui),
     'and the flat band that used to lie across the sleeve is gone')
+}
+
+// ---- how heavy the hoops are, and who is allowed to differ ----
+{
+  // Owner, v1.1.17: "Bath should be blue black and white and smaller stripes."
+  //
+  // The colours were already right - blue ground, white hoops, black edging.
+  // What was wrong is the WEIGHT: every hooped club drew three broad bands,
+  // which suits Leicester and Northampton and does not suit a navy shirt with
+  // fine hoops closely spaced.
+  const def = kitHoops('leicester')
+  ok(def.n === 3 && def.h === 4,
+    `a club that names no weight still draws three broad bands (${def.n} x ${def.h})`)
+
+  const bath = kitHoops('bath')
+  ok(bath.n > def.n && bath.h < def.h,
+    `Bath wears more hoops and thinner ones (${bath.n} x ${bath.h} against ${def.n} x ${def.h})`)
+
+  // NOBODY ELSE MOVED. The first attempt derived the band positions for every
+  // club from the weight, which shifted Leicester, Northampton and Bristol up
+  // the shirt to fix Bath - a change nobody asked for. The default is the three
+  // positions those shirts have always used, written out rather than computed.
+  const ui = readFileSync('src/ui/components.tsx', 'utf8')
+  ok(/\[12, 20, 28\]/.test(ui),
+    'and the default band positions are still 12, 20 and 28, spelled out')
+
+  // A HAIRLINE IS A HAIRLINE AT EVERY WEIGHT. The trim was a flat 0.7 above and
+  // below, which is 1.4 of black against a 4-wide band and 1.4 against a
+  // 2-wide one - so fine hoops came out as a WHITE shirt with navy lines on it,
+  // the ground swallowed by its own edging. Rendered and looked at; this holds
+  // the arithmetic that fixed it.
+  ok(/Math\.min\(0\.7, hoops\.h \/ [\d.]+\)/.test(ui),
+    'and the trim hairline scales with the band it edges')
 }
 
 // ---- and every trim belongs to a club that exists ----
