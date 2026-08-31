@@ -3,8 +3,8 @@ import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
-  adBridge, buyConsumable, buyOwnable, consume, hasEntitlement, hasSupporter,
-  billingReason, pendingConsumables, recordSupport, restore, skuPriceFrom,
+  adBridge, bankReceipts, buyConsumable, buyOwnable, creditCount, creditTake, hasEntitlement, hasSupporter,
+  billingReason, heldConsumables, markXlBought, recordSupport, restore, skuPriceFrom, xlWaitMs,
   supportCount, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
@@ -145,11 +145,14 @@ export default function Supporter() {
   const [pendingInj, setPendingInj] = useState<InjectTier[]>([])
   const say = (sku: string, text: string | null) => setMsgs(m => ({ ...m, [sku]: text }))
 
-  // a heal paid for and not yet applied (a crash, a full-strength squad, a
-  // spent seasonal limit) is surfaced here until it lands - same recovery
-  // promise the Boardroom makes for injections
+  // a heal paid for and not yet applied is surfaced here until it lands.
+  // "Held" means A BANKED CREDIT now (v1.1.18): the purchase is spent with
+  // Play at the till - spending is the only acknowledgement Digital Goods 2.0
+  // has, and Play refunds anything unacknowledged on a clock - and the value
+  // waits in the game's own ledger, where no refund clock can reach it.
+  // Stray receipts from older builds still count, until the sweep banks them.
   useEffect(() => {
-    void pendingConsumables().then(skus => {
+    void heldConsumables().then(skus => {
       setHealPending(skus.includes(HEAL_SKU))
       setPendingInj((Object.keys(INJECT_TIERS) as InjectTier[]).filter(tier => skus.includes(INJECT_SKUS[tier])))
     })
@@ -169,12 +172,14 @@ export default function Supporter() {
 
   const applyHealNow = async () => {
     if (!inCareer) { say(HEAL_SKU, t('store.needCareer')); return }
+    await bankReceipts(HEAL_SKU)
+    if (creditCount(HEAL_SKU) < 1) { setHealPending(false); say(HEAL_SKU, t('store.creditGone')); return }
     if (healSquad()) {
-      await consume(HEAL_SKU)
-      setHealPending(false)
+      creditTake(HEAL_SKU)
+      setHealPending(creditCount(HEAL_SKU) > 0)
       say(HEAL_SKU, t('store.healDone'))
     } else {
-      // Held, not swallowed - and it says WHICH of the two reasons, because
+      // Banked, not swallowed - and it says WHICH of the two reasons, because
       // one message naming both ("nothing to heal, or no match since the last
       // visit") reads as the game not knowing what it did with the money.
       // Same two keys the Full Fitness card uses, so the two doors agree.
@@ -184,10 +189,15 @@ export default function Supporter() {
   }
   const buyHeal = async () => {
     setBusy(true)
-    const out = await buyConsumable(HEAL_SKU)
-    setBusy(false)
-    if (out === 'owned') await applyHealNow()
-    else say(HEAL_SKU, endingText(out))
+    try {
+      // a credit already in the bank means there is nothing to buy - going to
+      // the till anyway is how Google's own "You already own this item" sheet
+      // got in front of the owner (31 Aug, the Medical Centre)
+      await bankReceipts(HEAL_SKU)
+      const out = creditCount(HEAL_SKU) > 0 ? 'owned' as const : await buyConsumable(HEAL_SKU)
+      if (out === 'owned') await applyHealNow()
+      else say(HEAL_SKU, endingText(out))
+    } finally { setBusy(false) }
   }
 
   /** Land a paid injection in this career, and only then spend the receipt -
@@ -195,14 +205,17 @@ export default function Supporter() {
    *  refuses stays owned at the store and is offered back until it lands. */
   const landInjection = async (tier: InjectTier) => {
     if (!inCareer || !game) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
+    const sku = INJECT_SKUS[tier]
+    await bankReceipts(sku)
+    if (creditCount(sku) < 1) { setPendingInj(p => p.filter(x => x !== tier)); say(sku, t('store.creditGone')); return }
     const amount = fmtMoney(injectionCash(game, tier))
     if (boardInject(tier)) {
-      await consume(INJECT_SKUS[tier])
-      setPendingInj(p => p.filter(x => x !== tier))
-      say(INJECT_SKUS[tier], t('till.injLanded', { amount }))
+      creditTake(sku)
+      setPendingInj(p => (creditCount(sku) > 0 ? p : p.filter(x => x !== tier)))
+      say(sku, t('till.injLanded', { amount }))
     } else {
       setPendingInj(p => (p.includes(tier) ? p : [...p, tier]))
-      say(INJECT_SKUS[tier], t('till.injHeld'))
+      say(sku, t('till.injHeld'))
     }
   }
   /** THE TIP JAR. A consumable that grants nothing: buy it, spend the receipt
@@ -213,9 +226,10 @@ export default function Supporter() {
   const buySupport = async () => {
     setBusy(true)
     try {
-      const out = await buyConsumable(SUPPORT_SKU)
+      await bankReceipts(SUPPORT_SKU)
+      const out = creditCount(SUPPORT_SKU) > 0 ? 'owned' as const : await buyConsumable(SUPPORT_SKU)
       if (out === 'owned') {
-        await consume(SUPPORT_SKU)
+        creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
         say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
       } else say(SUPPORT_SKU, endingText(out))
     } finally { setBusy(false) }
@@ -229,10 +243,11 @@ export default function Supporter() {
     if (!inCareer) { say(ESTATE_SKU, t('store.needCareer')); return }
     setBusy(true)
     try {
-      const out = await buyConsumable(GROUND_SKU)
+      await bankReceipts(GROUND_SKU)
+      const out = creditCount(GROUND_SKU) > 0 ? 'owned' as const : await buyConsumable(GROUND_SKU)
       if (out === 'owned') {
         const built = buildEstate()
-        if (built) await consume(GROUND_SKU)
+        if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
         say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
       } else say(ESTATE_SKU, endingText(out))
     } finally { setBusy(false) }
@@ -248,11 +263,22 @@ export default function Supporter() {
      unavailable to click." Every purchase path releases in a finally now. */
   const buyInjection = async (tier: InjectTier) => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
+    const sku = INJECT_SKUS[tier]
     setBusy(true)
     try {
-      const out = await buyConsumable(INJECT_SKUS[tier])
-      if (out === 'owned') await landInjection(tier)
-      else say(INJECT_SKUS[tier], endingText(out))
+      await bankReceipts(sku)
+      const had = creditCount(sku) > 0
+      // the Sugar Daddy calls once a day (real time) - but a credit already
+      // paid for is always collectable, the clock only gates NEW purchases
+      if (tier === 'xl' && !had && xlWaitMs() > 0) {
+        say(sku, t('till.xlWait', { h: Math.max(1, Math.ceil(xlWaitMs() / 3_600_000)) }))
+        return
+      }
+      const out = had ? 'owned' as const : await buyConsumable(sku)
+      if (out === 'owned') {
+        if (!had && tier === 'xl') markXlBought()
+        await landInjection(tier)
+      } else say(sku, endingText(out))
     } finally { setBusy(false) }
   }
 
@@ -439,7 +465,9 @@ export default function Supporter() {
                     {baseCap != null && <> {t('till.injWage', { weekly: fmtWage(Math.round(INJECT_TIERS[tier].wage * baseCap)) })}</>}
                   </div>
                 </div>
-                {left > 0 && <BuyBtn sku={sku} busy={busy} onBuy={() => void buyInjection(tier)} />}
+                {left > 0 && (tier === 'xl' && xlWaitMs() > 0 && creditCount(sku) < 1
+                  ? <span className="chip" style={{ flexShrink: 0 }}>{t('till.xlTomorrow')}</span>
+                  : <BuyBtn sku={sku} busy={busy} onBuy={() => void buyInjection(tier)} />)}
               </div>
               {/* SOLD OUT IS A LINE, NOT A CHIP.
                   A fifty-one character sentence in a `flexShrink: 0` chip

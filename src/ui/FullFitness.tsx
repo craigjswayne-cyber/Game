@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
-import { HEAL_SKU, buyConsumable, consume, pendingConsumables, skuPriceFrom, tillOpen } from '../game/monetise'
+import { HEAL_SKU, bankReceipts, buyConsumable, creditCount, creditTake, heldConsumables, skuPriceFrom, tillOpen } from '../game/monetise'
 import { healReady } from '../game/grants'
 import { t } from '../game/i18n'
 import { endingText } from './purchase'
@@ -41,9 +41,13 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
 
   useEffect(() => {
     if (!tillOpen()) return
-    void pendingConsumables().then(skus => setPending(skus.includes(HEAL_SKU)))
+    // held = a banked credit or a stray receipt - and re-read as the weeks
+    // pass, because the one-shot version of this raced the bridge, showed Buy
+    // over a paid heal, and walked the owner into Google's own "You already
+    // own this item" sheet (31 Aug, the Medical Centre)
+    void heldConsumables().then(skus => setPending(skus.includes(HEAL_SKU)))
     void skuPriceFrom(HEAL_SKU).then(p => setPrice(p.live ? p.price : null))
-  }, [])
+  }, [game?.week])
 
   if (!tillOpen() || !game || game.unemployed) return null
   // NOTHING TO SELL A FIT SQUAD. healReady is the same gate the Store uses -
@@ -51,9 +55,11 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
   if (!healReady(game) && !pending) return null
 
   const apply = async () => {
+    await bankReceipts(HEAL_SKU)
+    if (creditCount(HEAL_SKU) < 1) { setPending(false); setMsg(t('store.creditGone')); return }
     if (healSquad()) {
-      await consume(HEAL_SKU)
-      setPending(false)
+      creditTake(HEAL_SKU)
+      setPending(creditCount(HEAL_SKU) > 0)
       setMsg(t('store.healDone'))
       return
     }
@@ -73,10 +79,14 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
 
   const buy = async () => {
     setBusy(true)
-    const out = await buyConsumable(HEAL_SKU)
-    if (out === 'owned') await apply()
-    else setMsg(out === 'cancelled' ? null : endingText(out))
-    setBusy(false)
+    try {
+      // ask the bank before the till: a paid heal already banked must never
+      // meet Play's sheet again
+      await bankReceipts(HEAL_SKU)
+      const out = creditCount(HEAL_SKU) > 0 ? 'owned' as const : await buyConsumable(HEAL_SKU)
+      if (out === 'owned') { setPending(true); await apply() }
+      else setMsg(out === 'cancelled' ? null : endingText(out))
+    } finally { setBusy(false) }
   }
 
   return (
