@@ -344,7 +344,7 @@ export function Crest({ club, size = 16, mr = 6 }: { club: CrestClub; size?: num
         x="12" y={wide ? 16.6 : 16.4} textAnchor="middle"
         fontFamily="'Space Grotesk', 'Segoe UI', sans-serif"
         fontWeight="700" fontSize={wide ? 8.6 : 12.4} letterSpacing={wide ? '-.35' : '.1'}
-        fill="var(--prop-white)" stroke="rgba(0,0,0,.55)" strokeWidth={wide ? 0.7 : 1.1}
+        fill="var(--prop-white)" stroke="rgba(6,10,8,.9)" strokeWidth={wide ? 1.0 : 1.5}
         paintOrder="stroke"
         style={{ paintOrder: 'stroke' }}
       >{letter}</text>
@@ -477,8 +477,8 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
         {/* SLEEVES. A quartered club wears them in its base colour - the second
             colour is one of the four quarters now, and a sleeve in it would
             read as a fifth panel rather than a sleeve. */}
-        <path d={SLEEVE_L} fill={sleeves ? sleeves[0] : quarters ? c1 : c2} opacity=".9" />
-        <path d={SLEEVE_R} fill={sleeves ? sleeves[1] : quarters ? c1 : c2} opacity=".9" />
+        <path d={SLEEVE_L} fill={sleeves ? sleeves[0] : quarters ? c1 : c2} />
+        <path d={SLEEVE_R} fill={sleeves ? sleeves[1] : quarters ? c1 : c2} />
         {/* THE TRIM RUNS ALONG THE SLEEVE EDGE, NOT ACROSS THE SLEEVE. This was
             a flat horizontal band pretending to be a cuff, laid over a sleeve
             that runs diagonally, so it cut the sleeve in half instead of
@@ -492,10 +492,32 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
           <path d={SLEEVE_R} fill="none" stroke={trim} strokeWidth="1.1" strokeLinejoin="round" />
         </>)}
       </g>
-      <path d={BODY} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.2" />
-      {/* the collar: the club's own trim where it has one, cream where it does
-          not, because a white V on a white shirt is not a collar */}
-      <path d="M20 4 L24 8 L28 4" fill="none" stroke={trim ?? 'var(--prop-cream)'} strokeWidth="1.6" />
+      {/* THE FINISHING (owner, v1.1.18: "tidy up the designs of all shirts.
+          Make them look more professional"). None of this touches a club's
+          pattern - kittrim still decides what is worn; these are the things
+          that make a drawing read as a GARMENT rather than a paint swatch:
+          cloth that catches light at the shoulders and falls into shade at
+          the hem, seams where sleeves join the body, and a stitched hem. */}
+      <g clipPath={`url(#${clip})`}>
+        <rect x="0" y="0" width="48" height="34" fill={`url(#${clip}-cloth)`} />
+        <path d="M17 12 L15 17" stroke="rgba(0,0,0,.22)" strokeWidth=".6" fill="none" />
+        <path d="M31 12 L33 17" stroke="rgba(0,0,0,.22)" strokeWidth=".6" fill="none" />
+        <rect x="16" y="29.1" width="16" height=".6" fill="rgba(0,0,0,.25)" />
+      </g>
+      <defs>
+        <linearGradient id={`${clip}-cloth`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity=".13" />
+          <stop offset=".25" stopColor="#fff" stopOpacity=".04" />
+          <stop offset=".7" stopColor="#000" stopOpacity=".05" />
+          <stop offset="1" stopColor="#000" stopOpacity=".16" />
+        </linearGradient>
+      </defs>
+      <path d={BODY} fill="none" stroke="rgba(0,0,0,.4)" strokeWidth="1" strokeLinejoin="round" />
+      {/* the collar: a filled V-neck insert in the club's trim (cream where it
+          has none - a white V on a white shirt is not a collar), with an inner
+          shadow line so it sits INTO the shirt rather than floating on it */}
+      <path d="M19.4 3.6 L24 8.6 L28.6 3.6 L27 3.6 L24 6.9 L21 3.6 Z" fill={trim ?? 'var(--prop-cream)'} />
+      <path d="M21 3.6 L24 6.9 L27 3.6" fill="none" stroke="rgba(0,0,0,.3)" strokeWidth=".5" />
     </svg>
   )
 }
