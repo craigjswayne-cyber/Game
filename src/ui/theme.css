@@ -3204,6 +3204,17 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
      screen. Inset the playing area and let the badges sit inside it. */
   .form-pitch { padding-left: 12px; padding-right: 12px; }
 
+  /* TIGHTER CELLS SO THE COLUMNS FIT AT ALL (owner, v1.1.17: "so you dont
+     have to scroll right at all"). The market table is eight columns wide;
+     shortening the club to three letters took it from 476px to 439px against
+     a 412px screen, and two pixels off each side of every cell finds the last
+     27px without truncating a single name. Measured by scripts/sidescroll.mjs,
+     which is the probe that should have existed before any of this shipped -
+     scrollaudit counts screenfuls DOWN a landscape page and never once looked
+     sideways on a portrait one. */
+  .dtable td { padding: 7px 4px; }
+  .dtable th { padding: 9px 4px 7px; }
+
   /* A table that scrolls sideways gets the same fade as the tab strip. On a
      412px screen the squad and market tables are all wider than the screen, and
      without an edge there is nothing to say the columns continue. */
