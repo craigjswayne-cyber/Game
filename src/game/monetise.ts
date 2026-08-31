@@ -133,27 +133,109 @@ export const NC_SKUS = [SUPPORTER_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU] as
 export const CONSUMABLE_SKUS = [...Object.values(INJECT_SKUS), HEAL_SKU, SUPPORT_SKU, GROUND_SKU] as string[]
 
 /**
- * CONSUMABLES THE BOOT SWEEP MAY SPEND WITHOUT ASKING ANYBODY.
+ * THE CREDIT BANK (v1.1.18). Every paid consumable is SPENT WITH PLAY AT THE
+ * TILL and its value banked here, in the game's own ledger, until a career
+ * collects it.
  *
- * Spending a consumable is the only way Digital Goods 2.0 can acknowledge one,
- * and an unacknowledged purchase is refunded by Play after three days. So the
- * sweep has to spend - but spending a receipt whose grant has not yet landed in
- * a career would destroy the thing that was paid for, which is worse than the
- * refund.
+ * The refund emails of 31 Aug settled the argument this file used to have
+ * with itself. "Held, not swallowed" kept an unlanded purchase as an OPEN
+ * RECEIPT so the money stayed refundable - which read as safety and was the
+ * opposite: Digital Goods 2.0 has no acknowledge() for the sweep to use on a
+ * consumable, spending was forbidden for everything but the tip jar, and
+ * Play refunds any unacknowledged purchase on a clock (three days; five
+ * minutes for a licence tester). Every single held purchase was doomed on
+ * arrival: the owner's own test injections came back "cancelled because it
+ * was not acknowledged" inside the evening.
  *
- * The split is simply whether there is anything left to collect:
- *
- *   the heal, the four injections   land IN a career, at a moment the manager
- *                                   picks. The Store surfaces them as pending
- *                                   until they do. The sweep acknowledges them
- *                                   where it can and never spends them.
- *   the tip jar                     lands nowhere. It buys a thank-you and a
- *                                   counter, both written the instant the sheet
- *                                   closes. There is nothing to lose by
- *                                   spending it, and - this is the one that
- *                                   cost real money - nothing else can save it.
+ * So the promise inverts. Play's ledger closes at the till; ours opens. A
+ * credit is not a receipt: it cannot be refunded out from under the player,
+ * it survives reinstalls exactly as far as rm-ent does (same store, same
+ * caveat), and "held" in every screen now means a banked credit waiting for
+ * a career to collect it.
  */
-export const SPENDABLE_UNASKED: string[] = [SUPPORT_SKU]
+const CREDITS_KEY = 'rm-credits'
+function readCredits(): Record<string, number> {
+  try {
+    const raw = globalThis.localStorage?.getItem(CREDITS_KEY)
+    if (!raw) return {}
+    const c = JSON.parse(raw) as Record<string, number>
+    return typeof c === 'object' && c ? c : {}
+  } catch { return {} }
+}
+function writeCredits(c: Record<string, number>): void {
+  try { globalThis.localStorage?.setItem(CREDITS_KEY, JSON.stringify(c)) } catch { /* private mode */ }
+}
+export function creditCount(sku: string): number {
+  const n = readCredits()[sku]
+  return Number.isFinite(n) && n! > 0 ? Math.floor(n!) : 0
+}
+export function creditAdd(sku: string, n = 1): void {
+  const c = readCredits()
+  c[sku] = (Number.isFinite(c[sku]) && c[sku] > 0 ? Math.floor(c[sku]) : 0) + n
+  writeCredits(c)
+}
+export function creditTake(sku: string): boolean {
+  const c = readCredits()
+  const have = Number.isFinite(c[sku]) && c[sku] > 0 ? Math.floor(c[sku]) : 0
+  if (have < 1) return false
+  if (have === 1) delete c[sku]
+  else c[sku] = have - 1
+  writeCredits(c)
+  return true
+}
+
+/** Convert any OPEN receipt for this sku into a banked credit, now.
+ *
+ *  Credited BY OBSERVATION, not by trust: both bridges' consume(sku) swallow
+ *  their own failures (storekit.ts does so explicitly), so the only honest
+ *  measure of a spend is the receipt leaving owned(). Consume, count again,
+ *  bank exactly the difference - a consume that failed banks nothing and a
+ *  receipt can never be banked twice, on either platform. Safe to call when
+ *  nothing is open. (The Play till and boot sweep credit their own spends
+ *  directly in settle(), where the token-level outcome is visible.) */
+export async function bankReceipts(sku: string): Promise<void> {
+  const b = bridge()
+  if (!b?.consume) return
+  try {
+    let held = (await b.owned()).filter(s => s === sku).length
+    for (let guard = 0; held > 0 && guard < 8; guard++) {
+      await b.consume(sku)
+      const now = (await b.owned()).filter(s => s === sku).length
+      if (now < held) creditAdd(sku, held - now)
+      else break // the spend did not land; stop rather than spin
+      held = now
+    }
+  } catch { /* offline: the boot sweep banks it next launch */ }
+}
+
+/** Everything a career could still collect: banked credits, plus receipts
+ *  not yet banked (bought on an older build, or offline at the till). */
+export async function heldConsumables(): Promise<string[]> {
+  const out = new Set<string>()
+  for (const sku of CONSUMABLE_SKUS) if (creditCount(sku) > 0) out.add(sku)
+  for (const sku of await pendingConsumables()) out.add(sku)
+  return [...out]
+}
+
+/** THE SUGAR DADDY CALLS ONCE A DAY (owner, v1.1.18: "maybe once a day. in
+ *  real life. so 24 hour period."). The clock is real time, lives beside the
+ *  receipts rather than in any one save, and gates the SHELF - the row goes
+ *  quiet instead of selling a purchase the game would then sit on. Winding
+ *  the phone's clock back defeats it; an offline single-player game does not
+ *  arm-wrestle its owner over that. */
+const XL_AT_KEY = 'rm-xl-at'
+const XL_EVERY_MS = 24 * 60 * 60 * 1000
+export function xlWaitMs(now = Date.now()): number {
+  try {
+    const at = Number(globalThis.localStorage?.getItem(XL_AT_KEY) ?? 0)
+    if (!Number.isFinite(at) || at <= 0) return 0
+    const left = at + XL_EVERY_MS - now
+    return left > 0 ? left : 0
+  } catch { return 0 }
+}
+export function markXlBought(now = Date.now()): void {
+  try { globalThis.localStorage?.setItem(XL_AT_KEY, String(now)) } catch { /* private mode */ }
+}
 
 export type Entitlement = 'free' | 'supporter'
 

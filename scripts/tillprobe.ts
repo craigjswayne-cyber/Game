@@ -21,13 +21,29 @@
  * The bridge is driven against a STUB Digital Goods service - one per shape the
  * real world hands out (1.0 with acknowledge, 2.0 with consume, a service whose
  * acknowledge throws) - and the claim is always the same: after the dust
- * settles, no paid receipt is left unacknowledged, and no receipt whose grant
- * has still to land in a career has been spent.
+ * settles, no paid receipt is left unacknowledged, and every spent consumable
+ * has banked a CREDIT in the game's own ledger.
+ *
+ * (v1.1.18: the claim used to be that a receipt whose grant had not landed in
+ * a career was never spent. The 31 Aug refund emails ended that: 2.0 has no
+ * acknowledge(), so an unspent consumable receipt cannot be protected at all,
+ * and Play refunded every held one on its clock. Held now means banked.)
  *
  * Run: npx vite-node scripts/tillprobe.ts
  */
-import { CONSUMABLE_SKUS, SELLABLE_SKUS, SPENDABLE_UNASKED, HEAL_SKU, SUPPORT_SKU } from '../src/game/monetise'
+import { CONSUMABLE_SKUS, SELLABLE_SKUS, HEAL_SKU, SUPPORT_SKU, creditCount } from '../src/game/monetise'
 import { playBridge } from '../src/game/playbilling'
+
+// the credit bank lives in localStorage; the probe provides one so banking
+// is observable rather than silently swallowed by creditAdd's try/catch
+const mem = new Map<string, string>()
+;(globalThis as unknown as { localStorage: Storage }).localStorage = {
+  getItem: (k: string) => mem.get(k) ?? null,
+  setItem: (k: string, v: string) => { mem.set(k, String(v)) },
+  removeItem: (k: string) => { mem.delete(k) },
+  clear: () => { mem.clear() },
+  key: () => null, length: 0,
+} as unknown as Storage
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -106,12 +122,8 @@ function stubPlay(shape: Shape, spelling: Spelling, open: Receipt[] = []) {
 
 // ---- the catalogue is honest about what needs collecting ----
 {
-  ok(SPENDABLE_UNASKED.every(s => CONSUMABLE_SKUS.includes(s)),
-     'every sweep-spendable sku is a consumable')
-  ok(!SPENDABLE_UNASKED.includes(HEAL_SKU),
-     'the heal is NOT sweep-spendable - it lands in a career the manager picks')
-  ok(SPENDABLE_UNASKED.includes(SUPPORT_SKU),
-     'the tip jar IS sweep-spendable - there is nothing left to collect and nothing else can save it')
+  ok(CONSUMABLE_SKUS.includes(HEAL_SKU) && CONSUMABLE_SKUS.includes(SUPPORT_SKU),
+     'the heal and the tip jar are consumables - the products the credit bank exists for')
 }
 
 // ---- a purchase is acknowledged whatever the sheet calls the token ----
@@ -120,10 +132,18 @@ for (const spelling of ['token', 'purchaseToken', 'silent'] as Spelling[]) {
     const play = stubPlay(shape, spelling)
     const b = await playBridge()
     if (!b) { ok(false, `a ${shape} service with a ${spelling} sheet built no bridge at all`); continue }
+    mem.clear()
     for (const sku of SELLABLE_SKUS) await b.buy(sku)
     const left = play.unsettled()
     ok(left.length === 0,
        `${shape} service, sheet names the token as "${spelling}": every purchase acknowledged (${left.length} left: ${left.join(', ') || 'none'})`)
+    if (shape !== 'ack') {
+      // a service that can consume spends every consumable at the till, and
+      // every spend banks exactly one credit - the value is in OUR ledger now
+      const unbanked = CONSUMABLE_SKUS.filter(sku => SELLABLE_SKUS.includes(sku) && creditCount(sku) !== 1)
+      ok(unbanked.length === 0,
+         `${shape}/${spelling}: every consumable spent at the till banked one credit (${unbanked.join(', ') || 'all banked'})`)
+    }
     const hung = play.hanging()
     ok(hung.length === 0,
        `${shape}/${spelling}: every paid sheet was completed (${hung.join(', ') || 'none'} left hanging)`)
@@ -154,15 +174,18 @@ for (const spelling of ['token', 'purchaseToken', 'silent'] as Spelling[]) {
      'a tip left open by an older build is settled at boot - the fault that cost order GPA.3318-1043-1618-76026')
 }
 
-// ---- and it does not spend what a career has still to collect ----
+// ---- a stale heal is RESCUED INTO THE BANK, not left for the refund clock ----
 {
+  mem.clear()
   const play = stubPlay('consume', 'token', [
     { itemId: HEAL_SKU, purchaseToken: 'stale-heal' },
   ])
   await playBridge()
   await new Promise(r => setTimeout(r, 20))
-  ok(!play.spent().includes(HEAL_SKU),
-     'a paid heal the manager has not applied yet is NOT spent by the sweep')
+  ok(play.spent().includes(HEAL_SKU),
+     'a heal left open by an older build IS spent by the sweep - an open receipt is a refund waiting to happen')
+  ok(creditCount(HEAL_SKU) === 1,
+     'and the value landed in the bank: one heal credit, waiting for a career to collect it')
 }
 
 // ---- a non-consumable is settled by the sweep, as it always was ----
@@ -176,6 +199,6 @@ for (const spelling of ['token', 'purchaseToken', 'silent'] as Spelling[]) {
 }
 
 console.log(fails === 0
-  ? '\nTILL PROBE PASSED: every purchase is acknowledged, and nothing uncollected is spent'
+  ? '\nTILL PROBE PASSED: every purchase is acknowledged, and every spend is banked'
   : `\nTILL PROBE FAILED: ${fails}`)
 process.exit(fails === 0 ? 0 : 1)
