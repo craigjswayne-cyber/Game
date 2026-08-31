@@ -361,6 +361,59 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   ok(await M.buyOwnable(M.CHARTER_SKU) === 'owned', 'a non-consumable still buys')
   ok(calls.includes('ack:tok-new:onetime'), 'and is acknowledged as a one-time purchase')
 
+  // ---- 13a1. "YOU ALREADY OWN THIS ITEM" IS A DELIVERY, NOT AN ERROR ------
+  //
+  // Owner, v1.1.17, on a build that already had the v1.1.16 consume fix in it:
+  // "Ive clicked to add some cash - it did one, all other cash injections are
+  // unavailable to click. You should be able to do it again and again. Says i
+  // already this item still."
+  //
+  // v1.1.16 stopped NEW purchases getting stuck. It did nothing for the
+  // receipts already stranded on his account when it landed - and Play will
+  // not open a sheet for a consumable the account still holds. It refuses,
+  // the refusal arrived here as 'refused', and the game told a man who had
+  // paid for something that his purchase had failed.
+  //
+  // The account's open receipts are the authority. A SKU sitting in
+  // listPurchases after a refusal is a purchase that was paid for and never
+  // delivered, so it is reported as 'owned' and the caller does exactly what
+  // it does after any sale: writes the grant, sends the consume, frees the
+  // shelf. Nothing is charged twice - Play never opened the sheet.
+  {
+    const g3 = globalThis as unknown as Record<string, unknown>
+    const stranded = [{ itemId: M.INJECT_SKUS.m, purchaseToken: 'tok-stuck' }]
+    const spent: string[] = []
+    g3.getDigitalGoodsService = async () => ({
+      getDetails: async (skus: string[]) =>
+        skus.map(itemId => ({ itemId, title: 'A thing', price: { value: '1.99', currency: 'GBP' } })),
+      listPurchases: async () => stranded,
+      acknowledge: async () => {},
+      consume: async (token: string) => { spent.push(token) },
+    })
+    // Play's own refusal for an item the account already holds
+    g3.PaymentRequest = class {
+      async show(): Promise<never> {
+        throw Object.assign(new Error('You already own this item.'), { name: 'NotAllowedError' })
+      }
+    }
+    const b3 = await playBridge()
+    g.rmBilling = b3!
+    ok(await M.buyConsumable(M.INJECT_SKUS.m) === 'owned',
+      'a refusal for a SKU the account already holds is reported as owned, not as a failure')
+    ok(M.billingReason() == null,
+      `and nothing is shown as an error, because nothing failed (${M.billingReason() ?? 'silent'})`)
+    // the caller's half: the grant lands, then the receipt is spent
+    await M.consume(M.INJECT_SKUS.m)
+    ok(spent.includes('tok-stuck'), 'and spending it releases the stranded receipt')
+
+    // a refusal with NO matching receipt is still a refusal - this must not
+    // become a blanket "call everything owned"
+    stranded.length = 0
+    ok(await M.buyConsumable(M.INJECT_SKUS.l) === 'refused',
+      'a refusal with nothing on the account is still reported as refused')
+    ok((M.billingReason() ?? '').length > 0, 'with the reason kept for the shelf to show')
+  }
+
   // ---- 13a2. WHICH KIND OF NOTHING ----------------------------------------
   //
   // Every console setting checked out - products active, backwards
