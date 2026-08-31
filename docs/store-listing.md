@@ -119,6 +119,20 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.1.17
+
+```
+• The international job now stops the week two weeks out and asks you to
+  name your own squad - no auto-picks, in-form men listed first.
+• Press questions must be answered before the week moves on.
+• Contract talks arrive six months out, with reminders as time runs down.
+• Tap any club name anywhere to open their squad.
+• Tables fit the phone: no more scrolling sideways to read a ranking.
+• New kits for Bath, Leicester, Quins and Northampton.
+• Repeat purchases and the fitness pack both fixed.
+```
+*(499)*
+
 ### What's new (500 max) - v1.1.13
 
 ```
@@ -395,6 +409,20 @@ logo officiel.
   très hauts.
 ```
 *(283)*
+
+### Nouveautés (500 max) - v1.1.17
+
+```
+• Le poste international interrompt la semaine deux semaines avant : à vous
+  de composer le groupe, fini la sélection automatique.
+• Les questions de la presse doivent être traitées pour avancer.
+• Discussions de contrat six mois à l'avance, avec rappels.
+• Touchez le nom d'un club pour ouvrir son effectif.
+• Les tableaux tiennent sur l'écran : plus de défilement latéral.
+• Nouveaux maillots pour Bath, Leicester, Quins et Northampton.
+• Achats répétables et pack de forme corrigés.
+```
+*(486)*
 
 ### Nouveautés (500 max) - v1.1.13
 
