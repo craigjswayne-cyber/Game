@@ -47,9 +47,30 @@ const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
 // standing in, plus the code around the top one, minified or not.
 let lastBeat = Date.now()
 const watchdog = setInterval(async () => {
-  if (Date.now() - lastBeat < 180_000) return
+  if (Date.now() - lastBeat < 300_000) return
   clearInterval(watchdog)
-  console.log('\nWATCHDOG: no heartbeat for 3 minutes - pausing the page mid-spin')
+  console.log('\nWATCHDOG: the week has not moved in 5 minutes')
+  // Two shapes produce that, and lane 1 of the hunt proved they need telling
+  // apart: a page whose JavaScript stopped yielding (nothing answers, only a
+  // V8 interrupt can name the line), and a page that is perfectly alive while
+  // the DRIVER ping-pongs on a screen it cannot clear - every early branch of
+  // the main loop ends in `continue`, which skips the STUCK counter at the
+  // bottom, so the loop cycles forever and no detector fires. Ask the page
+  // first; only a page that will not answer gets the debugger.
+  const alive = await Promise.race([
+    look().then(v => v).catch(() => null),
+    new Promise(r => setTimeout(() => r(null), 10_000)),
+  ])
+  if (alive) {
+    console.log('  the page is RESPONSIVE - the driver is ping-ponging on a screen it cannot clear:')
+    console.log(`  title: "${alive.title}"  day:${!!alive.day} live:${!!alive.live} cont:"${alive.cont ?? ''}"`)
+    console.log(`  buttons: ${alive.buttons.slice(0, 14).join(' / ')}`)
+    await shot('watchdog-pingpong').catch(() => {})
+    flaw('PINGPONG', `5 minutes on "${alive.title}" without the week moving; screen saved`, 'watchdog')
+    try { writeFileSync(`${SHOTS}/findings.json`, JSON.stringify(findings, null, 2)) } catch { /* logged */ }
+    process.exit(3)
+  }
+  console.log('  the page did not answer - pausing V8 mid-spin')
   try {
     const cdp = await page.context().newCDPSession(page)
     const scriptUrls = new Map()
@@ -337,7 +358,6 @@ try {
   while (seasonsDone < SEASONS) {
     if (interactions > 40000) { flaw('STUCK', 'gave up after 40,000 interactions', 'main loop'); break }
     interactions++
-    lastBeat = Date.now()
 
     const v = await look()
     if (!await audit(v, `s${seasonsDone + 1} wk${lastWeek}`)) break
@@ -545,6 +565,7 @@ try {
       lastWeek = c.week
       lastYear = c.seasonYear
       sinceProgress = 0
+      lastBeat = Date.now()
     } else {
       sinceProgress++
       if (sinceProgress > 60) {
