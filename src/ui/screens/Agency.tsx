@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney } from '../../game/model'
+import { clubCode, fmtMoney } from '../../game/model'
 import type { GameState } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
 import { natRankOrder } from '../../game/natrank'
@@ -111,7 +111,12 @@ export default function Agency() {
                 </td>
                 <td><PosBadge pos={p.pos} /></td>
                 <td><Nat code={p.nat} /></td>
-                <td className="muted"><CrestT g={game} teamId={p.clubId!} size={15} />{game.clubs[p.clubId!]?.short}</td>
+                {/* THREE LETTERS, NOT ELEVEN (owner, v1.1.17: "make the teams
+                    initials or first three letters of their name be used to
+                    give space so you dont have to scroll right at all").
+                    clubCode is the same code the crest beside it draws and the
+                    touchline paints, so the badge and the text agree. */}
+                <td className="muted"><CrestT g={game} teamId={p.clubId!} size={15} />{clubCode(game.clubs[p.clubId!]?.short ?? '')}</td>
                 <td className="num">{fmtMoney(p.value)}</td>
               </tr>
             )

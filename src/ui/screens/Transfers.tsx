@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
-import { fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos } from '../../game/model'
+import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
 import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
@@ -222,7 +222,11 @@ export default function Transfers() {
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 <td><PosBadge pos={p.pos} /></td>
                 <td className="name">{p.name}</td>
-                <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : t('transfers.freeAgent')}</td>
+                {/* the club column was the widest thing in this table and ran
+                    64px off the side of a 412px phone. Three letters, the same
+                    code the crest draws (owner, v1.1.17). Search still matches
+                    the full club name - only the cell shortens. */}
+                <td className="muted">{p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')}</td>
                 <td><Stars ca={fuzzedCa(game, p)} /></td>
                 <td className="num" style={{ color: knowledge(game, p) >= 95 ? 'var(--text-positive)' : undefined }}>
                   {Math.round(knowledge(game, p))}%
@@ -333,7 +337,14 @@ export default function Transfers() {
               <td className="name">{p.name}{p.transferListed ? ' 🏷️' : ''}</td>
               <td className="num">{p.age}</td>
               <td><Nat code={p.nat} /></td>
-              <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : t('transfers.freeAgent')}</td>
+              {/* THREE LETTERS. This column was 76px of an eight-column table
+                  that ran 64px off the side of a 412px phone (owner, v1.1.17:
+                  "make the teams initials or first three letters of their name
+                  be used... so you dont have to scroll right at all").
+                  clubCode is what the crest draws and the touchline paints, so
+                  everything that names a club agrees. The search box above
+                  still matches the full name - only the cell shortens. */}
+              <td className="muted">{p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')}</td>
               <td><Stars ca={fuzzedCa(game, p)} />{knowledge(game, p) < 95 && <span className="muted">?</span>}</td>
               <td className="num"><FormPill v={p.form} /></td>
               <td className="num">{fmtMoney(p.value)}</td>

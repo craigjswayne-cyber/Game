@@ -2273,15 +2273,15 @@
     "mon11": "déc."
   },
   "world": {
-    "agFirstList": "classement actuel - la première liste paraît bientôt",
+    "agFirstList": "Classement actuel - la première liste paraît bientôt",
     "agFoot": " · vos joueurs sont surlignés · touchez un nom pour l'observer",
     "agKidSub": "les potentiels dont les recruteurs parlent tout bas - 21 ans et moins",
     "agKidTitle": "Les pépites mondiales",
     "agNatFoot": " · votre nation est surlignée quand vous êtes sélectionneur",
     "agSeniorSub": "les vingt meilleurs joueurs de la planète, à ce jour",
     "agSeniorTitle": "Classement mondial des joueurs",
-    "agSinceLast": "classement actuel · ▲▼ par rapport à la liste publiée la saison passée, semaine {week}",
-    "agSinceThis": "classement actuel · ▲▼ par rapport à la liste publiée en semaine {week}",
+    "agSinceLast": "Classement actuel · ▲▼ par rapport à la liste publiée la saison passée, semaine {week}",
+    "agSinceThis": "Classement actuel · ▲▼ par rapport à la liste publiée en semaine {week}",
     "agTestNations": "Nations",
     "agTestSub": "chaque test fait bouger les points",
     "agTestTitle": "Classement mondial des nations",

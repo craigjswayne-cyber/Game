@@ -166,8 +166,15 @@ export default function Home() {
           </div>
         )
       })()}
+      {/* THE CARD SAYS "TAP TO SET YOUR TEAM", SO IT OPENS THE TEAM SHEET.
+          It opened Tactics - the roles pitch, which is HOW the side plays, not
+          WHO plays - so the one instruction on the home screen sent you to the
+          wrong screen (owner, v1.1.17: "when you click tap to set your team on
+          the home page it takes you to the roles page, it should take you to
+          the selection page"). 'squad' is the team sheet the submenu's Team
+          entry opens. */}
       {fx && (
-        <div className="card" onClick={() => go(assistants ? 'country' : 'tactics')} style={{
+        <div className="card" onClick={() => go(assistants ? 'country' : 'squad')} style={{
           borderLeft: `4px solid ${assistants ? 'var(--border-strong)' : game.clubs[fx.homeId === club.id ? fx.awayId : fx.homeId]?.colors[0] ?? 'var(--gold)'}`,
         }}>
           <div className="meta" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10.5 }}>

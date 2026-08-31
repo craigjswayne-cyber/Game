@@ -2273,15 +2273,15 @@
     "mon11": "Dec"
   },
   "world": {
-    "agFirstList": "current standings - the first list publishes shortly",
+    "agFirstList": "Current standings - the first list publishes shortly",
     "agFoot": " · your players highlighted · tap a name to scout him",
     "agKidSub": "the ceilings scouts whisper about - 21 and under",
     "agKidTitle": "Wonderkid Watch: World",
     "agNatFoot": " · your nation highlighted when you hold a Test job",
     "agSeniorSub": "the twenty best players on the planet, as they stand today",
     "agSeniorTitle": "Senior Rankings: World",
-    "agSinceLast": "current standings · ▲▼ against the list published last season, Week {week}",
-    "agSinceThis": "current standings · ▲▼ against the list published in Week {week}",
+    "agSinceLast": "Current standings · ▲▼ against the list published last season, Week {week}",
+    "agSinceThis": "Current standings · ▲▼ against the list published in Week {week}",
     "agTestNations": "Test Nations",
     "agTestSub": "every Test moves the points",
     "agTestTitle": "Test Rankings: World",
