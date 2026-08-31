@@ -1,7 +1,7 @@
 // Real kit patterns per club (home kits, approximated from club identity).
 // Colours come from the club data; the pattern says how they're worn.
 
-import { KIT_QUARTERS, KIT_TRIM } from '../data/kittrim'
+import { KIT_HOOPS, KIT_QUARTERS, KIT_TRIM } from '../data/kittrim'
 
 export type KitPattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves'
 
@@ -92,4 +92,10 @@ export function kitTrim(clubId: string): string | undefined {
  *  describe it. Undefined for everyone else, who quarter their own two. */
 export function kitQuarters(clubId: string): [string, string, string, string] | undefined {
   return KIT_QUARTERS[clubId]
+}
+
+/** How a club wears its hoops: how many, and how thick. Three broad bands
+ *  unless the club says otherwise - see KIT_HOOPS. */
+export function kitHoops(clubId: string): { n: number; h: number } {
+  return KIT_HOOPS[clubId] ?? { n: 3, h: 4 }
 }
