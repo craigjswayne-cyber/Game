@@ -3772,3 +3772,23 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   margin: 10px 14px 0;
   overflow: hidden;
 }
+
+/* A CLUB'S NAME IS A DOOR (v1.1.17). Underlined faintly rather than coloured:
+   these sit inside table cells and sentences that already carry their own
+   colour rules, and a blue word in a muted cell reads as an error. The dotted
+   underline says "there is more here" without shouting it.
+
+   NOT .club-link, which already exists a few hundred lines up and carries a
+   ::after that inflates its hit area by 14px top and bottom. That is right for
+   the one big button on a player's profile and wrong for a word inside a table
+   row: fifteen of them stacked eight pixels apart would each be reaching into
+   their neighbours' rows, and a tap near a boundary would open whichever club
+   painted last. Its own class, its own hit area. */
+.club-jump {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.club-jump:active { color: var(--info); }

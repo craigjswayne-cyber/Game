@@ -10,7 +10,7 @@
 import { useStore } from '../store'
 import { sortTable } from '../game/schedule'
 import { teamShort } from '../game/matchEngine'
-import { CrestT } from './components'
+import { ClubLink, CrestT } from './components'
 import { ord, t } from '../game/i18n'
 
 import { RELEGATES } from '../game/model'
@@ -58,7 +58,7 @@ export default function LeagueTable({ compId, compact }: { compId: string; compa
                 }}>
                 <td className="num muted">{i + 1}</td>
                 <td className="name">
-                  <CrestT g={game} teamId={r.teamId} size={17} />{teamShort(game, r.teamId)}
+                  <CrestT g={game} teamId={r.teamId} size={17} /><ClubLink g={game} clubId={r.teamId}>{teamShort(game, r.teamId)}</ClubLink>
                 </td>
                 <td className="num">{r.p}</td>
                 <td className="num">{r.w}</td>

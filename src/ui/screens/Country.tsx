@@ -6,7 +6,7 @@ import { natRankOrder } from '../../game/natrank'
 import { natFixtureThisWeek } from '../../game/season'
 import { NAT_SQUAD_SIZE } from '../../game/nations'
 import { NAT_SQUAD_FLOOR, natCallUp, natDrop, natEligible, natWindow, weeksToSquad } from '../../game/country'
-import { PosBadge, SectionTitle } from '../components'
+import { ClubLink, PosBadge, SectionTitle } from '../components'
 import FullFitness from '../FullFitness'
 import { ord, posName, t } from '../../game/i18n'
 
@@ -76,7 +76,7 @@ export default function Country() {
       <td className="name" style={p.clubId === game.userClubId ? { fontWeight: 800 } : undefined}>
         {p.name}{(p.caps ?? 0) > 0 ? <span className="muted">{t('legacy.coCaps', { n: p.caps ?? 0 })}</span> : <span className="muted">{t('legacy.coUncapped')}</span>}
       </td>
-      <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : ''}</td>
+      <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
       <td style={{ width: 64, textAlign: 'right' }}>
         {w && (
           <button className="btn ghost" style={{ fontSize: 12, padding: '6px 10px', color: inSquad ? 'var(--text-negative)' : 'var(--text-positive)' }}

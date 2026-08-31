@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { venueBadge, venueEffect } from '../../game/venue'
 import { fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
-import { CrestT, Jersey, SectionTitle } from '../components'
+import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 import { t } from '../../game/i18n'
@@ -98,9 +98,9 @@ export default function Fixtures() {
                name in a colour and keep the v in the middle"). The YOUR MATCH pill
                replaced the V, so your row was the one row with no v in it. */
             <div key={f.id} className={`wknd-row${f.homeId === me || f.awayId === me ? ' yours' : ''}`}>
-              <span className={`side${f.homeId === me ? ' mine' : ''}`}>{game.clubs[f.homeId] && <Jersey club={game.clubs[f.homeId]} size={36} />} {teamShort(game, f.homeId)}</span>
+              <span className={`side${f.homeId === me ? ' mine' : ''}`}>{game.clubs[f.homeId] && <Jersey club={game.clubs[f.homeId]} size={36} />} <ClubLink g={game} clubId={f.homeId}>{teamShort(game, f.homeId)}</ClubLink></span>
               <span className="vs">{t('fixtures.vs')}</span>
-              <span className={`side right${f.awayId === me ? ' mine' : ''}`}>{teamShort(game, f.awayId)} {game.clubs[f.awayId] && <Jersey club={game.clubs[f.awayId]} size={36} />}</span>
+              <span className={`side right${f.awayId === me ? ' mine' : ''}`}><ClubLink g={game} clubId={f.awayId}>{teamShort(game, f.awayId)}</ClubLink> {game.clubs[f.awayId] && <Jersey club={game.clubs[f.awayId]} size={36} />}</span>
             </div>
           ))}
         </div>

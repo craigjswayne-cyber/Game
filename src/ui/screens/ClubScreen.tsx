@@ -14,7 +14,13 @@ export default function ClubScreen({ clubId }: { clubId: string }) {
   const game = useStore(s => s.game)!
   const go = useStore(s => s.go)
   // three pages rather than one long scroll (user: fit it into clean screens)
-  const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>('club')
+  // SOMEBODY ELSE'S CLUB OPENS ON THEIR SQUAD (owner, v1.1.17: "any time a
+  // clubs name is featured anywhere in the game... you should be able to click
+  // it and be taken through to their squad"). Your own club opens on The Club,
+  // because that page is about you - the dressing room, the feuds, the ground.
+  // Tapping a rival's name is a scouting question, and the answer is his men.
+  const [ctab, setCtab] = useState<'club' | 'squad' | 'story'>(
+    clubId === game.userClubId ? 'club' : 'squad')
   const [sqTab, setSqTab] = useState<'first' | 'acad'>('first')
   const touch = useStore(s => s.touch)
   const [riftMsg, setRiftMsg] = useState<string | null>(null)

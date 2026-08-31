@@ -3,6 +3,9 @@ import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitPattern, kitQuarters, kitTrim, type KitPattern } from '../game/kits'
 import { t } from '../game/i18n'
+// the store, for ClubLink's one job: opening a club. store.ts imports nothing
+// from ui/, so this direction is the only one and there is no cycle.
+import { useStore } from '../store'
 
 
 /**
@@ -464,6 +467,41 @@ export function CrestT({ g, teamId, size = 16 }: { g: GameState; teamId: string;
   const c = g.clubs[teamId]
   if (!c) return <span style={{ marginRight: 5 }}>{flagOf(teamId)}</span>
   return <Crest club={c} size={size} />
+}
+
+/**
+ * A CLUB'S NAME, AND A WAY IN (owner, v1.1.17: "any time a clubs name is
+ * featured anywhere in the game (outside of game time) you should be able to
+ * click it and be taken through to their squad").
+ *
+ * Club names are printed all over this game - league tables, fixtures, the
+ * market, the rankings, a player's profile - and every one of them was a dead
+ * end. The screen to answer "who have they got?" already exists and already
+ * takes any club id; nothing was pointing at it.
+ *
+ * Rendered as a span rather than a <button> on purpose: these sit inside table
+ * cells and sentences that are already tappable rows, and nesting a button in a
+ * row that navigates elsewhere is how you get two destinations under one thumb.
+ * The tap is stopped from bubbling so the row's own job is not stolen either.
+ *
+ * OUTSIDE OF GAME TIME is his rule, and it is the right one: nothing on the
+ * live match screen links anywhere, because a tap during eighty minutes should
+ * never take you off the pitch.
+ */
+export function ClubLink({ g, clubId, children }: {
+  g: GameState; clubId: string | null | undefined; children?: React.ReactNode
+}) {
+  const go = useStore(s => s.go)
+  const club = clubId ? g.clubs[clubId] : null
+  const label = children ?? club?.short ?? ''
+  if (!club) return <>{label}</>
+  return (
+    <span className="club-jump" role="link" tabIndex={0}
+      onClick={e => { e.stopPropagation(); go('club', club.id) }}
+      onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); go('club', club.id) } }}>
+      {label}
+    </span>
+  )
 }
 
 /** Colour for an attribute bar by value. */

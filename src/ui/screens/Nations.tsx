@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
 import { flagOf, nationName } from '../../game/nations'
-import { SectionTitle } from '../components'
+import { ClubLink, SectionTitle } from '../components'
 import { weekDate } from '../../game/model'
 import { t } from '../../game/i18n'
 
@@ -39,7 +39,7 @@ export default function Nations() {
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 <td className="muted">{p.pos}</td>
                 <td className="name">{p.name}</td>
-                <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : ''}</td>
+                <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
                 <td className="num">{p.age}</td>
               </tr>
             ))}

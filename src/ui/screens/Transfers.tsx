@@ -6,7 +6,7 @@ import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
-import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { ClubLink, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
 import { posName, t } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
@@ -226,7 +226,7 @@ export default function Transfers() {
                     64px off the side of a 412px phone. Three letters, the same
                     code the crest draws (owner, v1.1.17). Search still matches
                     the full club name - only the cell shortens. */}
-                <td className="muted">{p.clubId ? clubCode(game.clubs[p.clubId]?.short ?? '') : t('transfers.freeAgent')}</td>
+                <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId}>{clubCode(game.clubs[p.clubId]?.short ?? '')}</ClubLink> : t('transfers.freeAgent')}</td>
                 <td><Stars ca={fuzzedCa(game, p)} /></td>
                 <td className="num" style={{ color: knowledge(game, p) >= 95 ? 'var(--text-positive)' : undefined }}>
                   {Math.round(knowledge(game, p))}%
