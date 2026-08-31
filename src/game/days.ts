@@ -398,6 +398,14 @@ export function deskBlock(state: GameState): DeskBlock | null {
  * so it must never hold: that is a locked save, not a gate.
  */
 export function pressBlock(state: GameState): DeskBlock | null {
+  // MAIL STILL COMES FIRST, and scripts/deskgate.mjs is the reason this line
+  // exists. Making the press hold run ahead of the reader broke the ordering
+  // deskBlock was built around: the questions are ABOUT the week's news, so
+  // answering them with nine unread stories behind them buries the context they
+  // are asking about. The mail gate fires on the way out of the week and clears
+  // the whole pile in one tap, so deferring costs the press nothing - the week
+  // still cannot turn until both are done.
+  if (state.news.some(n => !n.read && !n.cleared && inInbox(state, n))) return null
   const open = state.press.filter(p => !p.answered && (p.options?.length ?? 0) > 0).length
   if (open === 0) return null
   return { kind: 'press', n: open, label: open === 1 ? t('dayroom.deskPress') : t('dayroom.deskPressN', { n: open }) }

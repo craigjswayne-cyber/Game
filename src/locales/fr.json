@@ -3169,7 +3169,7 @@
     "natNameSubj": "📋 {nationCap_k} : nommez votre groupe",
     "natFilledSubj": "📋 {nationCap_k} : l'adjoint a comblé les trous",
     "natFilled": "Le coup d'envoi approchait et le groupe était incomplet : votre adjoint a ajouté {n} joueurs pour faire le nombre. Ils sont retenus au mérite, pas selon votre jugement - au prochain rassemblement, nommez-le vous-même.",
-    "natName": "Le rassemblement est ouvert et la feuille est vierge. {nationCap_k} doit nommer au moins {n} joueurs avant le premier test - le bureau des sélections présente tous les disponibles, les choix du staff en tête. Celui-là est le vôtre : personne ne le fera à votre place.",
+    "natName": "Le rassemblement est ouvert et la feuille est vierge. {nationCap_k} doit nommer un groupe avant le premier test - au moins {n} - et le bureau des sélections présente tous les disponibles, les choix du staff en tête. Celui-là est le vôtre : personne ne le fera à votre place.",
     "natSquadSubj": "📋 Votre sélection {nation_k} est annoncée",
     "natSquad": "La fédération a publié votre groupe de {n} joueurs pour la fenêtre. {caps_k}\n\nAVANTS : {fwd}\n\nARRIÈRES : {bks}\n\nComposez le groupe et choisissez votre XV de départ depuis l'écran Club et sélection avant chaque match.",
     "natSquadNew": {

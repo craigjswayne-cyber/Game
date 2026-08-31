@@ -82,6 +82,19 @@ try {
       // stall the walk
       g.offers = []
       g.bids = []
+      // AND NAME THE SQUAD, because from v1.1.17 the coach's camp opens blank
+      // and Continue is held until it is legal - which is the point of that
+      // change and a wall to a driver that only knows Continue. This is what
+      // natCallUp does, done directly: the screen it drives is the confirm
+      // sheet, not the selection room.
+      const camp = g.natSquads?.[g.natTeam]
+      if (camp && camp.length < 23) {
+        const spare = Object.values(g.players)
+          .filter(p => p.nat === g.natTeam && p.clubId && !p.injury && !p.natSquad)
+          .sort((a, b) => b.ca - a.ca)
+          .slice(0, 23 - camp.length)
+        for (const p of spare) { camp.push(p.id); p.natSquad = true }
+      }
       try { st.instantResult() } catch { /* no match to play this week */ }
       try { st.continueWeek() } catch { /* already moved on */ }
       return false
@@ -93,6 +106,17 @@ try {
   ok(reached, 'the walk reaches a Test week with the England job in hand')
 
   for (let i = 0; i < 80; i++) {
+    // a window can open during this walk too - keep the camp legal
+    await page.evaluate(() => {
+      const g = window.rugbyStore.getState().game
+      const camp = g.natSquads?.[g.natTeam]
+      if (!camp || camp.length >= 23) return
+      const spare = Object.values(g.players)
+        .filter(p => p.nat === g.natTeam && p.clubId && !p.injury && !p.natSquad)
+        .sort((a, b) => b.ca - a.ca)
+        .slice(0, 23 - camp.length)
+      for (const p of spare) { camp.push(p.id); p.natSquad = true }
+    })
     if (await page.locator('text=YOUR TEST XV').count() &&
         await page.locator('button', { hasText: /Kick Off/i }).count()) break
     if (await page.locator('text=On to the Week').count()) { await page.click('text=On to the Week'); await page.waitForTimeout(150); continue }
