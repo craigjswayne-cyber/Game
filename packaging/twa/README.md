@@ -186,18 +186,27 @@ GUIDE prices; Play's own answer always wins, and Play's answer is whatever
 Play Console is set to charge. Two Console settings decide that, and neither
 is in this repository:
 
-1. **Tax-inclusive or tax-exclusive pricing** (Play Console → Monetise →
-   *Manage settings* → *Tax and compliance* → the price-display setting for
-   each country). Set to tax-exclusive, Play ADDS VAT on top of the number you
-   typed, so a £9.99 product is charged at £11.99 in the UK - which is exactly
-   what the refund email showed on 29 Aug 2026. Set it to tax-inclusive and the
-   customer is charged the number on the row.
-2. **The per-country price**, which can drift from the template price if it was
-   ever edited by hand.
+1. **The per-country price**, which can drift from the template price if it was
+   ever edited by hand, and which is what Play actually charges.
+2. **Which price POINT was chosen.** Play offers a fixed ladder rather than
+   free text in most markets, so a price typed in one currency and converted
+   can land on a neighbouring rung.
 
-**This setting is still wrong as of 30 Aug 2026** and it is the whole of the
-owner's "it says 99p but is charging 1.19": 99p plus 20% UK VAT is £1.19 to the
-penny. Nothing in the code can fix it. What the code does now instead is stop
+**A CORRECTION, 31 Aug 2026.** This section used to say the £1.19 was a
+tax-exclusive display setting - Play adding 20% VAT on top of a 99p product -
+and told the owner to switch it off. He checked: **tax-inclusive is automatic
+in the UK and there is no switch.** The arithmetic that made the story
+convincing (99p x 1.2 = £1.19, to the penny) was a coincidence I read as
+evidence, and I had written it into two documents as fact before anybody
+looked at the Console.
+
+What follows from his correction: if UK prices are inclusive by definition,
+then whatever the Console shows for a product IS what the customer pays - so a
+customer charged £1.19 was buying a product priced at £1.19, and the £0.99 in
+`REFERENCE_PRICES` is the figure that is wrong, not the till. The check that
+settles it is thirty seconds: open the product in Play Console and read its UK
+price. If it says £1.19, either move it to a £0.99 rung or change the
+catalogue to match, because the two must agree. Nothing in the code can fix
 advertising a figure it cannot stand behind - the Buy button carries a price
 ONLY when Play itself named one (`skuPriceFrom(...).live`), so a build whose
 till is not answering says "Buy" and lets Play's own sheet name the price.
