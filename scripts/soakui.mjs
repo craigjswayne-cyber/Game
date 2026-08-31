@@ -27,11 +27,62 @@ const SEASONS = Number(process.env.SOAK_SEASONS ?? 5)
 const SHOTS = process.env.SHOTS_DIR || 'shots-soak'
 mkdirSync(SHOTS, { recursive: true })
 
-const server = await startPreview('4191', 2500)
+const server = await startPreview(process.env.SOAK_PORT ?? '4191', 2500)
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 // the phone he plays on, in the orientation he plays in
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
+
+// ---- THE WATCHDOG: A FROZEN PAGE MUST NAME THE LINE IT IS SPINNING ON ----
+//
+// Two five-season runs died as harness timeouts with the STUCK detector
+// silent. That silence is the tell: the page's own JavaScript stopped
+// yielding, so every evaluate and click hung, control never came back to the
+// loop, and the kill line at the end read "browser has been closed" - a
+// verdict with no clue in it, twice. Chasing it by re-rolling random careers
+// is a coin flip an evening long, so instead ANY freeze now testifies: a side
+// timer watches the loop's heartbeat, and when nothing has beaten for three
+// minutes it pauses V8 over CDP - a pause is delivered as an interrupt, so it
+// lands even inside a loop that never yields - and prints the frames it was
+// standing in, plus the code around the top one, minified or not.
+let lastBeat = Date.now()
+const watchdog = setInterval(async () => {
+  if (Date.now() - lastBeat < 180_000) return
+  clearInterval(watchdog)
+  console.log('\nWATCHDOG: no heartbeat for 3 minutes - pausing the page mid-spin')
+  try {
+    const cdp = await page.context().newCDPSession(page)
+    const scriptUrls = new Map()
+    cdp.on('Debugger.scriptParsed', e => scriptUrls.set(e.scriptId, e.url))
+    await cdp.send('Debugger.enable')
+    const paused = new Promise(res => cdp.once('Debugger.paused', res))
+    await cdp.send('Debugger.pause')
+    const ev = await Promise.race([paused, new Promise(r => setTimeout(() => r(null), 20_000))])
+    if (!ev) {
+      console.log('  the renderer did not answer the debugger: a process-level hang, not a JS loop')
+    } else {
+      for (const f of ev.callFrames.slice(0, 10)) {
+        const url = (scriptUrls.get(f.location.scriptId) ?? '').split('/').pop() || f.location.scriptId
+        console.log(`  at ${f.functionName || '(anonymous)'}  ${url}:${f.location.lineNumber + 1}:${f.location.columnNumber}`)
+      }
+      // the bundle is minified onto one line, so line:column alone is not
+      // readable - print the code standing at the top frame's exact offset
+      const top = ev.callFrames[0]
+      try {
+        const { scriptSource } = await cdp.send('Debugger.getScriptSource', { scriptId: top.location.scriptId })
+        const line = scriptSource.split('\n')[top.location.lineNumber] ?? ''
+        const col = top.location.columnNumber ?? 0
+        console.log(`  spinning at: ...${line.slice(Math.max(0, col - 200), col + 200)}...`)
+      } catch { /* the stack alone still names it */ }
+    }
+  } catch (e) {
+    console.log(`  watchdog could not attach: ${String(e).slice(0, 200)}`)
+  }
+  flaw('FROZEN-PAGE', 'the page stopped yielding for 3 minutes; the stack is printed above', 'watchdog')
+  try { writeFileSync(`${SHOTS}/findings.json`, JSON.stringify(findings, null, 2)) } catch { /* the log has it */ }
+  process.exit(3)
+}, 15_000)
+watchdog.unref?.()
 // night mode, because that is what he plays in. Nothing else is preset: portrait
 // needs no permission any more, and the clean-profile check below is what keeps
 // it that way.
@@ -164,7 +215,7 @@ let seasonsPlayed = 0   // seasonsDone is scoped to the run; the verdict prints 
 const weekTrail = []
 
 try {
-  await page.goto('http://localhost:4191/')
+  await page.goto(`http://localhost:${process.env.SOAK_PORT ?? '4191'}/`)
   await page.waitForSelector('text=RUGBY', { timeout: 20000 })
   await audit(await look(), 'title')
 
@@ -245,6 +296,7 @@ try {
       : [['Manager', MANAGER], ['World', WORLD]]
     for (const [group, items] of groups) {
       for (const item of items) {
+        lastBeat = Date.now()
         try {
           await page.click(`.bottom-nav button[title="${group}"]`, { timeout: 4000 })
           await page.waitForSelector('.submenu-item', { timeout: 4000 })
@@ -285,6 +337,7 @@ try {
   while (seasonsDone < SEASONS) {
     if (interactions > 40000) { flaw('STUCK', 'gave up after 40,000 interactions', 'main loop'); break }
     interactions++
+    lastBeat = Date.now()
 
     const v = await look()
     if (!await audit(v, `s${seasonsDone + 1} wk${lastWeek}`)) break
