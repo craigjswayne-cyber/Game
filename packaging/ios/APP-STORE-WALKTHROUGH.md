@@ -358,7 +358,9 @@ The answers people get wrong:
 
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.1.14`, **Build** `1`.
+*App* target → *General* → **Version** `1.1.17`, **Build** `1`.
+The version must match `package.json` and the figure on the App Store Connect
+listing, or the upload is rejected.
 
 Every upload needs a build number higher than the last. The version can repeat;
 the build number can never go backwards.
