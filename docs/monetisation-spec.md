@@ -47,11 +47,24 @@ These are constraints the spec builds on, not aspirations:
 | 3 | `phase.inject.m` | Board Injection (Medium) | $1.99 | Consumable |
 | 4 | `phase.inject.l` | Board Injection (Large) | $3.99 | Consumable |
 | 5 | `phase.inject.xl` | The Sugar Daddy | $7.99 | Consumable |
-| 6 | `phase.license` | Support the game | $0.99 | Non-consumable |
+| 6 | `phase.license` | Support the game | $0.99 | **Consumable** (see below) |
 | 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
 | 9 | `phase.heal` | Full Fitness | $0.99 | Consumable |
 | 10 | `phase.estate` | The Estate | $9.99 | Non-consumable |
 | 11 | `phase.pinnacle` | The International Stage | $4.99 | Non-consumable |
+
+> **`phase.license` is a CONSUMABLE, and this table said otherwise until
+> 31 Aug 2026.** It was specified as a one-off licence, then became the tip
+> jar - a tip jar that takes one coin and greys out is not a tip jar (task
+> #40, "Support the game: repeatable"). The code has agreed since:
+> `CONSUMABLE_SKUS` in `src/game/monetise.ts` carries `SUPPORT_SKU`, and
+> `packaging/ios/Products.storekit` types it `Consumable`, which
+> `moneyprobe.ts` enforces. The row above was simply never updated.
+>
+> This matters more than most stale lines, because **a product's type can
+> never be changed once it is created in either console.** Getting it wrong
+> costs a second product id and a migration - the corner v1.1.14 had to build
+> out of on Play.
 
 Ten products live in the catalogue (`NC_SKUS` + `CONSUMABLE_SKUS` in
 `src/game/monetise.ts`); #7 (`phase.editor`) was removed in v1.1.3 and its
