@@ -57,6 +57,14 @@ interface Event {
 /** A ground with a roof over most of it has more to lose to a gale. */
 const bigGround = (state: GameState) => (state.clubs[state.userClubId]?.capacity ?? 0) >= 12_000
 
+/** Is the first team at home this week? The events department checks before
+ *  booking anything that chews the pitch up: upkeep rolls at the top of the
+ *  week and the fixture is at the end of it, so a concert landing here would
+ *  always sit within five days of the kick-off (owner, v1.1.18: "no concerts
+ *  happen 5 days before a home game"). Away weeks and byes take the booking. */
+const homeMatchWeek = (state: GameState) =>
+  state.fixtures.some(f => !f.played && f.week === state.week && f.homeId === state.userClubId)
+
 const EVENTS: Event[] = [
   // ---- the buildings, which are always losing ----
   { k: 'news.upStorm', weeks: -6, board: -1.5 },
@@ -70,7 +78,7 @@ const EVENTS: Event[] = [
   { k: 'news.upDinner', weeks: 9, board: 2 },
   { k: 'news.upBeerFest', weeks: -4, board: -1 },
   { k: 'news.upWedding', weeks: 5, board: 1.5 },
-  { k: 'news.upConcert', weeks: 13, board: 2.5, when: bigGround },
+  { k: 'news.upConcert', weeks: 13, board: 2.5, when: s => bigGround(s) && !homeMatchWeek(s) },
   { k: 'news.upFunRun', weeks: 3, board: 1 },
   { k: 'news.upSantaGrotto', weeks: -2, board: -0.5 },
   { k: 'news.upFilmCrew', weeks: 7, board: 1.5 },

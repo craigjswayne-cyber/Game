@@ -729,7 +729,9 @@ export function capBill(state: GameState, club: { players: number[]; marquee?: n
     // club is not punished for developing its own. It also matters mechanically
     // now the academy is 27 strong rather than four - counting them would have
     // put every club in the world over the cap overnight.
-    if (!p || p.acad) return s
+    // a hand-demoted senior still counts (v1.1.18): demotion moves a man to
+    // the academy LIST, not out of the wage bill - or the button is a cap dodge
+    if (!p || (p.acad && !p.demoted)) return s
     return s + p.wage
   }, 0)
 }

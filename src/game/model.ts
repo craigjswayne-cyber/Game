@@ -378,6 +378,12 @@ export interface Player {
   poty?: number
   /** in the academy squad - hidden from first-team auto-selection until promoted */
   acad?: boolean
+  /** Sent down from the first team by hand (v1.1.18). An academy flag for
+   *  selection purposes ONLY: he still counts against the salary cap (cap.ts
+   *  - otherwise demotion is a cap dodge) and the season-end academy sweep
+   *  leaves him alone (rollover.ts - otherwise a demoted 29-year-old is
+   *  released for nothing as an over-age "youth"). */
+  demoted?: boolean
   /** came through THIS club's academy and was promoted to the seniors. Set once
    *  at promotion and never cleared, because it is a fact about where he learned
    *  the game, not about where he plays now (dream.ts reads it). */

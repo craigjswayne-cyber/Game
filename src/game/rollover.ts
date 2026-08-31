@@ -358,6 +358,9 @@ function agePlayers(state: GameState, rng: Rng) {
   const released: Player[] = []
   for (const p of Object.values(state.players)) {
     if (!p.acad) continue
+    // a hand-demoted senior is not an academy prospect: the sweep below would
+    // release him at 21+ for nothing, or "graduate" him onto a repriced deal
+    if (p.demoted) continue
     if (p.clubId === state.userClubId) {
       if (p.age >= 21) {
         const c = state.clubs[p.clubId]

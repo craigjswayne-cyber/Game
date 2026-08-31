@@ -313,13 +313,16 @@ export default function Squad() {
                       cell, which is the number that actually moves with ability. */}
                   <td className="num">{avr ? avr.toFixed(2) : '-'}</td>
                   <td className="num" style={{ fontWeight: 700 }}>
+                    {fmtMoney(p.value)}
+                    {/* the arrow FOLLOWS the figure (owner, v1.1.18: "put the
+                        arrow up/down on the right of the money") - the money is
+                        what the column is for, the trend is its footnote */}
                     {(p.ca0 != null && p.ca !== p.ca0) && (
-                      <span style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)', marginRight: 3, fontWeight: 400 }}
+                      <span style={{ color: p.ca > p.ca0 ? 'var(--text-positive)' : 'var(--danger)', marginLeft: 3, fontWeight: 400 }}
                         title={t(p.ca > p.ca0 ? 'squad.abilityUp' : 'squad.abilityDown')}>
                         {p.ca > p.ca0 ? '▲' : '▼'}
                       </span>
                     )}
-                    {fmtMoney(p.value)}
                   </td>
                 </>)}
                 {view === 'gametime' && (() => {
