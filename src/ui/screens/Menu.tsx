@@ -107,19 +107,20 @@ export default function Menu() {
           word they would use for it. */}
       <div className="lang-row" style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
         <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>{t('menu.language')}</span>
-        {LANGS.map(l => (
-          <button key={l.code} className="btn ghost lang-btn"
-            lang={l.code}
-            aria-pressed={lang === l.code}
-            style={{
-              fontSize: 13, padding: '4px 12px', lineHeight: 1.2,
-              color: lang === l.code ? 'var(--primary)' : 'var(--text-secondary)',
-              borderColor: lang === l.code ? 'var(--primary)' : 'var(--border-strong)',
-            }}
-            onClick={() => setLang(l.code)}>
-            {l.label}
-          </button>
-        ))}
+        {/* a dropdown, not a button row (owner, v1.2.0: "languages to be a
+            drop down menu"): five names no longer fit across a phone, and a
+            native select is the one control every platform renders well at
+            the bottom of a title screen. Each option keeps its own lang
+            attribute so a screen reader pronounces Français in French and
+            日本語 in Japanese. */}
+        <select className="inline-input lang-select" value={lang}
+          aria-label={t('menu.language')}
+          style={{ fontSize: 13, padding: '4px 10px', lineHeight: 1.2 }}
+          onChange={ev => setLang(ev.target.value as typeof lang)}>
+          {LANGS.map(l => (
+            <option key={l.code} value={l.code} lang={l.code}>{l.label}</option>
+          ))}
+        </select>
       </div>
       {/* The mark somebody paid for. It is deliberately the whole of what the
           purchase shows: a line on the screen they see most, and nothing
