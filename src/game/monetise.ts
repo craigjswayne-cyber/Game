@@ -417,54 +417,58 @@ export async function pendingConsumables(): Promise<string[]> {
   }
 }
 
-/** The catalogue's reference prices, in the launch currency. The STORE'S
- *  answer always wins - regional pricing, sales, the owner repricing in
- *  Play Console all live there - but a row must never stand priceless
- *  (owner, v1.1.5: "prices should be displayed"), and until a product is
- *  created and activated in Play, details() has nothing to say. These are the
- *  prices of packaging/twa/README.md §4, and changing one there means
- *  changing it here. */
-export const REFERENCE_PRICES: Record<string, string> = {
-  [SUPPORTER_SKU]: '£1.99',
-  [SUPPORT_SKU]: '£0.99',
-  [CHARTER_SKU]: '£9.99',
-  [ESTATE_SKU]: '£9.99',
-  [PINNACLE_SKU]: '£4.99',
-  'phase.inject.s': '£0.99',
-  'phase.inject.m': '£1.99',
-  'phase.inject.l': '£3.99',
-  'phase.inject.xl': '£7.99',
-  [HEAL_SKU]: '£0.99',
-  [GROUND_SKU]: '£9.99',
-}
+/** EVERYTHING THIS BUILD SELLS - AND NOT WHAT ANY OF IT COSTS.
+ *
+ *  This list used to be a price table. It carried a figure per product in
+ *  pounds, and those figures reached buttons whenever a store would not name
+ *  one of its own. Two faults came out of that, and the second is why the
+ *  table is gone:
+ *
+ *   1. it made a DEAD STORE LOOK ALIVE - a build whose products were not yet
+ *      activated still drew a full shelf at £0.99 and £9.99, and only on the
+ *      tap said nothing had been charged (the v1.1.6 report);
+ *   2. IT WAS ONLY EVER TRUE IN ONE COUNTRY. The game is sold everywhere Play
+ *      and the App Store sell it, each storefront with its own currency, its
+ *      own tax treatment and the owner's own regional pricing on top. A figure
+ *      typed into this file is a guess about a shopper it will never meet.
+ *      Owner, v1.1.17: "this is going to be sold across different placcs in
+ *      the world - so we need to not declare a cost on the game - let google
+ *      play do that."
+ *
+ *  So the game holds no prices at all. The store names the figure or nothing
+ *  does, and its own sheet names it before a penny moves. What is still needed
+ *  here is the CATALOGUE - which products exist - because the shelf has to
+ *  know what to ask about and whether the till answered (tillHealth).
+ *
+ *  The prices themselves live in Play Console and App Store Connect, and are
+ *  written down for whoever sets them in packaging/twa/README.md §4. */
+export const SELLABLE_SKUS: readonly string[] = [
+  SUPPORTER_SKU, SUPPORT_SKU, CHARTER_SKU, ESTATE_SKU, PINNACLE_SKU,
+  'phase.inject.s', 'phase.inject.m', 'phase.inject.l', 'phase.inject.xl',
+  HEAL_SKU, GROUND_SKU,
+]
 
 /** The price to put on a button, and WHERE IT CAME FROM.
  *
- *  The reference prices above were added so no row would stand priceless, and
- *  they did something nobody asked for as well: they made a DEAD STORE LOOK
- *  ALIVE. A build whose products are not yet activated, or whose licence
- *  testing is not set up, still draws a full shelf at £0.99 and £9.99 - and
- *  only on the tap does it say "nothing was charged". That is exactly the
- *  report the owner filed against v1.1.6, and the fallback was half the reason
- *  it was hard to read.
+ *  There is only one possible source now: the store. `live` is true when the
+ *  store named the figure, and when it is false the price is null - the game
+ *  has nothing of its own to fall back on and must not pretend otherwise
+ *  (see SELLABLE_SKUS above). Every caller renders the wordless label in that
+ *  case, and the Store screen says the till is not answering.
  *
- *  So the origin travels with the price. `live` is true only when the store
- *  itself named the figure; the Store screen says so when it is false. */
+ *  The pair is kept rather than collapsed to `string | null` because the shelf
+ *  asks a second question of the same call - how many products a store would
+ *  price - and an unpriced row and a store that is not there read the same
+ *  from a null alone. */
 export async function skuPriceFrom(sku: string): Promise<{ price: string | null; live: boolean }> {
   const b = bridge()
   if (b?.details) {
     try {
       const p = await b.details(sku)
       if (p?.price) return { price: p.price, live: true }
-    } catch { /* fall through to the reference */ }
+    } catch { /* a store that throws has priced nothing */ }
   }
-  return { price: REFERENCE_PRICES[sku] ?? null, live: false }
-}
-
-/** The price to put on a button: the store's own figure when it will name
- *  one, the catalogue's reference price when it will not. */
-export async function skuPrice(sku: string): Promise<string | null> {
-  return (await skuPriceFrom(sku)).price
+  return { price: null, live: false }
 }
 
 /** Can this build actually take money right now?
@@ -480,14 +484,10 @@ export async function tillHealth(): Promise<{ live: number; asked: number }> {
   // asking about it guaranteed a shelf could never report better than 9 of 10
   // and the health line would have nagged forever on a perfectly good till.
   // Found by re-reading this against a real failure rather than a stub.
-  const sellable = Object.keys(REFERENCE_PRICES)
+  const sellable = SELLABLE_SKUS
     .filter(s => s !== SUPPORTER_SKU || !!adBridge())
   const got = await Promise.all(sellable.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
   return { live: got.filter(Boolean).length, asked: sellable.length }
-}
-
-export async function supporterPrice(): Promise<string | null> {
-  return skuPrice(SUPPORTER_SKU)
 }
 
 /**

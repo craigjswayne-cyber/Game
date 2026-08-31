@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  billingReason, rewardedAvailable, showRewarded, skuPrice, tillOpen,
+  billingReason, rewardedAvailable, showRewarded, skuPriceFrom, tillOpen,
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
@@ -450,8 +450,11 @@ function BoardFunds() {
     if (!open) return
     let live = true
     void (async () => {
-      const price = await skuPrice(CHARTER_SKU)
-      if (live) setPrices({ [CHARTER_SKU]: price })
+      // ONLY A PRICE THE STORE ITSELF NAMED, same rule as the Store's own
+      // BuyBtn. This desk read the ungated call until v1.1.17 and was the last
+      // place in the game that could print a figure of our own invention.
+      const p = await skuPriceFrom(CHARTER_SKU)
+      if (live) setPrices({ [CHARTER_SKU]: p.live ? p.price : null })
     })()
     return () => { live = false }
   }, [open])

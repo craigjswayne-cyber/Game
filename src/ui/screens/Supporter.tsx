@@ -60,20 +60,22 @@ function Row({ icon, title, line, right, msg, children }: {
 /**
  * The one-tap buy button. IT ONLY NAMES A PRICE THE STORE ITSELF NAMED.
  *
- * v1.1.5 put a price on every button and gave the catalogue's reference prices
- * as a fallback so no row could stand priceless. That fallback then told a lie
- * with real money behind it: the owner's shelf read "Buy - £0.99" and Play
- * charged £1.19, because £0.99 was OUR figure, typed into monetise.ts, and
- * £1.19 was PLAY'S - the same product with UK VAT on top of a tax-exclusive
- * console price. A shelf price that disagrees with the checkout is worse than
- * no shelf price at all, and the owner said as much: "maybe dont show the cost
- * on the store until they click on it".
+ * v1.1.5 put a price on every button and gave the catalogue's own figures as a
+ * fallback so no row could stand priceless. That fallback then disagreed with
+ * the checkout in front of the owner: the shelf read "Buy - £0.99" and Play
+ * charged £1.19. £0.99 was OUR figure, typed into monetise.ts; £1.19 was
+ * PLAY'S, and Play's is the one the sheet charges. (Why they differ is Play's
+ * business - the earlier note here blamed a tax-exclusive Console setting, and
+ * that was wrong: tax-inclusive pricing is automatic and has no off switch.
+ * We never found out, and no longer need to.) A shelf price that disagrees
+ * with the checkout is worse than no shelf price at all, and the owner said as
+ * much: "maybe dont show the cost on the store until they click on it".
  *
- * So the button carries a figure only when `live` is true - when Play answered
- * getDetails and that figure IS the one the sheet will charge. Otherwise it
- * says Buy, and Play's own sheet names the price before a penny moves. The
- * reference prices stay in the catalogue, where they are still the right tool
- * for asking whether the till is answering at all (tillHealth).
+ * v1.1.17 finished the job and took the catalogue figures out of the game
+ * entirely - it sells in every storefront Play and the App Store reach, and a
+ * price typed here is only ever right in one of them. So the button carries a
+ * figure only when the store named it, and otherwise says Buy and lets the
+ * store's own sheet name the price before a penny moves.
  */
 function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () => void }) {
   const [price, setPrice] = useState<string | null>(null)
@@ -93,10 +95,10 @@ const TIER_KEY: Record<InjectTier, string> = {
  * IS THE TILL ACTUALLY OPEN?
  *
  * tillOpen() only says a bridge object exists. It cannot say whether the
- * store behind it will answer, and the reference prices (monetise.ts) make a
- * store that will not answer look exactly like one that will: a full shelf,
- * priced, until you tap it and it says nothing was charged. That is precisely
- * the fault the owner hit on v1.1.6, and it cost an evening to read.
+ * store behind it will answer, and until v1.1.17 the catalogue's own figures
+ * made a store that will not answer look exactly like one that will: a full
+ * shelf, priced, until you tap it and it says nothing was charged. That is
+ * precisely the fault the owner hit on v1.1.6, and it cost an evening to read.
  *
  * So the shelf reports its own health, in one line, before anybody spends a
  * tap on it. Silent when the store answers - which is every shipped build that

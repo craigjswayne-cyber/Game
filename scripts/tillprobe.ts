@@ -26,7 +26,7 @@
  *
  * Run: npx vite-node scripts/tillprobe.ts
  */
-import { CONSUMABLE_SKUS, REFERENCE_PRICES, SPENDABLE_UNASKED, HEAL_SKU, SUPPORT_SKU } from '../src/game/monetise'
+import { CONSUMABLE_SKUS, SELLABLE_SKUS, SPENDABLE_UNASKED, HEAL_SKU, SUPPORT_SKU } from '../src/game/monetise'
 import { playBridge } from '../src/game/playbilling'
 
 let fails = 0
@@ -51,7 +51,7 @@ function stubPlay(shape: Shape, spelling: Spelling, open: Receipt[] = []) {
 
   const svc = {
     getDetails: async (skus: string[]) => skus
-      .filter(s => s in REFERENCE_PRICES)
+      .filter(s => SELLABLE_SKUS.includes(s))
       .map(s => ({ itemId: s, title: s, price: { value: '0.99', currency: 'GBP' } })),
     listPurchases: async () => purchases.filter(p => !spent.has(p.purchaseToken)),
     ...(shape === 'ack' || shape === 'both' ? {
@@ -120,7 +120,7 @@ for (const spelling of ['token', 'purchaseToken', 'silent'] as Spelling[]) {
     const play = stubPlay(shape, spelling)
     const b = await playBridge()
     if (!b) { ok(false, `a ${shape} service with a ${spelling} sheet built no bridge at all`); continue }
-    for (const sku of Object.keys(REFERENCE_PRICES)) await b.buy(sku)
+    for (const sku of SELLABLE_SKUS) await b.buy(sku)
     const left = play.unsettled()
     ok(left.length === 0,
        `${shape} service, sheet names the token as "${spelling}": every purchase acknowledged (${left.length} left: ${left.join(', ') || 'none'})`)
