@@ -418,6 +418,52 @@ try {
     if (has('On to the Week')) { await page.click('text=On to the Week').catch(() => {}); await page.waitForTimeout(180); continue }
     if (has('Skip the rest')) { await page.click('text=Skip the rest').catch(() => {}); await page.waitForTimeout(180); continue }
 
+    // ---- A QUESTION ON SCREEN IS ANSWERED BEFORE ANYTHING ELSE.
+    //
+    // This block used to sit BELOW the offers branch, and that ordering was a
+    // live-lock the watchdog had to photograph to prove: the ban-appeal
+    // question's middle option reads "Accept the ban with dignity", the offers
+    // branch matches any screen whose buttons contain the word Accept, its
+    // anchored locators (/^Accept/) then match nothing because the rendered
+    // label opens with a curly quote - so it fell through to tapping Continue,
+    // and under the hard press hold Continue just reopens the Press Room.
+    // Forever. v1.1.16 never hung on the same flaw because the hold was soft
+    // then: the mis-branch tapped Continue and the week moved anyway. The
+    // player was never stuck - answering the question is one tap - only a
+    // driver that reads words instead of screens was.
+    // ---- THE PRESS ROOM IS ANSWERED, NOT TAPPED PAST (v1.1.17).
+    //
+    // The press hold is hard now: a question with options on it stops the week
+    // until it is answered. A driver that only knows Continue would sit on this
+    // room forever and report FROZEN - which is exactly what it did when a hard
+    // hold was tried once before, and the reason it went soft again. But a
+    // player does not tap Continue at a question; he answers it. So does this.
+    //
+    // ROTATED, NOT RANDOM. The first cut of this used Math.random() to pick the
+    // tone, and that was the only randomness in the whole probe. It made a
+    // deterministic soak non-deterministic: the answers steer the career, so
+    // one run had the manager sacked in season two and coasting through 38
+    // matches in thirteen minutes, while another kept him in a job and ran past
+    // the ninety-minute limit until the harness killed it. Both were the same
+    // commit. A soak that can report green and red on identical code is worth
+    // less than no soak, and it cost a full suite run to work that out.
+    //
+    // A counter still exercises every tone across the run - there are only a
+    // handful, and a season asks far more questions than that - but the run is
+    // the same run every time, so a red one can actually be chased.
+    {
+      const q = page.locator('.press-q')
+      if (await q.count()) {
+        const opts = page.locator('.content .btn.ghost')
+        const n = await opts.count()
+        if (n) {
+          await opts.nth(pressAnswers++ % n).click({ timeout: 5000 }).catch(() => {})
+          await page.waitForTimeout(160)
+          continue
+        }
+      }
+    }
+
     // ---- an offer for one of your men must be answered before the week moves
     if (/Offers|Bids/i.test(v.title) || has('Reject') || has('Accept')) {
       const rej = page.locator('button', { hasText: /^Reject/ }).first()
@@ -469,40 +515,6 @@ try {
       continue
     }
     livePatience = 0
-    {
-    // ---- THE PRESS ROOM IS ANSWERED, NOT TAPPED PAST (v1.1.17).
-    //
-    // The press hold is hard now: a question with options on it stops the week
-    // until it is answered. A driver that only knows Continue would sit on this
-    // room forever and report FROZEN - which is exactly what it did when a hard
-    // hold was tried once before, and the reason it went soft again. But a
-    // player does not tap Continue at a question; he answers it. So does this.
-    //
-    // ROTATED, NOT RANDOM. The first cut of this used Math.random() to pick the
-    // tone, and that was the only randomness in the whole probe. It made a
-    // deterministic soak non-deterministic: the answers steer the career, so
-    // one run had the manager sacked in season two and coasting through 38
-    // matches in thirteen minutes, while another kept him in a job and ran past
-    // the ninety-minute limit until the harness killed it. Both were the same
-    // commit. A soak that can report green and red on identical code is worth
-    // less than no soak, and it cost a full suite run to work that out.
-    //
-    // A counter still exercises every tone across the run - there are only a
-    // handful, and a season asks far more questions than that - but the run is
-    // the same run every time, so a red one can actually be chased.
-    {
-      const q = page.locator('.press-q')
-      if (await q.count()) {
-        const opts = page.locator('.content .btn.ghost')
-        const n = await opts.count()
-        if (n) {
-          await opts.nth(pressAnswers++ % n).click({ timeout: 5000 }).catch(() => {})
-          await page.waitForTimeout(160)
-          continue
-        }
-      }
-    }
-
     // ---- otherwise: the button a thumb presses
     const cb = page.locator('.continue-btn')
     if (await cb.count()) {
@@ -530,7 +542,6 @@ try {
         await page.waitForTimeout(200)
       }
       }
-    }
     }
 
     // ---- has the game actually moved?
