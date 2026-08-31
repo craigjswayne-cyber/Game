@@ -149,6 +149,34 @@ export async function playBridge(): Promise<BillingBridge | null> {
       // who changed their mind that something went wrong is how a purchase flow
       // earns a one-star review. But only a SLOW AbortError is a cancel.
       if (err?.name === 'AbortError' && !quick) return 'cancelled'
+      // ---- ALREADY OWNED IS NOT A FAILURE. IT IS AN UNDELIVERED PURCHASE. ----
+      //
+      // Play refuses to open the sheet for a consumable the account already
+      // holds, with its own dialog: "You already own this item." v1.1.16 fixed
+      // the cause of those - consume() was never reached, so nothing was ever
+      // given back to the shelf - but it did nothing for the receipts ALREADY
+      // stuck on the owner's account when that build landed. He bought an
+      // injection, got one, and every further tap answered "you already own
+      // this item" (v1.1.17: "Ive clicked to add some cash - it did one, all
+      // other cash injections are unavailable to click... Says i already this
+      // item still").
+      //
+      // He is right, and reporting that as an error is the wrong answer twice
+      // over: he has paid for something he has not received, and the game is
+      // the only thing that can hand it to him. So the refusal is checked
+      // against the account's open receipts, and a SKU sitting there is
+      // reported as 'owned' - which is what it is. The caller then does what
+      // it does after any successful purchase: writes the grant into the
+      // career and sends the consume, which finally releases the shelf.
+      //
+      // No second charge happens on this path. Play never opened the sheet.
+      try {
+        const held = (await svc.listPurchases()).find(p => p.itemId === sku)
+        if (held) {
+          setBillingReason(null)
+          return 'owned'
+        }
+      } catch { /* the account cannot be asked; fall through and report */ }
       setBillingReason(`${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'}`)
       return 'refused'
     }

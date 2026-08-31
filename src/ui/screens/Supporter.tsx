@@ -210,12 +210,13 @@ export default function Supporter() {
    *  it. */
   const buySupport = async () => {
     setBusy(true)
-    const out = await buyConsumable(SUPPORT_SKU)
-    if (out === 'owned') {
-      await consume(SUPPORT_SKU)
-      say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
-    } else say(SUPPORT_SKU, endingText(out))
-    setBusy(false)
+    try {
+      const out = await buyConsumable(SUPPORT_SKU)
+      if (out === 'owned') {
+        await consume(SUPPORT_SKU)
+        say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
+      } else say(SUPPORT_SKU, endingText(out))
+    } finally { setBusy(false) }
   }
 
   /* THE ESTATE AT A SECOND GROUND. Play sells a non-consumable exactly once,
@@ -225,28 +226,38 @@ export default function Supporter() {
   const buyGround = async () => {
     if (!inCareer) { say(ESTATE_SKU, t('store.needCareer')); return }
     setBusy(true)
-    const out = await buyConsumable(GROUND_SKU)
-    if (out === 'owned') {
-      const built = buildEstate()
-      if (built) await consume(GROUND_SKU)
-      say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
-    } else say(ESTATE_SKU, endingText(out))
-    setBusy(false)
+    try {
+      const out = await buyConsumable(GROUND_SKU)
+      if (out === 'owned') {
+        const built = buildEstate()
+        if (built) await consume(GROUND_SKU)
+        say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
+      } else say(ESTATE_SKU, endingText(out))
+    } finally { setBusy(false) }
   }
 
+  /* ONE SHELF, ONE FLAG - SO THE FLAG HAS TO COME BACK DOWN.
+     `busy` disables every buy button in the store while a payment sheet is
+     open, which is right: two Play sheets at once is not a thing. What was
+     wrong is that nothing here was guarded, so a throw anywhere inside -
+     landInjection writing a grant, buildEstate, healSquad - left `busy` true
+     forever and killed the WHOLE shelf until the screen was left and
+     re-entered. Owner, v1.1.17: "it did one, all other cash injections are
+     unavailable to click." Every purchase path releases in a finally now. */
   const buyInjection = async (tier: InjectTier) => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
     setBusy(true)
-    const out = await buyConsumable(INJECT_SKUS[tier])
-    if (out === 'owned') await landInjection(tier)
-    else say(INJECT_SKUS[tier], endingText(out))
-    setBusy(false)
+    try {
+      const out = await buyConsumable(INJECT_SKUS[tier])
+      if (out === 'owned') await landInjection(tier)
+      else say(INJECT_SKUS[tier], endingText(out))
+    } finally { setBusy(false) }
   }
 
   const doRestore = async () => {
     setBusy(true)
-    const changed = await restore()
-    setBusy(false)
+    let changed = false
+    try { changed = await restore() } finally { setBusy(false) }
     if (changed) claim()
     say('restore', t(changed ? 'supporter.restored' : hasSupporter() ? 'supporter.alreadyYours' : 'supporter.nothingToRestore'))
   }
