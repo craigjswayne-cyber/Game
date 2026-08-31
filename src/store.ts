@@ -15,7 +15,7 @@ import {
 } from './game/matchEngine'
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
-import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep } from './game/days'
+import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
@@ -663,6 +663,38 @@ export const useStore = create<Store>((set, get) => ({
     // the Monday-to-Friday walk is untouched and Tuesday still gets to introduce
     // the press question before anything insists on it. The button's label reads
     // the same predicate, so it says "Read (3)" rather than refusing in silence.
+    // ---- THE PRESS HOLD APPLIES ON EVERY STEP, AND IT IS HARD ----
+    //
+    // Owner, v1.1.17: "press questions MUST be answered when they arrive - you
+    // shouldn't be able to continue through the game."
+    //
+    // Two things changed. It holds on every step rather than only on the way
+    // out of the week, so a question cannot be walked past on the following
+    // day; and it no longer yields on the second tap.
+    //
+    // THE SECOND TAP IS WHY THIS WAS SOFT, and the history is worth keeping.
+    // A hard hold shipped once and scripts/soakui.mjs found the consequence
+    // inside one season: 60 taps without the week moving, stuck on the Press
+    // Room at season 2 week 1. That was not the gate being wrong, it was the
+    // gate being ILLEGIBLE - a manager who does not know a question is
+    // required cannot tell a hold from a bricked save.
+    //
+    // What makes it safe now is that the refusal explains itself. The Continue
+    // button reads the same predicate and relabels itself "Answer the press",
+    // the first tap still carries you to the room, and every question that can
+    // hold is one with options on it - a question with no options can never
+    // hold, or the save really would lock. soakui answers the room instead of
+    // tapping past it, which is what a player does.
+    {
+      const press = pressBlock(g)
+      if (press) {
+        const onPress = get().nav[get().nav.length - 1]?.screen === 'press'
+        if (!onPress) {
+          set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
+        }
+        return
+      }
+    }
     if (deskGates(step)) {
       const desk = deskBlock(g)
       if (desk?.kind === 'mail') {
@@ -719,10 +751,9 @@ export const useStore = create<Store>((set, get) => ({
       // Mail keeps the hard gate, because there the gate itself does the
       // clearing: one tap hands the whole pile to the reader, and leaving the
       // reader marks the rest read, so it cannot fail to terminate.
-      if (desk?.kind === 'press' && get().nav[get().nav.length - 1]?.screen !== 'press') {
-        set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
-        return
-      }
+      // (the press branch that used to live here has moved above and become
+      // hard - deskBlock still reports press so the button can label itself,
+      // but the hold is applied before this block is ever reached)
     }
     if (step.kind === 'match') {
       // stand the manager on the day the match actually falls, so the masthead

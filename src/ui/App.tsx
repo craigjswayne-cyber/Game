@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
-import { dayLine, deskBlock, deskGates, inInbox, nextStep } from '../game/days'
+import { dayLine, deskBlock, deskGates, inInbox, nextStep, pressBlock } from '../game/days'
 import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import { natWindow } from '../game/country'
@@ -516,7 +516,10 @@ export default function App() {
               // game - the failure this session has now fixed four times in
               // other shapes.
               const step = nextStep(game)
-              const desk = deskGates(step) ? deskBlock(game) : null
+              // press holds on EVERY step now (v1.1.17), so the label has to
+              // read it on every step too - a button that says Continue and
+              // then refuses is the illegible gate all over again
+              const desk = pressBlock(game) ?? (deskGates(step) ? deskBlock(game) : null)
               return (
                 <button className="continue-btn" onClick={continueWeek}
                   title={desk ? t('common.deskWaits') : undefined}>

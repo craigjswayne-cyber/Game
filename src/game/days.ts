@@ -375,14 +375,31 @@ export function deskBlock(state: GameState): DeskBlock | null {
   if (unread > 0) {
     return { kind: 'mail', n: unread, label: t('dayroom.deskRead', { n: unread }) }
   }
-  // A question with no options cannot be answered, so it must not be able to
-  // hold the week: that would be a locked save, not a gate.
-  const open = state.press.filter(p =>
-    p.week === state.week && !p.answered && (p.options?.length ?? 0) > 0).length
-  if (open > 0) {
-    return { kind: 'press', n: open, label: open === 1 ? t('dayroom.deskPress') : t('dayroom.deskPressN', { n: open }) }
-  }
+  const press = pressBlock(state)
+  if (press) return press
   return null
+}
+
+/**
+ * THE PRESS HOLD, ON ITS OWN, BECAUSE IT NOW APPLIES ON EVERY STEP.
+ *
+ * Owner, v1.1.17: "press questions MUST be answered when they arrive - you
+ * shouldn't be able to continue through the game."
+ *
+ * It used to hold only on the way OUT of the week (deskGates), and only for a
+ * question asked in the CURRENT week - so a question introduced on the Tuesday
+ * could be walked past on the Wednesday, and one left over from last week did
+ * not hold at all. Both are "continuing through the game" in the sense he
+ * means.
+ *
+ * Any unanswered question with options now holds, whatever day it is and
+ * whatever week it was asked. A question with NO options cannot be answered,
+ * so it must never hold: that is a locked save, not a gate.
+ */
+export function pressBlock(state: GameState): DeskBlock | null {
+  const open = state.press.filter(p => !p.answered && (p.options?.length ?? 0) > 0).length
+  if (open === 0) return null
+  return { kind: 'press', n: open, label: open === 1 ? t('dayroom.deskPress') : t('dayroom.deskPressN', { n: open }) }
 }
 
 /** Does the desk get a say on this step? Only when the week is about to leave -
