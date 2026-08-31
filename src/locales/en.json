@@ -2133,6 +2133,7 @@
     "day3": "Thursday",
     "day4": "Friday",
     "day5": "Saturday",
+    "deskSquad": "Name {n} more ▸",
     "deskPress": "Press room",
     "deskPressN": "Press room ({n})",
     "deskRead": "Read ({n})",
@@ -2653,6 +2654,10 @@
     "coTests": "Tests",
     "coNoTests": "No Tests on the calendar yet this season.",
     "coFullTables": "Full tables and every competition live on the International Rugby screen.",
+    "coNameIt": "Name your squad - {n} more to go",
+    "coNameItSub": "At least {floor}, up to {max}. Tap Call Up on anyone below, or take the coaches' list and change what you like.",
+    "coTakeSuggestion": "Take the coaches' squad",
+    "coInForm": "IN FORM",
     "coCaps": {
       "one": " · {n} cap",
       "other": " · {n} caps"
@@ -3161,6 +3166,10 @@
     "drawTailAway": "Quiet the crowd early and anything is possible.",
     "finalsWeekendSubj": "🏟️ FINALS WEEKEND: {city} gets Europe's showpiece",
     "finalsWeekend": "{venue} stages both European finals this season: the Continental Shield under Friday lights, the Continental Cup on the Saturday. {seats} seats in {city}, the whole sport in town. Eight quarter-finalists stand in each, and all circled the date this morning.",
+    "natNameSubj": "📋 {nationCap_k}: name your squad",
+    "natFilledSubj": "📋 {nationCap_k}: the assistant filled the gaps",
+    "natFilled": "Kick-off was coming and the squad was short, so your assistant added {n} to make up the numbers. They are named on merit, not on your judgement - next window, name it yourself.",
+    "natName": "The camp is open and the sheet is blank. {nationCap_k} need at least {n} men named before the first Test - the country desk has everyone available, with the coaches' picks at the top. This one is yours: nobody is going to name it for you.",
     "natSquadSubj": "📋 Your {nation_k} squad is announced",
     "natSquad": "The federation has published your {n}-man squad for the window. {caps_k}\n\nFORWARDS: {fwd}\n\nBACKS: {bks}\n\nShape the squad and pick your Test XV from the Club & Country screen before each match.",
     "natSquadNew": {

@@ -3,6 +3,7 @@ import { useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep, pressBlock } from '../game/days'
+import { natSquadHold } from '../game/country'
 import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
 import { natWindow } from '../game/country'
@@ -519,7 +520,12 @@ export default function App() {
               // press holds on EVERY step now (v1.1.17), so the label has to
               // read it on every step too - a button that says Continue and
               // then refuses is the illegible gate all over again
-              const desk = pressBlock(game) ?? (deskGates(step) ? deskBlock(game) : null)
+              // three holds, one label. Press and squad apply on every step;
+              // mail only on the way out of the week.
+              const owed = natSquadHold(game)
+              const desk = pressBlock(game)
+                ?? (owed ? { kind: 'squad' as const, n: owed.n, label: t('dayroom.deskSquad', { n: owed.n }) } : null)
+                ?? (deskGates(step) ? deskBlock(game) : null)
               return (
                 <button className="continue-btn" onClick={continueWeek}
                   title={desk ? t('common.deskWaits') : undefined}>

@@ -16,6 +16,7 @@ import {
 import { applyForJob, resignJob } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
+import { natSquadHold } from './game/country'
 import { clearResume, getResume, loadGame, migrate, putResume, saveGame } from './game/save'
 import { replayMatch, resumeFits, type MatchCmdBody, type MatchResume } from './game/resume'
 
@@ -691,6 +692,25 @@ export const useStore = create<Store>((set, get) => ({
         const onPress = get().nav[get().nav.length - 1]?.screen === 'press'
         if (!onPress) {
           set(s => ({ nav: [...s.nav, { screen: 'press' as const }], tick: s.tick + 1 }))
+        }
+        return
+      }
+    }
+    // ---- AND THE COUNTRY WAITS FOR ITS SQUAD ----
+    //
+    // Owner, v1.1.17: "the game stopping and asking the international coach to
+    // select his squad... It needs to be more obvious."
+    //
+    // The camp opens empty now, so this is what turns that from an oversight
+    // into a job. Same shape as the press hold, same safety: it only holds when
+    // there are enough callable men to clear it, and the first tap carries him
+    // to the desk where the naming happens.
+    {
+      const sq = natSquadHold(g)
+      if (sq) {
+        const onDesk = get().nav[get().nav.length - 1]?.screen === 'country'
+        if (!onDesk) {
+          set(s => ({ nav: [...s.nav, { screen: 'country' as const }], tick: s.tick + 1 }))
         }
         return
       }

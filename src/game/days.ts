@@ -366,6 +366,7 @@ export function nextStep(state: GameState): NextStep {
 export type DeskBlock =
   | { kind: 'mail'; n: number; label: string }
   | { kind: 'press'; n: number; label: string }
+  | { kind: 'squad'; n: number; label: string }
 
 export function deskBlock(state: GameState): DeskBlock | null {
   // MAIL FIRST, because it is the cheap one: a tap each, and the manager is
@@ -432,3 +433,4 @@ export function dayLine(state: GameState): string {
 export function weekLine(state: GameState): string {
   return weekDate(state.season, state.week)
 }
+

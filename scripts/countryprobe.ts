@@ -61,9 +61,21 @@ ok(early != null, `between windows the call-up is refused ("${early}")`)
 // ---- walk into an open window ----
 for (let i = 0; i < 60 && !g.natSquads['SCO']; i++) processWeekAndAdvance(g)
 const squad = g.natSquads['SCO']!
-ok(!!squad && squad.length > 0, `a window opened and the federation named ${squad?.length} men (wk${g.week})`)
+// ---- THE CAMP OPENS EMPTY, AND THAT IS THE POINT (v1.1.17) ----
+//
+// Owner: "dont auto pick the squad, it should be the coaches job to pick them."
+// The federation used to hand him a finished list; the sheet is blank now and
+// the week is held until he fills it. Everything below this line tests the
+// tools he fills it WITH, so the probe does what he does: it names a squad.
+ok(squad.length === 0, `a window opened and the coach's sheet is blank (${squad.length} named, wk${g.week})`)
 const w = natWindow(g)!
 ok(!!w, 'natWindow reports the window open')
+{
+  const before = natEligible(g).length
+  ok(before >= w.size, `and there is a full pool to pick from (${before} callable)`)
+  for (const p of natEligible(g).slice(0, w.size)) natCallUp(g, p.id)
+  ok(squad.length === w.size, `the coach names his ${w.size} (${squad.length})`)
+}
 
 // ---- 1a. drop, to the floor and not through it ----
 const beforeDrops = squad.length
@@ -189,7 +201,12 @@ for (const p of Object.values(g2.players)) {
   if (p.nat === 'SCO' && p.clubId && !p.injury && !p.onLoan) { p.ca = 60; realScots++ }
 }
 for (let i = 0; i < 60 && !g2.natSquads['SCO']; i++) processWeekAndAdvance(g2)
-const sq2 = (g2.natSquads['SCO'] ?? []).map(id => g2.players[id]).filter(Boolean)
+// THE CLAIM MOVES TO THE POOL (v1.1.17). His own camp opens blank now, so
+// "gets its own men called" cannot be read off a squad nobody has named. It is
+// read off what the desk OFFERS him: if the old ca >= 68 floor were still
+// there, a nation of 60-rated pros would be offered generated stand-ins and no
+// real Scots at all.
+const sq2 = natEligible(g2)
 const realCalled = sq2.filter(p => p.clubId).length
 ok(realCalled >= Math.min(realScots, NAT_SQUAD_FLOOR),
   `a nation of 60-rated pros still gets its own men called (${realCalled} real in a squad of ${sq2.length}, ${realScots} in the game)`)
@@ -320,16 +337,17 @@ console.log('\n--- 12. every nation has somebody fighting for the shirt\n')
     while (!natWindow(gn) && guard++ < 45) processWeekAndAdvance(gn)
     const w = natWindow(gn)
     if (!w) continue
-    const squad = gn.natSquads[nat] ?? []
+    // HIS OWN CAMP IS BLANK NOW, so both claims are read off the pool: it has
+    // to hold a legal squad, and then a full team of challengers on top of it.
+    // That is the same property the old pair of numbers described - a squad
+    // plus contenders - measured where it now lives.
     const pool = natEligible(gn)
-    if (squad.length < NAT_SQUAD_FLOOR) thin.push(`${nat} squad ${squad.length}`)
-    // A REAL CONTEST, not one spare man. Fifteen is a full team of challengers -
-    // enough that every shirt has somebody behind it.
-    if (pool.length < 15) noContest.push(`${nat} ${pool.length} outside camp`)
+    if (pool.length < NAT_SQUAD_FLOOR) thin.push(`${nat} pool ${pool.length}`)
+    if (pool.length < NAT_SQUAD_FLOOR + 15) noContest.push(`${nat} ${pool.length} callable`)
   }
-  ok(thin.length === 0, `every nation fields a legal squad (${thin.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
+  ok(thin.length === 0, `every nation can field a legal squad (${thin.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
   ok(noContest.length === 0,
-     `and every nation has a team's worth of contenders outside it (${noContest.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
+     `and a team's worth of contenders on top of it (${noContest.join(', ') || 'all ' + NAT_TIERS.length + ' fine'})`)
 }
 
 console.log(fails ? `\nCOUNTRY PROBE FAILED (${fails})` : '\nCOUNTRY PROBE PASSED: the pinnacle has a desk of its own')

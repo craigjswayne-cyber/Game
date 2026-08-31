@@ -518,7 +518,12 @@ export function generatePress(state: GameState, rng: Rng) {
   // the UNION's confidence, not the club board's - saying the country comes
   // second is heard in the federation offices, and saying it comes first is
   // heard in his own dressing room.
-  if (state.natTeam && (state.natSquads[state.natTeam]?.length ?? 0) > 0 &&
+  // AN OPEN CAMP, NOT A FULL ONE (v1.1.17). This asked for a populated squad,
+  // which was fine while the federation named it the moment the window opened.
+  // The coach names it himself now and the sheet starts blank, so a length test
+  // would have silenced the country's press for exactly the days they would
+  // most want him - the ones where he is picking.
+  if (state.natTeam && state.natSquads[state.natTeam] != null &&
       (state.natCoachAskAt == null || absNow2 - state.natCoachAskAt >= 6) && rng() < 0.6) {
     state.natCoachAskAt = absNow2
     const nv = nationVars(state.natTeam)
