@@ -34,10 +34,23 @@ who is not you.
 
 **The one real decision: Individual or Organization.** Individual is quick, but
 your own legal name is published on the App Store as the seller, visible to
-every customer. Organization publishes under a company name — which is how you
-would match the *Forwards & Backs* already used on Google Play — but needs a
-D-U-N-S number, which is free and can take up to a couple of weeks to issue. If
-the two stores should match, request the D-U-N-S number before anything else.
+every customer. Organization publishes under a company name — but needs a
+D-U-N-S number, which is free and can take up to a couple of weeks to issue.
+
+**Done — 31 Aug 2026.** D&B issued D-U-N-S **506525570** for **FWDS & BCKS**.
+When enrolling:
+
+* Pick **Organization** and enter that number. The legal entity name must be
+  typed exactly as D&B holds it: `FWDS & BCKS`.
+* Apple keeps its own copy of the D&B database, and a freshly issued number
+  can take **up to two business days** to appear in it. "No match found" in
+  the first day or two means *wait*, not re-request — a second request just
+  muddies the record.
+* The seller name shown to every App Store customer will be FWDS & BCKS; the
+  app itself still displays as PHASE: Rugby Manager.
+* The listing's Copyright field becomes `2026 FWDS & BCKS`.
+* The same number serves a Google Play **organisation** account, should the
+  Play side ever convert to one.
 
 ### 2. Install Xcode while you wait
 
