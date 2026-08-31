@@ -335,9 +335,12 @@ ads. Never create `phase.editor` — removed before any store sold one.
 > customers are already tax-inclusive, so £0.99 is what is charged — which makes
 > the two stores agree, which is the point.
 >
-> The catalogue's own figures are in `src/game/monetise.ts` (`REFERENCE_PRICES`),
-> and `scripts/moneyprobe.ts` fails if `Products.storekit` ever drifts from them
-> or loses its storefront.
+> **The game no longer holds any prices at all** (v1.1.17, owner: "we need to
+> not declare a cost on the game - let google play do that"). It sells in every
+> storefront both stores reach, and a figure typed into the source is right in
+> at most one of them. The prices in the table above are what to TYPE INTO THE
+> CONSOLES; they exist nowhere in the app, and `moneyprobe.ts` now fails if any
+> file under `src/` puts a money figure next to a product id.
 
 ### 16. Take the screenshots
 
