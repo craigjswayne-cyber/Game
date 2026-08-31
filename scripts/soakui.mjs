@@ -160,6 +160,7 @@ let matchesPlayed = 0
 let bulletins = 0
 let reloads = 0
 let screenVisits = 0
+let seasonsPlayed = 0   // seasonsDone is scoped to the run; the verdict prints outside it
 const weekTrail = []
 
 try {
@@ -209,6 +210,7 @@ try {
   const start = await clock()
   console.log(`start: ${start.raw}`)
   let seasonsDone = 0
+  let pressAnswers = 0   // rotates the press tone deterministically (see below)
   let lastYear = start.seasonYear
   let lastWeek = start.week
   let sinceProgress = 0
@@ -402,13 +404,26 @@ try {
     // room forever and report FROZEN - which is exactly what it did when a hard
     // hold was tried once before, and the reason it went soft again. But a
     // player does not tap Continue at a question; he answers it. So does this.
+    //
+    // ROTATED, NOT RANDOM. The first cut of this used Math.random() to pick the
+    // tone, and that was the only randomness in the whole probe. It made a
+    // deterministic soak non-deterministic: the answers steer the career, so
+    // one run had the manager sacked in season two and coasting through 38
+    // matches in thirteen minutes, while another kept him in a job and ran past
+    // the ninety-minute limit until the harness killed it. Both were the same
+    // commit. A soak that can report green and red on identical code is worth
+    // less than no soak, and it cost a full suite run to work that out.
+    //
+    // A counter still exercises every tone across the run - there are only a
+    // handful, and a season asks far more questions than that - but the run is
+    // the same run every time, so a red one can actually be chased.
     {
       const q = page.locator('.press-q')
       if (await q.count()) {
         const opts = page.locator('.content .btn.ghost')
         const n = await opts.count()
         if (n) {
-          await opts.nth(Math.floor(Math.random() * n)).click({ timeout: 5000 }).catch(() => {})
+          await opts.nth(pressAnswers++ % n).click({ timeout: 5000 }).catch(() => {})
           await page.waitForTimeout(160)
           continue
         }
@@ -449,7 +464,7 @@ try {
     const c = await clock()
     if (c.week != null && (c.week !== lastWeek || c.seasonYear !== lastYear)) {
       if (c.seasonYear !== lastYear) {
-        seasonsDone++
+        seasonsPlayed = ++seasonsDone
         console.log(`  --- season ${seasonsDone} done, now ${c.raw} (${interactions} taps, ${matchesPlayed} matches)`)
         await shot(`season-${seasonsDone}`)
         // a full sweep of every screen at each season boundary, when the world
@@ -524,7 +539,7 @@ try {
 
 console.log(`\n${'='.repeat(64)}`)
 if (!findings.length) {
-  console.log('SOAK UI PASSED: five seasons played, nothing broke')
+  console.log(`SOAK UI PASSED: ${seasonsPlayed} season(s) played, nothing broke`)
 } else {
   const byKind = {}
   for (const f of findings) (byKind[f.kind] ??= []).push(f)
