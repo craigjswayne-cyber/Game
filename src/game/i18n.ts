@@ -25,8 +25,11 @@
 
 import en from '../locales/en.json'
 import fr from '../locales/fr.json'
+import es from '../locales/es.json'
+import it from '../locales/it.json'
+import ja from '../locales/ja.json'
 
-export type Lang = 'en' | 'fr'
+export type Lang = 'en' | 'fr' | 'es' | 'it' | 'ja'
 
 /** The languages offered, in the order the picker shows them. `label` is in the
  *  language itself, because somebody looking for French is looking for
@@ -34,10 +37,18 @@ export type Lang = 'en' | 'fr'
 export const LANGS: { code: Lang; label: string; short: string }[] = [
   { code: 'en', label: 'English', short: 'EN' },
   { code: 'fr', label: 'Français', short: 'FR' },
+  { code: 'es', label: 'Español', short: 'ES' },
+  { code: 'it', label: 'Italiano', short: 'IT' },
+  { code: 'ja', label: '日本語', short: 'JA' },
 ]
 
+/** How each language writes 12345.67 - the tag handed to toLocaleString. */
+const NUMBER_LOCALE: Record<Lang, string> = {
+  en: 'en-GB', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', ja: 'ja-JP',
+}
+
 type Dict = Record<string, unknown>
-const DICTS: Record<Lang, Dict> = { en: en as Dict, fr: fr as Dict }
+const DICTS: Record<Lang, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict }
 
 const STORAGE_KEY = 'rm-lang'
 
@@ -48,11 +59,11 @@ const listeners = new Set<() => void>()
 export function initLang(): Lang {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'en' || saved === 'fr') current = saved
+    if (LANGS.some(l => l.code === saved)) current = saved as Lang
     else {
       // no stored choice: honour the device, but only for a language we have
       const nav = (navigator.language || 'en').slice(0, 2).toLowerCase()
-      current = nav === 'fr' ? 'fr' : 'en'
+      current = LANGS.some(l => l.code === nav) ? (nav as Lang) : 'en'
     }
   } catch {
     current = 'en'
@@ -129,7 +140,10 @@ function render(entry: unknown, vars: Vars | undefined, lang: Lang): string | nu
   if (entry && typeof entry === 'object' && 'other' in (entry as object)) {
     const forms = entry as { one?: string; other: string }
     const n = Number(vars?.n ?? 0)
-    const singular = lang === 'fr' ? Math.abs(n) < 2 : n === 1
+    // Each language's own line between one and many. French counts zero as
+    // singular (CLDR: 0 < n < 2), Japanese draws no line at all - a dictionary
+    // may still carry {one, other} for shape parity, but 'other' always wins.
+    const singular = lang === 'ja' ? false : lang === 'fr' ? Math.abs(n) < 2 : n === 1
     return fill(singular && forms.one ? forms.one : forms.other, vars, lang)
   }
   return null
@@ -191,7 +205,7 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
         }).join(sep)
       } catch { return v }
     }
-    return typeof v === 'number' ? v.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB') : String(v)
+    return typeof v === 'number' ? v.toLocaleString(NUMBER_LOCALE[lang]) : String(v)
   })
 }
 
