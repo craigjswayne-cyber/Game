@@ -5,7 +5,7 @@ import type { GameState } from '../../game/model'
 import { agencyKids, agencySeniors } from '../../game/agency'
 import { natRankOrder } from '../../game/natrank'
 import { nationByCode, nationName } from '../../game/nations'
-import { CrestT, Nat, PosBadge, SectionTitle } from '../components'
+import { ClubLink, CrestT, Nat, PosBadge, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 
 /** The Scouting Agency: monthly world rankings, FM-style. */
@@ -116,7 +116,7 @@ export default function Agency() {
                     give space so you dont have to scroll right at all").
                     clubCode is the same code the crest beside it draws and the
                     touchline paints, so the badge and the text agree. */}
-                <td className="muted"><CrestT g={game} teamId={p.clubId!} size={15} />{clubCode(game.clubs[p.clubId!]?.short ?? '')}</td>
+                <td className="muted"><CrestT g={game} teamId={p.clubId!} size={15} /><ClubLink g={game} clubId={p.clubId}>{clubCode(game.clubs[p.clubId!]?.short ?? '')}</ClubLink></td>
                 <td className="num">{fmtMoney(p.value)}</td>
               </tr>
             )

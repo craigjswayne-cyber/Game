@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { weekDate } from '../../game/model'
-import { CrestT, SectionTitle } from '../components'
+import { ClubLink, CrestT, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 import { t } from '../../game/i18n'
@@ -43,7 +43,7 @@ export default function Tables({ initial }: { initial?: string }) {
             {ko.map(f => (
               <tr key={f.id}>
                 <td className="muted">{stageName(f.stage!)}</td>
-                <td className="name"><CrestT g={game} teamId={f.homeId} size={15} />{teamShort(game, f.homeId)} {t('common.v')} <CrestT g={game} teamId={f.awayId} size={15} />{teamShort(game, f.awayId)}</td>
+                <td className="name"><CrestT g={game} teamId={f.homeId} size={15} /><ClubLink g={game} clubId={f.homeId}>{teamShort(game, f.homeId)}</ClubLink> {t('common.v')} <CrestT g={game} teamId={f.awayId} size={15} /><ClubLink g={game} clubId={f.awayId}>{teamShort(game, f.awayId)}</ClubLink></td>
                 <td className="num">{f.played ? `${f.homeScore}-${f.awayScore}` : weekDate(game.season, f.week).slice(0, -5)}</td>
               </tr>
             ))}
@@ -75,7 +75,7 @@ function Leaders({ compId }: { compId: string }) {
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td className="num muted">{i + 1}</td>
             <td className="name">{p.name}</td>
-            <td className="muted">{p.clubId ? game.clubs[p.clubId]?.short : ''}</td>
+            <td className="muted">{p.clubId ? <ClubLink g={game} clubId={p.clubId} /> : ''}</td>
             <td className="num" style={{ fontWeight: 700 }}>{val(p)}</td>
           </tr>
         ))}

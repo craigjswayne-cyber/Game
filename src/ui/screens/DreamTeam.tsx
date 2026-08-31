@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { teamShort } from '../../game/matchEngine'
-import { Jersey, SectionTitle } from '../components'
+import { ClubLink, Jersey, SectionTitle } from '../components'
 import { t } from '../../game/i18n'
 
 /** Magazine-style Dream Team of the round + season leaderboards -
@@ -64,7 +64,7 @@ export default function DreamTeam() {
         {rows.map((p, i) => (
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td className="num" style={{ fontWeight: 700 }}>{i + 1}</td>
-            <td className="name">{p.name} <span className="muted">({p.clubId ? teamShort(game, p.clubId) : '-'})</span></td>
+            <td className="name">{p.name} <span className="muted">({p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : '-'})</span></td>
             <td className="num" style={{ fontWeight: 700 }}>{val(p)}</td>
           </tr>
         ))}
@@ -119,7 +119,7 @@ function OnesToWatch({ leagueId }: { leagueId: string }) {
           <tr key={p.id} onClick={() => go('player', p.id)}>
             <td className="num">{p.age}</td>
             <td className="name">🌟 {p.name}
-              <span className="muted"> ({p.pos} · {p.clubId ? teamShort(game, p.clubId) : t('world.dtFreeAgent')})</span>
+              <span className="muted"> ({p.pos} · {p.clubId ? <ClubLink g={game} clubId={p.clubId}>{teamShort(game, p.clubId)}</ClubLink> : t('world.dtFreeAgent')})</span>
             </td>
             <td className="num muted">{p.nat}</td>
           </tr>
