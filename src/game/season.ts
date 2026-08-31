@@ -3003,8 +3003,31 @@ export function processWeekAndAdvance(state: GameState) {
   // letters have cleared; week 21 ahead of the mid-season deadline at 27.
   if (state.week === 2 || state.week === 21) recruitmentMeeting(state)
 
-  // contract expiry warnings for the user's squad
-  if (state.week === 20 || state.week === 31) {
+  // ---- THE CONTRACT LADDER ----
+  //
+  // Owner, v1.1.17: "contract talk should be in the inbox 6 months from
+  // players contracts finishing with a reminder 3 months, 1 month, 2 weeks..."
+  //
+  // There were two warnings, at weeks 20 and 31, both saying the same thing in
+  // the same words - so the first one was easy to file away and the second read
+  // as a repeat rather than as a clock running down. A season is SEASON_WEEKS
+  // long and ends at the last of them, so the owner's calendar lands on:
+  //
+  //   week 19  six months out    (26 weeks)
+  //   week 32  three months out  (13 weeks)
+  //   week 41  a month out       (4 weeks)
+  //   week 43  a fortnight out   (2 weeks)
+  //
+  // One story, four dates, and it says how long is left each time, which is
+  // the whole point of a reminder.
+  const CONTRACT_LADDER: [number, string][] = [
+    [SEASON_WEEKS - 26, 'news.cxSix'],
+    [SEASON_WEEKS - 13, 'news.cxThree'],
+    [SEASON_WEEKS - 4, 'news.cxOne'],
+    [SEASON_WEEKS - 2, 'news.cxTwo'],
+  ]
+  const rung = CONTRACT_LADDER.find(([wk]) => wk === state.week)
+  if (rung) {
     const expiring = state.clubs[state.userClubId].players
       .map(id => state.players[id])
       .filter(p => p && p.contractEnds <= state.season)
@@ -3016,12 +3039,13 @@ export function processWeekAndAdvance(state: GameState) {
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `${expiring.length} contract${expiring.length > 1 ? 's' : ''} expiring`,
-        body: `Out of contract in the summer: ${named.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}`
+        body: `${tIn('en', rung[1])} until these deals end: ${named.map(p => `${p.name} (${p.pos}, ${p.age})`).join(', ')}`
           + `${expiring.length > named.length ? ` and ${expiring.length - named.length} more - full list on Team ▸ Contracts` : ''}.`
-          + ` Offer new deals from their profiles or they walk for free.`,
+          + ` Offer new terms from their profiles, or they are free to talk to anyone.`,
         k: expiring.length > named.length ? 'news.expiringMore' : 'news.expiring',
         v: {
           n: expiring.length, more: expiring.length - named.length,
+          when_k: rung[1],
           men_l: JSON.stringify(named.map(x => ({ k: 'news.expiringMan', name: x.name, pos: x.pos, age: x.age }))),
         },
       })

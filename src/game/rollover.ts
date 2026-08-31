@@ -664,6 +664,7 @@ function handleContracts(state: GameState, rng: Rng) {
   state.preContracts = []
 
   const freed: Player[] = []
+  const rolled: Player[] = []
   for (const p of Object.values(state.players)) {
     if (p.clubId && p.contractEnds < state.season + 1) {
       const club = state.clubs[p.clubId]
@@ -673,11 +674,26 @@ function handleContracts(state: GameState, rng: Rng) {
         p.wage = playerWage(p.ca, p.age)
         continue
       }
-      // the DoR's safety net: settled squad men take the standard one-year
-      // extension rather than walking - the unhappy and the listed still go
-      if (p.clubId === state.userClubId && !p.transferListed && p.morale >= 4.5 && rng() < 0.7) {
+      // A ROLLING DEAL IS THE EXCEPTION, NOT THE SAFETY NET.
+      //
+      // Owner, v1.1.17: "once contracts are done they can go on a rolling
+      // contract but most likely will leave and pursue other opportunities."
+      //
+      // This used to keep SEVEN IN TEN settled men on a quiet one-year
+      // extension, which made letting a contract run out very nearly free: the
+      // squad mostly stayed, and the four reminders in the inbox were four
+      // warnings about a thing that generally did not happen. At three in ten
+      // it is what he describes - a man may go month to month while he thinks
+      // about it, and most of them go.
+      //
+      // Who stays is still not random: it is the settled and unlisted, and the
+      // happier he is the likelier he rolls. A man on the list or with his head
+      // down was always leaving and still does.
+      const settled = p.clubId === state.userClubId && !p.transferListed && p.morale >= 3.5
+      if (settled && rng() < 0.32 + Math.min(0.18, (p.morale - 3.5) * 0.04)) {
         p.contractEnds = state.season + 1
         p.wage = playerWage(p.ca, p.age)
+        rolled.push(p)
         continue
       }
       club.players = club.players.filter(id => id !== p.id)
@@ -692,6 +708,18 @@ function handleContracts(state: GameState, rng: Rng) {
       subject: 'Contracts expired',
       body: `Departed on free transfers after their deals expired: ${freed.map(p => p.name).join(', ')}.`,
       k: 'news.contractsExpired', v: { names: freed.map(p => p.name).join(', ') },
+    })
+  }
+  // AND THE ONES WHO STAYED SAY SO. A man rolling on month to month is a
+  // decision the manager did not make and should still hear about - otherwise
+  // the only contract news is the leavers, and a squad that quietly kept three
+  // men reads as a squad that lost everybody.
+  if (rolled.length) {
+    state.news.push({
+      id: state.nextId++, week: 1, season: state.season + 1, type: 'contract', read: false,
+      subject: 'Rolling on, for now',
+      body: `No new deal agreed, but staying month to month while they think about it: ${rolled.map(p => p.name).join(', ')}. Settle their terms or somebody else will.`,
+      k: 'news.contractsRolling', v: { names: rolled.map(p => p.name).join(', ') },
     })
   }
 }

@@ -57,3 +57,21 @@ export const KIT_TRIM: Record<string, string> = {
 export const KIT_QUARTERS: Record<string, [string, string, string, string]> = {
   harlequins: ['#6b4423', '#7fd0f0', '#c8102e', '#98a0a6'], // brown, light blue, red, grey
 }
+
+/**
+ * ---- HOW HEAVY THE HOOPS ARE ----
+ *
+ * Owner, v1.1.17: "Bath should be blue black and white and smaller stripes."
+ *
+ * The colours were already blue, white and black - what was wrong is the
+ * WEIGHT. Every hooped club drew three fat bands, which suits Leicester and
+ * Northampton, whose hoops really are broad, and does not suit Bath, whose
+ * shirt is a navy ground with fine hoops closely spaced.
+ *
+ * So the weight is per club rather than one rule for all of them: how many
+ * hoops, and how thick. A club with no entry keeps the three broad bands it
+ * has always drawn, which is why this file lists one club rather than eleven.
+ */
+export const KIT_HOOPS: Record<string, { n: number; h: number }> = {
+  bath: { n: 6, h: 2.2 },
+}

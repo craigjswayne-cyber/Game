@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
-import { kitPattern, kitQuarters, kitTrim, type KitPattern } from '../game/kits'
+import { kitHoops, kitPattern, kitQuarters, kitTrim, type KitPattern } from '../game/kits'
 import { t } from '../game/i18n'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
@@ -376,11 +376,19 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
    *  ALONG the sleeve rather than laid across it. */
   const SLEEVE_L = 'M14 8 L10 14 L15 17 L17 12 Z'
   const SLEEVE_R = 'M34 8 L38 14 L33 17 L31 12 Z'
+  // HOW MANY HOOPS, AND HOW THICK (owner, v1.1.17: Bath wants "smaller
+  // stripes"). Broad bands suit Leicester and Northampton and do not suit a
+  // navy ground with fine hoops closely spaced, so the weight is the club's
+  // own. The band positions are derived from it rather than hard-coded, so a
+  // club asking for six thin hoops gets them spread down the same shirt.
+  const hoops = kitHoops(club.id)
+  const hoopYs = Array.from({ length: hoops.n }, (_, i) =>
+    Math.round((10 + ((22 - hoops.h) * i) / Math.max(1, hoops.n - 1)) * 10) / 10)
   /** A hoop, and the hairline of trim above and below it. */
   const hoop = (y: number) => (
     <g key={y}>
-      <rect x="8" y={y} width="32" height="4" fill={c2} />
-      {trim && (<><rect x="8" y={y - 0.7} width="32" height="0.7" fill={trim} /><rect x="8" y={y + 4} width="32" height="0.7" fill={trim} /></>)}
+      <rect x="8" y={y} width="32" height={hoops.h} fill={c2} />
+      {trim && (<><rect x="8" y={y - 0.7} width="32" height="0.7" fill={trim} /><rect x="8" y={y + hoops.h} width="32" height="0.7" fill={trim} /></>)}
     </g>
   )
   const stripe = (x: number) => (
@@ -395,7 +403,7 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
       <defs><clipPath id={clip}><path d={BODY} /></clipPath></defs>
       <path d={BODY} fill={c1} />
       <g clipPath={`url(#${clip})`}>
-        {pattern === 'hoops' && [12, 20, 28].map(hoop)}
+        {pattern === 'hoops' && hoopYs.map(hoop)}
         {pattern === 'stripes' && [18, 26].map(stripe)}
         {pattern === 'quarters' && (
           <>
