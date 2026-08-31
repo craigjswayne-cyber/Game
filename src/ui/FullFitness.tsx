@@ -28,7 +28,8 @@ import { endingText } from './purchase'
  *     between the sheet and the grant - is held, not swallowed, and offered
  *     back here as Apply;
  *   - and it names a price only when the store itself named one (BuyBtn's rule
- *     in the Store: our catalogue figure said 99p while Play charged £1.19).
+ *     in the Store: our own figure said 99p where Play charged £1.19, and the
+ *     game sells in storefronts where neither number means anything).
  */
 export default function FullFitness({ compact }: { compact?: boolean }) {
   const game = useStore(s => s.game)

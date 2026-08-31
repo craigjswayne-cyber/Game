@@ -21,7 +21,7 @@
  *
  * Run: npx vite-node scripts/moneyprobe.ts
  */
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 
 // a localStorage that behaves like the real one, because the module under test
 // is written to survive not having one at all and we want to test the path
@@ -75,11 +75,15 @@ ok(!M.supporterDoor(), 'so the Supporter page has no door in the menu')
 ok(!M.adsAllowed('home-foot'), 'no ad may be drawn anywhere')
 ok(await M.buySupporter() === 'unavailable', 'a purchase attempt says so plainly rather than throwing')
 ok(await M.restore() === false, 'and a restore is a no-op rather than an error')
-// v1.1.5 (owner: "prices should be displayed"): with no store to ask, the
-// button carries the CATALOGUE's reference price rather than standing blank.
-// The store's own figure still wins whenever a store answers - see below.
-ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
-  'with no store, the catalogue reference price stands in - a row is never priceless')
+// v1.1.17 (owner: "we need to not declare a cost on the game - let google play
+// do that"): with no store to ask, there is NO PRICE. The catalogue used to
+// hold a figure per product and hand it over here; it now holds only the list
+// of products, because the game is sold in storefronts whose currency, tax and
+// regional pricing it cannot know.
+ok((await M.skuPriceFrom(M.SUPPORTER_SKU)).price === null,
+  'with no store, the game names no price of its own - the row goes out wordless')
+ok(!('skuPrice' in M) && !('supporterPrice' in M),
+  'and there is no ungated way to ask for one: the price always arrives with its origin')
 
 // v1.1.9: and the row now says WHOSE price it is. The fallback above was
 // added so nothing stood blank, and it did something nobody asked for too -
@@ -87,13 +91,13 @@ ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
 // fault took an evening to read.
 {
   const from = await M.skuPriceFrom(M.SUPPORTER_SKU)
-  ok(from.price === M.REFERENCE_PRICES[M.SUPPORTER_SKU] && from.live === false,
-    'a reference price is marked as not the store\'s own')
+  ok(from.price === null && from.live === false,
+    'nothing is priced, and it says so rather than looking priced')
   const health = await M.tillHealth()
   // Remove-all-ads is in the catalogue but in no store until a build ships
   // ads, so the shelf must not ask about it - or it could never report better
   // than 9 of 10 and would nag on a perfectly good till.
-  const sellable = Object.keys(M.REFERENCE_PRICES).length - 1
+  const sellable = M.SELLABLE_SKUS.length - 1
   ok(health.live === 0 && health.asked === sellable,
     `with no store, nothing on the shelf is priced by one (0 of ${sellable})`)
   ok(!(await M.tillHealth()).asked || health.asked === sellable,
@@ -107,7 +111,7 @@ g.rmBilling = fakeStore({ price: '£3.49' })
 ok(M.bridge() !== null, 'the bridge is found on globalThis')
 ok(M.canBuy(), 'the purchase door opens')
 ok(M.supporterDoor(), 'and the page becomes reachable')
-ok(await M.supporterPrice() === '£3.49', "the price shown is the store's own, formatted by the store")
+ok((await M.skuPriceFrom(M.SUPPORTER_SKU)).price === '£3.49', "the price shown is the store's own, formatted by the store")
 {
   const from = await M.skuPriceFrom(M.SUPPORTER_SKU)
   ok(from.live === true, "and it is marked as the store's own, so the shelf keeps quiet about its health")
@@ -116,7 +120,7 @@ ok(await M.supporterPrice() === '£3.49', "the price shown is the store's own, f
   // THE ONE THAT WOULD HAVE CAUGHT IT: a working till must report a CLEAN
   // sheet, or the Store draws its "not answering" line over a store that is
   // answering perfectly. Counting a product no store has cost exactly that.
-  ok(health.asked === Object.keys(M.REFERENCE_PRICES).length - 1,
+  ok(health.asked === M.SELLABLE_SKUS.length - 1,
     `a good till reports no shortfall at all (${health.live}/${health.asked}, ads product excluded)`)
 }
 ok(await M.buySupporter() === 'owned', 'a completed purchase reports owned')
@@ -134,8 +138,8 @@ console.log('\n--- 3. failing open: offline, broken, or gone')
   ok(await M.restore() === false, 'a store that throws changes nothing')
   ok(M.hasSupporter(), 'and does not take the purchase away')
   ok(await M.buySupporter() === 'error', 'a throwing purchase reports an error rather than propagating one')
-  ok(await M.supporterPrice() === M.REFERENCE_PRICES[M.SUPPORTER_SKU],
-    'and a throwing price lookup falls back to the reference price rather than a blank button')
+  ok((await M.skuPriceFrom(M.SUPPORTER_SKU)).price === null,
+    'a throwing price lookup yields no price - the button says Buy and the sheet does the talking')
   ok((await M.skuPriceFrom(M.SUPPORTER_SKU)).live === false,
     'and says so - a store that throws is a store that has not priced anything')
   ok((await M.tillHealth()).live === 0,
@@ -335,7 +339,7 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   // the whole contract, driven through monetise the way the game does it
   g.rmBilling = b!
   ok(M.tillOpen(), 'the till opens on it')
-  const price = await M.skuPrice(M.HEAL_SKU)
+  const price = (await M.skuPriceFrom(M.HEAL_SKU)).price
   ok(price === new Intl.NumberFormat(undefined, { style: 'currency', currency: 'GBP' }).format(0.99),
     `the store's own figure is rendered as money, not "0.99 GBP" (${price})`)
   ok(await M.buyConsumable(M.HEAL_SKU) === 'owned', 'a consumable can be bought at all')
@@ -601,6 +605,55 @@ console.log('\n--- 13. the Play bridge, built on a stubbed Digital Goods service
   delete gg.PaymentRequest
 }
 
+// ---- 13c. THE GAME DECLARES NO COST --------------------------------------
+//
+// Owner, v1.1.17: "this is going to be sold across different placcs in the
+// world - so we need to not declare a cost on the game - let google play do
+// that." A figure typed into this repository is right in at most one
+// storefront, and both times we tried to be helpful about it - the v1.1.5
+// fallback, then the Charter desk reading the ungated call - it ended with a
+// shelf that disagreed with the checkout in front of the owner.
+//
+// Asked of EVERY product rather than the one the sections above happen to use,
+// because the way this comes back is somebody adding a product, finding
+// details() silent on a dev build, and typing the number in to fill the button.
+console.log('\n--- 13c. the game declares no cost: every figure comes from a store')
+{
+  clear()
+  delete g.rmBilling
+  const invented: string[] = []
+  for (const sku of M.SELLABLE_SKUS) {
+    const r = await M.skuPriceFrom(sku)
+    if (r.price !== null || r.live) invented.push(`${sku} -> ${r.price}`)
+  }
+  ok(invented.length === 0,
+    `with no store, not one of the ${M.SELLABLE_SKUS.length} products has a price of our own (${invented.join(', ') || 'none do'})`)
+  ok(!('skuPrice' in M) && !('supporterPrice' in M) && !('REFERENCE_PRICES' in M),
+    'and there is no ungated way to ask for one - a price always arrives with its origin')
+
+  // nor may the module carry a figure to hand out later
+  const money = readFileSync('src/game/monetise.ts', 'utf8')
+    .split('\n')
+    .filter(l => /['"`][^'"`]*[£$€]\s?\d/.test(l.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '')))
+  ok(money.length === 0,
+    `and monetise.ts holds no money literal at all (${money.join(' | ') || 'none'})`)
+
+  // every screen that asks for a price must check where it came from
+  const ungated: string[] = []
+  const walk = (dir: string) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const f = `${dir}/${e.name}`
+      if (e.isDirectory()) { walk(f); continue }
+      if (!/\.tsx?$/.test(e.name)) continue
+      const src = readFileSync(f, 'utf8')
+      if (src.includes('skuPriceFrom') && !src.includes('.live ?')) ungated.push(f)
+    }
+  }
+  walk('src/ui')
+  ok(ungated.length === 0,
+    `every screen that asks a price checks whether the store named it (${ungated.join(', ') || 'all do'})`)
+}
+
 // ---- 14. the iOS bridge, and the three files that have to agree ------------
 //
 // Section 13 exists because the Android bridge shipped without consume() and
@@ -671,7 +724,7 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
 
   g.rmBilling = b!
   ok(M.tillOpen(), 'the till opens on it')
-  ok(await M.skuPrice(M.HEAL_SKU) === '£0.99', "StoreKit's own displayPrice is passed through untouched")
+  ok((await M.skuPriceFrom(M.HEAL_SKU)).price === '£0.99', "StoreKit's own displayPrice is passed through untouched")
   ok(await M.buyConsumable(M.HEAL_SKU) === 'owned', 'a consumable buys')
   ok((await b!.owned()).includes(M.HEAL_SKU),
     'and STAYS owned before it is consumed - an interrupted purchase is recoverable, not lost')
@@ -752,25 +805,28 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
   // 0.99 as $0.99. Apple has never quoted a price for these products; they do
   // not exist in App Store Connect yet.
   //
-  // So the storefront is named, and the numbers are held to the catalogue's
-  // own reference prices. A tester on a Mac now sees the same figure the game
-  // prints on the button, which is the only sense in which this file can
-  // agree with anything.
+  // So the storefront is named and every product carries a figure, because a
+  // StoreKit test file with a blank price sells nothing on a Mac.
   //
-  // (The £1.19 is real and is Play's, not ours: the Console is set to quote
-  // prices exclusive of tax, so 99p becomes 99p + 20% VAT at the till. That is
-  // a Console setting, not code - noted here because this is where anybody
-  // chasing the discrepancy will look.)
+  // WHAT IS NO LONGER CHECKED, DELIBERATELY: that those figures match the
+  // game's. The game stopped holding prices in v1.1.17 - it sells in every
+  // storefront Play and the App Store reach, and the real numbers live in the
+  // two consoles. This file is a LOCAL TEST FIXTURE, never shipped and never
+  // seen by a player, so its numbers only have to exist and be plausible.
+  //
+  // (An earlier note here blamed the owner's £0.99-vs-£1.19 gap on a
+  // tax-exclusive Console setting. That was wrong - tax-inclusive pricing is
+  // automatic and has no off switch. Left as a correction because this is
+  // where anybody chasing the discrepancy will look.)
   ok(kit.settings?._storefront === 'GBR',
     `the test configuration names a British storefront, so its prices read in pounds (${kit.settings?._storefront ?? 'none'})`)
-  const priceMismatch: string[] = []
+  const badPrice: string[] = []
   for (const p of kit.products as { productID: string; displayPrice: string }[]) {
-    const want = M.REFERENCE_PRICES[p.productID]
-    if (!want) continue
-    if (`£${p.displayPrice}` !== want) priceMismatch.push(`${p.productID} ${p.displayPrice} vs ${want}`)
+    if (!M.SELLABLE_SKUS.includes(p.productID)) badPrice.push(`${p.productID} is in no catalogue`)
+    else if (!/^\d+\.\d\d$/.test(p.displayPrice ?? '')) badPrice.push(`${p.productID} priced "${p.displayPrice}"`)
   }
-  ok(priceMismatch.length === 0,
-    `and every price in it is the catalogue's own (${priceMismatch.join(', ') || 'all agree'})`)
+  ok(badPrice.length === 0,
+    `every product in it is one this build sells, at a figure Xcode can render (${badPrice.join(', ') || 'all sound'})`)
 
   // ---- 14b. THE SHELL CAN ACTUALLY BE BUILT --------------------------------
   //
