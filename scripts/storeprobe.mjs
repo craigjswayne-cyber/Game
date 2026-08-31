@@ -153,7 +153,7 @@ try {
     await page.waitForSelector('.content')
     const till = await page.locator('.content').innerText()
     ok(/£2\.99/.test(till), "the prices shown are the store's own")
-    ok(!/named no products|guide prices/i.test(till),
+    ok(!/not named its prices|named no products|guide prices/i.test(till),
       'and the shelf says nothing about its health, because there is nothing wrong with it')
     for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', 'Remove the salary cap', 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
@@ -403,8 +403,15 @@ try {
     await page.waitForSelector('.content')
     await page.waitForTimeout(400)
     const till = await page.locator('.content').innerText()
-    ok(/named no products/i.test(till), 'the shelf says out loud that the store named no products')
-    ok(/no price is shown/i.test(till), 'and that no price is shown, because it has none to show')
+    // v1.1.18: the banner stopped claiming "nothing here can be bought yet" -
+    // the owner bought five things directly underneath that sentence. It now
+    // says only what it knows: prices unnamed, and the store's own sheet
+    // names the price before anything is charged.
+    ok(/not named its prices/i.test(till), 'the shelf says out loud that the store has not named its prices')
+    ok(/names the price before anything is charged/i.test(till),
+      'and promises what is still true: the sheet names the price before a penny moves')
+    ok(!/nothing here can be bought/i.test(till),
+      'and never claims the shelf is unbuyable - unpriced is all it actually knows')
     // v1.1.10: it must NOT tell somebody to install from the store when they
     // already did - the owner hit exactly that, on a Play build, twice
     ok(!/installed from the store/i.test(till),
