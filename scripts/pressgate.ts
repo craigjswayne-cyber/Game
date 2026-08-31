@@ -31,6 +31,13 @@ import { answerPress, generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
 
+/** Read the inbox, the way a manager does before the press get to him. The
+ *  press hold defers to unread mail on purpose - the questions are ABOUT the
+ *  week's news - so nothing below can be asserted until the pile is cleared. */
+function readTheMail(g: GameState) {
+  for (const n of g.news) n.read = true
+}
+
 let fails = 0
 const ok = (c: boolean, what: string) => {
   console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`)
@@ -49,6 +56,7 @@ function askSomething(g: GameState): boolean {
 console.log('\n--- 1. an open question holds the week, on any day\n')
 {
   const g = newGame('leicester', 'Press Gate', 31)
+  readTheMail(g)
   ok(pressBlock(g) == null, 'a quiet room holds nothing')
   ok(askSomething(g), 'the press ask something answerable')
   const open = g.press.filter(p => !p.answered && (p.options?.length ?? 0) > 0)
@@ -72,6 +80,7 @@ console.log('\n--- 1. an open question holds the week, on any day\n')
 console.log('\n--- 2. and it can always be cleared\n')
 {
   const g = newGame('leicester', 'Press Gate', 32)
+  readTheMail(g)
   ok(askSomething(g), 'a question is put')
 
   // EVERY QUESTION THAT HOLDS CAN BE ANSWERED. A question with no options is
@@ -91,6 +100,22 @@ console.log('\n--- 2. and it can always be cleared\n')
   ok(deskBlock(g)?.kind !== 'press', 'and the desk agrees the press are done')
 }
 
+console.log('\n--- 2b. but the mail is read first\n')
+{
+  // THE ORDER MATTERS AND IT IS NOT ARBITRARY. The press ask about the week's
+  // news, so holding the week for an answer while nine unread stories sit
+  // behind it buries the context the question is about. scripts/deskgate.mjs
+  // caught this the first time the press hold was put in front of the reader.
+  // Deferring costs the press nothing: mail is forced on the way out of the
+  // week and clears in one tap, and the week cannot turn until both are done.
+  const g = newGame('leicester', 'Press Gate', 34)
+  ok(askSomething(g), 'a question is waiting')
+  ok(g.news.some(n => !n.read), 'and so is unread mail')
+  ok(pressBlock(g) == null, 'the press stand back while there is mail to read')
+  readTheMail(g)
+  ok(pressBlock(g) != null, 'and hold the moment the inbox is clear')
+}
+
 console.log('\n--- 3. a season of it, answered every time, and the clock still runs\n')
 {
   // THE SOAK'S OWN FAILURE, IN MINIATURE. If a hard hold can strand the week
@@ -100,6 +125,7 @@ console.log('\n--- 3. a season of it, answered every time, and the clock still r
   let stuck = 0
   const startWeek = g.season * 100 + g.week
   for (let i = 0; i < 200; i++) {
+    readTheMail(g)
     const q = g.press.find(p => !p.answered && (p.options?.length ?? 0) > 0)
     if (q) { answerPress(g, q.id, 0); answered++; continue }
     const before = g.season * 100 + g.week

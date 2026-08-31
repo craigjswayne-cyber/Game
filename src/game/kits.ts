@@ -1,7 +1,7 @@
 // Real kit patterns per club (home kits, approximated from club identity).
 // Colours come from the club data; the pattern says how they're worn.
 
-import { KIT_HOOPS, KIT_QUARTERS, KIT_TRIM } from '../data/kittrim'
+import { KIT_CYCLE, KIT_HOOPS, KIT_QUARTERS, KIT_SLEEVES, KIT_TRIM } from '../data/kittrim'
 
 export type KitPattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves'
 
@@ -98,4 +98,15 @@ export function kitQuarters(clubId: string): [string, string, string, string] | 
  *  unless the club says otherwise - see KIT_HOOPS. */
 export function kitHoops(clubId: string): { n: number; h: number } {
   return KIT_HOOPS[clubId] ?? { n: 3, h: 4 }
+}
+
+/** The bands of an all-hoop shirt, top to bottom, in rotation - Bath's white,
+ *  blue and black. Undefined for a club whose shirt has a ground colour. */
+export function kitCycle(clubId: string): string[] | undefined {
+  return KIT_CYCLE[clubId]
+}
+
+/** Left and right sleeve, where a club's two do not match (Quins). */
+export function kitSleeves(clubId: string): [string, string] | undefined {
+  return KIT_SLEEVES[clubId]
 }

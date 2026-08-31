@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
-import { kitHoops, kitPattern, kitQuarters, kitTrim, type KitPattern } from '../game/kits'
+import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { KIT_HOOPS } from '../data/kittrim'
 import { t } from '../game/i18n'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
@@ -383,6 +383,8 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
   // own. The band positions are derived from it rather than hard-coded, so a
   // club asking for six thin hoops gets them spread down the same shirt.
   const hoops = kitHoops(club.id)
+  const cycle = kitCycle(club.id)
+  const sleeves = kitSleeves(club.id)
   // WHERE THE BANDS SIT. The three broad ones have been at 12, 20 and 28 since
   // they were drawn, and every hooped club in the game is set up around them -
   // so the default is those numbers exactly, not a formula that happens to be
@@ -422,7 +424,16 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
       <defs><clipPath id={clip}><path d={BODY} /></clipPath></defs>
       <path d={BODY} fill={c1} />
       <g clipPath={`url(#${clip})`}>
-        {pattern === 'hoops' && hoopYs.map(hoop)}
+        {/* AN ALL-HOOP SHIRT HAS NO GROUND (owner, v1.1.17, with the photo).
+            Bath is white, blue and black bands touching each other the whole
+            way down - there is no background colour showing anywhere, so it
+            cannot be drawn as "a shirt with hoops on it". Nine contiguous
+            bands, taking the club's cycle in turn. */}
+        {pattern === 'hoops' && cycle && Array.from({ length: 9 }, (_, i) => (
+          <rect key={i} x="8" y={8 + i * (24 / 9)} width="32" height={24 / 9 + 0.05}
+            fill={cycle[i % cycle.length]} />
+        ))}
+        {pattern === 'hoops' && !cycle && hoopYs.map(hoop)}
         {pattern === 'stripes' && [18, 26].map(stripe)}
         {pattern === 'quarters' && (
           <>
@@ -466,8 +477,8 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
         {/* SLEEVES. A quartered club wears them in its base colour - the second
             colour is one of the four quarters now, and a sleeve in it would
             read as a fifth panel rather than a sleeve. */}
-        <path d={SLEEVE_L} fill={quarters ? c1 : c2} opacity=".9" />
-        <path d={SLEEVE_R} fill={quarters ? c1 : c2} opacity=".9" />
+        <path d={SLEEVE_L} fill={sleeves ? sleeves[0] : quarters ? c1 : c2} opacity=".9" />
+        <path d={SLEEVE_R} fill={sleeves ? sleeves[1] : quarters ? c1 : c2} opacity=".9" />
         {/* THE TRIM RUNS ALONG THE SLEEVE EDGE, NOT ACROSS THE SLEEVE. This was
             a flat horizontal band pretending to be a cuff, laid over a sleeve
             that runs diagonally, so it cut the sleeve in half instead of

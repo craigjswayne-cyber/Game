@@ -55,7 +55,9 @@ export const KIT_TRIM: Record<string, string> = {
  * sponsor, no manufacturer's mark.
  */
 export const KIT_QUARTERS: Record<string, [string, string, string, string]> = {
-  harlequins: ['#6b4423', '#7fd0f0', '#c8102e', '#98a0a6'], // brown, light blue, red, grey
+  // clockwise from the top left, off the photograph: light blue, maroon,
+  // brown, grey. The owner listed the four colours; the picture gave the order.
+  harlequins: ['#7fd0f0', '#a4193d', '#6b4423', '#98a0a6'],
 }
 
 /**
@@ -73,5 +75,38 @@ export const KIT_QUARTERS: Record<string, [string, string, string, string]> = {
  * has always drawn, which is why this file lists one club rather than eleven.
  */
 export const KIT_HOOPS: Record<string, { n: number; h: number }> = {
-  bath: { n: 5, h: 2.1 },
+  northampton: { n: 5, h: 3 },
+}
+
+/**
+ * ---- SHIRTS THAT ARE ALL HOOP ----
+ *
+ * Owner, v1.1.17, with four photographs: "leicester, quins, northampton, bath
+ * should be like these."
+ *
+ * Bath's is not a ground with hoops on it. It is white, blue and black bands
+ * running the whole shirt, touching, in rotation - there is no background
+ * colour left showing anywhere. Every pattern in this game until now has been
+ * "a shirt, with something drawn on it", which cannot describe that at all: the
+ * first attempt at Bath gave it five thin white hoops on navy and it read as a
+ * different club.
+ *
+ * So a club may name a CYCLE instead: contiguous bands, top to bottom, taking
+ * these colours in turn. Nobody else has one, and a club without one draws
+ * exactly as it did.
+ */
+export const KIT_CYCLE: Record<string, string[]> = {
+  // white, blue, black, repeating - the 2025-26 shirt, read off the photograph
+  bath: ['#ffffff', '#003c71', '#000000'],
+}
+
+/**
+ * ---- SLEEVES THAT DISAGREE WITH EACH OTHER ----
+ *
+ * Quins wear one maroon sleeve and one green one, which no rule about "the
+ * second colour" can produce. Named per club, left then right; everybody else
+ * keeps two matching sleeves.
+ */
+export const KIT_SLEEVES: Record<string, [string, string]> = {
+  harlequins: ['#c8102e', '#1f7a3f'],
 }

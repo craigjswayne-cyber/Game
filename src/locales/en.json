@@ -3169,7 +3169,7 @@
     "natNameSubj": "📋 {nationCap_k}: name your squad",
     "natFilledSubj": "📋 {nationCap_k}: the assistant filled the gaps",
     "natFilled": "Kick-off was coming and the squad was short, so your assistant added {n} to make up the numbers. They are named on merit, not on your judgement - next window, name it yourself.",
-    "natName": "The camp is open and the sheet is blank. {nationCap_k} need at least {n} men named before the first Test - the country desk has everyone available, with the coaches' picks at the top. This one is yours: nobody is going to name it for you.",
+    "natName": "The camp is open and the sheet is blank. {nationCap_k} need a squad named before the first Test - at least {n} of them - and the country desk has everyone available, with the coaches' picks at the top. This one is yours: nobody is going to name it for you.",
     "natSquadSubj": "📋 Your {nation_k} squad is announced",
     "natSquad": "The federation has published your {n}-man squad for the window. {caps_k}\n\nFORWARDS: {fwd}\n\nBACKS: {bks}\n\nShape the squad and pick your Test XV from the Club & Country screen before each match.",
     "natSquadNew": {
