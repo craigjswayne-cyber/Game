@@ -234,7 +234,16 @@ export default function Tactics() {
         <div className="card">
           {[0, 1].map(slot => {
             const cur = (tac.kickers ?? [])[slot] ?? null
-            const xv = tac.lineup.slice(0, 15).map(id => id != null ? game.players[id] : null).filter((p): p is Player => !!p)
+            // THE WHOLE SQUAD, not the fifteen (owner, v1.1.18: "you should be
+            // able to pick anyone in the whole squad to be a back up kicker").
+            // Naming a man who is not on the pitch is safe: the engine only
+            // honours a named kicker it finds on the field and uninjured
+            // (matchEngine: the named-kicker check requires onPitch), so
+            // otherwise the assistant's best-boot pick stands, same as a
+            // blank slot that day.
+            const club = game.clubs[game.userClubId]
+            const xv = club.players.map(id => game.players[id])
+              .filter((p): p is Player => !!p && !p.onLoan)
             return (
               <div key={slot} className="lead-row">
                 <span className="fact-label">{t(slot === 0 ? 'tacticsScreen.first' : 'tacticsScreen.second')}</span>

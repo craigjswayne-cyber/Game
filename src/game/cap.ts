@@ -106,7 +106,7 @@ export function refreshCaps(state: GameState, includeUser = false) {
     if (c.id === state.userClubId && !includeUser) continue
     const seniors = c.players
       .map(id => state.players[id])
-      .filter(p => p && !p.acad)
+      .filter(p => p && (!p.acad || p.demoted))  // a hand-demoted senior still counts - demotion is not a cap dodge
       .sort((a, b) => b.wage - a.wage)
     c.marquee = seniors.slice(0, MARQUEE_SLOTS).map(p => p.id)
   }

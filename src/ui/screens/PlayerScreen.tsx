@@ -398,23 +398,55 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       })()}
       {mine && p.acad && (
         <button className="btn gold block" onClick={() => {
+          const returning = !!p.demoted
           p.acad = false
-          // promoted by hand is still a graduate of your academy
-          p.homegrown = true
-          // a first-team player is paid like one: the rollover graduation path
-          // has always re-priced the development deal, and this button did not,
-          // which made hand-promotion a free-labour loophole (audit 16D)
-          p.wage = playerWage(p.ca, p.age)
+          p.demoted = false
+          if (!returning) {
+            // promoted by hand is still a graduate of your academy
+            p.homegrown = true
+            // a first-team player is paid like one: the rollover graduation path
+            // has always re-priced the development deal, and this button did not,
+            // which made hand-promotion a free-labour loophole (audit 16D).
+            // A RETURNING senior keeps his contract: he never stopped being paid
+            // like a first-teamer (the cap never stopped counting him either).
+            p.wage = playerWage(p.ca, p.age)
+            game.news.push({
+              id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
+              subject: `${p.name} promoted to the first team`,
+              body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door - his work here is done.`,
+              playerId: p.id,
+            })
+          }
           p.morale = Math.min(10, p.morale + 1)
-          game.news.push({
-            id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
-            subject: `${p.name} promoted to the first team`,
-            body: `A big day at the training ground: ${p.name} (${p.age}) has been called up from the academy to full first-team duty. The academy coach shakes his hand at the door - his work here is done.`,
-            playerId: p.id,
-          })
           setMsg(t('player.promotedMsg', { name: p.name }))
           touch()
         }}>{t('player.promoteFirstTeam')}</button>
+      )}
+      {/* SENT DOWN, AT ANY AGE (owner, v1.1.18: "You should be able to demote a
+          player down from the main squad - regardless of age"). The flag pair
+          matters: acad moves him to the academy list, demoted keeps the salary
+          cap counting him (cap.ts) and the season-end academy sweep off him
+          (rollover.ts) - without it, demotion is a cap dodge and a free
+          release. He is not pleased about it, which is the point of morale. */}
+      {mine && !p.acad && !p.onLoan && (
+        <button className="btn ghost block" onClick={() => {
+          p.acad = true
+          p.demoted = true
+          const club = game.clubs[game.userClubId]
+          club.tactic.lineup = club.tactic.lineup.map(id => (id === p.id ? null : id))
+          if (club.tactic.kickers) club.tactic.kickers = club.tactic.kickers.map(id => (id === p.id ? null : id))
+          if (club.captain === p.id) club.captain = null
+          if (club.vice === p.id) club.vice = null
+          p.morale = Math.max(0, p.morale - 2)
+          game.news.push({
+            id: game.nextId++, week: game.week, season: game.season, type: 'youth', read: true,
+            subject: `${p.name} sent down to the academy squad`,
+            body: `${p.name} (${p.age}) has been told to train with the academy squad until further notice. He emptied his locker without a word. His wage still counts against the cap, and he can be recalled the same way he went down.`,
+            playerId: p.id,
+          })
+          setMsg(t('player.sentDownMsg', { name: p.name }))
+          touch()
+        }}>{t('player.sendDown')}</button>
       )}
       {mine && !p.acad && (() => {
         const club = game.clubs[game.userClubId]
