@@ -26,7 +26,7 @@
  * handshake means no bridge, which means no purchase door, which is exactly what
  * the web build should look like.
  */
-import { CONSUMABLE_SKUS, SPENDABLE_UNASKED, setBillingReason, setLookupReason } from './monetise'
+import { CONSUMABLE_SKUS, creditAdd, setBillingReason, setLookupReason } from './monetise'
 import type { BillingBridge, Product, PurchaseOutcome } from './monetise'
 
 /** Play's own identifier for its billing service. */
@@ -115,12 +115,30 @@ export async function playBridge(): Promise<BillingBridge | null> {
    * what it has just bought. listPurchases is the authority on open receipts
    * and it has only one name for the token.
    */
-  const tokenFor = async (sku: string, details: { token?: string; purchaseToken?: string } | undefined): Promise<string | undefined> => {
-    const named = details?.token ?? details?.purchaseToken
+  const tokenFor = async (sku: string, details: unknown): Promise<string | undefined> => {
+    // Play's payment response is supposed to carry the purchase token in
+    // details - but "supposed to" has already cost one evening of refunds, so
+    // every shape it has been seen in is read: an object, a JSON string, and
+    // absent entirely. The 31 Aug refund emails ("cancelled because it was
+    // not acknowledged", on every test purchase of the night) are what an
+    // undefined token here looks like from the outside: settle() has nothing
+    // to consume with, says so only in billingReason, and Play takes the
+    // money back on its clock.
+    let d = details as { token?: string; purchaseToken?: string } | string | undefined
+    if (typeof d === 'string') { try { d = JSON.parse(d) as { token?: string; purchaseToken?: string } } catch { d = undefined } }
+    const named = d && typeof d === 'object' ? d.token ?? d.purchaseToken : undefined
     if (named) return named
-    try {
-      return (await svc.listPurchases()).find(p => p.itemId === sku)?.purchaseToken
-    } catch { return undefined }
+    // No token in the response: ask the account. The receipt can lag the
+    // sheet by a moment, so ask more than once before giving up - this runs
+    // AFTER complete(), when the purchase is at least supposed to be filed.
+    for (let tries = 0; tries < 4; tries++) {
+      try {
+        const t = (await svc.listPurchases()).find(p => p.itemId === sku)?.purchaseToken
+        if (t) return t
+      } catch { /* offline blip: the retry is the point */ }
+      await new Promise(r => setTimeout(r, 350 * (tries + 1)))
+    }
+    return undefined
   }
 
   /** A human cannot open Play's sheet, read it and dismiss it inside this
@@ -183,8 +201,14 @@ export async function playBridge(): Promise<BillingBridge | null> {
 
     // PAID. From here the money may already be gone, so nothing below may
     // report a failure that would make the player try again.
-    const token = await tokenFor(sku, res.details)
+    //
+    // complete() comes FIRST. The token lookup falls back to listPurchases,
+    // and a purchase is not reliably filed there until the payment response
+    // is completed - looking before completing is how an evening of test
+    // purchases went unacknowledged and were refunded on the five-minute
+    // tester clock (31 Aug).
     try { await res.complete('success') } catch { /* the sheet closed itself */ }
+    const token = await tokenFor(sku, res.details)
     // ACKNOWLEDGE, OR PLAY REFUNDS IT. An unacknowledged purchase is
     // automatically refunded after three days, which looks to the customer
     // like the game took their money and then took the badge back. It used to
@@ -242,11 +266,17 @@ export async function playBridge(): Promise<BillingBridge | null> {
     // and acknowledges only if spending fails; everything else acknowledges.
     // Both stay in the list, because either landing beats a refund.
     const levers: { name: string; run: () => Promise<void> }[] = []
-    // The sweep is choosier about WHICH consumables it may spend - see below.
-    const maySpend = consumable && typeof svc.consume === 'function' &&
-      (why === 'buy' || SPENDABLE_UNASKED.includes(sku))
+    // EVERY consumable may be spent, at the till and by the sweep alike,
+    // because spending now BANKS A CREDIT (monetise creditAdd): the value
+    // lands in the game's own ledger instead of evaporating. The old rule -
+    // the sweep spends only the tip jar, everything else waits as an open
+    // receipt for a career to collect - left those receipts permanently
+    // unacknowledgeable (2.0 has no acknowledge()), and Play refunded every
+    // one of them on its clock. An open receipt is not a safe place to keep
+    // anything.
+    const maySpend = consumable && typeof svc.consume === 'function'
     if (maySpend) {
-      levers.push({ name: 'consume', run: () => svc.consume!(token) })
+      levers.push({ name: 'consume', run: async () => { await svc.consume!(token); creditAdd(sku) } })
     }
     if (typeof svc.acknowledge === 'function') {
       levers.push({ name: 'acknowledge', run: () => svc.acknowledge!(token, consumable ? 'repeatable' : 'onetime') })
@@ -277,10 +307,10 @@ export async function playBridge(): Promise<BillingBridge | null> {
    * before the three days run out. It is the difference between a bug that
    * cost one customer one product and a bug that keeps costing.
    *
-   * IT USED TO SKIP EVERY CONSUMABLE, which is how the tip jar was lost: the
-   * one product with no landing step in the career, and the sweep walked past
-   * it every launch until Play took the money back. Consumables are swept now,
-   * with one rule about what the sweep may SPEND - see SPENDABLE_UNASKED.
+   * IT USED TO SKIP EVERY CONSUMABLE, which is how the tip jar was lost, and
+   * then to spend only the tip jar, which is how a whole evening's test
+   * injections were refunded. It spends everything now: a swept consumable
+   * becomes a banked credit (see settle), and a credit cannot be taken back.
    */
   const sweep = async (): Promise<void> => {
     try {

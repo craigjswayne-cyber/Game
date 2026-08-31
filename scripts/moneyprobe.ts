@@ -290,6 +290,62 @@ console.log('\n--- 12. the rewarded favours')
   ok(!M.adsAllowed('home-foot'), 'while the banners stay gone')
 }
 
+// ---- 12b. THE CREDIT BANK (v1.1.18) ----------------------------------------
+//
+// Born of the 31 Aug refund emails: every held consumable receipt of the
+// evening came back "cancelled because it was not acknowledged", because
+// Digital Goods 2.0 has no acknowledge() and the old rules forbade spending
+// a receipt whose grant had not landed. So the value moves at the till now -
+// spend with the store, bank in the game's own ledger - and these are the
+// bank's own rules.
+console.log('\n--- 12b. the credit bank: spends are banked, banks are drawn')
+{
+  clear()
+  localStorage.removeItem('rm-credits')
+  ok(M.creditCount(M.HEAL_SKU) === 0, 'the bank opens empty')
+  M.creditAdd(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 1, 'a spend banks one credit')
+  ok(M.creditTake(M.HEAL_SKU) && M.creditCount(M.HEAL_SKU) === 0, 'a draw takes exactly one, and it is gone')
+  ok(!M.creditTake(M.HEAL_SKU), 'an empty bank refuses the draw rather than going negative')
+
+  // bankReceipts credits BY OBSERVATION: only a receipt that actually leaves
+  // owned() is banked, so a consume that fails silently banks nothing and a
+  // receipt can never be banked twice
+  let receipts = [M.HEAL_SKU, M.HEAL_SKU]
+  let broken = false
+  g.rmBilling = {
+    details: async (sku: string) => ({ sku, price: '£0.99' }),
+    buy: async () => 'owned',
+    owned: async () => [...receipts],
+    consume: async (sku: string) => {
+      if (broken) return // swallows its own failure, exactly like storekit.ts
+      const i = receipts.indexOf(sku)
+      if (i >= 0) receipts.splice(i, 1)
+    },
+  }
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 2 && receipts.length === 0,
+    'two stray receipts became exactly two credits, and the store shelf is clear')
+  receipts = [M.HEAL_SKU]
+  broken = true
+  await M.bankReceipts(M.HEAL_SKU)
+  ok(M.creditCount(M.HEAL_SKU) === 2 && receipts.length === 1,
+    'a consume that fails silently banks NOTHING - no phantom credit, no double grant')
+  localStorage.removeItem('rm-credits')
+}
+
+// ---- 12c. THE SUGAR DADDY'S DAY CLOCK (owner: "once a day. in real life") --
+{
+  localStorage.removeItem('rm-xl-at')
+  ok(M.xlWaitMs() === 0, 'never bought: the Sugar Daddy answers at once')
+  M.markXlBought(1_000_000)
+  ok(M.xlWaitMs(1_000_000 + 3_600_000) > 0, 'an hour after buying, he is resting')
+  ok(M.xlWaitMs(1_000_000 + 23 * 3_600_000) > 0, 'twenty-three hours in, still resting')
+  ok(M.xlWaitMs(1_000_000 + 24 * 3_600_000) === 0, 'at twenty-four hours he calls again - a real day, not a game one')
+  localStorage.removeItem('rm-xl-at')
+  ok(M.xlWaitMs() === 0, 'and a cleared clock never blocks a first purchase')
+}
+
 // ---- 13. the ANDROID bridge the TWA actually builds ------------------------
 //
 // Sections 1-12 test monetise.ts against a hand-made bridge, and every one of
