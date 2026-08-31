@@ -395,6 +395,26 @@ try {
     }
     livePatience = 0
     {
+    // ---- THE PRESS ROOM IS ANSWERED, NOT TAPPED PAST (v1.1.17).
+    //
+    // The press hold is hard now: a question with options on it stops the week
+    // until it is answered. A driver that only knows Continue would sit on this
+    // room forever and report FROZEN - which is exactly what it did when a hard
+    // hold was tried once before, and the reason it went soft again. But a
+    // player does not tap Continue at a question; he answers it. So does this.
+    {
+      const q = page.locator('.press-q')
+      if (await q.count()) {
+        const opts = page.locator('.content .btn.ghost')
+        const n = await opts.count()
+        if (n) {
+          await opts.nth(Math.floor(Math.random() * n)).click({ timeout: 5000 }).catch(() => {})
+          await page.waitForTimeout(160)
+          continue
+        }
+      }
+    }
+
     // ---- otherwise: the button a thumb presses
     const cb = page.locator('.continue-btn')
     if (await cb.count()) {
