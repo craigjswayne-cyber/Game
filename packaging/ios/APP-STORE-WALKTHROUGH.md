@@ -303,11 +303,19 @@ ads. Never create `phase.editor` — removed before any store sold one.
 > quotes pounds. Apple has still never quoted a price for these products: they
 > do not exist in App Store Connect until step 15 above creates them.
 >
-> **Play's £1.19** is real, and it is a Console setting rather than code. Play
-> Console → *Monetise* → *Products* → each product → *Set price* has a choice of
-> quoting **inclusive** or **exclusive** of tax, and ours is set to exclusive:
-> 99p becomes 99p + 20% VAT = £1.19 at the till. Switch each product to
-> **tax-inclusive** and the buyer pays the 99p the game's button promises.
+> **Play's £1.19** is real, and it is a Console price rather than code - but
+> NOT for the reason this document gave until 31 Aug 2026. It said Play was
+> adding 20% VAT to a 99p product because the account quoted prices exclusive
+> of tax, and told the owner to switch that off. He checked: **tax-inclusive is
+> automatic in the UK and there is no switch.** The arithmetic that made the
+> story convincing - 99p x 1.2 = £1.19, to the penny - was a coincidence read
+> as evidence, and it was written down as fact before anybody opened the
+> Console.
+>
+> If UK prices are inclusive by definition, then whatever the Console shows IS
+> what the customer pays: a buyer charged £1.19 was buying a product priced at
+> £1.19, and the £0.99 in `REFERENCE_PRICES` is the wrong figure, not the till.
+> Open the product in Play Console, read its UK price, and make the two agree.
 >
 > **When you create the Apple products,** pick the price POINT for £0.99 (Tier
 > "£0.99" in the UK) rather than typing a number. App Store prices shown to UK
