@@ -59,7 +59,7 @@
     "path": "./android.keystore",
     "alias": "phase"
   },
-  "appVersionName": "1.1.18",
+  "appVersionName": "1.2.0",
   "appVersionCode": 15,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
