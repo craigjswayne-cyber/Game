@@ -1398,7 +1398,7 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
       ledger.push({ k, v, season: state.season, week: state.week })
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
-        subject: tIn('en', 'news.ledgerFirstSubj', v), body: tIn('en', k, v), k, v,
+        subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v,
       })
     }
     // first win at this ground - counted across the whole career in the save

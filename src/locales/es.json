@@ -1336,7 +1336,7 @@
   "statusBanned": "Sancionado {n}",
   "statusAvailable": "Disponible",
   "backroomStaff": "Cuerpo técnico",
-  "backroomStaffSub": "cada insignia, un examen · 12% aprueban",
+  "backroomStaffSub": "cada insignia, un examen · {pct}% aprueban",
   "staffRoom": "La sala de técnicos",
   "roomPulling": "Un cuerpo técnico que rema en la misma dirección. Tus jóvenes lo notan.",
   "roomDisagrees": "Esta sala no se pone de acuerdo consigo misma, y el trabajo de desarrollo lo paga.",
@@ -1485,8 +1485,7 @@
   "scoutReportsSub": "todo lo que han presentado los ojeadores",
   "fromClub": "del {club}",
   "fromFree": "sin contrato",
-  "interested": "Interesado",
-  "colAge": "Edad"
+  "interested": "Interesado"
  },
  "objectives": {
   "youth": "Curte a la cantera: da 6 o más titularidades a jugadores de 21 años o menos",
@@ -4579,7 +4578,9 @@
   "ledgerGoes": "intentos",
   "ledgerFirstDerby": "Tu primer {derby} ganado, contra {opp}. Pase lo que pase ahora, la ciudad sabe que lo has hecho una vez.",
   "ledgerUnbeaten": "Diez partidos sin perder en liga ya son {n}. Nadie en el club dice la palabra en voz alta.",
-  "ledgerFirstSubj": "Una para el cuaderno del míster"
+  "ledgerFirstAwaySubj": "Una para el cuaderno del míster",
+  "ledgerFirstDerbySubj": "Una para el cuaderno del míster",
+  "ledgerUnbeatenSubj": "Una para el cuaderno del míster"
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",

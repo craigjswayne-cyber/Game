@@ -4578,7 +4578,9 @@
   "ledgerGoes": "回",
   "ledgerFirstDerby": "初めての{derby}勝利、相手は{opp}。これから何があろうと、一度はやり遂げたことを町は知っている。",
   "ledgerUnbeaten": "リーグ10試合無敗が{n}試合になった。建物の中で、その言葉を口に出す者はいない。",
-  "ledgerFirstSubj": "記録簿に一行"
+  "ledgerFirstAwaySubj": "記録簿に一行",
+  "ledgerFirstDerbySubj": "記録簿に一行",
+  "ledgerUnbeatenSubj": "記録簿に一行"
  },
  "comm": {
   "oppCoachNamed": "{coach}は宿題を済ませてきた。{team}は{pattern_k}をピンポイントで封じる布陣だ。絵を変えるか、それとも計画ごと押し通すか。",

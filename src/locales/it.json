@@ -1336,7 +1336,7 @@
   "statusBanned": "Squalifica {n}",
   "statusAvailable": "Disponibile",
   "backroomStaff": "Staff tecnico",
-  "backroomStaffSub": "un brevetto, un giorno d'esame · 12% promossi",
+  "backroomStaffSub": "un brevetto, un giorno d'esame · {pct}% promossi",
   "staffRoom": "La sala dello staff",
   "roomPulling": "Uno staff che rema tutto nella stessa direzione. I tuoi giovani lo sentono.",
   "roomDisagrees": "Questa stanza non è d'accordo con se stessa, e il lavoro sui giovani ne soffre.",
@@ -4578,7 +4578,9 @@
   "ledgerGoes": "tentativi",
   "ledgerFirstDerby": "La tua prima vittoria in un {derby}, contro {opp}. Comunque vada adesso, la città sa che l'hai fatto almeno una volta.",
   "ledgerUnbeaten": "Dieci partite senza sconfitte in campionato sono diventate {n}. Nessuno nel club pronuncia la parola ad alta voce.",
-  "ledgerFirstSubj": "Una riga per il libro mastro"
+  "ledgerFirstAwaySubj": "Una riga per il libro mastro",
+  "ledgerFirstDerbySubj": "Una riga per il libro mastro",
+  "ledgerUnbeatenSubj": "Una riga per il libro mastro"
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
