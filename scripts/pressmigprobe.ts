@@ -14,7 +14,7 @@
 // Run: npx vite-node scripts/pressmigprobe.ts
 import { migratePress, recover } from '../src/game/pressmigrate'
 import { pressQuestion, pressLabel, pressAnswer, pressReaction, type PressItem } from '../src/game/model'
-import { setLang, tIn } from '../src/game/i18n'
+import { ensureLang, setLang, tIn } from '../src/game/i18n'
 import EN from '../src/locales/en.json'
 
 const say = (s: string) => console.log(s)
@@ -75,6 +75,9 @@ const old: PressItem = {
   reaction: 'Flights booked. A week of double sessions in the sun - the squad comes home lean, sharp, and united in their hatred of the hill runs.',
 }
 const n = migratePress([old])
+// dictionaries are lazy chunks (v1.2.0): the French one must be in memory
+// before the switch commits, exactly as the game awaits it before rendering
+await ensureLang('fr')
 setLang('fr')
 say(`  recovered ${n} line(s)`)
 say(`  Q: ${pressQuestion(old).slice(0, 90)}`)

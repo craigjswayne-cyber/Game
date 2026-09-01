@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
-import { getLang, initLang, setLang as applyLang, t, type Lang } from './game/i18n'
+import { getLang, initLang, onLangChange, setLang as applyLang, t, type Lang } from './game/i18n'
 import { hasSupporter } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
@@ -402,10 +402,11 @@ export const useStore = create<Store>((set, get) => ({
   // time. Doing it here rather than in a useEffect means the very first paint
   // is already in the right language: a French phone never flashes English.
   lang: initLang(),
-  setLang: (l: Lang) => {
-    applyLang(l)
-    set({ lang: getLang() })
-  },
+  // applyLang may finish later: a dictionary that is a lazy chunk (v1.2.0)
+  // only commits once it has loaded, so the store cannot read the answer
+  // synchronously - the onLangChange subscription below carries the commit
+  // into React whenever it lands, first tap or slow network alike.
+  setLang: (l: Lang) => applyLang(l),
 
   supporter: hasSupporter(),
   claimSupporter: () => set(s => ({ supporter: hasSupporter(), tick: s.tick + 1 })),
@@ -1368,6 +1369,11 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
 }))
+
+// The language lives in the i18n module; the store mirrors it so React
+// re-renders on a change. The subscription, not setLang, is what moves the
+// mirror: a lazily-fetched dictionary commits whenever its chunk arrives.
+onLangChange(() => useStore.setState({ lang: getLang() }))
 
 // Browser probes stage the states a natural walk cannot reach on demand - an
 // injured starter on match morning, a specific inbox backlog - through this
