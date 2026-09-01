@@ -68,7 +68,7 @@ console.log('\n--- 2. what he tells the cameras costs him nothing')
   const base = fresh()
   sackManager(base, 'news.sacked')
   const before = fingerprint(base)
-  for (const said of ['sack.owned', 'sack.spite', 'sack.unfair']) {
+  for (const said of ['owned', 'spite', 'unfair']) {
     const g = fresh()
     sackManager(g, 'news.sacked')
     // exactly what the overlay does when a line is picked
@@ -84,7 +84,7 @@ console.log('\n--- 3. the desk gets cleared')
   const g = fresh()
   sackManager(g, 'news.sacked')
   const before = fingerprint(g)
-  g.sacked = { ...g.sacked!, said: 'sack.owned' }
+  g.sacked = { ...g.sacked!, said: 'owned' }
   g.sacked = null // what the closing button does
   ok(g.sacked === null, 'closing the bulletin puts it away for good')
   ok(fingerprint(g) === before, 'and closing it changes nothing either')

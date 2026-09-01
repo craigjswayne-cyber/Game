@@ -161,7 +161,13 @@ function Celebration() {
  * It cannot be dismissed by tapping the veil - the whole point is that it is
  * not skippable - so there is deliberately no onClick on the backdrop.
  */
-const SACK_LINES = ['sack.owned', 'sack.spite', 'sack.unfair'] as const
+/* The LEAF names only, so every lookup below keeps a static `sack.` prefix.
+   Storing the whole key and interpolating it bare - t(`${said}Line`) - reads
+   fine and is unverifiable: scripts/i18nprobe.ts checks that a computed key's
+   prefix names a real namespace, and an empty prefix means nothing about this
+   family can be checked at all. A typo in a key would then reach a player
+   rather than the build. */
+const SACK_LINES = ['owned', 'spite', 'unfair'] as const
 
 function Sacked() {
   const game = useStore(s => s.game)
@@ -175,8 +181,8 @@ function Sacked() {
       <div className="sack-veil">
         <div className="sack-box">
           <div className="sack-flash">{t('sack.presser')}</div>
-          <div className="sack-quote">“{t(`${sk.said}Line`)}”</div>
-          <div className="meta" style={{ marginTop: 12 }}>{t(`${sk.said}Reply`)}</div>
+          <div className="sack-quote">“{t(`sack.${sk.said}Line`)}”</div>
+          <div className="meta" style={{ marginTop: 12 }}>{t(`sack.${sk.said}Reply`)}</div>
           <button className="btn gold block" style={{ marginTop: 16 }}
             onClick={() => { game.sacked = null; useStore.getState().touch() }}>
             {t('sack.done')}
@@ -199,7 +205,7 @@ function Sacked() {
           {SACK_LINES.map(k => (
             <button key={k} className="btn ghost block" style={{ textAlign: 'left' }}
               onClick={() => { game.sacked = { ...sk, said: k }; useStore.getState().touch() }}>
-              {t(`${k}Btn`)}
+              {t(`sack.${k}Btn`)}
             </button>
           ))}
         </div>

@@ -128,7 +128,7 @@ try {
       unemployed: g.unemployed, said: g.sacked?.said,
     }
   })
-  ok(state.said === 'sack.spite', 'the statement is recorded')
+  ok(state.said === 'spite', 'the statement is recorded')
   ok(state.unemployed === true, 'he is still out of work')
   ok(typeof state.balance === 'number' && Number.isFinite(state.balance),
      `the club's books are untouched by what he said (${state.balance})`)
