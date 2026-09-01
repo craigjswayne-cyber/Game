@@ -27,7 +27,11 @@
  * Run: npx vite-node scripts/dreamprobe.ts
  */
 import * as D from '../src/game/dream'
-import { setLang } from '../src/game/i18n'
+import { ensureLang, setLang } from '../src/game/i18n'
+
+// dictionaries are lazy chunks now (v1.2.0); load French once so every
+// setLang below stays the instant switch this probe was written against
+await ensureLang('fr')
 import { newGame } from '../src/game/newgame'
 import type { GameState } from '../src/game/model'
 

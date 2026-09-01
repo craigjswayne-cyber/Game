@@ -27,7 +27,7 @@ import { NAMES as SPONSORS } from '../src/game/commercial'
 import { processWeekAndAdvance } from '../src/game/season'
 import { answerPress } from '../src/game/media'
 import { newsBody, newsSubject, eventText, decisionText, pressQuestion, pressLabel, pressAnswer, pressReaction, type GameState } from '../src/game/model'
-import { setLang } from '../src/game/i18n'
+import { ensureLang, setLang } from '../src/game/i18n'
 import EN from '../src/locales/en.json'
 import FR from '../src/locales/fr.json'
 
@@ -106,6 +106,7 @@ const properNouns = (g: GameState): Set<string> => {
   return out
 }
 
+await ensureLang('fr')
 setLang('fr')
 const lines: Line[] = []
 const NOUNS = new Set<string>()

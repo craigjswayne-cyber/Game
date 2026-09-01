@@ -24,10 +24,6 @@
  */
 
 import en from '../locales/en.json'
-import fr from '../locales/fr.json'
-import es from '../locales/es.json'
-import it from '../locales/it.json'
-import ja from '../locales/ja.json'
 
 export type Lang = 'en' | 'fr' | 'es' | 'it' | 'ja'
 
@@ -48,7 +44,33 @@ const NUMBER_LOCALE: Record<Lang, string> = {
 }
 
 type Dict = Record<string, unknown>
-const DICTS: Record<Lang, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict }
+/** English rides in the main bundle - it is the fallback for every missing
+ *  key and the language of the save's paperwork (tIn('en')), so it can never
+ *  be absent. EVERY OTHER LANGUAGE IS ITS OWN CHUNK, fetched when chosen:
+ *  five static dictionaries took the bundle from 1.65MB to 2.8MB, which is a
+ *  Japanese dictionary shipped to every French phone. Vite splits each
+ *  import() below into a hashed asset; the service worker caches it on first
+ *  fetch, so the chosen language works offline from then on. */
+const DICTS: Partial<Record<Lang, Dict>> = { en: en as Dict }
+const LOADERS: Record<Lang, () => Promise<{ default: unknown }>> = {
+  en: () => Promise.resolve({ default: en }),
+  fr: () => import('../locales/fr.json'),
+  es: () => import('../locales/es.json'),
+  it: () => import('../locales/it.json'),
+  ja: () => import('../locales/ja.json'),
+}
+
+/** Load a dictionary if it is not already here. Safe to race, safe offline:
+ *  a fetch that fails leaves the game on the language it was on. */
+export async function ensureLang(lang: Lang): Promise<boolean> {
+  if (DICTS[lang]) return true
+  try {
+    DICTS[lang] = (await LOADERS[lang]()).default as Dict
+    return true
+  } catch {
+    return false
+  }
+}
 
 const STORAGE_KEY = 'rm-lang'
 
@@ -78,6 +100,14 @@ export const getLang = (): Lang => current
 
 export function setLang(lang: Lang): void {
   if (lang === current) return
+  // a dictionary already here switches instantly; one that is not is fetched
+  // first, and only a fetch that lands switches - offline with an uncached
+  // language, the game stays legible in the language it was on
+  if (DICTS[lang]) { commitLang(lang); return }
+  void ensureLang(lang).then(okay => { if (okay) commitLang(lang) })
+}
+
+function commitLang(lang: Lang): void {
   current = lang
   try { localStorage.setItem(STORAGE_KEY, lang) } catch { /* private mode */ }
   // the <html lang> matters to a screen reader and to line breaking
@@ -91,7 +121,7 @@ export function onLangChange(fn: () => void): () => void {
   return () => listeners.delete(fn)
 }
 
-function lookup(dict: Dict, key: string): unknown {
+function lookup(dict: Dict | undefined, key: string): unknown {
   let node: unknown = dict
   for (const part of key.split('.')) {
     if (typeof node !== 'object' || node === null) return undefined
@@ -112,7 +142,8 @@ function lookup(dict: Dict, key: string): unknown {
  * dictionary: _meta.ordByDigit is set for English and empty for French.
  */
 function ordSuffix(n: number, lang: Lang = current): string {
-  const byDigit = !!lookup(DICTS[lang], '_meta.ordByDigit')
+  const d = DICTS[lang] ?? DICTS.en!
+  const byDigit = !!lookup(d, '_meta.ordByDigit')
   const abs = Math.abs(n)
   let key = 'common.ordN'
   if (byDigit) {
@@ -222,7 +253,7 @@ export const missing = new Set<string>()
  * `t('squad.injured', { n })` with a value shaped `{ one, other }` - plural.
  */
 export function t(key: string, vars?: Vars): string {
-  let entry = lookup(DICTS[current], key)
+  let entry = lookup(DICTS[current] ?? DICTS.en!, key)
   if (entry === undefined && current !== 'en') {
     if (!missing.has(key)) {
       missing.add(key)
