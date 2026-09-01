@@ -1775,6 +1775,9 @@ export const NEWS_KEEP = 250
  * Then move to next week.
  */
 export function processWeekAndAdvance(state: GameState) {
+  // last week's back page is last week's: a fresh one is written below if
+  // the side plays, and a stale one must never sit over a new week
+  state.backPage = null
   const rng = weekRng(state)
 
   // The week's set-piece coaching (F2). What you call gets sharper, what you

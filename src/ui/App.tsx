@@ -221,10 +221,15 @@ function Sacked() {
  * button into the full report. It is the thing you would screenshot for a
  * mate, and it means a match ends on a sentence rather than a table.
  *
- * Unlike the sack, this IS dismissable on the veil - it is a treat, not a
- * gate, and a player racing through a season must be able to fold it away in
- * one tap. The keys travel with values, so the page reads in the manager's
- * own language whatever build wrote it.
+ * IT BLOCKS NOTHING. The first build drew this as a modal over a dimmed
+ * screen, like the sack. The deep test caught what that means after EVERY
+ * match: annualprobe found the Annual door "covered: DIV.backpage-veil" and
+ * testsheet could not press Continue. A treat that stands between the player
+ * and the next tap is a gate with a nicer font. So the page is a card pinned
+ * under the header with no backdrop at all - the game underneath stays live,
+ * the card folds on its own button, and advancing the week clears it
+ * (season.processWeekAndAdvance). The keys travel with values, so it reads in
+ * the manager's own language whatever build wrote it.
  */
 function BackPage() {
   const game = useStore(s => s.game)
@@ -234,8 +239,8 @@ function BackPage() {
   const bp = game.backPage
   const fold = () => { game.backPage = null; useStore.getState().touch() }
   return (
-    <div className="backpage-veil" onClick={fold}>
-      <div className="backpage" onClick={e => e.stopPropagation()}>
+    <div className="backpage-dock">
+      <div className="backpage">
         <div className="backpage-strap">{t('bp.strap')}</div>
         <h1 className="backpage-head">{t(bp.hk, bp.hv)}</h1>
         <div className="backpage-sub">{t(bp.sk, bp.sv)}</div>
