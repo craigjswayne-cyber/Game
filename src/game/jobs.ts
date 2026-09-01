@@ -336,4 +336,11 @@ export function sackManager(state: GameState, k: string, extraV: Record<string, 
     subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v),
     k, v,
   })
+  // AND SAY IT OUT LOUD (v1.2.1). The letter above is the record; this is the
+  // moment. The app draws a breaking-news card over whatever screen the
+  // manager is on and holds him there until he has given the cameras a line -
+  // see GameState.sacked. Every dismissal in the game comes through this
+  // function, so there is no route out of a job that can forget to announce
+  // itself.
+  state.sacked = { club: club.name, k, v, said: null }
 }
