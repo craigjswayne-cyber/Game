@@ -372,9 +372,33 @@ The answers people get wrong:
 
 ## Phase 4 — Send it to Apple
 
+### 17b. Refresh the content the app will ship
+
+**Do this every single time, before anything else in this phase.** Android and
+iOS do not work the same way and it is the easiest mistake in the project to
+make:
+
+* the **Android** app is a TWA - it renders the LIVE SITE, so a Pages deploy
+  reaches every phone and no upload is needed for a content change;
+* the **iOS** app **BUNDLES** the site inside the binary (`webDir` is
+  `../../dist`). Nothing you deploy to the web reaches it. If you archive
+  without rebuilding, you will ship whatever `dist/` happened to hold last
+  time, and it will pass review looking like an old version of the game.
+
+From the repository root:
+
+```
+git pull                      # get the release you mean to ship
+npm ci && npm run build       # rebuild dist/ at that version
+cd packaging/ios && npx cap sync ios
+```
+
+`cap sync` is what copies `dist/` into the iOS project. Run the CLI from
+`packaging/ios`, not from the repo root - `webDir` is relative to that folder.
+
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.1.17`, **Build** `1`.
+*App* target → *General* → **Version** `1.2.1`, **Build** `1`.
 The version must match `package.json` and the figure on the App Store Connect
 listing, or the upload is rejected.
 
@@ -397,6 +421,17 @@ encryption question **No** — the app uses none and makes no network connection
 
 Processing takes five to thirty minutes before the build appears in App Store
 Connect.
+
+> **"Unable to Add for Review - You must choose a build."** This is App Store
+> Connect saying no binary has finished processing yet. It is not a fault in
+> the listing: the metadata, screenshots and pricing can all be complete and
+> the banner still shows, because a version cannot be reviewed without
+> something to run. It clears on its own once the upload above finishes
+> processing - then open the version page, scroll to **Build**, press the
+> **+** (or *Add Build*) and pick it. If an hour has passed with nothing
+> appearing, check the email on the Apple ID: a rejected upload (a missing
+> icon, a bad entitlement, a duplicate build number) is reported there and
+> nowhere in the web interface.
 
 ### 21. Test it for real, through TestFlight
 
