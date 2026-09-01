@@ -5607,5 +5607,21 @@
   "textBigger": "Más grande",
   "textBiggest": "La más grande",
   "fineprint": "Esto vive en este móvil, no en la partida: una carrera que se lleva a otro dispositivo llega con los colores de aquel. Ahora mismo se lee en {lang}."
+ },
+ "sack": {
+  "breaking": "Última hora",
+  "head": "Estás fuera en el {club}",
+  "ask": "Las cámaras ya esperan fuera. Hay que decir algo.",
+  "presser": "Diste la cara ante la prensa",
+  "done": "Recoger el despacho",
+  "ownedBtn": "«Me lo merecía.»",
+  "ownedLine": "Me lo merecía. No se pierden tantos partidos y luego se le echa la culpa al calendario. Los jugadores me lo dieron todo, los resultados son míos y el club hace bien en querer más.",
+  "ownedReply": "Abre todos los informativos antes de las seis. Nadie hace una repregunta, que ya es un veredicto en sí mismo, y un veterano en el plató dice que te ficharía mañana mismo.",
+  "spiteBtn": "«Tampoco me gustaba este equipo.»",
+  "spiteLine": "¿Sinceramente? Tampoco me gustaba este equipo. Plantilla mala, comedor peor y un campo de entrenamiento por el que un agricultor pediría perdón. Alguien ganará algo aquí dentro de unos nueve años.",
+  "spiteReply": "Es un vídeo viral antes de que llegues al aparcamiento. El foro de la afición lleva cuarenta páginas a la hora de merendar y alguien ya ha convertido lo del comedor en una bandera.",
+  "unfairBtn": "«Fue injusto.»",
+  "unfairLine": "Fue injusto, y todos en esta sala lo saben. Lesiones todo el invierno, ni un euro en enero y once semanas para arreglar lo que se rompió en diez años. Júzguenme por una temporada entera o no me juzguen.",
+  "unfairReply": "Media sala escribe «digno» y la otra media escribe «excusas». Se publican las dos piezas. Así es la prensa: nunca ibas a salir de esto con un solo titular."
  }
 }

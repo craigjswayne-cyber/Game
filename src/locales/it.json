@@ -5607,5 +5607,21 @@
   "textBigger": "Più grande",
   "textBiggest": "La più grande",
   "fineprint": "Queste scelte vivono su questo telefono, non nel salvataggio: una carriera portata altrove arriva con i colori di quell’altro. Al momento si legge in {lang}."
+ },
+ "sack": {
+  "breaking": "Ultim’ora",
+  "head": "È finita per te al {club}",
+  "ask": "Le telecamere sono già fuori. Qualcosa bisogna dirla.",
+  "presser": "Hai affrontato la stampa",
+  "done": "Svuotare la scrivania",
+  "ownedBtn": "«Me lo sono meritato.»",
+  "ownedLine": "Me lo sono meritato. Non si perdono tante partite e poi si dà la colpa al calendario. I giocatori mi hanno dato tutto, i risultati sono miei, e il club fa bene a volere di più.",
+  "ownedReply": "Apre tutti i telegiornali entro le sei. Nessuno fa una domanda di rimbalzo, che è già un verdetto - e un ex giocatore in studio dice che ti prenderebbe domani mattina.",
+  "spiteBtn": "«Tanto questa squadra non mi piaceva.»",
+  "spiteLine": "Sinceramente? Questa squadra non mi piaceva comunque. Rosa scarsa, mensa peggio, e un campo d’allenamento per cui un contadino chiederebbe scusa. Qui qualcuno vincerà qualcosa fra una nona d’anni.",
+  "spiteReply": "È una clip virale prima ancora che tu arrivi al parcheggio. Il forum dei tifosi è a quaranta pagine all’ora di merenda e qualcuno ha già fatto una bandiera con la frase sulla mensa.",
+  "unfairBtn": "«È stato ingiusto.»",
+  "unfairLine": "È stato ingiusto, e in questa sala lo sanno tutti. Infortuni per tutto l’inverno, nemmeno un euro a gennaio, e undici settimane per rimettere a posto ciò che dieci anni hanno rotto. Giudicatemi su una stagione intera o non giudicatemi affatto.",
+  "unfairReply": "Metà sala scrive «dignitoso», l’altra metà scrive «scuse». Escono entrambi i pezzi. È la stampa: da qui non saresti mai uscito con un titolo solo."
  }
 }

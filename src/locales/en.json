@@ -5607,5 +5607,21 @@
   "textBigger": "Bigger",
   "textBiggest": "Biggest",
   "fineprint": "These live on this phone, not in the save - a career carried to another device arrives in that one’s colours. Currently reading in {lang}."
+ },
+ "sack": {
+  "breaking": "Breaking news",
+  "head": "You are out at {club}",
+  "ask": "The cameras are already outside. You have to say something.",
+  "presser": "You faced the press",
+  "done": "Clear the desk",
+  "ownedBtn": "“I deserved it.”",
+  "ownedLine": "I deserved it. You do not lose that many and get to blame the fixture list. The players gave me everything, the results were mine, and the club is right to want better.",
+  "ownedReply": "It leads every bulletin by six o’clock. Nobody has a follow-up question, which is its own kind of verdict - and one old pro on the panel says he would have you at his club tomorrow.",
+  "spiteBtn": "“I didn’t like the team anyway.”",
+  "spiteLine": "Honestly? I did not like the team anyway. Bad squad, worse canteen, and a training pitch a farmer would apologise for. Somebody will win something there in about nine years.",
+  "spiteReply": "It is a clip before you reach the car park. The supporters’ forum has forty pages on it by tea time and somebody has already made the canteen line into a flag.",
+  "unfairBtn": "“It was unfair.”",
+  "unfairLine": "It was unfair, and everyone in this room knows it. Injuries all winter, no money in January, and eleven weeks to fix what took ten years to break. Judge me on a full season or do not judge me at all.",
+  "unfairReply": "Half the room writes “dignified”, the other half writes “excuses”. Both pieces run. That is the press for you - you were never going to get one headline out of this."
  }
 }

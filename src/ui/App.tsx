@@ -140,6 +140,74 @@ function Celebration() {
   )
 }
 
+/**
+ * THE SACK. Two cards, and no way past them but through.
+ *
+ * Owner, v1.2.1: "It should be clear if you are sacked. Like really obvious. A
+ * pop up of breaking news and the game makes you make a press statement."
+ *
+ * Before this, losing your job was a letter in an inbox of eleven - the single
+ * biggest thing that can happen to a career, filed between a fixture note and
+ * a sponsor renewal, and easy to walk straight past. Now the game stops.
+ *
+ * FIRST the bulletin: the board's own words, over whatever screen you were on.
+ * THEN the cameras, because a sacked manager does not get to leave quietly -
+ * three lines to pick from, none of which changes anything. There is no
+ * reputation effect, no morale swing, no mark on the job market. The owner
+ * asked for that in as many words, and it is the right call twice over: a
+ * punishment for being dignified about a sacking would be a strange game, and
+ * a reward for it would make the choice a puzzle rather than a moment.
+ *
+ * It cannot be dismissed by tapping the veil - the whole point is that it is
+ * not skippable - so there is deliberately no onClick on the backdrop.
+ */
+const SACK_LINES = ['sack.owned', 'sack.spite', 'sack.unfair'] as const
+
+function Sacked() {
+  const game = useStore(s => s.game)
+  useStore(s => s.tick)
+  if (!game?.sacked) return null
+  const sk = game.sacked
+
+  // step two: he has spoken, and the reply is on screen until he closes it
+  if (sk.said) {
+    return (
+      <div className="sack-veil">
+        <div className="sack-box">
+          <div className="sack-flash">{t('sack.presser')}</div>
+          <div className="sack-quote">“{t(`${sk.said}Line`)}”</div>
+          <div className="meta" style={{ marginTop: 12 }}>{t(`${sk.said}Reply`)}</div>
+          <button className="btn gold block" style={{ marginTop: 16 }}
+            onClick={() => { game.sacked = null; useStore.getState().touch() }}>
+            {t('sack.done')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="sack-veil">
+      <div className="sack-box">
+        <div className="sack-flash">{t('sack.breaking')}</div>
+        <div style={{ fontSize: 52, lineHeight: 1, margin: '6px 0 10px' }}>📺</div>
+        <h1 className="sack-head">{t('sack.head', { club: sk.club })}</h1>
+        {/* the board's own letter, in the manager's own language */}
+        <div className="sack-body">{t(sk.k, sk.v)}</div>
+        <div className="meta" style={{ marginTop: 14, marginBottom: 6 }}>{t('sack.ask')}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {SACK_LINES.map(k => (
+            <button key={k} className="btn ghost block" style={{ textAlign: 'left' }}
+              onClick={() => { game.sacked = { ...sk, said: k }; useStore.getState().touch() }}>
+              {t(`${k}Btn`)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Everything that floats above whatever screen you happen to be on. One
  *  component so the five return paths through App cannot disagree about it. */
 function Overlays() {
@@ -148,6 +216,8 @@ function Overlays() {
       <SaveWarning />
       <Tutorial />
       <Celebration />
+      {/* last, so it sits over the lot: nothing outranks losing your job */}
+      <Sacked />
     </>
   )
 }

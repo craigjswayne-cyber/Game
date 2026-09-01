@@ -1303,6 +1303,28 @@ export interface GameState {
     sk?: string
     sv?: Record<string, string | number>
   } | null
+  /** THE SACK, AS AN EVENT RATHER THAN A LETTER (v1.2.1).
+   *
+   *  Losing your job used to be one item in an inbox of eleven, between a
+   *  fixture note and a sponsor's renewal - the single biggest thing that can
+   *  happen to a career, filed like a laundry bill. Owner: "It should be clear
+   *  if you are sacked. Like really obvious."
+   *
+   *  So a dismissal now sets this, and the app puts a breaking-news card over
+   *  whatever screen you are on until you have stood up and said something.
+   *  `k`/`v` are the board's own letter, so the bulletin and the inbox item
+   *  cannot drift; `said` records which line you gave the cameras.
+   *
+   *  IT CHANGES NOTHING. There is no reputation, morale or job-market effect -
+   *  the owner asked for exactly that ("shouldnt really have any impact on
+   *  anything though"). It is there to be felt, not survived. */
+  sacked?: {
+    club: string
+    k: string
+    v: Record<string, string | number>
+    /** null until he has faced the press; the key of the line he chose after */
+    said: string | null
+  } | null
   /** senior pros paired with academy kids - wisdom rubs off. Capped by
    *  mentoring.mentorCap (four, five with a strong Centre of Excellence).
    *  pers0 is the kid's personality when the pairing was made, so graduation
