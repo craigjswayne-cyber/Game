@@ -75,7 +75,7 @@ const texts = page => page.evaluate(() => {
 })
 
 try {
-  for (const lang of ['en', 'fr']) {
+  for (const lang of ['en', 'fr', 'es', 'it', 'ja']) {
     const page = await browser.newPage({ viewport: { width: 412, height: 915 } })
     page.setDefaultTimeout(8000)
     await page.addInitScript(l => {

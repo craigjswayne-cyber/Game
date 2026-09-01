@@ -29,10 +29,9 @@ const ok = (c, what) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (
 
 const server = await startPreview(4258, 2500)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
-const page = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 })
 
 /** Every scrollable table on the screen, and how far past the edge it runs. */
-const overflow = async (where) => {
+const overflowOn = async (page, where) => {
   await page.waitForTimeout(350)
   const rows = await page.evaluate(() => {
     const out = []
@@ -50,45 +49,37 @@ const overflow = async (where) => {
 }
 
 try {
-  await page.goto('http://localhost:4258/')
-  await page.waitForSelector('text=RUGBY', { timeout: 15000 })
-  await page.click('text=New Career')
-  await page.waitForSelector('text=English Premier Division')
-  await page.click('text=English Premier Division')
-  await page.waitForSelector('.club-tile')
-  await page.click('.tile >> text=Northampton')   // the longest club name in the game
-  await page.waitForSelector('text=Star Player')
-  await page.click('.action-bar >> text=Confirm')
-  await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Side Scroll')
-  await page.click('.speech-tile >> text=Forward Dominance')
-  await page.click('.action-bar >> text=Confirm')
-  await page.click('text=▸ Start Career')
-  await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-close .btn')
-  await page.waitForTimeout(400)
-
-  // THE TWO THE OWNER NAMED, and the neighbours that draw the same row
-  await page.click('.bottom-nav button[title="World"]')
-  await page.click('.submenu-item >> text=Scouting Agency')
-  await page.waitForSelector('.dtable')
-  await overflow('Senior Rankings')
-  await page.click('.tab-bar >> text=Wonderkids')
-  await overflow('Wonderkids')
-
-  await page.click('.bottom-nav button[title="World"]')
-  await page.click('.submenu-item >> text=Team of the Week')
-  await page.waitForTimeout(400)
-  await overflow('Team of the Week')
-
-  await page.click('.bottom-nav button[title="World"]')
-  await page.click('.submenu-item >> text=Competitions')
-  await page.waitForTimeout(400)
-  await overflow('Competitions')
-
-  await page.click('.bottom-nav button[title="Hub"]')
-  await page.click('.submenu-item >> text=Transfer Centre')
-  await page.waitForTimeout(600)
-  await overflow('Transfer Centre')
+  // FIVE LANGUAGES, NOT ONE (v1.2.2, pre-launch audit item 11). This walked
+  // the English UI by its visible labels, which is exactly what makes it
+  // unable to walk any other language - and Spanish and Italian run about a
+  // fifth longer than English, so the tables most likely to overflow were
+  // the ones never measured. The walk goes through the store handle now, by
+  // screen id, so it is the same walk in every language.
+  for (const lang of ['en', 'fr', 'es', 'it', 'ja']) {
+    const p = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 })
+    p.setDefaultTimeout(9000)
+    await p.addInitScript(l => { localStorage.setItem('rm-night', '1'); localStorage.setItem('rm-lang', l) }, lang)
+    await p.goto('http://localhost:4258/')
+    await p.waitForSelector('text=RUGBY', { timeout: 20000 })
+    // Northampton: the longest club name in the game
+    await p.evaluate(() => window.rugbyStore.getState().start('northampton', 'Side Scroll'))
+    await p.waitForTimeout(700)
+    await p.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
+    const at = async (screen, where, tab) => {
+      await p.evaluate(sc => window.rugbyStore.getState().go(sc), screen)
+      await p.waitForTimeout(500)
+      if (tab != null) { await p.locator('.tab-bar button').nth(tab).click().catch(() => {}); await p.waitForTimeout(300) }
+      await overflowOn(p, `${lang} ${where}`)
+    }
+    await at('agency', 'Senior Rankings')
+    await at('agency', 'Wonderkids', 1)
+    await at('dreamteam', 'Team of the Week')
+    await at('tables', 'Competitions')
+    await at('transfers', 'Transfer Centre')
+    await at('squad', 'Squad')
+    await at('finances', 'Finances')
+    await p.close()
+  }
 } catch (e) {
   console.log(`FAIL  the walk itself broke: ${e}`)
   fails++
@@ -97,6 +88,6 @@ try {
 await browser.close()
 server.kill?.()
 console.log(fails === 0
-  ? '\nSIDE SCROLL PASSED: every table fits the phone it is read on'
+  ? '\nSIDE SCROLL PASSED: every table fits the phone it is read on, in five languages'
   : `\nSIDE SCROLL FAILED: ${fails}`)
 process.exit(fails === 0 ? 0 : 1)

@@ -81,7 +81,7 @@ const FILL = {
 const fill = (s) => String(s).replace(/\{(\w+)(?:_k|_l|_ll)?\}/g, (_m, k) => FILL[k] ?? '12')
 
 const langs = {}
-for (const l of ['en', 'fr']) {
+for (const l of ['en', 'fr', 'es', 'it', 'ja']) {
   const d = JSON.parse(readFileSync(`src/locales/${l}.json`, 'utf8'))
   langs[l] = d
 }
@@ -96,7 +96,7 @@ const forms = (d, key) => {
 
 const lines = []
 for (const { title, sub } of [...pairs.values()].sort((a, b) => (a.sub > b.sub ? 1 : -1))) {
-  for (const l of ['en', 'fr']) {
+  for (const l of ['en', 'fr', 'es', 'it', 'ja']) {
     const subForms = forms(langs[l], sub)
     if (!subForms.length) continue
     // the LONGEST title this heading can carry, because that is the one that
@@ -201,7 +201,7 @@ ok(measured.over.length === 0, `every line under a section title fits on one lin
 
 await browser.close()
 say(fails === 0
-  ? '\nSUBLINE PASSED: one line under a title, everywhere, in both languages'
+  ? '\nSUBLINE PASSED: one line under a title, everywhere, in five languages'
   : `\nSUBLINE FAILED: ${fails}`)
 // done() takes the FAILURE COUNT and exits with it - it is not a server
 // shutdown. Handing it the server object exited 1 on a clean run, which is how
