@@ -136,7 +136,30 @@ export default function Supporter() {
   const { healSquad, buildEstate, makeTheCall, signCharter } = useStore.getState()
   const boardInject = useStore(s => s.boardInject)
   useStore(s => s.tick)
-  const [busy, setBusy] = useState(false)
+  // ONE ROW'S PURCHASE IS ONE ROW'S BUSINESS (owner, v1.2.1: "i clicked
+  // support the game and it made other options unclickable").
+  //
+  // This was a single `busy` boolean for the whole shelf, so a tap on any Buy
+  // disabled EVERY other Buy and the Restore button underneath. That is
+  // defensible while a payment sheet is genuinely open - two Play sheets at
+  // once is not a thing - but it made the store look broken for the whole of
+  // any slow call, and if the store bridge never answered (see quick() in
+  // monetise.ts) the flag never came back down and the shelf stayed dead until
+  // the screen was left and re-entered.
+  //
+  // Now each product holds only its own button. A wedged Sugar Daddy cannot
+  // stop anybody buying a heal, and the worst a hung call can do is cost one
+  // row until the twelve-second watchdog answers for it.
+  const [inFlight, setInFlight] = useState<string[]>([])
+  const isBusy = (sku: string) => inFlight.includes(sku)
+  /** Run a purchase for one sku, holding that sku's button and nothing else.
+   *  A second tap on the same row while it is in flight is ignored rather
+   *  than queued: two sheets for one product is the one case worth refusing. */
+  const runFor = async (sku: string, job: () => Promise<void>) => {
+    if (inFlight.includes(sku)) return
+    setInFlight(f => [...f, sku])
+    try { await job() } finally { setInFlight(f => f.filter(x => x !== sku)) }
+  }
   const [msgs, setMsgs] = useState<Record<string, string | null>>({})
   const [healPending, setHealPending] = useState(false)
   const [estateArm, setEstateArm] = useState(false)
@@ -162,13 +185,11 @@ export default function Supporter() {
 
   const inCareer = !!game && !game.unemployed
 
-  const buyNC = async (sku: string, thenApply?: () => void) => {
-    setBusy(true)
+  const buyNC = (sku: string, thenApply?: () => void) => runFor(sku, async () => {
     const out = await buyOwnable(sku)
-    setBusy(false)
     if (out === 'owned') { claim(); thenApply?.(); say(sku, t('store.bought')) }
     else say(sku, endingText(out))
-  }
+  })
 
   const applyHealNow = async () => {
     if (!inCareer) { say(HEAL_SKU, t('store.needCareer')); return }
@@ -187,18 +208,15 @@ export default function Supporter() {
       say(HEAL_SKU, t(game && healReady(game) ? 'store.healNobody' : 'store.healWait'))
     }
   }
-  const buyHeal = async () => {
-    setBusy(true)
-    try {
-      // a credit already in the bank means there is nothing to buy - going to
-      // the till anyway is how Google's own "You already own this item" sheet
-      // got in front of the owner (31 Aug, the Medical Centre)
-      await bankReceipts(HEAL_SKU)
-      const out = creditCount(HEAL_SKU) > 0 ? 'owned' as const : await buyConsumable(HEAL_SKU)
-      if (out === 'owned') await applyHealNow()
-      else say(HEAL_SKU, endingText(out))
-    } finally { setBusy(false) }
-  }
+  const buyHeal = () => runFor(HEAL_SKU, async () => {
+    // a credit already in the bank means there is nothing to buy - going to
+    // the till anyway is how Google's own "You already own this item" sheet
+    // got in front of the owner (31 Aug, the Medical Centre)
+    await bankReceipts(HEAL_SKU)
+    const out = creditCount(HEAL_SKU) > 0 ? 'owned' as const : await buyConsumable(HEAL_SKU)
+    if (out === 'owned') await applyHealNow()
+    else say(HEAL_SKU, endingText(out))
+  })
 
   /** Land a paid injection in this career, and only then spend the receipt -
    *  the same promise the Boardroom shelf used to make: a purchase the career
@@ -223,72 +241,62 @@ export default function Supporter() {
    *  here can fail in a way that costs the player anything - a consume that
    *  does not land just leaves the receipt owned, and the next tap consumes
    *  it. */
-  const buySupport = async () => {
-    setBusy(true)
-    try {
-      await bankReceipts(SUPPORT_SKU)
-      const out = creditCount(SUPPORT_SKU) > 0 ? 'owned' as const : await buyConsumable(SUPPORT_SKU)
-      if (out === 'owned') {
-        creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
-        say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
-      } else say(SUPPORT_SKU, endingText(out))
-    } finally { setBusy(false) }
-  }
+  const buySupport = () => runFor(SUPPORT_SKU, async () => {
+    await bankReceipts(SUPPORT_SKU)
+    const out = creditCount(SUPPORT_SKU) > 0 ? 'owned' as const : await buyConsumable(SUPPORT_SKU)
+    if (out === 'owned') {
+      creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
+      say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
+    } else say(SUPPORT_SKU, endingText(out))
+  })
 
   /* THE ESTATE AT A SECOND GROUND. Play sells a non-consumable exactly once,
      so the repeat is its own consumable product - bought, spent, and the
      buildings go up straight away at the club being managed today. Nothing is
      cached in rm-ent: the receipt is the ground, and estateClubs remembers it. */
-  const buyGround = async () => {
+  const buyGround = () => runFor(GROUND_SKU, async () => {
     if (!inCareer) { say(ESTATE_SKU, t('store.needCareer')); return }
-    setBusy(true)
-    try {
-      await bankReceipts(GROUND_SKU)
-      const out = creditCount(GROUND_SKU) > 0 ? 'owned' as const : await buyConsumable(GROUND_SKU)
-      if (out === 'owned') {
-        const built = buildEstate()
-        if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
-        say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
-      } else say(ESTATE_SKU, endingText(out))
-    } finally { setBusy(false) }
-  }
+    await bankReceipts(GROUND_SKU)
+    const out = creditCount(GROUND_SKU) > 0 ? 'owned' as const : await buyConsumable(GROUND_SKU)
+    if (out === 'owned') {
+      const built = buildEstate()
+      if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
+      say(ESTATE_SKU, built ? t('store.estateDone') : t('store.estateRefused'))
+    } else say(ESTATE_SKU, endingText(out))
+  })
 
-  /* ONE SHELF, ONE FLAG - SO THE FLAG HAS TO COME BACK DOWN.
-     `busy` disables every buy button in the store while a payment sheet is
-     open, which is right: two Play sheets at once is not a thing. What was
-     wrong is that nothing here was guarded, so a throw anywhere inside -
-     landInjection writing a grant, buildEstate, healSquad - left `busy` true
-     forever and killed the WHOLE shelf until the screen was left and
-     re-entered. Owner, v1.1.17: "it did one, all other cash injections are
-     unavailable to click." Every purchase path releases in a finally now. */
-  const buyInjection = async (tier: InjectTier) => {
+  /* EVERY PURCHASE PATH RELEASES ITS OWN ROW, WHATEVER HAPPENS.
+     v1.1.17 fixed the first half of this: a throw anywhere inside - landInjection
+     writing a grant, buildEstate, healSquad - used to leave the shelf's flag up
+     for ever ("it did one, all other cash injections are unavailable to
+     click"), so every path releases in a finally. v1.2.1 fixed the rest: the
+     flag was shared, so even a well-behaved slow purchase disabled the whole
+     shop, and a call that hung rather than threw skipped the finally entirely.
+     runFor holds one sku, and quick() in monetise.ts answers for a silent
+     store, so neither a throw nor a silence can reach another row. */
+  const buyInjection = (tier: InjectTier) => runFor(INJECT_SKUS[tier], async () => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
     const sku = INJECT_SKUS[tier]
-    setBusy(true)
-    try {
-      await bankReceipts(sku)
-      const had = creditCount(sku) > 0
-      // the Sugar Daddy calls once a day (real time) - but a credit already
-      // paid for is always collectable, the clock only gates NEW purchases
-      if (tier === 'xl' && !had && xlWaitMs() > 0) {
-        say(sku, t('till.xlWait', { h: Math.max(1, Math.ceil(xlWaitMs() / 3_600_000)) }))
-        return
-      }
-      const out = had ? 'owned' as const : await buyConsumable(sku)
-      if (out === 'owned') {
-        if (!had && tier === 'xl') markXlBought()
-        await landInjection(tier)
-      } else say(sku, endingText(out))
-    } finally { setBusy(false) }
-  }
+    await bankReceipts(sku)
+    const had = creditCount(sku) > 0
+    // the Sugar Daddy calls once a day (real time) - but a credit already
+    // paid for is always collectable, the clock only gates NEW purchases
+    if (tier === 'xl' && !had && xlWaitMs() > 0) {
+      say(sku, t('till.xlWait', { h: Math.max(1, Math.ceil(xlWaitMs() / 3_600_000)) }))
+      return
+    }
+    const out = had ? 'owned' as const : await buyConsumable(sku)
+    if (out === 'owned') {
+      if (!had && tier === 'xl') markXlBought()
+      await landInjection(tier)
+    } else say(sku, endingText(out))
+  })
 
-  const doRestore = async () => {
-    setBusy(true)
-    let changed = false
-    try { changed = await restore() } finally { setBusy(false) }
+  const doRestore = () => runFor('restore', async () => {
+    const changed = await restore()
     if (changed) claim()
     say('restore', t(changed ? 'supporter.restored' : hasSupporter() ? 'supporter.alreadyYours' : 'supporter.nothingToRestore'))
-  }
+  })
 
   const adsExist = !!adBridge()
   const ownsAds = hasEntitlement(SUPPORTER_SKU)
@@ -326,20 +334,20 @@ export default function Supporter() {
   if (adsExist || ownsAds) {
     row('ads', ownsAds,
       <Row icon="🚫" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
-        right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={busy} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
+        right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={isBusy(SUPPORTER_SKU)} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
   }
 
   // the jar is never done: it takes another coin whenever anybody wants to
   row('support', false,
       <Row icon="💛" title={t('store.support')} line={t('store.supportLine')} msg={msgs[SUPPORT_SKU]}
-        right={<BuyBtn sku={SUPPORT_SKU} busy={busy} onBuy={() => void buySupport()} />}>
+        right={<BuyBtn sku={SUPPORT_SKU} busy={isBusy(SUPPORT_SKU)} onBuy={() => void buySupport()} />}>
         {tips > 0 && <div className="meta muted">{t('store.supportThanks', { n: tips })}</div>}
       </Row>)
 
   // a heal is bought per match played, so the row always has a next time
   row('heal', false,
       <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
-        right={<BuyBtn sku={HEAL_SKU} busy={busy} onBuy={() => void buyHeal()} />}>
+        right={<BuyBtn sku={HEAL_SKU} busy={isBusy(HEAL_SKU)} onBuy={() => void buyHeal()} />}>
         {inCareer && game && !healReady(game) && !healPending && (
           <div className="meta muted">{t('store.healWait')}</div>
         )}
@@ -362,7 +370,7 @@ export default function Supporter() {
       <Row icon="🌍" title={t('store.pinnacle')} line={t('store.pinnacleLine')} msg={msgs[PINNACLE_SKU]}
         right={ownsPinnacle
           ? (canCall ? undefined : <OwnedChip />)
-          : <BuyBtn sku={PINNACLE_SKU} busy={busy} onBuy={() => void buyNC(PINNACLE_SKU, () => {
+          : <BuyBtn sku={PINNACLE_SKU} busy={isBusy(PINNACLE_SKU)} onBuy={() => void buyNC(PINNACLE_SKU, () => {
               if (canCall) say(PINNACLE_SKU, t('store.pickNation'))
             })} />}>
         {/* v1.1.5, the owner's brief: the buyer picks the federation. The
@@ -400,9 +408,9 @@ export default function Supporter() {
   row('estate', ownsEstate && !canBuildFree && !needsRepeat,
       <Row icon="🏗️" title={t('store.estate')} line={t('store.estateLine')} msg={msgs[ESTATE_SKU]}
         right={!ownsEstate
-          ? <BuyBtn sku={ESTATE_SKU} busy={busy} onBuy={() => void buyNC(ESTATE_SKU)} />
+          ? <BuyBtn sku={ESTATE_SKU} busy={isBusy(ESTATE_SKU)} onBuy={() => void buyNC(ESTATE_SKU)} />
           : needsRepeat
-            ? <BuyBtn sku={GROUND_SKU} busy={busy} onBuy={() => void buyGround()} />
+            ? <BuyBtn sku={GROUND_SKU} busy={isBusy(GROUND_SKU)} onBuy={() => void buyGround()} />
             : canBuildFree ? undefined : <OwnedChip />}>
         {needsRepeat && <div className="meta muted">{t('store.estateAgain')}</div>}
         {canBuildFree && (
@@ -423,7 +431,7 @@ export default function Supporter() {
   // owned AND already applied to this career - an unapplied one still has a button
   row('charter', ownsCharter && !(inCareer && !!game && !game.uncapped),
       <Row icon="🖋" title={t('store.charter')} line={t('store.charterLine')} msg={msgs[CHARTER_SKU]}
-        right={ownsCharter ? <OwnedChip /> : <BuyBtn sku={CHARTER_SKU} busy={busy} onBuy={() => void buyNC(CHARTER_SKU)} />}>
+        right={ownsCharter ? <OwnedChip /> : <BuyBtn sku={CHARTER_SKU} busy={isBusy(CHARTER_SKU)} onBuy={() => void buyNC(CHARTER_SKU)} />}>
         {/* ALREADY PAID FOR MEANS ACTIVATE, NOT PAY AGAIN (owner, v1.1.13: "if
             they've paid for it previously and started a new game it should be
             an activate option. but not pay again").
@@ -467,7 +475,7 @@ export default function Supporter() {
                 </div>
                 {left > 0 && (tier === 'xl' && xlWaitMs() > 0 && creditCount(sku) < 1
                   ? <span className="chip" style={{ flexShrink: 0 }}>{t('till.xlTomorrow')}</span>
-                  : <BuyBtn sku={sku} busy={busy} onBuy={() => void buyInjection(tier)} />)}
+                  : <BuyBtn sku={sku} busy={isBusy(sku)} onBuy={() => void buyInjection(tier)} />)}
               </div>
               {/* SOLD OUT IS A LINE, NOT A CHIP.
                   A fifty-one character sentence in a `flexShrink: 0` chip
@@ -481,7 +489,7 @@ export default function Supporter() {
                   buying. */}
               {left <= 0 && <div className="meta muted">{t('till.injNone')}</div>}
               {pendingInj.includes(tier) && (
-                <button className="btn ghost block" disabled={busy} onClick={() => { setBusy(true); void landInjection(tier).finally(() => setBusy(false)) }}>
+                <button className="btn ghost block" disabled={isBusy(sku)} onClick={() => { void runFor(sku, () => landInjection(tier)) }}>
                   {t('till.applyHere')}
                 </button>
               )}
@@ -501,7 +509,7 @@ export default function Supporter() {
       {[...shelf.filter(r => !r.done), ...shelf.filter(r => r.done)]
         .map(r => <Fragment key={r.key}>{r.node}</Fragment>)}
 
-      <button className="btn ghost block" style={{ margin: '4px 14px' }} disabled={busy} onClick={() => { void doRestore() }}>
+      <button className="btn ghost block" style={{ margin: '4px 14px' }} disabled={isBusy('restore')} onClick={() => { void doRestore() }}>
         {t('supporter.restore')}
       </button>
       {msgs.restore && <div className="meta sheet-log" style={{ margin: '0 16px' }}>{msgs.restore}</div>}

@@ -184,6 +184,37 @@ export function creditTake(sku: string): boolean {
   return true
 }
 
+/**
+ * A BRIDGE CALL THAT IS NOT ALLOWED TO HANG.
+ *
+ * Every store call below can reject, and every caller handles a rejection. Not
+ * one of them handled a promise that simply NEVER SETTLES - and a wedged
+ * Digital Goods service does exactly that: `owned()` is issued, nothing comes
+ * back, and the `await` waits for the life of the process. The buy handlers
+ * release their buttons in a `finally`, which never runs, so the tap that
+ * started it leaves the button dead for ever. That is the fault the owner hit
+ * on v1.2.0 ("i clicked support the game and it made other options
+ * unclickable"): a shelf killed by silence rather than by an error.
+ *
+ * So the quick calls are raced against a clock and fall back to the same
+ * answer they would give offline. Twelve seconds is far longer than any of
+ * them takes when the store is well (they are local IPC to the Play app) and
+ * far shorter than a person will sit looking at a dead button.
+ *
+ * NOT APPLIED TO buy(). A payment sheet is legitimately slow - a card to type,
+ * a fingerprint to present, a parent to ask - and a game that gave up on one
+ * after twelve seconds would abandon purchases people were in the middle of
+ * making. The sheet is guarded in the UI instead, per row, where a slow
+ * purchase blocks only its own button.
+ */
+const BRIDGE_MS = 12_000
+function quick<T>(job: Promise<T>, fallback: T, ms = BRIDGE_MS): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const clock = new Promise<T>(res => { timer = setTimeout(() => res(fallback), ms) })
+  // the timer is cleared either way, so a probe's event loop never hangs on it
+  return Promise.race([job, clock]).finally(() => clearTimeout(timer))
+}
+
 /** Convert any OPEN receipt for this sku into a banked credit, now.
  *
  *  Credited BY OBSERVATION, not by trust: both bridges' consume(sku) swallow
@@ -197,10 +228,10 @@ export async function bankReceipts(sku: string): Promise<void> {
   const b = bridge()
   if (!b?.consume) return
   try {
-    let held = (await b.owned()).filter(s => s === sku).length
+    let held = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
     for (let guard = 0; held > 0 && guard < 8; guard++) {
-      await b.consume(sku)
-      const now = (await b.owned()).filter(s => s === sku).length
+      await quick(b.consume(sku), undefined)
+      const now = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
       if (now < held) creditAdd(sku, held - now)
       else break // the spend did not land; stop rather than spin
       held = now
@@ -426,7 +457,7 @@ export async function restore(): Promise<boolean> {
   const b = bridge()
   if (!b) return false
   try {
-    const skus = await b.owned()
+    const skus = await quick(b.owned(), [] as string[])
     if (!Array.isArray(skus)) return false
     let changed = false
     for (const sku of skus) {
@@ -484,7 +515,7 @@ export async function buyConsumable(sku: string): Promise<PurchaseOutcome> {
 export async function consume(sku: string): Promise<void> {
   const b = bridge()
   if (!b || typeof b.consume !== 'function') return
-  try { await b.consume(sku) } catch { /* the receipt outlives the hiccup */ }
+  try { await quick(b.consume(sku), undefined) } catch { /* the receipt outlives the hiccup */ }
 }
 
 /** An unconsumed consumable purchase - paid for, not yet landed in a career. */
@@ -492,7 +523,7 @@ export async function pendingConsumables(): Promise<string[]> {
   const b = bridge()
   if (!b) return []
   try {
-    const skus = await b.owned()
+    const skus = await quick(b.owned(), [] as string[])
     return Array.isArray(skus) ? skus.filter(s => CONSUMABLE_SKUS.includes(s)) : []
   } catch {
     return []
@@ -546,7 +577,7 @@ export async function skuPriceFrom(sku: string): Promise<{ price: string | null;
   const b = bridge()
   if (b?.details) {
     try {
-      const p = await b.details(sku)
+      const p = await quick(b.details(sku), null)
       if (p?.price) return { price: p.price, live: true }
     } catch { /* a store that throws has priced nothing */ }
   }
