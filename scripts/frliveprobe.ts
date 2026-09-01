@@ -23,6 +23,7 @@
 //
 // Run: npx vite-node scripts/frliveprobe.ts
 import { newGame } from '../src/game/newgame'
+import { derbyName } from '../src/game/rivalries'
 import { NAMES as SPONSORS } from '../src/game/commercial'
 import { processWeekAndAdvance } from '../src/game/season'
 import { answerPress } from '../src/game/media'
@@ -96,6 +97,10 @@ const properNouns = (g: GameState): Set<string> => {
     for (const w of v.split(/[^A-Za-zÀ-ÿ'-]+/)) if (w.length > 2) out.add(w.toLowerCase())
   }
   for (const c of Object.values(g.clubs)) { add(c.name); add(c.short); add(c.stadium); add(c.city); add(c.coach) }
+  // a derby's name is data too: "The East Midlands Derby" is what that fixture
+  // is called in any language, the way a stadium is
+  const ids = Object.keys(g.clubs)
+  for (const a of ids) for (const b of ids) if (a < b) add(derbyName(a, b))
   for (const p of Object.values(g.players)) add(p.name)
   for (const c of Object.values(g.comps)) { add(c.name); add(c.short) }
   for (const f of g.fixtures) { add(f.venue?.name); add(f.venue?.city) }
@@ -120,10 +125,17 @@ const CLUBS = [
   'northampton', 'ealing', 'bath', 'toulouse', 'cinderford', 'newcastle',
   'leinster', 'perpignan', 'coventry', 'glasgow',
 ]
-for (let i = 0; i < CLUBS.length; i++) {
-  const g = newGame(CLUBS[i], 'Sondeur', 700 + i * 13)
+// PROBE_QUICK (v1.2.2): on a push the Gate plays four careers for four
+// seasons instead of ten for eight - the same reader over a quarter of the
+// prose, which still catches a broken key on the first page it appears on.
+// The full sweep runs in the release deep test.
+const QUICK = !!process.env.PROBE_QUICK
+const CLUBS_RUN = QUICK ? CLUBS.slice(0, 4) : CLUBS
+const SEASONS_RUN = QUICK ? 4 : 8
+for (let i = 0; i < CLUBS_RUN.length; i++) {
+  const g = newGame(CLUBS_RUN[i], 'Sondeur', 700 + i * 13)
   let answers = 0
-  for (let w = 0; w < 44 * 8; w++) {
+  for (let w = 0; w < 44 * SEASONS_RUN; w++) {
     processWeekAndAdvance(g)
     // ANSWER THE PRESS. A career that never opens the press room leaves every
     // reaction and every answer label unrendered, which is exactly the half of

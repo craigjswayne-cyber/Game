@@ -23,7 +23,11 @@ FAILS=0
 # no pass/fail to give: these print numbers or write screenshots
 REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck"
 # minutes each, not seconds: only on request
-SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim"
+# dialweight is here too (v1.2.2): a qualitative balance audit that sims
+# ~290 paired seasons and alone took ten of the Gate's thirty minutes. Its
+# own header calls it "release audit, Pass 2" - it runs in `all` and in the
+# release deep test, not on every push.
+SLOW="soakhealth soakui stresstest deepsave e2edeep releasesim dialweight"
 
 run() {
   local name="$1"; shift
@@ -64,10 +68,18 @@ run cssaudit node scripts/cssaudit.mjs
 
 echo
 echo "=== engine ==="
+# SHARDS (v1.2.2): CI runs the engine probes as two parallel jobs, each taking
+# every other file, so the wall clock halves without a single probe being
+# skipped. Locally SHARDS is unset and one loop runs everything, as before.
+i=0
 for f in scripts/*.ts; do
   n=$(basename "$f" .ts)
   [ "$n" = worldcheck ] && continue                       # a library, not a probe
   case " $REPORTERS $SLOW " in *" $n "*) continue;; esac
+  if [ -n "${SHARDS:-}" ]; then
+    i=$((i + 1))
+    [ $((i % SHARDS)) -ne $(( ${SHARD:-1} % SHARDS )) ] && continue
+  fi
   run "$n" timeout 900 npx vite-node "$f"
 done
 

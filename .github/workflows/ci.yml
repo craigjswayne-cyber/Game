@@ -33,9 +33,17 @@ concurrency:
 
 jobs:
   engine:
-    name: Engine probes
+    name: Engine probes (shard ${{ matrix.shard }} of 2)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # TWO SHARDS (v1.2.2). The engine suite crossed the thirty-minute ceiling
+    # on 1 Sept (run 33558333319, cancelled at 29m37s). dialweight moved to the
+    # release-only list and frliveprobe gained a quick mode; the rest is split
+    # in two so a probe added tomorrow does not put the Gate back on the edge.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,6 +68,10 @@ jobs:
       - name: Real-world marks
         run: node scripts/ipprobe.mjs
       - name: Engine suite
+        env:
+          SHARDS: 2
+          SHARD: ${{ matrix.shard }}
+          PROBE_QUICK: 1
         run: bash scripts/suite.sh fast
 
   browser:

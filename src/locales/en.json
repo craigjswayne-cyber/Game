@@ -4578,7 +4578,9 @@
   "ledgerGoes": "goes",
   "ledgerFirstDerby": "Your first {derby} win, against {opp}. Whatever happens now, the town knows you've done it once.",
   "ledgerUnbeaten": "Ten unbeaten in the league became {n}. Nobody in the building is saying the word out loud.",
-  "ledgerFirstSubj": "One for the ledger"
+  "ledgerFirstAwaySubj": "One for the ledger",
+  "ledgerFirstDerbySubj": "One for the ledger",
+  "ledgerUnbeatenSubj": "One for the ledger"
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
