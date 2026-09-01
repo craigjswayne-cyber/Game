@@ -77,35 +77,36 @@ try {
     await small.close()
   }
 
-  // both languages are offered, each written in its own language
-  ok(await page.locator('.lang-btn').count() === 2, 'two languages are offered')
-  ok(await page.locator('.lang-btn >> text=English').count() === 1, 'English is named English')
-  ok(await page.locator('.lang-btn >> text=Français').count() === 1, 'French is named Français, not French')
+  // five languages in one dropdown (v1.2.0: the owner asked for "a drop down
+  // menu" and five names never fit a phone as buttons), each written in its
+  // own language - somebody hunting for theirs scans for the word they use
+  const options = await page.locator('.lang-select option').allInnerTexts()
+  ok(options.length === 5, `five languages are offered (${options.length}: ${options.join(', ')})`)
+  for (const name of ['English', 'Français', 'Español', 'Italiano', '日本語']) {
+    ok(options.includes(name), `${name} is named in its own language`)
+  }
 
   // a tap target you can hit, despite the small type
   const hit = await page.evaluate(() => {
-    const el = document.querySelector('.lang-btn')
+    const el = document.querySelector('.lang-select')
     const r = el.getBoundingClientRect()
-    const cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2)
-    const owns = (h) => !!h && (el === h || el.contains(h))
-    const reach = (dx, dy) => { let n = 0; for (; n <= 40; n++) { if (!owns(document.elementFromPoint(cx + dx * (n + 1), cy + dy * (n + 1)))) break } return n }
-    return { w: reach(-1, 0) + reach(1, 0) + 1, h: reach(0, -1) + reach(0, 1) + 1 }
+    return { w: Math.round(r.width), h: Math.round(r.height) }
   })
-  say(`  language button hit area: ${hit.w}x${hit.h}`)
-  ok(Math.min(hit.w, hit.h) >= 44, 'the language button is big enough to tap')
+  say(`  language dropdown hit area: ${hit.w}x${hit.h}`)
+  ok(hit.w >= 44 && hit.h >= 24, 'the dropdown is big enough to tap (native pickers open full-screen on a phone)')
 
   // ---- English first, then the switch -------------------------------------
   ok((await page.locator('.tagline').innerText()).includes('SILVERWARE'), 'it opens in English on an en-GB device')
   ok(await page.getAttribute('html', 'lang') === 'en', 'and stamps <html lang="en">')
 
-  await page.click('.lang-btn >> text=Français')
+  await page.selectOption('.lang-select', 'fr')
   await page.waitForTimeout(250)
   const fr = await page.locator('.tagline').innerText()
   say(`  tagline after the switch: "${fr}"`)
   ok(fr.includes('TROPHÉES'), 'the strapline is French straight away, with no navigation needed')
   ok(await page.locator('text=Nouvelle carrière').count() === 1, 'and so is the New Career button')
   ok(await page.getAttribute('html', 'lang') === 'fr', 'the document says lang="fr", so a screen reader changes voice')
-  ok(await page.locator('.lang-btn[aria-pressed="true"] >> text=Français').count() === 1, 'the picker shows which language is on')
+  ok(await page.locator('.lang-select').inputValue() === 'fr', 'the picker shows which language is on')
 
   // ---- the longer language, at the largest type ----------------------------
   //
