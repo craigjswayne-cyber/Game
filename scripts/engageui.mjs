@@ -43,7 +43,7 @@ try {
   ok(await strip.locator('svg, img, .crest, [class*=crest]').count() >= 1, "with the rival's crest on it")
 
   say('\n--- 2. the back page after a match')
-  ok(await page.locator('.backpage-veil').count() === 0, 'no back page before a match has been played')
+  ok(await page.locator('.backpage').count() === 0, 'no back page before a match has been played')
   await page.evaluate(() => {
     const st = window.rugbyStore.getState(); const g = st.game
     const c = g.clubs[g.userClubId]
@@ -53,15 +53,24 @@ try {
     st.touch()
   })
   await page.waitForTimeout(400)
-  ok(await page.locator('.backpage-veil').count() === 1, 'the back page comes up')
+  ok(await page.locator('.backpage').count() === 1, 'the back page comes up')
   const head = await page.locator('.backpage-head').innerText()
   ok(/FROM 17 DOWN/i.test(head) && /27-24/.test(head), `the headline leads with the comeback: "${head}"`)
   ok(!/bp\.|\{/.test(await page.locator('.backpage').innerText()), 'nothing on it is a raw key')
   const box = await page.locator('.backpage').boundingBox()
   ok(box && box.x >= 0 && box.x + box.width <= 413, 'and it fits the phone')
-  await page.locator('.backpage-veil').click({ position: { x: 6, y: 6 } })
+  // IT BLOCKS NOTHING: the bottom nav underneath still takes a tap while
+  // the page is showing - the deep test found the first build covering
+  // Continue and the Annual door after every match
+  const navHit = await page.evaluate(() => {
+    const b = document.querySelector('.bottom-nav button'); const r = b.getBoundingClientRect()
+    const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+    return !!el && (b === el || b.contains(el))
+  })
+  ok(navHit, 'the game underneath is still tappable while the page is up')
+  await page.locator('.backpage .btn.ghost').click()
   await page.waitForTimeout(300)
-  ok(await page.locator('.backpage-veil').count() === 0, 'a tap on the veil folds it away - a treat, not a gate')
+  ok(await page.locator('.backpage').count() === 0, 'its own button folds it away - a treat, not a gate')
 
   say('\n--- 3. the ledger on Legacy')
   await page.evaluate(() => {
