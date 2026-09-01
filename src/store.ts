@@ -1,5 +1,20 @@
 import { create } from 'zustand'
 import { noteScreen } from './game/bugreport'
+
+/** THE SKINS, and the one that means "leave it alone".
+ *  Each non-default value is a class on the app root; the colours themselves
+ *  live in src/ui/tokens.css, which is the only file in the game allowed to
+ *  hold a hex. Adding one here without adding the block there gets an
+ *  unstyled app, so scripts/skinprobe.ts checks the two lists agree. */
+export const SKINS = ['default', 'midnight', 'heritage', 'stealth'] as const
+export type Skin = typeof SKINS[number]
+const SKIN_KEY = 'rm-skin'
+function readSkin(): Skin {
+  try {
+    const v = localStorage.getItem(SKIN_KEY)
+    return (SKINS as readonly string[]).includes(v ?? '') ? v as Skin : 'default'
+  } catch { return 'default' }
+}
 import { getLang, initLang, onLangChange, setLang as applyLang, t, type Lang } from './game/i18n'
 import { hasSupporter } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
@@ -48,7 +63,7 @@ export type Screen =
   // 'feed' was The Rugby Wire, a second news browser over the same array. Merged
   // into 'inbox'; 'wire' stays as the between-weeks bulletin reader, not a screen
   // you navigate to.
-  | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook' | 'bug'
+  | 'medical' | 'report' | 'profile' | 'saves' | 'dreamteam' | 'results' | 'seasonreview' | 'agency' | 'wire' | 'infra' | 'handbook' | 'bug' | 'settings'
   | 'country'
   | 'offers' | 'academy' | 'day' | 'draw' | 'annual'
   // the two the store release added: what this is and who made it, and the one
@@ -89,6 +104,8 @@ interface Store {
   /** unread stories queued for the full-screen Wire flow after Continue */
   wireQueue: number[]
   night: boolean
+  skin: Skin
+  setSkin: (s: Skin) => void
   toggleNight: () => void
   /** 1, 1.15 or 1.3: a zoom on the document root, the game's answer to px-fixed
    *  type ignoring the OS text-size slider (release audit, Part 2.3). */
@@ -379,6 +396,17 @@ export const useStore = create<Store>((set, get) => ({
   // turns them off. The old default was day, which nobody who reported in
   // ever used.
   night: typeof localStorage === 'undefined' || localStorage.getItem('rm-night') !== '0',
+
+  /* THE SKIN (v1.2.1). Read once at boot like the language and the type
+     scale, so the first paint is already in the chosen colours rather than
+     flashing the default and correcting itself. 'default' means the built-in
+     pair - the floodlight toggle's night and day - and is what every save
+     that has never opened Settings gets. */
+  skin: readSkin(),
+  setSkin: (skin: Skin) => {
+    try { localStorage.setItem(SKIN_KEY, skin) } catch { /* private mode */ }
+    set({ skin })
+  },
   toggleNight: () => set(s => {
     const night = !s.night
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }

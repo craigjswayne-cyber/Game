@@ -915,7 +915,11 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border: 1px solid rgba(0,0,0,.15);
 }
 
-.result-w { color: var(--primary); font-weight: 700; }
+/* a win is POSITIVE, not "the accent colour" - see --positive in
+   tokens.css: on a cyan or monochrome skin the accent is not green, and a
+   result column that stops reading green-vs-red at a glance is the one
+   thing the skin brief said must survive every theme */
+.result-w { color: var(--text-positive); font-weight: 700; }
 .result-l { color: var(--danger); font-weight: 700; }
 .result-d { color: var(--text-muted); font-weight: 700; }
 
@@ -1433,7 +1437,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-size: 9.5px; font-weight: 700; line-height: 15px; color: var(--text-primary);
   display: inline-block; text-align: center;
 }
-.form-pip.W { background: var(--primary); color: var(--on-primary); }
+.form-pip.W { background: var(--positive); color: var(--on-positive); }
 .form-pip.D { background: var(--border-strong); }
 .form-pip.L { background: var(--danger); color: var(--on-danger); }
 
@@ -3792,3 +3796,29 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
   text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
 }
 .club-jump:active { color: var(--info); }
+
+/* ---- Settings: the skin picker (v1.2.1) ----
+   A skin card is a button that paints a strip of the palette it is
+   offering. The swatch strip carries the skin's own class, so the
+   colours come from tokens.css under that skin's block rather than from
+   anything typed here - the preview and the theme cannot disagree. */
+.skin-card {
+  display: block;
+  width: calc(100% - 28px);
+  text-align: left;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.skin-card.on {
+  border-color: var(--primary);
+  background: var(--primary-tint);
+}
+.skin-card-top { display: flex; align-items: center; gap: 10px; }
+.skin-swatches { display: flex; gap: 4px; margin-top: 8px; }
+.skin-swatches i {
+  display: block;
+  flex: 1;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}

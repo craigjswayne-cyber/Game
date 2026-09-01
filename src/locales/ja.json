@@ -52,6 +52,7 @@
   "report": "チームレポート",
   "results": "試合結果まとめ",
   "saves": "ゲームの状態",
+  "settings": "設定",
   "squad": "チーム",
   "supporter": "ゲームを応援する",
   "tables": "大会",
@@ -93,7 +94,8 @@
   "teamReport": "チームレポート",
   "trainingStaff": "トレーニングとスタッフ",
   "transfers": "移籍センター",
-  "world": "ワールド"
+  "world": "ワールド",
+  "settings": "設定"
  },
  "wizard": {
   "title": "新しいキャリア",
@@ -5579,5 +5581,31 @@
   "charterConfirm": "キャップを永久に外す",
   "charterRefused": "ここでは無理だ。このキャリアに外すキャップが残っていないか、担当クラブがない。",
   "estateAgain": "施設は前のクラブに残った。このグラウンドは一からだ。"
+ },
+ "settings": {
+  "title": "設定",
+  "sub": "ゲームの見た目の話。プレーの中身は変わらない",
+  "skin": "スキン",
+  "skinLine": "すべての画面を塗り替える。ラグビーの中身は一切変わらない。",
+  "skinDefault": "クラブハウス",
+  "skinDefaultLine": "このゲームが生まれたときの緑と金。ナイター照明は消すこともできる。",
+  "skinMidnight": "タクティカル・ミッドナイト",
+  "skinMidnightLine": "ネイビーとエレクトリックシアン。放送席からの眺め——戦術ボードだけがあって、お茶はない。",
+  "skinHeritage": "ヘリテージ・ゴールド",
+  "skinHeritageLine": "オートミールと深いバーガンディ。いまだに「ラグビーフットボール」と書く日曜紙の趣。",
+  "skinStealth": "OLEDステルス",
+  "skinStealthLine": "完全な黒と、清潔なアクセントがひとつ。画面にあるのは数字だけ。",
+  "floodlights": "ナイター照明",
+  "floodOn": "点灯中——夜のグラウンド。多くの人がこれで遊んでいる。",
+  "floodOff": "消灯中——昼の光。日なたで読むならこちら。",
+  "goDay": "昼の光",
+  "goNight": "ナイター照明",
+  "langLine": "メニューだけでなく、ゲーム全体が変わる。",
+  "textSize": "文字の大きさ",
+  "textSizeLine": "文字は大きく、ゲームはそのまま——どの画面もスマホに収まる。",
+  "textNormal": "標準",
+  "textBigger": "大きめ",
+  "textBiggest": "最大",
+  "fineprint": "これらは端末に保存され、セーブデータには入らない。キャリアを別の端末へ持って行けば、その端末の色で開く。現在の表示言語は{lang}。"
  }
 }

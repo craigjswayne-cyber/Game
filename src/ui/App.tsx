@@ -27,6 +27,7 @@ import Nations from './screens/Nations'
 import History from './screens/History'
 import Legacy from './screens/Legacy'
 import Handbook from './screens/Handbook'
+import Settings from './screens/Settings'
 import BugReport from './screens/BugReport'
 import About from './screens/About'
 import Supporter from './screens/Supporter'
@@ -59,7 +60,7 @@ const TITLES: readonly string[] = [
   'tables', 'transfers', 'training', 'finances', 'club', 'press', 'player',
   'nations', 'country', 'history', 'legacy', 'jobs', 'medical',
   'report', 'profile', 'saves', 'day', 'draw', 'annual',
-  'dreamteam', 'wire', 'infra', 'handbook', 'bug', 'about', 'supporter',
+  'dreamteam', 'wire', 'infra', 'handbook', 'settings', 'bug', 'about', 'supporter',
 ]
 
 const IcoMoon = () => (
@@ -227,7 +228,11 @@ export default function App() {
   useResume()
 
   const cur = nav[nav.length - 1]
-  const appClass = `app${night ? ' night' : ''}`
+  // a skin is a third class on the same root: tokens.css declares the skin
+  // blocks after night and day, so the skin wins the cascade and the
+  // floodlight toggle still does its job underneath
+  const skin = useStore(s => s.skin)
+  const appClass = `app${night ? ' night' : ''}${skin !== 'default' ? ` skin-${skin}` : ''}`
 
   // NO DESK, NO DESK SCREENS (19E). Resigning or getting sacked sets
   // unemployed but leaves the nav trail - and the resume-where feature
@@ -329,6 +334,7 @@ export default function App() {
       case 'history': return <History />
       case 'legacy': return <Legacy />
       case 'handbook': return <Handbook />
+      case 'settings': return <Settings />
       case 'bug': return <BugReport />
       case 'about': return <About />
       case 'supporter': return <Supporter />
@@ -421,6 +427,10 @@ export default function App() {
         { ico: '🕴️', label: t('groups.jobs'), screen: 'jobs', badge: game.vacancies.filter(v => !v.passed && !v.applied).length },
         { ico: '📜', label: t('groups.legacy'), screen: 'legacy' },
         { ico: '📖', label: t('groups.handbook'), screen: 'handbook' },
+        // Settings sits ABOVE Report a Bug (owner, v1.2.1): the page you
+        // want when the game looks wrong comes before the page you want when
+        // it IS wrong.
+        { ico: '⚙️', label: t('groups.settings'), screen: 'settings' },
         { ico: '🐞', label: t('groups.bug'), screen: 'bug' },
         // what this is, who made it, and what it does with your data - the page
         // a store reviewer looks for and the page a player ends up on when they
