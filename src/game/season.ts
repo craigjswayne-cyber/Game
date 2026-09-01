@@ -1,4 +1,4 @@
-import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
+import type { Competition, FacilityId, Fixture, GameState, MatchEvent, Player, Pos, TableRow, TrainingFocus } from './model'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -23,7 +23,7 @@ import { recordTendency } from './tendency'
 import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
-import { derbyName, isDerby } from './rivalries'
+import { derbyName, isDerby, rivalsOf } from './rivalries'
 import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
@@ -1289,6 +1289,141 @@ function matchReport(state: GameState, fx: Fixture) {
     },
     fixtureId: fx.id,
   })
+}
+
+/**
+ * THE BACK PAGE, THE GRUDGE AND THE LEDGER (v1.2.2, pre-launch audit).
+ *
+ * Three things that happen the moment the manager's side has played, each
+ * turning a number that was already true into a sentence somebody would
+ * repeat:
+ *
+ *  - THE BACK PAGE writes one tabloid headline from the match's DEFINING
+ *    event rather than the score. The order is a judgement about what a
+ *    sub-editor would lead with: a comeback beats a red card beats a
+ *    hat-trick beats a derby beats a rout beats a last-minute swing beats a
+ *    debut try, and only a match with none of those gets the plain result.
+ *  - THE GRUDGE checks the league table against the club's nominated rival
+ *    (the first derby pairing rivalries.ts knows) and files a story the
+ *    week you climb above them, or fall below.
+ *  - THE LEDGER records the quiet firsts - the first win at a ground, the
+ *    first derby win, ten unbeaten - once each, as a story and as an entry
+ *    on Legacy. mgrMilestones already salutes the round numbers on the
+ *    manager's own record, so those are not repeated here.
+ *
+ * None of it moves a stat. It is there to be noticed.
+ */
+export function afterClubMatch(state: GameState, fx: Fixture) {
+  const club = state.clubs[state.userClubId]
+  if (!club || fx.compId === 'fr') return
+  const isHome = fx.homeId === club.id
+  const oppId = isHome ? fx.awayId : fx.homeId
+  const opp = state.clubs[oppId]
+  const us = isHome ? fx.homeScore : fx.awayScore
+  const them = isHome ? fx.awayScore : fx.homeScore
+  const won = us > them, lost = us < them
+  const ev = fx.events ?? []
+  const pts = (e: MatchEvent) => e.type === 'TRY' ? 5 : e.type === 'CON' ? 2 : (e.type === 'PEN' || e.type === 'DG') ? 3 : 0
+  const oppShort = teamShort(state, oppId)
+  const usShort = teamShort(state, club.id)
+
+  // ---- the back page ----
+  {
+    const htAt = ev.findIndex(e => e.type === 'HT')
+    const first = htAt >= 0 ? ev.slice(0, htAt) : ev.filter(e => e.min <= 40)
+    const htUs = first.filter(e => e.teamId === club.id).reduce((a, e) => a + pts(e), 0)
+    const htThem = first.filter(e => e.teamId === oppId).reduce((a, e) => a + pts(e), 0)
+    const reds = ev.filter(e => e.type === 'RC')
+    const tryCount = new Map<number, { n: number; name: string }>()
+    for (const e of ev) if (e.type === 'TRY' && e.playerId != null) {
+      const cur = tryCount.get(e.playerId) ?? { n: 0, name: e.playerName ?? '' }
+      cur.n++; tryCount.set(e.playerId, cur)
+    }
+    const hat = [...tryCount.entries()].find(([, v]) => v.n >= 3)
+    const late = ev.filter(e => e.min >= 78 && pts(e) > 0).sort((a, b) => b.min - a.min)[0]
+    const debut = ev.find(e => e.type === 'TRY' && e.playerId != null && e.teamId === club.id && state.players[e.playerId]?.stats.apps === 1)
+    const derby = isDerby(fx.homeId, fx.awayId)
+    const margin = Math.abs(us - them)
+    const base = { us: usShort, opp: oppShort, s1: us, s2: them }
+    let hk = won ? 'bp.headWin' : lost ? 'bp.headLoss' : 'bp.headDraw'
+    let hv: Record<string, string | number> = base
+    let sk = won ? 'bp.subWin' : lost ? 'bp.subLoss' : 'bp.subDraw'
+    let sv: Record<string, string | number> = { ...base, gaffer: opp?.coach ?? oppShort }
+    if (won && htThem - htUs >= 10) { hk = 'bp.headComeback'; hv = { ...base, n: htThem - htUs }; sk = 'bp.subComeback' }
+    else if (lost && htUs - htThem >= 10) { hk = 'bp.headCollapse'; hv = { ...base, n: htUs - htThem }; sk = 'bp.subCollapse' }
+    else if (reds.length) {
+      const r = reds[0]; const mine = r.teamId === club.id
+      hk = mine ? 'bp.headRedOurs' : 'bp.headRedTheirs'; hv = { ...base, player: r.playerName ?? '', min: r.min }
+      sk = won ? 'bp.subRedWon' : 'bp.subRedLost'
+    }
+    else if (hat) { hk = 'bp.headHatTrick'; hv = { ...base, player: hat[1].name, n: hat[1].n }; sk = won ? 'bp.subHatWon' : 'bp.subHatLost' }
+    else if (derby) { hk = won ? 'bp.headDerbyWon' : lost ? 'bp.headDerbyLost' : 'bp.headDerbyDraw'; sk = won ? 'bp.subDerbyWon' : lost ? 'bp.subDerbyLost' : 'bp.subDraw' }
+    else if (margin >= 25) { hk = won ? 'bp.headRout' : 'bp.headRouted'; hv = { ...base, n: margin }; sk = won ? 'bp.subRout' : 'bp.subRouted' }
+    else if (late && ((late.teamId === club.id && won) || (late.teamId === oppId && lost))) { hk = won ? 'bp.headLateWin' : 'bp.headLateLoss'; hv = { ...base, player: late.playerName ?? '', min: late.min }; sk = won ? 'bp.subLateWin' : 'bp.subLateLoss' }
+    else if (debut) { hk = 'bp.headDebut'; hv = { ...base, player: debut.playerName ?? '' }; sk = won ? 'bp.subDebutWon' : 'bp.subDebutLost' }
+    state.backPage = { fixtureId: fx.id, compId: fx.compId, week: fx.week, hk, hv, sk, sv }
+  }
+
+  // ---- the grudge ----
+  {
+    const rivalId = rivalsOf(club.id)[0]
+    const table = state.comps[club.leagueId]?.table
+    if (rivalId && table && state.clubs[rivalId]?.leagueId === club.leagueId) {
+      const pos = (id: string) => {
+        const rows = [...table].sort((a, b) => b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf)
+        return rows.findIndex(r => r.teamId === id) + 1
+      }
+      const mine = pos(club.id), theirs = pos(rivalId)
+      if (mine > 0 && theirs > 0) {
+        const above = mine < theirs
+        if (state.grudgeAbove != null && above !== state.grudgeAbove && state.week > 3) {
+          const k = above ? 'news.grudgeAbove' : 'news.grudgeBelow'
+          const v = { rival: teamShort(state, rivalId), mine, theirs }
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'gossip', read: false,
+            subject: tIn('en', `${k}Subj`, v), body: tIn('en', k, v), k, v,
+          })
+        }
+        state.grudgeAbove = above
+      }
+    }
+  }
+
+  // ---- the ledger ----
+  {
+    const ledger = (state.ledger ??= [])
+    const have = new Set(ledger.map(e => `${e.k}|${e.v.at ?? ''}`))
+    const add = (k: string, v: Record<string, string | number>) => {
+      if (have.has(`${k}|${v.at ?? ''}`)) return
+      ledger.push({ k, v, season: state.season, week: state.week })
+      state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
+        subject: tIn('en', 'news.ledgerFirstSubj', v), body: tIn('en', k, v), k, v,
+      })
+    }
+    // first win at this ground - counted across the whole career in the save
+    if (won && !isHome) {
+      const priorAny = state.fixtures.some(f => f.played && f.id !== fx.id && f.awayId === club.id && f.homeId === oppId && f.compId !== 'fr' && f.awayScore > f.homeScore)
+      if (!priorAny) {
+        const tries = state.fixtures.filter(f => f.played && f.awayId === club.id && f.homeId === oppId && f.compId !== 'fr').length
+        add('news.ledgerFirstAway', { at: oppId, ground: opp?.stadium ?? oppShort, opp: oppShort, tries, tries_k: tries === 1 ? 'news.ledgerFirstGo' : 'news.ledgerGoes' })
+      }
+    }
+    // first derby win
+    if (won && isDerby(fx.homeId, fx.awayId) && !ledger.some(e => e.k === 'news.ledgerFirstDerby')) {
+      add('news.ledgerFirstDerby', { at: '', derby: derbyName(fx.homeId, fx.awayId) ?? '', opp: oppShort })
+    }
+    // ten, twenty unbeaten in the league
+    const res = state.fixtures.filter(f => f.played && f.compId === club.leagueId && (f.homeId === club.id || f.awayId === club.id)).sort((a, b) => b.week - a.week || b.id - a.id)
+    let run = 0
+    for (const f of res) {
+      const a = f.homeId === club.id ? f.homeScore : f.awayScore
+      const b = f.homeId === club.id ? f.awayScore : f.homeScore
+      if (a >= b) run++; else break
+    }
+    if (run === 10) add('news.ledgerUnbeaten', { at: '10', n: 10 })
+    if (run === 20) add('news.ledgerUnbeaten', { at: '20', n: 20 })
+  }
 }
 
 function milestones(state: GameState, rng: Rng) {
@@ -2689,6 +2824,7 @@ export function processWeekAndAdvance(state: GameState) {
     } else if (isClubMatch) {
       boardReaction(state, userFx)
       matchReport(state, userFx)
+      afterClubMatch(state, userFx)
       milestones(state, rng)
       leagueRoundUp(state)
       // you learn a lot about the men you just faced
@@ -2738,6 +2874,7 @@ export function processWeekAndAdvance(state: GameState) {
     const cfx = simmedUserFx
     boardReaction(state, cfx, true)
     matchReport(state, cfx)
+    afterClubMatch(state, cfx)
     milestones(state, rng)
     leagueRoundUp(state)
     const us = cfx.homeId === state.userClubId ? cfx.homeScore : cfx.awayScore
