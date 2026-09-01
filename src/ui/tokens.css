@@ -135,11 +135,229 @@
   --on-info: #ffffff;
 }
 
+/* ==================================================================
+   SKINS (v1.2.1, owner: "Skins should be available so you customise the
+   game colours"). Three of them, chosen in Settings, each a complete
+   swap of the same role tokens the two built-in modes use - so a skin
+   cannot reach a component the system does not already own, and rule 1
+   (no hex outside this file) still holds.
+
+   THEY COME AFTER day AND night ON PURPOSE. `.app.night` and
+   `.app.day` carry the same specificity as `.app.skin-*`, so the later
+   block wins and a skin overrides whichever mode is underneath it. The
+   floodlight toggle keeps working; a skin simply outranks it.
+
+   WHERE THE BRIEF AND THE GAME DISAGREED, THE GAME WON - AND IT IS
+   WRITTEN DOWN. Three of the supplied values could not ship as given:
+
+     - Heritage's #8C1D2A is 1.73:1 on its own card, so it cannot be
+       text. It is a SURFACE colour and is used as one: it is the header
+       gradient, carrying #F4F1EA at 8.01:1. The interactive accent is
+       its text-safe twin, #E06D7B.
+     - Stealth's #7C7C80 secondary text measured 4.09:1 on #1C1C1E,
+       under the 4.5 AA floor the brief asked for. Lifted to #9A9AA0.
+     - Stealth named ONE highlight (#E63946) for a game that needs two
+       roles: value/attention and loss/risk. Painted with one colour a
+       price and a defeat look identical. The red stays exactly as
+       given for alerts and losses (as --danger-fill, and #EC5C66 as
+       its text-safe twin); a low-saturation amber carries value.
+
+   Every pair is asserted by scripts/skinprobe.ts, which fails the build
+   rather than trusting this comment.
+   ================================================================== */
+
+/* Each block answers to TWO selectors. The first is the app root, where a
+   skin repaints the game. The second is the swatch strip in Settings, which
+   has to render a palette it is only OFFERING - a preview scoped to
+   `.app.skin-x` would inherit whatever the app is wearing and paint all four
+   cards identically, which is exactly what the first build of that page did.
+   Both selectors carry the same specificity as `.app.night`, and both sit
+   after it, so either wins where it applies. */
+
+/* The built-in palette, for the preview strip ONLY. The Clubhouse card has
+   no skin class to wear - it IS the absence of one - so without this its
+   swatches inherit whatever the app is currently painted in and offer
+   burgundy as "the green and gold the game was built in". These six are
+   night's own values, and the strip shows nothing else. */
+.skin-swatches.skin-default {
+  --canvas: #1a201e;
+  --surface-1: #242b29;
+  --primary: #34c06f;
+  --positive: #34c06f;
+  --danger: #ef6c63;
+  --gold: #e9be68;
+}
+
+/* ---------------- Tactical Midnight ----------------
+   Navy and electric cyan. Cyan is the ACTIONABLE colour here; green is
+   kept for won/positive so the win-loss column reads at a glance, which
+   is the one thing the brief said must survive every skin. */
+.app.skin-midnight,
+.skin-swatches.skin-midnight {
+  color-scheme: dark;
+
+  --canvas: #0B1320;
+  --surface-1: #162032;
+  --surface-2: #1E2A40;
+  --surface-3: #26344E;
+  --border: #253148;
+  --border-strong: #3A4A6B;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #8E9AAF;
+  --text-muted: #7F8CA3;
+
+  --primary: #00C2FF;
+  --primary-hover: #5AD5FF;
+  --primary-pressed: #0092C4;
+  --primary-tint: #0A2438;
+  --on-primary: #04121F;
+
+  --gold: #FFB800;
+  --gold-fill: #FFB800;
+  --gold-tint: #33280A;
+  --on-gold: #1A1200;
+
+  --danger: #FF7A6E;
+  --danger-fill: #FF9D8F;
+  --danger-tint: #3A1E1C;
+
+  --info: #A78BFA;
+
+  --hero-gradient: linear-gradient(135deg, #0E2036, #12578C);
+
+  --on-hero: #FFFFFF;
+  --on-hero-soft: #B9C9DF;
+  --scrim: rgba(2, 7, 15, 0.7);
+  /* the pitch stays a pitch: skinning the interface does not repaint grass */
+  --pitch-a: #16403A;
+  --pitch-b: #133A34;
+  --on-danger: #2B0E0B;
+  --on-info: #10061F;
+
+  --positive: #3DDC84;
+  --on-positive: #04140B;
+}
+
+/* ---------------- Heritage Gold ----------------
+   Oatmeal on near-black, deep burgundy in the header, brass for value.
+   Editorial rather than technical - the broadsheet to Midnight's
+   broadcast graphics. */
+.app.skin-heritage,
+.skin-swatches.skin-heritage {
+  color-scheme: dark;
+
+  --canvas: #18181A;
+  --surface-1: #232326;
+  --surface-2: #2C2C30;
+  --surface-3: #35353A;
+  --border: #34343A;
+  --border-strong: #4C4C55;
+
+  --text-primary: #F4F1EA;
+  --text-secondary: #9A948D;
+  --text-muted: #948E86;
+
+  /* the text-safe twin of the brief's burgundy - see the note above */
+  --primary: #E06D7B;
+  --primary-hover: #EA8391;
+  --primary-pressed: #8C1D2A;
+  --primary-tint: #2E1C20;
+  --on-primary: #1B0A0D;
+
+  --gold: #D8A24A;
+  --gold-fill: #D8A24A;
+  --gold-tint: #2F2617;
+  --on-gold: #1A1206;
+
+  --danger: #EF6C63;
+  --danger-fill: #FF9D8F;
+  --danger-tint: #33201E;
+
+  --info: #7FB0D8;
+
+  /* the brief's burgundy, in the role it can actually hold */
+  --hero-gradient: linear-gradient(135deg, #5E1220, #8C1D2A);
+
+  --on-hero: #F4F1EA;
+  --on-hero-soft: #E7CBCF;
+  --scrim: rgba(10, 10, 11, 0.68);
+  --pitch-a: #2A4A38;
+  --pitch-b: #26432F;
+  --on-danger: #2B0E0B;
+  --on-info: #0B1620;
+
+  --positive: #4ED88C;
+  --on-positive: #06170E;
+}
+
+/* ---------------- OLED Stealth ----------------
+   True black, so the panel simply does not light those pixels, and one
+   near-white accent. The only chromatic notes are the ones that carry
+   meaning: won, lost, and worth money. */
+.app.skin-stealth,
+.skin-swatches.skin-stealth {
+  color-scheme: dark;
+
+  --canvas: #000000;
+  --surface-1: #1C1C1E;
+  --surface-2: #262629;
+  --surface-3: #303034;
+  --border: #2E2E32;
+  --border-strong: #48484E;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #9A9AA0;
+  --text-muted: #8A8A8E;
+
+  --primary: #E5E5EA;
+  --primary-hover: #F2F2F5;
+  --primary-pressed: #C7C7CC;
+  --primary-tint: #1F1F22;
+  --on-primary: #0A0A0B;
+
+  /* value, kept off the red so a price and a defeat cannot be confused */
+  --gold: #C8A05A;
+  --gold-fill: #C8A05A;
+  --gold-tint: #241C0E;
+  --on-gold: #170F03;
+
+  /* the brief's #E63946 kept exactly, as the fill; text uses its twin */
+  --danger: #EC5C66;
+  --danger-fill: #E63946;
+  --danger-tint: #2E1417;
+
+  --info: #8FB8D8;
+
+  --hero-gradient: linear-gradient(135deg, #0A0A0B, #26262A);
+
+  --on-hero: #FFFFFF;
+  --on-hero-soft: #B9B9BF;
+  --scrim: rgba(0, 0, 0, 0.75);
+  --pitch-a: #1E3A2C;
+  --pitch-b: #1A3327;
+  --on-danger: #2B0E0B;
+  --on-info: #0B1620;
+
+  --positive: #4ED88C;
+  --on-positive: #06170E;
+}
+
 /* ---------------- semantic aliases ----------------
    Derived, never redefined per mode: they follow the mode through the
    tokens they point at. Components say what they MEAN. */
 :root, .app {
-  --text-positive: var(--primary);
+  /* WON AND LOST ARE THEIR OWN COLOURS (v1.2.1).
+     These used to be plain aliases of --primary and --danger, which was
+     true while every theme's primary WAS the positive green. A skin whose
+     accent is cyan or near-white breaks that: the form guide would draw a
+     win in the same colour as a button. So a skin may declare --positive
+     (and --on-positive for the pip fill) and the win-loss column keeps
+     reading green-vs-red whatever the interface is painted in. Themes
+     that do not declare it fall back to --primary, exactly as before. */
+  --positive: var(--primary);
+  --on-positive: var(--on-primary);
+  --text-positive: var(--positive);
   --text-negative: var(--danger);
   --text-rating: var(--gold);
   --row-selected-bg: var(--primary-tint);
