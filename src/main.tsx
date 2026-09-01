@@ -7,7 +7,7 @@ import { attachPlayBilling } from './game/playbilling'
 import { attachStoreKit } from './game/storekit'
 import { restore } from './game/monetise'
 import { useStore } from './store'
-import { t } from './game/i18n'
+import { ensureLang, getLang, t } from './game/i18n'
 import './ui/tokens.css'
 import './ui/theme.css'
 
@@ -40,13 +40,19 @@ void attachPlayBilling()
   .then(changed => { if (changed) useStore.getState().claimSupporter() })
   .catch(() => { /* no store, no bridge, nothing to restore */ })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </React.StrictMode>,
-)
+// Dictionaries are lazy chunks (v1.2.0): the chosen language is fetched
+// before the first paint so a French phone never flashes English at boot.
+// ensureLang fails soft - offline with a cold cache, the game opens in
+// English rather than not at all, and the switch lands when the network does.
+void ensureLang(getLang()).finally(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>,
+  )
+})
 
 // PWA service worker. New builds take control mid-session (skipWaiting +
 // claim), so a long play session can run stale JS without knowing - offer a
