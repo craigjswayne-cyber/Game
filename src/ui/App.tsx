@@ -214,6 +214,42 @@ function Sacked() {
   )
 }
 
+/**
+ * THE BACK PAGE (v1.2.2). One tabloid back page after every match the
+ * manager's side played: a headline written from the match's defining event
+ * rather than its score, one line underneath in the loser's voice, and a
+ * button into the full report. It is the thing you would screenshot for a
+ * mate, and it means a match ends on a sentence rather than a table.
+ *
+ * Unlike the sack, this IS dismissable on the veil - it is a treat, not a
+ * gate, and a player racing through a season must be able to fold it away in
+ * one tap. The keys travel with values, so the page reads in the manager's
+ * own language whatever build wrote it.
+ */
+function BackPage() {
+  const game = useStore(s => s.game)
+  const go = useStore(s => s.go)
+  useStore(s => s.tick)
+  if (!game?.backPage || game.sacked) return null
+  const bp = game.backPage
+  const fold = () => { game.backPage = null; useStore.getState().touch() }
+  return (
+    <div className="backpage-veil" onClick={fold}>
+      <div className="backpage" onClick={e => e.stopPropagation()}>
+        <div className="backpage-strap">{t('bp.strap')}</div>
+        <h1 className="backpage-head">{t(bp.hk, bp.hv)}</h1>
+        <div className="backpage-sub">{t(bp.sk, bp.sv)}</div>
+        <div className="btn-row" style={{ marginTop: 14 }}>
+          <button className="btn ghost" onClick={fold}>{t('bp.close')}</button>
+          <button className="btn gold" style={{ flex: 1.3 }} onClick={() => { fold(); go('results', `${bp.compId}:${bp.week}`) }}>
+            {t('bp.read')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Everything that floats above whatever screen you happen to be on. One
  *  component so the five return paths through App cannot disagree about it. */
 function Overlays() {
@@ -222,6 +258,7 @@ function Overlays() {
       <SaveWarning />
       <Tutorial />
       <Celebration />
+      <BackPage />
       {/* last, so it sits over the lot: nothing outranks losing your job */}
       <Sacked />
     </>

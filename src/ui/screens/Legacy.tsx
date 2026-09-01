@@ -139,6 +139,19 @@ export default function Legacy() {
         )
       })()}
 
+      {/* THE GAFFER'S LEDGER (v1.2.2): the firsts, newest first. Written by
+          afterClubMatch in season.ts; this is only the reading of it. */}
+      <SectionTitle sub={t('legacy.lgFirstsSub')}>{t('legacy.lgFirsts')}</SectionTitle>
+      <div className="card">
+        {(game.ledger ?? []).length === 0
+          ? <div className="meta muted">{t('legacy.lgFirstsNone')}</div>
+          : [...(game.ledger ?? [])].reverse().slice(0, 12).map((e, i) => (
+            <div key={i} className="dash-line">
+              <span className="dl-t">{t(e.k, e.v)}</span>
+            </div>
+          ))}
+      </div>
+
       <SectionTitle>{t('legacy.lgCareerRecord')}</SectionTitle>
       <div className="chips">
         <span className="chip">{t('profile.matches')} <b>{m.m}</b></span>

@@ -779,6 +779,17 @@ export interface PressOption {
    *  war chest). Computed when the question is built so the label can print
    *  the exact figure; applied once in answerPress. */
   fund?: number
+  /** FAN MOOD delta (v1.2.2). The terraces hear what you say too: a manager
+   *  who blames the referee is loved on the terraces and disliked upstairs,
+   *  and until now only upstairs had a number. Same scale as board (a few
+   *  tenths), applied as fanMood += fans * 5 in answerPress. */
+  fans?: number
+  /** PICK YOUR TEAM IN A PRESS CONFERENCE (v1.2.2). "He starts next week"
+   *  is a promise the game keeps for you: the named player is moved into the
+   *  starting XV there and then, displacing the weakest man in his position.
+   *  Saying it and then quietly leaving him on the bench is exactly the kind
+   *  of thing a squad remembers, so the game does not let you. */
+  lock?: boolean
 }
 
 /** A subject a player can raise behind the office door. The office keeps a
@@ -1303,6 +1314,35 @@ export interface GameState {
     sk?: string
     sv?: Record<string, string | number>
   } | null
+  /** THE BACK PAGE (v1.2.2). After every match the manager's side played,
+   *  one tabloid back page: a headline written from the match's DEFINING
+   *  event - the comeback, the red card, the kid's debut try - rather than
+   *  from the score, and one line underneath in the voice of whoever lost.
+   *  It is the thing you would screenshot for a mate, and it means every
+   *  match ends on a sentence rather than a table. Cleared on tap; the
+   *  fixture id opens the full report. Keys plus values, never rendered
+   *  text, so a French phone reads a French back page. */
+  backPage?: {
+    fixtureId: number
+    compId: string
+    week: number
+    hk: string
+    hv: Record<string, string | number>
+    sk: string
+    sv: Record<string, string | number>
+  } | null
+  /** THE GAFFER'S LEDGER (v1.2.2). The quiet firsts of a career: the first
+   *  win at a ground, the first derby win, ten unbeaten. Each is recorded
+   *  once (the key is the dedupe), filed as a story when it happens, and
+   *  shown on Legacy so the career reads as a run of firsts rather than a
+   *  total. Nothing here has a number attached to how much it matters,
+   *  because it does not - it is there to be noticed. */
+  ledger?: { k: string; v: Record<string, string | number>; season: number; week: number }[]
+  /** THE GRUDGE (v1.2.2). Whether this club sat above its nominated rival
+   *  in the league table the last time it was checked, so overtaking them
+   *  - and being overtaken - is a moment rather than a silent reordering.
+   *  Undefined until the first check. */
+  grudgeAbove?: boolean
   /** THE SACK, AS AN EVENT RATHER THAN A LETTER (v1.2.1).
    *
    *  Losing your job used to be one item in an inbox of eleven, between a

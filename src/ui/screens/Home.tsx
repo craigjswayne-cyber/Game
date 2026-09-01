@@ -166,6 +166,38 @@ export default function Home() {
           </div>
         )
       })()}
+      {/* THE GRUDGE (v1.2.2). The nominated rival's result under yours every
+          week, with a jab that scales with the gap between you. It gives an
+          ordinary Saturday a second scoreline that matters. rivalsOf knows the
+          derby pairings; the first one is the grudge. Silent for a club with
+          no rival, or one in a different division. */}
+      {(() => {
+        const rivalId = rivalsOf(club.id)[0]
+        const rival = rivalId ? game.clubs[rivalId] : null
+        if (!rival || rival.leagueId !== club.leagueId) return null
+        const table = game.comps[club.leagueId]?.table ?? []
+        const rows = [...table].sort((a, b) => b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa))
+        const mine = rows.find(r => r.teamId === club.id), theirs = rows.find(r => r.teamId === rivalId)
+        if (!mine || !theirs) return null
+        const gap = mine.pts - theirs.pts
+        const jab = gap === 0 ? t('home.grudgeJabLevel')
+          : gap >= 6 ? t('home.grudgeJabClear', { n: gap })
+          : gap <= -6 ? t('home.grudgeJabFar', { n: -gap })
+          : gap > 0 ? t('home.grudgeJabAbove') : t('home.grudgeJabBelow')
+        const last = game.fixtures.filter(f => f.played && f.week === game.week - 1 && f.compId !== 'fr' && (f.homeId === rivalId || f.awayId === rivalId))[0]
+        let k = 'home.grudgeIdle'
+        if (last) {
+          const rs = last.homeId === rivalId ? last.homeScore : last.awayScore
+          const os = last.homeId === rivalId ? last.awayScore : last.homeScore
+          k = rs > os ? 'home.grudgeWon' : rs < os ? 'home.grudgeLost' : 'home.grudgeDrew'
+        }
+        return (
+          <div className="card grudge" onClick={() => go('tables')} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <CrestT g={game} teamId={rivalId} size={22} />
+            <div className="meta" style={{ flex: 1, minWidth: 0 }}>{t(k, { rival: rival.short, jab })}</div>
+          </div>
+        )
+      })()}
       {/* THE CARD SAYS "TAP TO SET YOUR TEAM", SO IT OPENS THE TEAM SHEET.
           It opened Tactics - the roles pitch, which is HOW the side plays, not
           WHO plays - so the one instruction on the home screen sent you to the

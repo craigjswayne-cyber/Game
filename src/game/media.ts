@@ -313,6 +313,191 @@ export function generatePress(state: GameState, rng: Rng) {
     }
   }
 
+  // ================================================================
+  // TEN MORE ROOMS (v1.2.2, pre-launch audit: "the current press system
+  // feels repetitive"). Each fires on a real state of the world, once per
+  // season per subject, and every answer moves something - a player, the
+  // board, the terraces (fans, new) or the team sheet itself (lock, new).
+  // They join `candidates` like everything else, so the spam gate and the
+  // one-question-per-week draw still apply to them.
+  // ================================================================
+  const askedThisSeason = (stem: string, pid?: number) =>
+    state.press.some(q => q.season === state.season && (q.qk ?? '').startsWith(stem) && (pid == null || q.playerId === pid))
+  const lastUser = state.fixtures
+    .filter(f => f.played && f.week === state.week - 1 && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
+    .sort((a, b) => b.week - a.week)[0]
+  const ours = (f: { homeId: string; homeScore: number; awayScore: number }) =>
+    f.homeId === club.id ? [f.homeScore, f.awayScore] : [f.awayScore, f.homeScore]
+  const xvIds = club.tactic.lineup.slice(0, 15).filter((x): x is number => x != null)
+
+  // 1. THE REFEREE - lost by five or fewer, two late penalties against
+  if (lastUser?.events && !askedThisSeason('press.refereeQ')) {
+    const [us, them] = ours(lastUser)
+    const oppId = lastUser.homeId === club.id ? lastUser.awayId : lastUser.homeId
+    const late = lastUser.events.filter(e => e.type === 'PEN' && e.teamId === oppId && e.min >= 70).length
+    if (us < them && them - us <= 5 && late >= 2) {
+      candidates.push(mk(state,
+        { k: voice(31, ['press.refereeQ1', 'press.refereeQ2']), v: { n: late } },
+        undefined, [
+          opt({ morale: 0.5, board: -0.4, fans: 0.3, lk: 'press.refereeClips', rk: 'press.refereeClipsR' }),
+          opt({ morale: -0.2, board: 0.4, lk: 'press.refereeOurs', rk: 'press.refereeOursR' }),
+          opt({ morale: 0, board: 0, lk: 'press.refereeUnseen', rk: 'press.refereeUnseenR' }),
+        ], rng))
+    }
+  }
+
+  // 2. THE CONTRACT STAND-OFF - a starter in his last season, past the winter
+  if (state.week >= 20) {
+    const p = squad.find(q => q.contractEnds === state.season && xvIds.includes(q.id) && !q.onLoan && !askedThisSeason('press.standoffQ', q.id))
+    if (p) {
+      candidates.push(mk(state,
+        { k: voice(32 + p.id, ['press.standoffQ1', 'press.standoffQ2']), v: { player: p.name } },
+        p.id, [
+          opt({ morale: 0.4, board: 0.1, lk: 'press.standoffLoved', rk: 'press.standoffLovedR', rv: { player: p.name } }),
+          opt({ morale: -0.5, board: 0.3, unsettle: true, lk: 'press.standoffBigger', rk: 'press.standoffBiggerR' }),
+          opt({ morale: 0, board: 0, lk: 'press.standoffBetween', rk: 'press.standoffBetweenR' }),
+        ], rng))
+    }
+  }
+
+  // 3. THE WEATHER - an away trip in the deep of winter
+  {
+    const away = state.fixtures.find(f => !f.played && f.week === state.week && f.awayId === club.id && f.compId !== 'fr')
+    if (away && state.week >= 14 && state.week <= 28 && !askedThisSeason('press.weatherQ')) {
+      const kicker = club.tactic.kickers?.[0] != null ? state.players[club.tactic.kickers[0]!] : null
+      candidates.push(mk(state,
+        { k: voice(33, ['press.weatherQ1', 'press.weatherQ2']), v: { opp: state.clubs[away.homeId]?.short ?? '' } },
+        kicker?.id, [
+          opt({ morale: 0.3, board: 0.1, lk: 'press.weatherKick', rk: 'press.weatherKickR' }),
+          opt({ morale: 0.1, board: 0.2, lk: 'press.weatherSame', rk: 'press.weatherSameR' }),
+          opt({ morale: 0, board: 0, fans: 0.2, lk: 'press.weatherCoat', rk: 'press.weatherCoatR' }),
+        ], rng))
+    }
+  }
+
+  // 4. THE OLD BOY - one of yours faces the club he left within two seasons
+  {
+    const fx = state.fixtures.find(f => !f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id) && f.compId !== 'fr')
+    const oppId = fx ? (fx.homeId === club.id ? fx.awayId : fx.homeId) : null
+    const p = oppId ? squad.find(q => xvIds.includes(q.id) &&
+      q.career.some(c => c.clubId === oppId && c.season >= state.season - 2) &&
+      !askedThisSeason('press.oldboyQ', q.id)) : null
+    if (p && oppId) {
+      candidates.push(mk(state,
+        { k: voice(34 + p.id, ['press.oldboyQ1', 'press.oldboyQ2']), v: { player: p.name, opp: state.clubs[oppId]?.short ?? '' } },
+        p.id, [
+          opt({ morale: 0.6, board: 0, fans: 0.2, lk: 'press.oldboyCelebrate', rk: 'press.oldboyCelebrateR' }),
+          opt({ morale: -0.3, board: 0.2, lk: 'press.oldboyBehave', rk: 'press.oldboyBehaveR' }),
+          opt({ morale: 0, board: 0, lk: 'press.oldboyFriday', rk: 'press.oldboyFridayR' }),
+        ], rng))
+    }
+  }
+
+  // 5. THE ACADEMY KID - nineteen or under, first start, this week
+  {
+    const kid = squad.find(q => q.age <= 19 && xvIds.includes(q.id) && q.stats.starts === 0 && !q.career.some(c => c.apps > 0) && !askedThisSeason('press.kidstartQ', q.id))
+    if (kid) {
+      const senior = squad.filter(q => q.pos === kid.pos && q.id !== kid.id && !xvIds.includes(q.id)).sort((a, b) => b.ca - a.ca)[0]
+      candidates.push(mk(state,
+        { k: voice(35 + kid.id, ['press.kidstartQ1', 'press.kidstartQ2']), v: { player: kid.name, pos_k: posNounKey(kid) } },
+        kid.id, [
+          opt({ morale: 0.7, board: 0, lk: 'press.kidstartReady', rk: 'press.kidstartReadyR', rv: { senior: senior?.name ?? '' } }),
+          opt({ morale: -0.4, board: 0.1, lk: 'press.kidstartInjuries', rk: 'press.kidstartInjuriesR' }),
+          opt({ morale: 0.3, board: 0, lk: 'press.kidstartFirst', rk: 'press.kidstartFirstR' }),
+        ], rng))
+    }
+  }
+
+  // 6. THE EMPTY SEATS - three home games under sixty per cent
+  {
+    const recent = state.fixtures.filter(f => f.played && f.homeId === club.id && f.compId !== 'fr' && f.att != null)
+      .sort((a, b) => b.week - a.week).slice(0, 3)
+    if (recent.length === 3 && recent.every(f => (f.att ?? 0) < club.capacity * 0.6) && !askedThisSeason('press.seatsQ')) {
+      const empty = club.capacity - (recent[0].att ?? 0)
+      candidates.push(mk(state,
+        { k: voice(36, ['press.seatsQ1', 'press.seatsQ2']), v: { n: Math.round(empty / 100) * 100 } },
+        undefined, [
+          opt({ morale: 0, board: -0.2, fans: 0.5, lk: 'press.seatsListening', rk: 'press.seatsListeningR' }),
+          opt({ morale: 0, board: -0.4, fans: -0.2, lk: 'press.seatsPrices', rk: 'press.seatsPricesR' }),
+          opt({ morale: 0.1, board: 0.1, fans: 0.1, lk: 'press.seatsWin', rk: 'press.seatsWinR' }),
+        ], rng))
+    }
+  }
+
+  // 7. THE LEAK - a low dressing room talks; a benched starter's name is out
+  {
+    const avg = squad.length ? squad.reduce((a, q) => a + q.morale, 0) / squad.length : 10
+    const benched = club.tactic.lineup.slice(15).filter((x): x is number => x != null).map(id => state.players[id])
+      .find(q => q && q.stats.starts >= 3 && !askedThisSeason('press.leakQ', q.id))
+    if (avg < 5 && benched && rng() < 0.5) {
+      candidates.push(mk(state,
+        { k: voice(37 + benched.id, ['press.leakQ1', 'press.leakQ2']), v: { player: benched.name } },
+        benched.id, [
+          opt({ morale: -0.3, board: 0.3, lk: 'press.leakLong', rk: 'press.leakLongR' }),
+          opt({ morale: 0.5, board: 0, lock: true, lk: 'press.leakStarts', rk: 'press.leakStartsR', rv: { player: benched.name } }),
+          opt({ morale: 0, board: -0.2, lk: 'press.leakTalk', rk: 'press.leakTalkR' }),
+        ], rng))
+    }
+  }
+
+  // 8. THE MILESTONE - a hundredth game or fiftieth try for the club, on Saturday
+  {
+    const p = squad.find(q => {
+      const apps = q.stats.apps + q.career.filter(c => c.clubId === club.id).reduce((a, c) => a + c.apps, 0)
+      const tries = q.stats.tries + q.career.filter(c => c.clubId === club.id).reduce((a, c) => a + c.tries, 0)
+      return xvIds.includes(q.id) && (apps === 99 || tries === 49) && !askedThisSeason('press.centuryQ', q.id)
+    })
+    if (p) {
+      const apps = p.stats.apps + p.career.filter(c => c.clubId === club.id).reduce((a, c) => a + c.apps, 0)
+      const cap = club.captain != null && club.captain !== p.id ? state.players[club.captain] : null
+      candidates.push(mk(state,
+        { k: voice(38 + p.id, ['press.centuryQ1', 'press.centuryQ2']), v: { player: p.name, what_k: apps === 99 ? 'press.centuryGames' : 'press.centuryTries' } },
+        p.id, [
+          opt({ morale: 0.8, board: 0, lk: 'press.centuryBest', rk: 'press.centuryBestR', rv: { captain_k: cap ? 'press.centuryCaptainSulks' : 'common.nothing', captain: cap?.name ?? '' } }),
+          opt({ morale: 0.2, board: 0, lk: 'press.centuryConversation', rk: 'press.centuryConversationR' }),
+          opt({ morale: 0.5, board: 0, fans: 0.2, lk: 'press.centuryTwoHundred', rk: 'press.centuryTwoHundredR' }),
+        ], rng))
+    }
+  }
+
+  // 9. THE BENCH WARMER - good enough to start, six weeks without a start
+  {
+    const abilities = squad.map(q => q.ca).sort((a, b) => a - b)
+    const median = abilities[Math.floor(abilities.length / 2)] ?? 0
+    const p = squad.find(q => q.ca >= median && !xvIds.includes(q.id) && !q.onLoan && !q.acad &&
+      (q.lastWk == null || q.lastWk <= state.week - 6) && state.week > 8 && !askedThisSeason('press.benchQ', q.id))
+    if (p) {
+      candidates.push(mk(state,
+        { k: voice(39 + p.id, ['press.benchQ1', 'press.benchQ2']), v: { player: p.name } },
+        p.id, [
+          opt({ morale: -0.6, board: 0.2, unsettle: true, lk: 'press.benchDoor', rk: 'press.benchDoorR' }),
+          opt({ morale: 0.1, board: 0, lk: 'press.benchBuilding', rk: 'press.benchBuildingR' }),
+          opt({ morale: 0.7, board: 0, lock: true, lk: 'press.benchNextWeek', rk: 'press.benchNextWeekR', rv: { player: p.name } }),
+        ], rng))
+    }
+  }
+
+  // 10. THE COMEBACK - fifteen down at the break, and won
+  if (lastUser?.events && !askedThisSeason('press.comebackQ')) {
+    const [us, them] = ours(lastUser)
+    const oppId = lastUser.homeId === club.id ? lastUser.awayId : lastUser.homeId
+    const pts = (e: { type: string }) => e.type === 'TRY' ? 5 : e.type === 'CON' ? 2 : (e.type === 'PEN' || e.type === 'DG') ? 3 : 0
+    const ht = lastUser.events.findIndex(e => e.type === 'HT')
+    const first = ht >= 0 ? lastUser.events.slice(0, ht) : lastUser.events.filter(e => e.min <= 40)
+    const htUs = first.filter(e => e.teamId === club.id).reduce((a, e) => a + pts(e), 0)
+    const htThem = first.filter(e => e.teamId === oppId).reduce((a, e) => a + pts(e), 0)
+    if (us > them && htThem - htUs >= 15) {
+      const cap = club.captain != null ? state.players[club.captain] : null
+      candidates.push(mk(state,
+        { k: voice(40, ['press.comebackQ1', 'press.comebackQ2']), v: { n: htThem - htUs } },
+        cap?.id, [
+          opt({ morale: 0.6, board: 0.1, fans: 0.4, lk: 'press.comebackCaptain', rk: 'press.comebackCaptainR', rv: { captain: cap?.name ?? '' } }),
+          opt({ morale: 0.3, board: 0.3, lk: 'press.comebackTruth', rk: 'press.comebackTruthR' }),
+          opt({ morale: 0.2, board: 0.2, fans: 0.1, lk: 'press.comebackRoom', rk: 'press.comebackRoomR' }),
+        ], rng))
+    }
+  }
+
   // derby build-up: poke the fire or play it down
   const nextFx = state.fixtures.find(f =>
     !f.played && f.week === state.week &&
@@ -872,6 +1057,27 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
   }
   const club = state.clubs[state.userClubId]
   club.boardConfidence = clamp(club.boardConfidence + opt.board * 5, 0, 100)
+  // the terraces were listening too (v1.2.2)
+  if (opt.fans) state.fanMood = clamp((state.fanMood ?? 60) + opt.fans * 5, 5, 98)
+  // "he starts" - so he starts. The weakest man in his position makes way;
+  // if nobody in the XV plays there, the last bench slot does.
+  if (opt.lock && item.playerId != null) {
+    const p = state.players[item.playerId]
+    const xv = club.tactic.lineup.slice(0, 15)
+    if (p && !xv.includes(p.id)) {
+      let at = -1, worst = Infinity
+      xv.forEach((id, i) => {
+        const q = id != null ? state.players[id] : null
+        if (q && q.pos === p.pos && q.ca < worst) { worst = q.ca; at = i }
+      })
+      if (at < 0) at = xv.findIndex(id => id == null)
+      if (at < 0) at = 14
+      const out = club.tactic.lineup[at]
+      const benchAt = club.tactic.lineup.indexOf(p.id)
+      club.tactic.lineup[at] = p.id
+      if (benchAt >= 0) club.tactic.lineup[benchAt] = out
+    }
+  }
 
   // tone ledger: what you say in public adds up - but words behind the
   // office door are private, and never move the public needle
