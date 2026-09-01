@@ -68,12 +68,23 @@ function rememberAsk(state: GameState, pid: number, topic: OfficeTopic) {
  *  saves written before this existed, and the screen renders the key. */
 type Q = { k: string; v?: Vars }
 
-function mk(state: GameState, q: Q, playerId: number | undefined, options: PressItem['options'], rng: Rng): PressItem {
+function mk(state: GameState, q: Q, playerId: number | undefined, options: PressItem['options'], _rng: Rng): PressItem {
+  // THE OUTLET IS CHOSEN WITHOUT THE SHARED RNG (v1.2.2). It was pick(rng,
+  // OUTLETS), one draw per candidate built - and most candidates are built
+  // only to be discarded by the one-question-per-week draw. So every room
+  // added to this file shifted the random stream of every seeded simulation
+  // in the game, and the night ten rooms arrived two marginal balance
+  // assertions in difficultyprobe moved with it. voice() already picks a
+  // question's wording with zero stream footprint for exactly this reason;
+  // the outlet follows the same rule. Deterministic on the week and the
+  // question, so the same story still wears different mastheads.
+  let h = state.season * 31 + state.week * 7 + (playerId ?? 0) * 3
+  for (let i = 0; i < q.k.length; i++) h = (h * 33 + q.k.charCodeAt(i)) >>> 0
   return {
     id: state.nextId++,
     week: state.week,
     season: state.season,
-    outlet: pick(rng, OUTLETS),
+    outlet: OUTLETS[h % OUTLETS.length],
     question: tIn('en', q.k, q.v),
     qk: q.k,
     qv: q.v,
@@ -429,7 +440,11 @@ export function generatePress(state: GameState, rng: Rng) {
     const avg = squad.length ? squad.reduce((a, q) => a + q.morale, 0) / squad.length : 10
     const benched = club.tactic.lineup.slice(15).filter((x): x is number => x != null).map(id => state.players[id])
       .find(q => q && q.stats.starts >= 3 && !askedThisSeason('press.leakQ', q.id))
-    if (avg < 5 && benched && rng() < 0.5) {
+    // NO DRAW ON THE SHARED RNG for the gate (same rule as voice(): a press
+    // room that consumes a random number shifts every seeded simulation that
+    // follows it, which is how two marginal balance assertions in
+    // difficultyprobe flipped the night this room was added). Odd weeks only.
+    if (avg < 5 && benched && (state.season * 7 + state.week) % 2 === 1) {
       candidates.push(mk(state,
         { k: voice(37 + benched.id, ['press.leakQ1', 'press.leakQ2']), v: { player: benched.name } },
         benched.id, [

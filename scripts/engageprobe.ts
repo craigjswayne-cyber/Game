@@ -138,6 +138,7 @@ console.log('--- 1. each room fires on its trigger, and not off it')
   // leak: low morale, a benched man with starts
   const g = fresh(); const c = club(g)
   stage(g, 20, 10)
+  if ((g.season * 7 + g.week) % 2 === 0) g.week++ // the leak room opens on odd weeks only - a deterministic gate, not a draw
   for (const id of c.players) { const p = g.players[id]; if (p) p.morale = 3 }
   const benchIds = c.tactic.lineup.slice(15).filter((x): x is number => x != null)
   g.players[benchIds[1]].stats.starts = 5
