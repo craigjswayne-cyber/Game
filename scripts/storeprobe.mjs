@@ -29,12 +29,12 @@ const server = await startPreview('4209', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** A page with, or without, a store attached before the app boots. */
-const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false } = {}) => {
+const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false, hang = null } = {}) => {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   if (billing) {
-    await page.addInitScript(([owned, mute, refuse]) => {
+    await page.addInitScript(([owned, mute, refuse, hang]) => {
       // the same shape a Play TWA's Digital Goods wrapper has (v1.1.0):
       // non-consumables stay owned once bought; a consumable stays in owned()
       // until the game consumes it, which is the recovery path under test
@@ -51,6 +51,11 @@ const openPage = async ({ billing = false, ads = false, owns = [], deaf = false,
         // it as a refusal with the store's own words attached, and this checks
         // those words reach the screen.
         buy: async (sku) => {
+          // `hang` is a store that takes the tap and NEVER ANSWERS - the
+          // shape of a wedged Digital Goods service. It is not a rejection,
+          // so nothing catches it and no `finally` ever runs; this is what
+          // killed the whole shelf in v1.2.0 and it is now a test.
+          if (hang && sku === hang) return new Promise(() => {})
           if (refuse) { why = 'AbortError: item unavailable'; return 'refused' }
           bought.add(sku); return 'owned'
         },
@@ -58,7 +63,7 @@ const openPage = async ({ billing = false, ads = false, owns = [], deaf = false,
         owned: async () => [...new Set([...owned, ...bought])],
         consume: async (sku) => { bought.delete(sku) },
       }
-    }, [owns, deaf, refuse])
+    }, [owns, deaf, refuse, hang])
   }
   if (ads) {
     await page.addInitScript(() => {
@@ -175,6 +180,46 @@ try {
     await page.waitForTimeout(600)
     ok(await page.locator('.card', { hasText: 'Support the game' }).innerText().then(x => /2/.test(x)),
       'and a second coin goes in, counted')
+    ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
+    await page.close()
+  }
+
+  // ---- 2c. ONE STUCK ROW IS ONE STUCK ROW ------------------------------
+  // Owner, v1.2.1: "i clicked support the game and it made other options
+  // unclickable, please check all payment options... I dont want issues with
+  // payments." The shelf held ONE busy flag for every product, so any tap
+  // disabled every other Buy button and the Restore button under them. A
+  // purchase that resolves puts the flag back down; one that never answers
+  // does not, and the whole store stays dead until the screen is left.
+  //
+  // The store here hangs on Support the game and answers normally for
+  // everything else, which is the reported fault exactly.
+  say('\n--- 2c. a purchase that never answers holds its own row and no other')
+  {
+    const page = await openPage({ billing: true, hang: 'phase.license' })
+    const errs = []
+    page.on('pageerror', e => errs.push(e.message))
+    await startCareer(page)
+    await openAbout(page)
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+
+    const jar = page.locator('.card', { hasText: 'Support the game' }).locator('.btn.gold')
+    const heal = page.locator('.card', { hasText: 'Full Fitness' }).locator('.btn.gold')
+    await jar.click()
+    await page.waitForTimeout(900) // long past any honest round trip
+
+    ok(await jar.isDisabled(), 'the row that is waiting on the store holds its own button')
+    ok(await heal.isEnabled(), 'and every other row stays live while it waits')
+    const restore = page.locator('.btn.ghost', { hasText: /Restore/i })
+    ok(await restore.isEnabled(), 'so does Restore, which is how a stuck receipt gets rescued')
+
+    // and it is not merely enabled-looking: it takes the money
+    await heal.click()
+    await page.waitForTimeout(900)
+    const healRow = await page.locator('.card', { hasText: 'Full Fitness' }).innerText()
+    ok(!/Nothing was charged|could not be reached/i.test(healRow),
+       'a second product still sells while the first is stuck')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
     await page.close()
   }
@@ -359,13 +404,13 @@ try {
     await page.close()
   }
 
-  // ---- 2c. the Editor is GONE, and stays gone -----------------------------
+  // ---- 2d. the Editor is GONE, and stays gone -----------------------------
   // v1.1.0 sold an In-Game Editor here and this section bought and used it.
   // Removed on the owner's call (27 Aug, v1.1.3) before any store ever sold
   // one. The assertion flips: even with a till open and money on the table,
   // no Editor shelf renders and Game Status carries no Editor door - a
   // regression that quietly re-adds the product should fail loudly.
-  say('\n--- 2c. the Editor stays removed, even with the till open')
+  say('\n--- 2d. the Editor stays removed, even with the till open')
   {
     const page = await openPage({ billing: true })
     const errs = []

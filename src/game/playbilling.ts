@@ -216,7 +216,8 @@ export async function playBridge(): Promise<BillingBridge | null> {
     // left the sheet hanging and reported 'error' on a purchase that had been
     // paid for. Now it cannot: the receipt stays in listPurchases and Restore
     // picks it up.
-    await settle(sku, token, 'buy')
+    // PAID. If it would not settle, keep after it - see chase() below.
+    if (!(await settle(sku, token, 'buy'))) chase(sku)
     return 'owned'
   }
 
@@ -281,14 +282,25 @@ export async function playBridge(): Promise<BillingBridge | null> {
     if (typeof svc.acknowledge === 'function') {
       levers.push({ name: 'acknowledge', run: () => svc.acknowledge!(token, consumable ? 'repeatable' : 'onetime') })
     }
+    // AND EACH LEVER MORE THAN ONCE. Every attempt here used to be a single
+    // shot: one throw from consume() and the purchase was left unacknowledged
+    // until the next boot, which on a licence tester's FIVE-MINUTE refund
+    // clock means the money goes back before the game is ever restarted. The
+    // calls are local IPC to the Play app and fail transiently - a moment
+    // after a payment sheet closes is exactly when they are busiest - so a
+    // spend is attempted three times over about two seconds before the next
+    // lever is tried at all.
     let last = 'this Digital Goods service offers neither acknowledge() nor consume()'
     for (const lever of levers) {
-      try {
-        await lever.run()
-        return true
-      } catch (e) {
-        const err = e as Error
-        last = `${lever.name} threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'}`
+      for (let go = 0; go < 3; go++) {
+        try {
+          await lever.run()
+          return true
+        } catch (e) {
+          const err = e as Error
+          last = `${lever.name} threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'}`
+        }
+        if (go < 2) await new Promise(r => setTimeout(r, 400 * (go + 1)))
       }
     }
     // 2.0 acknowledges a non-consumable itself when the payment completes, so
@@ -296,6 +308,47 @@ export async function playBridge(): Promise<BillingBridge | null> {
     if (!levers.length && !consumable) return true
     setBillingReason(`${sku} is PAID but could not be acknowledged (${last}) - Play refunds an unacknowledged purchase after three days`)
     return false
+  }
+
+  /**
+   * AND IF IT STILL WILL NOT SETTLE, CHASE IT.
+   *
+   * settle() failing at the till is the worst state this file has: the money
+   * is gone, the player has been thanked, and Play is holding a receipt it
+   * will refund on a clock nobody in the game can see. Until now the only
+   * thing that came back for it was the boot sweep - which helps a customer
+   * on a three-day fuse and is useless to a LICENCE TESTER on a five-minute
+   * one, because five minutes is shorter than a sitting. Order
+   * GPA.3306-2919-4643-97851, paid at 19:03:45 on 1 Sept 2026 and refunded
+   * "because it was not acknowledged" at 19:08, is what that looks like: the
+   * game was never closed and reopened in between, so nothing ever tried
+   * again.
+   *
+   * So a failed settle now retries inside the session, on a schedule that
+   * fits inside the tester clock, and stops the moment the receipt is gone
+   * from the account - which is the only proof that it landed. Each pass
+   * re-reads the token rather than trusting the one that already failed.
+   */
+  const CHASE_MS = [4_000, 12_000, 30_000, 60_000, 120_000]
+  const chasing = new Set<string>()
+  const chase = (sku: string): void => {
+    if (chasing.has(sku)) return // one chase per product; the passes are shared
+    chasing.add(sku)
+    let step = 0
+    const again = (): void => {
+      if (step >= CHASE_MS.length) { chasing.delete(sku); return }
+      const wait = CHASE_MS[step++]
+      setTimeout(() => { void (async () => {
+        try {
+          const held = (await svc.listPurchases()).find(p => p.itemId === sku)
+          // gone from the account means consumed or acknowledged: done
+          if (!held) { chasing.delete(sku); return }
+          if (await settle(sku, held.purchaseToken, 'sweep')) { chasing.delete(sku); return }
+        } catch { /* offline for this pass; the next one tries again */ }
+        again()
+      })() }, wait)
+    }
+    again()
   }
 
   /**
@@ -314,7 +367,9 @@ export async function playBridge(): Promise<BillingBridge | null> {
    */
   const sweep = async (): Promise<void> => {
     try {
-      for (const p of await svc.listPurchases()) await settle(p.itemId, p.purchaseToken, 'sweep')
+      for (const p of await svc.listPurchases()) {
+        if (!(await settle(p.itemId, p.purchaseToken, 'sweep'))) chase(p.itemId)
+      }
     } catch { /* offline at boot: the next launch tries again */ }
   }
 

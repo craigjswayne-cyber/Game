@@ -188,6 +188,92 @@ for (const spelling of ['token', 'purchaseToken', 'silent'] as Spelling[]) {
      'and the value landed in the bank: one heal credit, waiting for a career to collect it')
 }
 
+// ---- A CONSUME THAT FAILS THE FIRST FEW TIMES STILL LANDS THE SALE ----
+//
+// Order GPA.3306-2919-4643-97851: paid at 19:03:45 on 1 Sept 2026, refunded at
+// 19:08 "because it was not acknowledged". Every lever here used to get ONE
+// attempt, and these calls are local IPC to the Play app that fail transiently
+// - never busier than in the second after a payment sheet closes. One unlucky
+// throw and the receipt sat open until the next boot, which on a licence
+// tester's FIVE-MINUTE refund clock is far too late.
+{
+  mem.clear()
+  let refusals = 2
+  const purchases: { itemId: string; purchaseToken: string }[] = []
+  const spent = new Set<string>()
+  let n = 0
+  const svc = {
+    getDetails: async (skus: string[]) => skus.map(x => ({ itemId: x, title: x, price: { value: '0.99', currency: 'GBP' } })),
+    listPurchases: async () => purchases.filter(p => !spent.has(p.purchaseToken)),
+    consume: async (token: string) => {
+      if (refusals-- > 0) throw new Error('service busy')
+      spent.add(token)
+    },
+  }
+  const g = globalThis as unknown as Record<string, unknown>
+  g.getDigitalGoodsService = async () => svc
+  g.PaymentRequest = class {
+    private sku: string
+    constructor(m: { data?: { sku?: string } }[]) { this.sku = m[0]?.data?.sku ?? '' }
+    async show() {
+      const purchaseToken = `flaky-${++n}`
+      purchases.push({ itemId: this.sku, purchaseToken })
+      return { details: { token: purchaseToken }, complete: async () => {} }
+    }
+  }
+  const b = await playBridge()
+  if (!b) ok(false, 'no bridge for the flaky service')
+  else {
+    await b.buy(SUPPORT_SKU)
+    ok(spent.size === 1, 'a consume that threw twice is retried until it lands - no open receipt for Play to refund')
+    ok(creditCount(SUPPORT_SKU) === 1, 'and the spend still banks exactly one credit, not one per attempt')
+  }
+}
+
+// ---- AND IF IT WILL NOT LAND AT THE TILL, IT IS CHASED WITHIN THE SESSION ----
+//
+// The boot sweep is the only thing that ever came back for a failed settle,
+// and a tester who does not close the game never gets one. A store that
+// refuses every attempt at the till but recovers a moment later must still be
+// settled without the game being restarted.
+{
+  mem.clear()
+  let dead = true            // the store refuses everything at first
+  const purchases: { itemId: string; purchaseToken: string }[] = []
+  const spent = new Set<string>()
+  let n = 0
+  const svc = {
+    getDetails: async (skus: string[]) => skus.map(x => ({ itemId: x, title: x, price: { value: '0.99', currency: 'GBP' } })),
+    listPurchases: async () => purchases.filter(p => !spent.has(p.purchaseToken)),
+    consume: async (token: string) => {
+      if (dead) throw new Error('service disconnected')
+      spent.add(token)
+    },
+  }
+  const g = globalThis as unknown as Record<string, unknown>
+  g.getDigitalGoodsService = async () => svc
+  g.PaymentRequest = class {
+    private sku: string
+    constructor(m: { data?: { sku?: string } }[]) { this.sku = m[0]?.data?.sku ?? '' }
+    async show() {
+      const purchaseToken = `chase-${++n}`
+      purchases.push({ itemId: this.sku, purchaseToken })
+      return { details: { token: purchaseToken }, complete: async () => {} }
+    }
+  }
+  const b = await playBridge()
+  if (!b) ok(false, 'no bridge for the dead-then-recovering service')
+  else {
+    await b.buy(HEAL_SKU)
+    ok(spent.size === 0, 'the till could not settle it: the receipt is open and the refund clock is running')
+    dead = false // the store comes back, as a wedged one does
+    // the first chase pass is at four seconds; give it that plus a breath
+    await new Promise(r => setTimeout(r, 5_000))
+    ok(spent.size === 1, 'the chase settled it inside the session - no restart, no refund')
+    ok(creditCount(HEAL_SKU) === 1, 'and it banked the credit it was owed')
+  }
+}
+
 // ---- a non-consumable is settled by the sweep, as it always was ----
 {
   const play = stubPlay('ack', 'token', [
