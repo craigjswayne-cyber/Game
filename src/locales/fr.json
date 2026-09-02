@@ -5638,7 +5638,8 @@
       "one": "📺 L'analyste a une lecture de plus - sa nuit blanche contre un spot",
       "other": "📺 L'analyste a {n} lectures de plus - sa nuit blanche contre un spot"
     },
-    "owedHeld": "Déjà payé. La livraison n’est pas encore passée, donc rien ne vous a été facturé une seconde fois : le jeu continue en arrière-plan. Revenez dans une minute."
+    "owedHeld": "Déjà payé. La livraison n’est pas encore passée, donc rien ne vous a été facturé une seconde fois : le jeu continue en arrière-plan. Revenez dans une minute.",
+    "asking": "Demande à la boutique…"
   },
   "store": {
     "title": "Boutique",
@@ -5670,8 +5671,8 @@
     "funding": "Fonds du conseil",
     "fundingLine": "Quatre résolutions du conseil, de 10 à 130 M£, chacune avec une saison de salaires hors plafond.",
     "fineprint": "Paiements uniques, gérés par la boutique d'applications. Rien ici ne joue les matchs, et le jeu n'envoie toujours rien vous concernant où que ce soit.",
-    "tillSilent": "La boutique est connectée mais n'a pas encore annoncé ses prix : les boutons restent sans montants. L'achat peut quand même fonctionner - la fenêtre de la boutique annonce toujours le prix avant tout paiement. Si cette version vient d'arriver, les produits se propagent peut-être encore.",
-    "tillPartial": "La boutique a chiffré {live} produits sur {asked}. Les autres n'affichent aucun prix et ne peuvent pas être achetés.",
+    "tillSilent": "La boutique est connectée mais n’a pas encore répondu. L’achat peut quand même fonctionner : sa propre fenêtre s’ouvre avant tout paiement. Si cette version vient d’arriver, patientez une minute.",
+    "tillPartial": "La boutique a répondu pour {live} produits sur {asked}. Les autres ne sont peut-être pas encore en vente sur ce compte.",
     "pickNation": "À vous. Choisissez la fédération et prenez le poste - la nomination est immédiate.",
     "support": "Soutenir le jeu",
     "supportLine": "Un merci au développeur. Cela ne change rien dans le jeu.",

@@ -5638,7 +5638,8 @@
    "one": "📺 The analyst has one more read - his all-nighter for a spot",
    "other": "📺 The analyst has {n} more reads - his all-nighter for a spot"
   },
-  "owedHeld": "Already paid for. It has not been delivered yet, so you have not been charged again - the game keeps trying in the background. Come back in a minute."
+  "owedHeld": "Already paid for. It has not been delivered yet, so you have not been charged again - the game keeps trying in the background. Come back in a minute.",
+  "asking": "Asking the store…"
  },
  "store": {
   "title": "Store",
@@ -5670,8 +5671,8 @@
   "funding": "Board funding",
   "fundingLine": "Four board resolutions, £10m to £130m, each with a season of cap-exempt wages.",
   "fineprint": "One-off payments, handled by the app store. Nothing here plays the matches, and the game still sends nothing about you anywhere.",
-  "tillSilent": "The store is connected but has not named its prices yet, so the buttons go without figures. Buying can still work - the store's own sheet always names the price before anything is charged. If this build just arrived, the products may still be propagating.",
-  "tillPartial": "The store priced {live} of {asked} products. The rest show no price and cannot be bought yet.",
+  "tillSilent": "The store is connected but has not answered yet. Buying can still work - its own sheet opens before anything is charged. If this build just arrived, give it a minute.",
+  "tillPartial": "The store answered for {live} of {asked} products. The others may not be on sale to this account yet.",
   "pickNation": "Yours. Pick the federation and take the job - the appointment is immediate.",
   "support": "Support the game",
   "supportLine": "A thank-you to the developer. It changes nothing in the game.",

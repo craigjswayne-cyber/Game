@@ -70,6 +70,14 @@ globalThis.rmBilling = {
     const [d] = await svc.getDetails([sku])
     return d ? { sku, price: d.price.value + ' ' + d.price.currency, title: d.title } : null
   },
+  // optional, and worth having: the shelf's health check prices every product
+  // it sells in ONE call with one deadline. Without this it asks one sku at a
+  // time, and a slow service answers some in time and lets the rest expire -
+  // which reported "2 of 10" about a store that was selling all ten (v1.2.3).
+  async detailsMany(skus) {
+    const got = await svc.getDetails(skus)
+    return got.map(d => ({ sku: d.itemId, price: d.price.value + ' ' + d.price.currency, title: d.title }))
+  },
   async buy(sku) {
     try {
       const req = new PaymentRequest(

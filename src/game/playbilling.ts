@@ -101,6 +101,25 @@ export async function playBridge(): Promise<BillingBridge | null> {
     }
   }
 
+  /** The whole shelf in one getDetails. Play accepts the array natively; a
+   *  product it does not offer is simply absent from the answer, which is
+   *  the same "not sellable here" the single-sku path reports as null. */
+  const detailsMany = async (skus: string[]): Promise<Product[]> => {
+    try {
+      const got = await svc.getDetails(skus)
+      const list = Array.isArray(got) ? got : []
+      if (list.length < skus.length) {
+        const missing = skus.filter(s => !list.some(d => d.itemId === s))
+        setLookupReason(`getDetails answered for ${list.length} of ${skus.length} products - Play is reachable and does not offer ${missing.join(', ')} here`)
+      }
+      return list.map(d => ({ sku: d.itemId, price: money(d.price.value, d.price.currency), title: d.title }))
+    } catch (e) {
+      const err = e as Error
+      setLookupReason(`getDetails threw ${err?.name ?? 'Error'}: ${err?.message ?? 'no detail'} - the billing service is attached but not answering`)
+      throw err
+    }
+  }
+
   /**
    * THE RECEIPT, HOWEVER THIS BROWSER SPELLS IT.
    *
@@ -404,7 +423,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
   }
 
   void sweep()
-  return { details, buy, owned, consume }
+  return { details, detailsMany, buy, owned, consume }
 }
 
 /**
