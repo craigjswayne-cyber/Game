@@ -1063,13 +1063,13 @@ function Preview({ fxId }: { fxId: number }) {
         {/* forwards left, backs right, exactly as the Tactics team sheet does it.
             The same information was laid out two different ways one screen apart. */}
         <div className="xv-split">
-          <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
-          <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
+          <table className="dtable codefirst"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
+          <table className="dtable codefirst"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
         </div>
         <SectionTitle sub={t(SPLIT_BY_ID[splitFor(club)]?.name ?? '').toLowerCase()}>{t('selection.replacements')}</SectionTitle>
         <div className="xv-split">
-          <table className="dtable"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
-          <table className="dtable"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+          <table className="dtable codefirst"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+          <table className="dtable codefirst"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
         </div>
         </>}
 

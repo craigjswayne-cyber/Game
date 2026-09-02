@@ -5,6 +5,7 @@ import { standing, standingWord } from '../../game/authority'
 import { CHALLENGES } from '../../game/newgame'
 import { flagOf, nationName } from '../../game/nations'
 import { SectionTitle } from '../components'
+import { supportCount } from '../../game/monetise'
 import { t } from '../../game/i18n'
 
 /** Coaching badge tiers, earned through reputation. */
@@ -284,6 +285,33 @@ export default function Profile() {
               background: club.boardConfidence > 55 ? 'var(--primary)' : club.boardConfidence > 25 ? 'var(--gold-fill)' : 'var(--danger)',
             }} />
           </div>
+        </div>
+      )}
+
+      {/* THE SUPPORTERS CLUB (v1.2.3). Support the game buys nothing - that is
+          the entire point of it - so until now the only acknowledgement was a
+          line in the store that scrolled away. The owner asked for somewhere
+          it stays: "on the manager profile a little section that has a crown
+          emoji with PHASE supporters club - X donations. Thank you!"
+
+          supportCount() reads rm-tips, which is a browser counter rather than
+          save state: the receipt is consumed the instant it lands, so there is
+          nothing else to count. It follows that clearing the browser forgets
+          it, and that is the honest trade - the alternative is an entitlement,
+          and an entitlement on a tip jar is a thing that can be withheld.
+
+          Absent at zero. A card thanking you for nothing is worse than no card,
+          and it would read as an advert on the one screen that is about you. */}
+      {supportCount() > 0 && (
+        <div className="card supporters-club">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>👑</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ fontSize: 14 }}>{t('profile.supportersClub')}</h3>
+              <div className="meta">{t('profile.supportersCount', { n: supportCount() })}</div>
+            </div>
+          </div>
+          <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('profile.supportersThanks')}</div>
         </div>
       )}
 

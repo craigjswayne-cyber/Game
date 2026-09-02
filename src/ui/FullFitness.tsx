@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../store'
-import { HEAL_SKU, bankReceipts, buyConsumable, creditCount, creditTake, heldConsumables, skuPriceFrom, tillOpen } from '../game/monetise'
+import { HEAL_SKU, bankReceipts, buyConsumable, claimHeld, creditCount, creditTake, heldConsumables, tillOpen } from '../game/monetise'
 import { healReady } from '../game/grants'
 import { t } from '../game/i18n'
 import { endingText } from './purchase'
@@ -37,7 +37,6 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [price, setPrice] = useState<string | null>(null)
 
   useEffect(() => {
     if (!tillOpen()) return
@@ -46,7 +45,6 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
     // over a paid heal, and walked the owner into Google's own "You already
     // own this item" sheet (31 Aug, the Medical Centre)
     void heldConsumables().then(skus => setPending(skus.includes(HEAL_SKU)))
-    void skuPriceFrom(HEAL_SKU).then(p => setPrice(p.live ? p.price : null))
   }, [game?.week])
 
   if (!tillOpen() || !game || game.unemployed) return null
@@ -81,9 +79,10 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
     setBusy(true)
     try {
       // ask the bank before the till: a paid heal already banked must never
-      // meet Play's sheet again
-      await bankReceipts(HEAL_SKU)
-      const out = creditCount(HEAL_SKU) > 0 ? 'owned' as const : await buyConsumable(HEAL_SKU)
+      // meet Play's sheet again (claimHeld does the banking itself)
+      const owed = await claimHeld(HEAL_SKU)
+      if (owed === 'stuck') { setMsg(t('till.owedHeld')); return }
+      const out = owed === 'credit' ? 'owned' as const : await buyConsumable(HEAL_SKU)
       if (out === 'owned') { setPending(true); await apply() }
       else setMsg(out === 'cancelled' ? null : endingText(out))
     } finally { setBusy(false) }
@@ -102,7 +101,7 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
             collapsed the Sugar Daddy title to one word per line. */}
         <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy}
           onClick={() => void (pending ? apply() : buy())}>
-          {pending ? t('till.applyHere') : price ? t('till.buyFor', { price }) : t('till.buy')}
+          {pending ? t('till.applyHere') : t('till.buy')}
         </button>
       </div>
       {msg && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>}

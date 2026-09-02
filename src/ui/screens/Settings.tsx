@@ -8,9 +8,11 @@ import { LANGS, getLang, t } from '../../game/i18n'
  * player looks for before they conclude something is broken.
  *
  * It holds the choices that change how the game LOOKS and nothing that changes
- * how it plays - the skin, the floodlights and the language. Everything here is
- * stored on the device rather than in the save, so a career carried to another
- * phone arrives in that phone's colours and its owner's language.
+ * how it plays - the skin, the floodlights, the language and the type size.
+ * Everything here is stored on the device rather than in the save, so a career
+ * carried to another phone arrives in that phone's colours and its owner's
+ * language. The type size joined them in v1.2.3, when the title screen's copy
+ * of it was removed and this became its one address.
  *
  * THE SWATCHES ARE THE REAL TOKENS. Each card paints itself from the same CSS
  * variables the skin ships, scoped by the skin's own class, so the preview
@@ -19,8 +21,9 @@ import { LANGS, getLang, t } from '../../game/i18n'
  * would render unstyled and say so loudly.
  */
 
-/** The four choices, in the order they are offered. `default` is the built-in
- *  pair the floodlight button switches between; the rest are whole palettes. */
+/** The four choices, in the order they are offered. Every one of them is a
+ *  PAIR from v1.2.3 - a night palette and a daylight one - so the floodlight
+ *  switch below means the same thing whichever is chosen. */
 const SKIN_KEYS: Record<Skin, { name: string; line: string }> = {
   default: { name: 'settings.skinDefault', line: 'settings.skinDefaultLine' },
   midnight: { name: 'settings.skinMidnight', line: 'settings.skinMidnightLine' },
@@ -30,10 +33,14 @@ const SKIN_KEYS: Record<Skin, { name: string; line: string }> = {
 
 /** A row of the colours that carry meaning, drawn in the skin being offered.
  *  Five swatches, because five is what the eye can compare at a glance: the
- *  page behind, a card on it, the button, a win and a loss. */
-function Swatches({ skin }: { skin: Skin }) {
+ *  page behind, a card on it, the button, a win and a loss.
+ *
+ *  It carries the floodlight state too (v1.2.3): every skin has a daylight
+ *  palette now, so a preview that always drew the night one would be showing
+ *  a player in daylight a set of colours they would not get. */
+function Swatches({ skin, night }: { skin: Skin; night: boolean }) {
   return (
-    <div className={`skin-swatches skin-${skin}`} aria-hidden="true">
+    <div className={`skin-swatches skin-${skin}${night ? '' : ' day'}`} aria-hidden="true">
       <i style={{ background: 'var(--canvas)' }} />
       <i style={{ background: 'var(--surface-1)' }} />
       <i style={{ background: 'var(--primary)' }} />
@@ -73,29 +80,34 @@ export default function Settings() {
             </div>
             {skin === s && <span className="chip" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>✓</span>}
           </div>
-          <Swatches skin={s} />
+          <Swatches night={night} skin={s} />
         </button>
       ))}
 
       {/* ---- floodlights: the same switch as the title bar, said in words ----
           The icon in the header is quicker once you know what it is; this is
-          where somebody who does not goes looking. Only offered for the
-          built-in pair, because each skin below is a dark palette in its own
-          right and has no daylight twin to switch to. */}
-      {skin === 'default' && (
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20, flexShrink: 0 }}>{night ? '🌙' : '☀️'}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.floodlights')}</div>
-              <div className="meta" style={{ marginTop: 1 }}>{t(night ? 'settings.floodOn' : 'settings.floodOff')}</div>
-            </div>
+          where somebody who does not goes looking.
+
+          It was hidden behind `skin === 'default'` in v1.2.1, on the reasoning
+          that each skin was a dark palette with no daylight twin. That was
+          true and it was still the wrong call: hiding the switch did not stop
+          the header icon toggling the class, so on a skin the button was live
+          and did nothing (owner, v1.2.3: "night/day mode is useless on new
+          skins"). Every skin has a daylight twin now - see the second half of
+          tokens.css - so the switch is offered on all four and works on all
+          four. */}
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 20, flexShrink: 0 }}>{night ? '🌙' : '☀️'}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.floodlights')}</div>
+            <div className="meta" style={{ marginTop: 1 }}>{t(night ? 'settings.floodOn' : 'settings.floodOff')}</div>
           </div>
-          <button className="btn ghost block" style={{ marginTop: 8 }} onClick={toggleNight}>
-            {t(night ? 'settings.goDay' : 'settings.goNight')}
-          </button>
         </div>
-      )}
+        <button className="btn ghost block" style={{ marginTop: 8 }} onClick={toggleNight}>
+          {t(night ? 'settings.goDay' : 'settings.goNight')}
+        </button>
+      </div>
 
       {/* ---- language: the same picker as the title screen ----
           THE SELECT GETS ITS OWN LINE. Sitting it beside the label made a
@@ -119,18 +131,23 @@ export default function Settings() {
         </select>
       </div>
 
-      {/* ---- type size: three steps, the same ones the title screen offers ---- */}
-      <div className="card">
+      {/* ---- type size: the only place it lives now ----
+           The title screen carried a second copy of this control until v1.2.3
+           ("remove text size from the main menu now we have it in settings").
+           It keeps the .text-scale-row / .text-scale-btn class names the old
+           row had, because they are how textscale.mjs and langprobe.mjs find
+           the control - the same control, at its one address. */}
+      <div className="card text-scale-row">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 20, flexShrink: 0 }}>🔠</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
+            <div className="muted" style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.textSize')}</div>
             <div className="meta" style={{ marginTop: 1 }}>{t('settings.textSizeLine')}</div>
           </div>
         </div>
         <div className="btn-row" style={{ marginTop: 8 }}>
           {[1, 1.15, 1.3].map(v => (
-            <button key={v} className={`btn ${textScale === v ? 'gold' : 'ghost'}`}
+            <button key={v} className={`btn text-scale-btn ${textScale === v ? 'gold' : 'ghost'}`}
               style={{ flex: 1 }} aria-pressed={textScale === v}
               onClick={() => setTextScale(v)}>
               {t(v === 1 ? 'settings.textNormal' : v === 1.15 ? 'settings.textBigger' : 'settings.textBiggest')}

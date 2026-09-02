@@ -1,20 +1,19 @@
 /**
- * ---- TEN MORE ROOMS, AND THREE THINGS WORTH NOTICING ----
+ * ---- TEN MORE ROOMS, AND TWO THINGS WORTH NOTICING ----
  *
  * v1.2.2, pre-launch audit. The press system had thirty question stems and
  * "felt repetitive"; ten more were written, each firing on a real state of
- * the world and each answer moving something. Alongside them, three ways of
- * turning a number that was already true into a sentence: the back page, the
- * grudge and the ledger.
+ * the world and each answer moving something. Alongside them, two ways of
+ * turning a number that was already true into a sentence: the grudge and the
+ * ledger. A third, the back page, was removed in v1.2.3 at the owner's word.
  *
  * What this holds the game to:
  *   1. every new room FIRES on its trigger and NOT off it (a scenario that
  *      never fires is dead weight; one that fires without cause is spam);
  *   2. the two new consequences land - `fans` moves fanMood, `lock` puts the
  *      named man in the starting XV and nobody else;
- *   3. the back page leads with the defining event, in the right order;
- *   4. the grudge files a story only when the table actually flips;
- *   5. the ledger writes each first exactly once.
+ *   3. the grudge files a story only when the table actually flips;
+ *   4. the ledger writes each first exactly once.
  *
  * Run: npx vite-node scripts/engageprobe.ts
  */
@@ -176,41 +175,7 @@ console.log('\n--- 2. the two new consequences land')
   ok(new Set(c.tactic.lineup.filter(x => x != null)).size === c.tactic.lineup.filter(x => x != null).length, 'nobody is named twice on the sheet')
 }
 
-console.log('\n--- 3. the back page leads with the right story')
-{
-  const g = fresh(); const c = club(g)
-  const { played } = stage(g, 24, 20)
-  const opp = played.homeId === c.id ? played.awayId : played.homeId
-  played.events = [ev('TRY', opp, 10), ev('CON', opp, 11), ev('TRY', opp, 25), ev('CON', opp, 26), ev('HT', c.id, 40),
-    ev('TRY', c.id, 50), ev('CON', c.id, 51), ev('TRY', c.id, 62), ev('CON', c.id, 63), ev('TRY', c.id, 75), ev('CON', c.id, 76), ev('PEN', c.id, 79), ev('RC', opp, 60, 999, 'Somebody')]
-  afterClubMatch(g, played)
-  ok(g.backPage?.hk === 'bp.headComeback', `a comeback outranks a red card on the back page (${g.backPage?.hk})`)
-  ok(g.backPage?.fixtureId === played.id, 'and it points at the match it is about')
-}
-{
-  const g = fresh(); const c = club(g)
-  const { played } = stage(g, 40, 3)
-  afterClubMatch(g, played)
-  ok(g.backPage?.hk === 'bp.headRout', `a 37-point win is a rout (${g.backPage?.hk})`)
-}
-{
-  const g = fresh(); const c = club(g)
-  const { played } = stage(g, 18, 15)
-  const opp = played.homeId === c.id ? played.awayId : played.homeId
-  const scorer = xv(g)[10]; g.players[scorer].stats.apps = 1
-  played.events = [ev('TRY', c.id, 30, scorer, g.players[scorer].name), ev('CON', c.id, 31), ev('PEN', opp, 50)]
-  afterClubMatch(g, played)
-  ok(g.backPage?.hk === 'bp.headDebut', `a debut try leads an otherwise ordinary win (${g.backPage?.hk})`)
-}
-{
-  const g = fresh(); const c = club(g)
-  const { played } = stage(g, 20, 21)
-  afterClubMatch(g, played)
-  ok(g.backPage?.hk === 'bp.headLoss', `a plain narrow defeat gets the plain page (${g.backPage?.hk})`)
-  ok(!g.backPage!.hk.includes('{'), 'and the headline is a key, not text')
-}
-
-console.log('\n--- 4. the grudge speaks only when the table flips')
+console.log('\n--- 3. the grudge speaks only when the table flips')
 {
   const g = fresh(); const c = club(g)
   const rival = rivalsOf(c.id)[0]
@@ -234,7 +199,7 @@ console.log('\n--- 4. the grudge speaks only when the table flips')
   ok(g.news.filter(n => n.k?.startsWith('news.grudge')).length === n1, 'and staying above them says nothing more')
 }
 
-console.log('\n--- 5. the ledger writes each first once')
+console.log('\n--- 4. the ledger writes each first once')
 {
   const g = fresh(); const c = club(g)
   const { played } = stage(g, 20, 10, [], false) // away win
@@ -256,5 +221,5 @@ console.log('\n--- 5. the ledger writes each first once')
   ok((g.ledger ?? []).some(e => e.k === 'news.ledgerUnbeaten' && e.v.n === 10), 'ten unbeaten is written down on the tenth, not before')
 }
 
-console.log(fails === 0 ? '\nENGAGE PROBE PASSED: ten rooms that open when they should, and three things worth noticing' : `\nENGAGE PROBE FAILED: ${fails}`)
+console.log(fails === 0 ? '\nENGAGE PROBE PASSED: ten rooms that open when they should, and two things worth noticing' : `\nENGAGE PROBE FAILED: ${fails}`)
 process.exit(fails === 0 ? 0 : 1)

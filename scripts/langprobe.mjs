@@ -46,12 +46,17 @@ try {
   await page.goto('http://localhost:4207/')
   await page.waitForSelector('text=RUGBY')
 
-  // ---- it is on the title screen, under the text size ---------------------
+  // ---- it is on the title screen, below the buttons -----------------------
+  //
+  // It used to be checked as sitting UNDER the text size row. v1.2.3 moved
+  // text size to Settings, so the anchor is the menu it now follows: language
+  // is the last thing on the screen, and it is the last thing on purpose.
   ok(await page.locator('.lang-row').count() === 1, 'the language row is on the title screen')
-  const size = await box('.text-scale-row')
+  ok(await page.locator('.text-scale-row').count() === 0, 'and the text size control has gone to Settings')
+  const menu = await box('.menu-btns')
   const lang = await box('.lang-row')
-  say(`  text size ends at ${Math.round(size?.bottom ?? -1)}px, language starts at ${Math.round(lang?.top ?? -1)}px`)
-  ok(!!size && !!lang && lang.top >= size.bottom, 'and it is below the text size control, as asked')
+  say(`  the menu ends at ${Math.round(menu?.bottom ?? -1)}px, language starts at ${Math.round(lang?.top ?? -1)}px`)
+  ok(!!menu && !!lang && lang.top >= menu.bottom, 'and it sits below the menu buttons')
   ok(!!lang && lang.left >= 0 && lang.right <= 412, 'the row fits a 412px screen')
 
   // ---- and it is ON SCREEN on the smallest phone --------------------------
@@ -113,7 +118,13 @@ try {
   // The two controls stack: "Nouvelle carrière" is six characters longer than
   // "New Career", and a player who has already asked for 1.3x type is the one
   // who finds the overflow. textscale.mjs measures this screen in English only.
-  await page.locator('.text-scale-btn').last().click()
+  // The setting is written where the app reads it and the page reloaded,
+  // rather than clicked: the control that used to be on this screen moved to
+  // Settings in v1.2.3, and what is being measured here is the SCREEN at 1.3x,
+  // not the button. textscale.mjs owns the button.
+  await page.evaluate(() => localStorage.setItem('rm-zoom', '1.3'))
+  await page.reload()
+  await page.waitForSelector('.tagline')
   await page.waitForTimeout(300)
   // the zoom has to have actually landed, or the overflow check below is a
   // measurement of nothing dressed up as a pass
@@ -130,7 +141,9 @@ try {
   })
   say(`  French at 1.3x type: viewport ${over.w}, overflow ${over.scrollOver}px`)
   ok(over.scrollOver <= 1, `nothing runs off the title screen in French at 1.3x${over.wide.length ? ': ' + over.wide.slice(0, 3).join(', ') : ''}`)
-  await page.locator('.text-scale-btn').first().click()
+  await page.evaluate(() => localStorage.setItem('rm-zoom', '1'))
+  await page.reload()
+  await page.waitForSelector('.tagline')
   await page.waitForTimeout(250)
 
   // ---- and it is remembered ------------------------------------------------

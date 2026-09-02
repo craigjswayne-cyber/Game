@@ -1,4 +1,4 @@
-import type { Competition, FacilityId, Fixture, GameState, MatchEvent, Player, Pos, TableRow, TrainingFocus } from './model'
+import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -1292,17 +1292,12 @@ function matchReport(state: GameState, fx: Fixture) {
 }
 
 /**
- * THE BACK PAGE, THE GRUDGE AND THE LEDGER (v1.2.2, pre-launch audit).
+ * THE GRUDGE AND THE LEDGER (v1.2.2, pre-launch audit).
  *
- * Three things that happen the moment the manager's side has played, each
+ * Two things that happen the moment the manager's side has played, each
  * turning a number that was already true into a sentence somebody would
  * repeat:
  *
- *  - THE BACK PAGE writes one tabloid headline from the match's DEFINING
- *    event rather than the score. The order is a judgement about what a
- *    sub-editor would lead with: a comeback beats a red card beats a
- *    hat-trick beats a derby beats a rout beats a last-minute swing beats a
- *    debut try, and only a match with none of those gets the plain result.
  *  - THE GRUDGE checks the league table against the club's nominated rival
  *    (the first derby pairing rivalries.ts knows) and files a story the
  *    week you climb above them, or fall below.
@@ -1312,6 +1307,16 @@ function matchReport(state: GameState, fx: Fixture) {
  *    manager's own record, so those are not repeated here.
  *
  * None of it moves a stat. It is there to be noticed.
+ *
+ * A third, THE BACK PAGE, lived here in v1.2.2 and was removed in v1.2.3 at
+ * the owner's word ("remove the newspaper back page feature"). It is worth
+ * one line of why, because the bug it shipped with is the general lesson:
+ * its sub-heading values were built once, before the branch that chose the
+ * heading, so a hat-trick page asked for a count nothing had put there and
+ * printed a literal {n} on the owner's phone. Every probe passed - none of
+ * them rendered state.backPage, because the French live reader walks news,
+ * commentary, decisions and the press room, and the back page was none of
+ * those. A feature that renders through its own path needs its own reader.
  */
 export function afterClubMatch(state: GameState, fx: Fixture) {
   const club = state.clubs[state.userClubId]
@@ -1319,50 +1324,8 @@ export function afterClubMatch(state: GameState, fx: Fixture) {
   const isHome = fx.homeId === club.id
   const oppId = isHome ? fx.awayId : fx.homeId
   const opp = state.clubs[oppId]
-  const us = isHome ? fx.homeScore : fx.awayScore
-  const them = isHome ? fx.awayScore : fx.homeScore
-  const won = us > them, lost = us < them
-  const ev = fx.events ?? []
-  const pts = (e: MatchEvent) => e.type === 'TRY' ? 5 : e.type === 'CON' ? 2 : (e.type === 'PEN' || e.type === 'DG') ? 3 : 0
+  const won = (isHome ? fx.homeScore : fx.awayScore) > (isHome ? fx.awayScore : fx.homeScore)
   const oppShort = teamShort(state, oppId)
-  const usShort = teamShort(state, club.id)
-
-  // ---- the back page ----
-  {
-    const htAt = ev.findIndex(e => e.type === 'HT')
-    const first = htAt >= 0 ? ev.slice(0, htAt) : ev.filter(e => e.min <= 40)
-    const htUs = first.filter(e => e.teamId === club.id).reduce((a, e) => a + pts(e), 0)
-    const htThem = first.filter(e => e.teamId === oppId).reduce((a, e) => a + pts(e), 0)
-    const reds = ev.filter(e => e.type === 'RC')
-    const tryCount = new Map<number, { n: number; name: string }>()
-    for (const e of ev) if (e.type === 'TRY' && e.playerId != null) {
-      const cur = tryCount.get(e.playerId) ?? { n: 0, name: e.playerName ?? '' }
-      cur.n++; tryCount.set(e.playerId, cur)
-    }
-    const hat = [...tryCount.entries()].find(([, v]) => v.n >= 3)
-    const late = ev.filter(e => e.min >= 78 && pts(e) > 0).sort((a, b) => b.min - a.min)[0]
-    const debut = ev.find(e => e.type === 'TRY' && e.playerId != null && e.teamId === club.id && state.players[e.playerId]?.stats.apps === 1)
-    const derby = isDerby(fx.homeId, fx.awayId)
-    const margin = Math.abs(us - them)
-    const base = { us: usShort, opp: oppShort, s1: us, s2: them }
-    let hk = won ? 'bp.headWin' : lost ? 'bp.headLoss' : 'bp.headDraw'
-    let hv: Record<string, string | number> = base
-    let sk = won ? 'bp.subWin' : lost ? 'bp.subLoss' : 'bp.subDraw'
-    let sv: Record<string, string | number> = { ...base, gaffer: opp?.coach ?? oppShort }
-    if (won && htThem - htUs >= 10) { hk = 'bp.headComeback'; hv = { ...base, n: htThem - htUs }; sk = 'bp.subComeback' }
-    else if (lost && htUs - htThem >= 10) { hk = 'bp.headCollapse'; hv = { ...base, n: htUs - htThem }; sk = 'bp.subCollapse' }
-    else if (reds.length) {
-      const r = reds[0]; const mine = r.teamId === club.id
-      hk = mine ? 'bp.headRedOurs' : 'bp.headRedTheirs'; hv = { ...base, player: r.playerName ?? '', min: r.min }
-      sk = won ? 'bp.subRedWon' : 'bp.subRedLost'
-    }
-    else if (hat) { hk = 'bp.headHatTrick'; hv = { ...base, player: hat[1].name, n: hat[1].n }; sk = won ? 'bp.subHatWon' : 'bp.subHatLost' }
-    else if (derby) { hk = won ? 'bp.headDerbyWon' : lost ? 'bp.headDerbyLost' : 'bp.headDerbyDraw'; sk = won ? 'bp.subDerbyWon' : lost ? 'bp.subDerbyLost' : 'bp.subDraw' }
-    else if (margin >= 25) { hk = won ? 'bp.headRout' : 'bp.headRouted'; hv = { ...base, n: margin }; sk = won ? 'bp.subRout' : 'bp.subRouted' }
-    else if (late && ((late.teamId === club.id && won) || (late.teamId === oppId && lost))) { hk = won ? 'bp.headLateWin' : 'bp.headLateLoss'; hv = { ...base, player: late.playerName ?? '', min: late.min }; sk = won ? 'bp.subLateWin' : 'bp.subLateLoss' }
-    else if (debut) { hk = 'bp.headDebut'; hv = { ...base, player: debut.playerName ?? '' }; sk = won ? 'bp.subDebutWon' : 'bp.subDebutLost' }
-    state.backPage = { fixtureId: fx.id, compId: fx.compId, week: fx.week, hk, hv, sk, sv }
-  }
 
   // ---- the grudge ----
   {
@@ -1777,7 +1740,6 @@ export const NEWS_KEEP = 250
 export function processWeekAndAdvance(state: GameState) {
   // last week's back page is last week's: a fresh one is written below if
   // the side plays, and a stale one must never sit over a new week
-  state.backPage = null
   const rng = weekRng(state)
 
   // The week's set-piece coaching (F2). What you call gets sharper, what you

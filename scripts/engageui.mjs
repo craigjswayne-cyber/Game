@@ -1,8 +1,14 @@
-// ---- THE BACK PAGE, THE GRUDGE AND THE LEDGER, ON SCREEN ----
+// ---- THE LEDGER, ON SCREEN ----
 //
-// engageprobe.ts proves the engine writes them. This proves a player sees
-// them: the back page comes up after a match and folds away on a tap, the
-// grudge strip sits on Home with the rival's crest, and Legacy has a ledger.
+// engageprobe.ts proves the engine writes it. This proves a player sees it:
+// Legacy carries the ledger, and its entries read as sentences rather than
+// keys.
+//
+// v1.2.3 removed the two features this file used to open with. The back page
+// went at the owner's word, and the grudge strip went with it ("remove the
+// new bit on rival on the home page ... feels unnecessary with the other
+// one") - Home's Rival Watch panel says the same thing further down and has
+// said it since v1.1.x.
 //
 // Run: node scripts/engageui.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
@@ -35,49 +41,7 @@ try {
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
 
-  say('\n--- 1. the grudge strip on Home')
-  const strip = page.locator('.card.grudge')
-  ok(await strip.count() === 1, 'the rival strip is on the home screen')
-  const stripText = await strip.innerText()
-  ok(stripText.length > 8 && !/\{|home\./.test(stripText), `and it reads as words: "${stripText.slice(0, 70)}"`)
-  ok(await strip.locator('svg, img, .crest, [class*=crest]').count() >= 1, "with the rival's crest on it")
-
-  say('\n--- 2. the back page after a match')
-  ok(await page.locator('.backpage').count() === 0, 'no back page before a match has been played')
-  await page.evaluate(() => {
-    const st = window.rugbyStore.getState(); const g = st.game
-    const c = g.clubs[g.userClubId]
-    const fx = g.fixtures.find(f => f.compId === c.leagueId && (f.homeId === c.id || f.awayId === c.id))
-    g.backPage = { fixtureId: fx.id, compId: fx.compId, week: fx.week, hk: 'bp.headComeback',
-      hv: { us: 'Leicester', opp: 'Bath', s1: 27, s2: 24, n: 17 }, sk: 'bp.subComeback', sv: { gaffer: 'Their gaffer', us: 'Leicester', opp: 'Bath', s1: 27, s2: 24 } }
-    st.touch()
-  })
-  await page.waitForTimeout(400)
-  ok(await page.locator('.backpage').count() === 1, 'the back page comes up')
-  const head = await page.locator('.backpage-head').innerText()
-  ok(/FROM 17 DOWN/i.test(head) && /27-24/.test(head), `the headline leads with the comeback: "${head}"`)
-  ok(!/bp\.|\{/.test(await page.locator('.backpage').innerText()), 'nothing on it is a raw key')
-  const box = await page.locator('.backpage').boundingBox()
-  ok(box && box.x >= 0 && box.x + box.width <= 413, 'and it fits the phone')
-  // IT BLOCKS NOTHING: the bottom nav underneath still takes a tap while
-  // the page is showing - the deep test found the first build covering
-  // Continue and the Annual door after every match
-  const inFlow = await page.evaluate(() => {
-    const c = document.querySelector('.card.backpage')
-    return c && getComputedStyle(c).position === 'static'
-  })
-  ok(inFlow, 'the page is an ordinary card in the flow - position static, nothing can be underneath it')
-  // and the open press question on the Press Room is never covered by it
-  await page.evaluate(() => window.rugbyStore.getState().go('press'))
-  await page.waitForTimeout(400)
-  ok(await page.locator('.card.backpage').count() === 0, 'it lives on Home only - the Press Room shows no back page')
-  await page.evaluate(() => window.rugbyStore.getState().go('home'))
-  await page.waitForTimeout(400)
-  await page.locator('.backpage .btn.ghost').click()
-  await page.waitForTimeout(300)
-  ok(await page.locator('.backpage').count() === 0, 'its own button folds it away - a treat, not a gate')
-
-  say('\n--- 3. the ledger on Legacy')
+  say('\n--- 1. the ledger on Legacy')
   await page.evaluate(() => {
     const st = window.rugbyStore.getState(); const g = st.game
     g.ledger = [{ k: 'news.ledgerFirstAway', v: { at: 'bath', ground: 'The Rec', opp: 'Bath', tries: 3, tries_k: 'news.ledgerGoes' }, season: g.season, week: g.week }]
@@ -91,5 +55,5 @@ try {
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
   await page.close()
 } finally { await browser.close(); server.stop() }
-say(fails ? `\nENGAGE UI FAILED (${fails})` : '\nENGAGE UI PASSED: the back page, the grudge and the ledger all reach the screen')
+say(fails ? `\nENGAGE UI FAILED (${fails})` : '\nENGAGE UI PASSED: the ledger reaches the screen')
 process.exit(fails ? 1 : 0)

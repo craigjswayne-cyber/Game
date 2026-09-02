@@ -87,25 +87,37 @@ console.log('--- 1. every skin the store offers has a block to render it')
   ok(orphans.length === 0, `no skin block the game cannot select (${orphans.join(', ') || 'none'})`)
 }
 
+/** Every palette the game can actually be wearing: each skin at night, and
+ *  each skin in daylight. v1.2.3 added the second half - until then choosing
+ *  a skin silenced the floodlight entirely, because `.app.skin-*` sits after
+ *  `.app.day` at equal specificity and simply won (owner: "night/day mode is
+ *  useless on new skins"). Six palettes now, and a light one that fails AA is
+ *  exactly as unshippable as a dark one. */
+const VARIANTS = (skin: string): [string, string][] => [
+  [`${skin} (night)`, `.app.skin-${skin}`],
+  [`${skin} (day)`, `.app.day.skin-${skin}`],
+]
+const PALETTES = SKINS.filter(s => s !== 'default').flatMap(VARIANTS)
+
 console.log('\n--- 2. body text on every surface clears WCAG AA (4.5:1)')
-for (const skin of SKINS.filter(s => s !== 'default')) {
-  const tok = blockOf(`.app.skin-${skin}`)
-  ok(Object.keys(tok).length > 0, `${skin}: the block resolves`)
+for (const [name, sel] of PALETTES) {
+  const tok = blockOf(sel)
+  ok(Object.keys(tok).length > 0, `${name}: the block resolves`)
   let worst = { pair: '', r: 99 }
   for (const [fg, bg, min] of PAIRS) {
     const a = tok[fg], b = tok[bg]
-    if (!a || !b) { ok(false, `${skin}: ${fg} on ${bg} - one of them is not declared`); continue }
+    if (!a || !b) { ok(false, `${name}: ${fg} on ${bg} - one of them is not declared`); continue }
     if (!a.startsWith('#') || !b.startsWith('#')) continue // gradients and rgba are checked below
     const r = ratio(a, b)
     if (r < worst.r) worst = { pair: `${fg} on ${bg}`, r }
-    if (r < min) ok(false, `${skin}: ${fg} ${a} on ${bg} ${b} = ${r}:1, under ${min}`)
+    if (r < min) ok(false, `${name}: ${fg} ${a} on ${bg} ${b} = ${r}:1, under ${min}`)
   }
-  ok(worst.r >= 4.5, `${skin}: worst pair is ${worst.pair} at ${worst.r}:1`)
+  ok(worst.r >= 4.5, `${name}: worst pair is ${worst.pair} at ${worst.r}:1`)
 }
 
 console.log('\n--- 3. the skins keep the meanings the game reads by')
-for (const skin of SKINS.filter(s => s !== 'default')) {
-  const tok = blockOf(`.app.skin-${skin}`)
+for (const [skin, sel] of PALETTES) {
+  const tok = blockOf(sel)
   // WON IS GREEN AND LOST IS RED, whatever the interface is painted in.
   // --positive exists precisely so a cyan or monochrome accent cannot end up
   // colouring the form guide (see tokens.css); this is the assertion that
@@ -129,6 +141,6 @@ for (const skin of SKINS.filter(s => s !== 'default')) {
 }
 
 console.log(fails === 0
-  ? '\nSKIN PROBE PASSED: three skins, every one of them readable'
+  ? '\nSKIN PROBE PASSED: three skins, in daylight and at night, every one readable'
   : `\nSKIN PROBE FAILED: ${fails}`)
 process.exit(fails === 0 ? 0 : 1)
