@@ -396,9 +396,33 @@ cd packaging/ios && npx cap sync ios
 `cap sync` is what copies `dist/` into the iOS project. Run the CLI from
 `packaging/ios`, not from the repo root - `webDir` is relative to that folder.
 
+### 17c. Check the app icon is ours, not Capacitor's
+
+`cap add ios` writes a placeholder icon — a blue X on a grey check — and
+nothing in the sync replaces it. It shipped in the first 1.2.4 upload before
+anybody looked at it.
+
+The real one is committed at **`packaging/ios/AppIcon-1024.png`**. Copy it over
+the placeholder:
+
+```
+cp packaging/ios/AppIcon-1024.png \
+   packaging/ios/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+```
+
+Then in Xcode click *Assets* in the sidebar and confirm the green ball is
+showing. `scripts/icons.mjs` regenerates it from `public/icon.svg` if the
+artwork ever changes; it writes the tracked copy first, because
+`packaging/ios/ios/` is gitignored and anything written only there is lost the
+next time the project is regenerated.
+
+Three rules Apple enforces on this file, all handled by the generator: exactly
+1024×1024, no alpha channel, and square corners (iOS applies its own mask, and
+rounding it twice leaves a pinched silhouette).
+
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.2.4`, **Build** `1`.
+*App* target → *General* → **Version** `1.2.4`, **Build** `3`.
 The version must match `package.json` and the figure on the App Store Connect
 listing, or the upload is rejected.
 

@@ -1,6 +1,6 @@
 // Render the SVG icon to PNG sizes for the PWA manifest.
 import { chromium } from 'playwright-core'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 
 const svg = readFileSync('public/icon.svg', 'utf8')
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
@@ -39,6 +39,43 @@ for (const size of [180, 192, 512]) {
     </div></body>`)
   // opaque on purpose: a maskable icon has no transparent edge to fall back on
   writeFileSync('public/icon-maskable-512.png', await page.screenshot({ omitBackground: false }))
+  await page.close()
+}
+
+// THE APP STORE ICON, which has its own three rules.
+//
+// Apple rejects an icon that breaks any of them, and the Capacitor placeholder
+// (a blue X) shipped in the project until v1.2.5 because nothing here wrote a
+// real one:
+//
+//   1. EXACTLY 1024x1024. Not a resize of the 512 - that is soft on a Retina
+//      store listing.
+//   2. NO TRANSPARENCY. An alpha channel is an automatic rejection; Apple
+//      composites nothing behind it, so a transparent corner renders black.
+//   3. SQUARE CORNERS. iOS applies its own superellipse mask. Round the corners
+//      yourself and the mask cuts them a second time, leaving a pinched,
+//      slightly wrong silhouette next to every other icon on the home screen.
+//
+// So rx is stripped from the plate, the shot is taken opaque, and the artwork
+// bleeds to all four edges.
+//
+// IT IS WRITTEN TO A TRACKED PATH FIRST. packaging/ios/ios/ is gitignored -
+// Capacitor generates the whole Xcode project with `cap add ios`, so anything
+// written only in there is lost the next time somebody regenerates it, and
+// that is exactly how the placeholder survived this long. The canonical copy
+// lives in packaging/ios/ and is committed; the live project gets a copy when
+// it happens to exist on this machine.
+{
+  const size = 1024
+  const page = await browser.newPage({ viewport: { width: size, height: size } })
+  const square = svg
+    .replace('<svg ', `<svg width="${size}" height="${size}" `)
+    .replace('rx="14"', '')          // Apple masks it; we must not
+  await page.setContent(`<body style="margin:0;background:#0f7a43">${square}</body>`)
+  const shot = await page.screenshot({ omitBackground: false })
+  writeFileSync('packaging/ios/AppIcon-1024.png', shot)
+  const live = 'packaging/ios/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'
+  if (existsSync(live)) writeFileSync(live, shot)
   await page.close()
 }
 
