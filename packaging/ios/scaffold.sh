@@ -96,6 +96,40 @@ else
   exit 1
 fi
 
+# ---- iPHONE ONLY ----
+#
+# Owner, mid-submission: "this game is not for ipad or watch, its purely for
+# mobile". Capacitor scaffolds every project as UNIVERSAL - the generated
+# pbxproj carries TARGETED_DEVICE_FAMILY = "1,2", which is iPhone plus iPad -
+# and Xcode's General tab then lists four destinations: iPhone, iPad, Mac
+# (Designed for iPad) and Apple Vision (Designed for iPad). The last two are
+# free consequences of claiming iPad, not separate choices.
+#
+# Claiming iPad is not cosmetic. App Store Connect demands a full set of iPad
+# screenshots for any binary that supports it, and holds the submission until
+# they exist - so a game nobody intends to ship on iPad blocks its own release
+# waiting for artwork of a layout that was never designed.
+#
+# 1 = iPhone. 2 = iPad. "1,2" = both. The three SUPPORTS_ flags drop the Mac
+# and Vision destinations that ride along with iPad.
+#
+# Patched here rather than in Xcode because `cap add ios` regenerates this file
+# from Capacitor's own template, so a change made only in the UI is lost the
+# next time anybody scaffolds - the same trap the app icon fell into.
+#
+# There is nothing to switch off for Apple Watch: a watchOS app is a separate
+# target that has to be added deliberately, and this project has never had one.
+PBX=ios/App/App.xcodeproj/project.pbxproj
+if [ -f "$PBX" ]; then
+  if grep -q 'TARGETED_DEVICE_FAMILY = "1,2"' "$PBX"; then
+    sed -i.bak 's/TARGETED_DEVICE_FAMILY = "1,2";/TARGETED_DEVICE_FAMILY = "1";\n\t\t\t\tSUPPORTS_MACCATALYST = NO;\n\t\t\t\tSUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;\n\t\t\t\tSUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;/g' "$PBX"
+    rm -f "$PBX.bak"
+    echo "    set iPhone-only (TARGETED_DEVICE_FAMILY = 1)"
+  else
+    echo "    already iPhone-only"
+  fi
+fi
+
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
 echo
 echo "the shell is built. bundle identity: $BUNDLE"
