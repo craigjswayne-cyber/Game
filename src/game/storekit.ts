@@ -131,6 +131,13 @@ export function storeKitBridge(): BillingBridge | null {
     } catch { return null }
   }
 
+  /** The Swift side already takes a list - the single-sku path above was
+   *  always wrapping one sku in an array. This passes the shelf through. */
+  const detailsMany = async (skus: string[]): Promise<Product[]> => {
+    const { products } = await p.details({ skus })
+    return (products ?? []).map(d => ({ sku: d.sku, price: d.price, title: d.title }))
+  }
+
   const buy = async (sku: string): Promise<PurchaseOutcome> => {
     setBillingReason(null)
     try {
@@ -160,7 +167,7 @@ export function storeKitBridge(): BillingBridge | null {
     try { await p.consume({ sku }) } catch { /* the receipt outlives the hiccup */ }
   }
 
-  return { details, buy, owned, consume }
+  return { details, detailsMany, buy, owned, consume }
 }
 
 /**

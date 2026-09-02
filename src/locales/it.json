@@ -5638,7 +5638,8 @@
    "one": "📺 L'analista ha un'altra lettura - la sua nottata in cambio di uno spot",
    "other": "📺 L'analista ha altre {n} letture - la sua nottata in cambio di uno spot"
   },
-  "owedHeld": "Già pagato. Non è ancora stato consegnato, quindi non ti è stato addebitato di nuovo: il gioco continua a provarci in background. Torna fra un minuto."
+  "owedHeld": "Già pagato. Non è ancora stato consegnato, quindi non ti è stato addebitato di nuovo: il gioco continua a provarci in background. Torna fra un minuto.",
+  "asking": "Chiedo allo store…"
  },
  "store": {
   "title": "Negozio",
@@ -5670,8 +5671,8 @@
   "funding": "Fondi del consiglio",
   "fundingLine": "Quattro delibere del consiglio, da £10m a £130m, ognuna con una stagione di stipendi fuori dal tetto.",
   "fineprint": "Pagamenti una tantum, gestiti dall'app store. Niente di tutto questo gioca le partite, e il gioco continua a non mandare in giro nulla di te.",
-  "tillSilent": "Lo store è collegato ma non ha ancora comunicato i prezzi, quindi i pulsanti restano senza cifre. Acquistare può comunque funzionare: la schermata dello store indica sempre il prezzo prima di qualsiasi addebito. Se questa versione è appena uscita, i prodotti potrebbero essere ancora in propagazione.",
-  "tillPartial": "Lo store ha prezzato {live} prodotti su {asked}. Gli altri restano senza prezzo e per ora non si possono comprare.",
+  "tillSilent": "Lo store è collegato ma non ha ancora risposto. Acquistare può comunque funzionare: la sua schermata si apre prima di qualsiasi addebito. Se questa versione è appena arrivata, dagli un minuto.",
+  "tillPartial": "Lo store ha risposto per {live} prodotti su {asked}. Gli altri potrebbero non essere ancora in vendita su questo account.",
   "pickNation": "Tuo. Scegli la federazione e accetta l'incarico: la nomina è immediata.",
   "support": "Sostieni il gioco",
   "supportLine": "Un grazie allo sviluppatore. Non cambia nulla nel gioco.",

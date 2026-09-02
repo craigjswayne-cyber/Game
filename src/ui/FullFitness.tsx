@@ -101,7 +101,7 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
             collapsed the Sugar Daddy title to one word per line. */}
         <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy}
           onClick={() => void (pending ? apply() : buy())}>
-          {pending ? t('till.applyHere') : t('till.buy')}
+          {busy ? t('till.asking') : pending ? t('till.applyHere') : t('till.buy')}
         </button>
       </div>
       {msg && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>}

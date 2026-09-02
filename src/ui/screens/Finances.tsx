@@ -507,7 +507,7 @@ function BoardFunds() {
             )
           ) : (
             <button className="btn gold block" style={{ marginTop: 8 }} disabled={busy} onClick={() => { void buyCharter() }}>
-              {t('till.buy')}
+              {busy ? t('till.asking') : t('till.buy')}
             </button>
           )}
           {msg?.key === 'charter' && (

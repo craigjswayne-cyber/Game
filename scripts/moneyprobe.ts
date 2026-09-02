@@ -334,6 +334,69 @@ console.log('\n--- 12b. the credit bank: spends are banked, banks are drawn')
   localStorage.removeItem('rm-credits')
 }
 
+// ---- 12d. ONE TRIP TO THE STORE, NOT TWO (v1.2.4) ------------------------
+//
+// Owner, v1.2.3 live: "Buy function isnt working" - five buttons dimmed and
+// nothing happening. claimHeld read owned() through bankReceipts and then
+// AGAIN through pendingConsumables, and on a Play service that answers slowly
+// each read sat on the full 12s watchdog. The button waited 24 seconds where
+// v1.2.2 waited 12. So the account is asked exactly once when nothing is held,
+// and the number of times owned() is asked is COUNTED here, not trusted.
+{
+  localStorage.removeItem('rm-credits')
+  let asks = 0
+  let receipts: string[] = []
+  g.rmBilling = {
+    buy: async () => 'owned',
+    owned: async () => { asks++; return [...receipts] },
+    consume: async (sku: string) => { const i = receipts.indexOf(sku); if (i >= 0) receipts.splice(i, 1) },
+  }
+  ok((await M.claimHeld(M.SUPPORT_SKU)) === 'none', 'nothing held: the store says so and the sheet may open')
+  ok(asks === 1, `and the account was asked ONCE for that answer, not ${asks} times`)
+  // something held: spend it, bank it, and still no second cold read
+  asks = 0; receipts = [M.SUPPORT_SKU]
+  ok((await M.claimHeld(M.SUPPORT_SKU)) === 'credit', 'a held receipt becomes a credit without opening the sheet')
+  ok(M.creditCount(M.SUPPORT_SKU) === 1, 'exactly one credit banked for exactly one receipt')
+  ok(asks === 2, `spending needs the before-and-after read and no more (${asks})`)
+  // a receipt that will not consume is reported as paid-and-stuck, never resold
+  M.creditTake(M.SUPPORT_SKU)
+  asks = 0; receipts = [M.SUPPORT_SKU]
+  g.rmBilling.consume = async () => { /* swallows, exactly like storekit.ts */ }
+  ok((await M.claimHeld(M.SUPPORT_SKU)) === 'stuck', 'a receipt that will not spend is STUCK - paid for, not deliverable, not for sale again')
+  ok(M.creditCount(M.SUPPORT_SKU) === 0, 'and nothing was banked against a spend that did not land')
+  localStorage.removeItem('rm-credits')
+}
+
+// ---- 12e. THE SHELF IS PRICED IN ONE CALL (v1.2.4) ------------------------
+//
+// The same afternoon the shelf's banner read "The store priced 2 of 10
+// products" about a store that had sold the owner every one of them. Ten
+// single-sku lookups raced one 12s clock and eight lost. A bridge that can
+// price a list is asked once, for the list; the single-sku path is only the
+// fallback for a bridge that cannot.
+{
+  let batched = 0, singles = 0
+  g.rmBilling = {
+    detailsMany: async (skus: string[]) => { batched++; return skus.map(sku => ({ sku, price: '£1.00' })) },
+    details: async (sku: string) => { singles++; return { sku, price: '£1.00' } },
+    buy: async () => 'owned',
+    owned: async () => [],
+    consume: async () => {},
+  }
+  const h = await M.tillHealth()
+  ok(h.live === h.asked && h.asked >= 10, `every product answered (${h.live} of ${h.asked})`)
+  ok(batched === 1 && singles === 0, `in ONE call to the store, not ${singles} single lookups (batched ${batched})`)
+  // a store that offers some of them says how many, from the same one call
+  g.rmBilling.detailsMany = async (skus: string[]) => { batched++; return skus.slice(0, 2).map(sku => ({ sku, price: '£1.00' })) }
+  const part = await M.tillHealth()
+  ok(part.live === 2 && part.asked === h.asked, `a store offering two of them reports two of ${part.asked}, honestly`)
+  // and a bridge without the list call still gets an answer the old way
+  delete (g.rmBilling as { detailsMany?: unknown }).detailsMany
+  singles = 0
+  const old = await M.tillHealth()
+  ok(old.live === old.asked && singles === old.asked, `a bridge with only details(sku) is asked per product (${singles}) and still answers`)
+}
+
 // ---- 12c. THE SUGAR DADDY'S DAY CLOCK (owner: "once a day. in real life") --
 {
   localStorage.removeItem('rm-xl-at')

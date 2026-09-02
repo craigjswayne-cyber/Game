@@ -257,22 +257,26 @@ export type Owed = 'credit' | 'stuck' | 'none'
 
 export async function claimHeld(sku: string): Promise<Owed> {
   if (creditCount(sku) > 0) return 'credit'
-  await bankReceipts(sku)
+  // ONE trip to the store, on the path everybody takes. bankReceipts reads
+  // owned() once, spends anything held, re-reads only if there was something
+  // to spend, and hands back what is still sitting there. The first cut of
+  // this function called it and then asked owned() AGAIN through
+  // pendingConsumables() - two 12-second watchdogs in a row on a slow Play
+  // service, and a Buy button that sat dimmed for 24 seconds doing nothing
+  // anyone could see. The account is asked once now, as it was in v1.2.2.
+  const left = await bankReceipts(sku)
   if (creditCount(sku) > 0) return 'credit'
-  // bankReceipts stops rather than spins when a spend does not land, so a
-  // receipt can still be sitting there. Ask the account itself.
-  if (!(await pendingConsumables()).includes(sku)) return 'none'
-  await consume(sku)
-  if ((await pendingConsumables()).includes(sku)) return 'stuck'
-  creditAdd(sku)
-  return 'credit'
+  // still held after a spend was tried and re-read: PAID FOR, not deliverable
+  // yet. Never sell a second one against that - say so, and let chase() work.
+  return left > 0 ? 'stuck' : 'none'
 }
 
-export async function bankReceipts(sku: string): Promise<void> {
+export async function bankReceipts(sku: string): Promise<number> {
   const b = bridge()
-  if (!b?.consume) return
+  if (!b?.consume) return 0
+  let held = 0
   try {
-    let held = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
+    held = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
     for (let guard = 0; held > 0 && guard < 8; guard++) {
       await quick(b.consume(sku), undefined)
       const now = (await quick(b.owned(), [] as string[])).filter(s => s === sku).length
@@ -281,6 +285,14 @@ export async function bankReceipts(sku: string): Promise<void> {
       held = now
     }
   } catch { /* offline: the boot sweep banks it next launch */ }
+  // RETURNS THE RECEIPTS STILL HELD, so a caller who needs that number does
+  // not go back to the store for it. claimHeld used to: it called this, then
+  // asked owned() again through pendingConsumables(), and on a Play service
+  // that answers slowly each of those reads sat on the 12s watchdog. A tap
+  // waited 24 seconds with its button dimmed before the sheet opened, where
+  // v1.2.2 waited 12 - and the owner, reasonably, reported "Buy function
+  // isnt working" (v1.2.3, live). One read; one wait; the answer travels.
+  return held
 }
 
 /** Everything a career could still collect: banked credits, plus receipts
@@ -378,6 +390,13 @@ export interface BillingBridge {
   /** For display. Null when the store has no such product, which is a
    *  configuration mistake rather than a customer's problem. */
   details?(sku: string): Promise<Product | null>
+  /** Optional: price a LIST of products in one round trip. Both stores accept
+   *  an array natively; asking one sku at a time made the shelf's health check
+   *  ten concurrent calls, each on its own 12s watchdog, and a slow service
+   *  answered two of them in time and let eight expire. The banner then told
+   *  the owner "the store priced 2 of 10 products" about a store that had
+   *  sold him every one of them (v1.2.3, live). One call, one deadline. */
+  detailsMany?(skus: string[]): Promise<Product[]>
   /** Open the store's own purchase sheet. Never our own UI: a payment form
    *  drawn by the game is the fastest rejection on either store. */
   buy(sku: string): Promise<PurchaseOutcome>
@@ -643,6 +662,22 @@ export async function tillHealth(): Promise<{ live: number; asked: number }> {
   // Found by re-reading this against a real failure rather than a stub.
   const sellable = SELLABLE_SKUS
     .filter(s => s !== SUPPORTER_SKU || !!adBridge())
+  const b = bridge()
+  if (b?.detailsMany) {
+    // ONE ROUND TRIP FOR THE WHOLE SHELF. Ten single-sku lookups fired at
+    // once each raced the same 12s clock, and on a slow service the last
+    // eight lost - so the shelf reported "2 of 10" about products the owner
+    // had bought that same afternoon. A slow store now costs one wait and
+    // then answers for everything it knows about.
+    try {
+      const got = await quick(b.detailsMany(sellable), null)
+      if (got) {
+        const live = new Set(got.filter(p => p?.price).map(p => p.sku))
+        return { live: sellable.filter(s => live.has(s)).length, asked: sellable.length }
+      }
+      return { live: 0, asked: sellable.length } // the one call timed out: nothing is known
+    } catch { /* a throwing store has priced nothing; fall through to the count below */ }
+  }
   const got = await Promise.all(sellable.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
   return { live: got.filter(Boolean).length, asked: sellable.length }
 }

@@ -172,7 +172,7 @@ try {
     // when the bridge is shouting one. The payment sheet quotes the figure,
     // in the currency of whoever is holding the phone, and nothing else does.
     ok(!/£2\.99/.test(till), "the store's own price is not printed on the shelf")
-    ok(!/not named its prices|named no products|guide prices/i.test(till),
+    ok(!/not named its prices|has not answered|answered for \d+ of|named no products|guide prices/i.test(till),
       'and the shelf says nothing about its health, because there is nothing wrong with it')
     for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', 'Remove the salary cap', 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
@@ -224,6 +224,11 @@ try {
     await page.waitForTimeout(900) // long past any honest round trip
 
     ok(await jar.isDisabled(), 'the row that is waiting on the store holds its own button')
+    // and it SAYS it is waiting. A dimmed "Buy" with no other sign is what the
+    // owner read as "Buy function isnt working" on a slow Play service
+    // (v1.2.3, live) - twelve seconds of grey, nothing to read.
+    ok(/Asking the store/i.test(await jar.innerText()), `while it waits the button says so ("${(await jar.innerText()).trim()}")`)
+    ok(/^Buy$/.test((await heal.innerText()).trim()), 'and a row that is NOT waiting still just says Buy')
     ok(await heal.isEnabled(), 'and every other row stays live while it waits')
     const restore = page.locator('.btn.ghost', { hasText: /Restore/i })
     ok(await restore.isEnabled(), 'so does Restore, which is how a stuck receipt gets rescued')
@@ -463,14 +468,18 @@ try {
     await page.waitForTimeout(400)
     const till = await page.locator('.content').innerText()
     // v1.1.18: the banner stopped claiming "nothing here can be bought yet" -
-    // the owner bought five things directly underneath that sentence. It now
-    // says only what it knows: prices unnamed, and the store's own sheet
-    // names the price before anything is charged.
-    ok(/not named its prices/i.test(till), 'the shelf says out loud that the store has not named its prices')
-    ok(/names the price before anything is charged/i.test(till),
-      'and promises what is still true: the sheet names the price before a penny moves')
+    // the owner bought five things directly underneath that sentence.
+    // v1.2.4: it stopped talking about PRICES too. The game shows none any
+    // more, so "has not named its prices" described a symptom nobody could
+    // see; the owner's own words were "why is it showing?". It now says the
+    // one thing it knows - the store has not answered - and the one thing
+    // that is still true: the store's own sheet opens before a penny moves.
+    ok(/has not answered/i.test(till), 'the shelf says out loud that the store has not answered')
+    ok(/sheet opens before anything is charged/i.test(till),
+      'and promises what is still true: the sheet opens before a penny moves')
+    ok(!/price/i.test(till), 'and says nothing about prices, because the game shows none')
     ok(!/nothing here can be bought/i.test(till),
-      'and never claims the shelf is unbuyable - unpriced is all it actually knows')
+      'and never claims the shelf is unbuyable - unanswered is all it actually knows')
     // v1.1.10: it must NOT tell somebody to install from the store when they
     // already did - the owner hit exactly that, on a Play build, twice
     ok(!/installed from the store/i.test(till),
