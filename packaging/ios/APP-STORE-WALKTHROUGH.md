@@ -420,6 +420,27 @@ Three rules Apple enforces on this file, all handled by the generator: exactly
 1024×1024, no alpha channel, and square corners (iOS applies its own mask, and
 rounding it twice leaves a pinched silhouette).
 
+### 17d. iPhone only, not iPad
+
+Capacitor scaffolds every project as universal, so Xcode's *General* tab lists
+four **Supported Destinations**: iPhone, iPad, Mac (Designed for iPad) and
+Apple Vision (Designed for iPad). The last two ride along with iPad; they are
+not separate decisions.
+
+`scaffold.sh` now sets iPhone-only automatically. To check, or to fix a project
+scaffolded before v1.2.5: *App* target → *General* → **Supported
+Destinations** → select iPad, Mac and Apple Vision and press the **–** button,
+leaving iPhone alone.
+
+This is worth getting right before submitting rather than after. **App Store
+Connect requires a full set of iPad screenshots from any binary that claims
+iPad support**, and holds the submission until they exist — so a game nobody
+intends to ship on iPad blocks its own release waiting for artwork of a layout
+that was never designed.
+
+There is nothing to switch off for Apple Watch. A watchOS app is a separate
+target that has to be added deliberately, and this project has never had one.
+
 ### 18. Set the version and build number
 
 *App* target → *General* → **Version** `1.2.4`, **Build** `3`.
