@@ -186,7 +186,7 @@ function Preview({ fxId }: { fxId: number }) {
     touch()
   }
 
-  // FM Mobile interaction: tap to pick up, tap again to swap; double-tap = picker
+  // Touch interaction: tap to pick up, tap again to swap; double-tap = picker
   const tapSlot = (slot: number) => {
     if (sel == null) { setSel(slot); return }
     if (sel === slot) { setSel(null); setPickSlot(slot); return }

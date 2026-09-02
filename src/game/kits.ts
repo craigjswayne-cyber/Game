@@ -3,19 +3,23 @@
 
 import { KIT_CYCLE, KIT_HOOPS, KIT_QUARTERS, KIT_SLEEVES, KIT_TRIM } from '../data/kittrim'
 
-export type KitPattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves'
+/** 'yoke' is a contrasting shoulder-and-chest panel over a plain body with
+ *  side panels in the trim colour (Exeter, 2026-27). 'flank' is a plain body
+ *  with side panels and sleeve edging in the second colour (Sale). Both came
+ *  from the owner's photographs of this season's shirts, v1.2.5. */
+export type KitPattern = 'solid' | 'hoops' | 'stripes' | 'quarters' | 'sash' | 'halves' | 'yoke' | 'flank'
 
 const KIT_PATTERNS: Record<string, KitPattern> = {
   // Premier Division
   bath: 'hoops',          // blue, white & black hoops
   bristol: 'hoops',      // navy & white hoops, sky pinstripes
-  exeter: 'solid',
-  gloucester: 'solid',    // cherry & white
+  exeter: 'yoke',        // white yoke on black, light-blue side panels
+  gloucester: 'hoops',    // cherry & white hoops
   harlequins: 'quarters', // the famous quarters
-  leicester: 'hoops',     // green, white & red hoops
+  leicester: 'solid',     // green body, red sleeves, white cuff (2026-27)
   newcastle: 'solid',
   northampton: 'hoops',   // black, green & gold hoops
-  sale: 'solid',
+  sale: 'flank',          // navy, orange side panels and cuffs
   saracens: 'solid',       // 2025-26: black shirt, red accents
   // Elite 14
   toulouse: 'hoops',      // red & black

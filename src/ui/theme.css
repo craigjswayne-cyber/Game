@@ -860,6 +860,23 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-weight: 700; font-size: 14.5px; line-height: 1.3;
   color: rgba(255, 255, 255, .95);
 }
+/* MORE OBVIOUS (v1.2.5, a friend of the owner's could not find the shop). The
+   card was a dark strip with one gold word on it, which reads as a heading
+   rather than a door. A gold edge all the way round, not just the left, and a
+   slow breathing glow say "this is a button" without shouting - the glow is a
+   box-shadow so the photograph underneath is untouched, and it stops for
+   anyone who has asked their phone to reduce motion. */
+.store-card {
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  animation: store-breathe 3.2s ease-in-out infinite;
+}
+@keyframes store-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 0%, transparent); }
+  50% { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--gold) 28%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .store-card { animation: none; box-shadow: 0 0 14px 1px color-mix(in srgb, var(--gold) 22%, transparent); }
+}
 .store-card .store-body {
   margin-top: 5px;
   font-size: 12px; line-height: 1.45;
@@ -1043,7 +1060,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .live-wrap .ticker { flex: 1; overflow-y: auto; }
 
 /* ================================================================
-   LANDSCAPE - the FM Mobile format: left icon rail, wide content,
+   LANDSCAPE - the handheld-manager format: left icon rail, wide content,
    two-panel live match. Portrait keeps the bottom bar.
 ================================================================ */
 @media (orientation: landscape) and (min-width: 640px) {
@@ -1120,7 +1137,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .next-fx td { background: var(--row-selected-bg); }
 .prob-row td { background: color-mix(in srgb, var(--danger) 14%, var(--surface-1)); }
 
-/* ============ Guided new-career wizard (FM Mobile structure) ============ */
+/* ============ Guided new-career wizard (stepped, one decision a screen) ============ */
 .step-meter {
   width: 64px; height: 6px; border-radius: 3px;
   background: rgba(255, 255, 255, .15);

@@ -143,7 +143,7 @@ export const PREM_B: RawClub[] = [
     id: 'sale', name: 'Sale RFC', short: 'Sale',
     city: 'Salford', country: 'ENG',
     stadium: 'Salford City Stadium', capacity: 12000,
-    colors: ['#001a4d', '#ffffff'],
+    colors: ['#001a4d', '#ff6a13'],
     rep: 82, budget: 3000000,
     players: [
       { name: 'Bevan Rodd', pos: 'LP', age: 25, nat: 'ENG', q: 79, intl: true },

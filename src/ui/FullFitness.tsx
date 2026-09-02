@@ -48,9 +48,14 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
   }, [game?.week])
 
   if (!tillOpen() || !game || game.unemployed) return null
-  // NOTHING TO SELL A FIT SQUAD. healReady is the same gate the Store uses -
-  // it is false when nobody is hurt and when this season's allowance is spent.
-  if (!healReady(game) && !pending) return null
+  // USED THIS ROUND: SAY SO, DO NOT VANISH. healReady is the same gate the
+  // Store uses. This card used to return null the moment the heal had been
+  // spent, so between matches the Medical Centre simply had no Full Fitness
+  // row - and the owner, who had used it, went to the Store to buy another
+  // and could not tell why the tap did nothing (v1.2.5: "can we have a bit
+  // that visibly says available after next game week"). The card stays, the
+  // button is disabled, and one line says when it comes back.
+  const spent = !healReady(game) && !pending
 
   const apply = async () => {
     await bankReceipts(HEAL_SKU)
@@ -99,11 +104,12 @@ export default function FullFitness({ compact }: { compact?: boolean }) {
         {/* flexShrink on the button and minWidth:0 on the column above it are
             not decoration: a non-shrinkable sibling in this row is exactly what
             collapsed the Sugar Daddy title to one word per line. */}
-        <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy}
+        <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy || spent}
           onClick={() => void (pending ? apply() : buy())}>
           {busy ? t('till.asking') : pending ? t('till.applyHere') : t('till.buy')}
         </button>
       </div>
+      {spent && <div className="meta muted heal-next">{t('store.healNext')}</div>}
       {msg && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{msg}</div>}
     </div>
   )

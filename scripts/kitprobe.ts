@@ -45,16 +45,26 @@ const ok = (c: boolean, what: string) => {
   ok(found.length === 0, `and names no manufacturer or sponsor (${found.join(', ') || 'none'})`)
 }
 
-// ---- the six the owner photographed ----
+// ---- the clubs the owner photographed ----
+//
+// v1.2.5 changed four of these at his word, with new photographs: "Exeter
+// Chiefs new kit attached. blue, black white"; "gloucester are red and white
+// stripes"; "sale are blue with orange specks on the side"; "leicester Tigers
+// is the green kit". Leicester's line here used to say hoops, because that was
+// the shirt in the first photograph; the shirt in the second is green with
+// red sleeves, so the assertion follows the shirt.
 {
   const want: [string, string, boolean][] = [
     // club, what it should be wearing, does it need a third colour
     ['bath', 'hoops', true],
     ['bristol', 'hoops', true],
-    ['leicester', 'hoops', true],
+    ['leicester', 'solid', true],     // green, red sleeves, white cuff
     ['harlequins', 'quarters', true],
     ['northampton', 'hoops', true],
     ['saracens', 'solid', false],
+    ['exeter', 'yoke', true],         // white yoke, black body, light-blue flanks
+    ['gloucester', 'hoops', false],   // cherry and white, five fine hoops
+    ['sale', 'flank', false],         // navy, orange down the sides
   ]
   for (const [id, pattern, needsTrim] of want) {
     ok(kitPattern(id) === pattern, `${id} wears ${pattern} (draws ${kitPattern(id)})`)
@@ -141,7 +151,9 @@ const ok = (c: boolean, what: string) => {
   // What was wrong is the WEIGHT: every hooped club drew three broad bands,
   // which suits Leicester and Northampton and does not suit a navy shirt with
   // fine hoops closely spaced.
-  const def = kitHoops('leicester')
+  // toulouse: hooped, and names no weight of its own (leicester was the
+  // witness here until v1.2.5 moved it to a plain green shirt)
+  const def = kitHoops('toulouse')
   ok(def.n === 3 && def.h === 4,
     `a club that names no weight still draws three broad bands (${def.n} x ${def.h})`)
 
@@ -160,7 +172,7 @@ const ok = (c: boolean, what: string) => {
   // no hoop weight because it has no hoops in the "shirt plus bands" sense.
   const bath = kitCycle('bath')
   ok(!!bath && bath.length >= 3, `Bath cycles three colours rather than banding a ground (${bath?.join(' ') ?? 'none'})`)
-  ok(kitCycle('leicester') == null, 'and a club with a ground colour names no cycle')
+  ok(kitCycle('toulouse') == null, 'and a club with a ground colour names no cycle')
 
   // TWO SLEEVES THAT DISAGREE. Quins wear one maroon and one green, which no
   // rule about "the second colour" can produce.
@@ -182,6 +194,15 @@ const ok = (c: boolean, what: string) => {
   // the arithmetic that fixed it.
   ok(/Math\.min\(0\.7, hoops\.h \/ [\d.]+\)/.test(ui),
     'and the trim hairline scales with the band it edges')
+}
+
+// ---- the two patterns added in v1.2.5 are drawn, not just named ----
+{
+  const ui = readFileSync('src/ui/components.tsx', 'utf8')
+  ok(/pattern === 'yoke'/.test(ui) && /Q24 19\.5 16 15/.test(ui), 'the yoke is a curved shoulder panel in the second colour')
+  ok(/pattern === 'flank'/.test(ui) && /stroke=\{c2\}/.test(ui), 'the flank pattern edges the sleeve in the second colour')
+  // a flank shirt's sleeves are the GROUND colour, or the panel reads as a whole second shirt
+  ok(/pattern === 'flank' \? c1 : c2/.test(ui), 'and a flank shirt keeps its sleeves in the ground colour')
 }
 
 // ---- and every trim belongs to a club that exists ----

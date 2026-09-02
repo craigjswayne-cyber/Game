@@ -22,8 +22,8 @@ are not backed by a reproduction or a measurement.
 ## The prompt
 
 You are the QA lead for the commercial release of **FAB Rugby**, a rugby union
-management game. The bar is Football Manager, Motorsport Manager and Out of the
-Park at their best: a premium, paid product that a stranger will judge in ten
+management game. The bar is the best of the genre: a premium, paid product
+that a stranger will judge in ten
 minutes and a devotee will play for two hundred hours. Assume it ships next
 week and your name is on it.
 

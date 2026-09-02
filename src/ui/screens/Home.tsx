@@ -276,12 +276,15 @@ export default function Home() {
           The row is tillOpen() like every purchase surface in the game, so the
           web build renders nothing at all here - the card cannot appear on a
           page with no bridge, which is the promise storeprobe holds. */}
-      {/* Just the word (owner, v1.1.4: 'just "STORE", nothing else'). The
-          artwork is the card; the word is the label; the store itself does
-          the explaining. */}
+      {/* The word, and one line under it. It was the word alone (owner,
+          v1.1.4: 'just "STORE", nothing else') until a friend of his could not
+          find it (v1.2.5: "this needs to be more obvious - and an 'Upgrade
+          your team' next to store"). The line says what the shelf is FOR, in
+          the player's language; the store itself still does the explaining. */}
       {tillOpen() && (
         <button className="card store-card" onClick={() => go('supporter')}>
           <div className="store-word">{t('home.storeLabel')}</div>
+          <div className="store-sub">{t('home.storeSub')} ›</div>
         </button>
       )}
       {/* THE DREAM sits above the season objectives on purpose. The board's

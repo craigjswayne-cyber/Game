@@ -134,6 +134,28 @@ export function migrate(s: GameState): GameState {
   migratePress(s.press)
   s.offers = asList(s.offers)
   s.fixtures = asList(s.fixtures)
+  // RENAMED KEYS (v1.2.5). A story is stored as a key, so renaming one in the
+  // dictionary orphans every copy already sitting in a career's inbox - the
+  // screen would print "news.grKidFifa" where a sentence used to be. Two were
+  // renamed this release, for the same reason the competition marks were: the
+  // old names carried things that were not ours to carry (a rival game's
+  // trademark in a key; the wrong sport in a venue). The story text did not
+  // change, so the rewrite is the key alone.
+  // Both are written as [was, now] pairs, like RENAMED below, because that is
+  // the shape scripts/ipprobe.mjs reads out of this file: the old string may
+  // sit in the bundle only as the KEY of a pair whose value replaces it.
+  const RENAMED_KEYS: [string, string][] = [
+    ['news.grKidFifa', 'news.grKidRating'],
+  ]
+  const RENAMED_VENUES: [string, string][] = [
+    ['English Football Stadium', 'Greater London Stadium'],
+  ]
+  for (const n of s.news) {
+    for (const [was, now] of RENAMED_KEYS) if (n?.k === was) n.k = now
+  }
+  for (const f of s.fixtures) {
+    for (const [was, now] of RENAMED_VENUES) if (f?.venue?.name === was) f.venue.name = now
+  }
   s.history = asList(s.history)
   s.mentors = asList(s.mentors)
   s.pledges = asList(s.pledges)

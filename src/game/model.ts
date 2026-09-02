@@ -143,7 +143,7 @@ export const EURO_FINAL_VENUES: FinalVenue[] = [
   { name: 'Marseille Stadium', city: 'Marseille', capacity: 67394 },
   { name: 'Edinburgh Stadium', city: 'Edinburgh', capacity: 67144 },
   { name: 'Crocker Park', city: 'Dublin', capacity: 82300 },
-  { name: 'English Football Stadium', city: 'London', capacity: 90000 },
+  { name: 'Greater London Stadium', city: 'London', capacity: 90000 },
 ]
 
 /** Where a competition's final is played, or null for finals that stay at the
@@ -771,7 +771,7 @@ export interface PressOption {
    *  (seed, season, slot), so the offer named on the button is the offer
    *  signed. kind 'keep' stays with the department's stopgap. */
   deal?: { slot: string; kind: 'long' | 'short' | 'clause' | 'keep' }
-  /** the season-expectations decision (25C, FM Mobile style): choosing sets
+  /** the season-expectations decision (25C): choosing sets
    *  state.stance for the year, which scales how hard the boardroom needle
    *  swings on every result - see boardReaction. */
   stance?: 'safe' | 'board' | 'high'

@@ -285,7 +285,8 @@
    "other": "La convocatoria se anuncia en {n} días."
   },
   "squadThisWeek": "🌍 SEMANA DE CONVOCATORIA: esta semana das la lista de {nat}.",
-  "campOpen": "La concentración está abierta: {n} de {size} convocados. Toca para dar forma a la lista."
+  "campOpen": "La concentración está abierta: {n} de {size} convocados. Toca para dar forma a la lista.",
+  "storeSub": "Mejora tu equipo"
  },
  "squad": {
   "tabSelection": "Alineación",
@@ -3320,8 +3321,6 @@
   "grPunditGem": "El gran reportaje de la semana llama a {kid}, de {kidAge} años, «el {kidPos} más natural de su generación» y apunta que media liga ya lo sabe. Los seguidores de {short} han pasado el día pidiéndole al columnista, con mucha educación, que se calle, que lo borre y que se plantee dedicarse a otra cosa. El columnista ha respondido a once de ellos uno por uno. Está disfrutando muchísimo.",
   "grSchoolVisitSubj": "BUEN ROLLO: {kid} aparece en un colegio y se queda dos horas",
   "grSchoolVisit": "Un colegio de la zona preguntó a la academia de {short} si alguien podía entregar un premio de lectura. {kid} llegó pronto, se quedó dos horas y firmó todo lo que le pusieron delante, incluidos el atril y la tapa del portátil de una profesora. El vídeo tiene más visualizaciones que los tres últimos ensayos del club juntos.",
-  "grKidFifaSubj": "REDES: {kidLast} descubre su nota en el videojuego y se lo toma como algo personal",
-  "grKidFifa": "{kid} ha descubierto lo que un videojuego opina de su aceleración y ha publicado un pantallazo sin texto, lo que en internet equivale a una declaración de guerra. Los desarrolladores han respondido con un emoji encogiéndose de hombros. Tres compañeros han respondido dando la razón al juego.",
   "grAgentFlatteredSubj": "HABLA EL AGENTE: {target}, «halagado» por el interés, según todo el mundo",
   "grAgentFlattered": "Los representantes de {target} declinaron todas las ocasiones de apagar el incendio: «Mi cliente está muy feliz en {other}. Pero todo jugador escucha». El servicio de traducción del rugby lleva horas extra. Los foros hicieron el resto antes de comer.",
   "grForumDreamSubj": "FORO: el hilo de «objetivos realistas» es cualquier cosa menos eso",
@@ -4576,7 +4575,9 @@
   "ledgerUnbeaten": "Diez partidos sin perder en liga ya son {n}. Nadie en el club dice la palabra en voz alta.",
   "ledgerFirstAwaySubj": "Una para el cuaderno del míster",
   "ledgerFirstDerbySubj": "Una para el cuaderno del míster",
-  "ledgerUnbeatenSubj": "Una para el cuaderno del míster"
+  "ledgerUnbeatenSubj": "Una para el cuaderno del míster",
+  "grKidRating": "{kid} ha descubierto lo que un videojuego opina de su aceleración y ha publicado un pantallazo sin texto, lo que en internet equivale a una declaración de guerra. Los desarrolladores han respondido con un emoji encogiéndose de hombros. Tres compañeros han respondido dando la razón al juego.",
+  "grKidRatingSubj": "REDES: {kidLast} descubre su nota en el videojuego y se lo toma como algo personal"
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -4670,11 +4671,11 @@
   "flavGrass7": "El juez de lateral es un voluntario del club y tarda un momento en encontrar el banderín. {team} sacan rápido y juegan.",
   "flavGrass8": "¡{player} carga el despeje! El balón rebota en la cuerda de la carpa de la cerveza y se queda dentro.",
   "flavPac1": "¡{player} lanza el offload más disparatado que verás en todo el año... y llega! {team} se vuelcan al ataque.",
-  "flavPac2": "Los tambores de la grada no han parado desde el pitido inicial. {player} se alimenta de ellos con una carga arrolladora.",
+  "flavPac2": "{player} coge el balón a toda velocidad y atraviesa el primer placaje. Una carga arrolladora.",
   "flavPac3": "Juego de pies de {player} que debería estar prohibido: tres defensores manotean el aire.",
-  "flavPac4": "{team} la sacan jugada desde su propia línea, porque cómo no. La grada disfruta cada metro.",
-  "flavPac5": "Un placaje de {player} que se oye por encima de la brisa del mar. Las banderas de la grada se agitan en señal de aprobación.",
-  "flavPac6": "Recepción a una mano por encima de la cabeza de {player}: rugby del Pacífico, sin nada que añadir.",
+  "flavPac4": "{team} la sacan jugada desde su propia línea y todo el equipo va con ellos. La grada disfruta cada metro.",
+  "flavPac5": "Un placaje de {player} que se oye desde la última fila de la grada. El portador no va a ninguna parte.",
+  "flavPac6": "Recepción a una mano por encima de la cabeza de {player}, bajo presión, entre el tráfico. Nada que añadir.",
   "flav1": "Gran carga de {player} que mete a {team} en la 22.",
   "flav2": "{player} firma media ruptura eléctrica para {team}.",
   "flav3": "¡Robo! {player} gana la batalla del ruck para {team}.",
@@ -5684,7 +5685,8 @@
   "charterActivate": "Activar en esta carrera",
   "charterConfirm": "Quitarlo para siempre",
   "charterRefused": "Aquí no: a esta carrera no le queda tope que levantar, o no hay ningún club sobre la mesa.",
-  "estateAgain": "Los edificios se quedaron en tu antiguo club. Este campo empieza de cero."
+  "estateAgain": "Los edificios se quedaron en tu antiguo club. Este campo empieza de cero.",
+  "healNext": "Ya usado en esta jornada. Volverá a estar disponible tras tu próximo partido."
  },
  "settings": {
   "title": "Ajustes",

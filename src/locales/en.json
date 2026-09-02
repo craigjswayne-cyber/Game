@@ -285,7 +285,8 @@
    "other": "Squad named in {n} days."
   },
   "squadThisWeek": "🌍 SQUAD WEEK: you name your {nat} party this week.",
-  "campOpen": "Camp is open - {n} of {size} named. Tap to shape the squad."
+  "campOpen": "Camp is open - {n} of {size} named. Tap to shape the squad.",
+  "storeSub": "Upgrade your team"
  },
  "squad": {
   "tabSelection": "Selection",
@@ -3320,8 +3321,6 @@
   "grPunditGem": "This week's big read calls {kid}, {kidAge}, \"the most natural {kidPos} of his generation\" and notes that half the league already knows. {short} supporters have spent the day politely asking the columnist to be quiet, delete it, and consider a career in something else. The columnist has replied to eleven of them individually. He is enjoying this enormously.",
   "grSchoolVisitSubj": "WHOLESOME: {kid} shows up to a school assembly and stays two hours",
   "grSchoolVisit": "A local primary asked the {short} academy whether anyone could hand out a reading prize. {kid} arrived early, stayed two hours and signed everything put in front of him including the lectern and one teacher's laptop lid. The video has more views than the club's last three tries combined.",
-  "grKidFifaSubj": "SOCIAL: {kidLast} discovers his own rating and takes it personally",
-  "grKidFifa": "{kid} has found out what a video game thinks of his acceleration and has posted a screenshot with no caption, which on the internet counts as a declaration of war. The developers have replied with a shrug emoji. Three teammates have replied agreeing with the game.",
   "grAgentFlatteredSubj": "AGENT TALK: {target} \"flattered\" by the interest, says everyone",
   "grAgentFlattered": "{target}'s representatives declined every opportunity to hose this down: \"My client is very happy at {other}. But every player listens.\" Rugby's translation service has been working overtime. The fan forums did the rest before lunch.",
   "grForumDreamSubj": "FAN FORUM: the \"realistic transfer targets\" thread is anything but",
@@ -4576,7 +4575,9 @@
   "ledgerUnbeaten": "Ten unbeaten in the league became {n}. Nobody in the building is saying the word out loud.",
   "ledgerFirstAwaySubj": "One for the ledger",
   "ledgerFirstDerbySubj": "One for the ledger",
-  "ledgerUnbeatenSubj": "One for the ledger"
+  "ledgerUnbeatenSubj": "One for the ledger",
+  "grKidRating": "{kid} has found out what a video game thinks of his acceleration and has posted a screenshot with no caption, which on the internet counts as a declaration of war. The developers have replied with a shrug emoji. Three teammates have replied agreeing with the game.",
+  "grKidRatingSubj": "SOCIAL: {kidLast} discovers his own rating and takes it personally"
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -4670,11 +4671,11 @@
   "flavGrass7": "The touch judge is a club volunteer and takes a moment to find his flag. {team} tap and go.",
   "flavGrass8": "{player} charges down the clearance! The ball ricochets off the beer tent guy-rope and stays in.",
   "flavPac1": "{player} throws the wildest offload you'll see all year - and it sticks! {team} pour forward.",
-  "flavPac2": "The drums in the stands haven't stopped since kick-off. {player} feeds off it with a rampaging carry.",
+  "flavPac2": "{player} takes the ball at full tilt and goes straight through the first tackle. A rampaging carry.",
   "flavPac3": "Footwork from {player} that ought to be illegal - three defenders grasp at air.",
-  "flavPac4": "{team} run it from their own line, because of course they do. The crowd loves every metre.",
-  "flavPac5": "A hit from {player} you can hear over the sea breeze. The flags in the crowd shake with approval.",
-  "flavPac6": "One-handed take above his head from {player} - Pacific rugby, no notes.",
+  "flavPac4": "{team} run it from their own line and the whole side goes with them. The crowd loves every metre.",
+  "flavPac5": "A hit from {player} you can hear from the back row of the stand. The ball carrier is going nowhere.",
+  "flavPac6": "One-handed take above his head from {player}, under pressure, in traffic. No notes.",
   "flav1": "Big carry from {player} takes {team} into the 22.",
   "flav2": "{player} makes a searing half-break for {team}.",
   "flav3": "Turnover! {player} wins the breakdown battle for {team}.",
@@ -5684,13 +5685,14 @@
   "charterActivate": "Activate on this career",
   "charterConfirm": "Turn it off for good",
   "charterRefused": "Not here: this career has no cap left to lift, or there is no club on the desk.",
-  "estateAgain": "The buildings stayed at your old club. This ground starts again."
+  "estateAgain": "The buildings stayed at your old club. This ground starts again.",
+  "healNext": "Used this round. Available again after your next match."
  },
  "settings": {
   "title": "Settings",
   "sub": "How the game looks, not how it plays",
   "skin": "Skin",
-  "skinLine": "Every screen, repainted. Nothing about the football changes.",
+  "skinLine": "Every screen, repainted. Nothing about the rugby changes.",
   "skinDefault": "Clubhouse",
   "skinDefaultLine": "The green and gold the game was built in.",
   "skinMidnight": "Tactical Midnight",

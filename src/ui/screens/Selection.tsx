@@ -77,7 +77,7 @@ export default function SelectionPane() {
     touch()
   }
 
-  // FM Mobile interaction: tap a player to pick him up, tap another slot
+  // Touch interaction: tap a player to pick him up, tap another slot
   // to swap the two; tap the same slot again for the full squad picker.
   const tapSlot = (slot: number) => {
     if (sel == null) { setSel(slot); return }

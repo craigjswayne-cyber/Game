@@ -187,6 +187,12 @@ for (const m of blob.matchAll(/\b\w+_k:\s*'([A-Za-z0-9_.]+)'/g)) wanted.add(m[1]
 for (const m of blob.matchAll(/\b\w+_k:\s*[^,\n]*\?\s*'([A-Za-z0-9_.]+)'\s*:\s*'([A-Za-z0-9_.]+)'/g)) {
   wanted.add(m[1]); wanted.add(m[2])
 }
+// A RENAMED KEY IS MISSING ON PURPOSE. save.ts carries [was, now] pairs so a
+// career filed under the old key reads under the new one; the old key is named
+// there and nowhere else, and it is absent from every dictionary because that
+// is what renaming it means. Recognised by the pair shape, so the NOW half
+// stays wanted and a plain literal of the old key anywhere else still fails.
+for (const m of blob.matchAll(/\['(news\.[A-Za-z0-9_.]+)',\s*'(news\.[A-Za-z0-9_.]+)'\]/g)) wanted.delete(m[1])
 say(`  ${wanted.size} keys named by stories`)
 for (const lang of Object.keys(LANGS)) {
   const gone = [...wanted].filter(k => lookup(LANGS[lang], k) === undefined)
