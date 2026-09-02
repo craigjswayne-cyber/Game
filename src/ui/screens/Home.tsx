@@ -20,6 +20,7 @@ import { AdSlot } from '../AdSlot'
 import { tillOpen } from '../../game/monetise'
 import { userWageBudget } from '../../game/grants'
 import { natWindow, weeksToSquad } from '../../game/country'
+import { BackPage } from '../BackPage'
 
 const TYPE_ICON: Record<string, string> = {
   result: '🏉', transfer: '💰', injury: '🩹', intl: '🌍', board: '🏛️',
@@ -166,6 +167,9 @@ export default function Home() {
           </div>
         )
       })()}
+      {/* THE BACK PAGE (v1.2.2): the first thing on the desk after a match, and
+          an ordinary card in the flow - it covers nothing, ever. */}
+      <BackPage />
       {/* THE GRUDGE (v1.2.2). The nominated rival's result under yours every
           week, with a jab that scales with the gap between you. It gives an
           ordinary Saturday a second scoreline that matters. rivalsOf knows the

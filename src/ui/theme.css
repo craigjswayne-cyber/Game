@@ -3869,26 +3869,11 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 
 
-/* ---- THE BACK PAGE (v1.2.2) ---- a tabloid back page after every match.
-   A DOCKED CARD, NOT A VEIL: it must never sit between the player and the
-   next tap (the deep test found it covering Continue and the Annual door).
-   The dock itself takes no pointer events; only the card does. */
-.backpage-dock {
-  position: fixed; left: 0; right: 0; top: 96px; z-index: 150;
-  display: flex; justify-content: center;
-  padding: 0 14px;
-  pointer-events: none;
-}
-.backpage {
-  pointer-events: auto;
-  width: 100%; max-width: 460px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-strong);
+/* ---- THE BACK PAGE (v1.2.2) ---- a tabloid back page after every match,
+   an ORDINARY CARD in the Home flow. Two builds tried to float it (a veil,
+   then a fixed dock) and both ended up over something the player needed. */
+.card.backpage {
   border-top: 6px solid var(--danger-fill);
-  border-radius: 10px;
-  padding: 14px 16px 16px;
-  color: var(--text-primary);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
   animation: cel-pop .45s cubic-bezier(.2, 1.4, .4, 1) both .05s;
 }
 .backpage-strap {
