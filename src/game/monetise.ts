@@ -224,6 +224,50 @@ function quick<T>(job: Promise<T>, fallback: T, ms = BRIDGE_MS): Promise<T> {
  *  receipt can never be banked twice, on either platform. Safe to call when
  *  nothing is open. (The Play till and boot sweep credit their own spends
  *  directly in settle(), where the token-level outcome is visible.) */
+/** What is owed on a repeatable product, before anybody asks the store to
+ *  sell another one.
+ *
+ *  Play refuses to open the payment sheet for a consumable the account still
+ *  holds, and it refuses with its OWN dialog - "You already own this item" -
+ *  which is drawn before a single line of this code runs. playbilling
+ *  recovers from that refusal (it checks the account and reports 'owned'), so
+ *  the purchase is never lost; but the player has already read a sentence
+ *  telling them they cannot buy the thing they just tapped. The owner read it
+ *  five times over on the tip jar, which is the one product in the game whose
+ *  entire purpose is that you can buy it again: "when purchasing support the
+ *  game it says I already own this item? this should be able to be purchased
+ *  again and again if someone wanted to".
+ *
+ *  Recovering after the dialog is too late. So this is asked FIRST, and it
+ *  answers one of three ways:
+ *
+ *    'credit' - something is paid for and deliverable right now. Grant it.
+ *               No sheet, no charge, no dialog.
+ *    'stuck'  - a receipt is on the account and will not consume (a bridge
+ *               that is not answering, an offline phone). It is PAID FOR.
+ *               Buying again would be asking for a second payment for a
+ *               product not yet delivered, so the caller must not - it says
+ *               so instead, and chase() keeps working in the background.
+ *    'none'   - the account owes nothing. Open the sheet.
+ *
+ *  A credit is only ever banked against a consume that actually cleared the
+ *  receipt: crediting an unlanded consume would let the boot sweep bank the
+ *  same payment a second time. */
+export type Owed = 'credit' | 'stuck' | 'none'
+
+export async function claimHeld(sku: string): Promise<Owed> {
+  if (creditCount(sku) > 0) return 'credit'
+  await bankReceipts(sku)
+  if (creditCount(sku) > 0) return 'credit'
+  // bankReceipts stops rather than spins when a spend does not land, so a
+  // receipt can still be sitting there. Ask the account itself.
+  if (!(await pendingConsumables()).includes(sku)) return 'none'
+  await consume(sku)
+  if ((await pendingConsumables()).includes(sku)) return 'stuck'
+  creditAdd(sku)
+  return 'credit'
+}
+
 export async function bankReceipts(sku: string): Promise<void> {
   const b = bridge()
   if (!b?.consume) return

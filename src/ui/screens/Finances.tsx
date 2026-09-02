@@ -3,7 +3,7 @@ import { useStore } from '../../store'
 import { boardObjective, facLevel, fmtMoney, fmtWage, operatingCost, weeklyCentral } from '../../game/model'
 import {
   CHARTER_SKU, buyOwnable, hasEntitlement,
-  billingReason, rewardedAvailable, showRewarded, skuPriceFrom, tillOpen,
+  billingReason, rewardedAvailable, showRewarded, tillOpen,
 } from '../../game/monetise'
 import { canTownCollection } from '../../game/rewarded'
 import { staffWageBill } from '../../game/staff'
@@ -440,24 +440,15 @@ function BoardFunds() {
   const game = useStore(s => s.game)!
   const signCharter = useStore(s => s.signCharter)
   const claim = useStore(s => s.claimSupporter)
-  const [prices, setPrices] = useState<Record<string, string | null>>({})
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ key: string; text: string } | null>(null)
   const [confirmCharter, setConfirmCharter] = useState(false)
 
+  // This desk used to fetch the charter's live price and print it on the
+  // button. v1.2.3 stopped showing prices anywhere in the game ("just a buy
+  // button"), so there is nothing to fetch: the payment sheet quotes the
+  // figure, in the currency of whoever is holding the phone.
   const open = tillOpen()
-  useEffect(() => {
-    if (!open) return
-    let live = true
-    void (async () => {
-      // ONLY A PRICE THE STORE ITSELF NAMED, same rule as the Store's own
-      // BuyBtn. This desk read the ungated call until v1.1.17 and was the last
-      // place in the game that could print a figure of our own invention.
-      const p = await skuPriceFrom(CHARTER_SKU)
-      if (live) setPrices({ [CHARTER_SKU]: p.live ? p.price : null })
-    })()
-    return () => { live = false }
-  }, [open])
   if (!open || game.unemployed) return null
 
   const sayOutcome = (key: string, out: string) => setMsg({
@@ -516,7 +507,7 @@ function BoardFunds() {
             )
           ) : (
             <button className="btn gold block" style={{ marginTop: 8 }} disabled={busy} onClick={() => { void buyCharter() }}>
-              {prices[CHARTER_SKU] ? t('till.buyFor', { price: prices[CHARTER_SKU]! }) : t('till.buy')}
+              {t('till.buy')}
             </button>
           )}
           {msg?.key === 'charter' && (

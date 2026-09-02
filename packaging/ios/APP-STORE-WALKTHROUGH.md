@@ -398,7 +398,7 @@ cd packaging/ios && npx cap sync ios
 
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.2.2`, **Build** `1`.
+*App* target → *General* → **Version** `1.2.3`, **Build** `1`.
 The version must match `package.json` and the figure on the App Store Connect
 listing, or the upload is rejected.
 

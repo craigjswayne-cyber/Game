@@ -3,8 +3,8 @@ import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import {
   CHARTER_SKU, ESTATE_SKU, GROUND_SKU, HEAL_SKU, INJECT_SKUS, PINNACLE_SKU, SUPPORT_SKU, SUPPORTER_SKU,
-  adBridge, bankReceipts, buyConsumable, buyOwnable, creditCount, creditTake, hasEntitlement, hasSupporter,
-  billingReason, heldConsumables, markXlBought, recordSupport, restore, skuPriceFrom, xlWaitMs,
+  adBridge, bankReceipts, buyConsumable, buyOwnable, claimHeld, creditCount, creditTake, hasEntitlement, hasSupporter,
+  billingReason, heldConsumables, markXlBought, recordSupport, restore, xlWaitMs,
   supportCount, tillHealth, tillOpen,
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
@@ -73,16 +73,24 @@ function Row({ icon, title, line, right, msg, children }: {
  *
  * v1.1.17 finished the job and took the catalogue figures out of the game
  * entirely - it sells in every storefront Play and the App Store reach, and a
- * price typed here is only ever right in one of them. So the button carries a
- * figure only when the store named it, and otherwise says Buy and lets the
- * store's own sheet name the price before a penny moves.
+ * price typed here is only ever right in one of them. What was left was a
+ * button that named a figure WHEN the store had named one first, and said
+ * plain "Buy" otherwise.
+ *
+ * v1.2.3 removed that last half too, at the owner's word: "we said we would
+ * remove prices from being shown on the store and across the game - just a
+ * buy button. make sure this happens." So the button says Buy, always, in
+ * every country, and the payment sheet is the only thing in the world that
+ * ever quotes a number. Nothing here can disagree with the checkout because
+ * nothing here speaks about money at all.
+ *
+ * The `sku` argument stays: it is what the tap buys, and it keeps every call
+ * site naming the product it is selling.
  */
 function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () => void }) {
-  const [price, setPrice] = useState<string | null>(null)
-  useEffect(() => { void skuPriceFrom(sku).then(p => setPrice(p.live ? p.price : null)) }, [sku])
   return (
-    <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy} onClick={onBuy}>
-      {price ? t('till.buyFor', { price }) : t('till.buy')}
+    <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy} onClick={onBuy} data-sku={sku}>
+      {t('till.buy')}
     </button>
   )
 }
@@ -211,9 +219,11 @@ export default function Supporter() {
   const buyHeal = () => runFor(HEAL_SKU, async () => {
     // a credit already in the bank means there is nothing to buy - going to
     // the till anyway is how Google's own "You already own this item" sheet
-    // got in front of the owner (31 Aug, the Medical Centre)
-    await bankReceipts(HEAL_SKU)
-    const out = creditCount(HEAL_SKU) > 0 ? 'owned' as const : await buyConsumable(HEAL_SKU)
+    // got in front of the owner (31 Aug, the Medical Centre). claimHeld asks
+    // that question completely: banked credit, stray receipt, or nothing.
+    const owed = await claimHeld(HEAL_SKU)
+    if (owed === 'stuck') { say(HEAL_SKU, t('till.owedHeld')); return }
+    const out = owed === 'credit' ? 'owned' as const : await buyConsumable(HEAL_SKU)
     if (out === 'owned') await applyHealNow()
     else say(HEAL_SKU, endingText(out))
   })
@@ -242,8 +252,13 @@ export default function Supporter() {
    *  does not land just leaves the receipt owned, and the next tap consumes
    *  it. */
   const buySupport = () => runFor(SUPPORT_SKU, async () => {
-    await bankReceipts(SUPPORT_SKU)
-    const out = creditCount(SUPPORT_SKU) > 0 ? 'owned' as const : await buyConsumable(SUPPORT_SKU)
+    // THE ONE PRODUCT THAT MUST NEVER SAY "YOU ALREADY OWN THIS".
+    // Its whole purpose is that it can be bought again, and the owner met
+    // Play's own dialog five times over. claimHeld settles what is owed
+    // BEFORE the sheet is asked for, so the refusal never happens.
+    const owed = await claimHeld(SUPPORT_SKU)
+    if (owed === 'stuck') { say(SUPPORT_SKU, t('till.owedHeld')); return }
+    const out = owed === 'credit' ? 'owned' as const : await buyConsumable(SUPPORT_SKU)
     if (out === 'owned') {
       creditTake(SUPPORT_SKU) // the thank-you is the grant; the credit is burned saying it
       say(SUPPORT_SKU, t('store.supportDone', { n: recordSupport() }))
@@ -256,8 +271,9 @@ export default function Supporter() {
      cached in rm-ent: the receipt is the ground, and estateClubs remembers it. */
   const buyGround = () => runFor(GROUND_SKU, async () => {
     if (!inCareer) { say(ESTATE_SKU, t('store.needCareer')); return }
-    await bankReceipts(GROUND_SKU)
-    const out = creditCount(GROUND_SKU) > 0 ? 'owned' as const : await buyConsumable(GROUND_SKU)
+    const owed = await claimHeld(GROUND_SKU)
+    if (owed === 'stuck') { say(ESTATE_SKU, t('till.owedHeld')); return }
+    const out = owed === 'credit' ? 'owned' as const : await buyConsumable(GROUND_SKU)
     if (out === 'owned') {
       const built = buildEstate()
       if (built) creditTake(GROUND_SKU) // unbuilt stays banked for the next club
@@ -277,8 +293,9 @@ export default function Supporter() {
   const buyInjection = (tier: InjectTier) => runFor(INJECT_SKUS[tier], async () => {
     if (!inCareer) { say(INJECT_SKUS[tier], t('store.needCareer')); return }
     const sku = INJECT_SKUS[tier]
-    await bankReceipts(sku)
-    const had = creditCount(sku) > 0
+    const owed = await claimHeld(sku)
+    if (owed === 'stuck') { say(sku, t('till.owedHeld')); return }
+    const had = owed === 'credit'
     // the Sugar Daddy calls once a day (real time) - but a credit already
     // paid for is always collectable, the clock only gates NEW purchases
     if (tier === 'xl' && !had && xlWaitMs() > 0) {

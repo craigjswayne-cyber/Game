@@ -157,7 +157,21 @@ try {
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
     await page.waitForSelector('.content')
     const till = await page.locator('.content').innerText()
-    ok(/£2\.99/.test(till), "the prices shown are the store's own")
+    // THE STORE'S OWN PRICE MUST NOT REACH THE SHELF (v1.2.3).
+    //
+    // This line asserted the opposite until now - that £2.99, the figure the
+    // fake bridge above answers details() with, WAS printed on the row. That
+    // was the v1.1.17 contract: show a price, but only ever one the store
+    // itself named, never a figure of our own invention.
+    //
+    // The owner replaced that contract: "we said we would remove prices from
+    // being shown on the store and across the game - just a buy button. make
+    // sure this happens." So the assertion is inverted rather than deleted,
+    // and it is STRICTER than what it replaces: before, a missing price was
+    // a pass whenever the bridge stayed quiet; now a price is a failure even
+    // when the bridge is shouting one. The payment sheet quotes the figure,
+    // in the currency of whoever is holding the phone, and nothing else does.
+    ok(!/£2\.99/.test(till), "the store's own price is not printed on the shelf")
     ok(!/not named its prices|named no products|guide prices/i.test(till),
       'and the shelf says nothing about its health, because there is nothing wrong with it')
     for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', 'Remove the salary cap', 'Board funding']) {
@@ -469,8 +483,11 @@ try {
     // £1.19, the same product with UK VAT on top of a tax-exclusive Console
     // price. Our figure and the store's figure looked identical on the row and
     // were not, and there is no way for a player to tell which he is reading.
-    // So a price on a button now means the STORE named it, always - and a till
-    // that names nothing shows no numbers at all rather than plausible ones.
+    // So a price on a button meant the STORE named it, always - and from
+    // v1.2.3 there is no price on a button at all, in any state of the world
+    // ("just a buy button"). This assertion was written for the case where
+    // the store stays silent and is now simply the rule everywhere; section 2
+    // above holds the same line against a store that IS naming prices.
     // A REAL-MONEY price, not any pound sign: this shelf is full of the game's
     // own money - "+£25m to the transfer budget", "£10m to £130m" - and those
     // are the product, not the price of it. Every catalogue price is pounds and

@@ -109,8 +109,54 @@ try {
   const after = await page.locator('.app').first().getAttribute('class')
   ok((after ?? '').includes('skin-stealth'), 'the chosen skin is still on after a reload')
 
-  // ---- 4. and it can be taken back off ----
-  say('\n--- 4. the built-in palette is one tap away again')
+  // ---- 4. THE FLOODLIGHT WORKS ON EVERY SKIN ----
+  //
+  // v1.2.1 shipped three skins as dark palettes only, and hid the Settings
+  // switch on them - but the header icon still toggled the class, so on a
+  // skin the button was live and moved nothing (owner, v1.2.3: "night/day
+  // mode is useless on new skins"). Each skin has a daylight twin now.
+  //
+  // Measured on --canvas rather than trusted from the class: a .day class
+  // that loses the cascade is exactly the bug being fixed, so the assertion
+  // is that the PAINT changed and got lighter, in every skin.
+  say('\n--- 4. day and night both work, on every skin')
+  const lumOf = css => {
+    const m = css.trim().match(/^#?([0-9a-f]{6})$/i)
+    if (!m) return null
+    const [r, g, b] = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16) / 255)
+      .map(v => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+  }
+  const canvasNow = () => page.evaluate(() =>
+    getComputedStyle(document.querySelector('.app')).getPropertyValue('--canvas').trim())
+  for (const s of [...SKINS, { key: 'default', label: 'Clubhouse' }]) {
+    await page.locator('.skin-card', { hasText: s.label }).click()
+    await page.waitForTimeout(200)
+    // start from night, whatever the previous loop left behind
+    let cls = await page.locator('.app').first().getAttribute('class')
+    if (!/\bnight\b/.test(cls ?? '')) {
+      await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
+      await page.waitForTimeout(250)
+    }
+    const dark = lumOf(await canvasNow())
+    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
+    await page.waitForTimeout(250)
+    const light = lumOf(await canvasNow())
+    ok(dark !== null && light !== null && light > dark,
+      `${s.label}: daylight actually lightens the page (canvas luminance ${dark?.toFixed(3)} to ${light?.toFixed(3)})`)
+    // and the type on it is still legible - the page has words and a colour
+    const ink = await page.evaluate(() =>
+      getComputedStyle(document.querySelector('.app')).getPropertyValue('--text-primary').trim())
+    const inkLum = lumOf(ink)
+    ok(inkLum !== null && light !== null && (Math.max(inkLum, light) + 0.05) / (Math.min(inkLum, light) + 0.05) >= 4.5,
+      `${s.label}: and body text still clears 4.5:1 on it (${ink})`)
+    // back to night for the next card
+    await page.locator('.card', { hasText: 'Floodlights' }).locator('.btn').click()
+    await page.waitForTimeout(200)
+  }
+
+  // ---- 5. and it can be taken back off ----
+  say('\n--- 5. the built-in palette is one tap away again')
   await page.locator('.bottom-nav button', { hasText: '▸' }).nth(1).click()
   await page.waitForSelector('.submenu')
   await page.waitForTimeout(300)
@@ -121,7 +167,7 @@ try {
   const back = await page.locator('.app').first().getAttribute('class')
   ok(!/skin-/.test(back ?? ''), `back to the built-in palette (${back})`)
   ok(/Floodlights/i.test(await page.locator('.content').innerText()),
-     'and the floodlight switch is offered again with it')
+     'and the floodlight switch is there, as it is on every skin now')
 
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
   await page.close()

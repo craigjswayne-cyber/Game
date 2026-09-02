@@ -1,8 +1,18 @@
-# Skins (v1.2.1)
+# Skins (v1.2.1, daylight added v1.2.3)
 
 Three palettes, chosen in Settings (manager menu, above Report a Bug). Each is
 a complete swap of the same role tokens the built-in night/day pair uses, so a
 skin can only reach colours the design system already owns.
+
+**Each skin has two palettes, not one.** v1.2.1 shipped them as dark-only and
+hid the floodlight switch on them — but the header icon still toggled the
+class, so on a skin the button was live and repainted nothing (owner, v1.2.3:
+"night/day mode is useless on new skins, fix this so it still works with the
+colours but has a light mode version"). The cause is specificity: `.app.skin-*`
+carries the same weight as `.app.day` and sits after it, so a skin did not
+merely outrank the floodlight, it silenced it. The daylight blocks answer to
+`.app.day.skin-*`, which outranks both. Six palettes are now measured, and a
+light one that fails AA is as unshippable as a dark one.
 
 The colours live in `src/ui/tokens.css` — the one file in the game allowed to
 hold a hex (`scripts/tokenlint.ts` enforces it). `scripts/skinprobe.ts` measures
@@ -48,6 +58,30 @@ not happen. Themes that do not declare `--positive` still fall back to
 | `--gold` | `#FFB800` | `#D8A24A` | `#C8A05A` |
 | `--danger` | `#FF7A6E` | `#EF6C63` | `#EC5C66` |
 | `--positive` | `#3DDC84` | `#4ED88C` | `#4ED88C` |
+
+## The three, in daylight
+
+The same skin with the ink taken from the other end of each ramp — Midnight
+keeps navy and cyan, Heritage keeps burgundy and brass, Stealth keeps its
+monochrome and its one red.
+
+| | Tactical Midnight | Heritage Gold | OLED Stealth |
+|---|---|---|---|
+| `--canvas` | `#EDF1F7` | `#F4F1EA` | `#F2F2F4` |
+| `--surface-1` | `#FFFFFF` | `#FFFDF8` | `#FFFFFF` |
+| `--primary` | `#00647F` | `#8C1D2A` | `#3F3F46` |
+| `--gold` | `#7A5300` | `#6E5210` | `#6B5010` |
+| `--danger` | `#C22E20` | `#B32E22` | `#C1281F` |
+| `--positive` | `#0F7A43` | `#186B3C` | `#15703E` |
+
+Worst measured pair, of the sixteen each palette is held to: Midnight 5.41:1,
+Heritage 6.20:1, Stealth 5.85:1 — all above the 4.5:1 floor.
+
+Heritage's daylight palette is worth one note. The brief supplied `#8C1D2A` as
+the interactive colour and the dark block could not use it: 1.73:1 on its own
+card, so it became the header gradient instead. On paper it measures 8.6:1, so
+daylight Heritage gives the owner's own burgundy back as the accent it was
+meant to be.
 | `--text-primary` | `#FFFFFF` | `#F4F1EA` | `#FFFFFF` |
 | `--text-secondary` | `#8E9AAF` | `#9A948D` | `#9A9AA0` |
 | worst measured pair | 4.8:1 | 4.63:1 | 4.95:1 |

@@ -217,7 +217,7 @@ export default function Transfers() {
       {xtab === 'shortlist' && game.shortlist.length > 0 && (
         <>
           <SectionTitle sub={t('transfers.shortlistSub')}>{t('transfers.shortlist')}</SectionTitle>
-          <div className="tblwrap"><table className="dtable"><tbody>
+          <div className="tblwrap"><table className="dtable codefirst"><tbody>
             {game.shortlist.map(id => game.players[id]).filter(Boolean).map(p => (
               <tr key={p.id} onClick={() => go('player', p.id)}>
                 <td><PosBadge pos={p.pos} /></td>
@@ -239,7 +239,7 @@ export default function Transfers() {
 
       {xtab === 'loans' && <>
       <SectionTitle sub={t('transfers.loanMarketSub')}>{t('transfers.loanMarket')}</SectionTitle>
-      <div className="tblwrap"><table className="dtable"><tbody>
+      <div className="tblwrap"><table className="dtable codefirst"><tbody>
         {loanTargets(game).map(p => (
           <tr key={p.id}>
             <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
@@ -314,7 +314,9 @@ export default function Transfers() {
         <button className="preset-chip" style={keenOnly ? undefined : { background: 'var(--surface-2)', color: 'var(--text-secondary)' }}
           onClick={() => { setKeenOnly(!keenOnly); setPage(0) }}>{t('transfers.interested')}</button>
       </div>
-      <div className="tblwrap"><table className="dtable">
+      {/* codefirst: the leading column is a position code, so it forgoes the
+          16px first-column gutter - eight columns already fill a 412px phone */}
+      <div className="tblwrap"><table className="dtable codefirst">
         <thead><tr>
           <th>{t('squad.colPos')}</th>
           <MTh k="name">{t('squad.colName')}</MTh>
@@ -435,7 +437,7 @@ function ScoutCommission() {
       {finds.length > 0 && (
         <>
           <SectionTitle sub={t('transfers.scoutsReportSub')}>{t('transfers.scoutsReport')}</SectionTitle>
-          <div className="tblwrap"><table className="dtable"><tbody>
+          <div className="tblwrap"><table className="dtable codefirst"><tbody>
             {finds.map(f => {
               const p = game.players[f.playerId]
               if (!p) return null

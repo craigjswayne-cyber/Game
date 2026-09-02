@@ -3,16 +3,23 @@
 // The release audit (Part 2.3) measured every one of the UI's font sizes in px
 // behind a user-scalable=no viewport: OS text scaling did nothing, and there
 // was no in-game path either. The fix is a zoom on the document root - chosen
-// on the title screen, persisted as rm-zoom, applied by App on boot - which
+// on the Settings page, persisted as rm-zoom, applied by App on boot - which
 // scales type and controls while viewport-unit lengths (exempt from zoom by
 // spec) keep the shell screen-sized.
 //
+// The control lived on the title screen until v1.2.3 and now lives only in
+// Settings (owner: "remove text size from the main menu now we have it in
+// settings"), so this walks into a career to find it. It keeps the same two
+// class names it always had, .text-scale-row and .text-scale-btn, which is
+// the whole point of them.
+//
 // What this holds:
-//   1. The control exists on the title screen (red on any build without it).
-//   2. Choosing large actually renders larger: the wordmark's box grows ~1.3x.
+//   1. The control exists on Settings (red on any build without it).
+//   2. Choosing large actually renders larger: the label's box grows ~1.3x.
 //   3. It survives a reload: the store boots the saved scale, not 1.
-//   4. The game is PLAYABLE at 1.3: the wizard walks to Home, nothing scrolls
-//      sideways, and the bottom nav still ends inside the viewport.
+//   4. The game is PLAYABLE at 1.3: nothing scrolls sideways on Home, and the
+//      bottom nav still ends inside the viewport.
+//   5. And the title screen it LEFT carries no second copy of it.
 //
 // Run: node scripts/textscale.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
@@ -40,13 +47,30 @@ const labelHeight = () => page.evaluate(() => {
   return el ? el.getBoundingClientRect().height : 0
 })
 
+/** Into a career and onto Settings, by the store handle rather than by
+ *  clicking eight labels: this probe is about the zoom, not about the wizard,
+ *  and textscale used to be measurable on the title screen in one hop. */
+const toSettings = async () => {
+  await page.evaluate(() => window.rugbyStore.getState().start('northampton', 'Bigtype'))
+  await page.waitForTimeout(600)
+  await page.locator('.tut-close .btn').click({ timeout: 4000 }).catch(() => {})
+  await page.evaluate(() => window.rugbyStore.getState().go('settings'))
+  await page.waitForSelector('.text-scale-row', { timeout: 9000 })
+}
+
 try {
   await page.goto('http://localhost:4211/')
   await page.waitForSelector('text=RUGBY', { timeout: 15000 })
 
+  // ---- 0. the title screen has let it go ----
+  ok(await page.locator('.text-scale-row').count() === 0,
+    'the title screen carries no text size control any more')
+
+  await toSettings()
+
   // ---- 1. the control exists ----
   const btns = await page.locator('.text-scale-row .text-scale-btn').count()
-  ok(btns === 3, `the title screen offers three text sizes (${btns})`)
+  ok(btns === 3, `Settings offers three text sizes (${btns})`)
 
   // ---- 2. large means larger ----
   const base = await labelHeight()
@@ -62,27 +86,18 @@ try {
 
   // ---- 3. it survives a reload ----
   await page.reload()
-  await page.waitForSelector('text=RUGBY', { timeout: 15000 })
+  await page.waitForTimeout(1200)
+  await page.evaluate(() => window.rugbyStore.getState().go('settings')).catch(() => {})
+  await page.waitForSelector('.text-scale-row', { timeout: 15000 })
   const after = await labelHeight()
   ok(base > 0 && after / base > 1.2,
     `a reload boots at the saved scale, not at 1 (${after.toFixed(1)}px)`)
-  ok((await overflow()) <= 1, `the title screen holds its width at 1.3 (${await overflow()}px over)`)
+  ok((await overflow()) <= 1, `Settings holds its width at 1.3 (${await overflow()}px over)`)
 
   // ---- 4. the game is playable at 1.3 ----
-  await page.click('text=New Career')
-  await page.waitForSelector('text=English Premier Division')
-  await page.click('text=English Premier Division')
-  await page.waitForSelector('.club-tile')
-  await page.click('.tile >> text=Northampton')
-  await page.waitForSelector('text=Star Player')
-  await page.click('.action-bar >> text=Confirm')
-  await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Bigtype')
-  await page.click('.speech-tile >> text=Forward Dominance')
-  await page.click('.action-bar >> text=Confirm')
-  await page.click('text=Start Career')
-  await page.waitForSelector('.tut-box', { timeout: 15000 })
-  await page.click('.tut-close .btn')
+  await page.evaluate(() => window.rugbyStore.getState().go('home'))
   await page.waitForSelector('.masthead', { timeout: 20000 })
+  await page.waitForTimeout(400)
   ok((await overflow()) <= 1, `Home holds its width at 1.3 (${await overflow()}px over)`)
   const nav = await page.evaluate(() => {
     const el = document.querySelector('.bottom-nav')

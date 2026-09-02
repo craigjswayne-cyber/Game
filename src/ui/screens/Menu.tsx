@@ -8,8 +8,6 @@ import { BrandMark } from '../components'
 export default function Menu() {
   const go = useStore(s => s.go)
   const setGame = useStore(s => s.setGame)
-  const textScale = useStore(s => s.textScale)
-  const setTextScale = useStore(s => s.setTextScale)
   const lang = useStore(s => s.lang)
   const supporter = useStore(s => s.supporter)
   const setLang = useStore(s => s.setLang)
@@ -77,35 +75,18 @@ export default function Menu() {
           </div>
         ))}
       </div>
-      {/* Text size: a zoom on the document root, because every font size in
-          this UI is px and the OS text slider therefore does nothing (release
-          audit, Part 2.3). Three steps, persisted like night mode; the buttons
-          preview their own size. */}
-      <div className="text-scale-row" style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>{t('menu.textSize')}</span>
-        {([[1, 13], [1.15, 15], [1.3, 18]] as const).map(([v, px]) => (
-          <button key={v} className="btn ghost text-scale-btn"
-            aria-pressed={textScale === v}
-            style={{
-              fontSize: px, padding: '4px 12px', lineHeight: 1,
-              color: textScale === v ? 'var(--primary)' : 'var(--text-secondary)',
-              borderColor: textScale === v ? 'var(--primary)' : 'var(--border-strong)',
-            }}
-            onClick={() => setTextScale(v)}>
-            A
-          </button>
-        ))}
-      </div>
-      {/* Language, directly under text size, because the two are the same kind
-          of decision: how this game reads on this phone. It sits on the title
-          screen rather than behind the Manager menu so it can be answered
-          before a career exists - a French speaker should never have to start
-          one in English to find the switch.
+      {/* Language stays on the title screen so it can be answered BEFORE a
+          career exists - a French speaker should never have to start one in
+          English to find the switch. Text size used to sit above it and no
+          longer does: Settings owns that now, and one control in two places
+          is one place too many (owner, v1.2.3: "remove text size from the
+          main menu now we have it in settings"). Language is the exception
+          because Settings is unreachable until a career is running.
 
           The labels are written in their own language ("Français", not
           "French"): somebody hunting for their language is scanning for the
           word they would use for it. */}
-      <div className="lang-row" style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+      <div className="lang-row" style={{ marginTop: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
         <span className="muted" style={{ fontSize: 12, letterSpacing: 1 }}>{t('menu.language')}</span>
         {/* a dropdown, not a button row (owner, v1.2.0: "languages to be a
             drop down menu"): five names no longer fit across a phone, and a

@@ -12,8 +12,7 @@
     "loadCareer": "Charger une carrière",
     "newCareer": "Nouvelle carrière",
     "savedAt": "{season}, semaine {week}",
-    "tagline": "HISTOIRES, SAISONS & TROPHÉES",
-    "textSize": "TAILLE DU TEXTE"
+    "tagline": "HISTOIRES, SAISONS & TROPHÉES"
   },
   "nav": {
     "news": "Actus",
@@ -286,16 +285,7 @@
       "other": "Sélection annoncée dans {n} jours."
     },
     "squadThisWeek": "🌍 SEMAINE DE SÉLECTION : vous annoncez votre groupe {nat} cette semaine.",
-    "campOpen": "Le camp est ouvert - {n} sur {size} retenus. Touchez pour composer le groupe.",
-    "grudgeWon": "{rival} a gagné. Encore. {jab}",
-    "grudgeLost": "{rival} a perdu. {jab}",
-    "grudgeDrew": "{rival} a fait match nul. {jab}",
-    "grudgeIdle": "{rival} était au repos. {jab}",
-    "grudgeJabAbove": "Vous êtes toujours devant.",
-    "grudgeJabBelow": "Ils sont toujours devant.",
-    "grudgeJabLevel": "À égalité de points. Que quelqu'un cligne des yeux.",
-    "grudgeJabFar": "Un écart de {n}, et pas dans le bon sens.",
-    "grudgeJabClear": "{n} de mieux qu’eux. Savourez discrètement."
+    "campOpen": "Le camp est ouvert - {n} sur {size} retenus. Touchez pour composer le groupe."
   },
   "squad": {
     "tabSelection": "Composition",
@@ -2065,7 +2055,13 @@
     "standNoName": "Un effectif d'internationaux, un entraîneur sans nom : chaque consigne est discrètement réexaminée.",
     "natKeepClubQ": "Et {club} ? Voulez-vous garder votre poste en club ?",
     "natResignClub": "Démissionner du club",
-    "natKeepBoth": "Continuer avec les deux"
+    "natKeepBoth": "Continuer avec les deux",
+    "supportersClub": "Club des supporters PHASE",
+    "supportersCount": {
+      "one": "{n} don",
+      "other": "{n} dons"
+    },
+    "supportersThanks": "Merci. C’est ce qui fait tourner la boutique."
   },
   "week": {
     "wireQuietWeek": "Une semaine calme. Ça ne dure jamais.",
@@ -5612,7 +5608,6 @@
     "xlTomorrow": "Revenez demain",
     "xlWait": "Le Mécène ne passe qu'une fois par jour. De retour dans environ {h} h.",
     "buy": "Acheter",
-    "buyFor": "Acheter - {price}",
     "injLanded": "Les fonds sont arrivés : {amount} ajoutés au budget et aux comptes.",
     "injHeld": "Payée, et en attente : le conseil ne la votera plus cette saison. Elle reste à vous - cette page la proposera de nouveau quand le puits se remplira.",
     "pending": "La boutique la traite encore. Rien de plus à faire : dès qu'elle aboutit, cette page la proposera à la carrière ouverte devant vous.",
@@ -5642,7 +5637,8 @@
     "watchAnalyst": {
       "one": "📺 L'analyste a une lecture de plus - sa nuit blanche contre un spot",
       "other": "📺 L'analyste a {n} lectures de plus - sa nuit blanche contre un spot"
-    }
+    },
+    "owedHeld": "Déjà payé. La livraison n’est pas encore passée, donc rien ne vous a été facturé une seconde fois : le jeu continue en arrière-plan. Revenez dans une minute."
   },
   "store": {
     "title": "Boutique",
@@ -5695,7 +5691,7 @@
     "skin": "Habillage",
     "skinLine": "Tous les écrans, repeints. Rien ne change au rugby.",
     "skinDefault": "Club-house",
-    "skinDefaultLine": "Le vert et l’or d’origine, avec des projecteurs que l’on peut éteindre.",
+    "skinDefaultLine": "Le vert et l’or dans lesquels le jeu a été conçu.",
     "skinMidnight": "Minuit tactique",
     "skinMidnightLine": "Marine et cyan électrique. La vue depuis la passerelle, tout en télestrateur et sans buvette.",
     "skinHeritage": "Or patrimoine",
@@ -5730,43 +5726,5 @@
     "unfairBtn": "« C’était injuste. »",
     "unfairLine": "C’était injuste, et tout le monde ici le sait. Des blessés tout l’hiver, pas un centime en janvier, et onze semaines pour réparer ce que dix ans ont cassé. Jugez-moi sur une saison entière ou ne me jugez pas.",
     "unfairReply": "La moitié de la salle écrit « digne », l’autre moitié écrit « excuses ». Les deux papiers paraissent. C’est la presse - vous n’alliez jamais en sortir avec un seul titre."
-  },
-  "bp": {
-    "strap": "La dernière page",
-    "read": "Lire le compte rendu",
-    "close": "Replier le journal",
-    "headWin": "{us} {s1}-{s2} {opp}",
-    "subWin": "Le travail est fait. {gaffer} dit que son équipe « a montré du caractère », ce qu'on dit quand on a perdu.",
-    "headLoss": "{opp} {s2}-{s1} {us}",
-    "subLoss": "Pas aujourd'hui. Vous dites que la prestation méritait mieux, ce qu'on dit quand on a perdu.",
-    "headDraw": "HONNEURS PARTAGÉS : {s1}-{s2}",
-    "subDraw": "Deux équipes, un point chacune, et personne ne rentre content.",
-    "headComeback": "MENÉS DE {n} POINTS, ET POURTANT : {us} {s1}-{s2} {opp}",
-    "subComeback": "Quoi qu'il se soit dit à la mi-temps, ça a marché. {gaffer} refuse de commenter, longuement.",
-    "headCollapse": "{n} POINTS D'AVANCE, ET PUIS ÇA : {opp} {s2}-{s1} {us}",
-    "subCollapse": "Une avance à la pause sur laquelle on aurait pu garer un bus, et quelqu'un a oublié le frein à main.",
-    "headRedOurs": "CARTON ROUGE : {player} EXPULSÉ À LA {min}",
-    "headRedTheirs": "{player} ({opp}) EXPULSÉ À LA {min}",
-    "subRedWon": "Quatorze hommes, un résultat, et une commission de discipline en perspective.",
-    "subRedLost": "Le carton a changé le match, disent tous ceux qui ont perdu. Le tableau d'affichage le changeait déjà.",
-    "headHatTrick": "TRIPLÉ DE {player} : {us} {s1}-{s2} {opp}",
-    "subHatWon": "{n} pour un seul homme, et le ballon du match repart avec lui. Les défenseurs repartent avec des questions.",
-    "subHatLost": "{n} pour {player} et battu quand même, ce qui est un samedi d’un genre très particulier.",
-    "headDerbyWon": "LE DERBY EST À NOUS : {us} {s1}-{s2} {opp}",
-    "subDerbyWon": "Le droit de fanfaronner est acquis jusqu'au prochain. La ville est à vous pour quinze jours.",
-    "headDerbyLost": "DERBY CRÈVE-CŒUR : {opp} {s2}-{s1} {us}",
-    "subDerbyLost": "Leur virage a chanté vingt minutes après le coup de sifflet final. Vous en avez entendu chaque mot.",
-    "headDerbyDraw": "DERBY SANS VAINQUEUR : {s1}-{s2}",
-    "headRout": "DÉMONSTRATION : {us} {s1}-{s2} {opp}",
-    "subRout": "{n} points d'écart et un très court trajet jusqu'aux vestiaires pour {gaffer}.",
-    "headRouted": "HUMILIATION : {opp} {s2}-{s1} {us}",
-    "subRouted": "Battus de {n}. Les supporters restés jusqu’au bout méritent une médaille, ou un remboursement.",
-    "headLateWin": "{player} À LA {min} FAIT LA DIFFÉRENCE : {us} {s1}-{s2} {opp}",
-    "subLateWin": "Volé dans les arrêts de jeu, et personne de votre côté n'a l'intention de le rendre.",
-    "headLateLoss": "CRÈVE-CŒUR À LA {min} : {opp} {s2}-{s1} {us}",
-    "subLateLoss": "La réalisation tardive de {player} fait la différence. Quatre-vingts minutes de travail défaites en une.",
-    "headDebut": "ESSAI DÈS SES DÉBUTS POUR {player}",
-    "subDebutWon": "Un premier match et un premier essai, dans le camp vainqueur. Certains attendent toute une carrière pour ça.",
-    "subDebutLost": "Un premier essai dans le camp battu. Il se souviendra de l'essai ; l'équipe se souviendra du résultat."
   }
 }

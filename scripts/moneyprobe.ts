@@ -694,20 +694,39 @@ console.log('\n--- 13c. the game declares no cost: every figure comes from a sto
   ok(money.length === 0,
     `and monetise.ts holds no money literal at all (${money.join(' | ') || 'none'})`)
 
-  // every screen that asks for a price must check where it came from
-  const ungated: string[] = []
+  // NO SCREEN ASKS FOR A PRICE AT ALL.
+  //
+  // This used to be the weaker check that every screen READING a price gated
+  // it on `.live ?`, so that only a figure the store itself named could reach
+  // a button. v1.2.3 went further at the owner's word - "we said we would
+  // remove prices from being shown on the store and across the game - just a
+  // buy button" - so the rule is now the absolute one: the UI layer does not
+  // read skuPriceFrom, and no string in it renders a price.
+  //
+  // skuPriceFrom itself stays, and is still called from monetise.ts, because
+  // asking the store for a price is how storeReachable() finds out whether
+  // there is a store to ask. That is a health check, not a display.
+  const priced: string[] = []
   const walk = (dir: string) => {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
       const f = `${dir}/${e.name}`
       if (e.isDirectory()) { walk(f); continue }
       if (!/\.tsx?$/.test(e.name)) continue
+      // comments are allowed to REMEMBER a price - three of them recount the
+      // £0.99-vs-£1.19 mismatch that started all this - so the line is read
+      // with its comment stripped off before it is judged.
       const src = readFileSync(f, 'utf8')
-      if (src.includes('skuPriceFrom') && !src.includes('.live ?')) ungated.push(f)
+        .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+      if (src.includes('skuPriceFrom') || src.includes('till.buyFor')) priced.push(f)
     }
   }
   walk('src/ui')
-  ok(ungated.length === 0,
-    `every screen that asks a price checks whether the store named it (${ungated.join(', ') || 'all do'})`)
+  ok(priced.length === 0,
+    `no screen in the game shows a price - the payment sheet is the only thing that quotes one (${priced.join(', ') || 'none do'})`)
+  // and the string that used to print one is gone from every language
+  const dicts = ['en', 'fr', 'es', 'it', 'ja']
+    .filter(l => JSON.parse(readFileSync(`src/locales/${l}.json`, 'utf8')).till?.buyFor !== undefined)
+  ok(dicts.length === 0, `no dictionary still carries a priced buy label (${dicts.join(', ') || 'none'})`)
 }
 
 // ---- 14. the iOS bridge, and the three files that have to agree ------------

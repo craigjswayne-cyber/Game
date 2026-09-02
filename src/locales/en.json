@@ -12,8 +12,7 @@
   "loadCareer": "Load Career",
   "newCareer": "New Career",
   "savedAt": "{season}, Week {week}",
-  "tagline": "STORIES, SEASONS & SILVERWARE",
-  "textSize": "TEXT SIZE"
+  "tagline": "STORIES, SEASONS & SILVERWARE"
  },
  "nav": {
   "news": "News",
@@ -286,16 +285,7 @@
    "other": "Squad named in {n} days."
   },
   "squadThisWeek": "🌍 SQUAD WEEK: you name your {nat} party this week.",
-  "campOpen": "Camp is open - {n} of {size} named. Tap to shape the squad.",
-  "grudgeWon": "{rival} won. Again. {jab}",
-  "grudgeLost": "{rival} lost. {jab}",
-  "grudgeDrew": "{rival} drew. {jab}",
-  "grudgeIdle": "{rival} were idle. {jab}",
-  "grudgeJabAbove": "You're still above them.",
-  "grudgeJabBelow": "They're still above you.",
-  "grudgeJabLevel": "Level on points. Somebody blink.",
-  "grudgeJabFar": "A gap of {n}, and not the right way.",
-  "grudgeJabClear": "Clear of them by {n}. Enjoy it quietly."
+  "campOpen": "Camp is open - {n} of {size} named. Tap to shape the squad."
  },
  "squad": {
   "tabSelection": "Selection",
@@ -2065,7 +2055,13 @@
   "natResignClub": "Resign the club",
   "natKeepBoth": "Continue with both",
   "natKeepAskTitle": "🌍 {nat} - and your club?",
-  "natKeepAskBody": "You are the head coach of {nat}. The one thing left to settle is whether you carry on at {club}. Keep both and your assistant takes the club on Test Saturdays; leave and the country is your whole job."
+  "natKeepAskBody": "You are the head coach of {nat}. The one thing left to settle is whether you carry on at {club}. Keep both and your assistant takes the club on Test Saturdays; leave and the country is your whole job.",
+  "supportersClub": "PHASE Supporters Club",
+  "supportersCount": {
+   "one": "{n} donation",
+   "other": "{n} donations"
+  },
+  "supportersThanks": "Thank you. It keeps the lights on."
  },
  "week": {
   "wireQuietWeek": "A quiet week. It never lasts.",
@@ -5612,7 +5608,6 @@
   "xlTomorrow": "Back tomorrow",
   "xlWait": "The Sugar Daddy calls once a day. Ready again in about {h}h.",
   "buy": "Buy",
-  "buyFor": "Buy - {price}",
   "injLanded": "The funds have landed: {amount} added to the budget and the books.",
   "injHeld": "Paid, and held: the board will not vote it through again this season. It stays yours - this page will offer it again when the well refills.",
   "pending": "The store is still processing it. Nothing more to do - when it lands, this page will offer it to the career in front of you.",
@@ -5642,7 +5637,8 @@
   "watchAnalyst": {
    "one": "📺 The analyst has one more read - his all-nighter for a spot",
    "other": "📺 The analyst has {n} more reads - his all-nighter for a spot"
-  }
+  },
+  "owedHeld": "Already paid for. It has not been delivered yet, so you have not been charged again - the game keeps trying in the background. Come back in a minute."
  },
  "store": {
   "title": "Store",
@@ -5695,7 +5691,7 @@
   "skin": "Skin",
   "skinLine": "Every screen, repainted. Nothing about the football changes.",
   "skinDefault": "Clubhouse",
-  "skinDefaultLine": "The green and gold the game was built in, with floodlights you can switch off.",
+  "skinDefaultLine": "The green and gold the game was built in.",
   "skinMidnight": "Tactical Midnight",
   "skinMidnightLine": "Navy and electric cyan. The gantry view, all telestrator and no tea urn.",
   "skinHeritage": "Heritage Gold",
@@ -5730,43 +5726,5 @@
   "unfairBtn": "“It was unfair.”",
   "unfairLine": "It was unfair, and everyone in this room knows it. Injuries all winter, no money in January, and eleven weeks to fix what took ten years to break. Judge me on a full season or do not judge me at all.",
   "unfairReply": "Half the room writes “dignified”, the other half writes “excuses”. Both pieces run. That is the press for you - you were never going to get one headline out of this."
- },
- "bp": {
-  "strap": "The back page",
-  "read": "Read the report",
-  "close": "Fold it away",
-  "headWin": "{us} {s1}-{s2} {opp}",
-  "subWin": "Job done. {gaffer} says his side 'showed character', which is what you say when you have lost.",
-  "headLoss": "{opp} {s2}-{s1} {us}",
-  "subLoss": "Not today. You say the performance deserved more, which is what you say when you have lost.",
-  "headDraw": "HONOURS EVEN AT {s1}-{s2}",
-  "subDraw": "Two sides, one point each, and nobody going home happy about it.",
-  "headComeback": "FROM {n} DOWN: {us} {s1}-{s2} {opp}",
-  "subComeback": "Whatever was said at half time, it worked. {gaffer} declines to comment, at length.",
-  "headCollapse": "{n} UP, AND THEN THIS: {opp} {s2}-{s1} {us}",
-  "subCollapse": "A half-time lead you could have parked a bus on, and somebody left the handbrake off.",
-  "headRedOurs": "SEEING RED: {player} OFF ON {min}",
-  "headRedTheirs": "{opp}'S {player} SENT OFF ON {min}",
-  "subRedWon": "Fourteen men, one result, and a disciplinary hearing to look forward to.",
-  "subRedLost": "The card changed the game, says everyone who lost. The scoreboard was already changing it.",
-  "headHatTrick": "{player} HAT-TRICK: {us} {s1}-{s2} {opp}",
-  "subHatWon": "{n} for one man, and the match ball goes home with him. The defenders go home with questions.",
-  "subHatLost": "{n} for {player} and still beaten, which is a very particular kind of Saturday.",
-  "headDerbyWon": "DERBY DAY IS OURS: {us} {s1}-{s2} {opp}",
-  "subDerbyWon": "Bragging rights secured until the next one. The town is yours for a fortnight.",
-  "headDerbyLost": "DERBY HEARTBREAK: {opp} {s2}-{s1} {us}",
-  "subDerbyLost": "Their end sang for twenty minutes after the whistle. You heard every word of it.",
-  "headDerbyDraw": "DERBY STALEMATE: {s1}-{s2}",
-  "headRout": "ROUT: {us} {s1}-{s2} {opp}",
-  "subRout": "A {n}-point margin and a very short walk to the changing rooms for {gaffer}.",
-  "headRouted": "HUMILIATION: {opp} {s2}-{s1} {us}",
-  "subRouted": "Beaten by {n}. The supporters who stayed deserve a medal, or a refund.",
-  "headLateWin": "{player} ON {min} WINS IT: {us} {s1}-{s2} {opp}",
-  "subLateWin": "Stolen at the death, and nobody on your side is giving it back.",
-  "headLateLoss": "HEARTBREAK ON {min}: {opp} {s2}-{s1} {us}",
-  "subLateLoss": "{player}'s late score does it. Eighty minutes of work undone in one.",
-  "headDebut": "DEBUT TRY FOR {player}",
-  "subDebutWon": "A first game and a first try, on a winning side. Some men wait a career for one of those.",
-  "subDebutLost": "A first try on a losing side. He will remember the try; the team will remember the result."
  }
 }

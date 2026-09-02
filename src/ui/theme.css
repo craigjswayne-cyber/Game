@@ -317,6 +317,27 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
    hand-placed paddingRight the nations table already carried for the same
    reason. */
 .dtable th:last-child, .dtable td:last-child { padding-right: 16px; }
+/* AND SO DOES THE FIRST. The gutter above was added to the last column alone,
+   which left every table's opening column - almost always the player's name -
+   sitting 6px off the bare edge of the phone, with no card margin under it to
+   stand the text on (owner, v1.2.3, Condition tab: "the players names are too
+   tight to the left of the screen"). .tblwrap is full-bleed by design, so the
+   gutter has to come from the cell. Same 16px as the far side, so a table is
+   inset evenly rather than drifting right.
+
+   A table whose first column is a CODE rather than a name carries .codefirst
+   and is EXEMPTED rather than overridden. The gutter exists to stop a NAME
+   touching the bezel; spending it on a three-letter position abbreviation or
+   a shirt number just costs the columns to its right, and the transfer
+   market has eight of them on a 412px phone.
+
+   Exempt, not override, because the portrait breakpoint below already
+   narrows these cells to 4px: an override would have to name a number, and
+   the first attempt named 6px, which is 2px WIDER than what portrait gives
+   them - enough on its own to push the Japanese market table off the side.
+   :not() leaves the cascade to say what it was always going to say. */
+.dtable:not(.codefirst) th:first-child,
+.dtable:not(.codefirst) td:first-child { padding-left: 16px; }
 .dtable .me td {
   background: color-mix(in srgb, var(--club1) 9%, var(--surface-1));
   color: var(--text-primary);
@@ -706,12 +727,30 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
 
 /* ================= Title screen ================= */
+/* THE TITLE SCREEN CLEARS THE STATUS BAR, AND NEVER CLIPS ITS OWN TOP.
+   Two faults, one symptom - the wordmark cut off at the top of the phone
+   (owner, v1.2.3: "the logo up the top is cut off. can it be lowered a bit?").
+
+   1. index.html asks for viewport-fit=cover, so the page is drawn UNDER the
+      status bar. Every other top-anchored surface in this file already pays
+      env(safe-area-inset-top) for that; this one asked for a flat 24px and so
+      put the brand mark behind the clock.
+   2. `justify-content: center` on an overflowing column clips BOTH ends, and
+      the top end cannot be scrolled back to - overflow only ever reveals the
+      bottom. With a continue tile, two buttons, a save list and the language
+      row, a short phone overflows. `safe center` stops centring rather than
+      clipping; browsers that do not know it keep the plain `center` above it,
+      and overflow-y gives them somewhere to go. */
 .title-screen {
-  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
   background:
     radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
     var(--canvas);
-  color: var(--text-primary); text-align: center; padding: 24px;
+  color: var(--text-primary); text-align: center;
+  padding: calc(env(safe-area-inset-top) + 28px) 24px calc(env(safe-area-inset-bottom) + 24px);
 }
 
 /* THE MANAGER'S OFFICE.
@@ -864,10 +903,8 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    where "EN" is two, and the languages still to come are longer again; a row
    that squeezed them would end up with a two-line button in it. */
 .title-screen .lang-row { flex-wrap: wrap; row-gap: 8px; }
-.title-screen .lang-btn,
-.title-screen .text-scale-btn { position: relative; }
-.title-screen .lang-btn::after,
-.title-screen .text-scale-btn::after { content: ''; position: absolute; inset: -10px -2px; }
+.title-screen .lang-btn { position: relative; }
+.title-screen .lang-btn::after { content: ''; position: absolute; inset: -10px -2px; }
 
 /* ================= Misc ================= */
 .form-pill {
@@ -3869,21 +3906,3 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 
 
-/* ---- THE BACK PAGE (v1.2.2) ---- a tabloid back page after every match,
-   an ORDINARY CARD in the Home flow. Two builds tried to float it (a veil,
-   then a fixed dock) and both ended up over something the player needed. */
-.card.backpage {
-  border-top: 6px solid var(--danger-fill);
-  animation: cel-pop .45s cubic-bezier(.2, 1.4, .4, 1) both .05s;
-}
-.backpage-strap {
-  font-family: var(--cond); font-weight: 900; letter-spacing: 1.8px;
-  text-transform: uppercase; font-size: 11px; color: var(--text-muted);
-}
-.backpage-head {
-  font-family: var(--serif); font-weight: 900; font-size: 26px;
-  line-height: 1.08; margin: 6px 0 10px; text-transform: uppercase;
-  letter-spacing: .3px; overflow-wrap: anywhere;
-}
-.backpage-sub { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); }
-.card.grudge { border-left: 4px solid var(--border-strong); cursor: pointer; }

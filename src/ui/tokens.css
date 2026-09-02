@@ -187,6 +187,18 @@
   --danger: #ef6c63;
   --gold: #e9be68;
 }
+/* and the same six in daylight, for the same reason: the Clubhouse card has
+   no skin class to wear in either mode, so both have to be spelled out or the
+   strip offers night's greens to somebody reading in the sun. These are the
+   `.app.day` block's own values. */
+.skin-swatches.skin-default.day {
+  --canvas: #f1f4f1;
+  --surface-1: #ffffff;
+  --primary: #0f7a43;
+  --positive: #0f7a43;
+  --danger: #c0362c;
+  --gold: #8a6516;
+}
 
 /* ---------------- Tactical Midnight ----------------
    Navy and electric cyan. Cyan is the ACTIONABLE colour here; green is
@@ -341,6 +353,193 @@
 
   --positive: #4ED88C;
   --on-positive: #06170E;
+}
+
+/* ==================================================================
+   THE SKINS IN DAYLIGHT (v1.2.3).
+
+   Owner: "night/day mode is useless on new skins, fix this so it still
+   works with the colours but has a light mode version."
+
+   He is right, and the cause is one line of the block above: a skin is
+   a COMPLETE token set at `.app.skin-*`, which carries the same
+   specificity as `.app.day` and sits after it. So choosing a skin did
+   not merely outrank the floodlight - it silenced it. The button still
+   toggled a class, and nothing on screen moved.
+
+   The fix is a second palette per skin, at `.app.day.skin-*` (0,3,0),
+   which outranks both the skin's night block (0,2,0) and plain day.
+   `.app:not(.night).skin-*` is the same weight and covers the spelling
+   the store used before the toggle moved to adding .day - the note at
+   the top of this file explains why both spellings are answered.
+
+   Each is the SAME skin in daylight, not a different one: Midnight
+   keeps navy and cyan, Heritage keeps burgundy and brass, Stealth keeps
+   its monochrome and its single red. What changes is which end of each
+   ramp the ink comes from.
+
+   All three were measured before they were written - scripts/skinprobe.ts
+   now walks the light variant of every skin as well as the dark, so
+   there are six palettes under the 4.5:1 floor rather than three.
+
+   ONE HAPPY ACCIDENT IS WORTH RECORDING. Heritage's brief supplied
+   #8C1D2A and the night block could not use it as text: 1.73:1 on its
+   own card, so it became the header gradient instead. On paper it is
+   8.6:1, so daylight Heritage gives the owner's own burgundy back as
+   the interactive colour it was meant to be.
+   ================================================================== */
+
+/* ---------------- Tactical Midnight, daylight ----------------
+   Broadcast graphics printed rather than lit: the same navy, the same
+   cyan, taken from the dark end of their ramps so they read as ink. */
+.app.day.skin-midnight,
+.app:not(.night).skin-midnight,
+.skin-swatches.skin-midnight.day {
+  color-scheme: light;
+
+  --canvas: #EDF1F7;
+  --surface-1: #FFFFFF;
+  --surface-2: #E1E8F2;
+  --surface-3: #FFFFFF;
+  --border: #D2DBE8;
+  --border-strong: #A9B6C9;
+
+  --text-primary: #0B1320;
+  --text-secondary: #44546B;
+  --text-muted: #5A6980;
+
+  --primary: #00647F;
+  --primary-hover: #00516A;
+  --primary-pressed: #003F53;
+  --primary-tint: #DEF0F6;
+  --on-primary: #FFFFFF;
+
+  --gold: #7A5300;
+  --gold-fill: #FFB800;
+  --gold-tint: #FDF0D5;
+  --on-gold: #FFFFFF;
+
+  --danger: #C22E20;
+  --danger-fill: #FF9D8F;
+  --danger-tint: #FBE7E4;
+
+  --info: #5B34C4;
+
+  /* the hero keeps the night gradient: it is a dark band by design, and
+     the masthead reads white on it in either mode */
+  --hero-gradient: linear-gradient(135deg, #0E2036, #12578C);
+
+  --on-hero: #FFFFFF;
+  --on-hero-soft: #B9C9DF;
+  --scrim: rgba(11, 19, 32, 0.45);
+  --pitch-a: #2E7A52;
+  --pitch-b: #2A7050;
+  --on-danger: #FFFFFF;
+  --on-info: #FFFFFF;
+
+  --positive: #0F7A43;
+  --on-positive: #FFFFFF;
+}
+
+/* ---------------- Heritage Gold, daylight ----------------
+   The broadsheet on actual newsprint. Burgundy comes off the header and
+   onto the page as the interactive colour - see the note above. */
+.app.day.skin-heritage,
+.app:not(.night).skin-heritage,
+.skin-swatches.skin-heritage.day {
+  color-scheme: light;
+
+  --canvas: #F4F1EA;
+  --surface-1: #FFFDF8;
+  --surface-2: #EBE6DA;
+  --surface-3: #FFFDF8;
+  --border: #DED7C8;
+  --border-strong: #B6AC97;
+
+  --text-primary: #1B1815;
+  --text-secondary: #4F483E;
+  --text-muted: #635B4E;
+
+  --primary: #8C1D2A;
+  --primary-hover: #73161F;
+  --primary-pressed: #5C1119;
+  --primary-tint: #F6E3E4;
+  --on-primary: #FFFDF8;
+
+  --gold: #6E5210;
+  --gold-fill: #C9A227;
+  --gold-tint: #F7EDD4;
+  --on-gold: #FFFDF8;
+
+  --danger: #B32E22;
+  --danger-fill: #E8897E;
+  --danger-tint: #F8E5E2;
+
+  --info: #1D5A8A;
+
+  --hero-gradient: linear-gradient(135deg, #5E1220, #8C1D2A);
+
+  --on-hero: #F4F1EA;
+  --on-hero-soft: #E7CBCF;
+  --scrim: rgba(27, 24, 21, 0.45);
+  --pitch-a: #2E7A52;
+  --pitch-b: #2A7050;
+  --on-danger: #FFFDF8;
+  --on-info: #FFFDF8;
+
+  --positive: #186B3C;
+  --on-positive: #FFFDF8;
+}
+
+/* ---------------- OLED Stealth, daylight ----------------
+   Stealth's whole idea is that the interface gets out of the way, and
+   in daylight that means paper-white with graphite type. Its one red
+   stays exactly the red the brief named. */
+.app.day.skin-stealth,
+.app:not(.night).skin-stealth,
+.skin-swatches.skin-stealth.day {
+  color-scheme: light;
+
+  --canvas: #F2F2F4;
+  --surface-1: #FFFFFF;
+  --surface-2: #E6E6E9;
+  --surface-3: #FFFFFF;
+  --border: #DCDCE0;
+  --border-strong: #B0B0B6;
+
+  --text-primary: #0A0A0B;
+  --text-secondary: #4A4A50;
+  --text-muted: #5E5E65;
+
+  --primary: #3F3F46;
+  --primary-hover: #27272C;
+  --primary-pressed: #18181B;
+  --primary-tint: #E8E8EC;
+  --on-primary: #FFFFFF;
+
+  --gold: #6B5010;
+  --gold-fill: #C8A05A;
+  --gold-tint: #F5EEDD;
+  --on-gold: #FFFFFF;
+
+  --danger: #C1281F;
+  --danger-fill: #E63946;
+  --danger-tint: #FAE4E2;
+
+  --info: #2F5FA8;
+
+  --hero-gradient: linear-gradient(135deg, #0A0A0B, #26262A);
+
+  --on-hero: #FFFFFF;
+  --on-hero-soft: #B9B9BF;
+  --scrim: rgba(10, 10, 11, 0.5);
+  --pitch-a: #2E7A52;
+  --pitch-b: #2A7050;
+  --on-danger: #FFFFFF;
+  --on-info: #FFFFFF;
+
+  --positive: #15703E;
+  --on-positive: #FFFFFF;
 }
 
 /* ---------------- semantic aliases ----------------

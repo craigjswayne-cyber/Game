@@ -1314,23 +1314,6 @@ export interface GameState {
     sk?: string
     sv?: Record<string, string | number>
   } | null
-  /** THE BACK PAGE (v1.2.2). After every match the manager's side played,
-   *  one tabloid back page: a headline written from the match's DEFINING
-   *  event - the comeback, the red card, the kid's debut try - rather than
-   *  from the score, and one line underneath in the voice of whoever lost.
-   *  It is the thing you would screenshot for a mate, and it means every
-   *  match ends on a sentence rather than a table. Cleared on tap; the
-   *  fixture id opens the full report. Keys plus values, never rendered
-   *  text, so a French phone reads a French back page. */
-  backPage?: {
-    fixtureId: number
-    compId: string
-    week: number
-    hk: string
-    hv: Record<string, string | number>
-    sk: string
-    sv: Record<string, string | number>
-  } | null
   /** THE GAFFER'S LEDGER (v1.2.2). The quiet firsts of a career: the first
    *  win at a ground, the first derby win, ten unbeaten. Each is recorded
    *  once (the key is the dedupe), filed as a story when it happens, and
