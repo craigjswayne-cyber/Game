@@ -62,12 +62,17 @@ try {
   // IT BLOCKS NOTHING: the bottom nav underneath still takes a tap while
   // the page is showing - the deep test found the first build covering
   // Continue and the Annual door after every match
-  const navHit = await page.evaluate(() => {
-    const b = document.querySelector('.bottom-nav button'); const r = b.getBoundingClientRect()
-    const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
-    return !!el && (b === el || b.contains(el))
+  const inFlow = await page.evaluate(() => {
+    const c = document.querySelector('.card.backpage')
+    return c && getComputedStyle(c).position === 'static'
   })
-  ok(navHit, 'the game underneath is still tappable while the page is up')
+  ok(inFlow, 'the page is an ordinary card in the flow - position static, nothing can be underneath it')
+  // and the open press question on the Press Room is never covered by it
+  await page.evaluate(() => window.rugbyStore.getState().go('press'))
+  await page.waitForTimeout(400)
+  ok(await page.locator('.card.backpage').count() === 0, 'it lives on Home only - the Press Room shows no back page')
+  await page.evaluate(() => window.rugbyStore.getState().go('home'))
+  await page.waitForTimeout(400)
   await page.locator('.backpage .btn.ghost').click()
   await page.waitForTimeout(300)
   ok(await page.locator('.backpage').count() === 0, 'its own button folds it away - a treat, not a gate')
