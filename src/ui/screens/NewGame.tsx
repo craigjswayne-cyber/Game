@@ -9,7 +9,7 @@ import { playerValue } from '../../game/attributes'
 import { fmtMoney } from '../../game/model'
 import { t } from '../../game/i18n'
 
-// FM Mobile-style guided setup: STEP x OF 4, breadcrumbs, tile grids,
+// Guided setup: STEP x OF 4, breadcrumbs, tile grids,
 // a club detail panel, and a persistent bottom action bar.
 
 /* Keys rather than words, in both of these, because the module is evaluated

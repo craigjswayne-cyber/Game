@@ -474,11 +474,37 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
             {trim && <rect x="23.4" y="0" width="0.9" height="34" fill={trim} />}
           </>
         )}
+        {/* A YOKE: the second colour over the shoulders and upper chest, down
+            to a curve, with the trim as side panels below it (owner, v1.2.5,
+            Exeter's photograph: white top, black body, light-blue flanks). */}
+        {pattern === 'yoke' && (
+          <>
+            <path d="M14 8 L20 4 H28 L34 8 L38 14 L33 17 L32 15 Q24 19.5 16 15 L15 17 L10 14 Z" fill={c2} />
+            {/* on the torso, not beside it: the body clip runs x=16..32 under
+                the arms, so a panel drawn at the sleeve is clipped to nothing */}
+            {trim && (<>
+              <rect x="16" y="15" width="2.6" height="15" fill={trim} />
+              <rect x="29.4" y="15" width="2.6" height="15" fill={trim} />
+            </>)}
+          </>
+        )}
+        {/* FLANKS: a plain body with the second colour down both sides and
+            round the sleeve edge - the shape of Sale's orange on navy. The
+            sleeves stay in the ground colour so the flash reads as a panel,
+            not as a second shirt. */}
+        {pattern === 'flank' && (<>
+          <rect x="16" y="12" width="3" height="18" fill={c2} />
+          <rect x="29" y="12" width="3" height="18" fill={c2} />
+        </>)}
         {/* SLEEVES. A quartered club wears them in its base colour - the second
             colour is one of the four quarters now, and a sleeve in it would
             read as a fifth panel rather than a sleeve. */}
-        <path d={SLEEVE_L} fill={sleeves ? sleeves[0] : quarters ? c1 : c2} />
-        <path d={SLEEVE_R} fill={sleeves ? sleeves[1] : quarters ? c1 : c2} />
+        <path d={SLEEVE_L} fill={sleeves ? sleeves[0] : quarters || pattern === 'flank' ? c1 : c2} />
+        <path d={SLEEVE_R} fill={sleeves ? sleeves[1] : quarters || pattern === 'flank' ? c1 : c2} />
+        {pattern === 'flank' && (<>
+          <path d={SLEEVE_L} fill="none" stroke={c2} strokeWidth="1.1" strokeLinejoin="round" />
+          <path d={SLEEVE_R} fill="none" stroke={c2} strokeWidth="1.1" strokeLinejoin="round" />
+        </>)}
         {/* THE TRIM RUNS ALONG THE SLEEVE EDGE, NOT ACROSS THE SLEEVE. This was
             a flat horizontal band pretending to be a cuff, laid over a sleeve
             that runs diagonally, so it cut the sleeve in half instead of

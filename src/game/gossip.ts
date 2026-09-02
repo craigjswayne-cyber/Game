@@ -534,7 +534,7 @@ function socialBuzz(state: GameState, rng: Rng) {
   if (kid) takes.push(
     { id: 'pundit-gem', who: kid.id, k: 'news.grPunditGem' },
     { id: 'school-visit', who: kid.id, k: 'news.grSchoolVisit' },
-    { id: 'kid-fifa', who: kid.id, k: 'news.grKidFifa' },
+    { id: 'kid-rating', who: kid.id, k: 'news.grKidRating' },
   )
 
   if (target && other) takes.push(

@@ -122,8 +122,50 @@ try {
     ok(!priced, `${where}: and not one of them carries it either${priced ? ` - "${priced}"` : ''}`)
   }
 
+  // ---- 4. the shelf is a door, and it says what it is for ----
+  //
+  // Owner, v1.2.5, relaying a friend: "this needs to be more obvious - and an
+  // 'Upgrade your team' next to store". The card on Home was one gold word on
+  // a dark strip, which reads as a heading rather than a button.
+  say('\n--- 4. the Store card on Home says what it is for')
+  await page.evaluate(() => localStorage.setItem('rm-lang', 'en'))
+  await page.reload()
+  await page.waitForTimeout(1400)
+  await page.evaluate(() => window.rugbyStore.getState().go('home')).catch(() => {})
+  await page.waitForTimeout(600)
+  const card = page.locator('.store-card')
+  ok(await card.count() === 1, 'the Store card is on Home with a bridge attached')
+  const sub = await card.locator('.store-sub').innerText().catch(() => '')
+  ok(/Upgrade your team/i.test(sub), `and it carries the line the owner asked for ("${sub.trim()}")`)
+  const edge = await card.evaluate(el => getComputedStyle(el).borderTopWidth)
+  ok(edge !== '0px', `and it is edged all the way round, not just on the left (${edge})`)
+
+  // ---- 5. Full Fitness says when it is next available ----
+  //
+  // Owner, v1.2.5: "I used full fitness and then tried to buy it again before
+  // a game week. Can we have a bit that visibly says available after next game
+  // week". healAtGames set to the current games-played is exactly the state
+  // after a heal: not ready until one more match has been played.
+  say('\n--- 5. a spent Full Fitness says so before anybody taps it')
+  await page.evaluate(() => {
+    const st = window.rugbyStore.getState(); const g = st.game
+    g.healAtGames = (g.mgr?.m ?? 0)   // healReady: mgrGames(state) > healAtGames -> false
+    st.go('supporter'); st.touch()
+  })
+  await page.waitForTimeout(600)
+  const healRow = page.locator('.card', { hasText: 'Full Fitness' })
+  ok(await healRow.count() >= 1, 'the Full Fitness row is on the shelf')
+  const next = await healRow.locator('.heal-next').innerText().catch(() => '')
+  ok(/after your next match/i.test(next), `and it states when it returns ("${next.trim()}")`)
+  ok(await healRow.locator('.btn.gold').first().isDisabled(), 'with its Buy button disabled rather than live and silent')
+  // and the Medical Centre door says the same thing instead of vanishing
+  await page.evaluate(() => window.rugbyStore.getState().go('medical'))
+  await page.waitForTimeout(500)
+  const med = await page.locator('.content').innerText()
+  ok(/after your next match/i.test(med), 'the Medical Centre carries the same line instead of hiding the row')
+
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
   await page.close()
 } finally { await browser.close(); server.stop() }
-say(fails ? `\nTILL FACE FAILED (${fails})` : '\nTILL FACE PASSED: the store quotes nothing, and the crown is on the profile')
+say(fails ? `\nTILL FACE FAILED (${fails})` : '\nTILL FACE PASSED: the store quotes nothing, says what it is for, and Full Fitness says when it is back')
 process.exit(fails ? 1 : 0)

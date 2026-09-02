@@ -106,7 +106,7 @@ export const PREM_A: RawClub[] = [
     id: 'exeter', name: 'Exeter RFC', short: 'Exeter',
     city: 'Exeter', country: 'ENG',
     stadium: 'Beachy Park', capacity: 15600,
-    colors: ['#000000', '#e6007e'],
+    colors: ['#000000', '#ffffff'],
     rep: 78, budget: 2200000,
     players: [
       { name: 'Scott Sio', pos: 'LP', age: 34, nat: 'AUS', q: 74, intl: true },

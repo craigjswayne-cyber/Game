@@ -126,7 +126,7 @@ export function generatePress(state: GameState, rng: Rng) {
   }
 
   // THE EXPECTATIONS DECISION (25C, user: "at the start of the season the
-  // manager should set the expectations for the club" - the FM Mobile beat).
+  // manager should set the expectations for the club" - the pre-season beat).
   // Week 2, after the camp call and before the league starts: the pundits'
   // predicted finish is on the table and the manager decides how to pitch the
   // year. The answer sets state.stance, which boardReaction reads all season -

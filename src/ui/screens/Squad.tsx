@@ -7,7 +7,7 @@ import { STATUSES, STATUS_BY_ID, clubMatchesPlayed, ledgerRow, statusOf, type Sq
 import SelectionPane from './Selection'
 import { t } from '../../game/i18n'
 
-// FM Mobile squad layout: the team sheet first, then the tables - Pkd chip,
+// Handheld squad layout: the team sheet first, then the tables - Pkd chip,
 // fitness ring, starred names, morale arrows, Av R and Value.
 
 type View = 'selection' | 'general' | 'stats' | 'gametime' | 'contracts'

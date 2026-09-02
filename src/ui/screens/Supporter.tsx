@@ -87,7 +87,7 @@ function Row({ icon, title, line, right, msg, children }: {
  * The `sku` argument stays: it is what the tap buys, and it keeps every call
  * site naming the product it is selling.
  */
-function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () => void }) {
+function BuyBtn({ sku, busy, onBuy, disabled = false }: { sku: string; busy: boolean; onBuy: () => void; disabled?: boolean }) {
   // WHILE IT WAITS, IT SAYS SO. A row in flight used to dim its button and
   // nothing else, and on a Play service that takes its full 12 seconds to
   // answer owned() that is twelve seconds of a greyed "Buy" with no sign that
@@ -95,7 +95,7 @@ function BuyBtn({ sku, busy, onBuy }: { sku: string; busy: boolean; onBuy: () =>
   // and the next, until five buttons sat dimmed (v1.2.3, live). The button
   // now reads "Asking the store…" for as long as it is doing exactly that.
   return (
-    <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy} onClick={onBuy} data-sku={sku}>
+    <button className="btn gold" style={{ flexShrink: 0 }} disabled={busy || disabled} onClick={onBuy} data-sku={sku}>
       {busy ? t('till.asking') : t('till.buy')}
     </button>
   )
@@ -370,9 +370,13 @@ export default function Supporter() {
   // a heal is bought per match played, so the row always has a next time
   row('heal', false,
       <Row icon="🏥" title={t('store.heal')} line={t('store.healLine')} msg={msgs[HEAL_SKU]}
-        right={<BuyBtn sku={HEAL_SKU} busy={isBusy(HEAL_SKU)} onBuy={() => void buyHeal()} />}>
+        right={<BuyBtn sku={HEAL_SKU} busy={isBusy(HEAL_SKU)} onBuy={() => void buyHeal()}
+          disabled={!!(inCareer && game && !healReady(game) && !healPending)} />}>
+        {/* the standing line says WHEN it is back, before anybody taps
+            (owner, v1.2.5: "visibly says available after next game week");
+            healWait is the answer to a tap and stays for that */}
         {inCareer && game && !healReady(game) && !healPending && (
-          <div className="meta muted">{t('store.healWait')}</div>
+          <div className="meta muted heal-next">{t('store.healNext')}</div>
         )}
         {healPending && (
           <button className="btn ghost block" onClick={() => void applyHealNow()}>{t('till.applyHere')}</button>

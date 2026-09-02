@@ -1,5 +1,5 @@
 // The managerial merry-go-round: vacancies, applications, resignations.
-// FM Mobile format - wait for the right job, or take what's available.
+// The job market - wait for the right job, or take what's available.
 
 import type { GameState } from './model'
 import { fmtMoney, mgrReputation, poss } from './model'

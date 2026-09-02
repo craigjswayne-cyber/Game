@@ -24,7 +24,8 @@ export const KIT_TRIM: Record<string, string> = {
   bath: '#000000',        // navy and white hoops, edged black
   bristol: '#29a8e0',     // sky pinstripes between the navy and white
   harlequins: '#ffffff',  // white collar and cuffs, over the four quarters
-  leicester: '#ffffff',   // white between the green and the red
+  leicester: '#ffffff',   // the white cuff line on the red sleeve (2026-27)
+  exeter: '#8fc7ea',      // light-blue side panels and sleeve edge under the white yoke
   northampton: '#f2c200', // the gold line at every hoop
   // Elite 14
   la_rochelle: '#ffffff',  // the white line between the yellow and the black
@@ -79,6 +80,9 @@ export const KIT_HOOPS: Record<string, { n: number; h: number }> = {
   // h=3 filled the shirt and it read as a GREEN jersey with gold lines, which
   // is the opposite of the photograph: Northampton is black, banded green.
   northampton: { n: 4, h: 2.4 },
+  // Cherry with white hoops, five of them, finer than the three broad bands
+  // (owner, v1.2.5, with the photograph: "gloucester are red and white stripes").
+  gloucester: { n: 5, h: 2.2 },
 }
 
 /**

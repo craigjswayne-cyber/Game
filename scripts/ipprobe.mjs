@@ -59,6 +59,42 @@ const MARKS = {
     'Heineken Cup', 'Heineken Champions',
   ],
   'governing bodies quoted': ['World Rugby', 'SANZAAR', 'the RFU', 'the IRFU', 'the WRU'],
+  // OTHER PEOPLE'S GAMES, AND THE WRONG SPORT (v1.2.5). Owner: "make sure
+  // there is no reference to football, fmmobile or football manager in any
+  // coding. or any other games referenced." A rival's name in the bundle is a
+  // trademark problem; "football" in a rugby game is a credibility one, and
+  // the Settings page shipped saying "nothing about the football changes".
+  // Two uses of the word are allowed and are masked before the scan below:
+  // the historical name of the sport ("rugby football", "football de rugby",
+  // "football rugby") and the one deliberate joke at football's expense.
+  'rival games and the wrong sport': [
+    'Football Manager', 'FM Mobile', 'FMMobile', 'FM24', 'FM25', 'FM26',
+    'Championship Manager', 'FIFA', 'EA Sports FC', 'Top Eleven', 'Soccer Manager',
+    'Rugby Challenge', 'Rugby 22', 'Rugby 24', 'Rugby 25', 'Pro Rugby Manager',
+    'Motorsport Manager', 'Out of the Park', 'Football Chairman',
+    'football', 'soccer',
+  ],
+}
+
+/** The word "football" is allowed in exactly these forms, in every language.
+ *  Everything is lowercased before matching, so one spelling per phrase. */
+const FOOTBALL_ALLOWED = [
+  'rugby football', 'football de rugby', 'football rugby', 'rugby-football',
+  // the one joke: a phone-in caller says "that's football... no, that's rugby"
+  "that's football... no", "c'est le football... non", 'eso es fútbol... no',
+  'questo è calcio... no', 'それはサッカー…いや',
+]
+const maskAllowed = (text) => {
+  let out = text
+  const low = out.toLowerCase()
+  for (const phrase of FOOTBALL_ALLOWED) {
+    let at = low.indexOf(phrase)
+    while (at >= 0) {
+      out = out.slice(0, at) + ' '.repeat(phrase.length) + out.slice(at + phrase.length)
+      at = low.indexOf(phrase, at + phrase.length)
+    }
+  }
+  return out
 }
 
 let fails = 0
@@ -130,7 +166,7 @@ const maskMigration = (text) => {
 let checked = 0
 let maskedPairs = 0
 let idSkips = 0
-for (const b of bundle) b.text = maskMigration(b.text)
+for (const b of bundle) b.text = maskAllowed(maskMigration(b.text))
 for (const [group, marks] of Object.entries(MARKS)) {
   const hits = []
   for (const mark of marks) {

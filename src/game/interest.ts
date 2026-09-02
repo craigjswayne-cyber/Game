@@ -58,7 +58,7 @@ export function transferInterest(state: GameState, p: Player): Interest {
 
 /** The extra a man wants for dropping down to you. A mercenary crossing a real
  *  gap is the one who names a number, because that is the whole of why he is
- *  coming; everyone else who is willing is willing for football reasons. */
+ *  coming; everyone else who is willing is willing for rugby reasons. */
 export function interestPremium(state: GameState, p: Player): number {
   const user = state.clubs[state.userClubId]
   const seller = p.clubId ? state.clubs[p.clubId] : null
