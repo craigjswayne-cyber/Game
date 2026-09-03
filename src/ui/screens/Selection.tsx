@@ -198,9 +198,16 @@ export default function SelectionPane() {
           swipes deep. They do NOT "stack identically" in portrait, which is what
           this comment used to claim: see the fixed .xv-split columns in theme.css
           for the step that assumption put in the list from number 9 down. */}
-      <div className="xv-split">
-        <table className="dtable"><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
-        <table className="dtable"><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
+      {/* SIX PINNED COLUMNS, NOT TWO (owner, v1.2.8: "why do the player
+          ratings from the fly half sit off alignment"). The two tables are
+          laid out separately, and pinning only the shirt and badge columns
+          left the stars, the form pill and the fitness to find their own
+          widths in each - so from the 10 shirt down everything stepped right.
+          table-layout: fixed with the same colgroup in both makes them one
+          grid; the name column takes what is left. */}
+      <div className="xv-split xv-fixed">
+        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{XV_SLOTS.slice(0, 8).map((_, i) => renderSlot(i))}</tbody></table>
+        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{XV_SLOTS.slice(8).map((_, i) => renderSlot(8 + i))}</tbody></table>
       </div>
       {/* an unclaimed sheet is the assistant's, and the manager deserves to be
           told so BEFORE match day - the moment he touches a shirt this line
@@ -216,9 +223,9 @@ export default function SelectionPane() {
       <div className="sel-split">
       <div>
       <SectionTitle>{t('selection.replacements')}</SectionTitle>
-      <div className="xv-split">
-        <table className="dtable"><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
-        <table className="dtable"><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
+      <div className="xv-split xv-fixed">
+        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{seats.slice(0, 4).map((_, i) => renderSlot(15 + i))}</tbody></table>
+        <table className="dtable"><colgroup><col className="c-num" /><col className="c-pos" /><col /><col className="c-stars" /><col className="c-form" /><col className="c-cond" /></colgroup><tbody>{seats.slice(4).map((_, i) => renderSlot(19 + i))}</tbody></table>
       </div>
       </div>
       <div>

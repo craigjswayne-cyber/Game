@@ -411,6 +411,12 @@ export interface Player {
   joinedAt?: number
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
+  /** absolute week (season * SEASON_WEEKS + week) a loan-in ends early;
+   *  absent = the end of the season, as every loan was before v1.2.8 */
+  loanUntil?: number
+  /** the share of his wage the borrowing club pays (0.25 .. 1); absent = the
+   *  half every pre-v1.2.8 loan was struck at */
+  loanShare?: number
   /**
    * Written by hand in the squad data, rather than produced by the name
    * generator. Set once at world creation and never changed.
@@ -1151,6 +1157,11 @@ export interface ManagerStats {
    *  alternative is silently erasing a trophy the manager really won */
   trophies: { compId: string; season: number; clubId?: string }[]
   finishes: { season: number; leagueId: string; pos: number; clubId?: string }[]
+  /** wins weighted by the league they came in (v1.2.8): a win in the top
+   *  flight is worth one, in the second tier less, in the third less again.
+   *  Absent on a save from before, and read as plain wins until the first
+   *  win after the update seeds it. */
+  ww?: number
   signings: number
   spent: number
   /** Manager of the Month awards won */
@@ -1702,6 +1713,14 @@ export interface GameState {
  * Roughly: 22 cold, ~40 after a decent first season, ~50 after three, and the
  * seventies need trophies.
  */
+/** What a win is worth to the manager's name, by the league his club is in:
+ *  the top flights a full point, the second tier 0.6, the third 0.4. */
+export function mgrWinWeight(state: GameState): number {
+  const lg = state.clubs[state.userClubId]?.leagueId
+  const tier = (lg && LEAGUE_TIER[lg]) || 1
+  return tier >= 3 ? 0.4 : tier === 2 ? 0.6 : 1
+}
+
 export function mgrReputation(state: GameState): number {
   // the Manager's License (v1.1.0): a proven name from day one, chosen at
   // career creation and stamped on the save. It pays the scale's own ceiling
@@ -1709,7 +1728,11 @@ export function mgrReputation(state: GameState): number {
   if (state.licensed) return 95
   const m = state.mgr
   const games = m.m
-  const winPct = games ? m.w / games : 0
+  // REPUTATION IS EARNED FASTER AT THE TOP (owner, v1.2.8: "you grow slower
+  // in the lower leagues"). The record's wins are weighted by the league
+  // they came in, so a season of Championship wins builds a name more slowly
+  // than the same season in the Premier Division.
+  const winPct = games ? (m.ww ?? m.w) / games : 0
   // how much the record counts for: half weight at 20 games, most of it by 60
   const proven = games / (games + 20)
   // a former international's name opens doors before a single result (18B) -

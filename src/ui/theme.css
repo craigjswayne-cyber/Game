@@ -3969,3 +3969,22 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 .depth-man.out { opacity: .55; }
 .depth-man .depth-why { font-size: 10.5px; color: var(--text-negative); font-weight: 700; }
 .depth-warn { margin-top: 6px; color: var(--text-negative); font-weight: 600; }
+
+/* v1.2.8: the Selection team sheet pins all six columns so its two tables
+   line up from the 1 shirt to the 15 (see Selection.tsx) */
+.xv-fixed .dtable { table-layout: fixed; width: 100%; }
+/* sized to the content, not generously: on a 360px phone every spare pixel
+   here comes out of the name column (devicematrix caught Sleightholme cut) */
+.xv-fixed .dtable col.c-num { width: 30px; }
+.xv-fixed .dtable col.c-pos { width: 38px; }
+.xv-fixed .dtable col.c-stars { width: 66px; }
+.xv-fixed .dtable col.c-form { width: 40px; }
+.xv-fixed .dtable col.c-cond { width: 46px; }
+.xv-fixed .dtable td.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* v1.2.8: the loan table's terms, stacked in the action cell */
+/* the sheet's own gutter: the owner saw labels and selects flush to the
+   screen edge ("watch the clipping of text on the sides") */
+.loan-sheet .loan-deal { display: flex; flex-direction: column; gap: 10px; padding: 4px 14px 0; }
+.loan-sheet .loan-deal label { display: flex; flex-direction: column; gap: 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; }
+.loan-sheet .loan-deal .inline-input { font-size: 13px; padding: 9px 10px; width: 100%; }

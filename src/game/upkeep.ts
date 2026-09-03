@@ -65,22 +65,39 @@ const bigGround = (state: GameState) => (state.clubs[state.userClubId]?.capacity
 const homeMatchWeek = (state: GameState) =>
   state.fixtures.some(f => !f.played && f.week === state.week && f.homeId === state.userClubId)
 
+/** The month a week falls in, 0 = January, off the same calendar weekDate
+ *  prints (season opens 16 August). Stories that name a season of the year
+ *  are gated on it (owner, v1.2.8: "summer earner but its in November?"). */
+const monthOf = (s: GameState): number =>
+  new Date(Date.UTC(2025 + s.season, 7, 16) + (s.week - 1) * 7 * 86400000).getUTCMonth()
+const inMonths = (...months: number[]) => (s: GameState) => months.includes(monthOf(s))
+/** the story says "the summer's big earner": it can only land as the summer ends */
+const lateSummer = inMonths(7, 8)
+/** wind, rain and mud belong to the winter half */
+const winter = inMonths(9, 10, 11, 0, 1, 2)
+/** "more mud than grass since November": the relay is a new-year story */
+const newYear = inMonths(0, 1, 2)
+/** a grotto is a December story */
+const december = inMonths(11)
+/** "a slightly different colour until March": an autumn concert */
+const autumn = inMonths(8, 9, 10)
+
 const EVENTS: Event[] = [
   // ---- the buildings, which are always losing ----
-  { k: 'news.upStorm', weeks: -6, board: -1.5 },
+  { k: 'news.upStorm', weeks: -6, board: -1.5, when: winter },
   { k: 'news.upRoof', weeks: -8, board: -2, when: bigGround },
   { k: 'news.upPipe', weeks: -3, board: -1 },
   { k: 'news.upFloodlights', weeks: -5, board: -1.5 },
-  { k: 'news.upPitch', weeks: -9, board: -1 },
+  { k: 'news.upPitch', weeks: -9, board: -1, when: newYear },
   { k: 'news.upForklift', weeks: -4, board: -1.5 },
   { k: 'news.upBadger', weeks: -2, board: -0.5 },
   // ---- the events department, which is a gamble ----
   { k: 'news.upDinner', weeks: 9, board: 2 },
-  { k: 'news.upBeerFest', weeks: -4, board: -1 },
+  { k: 'news.upBeerFest', weeks: -4, board: -1, when: lateSummer },
   { k: 'news.upWedding', weeks: 5, board: 1.5 },
-  { k: 'news.upConcert', weeks: 13, board: 2.5, when: s => bigGround(s) && !homeMatchWeek(s) },
+  { k: 'news.upConcert', weeks: 13, board: 2.5, when: s => bigGround(s) && !homeMatchWeek(s) && autumn(s) },
   { k: 'news.upFunRun', weeks: 3, board: 1 },
-  { k: 'news.upSantaGrotto', weeks: -2, board: -0.5 },
+  { k: 'news.upSantaGrotto', weeks: -2, board: -0.5, when: december },
   { k: 'news.upFilmCrew', weeks: 7, board: 1.5 },
   // A SMALL GROUND HAS ITS OWN WAY OF MAKING MONEY, and it needs one: the two
   // biggest earners here are gated on a big ground, so without this the whole

@@ -1,4 +1,5 @@
 import type { Club, GameState, Player, Pos } from './model'
+import { returnLoanIn } from './loans'
 import { difficultyOf } from './difficulty'
 import { aiBoardsReinvest } from './aiecon'
 import { applyAdminPenalties } from './season'
@@ -1914,23 +1915,11 @@ export function rebuildSeason(state: GameState) {
   }
   ensureCaptains(state)
 
-  // loan-ins go home to their parent clubs
+  // loan-ins go home to their parent clubs (the same road a dated loan
+  // takes mid-season, loans.returnLoanIn)
   for (const p of Object.values(state.players)) {
     if (p.loanFrom && state.clubs[p.loanFrom]) {
-      const user = state.clubs[state.userClubId]
-      user.players = user.players.filter(id => id !== p.id)
-      user.tactic.lineup = user.tactic.lineup.map(id => (id === p.id ? null : id))
-      state.clubs[p.loanFrom].players.push(p.id)
-      p.clubId = p.loanFrom
-      p.loanFrom = null
-      if (p.ca < p.pa) p.ca = clamp(p.ca + 1 + Math.floor(rng() * 3), 1, p.pa)
-      state.news.push({
-        id: state.nextId++, week: 1, season: state.season, type: 'transfer', read: false,
-        subject: `${p.name} returns to ${state.clubs[p.clubId]?.short} after his loan`,
-        body: `The loan is over. ${p.name} heads back to his parent club having grown from the rugby you gave him.`,
-        k: 'news.loanEnds', v: { player: p.name, club: state.clubs[p.clubId]?.short ?? '' },
-        playerId: p.id,
-      })
+      returnLoanIn(state, p, rng, 1)
     }
   }
   state.objectives = pickObjectives(state)

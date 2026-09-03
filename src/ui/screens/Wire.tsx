@@ -66,6 +66,12 @@ export default function Wire() {
         <PeopleChips n={n} />
       </div>
       <div className="btn-row" style={{ marginTop: 10 }}>
+        {/* a way back (owner, v1.2.8: "there is no back button to previous
+            story") - the reader only ever moved forward */}
+        {idx > 0 && (
+          <button className="btn ghost" style={{ flex: 0.6 }} aria-label={t('week.wirePrevStory')} title={t('week.wirePrevStory')}
+            onClick={() => setIdx(idx - 1)}>◀</button>
+        )}
         {!last && (
           <button className="btn ghost" onClick={() => { for (const it of items) markRead(game, it); home() }}>
             {t('week.wireSkipRest')}

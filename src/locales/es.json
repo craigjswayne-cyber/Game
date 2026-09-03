@@ -169,7 +169,7 @@
   "injTag": "LES {n}s",
   "intlTag": "INT",
   "l": "D",
-  "loanHereTag": "CEDIDO AQUÍ",
+  "loanHereTag": "CEDIDO",
   "mastheadDate": "{day} · {season} · Sem {week}",
   "matchdayBtn": "Al partido ▸",
   "neutralVenue": "Campo neutral",
@@ -1450,7 +1450,7 @@
   "shortlistSub": "ojeadores enviando informes semanales",
   "freeAgent": "Agente libre",
   "loanMarket": "Mercado de cesiones",
-  "loanMarketSub": "una estrella cedida; su club paga media ficha",
+  "loanMarketSub": "cedidos de arriba · tus condiciones",
   "signOnLoan": "Fichar cedido",
   "noLoans": "Ningún club por encima del tuyo cede jugadores ahora mismo.",
   "scoutTheMarket": "Ojear el mercado",
@@ -1499,7 +1499,18 @@
   "scoutReportsSub": "todo lo que han presentado los ojeadores",
   "fromClub": "del {club}",
   "fromFree": "sin contrato",
-  "interested": "Interesado"
+  "interested": "Interesado",
+  "loanLenShort": "por tres meses",
+  "loanLenHalf": "por seis meses",
+  "loanLenSeason": "hasta el final de la temporada",
+  "loanLength": "Duración de la cesión",
+  "loanShare": "Parte del salario que pagas",
+  "loanSharePct": "pagas el {n}% del salario",
+  "loanOffer": "Ofrecer",
+  "loanSheetSub": "Condiciones de la cesión con el {club}",
+  "loanCostLine": "Tu parte de su salario: {wage}/sem.",
+  "loanClose": "Ahora no",
+  "loanDone": "Hecho"
  },
  "objectives": {
   "youth": "Curte a la cantera: da 6 o más titularidades a jugadores de 21 años o menos",
@@ -2004,7 +2015,9 @@
   "injuryWeeksOut": {
    "one": "{n} semana de baja",
    "other": "{n} semanas de baja"
-  }
+  },
+  "signAsMarquee": "Ficharlo como jugador franquicia ({n} plazas libres): su salario queda fuera del tope",
+  "signAsMarqueeOne": "Ficharlo como jugador franquicia (última plaza): su salario queda fuera del tope"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -2170,7 +2183,8 @@
   "wrHowTable": "Así está la clasificación",
   "wrYouAre": "vas {pos}",
   "wrViewComp": "Ver la competición completa ▸",
-  "wrBack": "Volver al vestuario ▸"
+  "wrBack": "Volver al vestuario ▸",
+  "wirePrevStory": "Noticia anterior"
  },
  "dayroom": {
   "available": "{fit} de {all} disponibles.",
@@ -4152,7 +4166,7 @@
   "runinTopFinalSeed": "Líder de la tabla, {lead_k}. {push_k}\n{rows_ll}",
   "aFeederClub": "un club filial",
   "loanInSubj": "Cesión: {player} llega de {parent}",
-  "loanIn": "{player} ({age}, {pos}) llega cedido hasta final de temporada. {parent} paga la mitad de su ficha; lo quieren jugando, así que hazlo jugar.",
+  "loanIn": "{player} ({age}, {pos}) llega cedido {len_k}. El {parent} cubre el {share}% de su salario: quieren verle jugar, así que dale minutos.",
   "loanOutSubj": "{player} sale cedido",
   "loanOut": "{player} se une a {club} hasta final de temporada. El rugby regular de primer equipo debería acelerar su desarrollo; espéralo de vuelta más afilado el próximo verano.",
   "recalledFullSubj": "🧳 {player}, repescado de su cesión",
@@ -5033,7 +5047,7 @@
   "seniorSquadFull": "La plantilla sénior está completa.",
   "parentWontLoan": "{club} no lo cede ahora mismo.",
   "agentWantsPermanent": "El agente de {player} quiere un traspaso definitivo, no una cesión.",
-  "joinsOnLoan": "{player} llega cedido hasta final de temporada.",
+  "joinsOnLoan": "{player} llega cedido {len_k}, y tú pagas el {share}% de su salario.",
   "staffAppointed": "{name} es tu nuevo {role_k}. {fee} pagados en compensación.",
   "badgePassed": "{name} ha aprobado. Desde hoy tiene la titulación {badge_k} y cobra {wage} a la semana.",
   "badgeFailed": "{name} se ha quedado corto. Los {fee} se han esfumado y no puede volver a presentarse hasta dentro de un mes.",
@@ -5050,7 +5064,12 @@
   "boardPushedWarn": "La sala se queda helada. «Ya te dimos nuestra respuesta». Antes de una hora llega una amonestación formal, y el respeto de la junta por ti se reduce a la mitad. Vuelve a preguntar y estarás recogiendo tu despacho.",
   "boardPushedSacked": "Preguntaste una vez de más. El presidente se levanta, ofrece un apretón de manos que nadie siente, y el comunicado del club sale antes de que llegues al aparcamiento.",
   "notHomeBased": "{player} juega su rugby de clubes en el extranjero. {nat} solo convoca de su propia liga: primero tendría que volver a casa.",
-  "wontDropDown": "{club} acepta tu oferta, pero {name} no piensa bajar tantos escalones. Solo un hombre descontento, uno al que su club empuja hacia la salida o un mercenario negocia con un club tan inferior."
+  "wontDropDown": "{club} acepta tu oferta, pero {name} no piensa bajar tantos escalones. Solo un hombre descontento, uno al que su club empuja hacia la salida o un mercenario negocia con un club tan inferior.",
+  "overCapNoMarquee": "Esas condiciones dejarían al club {over}/sem. por encima del tope salarial de {cap}/sem., y las dos plazas de jugador franquicia están ocupadas. Libera espacio.",
+  "unavailable": "No disponible.",
+  "loanCounterShare": "El {club} escucharía si asumieras el {share}% de su salario.",
+  "loanCounterLength": "El {club} quiere que salga más tiempo: aceptarían una cesión {len_k}.",
+  "loanRefused": "El {club} lo rechaza de plano. No lo sueltan en esas condiciones."
  },
  "verdict": {
   "titleFavourites": "Favoritos al título",

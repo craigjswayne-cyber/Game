@@ -169,7 +169,7 @@
   "injTag": "INF {n}s",
   "intlTag": "NAZ",
   "l": "P",
-  "loanHereTag": "QUI IN PRESTITO",
+  "loanHereTag": "PRESTITO",
   "mastheadDate": "{day} · {season} · Sett. {week}",
   "matchdayBtn": "Si gioca ▸",
   "neutralVenue": "Campo neutro",
@@ -1450,7 +1450,7 @@
   "shortlistSub": "gli osservatori riferiscono ogni settimana",
   "freeAgent": "Svincolato",
   "loanMarket": "Mercato prestiti",
-  "loanMarketSub": "una stella in prestito, il club madre paga metà",
+  "loanMarketSub": "prestiti dall’alto · alle tue condizioni",
   "signOnLoan": "Prendi in prestito",
   "noLoans": "Nessun club sopra di te sta prestando giocatori al momento.",
   "scoutTheMarket": "Esplora il mercato",
@@ -1499,7 +1499,18 @@
   "scoutReportsSub": "tutto ciò che gli osservatori hanno reso",
   "fromClub": "da {club}",
   "fromFree": "senza contratto",
-  "interested": "Interessato"
+  "interested": "Interessato",
+  "loanLenShort": "per tre mesi",
+  "loanLenHalf": "per sei mesi",
+  "loanLenSeason": "fino a fine stagione",
+  "loanLength": "Durata del prestito",
+  "loanShare": "Quota di stipendio a tuo carico",
+  "loanSharePct": "paghi il {n}% dello stipendio",
+  "loanOffer": "Proponi",
+  "loanSheetSub": "Condizioni del prestito con il {club}",
+  "loanCostLine": "La tua quota del suo stipendio: {wage}/sett.",
+  "loanClose": "Non ora",
+  "loanDone": "Fatto"
  },
  "objectives": {
   "youth": "Lancia l'academy: almeno 6 partite da titolare a giocatori di 21 anni o meno",
@@ -2004,7 +2015,9 @@
   "injuryWeeksOut": {
    "one": "{n} settimana di stop",
    "other": "{n} settimane di stop"
-  }
+  },
+  "signAsMarquee": "Firmarlo come giocatore di punta ({n} posti liberi): il suo stipendio esce dal tetto",
+  "signAsMarqueeOne": "Firmarlo come giocatore di punta (ultimo posto): il suo stipendio esce dal tetto"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -2170,7 +2183,8 @@
   "wrHowTable": "Come dice la classifica",
   "wrYouAre": "sei {pos}",
   "wrViewComp": "Vai alla competizione ▸",
-  "wrBack": "Torna nello spogliatoio ▸"
+  "wrBack": "Torna nello spogliatoio ▸",
+  "wirePrevStory": "Notizia precedente"
  },
  "dayroom": {
   "available": "{fit} disponibili su {all}.",
@@ -4152,7 +4166,7 @@
   "runinTopFinalSeed": "In testa alla classifica, {lead_k}. {push_k}\n{rows_ll}",
   "aFeederClub": "un club satellite",
   "loanInSubj": "Colpo in prestito: {player} arriva da {parent}",
-  "loanIn": "{player} ({age}, {pos}) si unisce in prestito fino a fine stagione. {parent} copre metà dell'ingaggio - lo vogliono in campo, quindi fallo giocare.",
+  "loanIn": "{player} ({age}, {pos}) arriva in prestito {len_k}. Il {parent} copre il {share}% dello stipendio: lo vogliono in campo, fallo giocare.",
   "loanOutSubj": "{player} parte in prestito",
   "loanOut": "{player} si unisce a {club} per il resto della stagione. Rugby vero ogni settimana dovrebbe accelerarne la crescita - aspettatelo di ritorno più pronto la prossima estate.",
   "recalledFullSubj": "🧳 {player} richiamato dal prestito",
@@ -5033,7 +5047,7 @@
   "seniorSquadFull": "La rosa senior è al completo.",
   "parentWontLoan": "{club} al momento non lo cede in prestito.",
   "agentWantsPermanent": "L'agente di {player} vuole un trasferimento definitivo, non un prestito.",
-  "joinsOnLoan": "{player} arriva in prestito per la stagione.",
+  "joinsOnLoan": "{player} arriva in prestito {len_k}, con il {share}% dello stipendio a tuo carico.",
   "staffAppointed": "{name} è il tuo nuovo {role_k}. Pagati {fee} di indennizzo.",
   "badgePassed": "{name} promosso. Da oggi ha il patentino {badge_k}, e guadagna {wage} a settimana.",
   "badgeFailed": "{name} bocciato. {fee} in fumo, e per un mese niente secondo tentativo.",
@@ -5050,7 +5064,12 @@
   "boardPushedWarn": "La stanza si gela. \"Ti abbiamo già dato la nostra risposta.\" Entro un'ora arriva un richiamo formale, e il rispetto del consiglio nei tuoi confronti si dimezza. Chiedi ancora e ti toccherà svuotare la scrivania.",
   "boardPushedSacked": "Hai chiesto una volta di troppo. Il presidente si alza, offre una stretta di mano a cui non crede nessuno, e il comunicato del club esce prima che tu arrivi al parcheggio.",
   "notHomeBased": "{player} gioca il suo rugby di club all'estero. {nat} convoca solo dal proprio campionato - dovrebbe prima tornare a casa.",
-  "wontDropDown": "{club} accetta la tua offerta, ma {name} non scenderà così in basso. Solo un uomo scontento, uno che il suo club sta spingendo fuori, o un mercenario tratta con un club tanto più piccolo."
+  "wontDropDown": "{club} accetta la tua offerta, ma {name} non scenderà così in basso. Solo un uomo scontento, uno che il suo club sta spingendo fuori, o un mercenario tratta con un club tanto più piccolo.",
+  "overCapNoMarquee": "Quelle condizioni porterebbero il club {over}/sett. oltre il tetto salariale di {cap}/sett., e i due posti da giocatore di punta sono occupati. Libera spazio.",
+  "unavailable": "Non disponibile.",
+  "loanCounterShare": "Il {club} ci penserebbe se ti caricassi il {share}% dello stipendio.",
+  "loanCounterLength": "Il {club} vuole che stia fuori più a lungo: accetterebbe un prestito {len_k}.",
+  "loanRefused": "Il {club} rifiuta secco. Non lo lascia andare a queste condizioni."
  },
  "verdict": {
   "titleFavourites": "Favorita per il titolo",

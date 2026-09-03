@@ -10,6 +10,7 @@ import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
 import { loanOut, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
+import { MARQUEE_SLOTS } from '../../game/cap'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
 import { attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
@@ -46,6 +47,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
   const [wage, setWage] = useState(0)
   const [signOn, setSignOn] = useState(0)
   const [promiseMin, setPromiseMin] = useState(false)
+  const [asMarquee, setAsMarquee] = useState(false)
   const [negotiating, setNegotiating] = useState(false)
   /** The wage box holds TEXT, not a number.
    *
@@ -401,10 +403,21 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
             <input type="checkbox" checked={promiseMin} onChange={e => setPromiseMin(e.target.checked)} />
             {t('player.promiseFirstTeam')}
           </label>
+          {/* a marquee slot can be promised at the table (owner, v1.2.8: the
+              cap refusal pointed at a button that only exists once he is yours) */}
+          {(() => {
+            const free = MARQUEE_SLOTS - (game.clubs[game.userClubId].marquee ?? []).length
+            return free > 0 ? (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 13 }}>
+                <input type="checkbox" checked={asMarquee} onChange={e => setAsMarquee(e.target.checked)} />
+                {t(free === 1 ? 'player.signAsMarqueeOne' : 'player.signAsMarquee', { n: free })}
+              </label>
+            ) : null
+          })()}
           <div className="btn-row" style={{ marginTop: 8 }}>
             <button className="btn ghost" onClick={() => { setTermsFee(null); setMsg(t('player.walkedAway')) }}>{t('player.walkAway')}</button>
             <button className="btn gold" style={{ flex: 1.6 }} onClick={() => {
-              const r = signOnTerms(game, p.id, termsFee, wage, signOn, promiseMin)
+              const r = signOnTerms(game, p.id, termsFee, wage, signOn, promiseMin, asMarquee)
               setMsg(r.msg)
               if (r.ok) setTermsFee(null)
               touch()
@@ -532,7 +545,7 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                     {talkSigned ? '🖊 ' : '💬 '}{talkOutcome}
                   </div>
                   {talkSigned
-                    ? <div className="meta">{t('player.heIsOn', { wage: fmtWage(p.wage), year: 2026 + p.contractEnds })}</div>
+                    ? <div className="meta">{t('player.heIsOn', { wage: fmtWage(p.wage), year: String(2026 + p.contractEnds) })}</div>
                     : null}
                   <div className="btn-row" style={{ margin: '10px 0 0' }}>
                     {!talkSigned && (
