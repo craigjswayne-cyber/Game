@@ -179,7 +179,7 @@ export const PREM_B: RawClub[] = [
     id: 'saracens', name: 'Sarries RFC', short: 'Sarries',
     city: 'London', country: 'ENG',
     stadium: 'Hendon Park', capacity: 10500,
-    colors: ['#000000', '#d31145'],
+    colors: ['#000000', '#141414'],
     rep: 86, budget: 4500000,
     players: [
       { name: 'Rhys Carre', pos: 'LP', age: 27, nat: 'WAL', q: 76, intl: true },

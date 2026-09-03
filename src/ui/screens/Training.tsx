@@ -6,7 +6,7 @@ import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, f
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
 import { SectionTitle } from '../components'
-import { posName, t } from '../../game/i18n'
+import { t } from '../../game/i18n'
 
 /* keys, not words - see docs/i18n.md */
 const FOCUSES: { id: TrainingFocus; name: string; desc: string }[] = [
@@ -62,8 +62,11 @@ export default function Training() {
               }}>
               {/* the position sits with the name (owner, v1.1.3): a chip
                   that says who a man IS makes "who should work on what" a
-                  decision instead of a memory test */}
-              {on ? '● ' : '○ '}{p.name} ({posName(p.pos)}) <b>{p.age}</b>
+                  decision instead of a memory test - as its initials, the
+                  same way the personal plans below print it (owner, v1.2.6:
+                  "(Lock)" and "(LK)" on one screen was two styles for one
+                  fact, and the long form wrapped the chips) */}
+              {on ? '● ' : '○ '}{p.name} ({p.pos}) <b>{p.age}</b>
             </button>
           )
         })}

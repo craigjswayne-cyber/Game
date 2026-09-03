@@ -202,7 +202,10 @@ export default function Transfers() {
                 </div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
                   <button className="btn gold" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }}>{t('transfers.accept')}</button>
-                  <button className="btn" onClick={() => { setMsg({ key: `offer:${o.id}`, text: counterIncomingOffer(game, o.id) }); touch() }}>{t('transfers.demandMore')}</button>
+                  {/* ghost, not plain: the plain button is surface-3 on a surface-1 card,
+                      which on the light skins is the same colour twice, and the owner
+                      could not tell Demand More was a button at all (v1.2.6) */}
+                  <button className="btn ghost" onClick={() => { setMsg({ key: `offer:${o.id}`, text: counterIncomingOffer(game, o.id) }); touch() }}>{t('transfers.demandMore')}</button>
                   <button className="btn danger" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, false) }); touch() }}>{t('transfers.reject')}</button>
                 </div>
                 {msg?.key === `offer:${o.id}` && (

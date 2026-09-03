@@ -241,9 +241,6 @@
   --on-hero: #FFFFFF;
   --on-hero-soft: #B9C9DF;
   --scrim: rgba(2, 7, 15, 0.7);
-  /* the pitch stays a pitch: skinning the interface does not repaint grass */
-  --pitch-a: #16403A;
-  --pitch-b: #133A34;
   --on-danger: #2B0E0B;
   --on-info: #10061F;
 
@@ -294,8 +291,6 @@
   --on-hero: #F4F1EA;
   --on-hero-soft: #E7CBCF;
   --scrim: rgba(10, 10, 11, 0.68);
-  --pitch-a: #2A4A38;
-  --pitch-b: #26432F;
   --on-danger: #2B0E0B;
   --on-info: #0B1620;
 
@@ -346,8 +341,6 @@
   --on-hero: #FFFFFF;
   --on-hero-soft: #B9B9BF;
   --scrim: rgba(0, 0, 0, 0.75);
-  --pitch-a: #1E3A2C;
-  --pitch-b: #1A3327;
   --on-danger: #2B0E0B;
   --on-info: #0B1620;
 
@@ -432,8 +425,6 @@
   --on-hero: #FFFFFF;
   --on-hero-soft: #B9C9DF;
   --scrim: rgba(11, 19, 32, 0.45);
-  --pitch-a: #2E7A52;
-  --pitch-b: #2A7050;
   --on-danger: #FFFFFF;
   --on-info: #FFFFFF;
 
@@ -482,8 +473,6 @@
   --on-hero: #F4F1EA;
   --on-hero-soft: #E7CBCF;
   --scrim: rgba(27, 24, 21, 0.45);
-  --pitch-a: #2E7A52;
-  --pitch-b: #2A7050;
   --on-danger: #FFFDF8;
   --on-info: #FFFDF8;
 
@@ -533,8 +522,6 @@
   --on-hero: #FFFFFF;
   --on-hero-soft: #B9B9BF;
   --scrim: rgba(10, 10, 11, 0.5);
-  --pitch-a: #2E7A52;
-  --pitch-b: #2A7050;
   --on-danger: #FFFFFF;
   --on-info: #FFFFFF;
 

@@ -31,7 +31,7 @@
  *
  * Run: npx vite-node scripts/tillprobe.ts
  */
-import { CONSUMABLE_SKUS, SELLABLE_SKUS, HEAL_SKU, SUPPORT_SKU, creditCount } from '../src/game/monetise'
+import { CONSUMABLE_SKUS, SELLABLE_SKUS, HEAL_SKU, SUPPORT_SKU, billingReason, creditCount } from '../src/game/monetise'
 import { playBridge } from '../src/game/playbilling'
 
 // the credit bank lives in localStorage; the probe provides one so banking
@@ -282,6 +282,65 @@ for (const spelling of ['token', 'purchaseToken', 'silent'] as Spelling[]) {
   await playBridge()
   await new Promise(r => setTimeout(r, 20))
   ok(play.unsettled().length === 0, 'an open non-consumable receipt is acknowledged at boot')
+}
+
+// ---- a sheet that never opens gives the button back ----
+//
+// Owner, v1.2.6: "buy option - holding on asking the store? No purchase
+// completed." PaymentRequest.show() settles when the customer pays or backs
+// out of Play's sheet, and never if Play never puts the sheet up. The bridge
+// asks the request to abort after a ceiling: the browser refuses while a real
+// payment is mid-flight (so a slow customer is untouched) and closes a sheet
+// that never opened.
+{
+  const g = globalThis as unknown as Record<string, unknown>
+  g.__phaseSheetMs = 300
+  g.getDigitalGoodsService = async () => ({
+    getDetails: async () => [], listPurchases: async () => [], consume: async () => {},
+  })
+  // (a) nothing ever opens, and the browser confirms there is nothing to abort
+  let aborted = 0
+  g.PaymentRequest = class {
+    show() { return new Promise(() => { /* the sheet that never came */ }) }
+    async abort() { aborted++ }
+  }
+  let b = await playBridge()
+  if (!b) ok(false, 'no bridge for the sheet that never opens')
+  else {
+    const started = Date.now()
+    const out = await b.buy(HEAL_SKU)
+    const took = Date.now() - started
+    ok(out === 'refused', `a sheet that never opens is a refusal, not a wait (${out})`)
+    ok(took < 5_000, `and the button is back inside the ceiling (${took}ms)`)
+    ok(aborted === 1, 'because the request was asked to abort exactly once')
+    ok(/payment sheet/.test(billingReason() ?? ''), `and the store is named for it (${billingReason()})`)
+  }
+  // (b) the customer is slow but real: abort is refused, the wait goes on, the purchase lands
+  let refusedAbort = 0
+  const purchases: { itemId: string; purchaseToken: string }[] = []
+  g.getDigitalGoodsService = async () => ({
+    getDetails: async () => [], listPurchases: async () => purchases,
+    consume: async () => {},
+  })
+  g.PaymentRequest = class {
+    private sku: string
+    constructor(m: { data?: { sku?: string } }[]) { this.sku = m[0]?.data?.sku ?? '' }
+    show() {
+      return new Promise<{ details: { token: string }; complete: () => Promise<void> }>(resolve => setTimeout(() => {
+        purchases.push({ itemId: this.sku, purchaseToken: 'slow-1' })
+        resolve({ details: { token: 'slow-1' }, complete: async () => {} })
+      }, 700))
+    }
+    async abort() { refusedAbort++; throw new DOMException('mid-payment', 'InvalidStateError') }
+  }
+  b = await playBridge()
+  if (!b) ok(false, 'no bridge for the slow customer')
+  else {
+    const out = await b.buy(HEAL_SKU)
+    ok(out === 'owned', `a customer who takes longer than the ceiling still completes the purchase (${out})`)
+    ok(refusedAbort === 1, 'because the browser refused the abort and the bridge waited')
+  }
+  delete g.__phaseSheetMs
 }
 
 console.log(fails === 0

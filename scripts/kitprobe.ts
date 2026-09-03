@@ -61,7 +61,7 @@ const ok = (c: boolean, what: string) => {
     ['leicester', 'solid', true],     // green, red sleeves, white cuff
     ['harlequins', 'quarters', true],
     ['northampton', 'hoops', true],
-    ['saracens', 'solid', false],
+    ['saracens', 'solid', true],      // all black, gold trim (v1.2.6)
     ['exeter', 'yoke', true],         // white yoke, black body, light-blue flanks
     ['gloucester', 'hoops', false],   // cherry and white, five fine hoops
     ['sale', 'flank', false],         // navy, orange down the sides
