@@ -517,6 +517,18 @@ reply to that specific guideline. A first rejection on an app like this is
 almost always 4.2 or 5.2, and both are arguments rather than bugs. Reaching for
 the code before reading which guideline was cited is how a week disappears.
 
+### 24b. Guideline 2.1, "Information Needed" — the new-account questionnaire
+
+The first reply Apple sent us (3 Sep 2026, on 1.2.4 build 4) was neither 4.2 nor
+5.2. It was Guideline 2.1 *Information Needed*: a screen recording from a real
+iPhone plus six written answers, asked of every developer account with little
+review history. It is a form, not a verdict, and it does not want a new build.
+
+The recording script and the full text of the six answers are in
+`APP-REVIEW-REPLY.md` beside this file. Paste the answers into the reply AND
+into *App Review Information → Notes*, attach the recording, then *Resubmit to
+App Review*.
+
 ---
 
 ## One rule that does not bend
