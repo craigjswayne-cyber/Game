@@ -42,6 +42,7 @@ interface DigitalGoodsService {
 type WithDigitalGoods = {
   getDigitalGoodsService?: (method: string) => Promise<DigitalGoodsService>
   PaymentRequest?: new (methods: unknown[], details: unknown) => {
+    abort(): Promise<void>
     show(): Promise<{ details: { token?: string; purchaseToken?: string }; complete(status: string): Promise<void> }>
   }
 }
@@ -152,7 +153,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
     // AFTER complete(), when the purchase is at least supposed to be filed.
     for (let tries = 0; tries < 4; tries++) {
       try {
-        const t = (await svc.listPurchases()).find(p => p.itemId === sku)?.purchaseToken
+        const t = (await bounded(svc.listPurchases(), 8_000))?.find(p => p.itemId === sku)?.purchaseToken
         if (t) return t
       } catch { /* offline blip: the retry is the point */ }
       await new Promise(r => setTimeout(r, 350 * (tries + 1)))
@@ -167,6 +168,33 @@ export async function playBridge(): Promise<BillingBridge | null> {
    *  and calling that a cancellation is what made the fault invisible. */
   const HUMAN_MS = 1200
 
+  /** THE SHEET THAT NEVER CAME (owner, v1.2.6: "buy option - holding on
+   *  asking the store? No purchase completed").
+   *
+   *  PaymentRequest.show() settles when the customer pays or backs out of
+   *  Play's sheet - and never, if Play never puts the sheet up. Nothing here
+   *  bounded it, because a person reading a payment sheet cannot be put on a
+   *  timer; so the one tap where Play went quiet left "Asking the store..."
+   *  on the button until the app was killed.
+   *
+   *  The way out is the browser's own word on whether anybody is looking at a
+   *  sheet: abort() REJECTS while a payment is genuinely in progress, and
+   *  resolves when there is nothing to abort. So after SHEET_MS the request
+   *  is asked to abort - a real customer mid-payment is untouched, because
+   *  the abort is refused and the wait goes on; a sheet that never opened is
+   *  closed, named, and the button comes back. Money never moves on this
+   *  path: the sheet was not there. */
+  // ninety seconds by default; a probe may shorten it through the window it
+  // builds, because a test that waits a minute and a half for a sheet that
+  // was never going to open is not a test anybody runs
+  const SHEET_MS = (w as { __phaseSheetMs?: number }).__phaseSheetMs ?? 90_000
+  /** A bridge call the customer is not looking at, with a ceiling. */
+  const bounded = <T>(job: Promise<T>, ms: number): Promise<T | undefined> =>
+    new Promise(resolve => {
+      const timer = setTimeout(() => resolve(undefined), ms)
+      job.then(v => { clearTimeout(timer); resolve(v) }, () => { clearTimeout(timer); resolve(undefined) })
+    })
+
   const buy = async (sku: string): Promise<PurchaseOutcome> => {
     setBillingReason(null)
     const asked = Date.now()
@@ -178,7 +206,21 @@ export async function playBridge(): Promise<BillingBridge | null> {
         // its numbers are ignored
         { total: { label: 'Total', amount: { currency: 'GBP', value: '0' } } },
       )
-      res = await req.show()
+      const shown = req.show()
+      shown.catch(() => { /* answered below, or abandoned on purpose */ })
+      const stall = new Promise<'stall'>(r => setTimeout(() => r('stall'), SHEET_MS))
+      const first = await Promise.race([shown, stall])
+      if (first === 'stall') {
+        let closed = false
+        try { await req.abort(); closed = true } catch { /* somebody is in the sheet: wait for them */ }
+        if (closed) {
+          setBillingReason(`Play did not open its payment sheet inside ${SHEET_MS / 1000} seconds`)
+          return 'refused'
+        }
+        res = await shown
+      } else {
+        res = first
+      }
     } catch (e) {
       const err = e as Error
       const quick = Date.now() - asked < HUMAN_MS
@@ -208,7 +250,7 @@ export async function playBridge(): Promise<BillingBridge | null> {
       //
       // No second charge happens on this path. Play never opened the sheet.
       try {
-        const held = (await svc.listPurchases()).find(p => p.itemId === sku)
+        const held = (await bounded(svc.listPurchases(), 8_000))?.find(p => p.itemId === sku)
         if (held) {
           setBillingReason(null)
           return 'owned'

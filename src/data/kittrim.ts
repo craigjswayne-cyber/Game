@@ -27,6 +27,9 @@ export const KIT_TRIM: Record<string, string> = {
   leicester: '#ffffff',   // the white cuff line on the red sleeve (2026-27)
   exeter: '#8fc7ea',      // light-blue side panels and sleeve edge under the white yoke
   northampton: '#f2c200', // the gold line at every hoop
+  saracens: '#c9a227',    // gold collar and sleeve edge on an all-black shirt (owner, v1.2.6:
+                          // "full black with gold trim"; the second colour is a near-black
+                          // so the sleeves stay black and the gold is the only other thing on it)
   // Elite 14
   la_rochelle: '#ffffff',  // the white line between the yellow and the black
   toulon: '#c8102e',

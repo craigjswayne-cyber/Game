@@ -20,7 +20,7 @@ const KIT_PATTERNS: Record<string, KitPattern> = {
   newcastle: 'solid',
   northampton: 'hoops',   // black, green & gold hoops
   sale: 'flank',          // navy, orange side panels and cuffs
-  saracens: 'solid',       // 2025-26: black shirt, red accents
+  saracens: 'solid',       // all black, gold trim (owner, v1.2.6)
   // Elite 14
   toulouse: 'hoops',      // red & black
   bordeaux: 'sash',       // navy with claret

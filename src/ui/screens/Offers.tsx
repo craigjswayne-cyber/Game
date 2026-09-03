@@ -117,7 +117,7 @@ export default function Offers() {
             <button className="btn gold" onClick={() => answer(o.id, () => respondToOffer(game, o.id, true))}>
               {t('world.ofAccept', { fee: fmtMoney(o.fee) })}
             </button>
-            <button className="btn" disabled={!!o.countered}
+            <button className="btn ghost" disabled={!!o.countered}
               title={t(o.countered ? 'world.ofAskedTitle' : 'world.ofDemandTitle')}
               onClick={() => answer(o.id, () => counterIncomingOffer(game, o.id))}>
               {t(o.countered ? 'world.ofAlreadyAsked' : 'world.ofDemandMore')}

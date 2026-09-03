@@ -131,9 +131,15 @@ for (const [skin, sel] of PALETTES) {
   const neg = hueOf(tok['--danger'] ?? '#000000')
   ok(pos.g > pos.r && pos.g > pos.b, `${skin}: a win is still green (${tok['--positive']})`)
   ok(neg.r > neg.g && neg.r > neg.b, `${skin}: a loss is still red (${tok['--danger']})`)
-  // the pitch is a depiction, not interface colour: it stays green too
-  const pitch = hueOf(tok['--pitch-a'] ?? '#000000')
-  ok(pitch.g > pitch.r && pitch.g >= pitch.b, `${skin}: the pitch is still grass (${tok['--pitch-a']})`)
+  // THE PITCH IS NOT A SKIN TOKEN. It is a depiction of grass, and grass is
+  // the same colour whatever the interface is painted in. Every skin used to
+  // redeclare --pitch-a in its own key (teal on midnight, grey-green on
+  // heritage) and each of them still passed a "greener than red" hue test -
+  // which is how the owner came to ask for the pitch to "always be green
+  // still" (v1.2.6). So the assertion is now the stronger one: a skin block
+  // declares NO pitch colour at all, and the base night/day grass shows through.
+  ok(!tok['--pitch-a'] && !tok['--pitch-b'],
+    `${skin}: does not repaint the pitch (${tok['--pitch-a'] ? `declares ${tok['--pitch-a']}` : 'inherits the grass'})`)
   // a skin must not leave a role undeclared and inherit night's by accident
   const need = ['--canvas', '--surface-1', '--text-primary', '--primary', '--gold', '--danger', '--hero-gradient', '--scrim']
   const gaps = need.filter(k => !tok[k])

@@ -141,8 +141,17 @@ export function storeKitBridge(): BillingBridge | null {
   const buy = async (sku: string): Promise<PurchaseOutcome> => {
     setBillingReason(null)
     try {
-      const { outcome } = await p.buy({ sku })
-      return asOutcome(outcome)
+      // the same rule as the Play side (v1.2.6): a sheet that never comes may
+      // not hold the button for ever. There is no abort() to consult here, so
+      // this is a plain ceiling - long past any Face ID prompt - and a
+      // purchase that lands after it is still on the account, where the
+      // held-receipt pass hands it over as Apply.
+      const got = await Promise.race([
+        p.buy({ sku }),
+        new Promise<null>(r => setTimeout(() => r(null), 90_000)),
+      ])
+      if (!got) { setBillingReason('the App Store did not answer inside 90 seconds'); return 'refused' }
+      return asOutcome(got.outcome)
     } catch (e) {
       // the same rule the Android side learned: a store that would not sell
       // must say so in its own words, or the fault is invisible from inside
