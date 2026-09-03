@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { Difficulty } from './game/difficulty'
 import { noteScreen } from './game/bugreport'
 
 /** THE SKINS, and the one that means "leave it alone".
@@ -166,7 +167,7 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty) => void
   /** A board injection bought at the till lands in this career (grants.ts).
    *  Returns false when the seasonal limit refuses it - the caller must then
    *  NOT consume the purchase, so the recovery pass keeps it. */
@@ -510,9 +511,9 @@ export const useStore = create<Store>((set, get) => ({
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
-  start: (clubId, managerName, challengeId, origin) => {
+  start: (clubId, managerName, challengeId, origin, difficulty) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId, origin)
+    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty)
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets

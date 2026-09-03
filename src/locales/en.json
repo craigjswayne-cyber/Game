@@ -146,7 +146,9 @@
   "mainMenu": "Main Menu",
   "back": "Back",
   "confirm": "Confirm",
-  "startCareer": "▸ Start Career"
+  "startCareer": "▸ Start Career",
+  "difficulty": "Difficulty",
+  "difficultyBlurb": "Chosen once, for this career. It changes your club only: the money you start with, how patient the board is, and how often your players break down."
  },
  "common": {
   "a": "A",
@@ -191,7 +193,8 @@
   "weeksOut": "{n}w",
   "wk": "wk{n}",
   "listSep": ", ",
-  "nothing": ""
+  "nothing": "",
+  "confirmSell": "Confirm sale"
  },
  "home": {
   "jobCentre": "📋 The Job Centre",
@@ -345,7 +348,17 @@
   "statusRotationDesc": "In and out of the side, and he knows it. Roughly every other week.",
   "statusSquadDesc": "Cover and a bench shirt. A quarter of the matches keeps him happy.",
   "statusProspectDesc": "Learning his trade. A handful of appearances a season is progress.",
-  "statusFringeDesc": "He has been told where he stands. He expects nothing and may want out."
+  "statusFringeDesc": "He has been told where he stands. He expects nothing and may want out.",
+  "tabDepth": "Depth",
+  "depthInjured": "injured",
+  "depthBanned": "banned",
+  "depthAway": "away",
+  "depthOnLoan": "on loan",
+  "depthFit": "{n} fit",
+  "depthNobody": "Nobody can play here.",
+  "depthCovers": "Covers from {pos}",
+  "depthThin": "One injury from having nobody at {pos}.",
+  "depthThinFront": "Fewer than three fit {pos}: the laws want specialist cover."
  },
  "selection": {
   "startingXV": "Starting XV",
@@ -1225,7 +1238,11 @@
   "withTheBallSub": "how you attack with the ball",
   "withoutTheBall": "Without the Ball",
   "withoutTheBallSub": "how the line defends when they have it",
-  "planSet": "Set: {dials}"
+  "planSet": "Set: {dials}",
+  "planSave": "Save as Plan {n}",
+  "planSaveTitle": "Keep what is on the dials now: the four sliders, the defensive pair, set-piece calls, kicking order and exit.",
+  "planLoad": "Plan {n}",
+  "planOverTitle": "Overwrite Plan {n} with the current dials"
  },
  "staff": {
   "roleAssistant": "Assistant Coach",
@@ -1285,7 +1302,10 @@
   "courseResitsLongOne": "{name} cannot sit it again yet - he failed recently and the next intake is {n} week off.",
   "courseNoBudget": "No budget - you have {have} of the {need}",
   "courseNoBudgetLong": "The course costs {need} and there is {have} in the bank. The examiners take the fee up front.",
-  "candGone": "That candidate is no longer available."
+  "candGone": "That candidate is no longer available.",
+  "sackNobody": "There is nobody in that role to sack.",
+  "sackNoMoney": "Sacking him costs {need} and the club has {have}.",
+  "sacked": "{name} has left the club. {cost} to end his contract."
  },
  "training": {
   "tabTraining": "Training",
@@ -1375,7 +1395,10 @@
   "chemRest": {
    "one": "And one more pairing in the room: {clicks} that work, {clashes} that do not.",
    "other": "And {n} more pairings in the room: {clicks} that work, {clashes} that do not."
-  }
+  },
+  "sack": "Sack",
+  "sackConfirm": "Sack him · {cost}",
+  "sackTitle": "End his contract now for {cost}. The role stays vacant until you appoint again."
  },
  "pos": {
   "LP": "Loosehead Prop",
@@ -1950,7 +1973,38 @@
   "sellAgeing": "he is the wrong side of 33 and they know the value only falls",
   "sellSameLeague": "Selling inside the league arms a rival: from you, {club} want over the asking price.",
   "sellRival": "To a derby rival? {club} would sooner not sell to you at all - only silly money moves this.",
-  "itWouldTake": "The number that moves them is about "
+  "itWouldTake": "The number that moves them is about ",
+  "formHistory": "Last ten ratings",
+  "trendEarly": {
+   "one": "{n} match so far, rated {avg}. Too few to call a trend.",
+   "other": "{n} matches so far, averaging {avg}. Too few to call a trend."
+  },
+  "trendUp": "Averaging {avg} over {n}, and the last three are above the rest. On the way up.",
+  "trendDown": "Averaging {avg} over {n}, and the last three are below the rest. Sliding.",
+  "trendLevel": "Averaging {avg} over {n}. Steady.",
+  "injuryRecord": "Injury record",
+  "injuryTally": {
+   "one": "{n} injury this career",
+   "other": "{n} injuries this career"
+  },
+  "injFragile": "Fragile",
+  "injWatch": "Worth watching",
+  "injSound": "Sound",
+  "injWeeks": "{n}w",
+  "sendOnLoanConfirm": "Confirm season loan",
+  "transferListConfirm": "Confirm listing",
+  "release": "Release · pay off {cost}",
+  "releaseConfirm": "Confirm release · {cost}",
+  "releasedMsg": "{name} has been released. {cost} paid off; he is a free agent.",
+  "releaseNotYours": "He is not yours to release.",
+  "releaseOnLoanIn": "He is here on loan; send him back instead.",
+  "releaseAwayOnLoan": "He is out on loan. Recall him first.",
+  "releaseFloor": "The squad cannot go below {n} senior players.",
+  "releaseNoMoney": "The club cannot afford the pay-off.",
+  "injuryWeeksOut": {
+   "one": "{n} week out",
+   "other": "{n} weeks out"
+  }
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -4577,7 +4631,11 @@
   "ledgerFirstDerbySubj": "One for the ledger",
   "ledgerUnbeatenSubj": "One for the ledger",
   "grKidRating": "{kid} has found out what a video game thinks of his acceleration and has posted a screenshot with no caption, which on the internet counts as a declaration of war. The developers have replied with a shrug emoji. Three teammates have replied agreeing with the game.",
-  "grKidRatingSubj": "SOCIAL: {kidLast} discovers his own rating and takes it personally"
+  "grKidRatingSubj": "SOCIAL: {kidLast} discovers his own rating and takes it personally",
+  "staffSackedSubj": "{name} leaves {club}",
+  "staffSacked": "{club} have parted company with {role_k} {name}. The club paid {cost} to end his contract; the role is vacant.",
+  "releasedSubj": "{name} released by {club}",
+  "released": "{club} have released {name} ({pos}, {age}) with immediate effect, paying off the remainder of his contract at a cost of {cost}. He is a free agent."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5729,5 +5787,13 @@
   "unfairBtn": "“It was unfair.”",
   "unfairLine": "It was unfair, and everyone in this room knows it. Injuries all winter, no money in January, and eleven weeks to fix what took ten years to break. Judge me on a full season or do not judge me at all.",
   "unfairReply": "Half the room writes “dignified”, the other half writes “excuses”. Both pieces run. That is the press for you - you were never going to get one headline out of this."
+ },
+ "difficulty": {
+  "normal": "Normal",
+  "normalDesc": "The game as it comes.",
+  "hard": "Hard",
+  "hardDesc": "Less money in the bank, a board that expects more, a physio room that is busier.",
+  "legend": "Legend",
+  "legendDesc": "Half the money, a board with no patience, and injuries that come in pairs."
  }
 }

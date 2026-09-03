@@ -307,7 +307,8 @@ try {
   // commit. What this probe owns is the DIFFERENCE: a heading that the longer
   // language breaks and English does not.
   const squadHeadings = async () => {
-    await page.locator('.tab-bar button').nth(1).click()   // General, by position
+    // General, by position: third since v1.2.7 put the Depth chart second
+    await page.locator('.tab-bar button').nth(2).click()
     await page.waitForSelector('.dtable thead')
     await page.waitForTimeout(200)
     return page.evaluate(() => {

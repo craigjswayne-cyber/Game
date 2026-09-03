@@ -92,6 +92,10 @@ body {
   font-size: 13.5px;
   line-height: 1.45;
   overscroll-behavior: none;
+  /* the viewport allows pinch-zoom again (v1.2.7: a game that blocked it was
+     failing anyone who needs it); this keeps double-tap from zooming a button
+     press, which is what the old user-scalable=no was really there to stop */
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   /* every number in this game sits in a column beside another number */
@@ -3928,3 +3932,40 @@ button.chip { min-height: 36px; display: inline-flex; align-items: center; }
 }
 
 
+
+/* ---- v1.2.7: the record, the manager's plans, the depth chart, and a
+   button that asks once ---- */
+.btn.armed { animation: armed-pulse .9s ease-in-out infinite alternate; }
+@keyframes armed-pulse { from { filter: brightness(1); } to { filter: brightness(1.18); } }
+@media (prefers-reduced-motion: reduce) { .btn.armed { animation: none; } }
+
+.record-card .rating-run { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.record-card .rating-dot {
+  min-width: 30px; padding: 2px 4px; border-radius: 6px; text-align: center;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--surface-3); color: var(--text-primary);
+}
+.record-card .rating-dot.hi { background: color-mix(in srgb, var(--positive) 28%, var(--surface-3)); color: var(--text-positive); }
+.record-card .rating-dot.lo { background: color-mix(in srgb, var(--danger) 26%, var(--surface-3)); color: var(--text-negative); }
+
+.plan-slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 16px 0; }
+.plan-slot { display: inline-flex; gap: 2px; align-items: stretch; }
+.plan-slot .plan-over { padding-left: 8px; padding-right: 8px; min-width: 32px; }
+.preset-chip.plan-empty { border-style: dashed; opacity: .85; }
+
+.depth-chart { padding: 6px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+.depth-row { background: var(--surface-1); border-radius: 10px; padding: 8px 10px; border-left: 4px solid transparent; }
+.depth-row.thin { border-left-color: var(--danger); }
+.depth-pos { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.depth-count { font-size: 11px; font-weight: 700; letter-spacing: .4px; color: var(--text-muted); text-transform: uppercase; }
+.depth-count.warn { color: var(--text-negative); }
+.depth-men { display: flex; flex-wrap: wrap; gap: 6px; }
+.depth-man {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; min-height: 30px;
+  border-radius: 8px; background: var(--surface-3); color: var(--text-primary); font-size: 12px;
+}
+.depth-man .depth-ca { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold); }
+.depth-man.cover .depth-name { font-style: italic; }
+.depth-man.out { opacity: .55; }
+.depth-man .depth-why { font-size: 10.5px; color: var(--text-negative); font-weight: 700; }
+.depth-warn { margin-top: 6px; color: var(--text-negative); font-weight: 600; }

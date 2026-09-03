@@ -146,7 +146,9 @@
   "mainMenu": "メインメニュー",
   "back": "戻る",
   "confirm": "確定",
-  "startCareer": "▸ キャリア開始"
+  "startCareer": "▸ キャリア開始",
+  "difficulty": "難易度",
+  "difficultyBlurb": "このキャリアで一度だけ選びます。影響は自分のクラブだけ。開始時の資金、フロントの忍耐、選手が故障する頻度が変わります。"
  },
  "common": {
   "a": "A",
@@ -191,7 +193,8 @@
   "weeksOut": "{n}週",
   "wk": "第{n}週",
   "listSep": "、",
-  "nothing": ""
+  "nothing": "",
+  "confirmSell": "売却を確定"
  },
  "home": {
   "jobCentre": "📋 求人センター",
@@ -345,7 +348,17 @@
   "statusRotationDesc": "出たり出なかったり――本人も承知の上。だいたい隔週といったところ。",
   "statusSquadDesc": "控えと穴埋め役。試合の4分の1に絡めば満足する。",
   "statusProspectDesc": "修業中の身。年に数試合の出場でも立派な前進だ。",
-  "statusFringeDesc": "立場は伝えてある。何も期待していないし、退団を望むかもしれない。"
+  "statusFringeDesc": "立場は伝えてある。何も期待していないし、退団を望むかもしれない。",
+  "tabDepth": "層",
+  "depthInjured": "負傷",
+  "depthBanned": "出場停止",
+  "depthAway": "不在",
+  "depthOnLoan": "ローン中",
+  "depthFit": "出場可{n}人",
+  "depthNobody": "このポジションを務められる選手がいません。",
+  "depthCovers": "{pos}から兼任",
+  "depthThin": "{pos}はあと一人ケガをすれば誰もいなくなります。",
+  "depthThinFront": "出場可能な{pos}が3人未満。ルール上、専門の控えが必要です。"
  },
  "selection": {
   "startingXV": "先発XV",
@@ -1225,7 +1238,11 @@
   "withTheBallSub": "ボールを持ったときの攻め方",
   "withoutTheBall": "ボール非保持時",
   "withoutTheBallSub": "相手ボール時のラインの守り方",
-  "planSet": "設定:{dials}"
+  "planSet": "設定:{dials}",
+  "planSave": "プラン{n}として保存",
+  "planSaveTitle": "今のダイヤルをそのまま保存します。4つのスライダー、守備の2項目、セットピースのコール、キッカー順、脱出策。",
+  "planLoad": "プラン{n}",
+  "planOverTitle": "プラン{n}を現在の設定で上書き"
  },
  "staff": {
   "roleAssistant": "アシスタントコーチ",
@@ -1285,7 +1302,10 @@
   "courseResitsLongOne": "{name}はまだ再受験できない——先日落第したばかりで、次の受け入れは{n}週間先だ。",
   "courseNoBudget": "予算不足——必要{need}に対し手元{have}",
   "courseNoBudgetLong": "講習の費用は{need}、銀行には{have}。試験官は前払いしか受け付けない。",
-  "candGone": "その候補者はもう市場にいない。"
+  "candGone": "その候補者はもう市場にいない。",
+  "sackNobody": "そのポストに解任できる人はいません。",
+  "sackNoMoney": "解任には{need}かかりますが、クラブの資金は{have}です。",
+  "sacked": "{name}がクラブを去りました。契約解除に{cost}。"
  },
  "training": {
   "tabTraining": "トレーニング",
@@ -1375,7 +1395,10 @@
   "chemRest": {
    "one": "部屋にはほかにもう1組:機能しているのが{clicks}、そうでないのが{clashes}。",
    "other": "部屋にはほかに{n}組:機能しているのが{clicks}、そうでないのが{clashes}。"
-  }
+  },
+  "sack": "解任",
+  "sackConfirm": "解任する · {cost}",
+  "sackTitle": "{cost}で今すぐ契約を打ち切ります。次に任命するまでポストは空席のままです。"
  },
  "pos": {
   "LP": "ルーズヘッドプロップ",
@@ -1950,7 +1973,38 @@
   "sellAgeing": "33歳の峠を越え、値は下がる一方だと先方も知っている",
   "sellSameLeague": "リーグ内への売却はライバルを利する：あなた相手なら{club}は言い値より上を要求する。",
   "sellRival": "ダービーの相手に？{club}はそもそもあなたに売りたくない――法外な金だけがこれを動かす。",
-  "itWouldTake": "先方が動く額はおよそ"
+  "itWouldTake": "先方が動く額はおよそ",
+  "formHistory": "直近10試合の採点",
+  "trendEarly": {
+   "one": "これまで{n}試合、採点{avg}。傾向を語るにはまだ少なすぎます。",
+   "other": "これまで{n}試合、平均{avg}。傾向を語るにはまだ少なすぎます。"
+  },
+  "trendUp": "{n}試合で平均{avg}。直近3試合はそれ以前を上回っています。上り調子。",
+  "trendDown": "{n}試合で平均{avg}。直近3試合はそれ以前を下回っています。下降中。",
+  "trendLevel": "{n}試合で平均{avg}。安定。",
+  "injuryRecord": "負傷履歴",
+  "injuryTally": {
+   "one": "キャリア通算{n}回の負傷",
+   "other": "キャリア通算{n}回の負傷"
+  },
+  "injFragile": "ケガがち",
+  "injWatch": "要注意",
+  "injSound": "頑丈",
+  "injWeeks": "{n}週",
+  "sendOnLoanConfirm": "シーズンローンを確定",
+  "transferListConfirm": "移籍リスト入りを確定",
+  "release": "契約解除 · 違約金{cost}",
+  "releaseConfirm": "契約解除を確定 · {cost}",
+  "releasedMsg": "{name}を契約解除しました。{cost}を支払い、フリーエージェントになりました。",
+  "releaseNotYours": "自分の選手ではないので解除できません。",
+  "releaseOnLoanIn": "ローンで来ている選手です。返却してください。",
+  "releaseAwayOnLoan": "ローンで貸し出し中です。まず呼び戻してください。",
+  "releaseFloor": "トップチームの選手を{n}人未満にはできません。",
+  "releaseNoMoney": "クラブに違約金を払う余裕がありません。",
+  "injuryWeeksOut": {
+   "one": "離脱{n}週",
+   "other": "離脱{n}週"
+  }
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -2059,6 +2113,7 @@
   "natKeepAskBody": "あなたは{nat}のヘッドコーチだ。残る問題はただ一つ、{club}を続けるかどうか。兼任ならテストマッチの土曜はアシスタントがクラブの指揮を執る。去るなら、国こそがあなたの仕事のすべてになる。",
   "supportersClub": "PHASE サポーターズクラブ",
   "supportersCount": {
+   "one": "{n}回のご支援",
    "other": "{n}回のご支援"
   },
   "supportersThanks": "ありがとうございます。開発を続けられます。"
@@ -4576,7 +4631,11 @@
   "ledgerFirstDerbySubj": "記録簿に一行",
   "ledgerUnbeatenSubj": "記録簿に一行",
   "grKidRating": "{kid}は、とあるビデオゲームが自分の加速力をどう評価しているかを知り、キャプションなしでスクリーンショットを投稿した。インターネットにおいて、これは宣戦布告に数えられる。開発元は肩をすくめる絵文字で返信した。チームメイト3人は、ゲームに同意すると返信した。",
-  "grKidRatingSubj": "SNS:{kidLast}、ゲーム内の自分の能力値を知って根に持つ"
+  "grKidRatingSubj": "SNS:{kidLast}、ゲーム内の自分の能力値を知って根に持つ",
+  "staffSackedSubj": "{name}が{club}を退団",
+  "staffSacked": "{club}は{role_k}の{name}と袂を分かった。クラブは契約解除に{cost}を支払い、ポストは空席となった。",
+  "releasedSubj": "{club}が{name}を契約解除",
+  "released": "{club}は{name}（{pos}、{age}）を即時契約解除し、残りの契約を{cost}で清算した。フリーエージェントとなる。"
  },
  "comm": {
   "oppCoachNamed": "{coach}は宿題を済ませてきた。{team}は{pattern_k}をピンポイントで封じる布陣だ。絵を変えるか、それとも計画ごと押し通すか。",
@@ -5728,5 +5787,13 @@
   "unfairBtn": "「不当な扱いだ」",
   "unfairLine": "不当な扱いだ。この部屋の全員がわかっている。冬じゅう負傷者だらけ、1月に金は一銭もなし、十年かけて壊れたものを直すのに与えられたのは十一週間。1シーズン通して見て判断するか、判断しないでいただきたい。",
   "unfairReply": "半分は「潔い」と書き、もう半分は「言い訳」と書いた。どちらの記事も出る。それが報道というものだ——見出しがひとつで済む話ではなかった。"
+ },
+ "difficulty": {
+  "normal": "ノーマル",
+  "normalDesc": "そのままのゲーム。",
+  "hard": "ハード",
+  "hardDesc": "資金は少なく、フロントは多くを求め、医務室は忙しくなります。",
+  "legend": "レジェンド",
+  "legendDesc": "資金は半分、フロントに忍耐はなく、ケガは続けてやってきます。"
  }
 }

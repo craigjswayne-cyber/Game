@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './ui/App'
 import ErrorBoundary from './ui/ErrorBoundary'
 import { installCrashCapture } from './game/bugreport'
+import { installDialogA11y } from './ui/a11y'
 import { attachPlayBilling } from './game/playbilling'
 import { attachStoreKit } from './game/storekit'
 import { restore } from './game/monetise'
@@ -18,6 +19,7 @@ import './ui/theme.css'
 // Those are the ones players report as "it just stopped responding" - the
 // report screen attaches them, so they no longer depend on being noticed.
 installCrashCapture()
+installDialogA11y()
 
 /**
  * A RESTORE NOBODY HAS TO ASK FOR.

@@ -210,6 +210,42 @@ export function appointBlock(state: GameState, c: StaffCandidate): AppointBlock 
 }
 
 /** Appoint a candidate. Returns the line to show the manager. */
+/** Eight weeks' wages to see him off. */
+export function sackCost(state: GameState, role: StaffRole): number {
+  const p = state.staffPeople?.[role]
+  return p ? Math.round(p.wage * 8 / 500) * 500 : 0
+}
+
+/**
+ * SACKING A COACH (owner, v1.2.7: "staff can be hired over but not sacked").
+ * Appointing over a man was the only way to move him on, which meant the
+ * club had to find and pay for a replacement first. Now the seat can simply
+ * be emptied: eight weeks of his wage, the role back to level 0 until it is
+ * filled, and a line in the news. Refused only when the club cannot pay.
+ */
+export function sackStaff(state: GameState, role: StaffRole): string {
+  const club = state.clubs[state.userClubId]
+  const p = state.staffPeople?.[role]
+  if (!p) return t('staff.sackNobody')
+  const cost = sackCost(state, role)
+  if (club.balance < cost) return t('staff.sackNoMoney', { need: fmt(cost), have: fmt(club.balance) })
+  const info = STAFF_INFO[role]
+  club.balance -= cost
+  state.staff[role] = 0
+  state.staffSalt = (state.staffSalt ?? 0) + 1
+  const people = { ...(state.staffPeople ?? {}) } as Record<string, StaffPerson | undefined>
+  delete people[role]
+  state.staffPeople = people as typeof state.staffPeople
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `${p.name} leaves ${club.name}`,
+    body: `${club.name} have parted company with ${tIn('en', info.name).toLowerCase()} ${p.name}. The club paid ${fmt(cost)} to end his contract; the role is vacant.`,
+    k: 'news.staffSacked',
+    v: { name: p.name, club: club.name, role_k: info.name, cost: fmt(cost) },
+  })
+  return t('staff.sacked', { name: p.name, cost: fmt(cost) })
+}
+
 export function appointStaff(state: GameState, role: StaffRole, idx: number): string {
   const club = state.clubs[state.userClubId]
   const cands = staffCandidates(state, role)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { fmtMoney, fmtWage } from '../../game/model'
 import { counterIncomingOffer, respondToOffer } from '../../game/ai'
-import { CrestT, PosBadge, Stars } from '../components'
+import { CrestT, PosBadge, Stars, TwoStep } from '../components'
 import { statusOf, STATUS_BY_ID } from '../../game/gametime'
 import { t } from '../../game/i18n'
 
@@ -114,9 +114,8 @@ export default function Offers() {
           )}
 
           <div className="btn-row" style={{ marginTop: 10 }}>
-            <button className="btn gold" onClick={() => answer(o.id, () => respondToOffer(game, o.id, true))}>
-              {t('world.ofAccept', { fee: fmtMoney(o.fee) })}
-            </button>
+            <TwoStep className="btn gold" label={t('world.ofAccept', { fee: fmtMoney(o.fee) })} confirm={t('common.confirmSell')}
+              onConfirm={() => answer(o.id, () => respondToOffer(game, o.id, true))} />
             <button className="btn ghost" disabled={!!o.countered}
               title={t(o.countered ? 'world.ofAskedTitle' : 'world.ofDemandTitle')}
               onClick={() => answer(o.id, () => counterIncomingOffer(game, o.id))}>

@@ -1,4 +1,5 @@
 import type { Club, GameState, Player, Pos } from './model'
+import { difficultyOf } from './difficulty'
 import { aiBoardsReinvest } from './aiecon'
 import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
@@ -1854,7 +1855,10 @@ export function rebuildSeason(state: GameState) {
     // 53%, which would sack a manager who was doing well. This range and weight
     // keep the coupling while leaving a successful side comfortable.
     const frac = finishFrac.get(club.id)
-    const target = frac == null ? 75 : 86 - frac * 54
+    // the difficulty's board lever pulls the manager's own attractor down;
+    // zero on 'normal', and nobody else's board is touched
+    const lean = club.id === state.userClubId ? difficultyOf(state).board : 0
+    const target = (frac == null ? 75 : 86 - frac * 54) - lean
     club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)

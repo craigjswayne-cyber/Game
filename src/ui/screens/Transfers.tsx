@@ -6,7 +6,7 @@ import { loanIn, loanTargets } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
-import { ClubLink, FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { ClubLink, FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
 import { posName, t } from '../../game/i18n'
 import { userWageBudget } from '../../game/grants'
 import { transferInterest } from '../../game/interest'
@@ -201,7 +201,8 @@ export default function Transfers() {
                   {[7, 26, 27].includes(game.week) && <b style={{ color: 'var(--danger)' }}>{t('transfers.diesAtDeadline')}</b>}
                 </div>
                 <div className="btn-row" style={{ margin: '10px 0 0' }}>
-                  <button className="btn gold" onClick={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }}>{t('transfers.accept')}</button>
+                  <TwoStep className="btn gold" label={t('transfers.accept')} confirm={t('common.confirmSell')}
+                    onConfirm={() => { setMsg({ key: `offer:${o.id}`, text: respondToOffer(game, o.id, true) }); touch() }} />
                   {/* ghost, not plain: the plain button is surface-3 on a surface-1 card,
                       which on the light skins is the same colour twice, and the owner
                       could not tell Demand More was a button at all (v1.2.6) */}
