@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
 import { STAFF_INFO, fmtMoney, fmtWage, type TrainingFocus } from '../../game/model'
-import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, courseBlock, courseFee, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
+import { BADGE_COL, EXAM_PASS_PCT, badgeLabel, traitLabel, appointBlock, appointStaff, courseBlock, courseFee, sackCost, sackStaff, sendToCourse, staffCandidates, staffChemPairs, staffInterest, type StaffRole } from '../../game/staff'
 import { MENTEE_MAX_AGE, MENTOR_MAX_KIDS, canBeMentored, canMentor, fitReason, fitWord, mentorCap, mentorFit } from '../../game/mentoring'
 import { activePlan, planCap } from '../../game/season'
 import { flagOf } from '../../game/nations'
-import { SectionTitle } from '../components'
+import { SectionTitle, TwoStep } from '../components'
 import { t } from '../../game/i18n'
 
 /* keys, not words - see docs/i18n.md */
@@ -257,6 +257,14 @@ function StaffPanel() {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+                  {/* the seat can be emptied without a replacement lined up
+                      (owner, v1.2.7): eight weeks of his wage, asked twice */}
+                  {p && !p.course && (
+                    <TwoStep className="btn ghost" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
+                      label={t('training.sack')} confirm={t('training.sackConfirm', { cost: fmtMoney(sackCost(game, role)) })}
+                      title={t('training.sackTitle', { cost: fmtMoney(sackCost(game, role)) })}
+                      onConfirm={() => { setMsg({ role, text: sackStaff(game, role) }); touch() }} />
+                  )}
                   {p && p.tier < 3 && !p.course && (p.retakeAt ?? 0) <= abs && (
                     <button className="btn gold" style={{ padding: '4px 8px', fontSize: 11, lineHeight: 1.25 }}
                       disabled={!!courseNo} title={courseNo?.long}

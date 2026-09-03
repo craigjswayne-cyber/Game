@@ -146,7 +146,9 @@
     "mainMenu": "Menu principal",
     "back": "Retour",
     "confirm": "Confirmer",
-    "startCareer": "▸ Démarrer la carrière"
+    "startCareer": "▸ Démarrer la carrière",
+    "difficulty": "Difficulté",
+    "difficultyBlurb": "Choisie une fois, pour cette carrière. Elle ne touche que votre club : l’argent de départ, la patience du conseil, et la fréquence des blessures."
   },
   "common": {
     "a": "E",
@@ -191,7 +193,8 @@
     "weeksOut": "{n}s",
     "wk": "s{n}",
     "listSep": ", ",
-    "nothing": ""
+    "nothing": "",
+    "confirmSell": "Confirmer la vente"
   },
   "home": {
     "jobCentre": "📋 La bourse aux postes",
@@ -345,7 +348,17 @@
     "statusRotationDesc": "Il entre et sort de l'équipe, et il le sait. Une semaine sur deux environ.",
     "statusSquadDesc": "Doublure et place sur le banc. Un quart des matchs le contente.",
     "statusProspectDesc": "Il apprend le métier. Quelques apparitions par saison, c'est déjà un progrès.",
-    "statusFringeDesc": "Il sait où il en est. Il n'attend rien et voudra peut-être partir."
+    "statusFringeDesc": "Il sait où il en est. Il n'attend rien et voudra peut-être partir.",
+    "tabDepth": "Profondeur",
+    "depthInjured": "blessé",
+    "depthBanned": "suspendu",
+    "depthAway": "absent",
+    "depthOnLoan": "en prêt",
+    "depthFit": "{n} aptes",
+    "depthNobody": "Personne ne peut jouer ici.",
+    "depthCovers": "Dépanne depuis {pos}",
+    "depthThin": "Une blessure et il n’y a plus personne au poste de {pos}.",
+    "depthThinFront": "Moins de trois {pos} aptes : le règlement exige une couverture de spécialistes."
   },
   "selection": {
     "startingXV": "XV de départ",
@@ -1225,7 +1238,11 @@
     "withTheBallSub": "comment vous attaquez avec le ballon",
     "withoutTheBall": "Sans le ballon",
     "withoutTheBallSub": "comment la ligne défend quand ils l'ont",
-    "planSet": "Réglé : {dials}"
+    "planSet": "Réglé : {dials}",
+    "planSave": "Enregistrer comme plan {n}",
+    "planSaveTitle": "Garder ce qui est sur les curseurs : les quatre réglages, la paire défensive, les annonces de touche et de mêlée, l’ordre des buteurs et la sortie de camp.",
+    "planLoad": "Plan {n}",
+    "planOverTitle": "Remplacer le plan {n} par les réglages actuels"
   },
   "staff": {
     "roleAssistant": "Entraîneur adjoint",
@@ -1285,7 +1302,10 @@
     "courseResitsLongOne": "{name} ne peut pas encore le repasser - il a échoué récemment et la prochaine session est dans {n} semaine.",
     "courseNoBudget": "Budget insuffisant - vous avez {have} sur {need}",
     "courseNoBudgetLong": "La formation coûte {need} et il y a {have} en caisse. Les examinateurs encaissent d'avance.",
-    "candGone": "Ce candidat n'est plus disponible."
+    "candGone": "Ce candidat n'est plus disponible.",
+    "sackNobody": "Personne n’occupe ce poste.",
+    "sackNoMoney": "Le licencier coûte {need} et le club dispose de {have}.",
+    "sacked": "{name} a quitté le club. {cost} pour rompre son contrat."
   },
   "training": {
     "tabTraining": "Entraînement",
@@ -1375,7 +1395,10 @@
     "chemRest": {
       "one": "Et une autre paire dans le staff : {clicks} qui fonctionnent, {clashes} qui non.",
       "other": "Et {n} autres paires dans le staff : {clicks} qui fonctionnent, {clashes} qui non."
-    }
+    },
+    "sack": "Licencier",
+    "sackConfirm": "Le licencier · {cost}",
+    "sackTitle": "Mettre fin à son contrat maintenant pour {cost}. Le poste reste vacant jusqu’à une nouvelle nomination."
   },
   "pos": {
     "LP": "Pilier gauche",
@@ -1950,7 +1973,38 @@
     "sellAgeing": "il a passé 33 ans et le club sait que sa valeur ne fera que baisser",
     "sellSameLeague": "Vendre dans son propre championnat, c'est armer un rival : venant de vous, {club} exigent plus que le prix demandé.",
     "sellRival": "À un rival de derby ? {club} préféreraient ne rien vous vendre du tout - seule une offre déraisonnable les fera bouger.",
-    "itWouldTake": "Le montant qui les fera bouger tourne autour de "
+    "itWouldTake": "Le montant qui les fera bouger tourne autour de ",
+    "formHistory": "Dix dernières notes",
+    "trendEarly": {
+      "one": "{n} match pour l’instant, noté {avg}. Trop peu pour parler de tendance.",
+      "other": "{n} matchs pour l’instant, {avg} de moyenne. Trop peu pour parler de tendance."
+    },
+    "trendUp": "{avg} de moyenne sur {n}, et les trois derniers sont au-dessus du reste. En progression.",
+    "trendDown": "{avg} de moyenne sur {n}, et les trois derniers sont en dessous du reste. En baisse.",
+    "trendLevel": "{avg} de moyenne sur {n}. Régulier.",
+    "injuryRecord": "Historique des blessures",
+    "injuryTally": {
+      "one": "{n} blessure dans sa carrière",
+      "other": "{n} blessures dans sa carrière"
+    },
+    "injFragile": "Fragile",
+    "injWatch": "À surveiller",
+    "injSound": "Solide",
+    "injWeeks": "{n} sem.",
+    "sendOnLoanConfirm": "Confirmer le prêt",
+    "transferListConfirm": "Confirmer la mise sur la liste",
+    "release": "Libérer · indemnité {cost}",
+    "releaseConfirm": "Confirmer la libération · {cost}",
+    "releasedMsg": "{name} a été libéré. {cost} d’indemnité versés ; il est agent libre.",
+    "releaseNotYours": "Il ne vous appartient pas de le libérer.",
+    "releaseOnLoanIn": "Il est ici en prêt ; renvoyez-le plutôt.",
+    "releaseAwayOnLoan": "Il est en prêt ailleurs. Rappelez-le d’abord.",
+    "releaseFloor": "L’effectif ne peut pas descendre sous {n} joueurs seniors.",
+    "releaseNoMoney": "Le club ne peut pas payer l’indemnité.",
+    "injuryWeeksOut": {
+      "one": "{n} semaine d’absence",
+      "other": "{n} semaines d’absence"
+    }
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -4577,7 +4631,11 @@
     "ledgerFirstDerbySubj": "Une ligne pour le registre",
     "ledgerUnbeatenSubj": "Une ligne pour le registre",
     "grKidRating": "{kid} a découvert ce qu'un jeu vidéo pense de son accélération et a publié une capture d'écran sans légende, ce qui, sur internet, vaut déclaration de guerre. Les développeurs ont répondu par un émoji haussement d'épaules. Trois coéquipiers ont répondu en donnant raison au jeu.",
-    "grKidRatingSubj": "RÉSEAUX : {kidLast} découvre sa note et le prend personnellement"
+    "grKidRatingSubj": "RÉSEAUX : {kidLast} découvre sa note et le prend personnellement",
+    "staffSackedSubj": "{name} quitte {club}",
+    "staffSacked": "{club} se sépare de son {role_k} {name}. Le club a versé {cost} pour rompre son contrat ; le poste est vacant.",
+    "releasedSubj": "{name} libéré par {club}",
+    "released": "{club} libère {name} ({pos}, {age} ans) avec effet immédiat, en soldant le reste de son contrat pour {cost}. Il est agent libre."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5729,5 +5787,13 @@
     "unfairBtn": "« C’était injuste. »",
     "unfairLine": "C’était injuste, et tout le monde ici le sait. Des blessés tout l’hiver, pas un centime en janvier, et onze semaines pour réparer ce que dix ans ont cassé. Jugez-moi sur une saison entière ou ne me jugez pas.",
     "unfairReply": "La moitié de la salle écrit « digne », l’autre moitié écrit « excuses ». Les deux papiers paraissent. C’est la presse - vous n’alliez jamais en sortir avec un seul titre."
+  },
+  "difficulty": {
+    "normal": "Normal",
+    "normalDesc": "Le jeu tel qu’il est.",
+    "hard": "Difficile",
+    "hardDesc": "Moins d’argent en banque, un conseil plus exigeant, une infirmerie plus remplie.",
+    "legend": "Légende",
+    "legendDesc": "La moitié de l’argent, un conseil sans patience, et des blessures qui vont par deux."
   }
 }

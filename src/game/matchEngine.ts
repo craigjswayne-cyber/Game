@@ -1,4 +1,5 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
+import { difficultyOf } from './difficulty'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
@@ -2478,7 +2479,11 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // true home surface keeps a few of them on their feet
     const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
       ? facLevel(state, 'pitch') : 0
-    if (rng() < 0.019 * (1 - surface * 0.035)) {
+    // the difficulty's injury lever is the manager's own side's to carry; on
+    // 'normal' (and every save from before it existed) the factor is exactly 1
+    // and the stream is untouched
+    const diffInj = side.teamId === state.userClubId ? difficultyOf(state).injury : 1
+    if (rng() < 0.019 * (1 - surface * 0.035) * diffInj) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
@@ -2502,6 +2507,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             if (care > 0) weeks = Math.max(1, Math.round(weeks * (1 - care)))
           }
           p.injury = { desc: tIn('en', dk), dk, until: state.week + weeks, weeks }
+          p.injLog = [...(p.injLog ?? []), { s: state.season, w: state.week, dk, weeks }].slice(-20)
           side.onPitch.delete(p.id)
           pushLine(state, ctx, min, 'INJ', side, 'comm.injuryDown', {
             player: p.name, injury_k: dk,
@@ -2543,6 +2549,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           // was the one complaint on the Medical screen that ignored the
           // reader's language (release audit, 25 Aug).
           p.injury = { desc: tIn('en', 'injury.hiaFail'), dk: 'injury.hiaFail', until: state.week + rtp, weeks: rtp }
+          p.injLog = [...(p.injLog ?? []), { s: state.season, w: state.week, dk: 'injury.hiaFail', weeks: rtp }].slice(-20)
           const slot = side.lineup.indexOf(pid)
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
@@ -3287,6 +3294,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         p.stats.mSum = (p.stats.mSum ?? 0) + r
         p.stats.mApps = (p.stats.mApps ?? 0) + 1
         p.lastR = r
+        p.ratings = [...(p.ratings ?? []), Math.round(r * 10) / 10].slice(-10)
         p.lastWk = state.week
         p.form = clamp(p.form * 0.65 + own * 0.35, 1, 10)
         const swing = (p.pers === 'Temperamental' ? 2 : 1) * (derby ? 1.6 : 1)

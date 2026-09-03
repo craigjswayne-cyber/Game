@@ -491,6 +491,41 @@ export default function Tactics() {
             </button>
           ))}
         </div>
+        {/* THE MANAGER'S OWN PLANS (owner, v1.2.7: "your own four sliders,
+            set-piece calls and kicker order have to be re-dialled by hand every
+            time you switch plan"). Three slots. An empty one saves what is on
+            the dials now - everything on this screen except the team sheet -
+            and a full one puts it back; the small button beside it overwrites. */}
+        <div className="plan-slots">
+          {(['A', 'B', 'C'] as const).map((letter, i) => {
+            const slot = game.gamePlans?.[i]
+            const snapshot = () => {
+              const { lineup: _lineup, ...values } = tac
+              const next = [...(game.gamePlans ?? [])]
+              while (next.length < i) next.push(undefined as unknown as NonNullable<typeof game.gamePlans>[number])
+              next[i] = { name: letter, values: JSON.parse(JSON.stringify(values)) }
+              game.gamePlans = next
+              setPlanMsg(dialLine(tac)); touch()
+            }
+            if (!slot) {
+              return (
+                <button key={letter} className="preset-chip plan-empty" onClick={snapshot} title={t('tacticsScreen.planSaveTitle')}>
+                  💾 {t('tacticsScreen.planSave', { n: letter })}
+                </button>
+              )
+            }
+            return (
+              <span key={letter} className="plan-slot">
+                <button className="preset-chip plan-load" title={dialLine({ ...tac, ...slot.values })}
+                  onClick={() => { Object.assign(tac, JSON.parse(JSON.stringify(slot.values))); setPlanMsg(dialLine(tac)); touch() }}>
+                  📋 {t('tacticsScreen.planLoad', { n: slot.name })}
+                </button>
+                <button className="preset-chip plan-over" title={t('tacticsScreen.planOverTitle', { n: slot.name })} aria-label={t('tacticsScreen.planOverTitle', { n: slot.name })}
+                  onClick={snapshot}>⟳</button>
+              </span>
+            )
+          })}
+        </div>
         {/* the quick plans move the same four dials from the same distance, so
             they get the same answer */}
         {planMsg && (

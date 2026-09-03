@@ -146,7 +146,9 @@
   "mainMenu": "Menú principal",
   "back": "Atrás",
   "confirm": "Confirmar",
-  "startCareer": "▸ Empezar carrera"
+  "startCareer": "▸ Empezar carrera",
+  "difficulty": "Dificultad",
+  "difficultyBlurb": "Se elige una vez, para esta carrera. Solo afecta a tu club: el dinero inicial, la paciencia de la directiva y la frecuencia de las lesiones."
  },
  "common": {
   "a": "V",
@@ -191,7 +193,8 @@
   "weeksOut": "{n} sem",
   "wk": "sem {n}",
   "listSep": ", ",
-  "nothing": ""
+  "nothing": "",
+  "confirmSell": "Confirmar venta"
  },
  "home": {
   "jobCentre": "📋 La oficina de empleo",
@@ -345,7 +348,17 @@
   "statusRotationDesc": "Entra y sale del equipo, y lo sabe. Más o menos una semana sí y otra no.",
   "statusSquadDesc": "Recambio y camiseta de banquillo. Con un cuarto de los partidos está contento.",
   "statusProspectDesc": "Está aprendiendo el oficio. Un puñado de partidos por temporada ya es progreso.",
-  "statusFringeDesc": "Ya sabe cuál es su sitio. No espera nada y puede querer irse."
+  "statusFringeDesc": "Ya sabe cuál es su sitio. No espera nada y puede querer irse.",
+  "tabDepth": "Fondo",
+  "depthInjured": "lesionado",
+  "depthBanned": "sancionado",
+  "depthAway": "ausente",
+  "depthOnLoan": "cedido",
+  "depthFit": "{n} disponibles",
+  "depthNobody": "Nadie puede jugar aquí.",
+  "depthCovers": "Cubre desde {pos}",
+  "depthThin": "A una lesión de no tener a nadie de {pos}.",
+  "depthThinFront": "Menos de tres {pos} disponibles: el reglamento exige cobertura de especialistas."
  },
  "selection": {
   "startingXV": "XV titular",
@@ -1225,7 +1238,11 @@
   "withTheBallSub": "cómo atacas con el balón",
   "withoutTheBall": "Sin balón",
   "withoutTheBallSub": "cómo defiende la línea cuando lo tienen ellos",
-  "planSet": "Fijado: {dials}"
+  "planSet": "Fijado: {dials}",
+  "planSave": "Guardar como plan {n}",
+  "planSaveTitle": "Guardar lo que hay ahora en los mandos: los cuatro controles, la pareja defensiva, las jugadas de touche y melé, el orden de pateadores y la salida.",
+  "planLoad": "Plan {n}",
+  "planOverTitle": "Sobrescribir el plan {n} con los mandos actuales"
  },
  "staff": {
   "roleAssistant": "Entrenador asistente",
@@ -1285,7 +1302,10 @@
   "courseResitsLongOne": "{name} aún no puede volver a presentarse: suspendió hace poco y la próxima convocatoria queda a {n} semana.",
   "courseNoBudget": "Sin presupuesto: tienes {have} de los {need}",
   "courseNoBudgetLong": "El curso cuesta {need} y en el banco hay {have}. Los examinadores cobran por adelantado.",
-  "candGone": "Ese candidato ya no está disponible."
+  "candGone": "Ese candidato ya no está disponible.",
+  "sackNobody": "No hay nadie en ese puesto a quien despedir.",
+  "sackNoMoney": "Despedirlo cuesta {need} y el club tiene {have}.",
+  "sacked": "{name} ha dejado el club. {cost} por rescindir su contrato."
  },
  "training": {
   "tabTraining": "Entrenamiento",
@@ -1375,7 +1395,10 @@
   "chemRest": {
    "one": "Y una pareja más en la sala: {clicks} que funcionan, {clashes} que no.",
    "other": "Y {n} parejas más en la sala: {clicks} que funcionan, {clashes} que no."
-  }
+  },
+  "sack": "Despedir",
+  "sackConfirm": "Despedirlo · {cost}",
+  "sackTitle": "Rescindir su contrato ahora por {cost}. El puesto queda vacante hasta que nombres a otro."
  },
  "pos": {
   "LP": "Pilar izquierdo",
@@ -1950,7 +1973,38 @@
   "sellAgeing": "está en el lado malo de los 33 y saben que su valor solo puede caer",
   "sellSameLeague": "Vender dentro de la liga arma a un rival: a ti, {club} te pide más del precio exigido.",
   "sellRival": "¿A un rival de derbi? {club} preferiría no venderte nada: esto solo se mueve con una cifra disparatada.",
-  "itWouldTake": "La cifra que los movería ronda "
+  "itWouldTake": "La cifra que los movería ronda ",
+  "formHistory": "Últimas diez notas",
+  "trendEarly": {
+   "one": "{n} partido hasta ahora, con nota {avg}. Poco para hablar de tendencia.",
+   "other": "{n} partidos hasta ahora, con {avg} de media. Pocos para hablar de tendencia."
+  },
+  "trendUp": "Media de {avg} en {n}, y los tres últimos están por encima del resto. En ascenso.",
+  "trendDown": "Media de {avg} en {n}, y los tres últimos están por debajo del resto. En caída.",
+  "trendLevel": "Media de {avg} en {n}. Estable.",
+  "injuryRecord": "Historial de lesiones",
+  "injuryTally": {
+   "one": "{n} lesión en su carrera",
+   "other": "{n} lesiones en su carrera"
+  },
+  "injFragile": "Frágil",
+  "injWatch": "A vigilar",
+  "injSound": "Sano",
+  "injWeeks": "{n} sem.",
+  "sendOnLoanConfirm": "Confirmar cesión",
+  "transferListConfirm": "Confirmar transferible",
+  "release": "Rescindir · finiquito {cost}",
+  "releaseConfirm": "Confirmar rescisión · {cost}",
+  "releasedMsg": "{name} ha sido liberado. {cost} de finiquito; queda libre.",
+  "releaseNotYours": "No es tuyo para rescindirle.",
+  "releaseOnLoanIn": "Está aquí cedido; devuélvelo en su lugar.",
+  "releaseAwayOnLoan": "Está cedido fuera. Recupéralo primero.",
+  "releaseFloor": "La plantilla no puede bajar de {n} jugadores sénior.",
+  "releaseNoMoney": "El club no puede pagar el finiquito.",
+  "injuryWeeksOut": {
+   "one": "{n} semana de baja",
+   "other": "{n} semanas de baja"
+  }
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -4577,7 +4631,11 @@
   "ledgerFirstDerbySubj": "Una para el cuaderno del míster",
   "ledgerUnbeatenSubj": "Una para el cuaderno del míster",
   "grKidRating": "{kid} ha descubierto lo que un videojuego opina de su aceleración y ha publicado un pantallazo sin texto, lo que en internet equivale a una declaración de guerra. Los desarrolladores han respondido con un emoji encogiéndose de hombros. Tres compañeros han respondido dando la razón al juego.",
-  "grKidRatingSubj": "REDES: {kidLast} descubre su nota en el videojuego y se lo toma como algo personal"
+  "grKidRatingSubj": "REDES: {kidLast} descubre su nota en el videojuego y se lo toma como algo personal",
+  "staffSackedSubj": "{name} deja el {club}",
+  "staffSacked": "El {club} se separa de su {role_k} {name}. El club pagó {cost} para rescindir su contrato; el puesto queda vacante.",
+  "releasedSubj": "{club} rescinde a {name}",
+  "released": "El {club} ha rescindido el contrato de {name} ({pos}, {age}) con efecto inmediato, pagando lo que quedaba por {cost}. Queda libre."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -5729,5 +5787,13 @@
   "unfairBtn": "«Fue injusto.»",
   "unfairLine": "Fue injusto, y todos en esta sala lo saben. Lesiones todo el invierno, ni un euro en enero y once semanas para arreglar lo que se rompió en diez años. Júzguenme por una temporada entera o no me juzguen.",
   "unfairReply": "Media sala escribe «digno» y la otra media escribe «excusas». Se publican las dos piezas. Así es la prensa: nunca ibas a salir de esto con un solo titular."
+ },
+ "difficulty": {
+  "normal": "Normal",
+  "normalDesc": "El juego tal como viene.",
+  "hard": "Difícil",
+  "hardDesc": "Menos dinero en caja, una directiva que exige más y una enfermería más llena.",
+  "legend": "Leyenda",
+  "legendDesc": "La mitad del dinero, una directiva sin paciencia y lesiones que vienen de dos en dos."
  }
 }

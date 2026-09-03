@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
@@ -596,4 +596,43 @@ export function attrBarColor(v: number): string {
   if (v >= 12) return 'var(--primary)'
   if (v >= 8) return 'var(--border-strong)'
   return 'var(--surface-3)'
+}
+
+
+/**
+ * A BUTTON THAT ASKS ONCE (owner, v1.2.7: "no confirmation on irreversible
+ * moves - accepting a bid, loaning out and transfer-listing all happen on one
+ * tap"). Resign and ending a sponsor deal already worked this way, each with
+ * its own pair of useState flags; this is that pattern as one component so the
+ * five new sites do not grow five more copies.
+ *
+ * First tap arms it: the label changes to the confirm wording and the colour
+ * to danger. Second tap fires. Four seconds without the second tap, or a tap
+ * anywhere else on the page, and it stands down on its own - so a thumb that
+ * slipped is never left holding a live "Confirm" three screens later.
+ */
+export function TwoStep({ label, confirm, onConfirm, className = 'btn', style, disabled, title }: {
+  label: ReactNode; confirm: ReactNode; onConfirm: () => void
+  className?: string; style?: React.CSSProperties; disabled?: boolean; title?: string
+}) {
+  const [armed, setArmed] = useState(false)
+  useEffect(() => {
+    if (!armed) return
+    const off = () => setArmed(false)
+    const timer = setTimeout(off, 4000)
+    // the next tap ANYWHERE that is not this button stands it down; the
+    // listener is added on the next tick so the arming tap itself does not
+    // count as that tap
+    const tick = setTimeout(() => document.addEventListener('pointerdown', off, { once: true }), 0)
+    return () => { clearTimeout(timer); clearTimeout(tick); document.removeEventListener('pointerdown', off) }
+  }, [armed])
+  return (
+    <button
+      className={armed ? `${className.replace(/\b(ghost|gold)\b/g, '').trim()} danger armed` : className}
+      style={style} disabled={disabled} title={title}
+      aria-pressed={armed}
+      onPointerDown={e => { if (armed) e.stopPropagation() }}
+      onClick={e => { e.stopPropagation(); if (armed) { setArmed(false); onConfirm() } else setArmed(true) }}
+    >{armed ? confirm : label}</button>
+  )
 }

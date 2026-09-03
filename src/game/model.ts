@@ -350,6 +350,15 @@ export interface Player {
   rust?: number
   /** last match rating and the week it was earned - fuels Team of the Week */
   lastR?: number
+  /** The last ten match ratings, oldest first (v1.2.7). One form pill and one
+   *  last rating could not answer "is he declining or did he have a bad week";
+   *  ten in a row can. Appended where lastR is written; capped at ten. */
+  ratings?: number[]
+  /** Every injury he has had in this career, oldest first (v1.2.7): the
+   *  season and week it happened, the complaint's key and the weeks it cost.
+   *  A fragile man and an unlucky one look identical with only the current
+   *  injury stored. Capped at twenty entries. */
+  injLog?: { s: number; w: number; dk: string; weeks: number }[]
   lastWk?: number
   talkWk?: number // retired v1.1.4 with talkToPlayer (chats.ts uses lastChatWk); kept so old saves load
   /** week his agent demanded improved terms (0/undefined = content) */
@@ -1385,11 +1394,14 @@ export interface GameState {
   /** Manager's License chosen at career creation: a proven name from day
    *  one (mgrReputation pays the scale's ceiling; 🎓 in Legacy). */
   licensed?: boolean
-  /** the In-Game Editor's permanent 🔧 stamp lived here (v1.1.0-v1.1.2).
-   *  The Editor was removed before any store sold one, so no real save
-   *  carries it; the field stays optional-and-ignored so an old dev save
-   *  that has it still loads. */
-  edited?: boolean
+  /** Difficulty, chosen at career creation and never after (v1.2.7). Absent
+   *  on every save written before it existed, which reads as 'normal' - the
+   *  game exactly as it was. See src/game/difficulty.ts for the three levers. */
+  difficulty?: 'normal' | 'hard' | 'legend'
+  /** The manager's own saved game plans (v1.2.7): up to three, each the four
+   *  dials plus the defensive pair, set-piece calls, kicking order and exit,
+   *  named by him. Presets are the game's; these are his. */
+  gamePlans?: { name: string; values: Omit<Tactic, 'lineup'> }[]
   /** board injections taken this season, per tier: the well has a bottom
    *  (two per tier, the Sugar Daddy once) and this is where it is measured.
    *  'heal' (v1.1.4) rides in the same ledger for the same reason - the

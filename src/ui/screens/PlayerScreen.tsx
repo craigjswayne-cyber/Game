@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react'
 import { useStore } from '../../store'
-import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, type Attrs, type GameState, type Player } from '../../game/model'
+import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
-import { FormPill, Nat, PosBadge, SectionTitle, Stars } from '../components'
+import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
 import { loanOut, loanRecall } from '../../game/loans'
+import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
 import { attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
@@ -129,6 +130,52 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       <div className="card" style={{ borderLeft: `4px solid ${p.injury || p.bans > 0 ? 'var(--danger)' : p.form >= 7 ? 'var(--text-positive)' : 'var(--gold)'}` }}>
         <div className="meta" style={{ fontSize: 13, lineHeight: 1.5 }}>{verdictLine(game, p, mine)}</div>
       </div>
+
+      {/* ---- THE RECORD (owner, v1.2.7) ----
+          One form pill and one last rating could not answer the question a
+          manager actually asks - "is he declining or did he have a bad week" -
+          and one current injury could not tell a fragile man from an unlucky
+          one. The last ten ratings, oldest first, and every injury this career. */}
+      {((p.ratings?.length ?? 0) > 0 || (p.injLog?.length ?? 0) > 0) && (
+        <div className="card record-card">
+          {(p.ratings?.length ?? 0) > 0 && (() => {
+            const rs = p.ratings!
+            const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
+            const recent = avg(rs.slice(-3))
+            const before = rs.length > 3 ? avg(rs.slice(0, -3)) : recent
+            const trend = rs.length < 4 ? 'player.trendEarly' : recent - before > 0.35 ? 'player.trendUp' : before - recent > 0.35 ? 'player.trendDown' : 'player.trendLevel'
+            return (
+              <>
+                <div className="fact-label">{t('player.formHistory')}</div>
+                <div className="rating-run" aria-label={t('player.formHistory')}>
+                  {rs.map((r, i) => (
+                    <span key={i} className={`rating-dot ${r >= 7.5 ? 'hi' : r < 6 ? 'lo' : ''}`} title={r.toFixed(1)}>{r.toFixed(1)}</span>
+                  ))}
+                </div>
+                <div className="meta" style={{ marginTop: 3 }}>{t(trend, { n: rs.length, avg: avg(rs).toFixed(1) })}</div>
+              </>
+            )
+          })()}
+          {(p.injLog?.length ?? 0) > 0 && (() => {
+            const log = p.injLog!
+            const weeks = log.reduce((s, e) => s + e.weeks, 0)
+            const seasons = Math.max(1, game.season - log[0].s + 1)
+            const perSeason = weeks / seasons
+            const read = perSeason >= 10 ? 'player.injFragile' : perSeason >= 5 ? 'player.injWatch' : 'player.injSound'
+            return (
+              <>
+                <div className="fact-label" style={{ marginTop: (p.ratings?.length ?? 0) > 0 ? 8 : 0 }}>{t('player.injuryRecord')}</div>
+                <div className="meta">{t('player.injuryTally', { n: log.length })}, {t('player.injuryWeeksOut', { n: weeks })} · <b>{t(read)}</b></div>
+                <div className="meta muted" style={{ fontSize: 11.5 }}>
+                  {log.slice(-3).reverse().map((e, i) => (
+                    <span key={i}>{i > 0 ? ' · ' : ''}{injuryDesc({ desc: e.dk, dk: e.dk })} ({t('player.injWeeks', { n: e.weeks })})</span>
+                  ))}
+                </div>
+              </>
+            )
+          })()}
+        </div>
+      )}
 
       <div className="chips">
         <span className="chip" title={t('player.overallTitle')}>
@@ -367,10 +414,8 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
       )}
 
       {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
-        <button className="btn ghost block" onClick={() => {
-          setMsg(loanOut(game, p.id).msg)
-          touch()
-        }}>{t('player.sendOnLoan')}</button>
+        <TwoStep className="btn ghost block" label={t('player.sendOnLoan')} confirm={t('player.sendOnLoanConfirm')}
+          onConfirm={() => { setMsg(loanOut(game, p.id).msg); touch() }} />
       )}
       {/* the loan is visible from here too (16B, user: "there should be a
           report on how they are doing... they should also be able to be
@@ -529,12 +574,26 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                 setWageCounter(null); setTalkOutcome(null); setTalkSigned(false)
               }}>{t('player.openContractTalks')}</button>
             )}
-            <button className={`btn ${p.transferListed ? 'ghost' : 'danger'}`} onClick={() => {
-              p.transferListed = !p.transferListed
-              setMsg(t(p.transferListed ? 'player.listedMsg' : 'player.unlistedMsg', { name: p.name }))
-              touch()
-            }}>{t(p.transferListed ? 'player.unlist' : 'player.transferList')}</button>
+            {p.transferListed
+              ? <button className="btn ghost" onClick={() => { p.transferListed = false; setMsg(t('player.unlistedMsg', { name: p.name })); touch() }}>{t('player.unlist')}</button>
+              : <TwoStep className="btn danger" label={t('player.transferList')} confirm={t('player.transferListConfirm')}
+                  onConfirm={() => { p.transferListed = true; setMsg(t('player.listedMsg', { name: p.name })); touch() }} />}
           </div>
+          {/* RELEASE (owner, v1.2.7): pay off what is left and let him go.
+              Refuses for the reasons releaseBlock names, and says which. */}
+          {(() => {
+            const block = releaseBlock(game, p.id)
+            const cost = releaseCost(game, p.id)
+            return (
+              <div style={{ marginTop: 8 }}>
+                <TwoStep className="btn ghost block" style={{ margin: 0, width: '100%' }} disabled={!!block}
+                  title={block ? t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 }) : undefined}
+                  label={t('player.release', { cost: fmtMoney(cost) })} confirm={t('player.releaseConfirm', { cost: fmtMoney(cost) })}
+                  onConfirm={() => { const r = releasePlayer(game, p.id); setMsg(t(r.k, r.v)); touch() }} />
+                {block && <div className="meta muted" style={{ fontSize: 11.5, marginTop: 3 }}>{t(`player.release${block[0].toUpperCase()}${block.slice(1)}`, { name: p.name, n: 24 })}</div>}
+              </div>
+            )
+          })()}
         </>
       ) : club ? (
         <>

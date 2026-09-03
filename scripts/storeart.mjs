@@ -75,7 +75,8 @@ async function walk(page, dir) {
   await page.waitForSelector('.dtable')
   await page.waitForTimeout(400)
   await shot('3-teamsheet')
-  await page.locator('.tab-bar button').nth(1).click()
+  // General Info, by position: third since v1.2.7 put the Depth chart second
+  await page.locator('.tab-bar button').nth(2).click()
   await page.waitForTimeout(500)
   await shot('4-squad')
 
