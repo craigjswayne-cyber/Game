@@ -1,9 +1,9 @@
 # Store listing, word for word
 
 Everything a submission asks for, written out and within the character limits, so
-that filling in a console is copying rather than composing. English and French,
-because the game ships both and a French listing is the difference between being
-found and not.
+that filling in a console is copying rather than composing. The App Store copy
+below (added 4 Sep 2026) is the studio-grade listing; the Play copy is the
+original and still stands.
 
 Counts are given where a field is capped. **Check them again if you edit the
 text** - both consoles silently truncate, and a description that ends mid-word is
@@ -23,7 +23,7 @@ the first thing a reviewer sees.
 | Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
 | Support URL | the same page, which carries the contact address |
 | Content rating | 3+ / Everyone (see the questionnaire below) |
-| Languages | English, French |
+| Languages | English, French, Spanish, Italian, Japanese |
 
 ---
 
@@ -626,3 +626,111 @@ languages, from the real build.
 
 Pick the five that tell the story in order: the title screen, the squad table,
 the team sheet, match day, and the full-time verdict.
+
+---
+
+## App Store (Apple)
+
+Apple's fields and caps differ from Play's. Every block below is inside its cap;
+the count is printed under it. Paste as-is.
+
+### Name (30 max)
+
+```
+PHASE: Rugby Manager
+```
+*(20)*
+
+### Subtitle (30 max)
+
+```
+Build a rugby dynasty
+```
+*(21)*
+
+### Promotional text (170 max) - can be changed without a new build
+
+```
+Every decision is yours: the XV, the money, the board, the press. A deep, offline rugby management sim that remembers what you did in season one. No account, no ads.
+```
+*(165)*
+
+### Description (4000 max)
+
+```
+PICK A CLUB. PICK A SIDE. LIVE WITH IT.
+
+PHASE: Rugby Manager is a management simulation in the tradition of the great text-driven sports sims: dense squad tables, real decisions every week, and a career that remembers what you did in season one when you reach season fifteen. You take a job, you name a team, and you find out what kind of manager you are.
+
+THE WORLD
+• Eight competitions and more than a hundred clubs: the English top flight and Championship, the French Elite 14 and Elite 2, the United Provinces Championship, the Pacific Championship, Japan's Division One and English National One.
+• Full seasons with bonus points, knockout cups drawn in front of you, continental competition, playoffs, promotion and relegation.
+• An international calendar that takes your best players away at the worst possible moment, and a national-team job to chase once your name is made.
+• Season after season, for as long as you last. Players age, decline and retire, and academy men you brought through take their shirts.
+
+THE WEEK
+• A week that arrives at the pace a week arrives: the treatment room on Monday, the press on Tuesday, midweek business, the squad on Thursday, the opposition on Friday. Then Saturday.
+• Transfers with camps that haggle, contracts that run down, pre-contracts, free agents and a scouting network that learns a player the longer it watches him.
+• Loans you negotiate: three months, six or the season, and how much of his wage you carry. The parent club weighs the offer and says why it said no.
+• Release a player and pay off his contract. Sack a coach. Name your marquee men and work the salary cap.
+• A backroom staff who are good at some things and not others, with badges to earn and a staff room that clicks or clashes.
+• A board with an opinion about you, a press pack that quotes you back, fans with a mood, and rivals who remember a derby longer than the league table does.
+
+THE MATCH
+• Live text commentary with a pitch view: tries, cards, injuries, the set piece, at three speeds. Or hand it to your assistant and read the report.
+• Touchline decisions that are yours: the kick at goal or the corner, the half-time talk, when to empty the bench and who onto which shirt.
+• Tactics that mean something: four dials, a defensive shape, set-piece calls, a kicking order, a playbook, and saved game plans to switch between.
+• A coach's verdict afterwards that names two things to fix, and checks next week whether you did.
+
+THE RECORD
+• Every player carries his last ten ratings and every injury of his career, so you can tell a slump from a bad week and a fragile man from an unlucky one.
+• A depth chart that shows where you are one injury from trouble.
+• A manager profile with badges, a trophy cabinet, a Hall of Fame and a Roll of Honour that outlive any one club.
+
+BUILT FOR A PHONE
+• Portrait, one-handed, designed for the screen rather than shrunk onto it. Three colour skins, day and night, and a text-size setting.
+• Completely offline. No account, no login, no cloud, no adverts, and nothing about you is collected or sent anywhere.
+• Four career slots, autosave after every week, and export and import so a backup is yours to keep.
+• Three difficulty settings, chosen once per career.
+• English, French, Spanish, Italian and Japanese.
+
+PHASE: Rugby Manager is an unofficial, independent game. Clubs, competitions, grounds and sponsors in it are fictional. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
+
+Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
+```
+*(3753)*
+
+### Keywords (100 max, comma-separated, no spaces after commas)
+
+```
+rugby,manager,management,sim,union,club,tactics,transfers,season,league,coach,sport,offline,career
+```
+*(98)*
+
+### What's new (4000 max) - for 1.2.8
+
+```
+Negotiate your loans: length, wage share, and a parent club that answers.
+Release a player and pay off his contract. Sack a coach.
+Ten-match form and a full injury record on every player. A depth chart on Squad.
+Saved game plans on Tactics. Three difficulty settings at New Game.
+Sign a marquee player at the table when a slot is free.
+Confirmation on every irreversible move. A way back in the story reader.
+Fixes: the team sheet lines up from 1 to 15, deal years print plain, seasonal stories land in season.
+```
+*(510)*
+
+### The fields that are not copy
+
+| Field | Value |
+|---|---|
+| Primary category | Games |
+| Secondary category | Sports |
+| Game subcategories | Simulation, Sports |
+| Age rating | 4+ (no violence, no gambling, no user content, no web access) |
+| Content Rights | Does not contain third-party content (the unofficial statement covers the player-name database) |
+| Privacy nutrition label | Data Not Collected |
+| App uses encryption | No (the App Encryption Documentation answer is "none") |
+| Sign-in required | No |
+| Devices | iPhone only |
+| App Review notes | `packaging/ios/APP-REVIEW-REPLY.md`, the six answers |

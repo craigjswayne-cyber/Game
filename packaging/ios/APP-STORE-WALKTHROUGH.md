@@ -443,7 +443,7 @@ target that has to be added deliberately, and this project has never had one.
 
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.2.7`, **Build** `5`.
+*App* target → *General* → **Version** `1.2.8`, **Build** `5`.
 The version must match `package.json` and the figure on the App Store Connect
 listing, or the upload is rejected.
 

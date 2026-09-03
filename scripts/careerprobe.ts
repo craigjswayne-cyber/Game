@@ -21,7 +21,9 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { DIFFICULTIES, difficultyOf } from '../src/game/difficulty'
 import { RELEASE_FLOOR, releaseBlock, releaseCost, releasePlayer } from '../src/game/release'
 import { appointStaff, sackCost, sackStaff, staffCandidates } from '../src/game/staff'
-import type { GameState } from '../src/game/model'
+import { SEASON_WEEKS, type GameState } from '../src/game/model'
+import { LOAN_LENGTHS, LOAN_SHARES, expireLoans, loanIn, loanTargets, loanTerms } from '../src/game/loans'
+import { mulberry32 } from '../src/game/rng'
 
 let fails = 0
 const ok = (c: boolean, msg: string) => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${msg}`); if (!c) fails++ }
@@ -145,6 +147,49 @@ say('\n--- 4. ratings and injuries are logged as they happen')
     'and the newest log entry is the injury he is carrying')
   ok(all.every(p => (p.injLog ?? []).every(e => e.weeks >= 1 && typeof e.dk === 'string' && e.s >= 0 && e.w >= 1)),
     'every log entry has a season, a week, a complaint and a length')
+}
+
+// ---- 5. a loan is negotiated ----
+say('\n--- 5. a loan is negotiated, not collected (v1.2.8)')
+{
+  const g = newGame('doncaster', 'Probe', 9005)
+  const targets = loanTargets(g)
+  ok(targets.length > 0, `${targets.length} players are available to borrow`)
+  // the same question twice in a week gets the same answer
+  const a = targets[0]
+  const v1 = loanTerms(g, a.id, 'half', 0.5), v2 = loanTerms(g, a.id, 'half', 0.5)
+  ok(v1.ok === v2.ok && v1.k === v2.k, 'the parent gives the same answer to the same offer in the same week')
+  // more of the wage and a longer loan carry more often, across the whole market
+  const rate = (len: 'short' | 'half' | 'season', share: number) =>
+    targets.filter(p => loanTerms(g, p.id, len, share).ok).length / targets.length
+  const mean = rate('short', 0.25), generous = rate('season', 1)
+  ok(generous > mean, `a season at full wages is accepted more often than three months at a quarter (${(generous * 100).toFixed(0)}% v ${(mean * 100).toFixed(0)}%)`)
+  ok(generous >= 0.6, 'and the generous offer nearly always lands')
+  ok(mean <= 0.4, 'while the mean one is mostly refused')
+  // a refusal names a lever that would have carried it
+  const refused = targets.map(p => loanTerms(g, p.id, 'short', 0.25)).filter(v => !v.ok)
+  ok(refused.every(v => v.k === 'reply.loanRefused' || !!v.counter), 'every refusal is flat or names a counter')
+  ok(refused.some(v => v.counter?.share != null) || refused.some(v => v.counter?.length != null), 'and at least one names the share or the length that would do it')
+  // a dated loan goes home on its date
+  const ok1 = targets.find(p => loanTerms(g, p.id, 'short', 1).ok)
+  if (!ok1) ok(false, 'no target would take three months at full wages')
+  else {
+    const before = g.clubs[ok1.clubId!].players.length
+    const line = loanIn(g, ok1.id, 'short', 1)
+    ok(ok1.clubId === g.userClubId && ok1.loanFrom != null, `he arrives (${line})`)
+    ok(ok1.loanShare === 1 && ok1.loanUntil === g.season * SEASON_WEEKS + g.week + 13, 'the share and the date are written on him')
+    const parentId = ok1.loanFrom!
+    const rng = mulberry32(1)
+    expireLoans(g, rng)
+    ok(ok1.clubId === g.userClubId, 'he does not go home early')
+    g.week += 13
+    expireLoans(g, rng)
+    ok(ok1.clubId === parentId && !ok1.loanFrom && ok1.loanUntil == null, 'and he goes home the week the loan falls due')
+    ok(g.clubs[parentId].players.length === before, 'back on his parent\'s list')
+    ok(g.news.some(n => n.k === 'news.loanEnds' && n.v?.player === ok1.name), 'with the story in the inbox')
+    g.week -= 13
+  }
+  ok(LOAN_LENGTHS.length === 3 && LOAN_SHARES.length === 4, 'three lengths, four shares on the table')
 }
 
 console.log(fails === 0

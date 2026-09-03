@@ -256,7 +256,7 @@ export default function Finances() {
               {inTerm ? (
                 <>
                   <div className="meta" style={{ marginTop: 4 }}>
-                    {t('finances.dealLive', { sponsor: live!.sponsor, weekly: fmtMoney(dealWeekly(game, live!)), year: 2026 + live!.until })}
+                    {t('finances.dealLive', { sponsor: live!.sponsor, weekly: fmtMoney(dealWeekly(game, live!)), year: String(2026 + live!.until) })}
                     {live!.weekly < mkt * 0.92 && <span className="muted"> · {t('finances.underMarket', { rate: fmtMoney(mkt) })}</span>}
                   </div>
                   {live!.clause !== 'none' && (

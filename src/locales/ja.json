@@ -169,7 +169,7 @@
   "injTag": "負傷{n}週",
   "intlTag": "代表",
   "l": "敗",
-  "loanHereTag": "レンタル加入中",
+  "loanHereTag": "ローン",
   "mastheadDate": "{day}・{season}・第{week}週",
   "matchdayBtn": "試合日 ▸",
   "neutralVenue": "中立地",
@@ -1450,7 +1450,7 @@
   "shortlistSub": "スカウトが毎週報告を上げる",
   "freeAgent": "フリー",
   "loanMarket": "ローン市場",
-  "loanMarketSub": "スターを借りる、給料の半分は親クラブ持ち",
+  "loanMarketSub": "上位から借りる · 条件は交渉",
   "signOnLoan": "ローンで獲得",
   "noLoans": "いま選手を貸し出している上位クラブはない。",
   "scoutTheMarket": "市場を探す",
@@ -1499,7 +1499,18 @@
   "scoutReportsSub": "スカウト陣が上げてきた全報告",
   "fromClub": "所属:{club}",
   "fromFree": "契約満了",
-  "interested": "興味あり"
+  "interested": "興味あり",
+  "loanLenShort": "3か月の",
+  "loanLenHalf": "6か月の",
+  "loanLenSeason": "シーズン終了までの",
+  "loanLength": "ローン期間",
+  "loanShare": "給与の負担割合",
+  "loanSharePct": "給与の{n}%を負担",
+  "loanOffer": "提示",
+  "loanSheetSub": "{club}とのローン条件",
+  "loanCostLine": "あなたが負担する給与: 週{wage}",
+  "loanClose": "今はやめる",
+  "loanDone": "完了"
  },
  "objectives": {
   "youth": "アカデミー登用:21歳以下の選手に6試合以上の先発を",
@@ -2004,7 +2015,9 @@
   "injuryWeeksOut": {
    "one": "離脱{n}週",
    "other": "離脱{n}週"
-  }
+  },
+  "signAsMarquee": "看板選手として契約する（空き{n}枠）：給与はキャップの対象外",
+  "signAsMarqueeOne": "看板選手として契約する（最後の1枠）：給与はキャップの対象外"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -2170,7 +2183,8 @@
   "wrHowTable": "順位表の現在地",
   "wrYouAre": "あなたは{pos}",
   "wrViewComp": "大会の詳細を見る ▸",
-  "wrBack": "ロッカールームへ戻る ▸"
+  "wrBack": "ロッカールームへ戻る ▸",
+  "wirePrevStory": "前の記事"
  },
  "dayroom": {
   "available": "{all}人中{fit}人が出場可能。",
@@ -4152,7 +4166,7 @@
   "runinTopFinalSeed": "首位に立ち、{lead_k}。{push_k}\n{rows_ll}",
   "aFeederClub": "フィーダークラブ",
   "loanInSubj": "ローン加入:{player}が{parent}から到着",
-  "loanIn": "{player}({age}、{pos})がシーズン終了までのローンで加入。{parent}が給与の半分を負担する - 彼らはプレーさせたくて送り出したのだから、使ってやろう。",
+  "loanIn": "{player}（{age}、{pos}）が{len_k}ローンで加入。{parent}が給与の{share}%を負担する。試合に出させたい意向なので、起用すること。",
   "loanOutSubj": "{player}がローンで武者修行へ",
   "loanOut": "{player}が今シーズン終了まで{club}へ。トップチームでの定期的な実戦は成長を加速させるはず - 来夏、ひと回り鋭くなって帰ってくるだろう。",
   "recalledFullSubj": "🧳 {player}をローンから呼び戻し",
@@ -5033,7 +5047,7 @@
   "seniorSquadFull": "シニアスカッドは満員だ。",
   "parentWontLoan": "{club}は今、彼をローンに出す気はない。",
   "agentWantsPermanent": "{player}のエージェントが求めているのは完全移籍で、ローンではない。",
-  "joinsOnLoan": "{player}が今シーズン限りのローンで加入した。",
+  "joinsOnLoan": "{player}が{len_k}ローンで加入。給与の{share}%はあなたの負担です。",
   "staffAppointed": "{name}が新しい{role_k}に就任。補償金{fee}を支払った。",
   "badgePassed": "{name}が合格した。本日付で{badge_k}ライセンス保持者となり、週給は{wage}。",
   "badgeFailed": "{name}は不合格だった。{fee}は戻らず、再受験は1か月後まで待たねばならない。",
@@ -5050,7 +5064,12 @@
   "boardPushedWarn": "部屋の空気が凍りつく。「答えは伝えたはずだが」。1時間以内に正式な警告が届き、取締役会からの信頼は半減した。次にまた尋ねれば、机を片づけることになる。",
   "boardPushedSacked": "あなたは一度余計に尋ねてしまった。会長が立ち上がり、誰の心もこもらない握手を差し出す。クラブの声明は、あなたが駐車場に着く前に発表されていた。",
   "notHomeBased": "{player}は海外のクラブでプレーしている。{nat}は自国リーグの選手しか選ばない——まず帰国が必要だ。",
-  "wontDropDown": "{club}は入札を受け入れたが、{name}はここまで格下に来る気はない。これほど小さなクラブと話をするのは、不満を抱えた男か、クラブに追い出されかけている男か、金だけが目当ての男だけだ。"
+  "wontDropDown": "{club}は入札を受け入れたが、{name}はここまで格下に来る気はない。これほど小さなクラブと話をするのは、不満を抱えた男か、クラブに追い出されかけている男か、金だけが目当ての男だけだ。",
+  "overCapNoMarquee": "この条件ではサラリーキャップ（週{cap}）を週{over}超えます。看板選手の枠も2つとも埋まっています。枚数を減らしてください。",
+  "unavailable": "利用できません。",
+  "loanCounterShare": "{club}は、給与の{share}%を負担するなら聞く耳を持ちそうです。",
+  "loanCounterLength": "{club}はもっと長く出したい意向です。{len_k}ローンなら応じるでしょう。",
+  "loanRefused": "{club}は即答で断りました。その条件では手放しません。"
  },
  "verdict": {
   "titleFavourites": "優勝候補筆頭",

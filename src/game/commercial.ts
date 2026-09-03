@@ -376,7 +376,7 @@ export function signOffer(state: GameState, offer: Offer): string {
   // replacing it is the whole point of being told about it
   if (live && live.until >= state.season && !live.auto) {
     return t('finances.slotAlreadySold', {
-      slot: t(SLOT_BY_ID[offer.slot].name).toLowerCase(), sponsor: live.sponsor, year: 2026 + live.until,
+      slot: t(SLOT_BY_ID[offer.slot].name).toLowerCase(), sponsor: live.sponsor, year: String(2026 + live.until),
     })
   }
   state.deals ??= {}

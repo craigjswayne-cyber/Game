@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
-import { loanIn, loanTargets } from '../../game/loans'
+import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanTargets, type LoanLength } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
@@ -21,6 +21,8 @@ export default function Transfers() {
   const [maxAge, setMaxAge] = useState(0)
   const [league, setLeague] = useState('ALL')
   const [listedOnly, setListedOnly] = useState(false)
+  /** the loan being negotiated: who, for how long, and who pays (v1.2.8) */
+  const [loanDeal, setLoanDeal] = useState<{ id: number; length: LoanLength; share: number } | null>(null)
   // WHO WOULD ACTUALLY COME? The engine has always refused a bid from a club
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
@@ -245,27 +247,70 @@ export default function Transfers() {
       <SectionTitle sub={t('transfers.loanMarketSub')}>{t('transfers.loanMarket')}</SectionTitle>
       <div className="tblwrap"><table className="dtable codefirst"><tbody>
         {loanTargets(game).map(p => (
-          <tr key={p.id}>
+          <Fragment key={p.id}>
+          <tr>
             <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
             <td className="name" onClick={() => go('player', p.id)}>
               {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
             </td>
             <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
             <td>
+              {/* A LOAN IS NEGOTIATED (owner, v1.2.8): the button opens a
+                  sheet - "make it a pop up on screen otherwise it messes up
+                  the screen" - with the length, the wage share and the offer */}
               <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
-                onClick={() => { setMsg({ key: `loan:${p.id}`, text: loanIn(game, p.id) }); touch() }}>
+                onClick={() => { setLoanDeal({ id: p.id, length: 'season', share: 0.5 }); setMsg(null) }}>
                 {t('transfers.signOnLoan')}
               </button>
-              {msg?.key === `loan:${p.id}` && (
-                <div className="meta" style={{ fontSize: 11, fontWeight: 600, whiteSpace: 'normal' }}>{msg.text}</div>
-              )}
             </td>
           </tr>
+          </Fragment>
         ))}
         {loanTargets(game).length === 0 && (
           <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.noLoans')}</td></tr>
         )}
       </tbody></table></div>
+      {loanDeal && (() => {
+        const lp = game.players[loanDeal.id]
+        const parent = lp?.clubId ? game.clubs[lp.clubId] : null
+        const reply = msg?.key === `loan:${loanDeal.id}` ? msg.text : null
+        const gone = !lp || lp.clubId === game.userClubId
+        return (
+          <div className="modal-veil" onClick={() => setLoanDeal(null)}>
+            <div className="modal loan-sheet" onClick={e => e.stopPropagation()}>
+              <div className="grab" />
+              <SectionTitle sub={parent ? t('transfers.loanSheetSub', { club: parent.name }) : ''}>{lp?.name ?? ''}</SectionTitle>
+              {!gone && (
+                <div className="loan-deal">
+                  <label className="meta">{t('transfers.loanLength')}
+                    <select className="inline-input" value={loanDeal.length}
+                      onChange={e => setLoanDeal({ ...loanDeal, length: e.target.value as LoanLength })}>
+                      {LOAN_LENGTHS.map(l => <option key={l} value={l}>{t(`transfers.loanLen${l[0].toUpperCase()}${l.slice(1)}`)}</option>)}
+                    </select>
+                  </label>
+                  <label className="meta">{t('transfers.loanShare')}
+                    <select className="inline-input" value={loanDeal.share}
+                      onChange={e => setLoanDeal({ ...loanDeal, share: Number(e.target.value) })}>
+                      {LOAN_SHARES.map(sh => <option key={sh} value={sh}>{t('transfers.loanSharePct', { n: Math.round(sh * 100) })}</option>)}
+                    </select>
+                  </label>
+                  {lp && <div className="meta muted">{t('transfers.loanCostLine', { wage: fmtWage(Math.round(lp.wage * loanDeal.share)) })}</div>}
+                </div>
+              )}
+              {reply && <div className="meta sheet-log" style={{ borderLeft: '3px solid var(--gold)', paddingLeft: 8, margin: '8px 14px 0', whiteSpace: 'normal' }}>{reply}</div>}
+              <div className="btn-row" style={{ margin: '12px 14px 4px' }}>
+                <button className="btn ghost" onClick={() => setLoanDeal(null)}>{t(gone ? 'transfers.loanDone' : 'transfers.loanClose')}</button>
+                {!gone && (
+                  <button className="btn gold" style={{ flex: 1.6 }}
+                    onClick={() => { setMsg({ key: `loan:${loanDeal.id}`, text: loanIn(game, loanDeal.id, loanDeal.length, loanDeal.share) }); touch() }}>
+                    {t('transfers.loanOffer')}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       </>}
       {xtab === 'market' && <>

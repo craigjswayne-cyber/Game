@@ -169,7 +169,7 @@
     "injTag": "BLES {n}s",
     "intlTag": "SÉLEC",
     "l": "D",
-    "loanHereTag": "PRÊTÉ ICI",
+    "loanHereTag": "PRÊT",
     "mastheadDate": "{day} · {season} · Sem. {week}",
     "matchdayBtn": "Jour de match ▸",
     "neutralVenue": "Terrain neutre",
@@ -1450,7 +1450,7 @@
     "shortlistSub": "un rapport des recruteurs chaque semaine",
     "freeAgent": "Agent libre",
     "loanMarket": "Marché des prêts",
-    "loanMarketSub": "en prêt, le club prêteur paie la moitié",
+    "loanMarketSub": "emprunter plus haut · à vos conditions",
     "signOnLoan": "Prendre en prêt",
     "noLoans": "Aucun club au-dessus de vous ne prête en ce moment.",
     "scoutTheMarket": "Prospecter le marché",
@@ -1499,7 +1499,18 @@
     "scoutReportsSub": "tout ce que les recruteurs ont classé",
     "fromClub": "en provenance de {club}",
     "fromFree": "sans contrat",
-    "interested": "Intéressés"
+    "interested": "Intéressés",
+    "loanLenShort": "pour trois mois",
+    "loanLenHalf": "pour six mois",
+    "loanLenSeason": "jusqu’à la fin de la saison",
+    "loanLength": "Durée du prêt",
+    "loanShare": "Part du salaire à votre charge",
+    "loanSharePct": "vous payez {n}% du salaire",
+    "loanOffer": "Proposer",
+    "loanSheetSub": "Conditions du prêt avec {club}",
+    "loanCostLine": "Votre part de son salaire : {wage}/sem.",
+    "loanClose": "Pas maintenant",
+    "loanDone": "Terminé"
   },
   "objectives": {
     "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs de 21 ans ou moins",
@@ -2004,7 +2015,9 @@
     "injuryWeeksOut": {
       "one": "{n} semaine d’absence",
       "other": "{n} semaines d’absence"
-    }
+    },
+    "signAsMarquee": "Le signer comme joueur vedette ({n} places libres) : son salaire sort du plafond",
+    "signAsMarqueeOne": "Le signer comme joueur vedette (dernière place) : son salaire sort du plafond"
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -2170,7 +2183,8 @@
     "wrHowTable": "Le classement",
     "wrYouAre": "vous êtes {pos}",
     "wrViewComp": "Voir la compétition complète ▸",
-    "wrBack": "Retour au vestiaire ▸"
+    "wrBack": "Retour au vestiaire ▸",
+    "wirePrevStory": "Article précédent"
   },
   "dayroom": {
     "available": "{fit} disponibles sur {all}.",
@@ -4156,7 +4170,7 @@
     "runinTopFinalSeed": "En tête du classement, {lead_k}. {push_k}\n{rows_ll}",
     "aFeederClub": "un club partenaire",
     "loanInSubj": "Arrivée en prêt : {player} arrive de {parent}",
-    "loanIn": "{player} ({age} ans, {pos}) arrive en prêt jusqu'à la fin de la saison. {parent} prend en charge la moitié de son salaire - il le veut sur le terrain, alors faites-le jouer.",
+    "loanIn": "{player} ({age} ans, {pos}) arrive en prêt {len_k}. {parent} prend {share}% de son salaire : ils le veulent sur le terrain, faites-le jouer.",
     "loanOutSubj": "{player} part en prêt",
     "loanOut": "{player} rejoint {club} pour le reste de la saison. Du rugby régulier en équipe première devrait accélérer sa progression - attendez-vous à le retrouver plus affûté cet été.",
     "recalledFullSubj": "🧳 {player} rappelé de prêt",
@@ -5033,7 +5047,7 @@
     "seniorSquadFull": "Votre effectif professionnel est au complet.",
     "parentWontLoan": "{club} ne veut pas le prêter pour l'instant.",
     "agentWantsPermanent": "L'agent de {player} veut un transfert définitif, pas un prêt.",
-    "joinsOnLoan": "{player} arrive en prêt pour la saison.",
+    "joinsOnLoan": "{player} arrive en prêt {len_k}, vous prenez {share}% de son salaire.",
     "staffAppointed": "{name} est votre nouveau {role_k}. {fee} d'indemnité versés.",
     "badgePassed": "{name} a réussi. Il est diplômé {badge_k} à partir d'aujourd'hui, et passe à {wage} par semaine.",
     "badgeFailed": "{name} a échoué. Les {fee} sont perdus et il ne peut pas repasser avant un mois.",
@@ -5050,7 +5064,12 @@
     "boardPushedWarn": "Le silence se fait. « Nous vous avons donné notre réponse. » Un avertissement formel suit dans l'heure, et le respect du conseil à votre égard est réduit de moitié. Insistez encore et vous viderez votre bureau.",
     "boardPushedSacked": "Vous avez demandé une fois de trop. Le président se lève, tend une poignée de main que personne ne pense, et le communiqué du club sort avant que vous n'atteigniez le parking.",
     "notHomeBased": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat - il devrait d'abord rentrer.",
-    "wontDropDown": "{club} acceptent votre offre, mais {name} ne descendra pas si bas. Seul un joueur malheureux, un joueur que son club pousse dehors ou un mercenaire parle à un club aussi petit."
+    "wontDropDown": "{club} acceptent votre offre, mais {name} ne descendra pas si bas. Seul un joueur malheureux, un joueur que son club pousse dehors ou un mercenaire parle à un club aussi petit.",
+    "overCapNoMarquee": "Ces conditions mettraient le club {over}/sem. au-dessus du plafond salarial de {cap}/sem., et les deux places de joueur vedette sont prises. Libérez de la marge.",
+    "unavailable": "Indisponible.",
+    "loanCounterShare": "{club} écouterait si vous preniez {share}% de son salaire.",
+    "loanCounterLength": "{club} veut le voir partir plus longtemps : un prêt {len_k} passerait.",
+    "loanRefused": "{club} refuse net. Pas à ces conditions."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",

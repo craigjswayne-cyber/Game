@@ -1,4 +1,5 @@
 import type { GameState, Player } from './model'
+import { MARQUEE_SLOTS } from './cap'
 import { t, tIn, type Vars } from './i18n'
 import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
@@ -57,13 +58,14 @@ function capOf(state: GameState, clubId: string): number | null {
 }
 
 /** Would this weekly wage break the cap? The sentence to show, or null. */
-function capBreak(state: GameState, clubId: string, wage: number, replacing = 0): string | null {
+function capBreak(state: GameState, clubId: string, wage: number, replacing = 0, marqueeOpen = true): string | null {
   const cap = capOf(state, clubId)
   if (cap == null) return null
   const club = state.clubs[clubId]
   const after = capBill(state, club) - replacing + wage
   if (after <= cap) return null
-  return t('reply.overCap', { over: fmtMoney(after - cap), cap: fmtMoney(cap) })
+  // only point at the marquee door when it is actually open
+  return t(marqueeOpen ? 'reply.overCap' : 'reply.overCapNoMarquee', { over: fmtMoney(after - cap), cap: fmtMoney(cap) })
 }
 
 /** Is the club barred from signing anybody for a cap breach? */
@@ -539,7 +541,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
 /** Stage 2: personal terms. A signing bonus and a first-team promise both
  *  soften the wage his camp will take - the promise is a real pledge and
  *  he will hold you to it. */
-export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean): { ok: boolean; msg: string } {
+export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean, asMarquee = false): { ok: boolean; msg: string } {
   if (!realMoney(fee, wage, signOn)) return NOT_A_FIGURE
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
@@ -565,7 +567,13 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   if (embargoed(state, user.id)) {
     return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. Nobody can be signed until it is served.' }
   }
-  const capMsg = capBreak(state, user.id, wage)
+  // NAMED A MARQUEE MAN AT THE TABLE (owner, v1.2.8: the cap refusal said
+  // "name him a marquee player" about a man who was not yet his to name).
+  // With a slot free his wage sits outside the cap from the day he signs;
+  // with none free the refusal says so instead of pointing at a door that
+  // is not there.
+  const marqueeSlots = MARQUEE_SLOTS - (user.marquee ?? []).length
+  const capMsg = asMarquee && marqueeSlots > 0 ? null : capBreak(state, user.id, wage, 0, marqueeSlots > 0)
   if (capMsg) return { ok: false, msg: capMsg }
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
@@ -583,6 +591,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   executeTransfer(state, p, user.id, fee)
   p.wage = wage
   user.balance -= signOn
+  if (asMarquee && marqueeSlots > 0) user.marquee = [...(user.marquee ?? []), p.id]
   if (promiseMinutes) {
     ;(state.pledges ??= []).push({
       playerId: p.id, kind: 'plans', week: state.week, season: state.season,

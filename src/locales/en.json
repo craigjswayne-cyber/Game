@@ -169,7 +169,7 @@
   "injTag": "INJ {n}w",
   "intlTag": "INTL",
   "l": "L",
-  "loanHereTag": "ON LOAN HERE",
+  "loanHereTag": "LOAN",
   "mastheadDate": "{day} · {season} · Wk {week}",
   "matchdayBtn": "Matchday ▸",
   "neutralVenue": "Neutral venue",
@@ -1450,7 +1450,7 @@
   "shortlistSub": "scouts filing weekly reports",
   "freeAgent": "Free agent",
   "loanMarket": "Loan Market",
-  "loanMarketSub": "borrow a star, parent pays half the wage",
+  "loanMarketSub": "borrow from above · you set the terms",
   "signOnLoan": "Sign on loan",
   "noLoans": "No clubs above you are loaning right now.",
   "scoutTheMarket": "Scout The Market",
@@ -1499,7 +1499,18 @@
   "scoutReportsSub": "everything the scouts have filed",
   "fromClub": "from {club}",
   "fromFree": "out of contract",
-  "interested": "Interested"
+  "interested": "Interested",
+  "loanLenShort": "for three months",
+  "loanLenHalf": "for six months",
+  "loanLenSeason": "until the end of the season",
+  "loanLength": "Loan length",
+  "loanShare": "Share of his wage you pay",
+  "loanSharePct": "you pay {n}% of wages",
+  "loanOffer": "Offer",
+  "loanSheetSub": "Loan terms with {club}",
+  "loanCostLine": "Your share of his wage: {wage}/wk",
+  "loanClose": "Not now",
+  "loanDone": "Done"
  },
  "objectives": {
   "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
@@ -2004,7 +2015,9 @@
   "injuryWeeksOut": {
    "one": "{n} week out",
    "other": "{n} weeks out"
-  }
+  },
+  "signAsMarquee": "Sign him as a marquee player ({n} slots free): his wage sits outside the salary cap",
+  "signAsMarqueeOne": "Sign him as a marquee player (last slot): his wage sits outside the salary cap"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -2170,7 +2183,8 @@
   "wrHowTable": "How The Table Stands",
   "wrYouAre": "you are {pos}",
   "wrViewComp": "View full competition ▸",
-  "wrBack": "Back to the Dressing Room ▸"
+  "wrBack": "Back to the Dressing Room ▸",
+  "wirePrevStory": "Previous story"
  },
  "dayroom": {
   "available": "{fit} of {all} available.",
@@ -4152,7 +4166,7 @@
   "runinTopFinalSeed": "Top of the table, {lead_k}. {push_k}\n{rows_ll}",
   "aFeederClub": "a feeder club",
   "loanInSubj": "Loan signing: {player} arrives from {parent}",
-  "loanIn": "{player} ({age}, {pos}) joins on loan until the end of the season. {parent} cover half his wage - they want him playing, so play him.",
+  "loanIn": "{player} ({age}, {pos}) joins on loan {len_k}. {parent} cover {share}% of his wage - they want him playing, so play him.",
   "loanOutSubj": "{player} heads out on loan",
   "loanOut": "{player} joins {club} for the rest of the season. Regular first-team rugby should accelerate his development - expect him back sharper next summer.",
   "recalledFullSubj": "🧳 {player} recalled from loan",
@@ -5033,7 +5047,7 @@
   "seniorSquadFull": "Your senior squad is full.",
   "parentWontLoan": "{club} won't loan him right now.",
   "agentWantsPermanent": "{player}'s agent wants a permanent move, not a loan.",
-  "joinsOnLoan": "{player} joins on loan for the season.",
+  "joinsOnLoan": "{player} joins on loan {len_k}, with you paying {share}% of his wage.",
   "staffAppointed": "{name} is your new {role_k}. {fee} compensation paid.",
   "badgePassed": "{name} passed. He is {badge_k}-badged from today, and on {wage} a week.",
   "badgeFailed": "{name} fell short. The {fee} is gone and he cannot sit it again for a month.",
@@ -5050,7 +5064,12 @@
   "boardPushedWarn": "The room goes cold. \"We gave you our answer.\" A formal warning follows within the hour, and the board's respect for you is cut in half. Ask again and you will be clearing your desk.",
   "boardPushedSacked": "You asked once too often. The chairman stands, offers a handshake nobody means, and the club statement is out before you reach the car park.",
   "notHomeBased": "{player} plays his club rugby abroad. {nat} pick only from their own league - he would have to come home first.",
-  "wontDropDown": "{club} accept your bid, but {name} will not drop this far down. Only an unhappy man, one his club is pushing out, or a mercenary talks to a club this much smaller."
+  "wontDropDown": "{club} accept your bid, but {name} will not drop this far down. Only an unhappy man, one his club is pushing out, or a mercenary talks to a club this much smaller.",
+  "overCapNoMarquee": "Those terms would put the club {over}/wk over the {cap}/wk salary cap, and both marquee slots are taken. Free up room.",
+  "unavailable": "Unavailable.",
+  "loanCounterShare": "{club} would listen if you carried {share}% of his wage.",
+  "loanCounterLength": "{club} want him out for longer: they would agree to a loan {len_k}.",
+  "loanRefused": "{club} turn it down flat. They are not letting him go on those terms."
  },
  "verdict": {
   "titleFavourites": "Title favourites",

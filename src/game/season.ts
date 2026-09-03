@@ -10,7 +10,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral } from './model'
+import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -32,7 +32,7 @@ import { clamp, mulberry32, shuffled, type Rng } from './rng'
 import { gameTimeReview, settleGameTime } from './gametime'
 import { rebuildSeason, rollIntakeClass } from './rollover'
 import { drillWeek } from './playbook'
-import { loanTargets } from './loans'
+import { expireLoans, loanTargets } from './loans'
 import { refreshVacancies, sackManager } from './jobs'
 import { playAcademyWeek } from './academy'
 import { canBeMentored, mentorBoost, mentorGraduations, mentorLoad, mentorReports } from './mentoring'
@@ -1208,7 +1208,8 @@ function weeklyFinance(state: GameState, rng: Rng) {
   const wages = club.players.reduce((s, id) => {
     const p = state.players[id]
     if (!p) return s
-    return s + (p.loanFrom ? Math.round(p.wage / 2) : p.wage)
+    // the share struck at the table (v1.2.8); half for every loan before it
+    return s + (p.loanFrom ? Math.round(p.wage * (p.loanShare ?? 0.5)) : p.wage)
   }, 0)
   club.balance -= wages
   // backroom staff wages - real salaries where a real man holds the job
@@ -1630,7 +1631,7 @@ function boardReaction(state: GameState, fx: Fixture, delegated = false) {
   // manager took his country's Test: "matches in the dugout" means HIS dugout
   if (!delegated) {
     state.mgr.m += 1
-    if (us > them) state.mgr.w += 1
+    if (us > them) { state.mgr.ww = (state.mgr.ww ?? state.mgr.w) + mgrWinWeight(state); state.mgr.w += 1 }
     else if (us === them) state.mgr.d += 1
     else state.mgr.l += 1
     mgrMilestones(state, us > them)
@@ -2781,7 +2782,7 @@ export function processWeekAndAdvance(state: GameState) {
       const us = userFx.homeId === state.userClubId ? userFx.homeScore : userFx.awayScore
       const them = userFx.homeId === state.userClubId ? userFx.awayScore : userFx.homeScore
       state.mgr.m += 1
-      if (us > them) state.mgr.w += 1
+      if (us > them) { state.mgr.ww = (state.mgr.ww ?? state.mgr.w) + mgrWinWeight(state); state.mgr.w += 1 }
       else if (us === them) state.mgr.d += 1
       else state.mgr.l += 1
       mgrMilestones(state, us > them)
@@ -3597,6 +3598,8 @@ export function processWeekAndAdvance(state: GameState) {
     // and the new season's ceiling is measured from the league as it now stands
     refreshCaps(state)
   } else {
+    // a loan struck to a date goes home the week it falls due (v1.2.8)
+    expireLoans(state, rng)
     state.week += 1
   }
 
