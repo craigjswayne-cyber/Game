@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "The AdMob identities the shells are built with. install-ads.mjs writes the",
+    "platform's block into the shell's index.html as window.__phaseAds and the",
+    "App ID into the Android manifest / iOS Info.plist.",
+    "",
+    "THESE ARE GOOGLE'S PUBLISHED TEST IDS. They show 'Test Ad' banners and pay",
+    "nothing; a store build must carry the owner's real ones. Real IDs in a",
+    "debug build are a policy strike the other way. The owner pastes the real",
+    "ones in (docs/ADS-STEP-BY-STEP.md step 4) and sets testing to false in the",
+    "release commit that carries them. An App ID has a ~ in it; an ad unit ID",
+    "has a /.",
+    "",
+    "testDevices: AdMob device ids for phones that should see test ads even on",
+    "a live build (the owner's). consentDebug forces the EEA consent form on",
+    "those devices so the form can be seen outside Europe."
+  ],
+  "testing": true,
+  "consentDebug": false,
+  "testDevices": [],
+  "android": {
+    "appId": "ca-app-pub-3940256099942544~3347511713",
+    "banner": {
+      "home-foot": "ca-app-pub-3940256099942544/9214589741",
+      "results-foot": "ca-app-pub-3940256099942544/9214589741"
+    },
+    "rewarded": "ca-app-pub-3940256099942544/5224354917"
+  },
+  "ios": {
+    "appId": "ca-app-pub-3940256099942544~1458002511",
+    "banner": {
+      "home-foot": "ca-app-pub-3940256099942544/2435281174",
+      "results-foot": "ca-app-pub-3940256099942544/2435281174"
+    },
+    "rewarded": "ca-app-pub-3940256099942544/1712485313"
+  }
+}

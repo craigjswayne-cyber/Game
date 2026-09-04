@@ -277,3 +277,11 @@ The paid-up-front alternative that used to be described here was decided
 against on 27 Aug: `VITE_EDITION=paid` removes the whole catalogue rather than
 just one purchase, and it is the one configuration no probe has ever executed.
 The free edition with the ten products is what ships on both stores.
+
+## Adverts
+
+The advert provider, its ids and the installer that puts them into this shell
+after every `cap sync` are shared with Android and live in `packaging/shell/`
+(`README.md` there). `scaffold.sh` runs `node ../shell/install-ads.mjs ios`,
+which also writes `GADApplicationIdentifier`, the tracking-prompt wording and
+Google's SKAdNetwork id into `Info.plist`.

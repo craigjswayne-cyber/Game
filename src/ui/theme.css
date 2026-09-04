@@ -405,11 +405,18 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .news-item.open .body { display: block; -webkit-line-clamp: unset; }
 
 /* ================= Bottom nav ================= */
+/* --ad-inset is 0px everywhere the game runs on its own. A packaged shell with
+   an advert provider (packaging/shell/ads-bridge.js) sets it to the height of
+   the native banner it has drawn over the bottom of the web view, and to 0px
+   again when the banner goes, so the banner sits UNDER the nav in room the nav
+   has made for it - never over content, never over a button. Declared here
+   rather than in tokens.css because it is room, not colour. */
+:root { --ad-inset: 0px; }
 .bottom-nav {
   display: flex;
   background: var(--surface-1);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--ad-inset, 0px));
   flex-shrink: 0;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, .25);
 }
