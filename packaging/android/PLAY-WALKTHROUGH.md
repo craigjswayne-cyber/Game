@@ -68,8 +68,15 @@ npx cap open android
 Android Studio opens the project. The first open downloads Gradle and
 dependencies; give it five minutes and watch the bar at the bottom. When it
 says nothing more, *Build → Assemble Project* (older versions call it *Make
-Project*). It should finish with **BUILD SUCCESSFUL** at the bottom. If
-it complains about the SDK location, *File → Project Structure → SDK
+Project*). It should finish with **BUILD SUCCESSFUL** at the bottom.
+
+Android Studio may offer to upgrade the project's Android Gradle Plugin when
+it opens. Either answer works: the scaffold writes a Gradle file both the
+current and the next plugin generation accept. If a build ever ends red on
+`getDefaultProguardFile('proguard-android.txt')`, run `./scaffold.sh` again;
+it rewrites that line to the `-optimize` preset, which every version takes.
+
+If it complains about the SDK location, *File → Project Structure → SDK
 Location* and point it at your SDK folder (the same one Bubblewrap used,
 usually `~/Android/Sdk` or `%LOCALAPPDATA%\Android\Sdk`).
 
