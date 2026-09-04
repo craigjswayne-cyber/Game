@@ -95,6 +95,17 @@ sed -i.bak -E "s/versionCode [0-9]+/versionCode ${VCODE}/; s/versionName \"[^\"]
 rm -f "$GRADLE.bak"
 echo "    versionCode ${VCODE}, versionName ${VNAME}"
 
+# ---- PROGUARD: the preset that every Android Gradle Plugin accepts ----
+# Capacitor's template asks for proguard-android.txt. AGP 9 refuses that file
+# outright (it carries -dontoptimize), and Android Studio offers to move a
+# freshly opened project onto AGP 9. The -optimize preset is accepted by both
+# generations; with minifyEnabled false it changes nothing about the build.
+if grep -q "getDefaultProguardFile('proguard-android.txt')" "$GRADLE"; then
+  sed -i.bak "s|getDefaultProguardFile('proguard-android.txt')|getDefaultProguardFile('proguard-android-optimize.txt')|" "$GRADLE"
+  rm -f "$GRADLE.bak"
+  echo "    proguard preset: proguard-android-optimize.txt"
+fi
+
 # ---- MANIFEST: portrait, like the game ----
 MANIFEST=$APP/src/main/AndroidManifest.xml
 if ! grep -q 'android:screenOrientation="portrait"' "$MANIFEST"; then
