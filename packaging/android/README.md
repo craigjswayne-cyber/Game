@@ -38,6 +38,7 @@ twenty minutes; the Play app now updates through a build and Play review.
 | `scaffold.sh` | builds the game, adds or syncs the platform, installs and registers the plugin, patches Gradle and the manifest, copies the art in |
 | `icons-android.mjs` | draws `res/` from `public/icon.svg` on a machine with a browser; run when the icon changes, commit the result |
 | `res/` | the launcher icons (legacy and adaptive, five densities) and eleven splash sizes, committed, copied over the project by `scaffold.sh` |
+| `../shell/` | what both shells share: the advert bridge, the AdMob ids, and the installer `scaffold.sh` runs after every sync (`packaging/shell/README.md`) |
 | `android/` | the generated Android Studio project: gitignored, build output |
 
 ## The purchase bridge, on Android

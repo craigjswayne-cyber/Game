@@ -119,7 +119,7 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.2.9, Play version code 16
+### What's new (500 max) - v1.2.9, Play version code 17 (16 was refused for its billing library)
 
 The last Play upload was v1.1.17 (code 15), so these notes cover everything from
 1.1.18 to 1.2.9 plus the app itself becoming a real app. Google's box takes all

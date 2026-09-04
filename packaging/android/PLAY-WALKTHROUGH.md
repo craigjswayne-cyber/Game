@@ -54,7 +54,8 @@ npm install
 
 This builds the game, creates the `android/` project (or refreshes it),
 installs the purchase plugin, adds Play Billing to Gradle, sets the version
-Play will see, makes it portrait, and draws the icons and splash. It ends by
+Play will see, makes it portrait, installs the advert bridge and its ids
+(`packaging/shell/`), and copies the icons and splash in. It ends by
 printing the version code. **Read that number.** It must be higher than
 anything Play has accepted before (15). It comes from `version.json` in this
 folder.
@@ -122,7 +123,7 @@ It writes `android/app/release/app-release.aab`. Android Studio shows a
 https://play.google.com/console → the app → *Testing → Internal testing* →
 *Create new release* → upload `app-release.aab`.
 
-* Release name: the version and the version code, e.g. `1.2.9 (17)`.
+* Release name: the version and the version code, e.g. `1.3.0 (18)`.
 * Release notes: what changed. For this first one: "The app is now a full
   app rather than a browser wrapper. Back up your careers in the old version
   first (Saves → Export), then Import them here."

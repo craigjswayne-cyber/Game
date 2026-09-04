@@ -119,6 +119,15 @@ if ! grep -q 'android:screenOrientation="portrait"' "$MANIFEST"; then
   echo "    portrait only"
 fi
 
+# ---- ADVERTS: the bridge the game speaks to, and the App ID the SDK needs ----
+# @capacitor-community/admob is an npm plugin, so `cap sync` above already
+# registered its native side. What it cannot do is give the page a provider in
+# the game's shape or the manifest an App ID: packaging/shell/install-ads.mjs
+# does both, from packaging/shell/ads.json, after every sync (sync rewrites
+# index.html).
+echo "==> installing the advert bridge"
+node ../shell/install-ads.mjs android
+
 # ---- ICONS AND SPLASH, ours rather than Capacitor's ----
 # res/ is drawn by icons-android.mjs on a machine with a browser and COMMITTED,
 # so this step is a copy and needs nothing installed. (The first owner build

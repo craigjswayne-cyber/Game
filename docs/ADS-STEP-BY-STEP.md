@@ -138,7 +138,26 @@ app gets pulled.
 
 ---
 
-## Step 6. I put the adverts in (mine, two days)
+## Step 6. I put the adverts in (mine, two days) - BUILT 5 Sep
+
+Built ahead of Steps 3 to 5, on Google's test ids, so the only thing waiting
+on you is the account and the ids. What it does, in plain words:
+
+* A thin strip at the very bottom of the Home screen and the weekly Results
+  screen, under the bottom menu. Nowhere else, ever: not the title screen,
+  not a match, not over a pop-up.
+* On the first run in the UK or Europe, Google's consent form, once. Say no
+  and the game is exactly the same game, with less relevant adverts. On
+  iPhone, Apple's "allow tracking?" question first, same rule.
+* Four "watch an advert instead" buttons the game already had now light up:
+  the physio's consult, the scout's file, the analyst's full read, the town
+  collection. A spot that is closed early earns nothing. Six a day at most.
+* Remove All Ads appears in the Store, at the price you set in the console,
+  and removes every banner for ever. The four buttons stay, because the player
+  is the one asking for them.
+
+Until your real ids go in, every advert says **Test Ad** across it. That is
+correct and safe: it is how Google wants you to test.
 
 With the IDs from Step 4 and the consent from Step 5:
 
@@ -156,23 +175,96 @@ With the IDs from Step 4 and the consent from Step 5:
 
 ---
 
+### The one product to create (yours, five minutes, before the release)
+
+The Store's Remove All Ads row sells a product neither console has yet. Make
+it exactly like the others, in both places, on the day of the advert release
+and not before:
+
+**Play Console** → Monetise → Products → In-app products → **Create product**
+
+| Field | Value |
+|---|---|
+| Product ID | `phase.supporter` |
+| Name | Remove all ads |
+| Description | Removes every banner advert from the game, permanently. The optional "watch an advert instead" buttons stay. |
+| Price | £1.99 (set it in GBP and let Play convert) |
+| Type | Managed product (one-off, not a subscription) |
+
+Then **Activate** it.
+
+**App Store Connect** → the app → Monetisation → In-App Purchases → **+**
+
+| Field | Value |
+|---|---|
+| Type | Non-Consumable |
+| Reference name | Remove all ads |
+| Product ID | `phase.supporter` |
+| Price | Tier for £1.99 |
+| Display name (English UK) | Remove all ads |
+| Description | Removes every banner advert from the game, permanently. |
+
+The id must be typed exactly: a typo does not error, it renders a button that
+cannot sell.
+
+### Sending me the ids, and what I do with them
+
+Paste the two App IDs and the six ad unit IDs from Step 4 into chat. I put
+them in `packaging/shell/ads.json`, turn `testing` off in the same commit,
+and rebuild. Then you build both apps the usual way (the Android walkthrough,
+the iOS walkthrough), put them on internal testing / TestFlight, and check
+three things on your phone: a banner at the foot of Home, none on the title
+screen or in a match, and Remove All Ads in the Store. **Do not tap a live
+advert in your own app.** Send me a screenshot of the Home banner instead.
+
+If you want to see real adverts on your own phone without risk, Android
+Studio's Logcat prints a line beginning "Use RequestConfiguration.Builder"
+with a long id when the app first shows an advert; send me that id and I add
+it to `testDevices`, which makes your phone see test adverts on a live build.
+
 ## Step 7. The store paperwork (yours, thirty minutes, on the day)
 
 Adverts change what the stores have to be told. On the release that carries
 them, and not before:
 
 **Play Console** → your app → **App content**:
-* **Ads** → "Yes, my app contains ads".
-* **Data safety** → the app now collects Device or other IDs, Advertising
-  data, for the purpose of Advertising or marketing, shared with Google. I
-  give you the exact tick-boxes.
-* **Privacy policy** → I update phaserugbymanager.com/privacy.html the same
-  day; the link does not change.
+* **Ads** → "Yes, my app contains ads". (This puts a "Contains ads" label on
+  the listing. That is normal.)
+* **Data safety** → **Manage** → answer exactly this:
 
-**App Store Connect** → your app → **App Privacy**:
-* Change **Data Not Collected** to the advertising rows: Identifiers (Device
-  ID), Usage Data (Advertising Data), used for Third-Party Advertising, linked
-  to the user. Plus the tracking prompt wording, which I supply.
+  | Question | Answer |
+  |---|---|
+  | Does your app collect or share any of the required user data types? | Yes |
+  | Is all of the user data collected by your app encrypted in transit? | Yes |
+  | Do you provide a way for users to request that their data is deleted? | Yes, and the explanation is: the advertising identifier is reset or deleted in the phone's own settings; the app holds no account data |
+  | Data types → Device or other IDs → **Device or other IDs** | tick |
+  | Device or other IDs → Is this data collected, shared, or both? | Collected **and** Shared |
+  | Is this data processed ephemerally? | No |
+  | Is this data required, or can users choose? | Users can choose (the Remove all ads purchase and the consent form) |
+  | Why is this user data collected? | Advertising or marketing |
+  | Why is this user data shared? | Advertising or marketing |
+  | Everything else (location, personal info, financial, messages, photos, files, activity, browsing, contacts, calendar, health) | No, unchanged |
+
+* **Advertising ID** (a separate question under App content) → Yes, the app
+  uses an advertising ID → purpose: Advertising or marketing.
+* **Privacy policy** → the link does not change; the page at
+  phaserugbymanager.com/privacy.html is updated in the same release.
+
+**App Store Connect** → your app → **App Privacy** → Edit:
+* Change **Data Not Collected** to:
+
+  | Data type | Used for | Linked to the user | Used for tracking |
+  |---|---|---|---|
+  | Identifiers → Device ID | Third-Party Advertising | Yes | **Yes** |
+  | Usage Data → Advertising Data | Third-Party Advertising | Yes | No |
+  | Diagnostics → Crash Data | (leave off: the app has no crash reporting) | | |
+
+  "Used for tracking: Yes" on the Device ID is what the App Tracking
+  Transparency prompt in the app corresponds to. Apple checks that the two
+  agree.
+* The tracking prompt's wording is already in the app: "This lets the game
+  show adverts that are more relevant to you. Say no and you still get every
+  part of the game, with less relevant adverts."
 
 ---
 
@@ -202,10 +294,10 @@ them, and not before:
 |---|---|
 | 0. Understand the shell | this document |
 | 1. Decide | **decided 4 Sep: shell first, adverts later** |
-| 2. Build the shell | **built 4 Sep** (`packaging/android/`); your Android Studio build and a test purchase are what is left - `PLAY-WALKTHROUGH.md` |
-| 3. AdMob account | not started; yours, twenty minutes plus the postcard |
-| 4. Register and make units | after 3 |
-| 5. Consent | after 4 |
-| 6. Adverts in | after 5 |
-| 7. Paperwork | on release day |
+| 2. Build the shell | **done 4 Sep**: built, uploaded as 1.2.9 (17), tested on your phone, all six checks passed |
+| 3. AdMob account | **yours, next**: twenty minutes plus the postcard |
+| 4. Register and make units | after 3, fifteen minutes; then paste me the eight ids |
+| 5. Consent message | after 4, two clicks in AdMob; the app side is built |
+| 6. Adverts in | **built 5 Sep** on test ids (`packaging/shell/`, v1.3.0); flips to your ids the day they arrive |
+| 7. Paperwork | on release day; the exact answers are written above |
 | 8. Measure | two weeks after |

@@ -96,6 +96,14 @@ else
   exit 1
 fi
 
+# ---- ADVERTS: the bridge the game speaks to, and the App ID the SDK needs ----
+# The AdMob plugin is an npm package, so cap sync registered it in
+# packageClassList itself (the set above keeps PhaseBilling beside it). The
+# page-side provider and the Info.plist keys come from
+# packaging/shell/install-ads.mjs, after every sync.
+echo "==> installing the advert bridge"
+node ../shell/install-ads.mjs ios
+
 # ---- iPHONE ONLY ----
 #
 # Owner, mid-submission: "this game is not for ipad or watch, its purely for
