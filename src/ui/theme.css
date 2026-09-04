@@ -147,7 +147,7 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
     radial-gradient(120% 180% at 15% -40%, color-mix(in srgb, var(--club1) 32%, transparent), transparent 55%),
     var(--hero-gradient);
   color: var(--on-hero);
-  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  padding: calc(var(--safe-area-inset-top) + 10px) 16px 10px;
   flex-shrink: 0;
 }
 .masthead::after {
@@ -411,12 +411,26 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    again when the banner goes, so the banner sits UNDER the nav in room the nav
    has made for it - never over content, never over a button. Declared here
    rather than in tokens.css because it is room, not colour. */
-:root { --ad-inset: 0px; }
+:root {
+  --ad-inset: 0px;
+  /* THE SAFE AREA, AS A TOKEN. Browsers answer env(safe-area-inset-*) and that
+     is the default here. Android's WebView does not: on Android 15 the app is
+     drawn edge to edge under the status bar and the gesture or button bar, and
+     env() reads 0px, so the game's bottom edge sat under the system bar and
+     "Continue to Results" could not be reached (owner, 1.2.9 on a real phone).
+     Capacitor's built-in SystemBars plugin measures the bars and writes these
+     four variables INLINE on <html>, which beats this rule, so every read below
+     goes through the token and gets the right answer on both. */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
 .bottom-nav {
   display: flex;
   background: var(--surface-1);
   border-top: 1px solid var(--border);
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--ad-inset, 0px));
+  padding-bottom: calc(var(--safe-area-inset-bottom) + var(--ad-inset, 0px));
   flex-shrink: 0;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, .25);
 }
@@ -539,7 +553,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     radial-gradient(140% 200% at 50% -60%, color-mix(in srgb, var(--club1) 30%, transparent), transparent 60%),
     var(--hero-gradient);
   color: var(--on-hero);
-  padding: calc(env(safe-area-inset-top) + 14px) 16px 14px;
+  padding: calc(var(--safe-area-inset-top) + 14px) 16px 14px;
   text-align: center;
 }
 .scoreboard::after {
@@ -708,7 +722,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    left/right insets stay - a landscape notch still eats into the row. */
 .speed-controls {
   display: flex; gap: 8px;
-  padding: 10px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
+  padding: 10px max(14px, var(--safe-area-inset-right)) 8px max(14px, var(--safe-area-inset-left));
 }
 .speed-controls .btn {
   flex: 1; min-height: 48px;
@@ -744,7 +758,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 
    1. index.html asks for viewport-fit=cover, so the page is drawn UNDER the
       status bar. Every other top-anchored surface in this file already pays
-      env(safe-area-inset-top) for that; this one asked for a flat 24px and so
+      var(--safe-area-inset-top) for that; this one asked for a flat 24px and so
       put the brand mark behind the clock.
    2. `justify-content: center` on an overflowing column clips BOTH ends, and
       the top end cannot be scrolled back to - overflow only ever reveals the
@@ -761,7 +775,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     radial-gradient(120% 90% at 50% -20%, var(--primary-tint), transparent 60%),
     var(--canvas);
   color: var(--text-primary); text-align: center;
-  padding: calc(env(safe-area-inset-top) + 28px) 24px calc(env(safe-area-inset-bottom) + 24px);
+  padding: calc(var(--safe-area-inset-top) + 28px) 24px calc(var(--safe-area-inset-bottom) + 24px);
 }
 
 /* THE MANAGER'S OFFICE.
@@ -1037,7 +1051,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   max-height: 80dvh;
   overscroll-behavior-y: contain;
   border-radius: 16px 16px 0 0;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+  padding-bottom: calc(var(--safe-area-inset-bottom) + 10px);
   box-shadow: 0 -12px 40px rgba(0, 0, 0, .35);
 }
 .modal .grab { width: 40px; height: 4.5px; background: var(--border-strong); border-radius: 3px; margin: 9px auto; }
@@ -1052,6 +1066,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   height: 100%;
   min-height: 0;
   grid-area: 1 / 1 / -1 / -1;
+  /* no bottom nav on match day, so the column itself stops above the system
+     bar; without this the last button sat under it on the Android shell */
+  padding-bottom: var(--safe-area-inset-bottom);
 }
 /* During live play only four fixed-height pieces stack here (scoreboard,
    pitch, controls, the one-line ticker) - nothing flex-grows by default, so
@@ -1097,7 +1114,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     /* fill the whole column: big, evenly spread targets (8B feedback) */
     justify-content: space-evenly;
     gap: 0;
-    padding: calc(env(safe-area-inset-top) + 6px) 0 6px env(safe-area-inset-left);
+    padding: calc(var(--safe-area-inset-top) + 6px) 0 6px var(--safe-area-inset-left);
     border-top: none;
     border-right: 1px solid var(--border);
     box-shadow: 4px 0 18px rgba(0, 0, 0, .22);
@@ -1139,7 +1156,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
     flex: none;
     overflow-y: auto;
     padding-top: 6px;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 22px);
+    padding-bottom: calc(var(--safe-area-inset-bottom) + 22px);
     height: 100%;
   }
 }
@@ -1221,7 +1238,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .action-bar {
   position: absolute; left: 0; right: 0; bottom: 0;
   display: flex; gap: 10px;
-  padding: 10px 14px calc(env(safe-area-inset-bottom) + 10px);
+  padding: 10px 14px calc(var(--safe-area-inset-bottom) + 10px);
   /* Opaque, with a hairline. The old gradient was transparent for its top
      30%, so the second row of club tiles bled through it and the very first
      screen of the game looked clipped rather than scrolled. Content passing
@@ -1390,7 +1407,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   border-right: 2px solid var(--border-strong);
   box-shadow: 12px 0 40px rgba(0, 0, 0, .45);
   overflow-y: auto;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-area-inset-bottom);
   animation: submenu-in .18s ease;
 }
 @keyframes submenu-in { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -1398,7 +1415,7 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   font-family: var(--cond);
   font-weight: 700; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--gold);
-  padding: calc(env(safe-area-inset-top) + 16px) 18px 12px;
+  padding: calc(var(--safe-area-inset-top) + 16px) 18px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
 .submenu-item {
@@ -3164,9 +3181,9 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
 .save-warn {
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px) * 0);
-  padding-left: max(12px, env(safe-area-inset-left));
-  padding-right: max(12px, env(safe-area-inset-right));
+  padding: 8px 12px calc(8px + var(--safe-area-inset-bottom) * 0);
+  padding-left: max(12px, var(--safe-area-inset-left));
+  padding-right: max(12px, var(--safe-area-inset-right));
   background: var(--danger-tint);
   color: var(--text-primary);
   font-family: var(--sans, system-ui, sans-serif);
