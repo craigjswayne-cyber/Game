@@ -67,7 +67,8 @@ npx cap open android
 
 Android Studio opens the project. The first open downloads Gradle and
 dependencies; give it five minutes and watch the bar at the bottom. When it
-says nothing more, *Build → Make Project*. It should finish with no errors. If
+says nothing more, *Build → Assemble Project* (older versions call it *Make
+Project*). It should finish with **BUILD SUCCESSFUL** at the bottom. If
 it complains about the SDK location, *File → Project Structure → SDK
 Location* and point it at your SDK folder (the same one Bubblewrap used,
 usually `~/Android/Sdk` or `%LOCALAPPDATA%\Android\Sdk`).
