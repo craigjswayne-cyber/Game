@@ -50,6 +50,7 @@ import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsResult;
 import com.android.billingclient.api.QueryPurchasesParams;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -166,12 +167,13 @@ public class PhaseBilling extends Plugin implements PurchasesUpdatedListener {
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build());
         }
-        // Billing Library 7.x hands the list straight to the listener; 8.x wraps
-        // it in a QueryProductDetailsResult. version.json pins 7.1.1, and this
-        // line is the one to change if that pin moves.
+        // Billing Library 8 wraps the list in a QueryProductDetailsResult (7.x
+        // handed it over bare). Play refuses uploads below 8.0.0 since the
+        // 4 Sep 2026 attempt, so version.json pins 8; this is the one line that
+        // knows.
         client.queryProductDetailsAsync(
             QueryProductDetailsParams.newBuilder().setProductList(products).build(),
-            (r, list) -> back.run(r, list));
+            (r, result) -> back.run(r, result == null ? null : result.getProductDetailsList()));
     }
 
     private static JSObject withProducts(List<JSObject> list) {

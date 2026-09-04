@@ -122,14 +122,23 @@ It writes `android/app/release/app-release.aab`. Android Studio shows a
 https://play.google.com/console → the app → *Testing → Internal testing* →
 *Create new release* → upload `app-release.aab`.
 
-* Release name: the version, e.g. `1.2.8 (16)`.
+* Release name: the version and the version code, e.g. `1.2.9 (17)`.
 * Release notes: what changed. For this first one: "The app is now a full
   app rather than a browser wrapper. Back up your careers in the old version
   first (Saves → Export), then Import them here."
 * Save → Review release → Start rollout to Internal testing.
 
 Play processes the bundle for a few minutes. If it rejects the version code
-as already used, raise `versionCode` and go from step 6.
+as already used, raise `versionCode` and go from step 6. A version code is
+spent the moment Play has seen it, even on a release you then discard: the
+first upload of 16 was refused for its billing library, and 17 is the next.
+
+If the Preview page shows a red error about the **Play Billing Library
+version**, the plugin is pinned below Google's current floor. That is a
+one-line change in `version.json` (`billingLibrary`) plus a rebuild; ask.
+Yellow warnings on that page (fewer supported devices, bundle size, no
+deobfuscation file, no debug symbols) are all expected and safe to proceed
+past.
 
 ### 9. Test it for real
 
