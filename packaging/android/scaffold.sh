@@ -120,8 +120,13 @@ if ! grep -q 'android:screenOrientation="portrait"' "$MANIFEST"; then
 fi
 
 # ---- ICONS AND SPLASH, ours rather than Capacitor's ----
-echo "==> drawing the launcher icon and the splash"
-node icons-android.mjs
+# res/ is drawn by icons-android.mjs on a machine with a browser and COMMITTED,
+# so this step is a copy and needs nothing installed. (The first owner build
+# tried to draw here, found no browser, and shipped Capacitor's placeholder.)
+echo "==> installing the launcher icon and the splash"
+if [ ! -d res ]; then echo "    no res/ folder: run node icons-android.mjs on a machine with a browser and commit it" >&2; exit 1; fi
+cp -R res/. "$APP/src/main/res/"
+echo "    $(find res -name '*.png' | wc -l | tr -d ' ') pictures from res/"
 
 echo
 echo "the shell is built. package: com.phaserugbymanager.app, versionCode ${VCODE} (${VNAME})"

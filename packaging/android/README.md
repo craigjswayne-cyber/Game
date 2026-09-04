@@ -35,8 +35,9 @@ twenty minutes; the Play app now updates through a build and Play review.
 | `capacitor.config.json` | appId `com.phaserugbymanager.app`, webDir = the built game, no `server` block |
 | `version.json` | the Play `versionCode` for the next upload (17), and the Play Billing Library version (8.0.0, the floor Play enforces) |
 | `PhaseBilling.java` | the purchase plugin, on the Play Billing Library |
-| `scaffold.sh` | builds the game, adds or syncs the platform, installs and registers the plugin, patches Gradle and the manifest, draws the art |
-| `icons-android.mjs` | launcher icons (legacy and adaptive) and the splash, drawn from `public/icon.svg` |
+| `scaffold.sh` | builds the game, adds or syncs the platform, installs and registers the plugin, patches Gradle and the manifest, copies the art in |
+| `icons-android.mjs` | draws `res/` from `public/icon.svg` on a machine with a browser; run when the icon changes, commit the result |
+| `res/` | the launcher icons (legacy and adaptive, five densities) and eleven splash sizes, committed, copied over the project by `scaffold.sh` |
 | `android/` | the generated Android Studio project: gitignored, build output |
 
 ## The purchase bridge, on Android
