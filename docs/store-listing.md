@@ -119,6 +119,56 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.2.9, Play version code 16
+
+The last Play upload was v1.1.17 (code 15), so these notes cover everything from
+1.1.18 to 1.2.9 plus the app itself becoming a real app. Google's box takes all
+five languages at once, each inside its own tag. Every one is under 500.
+
+```
+<en-GB>
+• Now a full app: no Chrome in the background, purchases through Google Play.
+• Back up careers in the old version first (Saves > Export), then Import here.
+• Loans are negotiated: length, wage share, and a parent club that can say no.
+• Release a player, sack a coach, save three game plans, read a depth chart.
+• Form and injury history on every player. Difficulty chosen at New Game.
+• Spanish, Italian and Japanese join English and French. Three skins, day or night.
+</en-GB>
+<fr-FR>
+• Une vraie application : plus de Chrome en arrière-plan, achats via Google Play.
+• Exportez vos carrières depuis l'ancienne version (Sauvegardes > Exporter), puis importez-les ici.
+• Les prêts se négocient : durée, part du salaire, et un club qui peut refuser.
+• Libérez un joueur, renvoyez un entraîneur, gardez trois plans de jeu, voyez la profondeur d'effectif.
+• Historique de forme et de blessures. Difficulté choisie au départ.
+• Espagnol, italien et japonais. Trois thèmes, jour ou nuit.
+</fr-FR>
+<es-ES>
+• Ahora una aplicación completa: sin Chrome en segundo plano, compras por Google Play.
+• Exporta tus carreras desde la versión antigua (Partidas > Exportar) e impórtalas aquí.
+• Las cesiones se negocian: duración, parte del salario y un club que puede decir no.
+• Libera a un jugador, despide a un técnico, guarda tres planes de juego, mira la profundidad de plantilla.
+• Historial de forma y lesiones. Dificultad elegida al empezar.
+• Español, italiano y japonés. Tres estilos, día o noche.
+</es-ES>
+<it-IT>
+• Ora un'app completa: niente Chrome in background, acquisti tramite Google Play.
+• Esporta prima le tue carriere nella vecchia versione (Salvataggi > Esporta), poi importale qui.
+• I prestiti si negoziano: durata, quota di stipendio e un club che può rifiutare.
+• Libera un giocatore, licenzia un allenatore, salva tre piani di gioco, consulta la profondità della rosa.
+• Storico di forma e infortuni. Difficoltà scelta all'inizio.
+• Spagnolo, italiano e giapponese. Tre stili, giorno o notte.
+</it-IT>
+<ja-JP>
+• 本物のアプリになりました。バックグラウンドのChromeはなく、購入はGoogle Play経由です。
+• まず旧バージョンでキャリアをエクスポート（セーブ > エクスポート）し、ここでインポートしてください。
+• ローンは交渉制に：期間、給与の負担割合、そして断ることもある所属クラブ。
+• 選手の放出、コーチの解任、3つのゲームプラン保存、ポジション別の選手層表。
+• 全選手にフォームと負傷の履歴。難易度はニューゲームで選択。
+• スペイン語、イタリア語、日本語を追加。3つのスキン、昼と夜。
+</ja-JP>
+```
+*(en 470 · fr 495 · es 491 · it 494 · ja 251)*
+
 ### What's new (500 max) - v1.1.17
 
 ```
