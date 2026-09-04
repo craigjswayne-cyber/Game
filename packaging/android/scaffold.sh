@@ -82,7 +82,12 @@ if ! grep -q "com.android.billingclient:billing" "$GRADLE"; then
   rm -f "$GRADLE.bak"
   echo "    added Play Billing ${BILLING_VERSION} to app/build.gradle"
 else
-  echo "    Play Billing already in app/build.gradle"
+  # the line is there from an earlier run: move it to the pinned version,
+  # because Play refuses uploads on a library it has retired and the pin in
+  # version.json is the only place that has to change
+  sed -i.bak -E "s|com.android.billingclient:billing:[0-9.]+|com.android.billingclient:billing:${BILLING_VERSION}|" "$GRADLE"
+  rm -f "$GRADLE.bak"
+  echo "    Play Billing ${BILLING_VERSION} in app/build.gradle"
 fi
 
 # versionCode is the number Play counts uploads by; it must beat the highest

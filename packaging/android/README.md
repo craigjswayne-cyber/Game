@@ -33,7 +33,7 @@ twenty minutes; the Play app now updates through a build and Play review.
 |---|---|
 | `package.json` | the shell's own npm project, Capacitor 8.5.0 pinned, like iOS |
 | `capacitor.config.json` | appId `com.phaserugbymanager.app`, webDir = the built game, no `server` block |
-| `version.json` | the Play `versionCode` for the next upload (16), and the Play Billing Library version |
+| `version.json` | the Play `versionCode` for the next upload (17), and the Play Billing Library version (8.0.0, the floor Play enforces) |
 | `PhaseBilling.java` | the purchase plugin, on the Play Billing Library |
 | `scaffold.sh` | builds the game, adds or syncs the platform, installs and registers the plugin, patches Gradle and the manifest, draws the art |
 | `icons-android.mjs` | launcher icons (legacy and adaptive) and the splash, drawn from `public/icon.svg` |
@@ -92,7 +92,7 @@ WebView has its own. Nothing can copy between them. So:
 `scaffold.sh` runs anywhere Node runs. Compiling needs the Android SDK, whose
 download host (`dl.google.com`) is not reachable from the development
 container, so the build itself happens on the owner's machine with Android
-Studio. `PhaseBilling.java` is written against Play Billing Library 7.1.1
+Studio. `PhaseBilling.java` is written against Play Billing Library 8.0.0
 and Capacitor 8's `com.getcapacitor.Plugin` API; the first Android Studio
 build is the compile check.
 

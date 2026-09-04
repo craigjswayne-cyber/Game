@@ -6,8 +6,9 @@
     "by one for every upload, record what Play accepted here, and never reuse",
     "a number. versionName comes from the root package.json.",
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
-    "written against."
+    "written against. Play refuses anything below 8.0.0 (the 4 Sep 2026",
+    "upload of code 16 was rejected for 7.1.1; 16 is spent, hence 17)."
   ],
-  "versionCode": 16,
-  "billingLibrary": "7.1.1"
+  "versionCode": 17,
+  "billingLibrary": "8.0.0"
 }
