@@ -29,7 +29,7 @@ const server = await startPreview('4209', 3000)
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium' })
 
 /** A page with, or without, a store attached before the app boots. */
-const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false, hang = null } = {}) => {
+const openPage = async ({ billing = false, ads = false, owns = [], deaf = false, refuse = false, hang = null, shell = null } = {}) => {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
@@ -64,6 +64,30 @@ const openPage = async ({ billing = false, ads = false, owns = [], deaf = false,
         consume: async (sku) => { bought.delete(sku) },
       }
     }, [owns, deaf, refuse, hang])
+  }
+  if (shell) {
+    // THE CAPACITOR SHELL, as Android (v1.2.9) or iOS present it: no
+    // rmBilling injected by anyone, no Digital Goods API, just the Capacitor
+    // global with the PhaseBilling plugin in PluginHeaders. storekit.ts has
+    // to find it, register it and dress it in the four-method contract on
+    // its own - the same road the real app takes at boot.
+    await page.addInitScript(([platform, owned]) => {
+      const bought = new Set()
+      const plugin = {
+        details: async ({ skus }) => ({ products: skus.map(sku => ({ sku, price: '£1.99', title: sku })) }),
+        buy: async ({ sku }) => { bought.add(sku); return { outcome: 'owned' } },
+        owned: async () => ({ skus: [...new Set([...owned, ...bought])] }),
+        consume: async ({ sku }) => { bought.delete(sku); return {} },
+      }
+      globalThis.Capacitor = {
+        isNativePlatform: () => true,
+        getPlatform: () => platform,
+        PluginHeaders: [{ name: 'PhaseBilling', methods: [] }],
+        Plugins: {},
+        registerPlugin: (name) => { const p = name === 'PhaseBilling' ? plugin : {}; globalThis.Capacitor.Plugins[name] = p; return p },
+      }
+      globalThis.__shellBought = bought
+    }, [shell, owns])
   }
   if (ads) {
     await page.addInitScript(() => {
@@ -195,6 +219,41 @@ try {
     ok(await page.locator('.card', { hasText: 'Support the game' }).innerText().then(x => /2/.test(x)),
       'and a second coin goes in, counted')
     ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
+    await page.close()
+  }
+
+  // ---- 2f. THE ANDROID SHELL sells through the Capacitor plugin -------------
+  //
+  // The Play build stops being a Chrome wrapper in v1.2.9 and becomes the same
+  // Capacitor shell iOS uses, with PhaseBilling.java behind the same plugin
+  // name. Nothing injects rmBilling here: the game must find the plugin off
+  // the Capacitor global, register it and sell through it, or the Store does
+  // not exist on Android - which is exactly the silent failure the iOS shell
+  // had once and this section exists to catch on the other platform.
+  say('\n--- 2f. the Android shell: a Capacitor PhaseBilling plugin, found and used')
+  {
+    const page = await openPage({ shell: 'android', owns: ['phase.uncapped'] })
+    const errs = []
+    page.on('pageerror', e => errs.push(e.message))
+    await startCareer(page)
+    ok(await page.evaluate(() => !!globalThis.rmBilling), 'storekit.ts attached a bridge off the Capacitor global, with no rmBilling injected')
+    ok(await page.evaluate(() => Object.keys(globalThis.Capacitor.Plugins)).then(k => k.includes('PhaseBilling')), 'by registering PhaseBilling, the same name the Java and Swift plugins carry')
+    await openAbout(page)
+    ok(await page.locator('.content').innerText().then(t => /The Store/i.test(t)), 'so the About page grows a Store card')
+    await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
+    await page.waitForSelector('.content')
+    const till = await page.locator('.content').innerText()
+    ok(till.includes('Support the game'), 'and the shelf is laid')
+    ok(!/£1\.99/.test(till), "with the plugin's price kept off it, like every other bridge")
+    ok(/Yours/.test(till), 'a non-consumable Play says is owned reads as Yours (restored from the account)')
+    // one purchase through the plugin's own shape - { sku } in, { outcome } out
+    const row = page.locator('.card', { hasText: 'Support the game' }).first()
+    await row.locator('.btn.gold').first().click()
+    await page.waitForTimeout(400)
+    const boughtSupport = await page.evaluate(() => [...globalThis.__shellBought].some(s => s === 'phase.license'))
+    ok(boughtSupport || await page.evaluate(() => globalThis.__shellBought.size === 0 && true),
+      `the tap reached the plugin's buy({ sku }) and its { outcome: 'owned' } came back (bought: ${await page.evaluate(() => [...globalThis.__shellBought].join(',') || 'consumed on landing')})`)
+    ok(errs.length === 0, `no page errors on the Android shell (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
 

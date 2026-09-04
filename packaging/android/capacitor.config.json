@@ -1,0 +1,20 @@
+{
+  "_comment": [
+    "The Android shell's configuration. webDir points at the BUILT ASSETS so the",
+    "app ships the game in its bundle rather than loading phaserugbymanager.com -",
+    "there is no 'server' block, and adding one turns this back into the browser",
+    "wrapper it replaces (docs/ads-plan.md, 'content bundled'). backgroundColor",
+    "is the night ground from src/ui/tokens.css so nothing flashes white between",
+    "the splash and the first paint."
+  ],
+  "appId": "com.phaserugbymanager.app",
+  "appName": "PHASE: Rugby Manager",
+  "webDir": "../../dist",
+  "backgroundColor": "#1a201e",
+  "android": {
+    "backgroundColor": "#1a201e",
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

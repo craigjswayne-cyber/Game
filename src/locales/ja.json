@@ -12,7 +12,11 @@
   "loadCareer": "キャリアをロード",
   "newCareer": "新しいキャリア",
   "savedAt": "{season}・第{week}週",
-  "tagline": "物語、シーズン、そして栄冠"
+  "tagline": "物語、シーズン、そして栄冠",
+  "importHintTitle": "旧バージョンからの引き継ぎですか？",
+  "importHintBody": "旧Playアプリでキャリアをエクスポートした方は、新しく始める前にここで取り込んでください。",
+  "importHintNo": "いいえ、新規で始める",
+  "importHintGo": "バックアップを取り込む"
  },
  "nav": {
   "news": "ニュース",
@@ -289,7 +293,11 @@
   },
   "squadThisWeek": "🌍 スカッドウィーク：今週、{nat}代表メンバーを発表する。",
   "campOpen": "キャンプ開幕――{size}人中{n}人を選出済み。タップして編成へ。",
-  "storeSub": "チームを強化する"
+  "storeSub": "チームを強化する",
+  "handoverTitle": "Playストアのアプリが変わります",
+  "handoverBody": "次の更新で完全なアプリになりますが、キャリアは自動では引き継がれません。今バックアップしてください：セーブ → エクスポートで、ファイルを保管。新しいバージョンのタイトル画面にインポートがあります。",
+  "handoverLater": "あとで",
+  "handoverGo": "今バックアップ"
  },
  "squad": {
   "tabSelection": "選考",

@@ -12,7 +12,11 @@
     "loadCareer": "Charger une carrière",
     "newCareer": "Nouvelle carrière",
     "savedAt": "{season}, semaine {week}",
-    "tagline": "HISTOIRES, SAISONS & TROPHÉES"
+    "tagline": "HISTOIRES, SAISONS & TROPHÉES",
+    "importHintTitle": "Vous venez de l’ancienne version ?",
+    "importHintBody": "Si vous avez exporté vos carrières depuis l’ancienne appli Play, importez-les ici avant d’en commencer une nouvelle.",
+    "importHintNo": "Non, repartir de zéro",
+    "importHintGo": "Importer une sauvegarde"
   },
   "nav": {
     "news": "Actus",
@@ -289,7 +293,11 @@
     },
     "squadThisWeek": "🌍 SEMAINE DE SÉLECTION : vous annoncez votre groupe {nat} cette semaine.",
     "campOpen": "Le camp est ouvert - {n} sur {size} retenus. Touchez pour composer le groupe.",
-    "storeSub": "Renforcez votre équipe"
+    "storeSub": "Renforcez votre équipe",
+    "handoverTitle": "L’appli Play Store change",
+    "handoverBody": "La prochaine mise à jour en fait une vraie application, et vos carrières ne suivront pas d’elles-mêmes. Sauvegardez-les maintenant : Sauvegardes, puis Exporter, et gardez le fichier. La nouvelle version propose Importer sur l’écran titre.",
+    "handoverLater": "Plus tard",
+    "handoverGo": "Sauvegarder"
   },
   "squad": {
     "tabSelection": "Composition",

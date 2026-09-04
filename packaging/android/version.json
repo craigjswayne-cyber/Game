@@ -1,0 +1,13 @@
+{
+  "_comment": [
+    "versionCode is the number Play counts uploads by. It must be higher than",
+    "the highest Play has ever accepted for com.phaserugbymanager.app, which",
+    "was 15 (the last Trusted Web Activity build, v1.1.17, 31 Aug 2026). Go up",
+    "by one for every upload, record what Play accepted here, and never reuse",
+    "a number. versionName comes from the root package.json.",
+    "billingLibrary is the Play Billing Library version PhaseBilling.java is",
+    "written against."
+  ],
+  "versionCode": 16,
+  "billingLibrary": "7.1.1"
+}

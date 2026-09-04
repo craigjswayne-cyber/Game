@@ -12,7 +12,11 @@
   "loadCareer": "Load Career",
   "newCareer": "New Career",
   "savedAt": "{season}, Week {week}",
-  "tagline": "STORIES, SEASONS & SILVERWARE"
+  "tagline": "STORIES, SEASONS & SILVERWARE",
+  "importHintTitle": "Coming from the old version?",
+  "importHintBody": "If you backed up your careers in the old Play app, bring them in here before starting a new one.",
+  "importHintNo": "No, start fresh",
+  "importHintGo": "Import a backup"
  },
  "nav": {
   "news": "News",
@@ -289,7 +293,11 @@
   },
   "squadThisWeek": "🌍 SQUAD WEEK: you name your {nat} party this week.",
   "campOpen": "Camp is open - {n} of {size} named. Tap to shape the squad.",
-  "storeSub": "Upgrade your team"
+  "storeSub": "Upgrade your team",
+  "handoverTitle": "The Play Store app is changing",
+  "handoverBody": "The next update turns this into a full app, and your careers will not move across on their own. Back them up now: Saves, then Export, and keep the file. The new version has Import on its title screen.",
+  "handoverLater": "Later",
+  "handoverGo": "Back up now"
  },
  "squad": {
   "tabSelection": "Selection",

@@ -4,6 +4,7 @@ import { listSaves, loadGame, deleteSave, type SaveMeta } from '../../game/save'
 import { seasonLabel } from '../../game/model'
 import { LANGS, t } from '../../game/i18n'
 import { BrandMark } from '../components'
+import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
 
 export default function Menu() {
   const go = useStore(s => s.go)
@@ -63,6 +64,20 @@ export default function Menu() {
             onClick={() => setShowLoad(!showLoad)}>
             {t('menu.loadCareer')}
           </button>
+        )}
+        {/* FIRST RUN OF THE NEW PLAY APP (v1.2.9): a player who backed up in
+            the old one needs to find Import before they start a fresh career
+            and lose heart. Only in the Android shell, only with nothing saved,
+            and only until it is put away. */}
+        {isAndroidShell() && saves.length === 0 && !dismissed('rm-import-hint') && (
+          <div className="card" style={{ borderLeft: '4px solid var(--gold)', textAlign: 'left' }}>
+            <div className="fact-label">{t('menu.importHintTitle')}</div>
+            <div className="meta" style={{ marginTop: 3 }}>{t('menu.importHintBody')}</div>
+            <div className="btn-row" style={{ margin: '10px 0 0' }}>
+              <button className="btn ghost" onClick={() => { dismiss('rm-import-hint'); setSaves([...saves]) }}>{t('menu.importHintNo')}</button>
+              <button className="btn gold" style={{ flex: 1.6 }} onClick={() => go('saves')}>{t('menu.importHintGo')}</button>
+            </div>
+          </div>
         )}
         {showLoad && saves.map(s => (
           <div key={s.slot} style={{ display: 'flex', gap: 6 }}>

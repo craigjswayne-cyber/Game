@@ -12,7 +12,11 @@
   "loadCareer": "Carica carriera",
   "newCareer": "Nuova carriera",
   "savedAt": "{season}, settimana {week}",
-  "tagline": "STORIE, STAGIONI E TROFEI"
+  "tagline": "STORIE, STAGIONI E TROFEI",
+  "importHintTitle": "Vieni dalla vecchia versione?",
+  "importHintBody": "Se hai esportato le carriere dalla vecchia app Play, portale qui prima di iniziarne una nuova.",
+  "importHintNo": "No, parti da zero",
+  "importHintGo": "Importa un backup"
  },
  "nav": {
   "news": "News",
@@ -289,7 +293,11 @@
   },
   "squadThisWeek": "🌍 SETTIMANA DELLE CONVOCAZIONI: questa settimana annunci il gruppo di {nat}.",
   "campOpen": "Il raduno è aperto - {n} convocati su {size}. Tocca per plasmare il gruppo.",
-  "storeSub": "Potenzia la tua squadra"
+  "storeSub": "Potenzia la tua squadra",
+  "handoverTitle": "L’app del Play Store cambia",
+  "handoverBody": "Il prossimo aggiornamento la trasforma in un’app completa e le tue carriere non passeranno da sole. Fai un backup ora: Salvataggi, poi Esporta, e conserva il file. La nuova versione ha Importa nella schermata iniziale.",
+  "handoverLater": "Più tardi",
+  "handoverGo": "Fai il backup"
  },
  "squad": {
   "tabSelection": "Formazione",

@@ -1,0 +1,19 @@
+{
+  "name": "phase-rugby-manager-android",
+  "version": "1.2.9",
+  "private": true,
+  "description": "The Android shell: a Capacitor wrapper around the built game, with Play Billing through the same PhaseBilling contract the iOS shell uses. Its OWN npm project, like packaging/ios - see README.md.",
+  "scripts": {
+    "shell:add": "npm run shell:build && npx cap add android",
+    "shell:build": "npm --prefix ../.. run build",
+    "shell:sync": "npm run shell:build && npx cap sync android",
+    "shell:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.0",
+    "@capacitor/core": "8.5.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.0"
+  }
+}
