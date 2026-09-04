@@ -12,7 +12,11 @@
   "loadCareer": "Cargar carrera",
   "newCareer": "Nueva carrera",
   "savedAt": "{season}, semana {week}",
-  "tagline": "HISTORIAS, TEMPORADAS Y TÍTULOS"
+  "tagline": "HISTORIAS, TEMPORADAS Y TÍTULOS",
+  "importHintTitle": "¿Vienes de la versión anterior?",
+  "importHintBody": "Si exportaste tus carreras en la antigua app de Play, tráelas aquí antes de empezar una nueva.",
+  "importHintNo": "No, empezar de cero",
+  "importHintGo": "Importar una copia"
  },
  "nav": {
   "news": "Noticias",
@@ -289,7 +293,11 @@
   },
   "squadThisWeek": "🌍 SEMANA DE CONVOCATORIA: esta semana das la lista de {nat}.",
   "campOpen": "La concentración está abierta: {n} de {size} convocados. Toca para dar forma a la lista.",
-  "storeSub": "Mejora tu equipo"
+  "storeSub": "Mejora tu equipo",
+  "handoverTitle": "La app de Play Store cambia",
+  "handoverBody": "La próxima actualización la convierte en una app completa y tus carreras no pasarán solas. Haz copia ahora: Partidas, luego Exportar, y guarda el archivo. La nueva versión tiene Importar en la pantalla de inicio.",
+  "handoverLater": "Luego",
+  "handoverGo": "Hacer copia"
  },
  "squad": {
   "tabSelection": "Alineación",

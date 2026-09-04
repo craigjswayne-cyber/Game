@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
+import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
 import { SIX_NATIONS_WEEKS } from '../../game/schedule'
 import { nationByCode, nationName, flagOf } from '../../game/nations'
 import { leaguePos, sortTable } from '../../game/schedule'
@@ -281,6 +282,20 @@ export default function Home() {
           find it (v1.2.5: "this needs to be more obvious - and an 'Upgrade
           your team' next to store"). The line says what the shelf is FOR, in
           the player's language; the store itself still does the explaining. */}
+      {/* THE OLD PLAY APP IS BEING REPLACED (v1.2.9). Its saves live in
+          Chrome and the new app cannot see them, so anyone the site can tell
+          is inside the old wrapper is asked, once, to back up before they
+          update. Never shown on the website, in the PWA or in the new app. */}
+      {isOldPlayApp() && !dismissed('rm-twa-warned') && (
+        <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+          <div className="fact-label">{t('home.handoverTitle')}</div>
+          <div className="meta" style={{ marginTop: 3 }}>{t('home.handoverBody')}</div>
+          <div className="btn-row" style={{ margin: '10px 0 0' }}>
+            <button className="btn ghost" onClick={() => { dismiss('rm-twa-warned'); touch() }}>{t('home.handoverLater')}</button>
+            <button className="btn gold" style={{ flex: 1.6 }} onClick={() => go('saves')}>{t('home.handoverGo')}</button>
+          </div>
+        </div>
+      )}
       {tillOpen() && (
         <button className="card store-card" onClick={() => go('supporter')}>
           <div className="store-word">{t('home.storeLabel')}</div>

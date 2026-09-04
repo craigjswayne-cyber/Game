@@ -201,8 +201,8 @@ them, and not before:
 | Step | Status |
 |---|---|
 | 0. Understand the shell | this document |
-| 1. Decide | **waiting for you** |
-| 2. Build the shell | not started; a day once you say go |
+| 1. Decide | **decided 4 Sep: shell first, adverts later** |
+| 2. Build the shell | **built 4 Sep** (`packaging/android/`); your Android Studio build and a test purchase are what is left - `PLAY-WALKTHROUGH.md` |
 | 3. AdMob account | not started; yours, twenty minutes plus the postcard |
 | 4. Register and make units | after 3 |
 | 5. Consent | after 4 |

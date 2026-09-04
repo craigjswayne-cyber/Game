@@ -16,6 +16,12 @@ storeart/
 # generated project cannot be trusted to preserve it.
 packaging/ios/ios/
 
+# The generated Android Studio project, the Android twin of packaging/ios/ios/:
+# packaging/android/scaffold.sh rebuilds it from the pinned toolchain and it
+# carries a copy of dist/. The plugin source, the config, the version and the
+# icon script beside it ARE tracked.
+packaging/android/android/
+
 # THE SIGNING KEY, AND EVERYTHING SHAPED LIKE ONE.
 # packaging/twa/ is a tracked folder and bubblewrap signs from inside it, so
 # the keystore lives among tracked files - one `git add -A` away from being
