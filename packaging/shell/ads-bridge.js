@@ -114,7 +114,18 @@
     // later call landing in the dark.
     try {
       ad.addListener('bannerAdSizeChanged', function (s) { log('banner size', JSON.stringify(s)); setInset(s && s.height ? s.height : 0) })
-      ad.addListener('bannerAdFailedToLoad', function (e) { log('banner FAILED to load:', JSON.stringify(e)); setInset(0) })
+      // A banner that asked and got nothing is an empty grey box sitting over
+      // the game. Google does not retry it and neither do we: the strip comes
+      // down, the page takes its space back, and the next screen that mounts a
+      // slot asks again. An advert that did not arrive should leave no trace.
+      ad.addListener('bannerAdFailedToLoad', function (e) {
+        log('banner FAILED to load:', JSON.stringify(e), '- taking the empty strip down')
+        setInset(0)
+        enqueue(async function () {
+          try { await ad.removeBanner() } catch (e2) {}
+          created = null; visible = false
+        })
+      })
       ad.addListener('bannerAdLoaded', function () { log('banner loaded') })
     } catch (e) { log('could not listen for banner events:', e && (e.message || e.code) || e) }
     return ad
