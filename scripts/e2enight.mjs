@@ -244,6 +244,18 @@ try {
   await page.waitForTimeout(300)
   await shot('06k2-handbook-search')
 
+  // RUGBY WORDS, added 5 Sep after an audit found the handbook explained every
+  // number in the game and not one word of the sport. This is the check that
+  // somebody who has watched two matches can look one up: the copy keeps
+  // saying "lineout", so the handbook has to answer when they type it.
+  await page.fill('input[placeholder="Search the handbook…"]', 'lineout')
+  await page.waitForTimeout(300)
+  const gloss = await page.locator('.news-item').count()
+  if (gloss < 1) throw new Error('the handbook has no answer for "lineout"')
+  await page.locator('.news-item').first().click()
+  await page.waitForTimeout(200)
+  await shot('06k3-handbook-rugby-words')
+
   // live match: kick off and play a half in the dark. Continue walks the week a
   // day at a time now, so the button reads Continue until the day the game falls
   // on - tap through the bulletins (in the dark, which is the point of this run)

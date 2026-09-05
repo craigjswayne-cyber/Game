@@ -14,7 +14,7 @@
 /* q, a, label and sub are all i18n KEYS. The English is in
    src/locales/en.json under `handbook`; every other language answers to it.
    The Handbook screen searches the TRANSLATED text, not these keys. */
-export type HandbookCat = 'match' | 'squad' | 'market' | 'club' | 'career'
+export type HandbookCat = 'match' | 'squad' | 'market' | 'club' | 'career' | 'words'
 
 export interface HandbookEntry {
   cat: HandbookCat
@@ -28,6 +28,15 @@ export const HANDBOOK_CATS: { id: HandbookCat; label: string; sub: string }[] = 
   { id: 'market', label: 'handbook.catMarket', sub: 'handbook.catMarketSub' },
   { id: 'club', label: 'handbook.catClub', sub: 'handbook.catClubSub' },
   { id: 'career', label: 'handbook.catCareer', sub: 'handbook.catCareerSub' },
+  // RUGBY WORDS. The other five categories explain this GAME; none of them
+  // explains the SPORT. An audit of en.json on 5 Sep found twenty-one rugby
+  // terms used in the copy and defined nowhere in here - "lineout" thirty
+  // times, "maul" eighteen, neither of them once in an answer. A die-hard
+  // wants those words kept, because using them is what makes the writing
+  // sound like rugby; somebody who has watched two matches needs them
+  // looked up. A glossary serves both and costs the copy nothing, which is
+  // why not one line of the game was dumbed down to add this.
+  { id: 'words', label: 'handbook.catWords', sub: 'handbook.catWordsSub' },
 ]
 
 export const HANDBOOK: HandbookEntry[] = [
@@ -435,5 +444,127 @@ export const HANDBOOK: HandbookEntry[] = [
     cat: 'career',
     q: 'handbook.q79',
     a: 'handbook.a79',
+  },
+
+  // ---------------- Rugby Words ----------------
+  {
+    cat: 'words',
+    q: 'handbook.q80',
+    a: 'handbook.a80',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q81',
+    a: 'handbook.a81',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q82',
+    a: 'handbook.a82',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q83',
+    a: 'handbook.a83',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q84',
+    a: 'handbook.a84',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q85',
+    a: 'handbook.a85',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q86',
+    a: 'handbook.a86',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q87',
+    a: 'handbook.a87',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q88',
+    a: 'handbook.a88',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q89',
+    a: 'handbook.a89',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q90',
+    a: 'handbook.a90',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q91',
+    a: 'handbook.a91',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q92',
+    a: 'handbook.a92',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q93',
+    a: 'handbook.a93',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q94',
+    a: 'handbook.a94',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q95',
+    a: 'handbook.a95',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q96',
+    a: 'handbook.a96',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q97',
+    a: 'handbook.a97',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q98',
+    a: 'handbook.a98',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q99',
+    a: 'handbook.a99',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q100',
+    a: 'handbook.a100',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q101',
+    a: 'handbook.a101',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q102',
+    a: 'handbook.a102',
+  },
+  {
+    cat: 'words',
+    q: 'handbook.q103',
+    a: 'handbook.a103',
   },
 ]
