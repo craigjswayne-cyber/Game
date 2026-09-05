@@ -4,34 +4,39 @@
     "platform's block into the shell's index.html as window.__phaseAds and the",
     "App ID into the Android manifest / iOS Info.plist.",
     "",
-    "THESE ARE GOOGLE'S PUBLISHED TEST IDS. They show 'Test Ad' banners and pay",
-    "nothing; a store build must carry the owner's real ones. Real IDs in a",
-    "debug build are a policy strike the other way. The owner pastes the real",
-    "ones in (docs/ADS-STEP-BY-STEP.md step 4) and sets testing to false in the",
-    "release commit that carries them. An App ID has a ~ in it; an ad unit ID",
-    "has a /.",
+    "THESE ARE THE OWNER'S LIVE IDS (AdMob publisher 1341622370227647, pasted",
+    "5 Sep 2026). testing is false, so a build from this file shows real adverts",
+    "and earns real money - and clicking one in your own app is a policy strike.",
+    "Put your phone's AdMob test-device id in testDevices to see test adverts on",
+    "a live build (Android Studio Logcat prints it the first time an advert",
+    "loads, on a line beginning 'Use RequestConfiguration.Builder').",
     "",
-    "testDevices: AdMob device ids for phones that should see test ads even on",
-    "a live build (the owner's). consentDebug forces the EEA consent form on",
-    "those devices so the form can be seen outside Europe."
+    "Google's published test ids, for a debug build or a fresh test: App IDs",
+    "ca-app-pub-3940256099942544~3347511713 (Android) and ~1458002511 (iOS);",
+    "adaptive banner /9214589741 (Android) and /2435281174 (iOS); rewarded",
+    "/5224354917 (Android) and /1712485313 (iOS). Set testing to true with them.",
+    "An App ID has a ~ in it; an ad unit ID has a /.",
+    "",
+    "consentDebug forces the EEA consent form on the testDevices phones so the",
+    "form can be seen outside Europe."
   ],
-  "testing": true,
+  "testing": false,
   "consentDebug": false,
   "testDevices": [],
   "android": {
-    "appId": "ca-app-pub-3940256099942544~3347511713",
+    "appId": "ca-app-pub-1341622370227647~2415157721",
     "banner": {
-      "home-foot": "ca-app-pub-3940256099942544/9214589741",
-      "results-foot": "ca-app-pub-3940256099942544/9214589741"
+      "home-foot": "ca-app-pub-1341622370227647/9355241648",
+      "results-foot": "ca-app-pub-1341622370227647/4629528573"
     },
-    "rewarded": "ca-app-pub-3940256099942544/5224354917"
+    "rewarded": "ca-app-pub-1341622370227647/8788994381"
   },
   "ios": {
-    "appId": "ca-app-pub-3940256099942544~1458002511",
+    "appId": "ca-app-pub-1341622370227647~1372809847",
     "banner": {
-      "home-foot": "ca-app-pub-3940256099942544/2435281174",
-      "results-foot": "ca-app-pub-3940256099942544/2435281174"
+      "home-foot": "ca-app-pub-1341622370227647/7168062002",
+      "results-foot": "ca-app-pub-1341622370227647/7475912719"
     },
-    "rewarded": "ca-app-pub-3940256099942544/1712485313"
+    "rewarded": "ca-app-pub-1341622370227647/8042159971"
   }
 }

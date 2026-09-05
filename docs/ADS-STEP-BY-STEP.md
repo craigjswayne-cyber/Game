@@ -295,9 +295,9 @@ them, and not before:
 | 0. Understand the shell | this document |
 | 1. Decide | **decided 4 Sep: shell first, adverts later** |
 | 2. Build the shell | **done 4 Sep**: built, uploaded as 1.2.9 (17), tested on your phone, all six checks passed |
-| 3. AdMob account | **yours, next**: twenty minutes plus the postcard |
-| 4. Register and make units | after 3, fifteen minutes; then paste me the eight ids |
-| 5. Consent message | after 4, two clicks in AdMob; the app side is built |
-| 6. Adverts in | **built 5 Sep** on test ids (`packaging/shell/`, v1.3.0); flips to your ids the day they arrive |
+| 3. AdMob account | **done 5 Sep** (the postcard PIN still to type in when it arrives) |
+| 4. Register and make units | **done 5 Sep**: eight ids in `packaging/shell/ads.json`, test mode off |
+| 5. Consent message | **confirm**: Privacy & messaging → European regulations → a published message covering both apps. Without it the UK sees NO adverts, because the app refuses to ask for one it has no consent for |
+| 6. Adverts in | **built 5 Sep, live ids 5 Sep** (`packaging/shell/`, v1.3.0); your next Android build carries them |
 | 7. Paperwork | on release day; the exact answers are written above |
 | 8. Measure | two weeks after |

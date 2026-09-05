@@ -119,6 +119,39 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.3.0, Play version code 18
+
+The adverts release. Say what arrived, why, and the way out of it, in that order; then the bottom-bar fix.
+
+```
+<en-GB>
+• A few small adverts now help keep the game free: a strip at the foot of Home and Results, and optional "watch an advert instead" buttons. Never during a match.
+• Remove all ads in the Store takes every banner away for good.
+• The bottom of every screen now clears the phone's own navigation bar.
+</en-GB>
+<fr-FR>
+• Quelques petites publicités aident désormais à garder le jeu gratuit : une bannière au bas de l'Accueil et des Résultats, et des boutons facultatifs « regarder une pub à la place ». Jamais pendant un match.
+• Supprimer toutes les pubs, dans la Boutique, retire définitivement chaque bannière.
+• Le bas de chaque écran dégage désormais la barre de navigation du téléphone.
+</fr-FR>
+<es-ES>
+• Unos pocos anuncios pequeños ayudan ahora a mantener el juego gratis: una franja al pie de Inicio y Resultados, y botones opcionales de "ver un anuncio en su lugar". Nunca durante un partido.
+• Quitar todos los anuncios, en la Tienda, elimina cada banner para siempre.
+• La parte inferior de cada pantalla ya no queda bajo la barra de navegación del teléfono.
+</es-ES>
+<it-IT>
+• Qualche piccola pubblicità aiuta ora a mantenere il gioco gratuito: una striscia in fondo a Home e Risultati, e pulsanti facoltativi "guarda una pubblicità invece". Mai durante una partita.
+• Rimuovi tutte le pubblicità, nel Negozio, toglie ogni banner per sempre.
+• Il fondo di ogni schermata ora resta sopra la barra di navigazione del telefono.
+</it-IT>
+<ja-JP>
+• 小さな広告がゲームの無料維持に役立ちます：ホームと結果画面の下部に1本、そして任意の「代わりに広告を見る」ボタン。試合中には表示されません。
+• ストアの「すべての広告を削除」でバナーは永久に消えます。
+• すべての画面の下部が、スマートフォンのナビゲーションバーと重ならなくなりました。
+</ja-JP>
+```
+*(en 297 · fr 373 · es 361 · it 349 · ja 146)*
+
 ### What's new (500 max) - v1.2.9, Play version code 17 (16 was refused for its billing library)
 
 The last Play upload was v1.1.17 (code 15), so these notes cover everything from
