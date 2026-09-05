@@ -54,6 +54,15 @@ if (platform === 'android') {
   } else {
     m = m.replace(/(\n\s*<\/application>)/, `\n${meta}$1`)
   }
+  // The advertising-id permission, in OUR manifest rather than trusted to the
+  // merge from Google's library: the Play Console declares the app uses the
+  // id and refuses a release whose manifest it cannot see the permission in
+  // (5 Sep 2026, the first 1.3.0 upload). Explicit costs nothing and cannot
+  // be dropped by a library update.
+  if (!/com\.google\.android\.gms\.permission\.AD_ID/.test(m)) {
+    m = m.replace(/(\n\s*<uses-permission android:name="android\.permission\.INTERNET" \/>)/,
+      `$1\n    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />`)
+  }
   writeFileSync(mf, m)
 } else {
   const pl = 'ios/App/App/Info.plist'
