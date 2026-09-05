@@ -356,7 +356,7 @@ export default function Supporter() {
 
   if (adsExist || ownsAds) {
     row('ads', ownsAds,
-      <Row icon="🚫" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
+      <Row icon="⭐" title={t('store.removeAds')} line={t('store.removeAdsLine')} msg={msgs[SUPPORTER_SKU]}
         right={ownsAds ? <OwnedChip /> : <BuyBtn sku={SUPPORTER_SKU} busy={isBusy(SUPPORTER_SKU)} onBuy={() => void buyNC(SUPPORTER_SKU)} />} />)
   }
 

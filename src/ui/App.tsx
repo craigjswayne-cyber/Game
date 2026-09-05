@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { useStore, type Screen } from '../store'
+import { effectiveSkin, useStore, type Screen } from '../store'
 import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep, pressBlock } from '../game/days'
@@ -307,7 +307,11 @@ export default function App() {
   // a skin is a third class on the same root: tokens.css declares the skin
   // blocks after night and day, so the skin wins the cascade and the
   // floodlight toggle still does its job underneath
-  const skin = useStore(s => s.skin)
+  // ...and only Pro Manager's three are painted at all. effectiveSkin reads
+  // the entitlement rather than the choice, and this component already
+  // re-renders on `tick`, which a purchase bumps - so the moment a receipt
+  // lands the app repaints in what the player just bought.
+  const skin = effectiveSkin(useStore(s => s.skin))
   const appClass = `app${night ? ' night' : ''}${skin !== 'default' ? ` skin-${skin}` : ''}`
 
   // NO DESK, NO DESK SCREENS (19E). Resigning or getting sacked sets
