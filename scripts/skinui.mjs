@@ -27,11 +27,46 @@ const SKINS = [
   { key: 'stealth', label: 'OLED Stealth', canvas: 'rgb(0, 0, 0)' },
 ]
 
+/** The career walk, and the road to Settings - both needed twice now that
+ *  there is a paid case and a free one. */
+const start = async (page) => {
+  await page.goto('http://localhost:4217/')
+  await page.waitForSelector('text=RUGBY')
+  await page.click('text=New Career')
+  await page.waitForSelector('text=English Premier Division')
+  await page.click('text=English Premier Division')
+  await page.waitForSelector('.club-tile')
+  await page.click('.tile >> text=Leicester')
+  await page.waitForSelector('text=Star Player')
+  await page.click('.action-bar >> text=Confirm')
+  await page.fill('input[placeholder="e.g. A. Gaffer"]', 'Gaffer')
+  await page.click('.action-bar >> text=Confirm')
+  await page.click('text=\u25b8 Start Career')
+  await page.waitForSelector('.tut-box', { timeout: 15000 })
+  await page.click('.tut-close .btn')
+  await page.waitForSelector('.bottom-nav')
+}
+const openSettings = async (page) => {
+  await page.locator('.bottom-nav button', { hasText: '\u25b8' }).nth(1).click()
+  await page.waitForSelector('.submenu')
+  await page.waitForTimeout(300)
+  await page.locator('.submenu-item', { hasText: 'Settings' }).click()
+  await page.waitForSelector('.content')
+}
+
 try {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   const errs = []
   page.on('pageerror', e => errs.push(e.message))
+
+  // THE THREE SKINS ARE PRO MANAGER'S NOW (5 Sep 2026, the monetisation
+  // blueprint: the perk has to be visible every second of play or it sells
+  // nothing). So this page starts as a Pro manager - the entitlement is
+  // written before the app boots - and section 5 below runs the free case,
+  // which is the one that used to be the only case. Sections 1 to 4 assert
+  // exactly what they always did; what changed is who is allowed to see it.
+  await page.addInitScript(() => localStorage.setItem('rm-ent', 'phase.supporter'))
 
   // a career, because the manager menu only exists inside one
   await page.goto('http://localhost:4217/')
@@ -171,10 +206,58 @@ try {
 
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
   await page.close()
+
+  // ---- 6. and a free manager gets the green one, and an honest door ----
+  // The paid half above is only worth anything if the free half holds: a
+  // locked skin must not paint, must not become the saved choice, and must
+  // not look like a button that does nothing.
+  say('\n--- 6. a free manager: Clubhouse only, and a way to the Store')
+  {
+    const free = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
+    free.setDefaultTimeout(9000)
+    const ferrs = []
+    free.on('pageerror', e => ferrs.push(e.message))
+    // a skin already chosen, from before it was Pro's: the CHOICE survives,
+    // the PAINT does not
+    await free.addInitScript(() => localStorage.setItem('rm-skin', 'stealth'))
+    // A store to be locked out OF. Nothing is locked on the website, where
+    // there is no till and no advert - the palettes stay free there, because
+    // taking them away would delete a feature and sell nothing. So this is
+    // the shell case: a billing bridge, and an advert bridge so the Pro
+    // Manager row has a reason to render.
+    await free.addInitScript(() => {
+      const bought = new Set()
+      globalThis.rmBilling = {
+        details: async (sku) => ({ sku, price: '\u00a31.99' }),
+        buy: async (sku) => { bought.add(sku); return 'owned' },
+        owned: async () => [...bought],
+        consume: async () => {},
+      }
+      globalThis.rmAds = { mount() {}, unmount() {}, showRewarded: async () => 'unavailable' }
+    })
+    await start(free)
+    await openSettings(free)
+
+    ok(!/skin-/.test((await free.locator('.app').first().getAttribute('class')) ?? ''),
+      'a saved skin from before does not paint without the entitlement')
+    ok((await free.locator('.skin-card').count()) === 4, 'all four are still shown, so there is something to want')
+    const locked = free.locator('.skin-card', { hasText: 'OLED Stealth' })
+    ok(/PRO/.test(await locked.innerText()), 'the three carry a PRO mark')
+    ok((await free.locator('.skin-swatches').count()) === 4, 'and their colours are still on show')
+
+    await locked.click()
+    await free.waitForTimeout(400)
+    ok(!/skin-/.test((await free.locator('.app').first().getAttribute('class')) ?? ''),
+      'tapping a locked one does not paint the app')
+    ok(/Pro Manager/i.test(await free.locator('.content').innerText()),
+      'it goes to the Store instead, which is where the answer is')
+    ok(ferrs.length === 0, `no console errors${ferrs.length ? ': ' + ferrs[0] : ''}`)
+    await free.close()
+  }
 } finally {
   await browser.close()
   server.stop()
 }
 
-say(fails ? `\nSKIN UI FAILED (${fails})` : '\nSKIN UI PASSED: three skins, offered where asked, and every one of them wears')
+say(fails ? `\nSKIN UI FAILED (${fails})` : '\nSKIN UI PASSED: three Pro skins that wear, a free one that holds, and a locked card that sells')
 process.exit(fails ? 1 : 0)

@@ -1,5 +1,4 @@
-import { useStore } from '../../store'
-import { SKINS, type Skin } from '../../store'
+import { SKINS, skinLocked, useStore, type Skin } from '../../store'
 import { SectionTitle } from '../components'
 import { LANGS, getLang, t } from '../../game/i18n'
 
@@ -52,6 +51,7 @@ function Swatches({ skin, night }: { skin: Skin; night: boolean }) {
 }
 
 export default function Settings() {
+  const go = useStore(s => s.go)
   const skin = useStore(s => s.skin)
   const setSkin = useStore(s => s.setSkin)
   const night = useStore(s => s.night)
@@ -70,19 +70,35 @@ export default function Settings() {
         <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.skin')}</div>
         <div className="meta" style={{ marginTop: 1 }}>{t('settings.skinLine')}</div>
       </div>
-      {SKINS.map(s => (
-        <button key={s} className={`card skin-card${skin === s ? ' on' : ''}`}
-          aria-pressed={skin === s} onClick={() => setSkin(s)}>
-          <div className="skin-card-top">
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{t(SKIN_KEYS[s].name)}</div>
-              <div className="meta" style={{ marginTop: 1 }}>{t(SKIN_KEYS[s].line)}</div>
+      {/* A locked skin still shows its name, its line and its full swatch row.
+          Hiding what is behind the door sells nothing: the point of putting
+          the three palettes on this page is that somebody scrolls past them,
+          likes one, and finds out it is a pound ninety-nine away. Tapping a
+          locked card goes to the Store rather than doing nothing, because a
+          card that looks pressable and is not is a bug report. */}
+      {SKINS.map(s => {
+        const locked = skinLocked(s)
+        return (
+          <button key={s} className={`card skin-card${skin === s ? ' on' : ''}`}
+            aria-pressed={skin === s}
+            onClick={() => locked ? go('supporter') : setSkin(s)}>
+            <div className="skin-card-top">
+              <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{t(SKIN_KEYS[s].name)}</div>
+                <div className="meta" style={{ marginTop: 1 }}>{t(SKIN_KEYS[s].line)}</div>
+              </div>
+              {skin === s && !locked && <span className="chip" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>✓</span>}
+              {locked && <span className="chip" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>{t('settings.skinPro')}</span>}
             </div>
-            {skin === s && <span className="chip" style={{ flexShrink: 0, color: 'var(--gold)', fontWeight: 700 }}>✓</span>}
-          </div>
-          <Swatches night={night} skin={s} />
+            <Swatches night={night} skin={s} />
+          </button>
+        )
+      })}
+      {SKINS.some(skinLocked) && (
+        <button className="btn ghost block" onClick={() => go('supporter')}>
+          {t('settings.skinProCta')}
         </button>
-      ))}
+      )}
 
       {/* ---- floodlights: the same switch as the title bar, said in words ----
           The icon in the header is quicker once you know what it is; this is

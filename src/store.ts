@@ -16,8 +16,31 @@ function readSkin(): Skin {
     return (SKINS as readonly string[]).includes(v ?? '') ? v as Skin : 'default'
   } catch { return 'default' }
 }
+
+/** THE GREEN ONE IS EVERYBODY'S. The other three are Pro Manager's, and they
+ *  are the reason to buy it: a purchase nobody can see is a purchase nobody
+ *  talks about, and a skin is on screen every second of play. Nothing about
+ *  the rugby changes either way - this is paint, and the game underneath is
+ *  the same game, which is the line the store row has to hold to.
+ *
+ *  The CHOICE is never rewritten. A player whose entitlement has not been
+ *  restored yet - a fresh install, an offline launch, the second between
+ *  boot and the store answering - keeps what they picked; they simply wear
+ *  the green one until the receipt turns up. Downgrading the saved value
+ *  would turn a slow network into a lost preference. */
+export const FREE_SKIN: Skin = 'default'
+/** Locked only where there is somewhere to buy it. The website has no store
+ *  and no adverts, so there is nothing to sell and nothing to remove: taking
+ *  the palettes away there would be a feature deleted for no gain, and a
+ *  locked card whose only door leads to a shop that is shut. tillOpen() is
+ *  the same question the Store shelves already ask. */
+export function skinLocked(s: Skin): boolean {
+  return s !== FREE_SKIN && tillOpen() && !hasSupporter()
+}
+/** What the app actually wears, as opposed to what was chosen. */
+export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
 import { getLang, initLang, onLangChange, setLang as applyLang, t, type Lang } from './game/i18n'
-import { hasSupporter } from './game/monetise'
+import { hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
 import { dreamState, dreamsFor } from './game/dream'
@@ -405,6 +428,10 @@ export const useStore = create<Store>((set, get) => ({
      that has never opened Settings gets. */
   skin: readSkin(),
   setSkin: (skin: Skin) => {
+    // Belt and braces behind the Settings UI: a locked skin never becomes the
+    // choice, so no route into this setter can dress a free game in a paid
+    // palette.
+    if (skinLocked(skin)) return
     try { localStorage.setItem(SKIN_KEY, skin) } catch { /* private mode */ }
     set({ skin })
   },

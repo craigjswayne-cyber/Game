@@ -166,7 +166,7 @@ try {
 
   // ---- 2. a packaged build: the store, one row per product ---------------
   // Rewritten for the v1.1.4 store: compact rows, everything visible, and
-  // the one honesty gate that matters - "Remove all ads" renders ONLY where
+  // the one honesty gate that matters - "Pro Manager" renders ONLY where
   // an ad provider actually exists, because selling the absence of ads in a
   // build that has none is the dishonesty v1.1.3 removed.
   say('\n--- 2. a bridge attached, as a wrapper injects one')
@@ -201,7 +201,7 @@ try {
     for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', 'Remove the salary cap', 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
     }
-    ok(!/Remove all ads/i.test(till),
+    ok(!/Pro Manager/i.test(till),
       'and NO Remove-all-ads row, because this build ships no ads to remove')
     ok(!/what it does not do/i.test(till), 'the essays are gone - each product is one line')
 
@@ -303,7 +303,7 @@ try {
   }
 
   // ---- 2a. ads attached as well: the removal exists, and works -----------
-  say('\n--- 2a. an ad provider attached: Remove all ads appears, and marks the title')
+  say('\n--- 2a. an ad provider attached: Pro Manager appears, and marks the title')
   {
     const page = await openPage({ billing: true, ads: true })
     const errs = []
@@ -312,11 +312,11 @@ try {
     await openAbout(page)
     await page.locator('.btn.gold', { hasText: 'Open the Store' }).click()
     await page.waitForSelector('.content')
-    ok(await page.locator('.content').innerText().then(t => /Remove all ads/i.test(t)),
+    ok(await page.locator('.content').innerText().then(t => /Pro Manager/i.test(t)),
       'with ads in the build, the removal is on the shelf')
-    await page.locator('.card', { hasText: 'Remove all ads' }).locator('.btn.gold').click()
+    await page.locator('.card', { hasText: 'Pro Manager' }).locator('.btn.gold').click()
     await page.waitForTimeout(600)
-    ok(await page.locator('.card', { hasText: 'Remove all ads' }).innerText().then(t => /Yours/.test(t)),
+    ok(await page.locator('.card', { hasText: 'Pro Manager' }).innerText().then(t => /Yours/.test(t)),
       'the purchase completes and the row is a receipt')
 
     // the mark, on the screen it was promised on
