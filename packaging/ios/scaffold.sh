@@ -104,6 +104,55 @@ fi
 echo "==> installing the advert bridge"
 node ../shell/install-ads.mjs ios
 
+# ---- THE PLUGIN DOES NOT KNOW ITSELF UNTIL initialize() ----
+#
+# @capacitor-community/admob 8.1.0 wires its executors to the plugin instance
+# inside initialize():
+#
+#     @objc func initialize(_ call: CAPPluginCall) {
+#         self.bannerExecutor.plugin = self
+#         ...
+#         self.consentExecutor.plugin = self
+#
+# Every executor holds that as `weak var plugin`, and every one of them finds
+# the screen to draw on through `plugin?.getRootVC()`. So before initialize()
+# has run, that reference is nil and anything they are asked to do fails with
+# "No ViewController" - including showConsentForm, which by Google's own
+# documented order has to happen BEFORE initialize().
+#
+# An iPhone Simulator, 5 Sep, three times over and 900ms apart:
+#   the consent form would not open (No ViewController) - trying again
+# It was never going to open. The wiring is therefore done at load(), where a
+# plugin normally does it, and initialize() keeps doing it too - harmless, and
+# it means an upgrade that fixes this upstream just makes the patch redundant.
+echo "==> teaching the AdMob plugin who it is before initialize()"
+node -e '
+  const fs = require("fs")
+  const f = "node_modules/@capacitor-community/admob/ios/Sources/AdMobPlugin/AdMobPlugin.swift"
+  if (!fs.existsSync(f)) { console.log("!! " + f + " is missing - adverts will not work"); process.exit(1) }
+  let s = fs.readFileSync(f, "utf8")
+  if (s.includes("PHASE: wired at load()")) { console.log("    already wired at load()"); process.exit(0) }
+  const anchor = "    private let consentExecutor = ConsentExecutor()"
+  if (!s.includes(anchor)) { console.log("!! the plugin no longer looks like 8.1.0 - check whether it still needs this"); process.exit(1) }
+  const patch = anchor + `
+
+    // PHASE: wired at load(). Upstream does this in initialize() only, which
+    // leaves every executor with a nil plugin - and so no view controller to
+    // present on - for anything called before initialize(). The consent form
+    // must be shown before initialize(), so upstream it can never be shown.
+    override public func load() {
+        self.bannerExecutor.plugin = self
+        self.adInterstitialExecutor.plugin = self
+        self.adRewardExecutor.plugin = self
+        self.adRewardInterstitialExecutor.plugin = self
+        self.consentExecutor.plugin = self
+    }`
+  s = s.replace(anchor, patch)
+  fs.writeFileSync(f, s)
+  if (!fs.readFileSync(f, "utf8").includes("PHASE: wired at load()")) { console.log("!! the patch did not take"); process.exit(1) }
+  console.log("    wired at load() - the consent form now has a screen to open on")
+'
+
 # ---- iPHONE ONLY ----
 #
 # Owner, mid-submission: "this game is not for ipad or watch, its purely for
