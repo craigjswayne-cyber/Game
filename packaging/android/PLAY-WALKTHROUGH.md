@@ -123,7 +123,7 @@ It writes `android/app/release/app-release.aab`. Android Studio shows a
 https://play.google.com/console → the app → *Testing → Internal testing* →
 *Create new release* → upload `app-release.aab`.
 
-* Release name: the version and the version code, e.g. `1.3.0 (18)`.
+* Release name: the version and the version code, e.g. `1.3.1 (20)`.
 * Release notes: what changed. For this first one: "The app is now a full
   app rather than a browser wrapper. Back up your careers in the old version
   first (Saves → Export), then Import them here."
