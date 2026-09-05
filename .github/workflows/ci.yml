@@ -90,8 +90,15 @@ jobs:
       # the probes launch playwright-core against a browser they are TOLD about
       # (PW_CHROMIUM), because the path differs between a dev container and a
       # runner. Install it here and point them at it.
+      # PINNED TO playwright-core's OWN VERSION. `npx playwright install` with no
+      # version fetches the newest playwright on npm and downloads the Chromium
+      # build THAT version wants; playwright-core in package-lock.json asks for
+      # the build ITS version wants. The two agreed until 1.63.0 shipped
+      # overnight on 5 Sep 2026: the runner then held build 1243, the probes
+      # asked for 1234, and all 49 browser harnesses crashed at launch on a
+      # commit that had passed the same job the evening before.
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx "playwright@$(node -p "require('playwright-core/package.json').version")" install --with-deps chromium
       - name: Locate Chromium
         run: echo "PW_CHROMIUM=$(node -e "console.log(require('playwright-core').chromium.executablePath())")" >> "$GITHUB_ENV"
       - name: Build
