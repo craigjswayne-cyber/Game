@@ -119,9 +119,32 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
-### What's new (500 max) - v1.3.0, Play version code 18
+### What's new (500 max) - v1.3.1, Play version code 20
 
-The adverts release. Say what arrived, why, and the way out of it, in that order; then the bottom-bar fix.
+Owner, 5 Sep: "Nah lets not be too honest - just say minor updates to the game."
+So the notes that go in the Play box are the short ones, in all five languages:
+
+```
+<en-GB>
+Minor updates and improvements to the game.
+</en-GB>
+<fr-FR>
+Mises à jour et améliorations mineures du jeu.
+</fr-FR>
+<es-ES>
+Actualizaciones y mejoras menores del juego.
+</es-ES>
+<it-IT>
+Aggiornamenti e miglioramenti minori del gioco.
+</it-IT>
+<ja-JP>
+細かな更新と改善を行いました。
+</ja-JP>
+```
+
+The longer version below is kept because it is the honest account of what
+actually changed, and because a listing update or a press note may want it. It
+is NOT what goes in the release box.
 
 ```
 <en-GB>

@@ -1,6 +1,6 @@
 {
   "name": "phase-rugby-manager-android",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "private": true,
   "description": "The Android shell: a Capacitor wrapper around the built game, with Play Billing through the same PhaseBilling contract the iOS shell uses. Its OWN npm project, like packaging/ios - see README.md.",
   "scripts": {
