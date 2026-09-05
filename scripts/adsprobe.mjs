@@ -61,7 +61,11 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
       },
       showConsentForm: async () => { log.push('showConsentForm'); return { status: 'OBTAINED', canRequestAds: consent !== 'refused' } },
       initialize: async (o) => { log.push('initialize:' + (o?.maxAdContentRating ?? '')) },
-      showBanner: async (o) => { log.push('showBanner:' + o.adId + ':' + o.position); setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0) },
+      showBanner: async (o) => {
+        log.push('showBanner:' + o.adId + ':' + o.position)
+        if (quirk === 'nofill') return setTimeout(() => fire('bannerAdFailedToLoad', { code: 3, message: 'no fill' }), 0)
+        setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0)
+      },
       hideBanner: async () => { log.push('hideBanner'); setTimeout(() => fire('bannerAdSizeChanged', { width: 0, height: 0 }), 0) },
       resumeBanner: async () => { log.push('resumeBanner'); setTimeout(() => fire('bannerAdSizeChanged', { width: 320, height: 50 }), 0) },
       removeBanner: async () => { log.push('removeBanner'); setTimeout(() => fire('bannerAdSizeChanged', { width: 0, height: 0 }), 0) },
@@ -284,6 +288,21 @@ try {
     await settle(page, 300)
     ok(await page.evaluate(() => globalThis.rmAds === undefined), 'no plugin in the build means no bridge, not a broken one')
     ok(errs.length === 0, `and still no page errors (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+
+  // ---- 5c. an advert that never arrives leaves nothing behind --------------
+  {
+    say('\n--- 5c. a banner Google does not fill')
+    const { page, errs } = await openPage({ platform: 'ios', plugin: 'nofill' })
+    await startCareer(page)
+    await settle(page, 700)
+    const l = await log(page)
+    ok(l.some(x => x.startsWith('showBanner:')), 'the banner was asked for')
+    ok(l.includes('removeBanner'), 'and taken down again when nothing filled it')
+    ok(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ad-inset').trim()) === '0px',
+      'the page takes its space back')
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
 
