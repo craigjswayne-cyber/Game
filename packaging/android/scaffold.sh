@@ -111,6 +111,18 @@ if grep -q "getDefaultProguardFile('proguard-android.txt')" "$GRADLE"; then
   echo "    proguard preset: proguard-android-optimize.txt"
 fi
 
+# The same line lives in every Capacitor plugin's own build.gradle under
+# node_modules (the AdMob plugin's did; the owner's AGP 9 build stopped on it
+# on 5 Sep), and npm install puts the original back, so this runs every time.
+for g in node_modules/@capacitor*/*/android/build.gradle node_modules/@capacitor-community/*/android/build.gradle; do
+  [ -f "$g" ] || continue
+  if grep -q "getDefaultProguardFile('proguard-android.txt')" "$g"; then
+    sed -i.bak "s|getDefaultProguardFile('proguard-android.txt')|getDefaultProguardFile('proguard-android-optimize.txt')|" "$g"
+    rm -f "$g.bak"
+    echo "    proguard preset in $(echo "$g" | cut -d/ -f2-3)"
+  fi
+done
+
 # ---- MANIFEST: portrait, like the game ----
 MANIFEST=$APP/src/main/AndroidManifest.xml
 if ! grep -q 'android:screenOrientation="portrait"' "$MANIFEST"; then
