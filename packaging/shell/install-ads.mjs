@@ -64,10 +64,27 @@ if (platform === 'android') {
   // (5 Sep 2026, the first 1.3.0 upload). Explicit costs nothing and cannot
   // be dropped by a library update.
   if (!/com\.google\.android\.gms\.permission\.AD_ID/.test(m)) {
-    m = m.replace(/(\n\s*<uses-permission android:name="android\.permission\.INTERNET" \/>)/,
+    const before = m
+    m = m.replace(/(\n\s*<uses-permission android:name="android\.permission\.INTERNET"\s*\/>)/,
       `$1\n    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />`)
+    // A String.replace that matches nothing changes nothing and says nothing.
+    // That is how a manifest ships without the permission and Play refuses the
+    // release with a message about an advertising ID declaration - and it is
+    // the second silent no-op to cost a day this week, so this one is checked.
+    if (m === before) {
+      m = m.replace(/(\n\s*<application)/, `\n    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />\n$1`)
+    }
   }
   writeFileSync(mf, m)
+  // Read it back. Both of these are things Play refuses a release over, and
+  // neither is visible until it does.
+  const check = readFileSync(mf, 'utf8')
+  for (const [what, re] of [
+    ['the AdMob App ID', /com\.google\.android\.gms\.ads\.APPLICATION_ID/],
+    ['the advertising-id permission', /com\.google\.android\.gms\.permission\.AD_ID/]
+  ]) {
+    if (!re.test(check)) { console.error(`${mf} still has no ${what} - Play will refuse this build`); process.exit(1) }
+  }
 } else {
   const pl = 'ios/App/App/Info.plist'
   let p = readFileSync(pl, 'utf8')
