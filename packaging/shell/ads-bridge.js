@@ -57,18 +57,29 @@
   var w = window
   var cfg = w.__phaseAds
   var C = w.Capacitor
-  if (!cfg || !C || typeof C.isNativePlatform !== 'function' || !C.isNativePlatform()) return
+  // Every line here reaches the Xcode / Android Studio console as
+  // "[log] - [phase-ads] ...": when a device shows no advert, this is how we
+  // learn which rule said no. Nothing is logged on the website, where there
+  // is no cfg and the script is not even present.
+  var why = 'not started'
+  function log() { try { console.log.apply(console, ['[phase-ads]'].concat([].slice.call(arguments))) } catch (e) {} }
+  if (!cfg) return
+  if (!C || typeof C.isNativePlatform !== 'function' || !C.isNativePlatform()) { log('not a native shell - no adverts'); return }
   // ask the NATIVE side whether the plugin is really in this build - the
   // registerPlugin proxy answers every property name, so the proxy alone
   // proves nothing (the lesson of src/game/storekit.ts)
   var headers = C.PluginHeaders || []
   var present = false
   for (var i = 0; i < headers.length; i++) if (headers[i] && headers[i].name === 'AdMob') present = true
-  if (!present || typeof C.registerPlugin !== 'function') return
+  if (!present || typeof C.registerPlugin !== 'function') {
+    log('the AdMob plugin is NOT in this build (PluginHeaders lacks "AdMob") - no adverts. Plugins present:', headers.map(function (h) { return h && h.name }).join(', '))
+    return
+  }
   var ad = C.registerPlugin('AdMob')
   var platform = typeof C.getPlatform === 'function' ? C.getPlatform() : cfg.platform
   var ids = cfg[platform] || cfg.android
-  if (!ids) return
+  if (!ids) { log('no ids for platform', platform); return }
+  log('bridge loaded for', platform, cfg.testing ? '(TEST ids)' : '(live ids)', 'app', ids.appId)
 
   var REWARDED_CAP = 6         // spots per real day, the plan's ceiling
   var SHOW_TIMEOUT_MS = 300000 // a spot that neither rewards nor closes in five minutes is over
@@ -98,19 +109,41 @@
       try {
         if (platform === 'ios') {
           var s = await ad.trackingAuthorizationStatus()
-          if (s && s.status === 'notDetermined') await ad.requestTrackingAuthorization()
+          log('tracking (ATT) status before asking:', s && s.status)
+          if (s && s.status === 'notDetermined') {
+            var s2 = await ad.requestTrackingAuthorization()
+            log('tracking (ATT) status after asking:', s2 && s2.status)
+          } else if (s && s.status !== 'authorized') {
+            log('ATT prompt skipped: the system already answered', s && s.status, '- on a Simulator check Settings > Privacy & Security > Tracking')
+          }
         }
         var opts = cfg.consentDebug ? { debugGeography: 1, testDeviceIdentifiers: cfg.testDevices || [] } : undefined
         var info = await ad.requestConsentInfo(opts)
-        if (info && !info.canRequestAds && info.isConsentFormAvailable) info = await ad.showConsentForm()
-        if (!info || !info.canRequestAds) return false
+        log('consent info:', JSON.stringify(info))
+        if (info && !info.canRequestAds && info.isConsentFormAvailable) {
+          info = await ad.showConsentForm()
+          log('after consent form:', JSON.stringify(info))
+        }
+        if (!info || !info.canRequestAds) {
+          why = info && !info.isConsentFormAvailable
+            ? 'consent required but no consent form exists - is the AdMob "European regulations" message Published for this app?'
+            : 'consent not given - no adverts'
+          log(why)
+          return false
+        }
         await ad.initialize({
           maxAdContentRating: 'General',
           initializeForTesting: !!cfg.testing,
           testingDevices: cfg.testDevices || []
         })
+        why = 'ready'
+        log('SDK initialised')
         return true
-      } catch (e) { return false }
+      } catch (e) {
+        why = 'error before the SDK could start: ' + (e && (e.message || e.code) || e)
+        log(why)
+        return false
+      }
     })()
     return readyP
   }
@@ -124,8 +157,9 @@
   function enqueue(job) { q = q.then(job, job).catch(function () {}); return q }
   var wantedEl = null, wantedPlace = null, created = null /* place the live banner was made for */, visible = false
 
-  ad.addListener('bannerAdSizeChanged', function (s) { setInset(s && s.height ? s.height : 0) })
-  ad.addListener('bannerAdFailedToLoad', function () { setInset(0) })
+  ad.addListener('bannerAdSizeChanged', function (s) { log('banner size', JSON.stringify(s)); setInset(s && s.height ? s.height : 0) })
+  ad.addListener('bannerAdFailedToLoad', function (e) { log('banner FAILED to load:', JSON.stringify(e)); setInset(0) })
+  ad.addListener('bannerAdLoaded', function () { log('banner loaded') })
 
   function veiled() { return !!document.querySelector('.modal-veil, .tut-veil') }
 
@@ -136,6 +170,7 @@
         if (!(await ready())) return
         if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
         if (!created) {
+          log('asking for banner', wantedPlace, ids.banner[wantedPlace] || ids.banner['home-foot'])
           await ad.showBanner({
             adId: ids.banner[wantedPlace] || ids.banner['home-foot'],
             adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0,
@@ -164,7 +199,7 @@
   async function showRewarded(place) {
     if (spotsToday() >= REWARDED_CAP) return 'unavailable'
     if (!(await ready())) return 'unavailable'
-    try { await ad.prepareRewardVideoAd({ adId: ids.rewarded, isTesting: !!cfg.testing }) } catch (e) { return 'unavailable' }
+    try { await ad.prepareRewardVideoAd({ adId: ids.rewarded, isTesting: !!cfg.testing }) } catch (e) { log('rewarded spot could not be prepared:', e && (e.message || e.code) || e); return 'unavailable' }
     return new Promise(function (resolve) {
       var earned = false, done = false, handles = []
       function finish(v) {
@@ -193,6 +228,6 @@
     unmount: function (el) { if (wantedEl === el || !el) { wantedEl = null; wantedPlace = null; reconcile() } },
     showRewarded: showRewarded,
     // for the probe and for a debugging session on a device: never read by the game
-    __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday() } }
+    __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
   }
 })()
