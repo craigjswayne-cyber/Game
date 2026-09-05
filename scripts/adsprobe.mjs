@@ -168,6 +168,17 @@ try {
     await settle(page, 400)
     ok((await log(page)).at(-1) === 'resumeBanner' && (await inset(page)) === '50px', 'closing the sheet brings it back without a new request')
 
+    // the real slide-out club menu, opened the way a player opens it. On
+    // 5 Sep this one was missed and the advert sat over its bottom rows.
+    await page.locator('.bottom-nav button').nth(2).click()
+    await page.waitForSelector('.submenu-veil')
+    await settle(page, 400)
+    ok((await log(page)).at(-1) === 'hideBanner' && (await inset(page)) === '0px', 'the slide-out club menu is not sat on by the advert')
+    await page.locator('.submenu-veil').click({ position: { x: 400, y: 60 } })  // the panel is on the left; tap the bare strip beside it
+    await page.waitForSelector('.submenu-veil', { state: 'detached' })
+    await settle(page, 400)
+    ok((await log(page)).at(-1) === 'resumeBanner' && (await inset(page)) === '50px', 'and it comes back when the menu closes')
+
     // leave the screen: hidden; come back: resumed, not re-requested
     const before = (await log(page)).length
     await page.locator('.bottom-nav button').nth(0).click()   // the news

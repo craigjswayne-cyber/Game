@@ -267,7 +267,22 @@
   function enqueue(job) { q = q.then(job, job).catch(function () {}); return q }
   var wantedEl = null, wantedPlace = null, created = null /* place the live banner was made for */, visible = false
 
-  function veiled() { return !!document.querySelector('.modal-veil, .tut-veil') }
+  // Everything the game puts OVER the screen. The banner is a native view
+  // laid on top of the web page, so it does not go behind these the way a
+  // page element would: it has to be told to get out of the way. Missing one
+  // is not cosmetic - on 5 Sep the slide-out menu had its bottom rows sitting
+  // under an advert. The rule is simple enough to state: if it covers the
+  // game, the advert comes down.
+  var VEILS = [
+    '.modal-veil',      // any sheet or dialog
+    '.tut-veil',        // how to play
+    '.submenu-veil',    // the slide-out club menu
+    '.celebrate-veil',  // the trophy moment
+    '.sack-veil',       // the sack
+    '.ft-stamp',        // full time
+    '.crash'            // the crash screen
+  ].join(', ')
+  function veiled() { return !!document.querySelector(VEILS) }
 
   function reconcile() {
     return enqueue(async function () {
