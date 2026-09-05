@@ -198,7 +198,7 @@ try {
     ok(!/£2\.99/.test(till), "the store's own price is not printed on the shelf")
     ok(!/not named its prices|has not answered|answered for \d+ of|named no products|guide prices/i.test(till),
       'and the shelf says nothing about its health, because there is nothing wrong with it')
-    for (const row of ['Support the game', 'Full Fitness', 'The International Stage', 'The Estate', 'Remove the salary cap', 'Board funding']) {
+    for (const row of ['Support the game', 'Full Fitness', 'Coach a Nation', 'The Estate', 'Remove the salary cap', 'Board funding']) {
       ok(till.includes(row), `the ${row} row is on the shelf`)
     }
     ok(!/Pro Manager/i.test(till),
