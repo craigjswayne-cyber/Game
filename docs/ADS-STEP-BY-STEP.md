@@ -308,6 +308,11 @@ What the lines mean:
 On a Simulator, Google treats the device as a test device automatically, so a
 working setup shows a strip reading **Test Ad** even with the live ids.
 
+A brand-new AdMob app often has nothing to send for the first few hours. That
+is not a fault and it leaves no mark: an advert that never arrives takes its
+strip down again, the menu returns to the bottom edge, and the screen looks
+exactly as it does for someone who has bought Remove All Ads.
+
 ---
 
 ## What stays true throughout
