@@ -61,7 +61,12 @@ public class PhaseBilling: CAPPlugin {
     override public func load() {
         updates = Task.detached { [weak self] in
             for await update in Transaction.updates {
-                guard let self, case .verified(let t) = update else { continue }
+                // `self != nil` rather than `let self`: the check is here to stop
+                // finishing transactions once the plugin is gone, and nothing in
+                // the body needs the instance (consumables is static). Binding it
+                // is an unused-value warning in Xcode, and a warning nobody can
+                // act on is a warning everybody learns to ignore.
+                guard self != nil, case .verified(let t) = update else { continue }
                 if !Self.consumables.contains(t.productID) {
                     await t.finish()
                 }

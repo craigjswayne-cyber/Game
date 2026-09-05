@@ -35,10 +35,14 @@ copyFileSync(join(here, 'ads-bridge.js'), join(PUBLIC, 'ads-bridge.js'))
 
 // 2. the page: ids, then the bridge, then the game
 const cfg = { platform, testing: !!ads.testing, consentDebug: !!ads.consentDebug, testDevices: ads.testDevices ?? [], [platform]: ids }
-const tag = `<script id="phase-ads">window.__phaseAds=${JSON.stringify(cfg)}</script><script src="./ads-bridge.js"></script>`
+// onerror is not decoration: __phaseAds present with globalThis.rmAds missing
+// is the one shape that does not say whether the file 404'd or threw, and that
+// is exactly the shape an iPhone showed on 5 Sep. A file the app bundle never
+// received now says so in the console.
+const tag = `<script id="phase-ads">window.__phaseAds=${JSON.stringify(cfg)}</script><script src="./ads-bridge.js" onerror="console.log('[phase-ads] ads-bridge.js DID NOT LOAD - the file is missing from the app bundle. Clean the build folder and build again.')"></script>`
 const idx = join(PUBLIC, 'index.html')
 let html = readFileSync(idx, 'utf8')
-html = html.replace(/<script id="phase-ads">[\s\S]*?<\/script><script src="\.\/ads-bridge\.js"><\/script>/, '')
+html = html.replace(/<script id="phase-ads">[\s\S]*?<\/script><script src="\.\/ads-bridge\.js"[^>]*><\/script>/, '')
 const at = html.search(/<script type="module"/)
 if (at < 0) { console.error('index.html has no module script to sit in front of'); process.exit(1) }
 html = html.slice(0, at) + tag + '\n    ' + html.slice(at)
