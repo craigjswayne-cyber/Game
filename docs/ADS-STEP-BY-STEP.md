@@ -280,6 +280,36 @@ them, and not before:
 
 ---
 
+## When a phone shows no advert (how to find out why)
+
+The advert is a thin strip UNDER the bottom menu on Home and on Results. If
+the menu sits flush against the bottom edge, the game asked and the plugin said
+no. The bridge never breaks the game over an advert, so it says no quietly on
+screen - but it says WHY in the developer console.
+
+**On a Mac, in Xcode**, with the game running on the Simulator or a plugged-in
+iPhone: the bottom panel is the console (if it is hidden: View → Debug Area →
+Show Debug Area). In the filter box at its bottom-right, type `phase-ads`.
+Copy every line that appears and send them over.
+
+**In Android Studio**: bottom bar → **Logcat**, filter `phase-ads`.
+
+What the lines mean:
+
+| Line says | Meaning | Fix |
+|---|---|---|
+| `the AdMob plugin is NOT in this build` | the scaffold did not register the plugin | run the scaffold again and rebuild |
+| `ATT prompt skipped: the system already answered denied` | (iPhone) the phone or Simulator refuses tracking questions | Settings → Privacy & Security → Tracking → Allow Apps to Request to Track, then delete and reinstall the app |
+| `consent required but no consent form exists` | Google says this player must be asked, and there is no published message to ask with | AdMob → Privacy & messaging → European regulations → the message must be **Published** and cover this app |
+| `consent not given` | the player pressed Do not consent | correct behaviour: no adverts for them |
+| `banner FAILED to load` with a code | the SDK started and Google refused this request (no fill, wrong id, app id not linked) | send the code; on a brand-new AdMob app, real adverts can take a few hours to start |
+| `banner loaded` | the advert is on screen | nothing to do |
+
+On a Simulator, Google treats the device as a test device automatically, so a
+working setup shows a strip reading **Test Ad** even with the live ids.
+
+---
+
 ## What stays true throughout
 
 * The website never gets an advert or a tracker. The test suite fails if it
