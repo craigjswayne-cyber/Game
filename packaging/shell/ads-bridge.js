@@ -180,6 +180,18 @@
     }
   }
 
+  var started = false
+  async function start(ad) {
+    if (started) return
+    await ad.initialize({
+      maxAdContentRating: 'General',
+      initializeForTesting: !!cfg.testing,
+      testingDevices: cfg.testDevices || []
+    })
+    started = true
+    log('SDK initialised')
+  }
+
   function ready() {
     if (readyP) return readyP
     // A refusal is not always permanent - a form that would not open at the
@@ -196,7 +208,20 @@
         var info = await ad.requestConsentInfo(opts)
         log('consent info:', JSON.stringify(info))
         if (info && !info.canRequestAds && info.isConsentFormAvailable) {
-          info = await openConsentForm(ad)
+          try {
+            info = await openConsentForm(ad)
+          } catch (e) {
+            // The plugin wires itself to its own view controller inside
+            // initialize(), so on a build where scaffold.sh has not patched
+            // that, the form can never open until initialize() has run. Doing
+            // it in this order is second best - Google asks for consent first
+            // - but starting the SDK is not requesting an advert, and not one
+            // advert is asked for below unless consent came back yes. The
+            // alternative is a game that shows nothing and says nothing.
+            log('the form needs the SDK started first - doing that, then asking once more')
+            await start(ad)
+            info = await openConsentForm(ad)
+          }
           log('after consent form:', JSON.stringify(info))
         }
         if (!info || !info.canRequestAds) {
@@ -220,13 +245,8 @@
           }
         }
 
-        await ad.initialize({
-          maxAdContentRating: 'General',
-          initializeForTesting: !!cfg.testing,
-          testingDevices: cfg.testDevices || []
-        })
+        await start(ad)
         why = 'ready'
-        log('SDK initialised')
         return true
       } catch (e) {
         why = 'error before the SDK could start: ' + (e && (e.message || e.code) || e)

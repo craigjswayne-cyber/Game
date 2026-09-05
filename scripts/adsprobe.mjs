@@ -16,7 +16,10 @@
 //   a rewarded spot earns the favour only when the plugin said it was
 //     rewarded: dismissed early is 'skipped', failed is 'unavailable', and
 //     six in a real day is the ceiling;
-//   on iOS the tracking prompt is asked before consent.
+//   on iOS the consent form comes first and the tracking prompt second, and
+//     neither a plugin that arrives late, refuses to listen, will not open the
+//     form until the SDK is started, or never fills a banner leaves the game
+//     with a broken bridge or a grey box.
 //
 // Run: node scripts/adsprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
@@ -64,6 +67,10 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
         // the iPhone Simulator, 5 Sep: the first ask fails because Apple's
         // tracking alert owns the screen, and a later one works
         if (quirk === 'novc' && log.filter(x => x === 'showConsentForm').length < 2) throw new Error('No ViewController')
+        // the plugin as shipped: it only wires its executors to itself inside
+        // initialize(), so until that has run there is no view controller to
+        // present the form on, however many times it is asked
+        if (quirk === 'needsinit' && !log.some(x => x.startsWith('initialize'))) throw new Error('No ViewController')
         return { status: 'OBTAINED', canRequestAds: consent !== 'refused' }
       },
       initialize: async (o) => { log.push('initialize:' + (o?.maxAdContentRating ?? '')) },
@@ -312,6 +319,23 @@ try {
     await settle(page, 300)
     ok(await page.evaluate(() => globalThis.rmAds === undefined), 'no plugin in the build means no bridge, not a broken one')
     ok(errs.length === 0, `and still no page errors (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+
+  {
+    // and the plugin as actually shipped, which cannot open the form at all
+    // until its own initialize() has run: it wires its executors to itself in
+    // there, and until then they have no view controller to present on
+    say('\n--- 5d. a plugin that will not open the form until the SDK is started')
+    const { page, errs } = await openPage({ platform: 'ios', plugin: 'needsinit' })
+    await startCareer(page)
+    await settle(page, 3400)
+    const l = await log(page)
+    const i = (s) => l.findIndex(x => x.startsWith(s))
+    ok(i('initialize') >= 0, 'the SDK is started so the form has somewhere to open')
+    ok(l.filter(x => x === 'showConsentForm').length > 1, 'and the form is asked for again after that')
+    ok(i('showBanner') > l.lastIndexOf('showConsentForm'), 'with no advert asked for until consent came back')
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
 
