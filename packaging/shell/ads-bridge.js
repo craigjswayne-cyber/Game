@@ -54,6 +54,10 @@
  */
 (function () {
   'use strict'
+  try { start() } catch (e) {
+    try { console.log('[phase-ads] the bridge STOPPED with an error, so there are no adverts:', e && (e.stack || e.message) || e) } catch (e2) {}
+  }
+  function start() {
   var w = window
   var cfg = w.__phaseAds
   var C = w.Capacitor
@@ -63,7 +67,7 @@
   // is no cfg and the script is not even present.
   var why = 'not started'
   function log() { try { console.log.apply(console, ['[phase-ads]'].concat([].slice.call(arguments))) } catch (e) {} }
-  if (!cfg) return
+  if (!cfg) return   // the website: this file is not there at all, and this is belt and braces
   if (!C || typeof C.isNativePlatform !== 'function' || !C.isNativePlatform()) { log('not a native shell - no adverts'); return }
   // ask the NATIVE side whether the plugin is really in this build - the
   // registerPlugin proxy answers every property name, so the proxy alone
@@ -71,15 +75,50 @@
   var headers = C.PluginHeaders || []
   var present = false
   for (var i = 0; i < headers.length; i++) if (headers[i] && headers[i].name === 'AdMob') present = true
-  if (!present || typeof C.registerPlugin !== 'function') {
+  if (!present) {
     log('the AdMob plugin is NOT in this build (PluginHeaders lacks "AdMob") - no adverts. Plugins present:', headers.map(function (h) { return h && h.name }).join(', '))
     return
   }
-  var ad = C.registerPlugin('AdMob')
   var platform = typeof C.getPlatform === 'function' ? C.getPlatform() : cfg.platform
   var ids = cfg[platform] || cfg.android
   if (!ids) { log('no ids for platform', platform); return }
   log('bridge loaded for', platform, cfg.testing ? '(TEST ids)' : '(live ids)', 'app', ids.appId)
+
+  // ---- reaching the plugin, LATER --------------------------------------
+  //
+  // This script runs before the game bundle, on purpose: globalThis.rmAds has
+  // to exist by the time src/game/monetise.ts looks for it. But the natively
+  // injected window.Capacitor is only half of Capacitor. It carries
+  // isNativePlatform, getPlatform, PluginHeaders and the native call plumbing
+  // from the moment the document starts - and NOT registerPlugin, which
+  // @capacitor/core adds to the same object when the app bundle loads.
+  //
+  // Calling C.registerPlugin at script time therefore found nothing, and the
+  // bridge gave up before publishing itself. An iPhone Simulator on 5 Sep:
+  // PluginHeaders listing AdMob, window.__phaseAds correct, window.rmAds
+  // undefined, and not one error to say why.
+  //
+  // So the plugin is fetched the first time it is actually needed - by which
+  // point the game is running, which means the bundle has loaded, which means
+  // registerPlugin is there. Capacitor.Plugins.AdMob is tried too, for a
+  // runtime that fills that in instead.
+  var ad = null
+  function plugin() {
+    if (ad) return ad
+    if (typeof C.registerPlugin === 'function') ad = C.registerPlugin('AdMob')
+    else if (C.Plugins && C.Plugins.AdMob) ad = C.Plugins.AdMob
+    if (!ad) { why = 'the Capacitor runtime has not published registerPlugin yet'; log(why); return null }
+    // Registering listeners is the plugin's code running, not ours. If it
+    // throws, we still want a bridge - the game asks rmAds for a banner and
+    // gets an honest nothing, rather than finding no rmAds at all and every
+    // later call landing in the dark.
+    try {
+      ad.addListener('bannerAdSizeChanged', function (s) { log('banner size', JSON.stringify(s)); setInset(s && s.height ? s.height : 0) })
+      ad.addListener('bannerAdFailedToLoad', function (e) { log('banner FAILED to load:', JSON.stringify(e)); setInset(0) })
+      ad.addListener('bannerAdLoaded', function () { log('banner loaded') })
+    } catch (e) { log('could not listen for banner events:', e && (e.message || e.code) || e) }
+    return ad
+  }
 
   var REWARDED_CAP = 6         // spots per real day, the plan's ceiling
   var SHOW_TIMEOUT_MS = 300000 // a spot that neither rewards nor closes in five minutes is over
@@ -107,6 +146,8 @@
     if (readyP) return readyP
     readyP = (async function () {
       try {
+        var ad = plugin()
+        if (!ad) return false
         if (platform === 'ios') {
           var s = await ad.trackingAuthorizationStatus()
           log('tracking (ATT) status before asking:', s && s.status)
@@ -157,15 +198,13 @@
   function enqueue(job) { q = q.then(job, job).catch(function () {}); return q }
   var wantedEl = null, wantedPlace = null, created = null /* place the live banner was made for */, visible = false
 
-  ad.addListener('bannerAdSizeChanged', function (s) { log('banner size', JSON.stringify(s)); setInset(s && s.height ? s.height : 0) })
-  ad.addListener('bannerAdFailedToLoad', function (e) { log('banner FAILED to load:', JSON.stringify(e)); setInset(0) })
-  ad.addListener('bannerAdLoaded', function () { log('banner loaded') })
-
   function veiled() { return !!document.querySelector('.modal-veil, .tut-veil') }
 
   function reconcile() {
     return enqueue(async function () {
       var shouldShow = !!wantedEl && !veiled()
+      var ad = plugin()
+      if (!ad) return
       if (shouldShow) {
         if (!(await ready())) return
         if (created && created !== wantedPlace) { await ad.removeBanner(); created = null; visible = false }
@@ -185,8 +224,10 @@
   }
 
   whenDom(function () {
-    new MutationObserver(function () { if (wantedEl) reconcile() })
-      .observe(document.documentElement, { childList: true, subtree: true })
+    try {
+      new MutationObserver(function () { if (wantedEl) reconcile() })
+        .observe(document.documentElement, { childList: true, subtree: true })
+    } catch (e) { log('could not watch for sheets:', e && e.message || e) }
   })
 
   // ---- rewarded ------------------------------------------------------------
@@ -199,6 +240,8 @@
   async function showRewarded(place) {
     if (spotsToday() >= REWARDED_CAP) return 'unavailable'
     if (!(await ready())) return 'unavailable'
+    var ad = plugin()
+    if (!ad) return 'unavailable'
     try { await ad.prepareRewardVideoAd({ adId: ids.rewarded, isTesting: !!cfg.testing }) } catch (e) { log('rewarded spot could not be prepared:', e && (e.message || e.code) || e); return 'unavailable' }
     return new Promise(function (resolve) {
       var earned = false, done = false, handles = []
@@ -229,5 +272,7 @@
     showRewarded: showRewarded,
     // for the probe and for a debugging session on a device: never read by the game
     __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
+  }
+  log('bridge ready - window.rmAds is live')
   }
 })()

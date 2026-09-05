@@ -41,11 +41,11 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM 
  *   consent: 'required' (form shown, then allowed) | 'refused' | 'none' (not in EEA)
  *   spot: 'reward' | 'dismiss' | 'fail' | 'noload'  - how a rewarded spot ends
  */
-const openPage = async ({ platform = 'android', consent = 'required', spot = 'reward', att = 'notDetermined' } = {}) => {
+const openPage = async ({ platform = 'android', consent = 'required', spot = 'reward', att = 'notDetermined', plugin: quirk = 'ok' } = {}) => {
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, locale: 'en-GB' })
   page.setDefaultTimeout(9000)
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
-  await page.addInitScript(([platform, cfg, consent, spot, att]) => {
+  await page.addInitScript(([platform, cfg, consent, spot, att, quirk]) => {
     globalThis.__phaseAds = { platform, testing: true, consentDebug: false, testDevices: [], [platform]: cfg }
     const log = []
     const listeners = {}
@@ -77,15 +77,22 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
         return spot === 'reward' ? { type: 'coin', amount: 1 } : new Promise(() => {})
       },
     }
+    if (quirk === 'throws') plugin.addListener = () => { throw new Error('plugin refused to listen') }
+    const register = (name) => { const p = name === 'AdMob' ? plugin : {}; globalThis.Capacitor.Plugins[name] = p; return p }
     globalThis.Capacitor = {
       isNativePlatform: () => true,
       getPlatform: () => platform,
-      PluginHeaders: [{ name: 'AdMob', methods: [] }],
+      PluginHeaders: quirk === 'missing' ? [{ name: 'Console', methods: [] }] : [{ name: 'AdMob', methods: [] }],
       Plugins: {},
-      registerPlugin: (name) => { const p = name === 'AdMob' ? plugin : {}; globalThis.Capacitor.Plugins[name] = p; return p },
     }
+    // 'late' is the real shape of an iPhone: the natively injected Capacitor
+    // carries PluginHeaders from the first byte of the document and gains
+    // registerPlugin only when the app bundle loads, a moment AFTER this
+    // script runs.
+    if (quirk === 'late') setTimeout(() => { globalThis.Capacitor.registerPlugin = register }, 250)
+    else globalThis.Capacitor.registerPlugin = register
     globalThis.__adlog = log
-  }, [platform, ADS[platform], consent, spot, att])
+  }, [platform, ADS[platform], consent, spot, att, quirk])
   await page.addInitScript(BRIDGE)
   const errs = []
   page.on('pageerror', e => errs.push(e.message))
@@ -240,6 +247,43 @@ try {
     await settle(page, 600)
     const l = await log(page)
     ok(!l.includes('requestTrackingAuthorization') && l.some(x => x.startsWith('showBanner')), 'a tracking answer already given is not asked again, and adverts still show')
+    await page.close()
+  }
+
+  // ---- 5b. a plugin that misbehaves --------------------------------------
+  // 5 Sep, an iPhone Simulator: the AdMob plugin was registered, the ids were
+  // in the page, and globalThis.rmAds was undefined - so the game had no
+  // bridge at all and no way to say why. Whatever the plugin does to us, the
+  // bridge must still exist and still answer honestly.
+  say('\n--- 5b. the bridge survives a plugin that throws, and a Capacitor that is not ready')
+  {
+    // the 5 Sep iPhone, exactly: PluginHeaders has AdMob, registerPlugin
+    // arrives later, and the bridge must still be there and still work
+    const { page, errs } = await openPage({ platform: 'ios', plugin: 'late' })
+    await startCareer(page)
+    await settle(page, 900)
+    ok(await page.evaluate(() => typeof globalThis.rmAds === 'object'), 'rmAds exists although registerPlugin was missing when the bridge ran')
+    const l = await log(page)
+    ok(l.some(x => x.startsWith('showBanner:')), 'and the banner is asked for once Capacitor finishes loading')
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+  {
+    const { page, errs } = await openPage({ platform: 'ios', plugin: 'throws' })
+    await startCareer(page)
+    await settle(page, 400)
+    ok(await page.evaluate(() => typeof globalThis.rmAds === 'object' && typeof globalThis.rmAds.showRewarded === 'function'),
+      'rmAds is published even when the plugin will not register a listener')
+    ok(errs.length === 0, `and nothing escapes to the page (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+  {
+    // and with no plugin at all, the game is simply an advert-free game
+    const { page, errs } = await openPage({ platform: 'ios', plugin: 'missing' })
+    await startCareer(page)
+    await settle(page, 300)
+    ok(await page.evaluate(() => globalThis.rmAds === undefined), 'no plugin in the build means no bridge, not a broken one')
+    ok(errs.length === 0, `and still no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }
 
