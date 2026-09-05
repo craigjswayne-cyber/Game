@@ -8,6 +8,6 @@
     "billingLibrary is the Play Billing Library version PhaseBilling.java is",
     "written against. Play refuses anything below 8.0.0 (learned 4 Sep 2026)."
   ],
-  "versionCode": 18,
+  "versionCode": 19,
   "billingLibrary": "8.0.0"
 }
