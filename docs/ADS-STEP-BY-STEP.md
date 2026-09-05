@@ -302,6 +302,7 @@ What the lines mean:
 | `ATT prompt skipped: the system already answered denied` | (iPhone) the phone or Simulator refuses tracking questions | Settings → Privacy & Security → Tracking → Allow Apps to Request to Track, then delete and reinstall the app |
 | `consent required but no consent form exists` | Google says this player must be asked, and there is no published message to ask with | AdMob → Privacy & messaging → European regulations → the message must be **Published** and cover this app |
 | `consent not given` | the player pressed Do not consent | correct behaviour: no adverts for them |
+| `the consent form would not open` | something else owns the screen for a moment | the bridge asks again on its own, three times; only worry if the last line says it gave up |
 | `banner FAILED to load` with a code | the SDK started and Google refused this request (no fill, wrong id, app id not linked) | send the code; on a brand-new AdMob app, real adverts can take a few hours to start |
 | `banner loaded` | the advert is on screen | nothing to do |
 

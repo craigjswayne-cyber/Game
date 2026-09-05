@@ -59,7 +59,13 @@ const openPage = async ({ platform = 'android', consent = 'required', spot = 're
         if (consent === 'none') return { status: 'NOT_REQUIRED', canRequestAds: true, isConsentFormAvailable: false }
         return { status: 'REQUIRED', canRequestAds: false, isConsentFormAvailable: true }
       },
-      showConsentForm: async () => { log.push('showConsentForm'); return { status: 'OBTAINED', canRequestAds: consent !== 'refused' } },
+      showConsentForm: async () => {
+        log.push('showConsentForm')
+        // the iPhone Simulator, 5 Sep: the first ask fails because Apple's
+        // tracking alert owns the screen, and a later one works
+        if (quirk === 'novc' && log.filter(x => x === 'showConsentForm').length < 2) throw new Error('No ViewController')
+        return { status: 'OBTAINED', canRequestAds: consent !== 'refused' }
+      },
       initialize: async (o) => { log.push('initialize:' + (o?.maxAdContentRating ?? '')) },
       showBanner: async (o) => {
         log.push('showBanner:' + o.adId + ':' + o.position)
@@ -232,16 +238,34 @@ try {
   }
 
   // ---- 5. iOS ------------------------------------------------------------------
-  say('\n--- 5. the iOS shell: the tracking prompt before consent, and the iOS unit ids')
+  // The order here was the other way round until 5 Sep, when an iPhone
+  // Simulator rejected showConsentForm with "No ViewController": Apple's
+  // tracking alert lives in its own window, the plugin presents on the app's
+  // key window, and while the alert is up there is no such window to find.
+  // Google's own UMP order is consent first, tracking second, and that is now
+  // what the bridge does and what this holds it to.
+  say('\n--- 5. the iOS shell: consent before the tracking prompt, and the iOS unit ids')
   {
     const { page, errs } = await openPage({ platform: 'ios' })
     await startCareer(page)
     await settle(page, 600)
     const l = await log(page)
     const i = (s) => l.findIndex(x => x.startsWith(s))
-    ok(i('trackingAuthorizationStatus') >= 0 && i('requestTrackingAuthorization') > i('trackingAuthorizationStatus'), 'the App Tracking Transparency prompt was asked')
-    ok(i('requestConsentInfo') > i('requestTrackingAuthorization'), 'before the consent form')
+    ok(i('requestConsentInfo') >= 0 && i('showConsentForm') > i('requestConsentInfo'), 'consent was gathered first')
+    ok(i('requestTrackingAuthorization') > i('showConsentForm'), 'and only then was Apple asked about tracking')
+    ok(i('initialize') > i('requestTrackingAuthorization'), 'with the SDK started after both')
     ok(l.some(x => x === `showBanner:${ADS.ios.banner['home-foot']}:BOTTOM_CENTER`), 'and the banner carries the iOS unit id')
+    ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
+    await page.close()
+  }
+  {
+    // the Simulator's exact failure: the form will not open the first time
+    const { page, errs } = await openPage({ platform: 'ios', plugin: 'novc' })
+    await startCareer(page)
+    await settle(page, 2600)
+    const l = await log(page)
+    ok(l.filter(x => x === 'showConsentForm').length > 1, 'a consent form that will not open is asked for again')
+    ok(l.some(x => x.startsWith('initialize')) && l.some(x => x.startsWith('showBanner')), 'and once it opens, the adverts follow')
     ok(errs.length === 0, `no page errors (${errs.join(' | ') || 'none'})`)
     await page.close()
   }

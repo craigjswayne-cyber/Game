@@ -149,31 +149,54 @@
   whenDom(function () { setInset(0) })
 
   // ---- consent, then the SDK ---------------------------------------------
-  // Runs once, lazily, the first time anything is asked for. Nothing here
-  // throws out to the game: every failure is "no ads", which is the honest
-  // outcome and the one the game is built to render.
+  // Runs lazily, the first time anything is asked for. Nothing here throws out
+  // to the game: every failure is "no ads", which is the honest outcome and
+  // the one the game is built to render.
+  //
+  // THE ORDER IS THE CONSENT FORM FIRST, APPLE'S TRACKING PROMPT SECOND.
+  // That is Google's documented order for the User Messaging Platform, and on
+  // 5 Sep an iPhone Simulator showed why it is not merely a preference. With
+  // the tracking prompt on screen, the plugin's showConsentForm could not find
+  // a screen to present on and rejected with "No ViewController": Apple puts
+  // that alert up in a window of its own, and the plugin looks for the app's
+  // key window, which is not the one on top. Two system sheets cannot queue
+  // for the same screen. So consent is gathered, and only once that is done
+  // does Apple get asked about tracking.
   var readyP = null
+  var attempts = 0
+  var MAX_ATTEMPTS = 3
+
+  // A form that could not be presented is worth asking for again a moment
+  // later: the reasons it fails - an alert still dismissing, the app not yet
+  // frontmost, a window not yet attached - all pass on their own.
+  async function openConsentForm(ad) {
+    for (var n = 1; ; n++) {
+      try { return await ad.showConsentForm() } catch (e) {
+        var msg = e && (e.message || e.code) || e
+        if (n >= 3) { log('the consent form would not open after', n, 'tries:', msg); throw e }
+        log('the consent form would not open (' + msg + ') - trying again in a moment')
+        await new Promise(function (r) { setTimeout(r, 900) })
+      }
+    }
+  }
+
   function ready() {
     if (readyP) return readyP
+    // A refusal is not always permanent - a form that would not open at the
+    // title screen may open perfectly on the next one - so a failed attempt
+    // is allowed to be retried by whatever asks next, a few times over.
+    if (attempts >= MAX_ATTEMPTS) return Promise.resolve(false)
+    attempts++
     readyP = (async function () {
       try {
         var ad = plugin()
         if (!ad) return false
-        if (platform === 'ios') {
-          var s = await ad.trackingAuthorizationStatus()
-          log('tracking (ATT) status before asking:', s && s.status)
-          if (s && s.status === 'notDetermined') {
-            var s2 = await ad.requestTrackingAuthorization()
-            log('tracking (ATT) status after asking:', s2 && s2.status)
-          } else if (s && s.status !== 'authorized') {
-            log('ATT prompt skipped: the system already answered', s && s.status, '- on a Simulator check Settings > Privacy & Security > Tracking')
-          }
-        }
+
         var opts = cfg.consentDebug ? { debugGeography: 1, testDeviceIdentifiers: cfg.testDevices || [] } : undefined
         var info = await ad.requestConsentInfo(opts)
         log('consent info:', JSON.stringify(info))
         if (info && !info.canRequestAds && info.isConsentFormAvailable) {
-          info = await ad.showConsentForm()
+          info = await openConsentForm(ad)
           log('after consent form:', JSON.stringify(info))
         }
         if (!info || !info.canRequestAds) {
@@ -183,6 +206,20 @@
           log(why)
           return false
         }
+
+        // Now, with the screen free again, Apple's question.
+        if (platform === 'ios') {
+          var s = await ad.trackingAuthorizationStatus()
+          log('tracking (ATT) status before asking:', s && s.status)
+          if (s && s.status === 'notDetermined') {
+            await ad.requestTrackingAuthorization()
+            var after = await ad.trackingAuthorizationStatus()
+            log('tracking (ATT) status after asking:', after && after.status)
+          } else if (s && s.status !== 'authorized') {
+            log('ATT prompt skipped: the system already answered', s && s.status, '- on a Simulator check Settings > Privacy & Security > Tracking')
+          }
+        }
+
         await ad.initialize({
           maxAdContentRating: 'General',
           initializeForTesting: !!cfg.testing,
@@ -197,6 +234,7 @@
         return false
       }
     })()
+    readyP.then(function (v) { if (!v) readyP = null })
     return readyP
   }
 
