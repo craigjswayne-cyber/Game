@@ -46,6 +46,47 @@ export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)
  *  written out twice in season.ts, which is one drift away from two ladders),
  *  here because the season engine, the store grants and the store UI all
  *  need it and none of them may import each other. */
+/**
+ * The nations this WORLD actually plays Test rugby in.
+ *
+ * NAT_TIERS is the full list of sixteen and it is a men's list. A women's save
+ * runs a six-nation Northern Championship and a four-nation Southern series -
+ * ten unions - so six of the sixteen have no women's Test programme in the
+ * game at all.
+ *
+ * That was a monetisation bug rather than a cosmetic one. "Become an
+ * International Coach" is a paid product: before this, a buyer in a women's
+ * career could pay for it, pick South Africa, Japan, Argentina, Fiji, Samoa or
+ * Tonga, be appointed head coach, and then never be given a single match,
+ * because no fixture in that world names his country. Somebody paying real
+ * money for a job that does not exist is the worst class of defect in the
+ * store.
+ *
+ * Reading the world's own competitions rather than keeping a second women's
+ * list means a league added later is picked up for free, and the two can never
+ * drift apart.
+ */
+export function testNationsIn(state: { comps: Record<string, { isNational?: boolean; teamIds: string[] }> }): string[] {
+  const out = new Set<string>()
+  for (const c of Object.values(state.comps)) {
+    if (!c.isNational) continue
+    for (const t of c.teamIds) out.add(t)
+  }
+  // the touring invitational is a squad, not a union - never a job
+  out.delete('LIO')
+  return [...out]
+}
+
+/** NAT_TIERS, less the unions this world has no Test programme for. */
+export function pickableNations(state: { comps: Record<string, { isNational?: boolean; teamIds: string[] }> }): [string, number][] {
+  const live = new Set(testNationsIn(state))
+  const kept = NAT_TIERS.filter(([n]) => live.has(n))
+  // never hand back an empty picker: a world with no national comps at all
+  // (an early save, a future mode) keeps the old behaviour rather than
+  // rendering a list with nothing in it
+  return kept.length ? kept : [...NAT_TIERS]
+}
+
 export const NAT_TIERS: [string, number][] = [
   ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
   ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
