@@ -179,7 +179,19 @@ clear()
 g.rmAds = { mount: () => {} }
 ok(M.adsAllowed('home-foot'), 'with a provider attached, a declared place may draw one')
 ok(!M.adsAllowed('match-live'), 'an undeclared place may not, whatever a caller passes')
+// 'match-foot' IS THE ONE EXCEPTION, AND IT IS THE OWNER'S (6 Sep, with a
+// screenshot of the empty strip under the commentary): "there should be an ad
+// down the bottom during game time when the motion screen is on... should only
+// be in-game! NOT when making subs, half-time, 60 or ft."
+//
+// The rest of the rule stands and is worth more for having one hole in it: no
+// tunnel, no modal, no title screen, and nothing else inside a match. The
+// exception is not taken on trust either - scripts/matchad.mjs drives a real
+// match in a real browser and holds the banner to all eight of the states the
+// owner listed, which is a stronger guarantee than this line ever was.
+const AD_EXCEPTIONS = ['match-foot']
 for (const place of M.AD_PLACES) {
+  if (AD_EXCEPTIONS.includes(place)) continue
   ok(!/match|tunnel|modal|title/.test(place), `no declared place is inside a match or a modal (${place})`)
 }
 M.grantSupporter()

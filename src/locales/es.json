@@ -4740,7 +4740,7 @@
   "toty": "El organismo rector ha publicado su Equipo del Año, un jugador por puesto, elegido por lo que han sido realmente los últimos doce meses y no por la reputación.\n\n{rows_ll}",
   "totyLine": "{n}. {name} ({pos}) - {club}",
   "totyMineSubj": "El Equipo del Año nos da dinero",
-  "totyMine": "Tenemos {n} en el Equipo del Año: {names}. El departamento comercial se ha pasado la mañana al teléfono. Las camisetas con sus nombres se venden más rápido de lo que el club puede estamparlas, tres promotores quieren una gala con ellos, y dos patrocinadores que en septiembre no devolvían las llamadas preguntan cuánto costaría una imagen personal.\n\nSupone {money} para el club, y no ha salido nada del presupuesto deportivo."
+  "totyMine": "Tenemos {n} en el Equipo del Año: {names}. Las camisetas con sus nombres se venden más rápido de lo que podemos estamparlas, dos promotores quieren una gala con ellos, y patrocinadores que en septiembre no llamaban preguntan cuánto cuesta una imagen personal. Supone {money}, sin tocar el presupuesto deportivo."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
