@@ -169,6 +169,13 @@ career. A pre-v1.5 save keeps its season number and gains a year on its label.
   screenshots. Eight players contracted in PWR are dropped from it, because a
   southern professional really does play both winters and a game season is not
   two hemispheres'
+- `src/data/leagues/w_celt.ts` — the Celtic Challenge, six clubs, the league
+  that makes Ireland, Scotland and Wales real sides in the Championship rather
+  than three squads of generated players. Its own squads are generated, because
+  celticrugbycomp.com is blocked like every other source; that is the next thing
+  a squad list should fix
+- `src/game/schedule.ts` — `buildWomensInternationals`: the Women's Six Nations
+  and the Pacific Four Series, in the women's windows rather than the men's
 - `src/data/leagues/w_e1.ts` — the French Élite 1, ten clubs of the 2026/27
   field, 193 of 345 players real from the owner's FFR workbook. Seven clubs have
   squads in it and three do not, so those are topped up from the French name
@@ -186,12 +193,10 @@ career. A pre-v1.5 save keeps its season number and gains a year on its label.
    a squad list, and worth leaving until then.
 2. **Real players for the three PWR-sized gaps**: Bobigny, Montpellier and Stade
    Rochelais have no rows in the workbook at all.
-3. **The women's international game, behind the paid option.** This is its own
-   piece of work because the calendar genuinely differs: the Women's Six Nations
-   sits in a different window from the men's, WXV is not the Rugby Championship,
-   and the World Cup is on its own cycle. It needs `AUTUMN_WEEKS`,
-   `SIX_NATIONS_WEEKS` and the rest to become per-gender. The SKU fits the
-   existing `NC_SKUS` non-consumable pattern in `monetise.ts` cleanly.
+3. **The paid gate on the international game.** The Test competitions are built
+   and played; the purchase that gates coaching a national side is not. It fits
+   the existing `NC_SKUS` non-consumable pattern in `monetise.ts` cleanly.
+   **WXV and a women's World Cup** are the other two competitions still missing.
 4. **The cross-gender move** (§2).
 5. **A European women's club cup**, now that England and France are both in.
 
