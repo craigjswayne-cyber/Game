@@ -25,7 +25,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -3259,10 +3259,11 @@ export function processWeekAndAdvance(state: GameState) {
   if (state.natCall != null && !state.natTeam && !state.natOffer && !state.unemployed
       && state.season * SEASON_WEEKS + state.week >= state.natCall) {
     const rep = mgrReputation(state)
-    const picked = state.natCallNat && NAT_TIERS.some(([n]) => n === state.natCallNat)
+    const offer = pickableNations(state)
+    const picked = state.natCallNat && offer.some(([n]) => n === state.natCallNat)
       ? state.natCallNat : null
-    const qualified = NAT_TIERS.filter(([, need]) => rep >= need)
-    const nat = picked ?? (qualified.length ? qualified[qualified.length - 1] : NAT_TIERS[0])[0]
+    const qualified = offer.filter(([, need]) => rep >= need)
+    const nat = picked ?? (qualified.length ? qualified[qualified.length - 1] : offer[0])[0]
     state.natCall = null
     state.natCallNat = null
     state.natOffer = { nat, week: state.week }
@@ -3277,7 +3278,7 @@ export function processWeekAndAdvance(state: GameState) {
     const rep = mgrReputation(state)
     if (rep >= 64) {
       // offers come from the best jobs you qualify for, not the whole ladder
-      const eligible = NAT_TIERS.filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
+      const eligible = pickableNations(state).filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
       if (eligible.length && rng() < 0.55) {
         const nat = eligible[Math.floor(rng() * eligible.length)]
         state.natOffer = { nat, week: state.week }
