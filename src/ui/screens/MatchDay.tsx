@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
+import { AdSlot } from '../AdSlot'
 import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
@@ -2201,6 +2202,23 @@ function Live() {
         )}
       </div>
       )}
+      {/* THE BANNER, AND THE FOUR MOMENTS IT REFUSES TO APPEAR.
+          Owner: "there should be an ad down the bottom during game time when
+          the motion screen is on." It is the last child of .live-wrap, so it
+          sits UNDER the controls rather than over them, and the native banner
+          reserves its own height through --ad-inset.
+
+          It is up only while the match is RUNNING. Half time, the hour break, a
+          penalty decision and full time all take it down, because each of those
+          is the game asking the manager for something and an advert beside a
+          question is how a mis-tap becomes a substitution you did not make. So
+          do the squad sheet, the drawer, the settings and an injury prompt -
+          the owner's list was "NOT when making subs, half-time, 60 or ft", and
+          making subs is a panel rather than a moment on the clock. A
+          supporter never sees it at all - adsAllowed answers that inside the
+          slot, before any provider is asked. */}
+      {!done && !atHalfTime && !atBreak && !atDecision
+        && !sheet && !drawer && !settings && !injury && <AdSlot place="match-foot" />}
     </div>
   )
 }

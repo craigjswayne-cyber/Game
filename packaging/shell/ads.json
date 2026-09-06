@@ -18,7 +18,16 @@
     "An App ID has a ~ in it; an ad unit ID has a /.",
     "",
     "consentDebug forces the EEA consent form on the testDevices phones so the",
-    "form can be seen outside Europe."
+    "form can be seen outside Europe.",
+    "",
+    "match-foot IS NEW IN v1.5.0 AND HAS NO UNIT ID YET. The live match screen",
+    "carries a banner while play is running (owner, 6 Sep). Both entries are",
+    "empty strings on purpose: ads-bridge.js falls back to the home-foot unit",
+    "when a place has none, so the slot earns from the first build and simply",
+    "reports against the Home unit until two new adaptive-banner units are",
+    "created in AdMob and pasted here. Creating them is the owner's job - it",
+    "needs the AdMob console - and it is worth doing, because otherwise match",
+    "revenue and home revenue are indistinguishable in the reports."
   ],
   "testing": false,
   "consentDebug": false,
@@ -27,7 +36,8 @@
     "appId": "ca-app-pub-1341622370227647~2415157721",
     "banner": {
       "home-foot": "ca-app-pub-1341622370227647/9355241648",
-      "results-foot": "ca-app-pub-1341622370227647/4629528573"
+      "results-foot": "ca-app-pub-1341622370227647/4629528573",
+      "match-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8788994381"
   },
@@ -35,7 +45,8 @@
     "appId": "ca-app-pub-1341622370227647~1372809847",
     "banner": {
       "home-foot": "ca-app-pub-1341622370227647/7168062002",
-      "results-foot": "ca-app-pub-1341622370227647/7475912719"
+      "results-foot": "ca-app-pub-1341622370227647/7475912719",
+      "match-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8042159971"
   }
