@@ -19,6 +19,7 @@ import { NATL1 } from '../data/leagues/natl1'
 import { W_PWR } from '../data/leagues/w_pwr'
 import { W_PAC } from '../data/leagues/w_pac'
 import { W_E1 } from '../data/leagues/w_e1'
+import { W_CELT } from '../data/leagues/w_celt'
 import { W, type Gender, staffGender } from './gender'
 import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
@@ -117,6 +118,9 @@ const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: W + 'pwr', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
   { id: W + 'pac', name: 'Pacific Championship', short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
   { id: W + 'e1', name: 'French Elite 1', short: 'Elite 1', double: true, playoffTeams: 6, clubs: W_E1 },
+  // Six clubs, so a double round robin is ten rounds and the season would be
+  // over by Christmas. Played three times, as the real one is.
+  { id: W + 'celt', name: 'Celtic Challenge', short: 'Celtic', double: true, playoffTeams: 2, clubs: W_CELT },
 ]
 
 const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
