@@ -6,7 +6,7 @@ import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import { boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import { BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -1801,8 +1801,8 @@ export function rebuildSeason(state: GameState) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
       subject: `🏆 A WORLD CHAMPIONSHIP season`,
-      body: `The ${2025 + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
-      k: 'news.wcSeason', v: { year: 2025 + state.season },
+      body: `The ${BASE_YEAR + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
+      k: 'news.wcSeason', v: { year: BASE_YEAR + state.season },
     })
   }
 

@@ -1,4 +1,5 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
+import { BASE_YEAR } from './model'
 import { shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
@@ -284,7 +285,7 @@ function buildWorldCup(rng: Rng, state: GameState) {
 
 /** Lions years: 2029, 2033, ... (every 4th season, offset from the World Championship). */
 export function isLionsSeason(season: number): boolean {
-  return (2025 + season) % 4 === 1 && season > 0
+  return (BASE_YEAR + season) % 4 === 1 && season > 0
 }
 
 /** Summer theatre: either a Lions series or north-south tours close the season. */
@@ -292,7 +293,7 @@ function buildSummer(rng: Rng, state: GameState) {
   const season = state.season
   if (isLionsSeason(season)) {
     const hosts = ['NZL', 'RSA', 'AUS']
-    const host = hosts[Math.floor((2025 + season - 2029) / 4) % 3]
+    const host = hosts[Math.floor((BASE_YEAR + season - 2029) / 4) % 3]
     const comp: Competition = {
       id: 'lions', name: `Northern Lions Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
       short: 'Lions Tour', type: 'intl',

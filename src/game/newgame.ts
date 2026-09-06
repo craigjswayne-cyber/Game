@@ -17,6 +17,7 @@ import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
 import { NATL1 } from '../data/leagues/natl1'
 import { W_PWR } from '../data/leagues/w_pwr'
+import { W_PAC } from '../data/leagues/w_pac'
 import { W, type Gender, staffGender } from './gender'
 import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
@@ -105,9 +106,15 @@ export function mediaVerdict(club: { id: string }, league: LeagueDef): string {
 export const LEAGUE_DEFS: (g?: Gender) => LeagueDef[] = (g = 'm') =>
   g === 'w' ? W_LEAGUE_DEFS() : M_LEAGUE_DEFS()
 
-/** The women's game: Premiership Women's Rugby, England. */
+/** The women's game: England, and the southern hemisphere.
+ *
+ *  The Pacific competition is Super Rugby Aupiki and Super W in one table, the
+ *  way the men's Pacific Championship already puts New Zealand, Australia and
+ *  Fiji in one - the owner asked for "Aus & Nz" together. Nine clubs each, so
+ *  neither league is thinner than the other. */
 const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: W + 'pwr', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
+  { id: W + 'pac', name: 'Pacific Championship', short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
 ]
 
 const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
