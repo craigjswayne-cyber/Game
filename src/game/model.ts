@@ -1522,6 +1522,10 @@ export interface GameState {
    *  airing out of the window and re-armed the story early; and it compared
    *  same-season only, so every rollover reset the clock. */
   lawWatchAt?: number
+  /** Week stamp of the last AROUND THE GROUNDS story. Absolute weeks, like
+   *  lawWatchAt, because the news log is trimmed and a same-season scan
+   *  re-arms every rollover. */
+  groundsAt?: number
   /** the season the playoff-clinch announcement ran (user: "no announcement
    *  when you mathematically qualify"). A stamp, not a news-log scan. */
   playoffClinch?: number

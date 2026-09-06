@@ -673,6 +673,65 @@ function lawWatch(state: GameState, rng: Rng) {
   wire(state, pick2[0], {})
 }
 
+/**
+ * ---- AROUND THE GROUNDS ----
+ *
+ * The daft things that happen at OTHER people's matches. A dog with the match
+ * ball. A kit man who packed two home shirts and no away ones. An announcer who
+ * reads the visitors' penalty like a man confessing to something.
+ *
+ * THE OWNER'S RULE IS THE WHOLE DESIGN: "lets include these as silly things
+ * that happened at other games BUT DO NOT DO THIS IN ANY MANAGEMENt games. its
+ * just for the funny ness." So this file is the one part of the Wire that is
+ * guaranteed inert. No morale, no money, no handling penalty, no decision to
+ * take, nothing stamped on a player. It never happens at your ground and never
+ * to your squad. It is a thing you read on a Tuesday and enjoy.
+ *
+ * NO PLAYER IS EVER NAMED, and that is not squeamishness. The clubs in this
+ * game are renamed inventions; the PLAYERS are real people, 1,339 of them in
+ * the women's leagues alone, off the owner's own squad sheets. "A prop's shorts
+ * came down on live television" is a funny story about nobody. The same
+ * sentence with a real man's name on it is a story invented about him, and it
+ * would sit in his club's news feed forever. The stories therefore name a club
+ * and a position and stop there - the same line maternity draws.
+ *
+ * IT DRAWS NO RNG. Every other beat in this file gates on rng(), and adding one
+ * more draw would shift the shared world stream for every save in progress -
+ * the reason `voice` above is deterministic in the first place. This fires on
+ * the calendar and picks its story and its club by arithmetic, so a career
+ * already under way runs byte for byte as it did. scripts/fingerprint.ts is the
+ * probe that holds that promise.
+ */
+const GROUNDS: readonly string[] = [
+  'news.grounds1', 'news.grounds2', 'news.grounds3', 'news.grounds4',
+  'news.grounds5', 'news.grounds6', 'news.grounds7', 'news.grounds8',
+  'news.grounds9', 'news.grounds10', 'news.grounds11',
+]
+
+export function aroundTheGrounds(state: GameState) {
+  // Once every seven weeks or so, on the calendar rather than on a dice roll.
+  if (state.week % 7 !== 5) return
+  const now = state.season * SEASON_WEEKS + state.week
+  if (state.groundsAt != null && now - state.groundsAt < 7) return
+
+  // Somebody else's ground. Never yours - that is the point of the feature, so
+  // it is enforced here rather than left to chance.
+  const others = Object.values(state.clubs)
+    .filter(c => c.id !== state.userClubId)
+    .sort((a, b) => (a.id < b.id ? -1 : 1))
+  if (others.length < 2) return
+  const spin = state.season * 13 + state.week * 5
+  const home = others[spin % others.length]
+  const away = others[(spin * 7 + 3) % others.length]
+  if (!home || !away || home.id === away.id) return
+
+  state.groundsAt = now
+  wire(state, GROUNDS[spin % GROUNDS.length], {
+    club: home.short ?? home.name,
+    other: away.short ?? away.name,
+  })
+}
+
 /** Preseason pundit predictions for the user's league. Stored on state.preds
  *  and settled against reality in the season review. The news itself waits
  *  until the friendlies are done - pundits write when the season looms. */
@@ -741,6 +800,7 @@ export function generateGossip(state: GameState, rng: Rng) {
   // the predictions column lands once the friendlies are done (FY feedback)
   if (state.week === 4 && !state.unemployed) postPredictionsNews(state)
   lawWatch(state, rng)
+  aroundTheGrounds(state)
   if (!state.unemployed) clubhouseTales(state, rng)
   sicknessSweep(state, rng)
   moneyMen(state, rng)
