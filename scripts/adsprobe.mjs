@@ -217,11 +217,11 @@ try {
   }
   {
     const { page } = await openPage({ spot: 'reward' })
-    await page.addInitScript(() => { const d = new Date(); localStorage.setItem('rm-rw', `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}:6`) })
+    await page.addInitScript(() => { const d = new Date(); localStorage.setItem('rm-rw', `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}:10`) })
     await startCareer(page)
     const out = await page.evaluate(() => globalThis.rmAds.showRewarded('medical'))
     const l = await log(page)
-    ok(out === 'unavailable' && !l.some(x => x.startsWith('prepareRewardVideoAd')), `six today is the ceiling: '${out}' without asking the plugin`)
+    ok(out === 'unavailable' && !l.some(x => x.startsWith('prepareRewardVideoAd')), `ten today is the ceiling: '${out}' without asking the plugin`)
     ok(await page.evaluate(() => !!document.querySelector('.bottom-nav')), 'and the game is untouched by the refusal')
     await page.close()
   }

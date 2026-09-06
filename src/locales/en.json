@@ -1248,6 +1248,8 @@
   "withoutTheBallSub": "how the line defends when they have it",
   "planSet": "Set: {dials}",
   "planSave": "Save as Plan {n}",
+  "planPro": "Three more plans with Pro",
+  "planProTitle": "Pro Manager gives you six saved plans instead of three - one for the wet days, one for a bigger pack, one for the last ten minutes.",
   "planSaveTitle": "Keep what is on the dials now: the four sliders, the defensive pair, set-piece calls, kicking order and exit.",
   "planLoad": "Plan {n}",
   "planOverTitle": "Overwrite Plan {n} with the current dials"
@@ -5784,7 +5786,7 @@
   "bought": "Yours. It follows your store account - Restore brings it back on a new phone.",
   "needCareer": "Open a career first - the retreat needs a squad to visit.",
   "removeAds": "Pro Manager",
-  "removeAdsLine": "No adverts, ever. The three skins only Pro managers get. Nothing about the rugby changes.",
+  "removeAdsLine": "No adverts, ever. Three skins only Pro managers get, and six saved game plans instead of three. Nothing about the rugby changes.",
   "heal": "Full Fitness",
   "healLine": "Every injury healed, the whole squad fresh. Once per match played.",
   "healDone": "Done: the whole squad reports fit.",

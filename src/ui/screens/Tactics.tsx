@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useStore } from '../../store'
+import { planSlots, useStore } from '../../store'
 import { XV_SLOTS, type Player } from '../../game/model'
 import { DEF_SLIDER_INFO, PRESETS, SLIDER_INFO, defSliderReadout, sliderReadout } from '../../game/tactics'
 import { ROLE_BY_ID, rolesForSlot } from '../../game/roles'
@@ -493,11 +493,29 @@ export default function Tactics() {
         </div>
         {/* THE MANAGER'S OWN PLANS (owner, v1.2.7: "your own four sliders,
             set-piece calls and kicker order have to be re-dialled by hand every
-            time you switch plan"). Three slots. An empty one saves what is on
-            the dials now - everything on this screen except the team sheet -
-            and a full one puts it back; the small button beside it overwrites. */}
+            time you switch plan"). Three slots, six with Pro Manager. An empty
+            one saves what is on the dials now - everything on this screen
+            except the team sheet - and a full one puts it back; the small
+            button beside it overwrites.
+
+            The Pro slots are SHOWN to everyone and locked rather than hidden:
+            a manager who has filled A, B and C is the one who wants D, and he
+            cannot want what he cannot see. Tapping a locked one goes to the
+            Store, because a chip that looks pressable and does nothing is a
+            bug report. */}
         <div className="plan-slots">
-          {(['A', 'B', 'C'] as const).map((letter, i) => {
+          {(['A', 'B', 'C', 'D', 'E', 'F'] as const).map((letter, i) => {
+            if (i >= planSlots()) {
+              // only the first locked one is offered - six greyed chips in a
+              // row is a wall, one is an invitation
+              if (i !== planSlots()) return null
+              return (
+                <button key={letter} className="preset-chip plan-empty" onClick={() => go('supporter')}
+                  title={t('tacticsScreen.planProTitle')}>
+                  ⭐ {t('tacticsScreen.planPro')}
+                </button>
+              )
+            }
             const slot = game.gamePlans?.[i]
             const snapshot = () => {
               const { lineup: _lineup, ...values } = tac
