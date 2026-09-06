@@ -3234,6 +3234,8 @@
   "storeBtn": "Abrir la Tienda"
  },
  "news": {
+   "maternitySubj": "{player} está embarazada",
+   "maternity": "{player} ha comunicado al club su embarazo y comienza su baja por maternidad. Su contrato queda congelado durante ese tiempo y conserva su plaza en la plantilla a su regreso. El cuerpo médico calcula unas {n} semanas hasta volver a entrenar con normalidad.",
   "appointSubj": "Bienvenido a {club}",
   "appoint": "La junta directiva de {club} se complace en confirmar el nombramiento de {manager} como nuevo director de rugby del club. Las expectativas en {stadium} son {expect_k}. Tu presupuesto de fichajes esta temporada es de {money}.",
   "appointChallengeSubj": "EL RETO: {title_k}",

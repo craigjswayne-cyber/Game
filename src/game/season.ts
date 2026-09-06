@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
-import { W, genderOf } from './gender'
+import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS } from './gender'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -1028,6 +1028,34 @@ function weeklyTraining(state: GameState, rng: Rng) {
       p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym) * (isUser ? turnF : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
+      // ---- MATERNITY LEAVE: the grant, and the road back ----
+      //
+      // Fenced by mayTakeMaternityLeave, which is where the owner's rule that
+      // this may only touch GENERATED players lives. The rate is deliberately
+      // low: this should be a thing that happens to a handful of squads across
+      // a league in a season, the way it does, not a mechanic the manager is
+      // managing every week.
+      if (p.maternity && state.week >= p.maternity.until) {
+        p.maternity = undefined
+        p.cond = 62
+        p.sharp = 30
+        // a long way back: the conditioning track is longer than any injury's
+        p.rust = 4
+      } else if (!p.maternity && mayTakeMaternityLeave(p, genderOf(state)) && rng() < 0.00035) {
+        const wk = MATERNITY_WEEKS[0] + Math.floor(rng() * (MATERNITY_WEEKS[1] - MATERNITY_WEEKS[0] + 1))
+        p.maternity = { until: state.week + wk, from: state.week }
+        // She keeps her place on the roster and her deal; what she does not do
+        // is occupy a shirt while she is away. See autoSelect's filter.
+        if (p.clubId === state.userClubId) {
+          const v = { player: p.name, n: wk }
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+            subject: tIn('en', 'news.maternitySubj', v),
+            body: tIn('en', 'news.maternity', v),
+            k: 'news.maternity', v,
+          })
+        }
+      }
       if (p.injury && state.week >= p.injury.until) {
         const weeksOut = p.injury.weeks ?? 2
         p.injury = null

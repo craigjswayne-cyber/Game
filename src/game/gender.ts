@@ -127,3 +127,38 @@ export const CARRIED_ACROSS = [
 export function staffGender(rng: () => number, world: Gender): Gender {
   return world === 'w' && rng() < 0.5 ? 'w' : 'm'
 }
+
+/**
+ * ---- WHO MAY GO ON MATERNITY LEAVE ----
+ *
+ * The owner asked for the status and fenced it in the same message: "this isnt
+ * something for everyone - make sure this is only on fictional players."
+ *
+ * One function, so the fence is in one place and a future caller cannot forget
+ * it. Four conditions, and the first is the one that matters:
+ *
+ *   1. NOT A REAL PLAYER. Every named player in this game is a living person off
+ *      the owner's own squad sheets. A pregnancy the game invented, attached to
+ *      a real woman's name, is a private life event invented about a real
+ *      individual. Generated players are nobody, which is what makes them the
+ *      right ones to carry a real career interruption.
+ *   2. The women's game. There is no men's equivalent to model.
+ *   3. A plausible age, and not already away injured, on leave, or on loan.
+ *   4. She has a club to come back to.
+ *
+ * scripts/maternityprobe.ts plays ten seasons and fails if a single real
+ * player is ever granted leave.
+ */
+export function mayTakeMaternityLeave(
+  p: { real?: boolean; age: number; injury?: unknown; maternity?: unknown; onLoan?: unknown; clubId?: string | null },
+  world: Gender,
+): boolean {
+  if (world !== 'w') return false
+  if (p.real) return false
+  if (p.maternity || p.injury || p.onLoan) return false
+  if (!p.clubId) return false
+  return p.age >= 23 && p.age <= 37
+}
+
+/** Weeks away: an elite return-to-play runs well past the birth itself. */
+export const MATERNITY_WEEKS: readonly [number, number] = [28, 40]
