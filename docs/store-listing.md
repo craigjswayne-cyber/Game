@@ -147,6 +147,62 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.0, Play version code 21
+
+The women's game is the whole release, and it is the first update since v1.0
+that a screenshot can carry: a new career picker on the front page, six
+competitions, 2,096 players. The short notes stay short, as the owner asked on
+5 Sep ("Nah lets not be too honest"), but this one names the feature because a
+listing that does not mention it wastes the release.
+
+```
+<en-GB>
+The women's game is here. Six competitions, real squads, and an international
+season of its own. Pick your side on the front page.
+</en-GB>
+<fr-FR>
+Le rugby féminin est là. Six compétitions, des effectifs réels et une saison
+internationale à part entière. Choisissez votre camp dès l'accueil.
+</fr-FR>
+<es-ES>
+Llega el rugby femenino. Seis competiciones, plantillas reales y una temporada
+internacional propia. Elige tu bando en la pantalla de inicio.
+</es-ES>
+<it-IT>
+Arriva il rugby femminile. Sei competizioni, rose reali e una stagione
+internazionale tutta sua. Scegli la tua squadra dalla schermata iniziale.
+</it-IT>
+<ja-JP>
+女子ラグビーが登場。6つの大会、実在の選手、そして独自の国際シーズン。
+ホーム画面でどちらの世界を指揮するか選べます。
+</ja-JP>
+```
+
+**The honest account of v1.5.0**, kept here for a press note or a longer
+listing, and NOT what goes in the release box:
+
+* **A women's game, separate from the men's.** The owner's rule was the design:
+  "THERE IS NO CROSS WITH ANY OF THE MENS TEAMS, THEY MUST STAY SEPERATE."
+  A save holds one world. You choose on the front page, you can hold a job in
+  either, and the two never share a fixture, a league table or a player.
+* **Six competitions.** An English top flight and Championship, a French first
+  and second division, a Celtic provincial cup, and a Pacific league across
+  Australia and New Zealand.
+* **2,096 players, 1,339 of them real**, off the owner's own squad sheets and
+  the clubs' own pages. The rest are generated and marked as such, and every
+  one of them is replaceable the moment a squad list exists.
+* **A women's international season**: a six-nation Northern Championship and a
+  four-nation Southern series, in their own windows.
+* **Injuries that differ by game.** The knee carries roughly three times its
+  flat share in the women's game and concussion takes longer to clear, which is
+  the least disputed finding in the literature on the two codes. The men's
+  table is mathematically unchanged, so a career in progress is untouched.
+* **Maternity leave**, on invented players only. The contract clock stops and
+  the shirt is hers on return.
+* **The season now opens on a Saturday in every year**, not only in the first.
+  This was a real bug in shipped saves from season two onwards.
+* Both games run the 2026-27 season.
+
 ### What's new (500 max) - v1.3.1, Play version code 20
 
 Owner, 5 Sep: "Nah lets not be too honest - just say minor updates to the game."
