@@ -4715,7 +4715,7 @@
   "releasedSubj": "{name} released by {club}",
   "released": "{club} have released {name} ({pos}, {age}) with immediate effect, paying off the remainder of his contract at a cost of {cost}. He is a free agent.",
   "grounds1Subj": "AROUND THE GROUNDS: shorts give way, lineout waits",
-  "grounds1": "A {club} prop reached the front of a lineout on Saturday with his shorts around his knees, having lost a one-sided argument with a breakdown some thirty seconds earlier. He was entirely unbothered and called for the ball twice. The referee, less relaxed, stopped the game and sent him to the touchline to be reassembled. The broadcaster cut to a wide shot of the sky for eleven seconds.",
+  "grounds1": "A {club} prop reached the front of a lineout on Saturday with his shorts around his knees, having lost a one-sided argument with a breakdown thirty seconds earlier. Unbothered, he called for the ball twice. The referee, less relaxed, stopped the game and sent him to the touchline to be reassembled. The broadcaster showed the sky for eleven seconds.",
   "grounds2Subj": "AROUND THE GROUNDS: two home kits, no away kit, one long afternoon",
   "grounds2": "The kit van arrived at {other} carrying two full sets of {club} home shirts and no away shirts whatsoever. Since both clubs play in much the same colour, the visitors spent the first half in a borrowed set belonging to the host's third team, complete with a local plumber's name across the chest. Nobody could tell anybody apart, least of all the players.",
   "grounds3Subj": "AROUND THE GROUNDS: dog takes the ball, dog keeps the ball",
@@ -4740,7 +4740,7 @@
   "toty": "The governing body has published its Team of the Year, one player in each shirt, chosen on what the last twelve months actually looked like rather than on reputation.\n\n{rows_ll}",
   "totyLine": "{n}. {name} ({pos}) - {club}",
   "totyMineSubj": "The Team of the Year is worth money to us",
-  "totyMine": "We have {n} in the Team of the Year: {names}. The commercial department has spent the morning answering the phone. Replica shirts with those names on the back are selling faster than the club can print them, three separate promoters want an evening with them, and two sponsors who were not returning calls in September have asked what a personal endorsement would cost.\n\nIt is worth {money} to the club, and none of it came out of the playing budget."
+  "totyMine": "We have {n} in the Team of the Year: {names}. Replica shirts with those names are selling faster than we can print them, two promoters want an evening with them, and sponsors who ignored us in September are asking what an endorsement costs. Worth {money}, and none of it out of the playing budget."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",

@@ -4736,11 +4736,11 @@
     "grounds10": "Une équipe de bistrot près de {club} a défié le groupe professionnel à un concours de transformations caritatif pendant la fenêtre internationale et, à la stupeur générale, les professionnels ont accepté. Quatre cents personnes sont venues. Les amateurs l'ont emporté au dernier coup de pied, la recette est allée à l'hôpital local, et personne n'avoue à quel point l'affaire a été prise au sérieux.",
     "grounds11Subj": "AUTOUR DES TERRAINS : le maillot extérieur qui a lancé mille avis",
     "grounds11": "{club} a dévoilé un maillot extérieur que le club présente comme une relecture audacieuse de son héritage et que ses supporters décrivent, longuement et avec imagination, tout autrement. Il a été en rupture de stock deux fois. Le club se garde bien de dire si cela donne raison aux uns ou aux autres.",
-    "totySubj": "ÉQUIPE DE L'ANNÉE : les quinze qui l'ont marquée",
+    "totySubj": "ÉQUIPE DE L'ANNÉE : les quinze qui l'ont marquée",
     "toty": "La fédération internationale a publié son équipe de l'année, un joueur par poste, choisie sur ce qu'ont vraiment été les douze derniers mois plutôt que sur la réputation.\n\n{rows_ll}",
     "totyLine": "{n}. {name} ({pos}) - {club}",
     "totyMineSubj": "L'équipe de l'année nous rapporte de l'argent",
-    "totyMine": "Nous avons {n} joueur(s) dans l'équipe de l'année : {names}. Le service commercial a passé la matinée au téléphone. Les maillots floqués à leur nom partent plus vite que le club ne peut les imprimer, trois organisateurs veulent une soirée avec eux, et deux sponsors qui ne rappelaient pas en septembre demandent le prix d'un contrat d'image.\n\nCela rapporte {money} au club, et pas un centime n'est sorti du budget sportif."
+    "totyMine": "Nous avons {n} joueur(s) dans l'équipe de l'année : {names}. Les maillots floqués partent plus vite qu'on ne les imprime, deux promoteurs veulent une soirée avec eux, et des sponsors muets en septembre demandent le prix d'un contrat d'image. Cela rapporte {money}, sans toucher au budget sportif."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
