@@ -149,6 +149,13 @@ incomplete old one, and the two worlds never meet, so nothing compares them.
 
 ## 7. What is built, and what is not
 
+**Both games run 2026-27.** `BASE_YEAR` in `model.ts` is the one constant, moved
+from 2025 at the owner's request ("both should run 26/27"). The two cycles that
+had to keep landing on their real years still do, because both are computed from
+the absolute year rather than the season index: the World Championship is 2027
+and 2031, the Lions 2029 and 2033. They simply arrive a season sooner in a
+career. A pre-v1.5 save keeps its season number and gains a year on its label.
+
 **Built and passing `scripts/genderprobe.ts`:**
 
 - `src/game/gender.ts` — the type, the `w:` id prefix, `genderOf`, `staffGender`
@@ -157,17 +164,20 @@ incomplete old one, and the two worlds never meet, so nothing compares them.
 - `src/data/leagues/w_pwr.ts` — the nine PWR clubs and all 375 real players,
   real towns and grounds under the same renaming rules as the men's database
   (`docs/ip-rename-map.md`)
+- `src/data/leagues/w_pac.ts` — the women's Pacific Championship: Super Rugby
+  Aupiki and Super W in one nine-club table, 279 real players from the owner's
+  screenshots. Eight players contracted in PWR are dropped from it, because a
+  southern professional really does play both winters and a game season is not
+  two hemispheres'
 - women's name pools for all 17 unions; 17 name-generation sites threaded
 - the men's cups and Test calendar guarded out of the women's world
 - the choice on the main menu, in all five languages
 
 **Not built yet, in the order I would do it:**
 
-1. **France (Élite 1)** and a combined **Australia + New Zealand** competition
-   (Super W plus Super Rugby Aupiki), both named by the owner. Data files on the
-   pattern `w_pwr.ts` sets; no engine work. Élite 1 needs a squad list the way
-   PWR did: search names only 10 of its 20 clubs and the pages are blocked, so
-   it wants the owner's sheet or an unblocked source rather than guesswork.
+1. **France (Élite 1)**. Needs a squad list the way PWR and the Pacific did:
+   search names only 10 of its 20 clubs and the pages are blocked, so it wants
+   the owner's sheet or screenshots rather than guesswork.
 2. **The women's international game, behind the paid option.** This is its own
    piece of work because the calendar genuinely differs: the Women's Six Nations
    sits in a different window from the men's, WXV is not the Rugby Championship,

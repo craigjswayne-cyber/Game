@@ -171,6 +171,17 @@ export function nameRegistry(world: object, existing: () => Iterable<string>): S
  *  union, which is what lets regenName's uniqueness guard actually find a free
  *  name instead of giving up.
  *
+ *  NO FIRST NAME APPEARS IN BOTH POOLS FOR THE SAME UNION. Nine did at first -
+ *  Manaia, Marama, Nikau and Kahu in New Zealand, Jarrah in Australia, Alofa and
+ *  Nofoaluma in Samoa, Latu and Manu in Tonga - because they are genuinely
+ *  unisex names in those cultures. The result was a generated 'Manaia Kaipara'
+ *  existing in the men's world AND in the women's one, which scripts/genderprobe
+ *  caught on its second run. The two games are meant to have nothing in common
+ *  and that includes the people in them, so the women's pool gives way. Safe to
+ *  change because WF is new in v1.5 and no save has drawn from it; the men's
+ *  pools are untouched, because moving one name there would reshuffle every
+ *  generated man in every existing career.
+ *
  *  Same rule as the men's pools and for the same reason: none of these is a
  *  currently contracted professional. scripts/namedup.ts proves the built world
  *  has no duplicate and no generated player wearing a real one's name, and it
@@ -182,13 +193,13 @@ const WF: Record<string, string[]> = {
   SCO: ['Ailsa', 'Aileen', 'Beathag', 'Bonnie', 'Catriona', 'Coira', 'Davina', 'Eilidh', 'Elspeth', 'Fenella', 'Fiona', 'Flora', 'Greer', 'Iona', 'Isobel', 'Jean', 'Kirsty', 'Lorna', 'Maisie', 'Mhairi', 'Moira', 'Morag', 'Muriel', 'Nessa', 'Nairne', 'Peigi', 'Rhona', 'Senga', 'Shona', 'Sileas', 'Tamsin', 'Torrance', 'Una', 'Vaila', 'Wilma', 'Ishbel'],
   WAL: ['Angharad', 'Arianwen', 'Bethan', 'Branwen', 'Carys', 'Ceri', 'Delyth', 'Eiluned', 'Elin', 'Enfys', 'Ffion', 'Gwenllian', 'Gwyneth', 'Haf', 'Heledd', 'Lowri', 'Mabli', 'Meinir', 'Meleri', 'Myfanwy', 'Nerys', 'Nia', 'Olwen', 'Rhiannon', 'Seren', 'Sian', 'Sioned', 'Tegan', 'Tegwen', 'Alaw', 'Bronwen', 'Catrin', 'Dwynwen', 'Eirlys', 'Glesni', 'Nesta'],
   ITA: ['Alessia', 'Arianna', 'Benedetta', 'Bianca', 'Camilla', 'Carlotta', 'Chiara', 'Cristiana', 'Daniela', 'Elisa', 'Federica', 'Flavia', 'Francesca', 'Gaia', 'Giorgia', 'Giulia', 'Ilaria', 'Isabella', 'Laura', 'Lucrezia', 'Manuela', 'Marta', 'Martina', 'Micaela', 'Nadia', 'Ornella', 'Paola', 'Rossella', 'Sabrina', 'Serena', 'Silvia', 'Simona', 'Valentina', 'Veronica', 'Vittoria', 'Alba'],
-  NZL: ['Anahera', 'Aroha', 'Awhina', 'Hinewai', 'Huia', 'Kahurangi', 'Kaia', 'Kiri', 'Mahina', 'Maia', 'Manaia', 'Marama', 'Mereana', 'Miriama', 'Moana', 'Ngaio', 'Nikau', 'Parehuia', 'Pounamu', 'Rangimarie', 'Reremoana', 'Rima', 'Ripeka', 'Tamsyn', 'Tui', 'Waimarie', 'Whetu', 'Ataahua', 'Hana', 'Kahu', 'Manawa', 'Ngahuia', 'Pania', 'Rawinia', 'Tiare', 'Wairua'],
-  AUS: ['Amber', 'Bindi', 'Bronte', 'Caitlin', 'Chelsea', 'Darcie', 'Ebony', 'Elke', 'Georgie', 'Hayley', 'Indigo', 'Jarrah', 'Jorja', 'Kalinda', 'Kirra', 'Lara', 'Lilee', 'Maddi', 'Marli', 'Nyah', 'Peta', 'Piper', 'Quinn', 'Rylee', 'Sienna', 'Skye', 'Tahlia', 'Talia', 'Tarni', 'Willa', 'Xanthe', 'Zali', 'Bridie', 'Charlee', 'Keeley', 'Shanae'],
+  NZL: ['Anahera', 'Aroha', 'Awhina', 'Hinewai', 'Huia', 'Kahurangi', 'Kaia', 'Kiri', 'Mahina', 'Maia', 'Hineata', 'Ariana', 'Mereana', 'Miriama', 'Moana', 'Ngaio', 'Kararaina', 'Parehuia', 'Pounamu', 'Rangimarie', 'Reremoana', 'Rima', 'Ripeka', 'Tamsyn', 'Tui', 'Waimarie', 'Whetu', 'Ataahua', 'Hana', 'Terina', 'Manawa', 'Ngahuia', 'Pania', 'Rawinia', 'Tiare', 'Wairua'],
+  AUS: ['Amber', 'Bindi', 'Bronte', 'Caitlin', 'Chelsea', 'Darcie', 'Ebony', 'Elke', 'Georgie', 'Hayley', 'Indigo', 'Jaslyn', 'Jorja', 'Kalinda', 'Kirra', 'Lara', 'Lilee', 'Maddi', 'Marli', 'Nyah', 'Peta', 'Piper', 'Quinn', 'Rylee', 'Sienna', 'Skye', 'Tahlia', 'Talia', 'Tarni', 'Willa', 'Xanthe', 'Zali', 'Bridie', 'Charlee', 'Keeley', 'Shanae'],
   RSA: ['Anelisa', 'Ayanda', 'Babalwa', 'Chuma', 'Elmarie', 'Hanlie', 'Ilze', 'Jolandi', 'Kegomoditswe', 'Lerato', 'Lindiwe', 'Mandisa', 'Marlize', 'Nandi', 'Nokuthula', 'Nolwazi', 'Ntombi', 'Palesa', 'Refilwe', 'Rethabile', 'Sanele', 'Sindiswa', 'Thandeka', 'Thembi', 'Tshegofatso', 'Wilmien', 'Xoliswa', 'Zanele', 'Zinhle', 'Anneke', 'Bulelwa', 'Karabo', 'Mbali', 'Nomvula', 'Retha', 'Yolande'],
   ARG: ['Abril', 'Agustina', 'Aitana', 'Belen', 'Bianca', 'Camila', 'Candela', 'Catalina', 'Delfina', 'Emilia', 'Florencia', 'Guadalupe', 'Ines', 'Josefina', 'Julieta', 'Lucia', 'Malena', 'Micaela', 'Milagros', 'Morena', 'Nerina', 'Paulina', 'Pilar', 'Renata', 'Rocio', 'Sofia', 'Solana', 'Tamara', 'Valentina', 'Victoria', 'Ximena', 'Zoe', 'Antonella', 'Brisa', 'Constanza', 'Luciana'],
   FIJ: ['Adi', 'Ana', 'Asenaca', 'Bulou', 'Ilisapeci', 'Kalisi', 'Karalaini', 'Laisana', 'Litia', 'Losana', 'Luisa', 'Makareta', 'Merewalesi', 'Mereoni', 'Naomi', 'Raijieli', 'Roela', 'Salanieta', 'Sereima', 'Sesenieli', 'Talei', 'Tarusila', 'Timaima', 'Ulamila', 'Unaisi', 'Vasiti', 'Verenaisi', 'Wainikiti'],
-  SAM: ['Alofa', 'Faafetai', 'Faaolataga', 'Fetu', 'Ioana', 'Leilani', 'Lupe', 'Maiava', 'Malia', 'Manaia', 'Mareta', 'Moana', 'Nofoaluma', 'Palepa', 'Pele', 'Salamasina', 'Sefina', 'Sina', 'Tala', 'Tausala', 'Teuila', 'Tiare', 'Tuiloma', 'Uila', 'Vaiola', 'Vaitiare', 'Fuatino', 'Lagi'],
-  TGA: ['Ana', 'Elenoa', 'Fatafehi', 'Halaevalu', 'Heilala', 'Kalolaine', 'Lavinia', 'Lose', 'Mele', 'Meleane', 'Nanasi', 'Ofa', 'Salote', 'Sela', 'Sesilia', 'Sinaitakala', 'Siosaia', 'Talia', 'Tupou', 'Uinise', 'Vaha', 'Vika', 'Amelia', 'Fifita', 'Latu', 'Loua', 'Manu', 'Paea'],
+  SAM: ['Sieni', 'Faafetai', 'Faaolataga', 'Fetu', 'Ioana', 'Leilani', 'Lupe', 'Maiava', 'Malia', 'Manaia', 'Mareta', 'Moana', 'Lalelei', 'Palepa', 'Pele', 'Salamasina', 'Sefina', 'Sina', 'Tala', 'Tausala', 'Teuila', 'Tiare', 'Tuiloma', 'Uila', 'Vaiola', 'Vaitiare', 'Fuatino', 'Lagi'],
+  TGA: ['Ana', 'Elenoa', 'Fatafehi', 'Halaevalu', 'Heilala', 'Kalolaine', 'Lavinia', 'Lose', 'Mele', 'Meleane', 'Nanasi', 'Ofa', 'Salote', 'Sela', 'Sesilia', 'Sinaitakala', 'Siosaia', 'Talia', 'Tupou', 'Uinise', 'Vaha', 'Vika', 'Amelia', 'Fifita', 'Tuputupu', 'Loua', 'Fusi', 'Paea'],
   JPN: ['Ayaka', 'Ayumi', 'Chihiro', 'Emi', 'Hana', 'Haruka', 'Hinata', 'Kaede', 'Kanako', 'Kaori', 'Mai', 'Mana', 'Mao', 'Megumi', 'Misaki', 'Miyu', 'Nanami', 'Nao', 'Natsuki', 'Rin', 'Riko', 'Saki', 'Sakura', 'Shiori', 'Tomomi', 'Yui', 'Yuka', 'Yuzuki'],
   GEO: ['Ana', 'Barbare', 'Elene', 'Eter', 'Gvantsa', 'Ia', 'Ketevan', 'Khatia', 'Lali', 'Lika', 'Mariam', 'Maka', 'Nana', 'Natia', 'Nino', 'Nutsa', 'Salome', 'Sopio', 'Tamar', 'Tamta', 'Teona', 'Tinatin', 'Ana-Mariam', 'Dali', 'Eka', 'Manana', 'Rusudan', 'Shorena'],
   USA: ['Addison', 'Alexis', 'Ashlyn', 'Aubrey', 'Bailey', 'Brooke', 'Cassidy', 'Delaney', 'Emerson', 'Harper', 'Hayden', 'Jordan', 'Kelsey', 'Kendall', 'Logan', 'Mackenzie', 'Madison', 'Marlowe', 'Peyton', 'Quinn', 'Reagan', 'Riley', 'Rowan', 'Sawyer', 'Sydney', 'Taylor', 'Tegan', 'Whitney'],

@@ -36,7 +36,7 @@
  */
 import type { GameState } from './model'
 import { clamp, type Rng } from './rng'
-import { fmtMoney, operatingCost } from './model'
+import { BASE_YEAR, fmtMoney, operatingCost } from './model'
 import { tIn } from './i18n'
 
 /** Weeks between rolls, on average: often enough to be part of the year, rare
@@ -69,7 +69,7 @@ const homeMatchWeek = (state: GameState) =>
  *  prints (season opens 16 August). Stories that name a season of the year
  *  are gated on it (owner, v1.2.8: "summer earner but its in November?"). */
 const monthOf = (s: GameState): number =>
-  new Date(Date.UTC(2025 + s.season, 7, 16) + (s.week - 1) * 7 * 86400000).getUTCMonth()
+  new Date(Date.UTC(BASE_YEAR + s.season, 7, 16) + (s.week - 1) * 7 * 86400000).getUTCMonth()
 const inMonths = (...months: number[]) => (s: GameState) => months.includes(monthOf(s))
 /** the story says "the summer's big earner": it can only land as the summer ends */
 const lateSummer = inMonths(7, 8)

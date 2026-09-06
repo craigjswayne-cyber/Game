@@ -62,6 +62,10 @@ try {
   ok(await page.locator('.challenge-card').count() === 0,
     'no challenge cards in the women\'s wizard (all four are pinned to men\'s clubs)')
 
+  // both women's competitions are offered, not just England
+  ok(await page.locator('text=Pacific Championship').count() === 1,
+    'the Pacific Championship is on the competition list too')
+
   await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')
   const tiles = await page.locator('.club-tile').count()

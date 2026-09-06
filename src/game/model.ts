@@ -1782,7 +1782,7 @@ export function trustWord(v: number): string {
 
 /** World Championship years: 2027, 2031, ... (in-game season index) */
 export function isWorldCupSeason(season: number): boolean {
-  return (2025 + season) % 4 === 3
+  return (BASE_YEAR + season) % 4 === 3
 }
 
 export const SEASON_WEEKS = 45
@@ -1884,7 +1884,7 @@ export const monthName = (m: number): string => t(`date.mon${m}`)
 export const dayAbbr = (d: number): string => t(`date.day${d}`)
 
 export function weekDate(season: number, week: number): string {
-  const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
+  const start = Date.UTC(BASE_YEAR + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + (week - 1) * 7 * 86400000)
   return `${d.getUTCDate()} ${monthName(d.getUTCMonth())} ${d.getUTCFullYear()}`
 }
@@ -1905,13 +1905,36 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
  *  dayOff overrides the per-fixture hash for competitions that always play the
  *  same day - the A League is every Friday, the night before the first team. */
 export function fixtureDate(season: number, week: number, fxId: number, dayOff?: -1 | 0 | 1): string {
-  const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
+  const start = Date.UTC(BASE_YEAR + season, 7, 16) // season opens mid-August with pre-season
   const d = new Date(start + ((week - 1) * 7 + (dayOff ?? fixtureDayOff(fxId))) * 86400000)
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
 
+/**
+ * The real-world year that season 0 starts in.
+ *
+ * 2025 until v1.5, when the owner asked for both games to run 26/27: "both
+ * should run 26/27". The women's database is a 2026-27 squad list and the men's
+ * competitions are dated from the same August, so one constant moves both.
+ *
+ * Everything year-shaped reads this rather than a literal, which matters most
+ * for the two cycles that must keep landing on their REAL years: the World
+ * Championship every fourth year and the Lions tour four years off it. Both are
+ * computed from the absolute year rather than the season index, so moving the
+ * base moves the season they fall in and leaves the year alone - the World
+ * Championship is still 2027 and the Lions still 2029, they just arrive a season
+ * sooner in a career. isWorldCupSeason and isLionsSeason are the proof.
+ *
+ * A career saved before v1.5 keeps its season NUMBER and gains a year on its
+ * LABEL: a save that read 2025-26 now reads 2026-27. Nothing about the career
+ * changes, and in closed testing that is the cheaper of the two wrongs - the
+ * alternative is storing a base year per save so old careers keep old labels,
+ * which is a field on every save for ever to spare 39 testers a one-off shift.
+ */
+export const BASE_YEAR = 2026
+
 export function seasonLabel(season: number): string {
-  const y = 2025 + season
+  const y = BASE_YEAR + season
   return `${y}-${String((y + 1) % 100).padStart(2, '0')}`
 }
 
