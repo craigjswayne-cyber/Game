@@ -1,5 +1,6 @@
 // International rugby nations, reputations, and regen name pools.
 import { t, tIn, type Lang } from './i18n'
+import type { Gender } from './gender'
 import type { GameState, Player } from './model'
 
 export interface Nation {
@@ -155,9 +156,57 @@ export function nameRegistry(world: object, existing: () => Iterable<string>): S
  *
  *  And if it is exhausted, a second surname rather than a repeat. Double-barrelled
  *  names are ordinary in rugby and it squares the space instead of giving up. */
-export function regenName(rng: () => number, nat: string, taken?: Set<string>): string {
+/**
+ *  ---- WOMEN'S FIRST NAMES, BY UNION (v1.5) ----
+ *
+ *  Surnames are not gendered and are not duplicated: a generated woman draws her
+ *  surname from N[nat][1] like everybody else, so a Welsh player is a Prosser or
+ *  a Gwynne either way, and adding a union here is half the work rather than all
+ *  of it.
+ *
+ *  Sized to match the men's pools - thirty-six for the unions with a domestic
+ *  league in the game, twenty-eight for the rest - because the arithmetic that
+ *  produced seventeen Freddie Browns does not care which game it is in. Against
+ *  the same 36-surname lists that is about thirteen hundred combinations per
+ *  union, which is what lets regenName's uniqueness guard actually find a free
+ *  name instead of giving up.
+ *
+ *  Same rule as the men's pools and for the same reason: none of these is a
+ *  currently contracted professional. scripts/namedup.ts proves the built world
+ *  has no duplicate and no generated player wearing a real one's name, and it
+ *  does not care which game it is reading. */
+const WF: Record<string, string[]> = {
+  ENG: ['Alice', 'Beatrice', 'Bryony', 'Cerys', 'Daisy', 'Edith', 'Eleanor', 'Esme', 'Flora', 'Freya', 'Georgia', 'Harriet', 'Imogen', 'Isla', 'Jemima', 'Josie', 'Kitty', 'Lottie', 'Maisie', 'Martha', 'Matilda', 'Nell', 'Nancy', 'Orla', 'Phoebe', 'Primrose', 'Rosalind', 'Rowena', 'Saskia', 'Sybil', 'Tamsin', 'Thea', 'Verity', 'Wilhelmina', 'Winnie', 'Bea'],
+  FRA: ['Amandine', 'Anaïs', 'Ariane', 'Aurore', 'Bérénice', 'Blandine', 'Capucine', 'Célestine', 'Clarisse', 'Coralie', 'Delphine', 'Élodie', 'Fanny', 'Gwenaëlle', 'Hortense', 'Inès', 'Jeanne', 'Léonie', 'Lucile', 'Manon', 'Margaux', 'Marion', 'Mélusine', 'Noémie', 'Océane', 'Perrine', 'Roxane', 'Sidonie', 'Solène', 'Sylvie', 'Tiphaine', 'Violette', 'Yolande', 'Zélie', 'Apolline', 'Bastienne'],
+  IRE: ['Aoibhinn', 'Aoife', 'Bláthnaid', 'Bríd', 'Caoimhe', 'Ciara', 'Clodagh', 'Dearbhla', 'Eabha', 'Eimear', 'Fionnuala', 'Grainne', 'Íde', 'Laoise', 'Maeve', 'Mairéad', 'Muireann', 'Neasa', 'Niamh', 'Nuala', 'Órla', 'Póilín', 'Réiltín', 'Roisin', 'Saoirse', 'Sinéad', 'Siobhán', 'Sorcha', 'Tara', 'Treasa', 'Úna', 'Aisling', 'Brona', 'Deirbhile', 'Fidelma', 'Meabh'],
+  SCO: ['Ailsa', 'Aileen', 'Beathag', 'Bonnie', 'Catriona', 'Coira', 'Davina', 'Eilidh', 'Elspeth', 'Fenella', 'Fiona', 'Flora', 'Greer', 'Iona', 'Isobel', 'Jean', 'Kirsty', 'Lorna', 'Maisie', 'Mhairi', 'Moira', 'Morag', 'Muriel', 'Nessa', 'Nairne', 'Peigi', 'Rhona', 'Senga', 'Shona', 'Sileas', 'Tamsin', 'Torrance', 'Una', 'Vaila', 'Wilma', 'Ishbel'],
+  WAL: ['Angharad', 'Arianwen', 'Bethan', 'Branwen', 'Carys', 'Ceri', 'Delyth', 'Eiluned', 'Elin', 'Enfys', 'Ffion', 'Gwenllian', 'Gwyneth', 'Haf', 'Heledd', 'Lowri', 'Mabli', 'Meinir', 'Meleri', 'Myfanwy', 'Nerys', 'Nia', 'Olwen', 'Rhiannon', 'Seren', 'Sian', 'Sioned', 'Tegan', 'Tegwen', 'Alaw', 'Bronwen', 'Catrin', 'Dwynwen', 'Eirlys', 'Glesni', 'Nesta'],
+  ITA: ['Alessia', 'Arianna', 'Benedetta', 'Bianca', 'Camilla', 'Carlotta', 'Chiara', 'Cristiana', 'Daniela', 'Elisa', 'Federica', 'Flavia', 'Francesca', 'Gaia', 'Giorgia', 'Giulia', 'Ilaria', 'Isabella', 'Laura', 'Lucrezia', 'Manuela', 'Marta', 'Martina', 'Micaela', 'Nadia', 'Ornella', 'Paola', 'Rossella', 'Sabrina', 'Serena', 'Silvia', 'Simona', 'Valentina', 'Veronica', 'Vittoria', 'Alba'],
+  NZL: ['Anahera', 'Aroha', 'Awhina', 'Hinewai', 'Huia', 'Kahurangi', 'Kaia', 'Kiri', 'Mahina', 'Maia', 'Manaia', 'Marama', 'Mereana', 'Miriama', 'Moana', 'Ngaio', 'Nikau', 'Parehuia', 'Pounamu', 'Rangimarie', 'Reremoana', 'Rima', 'Ripeka', 'Tamsyn', 'Tui', 'Waimarie', 'Whetu', 'Ataahua', 'Hana', 'Kahu', 'Manawa', 'Ngahuia', 'Pania', 'Rawinia', 'Tiare', 'Wairua'],
+  AUS: ['Amber', 'Bindi', 'Bronte', 'Caitlin', 'Chelsea', 'Darcie', 'Ebony', 'Elke', 'Georgie', 'Hayley', 'Indigo', 'Jarrah', 'Jorja', 'Kalinda', 'Kirra', 'Lara', 'Lilee', 'Maddi', 'Marli', 'Nyah', 'Peta', 'Piper', 'Quinn', 'Rylee', 'Sienna', 'Skye', 'Tahlia', 'Talia', 'Tarni', 'Willa', 'Xanthe', 'Zali', 'Bridie', 'Charlee', 'Keeley', 'Shanae'],
+  RSA: ['Anelisa', 'Ayanda', 'Babalwa', 'Chuma', 'Elmarie', 'Hanlie', 'Ilze', 'Jolandi', 'Kegomoditswe', 'Lerato', 'Lindiwe', 'Mandisa', 'Marlize', 'Nandi', 'Nokuthula', 'Nolwazi', 'Ntombi', 'Palesa', 'Refilwe', 'Rethabile', 'Sanele', 'Sindiswa', 'Thandeka', 'Thembi', 'Tshegofatso', 'Wilmien', 'Xoliswa', 'Zanele', 'Zinhle', 'Anneke', 'Bulelwa', 'Karabo', 'Mbali', 'Nomvula', 'Retha', 'Yolande'],
+  ARG: ['Abril', 'Agustina', 'Aitana', 'Belen', 'Bianca', 'Camila', 'Candela', 'Catalina', 'Delfina', 'Emilia', 'Florencia', 'Guadalupe', 'Ines', 'Josefina', 'Julieta', 'Lucia', 'Malena', 'Micaela', 'Milagros', 'Morena', 'Nerina', 'Paulina', 'Pilar', 'Renata', 'Rocio', 'Sofia', 'Solana', 'Tamara', 'Valentina', 'Victoria', 'Ximena', 'Zoe', 'Antonella', 'Brisa', 'Constanza', 'Luciana'],
+  FIJ: ['Adi', 'Ana', 'Asenaca', 'Bulou', 'Ilisapeci', 'Kalisi', 'Karalaini', 'Laisana', 'Litia', 'Losana', 'Luisa', 'Makareta', 'Merewalesi', 'Mereoni', 'Naomi', 'Raijieli', 'Roela', 'Salanieta', 'Sereima', 'Sesenieli', 'Talei', 'Tarusila', 'Timaima', 'Ulamila', 'Unaisi', 'Vasiti', 'Verenaisi', 'Wainikiti'],
+  SAM: ['Alofa', 'Faafetai', 'Faaolataga', 'Fetu', 'Ioana', 'Leilani', 'Lupe', 'Maiava', 'Malia', 'Manaia', 'Mareta', 'Moana', 'Nofoaluma', 'Palepa', 'Pele', 'Salamasina', 'Sefina', 'Sina', 'Tala', 'Tausala', 'Teuila', 'Tiare', 'Tuiloma', 'Uila', 'Vaiola', 'Vaitiare', 'Fuatino', 'Lagi'],
+  TGA: ['Ana', 'Elenoa', 'Fatafehi', 'Halaevalu', 'Heilala', 'Kalolaine', 'Lavinia', 'Lose', 'Mele', 'Meleane', 'Nanasi', 'Ofa', 'Salote', 'Sela', 'Sesilia', 'Sinaitakala', 'Siosaia', 'Talia', 'Tupou', 'Uinise', 'Vaha', 'Vika', 'Amelia', 'Fifita', 'Latu', 'Loua', 'Manu', 'Paea'],
+  JPN: ['Ayaka', 'Ayumi', 'Chihiro', 'Emi', 'Hana', 'Haruka', 'Hinata', 'Kaede', 'Kanako', 'Kaori', 'Mai', 'Mana', 'Mao', 'Megumi', 'Misaki', 'Miyu', 'Nanami', 'Nao', 'Natsuki', 'Rin', 'Riko', 'Saki', 'Sakura', 'Shiori', 'Tomomi', 'Yui', 'Yuka', 'Yuzuki'],
+  GEO: ['Ana', 'Barbare', 'Elene', 'Eter', 'Gvantsa', 'Ia', 'Ketevan', 'Khatia', 'Lali', 'Lika', 'Mariam', 'Maka', 'Nana', 'Natia', 'Nino', 'Nutsa', 'Salome', 'Sopio', 'Tamar', 'Tamta', 'Teona', 'Tinatin', 'Ana-Mariam', 'Dali', 'Eka', 'Manana', 'Rusudan', 'Shorena'],
+  USA: ['Addison', 'Alexis', 'Ashlyn', 'Aubrey', 'Bailey', 'Brooke', 'Cassidy', 'Delaney', 'Emerson', 'Harper', 'Hayden', 'Jordan', 'Kelsey', 'Kendall', 'Logan', 'Mackenzie', 'Madison', 'Marlowe', 'Peyton', 'Quinn', 'Reagan', 'Riley', 'Rowan', 'Sawyer', 'Sydney', 'Taylor', 'Tegan', 'Whitney'],
+  CAN: ['Alexa', 'Amelie', 'Brooklyn', 'Camryn', 'Chloe', 'Danika', 'Elowen', 'Emmeline', 'Genevieve', 'Greta', 'Harlow', 'Jaclyn', 'Kaia', 'Keira', 'Larissa', 'Maren', 'Marielle', 'Nadine', 'Noelle', 'Paige', 'Reese', 'Rowyn', 'Shae', 'Sloane', 'Tenille', 'Tessa', 'Willa', 'Wren'],
+}
+
+/**
+ * A name for a generated player, in either game.
+ *
+ * `g` defaults to 'm' so every existing call site keeps its exact behaviour -
+ * this is called from a dozen places across the engine and a men's career must
+ * generate byte-identically to how it did before v1.5, or every seeded world
+ * shifts under saves that already exist.
+ */
+export function regenName(rng: () => number, nat: string, taken?: Set<string>, g: Gender = 'm'): string {
   const pool = N[nat] ?? N.ENG
-  const first = () => pool[0][Math.floor(rng() * pool[0].length)]
+  const firsts = g === 'w' ? (WF[nat] ?? WF.ENG) : pool[0]
+  const first = () => firsts[Math.floor(rng() * firsts.length)]
   const last = () => pool[1][Math.floor(rng() * pool[1].length)]
   let name = `${first()} ${last()}`
   if (!taken) return name

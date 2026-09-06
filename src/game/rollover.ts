@@ -11,6 +11,7 @@ import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
+import { genderOf } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
 import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
@@ -498,7 +499,7 @@ function agePlayers(state: GameState, rng: Rng) {
       const club = state.clubs[clubId]
       const q = 42 + Math.floor(rng() * 14)
       const raw = {
-        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country, worldNames(state)),
+        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country, worldNames(state), genderOf(state)),
         pos: p.pos, age: 17 + Math.floor(rng() * 2), nat: p.nat, q,
         gk: p.gk && rng() < 0.6,
       }
@@ -756,7 +757,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
     // a more generous intake makes more stories, not more free superstars.
     const wonder = rng() < 0.13 + coe * 0.02
     out.push({
-      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
+      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state), genderOf(state)),
       pos, age: 17 + Math.floor(rng() * 2), q,
       pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
       gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
@@ -840,7 +841,7 @@ function youthIntake(state: GameState, rng: Rng) {
       const pos = pick(rng, YOUTH_POS)
       const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + natTalentBonus(club.country)
       const raw = {
-        name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
+        name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state), genderOf(state)),
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
@@ -872,7 +873,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const nat = pick(rng, nats)
     const pos = pick(rng, YOUTH_POS)
     const q = 54 + Math.floor(rng() * 12)
-    const raw = { name: regenName(rng, nat, worldNames(state)), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
+    const raw = { name: regenName(rng, nat, worldNames(state), genderOf(state)), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
     const a = deriveAttrs(raw, state.seed + state.season * 3011 + i)
     const p: Player = {
       id: nextPid(),
@@ -923,7 +924,7 @@ function replenishSquads(state: GameState, rng: Rng) {
         // not raise the senior count, so the loop would spin to its guard and
         // hand the club twenty-five schoolboys it did not need.
         const raw = {
-          name: regenName(rng, club.country, worldNames(state)), pos: need,
+          name: regenName(rng, club.country, worldNames(state), genderOf(state)), pos: need,
           age: 19 + Math.floor(rng() * 2), nat: club.country,
           q: clamp(40 + Math.floor(rng() * 12) + Math.floor(club.rep / 14), 38, 62),
           gk: (need === 'FH' || need === 'FB') && rng() < 0.3,
@@ -1732,7 +1733,12 @@ export function rebuildSeason(state: GameState) {
   }
   state.comps = {}
 
-  for (const def of LEAGUE_DEFS()) {
+  // LEAGUE_DEFS takes the world's gender: a women's career rebuilding its
+  // competitions in August must rebuild the women's ones. Without it the
+  // season rollover would quietly replace them with the men's leagues, and
+  // every club in the save would find itself in a competition that does not
+  // contain it.
+  for (const def of LEAGUE_DEFS(genderOf(state))) {
     const teamIds = Object.values(state.clubs).filter(c => c.leagueId === def.id).map(c => c.id)
     state.comps[def.id] = buildLeague(
       { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams },
@@ -1741,10 +1747,21 @@ export function rebuildSeason(state: GameState) {
   }
   // minus ten before a ball is kicked, for anyone who went under in the summer
   for (const comp of Object.values(state.comps)) applyAdminPenalties(comp, state)
-  state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
-  state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
-  const wcYear = isWorldCupSeason(state.season)
-  buildInternationals(rng, state, wcYear)
+  // The men's cups and the men's Test calendar, rebuilt each August. Skipped in
+  // the women's world for the same reason newGame skips them: they are shaped
+  // around competitions the women's game does not have, and building them there
+  // creates empty comps wearing men's ids inside a women's save. The women's
+  // cups and internationals arrive with their own calendar.
+  //
+  // wcYear is false in the women's world rather than skipped, because it also
+  // gates the "a World Championship season" story further down. A women's
+  // career must not be told to plan around a men's World Cup it cannot see.
+  const wcYear = genderOf(state) !== 'w' && isWorldCupSeason(state.season)
+  if (genderOf(state) !== 'w') {
+    state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
+    state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
+    buildInternationals(rng, state, wcYear)
+  }
   schedulePreseason(state, rng)
   // and a fresh A League for whichever league the manager is in NOW - a summer
   // move to the Elite 14 gets him the Espoirs rather than last year's Premier Division

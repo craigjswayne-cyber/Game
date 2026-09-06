@@ -2791,6 +2791,22 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    title screen has 844px to play with, so it gets real headroom instead. */
 .title-screen .menu-btns { max-width: 540px; }
 .continue-tile { font-size: 16px; padding: 12px 14px; }
+
+/* WHICH GAME (v1.5). The two doors onto a new career, plus the line that says
+   why there are two. A column rather than a row: on the 360px floor device two
+   side-by-side buttons would each be about 165px wide, and "Nouvelle carrière"
+   and "Nuova carriera maschile" do not fit in that - the French and Italian
+   labels are half again as long as the English, which is the usual way a
+   two-across menu breaks in a game that ships in five languages. Stacked, every
+   label has the full width whatever it says. */
+.new-career-pick { display: flex; flex-direction: column; gap: 8px; }
+.new-career-hint {
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+  padding: 0 6px;
+  margin-top: 2px;
+}
 .ct-line {
   font-size: 15.5px; letter-spacing: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
