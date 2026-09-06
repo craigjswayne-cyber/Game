@@ -68,7 +68,8 @@ const report = (s: GameState, g: Gender, when: string) => {
 }
 
 console.log('=== the league tables are separate sets ===')
-const mIds = new Set(LEAGUE_DEFS('m').flatMap(d => d.clubs.map(c => c.id)))
+const M_DATA = LEAGUE_DEFS('m')
+const mIds = new Set(M_DATA.flatMap(d => d.clubs.map(c => c.id)))
 const wIds = new Set(LEAGUE_DEFS('w').flatMap(d => d.clubs.map(c => c.id)))
 const shared = [...mIds].filter(id => wIds.has(id))
 ok(shared.length === 0, `no club id is in both games (${mIds.size} men's, ${wIds.size} women's, ${shared.length} shared)`)
@@ -145,14 +146,40 @@ console.log('\n=== the women\'s Test game ===')
 }
 
 console.log('\n=== no man ever appears in the women\'s game ===')
-// The real test of the whole design: take every player name the men's world
-// builds and check none of them is in the women's world. Not a filter that
-// might be missed - a set intersection over two independently built worlds.
-const menNames = new Set(Object.values(m.players).map(p => p.name.toLowerCase()))
+// A set intersection over two independently built worlds, against the men's
+// REAL database rather than the whole men's world.
+//
+// The difference matters and is not a softening. What this guards against is a
+// man from the men's database turning up in a women's career - that would be
+// contamination, and it is exact, because those 1,560 are named people.
+//
+// What it deliberately does NOT fail on is a GENERATED man coinciding with a
+// real woman. The generated pools contain unisex names on purpose - champ.ts
+// draws 'Alex' and 'Stewart' for the English second tier, and Edinburgh's real
+// Celtic Challenge squad contains Alex Stewart - so as more real women are
+// added, coincidences are arithmetic rather than bad luck. Neither side can
+// give way: changing a men's pool reshuffles every generated player in every
+// existing career, and renaming a real player falsifies the data she came from.
+// The two worlds are never in memory together, so a shared name between a
+// generated man and a real woman is a coincidence and not a leak - which is why
+// the ids, which ARE the leak, are asserted exactly above.
+//
+// "Real" means the four leagues whose squads were compiled from sources -
+// prem, top14, urc and srp. The lower tiers do not qualify: champ.ts and
+// natl1.ts BUILD their squads from name pools at import time, so their players
+// sit in clubs[].players exactly like a compiled one and are indistinguishable
+// from here, and prod2 and jl1 are mostly generated too. Asserting against
+// those would be asserting that two independent random draws never collide,
+// which is not a property anybody can hold.
+const REAL_SQUAD_LEAGUES = ['prem', 'top14', 'urc', 'srp']
+const realMen = new Set(
+  M_DATA.filter(d => REAL_SQUAD_LEAGUES.includes(d.id))
+    .flatMap(d => d.clubs).flatMap(c => c.players).map(p => p.name.toLowerCase()),
+)
 const womenNames = Object.values(wLoaded.players).map(p => p.name)
-const crossed = womenNames.filter(n => menNames.has(n.toLowerCase()))
+const crossed = womenNames.filter(n => realMen.has(n.toLowerCase()))
 ok(crossed.length === 0,
-  `not one of the ${womenNames.length} players in the women's world is a man from the other one${crossed.length ? ` - found ${crossed.slice(0, 5).join(', ')}` : ''}`)
+  `not one of the ${womenNames.length} players in the women's world is one of the ${realMen.size} real men${crossed.length ? ` - found ${crossed.slice(0, 5).join(', ')}` : ''}`)
 
 console.log('')
 if (fails === 0) console.log('GENDER PROBE PASSED: the two games are built apart and stay apart')
