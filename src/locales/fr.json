@@ -11,6 +11,8 @@
     "language": "LANGUE",
     "loadCareer": "Charger une carrière",
     "newCareer": "Nouvelle carrière",
+    "newCareerWomen": "Jeu féminin",
+    "newCareerHint": "Le jeu masculin et le jeu féminin sont des carrières distinctes.",
     "savedAt": "{season}, semaine {week}",
     "tagline": "HISTOIRES, SAISONS & TROPHÉES",
     "importHintTitle": "Vous venez de l’ancienne version ?",

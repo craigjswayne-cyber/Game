@@ -11,6 +11,8 @@
   "language": "LANGUAGE",
   "loadCareer": "Load Career",
   "newCareer": "New Career",
+  "newCareerWomen": "Women's Game",
+  "newCareerHint": "The men's and women's games are separate careers.",
   "savedAt": "{season}, Week {week}",
   "tagline": "STORIES, SEASONS & SILVERWARE",
   "importHintTitle": "Coming from the old version?",

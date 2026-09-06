@@ -30,7 +30,8 @@ const finances = (budget: number) =>
 export default function NewGame() {
   const start = useStore(s => s.start)
   const back = useStore(s => s.back)
-  const defs = useMemo(() => LEAGUE_DEFS(), [])
+  const newGender = useStore(s => s.newGender)
+  const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
   const [step, setStep] = useState(0)
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
   const [clubId, setClubId] = useState<string | null>(null)
@@ -182,6 +183,15 @@ export default function NewGame() {
                 </button>
               ))}
             </div>
+            {/* The four challenges are each pinned to a specific men's club -
+                Montauban, Newcastle, Munster, Cornwall - and none of those
+                clubs exists in the women's world. Rendered there, every card
+                would draw with no crest and pickChallenge would look its club
+                up in a league list that does not contain it, set leagueIdx to
+                -1 and take the wizard to a screen with no league on it. The
+                women's game will have its own when it has the leagues to hang
+                them on. */}
+            {newGender === 'm' && <>
             <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.orChallenge')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
               {CHALLENGES.map(ch => {
@@ -197,6 +207,7 @@ export default function NewGame() {
                 )
               })}
             </div>
+            </>}
           </>
         )}
 

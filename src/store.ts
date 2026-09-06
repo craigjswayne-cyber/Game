@@ -64,6 +64,7 @@ import { dreamState, dreamsFor } from './game/dream'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
+import type { Gender } from './game/gender'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
@@ -207,7 +208,13 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty, gender?: Gender) => void
+  /** Which game the NEXT new career is in, chosen on the menu before the wizard
+   *  opens. Not part of a save - the save carries its own gender - just the
+   *  answer to "which game" travelling from the menu to the first screen of the
+   *  wizard, which is where the club list has to know. */
+  newGender: Gender
+  setNewGender: (g: Gender) => void
   /** A board injection bought at the till lands in this career (grants.ts).
    *  Returns false when the seasonal limit refuses it - the caller must then
    *  NOT consume the purchase, so the recovery pass keeps it. */
@@ -555,9 +562,12 @@ export const useStore = create<Store>((set, get) => ({
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
-  start: (clubId, managerName, challengeId, origin, difficulty) => {
+  newGender: 'm',
+  setNewGender: (g) => set({ newGender: g }),
+
+  start: (clubId, managerName, challengeId, origin, difficulty, gender) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty)
+    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender)
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets

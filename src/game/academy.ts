@@ -30,6 +30,7 @@
 //   every one of those would need a special case. state.academy is invisible until
 //   the Academy screen asks for it.
 import type { Club, GameState, Player, Pos, TableRow } from './model'
+import { genderOf } from './gender'
 import { t, type Vars } from './i18n'
 import { clamp, mulberry32, type Rng } from './rng'
 import { facLevel, XV_SLOTS } from './model'
@@ -116,7 +117,7 @@ export function topUpAcademy(state: GameState, club: Club, rng: Rng, seedBase = 
   for (const pos of Object.keys(want) as Pos[]) {
     for (let k = have[pos] ?? 0; k < (want[pos] ?? 0); k++) {
       const p = buildPlayer({
-        name: regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, worldNames(state)),
+        name: regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, worldNames(state), genderOf(state)),
         pos,
         age: 17 + Math.floor(rng() * 3),
         nat: club.country === 'EUR' ? 'ENG' : club.country,

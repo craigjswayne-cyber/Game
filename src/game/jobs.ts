@@ -2,6 +2,7 @@
 // The job market - wait for the right job, or take what's available.
 
 import type { GameState } from './model'
+import { genderOf, staffGender } from './gender'
 import { fmtMoney, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { autoSelect } from './matchEngine'
@@ -82,7 +83,7 @@ export function refreshVacancies(state: GameState, rng: Rng) {
   state.vacancies = state.vacancies.filter(v => {
     const keep = state.week - v.week < 5 && state.clubs[v.clubId]
     if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
-      state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country)
+      state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country, undefined, staffGender(rng, genderOf(state)))
       // F23: the new man brings his own idea of how to play, which is why a club
       // you have had the measure of for three seasons can start kicking at you.
       newCoachPhilosophy(state, state.clubs[v.clubId])

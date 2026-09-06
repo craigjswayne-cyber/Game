@@ -3,6 +3,7 @@ import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, emptyStats, final
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
+import { genderOf, staffGender } from './gender'
 import { autoSelect } from './matchEngine'
 import { NATIONS, regenName, worldNames } from './nations'
 import { rebuildTable } from './season'
@@ -545,8 +546,17 @@ export function migrate(s: GameState): GameState {
 
   // leagues added in later builds: inject their clubs & squads so existing
   // careers gain them (fixtures/tables arrive at the next season rebuild)
+  //
+  // GENDER IS LOAD-BEARING HERE. This injects every club of every league the
+  // current build knows about into any save that lacks them, which is exactly
+  // right for a men's career gaining Japan Division One in v1.2 - and would be
+  // catastrophic without the argument, because a women's career loaded by this
+  // build would silently gain all fifty-two men's clubs and their squads.
+  // Nothing downstream would object: they would be clubs in state.clubs like
+  // any other, in leagues the women's world does not have, and the save could
+  // not be repaired afterwards.
   const rng = mulberry32(0xadd1e ^ (s.season * 977 + s.week))
-  for (const def of LEAGUE_DEFS()) {
+  for (const def of LEAGUE_DEFS(genderOf(s))) {
     for (const rc of def.clubs) {
       if (s.clubs[rc.id]) continue
       const club: Club = {
@@ -559,7 +569,7 @@ export function migrate(s: GameState): GameState {
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
         boardConfidence: 70,
         captain: null,
-        coach: regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s)),
+        coach: regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s), staffGender(rng, genderOf(s))),
       }
       for (const rp of rc.players) {
         const p = buildPlayer(rp, club.id, (0xadd1e ^ hashString(rc.id)) + club.players.length * 13, s.season)
@@ -601,7 +611,7 @@ export function migrate(s: GameState): GameState {
         const pos = [...FILL].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
         const p = buildPlayer(
           {
-            name: regenName(rng, club.country, worldNames(s)), pos, age: 21 + Math.floor(rng() * 9),
+            name: regenName(rng, club.country, worldNames(s), genderOf(s)), pos, age: 21 + Math.floor(rng() * 9),
             nat: club.country, q: Math.max(42, club.rep - 16 + Math.floor(rng() * 10)),
             gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3,
           },

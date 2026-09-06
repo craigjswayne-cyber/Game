@@ -1170,6 +1170,13 @@ export interface ManagerStats {
 
 export interface GameState {
   seed: number
+  /** Which game this career is in: the men's world or the women's.
+   *
+   *  A save holds ONE world and a world has one gender - see src/game/gender.ts
+   *  for why that is a property of the save rather than a filter in the engine.
+   *  Absent on every career started before v1.5, which is why nothing reads this
+   *  field directly: genderOf(state) supplies 'm' for them. */
+  gender?: import('./gender').Gender
   saveName: string
   season: number // 0 = 2025-26
   week: number   // 1..46

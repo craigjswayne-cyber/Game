@@ -11,6 +11,8 @@
   "language": "IDIOMA",
   "loadCareer": "Cargar carrera",
   "newCareer": "Nueva carrera",
+  "newCareerWomen": "Juego femenino",
+  "newCareerHint": "El juego masculino y el femenino son carreras independientes.",
   "savedAt": "{season}, semana {week}",
   "tagline": "HISTORIAS, TEMPORADAS Y TÍTULOS",
   "importHintTitle": "¿Vienes de la versión anterior?",

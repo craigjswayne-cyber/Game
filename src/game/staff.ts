@@ -2,6 +2,7 @@
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
 import { STAFF_INFO, fmtMoney, fmtWage, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
+import { genderOf, staffGender } from './gender'
 import { t, tIn, type Vars } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
@@ -147,7 +148,7 @@ export function staffCandidates(state: GameState, role: StaffRole): StaffCandida
     const fee = Math.round((wage * (8 + tier * 6)) / 1000) * 1000
     const wants = tier === 3 ? 74 + Math.floor(rng() * 8) : tier === 2 ? 60 + Math.floor(rng() * 8) : 0
     out.push({
-      name: regenName(rng, nat),
+      name: regenName(rng, nat, undefined, staffGender(rng, genderOf(state))),
       nat, age: 32 + Math.floor(rng() * 26), tier, wage, fee, wants,
       trait: TRAITS[Math.floor(rng() * TRAITS.length)],
     })
@@ -480,7 +481,7 @@ export function seedStaffPeople(state: GameState) {
     const rng = mulberry32((state.seed ^ roleHash(key) ^ 0x5f3a) >>> 0)
     const nat = NATS[Math.floor(rng() * NATS.length)]
     state.staffPeople[key] = {
-      name: regenName(rng, nat), nat, age: 36 + Math.floor(rng() * 20), tier: lvl,
+      name: regenName(rng, nat, undefined, staffGender(rng, genderOf(state))), nat, age: 36 + Math.floor(rng() * 20), tier: lvl,
       wage: lvl * STAFF_INFO[key].wage, trait: TRAITS[Math.floor(rng() * TRAITS.length)],
       since: state.season, course: null,
     }
