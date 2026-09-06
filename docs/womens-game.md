@@ -149,6 +149,12 @@ incomplete old one, and the two worlds never meet, so nothing compares them.
 
 ## 7. What is built, and what is not
 
+**Where the players come from.** 1,105 of the 1,184 in the women's leagues are
+real, from sources the owner supplied: a PWR spreadsheet (375), Aupiki and Super
+W screenshots (279), an FFR workbook plus three club pages (261 of 342), and the
+Celtic Challenge team pages (185). The 79 that are not are Élite 1 top-ups
+where a real squad falls short of 32.
+
 **Both games run 2026-27.** `BASE_YEAR` in `model.ts` is the one constant, moved
 from 2025 at the owner's request ("both should run 26/27"). The two cycles that
 had to keep landing on their real years still do, because both are computed from
@@ -169,11 +175,10 @@ career. A pre-v1.5 save keeps its season number and gains a year on its label.
   screenshots. Eight players contracted in PWR are dropped from it, because a
   southern professional really does play both winters and a game season is not
   two hemispheres'
-- `src/data/leagues/w_celt.ts` — the Celtic Challenge, six clubs, the league
-  that makes Ireland, Scotland and Wales real sides in the Championship rather
-  than three squads of generated players. Its own squads are generated, because
-  celticrugbycomp.com is blocked like every other source; that is the next thing
-  a squad list should fix
+- `src/data/leagues/w_celt.ts` — the Celtic Challenge, six clubs and 185 real
+  players from the competition's own team pages. The league that makes Ireland,
+  Scotland and Wales real sides in the Championship: six of the seven missing
+  Ireland internationals are in its two Irish squads
 - `src/game/schedule.ts` — `buildWomensInternationals`: the Women's Six Nations
   and the Pacific Four Series, in the women's windows rather than the men's
 - `src/data/leagues/w_e1.ts` — the French Élite 1, ten clubs of the 2026/27
@@ -191,8 +196,8 @@ career. A pre-v1.5 save keeps its season number and gains a year on its label.
    is a data pass with no code behind it — but only one of its ten clubs has any
    players in the workbook, so nine would be invented. Worth doing when there is
    a squad list, and worth leaving until then.
-2. **Real players for the three PWR-sized gaps**: Bobigny, Montpellier and Stade
-   Rochelais have no rows in the workbook at all.
+2. **The last 79 invented players**, all Élite 1 top-ups where a club's real
+   squad is short of 32. No French club is invented outright any more.
 3. **The paid gate on the international game.** The Test competitions are built
    and played; the purchase that gates coaching a national side is not. It fits
    the existing `NC_SKUS` non-consumable pattern in `monetise.ts` cleanly.
