@@ -3234,6 +3234,8 @@
   "storeBtn": "Open the Store"
  },
  "news": {
+   "maternitySubj": "{player} is expecting",
+   "maternity": "{player} has told the club she is pregnant and will begin maternity leave. Her contract is frozen for the duration and her place on the roster is hers on return. The medical team expect roughly {n} weeks before she is back in full training.",
   "appointSubj": "Welcome to {club}",
   "appoint": "The board of {club} is delighted to confirm the appointment of {manager} as the club's new Director of Rugby. Expectations at {stadium} are {expect_k}. Your transfer budget this season is {money}.",
   "appointChallengeSubj": "THE CHALLENGE: {title_k}",

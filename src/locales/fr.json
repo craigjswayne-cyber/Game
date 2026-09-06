@@ -3234,6 +3234,8 @@
     "storeBtn": "Ouvrir la Boutique"
   },
   "news": {
+    "maternitySubj": "{player} attend un enfant",
+    "maternity": "{player} a informé le club de sa grossesse et débute son congé maternité. Son contrat est gelé pendant toute la durée et sa place dans l'effectif lui reste acquise à son retour. Le staff médical prévoit environ {n} semaines avant un retour à l'entraînement complet.",
     "appointSubj": "Bienvenue à {club}",
     "appoint": "Le conseil d'administration de {club} est heureux de confirmer la nomination de {manager} au poste de directeur du rugby. Les attentes à {stadium} sont {expect_k}. Votre budget de transfert cette saison est de {money}.",
     "appointChallengeSubj": "LE DÉFI : {title_k}",

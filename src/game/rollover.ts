@@ -1672,6 +1672,20 @@ export function rebuildSeason(state: GameState) {
   ageManager(state)
 
   // wipe season structures & rebuild
+  // ---- THE CONTRACT CLOCK STOPS WHILE SHE IS AWAY ----
+  //
+  // The owner's spec: maternity leave should "freeze contract duration clocks,
+  // preserve roster rights without taking up an active playing squad slot".
+  // contractEnds is an absolute season index, so a season rolling over while a
+  // player is on leave would spend a year of her deal on a year she did not
+  // play. Pushing it out by one is the freeze.
+  //
+  // Done here, before the increment, so it reads in the same units as every
+  // other contractEnds in the file.
+  for (const p of Object.values(state.players)) {
+    if (p.maternity) p.contractEnds += 1
+  }
+
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
   // is told, because an empty commercial slot pays nothing and that has to be a

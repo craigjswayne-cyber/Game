@@ -3234,6 +3234,8 @@
   "storeBtn": "ストアを開く"
  },
  "news": {
+   "maternitySubj": "{player}が産休に入ります",
+   "maternity": "{player}が妊娠をクラブに報告し、産休に入ります。期間中は契約が凍結され、復帰後もロースターの座は保持されます。メディカルスタッフは完全な練習復帰までおよそ{n}週間と見込んでいます。",
   "appointSubj": "ようこそ{club}へ",
   "appoint": "{club}の経営陣は、{manager}のクラブ新ディレクター・オブ・ラグビー就任を喜びをもって発表する。{stadium}の期待値は{expect_k}。今季の移籍予算は{money}だ。",
   "appointChallengeSubj": "ザ・チャレンジ:{title_k}",

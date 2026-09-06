@@ -1,4 +1,5 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
+import { genderOf, type Gender } from './gender'
 import { difficultyOf } from './difficulty'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
@@ -57,7 +58,7 @@ export function rollWeather(week: number, rng: Rng): Weather {
 export function availablePlayers(state: GameState, ids: number[], forNation = false): Player[] {
   return ids
     .map(id => state.players[id])
-    .filter(p => p && !p.injury && !p.onLoan && p.bans === 0 && (forNation || !p.natSquad))
+    .filter(p => p && !p.injury && !p.maternity && !p.onLoan && p.bans === 0 && (forNation || !p.natSquad))
 }
 
 /** The assistant's eye when he names the side for you.
@@ -215,7 +216,7 @@ export function repairSheet(
 ): (number | null)[] {
   const canPlay = (id: number) => {
     const p = state.players[id]
-    return !!p && !p.injury && !p.onLoan && p.bans === 0 && !p.natSquad && p.clubId === club.id
+    return !!p && !p.injury && !p.maternity && !p.onLoan && p.bans === 0 && !p.natSquad && p.clubId === club.id
   }
   const out: (number | null)[] = new Array(23).fill(null)
   const used = new Set<number>()
@@ -565,6 +566,60 @@ const INJURIES = [
   ['injury.kneeLigament', 6, 16], ['injury.brokenHand', 4, 6], ['injury.calf', 2, 4],
   ['injury.groin', 2, 5], ['injury.bicep', 8, 14], ['injury.achilles', 16, 30],
 ] as const
+
+/**
+ * ---- WHAT GOES WRONG IS NOT THE SAME IN BOTH GAMES ----
+ *
+ * Owner, 6 Sep 2026: female players carry a "statistically higher weighting for
+ * non-contact ACL/knee injuries and distinct concussion tracking", male players
+ * for upper-body and shoulder damage. That is the sports-medicine literature's
+ * clearest and least disputed finding about the two games, and a manager who
+ * follows women's rugby knows it: the knee is the injury that defines a career.
+ *
+ * THE MEN'S ROW IS ALL ONES AND MUST STAY THAT WAY. A uniform weight makes the
+ * weighted pick below return exactly the index `Math.floor(rng() * 12)` did, so
+ * a men's career injures exactly the men it always would have, in the same
+ * order, off the same rng stream. That is not a nicety - the match rng is
+ * shared, so shifting one draw would move every scoreline after it in every
+ * save in progress. The spec's men's row is satisfied RELATIVELY: men are
+ * comparatively higher on shoulder because women are so much higher on knee.
+ *
+ * The women's row is the whole change. The knee is three times its flat share,
+ * concussion close to double, and the injuries the literature puts on the men's
+ * side - shoulder, bicep - are damped.
+ */
+const INJURY_WEIGHT: Record<Gender, readonly number[]> = {
+  //     ribs dead ankl hams conc shou KNEE hand calf groi bice achi
+  m: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  w: [1, 1, 1.2, 1.2, 1.8, 0.6, 3, 0.8, 1, 0.9, 0.5, 1],
+}
+
+/**
+ * A longer road back from a head injury in the women's game.
+ *
+ * The owner asked for "distinct concussion tracking/recovery protocols" rather
+ * than only a different chance of getting one. This is the modest version of
+ * that: the same complaint, a wider return-to-play band. Two to five weeks
+ * instead of two to three, so a bad one costs most of a block of fixtures.
+ */
+const CONCUSSION_W: readonly [number, number] = [2, 5]
+
+/** One rng draw, exactly as the flat pick took, so a uniform row is unchanged. */
+function pickInjury(rng: Rng, g: Gender): readonly [string, number, number] {
+  const w = INJURY_WEIGHT[g]
+  let total = 0
+  for (const x of w) total += x
+  let r = rng() * total
+  for (let i = 0; i < INJURIES.length; i++) {
+    r -= w[i]
+    if (r < 0) {
+      const [dk, lo, hi] = INJURIES[i]
+      if (g === 'w' && dk === 'injury.concussion') return [dk, CONCUSSION_W[0], CONCUSSION_W[1]]
+      return [dk, lo, hi]
+    }
+  }
+  return INJURIES[INJURIES.length - 1]
+}
 
 /** In-match multipliers that must outlive a unit recompute. */
 export interface SideMods {
@@ -2494,7 +2549,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           return rustF * tiredF * loadF
         })
         const p = wpick(rng, ps, w)
-        const [dk, lo, hi] = INJURIES[Math.floor(rng() * INJURIES.length)]
+        const [dk, lo, hi] = pickInjury(rng, genderOf(state))
         let weeks = lo + Math.floor(rng() * (hi - lo + 1))
         if (weeks <= 1 && (p.rust ?? 0) === 0 && rng() < 0.55) {
           // a knock, not a casualty: he plays on with heavy legs
