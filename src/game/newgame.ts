@@ -20,6 +20,8 @@ import { W_PWR } from '../data/leagues/w_pwr'
 import { W_PAC } from '../data/leagues/w_pac'
 import { W_E1 } from '../data/leagues/w_e1'
 import { W_CELT } from '../data/leagues/w_celt'
+import { W_E2 } from '../data/leagues/w_e2'
+import { W_CHAMP } from '../data/leagues/w_champ'
 import { W, type Gender, staffGender } from './gender'
 import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
@@ -121,6 +123,11 @@ const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
   // Six clubs, so a double round robin is ten rounds and the season would be
   // over by Christmas. Played three times, as the real one is.
   { id: W + 'celt', name: 'Celtic Challenge', short: 'Celtic', double: true, playoffTeams: 2, clubs: W_CELT },
+  // Championship North 1 and South 1 as one table, at the owner's request.
+  // Twenty clubs play each other once: nineteen rounds fits the season where a
+  // double round robin at thirty-eight plainly would not.
+  { id: W + 'champ', name: 'English Championship', short: 'Championship', double: false, playoffTeams: 4, clubs: W_CHAMP },
+  { id: W + 'e2', name: 'French Elite 2', short: 'Elite 2', double: true, playoffTeams: 4, clubs: W_E2 },
 ]
 
 const M_LEAGUE_DEFS: () => LeagueDef[] = () => [

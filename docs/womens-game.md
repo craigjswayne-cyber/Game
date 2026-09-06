@@ -149,11 +149,26 @@ incomplete old one, and the two worlds never meet, so nothing compares them.
 
 ## 7. What is built, and what is not
 
-**Where the players come from.** 1,105 of the 1,184 in the women's leagues are
-real, from sources the owner supplied: a PWR spreadsheet (375), Aupiki and Super
-W screenshots (279), an FFR workbook plus three club pages (261 of 342), and the
-Celtic Challenge team pages (185). The 79 that are not are Élite 1 top-ups
-where a real squad falls short of 32.
+**Where the players come from.** Six leagues, 64 clubs, 4,208 players at kick-off.
+
+| League | Players | Real | Source |
+|---|---|---|---|
+| PWR | 375 | 375 | owner's spreadsheet |
+| Pacific (Aupiki + Super W) | 279 | 279 | owner's screenshots |
+| Celtic Challenge | 185 | 185 | competition team pages |
+| Élite 1 | 342 | 261 | FFR workbook + three club pages |
+| Élite 2 | 300 | 19 | FFR workbook (one club of ten) |
+| English Championship | 600 | 0 | no list exists that is reachable |
+
+The two second tiers are where the invented players now live: 881 of the 979.
+That is the honest state of the sources rather than a shortcut, and both files
+say so at the top. They are built the way `champ.ts` and `natl1.ts` build the
+men's lower tiers - real clubs, real towns, squads of nobody in particular.
+
+**Measured with both tiers in:** a fresh women's save is 3.34MB and a ten-season
+one 5.37MB, against perfprobe's 12MB ceiling, and a week costs 24ms against the
+men's 48.7ms. The small-world risk noted below is now the opposite risk, and
+neither has bitten.
 
 **Both games run 2026-27.** `BASE_YEAR` in `model.ts` is the one constant, moved
 from 2025 at the owner's request ("both should run 26/27"). The two cycles that
