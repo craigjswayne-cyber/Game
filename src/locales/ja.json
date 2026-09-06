@@ -12,7 +12,7 @@
   "loadCareer": "キャリアをロード",
   "newCareer": "新しいキャリア",
   "newCareerWomen": "女子の大会",
-  "newCareerHint": "男子と女子は別々のキャリアです。",
+  "newCareerHint": "別々の大会、別々のキャリア。",
   "savedAt": "{season}・第{week}週",
   "tagline": "物語、シーズン、そして栄冠",
   "importHintTitle": "旧バージョンからの引き継ぎですか？",

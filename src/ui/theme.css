@@ -2799,13 +2799,19 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    labels are half again as long as the English, which is the usual way a
    two-across menu breaks in a game that ships in five languages. Stacked, every
    label has the full width whatever it says. */
-.new-career-pick { display: flex; flex-direction: column; gap: 8px; }
+.new-career-pick { display: flex; flex-direction: column; gap: 6px; }
+/* The hint is one line, and it has to STAY one line in all five languages.
+   langprobe holds the language picker above the fold on a 360x640 phone, and
+   adding the second button plus a two-line hint put it at 651px of 640 - the
+   menu is the one screen with no scroll to give. At 11.5px the longest of the
+   five ("Juegos separados, carreras separadas.") fits 348px with room to
+   spare; a longer sentence here wraps and costs the fold again. */
 .new-career-hint {
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11.5px;
+  line-height: 1.3;
   text-align: center;
-  padding: 0 6px;
-  margin-top: 2px;
+  padding: 0 4px;
+  margin-top: 0;
 }
 .ct-line {
   font-size: 15.5px; letter-spacing: 0;
