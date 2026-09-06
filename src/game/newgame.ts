@@ -18,6 +18,7 @@ import { JL1 } from '../data/leagues/jl1'
 import { NATL1 } from '../data/leagues/natl1'
 import { W_PWR } from '../data/leagues/w_pwr'
 import { W_PAC } from '../data/leagues/w_pac'
+import { W_E1 } from '../data/leagues/w_e1'
 import { W, type Gender, staffGender } from './gender'
 import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
@@ -115,6 +116,7 @@ export const LEAGUE_DEFS: (g?: Gender) => LeagueDef[] = (g = 'm') =>
 const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: W + 'pwr', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
   { id: W + 'pac', name: 'Pacific Championship', short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
+  { id: W + 'e1', name: 'French Elite 1', short: 'Elite 1', double: true, playoffTeams: 6, clubs: W_E1 },
 ]
 
 const M_LEAGUE_DEFS: () => LeagueDef[] = () => [

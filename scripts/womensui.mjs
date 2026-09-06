@@ -65,6 +65,8 @@ try {
   // both women's competitions are offered, not just England
   ok(await page.locator('text=Pacific Championship').count() === 1,
     'the Pacific Championship is on the competition list too')
+  ok(await page.locator('text=French Elite 1').count() === 1,
+    'and France')
 
   await page.click('text=English Premier Division')
   await page.waitForSelector('.club-tile')

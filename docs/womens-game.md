@@ -169,23 +169,31 @@ career. A pre-v1.5 save keeps its season number and gains a year on its label.
   screenshots. Eight players contracted in PWR are dropped from it, because a
   southern professional really does play both winters and a game season is not
   two hemispheres'
+- `src/data/leagues/w_e1.ts` — the French Élite 1, ten clubs of the 2026/27
+  field, 193 of 345 players real from the owner's FFR workbook. Seven clubs have
+  squads in it and three do not, so those are topped up from the French name
+  pool exactly as `champ.ts` fills the English second tier
 - women's name pools for all 17 unions; 17 name-generation sites threaded
 - the men's cups and Test calendar guarded out of the women's world
 - the choice on the main menu, in all five languages
 
 **Not built yet, in the order I would do it:**
 
-1. **France (Élite 1)**. Needs a squad list the way PWR and the Pacific did:
-   search names only 10 of its 20 clubs and the pages are blocked, so it wants
-   the owner's sheet or screenshots rather than guesswork.
-2. **The women's international game, behind the paid option.** This is its own
+1. **Élite 2**, the French second tier. The owner's workbook already carries its
+   ten clubs for 2026/27 and the promotion and relegation between the two, so it
+   is a data pass with no code behind it — but only one of its ten clubs has any
+   players in the workbook, so nine would be invented. Worth doing when there is
+   a squad list, and worth leaving until then.
+2. **Real players for the three PWR-sized gaps**: Bobigny, Montpellier and Stade
+   Rochelais have no rows in the workbook at all.
+3. **The women's international game, behind the paid option.** This is its own
    piece of work because the calendar genuinely differs: the Women's Six Nations
    sits in a different window from the men's, WXV is not the Rugby Championship,
    and the World Cup is on its own cycle. It needs `AUTUMN_WEEKS`,
    `SIX_NATIONS_WEEKS` and the rest to become per-gender. The SKU fits the
    existing `NC_SKUS` non-consumable pattern in `monetise.ts` cleanly.
-3. **The cross-gender move** (§2).
-4. **A European women's club cup**, once there are two leagues to feed it.
+4. **The cross-gender move** (§2).
+5. **A European women's club cup**, now that England and France are both in.
 
 ## 8. Risks
 
