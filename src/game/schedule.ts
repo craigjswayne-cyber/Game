@@ -468,7 +468,7 @@ export const snWeeksFor = (g: Gender) => (g === 'w' ? W_SIX_NATIONS_WEEKS : SIX_
 export function buildWomensInternationals(rng: Rng, state: GameState) {
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snComp: Competition = {
-    id: W + 'sn', name: 'Northern Championship', short: 'Northern', type: 'intl',
+    id: W + 'sn', name: "Women's Northern Championship", short: 'Northern', type: 'intl',
     teamIds: sn, table: sn.map(emptyRow), rounds: 5, playoffTeams: 0,
     weeksByRound: W_SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
   }

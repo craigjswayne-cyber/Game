@@ -85,9 +85,15 @@ done
 
 if [ "$MODE" != fast ]; then
   echo
-  echo "=== build, then the browser ==="
+  # ipprobe joins the browser list because it needs the BUILD, not a browser: it
+# scans dist/ for real-world marks. It was in the CI workflow and in no local
+# run at all, so ./scripts/suite.sh could say SUITE PASSED on a tree that the
+# Gate then failed in forty-five seconds - which is exactly what happened when
+# a women's club shipped Glasgow's real ground name. A local suite that does
+# not run what CI runs is not a gate, it is a rehearsal.
+echo "=== build, then the browser ==="
   run build npm run build
-  for n in e2e e2enight resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui; do
+  for n in e2e e2enight resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui ipprobe; do
     [ -f "scripts/$n.mjs" ] || continue
     run "$n" timeout 1200 node "scripts/$n.mjs"
   done

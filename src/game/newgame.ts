@@ -112,22 +112,34 @@ export const LEAGUE_DEFS: (g?: Gender) => LeagueDef[] = (g = 'm') =>
 
 /** The women's game: England, and the southern hemisphere.
  *
+ *  NAMED EXPLICITLY, never as the default. The owner's rule: "Never treat men's
+ *  competitions as the default baseline. Always use explicit identifiers for
+ *  both." These carried the men's names verbatim - a women's career played in
+ *  something called simply the English Premier Division - which reads as though
+ *  the men's game is the real one and this is a variant of it. The men's names
+ *  are untouched: fifty-two browser harnesses select on them, and they are
+ *  already explicit by being the only ones in their world.
+ *
+ *  The Celtic Challenge and the Pacific Four Series keep their plain names
+ *  because they ARE the competition - neither has a men's counterpart to be
+ *  confused with.
+ *
  *  The Pacific competition is Super Rugby Aupiki and Super W in one table, the
  *  way the men's Pacific Championship already puts New Zealand, Australia and
  *  Fiji in one - the owner asked for "Aus & Nz" together. Nine clubs each, so
  *  neither league is thinner than the other. */
 const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
-  { id: W + 'pwr', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
-  { id: W + 'pac', name: 'Pacific Championship', short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
-  { id: W + 'e1', name: 'French Elite 1', short: 'Elite 1', double: true, playoffTeams: 6, clubs: W_E1 },
+  { id: W + 'pwr', name: "Women's Premier Division", short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
+  { id: W + 'pac', name: "Women's Pacific Championship", short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
+  { id: W + 'e1', name: "Women's Elite 1", short: 'Elite 1', double: true, playoffTeams: 6, clubs: W_E1 },
   // Six clubs, so a double round robin is ten rounds and the season would be
   // over by Christmas. Played three times, as the real one is.
   { id: W + 'celt', name: 'Celtic Challenge', short: 'Celtic', double: true, playoffTeams: 2, clubs: W_CELT },
   // Championship North 1 and South 1 as one table, at the owner's request.
   // Twenty clubs play each other once: nineteen rounds fits the season where a
   // double round robin at thirty-eight plainly would not.
-  { id: W + 'champ', name: 'English Championship', short: 'Championship', double: false, playoffTeams: 4, clubs: W_CHAMP },
-  { id: W + 'e2', name: 'French Elite 2', short: 'Elite 2', double: true, playoffTeams: 4, clubs: W_E2 },
+  { id: W + 'champ', name: "Women's Championship", short: 'Championship', double: false, playoffTeams: 4, clubs: W_CHAMP },
+  { id: W + 'e2', name: "Women's Elite 2", short: 'Elite 2', double: true, playoffTeams: 4, clubs: W_E2 },
 ]
 
 const M_LEAGUE_DEFS: () => LeagueDef[] = () => [

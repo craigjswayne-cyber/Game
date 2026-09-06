@@ -32,7 +32,10 @@
  *
  * Club and ground names follow docs/ip-rename-map.md. Edinburgh and Glasgow are
  * the same franchises as in the men's database and keep the same renames, so
- * they read identically in both games. The other four are named for the region
+ * they read identically in both games - including Glasgow's ground, which the
+ * rename map still lists as "keep" but which the men's data long ago changed to
+ * Scotsworth: scripts/ipprobe.mjs bans the real name outright, and the map is
+ * the stale one of the two. The other four are named for the region
  * they represent, because Brython, Gwalia, Clovers and Wolfhounds are not
  * places - and Brython's ground is Llanelli's, which the men's map already
  * renames to Stradley Park.
@@ -246,7 +249,7 @@ export const W_CELT: RawClub[] = [
   {
     id: W + 'glasgow', name: 'Glasgow RFC', short: 'Glasgow',
     city: 'Glasgow', country: 'SCO',
-    stadium: 'Scotstoun Stadium', capacity: 4000,
+    stadium: 'Scotsworth Stadium', capacity: 4000,
     colors: ['#12295c', '#c8102e'],
     rep: 64, budget: 132000,
     // 33 players, all real
