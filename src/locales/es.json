@@ -1248,6 +1248,8 @@
   "withoutTheBallSub": "cómo defiende la línea cuando lo tienen ellos",
   "planSet": "Fijado: {dials}",
   "planSave": "Guardar como plan {n}",
+  "planPro": "Tres planes más con Pro",
+  "planProTitle": "Pro Manager te da seis planes guardados en vez de tres: uno para los días de lluvia, otro para un paquete más grande, otro para los últimos diez minutos.",
   "planSaveTitle": "Guardar lo que hay ahora en los mandos: los cuatro controles, la pareja defensiva, las jugadas de touche y melé, el orden de pateadores y la salida.",
   "planLoad": "Plan {n}",
   "planOverTitle": "Sobrescribir el plan {n} con los mandos actuales"
@@ -5784,7 +5786,7 @@
   "bought": "Tuyo. Va ligado a tu cuenta de la tienda: Restaurar lo recupera en un móvil nuevo.",
   "needCareer": "Abre primero una carrera: el retiro necesita una plantilla a la que visitar.",
   "removeAds": "Pro Manager",
-  "removeAdsLine": "Sin anuncios, nunca. Las tres apariencias que solo tienen los Pro. En el rugby no cambia nada.",
+  "removeAdsLine": "Sin anuncios, nunca. Tres apariencias que solo tienen los Pro, y seis planes de juego guardados en vez de tres. En el rugby no cambia nada.",
   "heal": "Plena forma",
   "healLine": "Todas las lesiones curadas, la plantilla entera fresca. Una vez por partido jugado.",
   "healDone": "Hecho: la plantilla al completo se declara en forma.",

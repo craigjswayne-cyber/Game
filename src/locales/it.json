@@ -1248,6 +1248,8 @@
   "withoutTheBallSub": "come difende la linea quando ce l'hanno loro",
   "planSet": "Impostato: {dials}",
   "planSave": "Salva come piano {n}",
+  "planPro": "Tre piani in più con Pro",
+  "planProTitle": "Pro Manager ti dà sei piani salvati invece di tre: uno per le giornate di pioggia, uno per un pacchetto più pesante, uno per gli ultimi dieci minuti.",
   "planSaveTitle": "Conserva quello che c’è ora sui comandi: i quattro cursori, la coppia difensiva, le chiamate di touche e mischia, l’ordine dei calciatori e l’uscita.",
   "planLoad": "Piano {n}",
   "planOverTitle": "Sovrascrivi il piano {n} con i comandi attuali"
@@ -5784,7 +5786,7 @@
   "bought": "Tuo. Segue il tuo account dello store: Ripristina lo riporta su un telefono nuovo.",
   "needCareer": "Apri prima una carriera: il ritiro ha bisogno di una squadra da visitare.",
   "removeAds": "Pro Manager",
-  "removeAdsLine": "Nessuna pubblicità, mai. I tre temi che hanno solo i Pro. Del rugby non cambia nulla.",
+  "removeAdsLine": "Nessuna pubblicità, mai. Tre temi che hanno solo i Pro, e sei piani di gioco salvati invece di tre. Del rugby non cambia nulla.",
   "heal": "Piena forma",
   "healLine": "Ogni infortunio guarito, tutta la rosa fresca. Una volta per partita giocata.",
   "healDone": "Fatto: tutta la rosa è abile e arruolata.",

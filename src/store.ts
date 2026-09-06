@@ -29,14 +29,31 @@ function readSkin(): Skin {
  *  the green one until the receipt turns up. Downgrading the saved value
  *  would turn a slow network into a lost preference. */
 export const FREE_SKIN: Skin = 'default'
-/** Locked only where there is somewhere to buy it. The website has no store
+
+/** IS A PRO MANAGER PERK OUT OF REACH RIGHT NOW?
+ *
+ *  Locked only where there is somewhere to buy it. The website has no store
  *  and no adverts, so there is nothing to sell and nothing to remove: taking
- *  the palettes away there would be a feature deleted for no gain, and a
- *  locked card whose only door leads to a shop that is shut. tillOpen() is
- *  the same question the Store shelves already ask. */
-export function skinLocked(s: Skin): boolean {
-  return s !== FREE_SKIN && tillOpen() && !hasSupporter()
-}
+ *  a perk away there would be a feature deleted for no gain, and a locked
+ *  card whose only door leads onto a shop that is shut. tillOpen() is the
+ *  same question the Store shelves already ask.
+ *
+ *  Every Pro perk asks this one function, so there is one answer to keep
+ *  right rather than one per perk. */
+export function proLocked(): boolean { return tillOpen() && !hasSupporter() }
+
+export function skinLocked(s: Skin): boolean { return s !== FREE_SKIN && proLocked() }
+
+/** SAVED GAME PLANS. Three is what everyone has always had and still has;
+ *  Pro Manager doubles it. Six is the number a manager who runs a plan for
+ *  wet days, a plan for a bigger pack and a plan for the last ten minutes
+ *  actually reaches - and that manager is the one most likely to pay.
+ *
+ *  A plan saved in a Pro slot is never deleted, only hidden, the same way a
+ *  chosen skin survives an entitlement that has not restored yet. */
+export const FREE_PLANS = 3
+export const PRO_PLANS = 6
+export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
 import { getLang, initLang, onLangChange, setLang as applyLang, t, type Lang } from './game/i18n'

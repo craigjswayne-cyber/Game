@@ -131,7 +131,11 @@
     return ad
   }
 
-  var REWARDED_CAP = 6         // spots per real day, the plan's ceiling
+  // Spots per real day. Raised from 6 on 6 Sep: the four placements each hold
+  // their own limits inside the game, so this ceiling only ever bites a player
+  // rattling through weeks in one sitting - and that player is volunteering
+  // the money. Six stopped them short of where they would have stopped.
+  var REWARDED_CAP = 10
   var SHOW_TIMEOUT_MS = 300000 // a spot that neither rewards nor closes in five minutes is over
 
   // ---- room at the bottom -------------------------------------------------

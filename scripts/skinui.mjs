@@ -46,6 +46,19 @@ const start = async (page) => {
   await page.click('.tut-close .btn')
   await page.waitForSelector('.bottom-nav')
 }
+/** The club menu's Tactics page, where the saved game plans live. */
+const openTactics = async (page) => {
+  // the group buttons carry a marker: hub is the first, manager the second
+  await page.locator('.bottom-nav button', { hasText: '\u25b8' }).nth(0).click()
+  await page.waitForSelector('.submenu')
+  await page.waitForTimeout(300)
+  await page.locator('.submenu-item', { hasText: 'Tactics' }).click()
+  await page.waitForSelector('.tab-bar')
+  // the saved plans live on the Plan tab, not the one the screen opens on
+  await page.locator('.tab-bar button', { hasText: 'Plan' }).click()
+  await page.waitForSelector('.plan-slots')
+}
+
 const openSettings = async (page) => {
   await page.locator('.bottom-nav button', { hasText: '\u25b8' }).nth(1).click()
   await page.waitForSelector('.submenu')
@@ -204,6 +217,13 @@ try {
   ok(/Floodlights/i.test(await page.locator('.content').innerText()),
      'and the floodlight switch is there, as it is on every skin now')
 
+  // ---- 5b. the other Pro perk: six saved game plans, not three ----
+  say('\n--- 5b. a Pro manager gets six saved game plans')
+  await openTactics(page)
+  ok((await page.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()) === 6,
+    `six plan slots for a Pro manager (${await page.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()})`)
+  ok(!/with Pro/i.test(await page.locator('.plan-slots').innerText()), 'and nothing is being sold to somebody who already bought it')
+
   ok(errs.length === 0, `no console errors${errs.length ? ': ' + errs[0] : ''}`)
   await page.close()
 
@@ -251,6 +271,16 @@ try {
       'tapping a locked one does not paint the app')
     ok(/Pro Manager/i.test(await free.locator('.content').innerText()),
       'it goes to the Store instead, which is where the answer is')
+    // and the same split on the game plans: three, plus one honest offer.
+    // The bottom bar is still there on the Store, so no need to leave first.
+    await openTactics(free)
+    const saveable = await free.locator('.plan-slots button.plan-empty, .plan-slots .plan-slot').count()
+    ok(saveable === 4, `three plans and one offer, not six (${saveable} chips)`)
+    ok(/with Pro/i.test(await free.locator('.plan-slots').innerText()), 'the fourth chip says what it is')
+    await free.locator('.plan-slots button', { hasText: 'Pro' }).click()
+    await free.waitForTimeout(400)
+    ok(/Pro Manager/i.test(await free.locator('.content').innerText()), 'and it goes to the Store, like the skins do')
+
     ok(ferrs.length === 0, `no console errors${ferrs.length ? ': ' + ferrs[0] : ''}`)
     await free.close()
   }
@@ -259,5 +289,5 @@ try {
   server.stop()
 }
 
-say(fails ? `\nSKIN UI FAILED (${fails})` : '\nSKIN UI PASSED: three Pro skins that wear, a free one that holds, and a locked card that sells')
+say(fails ? `\nSKIN UI FAILED (${fails})` : '\nPRO PERKS PASSED: three skins and three extra game plans that wear for Pro, hold for free, and sell honestly')
 process.exit(fails ? 1 : 0)

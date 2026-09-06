@@ -1248,6 +1248,8 @@
     "withoutTheBallSub": "comment la ligne défend quand ils l'ont",
     "planSet": "Réglé : {dials}",
     "planSave": "Enregistrer comme plan {n}",
+    "planPro": "Trois plans de plus avec Pro",
+    "planProTitle": "Pro Manager vous donne six plans enregistrés au lieu de trois : un pour les jours de pluie, un pour un pack plus lourd, un pour les dix dernières minutes.",
     "planSaveTitle": "Garder ce qui est sur les curseurs : les quatre réglages, la paire défensive, les annonces de touche et de mêlée, l’ordre des buteurs et la sortie de camp.",
     "planLoad": "Plan {n}",
     "planOverTitle": "Remplacer le plan {n} par les réglages actuels"
@@ -5784,7 +5786,7 @@
     "bought": "Acquis. Lié à votre compte de boutique - Restaurer le récupère sur un nouveau téléphone.",
     "needCareer": "Ouvrez d'abord une carrière - la retraite médicale a besoin d'un effectif à soigner.",
     "removeAds": "Pro Manager",
-    "removeAdsLine": "Plus aucune publicité, jamais. Les trois habillages réservés aux Pro. Rien ne change au rugby.",
+    "removeAdsLine": "Plus aucune publicité, jamais. Trois habillages réservés aux Pro, et six plans de jeu enregistrés au lieu de trois. Rien ne change au rugby.",
     "heal": "Pleine forme",
     "healLine": "Chaque blessure soignée, tout l'effectif frais. Une fois par match joué.",
     "healDone": "C'est fait : tout l'effectif est déclaré apte.",
