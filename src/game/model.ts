@@ -1883,9 +1883,34 @@ export const celebrationSub = (c: Cel): string => (c.sk ? t(c.sk, c.sv) : c.sub)
 export const monthName = (m: number): string => t(`date.mon${m}`)
 export const dayAbbr = (d: number): string => t(`date.day${d}`)
 
+/**
+ * The Saturday a season opens on, in UTC milliseconds.
+ *
+ * Every date the game prints is this plus a number of weeks, and the whole
+ * calendar rests on one promise made in days.ts: "week N's date IS its
+ * Saturday". That promise used to be a coincidence. The anchor was
+ * Date.UTC(year, 7, 16) flat, and 16 August is a Saturday in 2025 and in no
+ * other year this decade - Sunday in 2026, Monday in 2027, Wednesday in 2028 -
+ * so from season one onwards every weekday label was already sliding, and
+ * dayprobe never caught it because it only ever read season zero.
+ *
+ * Moving BASE_YEAR to 2026 for v1.5 dragged that latent drift onto season zero,
+ * where the probe finally saw it: "Monday reads as a Monday (Tue 11 Aug)".
+ *
+ * So the anchor is computed rather than assumed: mid-August, then back to the
+ * Saturday on or before it. 2025 is unchanged, which is the point - a men's
+ * career started before v1.5 keeps the exact dates it has always printed - and
+ * every other season is now right instead of accidentally wrong.
+ */
+export function seasonStart(season: number): number {
+  const mid = Date.UTC(BASE_YEAR + season, 7, 16)
+  // getUTCDay: 0 Sun .. 6 Sat. Saturday needs no step back, Sunday one, and so on.
+  const back = (new Date(mid).getUTCDay() + 1) % 7
+  return mid - back * 86400000
+}
+
 export function weekDate(season: number, week: number): string {
-  const start = Date.UTC(BASE_YEAR + season, 7, 16) // season opens mid-August with pre-season
-  const d = new Date(start + (week - 1) * 7 * 86400000)
+  const d = new Date(seasonStart(season) + (week - 1) * 7 * 86400000)
   return `${d.getUTCDate()} ${monthName(d.getUTCMonth())} ${d.getUTCFullYear()}`
 }
 
@@ -1905,7 +1930,7 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
  *  dayOff overrides the per-fixture hash for competitions that always play the
  *  same day - the A League is every Friday, the night before the first team. */
 export function fixtureDate(season: number, week: number, fxId: number, dayOff?: -1 | 0 | 1): string {
-  const start = Date.UTC(BASE_YEAR + season, 7, 16) // season opens mid-August with pre-season
+  const start = seasonStart(season) // the season's opening Saturday
   const d = new Date(start + ((week - 1) * 7 + (dayOff ?? fixtureDayOff(fxId))) * 86400000)
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }

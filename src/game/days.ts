@@ -1,5 +1,5 @@
 import type { GameState, NewsItem } from './model'
-import { BASE_YEAR, dayAbbr, fixtureDayOff, injuryDesc, monthName, weekDate } from './model'
+import { seasonStart, BASE_YEAR, dayAbbr, fixtureDayOff, injuryDesc, monthName, weekDate } from './model'
 import { userMatchThisWeek } from './season'
 import { t } from './i18n'
 
@@ -87,7 +87,7 @@ export function today(state: GameState): DayIndex {
  *  Week N's date IS its Saturday (weekDate documents the anchor), so Monday is
  *  five days back from it. */
 export function dayDate(season: number, week: number, day: DayIndex): string {
-  const start = Date.UTC(BASE_YEAR + season, 7, 16)
+  const start = seasonStart(season)
   const d = new Date(start + ((week - 1) * 7 + (day - MATCH_DAY)) * 86400000)
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
@@ -118,7 +118,7 @@ export const RECALL_DAYS = 5
  *  Built on the same calendar weekDate prints, so the arithmetic agrees with the
  *  dates on screen and crossing a season boundary needs no special case. */
 export function absDay(season: number, week: number, day: DayIndex = MATCH_DAY): number {
-  const start = Date.UTC(BASE_YEAR + season, 7, 16)
+  const start = seasonStart(season)
   return Math.round((start + ((week - 1) * 7 + (day - MATCH_DAY)) * 86400000) / 86400000)
 }
 
