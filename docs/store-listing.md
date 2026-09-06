@@ -54,50 +54,69 @@ that remembers what you did in season one when you get to season fifteen.
 
 You take a job, you name a team, and you find out how far you can take it.
 
-THE SEASON
-• Eight competitions and over a hundred clubs, from the English top flight to
-  Japan, with second tiers, cups, playoffs and promotion underneath them.
-• Full league seasons with bonus points, knockout cups drawn in front of you,
-  and an international calendar that takes your best players away at the worst
-  possible moment - and hands an academy kid his chance.
-• Season after season, for as long as you last. Players age, decline, retire and
-  are replaced by men you brought through yourself.
+THE WORLD
+• Over a hundred clubs across eight competitions, from the English top flight to
+  Japan, with second tiers, a continental cup, playoffs and promotion underneath
+  them.
+• Bonus points, knockout draws made in front of you, and an international window
+  that takes your best players at the worst moment - and hands an academy kid
+  his chance.
+• Rival clubs run their own books, sign their own players and sack their own
+  managers. The table you climb is one others are climbing too.
 
 THE WEEK
 • A week that arrives at the pace a week arrives: Monday's fallout and the
   treatment room, Tuesday's press, midweek business, Thursday's squad, Friday's
-  opposition - then Saturday.
-• Transfers with agents who haggle, contracts that run down, loans, a scouting
-  network, an academy and a backroom staff who are good at some things and not
-  others.
-• A board that has an opinion about you, a press pack that quotes you, and a
-  town that keeps the score of a derby longer than the league table does.
+  opposition report - then Saturday.
+• Transfers with agents who haggle, contracts that run down, loans negotiated on
+  length and wage share, a scouting network you commission, an academy, and
+  backroom staff who are good at some things and not others.
+• A board with an opinion about you, a press pack that quotes you, sponsors to
+  keep sweet, facilities to build, and a town that keeps the score of a derby
+  longer than the table does.
+• Run out of money and it bites: wage bills, debt, a board that stops asking
+  nicely.
+
+THE SQUAD
+• Every player has form you can read - his last ten ratings - an injury history,
+  a temperament and a consistency the game never shows as a number. You learn
+  who is who by watching a season.
+• Partnerships that click, mentors who bring kids on, development focus you set
+  yourself, and a depth chart that tells you where one injury would hurt.
 
 THE MATCH
 • Live text commentary with a pitch view: tries, cards, injuries, the lot, at
   three speeds - or hand it to your assistant and read the report.
 • Touchline decisions that are yours: the kick at goal or the corner, the
-  half-time talk, when to empty the bench and who onto which shirt.
-• A coach's verdict afterwards that names two things to fix, and marks them next
-  week to see whether you did.
+  half-time talk, the counter-plan when they change shape, when to empty the
+  bench and who onto which shirt.
+• Saved tactical setups you name yourself, and a coach's verdict that picks two
+  things to fix and marks them next week to see whether you did.
+
+THE CAREER
+• A reputation that follows you, a CV that other clubs read, and a job market
+  that decides whether you are worth an interview.
+• A long-term ambition you choose, a ledger of every decision you made, grudges
+  that outlast the men who started them, and a legacy written at the end.
+• Three difficulty settings, chosen once, at the start.
 
 NEW TO RUGBY?
 • The Manager's Handbook explains every number in the game AND every word of the
-  sport, in plain language, with a search box. Lineout, jackal, the 22, why you
-  kick to the corner, what a 6-2 bench buys you - it is all in there.
+  sport, in plain language, with a search box. Lineout, jackal, the 22, what a
+  6-2 bench buys you - it is in there.
 
 BUILT FOR A PHONE
-• Portrait, one-handed, and designed for it rather than shrunk into it.
-• The game is completely offline: no account, no login, no cloud, and nothing
-  about your career ever leaves your device. The adverts are the only part that
-  uses the network.
+• Portrait, one-handed, designed for it rather than shrunk into it. Four skins,
+  day and night, and a text-size setting.
+• Completely offline: no account, no login, no cloud, and nothing about your
+  career leaves your device. The adverts are the only part that uses the
+  network.
 • Free to play. Small adverts sit at the foot of two screens, with optional
   "watch one instead" buttons you choose to press. Never during a match. Pro
   Manager takes every advert away for good.
-• Your careers are saved on your device, with export and import so a backup is
-  yours to keep.
-• English, French, Spanish, Italian and Japanese, with a text-size setting for
-  people who would rather not squint.
+• Four career slots, saved after every week, with export and import so a backup
+  is yours to keep.
+• English, French, Spanish, Italian and Japanese.
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
