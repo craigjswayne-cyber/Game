@@ -57,6 +57,12 @@ const MARKS = {
     'Stade Mayol', 'Matmut', 'GGL Stadium', 'Aimé-Giral', 'Wembley Stadium', 'Murrayfield',
     'Stade de France', 'Principality Stadium', 'Croke Park', 'Stade Velodrome',
     'Heineken Cup', 'Heineken Champions',
+    // the women's competitions, added v1.5. Élite 1 and Élite 2 are exactly
+    // what the French women's divisions are called, and Celtic Challenge and
+    // Pacific Four Series are exactly what those two are called - all four
+    // shipped in the first women's build because they arrived after the pass
+    // that renamed every men's competition.
+    'Celtic Challenge', 'Pacific Four Series', 'Premiership Women', 'Élite 1', 'Élite 2',
   ],
   'governing bodies quoted': ['World Rugby', 'SANZAAR', 'the RFU', 'the IRFU', 'the WRU'],
   // OTHER PEOPLE'S GAMES, AND THE WRONG SPORT (v1.2.5). Owner: "make sure
