@@ -115,6 +115,35 @@ ok(wLoaded.season >= 1, `the season rolled over (now season ${wLoaded.season}, w
 report(wLoaded, 'w', 'women\'s world after a full season and rollover')
 ok(Object.keys(wLoaded.comps).length > 0, `it still has competitions (${Object.keys(wLoaded.comps).length})`)
 
+console.log('\n=== the women\'s Test game ===')
+// The Test competitions are the owner's "INTERNATIONAL WITH PAID OPTION". They
+// are worth their own check because they are the one part of the women's world
+// whose teams are NOT w:-prefixed - national sides are nation codes in both
+// games - and because activeWindows tests for competitions by id, so a women's
+// career can play a full Test programme and never name a squad. It did exactly
+// that until this probe caught it.
+{
+  const g = newGame(wClub, 'Test', 31337, undefined, 'coach', 'normal', 'w')
+  const intl = Object.values(g.comps).filter(c => c.type === 'intl')
+  ok(intl.length === 2, `the women's world has its two Test competitions (${intl.map(c => c.name).join(', ')})`)
+  const fx = g.fixtures.filter(f => intl.some(c => c.id === f.compId))
+  ok(fx.length > 0, `and a Test calendar to play (${fx.length} fixtures)`)
+  // the men's windows must NOT be the women's: a Test in week 25 would mean the
+  // women's game had been given the men's Six Nations slot
+  const weeks = new Set(fx.map(f => f.week))
+  ok(![25, 26, 27, 28, 29].some(w => weeks.has(w)),
+    'and it is not played in the men\'s Six Nations window')
+
+  let named = 0
+  for (let i = 0; i < SEASON_WEEKS; i++) {
+    processWeekAndAdvance(g)
+    named = Math.max(named, Object.values(g.natSquads).filter(v => v.length > 0).length)
+  }
+  ok(named > 0, `a Test window actually names squads (${named} nations at its peak)`)
+  ok(g.history.some(h => intl.some(c => c.id === h.compId)),
+    'and the Championship is won by somebody')
+}
+
 console.log('\n=== no man ever appears in the women\'s game ===')
 // The real test of the whole design: take every player name the men's world
 // builds and check none of them is in the women's world. Not a filter that

@@ -1,4 +1,5 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
+import { W, type Gender } from './gender'
 import { BASE_YEAR } from './model'
 import { shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
@@ -43,6 +44,25 @@ export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
 export const PNC_WEEKS = [5, 6, 7, 9, 10]
+
+/**
+ * ---- THE WOMEN'S TEST CALENDAR ----
+ *
+ * Not the men's windows, because the women's game does not play in them. The
+ * Women's Six Nations runs from late March into April, where the men's is
+ * February and early March, and the Pacific Four Series is a May-into-June
+ * competition with no men's equivalent at all - it is not the Southern
+ * Championship with different names on it.
+ *
+ * Against a season that opens mid-August, that puts the Championship around
+ * weeks 32 to 38 and the Pacific Four in the low forties, after the last league
+ * round in week 39. Two consequences that are the point rather than an
+ * accident: a women's manager loses players to a Test window at a different
+ * time of year from a men's one, and the Pacific Four sits in a fortnight when
+ * no club rugby is being played at all, which is exactly where the real one is.
+ */
+export const W_SIX_NATIONS_WEEKS = [32, 33, 34, 36, 38]
+export const W_PAC4_WEEKS = [40, 41, 42]
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -413,6 +433,73 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
     })
   })
   state.comps['aut'] = aut
+}
+
+/**
+ * The women's Test competitions: the Six Nations and the Pacific Four Series.
+ *
+ * Deliberately NOT buildInternationals with different arguments. That function
+ * builds five competitions shaped around the men's game - a Southern
+ * Championship of four unions, a Pacific Islands Cup of six, an autumn series
+ * pairing north against south, a Lions tour - and not one of them has a women's
+ * counterpart of the same shape. The women's international game is two
+ * tournaments, so this builds two, and when WXV is added it will be a third
+ * rather than a men's window renamed.
+ *
+ * National teams are nation codes rather than club ids, here as in the men's
+ * game, so these carry no w: prefix and the squads are picked by season.ts from
+ * whichever players in this world hold that passport. That is why the leagues
+ * had to exist first: a women's ENG squad is the Red Roses because the only
+ * English players in a women's world are the ones in w_pwr.ts.
+ */
+/**
+ * Which Championship a world is running, and when.
+ *
+ * The Northern Championship is the one competition both games have under the
+ * same name, in different windows, with different ids. Three places outside
+ * this file read it - the Grand Slam and Wooden Spoon lore, the round-by-round
+ * news, and the panel on Home - and all three used to name the men's id and the
+ * men's weeks flat, so a women's career saw a Championship it was playing in
+ * and never heard a word about it.
+ */
+export const snIdFor = (g: Gender) => (g === 'w' ? W + 'sn' : 'sn')
+export const snWeeksFor = (g: Gender) => (g === 'w' ? W_SIX_NATIONS_WEEKS : SIX_NATIONS_WEEKS)
+
+export function buildWomensInternationals(rng: Rng, state: GameState) {
+  const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
+  const snComp: Competition = {
+    id: W + 'sn', name: 'Northern Championship', short: 'Northern', type: 'intl',
+    teamIds: sn, table: sn.map(emptyRow), rounds: 5, playoffTeams: 0,
+    weeksByRound: W_SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
+  }
+  roundRobin(sn, rng, false).forEach((pairs, r) => {
+    for (const [h, a] of pairs) {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'sn', round: r, week: W_SIX_NATIONS_WEEKS[r],
+        homeId: h, awayId: a, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    }
+  })
+  state.comps[W + 'sn'] = snComp
+
+  // Four teams, played once each: three rounds, not the men's home-and-away six.
+  const p4 = ['NZL', 'CAN', 'USA', 'AUS']
+  const p4Comp: Competition = {
+    id: W + 'p4', name: 'Pacific Four Series', short: 'Pacific Four', type: 'intl',
+    teamIds: p4, table: p4.map(emptyRow), rounds: 3, playoffTeams: 0,
+    weeksByRound: W_PAC4_WEEKS, koWeeks: [], isNational: true,
+  }
+  roundRobin(p4, rng, false).forEach((pairs, r) => {
+    for (const [h, a] of pairs) {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'p4', round: r, week: W_PAC4_WEEKS[r],
+        homeId: h, awayId: a, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    }
+  })
+  state.comps[W + 'p4'] = p4Comp
 }
 
 export function sortTable(table: TableRow[]): TableRow[] {
