@@ -714,9 +714,23 @@ export function adBridge(): AdBridge | null {
 }
 
 /** Where a banner may appear at all. Deliberately short, and deliberately
- *  nowhere near a decision: never during a match, never on a modal, never on
- *  the title screen, never between a tap and the thing the tap was for. */
-export const AD_PLACES = ['home-foot', 'results-foot'] as const
+ *  nowhere near a decision: never on a modal, never on the title screen, never
+ *  between a tap and the thing the tap was for.
+ *
+ *  'match-foot' IS THE OWNER'S CALL AND IT BREAKS THE OLD RULE, which said
+ *  never during a match at all (owner, 6 Sep: "there should be an ad down the
+ *  bottom during game time when the motion screen is on"). The match screen is
+ *  the busiest minute in the game and the one where a mis-tap costs a
+ *  substitution, so the surface pays for the decision rather than the rule
+ *  simply being deleted: MatchDay renders it ONLY while the match is actually
+ *  running, and takes it down for half time, the hour break, a penalty
+ *  decision and full time - every moment the player is being asked for
+ *  something. The banner is a native view under the controls, never over them.
+ *
+ *  It has no unit id of its own yet. packaging/shell/ads-bridge.js falls back
+ *  to the home unit when a place has none, so it earns from the first build and
+ *  simply reports against the wrong unit until the owner creates two. */
+export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
 export function adsAllowed(place: string): boolean {

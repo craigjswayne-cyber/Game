@@ -370,7 +370,16 @@ try {
   ok(ADS.testing === true ? /3940256099942544/.test(ADS.android.appId) && /3940256099942544/.test(ADS.ios.appId) : !/3940256099942544/.test(ADS.android.appId + ADS.ios.appId),
     ADS.testing ? "testing is on and every id is Google's test publisher" : 'testing is off and no id is the test publisher')
   ok(/~/.test(ADS.android.appId) && /~/.test(ADS.ios.appId), 'App IDs carry a ~')
-  ok(Object.values(ADS.android.banner).concat(Object.values(ADS.ios.banner), [ADS.android.rewarded, ADS.ios.rewarded]).every(s => /\//.test(s)), 'ad unit ids carry a /')
+  // An EMPTY id is allowed and means one thing only: the place has no unit of
+  // its own yet, and ads-bridge.js falls back to the home unit for it. That is
+  // how match-foot shipped in v1.5.0 - the slot earns from the first build and
+  // reports against Home until the owner creates two units in AdMob. A
+  // MALFORMED id is still a failure, because that is a typo rather than a plan.
+  const units = Object.values(ADS.android.banner).concat(Object.values(ADS.ios.banner), [ADS.android.rewarded, ADS.ios.rewarded])
+  ok(units.filter(s => s !== '').every(s => /\//.test(s)), 'every ad unit id that is set carries a /')
+  const pending = Object.entries(ADS.android.banner).concat(Object.entries(ADS.ios.banner)).filter(([, v]) => v === '').map(([k]) => k)
+  ok(pending.every(k => k === 'match-foot'),
+    pending.length ? `the only place still awaiting a unit id is match-foot (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
   fails++
