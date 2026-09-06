@@ -213,12 +213,30 @@ career. A pre-v1.5 save keeps its season number and gains a year on its label.
    a squad list, and worth leaving until then.
 2. **The last 79 invented players**, all Élite 1 top-ups where a club's real
    squad is short of 32. No French club is invented outright any more.
-3. **The paid gate on the international game.** The Test competitions are built
+3. **The owner's gender spec (6 Sep), the parts not yet built.** Much of it is
+   already true by construction rather than by check - a save holds one world of
+   one gender, so a men's club cannot sign or play a woman because those clubs
+   do not exist in that save; coaches already move freely and are already a mix;
+   academies are already parallel; positions are already ungendered; budgets are
+   already on a separate scale. What is NOT built: kick distances scaled down
+   15-20% in the women's game, set-piece weighting toward technique over mass,
+   gender-specific injury tables (ACL and knee weighted higher), and maternity
+   status.
+
+   **Maternity carries a constraint from the owner and it is not a detail:**
+   *"this isn't something for everyone - make sure this is only on fictional
+   players."* Every named player in this game is a real, living person. Giving
+   one of them a pregnancy the game invented is inventing a private life event
+   about a real individual, which is not the game's to invent. So the status may
+   only ever be applied to generated players. Whoever builds it should treat
+   that as a hard gate with a probe behind it, not a preference.
+
+4. **The paid gate on the international game.** The Test competitions are built
    and played; the purchase that gates coaching a national side is not. It fits
    the existing `NC_SKUS` non-consumable pattern in `monetise.ts` cleanly.
    **WXV and a women's World Cup** are the other two competitions still missing.
-4. **The cross-gender move** (§2).
-5. **A European women's club cup**, now that England and France are both in.
+5. **The cross-gender move** (§2).
+6. **A European women's club cup**, now that England and France are both in.
 
 ## 8. Risks
 

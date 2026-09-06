@@ -446,6 +446,10 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
  * tournaments, so this builds two, and when WXV is added it will be a third
  * rather than a men's window renamed.
  *
+ * Both are RENAMED, like every competition the game ships: the Pacific Four
+ * Series is what the real one is called, so it is the Southern Four Series here
+ * the way the Rugby Championship is the Southern Championship in the men's.
+ *
  * National teams are nation codes rather than club ids, here as in the men's
  * game, so these carry no w: prefix and the squads are picked by season.ts from
  * whichever players in this world hold that passport. That is why the leagues
@@ -486,7 +490,7 @@ export function buildWomensInternationals(rng: Rng, state: GameState) {
   // Four teams, played once each: three rounds, not the men's home-and-away six.
   const p4 = ['NZL', 'CAN', 'USA', 'AUS']
   const p4Comp: Competition = {
-    id: W + 'p4', name: 'Pacific Four Series', short: 'Pacific Four', type: 'intl',
+    id: W + 'p4', name: 'Southern Four Series', short: 'Southern Four', type: 'intl',
     teamIds: p4, table: p4.map(emptyRow), rounds: 3, playoffTeams: 0,
     weeksByRound: W_PAC4_WEEKS, koWeeks: [], isNational: true,
   }
