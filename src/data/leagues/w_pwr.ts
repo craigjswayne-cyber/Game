@@ -1,161 +1,500 @@
 /**
- * ---- PREMIERSHIP WOMEN'S RUGBY (England), 2025-26 ----
+ * ---- PREMIERSHIP WOMEN'S RUGBY (England), 2026-27 ----
  *
- * The nine clubs, their real towns, their real grounds under the same renaming
- * rules the men's database follows (docs/ip-rename-map.md): the plain place name
- * plus RFC, sponsor marks stripped, grounds a near-miss of the real one. Quins
- * and Sarries keep the terrace short forms the owner restored in v1.0.3, because
- * the same club is the same club in either game.
+ * The nine clubs and all 375 contracted players, from the squad list the owner
+ * supplied on 6 Sep 2026 ("Full PWR Player List & Current Club 26/27"). Every
+ * NAME and every CLUB in this file is real and comes from that sheet: the club
+ * totals here match its own squad-size column exactly, club for club.
  *
- * Ids carry the w: prefix from src/game/gender.ts. A women's world and a men's
- * world are never in memory together, so the prefix is not preventing a
- * collision - it is there so that if the separation is ever broken, the break is
- * legible instead of silent.
+ * WHAT THE SHEET DOES NOT CARRY, and what is therefore assigned:
+ * position, age, rating, nationality and goal-kicking. 92 players in KNOWN
+ * (see the generator, scripts/ has no copy - it was a one-off) have a stated
+ * position and union because they are capped internationals whose position is
+ * a matter of record. The rest are given a position from the squad shape, an
+ * English passport and a rating drawn from the club's reputation. Those four
+ * fields are the game's judgement, not the sheet's fact, and a player wearing
+ * the wrong number here is a data fix rather than a bug.
  *
- * ---- WHICH PLAYERS ARE REAL ----
+ * The season is 2026-27, not the men's database's 2025-26, because the sheet is
+ * a 26/27 list: the 25/26 column in it only covers players who are STILL in the
+ * league, so building 25/26 from it would silently drop the 124 who left. A
+ * complete current season beats an incomplete old one, and the two worlds never
+ * meet, so nothing compares them.
  *
- * The owner asked for real players, as the men's database has. The men's 1,560
- * were compiled from sources. This session could not do the same: the
- * environment's network policy blocks Wikipedia and the rugby press, so squads
- * could not be read, only searched. Rather than invent 300 names and present
- * them as a real league, this file does what src/data/leagues/champ.ts and
- * natl1.ts already do for the English second and third tiers - it names the
- * players it can stand behind and generates honest depth around them.
+ * Club and ground names follow docs/ip-rename-map.md exactly as the men's
+ * database does: the plain place name plus RFC, sponsor marks stripped, grounds
+ * a near-miss of the real one, and Quins and Sarries keeping the terrace short
+ * forms the owner restored in v1.0.3.
  *
- * REAL, and verified this session against club and international sources:
- * the eleven internationals in REAL below, each at the club she played for in
- * 2025-26. Everyone else in this file is generated: a plausible squad from the
- * women's name pools in nations.ts, deterministic from the club id, in the
- * quality band the club deserves. No generated player takes a real player's
- * name - scripts/namedup.ts proves it for this league exactly as it does for
- * the men's.
- *
- * Filling in the other ~280 is a data pass, not an engineering one. It needs
- * either a network that can reach the sources or the owner's own list, and it
- * can be done a club at a time without touching a line of code.
+ * Ids carry the w: prefix from src/game/gender.ts.
  */
-import type { Pos, RawClub, RawPlayer } from '../types'
-import { mulberry32 } from '../../game/rng'
+import type { RawClub } from '../types'
 import { W } from '../../game/gender'
 
-/**
- * Real players, by club id.
- *
- * Verified: name, position and club for the 2025-26 season. Quality is judged on
- * the same 1-100 scale the men's database uses, read WITHIN the women's game -
- * a 90 here is a world-class Test player, the same as a 90 there, because the
- * engine compares a squad only against the squads it actually plays.
- */
-const REAL: Record<string, RawPlayer[]> = {
-  saracens: [
-    { name: 'Marlie Packer', pos: 'FL', age: 36, nat: 'ENG', q: 89, intl: true },
-    { name: 'Jess Breach', pos: 'WG', age: 28, nat: 'ENG', q: 88, intl: true },
-    { name: 'Kelsey Clifford', pos: 'LP', age: 23, nat: 'ENG', q: 82, intl: true },
-    { name: 'May Campbell', pos: 'HK', age: 27, nat: 'ENG', q: 76, intl: true },
-    { name: 'Jodie Verghese', pos: 'FL', alt: ['N8'], age: 25, nat: 'ENG', q: 71 },
-  ],
-  glosharty: [
-    { name: 'Zoe Aldcroft', pos: 'LK', alt: ['FL'], age: 29, nat: 'ENG', q: 90, intl: true },
-    { name: 'Alex Matthews', pos: 'N8', alt: ['FL'], age: 32, nat: 'ENG', q: 88, intl: true },
-    { name: 'Maud Muir', pos: 'TP', age: 25, nat: 'ENG', q: 85, intl: true },
-    { name: 'Mackenzie Carson', pos: 'LK', age: 29, nat: 'ENG', q: 80, intl: true },
-  ],
-  quins: [
-    { name: 'Ellie Kildunne', pos: 'FB', age: 26, nat: 'ENG', q: 91, gk: true, intl: true },
-    { name: 'Connie Powell', pos: 'HK', age: 26, nat: 'ENG', q: 79, intl: true },
-  ],
-}
-
-/** A PWR matchday squad is smaller than a men's Premiership one, and the
- *  competition is semi-professional: thirty-two, two deep everywhere and three
- *  in the back row, which is where the injuries land. */
-const TEMPLATE: Pos[] = [
-  'LP', 'LP', 'HK', 'HK', 'TP', 'TP',
-  'LK', 'LK', 'LK', 'FL', 'FL', 'FL', 'N8', 'N8',
-  'SH', 'SH', 'FH', 'FH', 'CE', 'CE', 'CE',
-  'WG', 'WG', 'WG', 'FB', 'FB',
-  'LP', 'HK', 'LK', 'FL', 'CE', 'WG',
-]
-
-/** One name per player across the whole competition. The world builder keeps
- *  only the first of a duplicate, so a clash costs the second club a shirt. */
-const usedNames = new Set<string>()
-
-function squad(clubId: string, rep: number): RawPlayer[] {
-  const real = REAL[clubId] ?? []
-  const out: RawPlayer[] = [...real]
-  for (const p of real) usedNames.add(p.name)
-
-  // the real players already fill some of the shirts; generate the rest
-  const need = [...TEMPLATE]
-  for (const p of real) {
-    const i = need.indexOf(p.pos)
-    if (i >= 0) need.splice(i, 1)
-  }
-
-  const rng = mulberry32(0x5715 ^ clubId.split('').reduce((h, c) => (h * 33 + c.charCodeAt(0)) | 0, 5381))
-  let gkGiven = out.some(p => p.gk) ? 1 : 0
-  for (const pos of need) {
-    let name = ''
-    for (let tries = 0; tries < 24; tries++) {
-      name = `${FIRST[Math.floor(rng() * FIRST.length)]} ${LAST[Math.floor(rng() * LAST.length)]}`
-      if (!usedNames.has(name)) break
-    }
-    usedNames.add(name)
-    const age = 18 + Math.floor(rng() * 16)
-    // PWR is a wide league: a title side carries internationals and students in
-    // the same changing room, so the spread inside a club is deliberately broad.
-    let q = Math.round(rep - 16 + rng() * 22)
-    if (rng() < 0.08) q += 8 // the one nobody has called up yet
-    q = Math.max(38, Math.min(84, q))
-    const gk = (pos === 'FH' || pos === 'FB') && gkGiven < 2 && rng() < 0.55
-    if (gk) gkGiven++
-    out.push({ name, pos, age, nat: 'ENG', q, gk })
-  }
-  return out
-}
-
-/** First names for generated English players. Surnames come from LAST below;
- *  both are checked by scripts/namedup.ts against the real database. */
-const FIRST = [
-  'Alice', 'Beatrice', 'Bryony', 'Cerys', 'Daisy', 'Edith', 'Eleanor', 'Esme',
-  'Flora', 'Freya', 'Georgia', 'Harriet', 'Imogen', 'Isla', 'Jemima', 'Josie',
-  'Kitty', 'Lottie', 'Maisie', 'Martha', 'Matilda', 'Nell', 'Nancy', 'Orla',
-  'Phoebe', 'Primrose', 'Rosalind', 'Rowena', 'Saskia', 'Sybil', 'Tamsin', 'Thea',
-  'Verity', 'Wilhelmina', 'Winnie', 'Bea', 'Clemmie', 'Delphine', 'Etta', 'Greta',
-]
-
-const LAST = [
-  'Ashby', 'Barnes', 'Beckworth', 'Bell', 'Brampton', 'Cawthorne', 'Clark', 'Cooper',
-  'Fairhurst', 'Fenwick', 'Grimsdale', 'Hemsley', 'Hill', 'Hollis', 'Ilkeston', 'Kerridge',
-  'Lindsey', 'Ludgate', 'Mowbray', 'Netherwood', 'Ollerton', 'Pemberton', 'Rainford', 'Selby',
-  'Smith', 'Sowerby', 'Taylor', 'Thackeray', 'Turner', 'Walker', 'Ward', 'Whitfield',
-  'Adlington', 'Bramhall', 'Carsley', 'Doverdale', 'Elmswood', 'Farrington', 'Halstead', 'Ingoldsby',
-]
-
-const club = (
-  id: string, name: string, short: string, city: string, stadium: string,
-  capacity: number, colors: [string, string], rep: number, budget: number,
-): RawClub => ({
-  id: W + id, name, short, city, country: 'ENG', stadium, capacity, colors, rep, budget,
-  players: squad(id, rep),
-})
-
-/**
- * Budgets are the women's game as it really is, not the men's numbers scaled.
- * PWR runs to a salary cap in the low hundreds of thousands and most of these
- * clubs are the women's arm of a men's professional club, funded by it. A
- * Premiership men's budget in this league would break the transfer market
- * inside one season.
- */
 export const W_PWR: RawClub[] = [
-  club('glosharty', 'Gloucester RFC', 'Gloucester', 'Gloucester', 'Gillmore’s Ground', 3000, ['#8b1a2b', '#0e1c3d'], 88, 380_000),
-  club('saracens', 'Sarries RFC', 'Sarries', 'London', 'Hendon Park', 5000, ['#0e0e0e', '#c02f3a'], 87, 375_000),
-  club('bristol', 'Bristol RFC', 'Bristol', 'Bristol', 'Shaftsbury Park', 2000, ['#0a2240', '#c02f3a'], 80, 300_000),
-  club('quins', 'Quins Rugby', 'Quins', 'London', 'Little Twickenham', 5500, ['#0a1e3c', '#7b2d8e'], 79, 295_000),
-  club('trailfinders', 'Ealing RFC', 'Ealing', 'London', 'Ealing Sports Ground', 2500, ['#0e5a3a', '#ffffff'], 76, 270_000),
-  club('exeter', 'Exeter RFC', 'Exeter', 'Exeter', 'Beachy Park', 3500, ['#0e0e0e', '#c9a227'], 74, 255_000),
-  club('loughborough', 'Loughborough RFC', 'Loughboro', 'Loughborough', 'Loughborough Park', 3000, ['#3b1d6e', '#c9a227'], 71, 230_000),
-  club('leicester', 'Leicester RFC', 'Leicester', 'Leicester', 'Welford Street', 4000, ['#0a5c36', '#c02f3a'], 67, 200_000),
-  club('sale', 'Sale RFC', 'Sale', 'Sale', 'Heywood Road', 2500, ['#12295c', '#ffffff'], 63, 180_000),
+  {
+    id: W + 'glosharty', name: 'Gloucester RFC', short: 'Gloucester',
+    city: 'Gloucester', country: 'ENG',
+    stadium: 'Gillmore’s Ground', capacity: 3000,
+    colors: ['#8b1a2b', '#0e1c3d'],
+    rep: 88, budget: 380000,
+    // 35 players from the sheet; 11 carry a stated position and union
+    players: [
+      { name: 'Jorja Aiono', pos: 'FL', age: 22, nat: 'ENG', q: 82 },
+      { name: 'Emerson Allen', pos: 'WG', age: 24, nat: 'ENG', q: 74 },
+      { name: 'Lauren Bailey', pos: 'FL', age: 30, nat: 'ENG', q: 75 },
+      { name: 'Erin Bradley', pos: 'CE', age: 21, nat: 'ENG', q: 78 },
+      { name: 'Georgia Brock', pos: 'HK', age: 22, nat: 'ENG', q: 82 },
+      { name: 'Molly Bunker', pos: 'TP', age: 27, nat: 'ENG', q: 82 },
+      { name: 'Mackenzie Carson', pos: 'LK', age: 29, nat: 'ENG', q: 80, intl: true },
+      { name: 'Tabitha Copson', pos: 'FL', age: 24, nat: 'ENG', q: 82 },
+      { name: 'Hannah Dallavalle', pos: 'WG', age: 19, nat: 'ENG', q: 82 },
+      { name: 'Megan Davies', pos: 'LK', age: 33, nat: 'ENG', q: 73 },
+      { name: 'Steph Else', pos: 'CE', age: 30, nat: 'ENG', q: 82 },
+      { name: 'Lleucu George', pos: 'FH', age: 28, nat: 'WAL', q: 78, gk: true, intl: true },
+      { name: 'Ellie Green', pos: 'SH', age: 20, nat: 'ENG', q: 76 },
+      { name: 'Eloise Harris', pos: 'FH', age: 26, nat: 'ENG', q: 72 },
+      { name: 'Natasha Hunt', pos: 'SH', age: 37, nat: 'ENG', q: 85, intl: true },
+      { name: 'Kate Williams', pos: 'FB', age: 28, nat: 'ENG', q: 82 },
+      { name: 'Neve Jones', pos: 'HK', age: 27, nat: 'IRE', q: 80, intl: true },
+      { name: 'Sian Jones', pos: 'LP', age: 29, nat: 'ENG', q: 78 },
+      { name: 'Alex Matthews', pos: 'N8', age: 32, nat: 'ENG', q: 87, intl: true },
+      { name: 'Sophie McQueen', pos: 'HK', age: 27, nat: 'ENG', q: 82 },
+      { name: 'Nel Metcalfe', pos: 'TP', age: 25, nat: 'ENG', q: 79 },
+      { name: 'Sam Monaghan', pos: 'LK', age: 32, nat: 'IRE', q: 81, intl: true },
+      { name: 'Maud Muir', pos: 'TP', age: 25, nat: 'ENG', q: 85, intl: true },
+      { name: 'Niamh O\'Dowd', pos: 'LP', age: 25, nat: 'IRE', q: 74, intl: true },
+      { name: 'Abi Pritchard', pos: 'N8', age: 29, nat: 'ENG', q: 68 },
+      { name: 'Alaw Pyrs', pos: 'LP', age: 25, nat: 'WAL', q: 72, intl: true },
+      { name: 'Ranni Samuda', pos: 'FL', age: 31, nat: 'ENG', q: 68 },
+      { name: 'Jade Shekells', pos: 'LK', age: 18, nat: 'ENG', q: 82 },
+      { name: 'Lucy Simpson', pos: 'WG', age: 18, nat: 'ENG', q: 72 },
+      { name: 'Emma Sing', pos: 'FB', age: 25, nat: 'ENG', q: 78, intl: true },
+      { name: 'Mia Venner', pos: 'CE', age: 23, nat: 'ENG', q: 79 },
+      { name: 'Gabrielle Vernier', pos: 'CE', age: 28, nat: 'FRA', q: 85, intl: true },
+      { name: 'Ellie Wilson', pos: 'LP', age: 26, nat: 'ENG', q: 77 },
+      { name: 'Roisin Maher', pos: 'HK', age: 23, nat: 'ENG', q: 72 },
+      { name: 'Hannah Smyth', pos: 'TP', age: 20, nat: 'ENG', q: 69 },
+    ],
+  },
+  {
+    id: W + 'saracens', name: 'Sarries RFC', short: 'Sarries',
+    city: 'London', country: 'ENG',
+    stadium: 'Hendon Park', capacity: 5000,
+    colors: ['#0e0e0e', '#c02f3a'],
+    rep: 87, budget: 375000,
+    // 50 players from the sheet; 11 carry a stated position and union
+    players: [
+      { name: 'Akina Gondwe', pos: 'TP', age: 30, nat: 'ENG', q: 76 },
+      { name: 'Alysha Corrigan', pos: 'WG', age: 26, nat: 'CAN', q: 78, intl: true },
+      { name: 'Amelia MacDougall', pos: 'CE', age: 32, nat: 'ENG', q: 82 },
+      { name: 'Amelia Tutt', pos: 'FL', age: 23, nat: 'ENG', q: 76 },
+      { name: 'Bryony Field', pos: 'CE', age: 30, nat: 'ENG', q: 82 },
+      { name: 'Carmen Tremelling', pos: 'LP', age: 31, nat: 'ENG', q: 82 },
+      { name: 'Chantelle Miell', pos: 'HK', age: 32, nat: 'ENG', q: 69 },
+      { name: 'Charlotte Wright-Haley', pos: 'TP', age: 23, nat: 'ENG', q: 73 },
+      { name: 'Chloe Flanagan', pos: 'FL', age: 33, nat: 'ENG', q: 82 },
+      { name: 'Daisy Fitzgerald', pos: 'LK', age: 25, nat: 'ENG', q: 82 },
+      { name: 'Deborah Wills', pos: 'CE', age: 27, nat: 'ENG', q: 71 },
+      { name: 'Donna Rose', pos: 'SH', age: 25, nat: 'ENG', q: 80 },
+      { name: 'Ella Wyrwas', pos: 'FH', age: 33, nat: 'ENG', q: 82 },
+      { name: 'Ellie Cunningham', pos: 'FB', age: 25, nat: 'ENG', q: 74 },
+      { name: 'Emma Hardy', pos: 'LP', age: 29, nat: 'ENG', q: 73 },
+      { name: 'Erin Delea', pos: 'HK', age: 28, nat: 'ENG', q: 81 },
+      { name: 'Gabrielle Senft', pos: 'TP', age: 27, nat: 'ENG', q: 73 },
+      { name: 'Georgia Evans', pos: 'N8', age: 30, nat: 'ENG', q: 76 },
+      { name: 'Issy Winter', pos: 'FL', age: 26, nat: 'ENG', q: 77 },
+      { name: 'Jemima Moss', pos: 'LK', age: 25, nat: 'ENG', q: 82 },
+      { name: 'Jemma-Jo Linkins', pos: 'WG', age: 21, nat: 'ENG', q: 82 },
+      { name: 'Jess Breach', pos: 'WG', age: 28, nat: 'ENG', q: 87, intl: true },
+      { name: 'Jess Taylor', pos: 'CE', age: 25, nat: 'ENG', q: 81 },
+      { name: 'Jodie Verghese', pos: 'FL', age: 25, nat: 'ENG', q: 71 },
+      { name: 'Joia Bennett', pos: 'LP', age: 31, nat: 'ENG', q: 82 },
+      { name: 'Julia Omokhuale', pos: 'HK', age: 24, nat: 'ENG', q: 82 },
+      { name: 'Kaylee McHugh', pos: 'TP', age: 22, nat: 'ENG', q: 77 },
+      { name: 'Kelsey Clifford', pos: 'LP', age: 23, nat: 'ENG', q: 82, intl: true },
+      { name: 'Laetitia Royer', pos: 'LK', age: 26, nat: 'CAN', q: 82, intl: true },
+      { name: 'Licia MacCutchan', pos: 'LK', age: 23, nat: 'ENG', q: 82 },
+      { name: 'Liz Crake', pos: 'FL', age: 20, nat: 'ENG', q: 77 },
+      { name: 'Lotte Sharp', pos: 'CE', age: 24, nat: 'ENG', q: 75 },
+      { name: 'Louise McMillan', pos: 'WG', age: 20, nat: 'ENG', q: 82 },
+      { name: 'Lucy Lawford-Wilby', pos: 'LK', age: 33, nat: 'ENG', q: 78 },
+      { name: 'Macey Twine', pos: 'FL', age: 24, nat: 'ENG', q: 82 },
+      { name: 'Maisy Herbert', pos: 'SH', age: 20, nat: 'ENG', q: 74 },
+      { name: 'May Campbell', pos: 'HK', age: 27, nat: 'ENG', q: 76, intl: true },
+      { name: 'May Goulding', pos: 'FH', age: 30, nat: 'ENG', q: 80 },
+      { name: 'Morgan Freeman', pos: 'CE', age: 29, nat: 'ENG', q: 71 },
+      { name: 'Olivia Apps', pos: 'SH', age: 26, nat: 'CAN', q: 78, intl: true },
+      { name: 'Paige Farries', pos: 'FB', age: 33, nat: 'ENG', q: 80 },
+      { name: 'Poppy Cleall', pos: 'LK', age: 34, nat: 'ENG', q: 84, intl: true },
+      { name: 'Roshini Turner', pos: 'LP', age: 29, nat: 'ENG', q: 82 },
+      { name: 'Sarah McKenna', pos: 'FB', age: 35, nat: 'ENG', q: 76, intl: true },
+      { name: 'Sophie Bridger', pos: 'HK', age: 27, nat: 'ENG', q: 81 },
+      { name: 'Sophie De Goede', pos: 'N8', age: 26, nat: 'CAN', q: 90, gk: true, intl: true },
+      { name: 'Sydney Gregson', pos: 'TP', age: 33, nat: 'ENG', q: 82 },
+      { name: 'Sydney Mead', pos: 'N8', age: 20, nat: 'ENG', q: 72 },
+      { name: 'Tori Sellors', pos: 'FL', age: 24, nat: 'ENG', q: 82 },
+      { name: 'Zoe Harrison', pos: 'FH', age: 28, nat: 'ENG', q: 86, gk: true, intl: true },
+    ],
+  },
+  {
+    id: W + 'bristol', name: 'Bristol RFC', short: 'Bristol',
+    city: 'Bristol', country: 'ENG',
+    stadium: 'Shaftsbury Park', capacity: 2000,
+    colors: ['#0a2240', '#c02f3a'],
+    rep: 80, budget: 300000,
+    // 38 players from the sheet; 9 carry a stated position and union
+    players: [
+      { name: 'Abbie Ward', pos: 'LK', age: 33, nat: 'ENG', q: 82, intl: true },
+      { name: 'Aisha Jah', pos: 'CE', age: 33, nat: 'ENG', q: 69 },
+      { name: 'Bethan Lewis', pos: 'FL', age: 30, nat: 'WAL', q: 74, intl: true },
+      { name: 'Christiana Balogun', pos: 'WG', age: 21, nat: 'ENG', q: 64 },
+      { name: 'Delaney Burns', pos: 'LK', age: 30, nat: 'ENG', q: 77 },
+      { name: 'Demelza Short', pos: 'FH', age: 21, nat: 'ENG', q: 77 },
+      { name: 'Ella Lovibond', pos: 'CE', age: 26, nat: 'ENG', q: 72 },
+      { name: 'Ellen Scantlebury', pos: 'LP', age: 28, nat: 'ENG', q: 68 },
+      { name: 'Ellie Kildunne', pos: 'FB', age: 26, nat: 'ENG', q: 91, gk: true, intl: true },
+      { name: 'Evie Gallagher', pos: 'FL', age: 25, nat: 'SCO', q: 74, intl: true },
+      { name: 'Gwennan Hopkins', pos: 'TP', age: 18, nat: 'ENG', q: 63 },
+      { name: 'Hannah Botterman', pos: 'LP', age: 27, nat: 'ENG', q: 86, intl: true },
+      { name: 'Heidi Pashaei-Tarighoun', pos: 'N8', age: 19, nat: 'ENG', q: 71 },
+      { name: 'Hollie Cunningham', pos: 'FL', age: 24, nat: 'ENG', q: 68 },
+      { name: 'Holly Phillips', pos: 'WG', age: 19, nat: 'ENG', q: 82 },
+      { name: 'Izzy Van Der Straaten', pos: 'LK', age: 28, nat: 'ENG', q: 60 },
+      { name: 'Jenny Herring', pos: 'CE', age: 23, nat: 'ENG', q: 61 },
+      { name: 'Jenny Hesketh', pos: 'SH', age: 31, nat: 'ENG', q: 65 },
+      { name: 'Jess Sprague', pos: 'FH', age: 29, nat: 'ENG', q: 66 },
+      { name: 'Josie Harris', pos: 'FB', age: 23, nat: 'ENG', q: 66 },
+      { name: 'Keira Bevan', pos: 'SH', age: 30, nat: 'WAL', q: 78, intl: true },
+      { name: 'Lana Skeldon', pos: 'HK', age: 32, nat: 'SCO', q: 75, intl: true },
+      { name: 'Lark Atkin-Davies', pos: 'HK', age: 30, nat: 'ENG', q: 82, intl: true },
+      { name: 'Lia Green', pos: 'LP', age: 31, nat: 'ENG', q: 61 },
+      { name: 'Lucy Burgess', pos: 'HK', age: 28, nat: 'ENG', q: 71 },
+      { name: 'Millie David', pos: 'TP', age: 19, nat: 'ENG', q: 82 },
+      { name: 'Millie Hyett', pos: 'N8', age: 27, nat: 'ENG', q: 77 },
+      { name: 'Natalee Evans', pos: 'FL', age: 28, nat: 'ENG', q: 78 },
+      { name: 'Nicola Beet', pos: 'LK', age: 29, nat: 'ENG', q: 72 },
+      { name: 'Orla Proctor', pos: 'WG', age: 28, nat: 'ENG', q: 62 },
+      { name: 'Phoebe Murray', pos: 'CE', age: 31, nat: 'ENG', q: 70 },
+      { name: 'Pip Hendy', pos: 'LP', age: 25, nat: 'ENG', q: 60 },
+      { name: 'Reneeqa Bonner', pos: 'HK', age: 33, nat: 'ENG', q: 64 },
+      { name: 'Rosie Carr', pos: 'TP', age: 27, nat: 'ENG', q: 65 },
+      { name: 'Rownita Marston-Mulhearn', pos: 'LK', age: 26, nat: 'ENG', q: 81 },
+      { name: 'Sarah Bern', pos: 'TP', age: 29, nat: 'ENG', q: 87, intl: true },
+      { name: 'Simi Pam', pos: 'FL', age: 33, nat: 'ENG', q: 82 },
+      { name: 'Zoe Evans', pos: 'CE', age: 32, nat: 'ENG', q: 80 },
+    ],
+  },
+  {
+    id: W + 'quins', name: 'Quins Rugby', short: 'Quins',
+    city: 'London', country: 'ENG',
+    stadium: 'Little Twickenham', capacity: 5500,
+    colors: ['#0a1e3c', '#7b2d8e'],
+    rep: 79, budget: 295000,
+    // 44 players from the sheet; 13 carry a stated position and union
+    players: [
+      { name: 'Daisy Aspinall', pos: 'LP', age: 22, nat: 'ENG', q: 66 },
+      { name: 'Emily Blackburn', pos: 'CE', age: 19, nat: 'ENG', q: 76 },
+      { name: 'Sarah Bonar', pos: 'LK', age: 30, nat: 'SCO', q: 74, intl: true },
+      { name: 'Lauren Brooks', pos: 'LK', age: 23, nat: 'ENG', q: 77 },
+      { name: 'Aimee Bush', pos: 'FH', age: 25, nat: 'ENG', q: 61 },
+      { name: 'Alex Callender', pos: 'FL', age: 26, nat: 'WAL', q: 80, intl: true },
+      { name: 'Summer Charlesworth', pos: 'CE', age: 20, nat: 'ENG', q: 79 },
+      { name: 'Ella Cromack', pos: 'FB', age: 18, nat: 'ENG', q: 77, gk: true },
+      { name: 'Grace Crompton', pos: 'LP', age: 18, nat: 'ENG', q: 77 },
+      { name: 'Rosie Galligan', pos: 'HK', age: 31, nat: 'ENG', q: 79 },
+      { name: 'Zara Green', pos: 'LK', age: 22, nat: 'ENG', q: 70 },
+      { name: 'Lizzie Hanlon', pos: 'CE', age: 32, nat: 'ENG', q: 76 },
+      { name: 'Amy Henwood', pos: 'SH', age: 19, nat: 'ENG', q: 74 },
+      { name: 'Grace Keel', pos: 'FH', age: 25, nat: 'ENG', q: 61 },
+      { name: 'Amelia Kolev', pos: 'FB', age: 24, nat: 'ENG', q: 73, gk: true },
+      { name: 'Manuqalo Komaitai', pos: 'FL', age: 25, nat: 'FIJ', q: 72, intl: true },
+      { name: 'Danelle Lochner', pos: 'LP', age: 23, nat: 'ENG', q: 80 },
+      { name: 'Sara Mannini', pos: 'FL', age: 26, nat: 'ITA', q: 72, intl: true },
+      { name: 'Maja Meuller', pos: 'HK', age: 32, nat: 'ENG', q: 67 },
+      { name: 'Abby Middlebrooke', pos: 'TP', age: 23, nat: 'ENG', q: 78 },
+      { name: 'Joy Okechukwu', pos: 'N8', age: 29, nat: 'ENG', q: 62 },
+      { name: 'Lucy Packer', pos: 'SH', age: 26, nat: 'ENG', q: 81, intl: true },
+      { name: 'Marlie Packer', pos: 'FL', age: 36, nat: 'ENG', q: 88, intl: true },
+      { name: 'Maddy Page', pos: 'LK', age: 22, nat: 'ENG', q: 82 },
+      { name: 'Sarah Parry', pos: 'WG', age: 22, nat: 'ENG', q: 69 },
+      { name: 'Millie Pearce', pos: 'CE', age: 27, nat: 'ENG', q: 61 },
+      { name: 'Claudia Pena', pos: 'WG', age: 25, nat: 'ESP', q: 70, intl: true },
+      { name: 'Rose Platt', pos: 'LP', age: 25, nat: 'ENG', q: 66 },
+      { name: 'Connie Powell', pos: 'HK', age: 26, nat: 'ENG', q: 79, intl: true },
+      { name: 'Kayleigh Powell', pos: 'HK', age: 18, nat: 'ENG', q: 82 },
+      { name: 'Solana Shaw De Leon', pos: 'TP', age: 20, nat: 'ENG', q: 77 },
+      { name: 'Katie Shillaker', pos: 'LK', age: 18, nat: 'ENG', q: 60 },
+      { name: 'Tyla Shirley', pos: 'CE', age: 21, nat: 'ENG', q: 67 },
+      { name: 'Hannah Sims', pos: 'WG', age: 21, nat: 'ENG', q: 76 },
+      { name: 'Sara Svoboda', pos: 'FL', age: 27, nat: 'ITA', q: 72, intl: true },
+      { name: 'Lauren Torley', pos: 'LK', age: 32, nat: 'ENG', q: 75 },
+      { name: 'Sisilia Tuipulotu', pos: 'TP', age: 23, nat: 'WAL', q: 78, intl: true },
+      { name: 'Silvia Turani', pos: 'TP', age: 28, nat: 'ITA', q: 76, intl: true },
+      { name: 'JoJo Vosakiwaiwai', pos: 'WG', age: 24, nat: 'FIJ', q: 72, intl: true },
+      { name: 'Aoife Wafer', pos: 'N8', age: 23, nat: 'IRE', q: 84, intl: true },
+      { name: 'Louisa Ward', pos: 'FL', age: 21, nat: 'ENG', q: 71 },
+      { name: 'Ruby Winstanley', pos: 'SH', age: 27, nat: 'ENG', q: 67 },
+      { name: 'Nicole Wythe', pos: 'FH', age: 23, nat: 'ENG', q: 59 },
+      { name: 'Eva Sterritt', pos: 'CE', age: 26, nat: 'ENG', q: 78 },
+    ],
+  },
+  {
+    id: W + 'trailfinders', name: 'Ealing RFC', short: 'Ealing',
+    city: 'London', country: 'ENG',
+    stadium: 'Ealing Sports Ground', capacity: 2500,
+    colors: ['#0e5a3a', '#ffffff'],
+    rep: 76, budget: 270000,
+    // 36 players from the sheet; 11 carry a stated position and union
+    players: [
+      { name: 'Abi Burton', pos: 'LP', age: 26, nat: 'ENG', q: 67 },
+      { name: 'Alana Borland', pos: 'HK', age: 29, nat: 'ENG', q: 59 },
+      { name: 'Alivia Leatherman', pos: 'FL', age: 26, nat: 'ENG', q: 60 },
+      { name: 'Amanda McQuade', pos: 'SH', age: 32, nat: 'ENG', q: 58 },
+      { name: 'Annabel Meta', pos: 'FB', age: 25, nat: 'ENG', q: 81 },
+      { name: 'Brooke Bradley', pos: 'LP', age: 21, nat: 'ENG', q: 74 },
+      { name: 'Carys Cox', pos: 'WG', age: 25, nat: 'WAL', q: 73, intl: true },
+      { name: 'Cassandra Tuffnail', pos: 'HK', age: 23, nat: 'ENG', q: 61 },
+      { name: 'Claire Gallagher', pos: 'TP', age: 26, nat: 'ENG', q: 60 },
+      { name: 'Cristina Blanco', pos: 'FH', age: 27, nat: 'ESP', q: 72, gk: true, intl: true },
+      { name: 'Ella Amory', pos: 'N8', age: 30, nat: 'ENG', q: 80 },
+      { name: 'Ellie Lennon', pos: 'FL', age: 31, nat: 'ENG', q: 73 },
+      { name: 'Emma Uren', pos: 'CE', age: 27, nat: 'ENG', q: 59 },
+      { name: 'Emma Wassell', pos: 'LK', age: 30, nat: 'SCO', q: 80, intl: true },
+      { name: 'Flo Long', pos: 'SH', age: 22, nat: 'ENG', q: 65 },
+      { name: 'Francesca McGhie', pos: 'FB', age: 19, nat: 'ENG', q: 79 },
+      { name: 'Grace White', pos: 'LP', age: 21, nat: 'ENG', q: 65 },
+      { name: 'Haidee Head', pos: 'HK', age: 21, nat: 'ENG', q: 74 },
+      { name: 'Hayley Jones', pos: 'TP', age: 24, nat: 'ENG', q: 61 },
+      { name: 'Helen Nelson', pos: 'FH', age: 30, nat: 'SCO', q: 78, gk: true, intl: true },
+      { name: 'Jess Cooksey', pos: 'N8', age: 21, nat: 'ENG', q: 79 },
+      { name: 'Julia Schell', pos: 'WG', age: 25, nat: 'CAN', q: 74, intl: true },
+      { name: 'Lisa Thomson', pos: 'CE', age: 28, nat: 'SCO', q: 77, intl: true },
+      { name: 'Maia Roos', pos: 'LK', age: 27, nat: 'NZL', q: 80, intl: true },
+      { name: 'Maya Montiel', pos: 'LK', age: 24, nat: 'CAN', q: 71 },
+      { name: 'Meg Jones', pos: 'CE', age: 28, nat: 'WAL', q: 78, intl: true },
+      { name: 'Niamh Gallagher', pos: 'FL', age: 26, nat: 'ENG', q: 56 },
+      { name: 'Niamh Swailes', pos: 'LK', age: 21, nat: 'ENG', q: 77 },
+      { name: 'Rachel Malcolm', pos: 'FL', age: 33, nat: 'SCO', q: 78, intl: true },
+      { name: 'Rosie Inman', pos: 'WG', age: 29, nat: 'ENG', q: 61 },
+      { name: 'Sally Williams', pos: 'CE', age: 21, nat: 'ENG', q: 62 },
+      { name: 'Sam Shiels', pos: 'LP', age: 31, nat: 'ENG', q: 64 },
+      { name: 'Sophie Molton', pos: 'HK', age: 20, nat: 'ENG', q: 71 },
+      { name: 'Tanya Kalounivale', pos: 'TP', age: 26, nat: 'FIJ', q: 74, intl: true },
+      { name: 'Vicky Laflin', pos: 'TP', age: 19, nat: 'ENG', q: 72 },
+      { name: 'Teya Ashworth', pos: 'LK', age: 32, nat: 'ENG', q: 61 },
+    ],
+  },
+  {
+    id: W + 'exeter', name: 'Exeter RFC', short: 'Exeter',
+    city: 'Exeter', country: 'ENG',
+    stadium: 'Beachy Park', capacity: 3500,
+    colors: ['#0e0e0e', '#c9a227'],
+    rep: 74, budget: 255000,
+    // 44 players from the sheet; 10 carry a stated position and union
+    players: [
+      { name: 'Maisy Allen', pos: 'LP', age: 27, nat: 'ENG', q: 60 },
+      { name: 'Sofia Bekir Fuente', pos: 'CE', age: 24, nat: 'ESP', q: 69, intl: true },
+      { name: 'Naomi Brennan', pos: 'WG', age: 32, nat: 'ENG', q: 70 },
+      { name: 'Taz Bricknell', pos: 'LK', age: 20, nat: 'ENG', q: 58 },
+      { name: 'Katie Buchanan', pos: 'SH', age: 32, nat: 'ENG', q: 65 },
+      { name: 'Gabby Cantorna', pos: 'FB', age: 28, nat: 'ENG', q: 76 },
+      { name: 'Zoe Dare', pos: 'LP', age: 33, nat: 'ENG', q: 71 },
+      { name: 'Maisie Davies', pos: 'N8', age: 29, nat: 'ENG', q: 73 },
+      { name: 'Merryn Elworthy', pos: 'FL', age: 22, nat: 'ENG', q: 69 },
+      { name: 'Maddie Feaunati', pos: 'FL', age: 23, nat: 'ENG', q: 78, intl: true },
+      { name: 'Francesca Granzotto', pos: 'LK', age: 25, nat: 'ITA', q: 72, intl: true },
+      { name: 'Ellie Wood', pos: 'WG', age: 21, nat: 'ENG', q: 64 },
+      { name: 'Eleanor Hing', pos: 'LK', age: 22, nat: 'ENG', q: 70 },
+      { name: 'Lizzie Lander', pos: 'CE', age: 30, nat: 'ENG', q: 71 },
+      { name: 'Sophie Langford', pos: 'SH', age: 23, nat: 'ENG', q: 72 },
+      { name: 'Nancy McGillivray', pos: 'FH', age: 22, nat: 'ENG', q: 54, gk: true },
+      { name: 'Liv McGoverne', pos: 'FH', age: 31, nat: 'NZL', q: 76, gk: true, intl: true },
+      { name: 'DaLeaka Menin', pos: 'TP', age: 30, nat: 'CAN', q: 80, intl: true },
+      { name: 'Claudia Moloney-MacDonald', pos: 'FB', age: 26, nat: 'ENG', q: 56 },
+      { name: 'Cliodhna Moloney-MacDonald', pos: 'HK', age: 32, nat: 'IRE', q: 76, intl: true },
+      { name: 'Gabriella Nigrelli', pos: 'LP', age: 22, nat: 'ENG', q: 77 },
+      { name: 'Lucy Nye', pos: 'HK', age: 19, nat: 'ENG', q: 82 },
+      { name: 'Shya Pinnock', pos: 'TP', age: 32, nat: 'ENG', q: 68 },
+      { name: 'Lilly Plowman', pos: 'N8', age: 18, nat: 'ENG', q: 74 },
+      { name: 'Danielle Preece', pos: 'FL', age: 25, nat: 'ENG', q: 66 },
+      { name: 'Kayleigh Priest', pos: 'LK', age: 25, nat: 'ENG', q: 70 },
+      { name: 'Emily Robinson', pos: 'WG', age: 33, nat: 'ENG', q: 72 },
+      { name: 'Flo Robinson', pos: 'CE', age: 22, nat: 'ENG', q: 56 },
+      { name: 'Hope Rogers', pos: 'TP', age: 32, nat: 'USA', q: 78, intl: true },
+      { name: 'Amy Rule', pos: 'LP', age: 20, nat: 'ENG', q: 63 },
+      { name: 'Tilly Ryall', pos: 'HK', age: 27, nat: 'ENG', q: 60 },
+      { name: 'Hannah Sams', pos: 'TP', age: 28, nat: 'ENG', q: 54 },
+      { name: 'Eilidh Sinclair', pos: 'LK', age: 22, nat: 'ENG', q: 57 },
+      { name: 'Alessia Skeates', pos: 'FL', age: 24, nat: 'ENG', q: 60 },
+      { name: 'Kate Smith', pos: 'CE', age: 19, nat: 'ENG', q: 60 },
+      { name: 'Demi Swann', pos: 'WG', age: 25, nat: 'ENG', q: 76 },
+      { name: 'Alex Tessier', pos: 'CE', age: 31, nat: 'CAN', q: 82, intl: true },
+      { name: 'Linde Van Der Velden', pos: 'LK', age: 21, nat: 'ENG', q: 56 },
+      { name: 'Dorothy Wall', pos: 'FL', age: 26, nat: 'IRE', q: 79, intl: true },
+      { name: 'Lola Whitley', pos: 'FL', age: 21, nat: 'ENG', q: 56 },
+      { name: 'Sammy Wong', pos: 'SH', age: 30, nat: 'ENG', q: 77 },
+      { name: 'Anna Woodman', pos: 'FH', age: 28, nat: 'ENG', q: 70 },
+      { name: 'Carys Phillips', pos: 'HK', age: 34, nat: 'WAL', q: 72, intl: true },
+      { name: 'Honey Kerslake', pos: 'CE', age: 23, nat: 'ENG', q: 66 },
+    ],
+  },
+  {
+    id: W + 'loughborough', name: 'Loughborough RFC', short: 'Loughboro',
+    city: 'Loughborough', country: 'ENG',
+    stadium: 'Loughborough Park', capacity: 3000,
+    colors: ['#3b1d6e', '#c9a227'],
+    rep: 71, budget: 230000,
+    // 37 players from the sheet; 8 carry a stated position and union
+    players: [
+      { name: 'Kaya Acton', pos: 'HK', age: 31, nat: 'ENG', q: 80 },
+      { name: 'Ashton Adcock', pos: 'TP', age: 33, nat: 'ENG', q: 51 },
+      { name: 'Tiwaah Adjei-Ansere', pos: 'LK', age: 22, nat: 'ENG', q: 51 },
+      { name: 'Tamsin Baynes', pos: 'CE', age: 24, nat: 'ENG', q: 56 },
+      { name: 'Amy Layzell', pos: 'FB', age: 29, nat: 'ENG', q: 71 },
+      { name: 'Fancy Bermudez', pos: 'LP', age: 19, nat: 'ENG', q: 57 },
+      { name: 'Abbie Brown', pos: 'FL', age: 31, nat: 'ENG', q: 74 },
+      { name: 'Pamphinette Buisa', pos: 'LK', age: 28, nat: 'CAN', q: 75, intl: true },
+      { name: 'Lucy Calladine', pos: 'HK', age: 31, nat: 'ENG', q: 52 },
+      { name: 'Evelyn Clarke', pos: 'TP', age: 20, nat: 'ENG', q: 61 },
+      { name: 'Grace Clifford', pos: 'N8', age: 19, nat: 'ENG', q: 56 },
+      { name: 'Chloe Daniels', pos: 'FL', age: 18, nat: 'ENG', q: 74 },
+      { name: 'Megan Davey', pos: 'WG', age: 24, nat: 'ENG', q: 69 },
+      { name: 'Keevy Fitzpatrick', pos: 'LK', age: 20, nat: 'ENG', q: 74 },
+      { name: 'Daisy Hibbert-Jones', pos: 'CE', age: 18, nat: 'ENG', q: 78 },
+      { name: 'Lilli Ives Campion', pos: 'SH', age: 24, nat: 'ENG', q: 69 },
+      { name: 'Sadia Kabeya', pos: 'FL', age: 24, nat: 'ENG', q: 83, intl: true },
+      { name: 'Aoibhe Kelly', pos: 'SH', age: 23, nat: 'IRE', q: 70 },
+      { name: 'Alev Kelter', pos: 'CE', age: 34, nat: 'USA', q: 78, intl: true },
+      { name: 'Churchy Knight', pos: 'FH', age: 28, nat: 'ENG', q: 61 },
+      { name: 'Kiki Ldowu', pos: 'FB', age: 29, nat: 'ENG', q: 66 },
+      { name: 'Molly Luthayi', pos: 'LP', age: 18, nat: 'ENG', q: 63 },
+      { name: 'Haineala Lutui', pos: 'HK', age: 33, nat: 'ENG', q: 70 },
+      { name: 'Bulou Mataitoga', pos: 'WG', age: 24, nat: 'FIJ', q: 72, intl: true },
+      { name: 'Alicia Maude', pos: 'TP', age: 29, nat: 'ENG', q: 53 },
+      { name: 'Carmela Morrall', pos: 'N8', age: 30, nat: 'ENG', q: 57 },
+      { name: 'Polly Peterson', pos: 'FL', age: 24, nat: 'ENG', q: 67 },
+      { name: 'Brooke Rempel', pos: 'LK', age: 25, nat: 'ENG', q: 58 },
+      { name: 'Ellie Roberts', pos: 'WG', age: 32, nat: 'ENG', q: 67 },
+      { name: 'Helena Rowland', pos: 'FH', age: 26, nat: 'ENG', q: 82, gk: true, intl: true },
+      { name: 'Mae Sagapolu', pos: 'LP', age: 27, nat: 'SAM', q: 73, intl: true },
+      { name: 'Rachel Smith', pos: 'CE', age: 27, nat: 'ENG', q: 53 },
+      { name: 'Flo Symonds', pos: 'LP', age: 28, nat: 'ENG', q: 66 },
+      { name: 'Kathryn Treder', pos: 'HK', age: 19, nat: 'ENG', q: 66 },
+      { name: 'Ellie May Tromans', pos: 'TP', age: 26, nat: 'ENG', q: 54 },
+      { name: 'Catherine Wells', pos: 'LK', age: 28, nat: 'ENG', q: 74 },
+      { name: 'Amelia Williams', pos: 'FL', age: 19, nat: 'ENG', q: 72 },
+    ],
+  },
+  {
+    id: W + 'leicester', name: 'Leicester RFC', short: 'Leicester',
+    city: 'Leicester', country: 'ENG',
+    stadium: 'Welford Street', capacity: 4000,
+    colors: ['#0a5c36', '#c02f3a'],
+    rep: 67, budget: 200000,
+    // 45 players from the sheet; 6 carry a stated position and union
+    players: [
+      { name: 'Phoebe Andrews', pos: 'LP', age: 19, nat: 'ENG', q: 57 },
+      { name: 'Amelie Anstead', pos: 'HK', age: 20, nat: 'ENG', q: 51 },
+      { name: 'Alana Bainbridge', pos: 'TP', age: 24, nat: 'ENG', q: 56 },
+      { name: 'Cara Brincat', pos: 'LK', age: 32, nat: 'ENG', q: 50 },
+      { name: 'Ali Coleman', pos: 'WG', age: 22, nat: 'ENG', q: 57 },
+      { name: 'Beth Cregan', pos: 'LK', age: 23, nat: 'ENG', q: 56 },
+      { name: 'Grace Deane', pos: 'FL', age: 28, nat: 'ENG', q: 55 },
+      { name: 'Halley Derera', pos: 'FH', age: 23, nat: 'ENG', q: 55, gk: true },
+      { name: 'Clodagh Dunne', pos: 'CE', age: 24, nat: 'ENG', q: 50 },
+      { name: 'Hermione Farmer', pos: 'LP', age: 21, nat: 'ENG', q: 56 },
+      { name: 'Tess Feury', pos: 'FB', age: 29, nat: 'USA', q: 75, intl: true },
+      { name: 'Abbie Fleming', pos: 'HK', age: 23, nat: 'ENG', q: 55 },
+      { name: 'Grace Freeman', pos: 'TP', age: 20, nat: 'ENG', q: 66 },
+      { name: 'Tiana Gordon', pos: 'N8', age: 32, nat: 'ENG', q: 61 },
+      { name: 'Freya Greensmith', pos: 'FL', age: 25, nat: 'ENG', q: 62 },
+      { name: 'Micke Gunter', pos: 'WG', age: 18, nat: 'ENG', q: 55 },
+      { name: 'Caitlyn Halse', pos: 'FB', age: 19, nat: 'AUS', q: 76, intl: true },
+      { name: 'Karolina Kacirkova', pos: 'LK', age: 33, nat: 'ENG', q: 56 },
+      { name: 'Wako Kitano', pos: 'SH', age: 26, nat: 'JPN', q: 72, intl: true },
+      { name: 'Eneka Labeyrie', pos: 'CE', age: 25, nat: 'ENG', q: 62 },
+      { name: 'Coco Lindelauf', pos: 'SH', age: 24, nat: 'FRA', q: 71 },
+      { name: 'Georgie Lingham', pos: 'FH', age: 29, nat: 'ENG', q: 53 },
+      { name: 'Jemima McCalman', pos: 'LP', age: 33, nat: 'ENG', q: 63 },
+      { name: 'Isobel McGuire-Evans', pos: 'HK', age: 33, nat: 'ENG', q: 56 },
+      { name: 'Zara Pickwick', pos: 'TP', age: 24, nat: 'ENG', q: 52 },
+      { name: 'Lauren Poole', pos: 'N8', age: 27, nat: 'ENG', q: 48 },
+      { name: 'Abileigh Priestnall', pos: 'FL', age: 32, nat: 'ENG', q: 69 },
+      { name: 'Summer Reeves', pos: 'LK', age: 22, nat: 'ENG', q: 60 },
+      { name: 'Morgan Richardson', pos: 'WG', age: 22, nat: 'ENG', q: 55 },
+      { name: 'Jordan Russell', pos: 'CE', age: 33, nat: 'ENG', q: 51 },
+      { name: 'Rowann Sinclair', pos: 'LP', age: 26, nat: 'ENG', q: 53 },
+      { name: 'Eve Slater', pos: 'HK', age: 21, nat: 'ENG', q: 63 },
+      { name: 'Ellie Smith', pos: 'TP', age: 21, nat: 'ENG', q: 49 },
+      { name: 'Lagi Tuima', pos: 'LK', age: 27, nat: 'ENG', q: 50 },
+      { name: 'Tabua Tuinakauvadra', pos: 'FL', age: 24, nat: 'AUS', q: 74, intl: true },
+      { name: 'Kat Turner', pos: 'FL', age: 29, nat: 'ENG', q: 51 },
+      { name: 'Nadine Vincent', pos: 'CE', age: 18, nat: 'ENG', q: 62 },
+      { name: 'Alicia Watkins', pos: 'WG', age: 20, nat: 'ENG', q: 56 },
+      { name: 'Lucy Weaver', pos: 'LK', age: 28, nat: 'ENG', q: 50 },
+      { name: 'Leah Brough', pos: 'FL', age: 24, nat: 'ENG', q: 69 },
+      { name: 'Lucy Finch', pos: 'SH', age: 18, nat: 'ENG', q: 62 },
+      { name: 'Rachel Ehrecke', pos: 'FH', age: 28, nat: 'ENG', q: 59, gk: true },
+      { name: 'Ashley Fernandez', pos: 'CE', age: 25, nat: 'AUS', q: 73, intl: true },
+      { name: 'Charlotte Seale', pos: 'CE', age: 29, nat: 'ENG', q: 61 },
+      { name: 'Louisa Maynard', pos: 'FB', age: 27, nat: 'ENG', q: 56 },
+    ],
+  },
+  {
+    id: W + 'sale', name: 'Sale RFC', short: 'Sale',
+    city: 'Sale', country: 'ENG',
+    stadium: 'Heywood Road', capacity: 2500,
+    colors: ['#12295c', '#ffffff'],
+    rep: 63, budget: 180000,
+    // 46 players from the sheet; 13 carry a stated position and union
+    players: [
+      { name: 'Holly Aitchison', pos: 'TP', age: 28, nat: 'ENG', q: 66 },
+      { name: 'Iona Antwis', pos: 'FL', age: 28, nat: 'ENG', q: 62 },
+      { name: 'Freya Aucken', pos: 'SH', age: 31, nat: 'ENG', q: 66 },
+      { name: 'Leah Bartlett', pos: 'LP', age: 30, nat: 'SCO', q: 73, intl: true },
+      { name: 'Sarah Beckett', pos: 'FL', age: 28, nat: 'ENG', q: 80, intl: true },
+      { name: 'Willow Bell', pos: 'FH', age: 23, nat: 'ENG', q: 63 },
+      { name: 'Sophie Benavent', pos: 'FB', age: 27, nat: 'ENG', q: 44, gk: true },
+      { name: 'Sophie Blakemore', pos: 'LP', age: 27, nat: 'ENG', q: 55 },
+      { name: 'Polly Bowman', pos: 'TP', age: 31, nat: 'ENG', q: 48 },
+      { name: 'Alicia Calton', pos: 'FL', age: 25, nat: 'ENG', q: 59 },
+      { name: 'Charlotte Fray', pos: 'SH', age: 30, nat: 'ENG', q: 50 },
+      { name: 'Shona Campbell', pos: 'WG', age: 24, nat: 'SCO', q: 70 },
+      { name: 'Alba Capell', pos: 'FH', age: 23, nat: 'ENG', q: 56, gk: true },
+      { name: 'Carmen Castellucci', pos: 'FB', age: 22, nat: 'ENG', q: 61 },
+      { name: 'Katie Childs', pos: 'LP', age: 28, nat: 'ENG', q: 53 },
+      { name: 'Amy Cokayne', pos: 'HK', age: 30, nat: 'ENG', q: 84, intl: true },
+      { name: 'Eva Donaldson', pos: 'HK', age: 18, nat: 'ENG', q: 49 },
+      { name: 'Lizzie Duffy', pos: 'TP', age: 23, nat: 'ENG', q: 48 },
+      { name: 'Scarlett Fielding', pos: 'N8', age: 29, nat: 'ENG', q: 51 },
+      { name: 'Izzy Green', pos: 'FL', age: 23, nat: 'ENG', q: 57 },
+      { name: 'Detysha Harper', pos: 'LK', age: 33, nat: 'ENG', q: 54 },
+      { name: 'Tatyana Heard', pos: 'CE', age: 29, nat: 'ENG', q: 78, intl: true },
+      { name: 'Brittany Hogan', pos: 'N8', age: 27, nat: 'IRE', q: 76, intl: true },
+      { name: 'Katana Howard', pos: 'CE', age: 25, nat: 'NZL', q: 74, intl: true },
+      { name: 'Amelia Hyndman', pos: 'WG', age: 27, nat: 'ENG', q: 59 },
+      { name: 'Katie Moore', pos: 'CE', age: 20, nat: 'ENG', q: 43 },
+      { name: 'Vicky A Irwin', pos: 'LP', age: 29, nat: 'ENG', q: 46 },
+      { name: 'Nick James', pos: 'HK', age: 22, nat: 'ENG', q: 62 },
+      { name: 'Erica Jarrell-Searcy', pos: 'LK', age: 28, nat: 'USA', q: 72, intl: true },
+      { name: 'Sharifa Kasolo', pos: 'TP', age: 24, nat: 'ENG', q: 64 },
+      { name: 'Courtney Keight', pos: 'LK', age: 23, nat: 'ENG', q: 64 },
+      { name: 'Rhona Lloyd', pos: 'WG', age: 29, nat: 'SCO', q: 76, intl: true },
+      { name: 'Olivia Ortiz', pos: 'FL', age: 29, nat: 'ENG', q: 62 },
+      { name: 'Laura Perrin', pos: 'CE', age: 30, nat: 'ENG', q: 47 },
+      { name: 'Georgie Perris-Redding', pos: 'WG', age: 32, nat: 'ENG', q: 65 },
+      { name: 'Gwenllian Pyrs', pos: 'LK', age: 27, nat: 'WAL', q: 73, intl: true },
+      { name: 'Amy Relf', pos: 'LK', age: 19, nat: 'ENG', q: 64 },
+      { name: 'Beatrice Rigoni', pos: 'CE', age: 31, nat: 'ITA', q: 78, intl: true },
+      { name: 'Evie Roach', pos: 'FL', age: 26, nat: 'ENG', q: 59 },
+      { name: 'Annie Roue', pos: 'SH', age: 26, nat: 'ENG', q: 59 },
+      { name: 'Zoe Stratford', pos: 'FH', age: 25, nat: 'ENG', q: 53 },
+      { name: 'Morwenna Talling', pos: 'LK', age: 26, nat: 'ENG', q: 77, intl: true },
+      { name: 'Holly Thorpe', pos: 'CE', age: 33, nat: 'ENG', q: 52 },
+      { name: 'Kendall Waudby', pos: 'FB', age: 18, nat: 'ENG', q: 50 },
+      { name: 'Eva Wood', pos: 'LP', age: 31, nat: 'ENG', q: 62 },
+      { name: 'Kelsey Jones', pos: 'HK', age: 29, nat: 'WAL', q: 73, intl: true },
+    ],
+  },
 ]

@@ -113,30 +113,39 @@ real mix. `staffGender()` is a coin in the women's game and not a question in th
 men's. Making every women's club's coach a woman would be as wrong as leaving
 them all men.
 
-## 6. Real players — the honest position
+## 6. Real players
 
-The owner asked for real players, as the men's database has. **This could not be
-done to the same depth in this session, and the reason is worth recording.**
+The owner supplied a squad list on 6 Sep 2026 ("Full PWR Player List & Current
+Club 26/27", a Google Sheet) after the first pass had to fall back on generated
+depth. **Every name and every club in `w_pwr.ts` is now real and comes from that
+sheet**: all 375 contracted players across the nine clubs, and the per-club
+totals match the sheet's own squad-size column exactly, club for club
+(38/44/35/44/45/37/46/50/36).
 
-The men's 1,560 players were compiled from sources. This environment's network
-policy **blocks Wikipedia and the rugby press** (`EGRESS_BLOCKED` on every
-fetch); web *search* returns snippets, but reading 9 clubs × ~35 players that way
-would take dozens of queries and still be incomplete. Compiling ~300 women's
-players from memory would produce names that look right and are wrong — search
-already corrected one club assignment this session that memory had placed
-elsewhere.
+Worth recording how it was read, because the obvious route does not work here.
+This environment's network policy blocks `en.wikipedia.org` and `docs.google.com`
+outright (`EGRESS_BLOCKED`), so neither the Wikipedia transfers page nor the
+sheet's own htmlview could be fetched. The **Google Drive connector** reaches it,
+because it does not go through the egress proxy. `read_file_content` truncates a
+sheet this size at about five clubs; `download_file_content` with
+`exportMimeType: text/csv` returns the whole thing.
 
-So `w_pwr.ts` does what `champ.ts` and `natl1.ts` already do for the English
-second and third tiers: **it names the players it can stand behind and generates
-honest depth around them.** Eleven internationals are real and verified against
-club and international sources this session, each at the club she played for in
-2025-26. Everyone else is generated, deterministic from the club id, in the
-quality band the club deserves. `scripts/namedup.ts` proves no generated player
-wears a real one's name — it does not care which game it is reading.
+**What the sheet does not carry, and is therefore the game's judgement:**
+position, age, rating, nationality and goal-kicking. 92 players are capped
+internationals whose position and union are a matter of record and are stated
+explicitly. The other 283 get a position from the squad shape, an English
+passport and a rating drawn from the club's reputation. A player wearing the
+wrong number is a data fix, not a bug.
 
-**Filling in the other ~280 is a data pass, not an engineering one.** It needs
-either a network that can reach the sources or the owner's own list, and it can
-be done a club at a time without touching a line of code.
+Two things the sheet corrected that memory had wrong, which is the argument for
+using it rather than recall: **Ellie Kildunne is at Bristol for 26/27, not
+Harlequins**, and **Marlie Packer is at Harlequins, not Saracens**. A third:
+Zoe Aldcroft is not in the 26/27 league at all, so she is not in the game.
+
+**The season is 2026-27**, where the men's database is 2025-26. The sheet's
+25/26 column only covers players still in the league, so building 25/26 from it
+would silently drop the 124 who left. A complete current season beats an
+incomplete old one, and the two worlds never meet, so nothing compares them.
 
 ## 7. What is built, and what is not
 
@@ -145,16 +154,20 @@ be done a club at a time without touching a line of code.
 - `src/game/gender.ts` — the type, the `w:` id prefix, `genderOf`, `staffGender`
 - `gender` on `GameState`, defaulting old saves to the men's game
 - `LEAGUE_DEFS(gender)`, and all three seams passing it
-- `src/data/leagues/w_pwr.ts` — the nine PWR clubs, real towns and grounds under
-  the same renaming rules as the men's database (`docs/ip-rename-map.md`)
+- `src/data/leagues/w_pwr.ts` — the nine PWR clubs and all 375 real players,
+  real towns and grounds under the same renaming rules as the men's database
+  (`docs/ip-rename-map.md`)
 - women's name pools for all 17 unions; 17 name-generation sites threaded
 - the men's cups and Test calendar guarded out of the women's world
 - the choice on the main menu, in all five languages
 
 **Not built yet, in the order I would do it:**
 
-1. **France (Élite 1)** and the Pacific competition. Data files on the pattern
-   `w_pwr.ts` already sets; no engine work. The owner named both.
+1. **France (Élite 1)** and a combined **Australia + New Zealand** competition
+   (Super W plus Super Rugby Aupiki), both named by the owner. Data files on the
+   pattern `w_pwr.ts` sets; no engine work. Élite 1 needs a squad list the way
+   PWR did: search names only 10 of its 20 clubs and the pages are blocked, so
+   it wants the owner's sheet or an unblocked source rather than guesswork.
 2. **The women's international game, behind the paid option.** This is its own
    piece of work because the calendar genuinely differs: the Women's Six Nations
    sits in a different window from the men's, WXV is not the Rugby Championship,
