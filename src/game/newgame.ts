@@ -28,7 +28,7 @@ import { seedPhilosophies } from './philosophy'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
@@ -496,6 +496,11 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
 
     buildInternationals(rng, state, isWorldCupSeason(0))
+  } else {
+    // The women's game has its own two, in their own windows. See
+    // buildWomensInternationals for why this is not the men's builder with
+    // different arguments.
+    buildWomensInternationals(rng, state)
   }
   schedulePreseason(state, rng)
   seedExClubs(state)

@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
-import { genderOf } from './gender'
+import { W, genderOf } from './gender'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -13,7 +13,7 @@ import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
 import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { debtWeek } from './treasury'
@@ -584,6 +584,23 @@ export function activeWindows(state: GameState): Window[] {
   }
   if (state.comps['sn']) {
     out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: NAT_SQUAD_SIZE })
+  }
+  // THE WOMEN'S TWO. activeWindows tests for competitions by id, and the
+  // women's carry the w: prefix, so without these no window ever opens in a
+  // women's career: the Test fixtures are played, but no squad is ever named
+  // and no club ever loses a player to a Test. Found by playing a full season
+  // and finding natSquads empty in every week of it.
+  if (state.comps[W + 'sn']) {
+    out.push({
+      start: W_SIX_NATIONS_WEEKS[0] - 1, end: W_SIX_NATIONS_WEEKS[W_SIX_NATIONS_WEEKS.length - 1],
+      nations: state.comps[W + 'sn'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
+  if (state.comps[W + 'p4']) {
+    out.push({
+      start: W_PAC4_WEEKS[0] - 1, end: W_PAC4_WEEKS[W_PAC4_WEEKS.length - 1],
+      nations: state.comps[W + 'p4'].teamIds, size: NAT_SQUAD_SIZE,
+    })
   }
   if (state.comps['tour']) {
     out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['tour'].teamIds, size: NAT_SQUAD_SIZE })
@@ -2230,9 +2247,10 @@ export function processWeekAndAdvance(state: GameState) {
 
   // Northern Championship lore: the Slam and the Spoon are bigger than the table
   {
-    const sn = state.comps['sn']
-    const lastWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1]
-    const penultWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 2]
+    const snWks = snWeeksFor(genderOf(state))
+    const sn = state.comps[snIdFor(genderOf(state))]
+    const lastWk = snWks[snWks.length - 1]
+    const penultWk = snWks[snWks.length - 2]
     if (sn && state.week === penultWk) {
       const leader = sortTable(sn.table)[0]
       if (leader && leader.w === 4 && leader.d === 0 && leader.l === 0) {
@@ -3399,21 +3417,23 @@ export function processWeekAndAdvance(state: GameState) {
     }
 
     // the Northern Championship window is a big deal - a round-up lands every week
-    if (state.comps['sn'] && SIX_NATIONS_WEEKS.includes(state.week)) {
-      const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)
+    const snId = snIdFor(genderOf(state))
+    const snWeeks = snWeeksFor(genderOf(state))
+    if (state.comps[snId] && snWeeks.includes(state.week)) {
+      const round = state.fixtures.filter(f => f.compId === snId && f.week === state.week && f.played)
       if (round.length) {
-        const order = sortTable(state.comps['sn'].table)
+        const order = sortTable(state.comps[snId].table)
         const leader = order[0] ? nationNameIn('en', order[0].teamId) : null
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🏆 Northern Championship round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
+          subject: `🏆 Northern Championship round ${snWeeks.indexOf(state.week) + 1}: the story so far`,
           body: [
             ...round.map(f => `${nationNameIn('en', f.homeId)} ${f.homeScore}–${f.awayScore} ${nationNameIn('en', f.awayId)}`),
             leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',
           ].filter(Boolean).join('\n'),
           k: leader ? 'news.snRoundLeader' : 'news.snRound',
           v: {
-            n: SIX_NATIONS_WEEKS.indexOf(state.week) + 1,
+            n: snWeeks.indexOf(state.week) + 1,
             rows_ll: JSON.stringify(round.map(f => ({
               k: 'news.snRow', home_k: `nation.${f.homeId}`,
               hs: f.homeScore, as: f.awayScore, away_k: `nation.${f.awayId}`,

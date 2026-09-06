@@ -8,7 +8,7 @@ import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import { BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
-import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
 import { genderOf } from './gender'
@@ -1761,6 +1761,8 @@ export function rebuildSeason(state: GameState) {
     state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
     state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
     buildInternationals(rng, state, wcYear)
+  } else {
+    buildWomensInternationals(rng, state)
   }
   schedulePreseason(state, rng)
   // and a fresh A League for whichever league the manager is in NOW - a summer
