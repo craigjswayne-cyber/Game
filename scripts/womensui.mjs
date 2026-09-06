@@ -57,18 +57,21 @@ try {
 
   // ---- the wizard, pointed at the women's world ----
   await page.click('.new-career-w')
-  await page.waitForSelector('text=English Premier Division')
+  await page.waitForSelector("text=Women's Premier Division")
 
   ok(await page.locator('.challenge-card').count() === 0,
     'no challenge cards in the women\'s wizard (all four are pinned to men\'s clubs)')
 
   // both women's competitions are offered, not just England
-  ok(await page.locator('text=Pacific Championship').count() === 1,
-    'the Pacific Championship is on the competition list too')
-  ok(await page.locator('text=French Elite 1').count() === 1,
-    'and France')
+  // named explicitly, never as the men's default (owner's rule)
+  for (const n of ["Women's Pacific Championship", "Women's Elite 1", "Women's Championship",
+                   "Women's Elite 2", 'Celtic Challenge']) {
+    ok(await page.locator(`text=${n}`).count() >= 1, `${n} is on the competition list`)
+  }
+  ok(await page.locator('text=English Premier Division').count() === 0,
+    "and no women's competition wears the men's name")
 
-  await page.click('text=English Premier Division')
+  await page.click("text=Women's Premier Division")
   await page.waitForSelector('.club-tile')
   const tiles = await page.locator('.club-tile').count()
   ok(tiles === 9, `the club list is the nine PWR clubs (${tiles})`)
