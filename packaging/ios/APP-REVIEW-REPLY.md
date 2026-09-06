@@ -89,9 +89,9 @@ content.
 
 **6. Regulated industry and third-party material.** The app is not in a
 regulated industry. It contains no licensed or protected third-party material:
-no club badges, kits, logos, photographs, competition names or sponsor marks of
-any real organisation. Clubs, competitions, grounds and sponsors in the game are
-fictional. Player names are real, used solely to identify people in a sporting
+no official club badges, kits, logos, photographs, competition names or sponsor
+marks of any real organisation. Club names are real; competitions, grounds and
+sponsors are renamed or invented. Player names are real, used solely to identify people in a sporting
 database, as a newspaper or an almanac does; the app is clearly labelled as
 unofficial and independent on the title screen, in About & legal and in the
 privacy policy, and a contact address for removal requests is published in

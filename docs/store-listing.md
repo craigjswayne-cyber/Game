@@ -52,16 +52,16 @@ PHASE: Rugby Manager is a management game in the tradition of the great
 text-driven sims: dense squad tables, real decisions every week, and a career
 that remembers what you did in season one when you get to season fifteen.
 
-You take a job, you name a team, and you find out.
+You take a job, you name a team, and you find out how far you can take it.
 
 THE SEASON
 • Eight competitions and over a hundred clubs, from the English top flight to
   Japan, with second tiers, cups, playoffs and promotion underneath them.
 • Full league seasons with bonus points, knockout cups drawn in front of you,
   and an international calendar that takes your best players away at the worst
-  possible moment.
-• Season after season, for as long as you last. Players age, decline, retire
-  and are replaced by academy men you brought through yourself.
+  possible moment - and hands an academy kid his chance.
+• Season after season, for as long as you last. Players age, decline, retire and
+  are replaced by men you brought through yourself.
 
 THE WEEK
 • A week that arrives at the pace a week arrives: Monday's fallout and the
@@ -81,20 +81,29 @@ THE MATCH
 • A coach's verdict afterwards that names two things to fix, and marks them next
   week to see whether you did.
 
+NEW TO RUGBY?
+• The Manager's Handbook explains every number in the game AND every word of the
+  sport, in plain language, with a search box. Lineout, jackal, the 22, why you
+  kick to the corner, what a 6-2 bench buys you - it is all in there.
+
 BUILT FOR A PHONE
 • Portrait, one-handed, and designed for it rather than shrunk into it.
-• Completely offline. It has no network features at all: no account, no login,
-  no cloud, and nothing about you is collected or sent anywhere.
+• The game is completely offline: no account, no login, no cloud, and nothing
+  about your career ever leaves your device. The adverts are the only part that
+  uses the network.
+• Free to play. Small adverts sit at the foot of two screens, with optional
+  "watch one instead" buttons you choose to press. Never during a match. Pro
+  Manager takes every advert away for good.
 • Your careers are saved on your device, with export and import so a backup is
   yours to keep.
-• English and French, and a text-size setting for people who would rather not
-  squint.
+• English, French, Spanish, Italian and Japanese, with a text-size setting for
+  people who would rather not squint.
 
-PHASE: Rugby Manager is an unofficial, independent game. Clubs, competitions,
-grounds and sponsors in it are fictional. Player names are real, used to identify
-people in a sporting database and for nothing else; the game is not affiliated
-with, endorsed by or licensed by any player, club, league or governing body, and
-contains no official badges, kits or logos.
+PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
+competitions, grounds and sponsors are renamed or invented. Player names are
+real, used to identify people in a sporting database and for nothing else. The
+game is not affiliated with, endorsed by or licensed by any player, club, league
+or governing body, and contains no official badges, kits or logos.
 ```
 
 ### What's new (500 max) - for the first release
@@ -388,9 +397,14 @@ Use the Play full description above, unchanged. It is within Apple's 4000 too.
 ### Review notes
 
 ```
-This is a single-player, fully offline game. There is no account, no login, no
-server and no network use at all after the download - a reviewer can turn off the
-network entirely and every feature still works.
+This is a single-player game. Every part of the gameplay runs offline: there is
+no account, no login and no server, and a reviewer can turn off the network
+entirely and still play a full career. The only thing that uses the network is
+advertising (Google AdMob) - a banner at the foot of the Home and Results
+screens, and optional "watch an advert" buttons the player chooses to press.
+Consent is gathered through Google's UMP form before any advert is requested,
+App Tracking Transparency is requested before the advertising identifier is
+used, and Pro Manager removes every advert permanently.
 
 There are nine optional in-app purchases, none of which is required to play and
 none of which affects any other manager's game. Four are permanent unlocks
@@ -405,9 +419,9 @@ The store is reachable only in a packaged build. The free web version at
 phaserugbymanager.com has no store at all, which is why a reviewer running the
 website sees no purchases.
 
-Player names are real, used to identify people in a sporting database. Clubs,
-competitions, grounds and sponsors are fictional and no official badges, kits or
-logos are included. The game states this on the title screen, in the About &
+Player names are real, used to identify people in a sporting database. Club
+names are real; competitions, grounds and sponsors are renamed or invented, and
+no official badges, kits or logos are included. The game states this on the title screen, in the About &
 legal page and in the privacy policy, and includes a contact address for anybody
 who wishes to be removed.
 ```
@@ -795,12 +809,12 @@ THE RECORD
 
 BUILT FOR A PHONE
 • Portrait, one-handed, designed for the screen rather than shrunk onto it. Three colour skins, day and night, and a text-size setting.
-• Completely offline. No account, no login, no cloud, no adverts, and nothing about you is collected or sent anywhere.
+• The game is completely offline: no account, no login, no cloud, and nothing about your career leaves your device. The adverts are the only part that uses the network, and Pro Manager removes them.
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • Three difficulty settings, chosen once per career.
 • English, French, Spanish, Italian and Japanese.
 
-PHASE: Rugby Manager is an unofficial, independent game. Clubs, competitions, grounds and sponsors in it are fictional. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
+PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 
 Optional in-app purchases support development and add conveniences. Nothing in the game is behind a paywall.
 ```
