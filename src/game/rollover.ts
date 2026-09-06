@@ -1,5 +1,6 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { returnLoanIn } from './loans'
+import { runTeamOfTheYear } from './yearend'
 import { difficultyOf } from './difficulty'
 import { aiBoardsReinvest } from './aiecon'
 import { applyAdminPenalties } from './season'
@@ -193,6 +194,8 @@ function worldPlayerOfTheYear(state: GameState) {
     },
     playerId: win.p.id,
   })
+  // and the fifteen, on the same night, off the same season (yearend.ts)
+  runTeamOfTheYear(state, win.p.id)
 }
 
 function settleRecords(state: GameState) {

@@ -4735,7 +4735,12 @@
   "grounds10Subj": "IN GIRO PER I CAMPI: una squadra da bar sfida i professionisti e riempie il campo",
   "grounds10": "Una squadra da bar vicino al {club} ha sfidato il gruppo professionistico a una gara di calci benefica durante la finestra internazionale e, con stupore generale, i professionisti hanno accettato. Sono venute quattrocento persone. Hanno vinto quelli del bar all'ultimo calcio, l'incasso è andato all'ospedale locale, e nessuno ammette quanto sul serio sia stata presa la cosa.",
   "grounds11Subj": "IN GIRO PER I CAMPI: la maglia da trasferta che ha scatenato mille opinioni",
-  "grounds11": "Il {club} ha presentato una maglia da trasferta che il club definisce una rilettura audace della propria storia e che i suoi tifosi descrivono, a lungo e con fantasia, in tutt'altro modo. È andata esaurita due volte. Il club evita accuratamente di dire se questo dia ragione agli uni o agli altri."
+  "grounds11": "Il {club} ha presentato una maglia da trasferta che il club definisce una rilettura audace della propria storia e che i suoi tifosi descrivono, a lungo e con fantasia, in tutt'altro modo. È andata esaurita due volte. Il club evita accuratamente di dire se questo dia ragione agli uni o agli altri.",
+  "totySubj": "SQUADRA DELL'ANNO: i quindici che l'hanno segnata",
+  "toty": "L'organo di governo ha pubblicato la sua Squadra dell'Anno, un giocatore per ruolo, scelta su quello che sono stati davvero gli ultimi dodici mesi e non sulla reputazione.\n\n{rows_ll}",
+  "totyLine": "{n}. {name} ({pos}) - {club}",
+  "totyMineSubj": "La Squadra dell'Anno ci porta soldi",
+  "totyMine": "Abbiamo {n} giocatori nella Squadra dell'Anno: {names}. L'ufficio commerciale ha passato la mattina al telefono. Le maglie con i loro nomi vanno più veloci di quanto il club riesca a stamparle, tre organizzatori vogliono una serata con loro, e due sponsor che a settembre non richiamavano chiedono quanto costerebbe un contratto d'immagine.\n\nVale {money} per il club, e non è uscito nulla dal budget sportivo."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",

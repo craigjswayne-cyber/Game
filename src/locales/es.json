@@ -4735,7 +4735,12 @@
   "grounds10Subj": "POR OTROS CAMPOS: un equipo de bar reta a los profesionales y llena el campo",
   "grounds10": "Un equipo de bar cercano al {club} retó a la plantilla profesional a un concurso benéfico de patadas a palos durante la ventana internacional y, para asombro general, los profesionales aceptaron. Acudieron cuatrocientas personas. Ganaron los del bar en la última patada, la recaudación fue al hospital local, y nadie admite lo en serio que se tomó el asunto.",
   "grounds11Subj": "POR OTROS CAMPOS: la camiseta de visitante que lanzó mil opiniones",
-  "grounds11": "El {club} ha presentado una camiseta de visitante que el club describe como una relectura audaz de su historia y que su afición describe, largo y tendido y con imaginación, de otra manera. Se ha agotado dos veces. El club evita decir si eso les da la razón a unos o a otros."
+  "grounds11": "El {club} ha presentado una camiseta de visitante que el club describe como una relectura audaz de su historia y que su afición describe, largo y tendido y con imaginación, de otra manera. Se ha agotado dos veces. El club evita decir si eso les da la razón a unos o a otros.",
+  "totySubj": "EQUIPO DEL AÑO: los quince que lo definieron",
+  "toty": "El organismo rector ha publicado su Equipo del Año, un jugador por puesto, elegido por lo que han sido realmente los últimos doce meses y no por la reputación.\n\n{rows_ll}",
+  "totyLine": "{n}. {name} ({pos}) - {club}",
+  "totyMineSubj": "El Equipo del Año nos da dinero",
+  "totyMine": "Tenemos {n} en el Equipo del Año: {names}. El departamento comercial se ha pasado la mañana al teléfono. Las camisetas con sus nombres se venden más rápido de lo que el club puede estamparlas, tres promotores quieren una gala con ellos, y dos patrocinadores que en septiembre no devolvían las llamadas preguntan cuánto costaría una imagen personal.\n\nSupone {money} para el club, y no ha salido nada del presupuesto deportivo."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",

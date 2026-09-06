@@ -4735,7 +4735,12 @@
   "grounds10Subj": "AROUND THE GROUNDS: pub side challenges a professional squad, sells out",
   "grounds10": "A pub team near {club} challenged the professional squad to a charity crossbar contest during the international break and, to widespread astonishment, the professionals said yes. Four hundred people came. The pub team won on the last kick, and the money went to the local hospital, so nobody involved is admitting how seriously it was taken.",
   "grounds11Subj": "AROUND THE GROUNDS: the away kit that launched a thousand opinions",
-  "grounds11": "{club} have unveiled an away shirt that the club describes as a bold reinterpretation of its heritage and that its supporters describe, at length and with imagination, as something else. It has sold out twice. The club has been careful not to say whether that proves the point or disproves it."
+  "grounds11": "{club} have unveiled an away shirt that the club describes as a bold reinterpretation of its heritage and that its supporters describe, at length and with imagination, as something else. It has sold out twice. The club has been careful not to say whether that proves the point or disproves it.",
+  "totySubj": "TEAM OF THE YEAR: the fifteen who defined it",
+  "toty": "The governing body has published its Team of the Year, one player in each shirt, chosen on what the last twelve months actually looked like rather than on reputation.\n\n{rows_ll}",
+  "totyLine": "{n}. {name} ({pos}) - {club}",
+  "totyMineSubj": "The Team of the Year is worth money to us",
+  "totyMine": "We have {n} in the Team of the Year: {names}. The commercial department has spent the morning answering the phone. Replica shirts with those names on the back are selling faster than the club can print them, three separate promoters want an evening with them, and two sponsors who were not returning calls in September have asked what a personal endorsement would cost.\n\nIt is worth {money} to the club, and none of it came out of the playing budget."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
