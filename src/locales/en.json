@@ -4116,7 +4116,7 @@
   "clubLegendSubj": "🗽 CLUB LEGEND: the city claims you as its own",
   "clubLegend": "{n} seasons. {cups} trophies. The supporters' trust has voted unanimously: you are a legend of {club}, whatever happens from here. There is talk of a statue outside {stadium}, and the artist has already asked how you would like to be posed. Results can dip; this cannot be taken away.",
   "seasonReviewSubj": "📋 Your {season} season in review",
-  "seasonReview": "{rows_ll}\n{pred}",
+  "seasonReview": "{rows_ll}",
   "srRecord": "Record: {w}W {d}D {l}L from {m} matches.",
   "srBest": "Best win: {line}",
   "srPoints": "Top points: {name} ({n})",
@@ -4756,7 +4756,10 @@
   "friendlyBooked": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the men who have not had a game.",
   "friendlyBookedSubj": "Midweek friendly agreed: {short}",
   "islesOfferSubj": "An invitation from the four unions",
-  "islesOffer": "The four unions have written to you jointly. They want you to take the British & Irish Isles XV to {host} this summer: seven provincial games and a three-Test series.\n\nThere is no shortlist and no interview. They have chosen, and they are asking. Your assistant takes your national side while you are away."
+  "islesOffer": "The four unions have written to you jointly. They want you to take the British & Irish Isles XV to {host} this summer: seven provincial games and a three-Test series.\n\nThere is no shortlist and no interview. They have chosen, and they are asking. Your assistant takes your national side while you are away.",
+  "srPredBeat": "The pundits said {pred_o} and you finished {act_o}. They owe you an apology.",
+  "srPredExact": "The pundits said {pred_o}, and {act_o} it was. Read like a book.",
+  "srPredMiss": "The pundits said {pred_o} and you finished {act_o}. The phone-ins will be brutal."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",

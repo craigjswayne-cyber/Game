@@ -4116,7 +4116,7 @@
   "clubLegendSubj": "🗽 LEYENDA DEL CLUB: la ciudad te hace suyo",
   "clubLegend": "{n} temporadas. {cups} trofeos. La peña de socios ha votado por unanimidad: eres una leyenda de {club}, pase lo que pase a partir de aquí. Se habla de una estatua a las puertas de {stadium}, y el escultor ya ha preguntado cómo quieres posar. Los resultados pueden flojear; esto ya no te lo quita nadie.",
   "seasonReviewSubj": "📋 Repaso a tu temporada {season}",
-  "seasonReview": "{rows_ll}\n{pred}",
+  "seasonReview": "{rows_ll}",
   "srRecord": "Balance: {w}V {d}E {l}D en {m} partidos.",
   "srBest": "Mejor victoria: {line}",
   "srPoints": "Máximo anotador: {name} ({n})",
@@ -4756,7 +4756,10 @@
   "friendlyBooked": "{club} vendrán a {short} el miércoles de la semana {week}. Sin taquilla que merezca la pena: lo que vale son ochenta minutos para la cantera y para quien no juega.",
   "friendlyBookedSubj": "Amistoso entre semana acordado: {short}",
   "islesOfferSubj": "Una invitación de las cuatro federaciones",
-  "islesOffer": "Las cuatro federaciones te han escrito conjuntamente. Quieren que lleves al XV de las Islas a {host} este verano: siete partidos provinciales y una serie de tres tests.\n\nNi lista ni entrevista. Han elegido. Tu ayudante lleva tu selección mientras no estés."
+  "islesOffer": "Las cuatro federaciones te han escrito conjuntamente. Quieren que lleves al XV de las Islas a {host} este verano: siete partidos provinciales y una serie de tres tests.\n\nNi lista ni entrevista. Han elegido. Tu ayudante lleva tu selección mientras no estés.",
+  "srPredBeat": "Los expertos te daban {pred_o} y acabaste {act_o}. Te deben una disculpa.",
+  "srPredExact": "Los expertos te daban {pred_o}, y {act_o} fuiste. Leído como un libro.",
+  "srPredMiss": "Los expertos te daban {pred_o} y acabaste {act_o}. Las tertulias van a ser brutales."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
