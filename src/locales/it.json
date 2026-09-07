@@ -4116,7 +4116,7 @@
   "clubLegendSubj": "🗽 LEGGENDA DEL CLUB: la città ti reclama come suo",
   "clubLegend": "{n} stagioni. {cups} trofei. Il trust dei tifosi ha votato all'unanimità: sei una leggenda di {club}, qualunque cosa accada da qui in poi. Si parla di una statua fuori da {stadium}, e l'artista ha già chiesto in che posa preferisci essere ritratto. I risultati possono calare; questo non te lo toglie nessuno.",
   "seasonReviewSubj": "📋 La tua stagione {season} in sintesi",
-  "seasonReview": "{rows_ll}\n{pred}",
+  "seasonReview": "{rows_ll}",
   "srRecord": "Bilancio: {w}V {d}N {l}P in {m} partite.",
   "srBest": "Miglior vittoria: {line}",
   "srPoints": "Più punti: {name} ({n})",
@@ -4756,7 +4756,10 @@
   "friendlyBooked": "{club} verranno a {short} il mercoledì della settimana {week}. Nessun incasso degno di nota: quello che conta sono ottanta minuti per l’academy e per chi non gioca.",
   "friendlyBookedSubj": "Amichevole infrasettimanale concordata: {short}",
   "islesOfferSubj": "Un invito dalle quattro federazioni",
-  "islesOffer": "Le quattro federazioni ti hanno scritto insieme. Vogliono affidarti il XV delle Isole per il tour in {host} quest'estate: sette partite di provincia e una serie di tre test.\n\nNiente rosa di candidati, niente colloquio. Hanno scelto. Il tuo vice prende la nazionale mentre sei via."
+  "islesOffer": "Le quattro federazioni ti hanno scritto insieme. Vogliono affidarti il XV delle Isole per il tour in {host} quest'estate: sette partite di provincia e una serie di tre test.\n\nNiente rosa di candidati, niente colloquio. Hanno scelto. Il tuo vice prende la nazionale mentre sei via.",
+  "srPredBeat": "Gli esperti ti davano {pred_o} e hai chiuso {act_o}. Ti devono le scuse.",
+  "srPredExact": "Gli esperti ti davano {pred_o}, e {act_o} è stato. Letto come un libro.",
+  "srPredMiss": "Gli esperti ti davano {pred_o} e hai chiuso {act_o}. Le radio saranno spietate."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",

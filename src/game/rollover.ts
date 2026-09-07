@@ -1127,6 +1127,8 @@ export function rebuildSeason(state: GameState) {
     const topPts = [...squad].sort((a, b) => b.stats.points - a.stats.points)[0]
     const topTry = [...squad].sort((a, b) => b.stats.tries - a.stats.tries)[0]
     let predLine = ''
+    /** the same line as a KEY, so it is not English in a French inbox */
+    let predRow: Record<string, unknown> | null = null
     const predicted = state.preds?.[uid]
     const myComp = state.comps[state.clubs[uid].leagueId]
     const actualPos = myComp ? sortTable(myComp.table).findIndex(r => r.teamId === uid) + 1 : 0
@@ -1134,6 +1136,15 @@ export function rebuildSeason(state: GameState) {
       predLine = `Pundits predicted ${actualPos < predicted ? `${ordinal(predicted)} - you finished ${ordinal(actualPos)}. They owe you an apology.`
         : actualPos === predicted ? `${ordinal(predicted)} - and ${ordinal(actualPos)} it was. Read like a book.`
         : `${ordinal(predicted)} - you finished ${ordinal(actualPos)}. The phone-ins will be brutal.`}`
+      // THE ENGLISH ABOVE IS THE FALLBACK BODY ONLY. It used to be handed
+      // straight into v.pred, so a French career read three lines of French and
+      // then "Pundits predicted 4th..." in English. frliveprobe found it the
+      // moment the calendar change made the prediction fire in its run.
+      predRow = {
+        k: actualPos < predicted ? 'news.srPredBeat'
+          : actualPos === predicted ? 'news.srPredExact' : 'news.srPredMiss',
+        pred_o: predicted, act_o: actualPos,
+      }
     }
 
     // structured snapshot for the one-page Season Review screen
@@ -1240,8 +1251,8 @@ export function rebuildSeason(state: GameState) {
           ...(best ? [{ k: 'news.srBest', line: best.line }] : []),
           ...(topPts?.stats.points ? [{ k: 'news.srPoints', name: topPts.name, n: topPts.stats.points }] : []),
           ...(topTry?.stats.tries ? [{ k: 'news.srTries', name: topTry.name, n: topTry.stats.tries }] : []),
+          ...(predRow ? [predRow] : []),
         ]),
-        pred: predLine,
       },
     })
 
