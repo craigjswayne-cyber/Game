@@ -12,7 +12,9 @@
  * and loses three Tests has lost.
  */
 import { newGame } from '../src/game/newgame'
-import { buildInternationals, isLionsSeason, TOUR_PROVINCIAL, TEST_NAMES, TOUR_WEEKS } from '../src/game/schedule'
+import { buildInternationals, buildWomensInternationals, isLionsSeason, isWomensTourSeason, TOUR_PROVINCIAL, TEST_NAMES, TOUR_WEEKS } from '../src/game/schedule'
+import { LEAGUE_DEFS } from '../src/game/newgame'
+import { W } from '../src/game/gender'
 import { mulberry32 } from '../src/game/rng'
 import { BASE_YEAR } from '../src/game/model'
 
@@ -69,7 +71,30 @@ ok(comp.rounds === 3, 'and it is a three-round series')
 ok(!comp.table.some(r => g.clubs[r.teamId ?? '']),
   'no club has a row in it, so beating a franchise cannot win the series')
 
+// ---- 5. the women's tour ------------------------------------------------
+console.log('\n--- 5. the women tour too, two years later')
+const wYears: number[] = []
+for (let s2 = 0; s2 < 20; s2++) if (isWomensTourSeason(s2)) wYears.push(BASE_YEAR + s2)
+console.log(`     women's tours: ${wYears.join(', ')}`)
+ok(wYears[0] === 2031, `the first is 2031, two years after the men's first (${wYears[0]})`)
+ok(wYears.every(y => isLionsSeason(y - BASE_YEAR - 2) || y - 2 < BASE_YEAR),
+  'every one of them falls two years after a men\'s tour')
+ok(!wYears.some(y => tourYears.includes(y)), 'and the two games never tour in the same summer')
+
+const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
+const wg = newGame(wClub, 'Test', 31, undefined, 'coach', 'normal', 'w')
+wg.season = [...Array(20).keys()].find(s2 => isWomensTourSeason(s2))!
+buildWomensInternationals(mulberry32(wg.seed), wg)
+const wtour = wg.fixtures.filter(f => f.compId === W + 'lions')
+ok(wtour.length === 10, `ten fixtures on the women's tour too (${wtour.length})`)
+ok(wtour.filter(f => (TEST_NAMES as readonly string[]).includes(f.stage ?? '')).length === 3,
+  'three Tests at the end of it')
+const wHost = wg.comps[W + 'lions'].teamIds.find(x => x !== 'LIO')
+ok(['NZL', 'CAN', 'FRA'].includes(wHost ?? ''),
+  `and it goes where it was sent - NZ, Canada or France (${wHost})`)
+ok(!wg.comps['lions'], 'the men\'s tour does not exist in a women\'s world')
+
 console.log('')
-if (fails === 0) console.log('TOUR PROBE PASSED: ten matches, seven provinces, three Tests, and the series decided on the Tests')
+if (fails === 0) console.log('TOUR PROBE PASSED: both games tour, ten matches each, three Tests, and never in the same summer')
 else console.log(`TOUR PROBE FAILED (${fails})`)
 process.exit(fails)
