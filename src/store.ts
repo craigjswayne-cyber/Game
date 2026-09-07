@@ -56,7 +56,7 @@ export const PRO_PLANS = 6
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
-import { getLang, initLang, onLangChange, setLang as applyLang, t, type Lang } from './game/i18n'
+import { getLang, initLang, onLangChange, setLang as applyLang, setWorld, t, type Lang } from './game/i18n'
 import { hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
@@ -64,7 +64,7 @@ import { dreamState, dreamsFor } from './game/dream'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
-import type { Gender } from './game/gender'
+import { genderOf, type Gender } from './game/gender'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
@@ -1457,6 +1457,15 @@ export const useStore = create<Store>((set, get) => ({
 // re-renders on a change. The subscription, not setLang, is what moves the
 // mirror: a lazily-fetched dictionary commits whenever its chunk arrives.
 onLangChange(() => useStore.setState({ lang: getLang() }))
+
+// THE WORLD FOLLOWS THE CAREER. i18n picks a feminine string in a women's save
+// and the plain one otherwise, and it learns which from here rather than from
+// the game object, because it is a leaf module the whole engine imports and
+// must not import the store back. Subscribed rather than set at each of the
+// five places a game is opened, so a sixth cannot forget.
+useStore.subscribe((s, prev) => {
+  if (s.game !== prev.game) setWorld(s.game ? genderOf(s.game) : 'm')
+})
 
 // Browser probes stage the states a natural walk cannot reach on demand - an
 // injured starter on match morning, a specific inbox backlog - through this

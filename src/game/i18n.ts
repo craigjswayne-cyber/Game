@@ -98,6 +98,48 @@ export function initLang(): Lang {
 
 export const getLang = (): Lang => current
 
+/**
+ * ---- WHICH WORLD THE READER IS IN ----
+ *
+ * Owner, 7 Sep: "do the french spanish and italian gendered strings."
+ *
+ * "Player" has no gender, but the copy around it does: "he was promised", "his
+ * agent", "a man short". French, Spanish and Italian go further - the noun
+ * itself is gendered (joueur / joueuse), the article agrees with it (le / la),
+ * the adjective agrees with it (blessé / blessée) - and a sentence rewritten to
+ * dodge all of that reads like a legal notice. Every language needs a second
+ * string, and this is how it is selected.
+ *
+ * A key may carry a sibling with an `_f` suffix. In a women's world t() looks
+ * for the sibling first and falls back to the plain key; in a men's world the
+ * sibling is never read. Fragments spliced in through `_k` and `_l` variables
+ * go through the same lookup, so a composed story is feminine all the way
+ * down. A language adds `_f` siblings only where its own text needs them, and
+ * langparity treats them as optional rather than as keys every language owes.
+ *
+ * WHAT STAYS MASCULINE, ON PURPOSE. A string whose subject is the manager, a
+ * coach, a scout, a referee or a bystander keeps its pronoun, because the game
+ * genders its staff fifty-fifty in a women's world (gender.ts staffGender) and
+ * has no per-person string to pick. scripts/womensvoice.ts counts what is left
+ * and names it, so the gap is measured rather than forgotten.
+ *
+ * The world is set by the store whenever a career opens, from the save's own
+ * gender, so a men's career loaded after a women's one reads as a men's career.
+ */
+export type World = 'm' | 'w'
+let world: World = 'm'
+export const setWorld = (g: World): void => { world = g }
+export const getWorld = (): World => world
+
+/** The feminine sibling of a key, if the world and the dictionary both have one. */
+function lookupForWorld(dict: Dict | undefined, key: string): unknown {
+  if (world === 'w') {
+    const f = lookup(dict, `${key}_f`)
+    if (f !== undefined) return f
+  }
+  return lookup(dict, key)
+}
+
 export function setLang(lang: Lang): void {
   if (lang === current) return
   // a dictionary already here switches instantly; one that is not is fetched
@@ -196,9 +238,11 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     //
     // So a `_k` variable holds a key and is looked up in the reader's language
     // on the way in. One level only - a fragment cannot carry fragments - which
-    // keeps this a substitution rather than a template language.
+    // keeps this a substitution rather than a template language. Fragments go
+    // through lookupForWorld like the story itself, so a women's career gets
+    // the `_f` sibling of "Player of the Month" and not just of the headline.
     if (name.endsWith('_k') && typeof v === 'string') {
-      const frag = lookup(DICTS[lang], v) ?? lookup(DICTS.en, v)
+      const frag = lookupForWorld(DICTS[lang], v) ?? lookupForWorld(DICTS.en, v)
       return render(frag, vars, lang) ?? v
     }
     // A LIST OF TRANSLATED FRAGMENTS, marked by a _l suffix.
@@ -231,7 +275,7 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
         if (!Array.isArray(items)) return v
         const sep = name.endsWith('_ll') ? '\n' : (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
         return items.map(it => {
-          const frag = lookup(DICTS[lang], it.k) ?? lookup(DICTS.en, it.k)
+          const frag = lookupForWorld(DICTS[lang], it.k) ?? lookupForWorld(DICTS.en, it.k)
           return render(frag, it as Vars, lang) ?? it.k
         }).join(sep)
       } catch { return v }
@@ -253,13 +297,13 @@ export const missing = new Set<string>()
  * `t('squad.injured', { n })` with a value shaped `{ one, other }` - plural.
  */
 export function t(key: string, vars?: Vars): string {
-  let entry = lookup(DICTS[current] ?? DICTS.en!, key)
+  let entry = lookupForWorld(DICTS[current] ?? DICTS.en!, key)
   if (entry === undefined && current !== 'en') {
     if (!missing.has(key)) {
       missing.add(key)
       if (import.meta.env?.DEV) console.warn(`[i18n] ${current} is missing "${key}", falling back to English`)
     }
-    entry = lookup(DICTS.en, key)
+    entry = lookupForWorld(DICTS.en, key)
   }
   if (entry === undefined) {
     // English itself does not have it: that is a bug in the code, not in a

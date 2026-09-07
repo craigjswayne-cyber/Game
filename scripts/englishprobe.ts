@@ -145,6 +145,9 @@ const CANNOT_BE_ONE: Record<string, string> = {
 }
 
 const hasSingularSibling = (path: string): boolean => {
+  // a feminine sibling (i18n.ts setWorld) is the same sentence as its base key
+  // in a women's world, so it is judged as its base
+  if (path.endsWith('_f')) return hasSingularSibling(path.slice(0, -2))
   if (PAIRED[path] && lookupIn(EN, PAIRED[path]) !== undefined) return true
   if (CANNOT_BE_ONE[path]) return true
   const cut = path.lastIndexOf('.')

@@ -90,6 +90,8 @@ const holes = (s: unknown): string => {
 const enComm = (LANGS.en.comm ?? {}) as Dict
 const bad: string[] = []
 for (const key of Object.keys(enComm)) {
+  // a `_f` sibling is optional per language (i18n.ts setWorld); langparity checks its holes
+  if (key.endsWith('_f')) continue
   for (const lang of Object.keys(LANGS).filter(l => l !== 'en')) {
     const other = lookup(LANGS[lang], `comm.${key}`)
     if (other === undefined) { bad.push(`${lang}:comm.${key} missing`); continue }
