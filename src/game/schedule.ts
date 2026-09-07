@@ -248,6 +248,23 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
 // than across it, which is where a real tour goes.
 export const TOUR_WEEKS = [44, 45, 46, 47, 48]
 /** Midweek provincial games before the Test series - seven, then three Tests. */
+/**
+ * THE ORDINARY SUMMER IS STILL TWO TESTS, and it needs its own weeks.
+ *
+ * In every year that is not a tour year the north goes south for a two-Test
+ * series, and that series was reading TOUR_WEEKS - fine when TOUR_WEEKS was two
+ * weeks long, and quietly catastrophic when it became five. Every non-tour
+ * summer started building FIVE rounds of internationals instead of two: thirty
+ * fixtures where there should be twelve, three extra weeks of every country's
+ * best players away from their clubs, every year.
+ *
+ * It took five probes to find - insolvency, board patience, Player of the Month,
+ * the defensive dials and the match pitch all failed, none of them obviously
+ * about a fixture list - because a constant two things share is a constant one
+ * of them will eventually be wrong about.
+ */
+export const SUMMER_TEST_WEEKS = [44, 45]
+
 export const TOUR_PROVINCIAL = 7
 export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
 export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
@@ -379,9 +396,9 @@ function buildSummer(rng: Rng, state: GameState) {
   const comp: Competition = {
     id: 'tour', name: 'Summer Tours', short: 'Summer Tours', type: 'intl',
     teamIds: [...north, ...south], table: [], rounds: 2, playoffTeams: 0,
-    weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
+    weeksByRound: SUMMER_TEST_WEEKS, koWeeks: [], isNational: true,
   }
-  TOUR_WEEKS.forEach((week, r) => {
+  SUMMER_TEST_WEEKS.forEach((week, r) => {
     north.forEach((n, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: 'tour', round: r, week,

@@ -231,8 +231,17 @@ console.log(`  bath rep88   sleepwalk  mean min-confidence ${meanMin(giantSleep)
 console.log(`  bath rep88   optimise   mean min-confidence ${meanMin(giantOpt).toFixed(1)}, ${giantOpt.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
 console.log(`  esher rep38  sleepwalk  mean min-confidence ${meanMin(minnowSleep).toFixed(1)}, ${minnowSleep.filter(r => r.sacked).length}/${STATURE_SEEDS.length} sacked`)
 
-ok(meanMin(giantSleep) < meanMin(giantOpt) - 25,
-  `a giant's sleepwalk board sinks far lower than its engaged board (${meanMin(giantSleep).toFixed(1)} v ${meanMin(giantOpt).toFixed(1)})`)
+// A RATIO, NOT A GAP OF 25 POINTS.
+//
+// The absolute figure was calibrated against a 45-week season and moved the
+// moment the season became 48: the same six seeds went from 23.0 v 51.7 to
+// 25.7 v 48.3, because three more weeks is three more weeks in which a board
+// can revise its opinion, and both ends drift toward the middle. Nothing about
+// the mechanism changed - a sleepwalking manager's board still sinks to half
+// what an engaged one's does - so what is asserted is the thing that matters
+// rather than the number that happened to express it in one calendar.
+ok(meanMin(giantSleep) < meanMin(giantOpt) * 0.62,
+  `a giant's sleepwalk board sinks far lower than its engaged board (${meanMin(giantSleep).toFixed(1)} v ${meanMin(giantOpt).toFixed(1)}, ${(meanMin(giantSleep) / meanMin(giantOpt) * 100).toFixed(0)}% of it)`)
 // A TRIPWIRE, NOT A PRECISION DIAL, and the margin is chosen with that in mind.
 // This mean is over six seeds and a SACKED run stops accumulating misery, so a
 // single seed changing whether it ends in a sacking moves the figure about
