@@ -2018,9 +2018,16 @@ export function processWeekAndAdvance(state: GameState) {
     simMatch(state, fx, rng, false)
     const comp = state.comps[fx.compId]
     if (comp) {
-      if (fx.stage) resolveKnockoutDraw(state, fx, rng)
-      applyToTable(comp, fx)
-      fx.tableApplied = true
+      // A PROVINCIAL TOUR GAME IS NOT PART OF THE SERIES. It carries a `stage`
+      // like every tour fixture does ("Tour match 3"), which would otherwise
+      // send it through the knockout-draw resolver, and its home side is a CLUB
+      // that has no row in a two-team Test table. It counts for minutes, form
+      // and the tourists' momentum; it does not count for the series.
+      if (!fx.tourMatch) {
+        if (fx.stage) resolveKnockoutDraw(state, fx, rng)
+        applyToTable(comp, fx)
+        fx.tableApplied = true
+      }
     }
     if (mine) simmedUserFx = fx
   }

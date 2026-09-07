@@ -627,6 +627,9 @@ export interface Fixture {
   derby?: boolean
   /** this friendly is a testimonial for the named player - his day */
   testimonial?: number
+  /** A provincial game on a tour: it counts for the tourists' momentum and the
+   *  players' minutes, but it is not a Test and never touches the series table. */
+  tourMatch?: boolean
   /** A midweek friendly the assistant runs with a development side. The flag
    *  is what keeps it out of the manager's own Saturday: the settle plays it,
    *  the academy get the minutes, and it never becomes the match he coaches. */

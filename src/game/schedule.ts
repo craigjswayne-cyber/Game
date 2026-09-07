@@ -242,6 +242,9 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
 }
 
 export const TOUR_WEEKS = [44, 45]
+/** Midweek provincial games before the Test series - seven, then three Tests. */
+export const TOUR_PROVINCIAL = 7
+export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
 export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
 export const WC_KO_WEEKS = [10, 11, 12]
 
@@ -321,18 +324,63 @@ function buildSummer(rng: Rng, state: GameState) {
   if (isLionsSeason(season)) {
     const hosts = ['NZL', 'RSA', 'AUS']
     const host = hosts[Math.floor((BASE_YEAR + season - 2029) / 4) % 3]
+    // ---- TEN MATCHES, AND A THREE-TEST SERIES AT THE END ----
+    //
+    // Owner, 7 Sep: "a fixture list of 10 fixtures with a 3 test series at the
+    // end in the country". This was two Tests and nothing else, which is not a
+    // tour, it is a series.
+    //
+    // THE MIDWEEK GAMES ARE AGAINST REAL CLUBS. A tour's first month is
+    // provincial rugby - the host's franchises, one after another - and this
+    // world already holds them, so they are used rather than invented. When the
+    // host has fewer clubs than the tour has midweek slots (Australia and South
+    // Africa carry four each; New Zealand six) the list is topped up from the
+    // other southern countries, which is exactly what a real tour does when it
+    // fills a Tuesday with a combined invitational XV.
+    //
+    // WHY IT IS COMPRESSED INTO TWO WEEKS, HONESTLY. A real tour is ten matches
+    // over six weeks in June and July. This game's season is 45 weeks and the
+    // club finals run to week 43, so weeks 44 and 45 are the entire summer -
+    // and SEASON_WEEKS cannot be lengthened, because 37 places in the engine
+    // stamp an absolute week as `season * SEASON_WEEKS + week` into saves, so
+    // moving it would shift every stored loan return, injury date and maternity
+    // date in every career in progress. The alternative was running the tour
+    // over weeks 41-43 and taking a manager's best players away for his club's
+    // own semi-final and final, which is both worse rugby and worse history: a
+    // real tour departs AFTER the domestic season for exactly that reason. So
+    // the fixtures are dense and the shape is right, rather than the reverse.
+    const hostName = host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'
+    const SOUTH = ['NZL', 'AUS', 'RSA', 'FIJ', 'ARG', 'JPN']
+    const provincial = [
+      ...Object.values(state.clubs).filter(c => c.country === host),
+      ...Object.values(state.clubs).filter(c => c.country !== host && SOUTH.includes(c.country)),
+    ].sort((a, b) => (a.country === host ? -1 : 1) - (b.country === host ? -1 : 1) || b.rep - a.rep)
+    const midweek = provincial.slice(0, TOUR_PROVINCIAL)
     const comp: Competition = {
-      id: 'lions', name: `British & Irish Isles Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
+      id: 'lions', name: `British & Irish Isles Tour of ${hostName}`,
       short: 'Isles Tour', type: 'intl',
-      teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 2, playoffTeams: 0,
+      // the TABLE is the Test series - that is what the tour is judged on, and
+      // what rollover.ts reads to decide whether the series was won
+      teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 3, playoffTeams: 0,
       weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
     }
-    TOUR_WEEKS.forEach((week, r) => {
+    midweek.forEach((club, i) => {
       state.fixtures.push({
-        id: state.nextId++, compId: 'lions', round: r, week,
+        id: state.nextId++, compId: 'lions', round: i,
+        // five in the first week, the rest alongside the Tests in the second
+        week: i < 5 ? TOUR_WEEKS[0] : TOUR_WEEKS[1],
+        homeId: club.id, awayId: 'LIO', played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: `Tour match ${i + 1}`,
+        tourMatch: true,
+      })
+    })
+    TEST_NAMES.forEach((name, r) => {
+      state.fixtures.push({
+        id: state.nextId++, compId: 'lions', round: TOUR_PROVINCIAL + r, week: TOUR_WEEKS[1],
         homeId: host, awayId: 'LIO', played: false,
         homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-        stage: r === 0 ? '1st Test' : '2nd Test',
+        stage: name,
       })
     })
     state.comps['lions'] = comp
