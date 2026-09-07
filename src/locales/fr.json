@@ -1522,7 +1522,11 @@
     "loanSheetSub": "Conditions du prêt avec {club}",
     "loanCostLine": "Votre part de son salaire : {wage}/sem.",
     "loanClose": "Pas maintenant",
-    "loanDone": "Terminé"
+    "loanDone": "Terminé",
+    "loanApproachSub": "Demandez un jeune que personne ne vous a proposé. Plus dur que la liste ci-dessus, et un rival ne décrochera même pas.",
+    "loanApproach": "Faire une approche",
+    "loanAsk": "Demander",
+    "loanNoHits": "Personne de ce nom que vous pourriez former. Il faut un joueur de 23 ans ou moins, apte, et pas déjà prêté."
   },
   "objectives": {
     "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs de 21 ans ou moins",
@@ -2029,7 +2033,10 @@
       "other": "{n} semaines d’absence"
     },
     "signAsMarquee": "Le signer comme joueur vedette ({n} places libres) : son salaire sort du plafond",
-    "signAsMarqueeOne": "Le signer comme joueur vedette (dernière place) : son salaire sort du plafond"
+    "signAsMarqueeOne": "Le signer comme joueur vedette (dernière place) : son salaire sort du plafond",
+    "loanBuyLine": "Il est ici en prêt. Après {n} semaines chez vous, son club formateur écoutera une offre définitive de {fee}.",
+    "loanBuy": "L'acheter pour {fee}",
+    "loanBuyConfirm": "Payer - il est à nous"
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -5160,7 +5167,12 @@
     "unavailable": "Indisponible.",
     "loanCounterShare": "{club} écouterait si vous preniez {share}% de son salaire.",
     "loanCounterLength": "{club} veut le voir partir plus longtemps : un prêt {len_k} passerait.",
-    "loanRefused": "{club} refuse net. Pas à ces conditions."
+    "loanRefused": "{club} refuse net. Pas à ces conditions.",
+    "loanRivalNo": "{club} sont vos rivaux : ils raccrochent avant la fin de votre phrase. Personne ne renforce l'équipe qu'il veut le plus battre.",
+    "loanBuyTooSoon": "Trop tôt. {club} veulent le voir jouer chez vous avant de parler de vente.",
+    "loanBuyNoFunds": "L'option existe à {fee}, et le budget transferts ne suit pas.",
+    "loanBuyCrucial": "{club} refusent. Il est devenu quelqu'un dont ils ont besoin - le prêt devait le former pour eux, pas pour vous.",
+    "loanBuyAgreed": "Conclu. {player} est définitivement à vous pour {fee}. Le prêt s'arrête dès que l'argent est viré."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",

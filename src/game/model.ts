@@ -409,6 +409,11 @@ export interface Player {
    *  able to buy them back within 6 months"). Absent on moves from before
    *  the stamp existed. */
   joinedAt?: number
+  /** The rating he arrived on loan with. Read by the loan-to-buy option: a
+   *  parent club that lent out a boy will sell him, unless the months at your
+   *  place turned him into somebody they want back. Without this the "if things
+   *  go well" half of the option has nothing to measure against. */
+  loanCa?: number
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
   /** absolute week (season * SEASON_WEEKS + week) a loan-in ends early;

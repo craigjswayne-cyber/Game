@@ -1522,7 +1522,11 @@
   "loanSheetSub": "{club}とのローン条件",
   "loanCostLine": "あなたが負担する給与: 週{wage}",
   "loanClose": "今はやめる",
-  "loanDone": "完了"
+  "loanDone": "完了",
+  "loanApproachSub": "誰も勧めてこなかった若手について打診する。上の一覧より難しく、ライバルクラブは電話にすら出ない。",
+  "loanApproach": "打診する",
+  "loanAsk": "打診",
+  "loanNoHits": "その名前で育成できる選手はいない。23歳以下で、健康で、まだレンタルに出ていない選手であること。"
  },
  "objectives": {
   "youth": "アカデミー登用:21歳以下の選手に6試合以上の先発を",
@@ -2029,7 +2033,10 @@
    "other": "離脱{n}週"
   },
   "signAsMarquee": "看板選手として契約する（空き{n}枠）：給与はキャップの対象外",
-  "signAsMarqueeOne": "看板選手として契約する（最後の1枠）：給与はキャップの対象外"
+  "signAsMarqueeOne": "看板選手として契約する（最後の1枠）：給与はキャップの対象外",
+  "loanBuyLine": "彼はレンタルで在籍している。こちらで{n}週間を過ごせば、保有元は{fee}での完全移籍の申し出に耳を貸す。",
+  "loanBuy": "{fee}で買い取る",
+  "loanBuyConfirm": "支払う。彼はこちらの選手だ"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5160,7 +5167,12 @@
   "unavailable": "利用できません。",
   "loanCounterShare": "{club}は、給与の{share}%を負担するなら聞く耳を持ちそうです。",
   "loanCounterLength": "{club}はもっと長く出したい意向です。{len_k}ローンなら応じるでしょう。",
-  "loanRefused": "{club}は即答で断りました。その条件では手放しません。"
+  "loanRefused": "{club}は即答で断りました。その条件では手放しません。",
+  "loanRivalNo": "{club}はこちらのライバルだ。話し終える前に電話を切られた。最も倒したい相手を強くする者はいない。",
+  "loanBuyTooSoon": "まだ早い。{club}は売却の話をする前に、彼が実際に試合に出るところを見たがっている。",
+  "loanBuyNoFunds": "{fee}で買い取る権利はあるが、移籍予算が足りない。",
+  "loanBuyCrucial": "{club}は断ってきた。彼は先方にとって必要な存在に育った。このレンタルは先方のための育成であって、こちらのためではない。",
+  "loanBuyAgreed": "成立。{player}は{fee}で完全にこちらの選手となった。入金が済み次第レンタルは終了する。"
  },
  "verdict": {
   "titleFavourites": "優勝候補筆頭",

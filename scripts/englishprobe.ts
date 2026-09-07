@@ -105,6 +105,7 @@ const CANNOT_BE_ONE: Record<string, string> = {
   'dec.scoutBrief': 'SEARCH_WEEKS for a brief, all above one',
   'news.briefSent': 'SEARCH_WEEKS, as above',
   'news.maternity': 'MATERNITY_WEEKS bounds the leave at 28-40 weeks, so it is never one',
+  'player.loanBuyLine': 'LOAN_BUY_MIN_WEEKS is a constant of 8 - the trial is never one week',
   'reply.scoutOnTheRoad': 'SEARCH_WEEKS, as above',
   'finances.marqueeSub': 'MARQUEE_SLOTS is a constant greater than one',
   'stakes.beatenRun': 'only fires on a streak of three or more',
