@@ -1076,7 +1076,10 @@ export const useStore = create<Store>((set, get) => ({
     while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) {
       r = stepTick(game, ctx)
     }
-    if (r === 'FT') settleKnockout(game, ctx)
+    // NOT WHILE A KICK IS STILL IN THE MANAGER'S HANDS. A cup tie level at
+    // the whistle with a kickable penalty pending is not a draw yet: decide()
+    // settles it once the answer is in (releaseaudit.ts, 1.2b).
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
     if (ctx.events.length > cursor) cursor += 1
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
     // where the match has got to, so a reload comes back to the same minute
@@ -1102,7 +1105,7 @@ export const useStore = create<Store>((set, get) => ({
       if (ctx.decision) { noted('posts'); resolveDecision(game, ctx, 'posts') }
       if (r !== 'play') break
     }
-    if (r === 'FT') settleKnockout(game, ctx)
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
     set(s => s.liveMatch ? {
       liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3, skipTook: took },
       tick: s.tick + 1,
@@ -1116,6 +1119,8 @@ export const useStore = create<Store>((set, get) => ({
     if (!game || !liveMatch || !liveMatch.ctx.decision) return ''
     get().noteCmd({ kind: 'decide', choice })
     const msg = resolveDecision(game, liveMatch.ctx, choice)
+    // the last kick of the match has been taken: a tie can now be settled
+    if (liveMatch.ctx.seg === 3) settleKnockout(game, liveMatch.ctx)
     set(s => s.liveMatch ? {
       liveMatch: { ...s.liveMatch, playing: true },
       tick: s.tick + 1,
