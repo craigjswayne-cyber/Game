@@ -524,7 +524,38 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
 export const snIdFor = (g: Gender) => (g === 'w' ? W + 'sn' : 'sn')
 export const snWeeksFor = (g: Gender) => (g === 'w' ? W_SIX_NATIONS_WEEKS : SIX_NATIONS_WEEKS)
 
+/**
+ * ---- THE WOMEN'S TOUR ----
+ *
+ * Owner, 7 Sep: "Should also be available on the women's side 2 years after the
+ * men and repeated every 4 years... Womens tour should go NZ, Canada and
+ * France."
+ *
+ * Two years after the men's and every four thereafter, so the two never share a
+ * summer: men in 2029, 2033, 2037; women in 2031, 2035, 2039. That is the same
+ * arithmetic the men's cycle uses, offset by two.
+ *
+ * AND IT GOES WHERE THE OWNER SENT IT. New Zealand, then Canada, then France -
+ * not the men's three. Two of those three are in the north, which is the point:
+ * the women's game's strongest sides are not the same three countries, and a
+ * tour that visited South Africa because the men's tour does would be copying
+ * the men's map rather than reading the women's.
+ */
+export function isWomensTourSeason(season: number): boolean {
+  // TWO YEARS AFTER THE MEN, AND NOT BEFORE THEM. The modulo alone is satisfied
+  // by 2027, which is a year into the game and two years BEFORE the first men's
+  // tour - the opposite of what was asked for. The floor pins the first one to
+  // 2031, so the pattern reads 2029 men, 2031 women, 2033 men, 2035 women.
+  //
+  // It also lands where the real calendar puts it. The women's World Cup falls
+  // on the men's tour years (2029, 2033), so a women's tour in 2031 and 2035
+  // sits exactly in the gap between two World Cups - which is where the men's
+  // tour sits in their calendar too.
+  return (BASE_YEAR + season) % 4 === 3 && BASE_YEAR + season >= 2031
+}
+
 export function buildWomensInternationals(rng: Rng, state: GameState) {
+  if (isWomensTourSeason(state.season)) buildWomensTour(state)
   const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
   const snComp: Competition = {
     id: W + 'sn', name: "Women's Northern Championship", short: 'Northern', type: 'intl',
@@ -579,4 +610,45 @@ export function leaguePos(table: TableRow[] | undefined, clubId: string): number
   if (!table?.length) return 0
   if (table.every(r => r.p === 0)) return 0
   return sortTable(table).findIndex(r => r.teamId === clubId) + 1
+}
+
+/** The women's Isles XV tour: seven provincial games and three Tests, in the
+ *  host the four-year rotation has reached. Same shape as the men's, because
+ *  the owner asked for the same tour rather than a smaller version of it. */
+function buildWomensTour(state: GameState) {
+  const hosts = ['NZL', 'CAN', 'FRA']
+  const host = hosts[Math.floor((BASE_YEAR + state.season - 2031) / 4) % 3]
+  const hostName = host === 'NZL' ? 'New Zealand' : host === 'CAN' ? 'Canada' : 'France'
+  // provincial opposition from the host's own clubs first, then the rest of the
+  // women's world. Canada has no club league in this game, so a Canadian tour
+  // leans on the wider pool - which is honest: a real tour there would play
+  // provincial and invitational sides that no database carries either.
+  const provincial = [
+    ...Object.values(state.clubs).filter(c => c.country === host),
+    ...Object.values(state.clubs).filter(c => c.country !== host),
+  ].slice(0, TOUR_PROVINCIAL)
+  const comp: Competition = {
+    id: W + 'lions', name: `Women's British & Irish Isles Tour of ${hostName}`,
+    short: 'Isles Tour', type: 'intl',
+    teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 3, playoffTeams: 0,
+    weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
+  }
+  provincial.forEach((club, i) => {
+    state.fixtures.push({
+      id: state.nextId++, compId: W + 'lions', round: i,
+      week: i < 5 ? TOUR_WEEKS[0] : TOUR_WEEKS[1],
+      homeId: club.id, awayId: 'LIO', played: false,
+      homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      stage: `Tour match ${i + 1}`, tourMatch: true,
+    })
+  })
+  TEST_NAMES.forEach((name, r) => {
+    state.fixtures.push({
+      id: state.nextId++, compId: W + 'lions', round: TOUR_PROVINCIAL + r, week: TOUR_WEEKS[1],
+      homeId: host, awayId: 'LIO', played: false,
+      homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      stage: name,
+    })
+  })
+  state.comps[W + 'lions'] = comp
 }

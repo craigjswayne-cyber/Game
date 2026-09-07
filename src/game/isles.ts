@@ -30,7 +30,8 @@
  */
 import type { GameState } from './model'
 import { mgrReputation } from './model'
-import { isLionsSeason } from './schedule'
+import { isLionsSeason, isWomensTourSeason } from './schedule'
+import { genderOf } from './gender'
 
 /** The four unions the touring side draws from. */
 export const HOME_UNIONS = ['ENG', 'IRE', 'SCO', 'WAL'] as const
@@ -53,8 +54,15 @@ export interface IslesState {
  * Would the unions consider him at all? Every clause of the owner's sentence,
  * and nothing else.
  */
+/** Is there a tour this summer in THIS world? The two games tour in different
+ *  years - men 2029, 2033; women 2031, 2035 - so the question has to be asked
+ *  of the world the save is in, not of the men's calendar. */
+export function isTourSeason(state: GameState): boolean {
+  return genderOf(state) === 'w' ? isWomensTourSeason(state.season) : isLionsSeason(state.season)
+}
+
 export function islesEligible(state: GameState): { ok: boolean; why: string } {
-  if (!isLionsSeason(state.season)) return { ok: false, why: 'isles.whyNoTour' }
+  if (!isTourSeason(state)) return { ok: false, why: 'isles.whyNoTour' }
   if (state.unemployed) return { ok: false, why: 'isles.whyNoJob' }
   // "are coachin internationally" - and one of the four, since it is their team
   const nat = state.natTeam
@@ -68,7 +76,7 @@ export function islesEligible(state: GameState): { ok: boolean; why: string } {
 
 /** Is he actually taking the tour this summer? */
 export function islesCoach(state: GameState): boolean {
-  return isLionsSeason(state.season) && state.isles?.season === state.season && state.isles.answer === 'yes'
+  return isTourSeason(state) && state.isles?.season === state.season && state.isles.answer === 'yes'
 }
 
 /** The letter, once a season, and only when every condition is met. */
