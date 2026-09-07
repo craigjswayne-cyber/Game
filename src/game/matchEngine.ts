@@ -1,5 +1,5 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
-import { genderOf, type Gender } from './gender'
+import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
 import { difficultyOf } from './difficulty'
 import { ROLE_FX, rolesForSlot } from './roles'
@@ -1769,7 +1769,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     if (!shift) continue
     for (const [u, m] of Object.entries(shift.layers)) layer(side, u as keyof SideMods, m)
     pushLine(state, ctx, 0, 'SUB', side, state.clubs[side.teamId]?.coach ? 'comm.oppCoachNamed' : 'comm.oppCoach', {
-      coach: state.clubs[side.teamId]?.coach ?? '',
+      ...subjectVar(state.clubs[side.teamId]?.coachGender), coach: state.clubs[side.teamId]?.coach ?? '',
       team: teamShort(state, side.teamId),
       pattern_k: `comm.pattern${shift.pattern[0].toUpperCase()}${shift.pattern.slice(1)}`,
     })

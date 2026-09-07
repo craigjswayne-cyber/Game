@@ -27,6 +27,7 @@
 // change is the story.
 //
 // Run: npx vite-node scripts/newsprobe.ts
+import { SIBLING } from '../src/game/i18n'
 import { readFileSync, readdirSync } from 'node:fs'
 
 /** Story-filing sites still writing prose with no key. ONLY EVER DECREASE. */
@@ -228,7 +229,7 @@ const holes = (s: unknown): string => {
 const enNews = (LANGS.en.news ?? {}) as Dict
 const bad: string[] = []
 for (const key of Object.keys(enNews)) {
-  if (key.endsWith('_f')) continue // a feminine sibling is per-language, not owed
+  if (SIBLING.test(key)) continue // a feminine sibling is per-language, not owed
   for (const lang of Object.keys(LANGS).filter(l => l !== 'en')) {
     const other = lookup(LANGS[lang], `news.${key}`)
     if (other === undefined) { bad.push(`${lang}:news.${key} missing`); continue }

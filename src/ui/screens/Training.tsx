@@ -245,7 +245,7 @@ function StaffPanel() {
                       </div>}
                       {!p.course && (p.retakeAt ?? 0) > abs && (
                         <div className="meta" style={{ fontSize: 11, color: 'var(--danger)' }}>
-                          {t(p.retakeAt! - abs === 1 ? 'training.failedRetakeOne' : 'training.failedRetake', { n: p.retakeAt! - abs })}
+                          {t(p.retakeAt! - abs === 1 ? 'training.failedRetakeOne' : 'training.failedRetake', { g: p.g ?? 'm', n: p.retakeAt! - abs })}
                         </div>
                       )}
                     </>

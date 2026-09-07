@@ -17,6 +17,7 @@
 // the fixture comes round again.
 //
 // So: one identified rival per season, and a voice that moves with the table.
+import { subjectVar } from './gender'
 import { tIn, type Vars } from './i18n'
 import { poss, type Club, type GameState } from './model'
 
@@ -85,7 +86,7 @@ export function rivalBeat(state: GameState): { k: string; v: Vars } | null {
   const ahead = his.pts - mine.pts
   const runIn = state.week >= 30
   const base: Vars = {
-    boss: r.boss, club: r.club.name, short: r.club.short,
+    ...subjectVar(r.club.coachGender), boss: r.boss, club: r.club.name, short: r.club.short,
     me: me.name, meShort: me.short, mePoss: poss(me.short),
   }
 

@@ -519,6 +519,8 @@ export interface Club {
   admin?: { season: number; penalty: number }
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
+  /** the coin that named the coach - see StaffPerson.g */
+  coachGender?: import('./gender').Gender
   /** the head coach's standing instruction (F23) - an id from philosophy.ts.
    *  Absent on the club you manage: your dials are yours. */
   philosophy?: string
@@ -1166,6 +1168,9 @@ export interface StaffLevels {
 /** A named coach with a badge. The level in StaffLevels mirrors his tier. */
 export interface StaffPerson {
   name: string
+  /** the coin from gender.ts staffGender, kept so the stories about this
+   *  person can say "she filed her report". Absent on older saves: a man. */
+  g?: import('./gender').Gender
   nat: string
   age: number
   /** 1 Bronze, 2 Silver, 3 Gold */
@@ -1271,6 +1276,11 @@ export interface GameState {
   mgrTrust?: number
   /** the manager's backstory, chosen at career creation (18B) */
   mgrOrigin?: MgrOrigin
+  /** How the press and the fans refer to you - chosen at career start and
+   *  carried across every job, including a move to the other game. Absent on
+   *  a save from before the choice existed, which reads as a man, exactly
+   *  what every line in the game assumed until then. See i18n.ts `_w`. */
+  mgrGender?: import('./gender').Gender
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /**

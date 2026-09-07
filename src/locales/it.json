@@ -136,6 +136,10 @@
   "profileAt": "Il tuo profilo da manager a {club}.",
   "challengeAccepted": "Sfida accettata: {title}",
   "yourName": "Il tuo nome",
+  "pronoun": "La stampa parla di te al",
+  "pronounBlurb": "Come giornali, tifosi e consiglio si riferiscono a te.",
+  "pronounHe": "Maschile",
+  "pronounShe": "Femminile",
   "namePlaceholder": "es. A. Mister",
   "club": "Club",
   "philosophy": "Filosofia di gioco",
@@ -1209,7 +1213,8 @@
   "tapSwapHint_f": "tocca una giocatrice, poi un'altra per scambiarle · due tocchi per la lista della rosa",
   "tapSwapHintTest_f": "tocca una giocatrice, poi un'altra per scambiarle · due tocchi per la rosa completa",
   "warnNoSpeech_f": "Nessun discorso scelto nello spogliatoio - le giocatrici si faranno un'idea da sole.",
-  "warnScrum_f": "Problema in mischia: in tutta la rosa del match {missing}. All'arbitro servono 2 donne per ogni maglia di prima linea, altrimenti ordina mischie non contestate - niente spinta, e un pacchetto forte non vale nulla. Aggiungi coperture di prima linea in panchina."
+  "warnScrum_f": "Problema in mischia: in tutta la rosa del match {missing}. All'arbitro servono 2 donne per ogni maglia di prima linea, altrimenti ordina mischie non contestate - niente spinta, e un pacchetto forte non vale nulla. Aggiungi coperture di prima linea in panchina.",
+  "assistantTakes_w": "{home} v {away} è il pomeriggio del tuo vice. Sceglie lei la squadra e firma il rapporto - a te tocca il Test."
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",
@@ -1369,7 +1374,9 @@
   "sackNoMoney": "Licenziarlo costa {need} e il club ha {have}.",
   "sacked": "{name} ha lasciato il club. {cost} per chiudere il suo contratto.",
   "traitManManager_f": "Gestore di persone",
-  "clickCaps_f": "le ragazze ascoltano di più quando chi indica ha giocato in nazionale"
+  "clickCaps_f": "le ragazze ascoltano di più quando chi indica ha giocato in nazionale",
+  "blockBiggerClubLong_w": "{name} ti ha ringraziato per la telefonata ed è rimasta dov'è. Un tecnico con brevetto {badge} vuole un palcoscenico più grande di questo.",
+  "courseGoldLong_w": "{name} ha già il brevetto oro. Non è rimasto nulla da sostenere."
  },
  "training": {
   "tabTraining": "Allenamento",
@@ -2233,7 +2240,12 @@
   "specYouthDesc_f": "Si fida dell'academy e trasforma le ragazze in donne.",
   "specManman_f": "Gestore di persone",
   "specManmanDesc_f": "Le giocatrici si buttano nel fuoco per lui.",
-  "specMiracle_f": "Donna dei miracoli"
+  "specMiracle_f": "Donna dei miracoli",
+  "specDealerDesc_w": "Vive al telefono. Il mercato si piega a lei.",
+  "specWinnerDesc_w": "I trofei la seguono ovunque vada.",
+  "specManmanDesc_w": "I giocatori si buttano nel fuoco per lei.",
+  "specManmanDesc_fw": "Le giocatrici si buttano nel fuoco per lei.",
+  "specSurvivorDesc_w": "Le dirigenze passano; lei resta."
  },
  "week": {
   "wireQuietWeek": "Una settimana tranquilla. Non dura mai.",
@@ -2977,7 +2989,9 @@
   "lgFirstsNone": "Non c'è ancora scritto niente. La prima vittoria in trasferta è la riga d'apertura più comune.",
   "coSquadSub_f": "da {floor} a {max} donne · il tuo club in grassetto",
   "srPotY_f": "Giocatrice della stagione",
-  "srRollSub_f": "Giocatrice dell'Anno, stagione per stagione"
+  "srRollSub_f": "Giocatrice dell'Anno, stagione per stagione",
+  "cvTitleBigger_w": "Un'allenatrice che ha lasciato il gioco più grande di come l'ha trovato",
+  "cvTitleNever_w": "Per lei la svolta non è mai arrivata"
  },
  "handbook": {
   "a1": "Tutto gira attorno al pulsante nell'angolo in alto. Nelle settimane tranquille dice Continua, e Giorno di partita quando c'è un incontro. Premilo e il mondo si muove: la settimana avanza, arrivano gli altri risultati e tutto ciò che è successo atterra nella posta della schermata Home.",
@@ -5031,7 +5045,16 @@
   "grounds2_f": "Il furgone è arrivato a {other} con due mute complete di maglie casalinghe del {club} e nemmeno una da trasferta. Dato che i due club giocano più o meno con lo stesso colore, gli ospiti hanno disputato il primo tempo con le maglie della terza squadra di casa, nome di un idraulico del posto sul petto. Nessuno distingueva nessuno, le giocatrici meno di tutti.",
   "grounds4Subj_f": "IN GIRO PER I CAMPI: il fango fa espellere la donna sbagliata",
   "toty_f": "L'organo di governo ha pubblicato la sua Squadra dell'Anno, una giocatrice per ruolo, scelta su quello che sono stati davvero gli ultimi dodici mesi e non sulla reputazione.\n\n{rows_ll}",
-  "totyMine_f": "Abbiamo {n} giocatrici nella Squadra dell'Anno: {names}. Le maglie con i loro nomi vanno più veloci di quanto riusciamo a stamparle, due organizzatori vogliono una serata con loro, e sponsor muti a settembre chiedono quanto costa un contratto d'immagine. Vale {money}, senza toccare il budget sportivo."
+  "totyMine_f": "Abbiamo {n} giocatrici nella Squadra dell'Anno: {names}. Le maglie con i loro nomi vanno più veloci di quanto riusciamo a stamparle, due organizzatori vogliono una serata con loro, e sponsor muti a settembre chiedono quanto costa un contratto d'immagine. Vale {money}, senza toccare il budget sportivo.",
+  "fanPatient1_w": "Calma. Donna nuova, voce nuova, stesso vecchio calendario.",
+  "bossPressure_w": "Mattinata pesante in casa {short}: a {boss} è stato chiesto due volte se ha ancora lo spogliatoio in mano. \"Giudicatemi a maggio.\" Poi le hanno chiesto del distacco di {n} punti da {meShort} ed è passata alla domanda successiva. Anche i consigli leggono quelle trascrizioni.",
+  "bossSize2_w": "Invitata a dire quale squadra vorrebbe evitare, {boss} è andata da tutt'altra parte. \"Quel titolo non lo regalo a nessuno.\" Incalzata su {meShort} in particolare, ha detto che sono \"difficili da affrontare nelle giornate giuste\", che è una frase con una botola dentro.",
+  "bossTight_w": "Stamattina hanno chiesto di te a {boss} del {club}, e lei non si è nemmeno presa il disturbo di fingere. \"{who_k}, con tutto ancora in gioco. Ho visto ogni partita che hanno giocato quest'anno. Sono forti. Ma noi siamo superiori nei primi cinque, e credo che sarà quello a decidere.\" {gap_k}, e l'ha appena resa una questione personale.",
+  "rivalBelowYou_w": "{mine} contro {his}. {boss} ha passato la stagione a spiegare a chiunque glielo chiedesse cosa pensava di {meShort}, e la classifica le ha risposto. È ancora al suo posto, avrà ancora molto da dire, e adesso ti aspetta un anno intero di battute - dal lato giusto della discussione.",
+  "rivalAboveYou_w": "{his} contro {mine}. {boss} aveva ragione, o almeno così dice la classifica, che in questo mestiere è la stessa cosa fino al prossimo maggio. Lei non avrà dimenticato una parola, e nemmeno tu dovresti.",
+  "staffHired_w": "{club} ha la sua donna: {name}, {age} anni, {role_k} con patentino {badge_k}, noto come {trait_k}. {fee} di indennizzo, {wage} a settimana.{out_k}{chem_k}",
+  "staffClick_w": "La sala staff approva: lei e {other} si intendono al volo - {note_k}.",
+  "staffClash_w": "Una nuvola all'orizzonte: lei e {other} vedono il rugby in modo molto diverso - {note_k}."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",

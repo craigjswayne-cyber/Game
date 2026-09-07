@@ -131,13 +131,51 @@ let world: World = 'm'
 export const setWorld = (g: World): void => { world = g }
 export const getWorld = (): World => world
 
+/**
+ * THE SECOND AXIS: WHO THE STRING IS ABOUT.
+ *
+ * `_f` answers "are the players women?". It says nothing about the manager,
+ * whose fans say "give him two seasons", or about the scout who "files his
+ * report", because the game genders those people one at a time - the manager
+ * by a choice at career start, staff by a coin (gender.ts staffGender). So a
+ * key may also carry a `_w` sibling, read when the SUBJECT of the string is a
+ * woman, and a `_fw` sibling for the rare string about both.
+ *
+ * The subject is `vars.g` when the caller names one - a story about the scout
+ * is filed with the scout's gender, and it stays in the save with the story -
+ * and the manager's own gender otherwise, so the fan chatter and the CV lines
+ * need no plumbing at all. Most specific sibling first:
+ *
+ *     women's world, woman subject   _fw  _f  _w  key
+ *     women's world, man subject      _f  key
+ *     men's world,   woman subject    _w  key
+ *     men's world,   man subject      key
+ */
+let mgr: World = 'm'
+export const setManagerGender = (g: World): void => { mgr = g }
+export const getManagerGender = (): World => mgr
+/** Every suffix a key may carry; probes treat these keys as optional siblings. */
+export const SIBLING = /_(f|w|fw)$/
+export const baseKey = (key: string): string => key.replace(SIBLING, '')
+const subjectOf = (vars?: Vars): World => (vars?.g === 'w' ? 'w' : vars?.g === 'm' ? 'm' : mgr)
+// Most specific first, and the empty string last: every list ends at the base
+// key, so a language that wrote no sibling for a line still renders the line.
+const SUFFIX_FW = ['_fw', '_f', '_w', ''] as const
+const SUFFIX_F = ['_f', ''] as const
+const SUFFIX_W = ['_w', ''] as const
+const SUFFIX_NONE = [''] as const
+function suffixesFor(subject: World): readonly string[] {
+  if (world === 'w') return subject === 'w' ? SUFFIX_FW : SUFFIX_F
+  return subject === 'w' ? SUFFIX_W : SUFFIX_NONE
+}
+
 /** The feminine sibling of a key, if the world and the dictionary both have one. */
-function lookupForWorld(dict: Dict | undefined, key: string): unknown {
-  if (world === 'w') {
-    const f = lookup(dict, `${key}_f`)
-    if (f !== undefined) return f
+function lookupForWorld(dict: Dict | undefined, key: string, subject: World = mgr): unknown {
+  for (const s of suffixesFor(subject)) {
+    const v = lookup(dict, s ? `${key}${s}` : key)
+    if (v !== undefined) return v
   }
-  return lookup(dict, key)
+  return undefined
 }
 
 export function setLang(lang: Lang): void {
@@ -242,7 +280,7 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
     // through lookupForWorld like the story itself, so a women's career gets
     // the `_f` sibling of "Player of the Month" and not just of the headline.
     if (name.endsWith('_k') && typeof v === 'string') {
-      const frag = lookupForWorld(DICTS[lang], v) ?? lookupForWorld(DICTS.en, v)
+      const frag = lookupForWorld(DICTS[lang], v, subjectOf(vars)) ?? lookupForWorld(DICTS.en, v, subjectOf(vars))
       return render(frag, vars, lang) ?? v
     }
     // A LIST OF TRANSLATED FRAGMENTS, marked by a _l suffix.
@@ -275,7 +313,9 @@ function fill(text: string, vars?: Vars, lang: Lang = current): string {
         if (!Array.isArray(items)) return v
         const sep = name.endsWith('_ll') ? '\n' : (lookup(DICTS[lang], 'common.listSep') ?? ', ') as string
         return items.map(it => {
-          const frag = lookupForWorld(DICTS[lang], it.k) ?? lookupForWorld(DICTS.en, it.k)
+          // a row names its own subject when it has one, else the list's
+          const sub = subjectOf(it.g !== undefined ? (it as Vars) : vars)
+          const frag = lookupForWorld(DICTS[lang], it.k, sub) ?? lookupForWorld(DICTS.en, it.k, sub)
           return render(frag, it as Vars, lang) ?? it.k
         }).join(sep)
       } catch { return v }
@@ -297,13 +337,14 @@ export const missing = new Set<string>()
  * `t('squad.injured', { n })` with a value shaped `{ one, other }` - plural.
  */
 export function t(key: string, vars?: Vars): string {
-  let entry = lookupForWorld(DICTS[current] ?? DICTS.en!, key)
+  const subject = subjectOf(vars)
+  let entry = lookupForWorld(DICTS[current] ?? DICTS.en!, key, subject)
   if (entry === undefined && current !== 'en') {
     if (!missing.has(key)) {
       missing.add(key)
       if (import.meta.env?.DEV) console.warn(`[i18n] ${current} is missing "${key}", falling back to English`)
     }
-    entry = lookupForWorld(DICTS.en, key)
+    entry = lookupForWorld(DICTS.en, key, subject)
   }
   if (entry === undefined) {
     // English itself does not have it: that is a bug in the code, not in a

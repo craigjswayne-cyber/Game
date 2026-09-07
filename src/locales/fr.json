@@ -136,6 +136,10 @@
     "profileAt": "Votre profil de manager à {club}.",
     "challengeAccepted": "Défi accepté : {title}",
     "yourName": "Votre nom",
+    "pronoun": "La presse parle de vous au",
+    "pronounBlurb": "Comment les journaux, les supporters et le conseil parlent de vous.",
+    "pronounHe": "Masculin",
+    "pronounShe": "Féminin",
     "namePlaceholder": "ex. A. Gaffer",
     "club": "Club",
     "philosophy": "Philosophie de jeu",
@@ -1212,7 +1216,8 @@
     "warnNoSpeech_f": "Aucune causerie choisie - les joueuses se feront leur propre idée.",
     "warnRusty_f": "{player} MANQUE DE RYTHME ({n} sem.) - gros risque de rechute si elle joue.",
     "warnScrum_f": "Problème en mêlée : dans tout votre groupe du match, vous avez {missing}. L'arbitre exige 2 joueuses pour chaque poste de première ligne, sinon il ordonne des mêlées simulées - plus de poussée, et un pack solide ne vaut plus rien. Mettez davantage de première ligne sur le banc.",
-    "yourRatings_f": "Les notes de vos joueuses"
+    "yourRatings_f": "Les notes de vos joueuses",
+    "assistantTakes_w": "{home} - {away} est l'après-midi de votre adjointe. Elle compose l'équipe et remet son rapport - la vôtre, c'est le Test."
   },
   "tacticsScreen": {
     "tabRoles": "Rôles",
@@ -1371,7 +1376,10 @@
     "sackNobody": "Personne n’occupe ce poste.",
     "sackNoMoney": "Le licencier coûte {need} et le club dispose de {have}.",
     "sacked": "{name} a quitté le club. {cost} pour rompre son contrat.",
-    "traitManManager_f": "Meneur de femmes"
+    "traitManManager_f": "Meneur de femmes",
+    "blockBiggerClubLong_w": "{name} vous a remercié de l'appel et est restée où elle est. Un entraîneur diplômé {badge} veut une plus grande scène que celle-ci.",
+    "courseResitsLong_w": "{name} ne peut pas encore le repasser - elle a échoué récemment et la prochaine session est dans {n} semaines.",
+    "courseResitsLongOne_w": "{name} ne peut pas encore le repasser - elle a échoué récemment et la prochaine session est dans {n} semaine."
   },
   "training": {
     "tabTraining": "Entraînement",
@@ -1465,7 +1473,9 @@
     "sack": "Licencier",
     "sackConfirm": "Le licencier · {cost}",
     "sackTitle": "Mettre fin à son contrat maintenant pour {cost}. Le poste reste vacant jusqu’à une nouvelle nomination.",
-    "reasonPoorTeacher_f": "{senior} est une très bonne joueuse et une piètre pédagogue."
+    "reasonPoorTeacher_f": "{senior} est une très bonne joueuse et une piètre pédagogue.",
+    "failedRetake_w": "Elle a échoué à son dernier examen - elle peut le repasser dans {n} semaines",
+    "failedRetakeOne_w": "Elle a échoué à son dernier examen - elle peut le repasser dans {n} semaine"
   },
   "pos": {
     "LP": "Pilier gauche",
@@ -1587,7 +1597,8 @@
     "assignmentNote_f": "Orientez le réseau vers un championnat - ses joueuses sont observées chaque semaine{unassigned}. Les joueuses de votre liste sont toujours suivis, avec une alerte dès que leur situation change.",
     "offersForYourPlayers_f": "Offres pour vos joueuses",
     "listedHint_f": " - les clubs placent des joueuses sur la liste à l'approche du mercato, réessayez plus tard",
-    "loanNoHits_f": "Personne de ce nom que vous pourriez former. Il faut une joueuse de 23 ans ou moins, apte, et pas déjà prêtée."
+    "loanNoHits_f": "Personne de ce nom que vous pourriez former. Il faut une joueuse de 23 ans ou moins, apte, et pas déjà prêtée.",
+    "longerTrip_w": "Un déplacement plus long, c'est plus de rugby vu : plus de noms, et plus de noms qui valent une signature. Elle observe{where} - fixez le championnat ciblé ci-dessous pour affiner."
   },
   "objectives": {
     "youth": "Lancer les jeunes : donner 6 titularisations ou plus à des joueurs de 21 ans ou moins",
@@ -1827,7 +1838,8 @@
     "squadSub": "touchez pour observer",
     "firstTeam": "Équipe première ({n})",
     "academy": "Centre de formation ({n})",
-    "nobodyOnBooks": "Personne sous contrat ici."
+    "nobodyOnBooks": "Personne sous contrat ici.",
+    "archTinkererDesc_w": "change le tableau depuis la touche quand le match tourne contre elle"
   },
   "attrs": {
     "tac": "Plaquage",
@@ -2241,7 +2253,13 @@
     "specYouthDesc_f": "Il fait confiance au centre et transforme les gamines en femmes.",
     "specDealer_f": "Femme de marché",
     "specManman_f": "Meneur de femmes",
-    "specManmanDesc_f": "Ses joueuses traverseraient un mur pour lui."
+    "specManmanDesc_f": "Ses joueuses traverseraient un mur pour lui.",
+    "specDealerDesc_w": "Toujours au téléphone. Le marché plie devant elle.",
+    "specTacticianDesc_w": "Elle gagne la partie d'échecs plus souvent qu'à son tour.",
+    "specEuroDesc_w": "Elle a conquis le plus grand prix d'Europe.",
+    "specManmanDesc_w": "Ses joueurs traverseraient un mur pour elle.",
+    "specManmanDesc_fw": "Ses joueuses traverseraient un mur pour elle.",
+    "specMiracleDesc_w": "Elle a tout gagné avec un club que personne ne voyait."
   },
   "week": {
     "wireQuietWeek": "Une semaine calme. Ça ne dure jamais.",
@@ -2985,7 +3003,10 @@
     "lgFirstsNone": "Rien d'écrit pour l'instant. Une première victoire à l'extérieur, c'est l'entrée en matière habituelle.",
     "coSquadSub_f": "{floor} à {max} joueuses · les vôtres en gras",
     "srPotY_f": "Joueuse de la saison",
-    "srRollSub_f": "Joueuse mondiale de l'année, saison par saison"
+    "srRollSub_f": "Joueuse mondiale de l'année, saison par saison",
+    "cvTitleBigger_w": "Une entraîneuse qui a laissé le jeu plus grand qu'elle ne l'a trouvé",
+    "cvTitleTried_w": "Elle était là, et elle a essayé",
+    "cvTitleNever_w": "Ça ne s'est jamais fait pour elle"
   },
   "handbook": {
     "a1": "Tout part du bouton en haut de l'écran. Il indique Continuer une semaine calme et Match quand vous avez une rencontre. Appuyez et le monde avance : la semaine passe, les autres résultats tombent, et tout ce qui s'est produit arrive dans votre messagerie sur l'écran Accueil.",
@@ -5089,7 +5110,35 @@
     "toty_f": "La fédération internationale a publié son équipe de l'année, une joueuse par poste, choisie sur ce qu'ont vraiment été les douze derniers mois plutôt que sur la réputation.\n\n{rows_ll}",
     "totyMine_f": "Nous avons {n} joueuse(s) dans l'équipe de l'année : {names}. Les maillots floqués partent plus vite qu'on ne les imprime, deux promoteurs veulent une soirée avec elles, et des sponsors muets en septembre demandent le prix d'un contrat d'image. Cela rapporte {money}, sans toucher au budget sportif.",
     "wBug1_f": "L'infirmerie est bondée : {names} ont toutes été terrassées par un virus qui circule. Elles joueront si elles sont alignées, mais les réservoirs ne seront pas pleins cette semaine. L'intendant désinfecte tout.",
-    "releasedManySubj_f": "🚪 {n} contrats de formation expirent - elles s'en vont"
+    "releasedManySubj_f": "🚪 {n} contrats de formation expirent - elles s'en vont",
+    "fanSceptic1_w": "Jamais entendu parler d'elle. J'espère que le conseil sait quelque chose que nous ignorons.",
+    "fanSceptic3_w": "Je la jugerai en mai, pas en août. Qu'elle le prouve sur le terrain.",
+    "fanHopeful3_w": "Elle a dit ce qu'il fallait. Maintenant, laissez-la composer son équipe.",
+    "fanPatient1_w": "Du calme. Nouvelle femme, nouvelle voix, même calendrier.",
+    "fanPatient2_w": "L'effectif est ce qu'il est. Elle ne peut travailler qu'avec ce qui est dans la maison.",
+    "assistantRan_w": "Vous étant absent en sélection, votre adjointe a composé l'équipe et tenu la touche. {hand_k} Le conseil juge le résultat comme il juge n'importe quel autre - les automatismes sont les vôtres même quand la voix ne l'est pas.",
+    "assHandWin_w": "Elle vous rend la semaine avec une victoire et un sourire insupportable.",
+    "assHandLoss_w": "Elle vous rend la semaine avec des excuses et un débriefing complet déjà sur votre bureau.",
+    "assHandDraw_w": "Elle vous rend la semaine à égalité.",
+    "bossNotLookingDown_w": {
+      "one": "{boss} s'amuse. « Quelqu'un m'a demandé si je gardais un œil sur {me}. Je garde un œil sur le classement, et le classement dit ce qu'il dit. » Cela fait {n} point de classement qu'elle vous invite à regarder. Punaisez ça quelque part d'utile.",
+      "other": "{boss} s'amuse. « Quelqu'un m'a demandé si je gardais un œil sur {me}. Je garde un œil sur le classement, et le classement dit ce qu'il dit. » Cela fait {n} points de classement qu'elle vous invite à regarder. Punaisez ça quelque part d'utile."
+    },
+    "bossPressure_w": "Matinée difficile pour {short}, où {boss} s'est vue demander deux fois si elle avait toujours le vestiaire. « Jugez-moi en mai. » On l'a ensuite interrogée sur les {n} points d'écart avec {meShort} et elle est passée à la question suivante. Les conseils lisent ces transcriptions aussi.",
+    "bossSize1_w": "{boss} a été polie au sujet de {me} et n'en pensait presque rien. « Une équipe bien entraînée. Organisée. Ils savent exactement ce qu'ils sont, ce qui est un compliment, quoi qu'on entende dedans. » Rien entre vous au classement, et pas grand-chose entre vous en conférence de presse non plus.",
+    "bossSize2_w": "Prié de nommer l'équipe qu'elle redoute le plus de tirer, {boss} est partie ailleurs. « Je ne ferais ce titre à personne. » Relancée précisément sur {meShort}, elle les a dits « difficiles à jouer les bons jours », ce qui est une phrase à double fond.",
+    "bossSize3_w": "{boss} dit avoir arrêté de regarder le classement. « C'est encore août quelque part dans ma tête. Je regarderai en avril. » Elle a ensuite cité de mémoire les trois derniers résultats {mePoss}, dans l'ordre, ce qui l'a plutôt trahie.",
+    "bossSize4_w": "Une brève de {boss} ce matin. « {meShort} ? Bon club, bon public, bon entraîneur. » Trois compliments et pas un mot sur leur rugby. Elle sait exactement ce qu'elle fait.",
+    "bossTight_w": "Le {boss} de {club} a été interrogé sur vous ce matin et n'a pas pris la peine de faire semblant. « {who_k}, avec tout à jouer. J'ai regardé chacun de leurs matchs cette année. Ils sont bons. Nous sommes meilleurs dans les cinq de devant, et je pense que c'est ce qui décidera. » {gap_k}, et elle vient de rendre l'affaire personnelle.",
+    "rivalBelowYou_w": "{mine} contre {his}. {boss} a passé la saison à dire à qui voulait l'entendre ce qu'elle pensait de {meShort}, et le classement lui a répondu. Elle est toujours en poste, elle aura toujours beaucoup à dire, et vous avez désormais une année entière à en profiter du bon côté de la discussion.",
+    "rivalAboveYou_w": "{his} contre {mine}. {boss} avait raison, ou du moins le classement dit qu'elle avait raison, ce qui dans ce métier revient au même jusqu'en mai prochain. Elle n'en aura pas oublié un mot, et vous non plus.",
+    "badgeFail_w": "Les examinateurs en voulaient davantage de {name} sur la séance évaluée. Elle l'a bien pris, a demandé le retour par écrit et l'a punaisé au-dessus de son bureau. Les {fee} sont dépensés dans tous les cas, et la prochaine session ne le prendra pas avant un mois.",
+    "badgeFailAuto_w": "Les examinateurs en veulent davantage de {name} sur la séance évaluée. Elle l'a bien pris, a demandé le retour par écrit et l'a punaisé au-dessus de son bureau. Elle pourra le repasser dans quatre semaines.",
+    "scoutReport_w": "{months} mois, {n} {names_k}, {good} d'entre eux qu'elle signerait demain. En tête de liste : {player}, {age} ans, {pos_k} {at_k} - {note_k} Le rapport complet est au Centre des transferts, et chaque homme qui y figure est désormais bien connu de votre cellule de recrutement.",
+    "scoutReport_fw": "{months} mois, {n} {names_k}, {good} d'entre elles qu'elle signerait demain. En tête de liste : {player}, {age} ans, {pos_k} {at_k} - {note_k} Le rapport complet est au Centre des transferts, et chaque joueuse qui y figure est désormais bien connue de votre cellule de recrutement.",
+    "aWonLine1_w": "Elle était plus satisfaite des vingt dernières minutes que du score, ce qui en dit long.",
+    "aWonLine5_w": "Elle a conclu par une seule phrase : « Voilà le standard maintenant. »",
+    "aLostLine2_w": "Elle veut savoir quels trois ont continué à 20 points de retard, parce que ce sont ces trois-là qui perceront."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5406,7 +5455,9 @@
     "heal_f": {
       "one": "Retraite médicale réservée : une joueuse remise en pleine forme",
       "other": "Retraite médicale réservée : {n} joueuses remises en pleine forme"
-    }
+    },
+    "badgeFailedFee_w": "{name} a échoué à son diplôme {badge_k}. Les {fee} sont perdus et elle ne peut pas repasser avant un mois.",
+    "badgeFailedCourse_w": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et elle repasse dans quatre semaines."
   },
   "persLower": {
     "Professional": "professionnel",
@@ -5551,7 +5602,13 @@
     "notHomeBased_f": "{player} joue en club à l'étranger. {nat} ne sélectionne que dans son propre championnat - elle devrait d'abord rentrer.",
     "wontDropDown_f": "{club} acceptent votre offre, mais {name} ne descendra pas si bas. Seule une joueuse malheureuse, une joueuse que son club pousse dehors ou une mercenaire parle à un club aussi petit.",
     "overCapNoMarquee_f": "Ces conditions mettraient le club {over}/sem. au-dessus du plafond salarial de {cap}/sem., et les deux places de joueuse vedette sont prises. Libérez de la marge.",
-    "loanBuyCrucial_f": "{club} refusent. Le prêt devait former une joueuse pour eux, pas pour vous, et c'est exactement ce qu'il a fait."
+    "loanBuyCrucial_f": "{club} refusent. Le prêt devait former une joueuse pour eux, pas pour vous, et c'est exactement ce qu'il a fait.",
+    "scoutAlreadyOut_w": {
+      "one": "{scout} est déjà en mission. Elle rend son rapport dans environ {n} semaine.",
+      "other": "{scout} est déjà en mission. Elle rend son rapport dans environ {n} semaines."
+    },
+    "badgePassed_w": "{name} a réussi. Elle est diplômée {badge_k} à partir d'aujourd'hui, et passe à {wage} par semaine.",
+    "badgeFailed_w": "{name} a échoué. Les {fee} sont perdus et elle ne peut pas repasser avant un mois."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",
@@ -6190,7 +6247,8 @@
     "benchQ2_f": "Six semaines sur le banc pour {player}, et elle vaut mieux que ça. Qu'est-ce qu'elle a fait ?",
     "benchBuildingR_f": "Elle a déjà lu cette phrase, dans deux autres programmes de match, à propos de deux autres joueuses.",
     "comebackCaptain_f": "Rien. J'ai laissé parler la capitaine.",
-    "loanQ1_f": "{player}, {age} ans, attend devant votre bureau après l'entraînement. « Je n'apprends rien à porter des boucliers, coach. Prêtez-moi - il me faut du vrai temps de jeu. »"
+    "loanQ1_f": "{player}, {age} ans, attend devant votre bureau après l'entraînement. « Je n'apprends rien à porter des boucliers, coach. Prêtez-moi - il me faut du vrai temps de jeu. »",
+    "ownerRugbyR_w": "Sûr d'elle, direct - les propriétaires aiment une femme qui se met elle-même face au tableau d'affichage."
   },
   "posNoun": {
     "prop": "pilier",

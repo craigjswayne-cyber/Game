@@ -133,6 +133,10 @@
   "profileAt": "Your manager profile at {club}.",
   "challengeAccepted": "Challenge accepted: {title}",
   "yourName": "Your Name",
+  "pronoun": "The Press Call You",
+  "pronounBlurb": "How the papers, the fans and the board refer to you.",
+  "pronounHe": "He",
+  "pronounShe": "She",
   "namePlaceholder": "e.g. A. Gaffer",
   "club": "Club",
   "philosophy": "Coaching Philosophy",
@@ -411,7 +415,8 @@
   "pfAttack": "Runs the Attack",
   "pfCulture": "Sets the Standards",
   "pickAnybody_f": "Pick anybody - the shirt takes her position",
-  "leadershipNote_f": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when she is missing. A portfolio below that does not add strength, it concentrates it: only XV women with real authority carry one, and a real leader can carry more than one."
+  "leadershipNote_f": "The skipper lifts attack and defence and calms tempers; the vice leads at half effect when she is missing. A portfolio below that does not add strength, it concentrates it: only XV women with real authority carry one, and a real leader can carry more than one.",
+  "untouched_w": "Untouched sheet: your assistant named this side, with her eye for it, not yours - and nobody is updating it for form or fitness. Change a shirt and it becomes your team."
  },
  "fixtures": {
   "tabFixtures": "Fixtures",
@@ -1221,7 +1226,8 @@
   },
   "warnCannotStart_f": "{player} (no. {shirt}) {problem} - she cannot start today.",
   "warnRusty_f": "{player} is RUSTY ({n}w) - high re-injury risk if she plays.",
-  "warnUnfit_f": "{player} is only {pct}% fit - her tank will empty early."
+  "warnUnfit_f": "{player} is only {pct}% fit - her tank will empty early.",
+  "assistantTakes_w": "{home} v {away} is your assistant's afternoon. She picks the side and files her report - yours is the Test."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -1381,7 +1387,15 @@
   "candGone": "That candidate is no longer available.",
   "sackNobody": "There is nobody in that role to sack.",
   "sackNoMoney": "Sacking him costs {need} and the club has {have}.",
-  "sacked": "{name} has left the club. {cost} to end his contract."
+  "sacked": "{name} has left the club. {cost} to end his contract.",
+  "blockNoClubLong_w": "You have no club to appoint her to.",
+  "blockBiggerClubLong_w": "{name} thanked you for the call and stayed where she is. A {badge}-badge coach wants a bigger stage than this.",
+  "blockNoBudgetLong_w": "{name} would come, but her club want {need} compensation and there is {have} in the bank. Sell somebody, or wait for the gate money.",
+  "courseGoldLong_w": "{name} already holds her gold badge. There is nothing left to sit.",
+  "courseResitsLong_w": "{name} cannot sit it again yet - she failed recently and the next intake is {n} weeks off.",
+  "courseResitsLongOne_w": "{name} cannot sit it again yet - she failed recently and the next intake is {n} week off.",
+  "sackNoMoney_w": "Sacking her costs {need} and the club has {have}.",
+  "sacked_w": "{name} has left the club. {cost} to end her contract."
  },
  "training": {
   "tabTraining": "Training",
@@ -1478,7 +1492,9 @@
   "twoKids_f": " Two kids on her wing: each learns at three-quarter speed, and she will say so.",
   "reasonBest_f": "A {sPers} teaching a {kPers}: she could not have picked a better example.",
   "reasonNotListening_f": "The kid is not listening as closely as she might.",
-  "reasonLeads_f": "{senior} leads by example and the girl has noticed."
+  "reasonLeads_f": "{senior} leads by example and the girl has noticed.",
+  "failedRetake_w": "Failed her last assessment - can sit it again in {n} weeks",
+  "failedRetakeOne_w": "Failed her last assessment - can sit it again in {n} week"
  },
  "pos": {
   "LP": "Loosehead Prop",
@@ -1598,7 +1614,9 @@
   "renewNote_f": "Tap a player to renew from her page. From week 25 an unrenewed woman can sign a pre-contract elsewhere and walk for nothing in the summer.",
   "assignmentNote_f": "Point the network at one league - its players get watched every week{unassigned}. Shortlisted women are always tracked, with alerts when their situation changes.",
   "loanShare_f": "Share of her wage you pay",
-  "loanCostLine_f": "Your share of her wage: {wage}/wk"
+  "loanCostLine_f": "Your share of her wage: {wage}/wk",
+  "longerTrip_w": "A longer trip sees more rugby: more names, and more of them worth signing. She watches{where} - set the focus league below to narrow it.",
+  "scoutsReportSub_w": "her verdict · tap a name for more"
  },
  "objectives": {
   "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
@@ -1835,7 +1853,9 @@
   "firstTeam": "First Team ({n})",
   "academy": "Academy ({n})",
   "nobodyOnBooks": "Nobody on the books here.",
-  "legendsNote_f": "A woman joins the Legends list at 100 appearances here, the honours board fills in every May, and record gates and derby ledgers appear the first time you set one."
+  "legendsNote_f": "A woman joins the Legends list at 100 appearances here, the honours board fills in every May, and record gates and derby ledgers appear the first time you set one.",
+  "archTinkererDesc_w": "changes the picture from the touchline when the match turns against her",
+  "archBelieverDesc_w": "trusts her own plan, week in, week out"
  },
  "attrs": {
   "tac": "Tackling",
@@ -2287,7 +2307,11 @@
    "other": "{n} donations"
   },
   "supportersThanks": "Thank you. It keeps the lights on.",
-  "specYouthDesc_f": "Trusts the academy and makes kids into women."
+  "specYouthDesc_f": "Trusts the academy and makes kids into women.",
+  "specDealerDesc_w": "Lives on the phone. The market bends to her.",
+  "specWinnerDesc_w": "Silverware follows her around.",
+  "specManmanDesc_w": "Players run through walls for her.",
+  "specSurvivorDesc_w": "Boards come and go; she remains."
  },
  "week": {
   "wireQuietWeek": "A quiet week. It never lasts.",
@@ -3024,7 +3048,10 @@
   "coSquadSub_f": "{floor} to {max} women · your club's in bold",
   "coWindowOpen_f": "Window open: drop a name, call the next woman up. The Test XV is picked from this room on match day.",
   "coNextMen_f": "The Next Women In",
-  "coNextMenSub_f": "every qualified woman, best first"
+  "coNextMenSub_f": "every qualified woman, best first",
+  "cvTitleBigger_w": "A manager who left the game bigger than she found it",
+  "cvTitleTried_w": "She was here, and she tried",
+  "cvTitleNever_w": "It never happened for her"
  },
  "handbook": {
   "a1": "Everything runs off the button in the top corner. It reads Continue on a quiet week and Matchday when you have a fixture. Press it and the world moves: the week advances, other results come in, and anything that happened lands in your inbox on the Home screen.",
@@ -5126,7 +5153,58 @@
   "grounds4Subj_f": "AROUND THE GROUNDS: the mud sends off the wrong woman",
   "grounds6_f": "The {club} bus completed roughly forty minutes of the journey home from {other} before anyone established that a young winger was still at the service station, where she had gone in for a coffee and come out to an empty car park. She got a lift back with a family who had been at the match and who, by all accounts, had opinions about the second half.",
   "friendlyBooked_f": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the women who have not had a game.",
-  "grPunditGem_f": "This week's big read calls {kid}, {kidAge}, \"the most natural {kidPos} of her generation\" and notes that half the league already knows. {short} supporters have spent the day politely asking the columnist to be quiet, delete it, and consider a career in something else. The columnist has replied to eleven of them individually. He is enjoying this enormously."
+  "grPunditGem_f": "This week's big read calls {kid}, {kidAge}, \"the most natural {kidPos} of her generation\" and notes that half the league already knows. {short} supporters have spent the day politely asking the columnist to be quiet, delete it, and consider a career in something else. The columnist has replied to eleven of them individually. He is enjoying this enormously.",
+  "fanSceptic1_w": "Never heard of her. Hope the board know something we do not.",
+  "fanSceptic3_w": "I will judge her in May, not August. Prove it on the pitch.",
+  "fanHopeful2_w": "Give her two seasons and a bit of money and see what happens.",
+  "fanHopeful3_w": "She has said the right things. Now let her pick a team.",
+  "fanPatient1_w": "Steady on. New woman, new voice, same old fixture list.",
+  "fanPatient2_w": "The squad is the squad. She can only work with what is in the building.",
+  "fanPatient3_w": "First home game will tell us plenty about how she wants to play.",
+  "intakeGradeA_w": "Her verdict: \"There is a special one in this group. I would stake my job on it.\"",
+  "intakeGradeB_w": "Her verdict: \"A strong year. One or two of these will play first-team rugby.\"",
+  "intakeGradeC_w": "Her verdict: \"Honest, coachable kids. Do not expect fireworks.\"",
+  "intakeGradeD_w": "Her verdict: \"A lean year. We will need to buy young instead.\"",
+  "intakeGradeE_w": "Her verdict: \"Between us? Start scouting elsewhere.\"",
+  "loanOne_w": "The academy manager files her loan report:\n{rows_ll}",
+  "loanOneMore_w": "The academy manager files her loan report:\n{rows_ll}\nAnd {rest} more out getting their minutes.",
+  "loanMany_w": "The academy manager files her loan report:\n{rows_ll}",
+  "loanManyMore_w": "The academy manager files her loan report:\n{rows_ll}\nAnd {rest} more out getting their minutes.",
+  "assHandWin_w": "She hands the week back with a win and an insufferable grin.",
+  "assHandLoss_w": "She hands the week back with an apology and a full debrief already on your desk.",
+  "assHandDraw_w": "She hands the week back all square.",
+  "bossNotLookingDown_w": {
+   "one": "{boss} has been enjoying herself. \"Somebody asked whether I keep an eye on {me}. I keep an eye on the table, and the table says what it says.\" That is {n} point of table she is inviting you to look at. Pin it up somewhere useful.",
+   "other": "{boss} has been enjoying herself. \"Somebody asked whether I keep an eye on {me}. I keep an eye on the table, and the table says what it says.\" That is {n} points of table she is inviting you to look at. Pin it up somewhere useful."
+  },
+  "bossSize2_w": "Asked to name the side she least wants to draw, {boss} went somewhere else entirely. \"I would not give anybody that headline.\" Pressed on {meShort} specifically, she said they were \"hard to play against on their day\", which is a sentence with a trapdoor in it.",
+  "bossSize3_w": "{boss} says she has stopped watching the table. \"It is August somewhere in my head. I will look in April.\" She then named {mePoss} last three results from memory, in order, which rather gave the game away.",
+  "bossSize4_w": "A short one from {boss} this morning. \"{meShort}? Good club, good crowd, good coach.\" Three compliments and not one word about their rugby. She knows exactly what she is doing.",
+  "bossTight_w": "{club}'s {boss} was asked about you this morning and did not bother pretending. \"{who_k}, with everything still to play for. I have watched every game they have played this year. They are good. We are better in the tight five, and I think that is what decides it.\" {gap_k}, and she has just made it personal.",
+  "rivalAboveYou_w": "{his} against {mine}. {boss} was right, or at least the table says she was, which in this job is the same thing until next May. She will not have forgotten a word of it and neither should you.",
+  "staffHired_w": "{club} have their woman: {name}, {age}, a {badge_k}-badge {role_k} known as a {trait_k}. {fee} compensation, {wage} a week.{out_k}{chem_k}",
+  "staffClick_w": "The staff room approves: she and {other} click - {note_k}.",
+  "staffClash_w": "One cloud on the horizon: she and {other} see the game very differently - {note_k}.",
+  "badgePassSubj_w": "🎓 {name} passes her {badge_k} badge",
+  "badgePass_w": "A day of written work and an assessed session in front of examiners who have seen it all, and {name} came through it. Framed certificate, handshake at the training ground, and a better {role_k} than the club had this morning. Her pay rises to {wage} a week.",
+  "badgeFailSubj_w": "{name} falls short of her {badge_k} badge",
+  "badgeFail_w": "The examiners wanted more from {name} on the assessed session. She took it well, asked for the feedback in writing and pinned it above her desk. The {fee} is spent either way, and the next intake will not take her for a month.",
+  "badgePassAutoSubj_w": "🎓 {name} passes her {badge_k} badge",
+  "badgePassAuto_w": "Framed certificate, handshake at the training ground, and a better {role_k} than the club had last month. {name} is now {badge_k}-badged, and her pay rises to {wage} a week.",
+  "badgeFailAutoSubj_w": "{name} falls short of her {badge_k} badge",
+  "badgeFailAuto_w": "The examiners want more from {name} on the assessed session. She took it well, asked for the feedback in writing and pinned it above her desk. She can sit it again in four weeks.",
+  "briefSent_w": "{fee} of expenses, a hire car and a brief: {brief_k} {where_k}. {scout} ({badge_k} badge) files her report in {n} weeks. A longer trip sees more rugby and less of it in the rain.",
+  "scoutReportSubj_w": {
+   "one": "🔭 {scout_k} files her report: {n} name",
+   "other": "🔭 {scout_k} files her report: {n} names"
+  },
+  "scoutReport_w": "{months} months, {n} {names_k}, {good} of them she would sign tomorrow. Top of the list: {player}, {age}, {pos_k} {at_k} - {note_k} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.",
+  "scoutReport_fw": "{months} months, {n} {names_k}, {good} of them she would sign tomorrow. Top of the list: {player}, {age}, {pos_k} {at_k} - {note_k} The full report is in the Transfer Centre, and every woman on it is now properly known to your recruitment staff.",
+  "aWonLine1_w": "She was more pleased with the last twenty minutes than the scoreline, which tells you plenty.",
+  "aWonLine5_w": "She signed off with one line: \"That is the standard now.\"",
+  "aLostLine2_w": "She wants you to know which three kept going at 20 down, because those are the three who will make it.",
+  "aLostLine4_w": "Nobody hid. That was her whole report, and it is the one thing she cares about.",
+  "staffSacked_w": "{club} have parted company with {role_k} {name}. The club paid {cost} to end her contract; the role is vacant."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5366,7 +5444,9 @@
   "briefManage_f": " She is on to play the corners and kill the clock.",
   "hiaFailed_f": "{player} FAILS her Head Injury Assessment - concussion protocols, no further part. {sub} stays on.",
   "hiaPassed_f": "{player} passes her HIA and jogs back into the fray.",
-  "doesAerial_f": "drop a woman deep and keep the back three home."
+  "doesAerial_f": "drop a woman deep and keep the back three home.",
+  "oppCoachNamed_w": "{coach} has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
+  "oppCoach_w": "The opposition coach has done her homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan."
  },
  "injury": {
   "ribs": "bruised ribs",
@@ -5469,7 +5549,10 @@
   "heal_f": {
    "one": "Booked the specialist retreat: one woman restored to full health",
    "other": "Booked the specialist retreat: {n} women restored to full health"
-  }
+  },
+  "badgePassed_w": "{name} passed her {badge_k} badge: a better {role_k}, and {wage} a week now.",
+  "badgeFailedFee_w": "{name} failed her {badge_k} badge. The {fee} is gone and she cannot resit for a month.",
+  "badgeFailedCourse_w": "{name} failed her {badge_k} badge. The course fee is gone and she resits in four weeks."
  },
  "persLower": {
   "Professional": "professional",
@@ -5633,7 +5716,13 @@
   "loanCounterShare_f": "{club} would listen if you carried {share}% of her wage.",
   "loanCounterLength_f": "{club} want her out for longer: they would agree to a loan {len_k}.",
   "loanRefused_f": "{club} turn it down flat. They are not letting her go on those terms.",
-  "loanBuyTooSoon_f": "Too early. {club} want to see her play some rugby for you before they talk about selling her."
+  "loanBuyTooSoon_f": "Too early. {club} want to see her play some rugby for you before they talk about selling her.",
+  "scoutAlreadyOut_w": {
+   "one": "{scout} is already out on a brief. She reports back in about {n} week.",
+   "other": "{scout} is already out on a brief. She reports back in about {n} weeks."
+  },
+  "badgePassed_w": "{name} passed. She is {badge_k}-badged from today, and on {wage} a week.",
+  "badgeFailed_w": "{name} fell short. The {fee} is gone and she cannot sit it again for a month."
  },
  "verdict": {
   "titleFavourites": "Title favourites",
@@ -6309,7 +6398,12 @@
   "benchDoorR_f": "It is. She walks through it on Monday with a transfer request and a printout.",
   "benchBuilding_f": "She's a big part of what we're building.",
   "benchBuildingR_f": "She has read that sentence before, in two other programmes, about two other women.",
-  "benchNextWeek_f": "She'll start next week."
+  "benchNextWeek_f": "She'll start next week.",
+  "stanceSafeR_w": "You talk the year down to take the heat off the group. The boardroom needle is muted both ways: defeats cost less, but so does winning - credit is thin for a woman who promised nothing.{tail_k}",
+  "raceQ1_w": "The title race is down to you and {club}. {coach_k} says her side \"handles the big moments better\". Care to respond?",
+  "raceQ2_w": "{coach_k} lit the fuse this morning: her {short} side \"handles the big moments better\", apparently. Your reply?",
+  "ownerRugbyR_w": "Confident, direct - owners like a woman who volunteers for the scoreboard.",
+  "discWord_w": "A quiet word, woman to woman"
  },
  "posNoun": {
   "prop": "prop",

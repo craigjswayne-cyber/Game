@@ -56,7 +56,7 @@ export const PRO_PLANS = 6
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
-import { getLang, initLang, onLangChange, setLang as applyLang, setWorld, t, type Lang } from './game/i18n'
+import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
 import { hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
@@ -208,7 +208,7 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty, gender?: Gender) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty, gender?: Gender, mgrGender?: Gender) => void
   /** Which game the NEXT new career is in, chosen on the menu before the wizard
    *  opens. Not part of a save - the save carries its own gender - just the
    *  answer to "which game" travelling from the menu to the first screen of the
@@ -565,9 +565,9 @@ export const useStore = create<Store>((set, get) => ({
   newGender: 'm',
   setNewGender: (g) => set({ newGender: g }),
 
-  start: (clubId, managerName, challengeId, origin, difficulty, gender) => {
+  start: (clubId, managerName, challengeId, origin, difficulty, gender, mgrGender) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender)
+    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender, mgrGender ?? 'm')
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets
@@ -1464,7 +1464,10 @@ onLangChange(() => useStore.setState({ lang: getLang() }))
 // must not import the store back. Subscribed rather than set at each of the
 // five places a game is opened, so a sixth cannot forget.
 useStore.subscribe((s, prev) => {
-  if (s.game !== prev.game) setWorld(s.game ? genderOf(s.game) : 'm')
+  if (s.game !== prev.game) {
+    setWorld(s.game ? genderOf(s.game) : 'm')
+    setManagerGender(s.game?.mgrGender === 'w' ? 'w' : 'm')
+  }
 })
 
 // Browser probes stage the states a natural walk cannot reach on demand - an

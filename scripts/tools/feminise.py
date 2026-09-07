@@ -5,6 +5,10 @@
     python3 scripts/tools/feminise.py fr --apply     # write fr.json
     python3 scripts/tools/feminise.py --apply --fresh  # drop every sibling and rebuild
 
+Two axes come out of it: `_f` (the players are women) and `_w` / `_fw` (the
+string's subject - the manager or a named member of staff - is a woman). See
+i18n.ts for how t() reads them.
+
 Two steps, always in this order. First the RULES below rewrite every string
 that carries a masculine marker. Then feminise-corrections.json, beside this
 file, is applied on top: a full string where the rules could not get there, a
@@ -49,6 +53,7 @@ PLAYER_PH = re.compile(r'\{(player|players|names|pos|senior|kid|kidLast|propLast
 # put the French count UP. A referee, a groundsman and a postman are the
 # subject of the sentences they appear in, and their gender is not the player's.
 STAFF_WORD = re.compile(r"\b(arbitre|árbitro|arbitro|intendant|groundsman|jardinero|giardiniere|facteur|cartero|postino|speaker|historien|historiador|storico)\b", re.I)
+STAFF_WORD_JA = re.compile(r"主審|審判|レフェリー|グラウンドキーパー|郵便配達|歴史家|コラムニスト|運転手|場内アナウンス|ストリーカー|バスローブ|投資家|金主|市長")
 STAFF_WORD_EN = re.compile(r"\b(referee|groundsman|postman|historian|columnist|steward|streaker|kit man|chef|investors?|money men|numbers men|chairman|landlord|milkman|vicar|mayor)\b", re.I)
 STAFF_PH  = re.compile(r'\{(boss|coach|asst|asst_k|scout|mgrName|mgr|manager|physio|ref|chair|owner|chairman|director|analyst|doctor|agent|journalist|pundit|officer)\}')
 STAFF_KEY = re.compile(r'^(fan|stance|momMgr|press\.(boss|mgr|you)|bossPressure|hire|sack|resign|appoint|interview|assistant|staff|coach|profile\.)')
@@ -376,11 +381,25 @@ EN_PRON = [
  (r"\bhis\b", "her"), (r"\bHis\b", "Her"), (r"\bHIS\b", "HER"),
 ]
 EN_IL = []
+
+# ---------------------------------------------------------------- JAPANESE
+# 選手 (player) is neutral; the copy says 彼 (he) and 男 (man). 彼 -> 彼女 is the
+# pronoun. 男 becomes 選手 rather than 女: "the man in form" is 好調の選手, and
+# 好調の女 would read as a stranger, not a player. Rules apply only to keys the
+# key policy calls a player's (the same lists as English - keys are shared).
+JA_NOUN = [
+ ("大男たち", "大柄な選手たち"), ("男たち", "選手たち"), ("少年を男にする", "少女を一人前にする"),
+ ("少年", "少女"), ("男", "選手"),
+]
+JA_PRON = [("彼ら", "彼女ら"), (r"彼(?!女)", "彼女")]
+JA_IL = []
 # never inside a {placeholder}: {men} is a variable name, not a noun
 EN_NOUN = [(pat + r'(?![^{}]*\})', rep) for pat, rep in EN_NOUN]
+EN_PRON = [(pat + r'(?![^{}]*\})', rep) for pat, rep in EN_PRON]
 
-RULES = {'en': (EN_NOUN, EN_PRON, EN_IL), 'fr': (FR_NOUN, FR_PRON, FR_IL), 'es': (ES_NOUN, ES_PRON, ES_IL), 'it': (IT_NOUN, IT_PRON, IT_IL)}
+RULES = {'en': (EN_NOUN, EN_PRON, EN_IL), 'ja': (JA_NOUN, JA_PRON, JA_IL), 'fr': (FR_NOUN, FR_PRON, FR_IL), 'es': (ES_NOUN, ES_PRON, ES_IL), 'it': (IT_NOUN, IT_PRON, IT_IL)}
 MARK = {
+ 'ja': re.compile(r"彼(?!女)|男|少年"),
  'en': re.compile(r"\b(he|him|his|himself|man|men|lad|lads|boy|boys)\b", re.I),
  'fr': re.compile(r"\b(il|ils|joueur|joueurs|homme|hommes|garçon|garçons|celui|monsieur|blessé|blessés|fils|ce dernier|lui-même|capitaine|titulaire|intéressé|client)\b", re.I),
  'es': re.compile(r"\b(él|ellos|jugador|jugadores|hombre|hombres|chico|chicos|muchacho|muchachos|lesionado|lesionados|hijo|hijos|señor|capitán|convocados?|listo|contento|cansado)\b", re.I),
@@ -388,6 +407,7 @@ MARK = {
 }
 # things that must never appear in a generated string
 BROKEN = {
+ 'ja': re.compile(r"彼女女|選手選手"),
  'en': re.compile(r"\b(kit woman|money women|numbers women|ten-woman|woman-mark|Isle of Woman|women's game|linkwoman)\b", re.I),
  'fr': re.compile(r"\b(elle|elles) (y a|y avait|y aura|faut|faudra|s'agit|semble que|paraît que|vaut mieux|pleut|suffit|est (temps|possible|impossible|clair|vrai|rare|question|tard|tôt|midi))\b", re.I),
  'es': re.compile(r"\bella (hay|hace falta)\b", re.I),
@@ -411,14 +431,15 @@ def apply(rules, s, ci=False):
 # two weeks" about a scout. The copy is organised by screen, and a screen knows
 # who it is about: everything under player.*, squad.*, touch.* and the office
 # replies is the player; analyst.*, staff.* and the scout's postcards are staff.
-EN_PLAYER_KEYS = re.compile(r"^(squad\.|selection\.(pickAnybody|leadershipNote)|medical\.nothingOnHim|roles\.\w+Desc$|bench\.|matchday\.(brink|ms|cw|farewell|inj|letHim|prob)|tacticsScreen\.(roleSheetSub|rolesNote)|training\.(twoKids|reasonBest)|transfers\.loan(Share|CostLine)|traits\.|player\.|dayroom\.|world\.(agFoot|ofTheValuation)|legacy\.lgOwnTerms|news\.(heOne|himOne|comesOne|hisMentor|mentorLostSubj|becomesMentorSubj|wRumour2|chTale1|hisClub|wMerc|capJob|capQuiet|ddRoundupFlop|guardTail300|bigOneStarB|loanLevel|loanStar|loanSteady|potyPodium|hofYoursOne|totsHere|totsGone|transferRequest|mentAged|slListed|slExpiring|slForm|postcard|grade3|noteA1|noteA2|noteD2|noteSome|testimonialScored|debutScored|debutMotm|scoutMeeting|appealFreeToPlay|fanRivalNamed|fanRivalNone|grounds6)|comm\.(oldBoyKnowsThem|injuryRushedBack|brief)|touch\.|reply\.(bidRejected|chat|notInSquad|notInjured|alreadySawSpecialist|tooCloseToReturn|noWrapNeeded|alreadyLeftClub|parentWontLoan|capRefusal|loanCounter|loanRefused|loanBuyTooSoon)|press\.(hotFeet|coldBack|coldAdmit|rumourNever|rumourAsk|kidCrown|kidProtectR|kidEarn|unveilSettleR|unveilFight|plansInR2|plansOut|plansEarnR1|loanMinutes|loanAgreeR2|loanStay|dealYearR2|dealLast|dealWait|discFine|standoffLoved|standoffBiggerR|oldboy|kidstart|leakStarts|century|benchDoor|benchBuilding|benchNextWeek))")
+EN_PLAYER_KEYS = re.compile(r"^(news\.(heMany|himMany|comeMany|runThem)|matchday\.(rotFlagged|rotSummary|happyRest)|press\.(plansEarnR2|oppThey|oppTheir)|profile\.natOfferBody|squad\.|selection\.(pickAnybody|leadershipNote)|medical\.nothingOnHim|roles\.\w+Desc$|bench\.|matchday\.(brink|ms|cw|farewell|inj|letHim|prob)|tacticsScreen\.(roleSheetSub|rolesNote)|training\.(twoKids|reasonBest)|transfers\.loan(Share|CostLine)|traits\.|player\.|dayroom\.|world\.(agFoot|ofTheValuation)|legacy\.lgOwnTerms|news\.(heOne|himOne|comesOne|hisMentor|mentorLostSubj|becomesMentorSubj|wRumour2|chTale1|hisClub|wMerc|capJob|capQuiet|ddRoundupFlop|guardTail300|bigOneStarB|loanLevel|loanStar|loanSteady|potyPodium|hofYoursOne|totsHere|totsGone|transferRequest|mentAged|slListed|slExpiring|slForm|postcard|grade3|noteA1|noteA2|noteD2|noteSome|testimonialScored|debutScored|debutMotm|scoutMeeting|appealFreeToPlay|fanRivalNamed|fanRivalNone|grounds6)|comm\.(oldBoyKnowsThem|injuryRushedBack|brief)|touch\.|reply\.(bidRejected|chat|notInSquad|notInjured|alreadySawSpecialist|tooCloseToReturn|noWrapNeeded|alreadyLeftClub|parentWontLoan|capRefusal|loanCounter|loanRefused|loanBuyTooSoon)|press\.(hotFeet|coldBack|coldAdmit|rumourNever|rumourAsk|kidCrown|kidProtectR|kidEarn|unveilSettleR|unveilFight|plansInR2|plansOut|plansEarnR1|loanMinutes|loanAgreeR2|loanStay|dealYearR2|dealLast|dealWait|discFine|standoffLoved|standoffBiggerR|oldboy|kidstart|leakStarts|century|benchDoor|benchBuilding|benchNextWeek))")
 EN_STAFF_KEYS = re.compile(r"^(analyst\.|staff\.|transfers\.(nobodyToSend|reportsBack|longerTrip|scoutsReportSub)|matchday\.(planLenient|ref|vm|warnScrum|assistantTakes)|club\.arch|profile\.|legacy\.cvTitle|news\.(fan(Sceptic|Hopeful|Patient)|wGround1|wTakeover|intakeGrade|loanOne|loanMany|assHand|boss|rivalBelowYou|rivalAboveYou|briefSent|scoutReportSubj|aWonLine|aLostLine|upDinner|grounds4|staffClick|staffClash|grCat|grAnnouncer|grPodcastKebab|chTale7|chTale8)|comm\.(oppCoach|flavGrass7)|dec\.analyst|reply\.scoutAlreadyOut|press\.(raceQ|ownerQ|refereeOurs)|till\.watchAnalyst|sack\.ownedReply)")
 
 def feminise(lang, key, s):
     noun, pron, il = RULES[lang]
     out = apply(noun, s, ci=True)
     noun_hit = bool(re.search(r"\b(joueur|joueuse|jugador|jugadora|giocat|homme|hombre|uomo|garçon|chico|ragazz|capitaine|capitán|capitano|blessé|lesionad|infortunat)", s, re.I)) \
-        or (lang == 'en' and bool(re.search(r"\b(player|man|men|lads?|boys?|captain|kid|youngster|prospect|veteran|starter|scorer|kicker|prop|hooker|lock|flanker|winger|centre|fly-half|scrum-half|full-back|forward|skipper)\b", s, re.I)))
+        or (lang == 'en' and bool(re.search(r"\b(player|man|men|lads?|boys?|captain|kid|youngster|prospect|veteran|starter|scorer|kicker|prop|hooker|lock|flanker|winger|centre|fly-half|scrum-half|full-back|forward|skipper)\b", s, re.I))) \
+        or (lang == 'ja' and bool(re.search(r"選手|男|少年|キャプテン|若手", s)))
     has_ph = bool(PLAYER_PH.search(s))
     about_player = has_ph or noun_hit \
         or bool(re.search(r"(One|Many|Him|He|His)$", key.split('.')[-1]) and len(s) < 40)
@@ -431,14 +452,16 @@ def feminise(lang, key, s):
     flip_pronouns = has_ph or (noun_hit and len(s) < 220)
     # and a string whose subject is the assistant, with no player named, keeps
     # its pronoun: the assistant is fifty-fifty in a women's world
+    weak_staff_ja = lang == 'ja' and bool(re.search(r"アシスタント|スカウト|代理人|コーチ|アナリスト|フィジオ|会長|オーナー|経営陣|監督", s)) and not has_ph
     weak_staff = (bool(re.search(r"\b(adjoint|ayudante|asistente|assistente|vice|recruteur|ojeador|osservatore)\b", s, re.I))
                   or (lang == 'en' and bool(re.search(r"\b(assistant|scout|agent|physio|coach|analyst|doctor|chairman|owner|board)\b", s, re.I)))) and not has_ph
     if weak_staff: flip_pronouns = False
     about_staff = bool(STAFF_PH.search(s)) or bool(STAFF_KEY.search(key)) or bool(STAFF_WORD.search(s))
-    if lang == 'en':
-        if STAFF_WORD_EN.search(s): about_staff = True
+    if lang in ('en', 'ja'):
+        if (STAFF_WORD_EN if lang == 'en' else STAFF_WORD_JA).search(s): about_staff = True
         if EN_STAFF_KEYS.search(key): about_staff = True
         elif EN_PLAYER_KEYS.search(key): about_player, flip_pronouns, about_staff = True, True, False
+        elif lang == 'ja' and (has_ph or noun_hit) and not weak_staff_ja: flip_pronouns = True
     if about_player and not about_staff and flip_pronouns:
         out = apply(pron, out)
         out = apply(il, out)
@@ -451,7 +474,7 @@ def feminise(lang, key, s):
 def walk(node, path=''):
     if isinstance(node, dict):
         for k, v in list(node.items()):
-            if k.endswith('_f'): continue
+            if SIBLING.search(k): continue
             yield from walk(v, f'{path}{k}.')
     elif isinstance(node, str):
         yield (path[:-1], node)
@@ -459,7 +482,7 @@ def walk(node, path=''):
 SECTIONS = None  # all
 def strip_f(node):
     if isinstance(node, dict):
-        for k in [k for k in node if k.endswith('_f')]: del node[k]
+        for k in [k for k in node if SIBLING.search(k)]: del node[k]
         for v in node.values(): strip_f(v)
 
 def run(lang, dry):
@@ -471,7 +494,7 @@ def run(lang, dry):
         nonlocal made
         if not isinstance(node, dict): return
         for k in list(node.keys()):
-            if k.endswith('_f'): continue
+            if SIBLING.search(k): continue
             v = node[k]
             full = f'{path}{k}'
             if isinstance(v, dict) and 'other' in v and all(isinstance(x, str) for x in v.values()):
@@ -502,6 +525,65 @@ def run(lang, dry):
     return made, broken, sample
 
 
+# ---------------------------------------------------------------- THE SUBJECT AXIS
+# `_w`: the string's SUBJECT is a woman - the manager, by the choice at career
+# start, or a member of staff, by the coin on the person (gender.ts). Only the
+# pronoun flips, plus "their man" for the handful of keys that call the person
+# one; a player named in the same string is left to the `_f` axis, and `_fw`
+# is the two together, made from the `_f` sibling. i18n.ts reads them in that
+# order. The keys are named, not detected: a string is about the manager or a
+# member of staff because the code that files it says so (subjectVar).
+SIBLING = re.compile(r'_(f|w|fw)$')
+MGR_KEYS = re.compile(r"^(news\.fan(Sceptic|Hopeful|Patient)|legacy\.cvTitle|press\.(stanceSafeR|ownerRugbyR|discWord)|profile\.spec\w+Desc|club\.arch\w+Desc|news\.staffHired)")
+STAFF_W_KEYS = re.compile(r"^(news\.(staffSacked|staffOut|badge\w+|staffClick|staffClash|briefSent|scoutReport|scoutReportSubj|scoutNamed|loanOne|loanOneMore|loanMany|loanManyMore|intakeGrade\w|intakePreview|aWonLine\d|aLostLine\d|aCoachNamed|aCoachAnon|assHand\w+|assistantRan|boss\w*|rivalAboveYou|rivalBelowYou)|dec\.badge\w+|reply\.(badge\w+|scoutAlreadyOut)|staff\.(block\w+Long|sackNoMoney|sacked|course\w+Long\w*)|transfers\.(longerTrip|scoutsReportSub)|matchday\.assistantTakes|selection\.untouched|training\.failedRetake\w*|comm\.oppCoach\w*|press\.(raceQ\d|coachNamed))")
+W_NOUN = {
+ 'en': [(r"\btheir man\b", "their woman"), (r"\bNew man\b", "New woman"), (r"\ba man who\b", "a woman who"), (r"\bman to man\b", "woman to woman"), (r"\bkids into men\b", "kids into women")],
+ 'fr': [(r"\bleur homme\b", "leur femme"), (r"\bNouvel homme\b", "Nouvelle femme"), (r"\bun homme qui\b", "une femme qui"), (r"\bd'homme à homme\b", "de femme à femme"), (r"\bl'homme\b", "la femme"), (r"\bnouvel entraîneur\b", "nouvelle entraîneuse"), (r"\bl'entraîneur\b(?= qui| a | est | n')", "l'entraîneuse")],
+ 'es': [(r"\bsu hombre\b", "su mujer"), (r"\bHombre nuevo\b", "Mujer nueva"), (r"\bun hombre que\b", "una mujer que"), (r"\bde hombre a hombre\b", "de mujer a mujer"), (r"\bel hombre\b", "la mujer"), (r"\bnuevo entrenador\b", "nueva entrenadora"), (r"\bel entrenador\b", "la entrenadora"), (r"\bun entrenador\b", "una entrenadora")],
+ 'it': [(r"\bil suo uomo\b", "la sua donna"), (r"\bla sua uomo\b", "la sua donna"), (r"\bUomo nuovo\b", "Donna nuova"), (r"\bun uomo che\b", "una donna che"), (r"\bda uomo a uomo\b", "da donna a donna"), (r"\bl'uomo\b", "la donna"), (r"\bnuovo allenatore\b", "nuova allenatrice"), (r"\bl'allenatore\b", "l'allenatrice"), (r"\bun allenatore\b", "un'allenatrice")],
+ 'ja': [("望みの男", "望みの人材"), ("新しい男", "新しい女性"), ("男", "女性")],
+}
+def feminise_subject(lang, key, s):
+    noun, pron, il = RULES[lang]
+    out = s
+    if MGR_KEYS.search(key): out = apply(W_NOUN.get(lang, []), out, ci=True)
+    out = apply(pron, out)
+    out = apply(il, out)
+    if out != s: out = apply(CHAIN.get(lang, []), out, ci=True)
+    return out
+
+def run_subject(lang, dry):
+    p = f'src/locales/{lang}.json'
+    d = json.load(open(p, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
+    made = 0; sample = []
+    def visit(node, path=''):
+        nonlocal made
+        if not isinstance(node, dict): return
+        for k in list(node.keys()):
+            if SIBLING.search(k): continue
+            v = node[k]; full = f'{path}{k}'
+            plural = isinstance(v, dict) and 'other' in v and all(isinstance(x, str) for x in v.values())
+            if isinstance(v, dict) and not plural: visit(v, full + '.'); continue
+            if not (MGR_KEYS.search(full) or STAFF_W_KEYS.search(full)): continue
+            for src_suffix, dst_suffix in (('', '_w'), ('_f', '_fw')):
+                src = node.get(k + src_suffix) if src_suffix else v
+                if src is None: continue
+                if isinstance(src, dict):
+                    nf = collections.OrderedDict((form, feminise_subject(lang, full, txt)) for form, txt in src.items())
+                    if nf == src: continue
+                else:
+                    nf = feminise_subject(lang, full, src)
+                    if nf == src: continue
+                if not dry: node[k + dst_suffix] = nf
+                made += 1
+                if len(sample) < 30: sample.append((full + dst_suffix, src if isinstance(src, str) else src['other'], nf if isinstance(nf, str) else nf['other']))
+    visit(d)
+    if not dry:
+        raw = open(p, encoding='utf-8').read(); ind = len(raw.split('\n')[1]) - len(raw.split('\n')[1].lstrip(' '))
+        json.dump(d, open(p, 'w', encoding='utf-8'), ensure_ascii=False, indent=ind)
+        open(p, 'a', encoding='utf-8').write('\n')
+    return made, sample
+
 # ---------------------------------------------------------------- CORRECTIONS
 CORR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'feminise-corrections.json')
 C = json.load(open(CORR_PATH, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
@@ -512,26 +594,31 @@ def fr_typo(s):
     s = re.sub(r'«\s*', '«' + NB, s); s = re.sub(r'\s*»', NB + '»', s)
     s = s.replace(' ' + NB, NB).replace(NB + ' ', NB)
     return s
-def walk(doc, key):
+def walk_to(doc, key):
     parts = key.split('.'); node = doc
     for p in parts[:-1]: node = node[p]
     return node, parts[-1]
-def correct(lang):
+def correct(lang, phase='all'):
+    is_w = lambda key: bool(re.search(r'_(w|fw)$', key))
+    keep = (lambda key: True) if phase == 'all' else (lambda key: is_w(key) == (phase == 'w'))
     p = f'src/locales/{lang}.json'
     doc = json.load(open(p, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
     nset = ndel = nsub = 0; missing = []
     for key, val in C.get(lang, {}).items():
-        node, leaf = walk(doc, key)
+        if not keep(key): continue
+        node, leaf = walk_to(doc, key)
         if val is None:
             if leaf in node: del node[leaf]; ndel += 1
         else:
             node[leaf] = fr_typo(val) if lang == 'fr' else val; nset += 1
     for key, pairs in C.get('subs', {}).get(lang, {}).items():
-        node, leaf = walk(doc, key)
+        if not keep(key): continue
+        node, leaf = walk_to(doc, key)
         # subs on a key with no sibling yet start from the base string: a hand-made sibling
         if leaf not in node:
-            if leaf[:-2] not in node: missing.append(key); continue
-            node[leaf] = node[leaf[:-2]]
+            base = SIBLING.sub('', leaf)
+            if base not in node: missing.append(key); continue
+            node[leaf] = node[base]
         cur = node[leaf]
         for old, new in pairs:
             if isinstance(cur, dict):
@@ -555,7 +642,7 @@ def correct(lang):
 
 if __name__ == '__main__':
     dry = '--apply' not in sys.argv
-    langs = [a for a in sys.argv[1:] if a in RULES] or ['en', 'fr', 'es', 'it']
+    langs = [a for a in sys.argv[1:] if a in RULES] or ['en', 'fr', 'es', 'it', 'ja']
     for lang in langs:
         made, broken, sample = run(lang, dry)
         print(f'\n===== {lang}: {"would generate" if dry else "generated"} {made} feminine siblings; {len(broken)} broken =====')
@@ -563,5 +650,13 @@ if __name__ == '__main__':
         if dry:
             for k, a, b in sample[:14]:
                 print(f'  {k}\n     - {a[:150]!r}\n     + {b[:150]!r}')
+        # the hand pass on the player axis lands BEFORE the subject pass reads
+        # `_f`, so `_fw` is built from the corrected text; then its own pass
+        if not dry and '--no-corrections' not in sys.argv: correct(lang, 'f')
+        made_w, sample_w = run_subject(lang, dry)
+        print(f'===== {lang}: {"would generate" if dry else "generated"} {made_w} subject siblings (_w, _fw) =====')
+        if dry:
+            for k, a, b in sample_w[:10]:
+                print(f'  {k}\n     - {a[:150]!r}\n     + {b[:150]!r}')
         elif '--no-corrections' not in sys.argv:
-            correct(lang)
+            correct(lang, 'w')

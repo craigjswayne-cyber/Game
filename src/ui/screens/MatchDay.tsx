@@ -1246,7 +1246,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             <div className="card" style={{ borderLeft: '4px solid var(--border-strong)' }}>
               <div className="fact-label">{t('matchday.clubSameDay')}</div>
               <div className="meta" style={{ marginTop: 3 }}>
-                {t('matchday.assistantTakes', { home: teamShort(game, cfx.homeId), away: teamShort(game, cfx.awayId) })}
+                {t('matchday.assistantTakes', { g: game.staffPeople?.assistant?.g ?? 'm', home: teamShort(game, cfx.homeId), away: teamShort(game, cfx.awayId) })}
               </div>
             </div>
           )
