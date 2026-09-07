@@ -422,7 +422,12 @@
   "atHomeMark": "v",
   "awayMark": "@",
   "neutralVenueLower": "a neutral venue",
-  "replaySub": " · {att} at {venue}"
+  "replaySub": " · {att} at {venue}",
+  "friendlies": "Arrange a friendly",
+  "friendliesSub": "Midweek, against a club below you or from another country. No money in it - minutes for the academy.",
+  "friendlyWeek": "Week {n}",
+  "friendlyNone": "No week ahead has the three clear days either side that a friendly needs.",
+  "friendlyPlay": "Invite"
  },
  "medical": {
   "headPhysio": "Head Physio",
@@ -4747,7 +4752,8 @@
   "toty": "The governing body has published its Team of the Year, one player in each shirt, chosen on what the last twelve months actually looked like rather than on reputation.\n\n{rows_ll}",
   "totyLine": "{n}. {name} ({pos}) - {club}",
   "totyMineSubj": "The Team of the Year is worth money to us",
-  "totyMine": "We have {n} in the Team of the Year: {names}. Replica shirts with those names are selling faster than we can print them, two promoters want an evening with them, and sponsors who ignored us in September are asking what an endorsement costs. Worth {money}, and none of it out of the playing budget."
+  "totyMine": "We have {n} in the Team of the Year: {names}. Replica shirts with those names are selling faster than we can print them, two promoters want an evening with them, and sponsors who ignored us in September are asking what an endorsement costs. Worth {money}, and none of it out of the playing budget.",
+  "friendlyBooked": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the men who have not had a game."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5172,7 +5178,10 @@
   "loanBuyTooSoon": "Too early. {club} want to see him play some rugby for you before they talk about selling him.",
   "loanBuyNoFunds": "The option is there at {fee}, and the transfer budget will not cover it.",
   "loanBuyCrucial": "{club} say no. He has grown into somebody they need - the loan was meant to develop him for them, not for you.",
-  "loanBuyAgreed": "Done. {player} is yours permanently for {fee}. The loan ends the moment the money clears."
+  "loanBuyAgreed": "Done. {player} is yours permanently for {fee}. The loan ends the moment the money clears.",
+  "friendlyWeekBusy": "That week will not take a friendly. There has to be a clear three days either side of it.",
+  "friendlyDeclined": "{club} have other plans that week.",
+  "friendlyBooked": "{club} will come to your place in week {week}."
  },
  "verdict": {
   "titleFavourites": "Title favourites",
