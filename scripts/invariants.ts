@@ -39,13 +39,21 @@ function audit(g: GameState, tag: string) {
       else if (p.clubId !== club.id) bad(`${tag} ${club.id} lineup names ${p.name} of ${p.clubId}`)
     }
   }
-  // 3. no team double-booked in a week
+  // 3. no team double-booked in a week - EXCEPT A TOURING PARTY, WHICH IS THE
+  // ONE SIDE THAT PLAYS TWICE.
+  //
+  // The owner's tour is "one midweek game, one weekend game" for five weeks, so
+  // the tourists and their hosts genuinely appear twice in the same week. That
+  // is not a scheduling bug, it is what a tour is: the Wednesday side plays a
+  // province while the Test side prepares. Keyed by week AND day, so the rule
+  // still bites - nobody may play twice on the same DAY, tour or not, and a
+  // league side that turned up twice in a week would still be caught.
   const wkTeams = new Map<string, Set<string>>()
   for (const f of g.fixtures) {
-    const k = String(f.week)
+    const k = `${f.week}${f.midweek ? 'w' : ''}`
     const set = wkTeams.get(k) ?? new Set()
     for (const t of [f.homeId, f.awayId]) {
-      if (set.has(t)) bad(`${tag} ${t} double-booked in week ${f.week}`)
+      if (set.has(t)) bad(`${tag} ${t} double-booked in week ${f.week}${f.midweek ? ' (midweek)' : ''}`)
       set.add(t)
     }
     wkTeams.set(k, set)

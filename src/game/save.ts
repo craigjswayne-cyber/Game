@@ -1,5 +1,5 @@
 import type { Club, FacilityId, GameState } from './model'
-import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, emptyStats, finalVenue, initFacilities } from './model'
+import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
@@ -112,7 +112,77 @@ export async function clearResume(slot: string): Promise<void> {
 }
 
 /** Backfill fields added since a save was written. */
+/**
+ * ---- REBASING EVERY ABSOLUTE-WEEK STAMP ----
+ *
+ * Until v1.5.1 a stamp was `season * 45 + week`, because 45 was the season
+ * length. The season is now 48, so a save written before the change holds
+ * stamps on the old multiplier, and read on the new one every one of them is
+ * wrong by three weeks per season elapsed: a loan due back in season 2 week 10
+ * would read as season 2 week 7, a contract clock would jump, a disciplinary
+ * incident would come back into range.
+ *
+ * WEEK_BASIS is now 100 and fixed for good, so this runs once per save and
+ * never again. The conversion is exact - old / 45 is the season, old % 45 is
+ * the week - because both are integers and week is always 1..45 in an old save.
+ *
+ * THE LIST IS THE DANGEROUS PART, not the arithmetic. A field left out of it
+ * keeps its old basis and drifts silently, which is the sort of bug that shows
+ * up as "my loanee never came home" three seasons later. It was built by
+ * grepping every write of `season * SEASON_WEEKS + week` in the engine rather
+ * than from memory, and scripts/basisprobe.ts holds it: it builds a save on the
+ * old basis, migrates it, and checks that every stamp still sits the same number
+ * of weeks from today as it did before.
+ */
+const OLD_BASIS = 45
+
+function rebase(v: unknown): number | undefined {
+  if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) return undefined
+  return Math.floor(v / OLD_BASIS) * WEEK_BASIS + (v % OLD_BASIS)
+}
+
+function rebaseStamps(s: GameState): void {
+  const num = (x: unknown) => typeof x === 'number' && Number.isFinite(x)
+  for (const p of Object.values(s.players ?? {})) {
+    const q = p as unknown as Record<string, unknown>
+    for (const f of ['joinedAt', 'loanSince', 'loanUntil', 'lastChatWk', 'retakeAt']) {
+      if (num(q[f])) q[f] = rebase(q[f])
+    }
+    // MATERNITY WAS NEVER ON EITHER BASIS. It shipped storing a within-season
+    // week, so a leave running past the end of a season could never come due and
+    // the player stayed away for good. There is no arithmetic that rescues that
+    // number, because the season it was granted in is not recorded: the honest
+    // repair is to end the leave now and give her back to her club, which is
+    // what the code would have done at the right time if it had worked.
+    if (q.maternity && typeof q.maternity === 'object') {
+      const m = q.maternity as { until?: number; from?: number }
+      if (num(m.until) && (m.until as number) <= OLD_BASIS) q.maternity = undefined
+    }
+  }
+  for (const c of Object.values(s.clubs ?? {})) {
+    const q = c as unknown as Record<string, unknown>
+    if (num(q.debtSince)) q.debtSince = rebase(q.debtSince)
+  }
+  const g = s as unknown as Record<string, unknown>
+  for (const f of ['groundsAt', 'lawWatchAt', 'challengeAt', 'chatWk', 'natAskAt',
+                   'natCoachAskAt', 'courtedAt', 'natCall']) {
+    if (num(g[f])) g[f] = rebase(g[f])
+  }
+  // NOT the discipline ledger: an incident stores its season and its week as two
+  // separate fields and rebuilds the absolute week when it is read, so it was
+  // never on the old basis and must not be touched.
+}
+
 export function migrate(s: GameState): GameState {
+  // ---- the week basis, before anything reads a stamp ----
+  // Runs once in the life of a save and is marked done, so a career loaded
+  // twice is not rebased twice - which would push every date out by a further
+  // three weeks a season and be far worse than never rebasing at all.
+  if ((s.basis ?? 45) !== WEEK_BASIS) {
+    rebaseStamps(s)
+    s.basis = WEEK_BASIS
+  }
+
   // ---- the collections the game reads without asking whether they are there ----
   //
   // A save written by an older build is simply missing the fields that build had

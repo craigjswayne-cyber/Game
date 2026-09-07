@@ -159,6 +159,6 @@ for (const [skin, sel] of PALETTES) {
 }
 
 console.log(fails === 0
-  ? '\nSKIN PROBE PASSED: three bought skins and the tour's own, in daylight and at night, every one readable'
+  ? '\nSKIN PROBE PASSED: three bought skins and the tour skin, in daylight and at night, every one readable'
   : `\nSKIN PROBE FAILED: ${fails}`)
 process.exit(fails === 0 ? 0 : 1)

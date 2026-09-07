@@ -424,7 +424,7 @@
   "neutralVenueLower": "campo neutral",
   "replaySub": " · {att} en {venue}",
   "friendlies": "Organizar un amistoso",
-  "friendliesSub": "Entre semana, contra un club por debajo o de otro país. Sin dinero: minutos para la cantera.",
+  "friendliesSub": "Entre semana, ante un club inferior.",
   "friendlyWeek": "Semana {n}",
   "friendlyNone": "Ninguna semana próxima tiene los tres días libres a cada lado que exige un amistoso.",
   "friendlyPlay": "Invitar"
@@ -1528,7 +1528,7 @@
   "loanCostLine": "Tu parte de su salario: {wage}/sem.",
   "loanClose": "Ahora no",
   "loanDone": "Hecho",
-  "loanApproachSub": "Pregunta por un joven que nadie te ofreció. Más difícil que la lista de arriba, y un rival ni siquiera cogerá el teléfono.",
+  "loanApproachSub": "Pregunta por un joven que nadie ofreció.",
   "loanApproach": "Hacer una consulta",
   "loanAsk": "Preguntar",
   "loanNoHits": "Nadie con ese nombre a quien pudieras formar. Debe ser un jugador de 23 años o menos, en forma y no cedido ya."
@@ -4756,7 +4756,7 @@
   "friendlyBooked": "{club} vendrán a {short} el miércoles de la semana {week}. Sin taquilla que merezca la pena: lo que vale son ochenta minutos para la cantera y para quien no juega.",
   "friendlyBookedSubj": "Amistoso entre semana acordado: {short}",
   "islesOfferSubj": "Una invitación de las cuatro federaciones",
-  "islesOffer": "Las cuatro federaciones te han escrito conjuntamente. Quieren que lleves al XV de las Islas Británicas e Irlandesas a {host} este verano: siete partidos provinciales y una serie de tres tests, un grupo sacado de cuatro países que se pasan cada febrero intentando ganarse entre ellos.\n\nNo hay lista ni entrevista. Han elegido, y te lo piden.\n\nSi vas, tu ayudante se hace cargo de tu selección mientras dure."
+  "islesOffer": "Las cuatro federaciones te han escrito conjuntamente. Quieren que lleves al XV de las Islas a {host} este verano: siete partidos provinciales y una serie de tres tests.\n\nNi lista ni entrevista. Han elegido. Tu ayudante lleva tu selección mientras no estés."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",

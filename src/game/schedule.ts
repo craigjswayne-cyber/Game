@@ -1,6 +1,6 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
 import { W, type Gender } from './gender'
-import { BASE_YEAR } from './model'
+import {absWeek, BASE_YEAR } from './model'
 import { shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
@@ -241,7 +241,12 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   return comp
 }
 
-export const TOUR_WEEKS = [44, 45]
+// FIVE WEEKS, A MIDWEEK GAME AND A WEEKEND GAME IN EACH (owner, 7 Sep: "the
+// tour should be over 5 weeks... one midweek game, one weekend game"). The
+// season grew from 45 weeks to 48 to hold it, and nothing domestic moved: the
+// club finals still end at week 43, so the party leaves after the season rather
+// than across it, which is where a real tour goes.
+export const TOUR_WEEKS = [44, 45, 46, 47, 48]
 /** Midweek provincial games before the Test series - seven, then three Tests. */
 export const TOUR_PROVINCIAL = 7
 export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
@@ -342,7 +347,7 @@ function buildSummer(rng: Rng, state: GameState) {
     // over six weeks in June and July. This game's season is 45 weeks and the
     // club finals run to week 43, so weeks 44 and 45 are the entire summer -
     // and SEASON_WEEKS cannot be lengthened, because 37 places in the engine
-    // stamp an absolute week as `season * SEASON_WEEKS + week` into saves, so
+    // stamp an absolute week as `absWeek(season, week)` into saves, so
     // moving it would shift every stored loan return, injury date and maternity
     // date in every career in progress. The alternative was running the tour
     // over weeks 41-43 and taking a manager's best players away for his club's
@@ -364,25 +369,7 @@ function buildSummer(rng: Rng, state: GameState) {
       teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 3, playoffTeams: 0,
       weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
     }
-    midweek.forEach((club, i) => {
-      state.fixtures.push({
-        id: state.nextId++, compId: 'lions', round: i,
-        // five in the first week, the rest alongside the Tests in the second
-        week: i < 5 ? TOUR_WEEKS[0] : TOUR_WEEKS[1],
-        homeId: club.id, awayId: 'LIO', played: false,
-        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-        stage: `Tour match ${i + 1}`,
-        tourMatch: true,
-      })
-    })
-    TEST_NAMES.forEach((name, r) => {
-      state.fixtures.push({
-        id: state.nextId++, compId: 'lions', round: TOUR_PROVINCIAL + r, week: TOUR_WEEKS[1],
-        homeId: host, awayId: 'LIO', played: false,
-        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-        stage: name,
-      })
-    })
+    buildTourFixtures(state, 'lions', host, midweek)
     state.comps['lions'] = comp
     return
   }
@@ -633,22 +620,57 @@ function buildWomensTour(state: GameState) {
     teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 3, playoffTeams: 0,
     weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
   }
-  provincial.forEach((club, i) => {
-    state.fixtures.push({
-      id: state.nextId++, compId: W + 'lions', round: i,
-      week: i < 5 ? TOUR_WEEKS[0] : TOUR_WEEKS[1],
-      homeId: club.id, awayId: 'LIO', played: false,
-      homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-      stage: `Tour match ${i + 1}`, tourMatch: true,
-    })
-  })
-  TEST_NAMES.forEach((name, r) => {
-    state.fixtures.push({
-      id: state.nextId++, compId: W + 'lions', round: TOUR_PROVINCIAL + r, week: TOUR_WEEKS[1],
-      homeId: host, awayId: 'LIO', played: false,
-      homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-      stage: name,
-    })
-  })
+  buildTourFixtures(state, W + 'lions', host, provincial)
   state.comps[W + 'lions'] = comp
+}
+
+/**
+ * The ten fixtures of a tour, laid out the way a tour actually runs.
+ *
+ * A midweek game and a weekend game in each of five weeks. The Tests take the
+ * last three WEEKENDS, and the midweek games carry on between them - which is
+ * exactly the rhythm of a real tour, where the Wednesday side plays a province
+ * while the Test side prepares.
+ *
+ *   wk 44   Wed: tour 1      Sat: tour 2
+ *   wk 45   Wed: tour 3      Sat: tour 4
+ *   wk 46   Wed: tour 5      Sat: 1st Test
+ *   wk 47   Wed: tour 6      Sat: 2nd Test
+ *   wk 48   Wed: tour 7      Sat: 3rd Test
+ */
+function buildTourFixtures(state: GameState, compId: string, host: string, provincial: { id: string }[]) {
+  let prov = 0
+  let round = 0
+  TOUR_WEEKS.forEach((week, i) => {
+    // the Wednesday game is always a province
+    const club = provincial[prov++]
+    if (club) {
+      state.fixtures.push({
+        id: state.nextId++, compId, round: round++, week,
+        homeId: club.id, awayId: 'LIO', played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: `Tour match ${prov}`, tourMatch: true, midweek: true,
+      })
+    }
+    // the weekend is a province for the first two weeks, then a Test
+    const testIndex = i - (TOUR_WEEKS.length - TEST_NAMES.length)
+    if (testIndex >= 0) {
+      state.fixtures.push({
+        id: state.nextId++, compId, round: round++, week,
+        homeId: host, awayId: 'LIO', played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: TEST_NAMES[testIndex],
+      })
+    } else {
+      const w = provincial[prov++]
+      if (w) {
+        state.fixtures.push({
+          id: state.nextId++, compId, round: round++, week,
+          homeId: w.id, awayId: 'LIO', played: false,
+          homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+          stage: `Tour match ${prov}`, tourMatch: true,
+        })
+      }
+    }
+  })
 }

@@ -36,7 +36,7 @@ export default function Nations() {
         const open = game.isles?.answer === 'open'
         const took = game.isles?.answer === 'yes'
         return (
-          <div className="card" style={{ borderLeft: '4px solid #c8102e' }}>
+          <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
             <SectionTitle sub={game.comps['lions']?.name}>{t('isles.title')}</SectionTitle>
             <div className="meta" style={{ padding: '0 10px 8px' }}>
               {open ? t('isles.whyYes') : took ? t('isles.took') : t('isles.passed')}

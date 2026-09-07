@@ -5,7 +5,7 @@ import { clubIntent } from './living'
 import { userCap, userWageBudget } from './grants'
 import { offerSigning } from './records'
 import { transferReaction } from './terraces'
-import { SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
+import {absWeek, SEASON_WEEKS, addGrudge, fmtMoney, fmtWage } from './model'
 import { ensureCaptains } from './analysis'
 import { rivalsOf } from './rivalries'
 import { interestPremium, transferInterest } from './interest'
@@ -241,7 +241,7 @@ export function executeTransfer(state: GameState, p: Player, toClubId: string, f
   p.debutPending = 'signing'
   // the arrival is stamped: the buy-back gate in agreeFee reads it, and the
   // game-time ledger's availability counter starts fresh at the new club
-  p.joinedAt = state.season * SEASON_WEEKS + state.week
+  p.joinedAt = absWeek(state.season, state.week)
   p.avail = 0
   if (toClubId === state.userClubId) {
     state.mgr.signings += 1
@@ -464,7 +464,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   // the refusal says so. joinedAt is stamped by the transfer executor;
   // players who moved before the stamp existed carry no gate.
   {
-    const now = state.season * SEASON_WEEKS + state.week
+    const now = absWeek(state.season, state.week)
     const weeksIn = p.joinedAt != null ? now - p.joinedAt : null
     if (weeksIn != null && weeksIn < 22 && fee < ask * 2) {
       const door = Math.round((ask * 2) / 50_000) * 50_000
@@ -557,7 +557,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   // this, a transfer that would be refused at the fee stage completes cleanly
   // if you only ever ask about wages.
   {
-    const now = state.season * SEASON_WEEKS + state.week
+    const now = absWeek(state.season, state.week)
     const weeksIn = p.joinedAt != null ? now - p.joinedAt : null
     if (weeksIn != null && weeksIn < 22 && fee < askingPrice(state, p) * 2) {
       return { ok: false, msg: t('reply.inkWetTerms', { club: seller.short, name: p.name }) }

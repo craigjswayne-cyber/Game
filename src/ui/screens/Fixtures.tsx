@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { venueBadge, venueEffect } from '../../game/venue'
-import { fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
+import { MIDWEEK_OFF, fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
@@ -122,7 +122,7 @@ export default function Fixtures() {
               <tr key={f.id} className={isNext ? 'next-fx' : undefined}
                 onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
                 style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
-                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id).replace(/day /, " ")}</td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id, f.midweek ? MIDWEEK_OFF : undefined).replace(/day /, " ")}</td>
                 <td className="name">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                     <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{t(f.homeId === me ? 'fixtures.atHomeMark' : 'fixtures.awayMark')}</span>
@@ -180,7 +180,10 @@ export default function Fixtures() {
                         {game.comps[game.clubs[id]?.leagueId ?? '']?.short ?? ''}
                       </td>
                       <td>
-                        <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
+                        {/* a real tap target: geosweep holds every button to 44px
+                            and this one shipped at 28, which on a phone is a
+                            button you miss rather than a button you press */}
+                        <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
                           onClick={() => { setFrMsg(arrangeMidweekFriendly(game, id, wk)); touch() }}>
                           {t('fixtures.friendlyPlay')}
                         </button>
