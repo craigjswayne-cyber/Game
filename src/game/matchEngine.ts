@@ -2082,7 +2082,41 @@ export function resolveDecision(state: GameState, ctx: LiveCtx, choice: 'posts' 
     for (const e of moved) e.min = Math.min(e.min, whistleMin)
     ctx.events.splice(whistleAt, 0, ...moved)
   }
+  // A KICK ANSWERED AFTER THE FINAL WHISTLE CHANGES THE RESULT.
+  //
+  // finalizeMatch runs inside the last tick, before the manager has answered,
+  // and writes the fixture's score and the full-time line from the scoreboard
+  // as it stood. The splice above put the kick in the right place on the
+  // ticker; it did nothing about the record. Found by scripts/releaseaudit.ts,
+  // which rigged a kickable penalty into the 80th minute 114 times: the ticker
+  // read 72-13 and the fixture 69-13 in 105 of them - three points that were
+  // on the screen and not in the table.
+  //
+  // The half-time case never had the problem: a kick taken at 41' lands on a
+  // scoreboard that finalizeMatch reads forty minutes later. Only the final
+  // whistle needs the record re-read, so only the final whistle does it.
+  if (ctx.seg === 3) syncResult(ctx)
   return msg
+}
+
+/** The fixture and the full-time line say what the scoreboard says. Called
+ *  when a kick is taken after finalizeMatch has already written both.
+ *  Ratings were settled on the pre-kick margin and are left alone: three
+ *  points of margin move teamRatingTerm by a fraction of a point across a
+ *  side, and re-marking twenty-three men for one kick is more churn than the
+ *  correction is worth. The result is what the table reads, so the result is
+ *  what is fixed. */
+function syncResult(ctx: LiveCtx) {
+  const { fx, home, away } = ctx
+  fx.homeScore = home.score
+  fx.awayScore = away.score
+  fx.homeTries = home.tries
+  fx.awayTries = away.tries
+  const ft = ctx.events.find(e => e.type === 'FT' && e.k === 'comm.fullTime')
+  if (ft?.v) {
+    ft.v = { ...ft.v, hs: home.score, ascore: away.score }
+    ft.text = tIn('en', 'comm.fullTime', ft.v)
+  }
 }
 
 function decide(
