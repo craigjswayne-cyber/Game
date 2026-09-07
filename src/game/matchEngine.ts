@@ -1,5 +1,6 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { genderOf, type Gender } from './gender'
+import { prepLeaked } from './talkingpoints'
 import { difficultyOf } from './difficulty'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
@@ -1485,6 +1486,16 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     }
     if (weather === 'Wind') side.units.kicking *= 0.92
     if (derby) side.cardRisk *= 1.35
+    // ---- SOMEBODY TOLD THEM HOW YOU PLAY ----
+    // A rival coach briefed a journalist about your side this week
+    // (talkingpoints.ts), so the team you meet has read it. The edge is small
+    // and it is real: they defend your shape a little better and your attack
+    // has to work harder for the same ball. It only ever costs the USER, which
+    // is the point - it is a story about your week, not a coin flip.
+    if (prepLeaked(state) && side.teamId === state.userClubId) {
+      layer(side, 'attack', 0.95)
+      layer(side, 'breakdown', 0.97)
+    }
     // The whistle sets the tone, and now it sets four of them. Each dial acts on
     // the unit it is an opinion about, so a scrum pedant makes your front row
     // matter and a permissive ref makes your jackals matter.
