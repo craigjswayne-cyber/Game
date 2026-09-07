@@ -199,6 +199,12 @@ listing, and NOT what goes in the release box:
   table is mathematically unchanged, so a career in progress is untouched.
 * **Maternity leave**, on invented players only. The contract clock stops and
   the shirt is hers on return.
+* **The copy reads as the women's game**, in English, French, Spanish and
+  Italian. "She was promised", "sa cliente", "la jugadora", "la giocatrice":
+  around 1,600 lines carry a feminine sibling that a women's career reads
+  instead, down to the fragments a news story is assembled from. Staff keep
+  their pronoun on purpose, because a coach in the women's game is as likely
+  to be a man as a woman and the game says so.
 * **The season now opens on a Saturday in every year**, not only in the first.
   This was a real bug in shipped saves from season two onwards.
 * Both games run the 2026-27 season.

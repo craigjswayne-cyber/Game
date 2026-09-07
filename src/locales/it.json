@@ -18,7 +18,8 @@
   "importHintTitle": "Vieni dalla vecchia versione?",
   "importHintBody": "Se hai esportato le carriere dalla vecchia app Play, portale qui prima di iniziarne una nuova.",
   "importHintNo": "No, parti da zero",
-  "importHintGo": "Importa un backup"
+  "importHintGo": "Importa un backup",
+  "disclaimer_f": "Non ufficiale e indipendente. Non affiliato ad alcun club, lega o giocatrice."
  },
  "nav": {
   "news": "News",
@@ -65,7 +66,9 @@
   "training": "Allenamento e staff",
   "transfers": "Centro trasferimenti",
   "unemployed": "Senza panchina",
-  "wire": "News"
+  "wire": "News",
+  "offers_f": "Offerte per le tue giocatrici",
+  "player_f": "Profilo giocatrice"
  },
  "groups": {
   "about": "Info e note legali",
@@ -368,7 +371,13 @@
   "depthNobody": "Nessuno può giocare qui.",
   "depthCovers": "Copre da {pos}",
   "depthThin": "A un infortunio dal non avere nessuno come {pos}.",
-  "depthThinFront": "Meno di tre {pos} disponibili: il regolamento vuole copertura di specialisti."
+  "depthThinFront": "Meno di tre {pos} disponibili: il regolamento vuole copertura di specialisti.",
+  "whyOut_f": "infortunate, squalificate, assenti o in prestito",
+  "contractsNote_f": "⏳ scade quest'estate · 💼 il suo entourage vuole un ritocco · rosso in scadenza, ambra l'estate prossima. Tocca una giocatrice per aprire il tavolo.",
+  "gameTimeNote_f": "Pres sono le partite giocate. Attese è quanto vale ormai la sua promessa. Resta indietro e lei s'inacidisce: schierala, o promettile di meno.",
+  "statusKey_f": "Giocatrice chiave",
+  "statusSquad_f": "Giocatrice di rosa",
+  "depthInjured_f": "infortunata"
  },
  "selection": {
   "startingXV": "XV titolare",
@@ -399,7 +408,10 @@
   "pfPack": "Guida il pacchetto",
   "pfDefence": "Chiama la difesa",
   "pfAttack": "Dirige l'attacco",
-  "pfCulture": "Detta gli standard"
+  "pfCulture": "Detta gli standard",
+  "captain_f": "Capitana",
+  "injured_f": "infortunata",
+  "leadershipNote_f": "La capitana alza attacco e difesa e calma gli animi; quando manca, la vice guida a metà effetto. Gli incarichi qui sotto non aggiungono forza, la concentrano: li porta solo chi nel XV ha vera autorevolezza, e una vera leader può portarne più d'uno."
  },
  "fixtures": {
   "tabFixtures": "Calendario",
@@ -460,7 +472,11 @@
   "awayFromClub": "Lontani dal club",
   "awayFromClubSub": "impegni in nazionale e prestiti",
   "onLoan": "IN PRESTITO",
-  "intlDuty": "IN NAZIONALE"
+  "intlDuty": "IN NAZIONALE",
+  "findPlayer_f": "Cerca una giocatrice…",
+  "nothingOnHimSub_f": "Nessuna giocatrice con quel nome è infortunata, squalificata, arrugginita o a corto di benzina.",
+  "quietRoomSub_f": "Nessuna infortunata, squalificata, arrugginita o in riserva. Goditela - non dura mai.",
+  "returningSub_f": "schierabile, ma un rientro affrettato rischia la ricaduta · una donna a settimana può stare nella bambagia"
  },
  "inbox": {
   "freeAgent": " · svincolato",
@@ -495,7 +511,8 @@
   "colDiff": "+/-",
   "playoffLine": "🟡 Prime {n}: zona playoff",
   "relegationLine": "🔻 In fondo: retrocessione",
-  "punditsPredicted": "🎙 Gli esperti ti davano {place}"
+  "punditsPredicted": "🎙 Gli esperti ti davano {place}",
+  "formPlayers_f": "Giocatrici in forma"
  },
  "tactics": {
   "sliderStyle": "Stile",
@@ -554,7 +571,9 @@
   "styleCounter": "Contrattacco",
   "styleCounterDesc": "Assorbi la pressione, colpisci nel campo rotto. Turnover = meta.",
   "styleOffload": "Il gioco degli offload",
-  "styleOffloadDesc": "Palla viva attraverso il contatto - rischio alto, puro spettacolo."
+  "styleOffloadDesc": "Palla viva attraverso il contatto - rischio alto, puro spettacolo.",
+  "presetTightDesc_f": "Rugby delle dieci donne. Maul, cariche dure, strangola la partita fra le avanti.",
+  "styleTerritoryDesc_f": "Il classico gioco al piede delle dieci donne: la posizione in campo è tutto."
  },
  "roles": {
   "scrummager": "Uomo di mischia",
@@ -607,7 +626,10 @@
   "finisherDesc": "Servilo e segna. Attacco al largo su, la difesa molla.",
   "aerial": "Specialista dell'alto",
   "aerialShort": "ALT",
-  "aerialDesc": "Il pallone alto è roba sua. Difesa e pressione sui calci su, meno minaccia palla in mano."
+  "aerialDesc": "Il pallone alto è roba sua. Difesa e pressione sui calci su, meno minaccia palla in mano.",
+  "scrummager_f": "Donna di mischia",
+  "mobileDesc_f": "Una donna di prima linea con le ruote. Attacco su, la mischia molla un po'.",
+  "link_f": "Donna di raccordo"
  },
  "playbook": {
   "lo_front": "Palla in prima zona",
@@ -685,7 +707,8 @@
   "howLineout": "Lavoro sulle fasi statiche: contesta il loro lancio e la piattaforma crolla.",
   "howDefence": "Schemi d'attacco. Spostali da un lato all'altro e i varchi si aprono.",
   "howKicking": "Schemi d'attacco e contrattacchi rapidi sui loro calci sballati.",
-  "howAttack": "Esercizi difensivi. Chiudi gli spazi e lascia che finiscano le idee."
+  "howAttack": "Esercizi difensivi. Chiudi gli spazi e lascia che finiscano le idee.",
+  "andTest_f": ", e {name} è la donna giusta per metterla alla prova"
  },
  "philosophy": {
   "pack": "Dominio degli avanti",
@@ -1166,7 +1189,27 @@
   "stLineouts": "Touche V-P",
   "stTackles": "Placcaggi",
   "clubSameDay": "IL TUO CLUB, LO STESSO SABATO",
-  "assistantTakes": "{home} v {away} è il pomeriggio del tuo vice. Sceglie lui la squadra e firma il rapporto - a te tocca il Test."
+  "assistantTakes": "{home} v {away} è il pomeriggio del tuo vice. Sceglie lui la squadra e firma il rapporto - a te tocca il Test.",
+  "bogeyRest_f": " - non li avete mai battuti, e le giocatrici lo sanno. Chiudi la storia oggi.",
+  "crisisNote_f": "Crisi in piena regola: la rosa non mette insieme quindici donne sane. Il vice tapperà i buchi con chiunque si regga in piedi.",
+  "dangerBody_f": " ({pos}) è la donna da imbrigliare - il gioco di {club} passa da lei. Tienila a secco e sei a metà dell'opera.",
+  "dangerMan_f": "La donna pericolosa",
+  "hintArmed_f": "{player} è pronta al cambio. Tocca chi la sostituisce in panchina, oppure tocca una compagna in campo per scambiarne le posizioni.",
+  "hintNoneLeft_f": "Cambi tattici esauriti. Puoi ancora toccare due donne in campo per scambiarne le posizioni.",
+  "hintTap_f": "Tocca una donna in campo, poi tocca chi entra al suo posto. Toccando invece una seconda donna in campo, le scambi di posizione.",
+  "injuredFlag_f": "Infortunata",
+  "mustDecide_f": "Il gioco resta fermo finché qualcuno non prende la sua maglia. Tocca la donna che vuoi in campo, o tocca di nuovo la scelta del vice per confermarla.",
+  "probINJURED_f": "è infortunata",
+  "refNothing_f": "Niente di segnato sul suo taccuino: lascia che decidano le giocatrici.",
+  "rotButton_f": {
+   "one": "🔄 Ruota il XV - riposo per la donna segnalata",
+   "other": "🔄 Ruota il XV - riposo per le donne segnalate"
+  },
+  "showRatings_f": "⭐ Voti delle giocatrici",
+  "tapSwapHint_f": "tocca una giocatrice, poi un'altra per scambiarle · due tocchi per la lista della rosa",
+  "tapSwapHintTest_f": "tocca una giocatrice, poi un'altra per scambiarle · due tocchi per la rosa completa",
+  "warnNoSpeech_f": "Nessun discorso scelto nello spogliatoio - le giocatrici si faranno un'idea da sole.",
+  "warnScrum_f": "Problema in mischia: in tutta la rosa del match {missing}. All'arbitro servono 2 donne per ogni maglia di prima linea, altrimenti ordina mischie non contestate - niente spinta, e un pacchetto forte non vale nulla. Aggiungi coperture di prima linea in panchina."
  },
  "tacticsScreen": {
   "tabRoles": "Ruoli",
@@ -1259,7 +1302,9 @@
   "planProTitle": "Pro Manager ti dà sei piani salvati invece di tre: uno per le giornate di pioggia, uno per un pacchetto più pesante, uno per gli ultimi dieci minuti.",
   "planSaveTitle": "Conserva quello che c’è ora sui comandi: i quattro cursori, la coppia difensiva, le chiamate di touche e mischia, l’ordine dei calciatori e l’uscita.",
   "planLoad": "Piano {n}",
-  "planOverTitle": "Sovrascrivi il piano {n} con i comandi attuali"
+  "planOverTitle": "Sovrascrivi il piano {n} con i comandi attuali",
+  "splitMismatch_f": "Hai dichiarato un {want}, ma le donne in maglia lo fanno diventare un {got}. La panchina che conta è quella che scende davvero in campo.",
+  "prepFitnessLong_f": "Ripetute da spaccare i polmoni. Le tue giocatrici si stancano circa l'8% più lentamente nella prossima partita."
  },
  "staff": {
   "roleAssistant": "Vice allenatore",
@@ -1322,7 +1367,9 @@
   "candGone": "Quel candidato non è più disponibile.",
   "sackNobody": "Non c’è nessuno in quel ruolo da licenziare.",
   "sackNoMoney": "Licenziarlo costa {need} e il club ha {have}.",
-  "sacked": "{name} ha lasciato il club. {cost} per chiudere il suo contratto."
+  "sacked": "{name} ha lasciato il club. {cost} per chiudere il suo contratto.",
+  "traitManManager_f": "Gestore di persone",
+  "clickCaps_f": "le ragazze ascoltano di più quando chi indica ha giocato in nazionale"
  },
  "training": {
   "tabTraining": "Allenamento",
@@ -1415,7 +1462,13 @@
   },
   "sack": "Licenzia",
   "sackConfirm": "Licenzialo · {cost}",
-  "sackTitle": "Chiudere il suo contratto ora per {cost}. Il ruolo resta vacante finché non nomini qualcun altro."
+  "sackTitle": "Chiudere il suo contratto ora per {cost}. Il ruolo resta vacante finché non nomini qualcun altro.",
+  "twoKids_f": " Due ragazze sotto la sua ala: ognuna impara a velocità ridotta, e lei non mancherà di farlo notare.",
+  "mentorEmpty_f": "Affianca una veterana a una ragazza e guarda cosa attecchisce. Certe coppie scattano, altre mai - e una coppia che non porta da nessuna parte si può chiudere dalla riga.",
+  "oneKidAlready_f": " - ha già una ragazza",
+  "reasonPoorTeacher_f": "{senior} è un'ottima giocatrice e una maestra mediocre.",
+  "reasonNotListening_f": "La ragazza non ascolta con tutta l'attenzione che potrebbe.",
+  "reasonLeads_f": "{senior} guida con l'esempio e la ragazza se n'è accorta."
  },
  "pos": {
   "LP": "Pilone sinistro",
@@ -1531,7 +1584,12 @@
   "loanApproachSub": "Sonda un giovane che nessuno ha offerto.",
   "loanApproach": "Fare un sondaggio",
   "loanAsk": "Chiedere",
-  "loanNoHits": "Nessuno con quel nome che potresti far crescere. Serve un giocatore di 23 anni o meno, integro e non già in prestito."
+  "loanNoHits": "Nessuno con quel nome che potresti far crescere. Serve un giocatore di 23 anni o meno, integro e non già in prestito.",
+  "renewNote_f": "Tocca una giocatrice per rinnovare dalla sua pagina. Dalla settimana 25 chi non ha rinnovato può firmare un pre-contratto altrove e andarsene a zero in estate.",
+  "assignmentNote_f": "Punta la rete su un campionato: le sue giocatrici vengono seguite ogni settimana{unassigned}. Le donne in lista sono sempre monitorate, con avvisi quando la loro situazione cambia.",
+  "offersForYourPlayers_f": "Offerte per le tue giocatrici",
+  "noLoans_f": "Nessun club sopra di te sta prestando giocatrici al momento.",
+  "loanNoHits_f": "Nessuno con quel nome che potresti far crescere. Serve una giocatrice di 23 anni o meno, integra e non già in prestito."
  },
  "objectives": {
   "youth": "Lancia l'academy: almeno 6 partite da titolare a giocatori di 21 anni o meno",
@@ -1555,7 +1613,8 @@
   "boardTitleHead": "vincere il titolo",
   "boardPlayoffsHead": "raggiungere i playoff",
   "boardTopHalfHead": "chiudere nella metà alta della classifica",
-  "boardSurviveHead": "restare lontano dalle ultime due"
+  "boardSurviveHead": "restare lontano dalle ultime due",
+  "youth_f": "Lancia l'academy: almeno 6 partite da titolare a giocatrici di 21 anni o meno"
  },
  "finances": {
   "tabFinances": "Finanze",
@@ -1674,7 +1733,11 @@
   "treasuryEmpty": "In banca c'è meno di {step} - niente da spostare.",
   "treasuryMovedDeep": "{step} spostati. Saldo {balance}, budget mercato {budget}. Il consiglio ha preso nota che stai intaccando la scorta ingaggi.",
   "treasurySafe": "{safe} di questa cifra è denaro libero. Oltre, stai spendendo la scorta ingaggi, e il consiglio se ne accorgerà.",
-  "treasuryDeep": "⚠ {under} di questa cifra esce dalla scorta ingaggi - i soldi con cui il club campa. Al consiglio non piacerà."
+  "treasuryDeep": "⚠ {under} di questa cifra esce dalla scorta ingaggi - i soldi con cui il club campa. Al consiglio non piacerà.",
+  "lgWages_f": "Ingaggi giocatrici",
+  "lgMen_f": "{n} donne",
+  "marqueePlayers_f": "Giocatrici marquee",
+  "noMarquee_f": "Nessuna giocatrice marquee designata. Apri una giocatrice e usa il pulsante marquee per togliere il suo ingaggio dal conteggio."
  },
  "club": {
   "tabClub": "Il Club",
@@ -1811,7 +1874,8 @@
   "JackalInfo": "Primo su ogni placcaggio. Più veleno nei punti d'incontro.",
   "EnforcerInfo": "Porta le arti oscure: muscoli in mischia e nelle ruck, e gli arbitri lo conoscono per nome.",
   "Big-Game PlayerInfo": "Cresce di tre centimetri nelle fasi a eliminazione e nei derby.",
-  "Hot HeadInfo": "A una scintilla dal cartellino, tutte le sante settimane."
+  "Hot HeadInfo": "A una scintilla dal cartellino, tutte le sante settimane.",
+  "Big-Game Player_f": "Donna delle Grandi Occasioni"
  },
  "scoutStage": {
   "0": "Non osservato: un nome sulla distinta. I numeri qui sotto sono ipotesi.",
@@ -2041,7 +2105,19 @@
   "signAsMarqueeOne": "Firmarlo come giocatore di punta (ultimo posto): il suo stipendio esce dal tetto",
   "loanBuyLine": "Qui in prestito. Dopo {n} settimane da te, il club di appartenenza ascolterà un’offerta a titolo definitivo di {fee}.",
   "loanBuy": "Comprarlo per {fee}",
-  "loanBuyConfirm": "Pagare - è nostro"
+  "loanBuyConfirm": "Pagare - è nostro",
+  "gone_f": "La giocatrice non è più nel mondo di gioco (ritirata o svincolata).",
+  "characterUnknownTitle_f": "Chi è davvero una donna è la cosa più lunga da scoprire: lo rivela il dossier completo",
+  "moraleTitle_f": "quanto è felice qui. Le donne scontente rendono meno e chiedono di partire",
+  "sharpnessTitle_f": "il ritmo partita. Una donna di rientro dall'infortunio è integra ma non brillante, e si vede",
+  "injuredChip_f": "Infortunata: {desc} (~{n} sett.)",
+  "praiseTitleBad_f": "attento: elogiare una donna fuori forma suona come sarcasmo",
+  "warnTitleBad_f": "attento: richiamare una donna in forma è un insulto",
+  "vSolid_f": "una solida giocatrice di rosa",
+  "releaseFloor_f": "La rosa non può scendere sotto {n} giocatrici senior.",
+  "signAsMarquee_f": "Firmarla come giocatrice di punta ({n} posti liberi): il suo stipendio esce dal tetto",
+  "signAsMarqueeOne_f": "Firmarla come giocatrice di punta (ultimo posto): il suo stipendio esce dal tetto",
+  "releasedMsg_f": "{name} è stata svincolata. {cost} di buonuscita; è libera."
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -2153,7 +2229,11 @@
    "one": "{n} donazione",
    "other": "{n} donazioni"
   },
-  "supportersThanks": "Grazie. È ciò che tiene aperta la baracca."
+  "supportersThanks": "Grazie. È ciò che tiene aperta la baracca.",
+  "specYouthDesc_f": "Si fida dell'academy e trasforma le ragazze in donne.",
+  "specManman_f": "Gestore di persone",
+  "specManmanDesc_f": "Le giocatrici si buttano nel fuoco per lui.",
+  "specMiracle_f": "Donna dei miracoli"
  },
  "week": {
   "wireQuietWeek": "Una settimana tranquilla. Non dura mai.",
@@ -2352,7 +2432,21 @@
   "venueLine": "{name}, {city}",
   "windowOpen": "La finestra di mercato è aperta.",
   "windowShut": "La finestra è chiusa: non si muove niente finché non riapre.",
-  "won": "Vinta"
+  "won": "Vinta",
+  "bids_f": {
+   "one": "Un'offerta per le tue giocatrici attende risposta.",
+   "other": "{n} offerte per le tue giocatrici attendono risposta."
+  },
+  "dressingBody_f": {
+   "one": "Una donna è giù di corda. Una parola adesso costa meno di una parola a febbraio.",
+   "other": "{n} donne sono giù di corda. Una parola adesso costa meno di una parola a febbraio."
+  },
+  "selInjured_f": "infortunata",
+  "selMore_f": "...e altre {n} donne scelte indisponibili.",
+  "paperworkBody_f": {
+   "one": "Una donna con il contratto in scadenza o un agente che chiede un ritocco. Lascia passare troppo tempo e quella conversazione la farà qualcun altro al posto tuo.",
+   "other": "{n} donne con il contratto in scadenza o un agente che chiede un ritocco. Lascia passare troppo tempo e quelle conversazioni le farà qualcun altro al posto tuo."
+  }
  },
  "date": {
   "day0": "Dom",
@@ -2543,7 +2637,11 @@
   "svSlotC": "Slot C",
   "svSlotD": "Slot D",
   "svSure": "Sicuro?",
-  "svUnreadable": "Impossibile leggere quel file - è un salvataggio di PHASE: Rugby Manager?"
+  "svUnreadable": "Impossibile leggere quel file - è un salvataggio di PHASE: Rugby Manager?",
+  "agFoot_f": " · le tue giocatrici evidenziate · tocca un nome per visionarla",
+  "agSeniorSub_f": "le venti giocatrici più forti del pianeta, a oggi",
+  "ofCover_f": "Le coperture dietro di lei: {names}{more}.",
+  "prQuiet_f": "La sala stampa è tranquilla… per ora. I giornalisti tendono a spuntare quando le giocatrici trovano la forma, la perdono o finiscono al centro di voci di mercato."
  },
  "facilities": {
   "pitch": "Terreno di gioco",
@@ -2570,7 +2668,8 @@
   "gradeThreadbare": "Fatiscente",
   "facNotBuildable": "Non è una cosa che il club possa costruire.",
   "facAlreadyWorldClass": "{facility}: già di livello mondiale. Non resta niente da costruire.",
-  "facBuildersBusy": "I muratori sono già al lavoro ({facility}). Un progetto alla volta."
+  "facBuildersBusy": "I muratori sono già al lavoro ({facility}). Un progetto alla volta.",
+  "gymDesc_f": "Le giocatrici recuperano condizione extra ogni settimana."
  },
  "report": {
   "trWhereWeStand": "A che punto siamo",
@@ -2645,7 +2744,14 @@
   "crashReload": "Ricarica il gioco",
   "crashReport": "Segnala",
   "crashNote": "Segnala allega quel messaggio, la build e le schermate da cui sei passato - non devi copiare niente a mano.",
-  "acLeagueName": "Campionato A {comp}"
+  "acLeagueName": "Campionato A {comp}",
+  "trSquadSize_f": "Giocatrici in rosa",
+  "trStarSub_f": "⭐ = le donne che gli avversari temono",
+  "acStrength_f": "Forza della squadra {n}. L'allenatore fa ruotare la formazione, così ogni ragazza gioca - sono i minuti in campo a trasformarne una in una giocatrice da prima squadra.",
+  "acTableNote_f": "Niente trofei, niente promozioni, niente retrocessioni. La classifica serve a dirti se le ragazze che stai crescendo vincono contro le ragazze che stanno crescendo tutti gli altri.",
+  "tut1_f": " In cima allo schermo c'è scritto {continue}. Premilo e passa un giorno. Premilo ancora e ancora e attraversi la settimana - chi è infortunata, cosa vuole la stampa, chi è in vendita - fino a sabato, quando il pulsante dice {matchday}.",
+  "tut2_f": " Tocca la lavagnetta in basso, poi {team} - e sei sulla distinta. Tocca due giocatrici per scambiarle, oppure premi {bestXV} e lascia che il tuo vice ne butti giù una - poi correggi quello che ha sbagliato. Hai quindici titolari e otto riserve.",
+  "tut3_f": " Premi {kickOff}. Prima dici due parole alle giocatrici - scegli quella che ti suona giusta, non esiste una risposta sbagliata. Durante la gara puoi mandare dentro le riserve o cambiare il modo di giocare. Quando conquisti una punizione vicino alla loro linea, decidi tu: piazzato in mezzo ai pali per tre punti, o touche all'angolo a caccia della meta."
  },
  "legacy": {
   "lgDirectorOf": "Direttore tecnico, {club}",
@@ -2868,7 +2974,10 @@
   "bgIdeaRest": ", lo stesso indirizzo delle segnalazioni bug. Non viene allegato nient'altro: un'idea non ha bisogno del tuo salvataggio.",
   "lgFirsts": "Il libro mastro del Mister",
   "lgFirstsSub": "Le prime volte. Nessuna medaglia.",
-  "lgFirstsNone": "Non c'è ancora scritto niente. La prima vittoria in trasferta è la riga d'apertura più comune."
+  "lgFirstsNone": "Non c'è ancora scritto niente. La prima vittoria in trasferta è la riga d'apertura più comune.",
+  "coSquadSub_f": "da {floor} a {max} donne · il tuo club in grassetto",
+  "srPotY_f": "Giocatrice della stagione",
+  "srRollSub_f": "Giocatrice dell'Anno, stagione per stagione"
  },
  "handbook": {
   "a1": "Tutto gira attorno al pulsante nell'angolo in alto. Nelle settimane tranquille dice Continua, e Giorno di partita quando c'è un incontro. Premilo e il mondo si muove: la settimana avanza, arrivano gli altri risultati e tutto ciò che è successo atterra nella posta della schermata Home.",
@@ -3093,7 +3202,57 @@
   "q8": "Cos'è la Preparazione alla partita?",
   "q9": "Cosa mi dice l'analista?",
   "search": "Cerca",
-  "searchPlaceholder": "Cerca nel manuale…"
+  "searchPlaceholder": "Cerca nel manuale…",
+  "a11_f": "L'unica verità che grida più forte sulla partita in arrivo: vinci e vai in testa, il consiglio si riunisce lunedì comunque, a una donna manca una meta per arrivare a cinquanta, un vecchio rivale che ti ha battuto tre volte di fila. Legge la classifica, il consiglio, il libro dei rancori e i traguardi proprio come potresti fare tu, e dice ad alta voce quello che conta di più questa settimana. Quando non c'è onestamente niente da dire, tace: un martedì d'ottobre a metà classifica riceve il silenzio, non un titolo fabbricato.",
+  "a12_f": "Moltissimo. Ogni arbitro ha la sua tolleranza, e qualcuno estrae il cartellino dove altri si limitano a parlare. Un giallo ti lascia in quattordici per dieci minuti e il tabellone di solito se ne accorge. Un rosso è peggio: la giocatrice lascia il campo e poi si becca una squalifica di una o più giornate. Le giocatrici aggressive e il tratto Testa Calda vengono ammonite più spesso.",
+  "a13_f": "Sì, ed è una scommessa, non un tentativo gratis. Dopo un rosso c'è un'udienza e circa due ricorsi su tre vanno a buon fine, togliendo una giornata dalla squalifica. Il terzo che fallisce ne aggiunge una, e il consiglio annota che hai fatto perdere il pomeriggio a tutti. Vale la pena per una giocatrice che ti serve la settimana prossima; non per una squalifica di tre giornate che avresti comunque scontato.",
+  "a19_f": "Perché le giocatrici sono persone. Ogni donna porta con sé due cose che il gioco non ti mostra mai come numero: quanto è costante di settimana in settimana e che effetto le fa la grande occasione. Un metronomo si presenta ogni sabato; una giocatrice d'umore è capace di tutto e del suo contrario; qualcuna cresce di un centimetro entrando in campo per una finale o un derby, e qualcuna si blocca. Anche le favorite sentono il peso: nel giorno che conta il divario fra le squadre si accorcia un filo, ed è per questo che le sorprese di coppa esistono. Niente di tutto ciò è su qualche schermata: impari chi è chi come fa un vero allenatore, guardando una stagione di voti. E durante la partita il tuo assistente riferisce la condizione allo stesso modo - \"col fiatone\", \"in riserva\", \"non si regge in piedi\" - perché nessuno a bordo campo sa che una donna è esattamente al 43%.",
+  "a20_f": "Quello che dici a una riserva mentre si infila la maglia, impostato per ogni posto della panchina nella pagina Panchina delle Tattiche. Segui la maglia è neutro. Passale sopra compra metri palla in mano e cede copertura. Chiudi la porta compra difesa e disciplina e cede attacco. Gioca negli angoli fa scorrere il cronometro. Solo le prime tre donne istruite a entrare hanno effetto, quindi la panchina è una decisione, non una pila di potenziamenti gratis.",
+  "a21_f": "È il registro di ciò che è stato detto a ogni donna del club, confrontato con quello che dicono davvero le distinte. Imposta il suo status - giocatrice chiave, rotazione, giocatrice di rosa, prospetto, o fuori dai piani - e la pagina mostra le presenze che aveva diritto di aspettarsi, quelle che ha avuto e come vive la differenza. Una donna sotto quota promessa diventa irrequieta e alla fine vuole andarsene; dirle la verità non costa nulla, tranne la verità.",
+  "a22_f": "Solo per aver lasciato fuori donne a cui avevi detto altro, e solo donne fuori dalle ventitré della giornata. Nessuna nella squadra di questa settimana ha lamentele questa settimana. Una giocatrice congelata si assesta sul rancore invece di scivolare nella disperazione totale, quindi la conseguenza si presenta come richieste di cessione, visite in ufficio e grane contrattuali, non come una penalità nascosta sulla squadra che mandi in campo.",
+  "a23_f": "Quattro incarichi oltre alla fascia: chi guida il pacchetto, chi chiama la linea difensiva, chi dirige l'attacco e chi fissa gli standard. Un incarico non rende la squadra più forte. Concentra la leadership che già possiedi su un'area e la toglie al resto, quindi nominare una leader difensiva affila la difesa al prezzo della manovra offensiva. Solo donne del XV titolare con vera autorevolezza ne portano uno, e una vera leader può portarne più d'uno: ogni incarico è uno scambio a sé, quindi un secondo mandato concentra ancora più squadra sulle sue aree invece di accumulare un bonus.",
+  "a25_f": "Tocca Squadra e atterri sulla distinta. Miglior XV chiede al tuo assistente la sua formazione migliore: una bozza solida che pesa in silenzio la forma, ma è il suo occhio, non la soluzione del compito. Correggi a mano - tocca una giocatrice, toccane un'altra e si scambiano - e le correzioni sono tue. Tocca due volte lo stesso posto per il selettore con tutta la rosa. Come gioca la squadra (ruoli, fasi statiche, assetto della panchina, preparazione, piano partita) vive nella schermata Tattiche.",
+  "a26_f": "Il tuo assistente scrive la formazione, e quella resta scritta: nessuno aggiorna una distinta mai toccata per forma, condizione o nuovi acquisti, e l'assistente è discreto, non perfetto - sbaglia una donna qua e là, meno spesso quanto più alto è il suo livello. Scegliere il XV da solo vale sempre punti veri su una stagione, e lo stesso vale per potenziare l'assistente se vuoi delegare. La sala stampa funziona uguale: le domande lasciate a marcire costano ogni volta un po' di fiducia del consiglio e di umore dei tifosi, quindi il silenzio è una scelta con un prezzo.",
+  "a27_f": "Nella scheda Tattiche ogni maglia può ricevere un ruolo che ne plasma il gioco: un'apertura regista, una cacciatrice di palloni al sette, un'estrema che spazza dietro. Un ruolo si addice ad alcune più che ad altre, e rende al meglio su una donna i cui attributi puntano già in quella direzione.",
+  "a29_f": "Abbina una giocatrice di 20 anni o meno a una veterana di 28 o più, nella scheda Club della schermata Allenamento e Staff. Quattro coppie alla volta, cinque con un Centro d'Eccellenza di livello 3 o superiore. Una veterana può prendere due ragazze, ma quelle in più se la dividono e ciascuna impara a tre quarti della velocità - e lei lo farà notare nei rapporti delle otto settimane. La più anziana trasmette uno sviluppo più rapido e, lentamente, la sua personalità: una ragazza sotto mentore ha circa una probabilità su tre nell'arco di una stagione di assumere per sempre il carattere della maestra, che di solito è il premio più grosso. Il carattere decide quanto attecchisce, quindi scegli la coppia, non i nomi: una Leader che insegna a una ragazza Ambiziosa o Lunatica è la combinazione migliore del gioco, due Lunatiche insieme la peggiore, e una Mercenaria non insegna quasi nulla. Una coppia si scioglie da sola quando non resta niente da insegnare - la ragazza supera i 20 anni, tocca il suo tetto o assume il carattere della mentore - e lo slot si libera per la prossima. Un rapporto arriva ogni otto settimane quando c'è qualcosa da dire, e una coppia che non funziona si può chiudere dalla riga, affidando la ragazza a qualcun altro.",
+  "a3_f": "Sì, a ogni interruzione. Il pulsante con la lavagnetta apre tattiche e sostituzioni a partita in corso, così puoi chiudere una gara, inseguirne una o togliere una prima linea con il fiato corto. In panchina siedono otto donne e puoi usarle tutte e otto, come il regolamento consente: copertura di prima linea inclusa. Chi è uscita non rientra, salvo le eccezioni per prima linea e ferite sanguinanti che il collegio arbitrale già applica. Il gioco suggerisce prima la copertura naturale, invece di piazzare un'ala in seconda linea.",
+  "a30_f": "Tre livelli. Tutta la rosa ha un'enfasi settimanale; fino a tre giovani possono portare un focus di sviluppo per crescere più in fretta; e una manciata di donne può finire su piani personali, programmi individuali in un'area scelta. Il badge del tuo assistente stabilisce quanti piani il reparto può gestire insieme, lo specialista giusto e il Campo d'Allenamento fanno attecchire il piano più spesso, e le più giovani ne assorbono di più. Una donna su un piano lavora al suo programma invece che alla seduta di squadra, quindi è una scelta, non un cumulo. I progressi sono lenti e senza gloria, com'è giusto che sia.",
+  "a32_f": "Tieni d'occhio condizione e minuti. Una giocatrice che supera i 1.300 minuti in una stagione è in zona rossa e comincia a rompersi. Ruota, usa la preparazione di recupero nei turni ravvicinati e costruisci la palestra: ogni livello della Palestra di Forza e Condizionamento restituisce condizione ogni singola settimana.",
+  "a33_f": "Un fisioterapista migliore e un Centro di Recupero migliore accorciano entrambi gli stop. La schermata Centro Medico elenca tutte le indisponibili, con le date di rientro. Puoi pagare un consulto specialistico per un caso brutto, e avvolgere una giocatrice fragile nella bambagia per una settimana. I traumi cranici seguono il protocollo HIA e la durata dello stop non la decidi tu.",
+  "a34_f": "Un marchio di fabbrica, o un difetto. Lo Step salta i difensori e segna mete, la Bocca da Fuoco calcia da ogni dove, il Jackal vince i turnover, la Donna delle Grandi Occasioni cresce in eliminatorie e derby, la Testa Calda è a una scintilla dal cartellino ogni settimana. Compaiono sul profilo della giocatrice e cambiano quello che succede in campo.",
+  "a35_f": "La Leadership è l'attributo che conta, e la scheda Leadership nella sezione Selezione della schermata Squadra elenca la rosa ordinata proprio per quella. Una capitana forte alza attacco e difesa e tiene a freno i nervi. Nomina anche una vicecapitana: subentra a metà effetto quando la capitana manca, e un giorno prenderà la fascia per sempre.",
+  "a39_f": "Ogni stagione arriva una leva giovanile. Il tuo allenatore dell'accademia e il Centro d'Eccellenza alzano entrambi la qualità di ciò che arriva, e migliore è la struttura, più è probabile che spunti un vero prospetto. Ricevi un'anteprima onesta prima del giorno della leva e un rapporto con voto dopo. I contratti di sviluppo scadono a 21 anni: promuovi una ragazza a un contratto da professionista dalla sua pagina prima dell'estate dei suoi 21 anni, o se ne va da svincolata. Vieni avvisato con una stagione intera d'anticipo.",
+  "a40_f": "Sì, ma solo quando qualcosa le indebolisce la mano, e la pagina della giocatrice ti dice cosa prima che tu faccia l'offerta. La carta più forte che puoi avere è un contratto in scadenza in estate, perché altrimenti la perderebbero a zero. Poi: una donna che ha giocato pochissimo, una scontenta, un club in rosso, una rosa già ben coperta nel suo ruolo, o una giocatrice dalla parte sbagliata dei 33. Si sommano, fino a circa un terzo di sconto nel caso peggiore per chi vende. Una donna contesa che gioca ogni settimana in un club solvibile non si muove di un penny, e la schermata lo dice, invece di lasciarti sprecare una finestra per scoprirlo.",
+  "a42_f": "Il budget ingaggi è un tetto settimanale a quanto può costare la rosa. Due giocatrici possono essere designate marquee, e i loro stipendi stanno fuori da quel tetto: è così che ti tieni una stella che altrimenti non potresti permetterti. Tutte le altre contano.",
+  "a43_f": "In tre modi. Imposta un campionato di riferimento e il tuo osservatore ci costruisce conoscenza col tempo. Tieni d'occhio le bacheche dell'Agenzia di Scouting per le giocatrici di cui parla il mondo. Oppure commissiona una ricerca specifica dalla scheda Lista Osservati: un incarico da tre, sei o nove mesi per un ruolo preciso. Più lungo l'incarico e migliore l'osservatore, migliore il nome che torna indietro, e il suo rapporto scritto dà un voto a quel che ha trovato.",
+  "a44_f": "Perché non la conosci ancora. La conoscenza di scouting va da 0 a 100 e sale man mano che i tuoi osservatori la guardano. Sotto una certa soglia il suo potenziale è una forbice, non un numero. Le tue giocatrici sono pienamente note dal primo giorno.",
+  "a45_f": "Una giocatrice nell'ultima stagione di contratto può firmare a parametro zero per raggiungerti l'estate prossima. Finisce la stagione nel suo club, che lo scopre dal comunicato stampa. È il modo più economico di migliorare una rosa, e lo fanno anche tutti gli altri.",
+  "a47_f": "Una giocatrice che rende sopra il suo contratto manderà il suo entourage a bussare. Puoi accontentarla, trattare una cifra tua o rifiutare. Rifiutare una stella ha conseguenze, e pagare ogni volta pure.",
+  "a48_f": "Sì, e dovresti farlo per le giovani che non vedranno il campo. Dal club satellite arriva una cartolina che ti racconta come sta andando. I prestiti in entrata appartengono al tuo progetto attuale: cambi panchina e tornano a casa. E i prestiti hanno una gravità: una giocatrice scende di una divisione per giocare, ma di due è raro - un club di National League prende in prestito dalla Championship, e solo qualche rara giovane affamata scende giù giù dalla massima serie.",
+  "a49_f": "Sì. Sul suo profilo, la scheda L'Ufficio ti permette di lodarne la forma o farle un discorsetto - due conversazioni a settimana in tutta la rosa, una per donna. La sua personalità decide come la prende: una professionista risponde a un richiamo col lavoro, una mercenaria alza le spalle, e lodare una testa calda in crisi suona come sarcasmo. Richiamare una donna che sta giocando bene la offende, e lo spogliatoio lo viene a sapere.",
+  "a5_f": "Sì, e la Fisicità è la manopola con cui lo decide. Alzarla compra potenza al punto d'incontro e ti costa cartellini gialli e punizioni calciabili, e il prezzo delle punizioni scala con chi ha il fischietto. Misurato su otto stagioni: davanti a un arbitro che lascia correre sul placcaggio, giocare fisico ti vale circa due punti e mezzo a partita; davanti a uno pignolo lì, ti costa circa un punto e mezzo. Azzeccare quella lettura vale più o meno quattro punti a partita, più di qualsiasi altro singolo cursore preso da solo. L'arbitro e le sue interpretazioni sono nominati nel briefing pre-partita prima della scelta, quindi l'informazione c'è sempre. Lasciata al centro, la manopola non costa e non compra nulla.",
+  "a50_f": "Due volte a stagione, all'apertura di ogni finestra, il reparto scouting mette in bacheca fino a tre nomi - mirati sui tuoi ruoli più scoperti e sulle maglie che invecchiano, tutti dentro il budget e lo spazio ingaggi. I nomi escono dalla visione del mercato dei tuoi osservatori, quindi un reparto ben gestito propone giocatrici migliori. Tocca un nome nel promemoria per aprirne il profilo e fare un'offerta.",
+  "a52_f": "Entrate: una quota commerciale e televisiva settimanale fissata dalla reputazione del club, gli incassi al botteghino delle partite in casa, il negozio del club, i premi a fine stagione e le cessioni. Uscite: gli stipendi delle giocatrici, quelli dello staff, la manutenzione dell'impianto e della tenuta, e quello che spendi tu. La schermata Finanze elenca ogni voce.",
+  "a59_f": "I derby li fissano la geografia e la storia. I rancori te li guadagni: una partita nervosa, una giocatrice soffiata, una frecciata pubblica. Entrambi rendono il prossimo incontro più piccante, con più cartellini, un pubblico ostile e un pronostico che non vale niente. La schermata del club tiene il registro.",
+  "a71_f": "Sì, se una federazione chiama. Le federazioni tengono d'occhio gli allenatori con reputazione da 64 in su e telefonano due volte a stagione - prima le nazioni più piccole; Inghilterra, Francia e Nuova Zelanda solo per nomi sopra l'85. Accettate dal Profilo Allenatore e terrete la nazionale insieme al club: la schermata Club e Nazionale raccoglie tutta la scrivania - il ranking, la fiducia della federazione, il vostro bilancio nei Test e la rosa della finestra, che è vostra da plasmare. A raduno aperto potete lasciare a casa un nome e convocare la successiva - qualunque giocatrice eleggibile del gioco, senza limiti di età né di valutazione, escluse solo le infortunate - la federazione fissa il tetto del gruppo e non lo lascia scendere sotto le 23, e in un weekend di Test il vostro vice segue l'eventuale impegno di club mentre voi guidate la nazionale. Se lasciate l'incarico, il bilancio nei Test resta per sempre sul vostro Profilo Allenatore. Da quella stessa schermata potete dimettervi da uno dei due incarichi. Un Campionato del Mondo è la cosa più grande del gioco. Il Centro per l'impiego mostra quanto la vostra reputazione ci è vicina.",
+  "a72_f": "Ogni quattro anni - 2027, 2031 e così via. Venti nazioni in quattro gironi da cinque, con teste di serie prese dal ranking mondiale in tempo reale: quattro anni di risultati nei Test decidono chi pesca il girone morbido e chi il girone di ferro, poi quarti, semifinali e finale. Si gioca nelle prime settimane della stagione e i vostri internazionali restano con le nazionali finché non è deciso, quindi pianificate i primi turni di club attorno ai buchi. Quell'anno non ci sono né Southern Championship né serie autunnale: il Campionato del Mondo è il calendario dei Test. Se avete una panchina nazionale quando arriva, allenate ogni sua partita - la vostra testa di serie fissa l'asticella, la federazione vi giudica su quella, e l'analisi a bocce ferme arriva comunque. Un Campionato del Mondo vinto resta per sempre nel palmarès di una giocatrice, e nel vostro.",
+  "a74_f": "In tre posti. Il Profilo Allenatore ha i vostri patentini, le specialità e la bacheca dei trofei. L'Eredità dell'Allenatore ha le tappe. Gli Annali custodiscono ogni stagione che avete allenato, una riga ciascuna, e l'Albo d'Oro custodisce quelle del mondo: campioni, Giocatrici dell'Anno e la Hall of Fame.",
+  "a79_f": "Non raccoglie niente. Nessun account, nessun accesso, nessuna analisi dati, nessun identificatore pubblicitario - una volta caricato il gioco non fa alcuna richiesta di rete, e la build fallisce automaticamente se qualcuno mai ne aggiunge una. È tutto sul vostro dispositivo. Dove il gioco è distribuito tramite un app store può offrire un unico acquisto facoltativo da Sostenitore, che mette un segno nella schermata del titolo: non compra giocatrici, budget né risultati, perché un gestionale in cui l'allenatore che paga vince di più è un altro gioco.",
+  "a82_f": "La placcata appoggia il pallone a terra e le giocatrici delle due squadre si legano sopra, in piedi, per riconquistarlo. Una volta formato non si usano le mani: si lotta con piedi e spalle.",
+  "a85_f": "Una giocatrice che si piazza sopra l'avversaria placcata e afferra il pallone prima che si formi il ruck. Fatto bene è un calcio di punizione guadagnato; sbagliato di poco, uno regalato.",
+  "a102_f": "Il giallo manda la giocatrice fuori dieci minuti e giochi in inferiorità. Il rosso la espelle per il resto della partita. Entrambi costano molto più del fallo che li ha causati.",
+  "a103_f": "Una valutazione per trauma cranico. Una giocatrice colpita alla testa lascia il campo per i controlli; rientra solo se li supera, e il gioco non la farà rientrare altrimenti.",
+  "q19_f": "Perché la mia miglior giocatrice oggi è sparita dal campo?",
+  "q22_f": "Il registro mi punisce se lascio fuori delle giocatrici?",
+  "q24_f": "Cosa sono tutti questi numeri su una giocatrice?",
+  "q27_f": "Cosa sono i ruoli delle giocatrici?",
+  "q32_f": "Come tengo fresche le giocatrici?",
+  "q35_f": "Chi dovrebbe essere capitana?",
+  "q41_f": "Come ingaggio una giocatrice?",
+  "q42_f": "Cos'è il budget ingaggi, e cos'è una giocatrice marquee?",
+  "q44_f": "Perché non vedo il potenziale di una giocatrice?",
+  "q48_f": "Posso cedere giocatrici in prestito?",
+  "q49_f": "Posso parlare io stesso con una giocatrice?"
  },
  "coachfix": {
   "attHeadNone": "{poss}% di possesso e nessuna meta.",
@@ -3172,7 +3331,12 @@
   "unitLineoutLower": "touche",
   "unitScrumLower": "mischia",
   "wonHead": "Non si è rotto niente, quindi il lavoro è renderlo ripetibile.",
-  "wonHow": "Lasciate stare le manopole e riproponete lo stesso assetto. Il reparto più forte è stato {unit} - costruiteci attorno la prossima settimana."
+  "wonHow": "Lasciate stare le manopole e riproponete lo stesso assetto. Il reparto più forte è stato {unit} - costruiteci attorno la prossima settimana.",
+  "discYc_f": "Dieci minuti con una donna in meno.",
+  "discYcMany_f": "{n} gialli, {mins} minuti con una donna in meno.",
+  "discYcWho_f": "{player} in panca puniti: dieci minuti con una donna in meno.",
+  "kickOrderHow_f": "Impostate prima e seconda calciatrice nelle Fasi statiche. La scelta automatica consegna il tee a una donna diversa ogni settimana.",
+  "teeHow_f": "Indicate il vostro ordine di calciatori nelle Fasi statiche, invece di lasciarlo al miglior piede in campo. Un periodo storto è affar vostro solo se la donna l'avete scelta voi."
  },
  "stakes": {
   "aFinal": "Una finale. Tutto ciò per cui esiste una stagione, in ottanta minuti.",
@@ -3243,7 +3407,8 @@
   "unofficialLabel": "Non ufficiale, e indipendente",
   "storeLabel": "Lo Store",
   "storeBody": "Extra facoltativi - nessuno dei quali gioca le partite.",
-  "storeBtn": "Apri lo Store"
+  "storeBtn": "Apri lo Store",
+  "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
   "maternitySubj": "{player} è in attesa",
@@ -4759,7 +4924,114 @@
   "islesOffer": "Le quattro federazioni ti hanno scritto insieme. Vogliono affidarti il XV delle Isole per il tour in {host} quest'estate: sette partite di provincia e una serie di tre test.\n\nNiente rosa di candidati, niente colloquio. Hanno scelto. Il tuo vice prende la nazionale mentre sei via.",
   "srPredBeat": "Gli esperti ti davano {pred_o} e hai chiuso {act_o}. Ti devono le scuse.",
   "srPredExact": "Gli esperti ti davano {pred_o}, e {act_o} è stato. Letto come un libro.",
-  "srPredMiss": "Gli esperti ti davano {pred_o} e hai chiuso {act_o}. Le radio saranno spietate."
+  "srPredMiss": "Gli esperti ti davano {pred_o} e hai chiuso {act_o}. Le radio saranno spietate.",
+  "squadRead_f": "\"Prima di tutto, i numeri.\n\n{n} giocatrici in prima squadra, età media {age} - {age_k}.\nValore medio {ca}/100, e {lean_k}.\nLa migliore sulla carta: {best}.\n{depth_k}\nLa dirigenza si aspetta che tu {aim_k}. Budget {budget}, monte ingaggi {wages} a settimana.\n\nEntro venerdì avrò un dossier sul primo avversario.\"",
+  "natFilled_f": "Il calcio d'inizio si avvicinava e la rosa era corta, così il tuo vice ha aggiunto {n} donne per completare i numeri. Convocate per merito, non per tua scelta - alla prossima finestra, falla tu.",
+  "natSquad_f": "La federazione ha pubblicato la tua rosa di {n} donne per la finestra. {caps_k}\n\nAVANTI: {fwd}\n\nTREQUARTI: {bks}\n\nDai forma al gruppo e scegli il tuo XV per i test dalla schermata Club e Nazionale prima di ogni partita.",
+  "lionsCallA_f": "La chiamata che ogni giocatrice di queste isole sogna: {names} {is_k} in partenza per {tour}. Tutto il club cammina più dritto, stamattina.\n{he_k}, via per l'intera finestra del tour. Pianifica il finale di stagione di conseguenza - e prepara il bentornato a un tourist.",
+  "callUps_f": "Le seguenti giocatrici sono state convocate e non saranno disponibili durante la finestra internazionale: {names}.",
+  "lionsHome_f": "Di nuovo in maglia di club dopo {tour}: {names}. Vinto o perso, un tour cambia una giocatrice - {come_k} con un altro peso in questo spogliatoio. Lo staff medico raccomanda comunque prudenza: un'estate di tour svuota il serbatoio come nient'altro.",
+  "wantsTerms_f": {
+   "one": "L'agente di {player} si è fatto sentire: la sua assistita sta giocando da fenomeno (media {avg}) per {wage}/settimana, e il prezzo di mercato è parecchio più alto. Le resta {n} anno di contratto, ma lascia la cosa in sospesa e la testa le cadrà - e gli altri club lo fiuteranno. Offrigli un rinnovo dalla sua pagina giocatrice.",
+   "other": "L'agente di {player} si è fatto sentire: la sua assistita sta giocando da fenomeno (media {avg}) per {wage}/settimana, e il prezzo di mercato è parecchio più alto. Le restano {n} anni di contratto, ma lascia la cosa in sospesa e la testa le cadrà - e gli altri club lo fiuteranno. Offrigli un rinnovo dalla sua pagina giocatrice."
+  },
+  "agentPublic_f": "Due mesi di silenzio dal club, così l'agente è andato sui giornali: \"{player} è tra le giocatrici più in forma del campionato e il club conosce la nostra posizione.\" I club rivali avranno preso nota. Sistema il rinnovo dalla sua pagina giocatrice - o preparati alle offerte.",
+  "backInTraining_f": "Di nuovo selezionabili: {men_l}. Schiera subito una donna arrugginita e rischia di rompersi di nuovo; reinseriscila con calma e tornerà quella vera.",
+  "wFrosty2_f": "{a} e {b} anche questa settimana si sono riscaldati ai due estremi opposti del campo. Gli allenatori fingono di non vedere. Le giocatrici vedono tutto.",
+  "wFrosty3_f": "Nessun disgelo tra {a} e {b}: turni separati in palestra, tavoli separati, e una capitana molto stanca a fare la spola.",
+  "wRumour1_f": "{buyerName} ha mandato osservatori alle ultime tre partite di {ownerPoss} - la donna che seguono è {player}.",
+  "wRumour3_f": "{player} verso {buyer}? Una fonte nell'agenzia che cura la giocatrice dice: \"l'interesse c'è, ed è serio.\"",
+  "wAgent3_f": "Il conto alla rovescia sul contratto di {player} è partito, e questa settimana il suo agente è stato fotografato a pranzo con due direttori del rugby che non erano il tuo. Trai le tue conclusioni - tutti gli altri l'hanno già fatto.",
+  "grSocialClip_f": "Due milioni di visualizzazioni e non è finita, per una clip in cui {star} fa una cosa che a una donna di quella stazza non dovrebbe essere fisicamente concessa. I commenti si dividono tra meraviglia e accuse di campo rimpicciolito. Il team media di {shortPoss} l'ha pubblicata, cancellata, e ripubblicata con una musica peggiore.",
+  "grAiGraphic_f": "La scheda giocatrice del pre-partita ha mostrato {star} con un dito in più, il cognome scritto in due modi diversi nella stessa grafica e un totale di mete in carriera che ne farebbe la miglior marcatrice nella storia di questo sport. L'emittente si è scusata. Lo screenshot è già una foto profilo.",
+  "grAgentFlattered_f": "Gli agenti di {target} hanno declinato ogni occasione di spegnere l'incendio: \"Il mio assistito è felicissimo a {other}. Ma ogni giocatrice ascolta.\" Il servizio traduzioni del rugby ha fatto gli straordinari. Ai forum dei tifosi è bastata la mattinata per il resto.",
+  "grDrone_f": "Qualcuno ha fatto volare un drone su una seduta a porte chiuse sperando nella formazione e ha ripreso quaranta minuti di squadra impegnata in un'esercitazione di passaggi in totale silenzio, più una donna che si allaccia una scarpa per nove di quei minuti. Il filmato è stato pubblicato lo stesso. Ha fatto numeri notevoli.",
+  "grSeagull_f": "Un gabbiano solitario ha occupato i 22 e ha declinato ogni invito ad andarsene, compreso quello di una seconda linea che ha provato con la diplomazia. Il gioco è ripreso quando il volatile ha sottratto una torta salata alla terza fila e se n'è andato alle sue condizioni. Ora ha un fan account con più follower di due delle giocatrici.",
+  "grStream_f": "Un pasticcio in regia ha mandato in onda una telecamera incustodita puntata sull'ingresso delle giocatrici durante il momento più caldo della partita. Diciannovemila persone hanno guardato un parcheggio e, al quarto minuto, avevano già iniziato a commentarlo. La clip ha battuto gli highlights.",
+  "grQuizSubj_f": "SOCIAL: le giocatrici del {short} toppano un quiz sul proprio club, pubblicamente",
+  "grQuiz_f": "L'ufficio media ha girato un quiz scherzoso sulla storia del club e l'ha pubblicato senza riguardarlo. Nessuno ha ricordato il record di spettatori dello stadio, una giocatrice ha ipotizzato che il club fosse stato fondato nel 1998 e la capitana ha citato una competizione mai esistita. È il video più visto della stagione del club.",
+  "chTale5_f": "A una visita nelle scuole questa settimana, la donna più veloce del club è stata battuta sui 40 metri da un dodicenne in scarpe da scuola. {wing} sostiene che la partenza fosse anticipata e ha formalmente richiesto la rivincita \"su una pista vera, con i blocchi\". Il professore di ginnastica del dodicenne sta valutando le condizioni.",
+  "lawWatch2Subj_f": "OSSERVATORIO REGOLE: la proposta di ridurre le squadre a 13 giocatrici è \"in esame\"",
+  "lawWatch2_f": "Un documento di discussione suggerisce di sfoltire il XV a tredici per \"aprire spazi e ridurre le collisioni\". Le federazioni del nord sono furibonde, quelle del sud incuriosite, e un certo sport già esistente con esattamente quel numero di giocatrici osserva a braccia conserte. Prevista sepoltura discreta entro l'autunno.",
+  "resMotm_f": "Migliore in campo: {player}",
+  "deadline_f": "I telefoni scottano in tutto il campionato. I club tagliano i prezzi per piazzare giocatrici prima della scadenza.\nMuoviti in fretta se compri - e non stupirti se qualcuno viene a bussare per una delle tue prima di mezzanotte.",
+  "deadlineList_f": "I telefoni scottano in tutto il campionato. I club tagliano i prezzi per piazzare giocatrici prima della scadenza:\n{list}\nMuoviti in fretta se compri - e non stupirti se qualcuno viene a bussare per una delle tue prima di mezzanotte.",
+  "keptMinutes_f": "{player} ha avuto i minuti che le avevi promesso. Ti ferma in corridoio dopo l'allenamento: \"Mi avevi detto che avrei avuto la mia occasione e hai mantenuto la parola. Non lo dimenticherò, coach.\" Anche il tecnico dell'academy fa le fusa: \"È così che si cresce una giocatrice.\" Ora quella ragazza si butterebbe nel fuoco per te.",
+  "wcHomeA_f": {
+   "one": "{nationCap_k} è campione del mondo, e {names} era nel gruppo che ce l'ha fatta. La maglia finisce in cornice; l'aura torna all'allenamento con lei. Comunque vada il resto della sua carriera, questa nessuno gliela toglie.",
+   "other": "{nationCap_k} è campione del mondo, e {names} erano nel gruppo che ce l'ha fatta. Le maglie finiscono in cornice; l'aura torna all'allenamento con loro. Comunque vada il resto delle loro carriere, questa nessuno gliela toglie."
+  },
+  "wcHomeB_f": {
+   "one": "Quando i coriandoli sono scesi sulla finale del World Championship, lì sotto c'era {names} con {nationThe_k}: un tuo giocatrice, campione del mondo. Comunque vada il resto della sua carriera, questa nessuno gliela toglie.",
+   "other": "Quando i coriandoli sono scesi sulla finale del World Championship, lì sotto c'erano {names} con {nationThe_k}: tue giocatrici, campioni del mondo. Comunque vada il resto delle loro carriere, questa nessuno gliela toglie."
+  },
+  "giantWon_f": "{score}. I tuoi hanno eliminato un club di un'altra categoria sulla carta, e la carta ha perso. Le giocatrici si sono ritagliate un souvenir dalla lavagna dello spogliatoio; in città ne parleranno per anni.",
+  "intakePreview_f": "È arrivato il rapporto di fine tour del tecnico dell'academy. {n} ragazze saliranno in prima squadra a fine stagione.\n{verdict_k}\nIl reparto forte dell'annata: {unit_k}. I nomi si sapranno il giorno dell'ingresso.",
+  "intakeGradeC_f": "Il suo verdetto: \"Ragazze oneste, che si fanno allenare. Non aspettarti fuochi d'artificio.\"",
+  "guardB_f": "Lunedì mattina le hanno fatto ala nel tunnel: {n} presenze tra i grandi per {player}, e lei ha alzato le spalle come una che ha intenzione di raddoppiarle. {tail_k}",
+  "guardC_f": "{player} ha raggiunto quota {n} presenze tra i grandi nel weekend. Il magazziniere ha ritrovato le vecchie maglie, qualcuno le vecchie fotografie, e le ragazze hanno scoperto chi era una volta. {tail_k}",
+  "bigOneStarA_f": ", con {aStar} donna da tenere d'occhio",
+  "adsA_f": "Non si può fare un passo senza vederla. La finale è sulla fiancata di ogni autobus{city_k}, lo sponsor tecnico ha comprato una pagina intera sui quotidiani nazionali e il negozio del club ha esaurito le sciarpe martedì all'ora di pranzo. Uno spot tv manda il volto della tua capitana al rallentatore su un rullo di tamburi. Le giocatrici fingono di non averlo visto. L'hanno visto tutti.",
+  "adsB_f": "Il promo dell'emittente è uscito stamattina: tuoni, fango, il vostro stemma a tutto schermo{venue_k}. Le ragazze l'hanno rivisto undici volte in sala squadra. Il magazziniere ha stirato tutto due volte. La settimana della finale fa strane cose a un club.",
+  "retires_f": "{player} ({age}) bussa prima che lo scopra la stampa: si ritira a fine stagione. Niente drammi, niente pretese - voleva che lo sapessi da lei. Al capo scout il mercato per il ruolo di {pos} quest'anno non piace granché. Forse toccherà all'academy dare la risposta.",
+  "retiresSucc_f": "{player} ({age}) bussa prima che lo scopra la stampa: si ritira a fine stagione. Niente drammi, niente pretese - voleva che lo sapessi da lei. Il capo scout ha già coperto la maglia da {pos}: {succ}. La successione comincia adesso.",
+  "loanStar_f": "il primo nome sulla loro distinta. Il loro tecnico dice che a quel livello le partite le comanda lei: aspettati una giocatrice diversa in estate.",
+  "momOursSubj_f": "🥇 Premi di {comp}: {player} è la Giocatrice del mese",
+  "momPlayer_f": {
+   "one": "Giocatrice del mese: {player} ({pomClub}), media {avg} in {n} partita questo mese.",
+   "other": "Giocatrice del mese: {player} ({pomClub}), media {avg} in {n} partite questo mese."
+  },
+  "momPlayerNone_f": "Giocatrice del mese: non assegnato.",
+  "momTailOurs_f": "Una settimana d'orgoglio per il club e una spinta per la ragazza.",
+  "reinvestBuild_f": "I conti si sono chiusi bene e il consiglio non lascerà i soldi a dormire. {spend} tornano nel {club} quest'estate: {name_k} al livello {lvl}, il debito dello stadio azzerato, l'accademia rifinanziata. Riserva: {reserve}. Spendi il budget mercato in giocatrici, non in interessi.",
+  "annPotm_f": "Giocatrice della stagione: {name} ({club}) - media voto {avg}",
+  "potySubj_f": "🏅 Giocatrice mondiale dell'anno: {player}",
+  "potyYours_f": "È TUA. Il mondo intero ha appena visto la tua donna ritirare il premio più grande del rugby - goditi il mercato che le ronza intorno, perché comincia domani.",
+  "lastYearOne_f": "I contratti di formazione scadono a 21 anni, e questa è l'ultima stagione per {men_l}. Promuovila a professionista dalla sua pagina giocatrice prima della prossima estate, o il contratto scade e se ne va a zero.",
+  "lastYearMany_f": "I contratti di formazione scadono a 21 anni, e questa è l'ultima stagione per {men_l}. Promuovi ciascuna di loro a professionista dalla pagina giocatrice prima della prossima estate, o il contratto scade e se ne vanno a zero.",
+  "hofYoursOne_f": "Chiude da donna tua - una carriera che il tuo club rivendicherà per generazioni.",
+  "hofYoursNamed_f": "{mineName} chiude da donna tua - una carriera che il tuo club rivendicherà per generazioni.",
+  "intakeDayB_f": "Un gruppo forte - almeno una di queste ragazze dovrebbe prendersi la prima squadra.",
+  "intakeDayC_f": "Una classe onesta e dignitosa. Giocatrici da rotazione, con la possibilità che una sorprenda.",
+  "boardSigning_f": "Con la rosa a corto di donne, il consiglio si è mosso e ha ingaggiato la svincolata {player} ({pos}, {age}) con un contratto annuale.",
+  "anPoty_f": "Giocatrice della stagione: {name} (media {avg})",
+  "transferDone_f": "{to} ha completato l'acquisto di {player} da {from} per {fee}. La giocatrice, {age} anni, ha concordato un ingaggio di {wage}/settimana fino al {until}.",
+  "bidDeadline_f": "{bidder} si è fatto avanti all'ultimo per {player} - {fee}, sovrapprezzo da panico incluso. Il mercato chiude tra pochi giorni: rispondi dalla schermata Trasferimenti o l'offerta muore con lei.",
+  "huntAsked_f": "Messo davanti alla domanda in conferenza stampa, il capo allenatore di {club} ha definito {player} \"una giocatrice meravigliosa, felice nel suo club\" ed è passato alla domanda successiva. In sala nessuno ha creduto alla seconda metà di quella frase.\n\nÈ sotto contratto. Non è mai stata la stessa cosa che essere incedibile.",
+  "ledgerSubj_f": {
+   "one": "📋 Minutaggio: {n} donna non sta ricevendo quanto promesso",
+   "other": "📋 Minutaggio: {n} donne non stanno ricevendo quanto promesso"
+  },
+  "ledgerMoreSubj_f": {
+   "one": "📋 Minutaggio: {n} donna non sta ricevendo quanto promesso",
+   "other": "📋 Minutaggio: {n} donne non stanno ricevendo quanto promesso"
+  },
+  "mentCeiling_f": "I tecnici concordano: sul programma non è rimasto nulla - è la giocatrice che era destinata a diventare.",
+  "armband_f": "La fascia da capitana è rimasta vacante e lo spogliatoio si è rivolto alla sua veterana: {player} ({age}, {pos}){how_k}. È la scelta naturale per leadership e anni di servizio. Se la vedi diversamente, affidala a qualcun altro dalla schermata Tattica.",
+  "armbandVice_f": ", la vice-capitana, fa il passo avanti",
+  "capFine_f": "{club} ha chiuso la stagione {over}/sett. oltre il tetto salariale di {cap}/sett. La lega multa il club di {fine} e lo diffida: un'altra violazione la prossima stagione e la punizione sarà l'embargo sui trasferimenti. Due donne possono essere nominate marquee ed escluse dal conteggio, e le giocatrici dell'academy non sono mai contate.",
+  "scoutReport_f": "{months} mesi, {n} {names_k}, {good} dei quali li firmerebbe domani. In cima alla lista: {player}, {age} anni, {pos_k} {at_k} - {note_k} Il rapporto completo è nel Centro Trasferimenti, e ogni donna in lista è ora perfettamente nota al tuo staff di reclutamento.",
+  "aLostLine0_f": "Il punteggio conta meno dei minuti. Ognuno di quei minuti è finito nelle gambe di una ragazza che ne aveva bisogno.",
+  "aLostLine5_f": "Il tecnico sostiene che li abbiano battute donne più grosse, e che donne più grosse siano solo questione di tempo.",
+  "aTitleMine_f": "La squadra A chiude in vetta al {comp}: {w} vittorie su {p}, {pf} punti segnati. Nessuno ci appende una bandiera, e ogni tecnico in sede sa cosa significa - il vivaio funziona, e le donne che l'hanno vinto sono quelle che convocherai tra tre anni.",
+  "aTitleOther_f": "{name} vince il {comp} con {pts} punti in {p} partite.{pos_k} Le classifiche di sviluppo non sono classifiche vere, ma i club in cima tendono a essere quelli che producono giocatrici.",
+  "takeoverTight_f": "I nuovi proprietari di {club} sono arrivati con i commercialisti, non con le ambizioni. Aspettati che le loro migliori giocatrici siano discretamente in vendita - al giusto prezzo.",
+  "oldBoyWeLost_f": "Ovvio che fosse lei. {player} - {apps} presenze con i tuoi colori prima di partire - è andata in meta contro il suo vecchio club e lo stadio sapeva che sarebbe successo. La storia più vecchia dello sport, e oggi ha trovato te.",
+  "debutAcademy_f": "{player} ({age}, {pos}) ha esordito oggi in prima squadra - una ragazza dell'academy, al primo rugby ufficiale della sua vita.{scored_k}{motm_k} Voto {rating} dalla tribuna stampa. Entro martedì i tifosi avranno un coro nuovo.",
+  "mentorSpread_f": "{name} ha due ragazze sotto la sua ala e l'ha fatto notare dopo l'allenamento - con garbo, ma l'ha fatto notare. Il lavoro extra si divide in due, quindi ognuna delle due impara a circa tre quarti della velocità. Sposta una di loro sotto un'altra veterana nella schermata Allenamento e Staff, o accetta il ritmo più lento.",
+  "trBestC_f": "Il voto dello staff per la migliore della settimana sul campo è stato unanime: {name}.",
+  "toneSwagger_f": "Le tue giocatrici non fanno che dire alla stampa quanto sono forti - perché tu continui a dire alla stampa quanto sono forti. La nota del vice è secca: \"Il ritmo in allenamento è calato. Pensano che basti presentarsi.\" Aspettati prestazioni piatte finché qualcuno non torna a sudare - o finché non affili la lingua.",
+  "heal_f": "Il ritiro dagli specialisti ha fatto il suo lavoro: {n} donne della rosa ne sono uscite con l'idoneità piena. Ogni infortunio smaltito, tutte fresche. La condizione partita è l'unica cosa che la medicina non può comprare: quella torna il sabato.",
+  "dressingDown_f": "È trapelato che {player} è stata convocata dall'allenatore per la sua forma recente - e non l'ha presa bene. Le compagne raccontano che martedì si è allenata per conto suo.",
+  "fanSoldIcon_f": "C'è differenza tra vendere una giocatrice e vendere una di famiglia, e la tifoseria del {club} sa bene quale sia questo caso. {player} è passata al {to}. C'è un lenzuolo appeso alla recinzione, e la trasmissione con le telefonate dei tifosi è durata novanta minuti senza che nessuno difendesse la scelta. Umore dei tifosi giù di {n}.",
+  "fanSignedStar_f": "{player} è una giocatrice del {club}. Il video dell'annuncio ha più visualizzazioni di quanti abitanti abbia il paese, il negozio del club ha esaurito le lettere del suo nome, e una pasticceria locale sforna un dolce in edizione limitata che nessuno sa descrivere. Umore dei tifosi su di {n}. {rival_k}",
+  "fanSignedIcon_f": "C'era gente per strada. Gente vera, di martedì. {player} ha firmato per il {club} e il paese ha perso ogni misura: due neonati chiamati come l'allenatore, una donna tatuata in un punto di cui si pentirà, l'inno del club undici volte prima di pranzo. Umore dei tifosi su di {n}. {rival_k}",
+  "upFilmCrew_f": "A {stadium} si gira per due settimane qualcosa con un gran budget e molta pioggerella. Il club incassa {amount}, il catering non è mai stato così buono, e tre ragazze dell'academy sono state pagate per stare sullo sfondo con l'aria delusa - a fine giornata l'hanno definita la paga più facile della loro vita.",
+  "campRound_f": "{tests} Test, {n} delle tue donne in campo, ed ecco com'è andato il loro weekend.\n\n{blocks_ll}",
+  "grounds2_f": "Il furgone è arrivato a {other} con due mute complete di maglie casalinghe del {club} e nemmeno una da trasferta. Dato che i due club giocano più o meno con lo stesso colore, gli ospiti hanno disputato il primo tempo con le maglie della terza squadra di casa, nome di un idraulico del posto sul petto. Nessuno distingueva nessuno, le giocatrici meno di tutti.",
+  "grounds4Subj_f": "IN GIRO PER I CAMPI: il fango fa espellere la donna sbagliata",
+  "toty_f": "L'organo di governo ha pubblicato la sua Squadra dell'Anno, una giocatrice per ruolo, scelta su quello che sono stati davvero gli ultimi dodici mesi e non sulla reputazione.\n\n{rows_ll}",
+  "totyMine_f": "Abbiamo {n} giocatrici nella Squadra dell'Anno: {names}. Le maglie con i loro nomi vanno più veloci di quanto riusciamo a stamparle, due organizzatori vogliono una serata con loro, e sponsor muti a settembre chiedono quanto costa un contratto d'immagine. Vale {money}, senza toccare il budget sportivo."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
@@ -4965,7 +5237,16 @@
   "subUndoneNamed": "Ripensamento a bordo campo: {off} resta dentro e {on} torna a sedersi.",
   "subUndone": "Ripensamento a bordo campo: {off} resta dentro e la riserva torna a sedersi.",
   "shirtSwap": "Cambio di posizione per {team}: {a} e {b} si scambiano la maglia.",
-  "fullTime": "Finale: {home} {hs} - {ascore} {away}"
+  "fullTime": "Finale: {home} {hs} - {ascore} {away}",
+  "try9_f": "META! {player} disegna l'arco esterno sulla sua avversaria e nessuno la riprende!",
+  "try19_f": "META! Finta e via di {player} - non c'è nessuno a cinque metri da lei!",
+  "try21_f": "META! {player} raddrizza la corsa, mette a sedere l'ultima donna e passeggia sotto i pali!",
+  "flavGrass4_f": "Boato dal balcone della club house quando {player} stende la sua avversaria. Qualcuno suona la campana.",
+  "tryAtTestimonial_f": "Proprio lei, tra tutte. {player} segna nella partita in suo onore e lo stadio si rifiuta di sedersi. Provate a scriverla voi, una sceneggiatura così - meglio non si può.",
+  "penKickableAsk_f": "PUNIZIONE per {team} - distanza da piazzato. La capitana guarda verso la panchina per la chiamata...",
+  "hiaFailed_f": "{player} NON SUPERA la valutazione per trauma cranico - protocollo commozione, partita finita per lei. {sub} resta in campo.",
+  "doesAerial_f": "arretra una donna e tiene a casa il triangolo allargato.",
+  "doesPhysical_f": "rifiuta la rissa, tiene quindici donne in campo e lascia le pulizie all'arbitro."
  },
  "injury": {
   "ribs": "costole contuse",
@@ -5005,7 +5286,8 @@
   "bothInXV": "Entrambi devono essere nel XV.",
   "bothOnPitch": "Entrambi devono essere in campo.",
   "swapPositions": "{a} e {b} si scambiano di posizione.",
-  "playResumed": "Il gioco è ripreso."
+  "playResumed": "Il gioco è ripreso.",
+  "notInStartingXV_f": "Quella giocatrice non è nel XV titolare."
  },
  "dec": {
   "analystRight": "Seguita la lettura più forte dell'analista su {opp} ({unit_k}): aveva ragione, e si è visto.",
@@ -5055,7 +5337,11 @@
   "fundsApproved": "Chiesti al consiglio fondi extra per il mercato: concessi {amount}.",
   "fundsDeclined": "Chiesti al consiglio fondi extra per il mercato: rifiutati.",
   "dreamRefocus": "Un sogno realizzato e uno nuovo dichiarato: {dream_k}.",
-  "endedSponsor": "Chiuso in anticipo l'accordo con {sponsor} per {slot_k}."
+  "endedSponsor": "Chiuso in anticipo l'accordo con {sponsor} per {slot_k}.",
+  "heal_f": {
+   "one": "Prenotato il ritiro dallo specialista: una donna tornata al pieno della salute",
+   "other": "Prenotato il ritiro dallo specialista: {n} donne tornate al pieno della salute"
+  }
  },
  "persLower": {
   "Professional": "professionale",
@@ -5187,7 +5473,17 @@
   "loanBuyAgreed": "Fatto. {player} è tuo a titolo definitivo per {fee}. Il prestito finisce appena il denaro arriva.",
   "friendlyWeekBusy": "Quella settimana non può ospitare un’amichevole. Servono tre giorni liberi da ciascun lato.",
   "friendlyDeclined": "{club} hanno altri impegni quella settimana.",
-  "friendlyBooked": "{club} verranno da voi nella settimana {week}."
+  "friendlyBooked": "{club} verranno da voi nella settimana {week}.",
+  "boardVetoesSale_f": "Il consiglio mette il veto sulla cessione. Con {n} giocatrici senior non si onora un calendario, e non lascerà che il club diventi la nave fantasma del campionato: ricostruisci la rosa prima di vendere ancora.",
+  "noSuchPlayer_f": "Nessuna giocatrice con questo nome.",
+  "injuredNotPassed_f": "{player} è infortunata. Lo staff medico non le darà l'idoneità.",
+  "notInjured_f": "Non è infortunata.",
+  "physioRoomBusy_f": "La sala fisioterapia riesce a rimettere in sesto una sola donna a settimana.",
+  "incidentFineChallenged_f": "{player} prende male la multa e lo dice, ad alta voce, con lo spogliatoio in ascolto - e lo spogliatoio si schiera con lei. Un allenatore con un nome più pesante l'avrebbe fatta rispettare. Oggi è costata più a te che a lei.",
+  "protegeLine_f": "{n} delle tue ragazze del vivaio giocano altrove{best_k}{capped_k}.",
+  "wontDropDown_f": "{club} accetta la tua offerta, ma {name} non scenderà così in basso. Solo una donna scontenta, una che il suo club sta spingendo fuori, o una mercenaria tratta con un club tanto più piccolo.",
+  "overCapNoMarquee_f": "Quelle condizioni porterebbero il club {over}/sett. oltre il tetto salariale di {cap}/sett., e i due posti da giocatrice di punta sono occupati. Libera spazio.",
+  "loanBuyCrucial_f": "{club} dicono no. Il prestito doveva far crescere una giocatrice per loro, non per te, ed è esattamente quello che ha fatto."
  },
  "verdict": {
   "titleFavourites": "Favorita per il titolo",
@@ -5251,7 +5547,13 @@
   "immortalCount": "{n} in bacheca",
   "verdictDone": "IL SOGNO È COMPIUTO: {title_k}. Tutto quello che viene dopo è un bonus.",
   "verdictMoved": "Il sogno si è mosso questa stagione: {title_k} - {note_k}.",
-  "verdictStalled": "Il sogno non si è avvicinato: {title_k} - {note_k}."
+  "verdictStalled": "Il sogno non si è avvicinato: {title_k} - {note_k}.",
+  "academyBlurb_f": "Otto ragazze cresciute nella tua academy, tutte con del rugby senior alle spalle, a libro paga nello stesso momento. Il sogno più lento del gioco, e quello che ti sopravvive.",
+  "academyNone_f": "ancora nessuna ragazza del vivaio in prima squadra",
+  "academySome_f": {
+   "one": "{n} ragazza del vivaio con rugby senior alle spalle",
+   "other": "{n} ragazze del vivaio con rugby senior alle spalle"
+  }
  },
  "count": {
   "matchOne": "partita",
@@ -5775,7 +6077,42 @@
   "comebackTruth": "«Gli ho detto la verità.»",
   "comebackTruthR": "Che era, secondo una fonte presente nella stanza, piuttosto rumorosa e in gran parte esatta.",
   "comebackRoom": "«Quello resta nello spogliatoio.»",
-  "comebackRoomR": "Tutti lo rispettano. Tutti cercano di scoprirlo. Qualcuno ci riuscirà, entro mercoledì."
+  "comebackRoomR": "Tutti lo rispettano. Tutti cercano di scoprirlo. Qualcuno ci riuscirà, entro mercoledì.",
+  "campTourR_f": "Tre aeroporti, due serate di gala, un assegno patinato. I contabili sono raggianti. Le gambe delle giocatrici presentano reclamo formale.",
+  "courtQ3_f": "L'interesse {poss} nei tuoi confronti è su tutte le ultime pagine stamattina. La sala si sporge in avanti come un sol uomo. Qual è la tua risposta?",
+  "banAcceptR_f": "Niente circo, niente avvocati. La commissione prende nota della professionalità del club e la giocatrice sconta la pena in silenzio.",
+  "finalRespectR_f": "Misurato e sicuro. Il consiglio approva, le giocatrici annuiscono, e nessuno ha regalato agli avversari una frase da appendere nello spogliatoio.",
+  "coldBlameR_f": "\"Se è fuori forma, guardate come lo sto impiegando.\" La sala non se lo aspettava. Nemmeno {player}: e ora si allena come una donna con un debito da saldare.",
+  "rumourAskR_f": "Giri la domanda alla giocatrice, in pubblico e con calore. {player} risponde dritto: ama il club. E la storia la seppellisce meglio di qualsiasi tua smentita.",
+  "oppNamedPoss_f": "Le giocatrici di {opp}",
+  "oppTheir_f": "Le loro giocatrici",
+  "kidQ1_f": "Tutti parlano di {player}: {age} anni e sta illuminando il campionato. È lei il futuro del club?",
+  "kidQ3_f": "Osservatori, agenti, opinionisti: tutti a chiedere di {player}. Il club è pronto per quello che arriva adesso?",
+  "kidProtect_f": "Proteggi la ragazza",
+  "cardsYourMan_f": "la tua donna",
+  "cardsYourManCap_f": "La tua donna",
+  "cardsQ3_f": "Il bollettino disciplinare è una lettura amara: {n} cartellini. Di chi è la colpa: delle giocatrici o di chi le allena?",
+  "cardsDefend_f": "Difendi le tue giocatrici",
+  "cardsBlameR_f": "Le giocatrici ci vanno a nozze; la lega manda una lettera di richiamo.",
+  "vultureTrophiesR_f": "Sfrontato. Le giocatrici camminano un po' più dritte - ora però devi mantenere.",
+  "runInQ2_f": "{pile_k}, e siamo al momento della verità. Le tue giocatrici riescono a dormire la notte?",
+  "runInTargetR_f": "Coraggioso. I bookmaker ti accorciano la quota; le giocatrici ci si esaltano.",
+  "intlQ3_f": "Le nazionali ti hanno portato via {n} donne in questa finestra. Il tiro alla fune tra club e nazionale è rotto?",
+  "intlProud_f": "Fieri di sfornare giocatrici da test",
+  "intlFringeR_f": "Dieci donne che si allenano tutta la settimana e guardano tutto il weekend si sono appena raddrizzate sulla sedia.",
+  "loanQ3_f": "Il coach dell'academy ti manda su {player}. La ragazza dice tutto in un fiato: \"Mandami in prestito, coach. Tornerò migliore - o tornerò e potrai dirmi che mi sbagliavo.\"",
+  "loanAgreeR2_f": "Sorride e ti stringe la mano due volte, e il coach dell'academy fa le telefonate prima che tu cambi idea: i minuti fanno le giocatrici, le panchine fanno gli alibi.",
+  "dealYearR1_f": "{player} ti stringe la mano forte. Offrile il rinnovo dalla sua pagina giocatrice prima che lo faccia qualcun altro.",
+  "routMoreR_f": "Un messaggio sinistro per il resto del campionato. Ci credono anche le giocatrici.",
+  "thrashOnMe_f": "Colpa mia, non delle giocatrici",
+  "standoffQ2_f": "Ancora nulla sul rinnovo di {player}. Aspetta un'offerta migliore la giocatrice, o la aspetta lei?",
+  "standoffBetween_f": "«È una questione tra la giocatrice e il club.»",
+  "oldboyQ2_f": "Prima volta di {player} contro {opp} da avversario. Come si gestisce una donna che gioca contro le sue vecchie compagne?",
+  "kidstartReadyR_f": "Lei è pronta. Sua madre no. {senior} guarda dalla panchina con una certa espressione.",
+  "leakStartsR_f": "Ora devi far partire {player} titolare. Lei lo sa. E lo sa anche la donna che sostituisce.",
+  "centuryCaptainSulks_f": "{captain} lo sente pure lei, e non dice niente, in modo molto eloquente.",
+  "benchBuildingR_f": "Quella frase l'ha già letta, su due altri programmi di partita, a proposito di due altre donne.",
+  "comebackCaptain_f": "«Niente. Ho lasciato parlare la capitana.»"
  },
  "posNoun": {
   "prop": "pilone",
@@ -5788,7 +6125,8 @@
   "centre": "centro",
   "winger": "ala",
   "fullBack": "estremo",
-  "player": "giocatore"
+  "player": "giocatore",
+  "player_f": "giocatrice"
  },
  "till": {
   "boardTitle": "Delibere del consiglio",
@@ -5835,7 +6173,8 @@
    "other": "📺 L'analista ha altre {n} letture - la sua nottata in cambio di uno spot"
   },
   "owedHeld": "Già pagato. Non è ancora stato consegnato, quindi non ti è stato addebitato di nuovo: il gioco continua a provarci in background. Torna fra un minuto.",
-  "asking": "Chiedo allo store…"
+  "asking": "Chiedo allo store…",
+  "townBody_f": "Per un club davvero nei guai, il trust dei tifosi fa girare il cappello: guarda uno spot e la colletta arriva in banca. Paga stipendi e bollette, mai le giocatrici."
  },
  "store": {
   "title": "Negozio",
@@ -5925,7 +6264,9 @@
   "spiteReply": "È una clip virale prima ancora che tu arrivi al parcheggio. Il forum dei tifosi è a quaranta pagine all’ora di merenda e qualcuno ha già fatto una bandiera con la frase sulla mensa.",
   "unfairBtn": "«È stato ingiusto.»",
   "unfairLine": "È stato ingiusto, e in questa sala lo sanno tutti. Infortuni per tutto l’inverno, nemmeno un euro a gennaio, e undici settimane per rimettere a posto ciò che dieci anni hanno rotto. Giudicatemi su una stagione intera o non giudicatemi affatto.",
-  "unfairReply": "Metà sala scrive «dignitoso», l’altra metà scrive «scuse». Escono entrambi i pezzi. È la stampa: da qui non saresti mai uscito con un titolo solo."
+  "unfairReply": "Metà sala scrive «dignitoso», l’altra metà scrive «scuse». Escono entrambi i pezzi. È la stampa: da qui non saresti mai uscito con un titolo solo.",
+  "ownedLine_f": "Me lo sono meritato. Non si perdono tante partite e poi si dà la colpa al calendario. Le giocatrici mi hanno dato tutto, i risultati sono miei, e il club fa bene a volere di più.",
+  "ownedReply_f": "Apre tutti i telegiornali entro le sei. Nessuno fa una domanda di rimbalzo, che è già un verdetto - e un'ex giocatrice in studio dice che ti prenderebbe domani mattina."
  },
  "difficulty": {
   "normal": "Normale",
@@ -5987,6 +6328,7 @@
   "breakawayEndSubj": "La scissione è saltata",
   "breakawayEnd": "Il consorzio non richiama più. Due giornali sono passati oltre in silenzio e il terzo scrive che non sarebbe mai successo.\n\nNon succede mai. Torna ogni pochi anni, riempie due settimane di pagine sportive, e poi tutti giocano il sabato come se nessuno ne avesse parlato.",
   "leakSubj": "Qualcuno ha parlato",
-  "leak": "Un allenatore rivale è stato insolitamente generoso con un giornalista questa settimana: come si schiera la vostra squadra sulle situazioni fisse, chi dà le indicazioni, da che lato del campo andate per primi. È stampato senza firma e con troppi dettagli per venire da un tifoso.\n\nChi vi incontra l'ha letto. Ora non resta che giocare."
+  "leak": "Un allenatore rivale è stato insolitamente generoso con un giornalista questa settimana: come si schiera la vostra squadra sulle situazioni fisse, chi dà le indicazioni, da che lato del campo andate per primi. È stampato senza firma e con troppi dettagli per venire da un tifoso.\n\nChi vi incontra l'ha letto. Ora non resta che giocare.",
+  "breakaway_f": "Un consorzio che nessuno sa nominare ha informato tre giornali di una nuova competizione: più soldi, meno club, un modello a franchigie e un invito che il vostro consiglio starebbe \"valutando con attenzione\".\n\nIl presidente non ha detto nulla in pubblico. Le giocatrici l'hanno letto sul telefono come tutti."
  }
 }
