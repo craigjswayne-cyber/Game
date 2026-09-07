@@ -7,10 +7,15 @@ import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 import { t } from '../../game/i18n'
+import { arrangeMidweekFriendly, friendlySuggestions, friendlyWeeks } from '../../game/season'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
   const [replayId, setReplayId] = useState<number | null>(null)
+  /** the week the friendly panel is offering games in, and the reply to the last invite */
+  const [frWeek, setFrWeek] = useState<number | null>(null)
+  const [frMsg, setFrMsg] = useState<string | null>(null)
   const [comp, setComp] = useState('ALL')
   // "fixtures and results should also have the table for the league in there as
   // an additional page". Two pages behind one tab bar, and the table follows the
@@ -137,6 +142,58 @@ export default function Fixtures() {
           })}
         </tbody>
       </table></div>
+
+      {/* ---- ARRANGE A FRIENDLY ----
+          Owner, 7 Sep: "you should be able to arrange friendlies in the
+          fixtures and results, BELOW THE FIXTURES - it should have 3
+          suggestions". So it is here rather than on the Home screen where the
+          idle-week run-out lives: this is a thing you do while looking at the
+          calendar, because the whole decision is which gap to put it in. */}
+      {!game.unemployed && (() => {
+        const weeks = friendlyWeeks(game)
+        const wk = frWeek != null && weeks.includes(frWeek) ? frWeek : weeks[0] ?? null
+        return (
+          <>
+            <SectionTitle sub={t('fixtures.friendliesSub')}>{t('fixtures.friendlies')}</SectionTitle>
+            {wk == null ? (
+              <div className="card"><div className="muted" style={{ padding: 12 }}>{t('fixtures.friendlyNone')}</div></div>
+            ) : (
+              <>
+                <div className="filter-line">
+                  {weeks.map(w => (
+                    <button key={w} className={`chip${w === wk ? ' active' : ''}`}
+                      onClick={() => { setFrWeek(w); setFrMsg(null) }}>
+                      {t('fixtures.friendlyWeek', { n: w })}
+                    </button>
+                  ))}
+                </div>
+                <div className="tblwrap"><table className="dtable"><tbody>
+                  {friendlySuggestions(game, wk).map(id => (
+                    <tr key={id}>
+                      <td className="name">
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                          <CrestT g={game} teamId={id} size={16} />
+                          {teamShort(game, id)}
+                        </span>
+                      </td>
+                      <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: 11 }}>
+                        {game.comps[game.clubs[id]?.leagueId ?? '']?.short ?? ''}
+                      </td>
+                      <td>
+                        <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
+                          onClick={() => { setFrMsg(arrangeMidweekFriendly(game, id, wk)); touch() }}>
+                          {t('fixtures.friendlyPlay')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody></table></div>
+                {frMsg && <div className="card"><div className="meta" style={{ padding: 10 }}>{frMsg}</div></div>}
+              </>
+            )}
+          </>
+        )
+      })()}
         </>
       )}
       {replay && (

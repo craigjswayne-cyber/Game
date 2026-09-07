@@ -11,7 +11,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
+import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -1267,9 +1267,22 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // and the commercial department: whatever the three deals are worth this week,
   // clauses included. An empty slot pays nothing, which is the point of it (F30).
   club.balance += commercialWeekly(state)
-  // gate receipts from this week's home fixture
+  // Gate receipts from this week's home fixture - A COMPETITIVE ONE.
+  //
+  // This line paid out on friendlies for as long as friendlies have existed,
+  // and nobody noticed because nobody measured it: a home run-out was worth a
+  // full £30 a head, which on the owner's new midweek fixture came to £187,740
+  // in a single bye week. Two of this file's other aggregates - the average-gate
+  // figure above and the record-gate check below - had ALREADY been taught to
+  // skip compId 'fr'. This one was simply missed, so the club's books have been
+  // treating a Wednesday development match as a sell-out league Saturday.
+  //
+  // The owner's brief for the midweek game says it plainly ("financially they
+  // dont benefit the club"), and it is the right rule for the idle-week friendly
+  // and the testimonial too: nobody pays league prices to watch the academy, and
+  // a testimonial's takings belong to the player rather than the club.
   const home = state.fixtures.find(f =>
-    f.week === state.week && f.played && f.homeId === club.id && f.att)
+    f.week === state.week && f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
   // F31: boxes and lounges mean the same crowd is worth more. 4% a level, so a
   // maxed block lifts a £30 head to £36. operatingCost documents why this one
   // facility carries an extra weekly bill.
@@ -1738,6 +1751,164 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
   return t('reply.friendlyArranged', { club: opp.name })
 }
 
+/**
+ * ---- A MIDWEEK RUN-OUT ----
+ *
+ * Owner, 7 Sep: "you should be able to arrange friendlies in the fixtures and
+ * results, below the fixtures - it should have 3 suggestions, only with teams
+ * below in leagues or in a different country. Dates should be at least 3 days
+ * before and after a game so midweek, financially they dont benefit the club
+ * but they do give more game time to academy."
+ *
+ * Every clause of that is a rule here, and two of them are load-bearing.
+ *
+ * WHO WILL PLAY YOU. A club below you in the pyramid, or one in another
+ * country. Not your own division: a league rival does not give you a free look
+ * at his squad, and a friendly against the team you are chasing is not a
+ * friendly. Three of them, drawn from the world's own seed so the list is the
+ * same every time you open the page in a given week and changes when the week
+ * does - a shortlist you can think about, not a fruit machine.
+ *
+ * WHY WEDNESDAY, AND WHY IT IS SOMETIMES REFUSED. The owner asked for three
+ * clear days either side. A league Saturday gives four days back to Wednesday
+ * and three days forward to the next one, so Wednesday is the only day of the
+ * week that satisfies both. But this game's fixtures do not all fall on
+ * Saturday - fixtureDayOff puts a third of them on Friday and a third on
+ * Sunday - and a FRIDAY fixture leaves only two days. So the week is checked
+ * rather than assumed, and a Friday match week simply cannot take a friendly.
+ * Saying "midweek" and then playing a game 48 hours before a league match would
+ * be the game breaking its own promise.
+ *
+ * WHAT IT IS WORTH. Nothing at the gate - simMatch already pays no attendance
+ * money on compId 'fr', so "financially they dont benefit the club" needed no
+ * new code, only checking. What it is FOR is the academy: the assistant fields
+ * a development side, so the minutes go to the boys and the fringe rather than
+ * to the men who are playing on Saturday anyway.
+ */
+export const FRIENDLY_DAY = 2 // Wednesday
+
+/** Where a club's league fixture falls that week, as a day index, or null. */
+function leagueDayThatWeek(state: GameState, week: number, clubId: string): number | null {
+  const fx = state.fixtures.find(f => f.week === week && f.compId !== 'fr' &&
+    (f.homeId === clubId || f.awayId === clubId))
+  return fx ? 5 + fixtureDayOff(fx.id) : null
+}
+
+/**
+ * Three clear days either side of the Wednesday, for whoever is being asked.
+ *
+ * THE OPPONENT GETS THE SAME RULE, NOT A HARSHER ONE. The first version of this
+ * demanded the other club have an entirely empty week, which sounds reasonable
+ * and is nonsense: in a normal league week every club in the world is playing,
+ * so the shortlist of three came back with one name on it. A club below you can
+ * play a midweek friendly for exactly the reason you can - it is Wednesday, and
+ * their Saturday is still three days away.
+ */
+function midweekOk(state: GameState, week: number, clubId: string): boolean {
+  const here = leagueDayThatWeek(state, week, clubId)
+  if (here != null && here - FRIENDLY_DAY < 3) return false
+  const prev = leagueDayThatWeek(state, week - 1, clubId)
+  if (prev != null && (7 + FRIENDLY_DAY) - prev < 3) return false
+  return true
+}
+
+/** Can a Wednesday friendly be played in this week without crowding a match? */
+export function friendlyWeekOk(state: GameState, week: number): boolean {
+  if (week <= state.week) return false
+  if (week > SEASON_WEEKS) return false
+  // already have one arranged that week
+  if (state.fixtures.some(f => f.compId === 'fr' && f.week === week &&
+    (f.homeId === state.userClubId || f.awayId === state.userClubId))) return false
+  // three clear days forward to this week's match (a Friday game is only two
+  // days after a Wednesday, so that week is out) and back to last week's
+  return midweekOk(state, week, state.userClubId)
+}
+
+/** The first few weeks ahead that could take a midweek friendly. */
+export function friendlyWeeks(state: GameState, howMany = 4): number[] {
+  const out: number[] = []
+  for (let w = state.week + 1; w <= SEASON_WEEKS && out.length < howMany; w++) {
+    if (friendlyWeekOk(state, w)) out.push(w)
+  }
+  return out
+}
+
+/** Three clubs who would take the game: below you, or from another country. */
+export function friendlySuggestions(state: GameState, week: number): string[] {
+  const user = state.clubs[state.userClubId]
+  if (!user) return []
+  const myTier = leagueTier(user.leagueId)
+  const pool = Object.values(state.clubs)
+    .filter(c => {
+      if (c.id === user.id) return false
+      // the same Wednesday has to work for him, and he cannot already have one
+      if (!midweekOk(state, week, c.id)) return false
+      if (state.fixtures.some(f => f.compId === 'fr' && f.week === week && (f.homeId === c.id || f.awayId === c.id))) return false
+      const lower = leagueTier(c.leagueId) > myTier
+      const abroad = c.country !== user.country
+      return lower || abroad
+    })
+    .sort((a, b) => a.id.localeCompare(b.id))
+  if (!pool.length) return []
+  // deterministic per (save, week): the same three every time you look, a
+  // different three next week. A list that reshuffles on every render is a
+  // list nobody can think about.
+  const rng = mulberry32(state.seed + week * 7919 + state.season * 31)
+  const picked: string[] = []
+  const seen = new Set<number>()
+  for (let guard = 0; guard < 200 && picked.length < 3; guard++) {
+    const i = Math.floor(rng() * pool.length)
+    if (seen.has(i)) continue
+    seen.add(i)
+    picked.push(pool[i].id)
+  }
+  return picked
+}
+
+export function arrangeMidweekFriendly(state: GameState, oppId: string, week: number): string {
+  const opp = state.clubs[oppId]
+  if (!opp) return t('reply.noSuchClub')
+  if (!friendlyWeekOk(state, week)) return t('reply.friendlyWeekBusy')
+  if (!friendlySuggestions(state, week).includes(oppId)) return t('reply.friendlyDeclined', { club: opp.short })
+  state.fixtures.push({
+    id: state.nextId++, compId: 'fr', round: 0, week,
+    homeId: state.userClubId, awayId: oppId,
+    played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+    devSide: true,
+  })
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `Midweek friendly agreed: ${opp.short}`,
+    body: `${opp.name} will come to your place on the Wednesday of week ${week}. There is no gate money worth counting in it - what there is, is eighty minutes for the academy and the men who have not had a game.`,
+    k: 'news.friendlyBooked', v: { club: opp.name, short: opp.short, week },
+  })
+  return t('reply.friendlyBooked', { club: opp.name, week })
+}
+
+/**
+ * The development XV for a midweek friendly, and putting the real side back
+ * afterwards.
+ *
+ * The engine reads club.tactic.lineup when it builds a side, so a friendly
+ * played on the Saturday team is a friendly that teaches nobody anything and
+ * risks the men who matter. The academy and the fringe play instead; the first
+ * fifteen are stood down. Swapped in and out around the sim so nothing outside
+ * this function ever sees the development sheet.
+ */
+function withDevelopmentSide(state: GameState, clubId: string, run: () => void): void {
+  const club = state.clubs[clubId]
+  if (!club) { run(); return }
+  const first = new Set(club.tactic.lineup.slice(0, 15).filter((x): x is number => x != null))
+  const squad = club.players.map(id => state.players[id]).filter(Boolean)
+  const devs = squad.filter(p => !first.has(p.id) && !p.injury && !p.natSquad && !p.maternity && p.bans === 0)
+  // if standing the first team down leaves too few bodies, this is not a
+  // development side, it is a forfeit - play the normal one
+  if (devs.length < 18) { run(); return }
+  const saved = club.tactic.lineup
+  club.tactic.lineup = autoSelect(state, devs)
+  try { run() } finally { club.tactic.lineup = saved }
+}
+
 /** The national side's fixture this week, when the user also coaches one.
  *  A home-nations coach also takes the Lions in a tour year. */
 export function natFixtureThisWeek(state: GameState): Fixture | undefined {
@@ -1837,6 +2008,13 @@ export function processWeekAndAdvance(state: GameState) {
     const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId ||
       (state.natTeam != null && (fx.homeId === state.natTeam || fx.awayId === state.natTeam ||
         (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (fx.homeId === 'LIO' || fx.awayId === 'LIO'))))
+    // A MIDWEEK FRIENDLY IS THE ASSISTANT'S GAME, not the manager's: it never
+    // becomes simmedUserFx, so a league Saturday in the same week is still the
+    // match he stands on the touchline for.
+    if (fx.compId === 'fr' && fx.devSide) {
+      withDevelopmentSide(state, fx.homeId, () => simMatch(state, fx, rng, false))
+      continue
+    }
     simMatch(state, fx, rng, false)
     const comp = state.comps[fx.compId]
     if (comp) {
