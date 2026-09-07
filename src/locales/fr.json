@@ -5944,5 +5944,32 @@
     "whyYes": "Vous remplissez toutes les conditions posées par les quatre fédérations.",
     "took": "Vous êtes le sélectionneur du XV des Îles Britanniques et Irlandaises. Votre adjoint garde votre sélection jusqu'à votre retour.",
     "passed": "Vous avez dit non. Elles demanderont à quelqu'un d'autre, et ne reviendront pas vers vous cette fois-ci."
+  },
+  "close": {
+    "title": "Le calendrier d’été",
+    "sub": "Pas de rugby. Le stade rapporte quand même.",
+    "wedding": "Réception de mariage",
+    "comedy": "Soirée humour",
+    "townshow": "Fête de la ville",
+    "golf": "Journée golf",
+    "shooting": "Journée de tir",
+    "sponsor": "Dîner des partenaires",
+    "concert": "Concert",
+    "weddingD": "La salle de réception, un chapiteau, un samedi. Modeste, régulier, et personne ne touche à la pelouse.",
+    "comedyD": "Un nom vu à la télé et 300 places au club-house. Peu coûteux à monter.",
+    "townshowD": "La ville sur votre pelouse un week-end. Il faut de la place, et les jardiniers auront un mot à dire.",
+    "golfD": "Une journée pour ceux qui pourraient vous sponsoriser. Rapporte en bonne volonté et en espèces.",
+    "shootingD": "Le même public, un autre samedi, et bien plus nombreux que prévu.",
+    "sponsorD": "Cravate noire, tombola et ceux qui paient votre maillot. La plus belle salle du bâtiment gagne sa vie.",
+    "concertD": "Vingt mille personnes sur la pelouse en juillet. Le meilleur chèque de l’été, et l’herbe n’y survit pas : le regazonnage est déduit.",
+    "book": "Réserver",
+    "fee": "{fee} pour le club",
+    "locked": "Votre stade ne peut pas encore accueillir cela",
+    "notNow": "La saison est en cours. Le calendrier s’ouvre quand le rugby s’arrête.",
+    "alreadyBooked": "Il y a déjà quelque chose cette semaine-là. Il n’y a qu’un stade.",
+    "cannotHost": "Votre stade ne peut pas encore accueillir cela.",
+    "booked": "{event} réservé. {fee} pour le club.",
+    "newsSubj": "{event} au stade",
+    "news": "{club} a accueilli un {event} cette semaine. {fee} encaissés, et pas un ballon en vue."
   }
 }

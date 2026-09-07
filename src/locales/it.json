@@ -5944,5 +5944,32 @@
   "whyYes": "Soddisfi ogni condizione posta dalle quattro federazioni.",
   "took": "Sei il tecnico del XV delle Isole Britanniche e Irlandesi. Il tuo vice tiene la nazionale fino al tuo ritorno.",
   "passed": "Hai detto no. Lo chiederanno a un altro, e stavolta non torneranno da te."
+ },
+ "close": {
+  "title": "L’agenda estiva",
+  "sub": "Niente rugby. L’impianto rende lo stesso.",
+  "wedding": "Ricevimento di nozze",
+  "comedy": "Serata comica",
+  "townshow": "Festa del paese",
+  "golf": "Giornata di golf",
+  "shooting": "Giornata di tiro",
+  "sponsor": "Cena degli sponsor",
+  "concert": "Concerto",
+  "weddingD": "La sala, un tendone e un sabato. Piccolo, regolare, e nessuno tocca il campo.",
+  "comedyD": "Un nome visto in tv e 300 posti nella club house. Costa poco allestirla.",
+  "townshowD": "Il paese sul vostro prato per un weekend. Serve spazio, e i giardinieri avranno da ridire.",
+  "golfD": "Una giornata per chi potrebbe sponsorizzarvi. Rende in simpatia e in contanti.",
+  "shootingD": "La stessa gente, un altro sabato, e parecchi più del previsto.",
+  "sponsorD": "Cravatta nera, lotteria e chi paga la vostra maglia. La sala migliore dell’impianto si guadagna il posto.",
+  "concertD": "Ventimila persone sul campo a luglio. L’assegno migliore dell’estate, e distrugge il manto: la risemina esce da lì.",
+  "book": "Prenotare",
+  "fee": "{fee} al club",
+  "locked": "Il vostro impianto non può ancora ospitarlo",
+  "notNow": "La stagione è in corso. L’agenda si apre quando finisce il rugby.",
+  "alreadyBooked": "Quella settimana c’è già qualcosa. L’impianto è uno solo.",
+  "cannotHost": "Il vostro impianto non può ancora ospitarlo.",
+  "booked": "{event} prenotato. {fee} al club.",
+  "newsSubj": "{event} all’impianto",
+  "news": "{club} ha ospitato un {event} questa settimana. {fee} incassati, e nemmeno un pallone in vista."
  }
 }

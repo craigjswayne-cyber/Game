@@ -5944,5 +5944,32 @@
   "whyYes": "Cumples todas las condiciones que ponen las cuatro federaciones.",
   "took": "Eres el seleccionador del XV de las Islas Británicas e Irlandesas. Tu ayudante lleva tu selección hasta que vuelvas.",
   "passed": "Dijiste que no. Se lo pedirán a otro, y esta vez no volverán a preguntarte."
+ },
+ "close": {
+  "title": "La agenda de verano",
+  "sub": "Sin rugby. El campo sigue dando dinero.",
+  "wedding": "Banquete de boda",
+  "comedy": "Noche de humor",
+  "townshow": "Feria del pueblo",
+  "golf": "Jornada de golf",
+  "shooting": "Jornada de tiro",
+  "sponsor": "Cena de patrocinadores",
+  "concert": "Concierto",
+  "weddingD": "El salón, una carpa y un sábado. Pequeño, constante, y nadie pisa el césped.",
+  "comedyD": "Un nombre de la tele y 300 sillas en el club social. Barato de montar.",
+  "townshowD": "El pueblo sobre tu hierba un fin de semana. Hace falta sitio, y los jardineros tendrán algo que decir.",
+  "golfD": "Un día para quienes podrían patrocinarte. Paga en simpatía y en metálico.",
+  "shootingD": "La misma gente, otro sábado, y bastantes más de los que esperabas.",
+  "sponsorD": "Etiqueta, rifa y los que pagan tu camiseta. La mejor sala del edificio se gana el sueldo.",
+  "concertD": "Veinte mil personas sobre el campo en julio. El mejor cheque del verano, y destroza la hierba: el resembrado sale de ahí.",
+  "book": "Reservar",
+  "fee": "{fee} para el club",
+  "locked": "Tu campo todavía no puede acoger esto",
+  "notNow": "La temporada sigue. La agenda se abre cuando para el rugby.",
+  "alreadyBooked": "Ya hay algo esa semana. Solo hay un campo.",
+  "cannotHost": "Tu campo todavía no puede acoger eso.",
+  "booked": "{event} reservado. {fee} para el club.",
+  "newsSubj": "{event} en el campo",
+  "news": "{club} acogió un {event} esta semana. {fee} de ingreso, y ni un balón a la vista."
  }
 }
