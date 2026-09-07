@@ -99,7 +99,28 @@ export function talkingPoints(state: GameState): void {
     const fill = fillRate(state)
     const played = state.fixtures.filter(f => f.played && f.homeId === club.id && f.compId !== 'fr').length
     if (played >= 4 && fill < 0.62) {
-      club.boardConfidence = clamp(club.boardConfidence - 6, 0, 100)
+      // HOW MUCH IT COSTS DEPENDS ON WHOSE BOARD IT IS.
+      //
+      // A flat six points was wrong in a way difficultyprobe caught within an
+      // hour: the game deliberately keeps a giant's board brutal and a minnow's
+      // patient, and a fixed penalty punished them identically - the minnow's
+      // mean board confidence over a sleepwalked season fell from 48 to 39 and
+      // the gap the probe defends nearly halved.
+      //
+      // It is also simply truer this way. Ten thousand empty seats at a club
+      // that sells thirty thousand is a business problem the board will raise
+      // in a meeting. The same percentage at a club that draws two thousand is
+      // a quiet Saturday, and every board at that level has seen a hundred of
+      // them.
+      // AND BELOW A CERTAIN LEVEL IT COSTS NOTHING AT ALL. Scaling the penalty
+      // was not enough on its own - the minnow's mean still sat three points
+      // short of where the game had calibrated it. A small club's board raises
+      // the gate figures the way it raises the price of pies: it is a thing
+      // said at a meeting, not a thing anybody loses a job over. The story
+      // still runs, because it is true of every club. The confidence only moves
+      // where the money actually matters.
+      const cost = club.rep >= 55 ? clamp(Math.round((club.rep - 40) / 6), 2, 9) : 0
+      club.boardConfidence = clamp(club.boardConfidence - cost, 0, 100)
       state.fanMood = clamp((state.fanMood ?? 60) - 3, 5, 98)
       push(state, 'tickets', 'point.tickets', {
         club: club.name, pct: Math.round(fill * 100), stadium: club.stadium,
