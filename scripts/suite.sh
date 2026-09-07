@@ -21,7 +21,7 @@ MODE="${1:-default}"
 FAILS=0
 
 # no pass/fail to give: these print numbers or write screenshots
-REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck"
+REPORTERS="analysis gapreport icons shots qa-shots qa-shots2 newspeak boardprobe disttest loantest nattest summertest dataaudit squaddiff premmerge stancecheck womensvoice"
 # minutes each, not seconds: only on request
 # dialweight is here too (v1.2.2): a qualitative balance audit that sims
 # ~290 paired seasons and alone took ten of the Gate's thirty minutes. Its
