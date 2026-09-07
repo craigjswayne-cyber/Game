@@ -5974,5 +5974,19 @@
   "booked": "{event} prenotato. {fee} al club.",
   "newsSubj": "{event} all’impianto",
   "news": "{club} ha ospitato un {event} questa settimana. {fee} incassati, e nemmeno un pallone in vista."
+ },
+ "point": {
+  "ticketsSubj": "Il consiglio ha visto i dati del botteghino",
+  "tickets": "{stadium} è stato pieno al {pct}% quest'anno e il consiglio ti ha messo il numero davanti anziché in una relazione. Nessuno ha detto \"crisi\": hanno detto \"affluenza\", due volte, che è peggio.\n\nVincere risolve la cosa più in fretta di qualsiasi piano marketing. Lo sanno. Vorrebbero comunque sentire un piano.",
+  "advertSubj": "La campagna è diventata virale. Non così.",
+  "advert": "La campagna di stagione è stata girata in una galleria del vento con uno slogan che nessuno aveva letto ad alta voce. È stata vista diversi milioni di volte questa settimana, quasi mai con affetto, e lo sponsor ha rinnovato per {fee} proprio per questo.\n\nIl direttore commerciale è entusiasta. I tifosi no. Entrambe le cose resteranno vere per un po'.",
+  "awaykitSubj": "Presentata la seconda maglia",
+  "awaykit": "{club} ha lanciato la seconda maglia questa settimana. I designer l'hanno definita \"di ispirazione storica\". Il forum ha usato altre parole, a lungo, con le foto.\n\nNe sono state vendute per {fee} in quattro giorni e il negozio non riesce a starci dietro. Sono vere entrambe e nessuna annulla l'altra.",
+  "breakawaySubj": "Si parla di una lega scissionista",
+  "breakaway": "Un consorzio che nessuno sa nominare ha informato tre giornali di una nuova competizione: più soldi, meno club, un modello a franchigie e un invito che il vostro consiglio starebbe \"valutando con attenzione\".\n\nIl presidente non ha detto nulla in pubblico. I giocatori l'hanno letto sul telefono come tutti.",
+  "breakawayEndSubj": "La scissione è saltata",
+  "breakawayEnd": "Il consorzio non richiama più. Due giornali sono passati oltre in silenzio e il terzo scrive che non sarebbe mai successo.\n\nNon succede mai. Torna ogni pochi anni, riempie due settimane di pagine sportive, e poi tutti giocano il sabato come se nessuno ne avesse parlato.",
+  "leakSubj": "Qualcuno ha parlato",
+  "leak": "Un allenatore rivale è stato insolitamente generoso con un giornalista questa settimana: la vostra struttura di prima fase, chi chiama la touche, da che parte attaccate dopo una mischia. È stampato senza firma e con troppi dettagli per venire da un tifoso.\n\nChi vi incontra l'ha letto. Ora non resta che giocare."
  }
 }

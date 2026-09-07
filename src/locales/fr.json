@@ -5974,5 +5974,19 @@
     "booked": "{event} réservé. {fee} pour le club.",
     "newsSubj": "{event} au stade",
     "news": "{club} a accueilli un {event} cette semaine. {fee} encaissés, et pas un ballon en vue."
+  },
+  "point": {
+    "ticketsSubj": "Le conseil a vu les chiffres de billetterie",
+    "tickets": "{stadium} a été rempli à {pct}% cette saison et le conseil vous a mis le chiffre sous les yeux plutôt que dans un rapport. Personne n'a prononcé le mot « crise » : on a dit « fréquentation », deux fois, ce qui est pire.\n\nGagner règle cela plus vite que n'importe quel plan marketing. Ils le savent. Ils aimeraient tout de même entendre un plan.",
+    "advertSubj": "La campagne est devenue virale. Pas dans ce sens.",
+    "advert": "La campagne de rentrée a été tournée dans une soufflerie avec un slogan que personne n'avait lu à voix haute. Elle a été vue plusieurs millions de fois cette semaine, presque jamais avec bienveillance, et le sponsor a prolongé pour {fee} sur cette base.\n\nLe directeur commercial exulte. Les supporters non. Les deux vont rester vrais un moment.",
+    "awaykitSubj": "Le maillot extérieur a été dévoilé",
+    "awaykit": "{club} a lancé le maillot extérieur cette semaine. Les créateurs parlent d'une « inspiration patrimoniale ». Le forum a employé d'autres mots, longuement, avec photos.\n\nIl s'en est vendu pour {fee} en quatre jours et la boutique est en rupture. Les deux sont vrais et aucun n'annule l'autre.",
+    "breakawaySubj": "Rumeurs de ligue dissidente",
+    "breakaway": "Un consortium que personne ne sait nommer a briefé trois journaux sur une nouvelle compétition : plus d'argent, moins de clubs, un modèle de franchises, et une invitation que votre conseil « étudierait avec attention ».\n\nVotre président n'a rien dit publiquement. Les joueurs l'ont lu sur leur téléphone comme tout le monde.",
+    "breakawayEndSubj": "La dissidence est enterrée",
+    "breakawayEnd": "Le consortium ne rappelle plus. Deux des journaux sont discrètement passés à autre chose et le troisième publie un papier expliquant que cela n'allait de toute façon jamais se faire.\n\nCela ne se fait jamais. Cela revient tous les quelques années, cela remplit quinze jours de pages sportives, puis tout le monde joue le samedi comme si personne n'en avait parlé.",
+    "leakSubj": "Quelqu'un a parlé",
+    "leak": "Un entraîneur rival s'est montré étonnamment généreux avec un journaliste cette semaine : votre organisation en première main, qui appelle la touche, de quel côté vous attaquez après une mêlée. C'est imprimé sans signature et assez précis pour ne pas venir d'un supporter.\n\nVotre prochain adversaire l'a lu. Il n'y a plus rien à faire que jouer."
   }
 }

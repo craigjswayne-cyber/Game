@@ -1322,6 +1322,11 @@ export interface GameState {
   /** What the club has booked into the empty summer weeks, keyed by week. One
    *  event a week, because it is one ground. */
   closeBook?: Record<string, string>
+  /** Which season each once-a-year talking point last fired in. */
+  points?: Record<string, number>
+  /** The week a rival coach briefed the press about your side. The next match
+   *  is played against a team that has read it. */
+  leaked?: number
   natTeam?: string | null
   /** The Isles XV tour job: which season it was offered in and what he said.
    *  Absent on every save made before v1.5, which is correct - nobody was ever

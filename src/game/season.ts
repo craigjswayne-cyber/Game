@@ -2,6 +2,7 @@ import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS } from './gender'
 import { islesCoach, offerIsles } from './isles'
 import { aiCloseSeason } from './closeseason'
+import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -3703,6 +3704,11 @@ export function processWeekAndAdvance(state: GameState) {
   // the empty weeks are only empty of rugby: the rest of the world hires out its
   // clubhouse whether the manager remembers to or not
   aiCloseSeason(state)
+
+  // the stories a club has to answer for: the gate figures, the advert nobody
+  // read aloud, the kit, the breakaway that never happens, and the coach who
+  // talked. One a week at most, each once a season (talkingpoints.ts).
+  talkingPoints(state)
 
   boardMemo(state)
 

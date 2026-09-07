@@ -5974,5 +5974,19 @@
   "booked": "{event} booked. {fee} to the club.",
   "newsSubj": "{event} at the ground",
   "news": "{club} hosted a {event} this week. {fee} in, and not a rugby ball in sight."
+ },
+ "point": {
+  "ticketsSubj": "The board has seen the gate figures",
+  "tickets": "{stadium} has been {pct}% full this season and the board has put the number in front of you rather than in a report. Nobody has said the word \"crisis\" - they have said \"footfall\", twice, which is worse.\n\nWinning fixes this faster than any marketing plan. They know that. They would still like to hear a plan.",
+  "advertSubj": "The campaign has gone viral. Not like that.",
+  "advert": "The new season campaign was shot in a wind tunnel with a slogan nobody read aloud first. It has been viewed several million times this week, almost none of them kindly, and the sponsor has extended for {fee} on the strength of it.\n\nThe commercial director is delighted. The supporters are not. Both of those are going to stay true for a while.",
+  "awaykitSubj": "The away kit has been unveiled",
+  "awaykit": "{club} launched the change strip this week. The design team called it \"heritage-inspired\". The forum called it several other things, at length, with pictures.\n\nIt has sold {fee} worth in four days and the shop cannot keep it in stock. Both of those things are true and neither cancels the other out.",
+  "breakawaySubj": "Talk of a breakaway league",
+  "breakaway": "A consortium nobody can name has briefed three newspapers about a new competition: bigger money, fewer clubs, a franchise model, and an invitation your board is said to be \"considering carefully\".\n\nYour chairman has said nothing publicly. The players have read it on their phones like everyone else.",
+  "breakawayEndSubj": "The breakaway is off",
+  "breakawayEnd": "The consortium has stopped returning calls. Two of the newspapers have quietly moved on and the third is running a piece about how it was never really going to happen.\n\nIt never is. It comes round every few years, it fills a fortnight of back pages, and then everybody plays on Saturday as though nobody had ever mentioned it.",
+  "leakSubj": "Somebody has been talking",
+  "leak": "A rival coach has been unusually generous with a journalist this week - your shape off first-phase, who calls the lineout, which side you attack after a scrum. It is in print with no name attached to it and enough detail that it did not come from a supporter.\n\nWhoever you play next has read it. Nothing to be done about it now but play."
  }
 }
