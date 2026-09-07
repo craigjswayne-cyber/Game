@@ -14,7 +14,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { MAX_HAGGLE, agreeFee, askingPrice, floorPrice, sellerWillingness, signFreeAgent } from '../src/game/ai'
-import { fmtMoney } from '../src/game/model'
+import { fmtMoney, absWeek} from '../src/game/model'
 
 let fails = 0
 const bad = (m: string) => { fails++; console.error('FAIL: ' + m) }
@@ -164,7 +164,7 @@ for (const d of soft.slice(0, 3)) {
     p.clubId && p.clubId !== g.userClubId && g.clubs[p.clubId!] && !p.acad && p.ca >= 70)!
   const seller = g.clubs[target.clubId!]
   g.clubs[g.userClubId].budget = 100_000_000
-  target.joinedAt = g.season * SEASON_WEEKS + g.week - 3 // three weeks into his move
+  target.joinedAt = absWeek(g.season, g.week) - 3 // three weeks into his move
   const ask = askingPrice(g, target)
   const polite = agreeFee(g, target.id, ask)
   if (polite.ok) bad(`three weeks after arriving, ${seller.short} sold ${target.name} at the mere asking price`)
@@ -173,7 +173,7 @@ for (const d of soft.slice(0, 3)) {
   if (!silly.ok && !/won't discuss terms/.test(silly.msg)) {
     bad(`an offer past double the ask should force the door: "${silly.msg}"`)
   }
-  target.joinedAt = g.season * SEASON_WEEKS + g.week - 30 // an old move
+  target.joinedAt = absWeek(g.season, g.week) - 30 // an old move
   const later = agreeFee(g, target.id, ask)
   if (!later.ok && /invested in him/.test(later.msg)) bad('the gate outlived its half season')
 }

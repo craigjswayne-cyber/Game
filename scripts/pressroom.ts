@@ -22,7 +22,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
 import { PRESS_KEEP_WEEKS } from '../src/game/media'
-import { SEASON_WEEKS } from '../src/game/model'
+import { SEASON_WEEKS, absWeek} from '../src/game/model'
 import type { GameState, PressItem } from '../src/game/model'
 
 let fails = 0
@@ -31,10 +31,10 @@ const ok = (c: boolean, what: string) => {
   if (!c) fails++
 }
 
-const age = (g: GameState, q: PressItem) => g.season * SEASON_WEEKS + g.week - (q.season * SEASON_WEEKS + q.week)
+const age = (g: GameState, q: PressItem) => absWeek(g.season, g.week) - (q.season * SEASON_WEEKS + q.week)
 
 const stub = (g: GameState, weeksAgo: number, answered: boolean): PressItem => {
-  const abs = g.season * SEASON_WEEKS + g.week - weeksAgo
+  const abs = absWeek(g.season, g.week) - weeksAgo
   return {
     id: g.nextId++,
     season: Math.floor(abs / SEASON_WEEKS),

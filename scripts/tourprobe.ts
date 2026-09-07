@@ -58,10 +58,18 @@ ok(new Set(prov.map(f => f.homeId)).size === prov.length, 'nobody is played twic
 
 // ---- 3. the Tests come last ---------------------------------------------
 console.log('\n--- 3. the series is at the end')
-ok(tests.every(f => f.week === TOUR_WEEKS[1]), 'all three Tests are in the final week')
-ok(prov.filter(f => f.week === TOUR_WEEKS[0]).length === 5, 'five midweek games open the tour a week earlier')
-const lastProvRound = Math.max(...prov.map(f => f.round))
-ok(tests.every(f => f.round > lastProvRound), 'and every Test is ordered after every provincial game')
+ok(TOUR_WEEKS.length === 5, `the tour runs over five weeks (${TOUR_WEEKS.length})`)
+for (const w of TOUR_WEEKS) {
+  const inWeek = tour.filter(f => f.week === w)
+  ok(inWeek.length === 2, `week ${w}: two matches (${inWeek.length})`)
+  ok(inWeek.filter(f => f.midweek).length === 1, `week ${w}: one of them midweek`)
+}
+ok(tests.every(f => !f.midweek), 'no Test is played on a Wednesday')
+const testWeeks = tests.map(f => f.week).sort((a, b) => a - b)
+ok(JSON.stringify(testWeeks) === JSON.stringify(TOUR_WEEKS.slice(-3)),
+  `the three Tests take the last three weekends (${testWeeks.join(', ')})`)
+ok(prov.filter(f => f.midweek).length === 5,
+  'a province is played every Wednesday, right through the series')
 
 // ---- 4. the series is decided on the Tests alone ------------------------
 console.log('\n--- 4. a provincial win is not a series win')

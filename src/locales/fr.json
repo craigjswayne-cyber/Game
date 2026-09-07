@@ -424,7 +424,7 @@
     "neutralVenueLower": "un terrain neutre",
     "replaySub": " · {att} à {venue}",
     "friendlies": "Organiser un amical",
-    "friendliesSub": "En semaine, contre un club en dessous de vous ou d'un autre pays. Aucun revenu : du temps de jeu pour l'académie.",
+    "friendliesSub": "En semaine, contre un club inférieur.",
     "friendlyWeek": "Semaine {n}",
     "friendlyNone": "Aucune semaine à venir n'offre les trois jours pleins de chaque côté qu'exige un amical.",
     "friendlyPlay": "Inviter"
@@ -1528,7 +1528,7 @@
     "loanCostLine": "Votre part de son salaire : {wage}/sem.",
     "loanClose": "Pas maintenant",
     "loanDone": "Terminé",
-    "loanApproachSub": "Demandez un jeune que personne ne vous a proposé. Plus dur que la liste ci-dessus, et un rival ne décrochera même pas.",
+    "loanApproachSub": "Sonder un jeune que personne n'a proposé.",
     "loanApproach": "Faire une approche",
     "loanAsk": "Demander",
     "loanNoHits": "Personne de ce nom que vous pourriez former. Il faut un joueur de 23 ans ou moins, apte, et pas déjà prêté."
@@ -4756,7 +4756,7 @@
     "friendlyBooked": "{club} viendront à {short} le mercredi de la semaine {week}. Aucune recette digne de ce nom : ce qui compte, ce sont quatre-vingts minutes pour l'académie et pour ceux qui ne jouent pas.",
     "friendlyBookedSubj": "Match amical en semaine confirmé : {short}",
     "islesOfferSubj": "Une invitation des quatre fédérations",
-    "islesOffer": "Les quatre fédérations vous ont écrit ensemble. Elles veulent vous confier le XV des Îles Britanniques et Irlandaises pour la tournée en {host} cet été : sept matches de province et une série de trois tests, un groupe tiré de quatre pays qui passent chaque février à vouloir se battre.\n\nIl n'y a ni liste ni entretien. Elles ont choisi, et elles demandent.\n\nSi vous partez, votre adjoint prend votre sélection nationale le temps de la tournée."
+    "islesOffer": "Les quatre fédérations vous ont écrit ensemble. Elles veulent vous confier le XV des Îles pour la tournée en {host} cet été : sept matches de province et une série de trois tests.\n\nNi liste ni entretien. Elles ont choisi. Votre adjoint prend la sélection pendant votre absence."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",

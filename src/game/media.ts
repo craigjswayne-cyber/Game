@@ -1,5 +1,5 @@
 import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
-import { SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
+import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
@@ -35,7 +35,6 @@ export const OFFICE_OUTLET = "The Manager's Office"
  */
 export const OFFICE_COOLDOWN = 14
 
-const absWeek = (season: number, week: number) => season * SEASON_WEEKS + week
 
 /** Has this player raised this subject recently enough that raising it again
  *  would read as the game forgetting the last conversation? */
@@ -178,7 +177,7 @@ export function generatePress(state: GameState, rng: Rng) {
   // newest final toasted) keeps it to one toast per trophy, and a weekend
   // that lands two finals gets asked about as a double.
   {
-    const absNow = state.season * SEASON_WEEKS + state.week
+    const absNow = absWeek(state.season, state.week)
     const toasted = state.silverwareAsk ?? -1
     const won = state.fixtures.filter(f => {
       if (f.stage !== 'F' || !f.played) return false
@@ -685,7 +684,7 @@ export function generatePress(state: GameState, rng: Rng) {
   // clock as the wording, and a stamp keeps the subject off the desk for
   // eight weeks once raised.
   const away = squad.filter(p => p.natSquad).length
-  const absNow2 = state.season * SEASON_WEEKS + state.week
+  const absNow2 = absWeek(state.season, state.week)
   if (away >= 4 && rng() < 0.5 && (state.natAskAt == null || absNow2 - state.natAskAt >= 8)) {
     state.natAskAt = absNow2
     const optionSets = [

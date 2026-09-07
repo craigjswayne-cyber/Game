@@ -12,7 +12,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -1035,7 +1035,13 @@ function weeklyTraining(state: GameState, rng: Rng) {
       // low: this should be a thing that happens to a handful of squads across
       // a league in a season, the way it does, not a mechanic the manager is
       // managing every week.
-      if (p.maternity && state.week >= p.maternity.until) {
+      // AN ABSOLUTE WEEK, NOT THIS SEASON'S. This shipped comparing a
+      // within-season week against a within-season week, and a leave of 28 to 40
+      // weeks granted after about week 5 gave an `until` beyond the end of the
+      // season - a number state.week resets past every August and can never
+      // reach again. The player never came back. The maternity probe reported
+      // 106 grants and 30 returns and that gap WAS the bug, not women still away.
+      if (p.maternity && absWeek(state.season, state.week) >= p.maternity.until) {
         p.maternity = undefined
         p.cond = 62
         p.sharp = 30
@@ -1043,7 +1049,8 @@ function weeklyTraining(state: GameState, rng: Rng) {
         p.rust = 4
       } else if (!p.maternity && mayTakeMaternityLeave(p, genderOf(state)) && rng() < 0.00035) {
         const wk = MATERNITY_WEEKS[0] + Math.floor(rng() * (MATERNITY_WEEKS[1] - MATERNITY_WEEKS[0] + 1))
-        p.maternity = { until: state.week + wk, from: state.week }
+        const nowAbs = absWeek(state.season, state.week)
+        p.maternity = { until: nowAbs + wk, from: nowAbs }
         // She keeps her place on the roster and her deal; what she does not do
         // is occupy a shirt while she is away. See autoSelect's filter.
         if (p.clubId === state.userClubId) {
@@ -3447,7 +3454,7 @@ export function processWeekAndAdvance(state: GameState) {
   // is a normal natOffer in every way - same letter key, same 3-week shelf
   // life, same Profile buttons.
   if (state.natCall != null && !state.natTeam && !state.natOffer && !state.unemployed
-      && state.season * SEASON_WEEKS + state.week >= state.natCall) {
+      && absWeek(state.season, state.week) >= state.natCall) {
     const rep = mgrReputation(state)
     const offer = pickableNations(state)
     const picked = state.natCallNat && offer.some(([n]) => n === state.natCallNat)
@@ -3817,7 +3824,7 @@ If you go, your assistant takes your national side for the duration. Nobody prep
   // that the screen - which measures from the week it is actually drawn in -
   // then hid anyway. Same rule, one clock.
   {
-    const next = state.season * SEASON_WEEKS + state.week + 1
+    const next = absWeek(state.season, state.week) + 1
     state.press = state.press.filter(q =>
       !q.answered || next - (q.season * SEASON_WEEKS + q.week) <= PRESS_KEEP_WEEKS)
   }

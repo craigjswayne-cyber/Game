@@ -7,7 +7,7 @@ import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import { BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
@@ -628,7 +628,7 @@ function handleContracts(state: GameState, rng: Rng) {
     // at his plain market price - the exact hole the owner walked through
     // (v1.1.3). This runs before season += 1, so the stamp dates the move to
     // the end of the old season and ages correctly into the new one.
-    p.joinedAt = state.season * SEASON_WEEKS + state.week
+    p.joinedAt = absWeek(state.season, state.week)
     p.contractEnds = state.season + 1 + (p.age < 30 ? 2 : 1)
     p.morale = clamp(p.morale + 1, 1, 10)
     p.transferListed = false

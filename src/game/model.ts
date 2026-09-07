@@ -630,6 +630,10 @@ export interface Fixture {
   /** A provincial game on a tour: it counts for the tourists' momentum and the
    *  players' minutes, but it is not a Test and never touches the series table. */
   tourMatch?: boolean
+  /** Played on the Wednesday rather than the weekend. A touring party plays
+   *  twice a week - a midweek side and a Test side - which is the one place in
+   *  this game where a team legitimately appears twice in the same week. */
+  midweek?: boolean
   /** A midweek friendly the assistant runs with a development side. The flag
    *  is what keeps it out of the manager's own Saturday: the settle plays it,
    *  the academy get the minutes, and it never becomes the match he coaches. */
@@ -1311,6 +1315,10 @@ export interface GameState {
   chatWk?: number
   chatsUsed?: number
   /** national side the manager also coaches (FM-style dual role) */
+  /** Which multiplier this save's absolute-week stamps were written on. Absent
+   *  or 45 means a save from before the season grew to 48 weeks, and save.ts
+   *  rebases it once, on load, to WEEK_BASIS. */
+  basis?: number
   natTeam?: string | null
   /** The Isles XV tour job: which season it was offered in and what he said.
    *  Absent on every save made before v1.5, which is correct - nobody was ever
@@ -1834,7 +1842,37 @@ export function isWorldCupSeason(season: number): boolean {
   return (BASE_YEAR + season) % 4 === 3
 }
 
-export const SEASON_WEEKS = 45
+/**
+ * ---- THE BASIS FOR AN ABSOLUTE WEEK ----
+ *
+ * Anything in a save that says "this happened in week N of the career" - a loan
+ * return, the day a player joined, a disciplinary incident, a chat allowance -
+ * stores `season * BASIS + week`. For most of this game's life that basis WAS
+ * SEASON_WEEKS, which meant the season length could never change: bumping it
+ * would silently move every stamp already written into every career in progress,
+ * and a player mid-loan would find his return date had slid by a season.
+ *
+ * That bill came due when the owner asked for a five-week tour (7 Sep: "the tour
+ * should be over 5 weeks... one midweek game, one weekend game"), which needs
+ * three more weeks than the season had.
+ *
+ * So the stamp no longer depends on the season at all. 100 is comfortably above
+ * any season this game will have, it is the basis media.ts and gossip.ts already
+ * used for their own clocks - they had the right idea first - and it means the
+ * next person who needs a longer season can simply have one.
+ */
+export const WEEK_BASIS = 100
+export const absWeek = (season: number, week: number) => season * WEEK_BASIS + week
+
+/**
+ * How many weeks a season runs.
+ *
+ * 45 until v1.5.1, when the tour needed weeks 44 to 48. Nothing domestic moved:
+ * the club finals still end at week 43, and the three new weeks are the summer
+ * the tour party spends abroad - which is where a real tour is, after the
+ * domestic season rather than across it.
+ */
+export const SEASON_WEEKS = 48
 
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
@@ -1965,6 +2003,8 @@ export function weekDate(season: number, week: number): string {
 
 /** Which day this fixture kicks off: -1 Friday, 0 Saturday, +1 Sunday.
  *  Fixed per fixture, so previews, reports and recovery all agree. */
+export const MIDWEEK_OFF = -3 // Wednesday, three days before the Saturday
+
 export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
   const h = (fxId * 2654435761) >>> 0
   return h % 3 === 0 ? -1 : h % 3 === 2 ? 1 : 0
@@ -1978,7 +2018,7 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
  *
  *  dayOff overrides the per-fixture hash for competitions that always play the
  *  same day - the A League is every Friday, the night before the first team. */
-export function fixtureDate(season: number, week: number, fxId: number, dayOff?: -1 | 0 | 1): string {
+export function fixtureDate(season: number, week: number, fxId: number, dayOff?: number): string {
   const start = seasonStart(season) // the season's opening Saturday
   const d = new Date(start + ((week - 1) * 7 + (dayOff ?? fixtureDayOff(fxId))) * 86400000)
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`

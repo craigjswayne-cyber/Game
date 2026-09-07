@@ -22,7 +22,7 @@ import { newGame } from '../src/game/newgame'
 import { generatePress } from '../src/game/media'
 import { processWeekAndAdvance, userFixtureThisWeek } from '../src/game/season'
 import { sortTable } from '../src/game/schedule'
-import { SEASON_WEEKS } from '../src/game/model'
+import { SEASON_WEEKS, absWeek} from '../src/game/model'
 import type { Fixture, GameState } from '../src/game/model'
 import { mulberry32 } from '../src/game/rng'
 
@@ -121,7 +121,7 @@ const inject = (g: GameState, fx: Fixture, att: number, venue?: { name: string; 
   // past the pre-season camp and launch questions, which fire first and
   // return - a real final lives in the forties anyway
   for (let i = 0; i < 4; i++) processWeekAndAdvance(g)
-  const abs = () => g.season * SEASON_WEEKS + g.week
+  const abs = () => absWeek(g.season, g.week)
   const final = (compId: string, id: number): Fixture => ({
     id, compId, round: 99, week: g.week, homeId: g.userClubId, awayId: 'leicester',
     played: true, homeScore: 28, awayScore: 12, homeTries: 3, awayTries: 1,

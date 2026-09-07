@@ -2,7 +2,7 @@
 // A living-world feed so there is always something happening between matches.
 
 import type { GameState, Player } from './model'
-import { RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
+import {absWeek, RELEGATES, SEASON_WEEKS, fmtMoney, formGuide, mgrReputation, poss } from './model'
 import { sortTable } from './schedule'
 import { clamp, gauss, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -667,7 +667,7 @@ function lawWatch(state: GameState, rng: Rng) {
   // items, so a busy month could push the last airing out of sight and re-arm
   // the wind-up early - and the old scan compared same-season only, so every
   // rollover reset the clock entirely. Absolute weeks survive both.
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
   if (state.lawWatchAt != null && now - state.lawWatchAt < 12) return
   state.lawWatchAt = now
   wire(state, pick2[0], {})
@@ -711,7 +711,7 @@ const GROUNDS: readonly string[] = [
 export function aroundTheGrounds(state: GameState) {
   // Once every seven weeks or so, on the calendar rather than on a dice roll.
   if (state.week % 7 !== 5) return
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
   if (state.groundsAt != null && now - state.groundsAt < 7) return
 
   // Somebody else's ground. Never yours - that is the point of the feature, so

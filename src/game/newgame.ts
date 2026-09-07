@@ -33,7 +33,7 @@ import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
-import { CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
+import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
@@ -169,6 +169,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     gender,
     saveName: '',
     season: 0,
+    basis: WEEK_BASIS,
     week: 1,
     userClubId,
     players: {},

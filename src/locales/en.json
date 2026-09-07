@@ -424,7 +424,7 @@
   "neutralVenueLower": "a neutral venue",
   "replaySub": " · {att} at {venue}",
   "friendlies": "Arrange a friendly",
-  "friendliesSub": "Midweek, against a club below you or from another country. No money in it - minutes for the academy.",
+  "friendliesSub": "Midweek, against a club below you.",
   "friendlyWeek": "Week {n}",
   "friendlyNone": "No week ahead has the three clear days either side that a friendly needs.",
   "friendlyPlay": "Invite"
@@ -1528,7 +1528,7 @@
   "loanCostLine": "Your share of his wage: {wage}/wk",
   "loanClose": "Not now",
   "loanDone": "Done",
-  "loanApproachSub": "Ask about a young player who was never offered. Harder than the list above, and a rival will not even take the call.",
+  "loanApproachSub": "Ask about a young player nobody offered.",
   "loanApproach": "Make an approach",
   "loanAsk": "Ask",
   "loanNoHits": "Nobody by that name you could develop. It has to be a player of 23 or under, fit, and not already out on loan."
@@ -4756,7 +4756,7 @@
   "friendlyBooked": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the men who have not had a game.",
   "friendlyBookedSubj": "Midweek friendly agreed: {short}",
   "islesOfferSubj": "An invitation from the four unions",
-  "islesOffer": "The four unions have written to you jointly. They want you to take the British & Irish Isles XV to {host} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.\n\nThere is no shortlist and no interview. They have chosen, and they are asking.\n\nIf you go, your assistant takes your national side for the duration."
+  "islesOffer": "The four unions have written to you jointly. They want you to take the British & Irish Isles XV to {host} this summer: seven provincial games and a three-Test series.\n\nThere is no shortlist and no interview. They have chosen, and they are asking. Your assistant takes your national side while you are away."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",

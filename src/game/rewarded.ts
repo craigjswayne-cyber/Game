@@ -13,12 +13,12 @@
  * way everything seasonal is. monetise.showRewarded() is the only way a spot
  * plays; nothing here runs unless the provider confirmed a completed view.
  */
-import { SEASON_WEEKS, fmtMoney, type GameState } from './model'
+import {absWeek, SEASON_WEEKS, fmtMoney, type GameState } from './model'
 import { bumpKnowledge } from './scout'
 import { clamp } from './rng'
 import { t, tIn } from './i18n'
 
-const abs = (state: GameState) => state.season * SEASON_WEEKS + state.week
+const abs = (state: GameState) => absWeek(state.season, state.week)
 const ledger = (state: GameState) => (state.rewarded ??= {})
 const weekCount = (slot: [number, number] | undefined, now: number) =>
   slot && slot[0] === now ? slot[1] : 0

@@ -1,6 +1,6 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
-import { SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
+import {absWeek, SEASON_WEEKS, pressAnswer, pressLabel, pressQuestion, pressReaction, weekDate } from '../../game/model'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS } from '../../game/media'
 import { t } from '../../game/i18n'
 
@@ -22,7 +22,7 @@ export default function Press() {
   // the rule changed, and on a save loaded mid-week.
   const now = game.season * SEASON_WEEKS + game.week
   const past = game.press
-    .filter(p => p.answered && now - (p.season * SEASON_WEEKS + p.week) <= PRESS_KEEP_WEEKS)
+    .filter(p => p.answered && now - (absWeek(p.season, p.week)) <= PRESS_KEEP_WEEKS)
     .reverse()
 
   return (

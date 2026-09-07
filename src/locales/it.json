@@ -424,7 +424,7 @@
   "neutralVenueLower": "campo neutro",
   "replaySub": " · {att} a {venue}",
   "friendlies": "Organizzare un’amichevole",
-  "friendliesSub": "Infrasettimanale, contro un club sotto di voi o di un altro paese. Nessun incasso: minuti per l’academy.",
+  "friendliesSub": "Infrasettimanale, contro un club inferiore.",
   "friendlyWeek": "Settimana {n}",
   "friendlyNone": "Nessuna settimana futura ha i tre giorni liberi da ciascun lato che un’amichevole richiede.",
   "friendlyPlay": "Invitare"
@@ -1528,7 +1528,7 @@
   "loanCostLine": "La tua quota del suo stipendio: {wage}/sett.",
   "loanClose": "Non ora",
   "loanDone": "Fatto",
-  "loanApproachSub": "Chiedi di un giovane che nessuno ti ha offerto. Più difficile della lista qui sopra, e una rivale non risponderà nemmeno.",
+  "loanApproachSub": "Sonda un giovane che nessuno ha offerto.",
   "loanApproach": "Fare un sondaggio",
   "loanAsk": "Chiedere",
   "loanNoHits": "Nessuno con quel nome che potresti far crescere. Serve un giocatore di 23 anni o meno, integro e non già in prestito."
@@ -4756,7 +4756,7 @@
   "friendlyBooked": "{club} verranno a {short} il mercoledì della settimana {week}. Nessun incasso degno di nota: quello che conta sono ottanta minuti per l’academy e per chi non gioca.",
   "friendlyBookedSubj": "Amichevole infrasettimanale concordata: {short}",
   "islesOfferSubj": "Un invito dalle quattro federazioni",
-  "islesOffer": "Le quattro federazioni ti hanno scritto insieme. Vogliono affidarti il XV delle Isole Britanniche e Irlandesi per il tour in {host} quest'estate: sette partite di provincia e una serie di tre test, una rosa presa da quattro paesi che ogni febbraio passano il tempo a volersi battere.\n\nNon c'è una rosa di candidati né un colloquio. Hanno scelto, e stanno chiedendo.\n\nSe parti, il tuo vice prende la tua nazionale per tutta la durata."
+  "islesOffer": "Le quattro federazioni ti hanno scritto insieme. Vogliono affidarti il XV delle Isole per il tour in {host} quest'estate: sette partite di provincia e una serie di tre test.\n\nNiente rosa di candidati, niente colloquio. Hanno scelto. Il tuo vice prende la nazionale mentre sei via."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",

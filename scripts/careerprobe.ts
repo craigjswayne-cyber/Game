@@ -21,7 +21,7 @@ import { processWeekAndAdvance } from '../src/game/season'
 import { DIFFICULTIES, difficultyOf } from '../src/game/difficulty'
 import { RELEASE_FLOOR, releaseBlock, releaseCost, releasePlayer } from '../src/game/release'
 import { appointStaff, sackCost, sackStaff, staffCandidates } from '../src/game/staff'
-import { SEASON_WEEKS, type GameState } from '../src/game/model'
+import { SEASON_WEEKS, type GameState, absWeek} from '../src/game/model'
 import { LOAN_LENGTHS, LOAN_SHARES, expireLoans, loanIn, loanTargets, loanTerms } from '../src/game/loans'
 import { mulberry32 } from '../src/game/rng'
 
@@ -177,7 +177,7 @@ say('\n--- 5. a loan is negotiated, not collected (v1.2.8)')
     const before = g.clubs[ok1.clubId!].players.length
     const line = loanIn(g, ok1.id, 'short', 1)
     ok(ok1.clubId === g.userClubId && ok1.loanFrom != null, `he arrives (${line})`)
-    ok(ok1.loanShare === 1 && ok1.loanUntil === g.season * SEASON_WEEKS + g.week + 13, 'the share and the date are written on him')
+    ok(ok1.loanShare === 1 && ok1.loanUntil === absWeek(g.season, g.week) + 13, 'the share and the date are written on him')
     const parentId = ok1.loanFrom!
     const rng = mulberry32(1)
     expireLoans(g, rng)

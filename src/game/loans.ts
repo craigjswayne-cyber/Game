@@ -1,7 +1,7 @@
 // The loan-in market: borrow tomorrow's stars from the big clubs' benches.
 
 import type { GameState, Player } from './model'
-import { SEASON_WEEKS, leagueTier } from './model'
+import {absWeek, SEASON_WEEKS, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
 import { t, tIn } from './i18n'
 import { clamp, mulberry32 } from './rng'
@@ -180,7 +180,7 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
       len_k: `transfers.loanLen${cap1(verdict.counter?.length ?? length)}`,
     })
   }
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
   parent.players = parent.players.filter(id => id !== p.id)
   parent.tactic.lineup = parent.tactic.lineup.map(id => (id === p.id ? null : id))
   user.players.push(p.id)
@@ -242,7 +242,7 @@ export function returnLoanIn(state: GameState, p: Player, rng: () => number, wee
 
 /** The loan-ins whose date has come. Run from the weekly settle. */
 export function expireLoans(state: GameState, rng: () => number): void {
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
   for (const p of Object.values(state.players)) {
     if (p.loanFrom && p.clubId === state.userClubId && p.loanUntil != null && now >= p.loanUntil) returnLoanIn(state, p, rng)
   }
@@ -260,7 +260,7 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     return { ok: false, msg: `${p.name} is in your starting XV. Drop him first if you mean it.` }
   }
   p.onLoan = true
-  p.loanSince = state.season * SEASON_WEEKS + state.week
+  p.loanSince = absWeek(state.season, state.week)
   // a NAMED feeder club (round 25, user: "say what club they are playing
   // for"): a real lower-tier side, picked deterministically per player, so
   // every postcard about him can say where he is. Cosmetic - he does not
@@ -305,7 +305,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
   // facilities, minutes - that the rest of the game is built on.
   //
   // So the recall now reads how long he was actually away.
-  const served = (state.season * SEASON_WEEKS + state.week) - (p.loanSince ?? 0)
+  const served = (absWeek(state.season, state.week)) - (p.loanSince ?? 0)
   if (served < 4) {
     const left = 4 - served
     return {
@@ -397,7 +397,7 @@ export function loanBuyOffer(state: GameState, playerId: number): LoanBuy | null
   // an old save's loan carries no stamp, and the honest reading of "no record
   // of him arriving" is that the trial has not been served, not that it has
   if (p.joinedAt == null) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
-  const served = (state.season * SEASON_WEEKS + state.week) - p.joinedAt
+  const served = (absWeek(state.season, state.week)) - p.joinedAt
   if (served < LOAN_BUY_MIN_WEEKS) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
   if (!willing) return { fee, willing, ok: false, k: 'reply.loanBuyCrucial' }
   // and only once they have said yes does the money become the question
