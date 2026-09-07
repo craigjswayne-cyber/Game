@@ -4754,7 +4754,9 @@
   "totyMineSubj": "The Team of the Year is worth money to us",
   "totyMine": "We have {n} in the Team of the Year: {names}. Replica shirts with those names are selling faster than we can print them, two promoters want an evening with them, and sponsors who ignored us in September are asking what an endorsement costs. Worth {money}, and none of it out of the playing budget.",
   "friendlyBooked": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the men who have not had a game.",
-  "friendlyBookedSubj": "Midweek friendly agreed: {short}"
+  "friendlyBookedSubj": "Midweek friendly agreed: {short}",
+  "islesOfferSubj": "An invitation from the four unions",
+  "islesOffer": "The four unions have written to you jointly. They want you to take the British & Irish Isles XV to {host} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.\n\nThere is no shortlist and no interview. They have chosen, and they are asking.\n\nIf you go, your assistant takes your national side for the duration."
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5929,5 +5931,18 @@
   "hardDesc": "Less money in the bank, a board that expects more, a physio room that is busier.",
   "legend": "Legend",
   "legendDesc": "Half the money, a board with no patience, and injuries that come in pairs."
+ },
+ "isles": {
+  "title": "The Isles XV",
+  "accept": "Take the tour",
+  "decline": "Turn it down",
+  "whyNoTour": "There is no tour this summer. They go once every four years.",
+  "whyNoJob": "You would need a job first.",
+  "whyNotIntl": "The four unions choose from coaches who are already running a national side - one of theirs.",
+  "whyNoTrophy": "They pick men who have won something. You have not, yet.",
+  "whyRep": "Your standing in the game is not yet what this job asks for. Nothing else in rugby asks for as much.",
+  "whyYes": "You meet every condition the four unions set.",
+  "took": "You are the head coach of the British & Irish Isles XV. Your assistant has your country until you are home.",
+  "passed": "You told them no. They will ask somebody else, and they will not ask you again this time."
  }
 }

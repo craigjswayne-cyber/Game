@@ -4754,7 +4754,9 @@
   "totyMineSubj": "La Squadra dell'Anno ci porta soldi",
   "totyMine": "Abbiamo {n} giocatori nella Squadra dell'Anno: {names}. Le maglie con i loro nomi vanno più veloci di quanto riusciamo a stamparle, due organizzatori vogliono una serata con loro, e sponsor muti a settembre chiedono quanto costa un contratto d'immagine. Vale {money}, senza toccare il budget sportivo.",
   "friendlyBooked": "{club} verranno a {short} il mercoledì della settimana {week}. Nessun incasso degno di nota: quello che conta sono ottanta minuti per l’academy e per chi non gioca.",
-  "friendlyBookedSubj": "Amichevole infrasettimanale concordata: {short}"
+  "friendlyBookedSubj": "Amichevole infrasettimanale concordata: {short}",
+  "islesOfferSubj": "Un invito dalle quattro federazioni",
+  "islesOffer": "Le quattro federazioni ti hanno scritto insieme. Vogliono affidarti il XV delle Isole Britanniche e Irlandesi per il tour in {host} quest'estate: sette partite di provincia e una serie di tre test, una rosa presa da quattro paesi che ogni febbraio passano il tempo a volersi battere.\n\nNon c'è una rosa di candidati né un colloquio. Hanno scelto, e stanno chiedendo.\n\nSe parti, il tuo vice prende la tua nazionale per tutta la durata."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha fatto i compiti a casa: {team} si è schierata apposta contro {pattern_k}. Cambia il copione, o gioca dentro il loro piano.",
@@ -5929,5 +5931,18 @@
   "hardDesc": "Meno soldi in cassa, una dirigenza che chiede di più, un’infermeria più piena.",
   "legend": "Leggenda",
   "legendDesc": "Metà dei soldi, una dirigenza senza pazienza e infortuni che arrivano a coppie."
+ },
+ "isles": {
+  "title": "Il XV delle Isole",
+  "accept": "Accettare il tour",
+  "decline": "Rifiutare",
+  "whyNoTour": "Quest'estate non c'è tour. Si va una volta ogni quattro anni.",
+  "whyNoJob": "Prima ti servirebbe un incarico.",
+  "whyNotIntl": "Le quattro federazioni scelgono fra chi guida già una nazionale, e una delle loro.",
+  "whyNoTrophy": "Prendono chi ha vinto qualcosa. Tu non ancora.",
+  "whyRep": "La tua statura non è ancora quella che questo incarico richiede. Niente altro nel rugby ne chiede altrettanta.",
+  "whyYes": "Soddisfi ogni condizione posta dalle quattro federazioni.",
+  "took": "Sei il tecnico del XV delle Isole Britanniche e Irlandesi. Il tuo vice tiene la nazionale fino al tuo ritorno.",
+  "passed": "Hai detto no. Lo chiederanno a un altro, e stavolta non torneranno da te."
  }
 }

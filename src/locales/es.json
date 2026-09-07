@@ -4754,7 +4754,9 @@
   "totyMineSubj": "El Equipo del Año nos da dinero",
   "totyMine": "Tenemos {n} en el Equipo del Año: {names}. Las camisetas con sus nombres se venden más rápido de lo que podemos estamparlas, dos promotores quieren una gala con ellos, y patrocinadores que en septiembre no llamaban preguntan cuánto cuesta una imagen personal. Supone {money}, sin tocar el presupuesto deportivo.",
   "friendlyBooked": "{club} vendrán a {short} el miércoles de la semana {week}. Sin taquilla que merezca la pena: lo que vale son ochenta minutos para la cantera y para quien no juega.",
-  "friendlyBookedSubj": "Amistoso entre semana acordado: {short}"
+  "friendlyBookedSubj": "Amistoso entre semana acordado: {short}",
+  "islesOfferSubj": "Una invitación de las cuatro federaciones",
+  "islesOffer": "Las cuatro federaciones te han escrito conjuntamente. Quieren que lleves al XV de las Islas Británicas e Irlandesas a {host} este verano: siete partidos provinciales y una serie de tres tests, un grupo sacado de cuatro países que se pasan cada febrero intentando ganarse entre ellos.\n\nNo hay lista ni entrevista. Han elegido, y te lo piden.\n\nSi vas, tu ayudante se hace cargo de tu selección mientras dure."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -5929,5 +5931,18 @@
   "hardDesc": "Menos dinero en caja, una directiva que exige más y una enfermería más llena.",
   "legend": "Leyenda",
   "legendDesc": "La mitad del dinero, una directiva sin paciencia y lesiones que vienen de dos en dos."
+ },
+ "isles": {
+  "title": "El XV de las Islas",
+  "accept": "Aceptar la gira",
+  "decline": "Rechazarla",
+  "whyNoTour": "Este verano no hay gira. Se hace cada cuatro años.",
+  "whyNoJob": "Primero necesitarías un puesto.",
+  "whyNotIntl": "Las cuatro federaciones eligen entre seleccionadores en activo, y de los suyos.",
+  "whyNoTrophy": "Escogen a quien ha ganado algo. Tú todavía no.",
+  "whyRep": "Tu prestigio aún no es el que pide este puesto. Nada en el rugby pide tanto.",
+  "whyYes": "Cumples todas las condiciones que ponen las cuatro federaciones.",
+  "took": "Eres el seleccionador del XV de las Islas Británicas e Irlandesas. Tu ayudante lleva tu selección hasta que vuelvas.",
+  "passed": "Dijiste que no. Se lo pedirán a otro, y esta vez no volverán a preguntarte."
  }
 }

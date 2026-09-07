@@ -1,5 +1,6 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS } from './gender'
+import { islesCoach, offerIsles } from './isles'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -624,8 +625,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         // stand-in gets generated (user: "there should be no age limits or
         // restrictions on who should be picked"). AI nations keep the floor
         // so the wider Test world's squad quality is untouched.
-        const usersNat = nat === state.natTeam ||
-          (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))
+        const usersNat = nat === state.natTeam || (nat === 'LIO' && islesCoach(state))
         // the squad, plus the next men in behind it
         const target = w.size + NAT_DEPTH
         const pool = Object.values(state.players)
@@ -739,7 +739,7 @@ function manageInternationals(state: GameState, rng: Rng) {
           } else if (p.clubId === state.userClubId) userCalls.push(p)
         }
         // the national coach announces HIS squad - a proper occasion
-        if (nat === state.natTeam || (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))) {
+        if (nat === state.natTeam || (nat === 'LIO' && islesCoach(state))) {
           const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
           // the squad sheet is the men who TRAVEL - the pool now runs deeper
           // than the squad, and the next men in are not in the announcement
@@ -1914,7 +1914,12 @@ function withDevelopmentSide(state: GameState, clubId: string, run: () => void):
 export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   if (!state.natTeam) return undefined
   const teams = [state.natTeam]
-  if (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)) teams.push('LIO')
+  // THE TOUR IS NOT A PERK OF THE NATIONAL JOB (owner, 7 Sep: "it is knly offer
+  // only"). Coaching one of the four unions used to hand a manager the touring
+  // side automatically, which made the pinnacle of a career a side effect of a
+  // job he already had. Now the unions have to have asked, and he has to have
+  // said yes.
+  if (islesCoach(state)) teams.push('LIO')
   return state.fixtures.find(f =>
     f.week === state.week && !f.played &&
     (teams.includes(f.homeId) || teams.includes(f.awayId)))
@@ -3684,6 +3689,23 @@ export function processWeekAndAdvance(state: GameState) {
   // the board's standing monthly item, three weeks off the awards beat so the
   // two never share an inbox (boardmemo.ts)
   boardMemo(state)
+
+  // ---- THE LETTER FROM THE FOUR UNIONS ----
+  // Once a season, in a tour year, and only for a manager who has met every one
+  // of the owner's four conditions. It arrives as an offer with no way to ask
+  // for it, which is the whole point of it.
+  if (offerIsles(state)) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+      subject: `An invitation from the four unions`,
+      body: `The four unions have written to you jointly. They want you to take the British & Irish Isles XV to ${state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? 'the southern hemisphere'} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.
+
+There is no shortlist and no interview. They have chosen, and they are asking.
+
+If you go, your assistant takes your national side for the duration. Nobody prepares a Test series eleven thousand miles from home and runs his own country in the same summer.`,
+      k: 'news.islesOffer', v: { host: state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? '' },
+    })
+  }
 
   // THE SECOND PLAYER OF THE MONTH USED TO LIVE HERE, AND IT HAD TO GO.
   //
