@@ -12,6 +12,7 @@
  * and loses three Tests has lost.
  */
 import { newGame } from '../src/game/newgame'
+import { assistantNatFixture, natFixtureThisWeek } from '../src/game/season'
 import { buildInternationals, buildWomensInternationals, isLionsSeason, isWomensTourSeason, TOUR_PROVINCIAL, TEST_NAMES, TOUR_WEEKS } from '../src/game/schedule'
 import { LEAGUE_DEFS } from '../src/game/newgame'
 import { W } from '../src/game/gender'
@@ -102,7 +103,41 @@ ok(['NZL', 'CAN', 'FRA'].includes(wHost ?? ''),
   `and it goes where it was sent - NZ, Canada or France (${wHost})`)
 ok(!wg.comps['lions'], 'the men\'s tour does not exist in a women\'s world')
 
+// ---- 6. the country still plays, and somebody else runs it ---------------
+console.log('\n--- 6. the assistant takes the country')
+ok(!!g.comps['tour'],
+  'a tour year still has a summer Test programme - the unions tour with what is left')
+const natFx = g.fixtures.filter(f => f.compId === 'tour')
+ok(natFx.length > 0, `${natFx.length} summer Tests alongside the tour`)
+ok(natFx.every(f => f.week <= Math.max(...TOUR_WEEKS)), 'all inside the summer')
+
+// with the job taken, the tour is the manager's match and the country is not
+const j = newGame('bath', 'Test', 31)
+j.season = tourSeason
+j.natTeam = 'ENG'
+buildInternationals(mulberry32(j.seed), j, false)
+j.isles = { season: j.season, answer: 'yes' }
+let mine = 0, assistants = 0
+for (const week of TOUR_WEEKS) {
+  j.week = week
+  const f = natFixtureThisWeek(j)
+  const a = assistantNatFixture(j)
+  if (f && (f.homeId === 'LIO' || f.awayId === 'LIO')) mine++
+  if (a) assistants++
+}
+console.log(`     across the five weeks: ${mine} matches are his, ${assistants} handed to the assistant`)
+ok(mine > 0, 'the tour matches are the ones he takes')
+ok(assistants > 0, 'and England\'s summer is run by somebody else')
+
+// and without the job, his country is his again
+const n = newGame('bath', 'Test', 31)
+n.season = tourSeason
+n.natTeam = 'ENG'
+buildInternationals(mulberry32(n.seed), n, false)
+n.week = TOUR_WEEKS[0]
+ok(!assistantNatFixture(n), 'a manager who did not take the tour keeps his own country')
+
 console.log('')
-if (fails === 0) console.log('TOUR PROBE PASSED: both games tour, ten matches each, three Tests, and never in the same summer')
+if (fails === 0) console.log('TOUR PROBE PASSED: both games tour, ten matches each, three Tests, and the country left in other hands')
 else console.log(`TOUR PROBE FAILED (${fails})`)
 process.exit(fails)

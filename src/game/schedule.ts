@@ -360,17 +360,12 @@ function buildSummer(rng: Rng, state: GameState) {
     // other southern countries, which is exactly what a real tour does when it
     // fills a Tuesday with a combined invitational XV.
     //
-    // WHY IT IS COMPRESSED INTO TWO WEEKS, HONESTLY. A real tour is ten matches
-    // over six weeks in June and July. This game's season is 45 weeks and the
-    // club finals run to week 43, so weeks 44 and 45 are the entire summer -
-    // and SEASON_WEEKS cannot be lengthened, because 37 places in the engine
-    // stamp an absolute week as `absWeek(season, week)` into saves, so
-    // moving it would shift every stored loan return, injury date and maternity
-    // date in every career in progress. The alternative was running the tour
-    // over weeks 41-43 and taking a manager's best players away for his club's
-    // own semi-final and final, which is both worse rugby and worse history: a
-    // real tour departs AFTER the domestic season for exactly that reason. So
-    // the fixtures are dense and the shape is right, rather than the reverse.
+    // FIVE WEEKS, AFTER THE DOMESTIC SEASON. The club finals end at week 43 and
+    // the season runs to 48, so the tour has the summer to itself - which is
+    // where a real tour is. It was compressed into two weeks until the owner
+    // asked for five ("one midweek game, one weekend game"), and making room
+    // meant growing the season, which in turn meant taking every absolute-week
+    // stamp off the season length. See WEEK_BASIS in model.ts.
     const hostName = host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'
     const SOUTH = ['NZL', 'AUS', 'RSA', 'FIJ', 'ARG', 'JPN']
     const provincial = [
@@ -388,17 +383,39 @@ function buildSummer(rng: Rng, state: GameState) {
     }
     buildTourFixtures(state, 'lions', host, midweek)
     state.comps['lions'] = comp
+    // ---- AND THE COUNTRIES STILL PLAY ----
+    //
+    // A tour year used to mean nobody else had a summer at all: this function
+    // returned here, so England, France, Italy and the rest simply did not
+    // play, and a manager who coached a country had three empty weeks in a
+    // season that was supposed to be the biggest of his career.
+    //
+    // In reality the unions tour anyway, with what the tour party left behind.
+    // That is the point of the owner's "assistant takes over of national team
+    // while you do this job" - there has to be a national team doing something
+    // for an assistant to take over. Two Tests rather than the usual series,
+    // because the best players are on the other side of the world.
+    buildSummerTests(rng, state, 2)
     return
   }
-  // classic July tours: north heads south for two-Test series
+  buildSummerTests(rng, state, 2)
+}
+
+/** The July programme: north heads south for a short Test series. `rounds` is
+ *  two in an ordinary year and two in a tour year as well - but in a tour year
+ *  the squads are what the touring party left at home, which the selection
+ *  already handles, because a man away with the Isles XV is unavailable to his
+ *  country exactly as he is to his club. */
+function buildSummerTests(rng: Rng, state: GameState, rounds: number) {
   const north = shuffled(rng, ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'])
   const south = shuffled(rng, ['NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'])
+  const weeks = SUMMER_TEST_WEEKS.slice(0, rounds)
   const comp: Competition = {
     id: 'tour', name: 'Summer Tours', short: 'Summer Tours', type: 'intl',
-    teamIds: [...north, ...south], table: [], rounds: 2, playoffTeams: 0,
-    weeksByRound: SUMMER_TEST_WEEKS, koWeeks: [], isNational: true,
+    teamIds: [...north, ...south], table: [], rounds: weeks.length, playoffTeams: 0,
+    weeksByRound: weeks, koWeeks: [], isNational: true,
   }
-  SUMMER_TEST_WEEKS.forEach((week, r) => {
+  weeks.forEach((week, r) => {
     north.forEach((n, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: 'tour', round: r, week,
