@@ -1038,9 +1038,9 @@ export function rebuildSeason(state: GameState) {
       }
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'intl', read: false,
-        subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+        subject: `🔴 The tourists come home${seriesWon ? ' as series winners' : ''}`,
         body: [
-          `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+          `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
           seriesWon
             ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
             : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,

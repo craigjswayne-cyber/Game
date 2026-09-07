@@ -1893,7 +1893,7 @@
     "drops": "Drops",
     "cards": "Cartons",
     "motm": "⭐ Homme du match",
-    "lions": "🦁 Tournée des Lions",
+    "lions": "🔴 Tournée des Îles",
     "wcWinner": "🏆 Champion du monde",
     "lastMatch": "Dernier match",
     "development": "Progression",
@@ -2194,7 +2194,7 @@
     "colCompetition": "Compétition",
     "colChampions": "Champions",
     "compWc": "Championnat du monde",
-    "compLions": "Tournée des Lions",
+    "compLions": "Tournée des Îles",
     "compTour": "Tournées d'été",
     "compAut": "Tests d'automne",
     "compPnc": "Coupe des îles du Pacifique",
@@ -2472,7 +2472,7 @@
     "natAut": "Tests d'automne",
     "natBetween": "Entre deux fenêtres. Le groupe probable ci-dessous reflète la forme actuelle en club - les convocations se font automatiquement à l'ouverture d'une fenêtre.",
     "natColNation": "Nation",
-    "natLions": "🦁 Tournée des Lions",
+    "natLions": "🔴 Tournée des Îles",
     "natPnc": "🌺 Coupe des îles",
     "natResults": "Résultats et calendrier",
     "natSn": "Tournoi du Nord",
@@ -3334,10 +3334,10 @@
       "other": "{newCaps} joueurs sans sélection dans le groupe."
     },
     "natSquadCapped": "Un groupe entièrement composé d'internationaux.",
-    "lionsCallASubj": "🦁 LIONS : {subj_k} partent en tournée",
-    "lionsCallA": "L'appel dont rêve chaque joueur de ces îles : {names} {is_k} de la tournée {tour}. Tout le club marche la tête haute ce matin.\n{he_k} sera absent pendant la fenêtre de tournée. Préparez la fin de saison en conséquence - et accueillez le retour d'un Lion.",
-    "lionsCallBSubj": "🦁 LIONS : {subj_k} partent en tournée",
-    "lionsCallB": "Le groupe de {tour} est sorti, et le nom du club y figure : {names}. L'entraînement s'est arrêté pour l'annonce. Personne n'a rien dit.\n{he_k} sera absent pendant la fenêtre de tournée. Préparez la fin de saison en conséquence - et accueillez le retour d'un Lion.",
+    "lionsCallASubj": "🔴 LA TOURNÉE : {subj_k} sont sélectionnés",
+    "lionsCallA": "L'appel dont rêve chaque joueur de ces îles : {names} {is_k} de la tournée {tour}. Tout le club marche la tête haute ce matin.\n{he_k} sera absent pendant la fenêtre de tournée. Préparez la fin de saison en conséquence - et accueillez le retour d'un tournéiste.",
+    "lionsCallBSubj": "🔴 LA TOURNÉE : {subj_k} sont sélectionnés",
+    "lionsCallB": "Le groupe de {tour} est sorti, et le nom du club y figure : {names}. L'entraînement s'est arrêté pour l'annonce. Personne n'a rien dit.\n{he_k} sera absent pendant la fenêtre de tournée. Préparez la fin de saison en conséquence - et accueillez le retour d'un tournéiste.",
     "lionsSubjOne": "{who}",
     "lionsSubjMany": "{who} des vôtres",
     "isOne": "est",
@@ -3350,10 +3350,10 @@
     "comeMany": "ils reviennent",
     "callUpsSubj": "Convocations internationales",
     "callUps": "Les joueurs suivants ont été convoqués et seront indisponibles pendant la fenêtre internationale : {names}.",
-    "lionsHomeSubj": "🦁 Les Lions rentrent au club",
-    "lionsHome": "De retour aux couleurs du club après {tour} : {names}. Victoire ou défaite, une tournée change un joueur - {come_k} avec une présence plus forte dans ce vestiaire. Le staff médical conseille tout de même la prudence : un été avec les Lions vide le réservoir comme rien d'autre.",
-    "lionsHomeWonSubj": "🦁 Les Lions rentrent vainqueurs de la série",
-    "lionsHomeWon": "De retour aux couleurs du club après {tour} : {names}. Une série gagnée dans les bagages, et un statut que l'argent n'achète pas. Attendez-vous à {him_k} voir marcher la tête haute ici aussi. Le staff médical conseille tout de même la prudence : un été avec les Lions vide le réservoir comme rien d'autre.",
+    "lionsHomeSubj": "🔴 Les tournéistes rentrent au club",
+    "lionsHome": "De retour aux couleurs du club après {tour} : {names}. Victoire ou défaite, une tournée change un joueur - {come_k} avec une présence plus forte dans ce vestiaire. Le staff médical conseille tout de même la prudence : un été de tournée vide le réservoir comme rien d'autre.",
+    "lionsHomeWonSubj": "🔴 Les tournéistes rentrent vainqueurs de la série",
+    "lionsHomeWon": "De retour aux couleurs du club après {tour} : {names}. Une série gagnée dans les bagages, et un statut que l'argent n'achète pas. Attendez-vous à {him_k} voir marcher la tête haute ici aussi. Le staff médical conseille tout de même la prudence : un été de tournée vide le réservoir comme rien d'autre.",
     "intlBackSubj": "Retour des internationaux - les jambes lourdes",
     "intlBack": "De retour aux couleurs du club : {names}. L'avis du staff médical est sans détour : le rugby international vide le réservoir, et aucun d'eux n'est à pleine fraîcheur cette semaine. Faites tourner ou prenez le risque - à vous de voir.",
     "hisMentor": "son mentor",
@@ -4176,7 +4176,7 @@
     "chalPirates": "Penzance en Premier Division. La Cornouailles a enfin un club de l'élite, et il est le vôtre.",
     "invinciblesSubj": "🛡️ LES INVINCIBLES : {club} termine la saison sans défaite",
     "invincibles": "{n} matchs officiels. Zéro défaite. Quoi que ce club fasse d'autre un jour, cette saison vit désormais hors des livres de records, à l'endroit où ce sport range ses légendes. On donnera le nom de cette équipe à d'autres. {manager} a bâti l'équipe que personne ne pouvait battre.",
-    "theLionsTour": "la tournée des Lions",
+    "theLionsTour": "la tournée des Îles",
     "backItUpSubj": "📦 {season} est dans les livres : faites une sauvegarde",
     "backItUp": "Une saison entière, et elle ne vit que dans ce navigateur. L'État du jeu propose un bouton Exporter la carrière qui écrit le tout dans un fichier. Une pression, et la carrière survit à tout ce que fera le navigateur. À faire à chaque intersaison.",
     "preVoidSubj": "Pré-contrat annulé : {player}",
@@ -4753,7 +4753,8 @@
     "totyLine": "{n}. {name} ({pos}) - {club}",
     "totyMineSubj": "L'équipe de l'année nous rapporte de l'argent",
     "totyMine": "Nous avons {n} joueur(s) dans l'équipe de l'année : {names}. Les maillots floqués partent plus vite qu'on ne les imprime, deux promoteurs veulent une soirée avec eux, et des sponsors muets en septembre demandent le prix d'un contrat d'image. Cela rapporte {money}, sans toucher au budget sportif.",
-    "friendlyBooked": "{club} viendront à {short} le mercredi de la semaine {week}. Aucune recette digne de ce nom : ce qui compte, ce sont quatre-vingts minutes pour l'académie et pour ceux qui ne jouent pas."
+    "friendlyBooked": "{club} viendront à {short} le mercredi de la semaine {week}. Aucune recette digne de ce nom : ce qui compte, ce sont quatre-vingts minutes pour l'académie et pour ceux qui ne jouent pas.",
+    "friendlyBookedSubj": "Match amical en semaine confirmé : {short}"
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5300,7 +5301,7 @@
     "ROU": "Roumanie",
     "NAM": "Namibie",
     "CHL": "Chili",
-    "LIO": "Lions du Nord"
+    "LIO": "XV des Îles Britanniques et Irlandaises"
   },
   "nationThe": {
     "RSA": "l'Afrique du Sud",
@@ -5326,7 +5327,7 @@
     "ROU": "la Roumanie",
     "NAM": "la Namibie",
     "CHL": "le Chili",
-    "LIO": "les Lions du Nord"
+    "LIO": "le XV des Îles"
   },
   "nationCap": {
     "RSA": "L'Afrique du Sud",
@@ -5352,7 +5353,7 @@
     "ROU": "La Roumanie",
     "NAM": "La Namibie",
     "CHL": "Le Chili",
-    "LIO": "Les Lions du Nord"
+    "LIO": "Le XV des Îles"
   },
   "press": {
     "campQ1": "Présaison, et le service performance attend une décision. Le budget permet une semaine spéciale : un stage au chaud à l'étranger, une semaine avec la ville, ou la tournée d'exhibition du sponsor. Laquelle ?",

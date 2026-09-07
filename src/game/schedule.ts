@@ -303,20 +303,27 @@ function buildWorldCup(rng: Rng, state: GameState) {
   state.comps['wc'] = comp
 }
 
-/** Lions years: 2029, 2033, ... (every 4th season, offset from the World Championship). */
+/** Tour years: 2029, 2033, ... (every 4th season, offset from the World
+ *  Championship, which puts the tour exactly two years off a World Cup - the
+ *  real cycle, and what the owner asked for: "2 away from a world cup").
+ *
+ *  The FUNCTION and the competition id still say "lions" because both are
+ *  written into every save ever made and neither is ever shown to a player. The
+ *  display name is the British & Irish Isles XV (owner, 7 Sep: "we shouldn't
+ *  say Lions... should just be british and irish isles xv tour"). */
 export function isLionsSeason(season: number): boolean {
   return (BASE_YEAR + season) % 4 === 1 && season > 0
 }
 
-/** Summer theatre: either a Lions series or north-south tours close the season. */
+/** Summer theatre: either an Isles XV series or north-south tours close the season. */
 function buildSummer(rng: Rng, state: GameState) {
   const season = state.season
   if (isLionsSeason(season)) {
     const hosts = ['NZL', 'RSA', 'AUS']
     const host = hosts[Math.floor((BASE_YEAR + season - 2029) / 4) % 3]
     const comp: Competition = {
-      id: 'lions', name: `Northern Lions Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
-      short: 'Lions Tour', type: 'intl',
+      id: 'lions', name: `British & Irish Isles Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
+      short: 'Isles Tour', type: 'intl',
       teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 2, playoffTeams: 0,
       weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
     }
@@ -441,7 +448,7 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
  * Deliberately NOT buildInternationals with different arguments. That function
  * builds five competitions shaped around the men's game - a Southern
  * Championship of four unions, a Pacific Islands Cup of six, an autumn series
- * pairing north against south, a Lions tour - and not one of them has a women's
+ * pairing north against south, an Isles XV tour - and not one of them has a women's
  * counterpart of the same shape. The women's international game is two
  * tournaments, so this builds two, and when WXV is added it will be a third
  * rather than a men's window renamed.

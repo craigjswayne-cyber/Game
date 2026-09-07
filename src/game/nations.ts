@@ -36,7 +36,7 @@ export const NATIONS: Nation[] = [
   { code: 'ROU', name: 'Romania', flag: '🇷🇴', rep: 55 },
   { code: 'NAM', name: 'Namibia', flag: '🇳🇦', rep: 52 },
   { code: 'CHL', name: 'Chile', flag: '🇨🇱', rep: 54 },
-  { code: 'LIO', name: 'Northern Lions', flag: '🦁', rep: 93 },
+  { code: 'LIO', name: 'British & Irish Isles XV', flag: '🔴', rep: 93 },
 ]
 
 export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)

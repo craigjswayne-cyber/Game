@@ -1893,7 +1893,7 @@
   "drops": "Drops",
   "cards": "Tarjetas",
   "motm": "⭐ MVP",
-  "lions": "🦁 De gira con los Lions",
+  "lions": "🔴 De gira con el XV de las Islas",
   "wcWinner": "🏆 Campeón del World Championship",
   "lastMatch": "Último partido",
   "development": "Progresión",
@@ -2194,7 +2194,7 @@
   "colCompetition": "Competición",
   "colChampions": "Campeón",
   "compWc": "World Championship",
-  "compLions": "Gira de los Lions",
+  "compLions": "Gira de las Islas",
   "compTour": "Giras de verano",
   "compAut": "Test de otoño",
   "compPnc": "Pacific Islands Cup",
@@ -2472,7 +2472,7 @@
   "natAut": "Tests de otoño",
   "natBetween": "Entre ventanas. La lista probable de abajo refleja la forma actual en los clubes: las convocatorias llegan solas cuando se abre una ventana.",
   "natColNation": "Selección",
-  "natLions": "🦁 Gira de los Lions",
+  "natLions": "🔴 Gira de las Islas",
   "natPnc": "🌺 Copa de las Islas",
   "natResults": "Resultados y calendario",
   "natSn": "Campeonato del Norte",
@@ -3334,10 +3334,10 @@
    "other": "{newCaps} jugadores sin caps en la concentración."
   },
   "natSquadCapped": "Un grupo con todos ya internacionales.",
-  "lionsCallASubj": "🦁 LIONS: {subj_k}, rumbo a la gira",
-  "lionsCallA": "La llamada con la que sueña todo jugador de estas islas: {names} {is_k} a {tour}. Hoy todo el club camina un poco más erguido.\n{he_k} durante la ventana de la gira. Planifica el tramo final en consecuencia... y prepárate para recibir de vuelta a un Lion.",
-  "lionsCallBSubj": "🦁 LIONS: {subj_k}, rumbo a la gira",
-  "lionsCallB": "La lista de {tour} ya es pública, y el nombre del club está en ella: {names}. El entrenamiento se paró para ver el anuncio. Nadie protestó.\n{he_k} durante la ventana de la gira. Planifica el tramo final en consecuencia... y prepárate para recibir de vuelta a un Lion.",
+  "lionsCallASubj": "🔴 LA GIRA: {subj_k}, en la convocatoria",
+  "lionsCallA": "La llamada con la que sueña todo jugador de estas islas: {names} {is_k} a {tour}. Hoy todo el club camina un poco más erguido.\n{he_k} durante la ventana de la gira. Planifica el tramo final en consecuencia... y prepárate para recibir de vuelta a un expedicionario.",
+  "lionsCallBSubj": "🔴 LA GIRA: {subj_k}, en la convocatoria",
+  "lionsCallB": "La lista de {tour} ya es pública, y el nombre del club está en ella: {names}. El entrenamiento se paró para ver el anuncio. Nadie protestó.\n{he_k} durante la ventana de la gira. Planifica el tramo final en consecuencia... y prepárate para recibir de vuelta a un expedicionario.",
   "lionsSubjOne": "{who}",
   "lionsSubjMany": "{who} de los tuyos",
   "isOne": "se va",
@@ -3350,10 +3350,10 @@
   "comeMany": "vuelven",
   "callUpsSubj": "Convocatorias internacionales",
   "callUps": "Los siguientes jugadores han sido convocados y no estarán disponibles durante la ventana internacional: {names}.",
-  "lionsHomeSubj": "🦁 Los Lions vuelven a casa",
-  "lionsHome": "De vuelta con los colores del club tras {tour}: {names}. Se gane o se pierda, una gira cambia a un jugador: {come_k} a este vestuario con más presencia. Aun así, los médicos piden cautela: un verano con los Lions vacía el depósito como ninguna otra cosa.",
-  "lionsHomeWonSubj": "🦁 Los Lions vuelven a casa con la serie ganada",
-  "lionsHomeWon": "De vuelta con los colores del club tras {tour}: {names}. Una serie ganada en la maleta y un prestigio que el dinero no compra. Cuenta con que aquí también {him_k} con la cabeza más alta. Aun así, los médicos piden cautela: un verano con los Lions vacía el depósito como ninguna otra cosa.",
+  "lionsHomeSubj": "🔴 Los expedicionarios vuelven a casa",
+  "lionsHome": "De vuelta con los colores del club tras {tour}: {names}. Se gane o se pierda, una gira cambia a un jugador: {come_k} a este vestuario con más presencia. Aun así, los médicos piden cautela: un verano de gira vacía el depósito como ninguna otra cosa.",
+  "lionsHomeWonSubj": "🔴 Los expedicionarios vuelven con la serie ganada",
+  "lionsHomeWon": "De vuelta con los colores del club tras {tour}: {names}. Una serie ganada en la maleta y un prestigio que el dinero no compra. Cuenta con que aquí también {him_k} con la cabeza más alta. Aun así, los médicos piden cautela: un verano de gira vacía el depósito como ninguna otra cosa.",
   "intlBackSubj": "Vuelven los internacionales, con las piernas justas",
   "intlBack": "De vuelta con los colores del club: {names}. El aviso de los médicos es claro: el rugby de test matches vacía el depósito y ninguno llega fresco esta semana. Rota o arriésgate: tú decides.",
   "hisMentor": "su mentor",
@@ -4172,7 +4172,7 @@
   "chalPirates": "Penzance, a la Premier Division. Cornualles tiene por fin un club en la élite, y es el tuyo.",
   "invinciblesSubj": "🛡️ LOS INVENCIBLES: {club} acaba la temporada imbatido",
   "invincibles": "{n} partidos oficiales. Cero derrotas. Haga lo que haga este club en el futuro, esta temporada ya vive fuera de los libros de récords, en el lugar donde el rugby guarda sus leyendas. A otros equipos los bautizarán con el nombre de este. {manager} construyó el equipo que nadie pudo batir.",
-  "theLionsTour": "la gira de los Lions",
+  "theLionsTour": "la gira de las Islas",
   "backItUpSubj": "📦 {season} queda en los libros: haz copia",
   "backItUp": "Una temporada entera completada, y vive en este navegador y en ningún otro sitio. En Estado de la partida hay un botón Exportar carrera que lo guarda todo en un archivo. Un toque, y la carrera sobrevivirá a lo que haga el navegador. Merece la pena en cada cambio de temporada.",
   "preVoidSubj": "Precontrato anulado: {player}",
@@ -4753,7 +4753,8 @@
   "totyLine": "{n}. {name} ({pos}) - {club}",
   "totyMineSubj": "El Equipo del Año nos da dinero",
   "totyMine": "Tenemos {n} en el Equipo del Año: {names}. Las camisetas con sus nombres se venden más rápido de lo que podemos estamparlas, dos promotores quieren una gala con ellos, y patrocinadores que en septiembre no llamaban preguntan cuánto cuesta una imagen personal. Supone {money}, sin tocar el presupuesto deportivo.",
-  "friendlyBooked": "{club} vendrán a {short} el miércoles de la semana {week}. Sin taquilla que merezca la pena: lo que vale son ochenta minutos para la cantera y para quien no juega."
+  "friendlyBooked": "{club} vendrán a {short} el miércoles de la semana {week}. Sin taquilla que merezca la pena: lo que vale son ochenta minutos para la cantera y para quien no juega.",
+  "friendlyBookedSubj": "Amistoso entre semana acordado: {short}"
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -5300,7 +5301,7 @@
   "ROU": "Rumanía",
   "NAM": "Namibia",
   "CHL": "Chile",
-  "LIO": "Northern Lions"
+  "LIO": "XV de las Islas Británicas e Irlandesas"
  },
  "nationThe": {
   "RSA": "Sudáfrica",
@@ -5326,7 +5327,7 @@
   "ROU": "Rumanía",
   "NAM": "Namibia",
   "CHL": "Chile",
-  "LIO": "los Northern Lions"
+  "LIO": "el XV de las Islas"
  },
  "nationCap": {
   "RSA": "Sudáfrica",
@@ -5352,7 +5353,7 @@
   "ROU": "Rumanía",
   "NAM": "Namibia",
   "CHL": "Chile",
-  "LIO": "Northern Lions"
+  "LIO": "El XV de las Islas"
  },
  "press": {
   "campQ1": "Pretemporada, y el área de rendimiento quiere una decisión. El presupuesto da para una semana especial: una concentración al sol en el extranjero, una semana comunitaria en casa o la gira de exhibición del patrocinador. ¿Cuál eliges?",
