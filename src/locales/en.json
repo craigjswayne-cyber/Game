@@ -1522,7 +1522,11 @@
   "loanSheetSub": "Loan terms with {club}",
   "loanCostLine": "Your share of his wage: {wage}/wk",
   "loanClose": "Not now",
-  "loanDone": "Done"
+  "loanDone": "Done",
+  "loanApproachSub": "Ask about a young player who was never offered. Harder than the list above, and a rival will not even take the call.",
+  "loanApproach": "Make an approach",
+  "loanAsk": "Ask",
+  "loanNoHits": "Nobody by that name you could develop. It has to be a player of 23 or under, fit, and not already out on loan."
  },
  "objectives": {
   "youth": "Blood the academy: give 6+ starts to players aged 21 or under",
@@ -2029,7 +2033,10 @@
    "other": "{n} weeks out"
   },
   "signAsMarquee": "Sign him as a marquee player ({n} slots free): his wage sits outside the salary cap",
-  "signAsMarqueeOne": "Sign him as a marquee player (last slot): his wage sits outside the salary cap"
+  "signAsMarqueeOne": "Sign him as a marquee player (last slot): his wage sits outside the salary cap",
+  "loanBuyLine": "He is here on loan. After {n} weeks with you, his parent club will listen to a permanent offer of {fee}.",
+  "loanBuy": "Buy him for {fee}",
+  "loanBuyConfirm": "Pay it - he is ours"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5160,7 +5167,12 @@
   "unavailable": "Unavailable.",
   "loanCounterShare": "{club} would listen if you carried {share}% of his wage.",
   "loanCounterLength": "{club} want him out for longer: they would agree to a loan {len_k}.",
-  "loanRefused": "{club} turn it down flat. They are not letting him go on those terms."
+  "loanRefused": "{club} turn it down flat. They are not letting him go on those terms.",
+  "loanRivalNo": "{club} are rivals of yours - they put the phone down before you finish the sentence. Nobody strengthens the team they most want to beat.",
+  "loanBuyTooSoon": "Too early. {club} want to see him play some rugby for you before they talk about selling him.",
+  "loanBuyNoFunds": "The option is there at {fee}, and the transfer budget will not cover it.",
+  "loanBuyCrucial": "{club} say no. He has grown into somebody they need - the loan was meant to develop him for them, not for you.",
+  "loanBuyAgreed": "Done. {player} is yours permanently for {fee}. The loan ends the moment the money clears."
  },
  "verdict": {
   "titleFavourites": "Title favourites",

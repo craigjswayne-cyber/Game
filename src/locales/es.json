@@ -1522,7 +1522,11 @@
   "loanSheetSub": "Condiciones de la cesión con el {club}",
   "loanCostLine": "Tu parte de su salario: {wage}/sem.",
   "loanClose": "Ahora no",
-  "loanDone": "Hecho"
+  "loanDone": "Hecho",
+  "loanApproachSub": "Pregunta por un joven que nadie te ofreció. Más difícil que la lista de arriba, y un rival ni siquiera cogerá el teléfono.",
+  "loanApproach": "Hacer una consulta",
+  "loanAsk": "Preguntar",
+  "loanNoHits": "Nadie con ese nombre a quien pudieras formar. Debe ser un jugador de 23 años o menos, en forma y no cedido ya."
  },
  "objectives": {
   "youth": "Curte a la cantera: da 6 o más titularidades a jugadores de 21 años o menos",
@@ -2029,7 +2033,10 @@
    "other": "{n} semanas de baja"
   },
   "signAsMarquee": "Ficharlo como jugador franquicia ({n} plazas libres): su salario queda fuera del tope",
-  "signAsMarqueeOne": "Ficharlo como jugador franquicia (última plaza): su salario queda fuera del tope"
+  "signAsMarqueeOne": "Ficharlo como jugador franquicia (última plaza): su salario queda fuera del tope",
+  "loanBuyLine": "Está aquí cedido. Tras {n} semanas contigo, su club de origen escuchará una oferta en propiedad de {fee}.",
+  "loanBuy": "Comprarlo por {fee}",
+  "loanBuyConfirm": "Pagar - es nuestro"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5160,7 +5167,12 @@
   "unavailable": "No disponible.",
   "loanCounterShare": "El {club} escucharía si asumieras el {share}% de su salario.",
   "loanCounterLength": "El {club} quiere que salga más tiempo: aceptarían una cesión {len_k}.",
-  "loanRefused": "El {club} lo rechaza de plano. No lo sueltan en esas condiciones."
+  "loanRefused": "El {club} lo rechaza de plano. No lo sueltan en esas condiciones.",
+  "loanRivalNo": "{club} son rivales vuestros: cuelgan antes de que termines la frase. Nadie refuerza al equipo al que más quiere ganar.",
+  "loanBuyTooSoon": "Demasiado pronto. {club} quieren verlo jugar contigo antes de hablar de venderlo.",
+  "loanBuyNoFunds": "La opción está ahí por {fee}, y el presupuesto de fichajes no llega.",
+  "loanBuyCrucial": "{club} dicen que no. Se ha convertido en alguien que necesitan: la cesión debía formarlo para ellos, no para ti.",
+  "loanBuyAgreed": "Hecho. {player} es tuyo en propiedad por {fee}. La cesión termina en cuanto se abone el dinero."
  },
  "verdict": {
   "titleFavourites": "Favoritos al título",

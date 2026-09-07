@@ -1522,7 +1522,11 @@
   "loanSheetSub": "Condizioni del prestito con il {club}",
   "loanCostLine": "La tua quota del suo stipendio: {wage}/sett.",
   "loanClose": "Non ora",
-  "loanDone": "Fatto"
+  "loanDone": "Fatto",
+  "loanApproachSub": "Chiedi di un giovane che nessuno ti ha offerto. Più difficile della lista qui sopra, e una rivale non risponderà nemmeno.",
+  "loanApproach": "Fare un sondaggio",
+  "loanAsk": "Chiedere",
+  "loanNoHits": "Nessuno con quel nome che potresti far crescere. Serve un giocatore di 23 anni o meno, integro e non già in prestito."
  },
  "objectives": {
   "youth": "Lancia l'academy: almeno 6 partite da titolare a giocatori di 21 anni o meno",
@@ -2029,7 +2033,10 @@
    "other": "{n} settimane di stop"
   },
   "signAsMarquee": "Firmarlo come giocatore di punta ({n} posti liberi): il suo stipendio esce dal tetto",
-  "signAsMarqueeOne": "Firmarlo come giocatore di punta (ultimo posto): il suo stipendio esce dal tetto"
+  "signAsMarqueeOne": "Firmarlo come giocatore di punta (ultimo posto): il suo stipendio esce dal tetto",
+  "loanBuyLine": "È qui in prestito. Dopo {n} settimane da te, il suo club ascolterà un’offerta a titolo definitivo di {fee}.",
+  "loanBuy": "Comprarlo per {fee}",
+  "loanBuyConfirm": "Pagare - è nostro"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5160,7 +5167,12 @@
   "unavailable": "Non disponibile.",
   "loanCounterShare": "Il {club} ci penserebbe se ti caricassi il {share}% dello stipendio.",
   "loanCounterLength": "Il {club} vuole che stia fuori più a lungo: accetterebbe un prestito {len_k}.",
-  "loanRefused": "Il {club} rifiuta secco. Non lo lascia andare a queste condizioni."
+  "loanRefused": "Il {club} rifiuta secco. Non lo lascia andare a queste condizioni.",
+  "loanRivalNo": "{club} sono vostri rivali: mettono giù prima che tu finisca la frase. Nessuno rinforza la squadra che più vuole battere.",
+  "loanBuyTooSoon": "Troppo presto. {club} vogliono vederlo giocare da te prima di parlare di cessione.",
+  "loanBuyNoFunds": "L'opzione c'è a {fee}, e il budget trasferimenti non basta.",
+  "loanBuyCrucial": "{club} dicono no. È diventato uno di cui hanno bisogno: il prestito doveva formarlo per loro, non per te.",
+  "loanBuyAgreed": "Fatto. {player} è tuo a titolo definitivo per {fee}. Il prestito finisce appena il denaro arriva."
  },
  "verdict": {
   "titleFavourites": "Favorita per il titolo",

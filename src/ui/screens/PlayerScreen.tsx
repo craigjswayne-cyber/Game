@@ -8,7 +8,7 @@ import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { canAgencyFile } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
-import { loanOut, loanRecall } from '../../game/loans'
+import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS } from '../../game/cap'
 import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
@@ -425,6 +425,38 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
           </div>
         </div>
       )}
+
+      {/* ---- LOAN TO BUY ----
+          Owner, 7 Sep: "you should also do a loan to buy scheme where if things
+          go well you can offer to buy the player at the value." It only appears
+          on a player who is actually here on loan, and it says what it would
+          cost BEFORE you press anything - including when the answer is going to
+          be no, because "they will not sell him" is information you want while
+          there is still time to plan around it. */}
+      {mine && p.loanFrom && (() => {
+        const buy = loanBuyOffer(game, p.id)
+        if (!buy) return null
+        return (
+          <div className="panel" style={{ marginTop: 10 }}>
+            <div className="meta" style={{ marginBottom: 6 }}>
+              {t('player.loanBuyLine', { fee: fmtMoney(buy.fee), n: LOAN_BUY_MIN_WEEKS })}
+            </div>
+            {buy.ok ? (
+              <TwoStep className="btn block" label={t('player.loanBuy', { fee: fmtMoney(buy.fee) })}
+                confirm={t('player.loanBuyConfirm')}
+                onConfirm={() => {
+                  const r = loanBuy(game, p.id)
+                  setMsg(t(r.k, { player: p.name, fee: fmtMoney(r.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' }))
+                  touch()
+                }} />
+            ) : (
+              <div className="muted" style={{ fontSize: 12 }}>
+                {t(buy.k, { fee: fmtMoney(buy.fee), club: p.loanFrom ? game.clubs[p.loanFrom]?.short ?? '' : '' })}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {mine && !p.onLoan && p.age <= 23 && !game.clubs[game.userClubId].tactic.lineup.slice(0, 15).includes(p.id) && (
         <TwoStep className="btn ghost block" label={t('player.sendOnLoan')} confirm={t('player.sendOnLoanConfirm')}
