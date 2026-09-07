@@ -1933,9 +1933,32 @@ export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   // job he already had. Now the unions have to have asked, and he has to have
   // said yes.
   if (islesCoach(state)) teams.push('LIO')
+  // ---- AND THE ASSISTANT TAKES THE COUNTRY ----
+  //
+  // Owner, 7 Sep: "assistant takes over of national team while you do this
+  // job." On tour, the Isles XV is the match the manager stands on the
+  // touchline for and his own country's summer Tests are somebody else's
+  // problem - which is the cost of accepting, and the reason accepting is a
+  // decision rather than a formality.
+  //
+  // The search is ordered rather than filtered: LIO first, so a week holding
+  // both a tour match and a national Test hands him the tour one and leaves the
+  // Test to be simmed with the rest of the world.
+  const order = islesCoach(state) ? ['LIO', state.natTeam] : teams
+  for (const t of order) {
+    const fx = state.fixtures.find(f =>
+      f.week === state.week && !f.played && (f.homeId === t || f.awayId === t))
+    if (fx) return fx
+  }
+  return undefined
+}
+
+/** The national Test the manager is NOT taking, because he is away on tour. */
+export function assistantNatFixture(state: GameState): Fixture | undefined {
+  if (!islesCoach(state) || !state.natTeam) return undefined
+  const nat = state.natTeam
   return state.fixtures.find(f =>
-    f.week === state.week && !f.played &&
-    (teams.includes(f.homeId) || teams.includes(f.awayId)))
+    f.week === state.week && !f.played && (f.homeId === nat || f.awayId === nat))
 }
 
 /** THE MATCH THAT IS THE MANAGER'S THIS WEEK - one decision point, read by
