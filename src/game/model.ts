@@ -1319,6 +1319,9 @@ export interface GameState {
    *  or 45 means a save from before the season grew to 48 weeks, and save.ts
    *  rebases it once, on load, to WEEK_BASIS. */
   basis?: number
+  /** What the club has booked into the empty summer weeks, keyed by week. One
+   *  event a week, because it is one ground. */
+  closeBook?: Record<string, string>
   natTeam?: string | null
   /** The Isles XV tour job: which season it was offered in and what he said.
    *  Absent on every save made before v1.5, which is correct - nobody was ever

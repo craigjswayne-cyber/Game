@@ -5944,5 +5944,32 @@
   "whyYes": "You meet every condition the four unions set.",
   "took": "You are the head coach of the British & Irish Isles XV. Your assistant has your country until you are home.",
   "passed": "You told them no. They will ask somebody else, and they will not ask you again this time."
+ },
+ "close": {
+  "title": "The summer diary",
+  "sub": "No rugby. The ground still earns.",
+  "wedding": "Wedding reception",
+  "comedy": "Comedy night",
+  "townshow": "Town show",
+  "golf": "Golf day",
+  "shooting": "Shooting day",
+  "sponsor": "Sponsors’ dinner",
+  "concert": "Concert",
+  "weddingD": "The function room, a marquee and a Saturday. Small, steady, and nobody touches the pitch.",
+  "comedyD": "A name off the telly and 300 seats in the clubhouse. Cheap to put on.",
+  "townshowD": "The town on your grass for a weekend. Needs room, and the grounds staff will want a word after.",
+  "golfD": "A day out for people who might sponsor you. Pays in goodwill and in cash.",
+  "shootingD": "The same crowd, a different Saturday, and rather more of them than you expected.",
+  "sponsorD": "Black tie, a raffle and the people who pay for your shirt. The best room in the building earns its keep.",
+  "concertD": "Twenty thousand on the pitch in July. The best cheque of the summer, and it wrecks the grass - the re-turfing comes out of the fee.",
+  "book": "Book it",
+  "fee": "{fee} to the club",
+  "locked": "Your ground cannot hold this one yet",
+  "notNow": "The season is on. The diary opens when the rugby stops.",
+  "alreadyBooked": "Something is already in the diary that week. It is one ground.",
+  "cannotHost": "Your ground cannot hold that one yet.",
+  "booked": "{event} booked. {fee} to the club.",
+  "newsSubj": "{event} at the ground",
+  "news": "{club} hosted a {event} this week. {fee} in, and not a rugby ball in sight."
  }
 }

@@ -1,6 +1,7 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS } from './gender'
 import { islesCoach, offerIsles } from './isles'
+import { aiCloseSeason } from './closeseason'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -3699,6 +3700,10 @@ export function processWeekAndAdvance(state: GameState) {
   debtWeek(state)
   // the board's standing monthly item, three weeks off the awards beat so the
   // two never share an inbox (boardmemo.ts)
+  // the empty weeks are only empty of rugby: the rest of the world hires out its
+  // clubhouse whether the manager remembers to or not
+  aiCloseSeason(state)
+
   boardMemo(state)
 
   // ---- THE LETTER FROM THE FOUR UNIONS ----
