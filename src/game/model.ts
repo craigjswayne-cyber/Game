@@ -1874,6 +1874,24 @@ export const absWeek = (season: number, week: number) => season * WEEK_BASIS + w
  */
 export const SEASON_WEEKS = 48
 
+/**
+ * How many weeks of the season a club's books actually run for.
+ *
+ * The season grew to 48 to hold a five-week tour, and the club economy noticed
+ * immediately: three more weeks of wages, staff salaries and upkeep, with no
+ * club fixture to earn against, because those weeks are an international tour.
+ * scripts/aiecon.ts measured the median club's yearly gain falling from £0.85M
+ * to £0.30M - not a rounding difference, a third of the game's economy.
+ *
+ * The three new weeks are therefore CLOSE SEASON for the ledger. Nothing is
+ * earned and nothing is spent, which keeps every club's financial year exactly
+ * the length it was tuned for, and is a fair description of what those weeks
+ * are: the domestic game is over, the tour party has gone, and the rest are on
+ * holiday. Extending the season should not have quietly cost every club in the
+ * world a third of its income, and it does not.
+ */
+export const LEDGER_WEEKS = 45
+
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
  *  no screen can threaten relegation in a league that has none. */

@@ -12,7 +12,7 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
 import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
@@ -1255,6 +1255,10 @@ export function runSpotlight(state: GameState, fx: Fixture, us: number, them: nu
 
 function weeklyFinance(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
+  // The last three weeks of a 48-week season are the tour, and the close season
+  // for everybody else. The books do not run - see LEDGER_WEEKS for what
+  // happened to the world economy when they did.
+  if (state.week > LEDGER_WEEKS) return
   // A LOAN COSTS WHAT THE LETTER SAID IT COSTS (audit 16D). The signing news
   // has always promised the parent club "will cover half his wage", and this
   // line charged the full amount anyway. Half for a borrowed man, as promised.
