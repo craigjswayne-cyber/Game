@@ -136,6 +136,10 @@
   "profileAt": "Tu perfil de entrenador en {club}.",
   "challengeAccepted": "Desafío aceptado: {title}",
   "yourName": "Tu nombre",
+  "pronoun": "La prensa habla de ti en",
+  "pronounBlurb": "Cómo se refieren a ti los periódicos, la afición y la junta.",
+  "pronounHe": "Masculino",
+  "pronounShe": "Femenino",
   "namePlaceholder": "p. ej., A. Míster",
   "club": "Club",
   "philosophy": "Filosofía de juego",
@@ -1203,7 +1207,8 @@
   "tapSwapHint_f": "toca a una jugadora y a otra para intercambiarlas · toca dos veces para ver la plantilla",
   "tapSwapHintTest_f": "toca a una jugadora y a otra para intercambiarlas · toca dos veces para la plantilla completa",
   "warnNoSpeech_f": "No has elegido charla de vestuario - las jugadoras sacarán sus propias conclusiones.",
-  "yourRatings_f": "Las notas de tus jugadoras"
+  "yourRatings_f": "Las notas de tus jugadoras",
+  "assistantTakes_w": "{home} - {away} es la tarde de tu ayudante. Ella elige el equipo y redacta el informe - lo tuyo es el Test."
  },
  "tacticsScreen": {
   "tabRoles": "Roles",
@@ -2223,7 +2228,10 @@
   },
   "supportersThanks": "Gracias. Así seguimos adelante.",
   "specYouthDesc_f": "Confía en la cantera y hace mujeres de las chavalas.",
-  "specManmanDesc_f": "Sus jugadoras atravesarían muros por él."
+  "specManmanDesc_f": "Sus jugadoras atravesarían muros por él.",
+  "specManmanDesc_w": "Sus jugadores atravesarían muros por ella.",
+  "specManmanDesc_fw": "Sus jugadoras atravesarían muros por ella.",
+  "specSurvivorDesc_w": "Las directivas van y vienen; ella permanece."
  },
  "week": {
   "wireQuietWeek": "Una semana tranquila. Nunca duran.",
@@ -2963,7 +2971,8 @@
   "lgFirstsNone": "Todavía no hay nada escrito. La primera victoria a domicilio suele ser la frase de apertura.",
   "coSquadSub_f": "de {floor} a {max} mujeres · las de tu club, en negrita",
   "srPotY_f": "Jugadora de la temporada",
-  "srRollSub_f": "Jugadora del Año, temporada a temporada"
+  "srRollSub_f": "Jugadora del Año, temporada a temporada",
+  "cvTitleBigger_w": "Una entrenadora que dejó el juego más grande de lo que lo encontró"
  },
  "handbook": {
   "a1": "Todo gira en torno al botón de la esquina superior. Pone Continuar en una semana tranquila y Día de partido cuando hay encuentro. Púlsalo y el mundo se mueve: la semana avanza, llegan los demás resultados y todo lo ocurrido aterriza en tu bandeja de entrada de la pantalla de Inicio.",
@@ -5018,7 +5027,12 @@
   "grounds2_f": "La furgoneta llegó a {other} con dos juegos completos de camisetas de local del {club} y ninguna de visitante. Como ambos clubes visten de un color muy parecido, los visitantes jugaron la primera parte con la ropa del tercer equipo anfitrión, con el nombre de un fontanero del barrio en el pecho. Nadie distinguía a nadie, y las jugadoras menos que nadie.",
   "grounds4Subj_f": "POR OTROS CAMPOS: el barro expulsa a la jugadora equivocada",
   "toty_f": "El organismo rector ha publicado su Equipo del Año, una jugadora por puesto, elegido por lo que han sido realmente los últimos doce meses y no por la reputación.\n\n{rows_ll}",
-  "totyMine_f": "Tenemos {n} en el Equipo del Año: {names}. Las camisetas con sus nombres se venden más rápido de lo que podemos estamparlas, dos promotores quieren una gala con ellas, y patrocinadores que en septiembre no llamaban preguntan cuánto cuesta una imagen personal. Supone {money}, sin tocar el presupuesto deportivo."
+  "totyMine_f": "Tenemos {n} en el Equipo del Año: {names}. Las camisetas con sus nombres se venden más rápido de lo que podemos estamparlas, dos promotores quieren una gala con ellas, y patrocinadores que en septiembre no llamaban preguntan cuánto cuesta una imagen personal. Supone {money}, sin tocar el presupuesto deportivo.",
+  "fanPatient1_w": "Calma. Mujer nueva, voz nueva, el calendario de siempre.",
+  "rivalAboveYou_w": "{his} contra {mine}. {boss} tenía razón, o al menos eso dice la clasificación, que en este oficio es lo mismo hasta el próximo mayo. Ella no habrá olvidado ni una palabra, y tú tampoco deberías.",
+  "staffHired_w": "{club} ya tiene a su mujer: {name}, {age} años, {role_k} con titulación {badge_k} y fama de {trait_k}. {fee} de compensación, {wage} a la semana.{out_k}{chem_k}",
+  "staffClick_w": "La sala de técnicos lo aprueba: {other} y ella conectan - {note_k}.",
+  "staffClash_w": "Una nube en el horizonte: {other} y ella ven el juego de forma muy distinta - {note_k}."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -6089,7 +6103,8 @@
   "leakStartsR_f": "Ahora {player} tiene que ser titular. Ella lo sabe. Y la mujer a la que sustituye, también.",
   "centuryQ2_f": "Es el {what_k} de {player}. ¿Qué significa ella para esta casa?",
   "benchBuildingR_f": "Ya ha leído esa frase antes, en otros dos programas de partido, sobre otras dos mujeres.",
-  "comebackCaptain_f": "«Nada. Dejé hablar a la capitana.»"
+  "comebackCaptain_f": "«Nada. Dejé hablar a la capitana.»",
+  "discWord_w": "Una charla discreta, de mujer a mujer"
  },
  "posNoun": {
   "prop": "pilar",

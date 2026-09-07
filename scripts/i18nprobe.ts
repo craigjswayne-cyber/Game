@@ -20,7 +20,7 @@ import fr from '../src/locales/fr.json'
 import es from '../src/locales/es.json'
 import it from '../src/locales/it.json'
 import ja from '../src/locales/ja.json'
-import { LANGS, tIn, type Lang } from '../src/game/i18n'
+import { LANGS, tIn, type Lang, SIBLING, baseKey } from '../src/game/i18n'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
@@ -118,7 +118,7 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
     if ([...dynamic].some(p => p && k.startsWith(p))) return false
     // A FEMININE SIBLING is read by t() in a women's world whenever its base key
     // is (i18n.ts setWorld); the string `key_f` appears nowhere in the code.
-    if (k.endsWith('_f')) k = k.slice(0, -2)
+    if (SIBLING.test(k)) k = baseKey(k)
     // A news story's subject key is its body key with Subj on the end - see
     // newsSubject() in model.ts. Only the body key is ever written down, so the
     // subject is reachable exactly when its body is, and looking for it
@@ -157,15 +157,15 @@ for (const { code, label } of LANGS) {
   const theirs = new Set(leaves(d))
 
   // `_f` siblings are optional per language - langparity checks the ones a language has
-  const gaps = [...enKeys].filter(k => !k.endsWith('_f') && !theirs.has(k))
+  const gaps = [...enKeys].filter(k => !SIBLING.test(k) && !theirs.has(k))
   ok(gaps.length === 0, `${label} has every key English has${gaps.length ? ` (${gaps.length} missing: ${gaps.slice(0, 6).join(', ')})` : ''}`)
 
-  const stale = [...theirs].filter(k => !k.endsWith('_f') && !enKeys.has(k))
+  const stale = [...theirs].filter(k => !SIBLING.test(k) && !enKeys.has(k))
   ok(stale.length === 0, `${label} has no keys English has dropped${stale.length ? ': ' + stale.slice(0, 6).join(', ') : ''}`)
 
   const bad: string[] = []
   for (const k of enKeys) {
-    if (k.endsWith('_f') || !theirs.has(k)) continue
+    if (SIBLING.test(k) || !theirs.has(k)) continue
     const a = slots(en as Dict, k)
     const b = slots(d, k)
     if (a.size !== b.size || [...a].some(x => !b.has(x))) bad.push(`${k} [${[...a]}] vs [${[...b]}]`)
@@ -188,7 +188,7 @@ for (const { code, label } of LANGS) {
     return typeof v === 'string' ? v : 'plural'
   }
   const blanks = [...theirs].filter(k =>
-    k !== BLANK_OK && (k.endsWith('_f')
+    k !== BLANK_OK && (SIBLING.test(k)
       ? leafText(k).trim() === ''
       : (tIn(code as Lang, k).trim() === '' || tIn(code as Lang, k) === k)))
   ok(blanks.length === 0, `${label} has no blank or unresolved strings${blanks.length ? ': ' + blanks.slice(0, 4).join(', ') : ''}`)

@@ -30,7 +30,7 @@
 //   every one of those would need a special case. state.academy is invisible until
 //   the Academy screen asks for it.
 import type { Club, GameState, Player, Pos, TableRow } from './model'
-import { genderOf } from './gender'
+import { genderOf, subjectVar } from './gender'
 import { t, type Vars } from './i18n'
 import { clamp, mulberry32, type Rng } from './rng'
 import { facLevel, XV_SLOTS } from './model'
@@ -491,7 +491,7 @@ export function playAcademyWeek(state: GameState, rng: Rng) {
           opp: clubName(state, hm ? f.awayId : f.homeId),
         }
       })),
-      coach_k: coachName ? 'news.aCoachNamed' : 'news.aCoachAnon', coach: coachName ?? '',
+      ...subjectVar(state.staffPeople?.academyCoach?.g), coach_k: coachName ? 'news.aCoachNamed' : 'news.aCoachAnon', coach: coachName ?? '',
       rows_ll: JSON.stringify(rows), pos_o: pos, comp: state.comps[l.leagueId]?.short ?? '', tail_k: tailKey,
     },
     playerIds: ids.slice(0, 6),

@@ -2,7 +2,7 @@
 // named man with a badge - Bronze, Silver or Gold - and badges are earned on a
 // coaching course with a real chance of failing it.
 import { STAFF_INFO, fmtMoney, fmtWage, logDecision, type GameState, type StaffLevels, type StaffPerson } from './model'
-import { genderOf, staffGender } from './gender'
+import { genderOf, staffGender, subjectVar, type Gender } from './gender'
 import { t, tIn, type Vars } from './i18n'
 import { mulberry32 } from './rng'
 import { regenName } from './nations'
@@ -28,6 +28,8 @@ export const courseFee = (tier: number) => 60_000 * tier
 
 export interface StaffCandidate {
   name: string
+  /** the coin that named the candidate - kept on the person once hired */
+  g: Gender
   nat: string
   age: number
   tier: number
@@ -147,8 +149,9 @@ export function staffCandidates(state: GameState, role: StaffRole): StaffCandida
     const wage = Math.round((STAFF_INFO[role].wage * tier * (0.85 + rng() * 0.4)) / 100) * 100
     const fee = Math.round((wage * (8 + tier * 6)) / 1000) * 1000
     const wants = tier === 3 ? 74 + Math.floor(rng() * 8) : tier === 2 ? 60 + Math.floor(rng() * 8) : 0
+    const g = staffGender(rng, genderOf(state))
     out.push({
-      name: regenName(rng, nat, undefined, staffGender(rng, genderOf(state))),
+      name: regenName(rng, nat, undefined, g), g,
       nat, age: 32 + Math.floor(rng() * 26), tier, wage, fee, wants,
       trait: TRAITS[Math.floor(rng() * TRAITS.length)],
     })
@@ -194,17 +197,17 @@ export function appointBlock(state: GameState, c: StaffCandidate): AppointBlock 
   const club = state.clubs[state.userClubId]
   // These are shown on the card the manager just tapped, so they are in his
   // language rather than the career's paperwork language.
-  if (!club) return { short: t('staff.blockNoClub'), long: t('staff.blockNoClubLong') }
+  if (!club) return { short: t('staff.blockNoClub'), long: t('staff.blockNoClubLong', subjectVar(c.g)) }
   if (staffInterest(state, c) === 'no') {
     return {
       short: t('staff.blockBiggerClub'),
-      long: t('staff.blockBiggerClubLong', { name: c.name, badge: badgeLabel(c.tier).toLowerCase() }),
+      long: t('staff.blockBiggerClubLong', { ...subjectVar(c.g), name: c.name, badge: badgeLabel(c.tier).toLowerCase() }),
     }
   }
   if (club.balance < c.fee) {
     return {
       short: t('staff.blockNoBudget', { have: fmt(club.balance), need: fmt(c.fee) }),
-      long: t('staff.blockNoBudgetLong', { name: c.name, need: fmt(c.fee), have: fmt(club.balance) }),
+      long: t('staff.blockNoBudgetLong', { ...subjectVar(c.g), name: c.name, need: fmt(c.fee), have: fmt(club.balance) }),
     }
   }
   return null
@@ -229,7 +232,7 @@ export function sackStaff(state: GameState, role: StaffRole): string {
   const p = state.staffPeople?.[role]
   if (!p) return t('staff.sackNobody')
   const cost = sackCost(state, role)
-  if (club.balance < cost) return t('staff.sackNoMoney', { need: fmt(cost), have: fmt(club.balance) })
+  if (club.balance < cost) return t('staff.sackNoMoney', { ...subjectVar(p.g), need: fmt(cost), have: fmt(club.balance) })
   const info = STAFF_INFO[role]
   club.balance -= cost
   state.staff[role] = 0
@@ -242,9 +245,9 @@ export function sackStaff(state: GameState, role: StaffRole): string {
     subject: `${p.name} leaves ${club.name}`,
     body: `${club.name} have parted company with ${tIn('en', info.name).toLowerCase()} ${p.name}. The club paid ${fmt(cost)} to end his contract; the role is vacant.`,
     k: 'news.staffSacked',
-    v: { name: p.name, club: club.name, role_k: info.name, cost: fmt(cost) },
+    v: { ...subjectVar(p.g), name: p.name, club: club.name, role_k: info.name, cost: fmt(cost) },
   })
-  return t('staff.sacked', { name: p.name, cost: fmt(cost) })
+  return t('staff.sacked', { ...subjectVar(p.g), name: p.name, cost: fmt(cost) })
 }
 
 export function appointStaff(state: GameState, role: StaffRole, idx: number): string {
@@ -262,7 +265,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
   state.staffPeople = {
     ...(state.staffPeople ?? {}),
     [role]: {
-      name: c.name, nat: c.nat, age: c.age, tier: c.tier, wage: c.wage,
+      name: c.name, g: c.g, nat: c.nat, age: c.age, tier: c.tier, wage: c.wage,
       trait: c.trait, since: state.season, course: null,
     } as StaffPerson,
   }
@@ -278,7 +281,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
     chemLines.push(r.kind === 'click'
       ? `The staff room approves: he and ${other.name} click - ${tIn('en', r.note)}.`
       : `One cloud on the horizon: he and ${other.name} see the game very differently - ${tIn('en', r.note)}.`)
-    chemRows.push({ k: r.kind === 'click' ? 'news.staffClick' : 'news.staffClash', other: other.name, note_k: r.note })
+    chemRows.push({ k: r.kind === 'click' ? 'news.staffClick' : 'news.staffClash', other: other.name, note_k: r.note, ...subjectVar(c.g) })
   }
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
@@ -286,7 +289,7 @@ export function appointStaff(state: GameState, role: StaffRole, idx: number): st
     body: `${club.name} have their man: ${c.name}, ${c.age}, a ${BADGE[c.tier].toLowerCase()}-badge ${tIn('en', info.name).toLowerCase()} known as a ${c.trait.toLowerCase()}. ${fmt(c.fee)} compensation, ${fmtWage(c.wage)} a week.${outgoing ? ` ${outgoing.name} leaves with the club's thanks.` : ''}${chemLines.length ? ` ${chemLines.join(' ')}` : ''}`,
     k: 'news.staffHired',
     v: {
-      name: c.name, age: c.age, club: club.name, role_k: info.name,
+      ...subjectVar(c.g), name: c.name, age: c.age, club: club.name, role_k: info.name,
       badge_k: `staff.badge${c.tier}`, trait_k: `traits.${c.trait}`,
       fee: fmt(c.fee), wage: fmtWage(c.wage),
       out_k: outgoing ? 'news.staffOut' : 'common.nothing', out: outgoing?.name ?? '',
@@ -328,13 +331,13 @@ export function courseBlock(state: GameState, role: StaffRole): AppointBlock | n
   const say = (short: string, long: string): AppointBlock => ({ short, long })
   if (!club) return say(t('staff.courseNoClub'), t('staff.courseNoClubLong'))
   if (!p) return say(t('staff.coursePostVacant'), t('staff.coursePostVacantLong', { role: t(info.name).toLowerCase() }))
-  if (p.tier >= 3) return say(t('staff.courseGold'), t('staff.courseGoldLong', { name: p.name }))
+  if (p.tier >= 3) return say(t('staff.courseGold'), t('staff.courseGoldLong', { ...subjectVar(p.g), name: p.name }))
   if (p.course) return say(t('staff.courseSitting'), t('staff.courseSittingLong', { name: p.name }))
   const abs = state.season * 100 + state.week
   if ((p.retakeAt ?? 0) > abs) {
     const wks = p.retakeAt! - abs
     return say(t(wks === 1 ? 'staff.courseResitsOne' : 'staff.courseResits', { n: wks }),
-      t(wks === 1 ? 'staff.courseResitsLongOne' : 'staff.courseResitsLong', { name: p.name, n: wks }))
+      t(wks === 1 ? 'staff.courseResitsLongOne' : 'staff.courseResitsLong', { ...subjectVar(p.g), name: p.name, n: wks }))
   }
   const fee = courseFee(p.tier)
   if (club.balance < fee) {
@@ -361,27 +364,27 @@ export function sendToCourse(state: GameState, role: StaffRole): string {
     p.wage = Math.round((p.wage * 1.15) / 100) * 100
     p.passed = (p.passed ?? 0) + 1
     state.staff[role] = p.tier
-    logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
+    logDecision(state, 'dec.badgePassed', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
       subject: `🎓 ${p.name} passes his ${badge} badge`,
       body: `A day of written work and an assessed session in front of examiners who have seen it all, and ${p.name} came through it. Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had this morning. His pay rises to ${fmtWage(p.wage)} a week.`,
       k: 'news.badgePass',
-      v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
+      v: { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
     })
-    return t('reply.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, wage: fmtWage(p.wage) })
+    return t('reply.badgePassed', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, wage: fmtWage(p.wage) })
   }
   p.failed = (p.failed ?? 0) + 1
   p.retakeAt = abs + RETAKE_WEEKS
-  logDecision(state, 'dec.badgeFailedFee', { name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) }, false)
+  logDecision(state, 'dec.badgeFailedFee', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) }, false)
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `${p.name} falls short of his ${badge} badge`,
     body: `The examiners wanted more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. The ${fmt(fee)} is spent either way, and the next intake will not take him for a month.`,
     k: 'news.badgeFail',
-    v: { name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) },
+    v: { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${toTier}`, fee: fmt(fee) },
   })
-  return t('reply.badgeFailed', { name: p.name, fee: fmt(fee) })
+  return t('reply.badgeFailed', { ...subjectVar(p.g), name: p.name, fee: fmt(fee) })
 }
 
 
@@ -407,24 +410,24 @@ export function resolveCourses(state: GameState) {
       p.wage = Math.round((p.wage * 1.15) / 100) * 100
       p.passed = (p.passed ?? 0) + 1
       state.staff[key] = p.tier
-      logDecision(state, 'dec.badgePassed', { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
+      logDecision(state, 'dec.badgePassed', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) }, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `🎓 ${p.name} passes his ${BADGE[p.tier].toLowerCase()} badge`,
         body: `Framed certificate, handshake at the training ground, and a better ${tIn('en', info.name).toLowerCase()} than the club had last month. ${p.name} is now ${BADGE[p.tier].toLowerCase()}-badged, and his pay rises to ${fmtWage(p.wage)} a week.`,
         k: 'news.badgePassAuto',
-        v: { name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
+        v: { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${p.tier}`, role_k: info.name, wage: fmtWage(p.wage) },
       })
     } else {
       p.failed = (p.failed ?? 0) + 1
       p.retakeAt = abs + RETAKE_WEEKS
-      logDecision(state, 'dec.badgeFailedCourse', { name: p.name, badge_k: `staff.badge${toTier}` }, false)
+      logDecision(state, 'dec.badgeFailedCourse', { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${toTier}` }, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: `${p.name} falls short of his ${BADGE[toTier].toLowerCase()} badge`,
         body: `The examiners want more from ${p.name} on the assessed session. He took it well, asked for the feedback in writing and pinned it above his desk. He can sit it again in four weeks.`,
         k: 'news.badgeFailAuto',
-        v: { name: p.name, badge_k: `staff.badge${toTier}` },
+        v: { ...subjectVar(p.g), name: p.name, badge_k: `staff.badge${toTier}` },
       })
     }
   }
@@ -480,8 +483,9 @@ export function seedStaffPeople(state: GameState) {
     if (lvl <= 0 || state.staffPeople[key]) continue
     const rng = mulberry32((state.seed ^ roleHash(key) ^ 0x5f3a) >>> 0)
     const nat = NATS[Math.floor(rng() * NATS.length)]
+    const g = staffGender(rng, genderOf(state))
     state.staffPeople[key] = {
-      name: regenName(rng, nat, undefined, staffGender(rng, genderOf(state))), nat, age: 36 + Math.floor(rng() * 20), tier: lvl,
+      name: regenName(rng, nat, undefined, g), g, nat, age: 36 + Math.floor(rng() * 20), tier: lvl,
       wage: lvl * STAFF_INFO[key].wage, trait: TRAITS[Math.floor(rng() * TRAITS.length)],
       since: state.season, course: null,
     }

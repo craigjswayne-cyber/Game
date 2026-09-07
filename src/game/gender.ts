@@ -107,7 +107,7 @@ export const idFitsWorld = (id: string, g: Gender): boolean => genderOfId(id) ==
  * English Premier Division in 2029" - which is exactly what happened.
  */
 export const CARRIED_ACROSS = [
-  'managerName', 'mgr', 'mgrTrust', 'mgrOrigin', 'seed',
+  'managerName', 'mgrGender', 'mgr', 'mgrTrust', 'mgrOrigin', 'seed',
 ] as const
 
 /**
@@ -127,6 +127,11 @@ export const CARRIED_ACROSS = [
 export function staffGender(rng: () => number, world: Gender): Gender {
   return world === 'w' && rng() < 0.5 ? 'w' : 'm'
 }
+
+/** The coin is kept on the person (StaffPerson.g, Club.coachGender) and
+ *  filed with every story about them as `g`, which is what lets i18n.ts pick
+ *  the `_w` sibling - "she files her report" - for that story and no other. */
+export const subjectVar = (g: Gender | undefined): { g: Gender } => ({ g: g ?? 'm' })
 
 /**
  * ---- WHO MAY GO ON MATERNITY LEAVE ----

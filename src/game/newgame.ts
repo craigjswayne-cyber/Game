@@ -160,13 +160,14 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
-export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', difficulty: Difficulty = 'normal', gender: Gender = 'm'): GameState {
+export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', difficulty: Difficulty = 'normal', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
 
   const state: GameState = {
     seed,
     gender,
+    mgrGender,
     saveName: '',
     season: 0,
     basis: WEEK_BASIS,
@@ -553,7 +554,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.legendOf = []
   // every dugout has a name in it, and an idea in it (F23)
   for (const club of Object.values(state.clubs)) {
-    if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames, staffGender(rng, gender))
+    if (club.id !== userClubId) {
+      club.coachGender = staffGender(rng, gender)
+      club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames, club.coachGender)
+    }
   }
   seedPhilosophies(state)
   // F30: you do not arrive at a club with the front of its shirt blank

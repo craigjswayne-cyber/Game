@@ -1,4 +1,5 @@
 import type { GameState, OfficeTopic, Player, PressItem, PressOption } from './model'
+import { subjectVar } from './gender'
 import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './model'
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
@@ -563,7 +564,7 @@ export function generatePress(state: GameState, rng: Rng) {
           k: voice(7, ['press.raceQ1', 'press.raceQ2', 'press.raceQ3']),
           v: {
             club: rivalClub.name, short: rivalClub.short,
-            coach: rivalClub.coach ?? '',
+            ...subjectVar(rivalClub.coachGender), coach: rivalClub.coach ?? '',
             coach_k: rivalClub.coach ? 'press.coachNamed' : 'press.coachTheirs',
           },
         },

@@ -39,6 +39,9 @@ export default function NewGame() {
   const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
   const [difficulty, setDifficulty] = useState<Difficulty>('normal')
+  // how the press and the fans refer to you: he or she, chosen once. Every
+  // line about the manager was written as "he" until v1.5.1; see i18n.ts `_w`.
+  const [pronoun, setPronoun] = useState<'m' | 'w'>('m')
   const [dreamId, setDreamId] = useState<string | null>(null)
   // the Manager's License (v1.1.0): offered here and only here, and only to
   // an owner - the receipt is bought on the Supporter page, the choice is made
@@ -98,7 +101,7 @@ export default function NewGame() {
     // The origin tiles (18B's "Your Story") were cut at the user's request:
     // "this feature isnt too much of interest". Every career takes the
     // engine's default coach background.
-    start(club.id, name.trim(), challengeId ?? undefined, undefined, difficulty)
+    start(club.id, name.trim(), challengeId ?? undefined, undefined, difficulty, undefined, pronoun)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -280,6 +283,16 @@ export default function NewGame() {
                   const el = e.target
                   setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
                 }} />
+              <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>{t('wizard.pronoun')}</label>
+              <div className="meta">{t('wizard.pronounBlurb')}</div>
+              <div className="speech-grid" style={{ padding: '6px 0 0' }} role="radiogroup" aria-label={t('wizard.pronoun')}>
+                {(['m', 'w'] as const).map(p => (
+                  <button key={p} type="button" role="radio" aria-checked={pronoun === p}
+                    className={`speech-tile${pronoun === p ? ' sel' : ''}`} onClick={() => setPronoun(p)}>
+                    <b>{t(p === 'w' ? 'wizard.pronounShe' : 'wizard.pronounHe')}</b>
+                  </button>
+                ))}
+              </div>
               <label className="fact-label" style={{ marginTop: 10, display: 'block' }}>{t('wizard.club')}</label>
               <div className="meta">{club.name} · {league?.name}</div>
             </div>

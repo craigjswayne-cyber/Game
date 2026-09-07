@@ -1,5 +1,5 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
-import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS } from './gender'
+import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
 import { islesCoach, offerIsles } from './isles'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
@@ -2493,7 +2493,7 @@ export function processWeekAndAdvance(state: GameState) {
         k: out.length === 1
           ? (rest > 0 ? 'news.loanOneMore' : 'news.loanOne')
           : (rest > 0 ? 'news.loanManyMore' : 'news.loanMany'),
-        v: { who: out[0].name, rows_ll: JSON.stringify(shown), rest },
+        v: { ...subjectVar(state.staffPeople?.academyCoach?.g), who: out[0].name, rows_ll: JSON.stringify(shown), rest },
         playerId: out.length === 1 ? out[0].id : undefined,
       })
     }
@@ -2818,7 +2818,7 @@ export function processWeekAndAdvance(state: GameState) {
           unit_k: GROUP[star.pos] ?? 'news.unitPack',
         }),
         k: 'news.intakePreview',
-        v: { n: cls.length, verdict_k: `news.intakeGrade${grade}`, unit_k: GROUP[star.pos] ?? 'news.unitPack' },
+        v: { ...subjectVar(state.staffPeople?.academyCoach?.g), n: cls.length, verdict_k: `news.intakeGrade${grade}`, unit_k: GROUP[star.pos] ?? 'news.unitPack' },
       })
     }
   }
@@ -3129,6 +3129,7 @@ export function processWeekAndAdvance(state: GameState) {
         : 'He hands the week back all square.'} The board judges the result the way it judges any other - the routines are yours even when the voice is not.`,
       k: 'news.assistantRan',
       v: {
+        ...subjectVar(state.staffPeople?.assistant?.g),
         opp: opp?.short ?? tIn('en', 'news.theLeague'), us, them,
         verb_k: us > them ? 'news.assWon' : us < them ? 'news.assLost' : 'news.assDrew',
         hand_k: us > them ? 'news.assHandWin' : us < them ? 'news.assHandLoss' : 'news.assHandDraw',

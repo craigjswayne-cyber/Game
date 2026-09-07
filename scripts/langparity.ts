@@ -16,6 +16,7 @@
  *
  * Run: npx vite-node scripts/langparity.ts
  */
+import { SIBLING } from '../src/game/i18n'
 import { readFileSync } from 'node:fs'
 
 let fails = 0
@@ -55,16 +56,16 @@ for (const lang of ['fr', 'es', 'it', 'ja']) {
       for (const k of Object.keys(e)) {
         // a feminine sibling is a language's own business (i18n.ts, setWorld):
         // English owes nobody its `_f` keys and nobody owes English theirs
-        if (k.endsWith('_f')) continue
+        if (SIBLING.test(k)) continue
         if (!(k in (o as object))) { errs.push(`${path}.${k}: missing`); continue }
         walk((e as Record<string, unknown>)[k], (o as Record<string, unknown>)[k], path ? `${path}.${k}` : k)
       }
       for (const k of Object.keys(o as object)) {
-        if (k.endsWith('_f')) {
+        if (SIBLING.test(k)) {
           // ...but a sibling must have a base to fall back to, and must fill
           // the same holes as that base, or the women's game renders a
           // different set of placeholders from the men's
-          const base = k.slice(0, -2)
+          const base = k.replace(SIBLING, '')
           const ob = o as Record<string, unknown>
           if (!(base in ob)) { errs.push(`${path}.${k}: feminine form with no base key`); continue }
           const fv = ob[k], bv = ob[base]

@@ -83,7 +83,8 @@ export function refreshVacancies(state: GameState, rng: Rng) {
   state.vacancies = state.vacancies.filter(v => {
     const keep = state.week - v.week < 5 && state.clubs[v.clubId]
     if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
-      state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country, undefined, staffGender(rng, genderOf(state)))
+      state.clubs[v.clubId].coachGender = staffGender(rng, genderOf(state))
+      state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country, undefined, state.clubs[v.clubId].coachGender)
       // F23: the new man brings his own idea of how to play, which is why a club
       // you have had the measure of for three seasons can start kicking at you.
       newCoachPhilosophy(state, state.clubs[v.clubId])

@@ -512,6 +512,7 @@ function ScoutCommission() {
           <>
             <div className="meta" style={{ marginBottom: 6 }}>
               {t('transfers.longerTrip', {
+                g: game.staffPeople?.scout?.g ?? 'm',
                 where: game.scoutFocus
                   ? t('transfers.watchesLeague', { league: game.comps[game.scoutFocus]?.short ?? t('transfers.focusLeague') })
                   : t('transfers.watchesWorld'),
@@ -538,7 +539,7 @@ function ScoutCommission() {
 
       {finds.length > 0 && (
         <>
-          <SectionTitle sub={t('transfers.scoutsReportSub')}>{t('transfers.scoutsReport')}</SectionTitle>
+          <SectionTitle sub={t('transfers.scoutsReportSub', { g: game.staffPeople?.scout?.g ?? 'm' })}>{t('transfers.scoutsReport')}</SectionTitle>
           <div className="tblwrap"><table className="dtable codefirst"><tbody>
             {finds.map(f => {
               const p = game.players[f.playerId]

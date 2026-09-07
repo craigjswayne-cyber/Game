@@ -138,7 +138,10 @@
   "press.standoffLovedR_f": "Confiant. {player} lit ça et sourit. Si elle ne signe pas, c'est cet extrait qu'ils passeront en boucle.",
   "press.oldboyQ2_f": "Premier retour de {player} face à {opp}. Comment gère-t-on une joueuse qui affronte ses anciennes coéquipières ?",
   "press.leakStartsR_f": "Vous devez maintenant titulariser {player}. Elle le sait. Celle qu'elle remplace aussi.",
-  "press.benchQ2_f": "Six semaines sur le banc pour {player}, et elle vaut mieux que ça. Qu'est-ce qu'elle a fait ?"
+  "press.benchQ2_f": "Six semaines sur le banc pour {player}, et elle vaut mieux que ça. Qu'est-ce qu'elle a fait ?",
+  "news.bossTheyAhead_w": null,
+  "news.aLostLine1_w": null,
+  "news.aLostLine5_w": null
  },
  "es": {
   "selection.leadershipNote_f": "La capitana mejora ataque y defensa y calma los ánimos; la vicecapitana lidera a medio gas cuando ella falta. Los cargos de abajo no suman fuerza, la concentran: solo mujeres del XV con autoridad real deben llevar uno, y una líder de verdad puede llevar más de uno.",
@@ -206,7 +209,11 @@
   "news.upFunRun_f": null,
   "news.rivalGone_f": null,
   "news.staffHired_f": null,
-  "news.fanPatient1_f": null
+  "news.fanPatient1_f": null,
+  "transfers.longerTrip_w": null,
+  "news.scoutReport_w": null,
+  "news.aWonLine4_w": null,
+  "news.aLostLine0_w": null
  },
  "it": {
   "titles.offers_f": "Offerte per le tue giocatrici",
@@ -299,7 +306,9 @@
   "news.courted_f": null,
   "news.staffHired_f": null,
   "news.upFunRun_f": null,
-  "news.grounds9_f": null
+  "news.grounds9_f": null,
+  "news.aWonLine2_w": null,
+  "press.raceQ3_w": null
  },
  "subs": {
   "es": {
@@ -1052,6 +1061,34 @@
      "un ex giocatrice",
      "un'ex giocatrice"
     ]
+   ],
+   "staff.courseGoldLong_w": [
+    [
+     "Non è rimasta nulla",
+     "Non è rimasto nulla"
+    ]
+   ],
+   "news.bossPressure_w": [
+    [
+     "ed è passato alla",
+     "ed è passata alla"
+    ]
+   ],
+   "news.bossSize2_w": [
+    [
+     "Invitato a dire",
+     "Invitata a dire"
+    ],
+    [
+     "Incalzato su",
+     "Incalzata su"
+    ]
+   ],
+   "news.bossTight_w": [
+    [
+     "non si è nemmeno preso",
+     "non si è nemmeno presa"
+    ]
    ]
   },
   "en": {
@@ -1300,6 +1337,152 @@
      "et les joueuses du centre de formation n'ont jamais compté",
      "et celles du centre de formation n'ont jamais compté"
     ]
+   ],
+   "staff.blockBiggerClubLong_w": [
+    [
+     "est resté où elle est",
+     "est restée où elle est"
+    ]
+   ],
+   "news.assistantRan_w": [
+    [
+     "Vous étant absente en sélection, votre adjoint a composé",
+     "Vous étant absent en sélection, votre adjointe a composé"
+    ],
+    [
+     "comme elle juge",
+     "comme il juge"
+    ]
+   ],
+   "matchday.assistantTakes_w": [
+    [
+     "l'après-midi de votre adjoint. Elle",
+     "l'après-midi de votre adjointe. Elle"
+    ]
+   ],
+   "news.bossNotLookingDown_w": [
+    [
+     "dit ce qu'elle dit",
+     "dit ce qu'il dit"
+    ]
+   ],
+   "news.bossPressure_w": [
+    [
+     "On l'a ensuite interrogé",
+     "On l'a ensuite interrogée"
+    ],
+    [
+     "elle est passé à",
+     "elle est passée à"
+    ]
+   ],
+   "news.bossSize1_w": [
+    [
+     "a été poli au sujet",
+     "a été polie au sujet"
+    ],
+    [
+     "Elles savent exactement ce qu'elles sont",
+     "Ils savent exactement ce qu'ils sont"
+    ]
+   ],
+   "news.bossSize2_w": [
+    [
+     "Relancé précisément",
+     "Relancée précisément"
+    ]
+   ],
+   "news.bossSize3_w": [
+    [
+     "l'a plutôt trahi",
+     "l'a plutôt trahie"
+    ]
+   ],
+   "news.bossSize4_w": [
+    [
+     "Elle sait exactement ce qu'il fait",
+     "Elle sait exactement ce qu'elle fait"
+    ]
+   ],
+   "news.bossTight_w": [
+    [
+     "Elles sont bonnes",
+     "Ils sont bons"
+    ]
+   ],
+   "news.scoutReport_w": [
+    [
+     "d'entre elles qu'elle signerait",
+     "d'entre eux qu'elle signerait"
+    ]
+   ],
+   "reply.badgePassed_w": [
+    [
+     "Elle est diplômé",
+     "Elle est diplômée"
+    ]
+   ],
+   "news.fanPatient2_w": [
+    [
+     "L'effectif est ce qu'elle est",
+     "L'effectif est ce qu'il est"
+    ]
+   ],
+   "news.fanSceptic3_w": [
+    [
+     "Je le jugerai",
+     "Je la jugerai"
+    ]
+   ],
+   "legacy.cvTitleBigger_w": [
+    [
+     "Un entraîneur qui a laissé",
+     "Une entraîneuse qui a laissé"
+    ]
+   ]
+  },
+  "ja": {
+   "news.bossTight_w": [
+    [
+     "今年の彼女らの試合",
+     "今年の彼らの試合"
+    ]
+   ],
+   "handbook.a19_f": [
+    [
+     "大舞台が彼に何をするか",
+     "大舞台が彼女に何をするか"
+    ]
+   ],
+   "handbook.a5_f": [
+    [
+     "真ん中に立つ選手によって",
+     "真ん中に立つ人によって"
+    ]
+   ],
+   "news.grPunditGem_f": [
+    [
+     "彼女はこの状況を",
+     "彼はこの状況を"
+    ]
+   ],
+   "news.wKid3_f": [
+    [
+     "クリップボードを抱えてスタンドに座る選手たち",
+     "クリップボードを抱えてスタンドに座る面々"
+    ]
+   ],
+   "news.huntBid_f": [
+    [
+     "彼女らは秋から",
+     "彼らは秋から"
+    ]
+   ],
+   "news.fanSignedIcon_f": [
+    [
+     "タトゥーを入れた選手が1人",
+     "タトゥーを入れた男が1人"
+    ]
    ]
   }
  },
@@ -1327,6 +1510,23 @@
   "reply.badgeFailed_f": null,
   "news.upFunRun_f": null,
   "news.grounds8_f": null,
+  "press.stanceSafeR_f": null,
+  "press.ownerRugbyR_f": null,
+  "profile.specYouthDesc_w": null
+ },
+ "ja": {
+  "profile.specYouthDesc_w": null,
+  "staff.clickCaps_f": null,
+  "challenges.sapiacDesc_f": null,
+  "profile.specWinner_f": null,
+  "news.grKickerNet_f": null,
+  "news.grPostman_f": null,
+  "news.wLose1_f": null,
+  "news.wLoseOn3_f": null,
+  "news.rivalGone_f": null,
+  "news.staffHired_f": null,
+  "news.upFunRun_f": null,
+  "news.grounds9_f": null,
   "press.stanceSafeR_f": null,
   "press.ownerRugbyR_f": null
  }

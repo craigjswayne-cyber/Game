@@ -3,7 +3,7 @@ import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, empty
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
-import { genderOf, staffGender } from './gender'
+import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
 import { NATIONS, regenName, worldNames } from './nations'
 import { rebuildTable } from './season'
@@ -585,6 +585,27 @@ export function migrate(s: GameState): GameState {
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends ??= []; c.marquee ??= []; c.tactic.roles ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
+  /**
+   * WHO THE STAFF ARE, on a save written before the game asked.
+   *
+   * v1.5.0 already drew a coin for every coach and staff member in a women's
+   * world - it just spent it on the NAME and threw it away (gender.ts
+   * staffGender). Those saves therefore hold a squad of Sarahs and Niamhs
+   * that every story calls "he", which is worse than either answer on its own.
+   *
+   * The original coin cannot be recovered: it came out of an rng stream that
+   * has moved on. So this draws a fresh one, per person, from the save's seed
+   * and the person's own name - stable for that person for ever, and drawn the
+   * same way if the save is loaded twice. A men's world gets 'm' for everyone,
+   * which is what staffGender says and what it always was.
+   */
+  const world = genderOf(s)
+  const coinFor = (name: string): Gender =>
+    staffGender(mulberry32((s.seed ^ hashString(name)) >>> 0), world)
+  for (const c of Object.values(s.clubs)) {
+    if (c.id !== s.userClubId && c.coach) c.coachGender ??= coinFor(c.coach)
+  }
+  for (const p of Object.values(s.staffPeople ?? {})) if (p) p.g ??= coinFor(p.name)
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]
@@ -641,8 +662,10 @@ export function migrate(s: GameState): GameState {
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
         boardConfidence: 70,
         captain: null,
-        coach: regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s), staffGender(rng, genderOf(s))),
+        coachGender: staffGender(rng, genderOf(s)),
+        coach: '',
       }
+      club.coach = regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s), club.coachGender)
       for (const rp of rc.players) {
         const p = buildPlayer(rp, club.id, (0xadd1e ^ hashString(rc.id)) + club.players.length * 13, s.season)
         // A HAND-WRITTEN NAME IS A REAL MAN, however he arrives. newGame stamps
