@@ -43,6 +43,11 @@ const MARKS = {
     'National League One', 'Champions Cup', 'Challenge Cup', 'Six Nations',
     'Rugby World Cup', 'Rugby Championship', 'Pacific Nations Cup', 'British & Irish Lions',
     'British and Irish Lions', 'Currie Cup', 'Heineken Cup',
+    // The touring side was called the Northern Lions until 7 Sep, when the owner
+    // took the view that the lion is the distinctive half of the real mark:
+    // "we shouldn't say Lions... should just be british and irish isles xv tour".
+    // So the substitute is banned too, and so is the bare tour name.
+    'Northern Lions', 'Lions Tour', 'Lions tour',
   ],
   'sponsor and venue marks': [
     // NOT bare 'Gallagher' or 'Vodacom': those are a real PLAYER's surname

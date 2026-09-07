@@ -11,7 +11,7 @@ const seedOf = (code: string): number => {
   return n ? 30 + n.rep * 0.65 : 55
 }
 
-/** The Lions are a touring invitational, not a nation - never ranked. */
+/** The Isles XV is a touring invitational, not a nation - never ranked. */
 const UNRANKED = new Set(['LIO'])
 
 /** Make sure every nation has a rating (new games and old saves alike). */

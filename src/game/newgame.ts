@@ -492,7 +492,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   //
   // Every competition in this block is shaped around the men's calendar: a
   // sixteen-club Continental Cup drawn from prem/top14/urc, a Shield beneath it,
-  // the Northern and Southern Championships in their men's windows, a Lions
+  // the Northern and Southern Championships in their men's windows, a tour
   // tour. Not one of those filters matches a club in the women's world, so left
   // to run they build as EMPTY competitions wearing men's ids - which is both
   // wrong in itself and exactly the cross-contamination the owner ruled out.

@@ -770,11 +770,11 @@ function manageInternationals(state: GameState, rng: Rng) {
       }
       if (lionsCalls.length) {
         // the honour of a career deserves better than the generic list
-        const tour = state.comps['lions']?.name ?? 'the Lions tour'
+        const tour = state.comps['lions']?.name ?? 'the Isles tour'
         const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🦁 LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+          subject: `🔴 LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
           k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
           v: {
             n: lionsCalls.length, names, tour,
@@ -835,7 +835,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         delete state.natSquads[nat]
       }
       if (lionsHome.length) {
-        // a Lions tour changes a player: he comes home a bigger presence
+        // a tour changes a player: he comes home a bigger presence
         const comp = state.comps['lions']
         const seriesWon = comp?.champion === 'LIO'
         for (const p of lionsHome) {
@@ -844,20 +844,20 @@ function manageInternationals(state: GameState, rng: Rng) {
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+          subject: `🔴 The tourists come home${seriesWon ? ' as series winners' : ''}`,
           k: seriesWon ? 'news.lionsHomeWon' : 'news.lionsHome',
           v: {
-            tour: comp?.name ?? 'the Lions tour',
+            tour: comp?.name ?? 'the Isles tour',
             names: lionsHome.map(p => p.name).join(', '),
             him_k: lionsHome.length === 1 ? 'news.himOne' : 'news.himMany',
             come_k: lionsHome.length === 1 ? 'news.comesOne' : 'news.comeMany',
           },
           body: [
-            `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+            `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
             seriesWon
               ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
               : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
-            `The medical staff still counsel care: a Lions summer empties the tank like nothing else.`,
+            `The medical staff still counsel care: a tour summer empties the tank like nothing else.`,
           ].join(' '),
           playerId: lionsHome[0].id,
         })
@@ -1910,7 +1910,7 @@ function withDevelopmentSide(state: GameState, clubId: string, run: () => void):
 }
 
 /** The national side's fixture this week, when the user also coaches one.
- *  A home-nations coach also takes the Lions in a tour year. */
+ *  A home-nations coach also takes the Isles XV in a tour year. */
 export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   if (!state.natTeam) return undefined
   const teams = [state.natTeam]

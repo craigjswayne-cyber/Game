@@ -1893,7 +1893,7 @@
   "drops": "Drop goals",
   "cards": "Cards",
   "motm": "⭐ MOTM",
-  "lions": "🦁 Lions tourist",
+  "lions": "🔴 Isles XV tourist",
   "wcWinner": "🏆 World Championship winner",
   "lastMatch": "Last match",
   "development": "Development",
@@ -2194,7 +2194,7 @@
   "colCompetition": "Competition",
   "colChampions": "Champions",
   "compWc": "World Championship",
-  "compLions": "Lions Tour",
+  "compLions": "Isles Tour",
   "compTour": "Summer Tours",
   "compAut": "Autumn Internationals",
   "compPnc": "Pacific Islands Cup",
@@ -2472,7 +2472,7 @@
   "natAut": "Autumn Tests",
   "natBetween": "Between windows. The likely squad below reflects current club form - call-ups happen automatically when a window opens.",
   "natColNation": "Nation",
-  "natLions": "🦁 Lions Tour",
+  "natLions": "🔴 Isles Tour",
   "natPnc": "🌺 Islands Cup",
   "natResults": "Results & Fixtures",
   "natSn": "Northern Championship",
@@ -3334,10 +3334,10 @@
    "other": "{newCaps} uncapped names in the room."
   },
   "natSquadCapped": "A fully capped group.",
-  "lionsCallASubj": "🦁 LIONS: {subj_k} make the tour",
-  "lionsCallA": "The call every player in these islands dreams of: {names} {is_k} going on {tour}. The whole club walks taller this morning.\n{he_k} will be away for the tour window. Plan the run-in accordingly - and welcome back a Lion.",
-  "lionsCallBSubj": "🦁 LIONS: {subj_k} make the tour",
-  "lionsCallB": "The {tour} squad is out, and the club's name is on it: {names}. Training stopped for the announcement. Nobody minded.\n{he_k} will be away for the tour window. Plan the run-in accordingly - and welcome back a Lion.",
+  "lionsCallASubj": "🔴 THE TOUR: {subj_k} make the squad",
+  "lionsCallA": "The call every player in these islands dreams of: {names} {is_k} going on {tour}. The whole club walks taller this morning.\n{he_k} will be away for the tour window. Plan the run-in accordingly - and welcome back a tourist.",
+  "lionsCallBSubj": "🔴 THE TOUR: {subj_k} make the squad",
+  "lionsCallB": "The {tour} squad is out, and the club's name is on it: {names}. Training stopped for the announcement. Nobody minded.\n{he_k} will be away for the tour window. Plan the run-in accordingly - and welcome back a tourist.",
   "lionsSubjOne": "{who}",
   "lionsSubjMany": "{who} of yours",
   "isOne": "is",
@@ -3350,10 +3350,10 @@
   "comeMany": "they come",
   "callUpsSubj": "International call-ups",
   "callUps": "The following players have been called up and will be unavailable during the international window: {names}.",
-  "lionsHomeSubj": "🦁 The Lions come home",
-  "lionsHome": "Back in club colours after {tour}: {names}. Win or lose, a tour changes a player - {come_k} back a bigger presence in this dressing room. The medical staff still counsel care: a Lions summer empties the tank like nothing else.",
-  "lionsHomeWonSubj": "🦁 The Lions come home as series winners",
-  "lionsHomeWon": "Back in club colours after {tour}: {names}. A series win in the luggage, and the kind of standing money cannot buy. Expect {him_k} to walk taller here too. The medical staff still counsel care: a Lions summer empties the tank like nothing else.",
+  "lionsHomeSubj": "🔴 The tourists come home",
+  "lionsHome": "Back in club colours after {tour}: {names}. Win or lose, a tour changes a player - {come_k} back a bigger presence in this dressing room. The medical staff still counsel care: a tour summer empties the tank like nothing else.",
+  "lionsHomeWonSubj": "🔴 The tourists come home as series winners",
+  "lionsHomeWon": "Back in club colours after {tour}: {names}. A series win in the luggage, and the kind of standing money cannot buy. Expect {him_k} to walk taller here too. The medical staff still counsel care: a tour summer empties the tank like nothing else.",
   "intlBackSubj": "Internationals return - leggy",
   "intlBack": "Back in club colours: {names}. The medical staff's advice is blunt: Test rugby empties the tank, and none of them are at full freshness this week. Rotate or risk it - your call.",
   "hisMentor": "his mentor",
@@ -4172,7 +4172,7 @@
   "chalPirates": "Penzance to the Premier Division. Cornwall has a top-flight club at last, and it is yours.",
   "invinciblesSubj": "🛡️ THE INVINCIBLES: {club} finish the season unbeaten",
   "invincibles": "{n} competitive matches. Zero defeats. Whatever else this club ever does, this season now lives outside the record books, in the place where the game keeps its legends. They will name teams after this side. {manager} built the team nobody could beat.",
-  "theLionsTour": "the Lions tour",
+  "theLionsTour": "the Isles tour",
   "backItUpSubj": "📦 {season} is in the books: back it up",
   "backItUp": "A whole season done, and it lives in this browser and nowhere else. Game Status has an Export Career button that writes the lot to one file. One tap, and the career survives whatever the browser does. Worth doing every rollover.",
   "preVoidSubj": "Pre-contract void: {player}",
@@ -4753,7 +4753,8 @@
   "totyLine": "{n}. {name} ({pos}) - {club}",
   "totyMineSubj": "The Team of the Year is worth money to us",
   "totyMine": "We have {n} in the Team of the Year: {names}. Replica shirts with those names are selling faster than we can print them, two promoters want an evening with them, and sponsors who ignored us in September are asking what an endorsement costs. Worth {money}, and none of it out of the playing budget.",
-  "friendlyBooked": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the men who have not had a game."
+  "friendlyBooked": "{club} will come to {short} on the Wednesday of week {week}. No gate money worth counting - what it is for is eighty minutes for the academy and the men who have not had a game.",
+  "friendlyBookedSubj": "Midweek friendly agreed: {short}"
  },
  "comm": {
   "oppCoachNamed": "{coach} has done his homework: {team} are set up specifically for {pattern_k}. Change the picture, or play through the plan.",
@@ -5300,7 +5301,7 @@
   "ROU": "Romania",
   "NAM": "Namibia",
   "CHL": "Chile",
-  "LIO": "Northern Lions"
+  "LIO": "British & Irish Isles XV"
  },
  "nationThe": {
   "RSA": "South Africa",
@@ -5326,7 +5327,7 @@
   "ROU": "Romania",
   "NAM": "Namibia",
   "CHL": "Chile",
-  "LIO": "Northern Lions"
+  "LIO": "the Isles XV"
  },
  "nationCap": {
   "RSA": "South Africa",
@@ -5352,7 +5353,7 @@
   "ROU": "Romania",
   "NAM": "Namibia",
   "CHL": "Chile",
-  "LIO": "Northern Lions"
+  "LIO": "The Isles XV"
  },
  "press": {
   "campQ1": "Pre-season, and the performance staff want a decision. The budget stretches to one special week: a warm-weather camp abroad, a community week at home, or the sponsor's exhibition tour. Which is it?",

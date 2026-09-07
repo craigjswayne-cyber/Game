@@ -321,7 +321,13 @@ export interface Player {
   hist?: { apps: number; tries: number; points: number }
   /** Test caps, pre-2025 estimate plus every international played here */
   caps?: number
-  /** Northern Lions tours made - the honour of a career */
+  /** Isles XV tours made - the honour of a career.
+   *
+   *  THE FIELD KEEPS ITS OLD NAME ON PURPOSE. It is written into every save
+   *  ever made, and renaming it would mean a migration that buys nothing: no
+   *  player ever sees the word. What they see is the display name, and that is
+   *  now the British & Irish Isles XV (owner, 7 Sep: "we shouldn't say Lions").
+   */
   lions?: number
   /** World Championships won while in the squad - the other honour of a career */
   wcWins?: number
