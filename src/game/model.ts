@@ -1859,12 +1859,22 @@ export function isWorldCupSeason(season: number): boolean {
  * should be over 5 weeks... one midweek game, one weekend game"), which needs
  * three more weeks than the season had.
  *
- * So the stamp no longer depends on the season at all. 100 is comfortably above
- * any season this game will have, it is the basis media.ts and gossip.ts already
- * used for their own clocks - they had the right idea first - and it means the
- * next person who needs a longer season can simply have one.
+ * SO IT IS A NAMED CONSTANT, AND IT EQUALS THE SEASON LENGTH. It has to. The
+ * first version of this used 100 - comfortably above any season, no migration
+ * needed for the next change - and that was wrong in a way five probes found
+ * within the hour: the whole point of an absolute week is that subtracting two
+ * of them gives a number of WEEKS. With a basis of 100 and a 48-week season,
+ * the gap from season 0 week 48 to season 1 week 1 came out as 53 instead of 1,
+ * so every duration that crossed an August - a loan running into the next
+ * season, a contract clock, how long a manager had been at a club - inflated by
+ * 52. Board patience, insolvency and the awards all read those numbers.
+ *
+ * What this buys is not freedom from migration. It is one place to change, and
+ * one migration in save.ts that knows what the basis USED to be, instead of the
+ * multiplier being spelled out in seventy-one expressions across nineteen
+ * files where changing it means finding every one.
  */
-export const WEEK_BASIS = 100
+export const WEEK_BASIS = 48
 export const absWeek = (season: number, week: number) => season * WEEK_BASIS + week
 
 /**
