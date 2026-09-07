@@ -4754,7 +4754,9 @@
     "totyMineSubj": "L'équipe de l'année nous rapporte de l'argent",
     "totyMine": "Nous avons {n} joueur(s) dans l'équipe de l'année : {names}. Les maillots floqués partent plus vite qu'on ne les imprime, deux promoteurs veulent une soirée avec eux, et des sponsors muets en septembre demandent le prix d'un contrat d'image. Cela rapporte {money}, sans toucher au budget sportif.",
     "friendlyBooked": "{club} viendront à {short} le mercredi de la semaine {week}. Aucune recette digne de ce nom : ce qui compte, ce sont quatre-vingts minutes pour l'académie et pour ceux qui ne jouent pas.",
-    "friendlyBookedSubj": "Match amical en semaine confirmé : {short}"
+    "friendlyBookedSubj": "Match amical en semaine confirmé : {short}",
+    "islesOfferSubj": "Une invitation des quatre fédérations",
+    "islesOffer": "Les quatre fédérations vous ont écrit ensemble. Elles veulent vous confier le XV des Îles Britanniques et Irlandaises pour la tournée en {host} cet été : sept matches de province et une série de trois tests, un groupe tiré de quatre pays qui passent chaque février à vouloir se battre.\n\nIl n'y a ni liste ni entretien. Elles ont choisi, et elles demandent.\n\nSi vous partez, votre adjoint prend votre sélection nationale le temps de la tournée."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5929,5 +5931,18 @@
     "hardDesc": "Moins d’argent en banque, un conseil plus exigeant, une infirmerie plus remplie.",
     "legend": "Légende",
     "legendDesc": "La moitié de l’argent, un conseil sans patience, et des blessures qui vont par deux."
+  },
+  "isles": {
+    "title": "Le XV des Îles",
+    "accept": "Prendre la tournée",
+    "decline": "Refuser",
+    "whyNoTour": "Il n'y a pas de tournée cet été. Elle a lieu tous les quatre ans.",
+    "whyNoJob": "Il vous faudrait d'abord un poste.",
+    "whyNotIntl": "Les quatre fédérations choisissent parmi les sélectionneurs en poste - l'un des leurs.",
+    "whyNoTrophy": "Elles prennent des hommes qui ont gagné quelque chose. Ce n'est pas encore votre cas.",
+    "whyRep": "Votre stature dans le rugby n'est pas encore celle qu'exige ce poste. Rien d'autre n'en demande autant.",
+    "whyYes": "Vous remplissez toutes les conditions posées par les quatre fédérations.",
+    "took": "Vous êtes le sélectionneur du XV des Îles Britanniques et Irlandaises. Votre adjoint garde votre sélection jusqu'à votre retour.",
+    "passed": "Vous avez dit non. Elles demanderont à quelqu'un d'autre, et ne reviendront pas vers vous cette fois-ci."
   }
 }

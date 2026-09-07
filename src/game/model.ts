@@ -1312,6 +1312,10 @@ export interface GameState {
   chatsUsed?: number
   /** national side the manager also coaches (FM-style dual role) */
   natTeam?: string | null
+  /** The Isles XV tour job: which season it was offered in and what he said.
+   *  Absent on every save made before v1.5, which is correct - nobody was ever
+   *  offered it, because until now it was not a job you could be offered. */
+  isles?: { season: number; answer: 'open' | 'yes' | 'no' }
   /** a country wants you - pending offer from a union */
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */
