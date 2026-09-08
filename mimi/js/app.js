@@ -17,10 +17,9 @@ import * as exercise from './screens/exercise.js'
 import * as tracker from './screens/tracker.js'
 import * as nutrition from './screens/nutrition.js'
 import * as recipe from './screens/recipe.js'
-import * as account from './screens/account.js'
+import * as you from './screens/you.js'
 import * as mindset from './screens/mindset.js'
-import * as community from './screens/community.js'
-import * as coaching from './screens/coaching.js'
+import * as shopping from './screens/shopping.js'
 import * as onboarding from './screens/onboarding.js'
 
 defineRoutes([
@@ -32,11 +31,16 @@ defineRoutes([
   { pattern: '/tracker', screen: tracker, tab: 'tracker' },
   { pattern: '/nutrition', screen: nutrition, tab: 'nutrition' },
   { pattern: '/recipe/:id', screen: recipe, tab: 'nutrition' },
-  { pattern: '/account', screen: account, tab: 'account' },
-  { pattern: '/mindset', screen: mindset, tab: 'home' },
-  { pattern: '/mindset/:id', screen: mindset.detail, tab: 'home' },
-  { pattern: '/community', screen: community, tab: 'home' },
-  { pattern: '/coaching', screen: coaching, tab: 'home' },
+  { pattern: '/shopping', screen: shopping, tab: 'nutrition' },
+  { pattern: '/mindset', screen: mindset, tab: 'tracker' },
+  { pattern: '/mindset/:id', screen: mindset.detail, tab: 'tracker' },
+  { pattern: '/habit/:id', screen: mindset.habit, tab: 'tracker' },
+  // Tab five is three screens behind one segmented control, and each of these
+  // is a way in that lands on the right segment.
+  { pattern: '/you', screen: you.feedView, tab: 'you' },
+  { pattern: '/community', screen: you.feedView, tab: 'you' },
+  { pattern: '/account', screen: you.progressView, tab: 'you' },
+  { pattern: '/coaching', screen: you.coachingView, tab: 'you' },
   { pattern: '/welcome', screen: onboarding, chrome: false },
 ])
 

@@ -8,7 +8,7 @@
  */
 import { esc, iso, addDays, prettyDate, initials, plural, round } from '../util.js'
 import { get, update, reset, weightSeries, workoutStreak } from '../state.js'
-import { pageHead, sectionHead, lineChart, barChart, toast, sheet, closeSheet } from '../ui.js'
+import { sectionHead, lineChart, barChart, toast, sheet, closeSheet } from '../ui.js'
 import { PROGRAMS, programById } from '../data/programs.js'
 import { progressOf } from './workouts.js'
 import { available as healthAvailable } from '../health.js'
@@ -34,7 +34,7 @@ function weeklySessions(s, weeks = 8) {
   return out
 }
 
-export function render() {
+export function body() {
   const s = get()
   const p = s.profile
   const series = weightSeries()
@@ -44,9 +44,7 @@ export function render() {
   const pr = program ? progressOf(program, s.enrolment) : null
   const downloaded = PROGRAMS.filter((x) => isDownloaded(x.id))
 
-  return `<main class="page stack">
-    ${pageHead('You', 'Progress, preferences and your data')}
-
+  return `<div class="stack">
     <section class="card row">
       <span class="avatar" style="width:52px; height:52px; font-size:1.1rem">${esc(initials(p.name || 'Mimi Member'))}</span>
       <span class="grow">
@@ -120,7 +118,7 @@ export function render() {
     </section>
 
     <p class="lede center">Made by Mimi · prototype build</p>
-  </main>`
+  </div>`
 }
 
 export function mount(root) {

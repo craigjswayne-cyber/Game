@@ -8,9 +8,10 @@
  */
 import { esc, icon, round } from '../util.js'
 import { get, update } from '../state.js'
-import { pageHead, sectionHead, empty } from '../ui.js'
+import { pageHead, sectionHead, empty, toast } from '../ui.js'
 import { macrosFor, ACTIVITY, GOALS } from '../macros.js'
-import { RECIPES, RECIPE_TAGS } from '../data/recipes.js'
+import { RECIPES, RECIPE_TAGS, recipeById } from '../data/recipes.js'
+import { listCount, addRecipe, removeRecipe, hasRecipe } from '../shopping.js'
 import { currentWeight, goalFromProfile } from './home.js'
 import { render as rerenderRoute } from '../router.js'
 
@@ -94,16 +95,28 @@ export function render() {
         ${['All', ...RECIPE_TAGS].map((tg) => `<button class="chip" data-tag="${esc(tg)}" aria-pressed="${tag === tg}">${esc(tg)}</button>`).join('')}
       </div>
 
+      <button class="card card--tap row" data-nav="/shopping">
+        <span class="thumb">${icon.list()}</span>
+        <span class="grow">
+          <strong style="display:block">Shopping list</strong>
+          <span class="lede">${listCount() ? `${listCount()} thing${listCount() === 1 ? '' : 's'} to get` : 'Add recipes and the ingredients gather here'}</span>
+        </span>
+        <span class="chev">${icon.chevron()}</span>
+      </button>
+
       ${list.length ? `<ul class="list card">
         ${list.map((r) => `
-          <li>
-            <button class="listrow" data-nav="/recipe/${esc(r.id)}">
+          <li class="row">
+            <button class="listrow grow" data-nav="/recipe/${esc(r.id)}">
               <span class="thumb">${icon.plate()}</span>
               <span class="grow">
                 <strong style="display:block; font-weight:500">${esc(r.title)}</strong>
                 <span class="lede">${esc(r.kcal)} kcal · ${esc(r.protein)}g protein · ${esc(r.minutes)} min</span>
               </span>
-              <span class="chev">${icon.chevron()}</span>
+            </button>
+            <button class="iconbtn" data-shop="${esc(r.id)}" aria-pressed="${hasRecipe(r.id)}"
+              aria-label="${hasRecipe(r.id) ? `Remove ${esc(r.title)} from the shopping list` : `Add ${esc(r.title)} to the shopping list`}">
+              ${hasRecipe(r.id) ? icon.check() : icon.plus()}
             </button>
           </li>`).join('')}
       </ul>` : empty('Nothing under that filter', 'Try another tag.')}
@@ -114,6 +127,13 @@ export function render() {
 export function mount(root) {
   root.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; rerenderRoute() }))
   root.querySelectorAll('[data-tag]').forEach((b) => b.addEventListener('click', () => { tag = b.dataset.tag; rerenderRoute() }))
+  root.querySelectorAll('[data-shop]').forEach((b) => b.addEventListener('click', () => {
+    const recipe = recipeById(b.dataset.shop)
+    if (!recipe) return
+    if (hasRecipe(recipe.id)) { removeRecipe(recipe); toast(`${recipe.title} taken off the list.`) }
+    else { addRecipe(recipe); toast(`${recipe.ingredients.length} ingredients added.`) }
+    rerenderRoute()
+  }))
   root.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => {
     update((s) => { s.profile.macroGoal = b.dataset.goal; return s })
     rerenderRoute()

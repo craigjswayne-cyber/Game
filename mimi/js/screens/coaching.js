@@ -8,7 +8,8 @@
  */
 import { esc, icon, iso, prettyDate, clockTime, uid } from '../util.js'
 import { get, update, workoutStreak, lastNDays } from '../state.js'
-import { pageHead, sectionHead, toast, sheet, closeSheet } from '../ui.js'
+import { sectionHead, toast, sheet, closeSheet } from '../ui.js'
+import { shrinkAll, MAX_PHOTOS } from '../photos.js'
 import { render as rerenderRoute } from '../router.js'
 
 const SCALES = [
@@ -18,7 +19,7 @@ const SCALES = [
   { key: 'hunger', label: 'Hunger', low: 'Settled', high: 'Ravenous' },
 ]
 
-export function render() {
+export function body() {
   const s = get()
   const checkins = s.coaching.checkins
   const last = checkins[checkins.length - 1]
@@ -26,9 +27,7 @@ export function render() {
      the last seven days, whatever programme they were done under. */
   const sessions7 = lastNDays(7).reduce((n, d) => n + (s.days[d]?.workouts?.length || 0), 0)
 
-  return `<main class="page stack">
-    ${pageHead('1-1 with Mimi', 'Check in, get seen, get told the truth', { to: '/home', label: 'Home' })}
-
+  return `<div class="stack">
     <section class="card card--brand stack-sm">
       <p class="eyebrow">${s.coaching.plan ? 'Your plan' : 'Coaching'}</p>
       <h2 style="margin:var(--s1) 0">${esc(s.coaching.plan ? s.coaching.plan.name : 'Work with me directly')}</h2>
@@ -56,6 +55,10 @@ export function render() {
           ${SCALES.map((sc) => `<span class="tag tag--quiet">${esc(sc.label)} ${esc(last[sc.key])}/5</span>`).join('')}
           ${last.weightKg ? `<span class="tag tag--quiet">${esc(last.weightKg)}kg</span>` : ''}
         </div>
+        ${last.photos?.length ? `
+          <div class="photos">
+            ${last.photos.map((src, i) => `<img src="${esc(src)}" alt="Progress photo ${i + 1} from ${esc(prettyDate(last.date))}" loading="lazy" />`).join('')}
+          </div>` : ''}
         ${last.wins ? `<p><strong style="font-weight:500">Went well:</strong> ${esc(last.wins)}</p>` : ''}
         ${last.blockers ? `<p><strong style="font-weight:500">Got in the way:</strong> ${esc(last.blockers)}</p>` : ''}
         ${last.feedback
@@ -65,6 +68,7 @@ export function render() {
 
     <section class="card stack-sm">
       ${sectionHead('Messages')}
+      <p class="lede">A private thread between you and Mimi. It is held on this device in the prototype.</p>
       <div class="stack-sm" style="max-height:340px; overflow-y:auto">
         ${s.coaching.messages.map((m) => `
           <div class="bubble ${m.from === 'mimi' ? 'bubble--them' : 'bubble--me'}">
@@ -78,7 +82,7 @@ export function render() {
       </form>
       <p class="lede">Replies come from a person, so they come on weekdays.</p>
     </section>
-  </main>`
+  </div>`
 }
 
 export function mount(root) {
@@ -124,11 +128,30 @@ function openCheckin() {
         <span>Anything you want me to change?</span>
         <textarea name="asks" maxlength="600" placeholder="Programme, macros, schedule."></textarea>
       </label>
+      <div class="field">
+        <span>Progress photos (up to ${MAX_PHOTOS}, optional)</span>
+        <input type="file" accept="image/*" multiple data-photos />
+        <div class="photos" data-preview></div>
+        <p class="lede">Kept on this device with the rest of your check-in, shrunk to 720px so they fit. Nothing is uploaded.</p>
+      </div>
       <button class="btn btn--primary btn--block" type="submit">Send check-in</button>
       <p class="lede center">Your streak, sessions and habit data go with it, so you do not have to type them out.</p>
     </form>`
 
   sheet('Weekly check-in', body, (wrap) => {
+    /* Photos are shrunk as they are picked, not on submit: a person who chose
+       four megabytes of camera roll should see the thumbnails before they
+       commit, and the work is done by the time they press send. */
+    let photos = []
+    wrap.querySelector('[data-photos]')?.addEventListener('change', async (e) => {
+      const preview = wrap.querySelector('[data-preview]')
+      preview.innerHTML = '<p class="lede">Shrinking...</p>'
+      photos = await shrinkAll(e.target.files)
+      preview.innerHTML = photos.length
+        ? photos.map((src, i) => `<img src="${esc(src)}" alt="Selected photo ${i + 1}" />`).join('')
+        : '<p class="lede">Nothing usable in that pick.</p>'
+    })
+
     wrap.querySelector('[data-form]').addEventListener('submit', (e) => {
       e.preventDefault()
       const f = new FormData(e.target)
@@ -140,6 +163,7 @@ function openCheckin() {
         blockers: String(f.get('blockers') || '').trim(),
         asks: String(f.get('asks') || '').trim(),
         streak: workoutStreak(),
+        photos,
         feedback: null,
       }
       for (const sc of SCALES) entry[sc.key] = Number(f.get(sc.key)) || 3

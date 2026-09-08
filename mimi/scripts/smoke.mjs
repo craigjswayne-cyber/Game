@@ -94,21 +94,43 @@ await step('intake completes', async () => {
   await page.waitForSelector('.tabbar')
 })
 
-await step('home shows the next session', async () => {
+await step('home shows rings, session and the mindset prompt', async () => {
   const txt = await page.textContent('.card--brand')
   if (!/Up next|Pick a block/.test(txt)) throw new Error(`unexpected hero: ${txt.slice(0, 60)}`)
+  if (await page.locator('.ring').count() !== 3) throw new Error('expected three progress rings')
+  await page.fill('[data-gratitude]', 'Legs that carried me up four flights without noticing.')
+  await page.click('[data-save-gratitude]')
+  await page.waitForTimeout(150)
+  if (!(await page.textContent('main')).includes('four flights')) throw new Error('gratitude not saved')
   await shot('03-home')
 })
 
-await step('workout filters', async () => {
+await step('workout filters, including duration and muscle', async () => {
   await page.click('.tabbar button:nth-child(2)')
   await page.click('[data-env="both"]')
-  await page.click('[data-disc="strength"]')
+  await page.click('[data-dur="short"]')
+  await page.click('[data-muscle="Core"]')
+  const short = await page.textContent('main')
+  if (!short.includes('Express')) throw new Error('no express session under 25 minutes for Core')
+  if (short.includes('Strong Foundations')) throw new Error('a 50 minute block survived the under 25 filter')
+  await page.click('[data-dur="any"]')
+  await page.click('[data-muscle="any"]')
   if (await page.locator('.card--tap').count() < 1) throw new Error('no programmes listed')
   await shot('04-workouts')
 })
 
+await step('an express session runs and counts', async () => {
+  await page.goto(`${BASE}/#/session/x-core-15/1/day`)
+  await page.waitForSelector('.setrow')
+  await page.click('.setrow [data-tick]')
+  await page.click('[data-rest-skip]')
+  await page.click('[data-finish]')
+  await page.waitForSelector('.cal')
+  if (!(await page.textContent('main')).includes('15 minute core')) throw new Error('express session not logged to the day')
+})
+
 await step('exercise library', async () => {
+  await page.goto(`${BASE}/#/workouts`)
   await page.click('[data-tab="library"]')
   await page.click('.listrow')
   await page.waitForSelector('.video')
@@ -120,6 +142,31 @@ await step('programme detail', async () => {
   await page.waitForSelector('[data-enrol]')
   await page.click('[data-week="2"]')
   await shot('06-program')
+})
+
+await step('exercise swap', async () => {
+  await page.goto(`${BASE}/#/session/strong-foundations/1/d1`)
+  await page.waitForSelector('.setrow')
+  await page.click('[data-swap="bb-squat"]')
+  await page.waitForSelector('[data-pick-swap]')
+  const swapTo = await page.locator('[data-pick-swap]').first().getAttribute('data-pick-swap')
+  await page.click('[data-pick-swap]')
+  await page.waitForTimeout(200)
+  if (!(await page.textContent('main')).includes('Swapped in for Back squat')) throw new Error('swap not applied')
+  await page.click(`[data-unswap="bb-squat"]`)
+  await page.waitForTimeout(150)
+  if ((await page.textContent('main')).includes('Swapped in for')) throw new Error('swap not undone')
+  if (!swapTo) throw new Error('no alternative offered')
+})
+
+await step('a sheet does not follow you off the screen', async () => {
+  await page.goto(`${BASE}/#/session/strong-foundations/1/d1`)
+  await page.waitForSelector('.setrow')
+  await page.click('[data-swap="bb-squat"]')
+  await page.waitForSelector('.sheet')
+  await page.goto(`${BASE}/#/tracker`)
+  await page.waitForSelector('.cal')
+  if (await page.locator('.sheet-backdrop').count()) throw new Error('the sheet outlived the screen it belonged to')
 })
 
 await step('session logging and rest timer', async () => {
@@ -137,16 +184,33 @@ await step('session logging and rest timer', async () => {
   await page.waitForSelector('.cal')
 })
 
-await step('tracker habits', async () => {
+await step('tracker habits and the planner', async () => {
+  await page.goto(`${BASE}/#/tracker`)
+  await page.waitForSelector('.cal')
   await page.click('[data-water="250"]')
   await page.click('[data-water="500"]')
   await page.click('[data-mood="strong"]')
   await page.fill('[data-todo-input]', 'Walk before the call')
   await page.click('[data-todo-form] button[type="submit"]')
+  await page.waitForTimeout(150)
   const todo = await page.locator('.todo label').first().textContent()
   if (!todo.includes('Walk')) throw new Error('to-do not saved')
+  if (!/added \d/.test(todo)) throw new Error('to-do carries no timestamp')
+  await page.click('[data-flag]')
+  await page.waitForTimeout(150)
+  if (!(await page.textContent('.todo label')).includes('Priority')) throw new Error('priority flag did not stick')
   if (!(await page.textContent('main')).includes('750ml')) throw new Error('water did not add up')
   await shot('08-tracker')
+})
+
+await step('the mindset core lives on the centre tab', async () => {
+  const txt = await page.textContent('main')
+  for (const want of ['Mindset core', 'Habit guides', 'gratitude prompt']) {
+    if (!txt.includes(want)) throw new Error(`no "${want}" on the centre tab`)
+  }
+  await page.click('[data-nav="/habit/two-minute"]')
+  await page.waitForTimeout(200)
+  if (!(await page.textContent('main')).includes('two minutes')) throw new Error('habit guide did not open')
 })
 
 await step('macro calculator', async () => {
@@ -158,17 +222,41 @@ await step('macro calculator', async () => {
 })
 
 await step('recipe vault', async () => {
+  await page.goto(`${BASE}/#/nutrition`)
   await page.click('[data-tab="vault"]')
+  await page.click('[data-tag="Desserts"]')
+  if (await page.locator('[data-shop]').count() < 1) throw new Error('no desserts in the vault')
   await page.click('[data-tag="High protein"]')
   await page.click('.listrow')
   await page.waitForSelector('[data-fav]')
   await shot('10-recipe')
 })
 
-await step('analytics', async () => {
+await step('the shopping list aggregates', async () => {
+  await page.goto(`${BASE}/#/recipe/protein-oats`)
+  await page.click('[data-shop]')
+  await page.goto(`${BASE}/#/recipe/green-shake`)
+  await page.click('[data-shop]')
+  await page.goto(`${BASE}/#/shopping`)
+  await page.waitForSelector('.todo')
+  const list = await page.textContent('main')
+  if (!list.includes('Overnight protein oats') || !list.includes('The green one')) throw new Error('recipes not credited on the list')
+  if (!/x2/.test(list)) throw new Error('a shared ingredient was not merged')
+  await page.click('.todo input[type="checkbox"]')
+  await page.waitForTimeout(100)
+  await shot('15-shopping')
+})
+
+await step('tab five carries all three segments', async () => {
   await page.goto(`${BASE}/#/account`)
   await page.waitForSelector('.bars')
   await shot('11-account')
+  await page.click('[data-seg="feed"]')
+  await page.waitForSelector('[data-post-input]')
+  await page.click('[data-seg="coaching"]')
+  await page.waitForSelector('[data-checkin]')
+  await page.click('[data-seg="progress"]')
+  await page.waitForSelector('.bars')
 })
 
 await step('mindset breathing', async () => {
@@ -180,12 +268,18 @@ await step('mindset breathing', async () => {
   await page.click('[data-complete]')
 })
 
-await step('community post', async () => {
+await step('community post and high five', async () => {
   await page.goto(`${BASE}/#/community`)
   await page.fill('[data-post-input]', 'First week done and I am still standing.')
   await page.click('[data-post-form] button[type="submit"]')
   await page.waitForTimeout(150)
   if (!(await page.textContent('.post')).includes('still standing')) throw new Error('post not rendered')
+  const five = page.locator('[data-five]').first()
+  const before = await five.textContent()
+  await five.click()
+  await page.waitForTimeout(150)
+  const after = await page.locator('[data-five]').first().textContent()
+  if (before.trim() === after.trim()) throw new Error('high five did not register')
   await shot('13-community')
 })
 
@@ -194,6 +288,7 @@ await step('coaching check-in', async () => {
   await page.click('[data-checkin]')
   await page.waitForSelector('.sheet')
   await page.fill('textarea[name="wins"]', 'Hit every session.')
+  if (await page.locator('[data-photos]').count() !== 1) throw new Error('no progress photo field on the check-in')
   await page.click('.sheet button[type="submit"]')
   await page.waitForTimeout(200)
   if (!(await page.textContent('main')).includes('Hit every session')) throw new Error('check-in not stored')
@@ -215,6 +310,9 @@ await step('the save survives a reload', async () => {
   const txt = await page.textContent('main')
   if (!txt.includes('Walk before the call')) throw new Error('to-do lost on reload')
   if (!txt.includes('750ml')) throw new Error('water lost on reload')
+  await page.goto(`${BASE}/#/shopping`)
+  await page.waitForSelector('.todo')
+  if (!(await page.textContent('main')).includes('Overnight protein oats')) throw new Error('shopping list lost on reload')
 })
 
 await browser.close()

@@ -9,7 +9,7 @@
  * Bump CACHE when the shell changes. An old cache is deleted on activate, which
  * is the only thing keeping a stale build from outliving a deploy.
  */
-const CACHE = 'mimi-shell-v1'
+const CACHE = 'mimi-shell-v2'
 
 const SHELL = [
   './',
@@ -30,6 +30,8 @@ const SHELL = [
   './js/macros.js',
   './js/health.js',
   './js/offline.js',
+  './js/shopping.js',
+  './js/photos.js',
   './js/data/programs.js',
   './js/data/exercises.js',
   './js/data/recipes.js',
@@ -44,6 +46,8 @@ const SHELL = [
   './js/screens/nutrition.js',
   './js/screens/recipe.js',
   './js/screens/account.js',
+  './js/screens/you.js',
+  './js/screens/shopping.js',
   './js/screens/mindset.js',
   './js/screens/community.js',
   './js/screens/coaching.js',

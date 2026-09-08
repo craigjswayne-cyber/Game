@@ -32,7 +32,9 @@ node mimi/scripts/icons.mjs      # regenerate the PNG icons from icons/icon.svg
 The smoke test walks the intake, both workout filters, a logged session with its
 rest timer, every habit on the tracker, the macro calculator, the recipe vault,
 the analytics, a breathing session, a community post and a coaching check-in,
-then reloads to prove the save survived. It fails on any console error or page
+then reloads to prove the save survived. It also swaps an exercise, runs an
+express session, merges two recipes into one shopping list and checks a sheet
+does not follow you onto the next screen. It fails on any console error or page
 exception, and one step posts markup into the feed to check it does not run.
 Screenshots land in `mimi/shots/`, which git ignores.
 
@@ -64,15 +66,14 @@ mimi/
 
 | Tab | What it does |
 | --- | --- |
-| Home | Greeting, rotating quote, the next session, today's habits, macro targets, and the doors to Mindset, 1-1 coaching and the community feed |
-| Workouts | Home and gym toggle, discipline filters, five multi-week programmes, the full exercise library, and a session player with weight and rep logging, a rest timer and per-exercise cues |
-| Today | Month calendar with session dots, water glass, steps, mood, weight, a daily to-do list, and the workout and water streaks |
-| Nutrition | The macro calculator with its working shown, and Mimi's recipe vault with tag filters and macros per serving |
-| You | Weight chart, weekly consistency, measurements, Apple Health switches, downloads, backup export and a full reset |
+| Home | Avatar, date and rotating quote, three progress rings (steps, water, streak), the next session, a two minute mindset spotlight, the 1-1 coaching banner and today's macro targets |
+| Workouts | Home and gym toggle, session length and target muscle filters, five multi-week programmes, six express sessions, the full exercise library, and a player with weight and rep logging, a rest timer that chimes, per-exercise cues and mid-session exercise swapping |
+| Today | Month calendar with session and habit marks, water glass, steps, mood, weight, a planner with timestamps and priority flags, and the Mindset core: the daily gratitude prompt, guided audio, breathwork and the habit guides |
+| Nutrition | The macro calculator with its working shown, Mimi's recipe vault with tag filters and macros per serving, and a shopping list that aggregates the ingredients of everything you add |
+| Community | One tab, three segments: the encouragement feed with high fives, your progress analytics and settings, and the private 1-1 coaching portal with weekly check-ins and progress photos |
 
-Mindset, Community and 1-1 coaching sit under the Home tab: guided breathing
-with a paced orb, journal prompts that save, a moderated feed, and a weekly
-check-in form with a message thread.
+Each segment of the last tab is a route of its own (`/community`, `/account`,
+`/coaching`), so the back button and a shared link both land where you expect.
 
 ## Onboarding
 
@@ -86,14 +87,17 @@ tracker rings. It can be re-run field by field from the You tab.
 Being straight about this matters more than a demo that looks finished.
 
 **Real:** every screen, the routing, the store and its migration, set logging,
-the rest timer, streaks, the calendar, the macro calculator (Mifflin-St Jeor
-with a 1,200 kcal floor), the recipe macros, the offline shell cache, the
-journal, the feed, the check-in form, backup export and reset.
+exercise swapping, the rest timer and its synthesised end tone, streaks, the
+calendar, the planner, the macro calculator (Mifflin-St Jeor with a 1,200 kcal
+floor), the recipe macros, the shopping list and its aggregation, progress
+photos (read, downscaled to 720px and stored on the device), the offline shell
+cache, the journal, the feed, the check-in form, backup export and reset.
 
 **Placeholder:**
 
-- **Exercise videos.** No video binaries ship here. The player renders its
-  poster state and names the file the shipping app would stream.
+- **Exercise videos and guided audio.** No media binaries ship here. Both
+  players render their poster state and name the file the shipping app would
+  stream. The audio session's timer and written script work now.
 - **Apple Health.** HealthKit is a native API. `js/health.js` is the seam a
   native shell fills in by setting `window.MimiHealth`; until it does, the app
   says so rather than inventing step counts.

@@ -26,7 +26,8 @@ export const SESSIONS = [
   {
     id: 'body-scan',
     title: 'Ten minute body scan',
-    kind: 'read',
+    kind: 'audio',
+    track: 'body-scan-10.m4a',
     minutes: 10,
     theme: 'Recovery',
     blurb: 'Lie down after a hard session and give the nervous system somewhere to land.',
@@ -74,7 +75,8 @@ export const SESSIONS = [
   {
     id: 'sleep-wind',
     title: 'Winding down',
-    kind: 'read',
+    kind: 'audio',
+    track: 'winding-down-6.m4a',
     minutes: 6,
     theme: 'Sleep',
     blurb: 'Nothing here trains harder than a full night of sleep. Set the conditions for it.',
@@ -83,6 +85,80 @@ export const SESSIONS = [
 ]
 
 export const sessionById = (id) => SESSIONS.find((s) => s.id === id) || null
+
+/*
+ * THE DAILY GRATITUDE PROMPT.
+ *
+ * One question a day, picked from the person's own seed so it is the same
+ * question all day and a different one tomorrow. Two minutes, one box, saved
+ * to the journal with everything else.
+ */
+export const GRATITUDE = [
+  'Name one thing your body did for you today that you did not have to think about.',
+  'Who made your week easier? Have you told them?',
+  'What is one thing you own that you would miss more than you expect?',
+  'What went right today that you would not have noticed a year ago?',
+  'Which part of today would past you have been glad to hear about?',
+  'What is something hard you are glad you did anyway?',
+  'Name a small comfort you had today. Sit with it for a second.',
+  'What is one thing about your training you can be proud of this week?',
+  'Who are you becoming, and what did today add to that?',
+  'What is worth being grateful for that you usually take as given?',
+]
+
+export function gratitudeFor(seed = 0, date = new Date()) {
+  const day = Math.floor(date.getTime() / 86400000)
+  return GRATITUDE[Math.abs(seed + day) % GRATITUDE.length]
+}
+
+/*
+ * HABIT FORMATION GUIDES. Short, practical, and each one names the thing that
+ * usually goes wrong rather than the theory.
+ */
+export const HABIT_GUIDES = [
+  {
+    id: 'stack-it',
+    title: 'Stack it onto something',
+    minutes: 3,
+    body: [
+      'A new habit needs an existing one to hang from. After the kettle goes on, not at eight in the morning.',
+      'Write it as: after I [thing I already do], I will [new thing].',
+      'The mistake is picking an anchor you only do sometimes. Pick the one you have never missed.',
+    ],
+  },
+  {
+    id: 'two-minute',
+    title: 'Make it two minutes',
+    minutes: 3,
+    body: [
+      'The version of the habit you will do on your worst day is the one to write down.',
+      'Not a session, putting your shoes on. Not the whole list, one line of it.',
+      'Consistency first, size later. Size is the easy half.',
+    ],
+  },
+  {
+    id: 'never-twice',
+    title: 'Never miss twice',
+    minutes: 2,
+    body: [
+      'Missing once is an accident. Missing twice is the start of the new pattern.',
+      'The rule is not "be perfect". The rule is that the day after a miss is non negotiable, at whatever size it takes.',
+      'This is the only habit rule that matters over a year.',
+    ],
+  },
+  {
+    id: 'friction',
+    title: 'Move the friction',
+    minutes: 3,
+    body: [
+      'You do not need more willpower, you need fewer steps between you and the thing.',
+      'Kit by the door. Bottle filled the night before. Programme already open on the phone.',
+      'Then do the reverse for what you want less of: add steps, add distance, add a lock screen.',
+    ],
+  },
+]
+
+export const habitById = (id) => HABIT_GUIDES.find((h) => h.id === id) || null
 
 /* The eight prompts the daily mood log offers under the face picker. */
 export const MOODS = [

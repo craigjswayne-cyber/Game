@@ -7,6 +7,7 @@
  * that pairing is how a rest timer keeps ticking on the recipe screen.
  */
 import { esc, icon } from './util.js'
+import { closeSheet } from './ui.js'
 
 const ROUTES = []
 let current = null
@@ -20,7 +21,7 @@ export const TABS = [
   { id: 'workouts', to: '/workouts', label: 'Workouts', ico: icon.dumbbell },
   { id: 'tracker', to: '/tracker', label: 'Today', ico: icon.calendar, centre: true },
   { id: 'nutrition', to: '/nutrition', label: 'Nutrition', ico: icon.plate },
-  { id: 'account', to: '/account', label: 'You', ico: icon.person },
+  { id: 'you', to: '/you', label: 'Community', ico: icon.people },
 ]
 
 export function go(to) {
@@ -63,6 +64,10 @@ export function render() {
   if (!hit) { root.innerHTML = '<p class="empty">Nothing here.</p>'; return }
 
   current?.unmount?.()
+  // A sheet lives outside #app, so a hash change would otherwise leave it open
+  // over the screen it was opened from. Seen for real: the swap sheet followed
+  // the person from the session player onto the tracker.
+  closeSheet()
   current = hit.route.screen
 
   const html = hit.route.screen.render(hit.params)

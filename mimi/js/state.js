@@ -47,12 +47,14 @@ const defaults = () => ({
   enrolment: null,                // { programId, startedOn, completed: [dayId] }
   favourites: { recipes: [], exercises: [] },
   downloads: [],                  // programIds held for offline
-  community: { posts: [], liked: [] },
+  shopping: { items: [], from: [] },  // the grocery list built from the recipe vault
+  community: { posts: [], fives: [] },
   coaching: { plan: null, checkins: [], messages: [] },
-  mindset: { completed: [], journal: [] },
+  mindset: { completed: [], journal: [], gratitude: [] },
   settings: {
     health: { steps: true, energy: true, water: false },
     reminders: true,
+    sound: true,                // the rest timer's end tone
     quoteSeed: Math.floor(Math.random() * 1000),
   },
 })
@@ -77,7 +79,7 @@ function load() {
 function migrate(saved) {
   const base = defaults()
   const merged = { ...base, ...saved, v: VERSION }
-  for (const k of ['profile', 'favourites', 'community', 'coaching', 'mindset', 'settings']) {
+  for (const k of ['profile', 'favourites', 'community', 'coaching', 'mindset', 'settings', 'shopping']) {
     merged[k] = { ...base[k], ...(saved[k] || {}) }
   }
   merged.profile.measurements = { ...base.profile.measurements, ...(saved.profile?.measurements || {}) }
@@ -129,6 +131,8 @@ export function reset() {
 
 /* ---- day records ---------------------------------------------------- */
 
+/* A to-do carries the time it was added and whether it was flagged, which is
+   what the planner sorts and stamps by. */
 export const emptyDay = () => ({ waterMl: 0, steps: 0, mood: null, todos: [], workouts: [], weightKg: null })
 
 export const dayOf = (date) => state.days[date] || emptyDay()

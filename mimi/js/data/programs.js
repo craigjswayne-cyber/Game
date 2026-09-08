@@ -187,4 +187,69 @@ export const PROGRAMS = [
   },
 ]
 
-export const programById = (id) => PROGRAMS.find((p) => p.id === id) || null
+export const programById = (id) => {
+  const found = PROGRAMS.find((p) => p.id === id)
+  if (found) return found
+  const express = EXPRESS.find((x) => x.id === id)
+  return express ? expressAsProgram(express) : null
+}
+
+/*
+ * EXPRESS WORKOUTS.
+ *
+ * Standalone sessions with no block behind them, for the days a programme is
+ * not going to happen. Same shape as a programme day so the session player does
+ * not need to know the difference: an express workout is served as a one day,
+ * one week programme.
+ */
+export const EXPRESS = [
+  { id: 'x-core-15', title: '15 minute core', focus: 'Trunk', minutes: 15, env: 'home', level: 'beginner', work: [
+    { ex: 'dead-bug', sets: 3, reps: '10 each', rest: 30 },
+    { ex: 'hollow', sets: 3, reps: '25 sec', rest: 30 },
+    { ex: 'plank', sets: 3, reps: '40 sec', rest: 30 },
+    { ex: 'pallof', sets: 3, reps: '10 each', rest: 30 },
+  ] },
+  { id: 'x-glutes-20', title: '20 minute glute burner', focus: 'Glutes', minutes: 20, env: 'home', level: 'beginner', work: [
+    { ex: 'glute-bridge', sets: 4, reps: '15', rest: 45 },
+    { ex: 'split-squat', sets: 3, reps: '12 each', rest: 45 },
+    { ex: 'walk-lunge', sets: 3, reps: '16', rest: 45 },
+    { ex: 'kb-swing', sets: 3, reps: '15', rest: 45 },
+  ] },
+  { id: 'x-upper-25', title: '25 minute upper body', focus: 'Push and pull', minutes: 25, env: 'gym', level: 'intermediate', work: [
+    { ex: 'db-press', sets: 4, reps: '10', rest: 60 },
+    { ex: 'lat-pull', sets: 4, reps: '10', rest: 60 },
+    { ex: 'sh-press', sets: 3, reps: '12', rest: 45 },
+    { ex: 'face-pull', sets: 3, reps: '15', rest: 45 },
+  ] },
+  { id: 'x-full-30', title: '30 minute full body', focus: 'Everything', minutes: 30, env: 'home', level: 'intermediate', work: [
+    { ex: 'gob-squat', sets: 4, reps: '12', rest: 60 },
+    { ex: 'push-up', sets: 4, reps: '10', rest: 60 },
+    { ex: 'row-1arm', sets: 3, reps: '12 each', rest: 60 },
+    { ex: 'rdl', sets: 3, reps: '12', rest: 60 },
+    { ex: 'plank', sets: 3, reps: '45 sec', rest: 30 },
+  ] },
+  { id: 'x-hiit-10', title: '10 minute finisher', focus: 'Conditioning', minutes: 10, env: 'home', level: 'advanced', work: [
+    { ex: 'burpee', sets: 4, reps: '30 sec', rest: 20 },
+    { ex: 'mtn-climb', sets: 4, reps: '30 sec', rest: 20 },
+    { ex: 'kb-swing', sets: 4, reps: '30 sec', rest: 40 },
+  ] },
+  { id: 'x-legs-40', title: '40 minute leg day', focus: 'Legs', minutes: 40, env: 'gym', level: 'advanced', work: [
+    { ex: 'bb-squat', sets: 5, reps: '5', rest: 150 },
+    { ex: 'hip-thrust', sets: 4, reps: '10', rest: 90 },
+    { ex: 'rdl', sets: 3, reps: '10', rest: 90 },
+    { ex: 'split-squat', sets: 3, reps: '10 each', rest: 60 },
+  ] },
+]
+
+/* An express workout served in programme clothes, so /session/:id/1/day works
+   for both without a second player. */
+export const expressAsProgram = (x) => ({
+  id: x.id, title: x.title, subtitle: 'Express workout', weeks: 1,
+  env: x.env, level: x.level, disciplines: [], goals: [], minutes: x.minutes,
+  blurb: `A standalone ${x.minutes} minute session. No block, no commitment, it still counts.`,
+  progression: 'Repeat it whenever it fits. Add load or reps when it stops being hard.',
+  express: true,
+  days: [{ id: 'day', title: x.title, focus: x.focus, minutes: x.minutes, work: x.work }],
+})
+
+export const expressById = (id) => EXPRESS.find((x) => x.id === id) || null

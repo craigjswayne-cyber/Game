@@ -3,7 +3,7 @@
  * tab totals against a person's targets, so they are stored as plain grams and
  * calories rather than being recomputed from ingredients.
  */
-export const RECIPE_TAGS = ['High protein', 'Quick prep', 'Meals', 'Snacks', 'Vegetarian', 'Batch cook']
+export const RECIPE_TAGS = ['High protein', 'Low carb', 'Quick prep', 'Meals', 'Snacks', 'Desserts', 'Vegetarian', 'Batch cook']
 
 export const RECIPES = [
   {
@@ -67,7 +67,7 @@ export const RECIPES = [
     steps: ['Soften the aromatics, bloom the spices for a minute.', 'Lentils, coconut milk and stock in, simmer twenty five minutes.', 'Spinach through at the end, lemon to wake it up.'],
   },
   {
-    id: 'egg-muffins', title: 'Feta and pepper egg muffins', tags: ['High protein', 'Batch cook', 'Snacks', 'Vegetarian'],
+    id: 'egg-muffins', title: 'Feta and pepper egg muffins', tags: ['High protein', 'Low carb', 'Batch cook', 'Snacks', 'Vegetarian'],
     minutes: 25, serves: 6, kcal: 150, protein: 13, carbs: 4, fat: 10,
     ingredients: ['8 eggs', '80g feta', '1 red pepper', 'Spring onions', 'Salt and pepper'],
     steps: ['Whisk the eggs, fold in the rest.', 'Into a greased muffin tin, 180C for eighteen minutes.', 'Keeps four days in the fridge.'],
@@ -77,6 +77,30 @@ export const RECIPES = [
     minutes: 18, serves: 2, kcal: 640, protein: 48, carbs: 64, fat: 20,
     ingredients: ['300g chicken thigh', '160g pasta', '3 tbsp pesto', '100g peas', '30g parmesan', 'Lemon zest'],
     steps: ['Pasta on, chicken in a hot pan until it is properly coloured.', 'Peas into the pasta water for the last two minutes.', 'Drain, keep a mugful of the water, stir pesto and a splash through everything.'],
+  },
+  {
+    id: 'chicken-caesar-cups', title: 'Chicken Caesar lettuce cups', tags: ['High protein', 'Low carb', 'Quick prep', 'Meals'],
+    minutes: 15, serves: 2, kcal: 390, protein: 44, carbs: 9, fat: 19,
+    ingredients: ['300g cooked chicken breast', '2 baby gem lettuces', '3 tbsp Greek yoghurt', '1 tbsp mayonnaise', '20g parmesan', 'Anchovy, lemon, black pepper'],
+    steps: ['Whisk yoghurt, mayonnaise, grated parmesan, a chopped anchovy and lemon into a dressing.', 'Shred the chicken through it.', 'Spoon into separated lettuce leaves, more parmesan over the top.'],
+  },
+  {
+    id: 'steak-greens', title: 'Steak with garlic greens', tags: ['High protein', 'Low carb', 'Meals'],
+    minutes: 20, serves: 2, kcal: 470, protein: 46, carbs: 8, fat: 27,
+    ingredients: ['2 sirloin steaks', '200g green beans', '150g spinach', '3 cloves garlic', 'Butter, thyme, salt'],
+    steps: ['Steaks out of the fridge twenty minutes early, salted.', 'Hot pan, three minutes a side for medium rare, butter and thyme in at the end.', 'Rest the steak while the greens go in the same pan with the garlic.'],
+  },
+  {
+    id: 'choc-mousse', title: 'Two ingredient chocolate mousse', tags: ['Desserts', 'Quick prep', 'Vegetarian'],
+    minutes: 10, serves: 2, kcal: 210, protein: 14, carbs: 16, fat: 9,
+    ingredients: ['200g Greek yoghurt', '60g dark chocolate, melted', 'Pinch of salt', 'Berries to serve'],
+    steps: ['Melt the chocolate and let it cool for a minute so it does not split the yoghurt.', 'Fold it through with the salt until it is glossy.', 'Fridge for twenty minutes. Berries on top.'],
+  },
+  {
+    id: 'baked-cheesecake-pots', title: 'Protein cheesecake pots', tags: ['Desserts', 'High protein', 'Batch cook', 'Vegetarian'],
+    minutes: 30, serves: 4, kcal: 240, protein: 22, carbs: 18, fat: 9,
+    ingredients: ['300g quark', '150g cream cheese', '1 scoop vanilla protein', '2 eggs', '30g sweetener or honey', '2 digestives, crushed'],
+    steps: ['Crushed biscuit into the base of four ramekins.', 'Blend everything else until smooth, pour on top.', '160C for twenty two minutes, they should still wobble.', 'Cool, then fridge. Better the next day.'],
   },
 ]
 

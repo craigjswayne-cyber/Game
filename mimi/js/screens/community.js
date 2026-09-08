@@ -8,7 +8,7 @@
  */
 import { esc, icon, uid } from '../util.js'
 import { get, update, workoutStreak } from '../state.js'
-import { pageHead, sectionHead, toast } from '../ui.js'
+import { sectionHead, toast } from '../ui.js'
 import { render as rerenderRoute } from '../router.js'
 
 const ago = (ts) => {
@@ -20,15 +20,13 @@ const ago = (ts) => {
   return `${Math.round(hrs / 24)}d ago`
 }
 
-export function render() {
+export function body() {
   const s = get()
-  const liked = new Set(s.community.liked)
+  const fives = new Set(s.community.fives)
   const streak = workoutStreak()
   const name = s.profile.name || 'You'
 
-  return `<main class="page stack">
-    ${pageHead('Community', 'Wins, encouragement and the odd honest bad week', { to: '/home', label: 'Home' })}
-
+  return `<div class="stack">
     ${streak >= 3 ? `
       <section class="card card--brand">
         <p class="eyebrow">Worth sharing</p>
@@ -61,8 +59,9 @@ export function render() {
                 </div>
                 <p style="margin:var(--s2) 0">${esc(p.body)}</p>
                 <div class="row">
-                  <button class="likebtn ${liked.has(p.id) ? 'is-on' : ''}" data-like="${esc(p.id)}">
-                    ${icon.heart()} ${esc(p.likes + (liked.has(p.id) ? 1 : 0))}
+                  <button class="likebtn ${fives.has(p.id) ? 'is-on' : ''}" data-five="${esc(p.id)}"
+                    aria-pressed="${fives.has(p.id)}" aria-label="High five this post">
+                    ${icon.hand()} ${esc(p.likes + (fives.has(p.id) ? 1 : 0))} high five${p.likes + (fives.has(p.id) ? 1 : 0) === 1 ? '' : 's'}
                   </button>
                   ${p.sample ? '<span class="tag tag--quiet">Sample post</span>' : ''}
                   ${p.mine ? `<button class="likebtn" data-del="${esc(p.id)}" style="margin-left:auto">Delete</button>` : ''}
@@ -82,7 +81,7 @@ export function render() {
       </ul>
       <p class="lede" style="margin-top:var(--s3)">Posts stay on this device in the prototype. Nothing here is sent anywhere.</p>
     </section>
-  </main>`
+  </div>`
 }
 
 export function mount(root) {
@@ -103,8 +102,8 @@ export function mount(root) {
     rerenderRoute()
   })
 
-  root.querySelectorAll('[data-like]').forEach((b) => b.addEventListener('click', () => {
-    toggleLike(b.dataset.like)
+  root.querySelectorAll('[data-five]').forEach((b) => b.addEventListener('click', () => {
+    toggleFive(b.dataset.five)
     rerenderRoute()
   }))
 
@@ -123,11 +122,11 @@ function addPost(body) {
   })
 }
 
-function toggleLike(id) {
+function toggleFive(id) {
   update((s) => {
-    s.community.liked = s.community.liked.includes(id)
-      ? s.community.liked.filter((x) => x !== id)
-      : [...s.community.liked, id]
+    s.community.fives = s.community.fives.includes(id)
+      ? s.community.fives.filter((x) => x !== id)
+      : [...s.community.fives, id]
     return s
   })
 }

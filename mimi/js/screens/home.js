@@ -1,16 +1,18 @@
 /*
  * HOME: the five second answer to "what am I doing today?"
  *
- * Greeting and quote, then the active session, then today's numbers, then the
- * three doors that make this app more than a workout log: mindset, coaching,
- * community.
+ * Header, three rings, the session, two minutes of mindset, and the coaching
+ * door. Nothing else: everything on this screen is either a number that changed
+ * today or a button that starts something.
  */
-import { esc, icon, iso, prettyDate } from '../util.js'
-import { get, dayOf, workoutStreak } from '../state.js'
-import { quoteCard, sectionHead, bar } from '../ui.js'
+import { esc, icon, iso, prettyDate, initials } from '../util.js'
+import { get, update, dayOf, workoutStreak } from '../state.js'
+import { quoteCard, ring, toast } from '../ui.js'
 import { programById } from '../data/programs.js'
+import { gratitudeFor } from '../data/mindset.js'
 import { macrosFor } from '../macros.js'
 import { nextSession } from './workouts.js'
+import { render as rerenderRoute } from '../router.js'
 
 const greeting = (name) => {
   const h = new Date().getHours()
@@ -32,21 +34,40 @@ export function render() {
 
   const program = s.enrolment ? programById(s.enrolment.programId) : null
   const next = program ? nextSession(program, s.enrolment) : null
+  const prompt = gratitudeFor(s.settings.quoteSeed)
+  const answered = s.mindset.gratitude.find((g) => g.date === today)
 
   return `<main class="page stack">
-    <header class="pagehead" style="margin-bottom:0">
-      <p class="eyebrow">${esc(prettyDate(today, { weekday: 'long', day: 'numeric', month: 'long' }))}</p>
-      <h1>${esc(greeting(p.name))}</h1>
+    <header class="row" style="margin-bottom:var(--s2)">
+      <button class="avatar" data-nav="/account" aria-label="Your profile and progress">${esc(initials(p.name || 'Mimi'))}</button>
+      <div class="grow">
+        <p class="eyebrow" style="margin:0">${esc(prettyDate(today, { weekday: 'long', day: 'numeric', month: 'long' }))}</p>
+        <h1 style="font-size:var(--t-title)">${esc(greeting(p.name))}</h1>
+      </div>
     </header>
 
     ${quoteCard('home')}
+
+    <section class="card" aria-label="Today at a glance">
+      <div class="grid3" style="align-items:start">
+        <button class="stat" data-nav="/tracker" aria-label="Steps: ${esc(day.steps)} of ${esc(p.stepGoal)}">
+          ${ring(day.steps, p.stepGoal, day.steps >= 1000 ? `${Math.round(day.steps / 100) / 10}k` : String(day.steps), 'Steps')}
+        </button>
+        <button class="stat" data-nav="/tracker" aria-label="Water: ${esc(day.waterMl)} of ${esc(p.waterGoalMl)} millilitres">
+          ${ring(day.waterMl, p.waterGoalMl, `${(day.waterMl / 1000).toFixed(1)}L`, 'Water')}
+        </button>
+        <button class="stat" data-nav="/tracker" aria-label="Streak: ${streak} days">
+          ${ring(Math.min(streak, 7), 7, String(streak), 'Streak')}
+        </button>
+      </div>
+    </section>
 
     ${program && next ? `
       <button class="card card--brand card--tap" data-nav="/session/${esc(program.id)}/${next.week}/${esc(next.day.id)}">
         <p class="eyebrow">Up next, week ${next.week} of ${program.weeks}</p>
         <h2 style="margin:var(--s2) 0 var(--s1)">${esc(next.day.title)}</h2>
         <p class="lede" style="margin-bottom:var(--s3)">${esc(program.title)}, about ${esc(next.day.minutes)} minutes</p>
-        <span class="btn btn--soft btn--sm">${icon.play()} Start session</span>
+        <span class="btn btn--soft btn--sm">${icon.play()} Continue workout</span>
       </button>` : `
       <button class="card card--brand card--tap" data-nav="/workouts">
         <p class="eyebrow">No programme running</p>
@@ -54,33 +75,26 @@ export function render() {
         <p class="lede">Eight weeks of structure beats eight weeks of choosing.</p>
       </button>`}
 
-    <section class="card stack-sm">
-      ${sectionHead('Today', { to: '/tracker', label: 'Open' })}
-      <div class="row row--between" style="padding-top:var(--s2)">
-        <span class="lede">${icon.drop()} Water</span>
-        <span>${esc(day.waterMl)} of ${esc(p.waterGoalMl)}ml</span>
+    <section class="card stack-sm" aria-label="Mindset spotlight">
+      <div class="row row--between">
+        <p class="eyebrow" style="margin:0">Mindset spotlight</p>
+        <span class="tag tag--quiet">2 min</span>
       </div>
-      ${bar(day.waterMl, p.waterGoalMl, 'bar--water')}
-      <div class="row row--between" style="padding-top:var(--s3)">
-        <span class="lede">${icon.steps()} Steps</span>
-        <span>${esc(day.steps.toLocaleString())} of ${esc(p.stepGoal.toLocaleString())}</span>
-      </div>
-      ${bar(day.steps, p.stepGoal)}
-      <div class="row" style="padding-top:var(--s3); gap:var(--s2)">
-        <span class="tag">${icon.flame()} ${streak} day streak</span>
-        ${day.workouts.length ? '<span class="tag tag--good">Session logged</span>' : '<span class="tag tag--quiet">No session yet</span>'}
-      </div>
+      <p style="font-family:var(--serif); font-size:1.05rem; font-style:italic; margin:var(--s2) 0">${esc(prompt)}</p>
+      ${answered ? `
+        <div class="card card--flat">
+          <p class="eyebrow">Written today</p>
+          <p style="margin:var(--s2) 0 0">${esc(answered.text)}</p>
+        </div>
+        <button class="btn btn--ghost btn--sm" data-nav="/tracker">Open the Mindset core</button>
+      ` : `
+        <textarea data-gratitude placeholder="A sentence is enough."></textarea>
+        <div class="row">
+          <button class="btn btn--primary btn--sm grow" data-save-gratitude>Save it</button>
+          <button class="btn btn--ghost btn--sm" data-nav="/tracker">More</button>
+        </div>
+      `}
     </section>
-
-    <button class="card card--tap stack-sm" data-nav="/nutrition">
-      ${sectionHead('Today’s targets')}
-      <div class="grid3" style="padding-top:var(--s2)">
-        <div class="stat"><span class="num">${esc(targets.protein)}g</span><span class="eyebrow">Protein</span></div>
-        <div class="stat"><span class="num">${esc(targets.carbs)}g</span><span class="eyebrow">Carbs</span></div>
-        <div class="stat"><span class="num">${esc(targets.fat)}g</span><span class="eyebrow">Fat</span></div>
-      </div>
-      <p class="lede center">${esc(targets.kcal.toLocaleString())} kcal, set for ${esc(goalLabel(p))}</p>
-    </button>
 
     <button class="card card--tap" data-nav="/coaching">
       <div class="row">
@@ -93,31 +107,30 @@ export function render() {
       </div>
     </button>
 
-    <button class="card card--tap" data-nav="/mindset">
-      <div class="row">
-        <span class="avatar" style="background:var(--good-wash); color:var(--good)">${icon.leaf()}</span>
-        <span class="grow">
-          <strong style="display:block">Mindset</strong>
-          <span class="lede">Breathwork, grounding and the prompts that keep you honest</span>
-        </span>
-        <span class="chev">${icon.chevron()}</span>
+    <button class="card card--tap stack-sm" data-nav="/nutrition">
+      <div class="row row--between"><h3>Today’s targets</h3><span class="chev">${icon.chevron()}</span></div>
+      <div class="grid3" style="padding-top:var(--s2)">
+        <div class="stat"><span class="num">${esc(targets.protein)}g</span><span class="eyebrow">Protein</span></div>
+        <div class="stat"><span class="num">${esc(targets.carbs)}g</span><span class="eyebrow">Carbs</span></div>
+        <div class="stat"><span class="num">${esc(targets.fat)}g</span><span class="eyebrow">Fat</span></div>
       </div>
+      <p class="lede center">${esc(targets.kcal.toLocaleString())} kcal, set for ${esc(goalLabel(p))}</p>
     </button>
-
-    <section class="stack-sm">
-      ${sectionHead('From the community', { to: '/community', label: 'See all' })}
-      ${s.community.posts.slice(0, 2).map((post) => `
-        <article class="card card--flat">
-          <div class="row" style="align-items:flex-start">
-            <span class="avatar">${esc(post.author.slice(0, 1))}</span>
-            <span class="grow">
-              <strong style="display:block; font-weight:500">${esc(post.author)}</strong>
-              <span class="lede">${esc(post.body)}</span>
-            </span>
-          </div>
-        </article>`).join('')}
-    </section>
   </main>`
+}
+
+export function mount(root) {
+  root.querySelector('[data-save-gratitude]')?.addEventListener('click', () => {
+    const box = root.querySelector('[data-gratitude]')
+    const text = box.value.trim()
+    if (!text) { toast('Write a line first.'); return }
+    update((s) => {
+      s.mindset.gratitude = [...s.mindset.gratitude.filter((g) => g.date !== iso()), { date: iso(), text }]
+      return s
+    })
+    toast('Saved to your journal.')
+    rerenderRoute()
+  })
 }
 
 /* The most recent logged weight, falling back to the intake figure. */

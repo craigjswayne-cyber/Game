@@ -12,6 +12,7 @@
 :root {
   /* Ground */
   --bg: #fdfbf7;
+  --bg-alt: #f7f4ef;
   --surface: #ffffff;
   --surface-2: #fbf6ef;
   --surface-3: #f4ece1;
@@ -31,9 +32,11 @@
   --maroon-soft: #7c3b44;
   --maroon-wash: #f0e3e2;
 
-  /* Pink accents */
-  --pink: #e3aeb5;
-  --pink-soft: #f7e6e7;
+  /* Blush accents. --pink is the brief's #E8B4B8, --pink-light its #F4C2C2;
+     --pink-ink is the only one dark enough to carry text on cream. */
+  --pink: #e8b4b8;
+  --pink-light: #f4c2c2;
+  --pink-soft: #f8e7e8;
   --pink-ink: #a34c58;
 
   /* Status */

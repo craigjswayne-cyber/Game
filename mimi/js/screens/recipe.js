@@ -6,6 +6,7 @@ import { esc, icon } from '../util.js'
 import { get, update } from '../state.js'
 import { pageHead, toast } from '../ui.js'
 import { recipeById } from '../data/recipes.js'
+import { addRecipe, removeRecipe, hasRecipe } from '../shopping.js'
 import { targetsFor } from './nutrition.js'
 import { render as rerenderRoute } from '../router.js'
 
@@ -46,6 +47,9 @@ export function render({ id }) {
       </ol>
     </section>
 
+    <button class="btn btn--primary btn--block" data-shop>
+      ${icon.list()} ${hasRecipe(id) ? 'On your shopping list' : 'Add ingredients to shopping list'}
+    </button>
     <button class="btn ${fav ? 'btn--soft' : 'btn--ghost'} btn--block" data-fav>
       ${icon.heart()} ${fav ? 'Saved to your vault' : 'Save to your vault'}
     </button>
@@ -53,6 +57,14 @@ export function render({ id }) {
 }
 
 export function mount(root, { id }) {
+  root.querySelector('[data-shop]')?.addEventListener('click', () => {
+    const r = recipeById(id)
+    if (!r) return
+    if (hasRecipe(id)) { removeRecipe(r); toast('Taken off the list.') }
+    else { addRecipe(r); toast(`${r.ingredients.length} ingredients added.`) }
+    rerenderRoute()
+  })
+
   root.querySelector('[data-fav]')?.addEventListener('click', () => {
     update((s) => {
       const list = s.favourites.recipes

@@ -235,13 +235,21 @@ input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--maroon);
 .thumb--wide { width: 100%; height: 128px; border-radius: var(--r-md); }
 
 .todo { display: flex; align-items: center; gap: var(--s3); padding: var(--s2) 0; }
-.todo label { flex: 1; cursor: pointer; }
+.todo label { flex: 1; cursor: pointer; min-width: 0; }
+.todo .iconbtn { min-width: 38px; min-height: 38px; flex: 0 0 auto; }
+.todo [data-flag][aria-pressed="true"] { color: var(--pink-ink); border-color: var(--pink); background: var(--pink-soft); }
 .todo input:checked + label { color: var(--ink-3); text-decoration: line-through; }
 
 /* ---------- grid ---------- */
 .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s3); }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
 .stat { text-align: center; padding: var(--s3) var(--s2); }
+/* A stat or an avatar is often a button. Without this the browser paints its
+   own grey box and border around it and the card falls apart. */
+button.stat, button.avatar {
+  background: none; border: 0; font: inherit; color: inherit; cursor: pointer; width: 100%;
+}
+button.avatar { width: 38px; background: var(--maroon-wash); color: var(--maroon); }
 .stat .num { display: block; margin-bottom: 2px; }
 .stat .eyebrow { font-size: 10px; }
 
@@ -260,6 +268,14 @@ input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--maroon);
   border-radius: 50%; background: var(--pink-ink);
 }
 .cal button.is-sel.has-work::after { background: var(--pink); }
+/* A habit day is marked with an underline rather than a second dot: two dots in
+   one 40px cell read as noise, and the underline still shows through selection. */
+.cal button.has-habit { box-shadow: inset 0 -3px 0 var(--pink-light); }
+.cal button.is-sel.has-habit { box-shadow: inset 0 -3px 0 var(--pink); }
+
+.dot-key { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin: 0 4px 0 10px; }
+.dot-key--work { background: var(--pink-ink); }
+.dot-key--habit { background: var(--pink-light); border-bottom: 2px solid var(--pink); border-radius: 2px; }
 .cal .pad { visibility: hidden; }
 
 /* ---------- feed and chat ---------- */
@@ -344,7 +360,9 @@ input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--maroon);
 }
 .sheet {
   width: 100%; max-width: var(--page-max);
-  background: var(--bg); border-radius: var(--r-lg) var(--r-lg) 0 0;
+  /* --bg-alt, the palette's second cream: a sheet sitting a shade warmer than
+     the page is what separates it from the screen underneath. */
+  background: var(--bg-alt); border-radius: var(--r-lg) var(--r-lg) 0 0;
   padding: var(--s5) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom));
   max-height: 86dvh; overflow-y: auto; box-shadow: var(--shadow-2);
 }
