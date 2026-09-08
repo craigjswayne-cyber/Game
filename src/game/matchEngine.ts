@@ -3173,8 +3173,29 @@ export function swapInjuryCover(state: GameState, ctx: LiveCtx, onId: number, in
   }
   const brief = applyBrief(state, mine, inId)
   forcedSwitchCost(state, ctx, mine, onId, pin, min)
-  pushLine(state, ctx, min, 'SUB', mine, 'comm.subChangeOfPlan',
-    { on: pin.name, off: pon.name, brief_k: brief ?? 'common.nothing' }, pin.id)
+  // THE MAN WHO NEVER GOT ON IS NOT IN THE COMMENTARY (owner, from a real
+  // match: "I overrode the suggestion and chose someone else but the
+  // commentary still mentioned the original player").
+  //
+  // The assistant's pick was written into the ticker the instant the injury
+  // happened, and that line is not a display list - it is the match record,
+  // saved with the fixture and read back on the report screen. Appending "change
+  // of plan" under it left a running account of a substitution that did not
+  // happen, in the record, for ever. The override is made at the same stoppage
+  // and before a tick has run, so the honest thing is that the earlier line
+  // names the man who actually came on. Searched from the end, because the
+  // assistant may have made an earlier change in the same match.
+  const line = [...ctx.events].reverse().find(e => e.k === 'comm.subComesOn' && e.playerId === onId)
+  if (line) {
+    line.playerId = pin.id
+    line.v = { ...line.v, player: pin.name, brief_k: brief ?? 'common.nothing' }
+    line.text = tIn('en', 'comm.subComesOn', line.v as Record<string, string | number>)
+  } else {
+    // no line to correct - a resumed save, or a change made before one was
+    // written - so say it as it happens instead
+    pushLine(state, ctx, min, 'SUB', mine, 'comm.subChangeOfPlan',
+      { on: pin.name, off: pon.name, brief_k: brief ?? 'common.nothing' }, pin.id)
+  }
   return t('touch.takesShirtInstead', { on: pin.name, off: pon.name })
 }
 
