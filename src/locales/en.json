@@ -5419,6 +5419,7 @@
   "uncontestedNow": "{team} have lost {player} from the front row with nobody trained to cover him: the referee orders UNCONTESTED SCRUMS from here. No shove, no scrum penalties.",
   "uncontestedShort": "And it costs {team} a second player: under Law 3.20 a side that goes uncontested through a card must take another man off. {player} makes way.",
   "contestedAgain": "The front-rower is back from the bin and so is the cover: the referee restores CONTESTED SCRUMS.",
+  "frontRowReturns": "The bench is spent, so {player} comes back on: a replaced front-rower may return for an injured one, and the scrum stays a contest.",
   "testimonial_f": "{player}'s testimonial. She leads the teams out with her kids at her side, the ground on its feet, scarves above every head. Then the whistle blows and it is a rugby match again.",
   "oldBoy_f": "A familiar face out there: {player} lines up against {oldClub}, where she made {n} appearances. {tail_k}",
   "oldBoyKnowsThem_f": "She knows this opposition inside out.",

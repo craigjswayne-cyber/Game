@@ -1417,6 +1417,7 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.uncontestedNow': 'SCRUM',   // the last trained front-rower goes off
   'comm.uncontestedShort': 'SCRUM', // Law 3.20: a second man leaves with him
   'comm.contestedAgain': 'SCRUM',   // the binned front-rower returns
+  'comm.frontRowReturns': 'SCRUM',  // Law 3.35: a replaced front-rower comes back
   'comm.flav9': 'LINEOUT',          // steals the lineout against the throw
   'comm.flav13': 'LINEOUT',         // a 50:22 and the lineout that follows
   'comm.flav18': 'LINEOUT',         // a quick lineout taken
@@ -2741,9 +2742,13 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
               side.lineup[slot] = sub.id
               if (bSlot >= 0) side.lineup[bSlot] = p.id
             }
-            const brief = applyBrief(state, side, sub.id)
-            pushLine(state, ctx, min, 'SUB', side, 'comm.subComesOn',
-              { player: sub.name, brief_k: brief ?? 'common.nothing' }, sub.id)
+            if (back) {
+              pushLine(state, ctx, min, 'SUB', side, 'comm.frontRowReturns', { player: sub.name }, sub.id)
+            } else {
+              const brief = applyBrief(state, side, sub.id)
+              pushLine(state, ctx, min, 'SUB', side, 'comm.subComesOn',
+                { player: sub.name, brief_k: brief ?? 'common.nothing' }, sub.id)
+            }
             // and if the bench had nobody who plays there, the side pays (F4)
             forcedSwitchCost(state, ctx, side, p.id, sub, min)
           }

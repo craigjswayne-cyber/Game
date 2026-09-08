@@ -5266,6 +5266,7 @@
   "uncontestedNow": "{team} perdono {player} in prima linea senza nessuno formato per sostituirlo: l'arbitro ordina MISCHIE NON CONTESE da qui in avanti. Niente spinta, niente punizioni in mischia.",
   "uncontestedShort": "E costa a {team} un secondo giocatore: per la regola 3.20 una squadra che passa alle mischie non contese per un cartellino deve togliere un altro uomo. {player} lascia il campo.",
   "contestedAgain": "Il pilone è tornato dal sin bin e con lui la copertura: l'arbitro ripristina le MISCHIE CONTESE.",
+  "frontRowReturns": "La panchina è finita, così {player} rientra: un giocatore di prima linea sostituito può tornare per un infortunato, e la mischia resta contesa.",
   "try9_f": "META! {player} disegna l'arco esterno sulla sua avversaria e nessuno la riprende!",
   "try19_f": "META! Finta e via di {player} - non c'è nessuno a cinque metri da lei!",
   "try21_f": "META! {player} raddrizza la corsa, mette a sedere l'ultima donna e passeggia sotto i pali!",
@@ -5275,7 +5276,8 @@
   "hiaFailed_f": "{player} NON SUPERA la valutazione per trauma cranico - protocollo commozione, partita finita per lei. {sub} resta in campo.",
   "doesAerial_f": "arretra una donna e tiene a casa il triangolo allargato.",
   "doesPhysical_f": "rifiuta la rissa, tiene quindici donne in campo e lascia le pulizie all'arbitro.",
-  "uncontestedShort_f": "E costa a {team} una seconda giocatrice: per la regola 3.20 una squadra che passa alle mischie non contese per un cartellino deve togliere un'altra donna. {player} lascia il campo."
+  "uncontestedShort_f": "E costa a {team} una seconda giocatrice: per la regola 3.20 una squadra che passa alle mischie non contese per un cartellino deve togliere un'altra donna. {player} lascia il campo.",
+  "frontRowReturns_f": "La panchina è finita, così {player} rientra: una giocatrice di prima linea sostituito può tornare per un infortunata, e la mischia resta contesa."
  },
  "injury": {
   "ribs": "costole contuse",
