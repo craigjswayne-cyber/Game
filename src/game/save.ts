@@ -606,6 +606,7 @@ export function migrate(s: GameState): GameState {
     if (c.id !== s.userClubId && c.coach) c.coachGender ??= coinFor(c.coach)
   }
   for (const p of Object.values(s.staffPeople ?? {})) if (p) p.g ??= coinFor(p.name)
+  s.analystGender ??= coinFor('the analyst')
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]

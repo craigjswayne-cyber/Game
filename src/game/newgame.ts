@@ -168,6 +168,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     seed,
     gender,
     mgrGender,
+    analystGender: staffGender(rng, gender),
     saveName: '',
     season: 0,
     basis: WEEK_BASIS,

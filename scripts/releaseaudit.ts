@@ -382,7 +382,7 @@ section('2.2 squad: promotion, position cover, renegotiation, and the cap by one
     const fine = bal - user.balance
     ok(pos1.over && pos1.bill - pos1.cap! === 1, `the bill is now exactly £1/wk over (${pos1.bill - pos1.cap!})`)
     ok(fine === 3, `the summer fine is three weeks of the overspend: £${fine}`)
-    ok(user.boardConfidence === conf - 7, `board confidence falls 7 for a first breach (${conf} -> ${user.boardConfidence})`)
+    ok(user.boardConfidence === conf - 1, `board confidence falls by the size of the breach: a pound over costs one point, not the flat seven it used to (${conf} -> ${user.boardConfidence})`)
     ok((user.capBreaches ?? 0) === 1 && u.news.some(n => n.k === 'news.capFine'), 'the breach is recorded and the fine story is filed')
     note('UNNATURAL BUT CONSISTENT: a £1/wk breach draws a £3 fine and the same -7 board confidence as a £50k/wk breach. The fine scales; the boardroom does not. Worth a look before release, not a blocker.')
     payer.wage -= room + 1

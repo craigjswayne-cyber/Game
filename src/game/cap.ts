@@ -255,7 +255,13 @@ export function auditCaps(state: GameState) {
     if (repeat) club.capEmbargoUntil = state.season + EMBARGO_SEASONS
 
     if (club.id !== state.userClubId) continue
-    club.boardConfidence = Math.max(0, club.boardConfidence - (repeat ? 14 : 7))
+    // THE BOARD'S ANGER SCALES WITH THE BREACH. A flat seven points read the
+    // same for a pound over as for a fifth of the cap (release audit, 1.5.0):
+    // now a point per percent over, at least one, at most ten, and double for
+    // a repeat. A 7% breach lands where the flat figure used to.
+    const pct = pos.cap > 0 ? (over / pos.cap) * 100 : 100
+    const hit = Math.min(10, Math.max(1, Math.round(pct)))
+    club.boardConfidence = Math.max(0, club.boardConfidence - (repeat ? hit * 2 : hit))
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
       subject: repeat ? `⚖ Salary cap: transfer embargo` : `⚖ Salary cap: the club is fined`,

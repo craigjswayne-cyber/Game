@@ -6,6 +6,7 @@
 import { logDecision, type GameState, type MatchPrep } from './model'
 import { teamUnits, lineupFor } from './matchEngine'
 import { t } from './i18n'
+import { subjectVar } from './gender'
 
 export interface AnalystRead {
   /** absolute week (season*100+week) this read was filed for */
@@ -159,7 +160,7 @@ export function settleAnalyst(state: GameState, oppId: string) {
   if (r.confidence >= 0.85) {
     const opp = state.clubs[oppId]?.short ?? 'them'
     logDecision(state, r.right ? 'dec.analystRight' : 'dec.analystWrong',
-      { opp, unit_k: `analyst.unit${r.unit[0].toUpperCase()}${r.unit.slice(1)}` }, r.right)
+      { opp, unit_k: `analyst.unit${r.unit[0].toUpperCase()}${r.unit.slice(1)}`, ...subjectVar(state.analystGender) }, r.right)
   }
 }
 
@@ -167,7 +168,7 @@ export const analystForm = (state: GameState) => {
   const rec = state.analystRecord
   if (!rec || rec.right + rec.wrong === 0) return t('analyst.noReadsYet')
   const n = rec.right + rec.wrong
-  return t('analyst.followedReads', { n, right: rec.right, wrong: rec.wrong })
+  return t('analyst.followedReads', { n, right: rec.right, wrong: rec.wrong, ...subjectVar(state.analystGender) })
 }
 
 /** The analyst's line, in the language the screen is in.

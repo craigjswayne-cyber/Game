@@ -12,6 +12,7 @@ import { repetitionFatigue } from '../../game/oppcoach'
 import { ROUTINES, DEFAULT_LINEOUT, DEFAULT_SCRUM, routineEffect } from '../../game/playbook'
 import { BRIEFS, SPLITS, actualSplit, benchFrontRow, benchSeats, briefForSeat, refillBench, splitFor, type BenchSplit, type Brief } from '../../game/bench'
 import { t } from '../../game/i18n'
+import { subjectVar } from '../../game/gender'
 
 /** The Tactics screen: HOW the side plays. Roles on a pitch, the set-piece
  *  playbook, the bench shape, the week's preparation and the game plan.
@@ -577,7 +578,7 @@ function AnalystCard() {
     return (
       <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
         <div className="fact-label">{t('analyst.theAnalyst')}</div>
-        <div className="meta">{t('analyst.noMatchToStudy')}</div>
+        <div className="meta">{t('analyst.noMatchToStudy', subjectVar(game.analystGender))}</div>
       </div>
     )
   }
@@ -602,7 +603,7 @@ function AnalystCard() {
           {followed ? t('analyst.preparing', { prep: prepLabel(read.prep) }) : t('analyst.workOnIt', { prep: prepLabel(read.prep) })}
         </button>
         <span className="meta" style={{ fontSize: 11 }}>
-          {t(followed ? 'analyst.weekIsHis' : 'analyst.ignoreHim')}
+          {t(followed ? 'analyst.weekIsHis' : 'analyst.ignoreHim', subjectVar(game.analystGender))}
         </span>
       </div>
     </div>
