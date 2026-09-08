@@ -1,0 +1,68 @@
+/*
+ * The exercise library. One entry per movement, referenced by id from every
+ * program day, so a cue fixed here is fixed everywhere.
+ *
+ * `video` is the filename a real build would stream from Mimi's library. There
+ * is no video binary in this repository, so the player falls back to the poster
+ * treatment and says so rather than showing a broken frame.
+ */
+export const EXERCISES = [
+  { id: 'gob-squat', name: 'Goblet squat', group: 'Legs', kit: 'both', video: 'goblet-squat.mp4',
+    cues: ['Dumbbell or kettlebell at the chest, elbows tucked.', 'Sit down between the hips, knees tracking over the toes.', 'Drive the floor away, ribs stacked over the pelvis.'] },
+  { id: 'bb-squat', name: 'Back squat', group: 'Legs', kit: 'gym', video: 'back-squat.mp4',
+    cues: ['Bar on the shelf of the traps, not the neck.', 'Brace before you unrack, breathe at the top.', 'Depth before load, every single week.'] },
+  { id: 'rdl', name: 'Romanian deadlift', group: 'Posterior', kit: 'both', video: 'rdl.mp4',
+    cues: ['Soft knees, hinge the hips back.', 'Bar or bells stay close to the leg.', 'Stop where the hamstring stops, not where the back starts.'] },
+  { id: 'hip-thrust', name: 'Hip thrust', group: 'Glutes', kit: 'gym', video: 'hip-thrust.mp4',
+    cues: ['Bench under the shoulder blades, chin down.', 'Ribs down, squeeze at the top for a full second.', 'Shins vertical in the finish position.'] },
+  { id: 'glute-bridge', name: 'Glute bridge', group: 'Glutes', kit: 'home', video: 'glute-bridge.mp4',
+    cues: ['Feet flat, heels a hand span from the hips.', 'Press through the heels, lift the hips in one line.', 'Pause at the top, lower with control.'] },
+  { id: 'split-squat', name: 'Bulgarian split squat', group: 'Legs', kit: 'both', video: 'split-squat.mp4',
+    cues: ['Back foot raised, front shin close to vertical.', 'Drop the back knee straight down.', 'Front heel stays glued to the floor.'] },
+  { id: 'walk-lunge', name: 'Walking lunge', group: 'Legs', kit: 'both', video: 'walking-lunge.mp4',
+    cues: ['Long step, tall chest.', 'Knee under the hip on the way down.', 'Push through the whole front foot.'] },
+  { id: 'db-press', name: 'Dumbbell bench press', group: 'Push', kit: 'gym', video: 'db-press.mp4',
+    cues: ['Wrists stacked over the elbows.', 'Lower to the lower chest, elbows at about 45 degrees.', 'Shoulder blades pinned to the bench throughout.'] },
+  { id: 'push-up', name: 'Push-up', group: 'Push', kit: 'home', video: 'push-up.mp4',
+    cues: ['Hands under the shoulders, body in one line.', 'Elbows back, not flared.', 'Raise the hands onto a step if the hips start to sag.'] },
+  { id: 'sh-press', name: 'Shoulder press', group: 'Push', kit: 'both', video: 'shoulder-press.mp4',
+    cues: ['Squeeze the glutes so the back does not arch.', 'Press slightly back, finish with the biceps by the ears.', 'Lower under control to the chin.'] },
+  { id: 'row-1arm', name: 'Single arm row', group: 'Pull', kit: 'both', video: 'row-1arm.mp4',
+    cues: ['Hinge to about 45 degrees, spine long.', 'Pull the elbow to the hip, not the shoulder.', 'Let the shoulder blade travel at the bottom.'] },
+  { id: 'lat-pull', name: 'Lat pulldown', group: 'Pull', kit: 'gym', video: 'lat-pulldown.mp4',
+    cues: ['Chest tall, slight lean back and hold it.', 'Pull the bar to the collarbone with the elbows.', 'Three seconds back up, every rep.'] },
+  { id: 'band-row', name: 'Band row', group: 'Pull', kit: 'home', video: 'band-row.mp4',
+    cues: ['Anchor at chest height, step back to tension.', 'Elbows brush the ribs.', 'Squeeze for a beat before you let it go.'] },
+  { id: 'face-pull', name: 'Face pull', group: 'Pull', kit: 'both', video: 'face-pull.mp4',
+    cues: ['Rope or band at eye height.', 'Pull to the forehead, thumbs back.', 'Light load, high reps, this one is for the shoulders.'] },
+  { id: 'plank', name: 'Forearm plank', group: 'Core', kit: 'home', video: 'plank.mp4',
+    cues: ['Elbows under the shoulders.', 'Tuck the ribs and the tailbone towards each other.', 'Breathe. If you cannot breathe, come down.'] },
+  { id: 'dead-bug', name: 'Dead bug', group: 'Core', kit: 'home', video: 'dead-bug.mp4',
+    cues: ['Low back pressed into the floor and kept there.', 'Opposite arm and leg, slow.', 'Exhale as the limbs reach away.'] },
+  { id: 'pallof', name: 'Pallof press', group: 'Core', kit: 'both', video: 'pallof.mp4',
+    cues: ['Band at chest height, stand side on.', 'Press straight out and resist the twist.', 'The work is in not moving.'] },
+  { id: 'hollow', name: 'Hollow hold', group: 'Core', kit: 'home', video: 'hollow.mp4',
+    cues: ['Low back flat, shoulders and heels off the floor.', 'Lower the legs only as far as the back stays down.'] },
+  { id: 'pilates-100', name: 'The hundred', group: 'Pilates', kit: 'home', video: 'hundred.mp4',
+    cues: ['Head and shoulders lifted, gaze to the knees.', 'Small sharp pumps of the arms.', 'Five counts in through the nose, five out through the mouth.'] },
+  { id: 'roll-up', name: 'Roll up', group: 'Pilates', kit: 'home', video: 'roll-up.mp4',
+    cues: ['Peel the spine off the mat one bone at a time.', 'Reach past the toes, then reverse it just as slowly.'] },
+  { id: 'side-kick', name: 'Side lying leg series', group: 'Pilates', kit: 'home', video: 'side-kick.mp4',
+    cues: ['Body in one long line at the back edge of the mat.', 'Move the leg, keep the waist lifted and still.'] },
+  { id: 'swimmer', name: 'Swimming', group: 'Pilates', kit: 'home', video: 'swimming.mp4',
+    cues: ['Face down, long through the crown of the head.', 'Opposite arm and leg, low and controlled.'] },
+  { id: 'kb-swing', name: 'Kettlebell swing', group: 'Conditioning', kit: 'both', video: 'kb-swing.mp4',
+    cues: ['Hinge, do not squat.', 'Snap the hips, the arms are rope.', 'Bell floats to chest height and no higher.'] },
+  { id: 'burpee', name: 'Burpee', group: 'Conditioning', kit: 'home', video: 'burpee.mp4',
+    cues: ['Chest to floor, hips and shoulders rise together.', 'Step it back instead of jumping when the pace drops.'] },
+  { id: 'mtn-climb', name: 'Mountain climber', group: 'Conditioning', kit: 'home', video: 'mountain-climber.mp4',
+    cues: ['Shoulders stacked over the wrists.', 'Hips stay level, knees drive to the chest.'] },
+  { id: 'row-erg', name: 'Rowing machine', group: 'Conditioning', kit: 'gym', video: 'row-erg.mp4',
+    cues: ['Legs, then back, then arms. Reverse it coming forward.', 'Aim for the split, not the stroke rate.'] },
+  { id: 'ski-erg', name: 'Ski erg', group: 'Conditioning', kit: 'gym', video: 'ski-erg.mp4',
+    cues: ['Hinge from the hips and finish the pull past them.', 'Strong first half, relaxed return.'] },
+  { id: 'incline-walk', name: 'Incline walk', group: 'Conditioning', kit: 'gym', video: 'incline-walk.mp4',
+    cues: ['No hands on the rails.', 'Raise the incline before the speed.'] },
+]
+
+export const byId = Object.fromEntries(EXERCISES.map((e) => [e.id, e]))

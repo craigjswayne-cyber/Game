@@ -1,0 +1,32 @@
+/*
+ * SELF HOSTED, ON PURPOSE.
+ *
+ * A fitness app that works in a gym basement cannot have its typography depend
+ * on a request to a font CDN, and a health app should not tell a third party
+ * every time somebody opens it. Both faces are the variable, latin subset
+ * builds, so three files cover every weight the interface uses.
+ *
+ * swap, not block: the fallback stack in tokens.css paints immediately and the
+ * real face arrives when it arrives.
+ */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('../fonts/playfair-display-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('../fonts/playfair-display-latin-wght-italic.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('../fonts/sora-latin-wght-normal.woff2') format('woff2-variations');
+}
