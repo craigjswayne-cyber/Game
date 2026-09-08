@@ -159,7 +159,12 @@ try {
   // The wizard is the first minute of the game, so it is the worst place to
   // leave English lying about. Competition and club names are data and stay as
   // they are; everything the wizard says for itself should have changed.
-  ok((await page.locator('.wizard-hint').first().innerText()).includes('compétition'), 'the wizard opens in French')
+  // v1.5.4: the first hint on this screen is "which game", and the competition
+  // hint is the one under it - so the check reads the whole screen's hints
+  // rather than assuming which one comes first.
+  const hints = (await page.locator('.wizard-hint').allInnerTexts()).join(' | ')
+  ok(hints.includes('compétition'), `the wizard opens in French (${hints})`)
+  ok(/Quel jeu|jeu/i.test(hints), 'including the question it now asks first')
   // innerText, not textContent: these read back through the stylesheet, and
   // the masthead and the fact labels are both text-transform: uppercase - so
   // the assertion has to be case-blind or it is testing the CSS. (The accent
