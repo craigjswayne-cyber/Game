@@ -71,3 +71,8 @@ copy in `challenges.*` was written to avoid asserting them.
 `challenges.threepeat` / `threepeatDesc`, `challenges.ealing` / `ealingDesc`, `challenges.licence` /
 `licenceDesc`, `challenges.grudge` / `grudgeDesc`, in all six locales. They carry no gendered
 siblings: the copy is about a club, not about the manager.
+
+`scripts/challengetest.ts` runs every challenge in `CHALLENGES` for two passive seasons and checks
+that completion only ever fires when the real condition holds. It used to build each career with
+`newGame`'s default men's world, which for a women's club id produced a world the club is not in and
+a crash inside `seedKnowledge` rather than a message. It now takes the world from the challenge.
