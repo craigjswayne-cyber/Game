@@ -233,7 +233,8 @@ anyway; the answer only decides what is already unmuted on the way in.
 ## 6. The rules, word for word
 
 Paste into `#rules`. Eight rules, short enough to be read, specific enough to
-be enforced.
+be enforced. It is 1,868 characters, inside Discord's 2,000-character message
+limit but not by much: count again if you edit it, or it posts truncated.
 
 ```
 🏉 PHASE: Rugby Manager - server rules
@@ -281,6 +282,9 @@ privacy policy.
 ---
 
 ## 7. Pinned messages, word for word
+
+All five fit in a single Discord message (865, 1,117, 795, 491 and 331
+characters against the 2,000 limit), so none of them needs splitting.
 
 ### `#welcome`
 
