@@ -147,6 +147,44 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.2, Play version code 23
+
+One screen, one change. v1.5 put the women's game on the title screen as a
+second button under New Career, and that shape said one game is the game and
+the other hangs off the bottom of it. The two are one control now.
+
+```
+<en-GB>
+Choosing your game is one control now. The men's and women's games sit side by
+side on the title screen, the same size as each other, and a single New Career
+button starts whichever one you pick.
+</en-GB>
+<fr-FR>
+Le choix du jeu tient maintenant en un seul réglage. Le rugby masculin et le
+rugby féminin sont côte à côte sur l'écran d'accueil, de la même taille, et un
+seul bouton Nouvelle carrière lance celui que vous choisissez.
+</fr-FR>
+<es-ES>
+Elegir tu juego es ahora un solo control. El juego masculino y el femenino
+están uno al lado del otro en la pantalla de inicio, del mismo tamaño, y un
+único botón Nueva carrera abre el que elijas.
+</es-ES>
+<it-IT>
+Scegliere il gioco è ora un unico controllo. Il gioco maschile e quello
+femminile stanno fianco a fianco nella schermata iniziale, della stessa
+dimensione, e un solo pulsante Nuova carriera avvia quello che scegli.
+</it-IT>
+<ja-JP>
+どちらの大会でプレーするかは、ひとつの選択になりました。タイトル画面で男子の大会と
+女子の大会が同じ大きさで並び、「新しいキャリア」ボタンひとつで選んだほうが始まります。
+</ja-JP>
+<af>
+Om jou speletjie te kies is nou een keuse. Mansrugby en vrouerugby staan langs
+mekaar op die titelskerm, ewe groot, en een Nuwe loopbaan-knoppie begin die een
+wat jy kies.
+</af>
+```
+
 ### What's new (500 max) - v1.5.1, Play version code 22
 
 A language, a law and a round of fixes. Short notes, six languages, each under
