@@ -32,7 +32,7 @@ const phs = (s: string) => [...s.matchAll(PH)].map(m => m[1]).sort().join(',')
 const isPlural = (v: unknown): v is Record<string, string> =>
   !!v && typeof v === 'object' && 'other' in (v as object) && Object.values(v as object).every(x => typeof x === 'string')
 
-for (const lang of ['fr', 'es', 'it', 'ja']) {
+for (const lang of ['fr', 'es', 'it', 'ja', 'af']) {
   const D = load(lang)
   const errs: string[] = []
   const walk = (e: unknown, o: unknown, path: string) => {
@@ -84,6 +84,6 @@ for (const lang of ['fr', 'es', 'it', 'ja']) {
 }
 
 console.log(fails === 0
-  ? '\nLANG PARITY PASSED: five languages, one game'
+  ? '\nLANG PARITY PASSED: six languages, one game'
   : `\nLANG PARITY FAILED: ${fails}`)
 process.exit(fails ? 1 : 0)

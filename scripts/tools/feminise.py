@@ -54,6 +54,7 @@ PLAYER_PH = re.compile(r'\{(player|players|names|pos|senior|kid|kidLast|propLast
 # subject of the sentences they appear in, and their gender is not the player's.
 STAFF_WORD = re.compile(r"\b(arbitre|árbitro|arbitro|intendant|groundsman|jardinero|giardiniere|facteur|cartero|postino|speaker|historien|historiador|storico)\b", re.I)
 STAFF_WORD_JA = re.compile(r"主審|審判|レフェリー|グラウンドキーパー|郵便配達|歴史家|コラムニスト|運転手|場内アナウンス|ストリーカー|バスローブ|投資家|金主|市長")
+STAFF_WORD_AF = re.compile(r"\b(skeidsregter|veldopsigter|posbode|posman|historikus|rubriekskrywer|kelner|kroegman|melkman|dominee|predikant|burgemeester|beleggers?|geldmanne|voorsitter|huisbaas|klerekamerman|sjef)\b", re.I)
 STAFF_WORD_EN = re.compile(r"\b(referee|groundsman|postman|historian|columnist|steward|streaker|kit man|chef|investors?|money men|numbers men|chairman|landlord|milkman|vicar|mayor)\b", re.I)
 STAFF_PH  = re.compile(r'\{(boss|coach|asst|asst_k|scout|mgrName|mgr|manager|physio|ref|chair|owner|chairman|director|analyst|doctor|agent|journalist|pundit|officer)\}')
 STAFF_KEY = re.compile(r'^(fan|stance|momMgr|press\.(boss|mgr|you)|bossPressure|hire|sack|resign|appoint|interview|assistant|staff|coach|profile\.)')
@@ -397,9 +398,32 @@ JA_IL = []
 EN_NOUN = [(pat + r'(?![^{}]*\})', rep) for pat, rep in EN_NOUN]
 EN_PRON = [(pat + r'(?![^{}]*\})', rep) for pat, rep in EN_PRON]
 
-RULES = {'en': (EN_NOUN, EN_PRON, EN_IL), 'ja': (JA_NOUN, JA_PRON, JA_IL), 'fr': (FR_NOUN, FR_PRON, FR_IL), 'es': (ES_NOUN, ES_PRON, ES_IL), 'it': (IT_NOUN, IT_PRON, IT_IL)}
+# ---------------------------------------------------------------- AFRIKAANS
+# "speler" is neutral, like "player". The work is the pronoun and the handful of
+# nouns: hy/hom/sy -> sy/haar/haar, man/manne -> vrou/vroue, seun -> meisie.
+# ORDER MATTERS: "sy" is both "his" and "she", so the possessive goes to "haar"
+# BEFORE "hy" becomes "sy", or the new "sy" would be flipped again. No
+# agreement chain: Afrikaans adjectives do not decline.
+AF_NOUN = [
+ (r"\bmanne\b", "vroue"), (r"\bmans\b", "vroue"), (r"(?<!span)(?<!lyn)\bman\b(?!-)", "vrou"),
+ (r"\bseuns\b", "meisies"), (r"\bseun\b", "meisie"), (r"\bkêrels\b", "meisies"), (r"\bkêrel\b", "meisie"),
+ (r"\blaaities\b", "meisies"), (r"\blaaitie\b", "meisie"),
+]
+AF_PRON = [
+ (r"\bhomself\b", "haarself"), (r"\bHomself\b", "Haarself"),
+ (r"\bsyne\b", "hare"), (r"\bSyne\b", "Hare"),
+ (r"\bsy\b", "haar"), (r"\bSy\b", "Haar"), (r"\bSY\b", "HAAR"),
+ (r"\bhy\b", "sy"), (r"\bHy\b", "Sy"), (r"\bHY\b", "SY"),
+ (r"\bhom\b", "haar"), (r"\bHom\b", "Haar"), (r"\bHOM\b", "HAAR"),
+]
+AF_IL = []
+AF_NOUN = [(pat + r'(?![^{}]*\})', rep) for pat, rep in AF_NOUN]
+AF_PRON = [(pat + r'(?![^{}]*\})', rep) for pat, rep in AF_PRON]
+
+RULES = {'en': (EN_NOUN, EN_PRON, EN_IL), 'ja': (JA_NOUN, JA_PRON, JA_IL), 'af': (AF_NOUN, AF_PRON, AF_IL), 'fr': (FR_NOUN, FR_PRON, FR_IL), 'es': (ES_NOUN, ES_PRON, ES_IL), 'it': (IT_NOUN, IT_PRON, IT_IL)}
 MARK = {
  'ja': re.compile(r"彼(?!女)|男|少年"),
+ 'af': re.compile(r"\b(hy|hom|sy|homself|man|mans|manne|seun|seuns|kêrel|kêrels|laaitie|laaities)\b", re.I),
  'en': re.compile(r"\b(he|him|his|himself|man|men|lad|lads|boy|boys)\b", re.I),
  'fr': re.compile(r"\b(il|ils|joueur|joueurs|homme|hommes|garçon|garçons|celui|monsieur|blessé|blessés|fils|ce dernier|lui-même|capitaine|titulaire|intéressé|client)\b", re.I),
  'es': re.compile(r"\b(él|ellos|jugador|jugadores|hombre|hombres|chico|chicos|muchacho|muchachos|lesionado|lesionados|hijo|hijos|señor|capitán|convocados?|listo|contento|cansado)\b", re.I),
@@ -408,6 +432,7 @@ MARK = {
 # things that must never appear in a generated string
 BROKEN = {
  'ja': re.compile(r"彼女女|選手選手"),
+ 'af': re.compile(r"\b(spanvrou|lynvrou|vrou van die wedstryd|haar sy|sy haar het)\b", re.I),
  'en': re.compile(r"\b(kit woman|money women|numbers women|ten-woman|woman-mark|Isle of Woman|women's game|linkwoman)\b", re.I),
  'fr': re.compile(r"\b(elle|elles) (y a|y avait|y aura|faut|faudra|s'agit|semble que|paraît que|vaut mieux|pleut|suffit|est (temps|possible|impossible|clair|vrai|rare|question|tard|tôt|midi))\b", re.I),
  'es': re.compile(r"\bella (hay|hace falta)\b", re.I),
@@ -438,6 +463,7 @@ def feminise(lang, key, s):
     noun, pron, il = RULES[lang]
     out = apply(noun, s, ci=True)
     noun_hit = bool(re.search(r"\b(joueur|joueuse|jugador|jugadora|giocat|homme|hombre|uomo|garçon|chico|ragazz|capitaine|capitán|capitano|blessé|lesionad|infortunat)", s, re.I)) \
+        or (lang == 'af' and bool(re.search(r"\b(speler|man|mans|manne|seun|seuns|kaptein|laaitie|veteraan|nuweling|belofte|stut|haker|slot|flank|agtsteman|vleuel|senter|losskakel|skrumskakel|heelagter|voorspeler|skopper)\b", s, re.I))) \
         or (lang == 'en' and bool(re.search(r"\b(player|man|men|lads?|boys?|captain|kid|youngster|prospect|veteran|starter|scorer|kicker|prop|hooker|lock|flanker|winger|centre|fly-half|scrum-half|full-back|forward|skipper)\b", s, re.I))) \
         or (lang == 'ja' and bool(re.search(r"選手|男|少年|キャプテン|若手", s)))
     has_ph = bool(PLAYER_PH.search(s))
@@ -454,14 +480,16 @@ def feminise(lang, key, s):
     # its pronoun: the assistant is fifty-fifty in a women's world
     weak_staff_ja = lang == 'ja' and bool(re.search(r"アシスタント|スカウト|代理人|コーチ|アナリスト|フィジオ|会長|オーナー|経営陣|監督", s)) and not has_ph
     weak_staff = (bool(re.search(r"\b(adjoint|ayudante|asistente|assistente|vice|recruteur|ojeador|osservatore)\b", s, re.I))
-                  or (lang == 'en' and bool(re.search(r"\b(assistant|scout|agent|physio|coach|analyst|doctor|chairman|owner|board)\b", s, re.I)))) and not has_ph
+                  or (lang == 'en' and bool(re.search(r"\b(assistant|scout|agent|physio|coach|analyst|doctor|chairman|owner|board)\b", s, re.I)))
+                  or (lang == 'af' and bool(re.search(r"\b(assistent|talentsoeker|agent|fisio|afrigter|ontleder|dokter|voorsitter|eienaar|direksie)\b", s, re.I)))) and not has_ph
     if weak_staff: flip_pronouns = False
     about_staff = bool(STAFF_PH.search(s)) or bool(STAFF_KEY.search(key)) or bool(STAFF_WORD.search(s))
-    if lang in ('en', 'ja'):
-        if (STAFF_WORD_EN if lang == 'en' else STAFF_WORD_JA).search(s): about_staff = True
+    if lang in ('en', 'ja', 'af'):
+        if (STAFF_WORD_EN if lang == 'en' else STAFF_WORD_AF if lang == 'af' else STAFF_WORD_JA).search(s): about_staff = True
         if EN_STAFF_KEYS.search(key): about_staff = True
         elif EN_PLAYER_KEYS.search(key): about_player, flip_pronouns, about_staff = True, True, False
         elif lang == 'ja' and (has_ph or noun_hit) and not weak_staff_ja: flip_pronouns = True
+        elif lang == 'af' and (has_ph or noun_hit) and not weak_staff: flip_pronouns = True
     if about_player and not about_staff and flip_pronouns:
         out = apply(pron, out)
         out = apply(il, out)
@@ -542,6 +570,7 @@ W_NOUN = {
  'es': [(r"\bsu hombre\b", "su mujer"), (r"\bHombre nuevo\b", "Mujer nueva"), (r"\bun hombre que\b", "una mujer que"), (r"\bde hombre a hombre\b", "de mujer a mujer"), (r"\bel hombre\b", "la mujer"), (r"\bnuevo entrenador\b", "nueva entrenadora"), (r"\bel entrenador\b", "la entrenadora"), (r"\bun entrenador\b", "una entrenadora")],
  'it': [(r"\bil suo uomo\b", "la sua donna"), (r"\bla sua uomo\b", "la sua donna"), (r"\bUomo nuovo\b", "Donna nuova"), (r"\bun uomo che\b", "una donna che"), (r"\bda uomo a uomo\b", "da donna a donna"), (r"\bl'uomo\b", "la donna"), (r"\bnuovo allenatore\b", "nuova allenatrice"), (r"\bl'allenatore\b", "l'allenatrice"), (r"\bun allenatore\b", "un'allenatrice")],
  'ja': [("望みの男", "望みの人材"), ("新しい男", "新しい女性"), ("男", "女性")],
+ 'af': [(r"\bhulle man\b", "hulle vrou"), (r"\bNuwe man\b", "Nuwe vrou"), (r"\b'n man wat\b", "'n vrou wat"), (r"\bman tot man\b", "vrou tot vrou"), (r"\bkinders in mans\b", "kinders in vroue"), (r"\bdie man\b", "die vrou")],
 }
 def feminise_subject(lang, key, s):
     noun, pron, il = RULES[lang]
@@ -642,7 +671,7 @@ def correct(lang, phase='all'):
 
 if __name__ == '__main__':
     dry = '--apply' not in sys.argv
-    langs = [a for a in sys.argv[1:] if a in RULES] or ['en', 'fr', 'es', 'it', 'ja']
+    langs = [a for a in sys.argv[1:] if a in RULES] or ['en', 'fr', 'es', 'it', 'ja', 'af']
     for lang in langs:
         made, broken, sample = run(lang, dry)
         print(f'\n===== {lang}: {"would generate" if dry else "generated"} {made} feminine siblings; {len(broken)} broken =====')

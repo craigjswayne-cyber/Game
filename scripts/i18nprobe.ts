@@ -20,13 +20,14 @@ import fr from '../src/locales/fr.json'
 import es from '../src/locales/es.json'
 import it from '../src/locales/it.json'
 import ja from '../src/locales/ja.json'
+import af from '../src/locales/af.json'
 import { LANGS, tIn, type Lang, SIBLING, baseKey } from '../src/game/i18n'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = Record<string, unknown>
-const DICTS: Record<string, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict }
+const DICTS: Record<string, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict, af: af as Dict }
 
 /** Every leaf path in a dictionary, ignoring the _meta block and flattening a
  *  plural entry to the key that holds it rather than to its forms. */

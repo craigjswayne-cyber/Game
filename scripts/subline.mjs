@@ -81,7 +81,7 @@ const FILL = {
 const fill = (s) => String(s).replace(/\{(\w+)(?:_k|_l|_ll)?\}/g, (_m, k) => FILL[k] ?? '12')
 
 const langs = {}
-for (const l of ['en', 'fr', 'es', 'it', 'ja']) {
+for (const l of ['en', 'fr', 'es', 'it', 'ja', 'af']) {
   const d = JSON.parse(readFileSync(`src/locales/${l}.json`, 'utf8'))
   langs[l] = d
 }
@@ -96,7 +96,7 @@ const forms = (d, key) => {
 
 const lines = []
 for (const { title, sub } of [...pairs.values()].sort((a, b) => (a.sub > b.sub ? 1 : -1))) {
-  for (const l of ['en', 'fr', 'es', 'it', 'ja']) {
+  for (const l of ['en', 'fr', 'es', 'it', 'ja', 'af']) {
     const subForms = forms(langs[l], sub)
     if (!subForms.length) continue
     // the LONGEST title this heading can carry, because that is the one that

@@ -23,7 +23,7 @@ the first thing a reviewer sees.
 | Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
 | Support URL | the same page, which carries the contact address |
 | Content rating | 3+ / Everyone (see the questionnaire below) |
-| Languages | English, French, Spanish, Italian, Japanese |
+| Languages | English, French, Spanish, Italian, Japanese, Afrikaans |
 
 ---
 
@@ -116,7 +116,7 @@ BUILT FOR A PHONE
   Manager takes every advert away for good.
 • Four career slots, saved after every week, with export and import so a backup
   is yours to keep.
-• English, French, Spanish, Italian and Japanese.
+• English, French, Spanish, Italian, Japanese and Afrikaans.
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
@@ -146,6 +146,78 @@ First release.
 • Fixed a layout gap above the scoreboard on very tall screens.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
+
+### What's new (500 max) - v1.5.1, Play version code 22
+
+A language, a law and a round of fixes. Short notes, six languages, each under
+500 characters.
+
+```
+<en-GB>
+Afrikaans joins the game - the whole thing, not just the menus. The referee
+now orders uncontested scrums when a side loses its last trained front-rower
+mid-match, and a card costs a second player, as the law says. Every reply
+from the transfer desk now speaks your language, the board's anger at a
+salary-cap breach matches its size, and the commentary stops crediting a
+kicker with range he does not have.
+</en-GB>
+<fr-FR>
+L'afrikaans rejoint le jeu - tout le jeu, pas seulement les menus. L'arbitre
+ordonne désormais des mêlées simulées quand une équipe perd son dernier
+joueur de première ligne formé en cours de match, et un carton coûte un
+second joueur, comme le veut la règle. Chaque réponse du bureau des
+transferts parle votre langue, la colère du conseil face à un dépassement du
+salary cap est à la mesure du dépassement, et le commentaire cesse de prêter
+au buteur une portée qu'il n'a pas.
+</fr-FR>
+<es-ES>
+El afrikáans se une al juego - todo el juego, no solo los menús. El árbitro
+ordena ahora melés simuladas cuando un equipo pierde a su último primera
+línea formado durante el partido, y una tarjeta cuesta un segundo jugador,
+como dice el reglamento. Cada respuesta del despacho de fichajes habla tu
+idioma, el enfado de la directiva por saltarse el tope salarial va con el
+tamaño del exceso, y el comentario deja de atribuir a un pateador un alcance
+que no tiene.
+</es-ES>
+<it-IT>
+L'afrikaans entra nel gioco - tutto il gioco, non solo i menu. L'arbitro ora
+ordina mischie non contese quando una squadra perde il suo ultimo giocatore
+di prima linea formato durante la partita, e un cartellino costa un secondo
+giocatore, come dice il regolamento. Ogni risposta dell'ufficio mercato parla
+la tua lingua, l'ira del consiglio per uno sforamento del tetto salariale è
+proporzionata allo sforamento, e la telecronaca smette di attribuire a un
+calciatore una gittata che non ha.
+</it-IT>
+<ja-JP>
+アフリカーンス語が加わりました。メニューだけでなくゲーム全体です。試合中に訓練済みの
+フロントローを最後の一人まで失うと、レフェリーはノーコンテストスクラムを命じ、カードの
+場合は規則どおりもう一人を失います。移籍窓口の返答はすべてあなたの言語で届き、
+サラリーキャップ違反に対する取締役会の怒りは違反の大きさに応じ、実況はキッカーに
+持っていない飛距離を認めなくなりました。
+</ja-JP>
+<af>
+Afrikaans sluit by die speletjie aan - die hele ding, nie net die kieslyste
+nie. Die skeidsregter beveel nou onbestrede skrums wanneer 'n span sy laaste
+opgeleide voorryspeler in die loop van 'n wedstryd verloor, en 'n kaart kos 'n
+tweede speler, soos die reël sê. Elke antwoord van die oordragkantoor praat
+jou taal, die direksie se woede oor 'n salarisperk-oortreding pas by die
+grootte daarvan, en die kommentaar hou op om 'n skopper 'n afstand toe te
+skryf wat hy nie het nie.
+</af>
+```
+
+**The honest account of v1.5.1**: the bugs were the open items from the 1.5.0
+release audit (`docs/release-audit-prompt.md` and the published report).
+Uncontested scrums were decided at kick-off only; a tighthead sent off in the
+30th minute with no trained cover left the scrum contested for fifty minutes.
+Thirty-eight office replies were English string literals in every language.
+The board took seven points of confidence off a manager for a pound over the
+cap and seven for a fifth over it. A penalty line said "from halfway" about a
+kicker who could not reach halfway. The analyst was the one member of staff
+without a gender. All fixed; `scripts/scrumlaw.ts` and the release audit gate
+hold them. Afrikaans is a full dictionary with its own ordinal rule, its own
+women's-game siblings and its own sensitivity list; `docs/sensitivity-audit.md`
+is the deep-dive the release asked for.
 
 ### What's new (500 max) - v1.5.0, Play version code 21
 
@@ -899,7 +971,7 @@ BUILT FOR A PHONE
 • The game is completely offline: no account, no login, no cloud, and nothing about your career leaves your device. The adverts are the only part that uses the network, and Pro Manager removes them.
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • Three difficulty settings, chosen once per career.
-• English, French, Spanish, Italian and Japanese.
+• English, French, Spanish, Italian, Japanese and Afrikaans.
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 

@@ -91,6 +91,7 @@ const MASC_BY_LANG: Record<string, RegExp> = {
   es: /\b(hombre|él|entrenador)\b/i,
   it: /\b(uomo|lui|allenatore)\b/i,
   ja: /彼(?!女)|男/,
+  af: /\b(man|hy|hom|afrigter)\b/i,
 }
 for (const l of LANGS) {
   if (l.code === 'en') continue

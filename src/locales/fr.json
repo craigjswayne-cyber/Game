@@ -3,7 +3,8 @@
     "//": "Français. Keys and placeholders must match en.json exactly; the wording is free to move, which is the whole point of naming the placeholders rather than numbering them.",
     "name": "Français",
     "locale": "fr-FR",
-    "ordByDigit": ""
+    "ordByDigit": "",
+    "ordRule": ""
   },
   "menu": {
     "continue": "▸ Reprendre - {manager}, {club}",

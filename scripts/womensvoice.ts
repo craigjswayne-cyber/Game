@@ -53,9 +53,12 @@ const MARKERS: Record<string, RegExp> = {
   // and 男 (man) - and a low number here means the copy was already neutral
   // rather than that the work was skipped.
   ja: /彼(?!女)|男|少年/g,
+  // Afrikaans: "sy" is both his and she, so it cannot be a marker; hy, hom,
+  // himself and the nouns are.
+  af: /\b(hy|hom|homself|man|mans|manne|seun|seuns)\b/gi,
 }
 
-const LANGS = (process.argv[2] ? [process.argv[2]] : ['en', 'fr', 'es', 'it', 'ja']) as Lang[]
+const LANGS = (process.argv[2] ? [process.argv[2]] : ['en', 'fr', 'es', 'it', 'ja', 'af']) as Lang[]
 const wClubs = LEAGUE_DEFS('w').flatMap(d => d.clubs).slice(0, 4).map(c => c.id)
 
 // the careers are played ONCE and the news kept; then read in each language.
