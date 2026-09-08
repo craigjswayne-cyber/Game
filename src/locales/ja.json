@@ -4,7 +4,7 @@
   "name": "日本語",
   "locale": "ja-JP",
   "ordByDigit": "",
-  "ordRule": ""
+  "ordRule": "none"
  },
  "menu": {
   "continue": "▸ 続きから――{manager}、{club}",

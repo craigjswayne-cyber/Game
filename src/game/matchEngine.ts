@@ -2233,10 +2233,14 @@ function isFrontRower(p: Player | undefined | null): boolean {
 export function liveFrontRowCover(state: GameState, side: SideCtx): boolean {
   const pool: Player[] = []
   for (const id of side.onPitch) { const p = state.players[id]; if (p && !p.injury) pool.push(p) }
+  // A REPLACED FRONT-ROWER STILL COUNTS (Law 3.35): a prop who came off at
+  // the hour may return for a prop who is injured, binned or sent off, which
+  // is why uncontested scrums are rare in the professional game. Only the
+  // injured, the binned and the man on the pitch are out of the reckoning.
   for (const id of side.lineup.slice(15)) {
     if (id == null || side.onPitch.has(id) || side.binned.has(id)) continue
     const p = state.players[id]
-    if (p && !p.injury && !side.ratings.has(p.id)) pool.push(p)
+    if (p && !p.injury) pool.push(p)
   }
   const cover = { LP: 0, HK: 0, TP: 0 }
   let capable = 0
@@ -2246,6 +2250,18 @@ export function liveFrontRowCover(state: GameState, side: SideCtx): boolean {
     for (const n of FRONT_ROW) if (p.pos === n || p.alt.includes(n)) cover[n] += 1
   }
   return capable >= 3 && cover.LP >= 1 && cover.HK >= 1 && cover.TP >= 1
+}
+
+/** The best replaced, uninjured front-rower on the bench, for Law 3.35. */
+function returningFrontRower(state: GameState, side: SideCtx): Player | null {
+  let best: Player | null = null
+  for (const id of side.lineup.slice(15)) {
+    if (id == null || side.onPitch.has(id) || side.binned.has(id) || !side.ratings.has(id)) continue
+    const p = state.players[id]
+    if (!p || p.injury || !isFrontRower(p)) continue
+    if (!best || p.ca > best.ca) best = p
+  }
+  return best
 }
 
 /** A front-rower has just gone off. If nobody trained is left to take his
@@ -2711,11 +2727,14 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             player: p.name, injury_k: dk,
             rush_k: (p.rust ?? 0) > 0 ? 'comm.injuryRushedBack' : 'common.nothing',
           }, p.id)
-          const sub = pickBenchSub(state, side, p.id)
+          // with the bench spent, a replaced front-rower may come back for an
+          // injured one (Law 3.35) - on the legs he left with, not fresh ones
+          const back = pickBenchSub(state, side, p.id) == null && isFrontRower(p) ? returningFrontRower(state, side) : null
+          const sub = back ?? pickBenchSub(state, side, p.id)
           if (sub) {
             side.onPitch.add(sub.id)
-            side.ratings.set(sub.id, 6)
-            side.energy.set(sub.id, benchTank(sub))
+            if (!back) side.ratings.set(sub.id, 6)
+            side.energy.set(sub.id, back ? Math.min(benchTank(sub), side.energy.get(sub.id) ?? benchTank(sub)) : benchTank(sub))
             const slot = side.lineup.indexOf(p.id)
             const bSlot = side.lineup.indexOf(sub.id)
             if (slot >= 0 && slot < 15) {

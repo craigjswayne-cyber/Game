@@ -38,7 +38,7 @@ import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
-import { mulberry32 } from './rng'
+import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
 
@@ -168,7 +168,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     seed,
     gender,
     mgrGender,
-    analystGender: staffGender(rng, gender),
+    // drawn off a seed of its own, not the world's stream: a coin taken from
+    // `rng` here would move every draw after it and hand a seed a different
+    // world than it had in 1.5.0 (difficultyprobe caught exactly that)
+    analystGender: staffGender(mulberry32((seed ^ hashString('the analyst')) >>> 0), gender),
     saveName: '',
     season: 0,
     basis: WEEK_BASIS,

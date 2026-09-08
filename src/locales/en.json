@@ -4,7 +4,7 @@
   "name": "English",
   "locale": "en-GB",
   "ordByDigit": "1",
-  "ordRule": ""
+  "ordRule": "digit"
  },
  "menu": {
   "continue": "▸ Continue - {manager}, {club}",
