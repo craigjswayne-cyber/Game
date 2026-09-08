@@ -3,7 +3,8 @@
   "//": "Traducido del inglés (la fuente de verdad). Cada clave refleja en.json con los mismos marcadores {así} - scripts/i18nprobe.ts y langparity.ts lo hacen cumplir.",
   "name": "Español",
   "locale": "es-ES",
-  "ordByDigit": ""
+  "ordByDigit": "",
+  "ordRule": ""
  },
  "menu": {
   "continue": "▸ Continuar - {manager}, {club}",

@@ -3,7 +3,8 @@
   "//": "英語(en.json)が原典。すべてのキーとプレースホルダーは en.json と完全に一致すること - scripts/i18nprobe.ts と langparity.ts が強制する。",
   "name": "日本語",
   "locale": "ja-JP",
-  "ordByDigit": ""
+  "ordByDigit": "",
+  "ordRule": ""
  },
  "menu": {
   "continue": "▸ 続きから――{manager}、{club}",

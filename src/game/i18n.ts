@@ -25,7 +25,7 @@
 
 import en from '../locales/en.json'
 
-export type Lang = 'en' | 'fr' | 'es' | 'it' | 'ja'
+export type Lang = 'en' | 'fr' | 'es' | 'it' | 'ja' | 'af'
 
 /** The languages offered, in the order the picker shows them. `label` is in the
  *  language itself, because somebody looking for French is looking for
@@ -36,11 +36,12 @@ export const LANGS: { code: Lang; label: string; short: string }[] = [
   { code: 'es', label: 'Español', short: 'ES' },
   { code: 'it', label: 'Italiano', short: 'IT' },
   { code: 'ja', label: '日本語', short: 'JA' },
+  { code: 'af', label: 'Afrikaans', short: 'AF' },
 ]
 
 /** How each language writes 12345.67 - the tag handed to toLocaleString. */
 const NUMBER_LOCALE: Record<Lang, string> = {
-  en: 'en-GB', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', ja: 'ja-JP',
+  en: 'en-GB', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', ja: 'ja-JP', af: 'af-ZA',
 }
 
 type Dict = Record<string, unknown>
@@ -58,6 +59,7 @@ const LOADERS: Record<Lang, () => Promise<{ default: unknown }>> = {
   es: () => import('../locales/es.json'),
   it: () => import('../locales/it.json'),
   ja: () => import('../locales/ja.json'),
+  af: () => import('../locales/af.json'),
 }
 
 /** Load a dictionary if it is not already here. Safe to race, safe offline:
@@ -226,7 +228,13 @@ function ordSuffix(n: number, lang: Lang = current): string {
   const byDigit = !!lookup(d, '_meta.ordByDigit')
   const abs = Math.abs(n)
   let key = 'common.ordN'
-  if (byDigit) {
+  if (lookup(d, '_meta.ordRule') === 'af') {
+    // AFRIKAANS ENDS ON THE LAST WORD OF THE NUMBER: eerste, agtste and every
+    // ten from twintigste up take "ste", so 21ste and 100ste; the rest take
+    // "de" (tweede, derde, elfde, negentiende). ord1 carries "ste", ordN "de".
+    const v = abs % 100
+    key = v === 0 || v >= 20 || v === 1 || v === 8 ? 'common.ord1' : 'common.ordN'
+  } else if (byDigit) {
     const v = abs % 100
     const d = v > 10 && v < 14 ? 0 : abs % 10
     key = d === 1 ? 'common.ord1' : d === 2 ? 'common.ord2' : d === 3 ? 'common.ord3' : 'common.ordN'

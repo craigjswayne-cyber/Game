@@ -55,7 +55,7 @@ try {
   // fifth longer than English, so the tables most likely to overflow were
   // the ones never measured. The walk goes through the store handle now, by
   // screen id, so it is the same walk in every language.
-  for (const lang of ['en', 'fr', 'es', 'it', 'ja']) {
+  for (const lang of ['en', 'fr', 'es', 'it', 'ja', 'af']) {
     const p = await browser.newPage({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 })
     p.setDefaultTimeout(9000)
     await p.addInitScript(l => { localStorage.setItem('rm-night', '1'); localStorage.setItem('rm-lang', l) }, lang)

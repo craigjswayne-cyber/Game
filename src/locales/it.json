@@ -3,7 +3,8 @@
   "//": "Tradotto dall'inglese (la fonte di verità). Ogni chiave rispecchia en.json con gli stessi segnaposto {così} - scripts/i18nprobe.ts e langparity.ts lo impongono.",
   "name": "Italiano",
   "locale": "it-IT",
-  "ordByDigit": ""
+  "ordByDigit": "",
+  "ordRule": ""
  },
  "menu": {
   "continue": "▸ Continua - {manager}, {club}",

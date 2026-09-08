@@ -3,7 +3,8 @@
   "//": "SOURCE OF TRUTH FOR EVERY OTHER LANGUAGE. Every key that exists here must exist in every other file in this directory, with the same placeholders in it - scripts/i18nprobe.ts fails the build otherwise. The English values are also load-bearing in another way: forty browser harnesses select elements by their visible text, so changing a string here is changing a test selector.",
   "name": "English",
   "locale": "en-GB",
-  "ordByDigit": "1"
+  "ordByDigit": "1",
+  "ordRule": ""
  },
  "menu": {
   "continue": "▸ Continue - {manager}, {club}",
