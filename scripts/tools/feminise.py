@@ -386,7 +386,11 @@ EN_IL = []
 # ---------------------------------------------------------------- JAPANESE
 # 選手 (player) is neutral; the copy says 彼 (he) and 男 (man). 彼 -> 彼女 is the
 # pronoun. 男 becomes 選手 rather than 女: "the man in form" is 好調の選手, and
-# 好調の女 would read as a stranger, not a player. Rules apply only to keys the
+# 好調の女 would read as a stranger, not a player. The one string this rule
+# cannot be let near is the title screen's men's/women's picker: 男子の大会
+# (the men's game) would become 選手子の大会, and a women's world would offer a
+# choice between two labels that both say the women's game. Withdrawn by name
+# in feminise-corrections.json, which takes no comments of its own. Rules apply only to keys the
 # key policy calls a player's (the same lists as English - keys are shared).
 JA_NOUN = [
  ("大男たち", "大柄な選手たち"), ("男たち", "選手たち"), ("少年を男にする", "少女を一人前にする"),

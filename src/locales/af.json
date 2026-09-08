@@ -13,13 +13,15 @@
   "loadCareer": "Laai loopbaan",
   "newCareer": "Nuwe loopbaan",
   "newCareerWomen": "Vrouerugby",
+  "newCareerMen": "Mansrugby",
   "newCareerHint": "Aparte speletjies, aparte loopbane.",
   "savedAt": "{season}, Week {week}",
   "tagline": "STORIES, SEISOENE & SILWERWARE",
   "importHintTitle": "Kom jy van die ou weergawe af?",
   "importHintBody": "As jy jou loopbane in die ou Play-app gerugsteun het, bring hulle eers hierheen voor jy 'n nuwe een begin.",
   "importHintNo": "Nee, begin van voor",
-  "importHintGo": "Voer 'n rugsteun in"
+  "importHintGo": "Voer 'n rugsteun in",
+  "whichGame": "Watter speletjie"
  },
  "nav": {
   "news": "Nuus",

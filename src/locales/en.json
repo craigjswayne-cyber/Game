@@ -13,13 +13,15 @@
   "loadCareer": "Load Career",
   "newCareer": "New Career",
   "newCareerWomen": "Women's Game",
+  "newCareerMen": "Men's Game",
   "newCareerHint": "Separate games, separate careers.",
   "savedAt": "{season}, Week {week}",
   "tagline": "STORIES, SEASONS & SILVERWARE",
   "importHintTitle": "Coming from the old version?",
   "importHintBody": "If you backed up your careers in the old Play app, bring them in here before starting a new one.",
   "importHintNo": "No, start fresh",
-  "importHintGo": "Import a backup"
+  "importHintGo": "Import a backup",
+  "whichGame": "Which game"
  },
  "nav": {
   "news": "News",

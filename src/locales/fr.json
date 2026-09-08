@@ -13,6 +13,7 @@
     "loadCareer": "Charger une carrière",
     "newCareer": "Nouvelle carrière",
     "newCareerWomen": "Jeu féminin",
+    "newCareerMen": "Jeu masculin",
     "newCareerHint": "Jeux séparés, carrières séparées.",
     "savedAt": "{season}, semaine {week}",
     "tagline": "HISTOIRES, SAISONS & TROPHÉES",
@@ -20,6 +21,7 @@
     "importHintBody": "Si vous avez exporté vos carrières depuis l’ancienne appli Play, importez-les ici avant d’en commencer une nouvelle.",
     "importHintNo": "Non, repartir de zéro",
     "importHintGo": "Importer une sauvegarde",
+    "whichGame": "Quel jeu",
     "disclaimer_f": "Non officiel et indépendant. Sans lien avec aucun club, ligue ou joueuse."
   },
   "nav": {

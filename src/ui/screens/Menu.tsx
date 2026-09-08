@@ -9,6 +9,7 @@ import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
 export default function Menu() {
   const go = useStore(s => s.go)
   const setNewGender = useStore(s => s.setNewGender)
+  const newGender = useStore(s => s.newGender)
   const setGame = useStore(s => s.setGame)
   const lang = useStore(s => s.lang)
   const supporter = useStore(s => s.supporter)
@@ -55,37 +56,47 @@ export default function Menu() {
             </button>
           )
         })()}
-        {/* WHICH GAME (v1.5). The owner: "IT SHOULD BE A SELECTION ON THE MAIN
-            PAGE AND YOU CAN ONLY COACH IN MENS TEAM OR A WOMENS TEAM AT ONE
-            TIME." It is asked here rather than inside the wizard because it is
-            not a setting inside a career, it is which career you are starting:
-            a save holds one game and cannot change (src/game/gender.ts), and
-            the club list on the wizard's first screen already has to know the
-            answer.
+        {/* WHICH GAME (v1.5, rebuilt in v1.5.2). The owner: "IT SHOULD BE A
+            SELECTION ON THE MAIN PAGE AND YOU CAN ONLY COACH IN MENS TEAM OR A
+            WOMENS TEAM AT ONE TIME." It is asked here rather than inside the
+            wizard because it is not a setting inside a career, it is which
+            career you are starting: a save holds one game and cannot change
+            (src/game/gender.ts), and the club list on the wizard's first
+            screen already has to know the answer.
 
-            Two buttons rather than a toggle plus a button. A toggle would let
-            somebody set it, forget it and start the wrong career - and there is
-            no going back afterwards short of starting again. Two doors cannot
-            be got wrong.
+            v1.5 asked it as two doors, "New Career" above "Women's Game", on
+            the reasoning that two doors cannot be got wrong. What that shape
+            actually said was that one game is the game and the other is an
+            afterthought hanging off the bottom of it (owner, v1.5.2: "new
+            career is right but womens underneath feels wrong ... how do we
+            incorporate it so its a choice like languages"). So the two games
+            are one segmented control now, side by side and the same size as
+            each other, and the single New Career button under it starts
+            whichever one is lit. The hint line stays: the control says which
+            game, and the line says why the choice is worth caring about.
 
             The men's button keeps the exact words "New Career". Fifty-two
             browser harnesses click text=New Career to start a game, and
-            Playwright matches that as a SUBSTRING - so renaming it to "New
-            Men's Career" would break all fifty-two, and giving the women's
-            button a label that also contained "New Career" would match both
-            and fail strict mode instead. Hence the asymmetry, and hence the
-            hint line under them, which is doing the work the label would
-            otherwise do. */}
+            Playwright matches that as a SUBSTRING, so no other element on this
+            screen may contain that phrase - scripts/womensui.ts counts the
+            matches and fails at two. The segments say "Men's Game" and
+            "Women's Game", which is also why the women's segment keeps its
+            .new-career-w class: the harness picks it by class, because
+            text="Women's Game" would match the hint line as well. */}
         <div className="new-career-pick">
+          <div className="game-pick" role="radiogroup" aria-label={t('menu.whichGame')}>
+            {(['m', 'w'] as const).map(g => (
+              <button key={g} type="button" role="radio" aria-checked={newGender === g}
+                className={`${g === 'w' ? 'new-career-w' : 'new-career-m'}${newGender === g ? ' sel' : ''}`}
+                onClick={() => setNewGender(g)}>
+                {t(g === 'w' ? 'menu.newCareerWomen' : 'menu.newCareerMen')}
+              </button>
+            ))}
+          </div>
           <button className={saves.length ? 'btn ghost' : 'btn gold'}
             style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
-            onClick={() => { setNewGender('m'); go('newgame') }}>
+            onClick={() => go('newgame')}>
             {t('menu.newCareer')}
-          </button>
-          <button className="btn ghost new-career-w"
-            style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
-            onClick={() => { setNewGender('w'); go('newgame') }}>
-            {t('menu.newCareerWomen')}
           </button>
           <div className="meta new-career-hint">{t('menu.newCareerHint')}</div>
         </div>
