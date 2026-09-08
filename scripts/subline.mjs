@@ -201,7 +201,7 @@ ok(measured.over.length === 0, `every line under a section title fits on one lin
 
 await browser.close()
 say(fails === 0
-  ? '\nSUBLINE PASSED: one line under a title, everywhere, in five languages'
+  ? '\nSUBLINE PASSED: one line under a title, everywhere, in six languages'
   : `\nSUBLINE FAILED: ${fails}`)
 // done() takes the FAILURE COUNT and exits with it - it is not a server
 // shutdown. Handing it the server object exited 1 on a clean run, which is how

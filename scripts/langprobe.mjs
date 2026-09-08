@@ -82,12 +82,12 @@ try {
     await small.close()
   }
 
-  // five languages in one dropdown (v1.2.0: the owner asked for "a drop down
+  // six languages in one dropdown (v1.2.0: the owner asked for "a drop down
   // menu" and five names never fit a phone as buttons), each written in its
   // own language - somebody hunting for theirs scans for the word they use
   const options = await page.locator('.lang-select option').allInnerTexts()
-  ok(options.length === 5, `five languages are offered (${options.length}: ${options.join(', ')})`)
-  for (const name of ['English', 'Français', 'Español', 'Italiano', '日本語']) {
+  ok(options.length === 6, `six languages are offered (${options.length}: ${options.join(', ')})`)
+  for (const name of ['English', 'Français', 'Español', 'Italiano', '日本語', 'Afrikaans']) {
     ok(options.includes(name), `${name} is named in its own language`)
   }
 
