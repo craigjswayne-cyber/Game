@@ -38,7 +38,7 @@ function realMoney(...vals: number[]): boolean {
 }
 
 /** The refusal a nonsense figure gets, in words a player can read. */
-const NOT_A_FIGURE = { ok: false as const, msg: 'That is not a figure the club can put its name to.' }
+const notAFigure = () => ({ ok: false as const, msg: t('reply.notAFigure') })
 
 /**
  * The division's weekly wage ceiling, or null where there is none.
@@ -447,12 +447,12 @@ export function personalTermsDemand(state: GameState, p: Player): number {
 /** Stage 1 of the 8D bid flow: agree the FEE only - nothing is signed
  *  until personal terms are done. */
 export function agreeFee(state: GameState, playerId: number, fee: number): { ok: boolean; msg: string; counter?: number } {
-  if (!realMoney(fee)) return NOT_A_FIGURE
+  if (!realMoney(fee)) return notAFigure()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
-  if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
-  if (p.clubId === user.id) return { ok: false, msg: 'Already your player.' }
-  if (fee > user.budget) return { ok: false, msg: 'That bid exceeds your transfer budget.' }
+  if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
+  if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
+  if (fee > user.budget) return { ok: false, msg: t('reply.bidOverBudget') }
   const ask = askingPrice(state, p)
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET (user: "i just sold this player - i shouldn't
@@ -470,7 +470,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
       const door = Math.round((ask * 2) / 50_000) * 50_000
       return {
         ok: false,
-        msg: `${seller.short} end the call politely: ${p.name} arrived ${weeksIn < 2 ? 'days' : `${weeksIn} weeks`} ago and the club has invested in him. Until he has been theirs half a season, only an offer they cannot argue with - ${fmtMoney(door)} - reopens the conversation.`,
+        msg: t('reply.tooSoonToSell', { club: seller.short, name: p.name, n: weeksIn, ago_k: weeksIn < 2 ? 'reply.agoDays' : 'reply.agoWeeks', door: fmtMoney(door) }),
       }
     }
   }
@@ -503,8 +503,8 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
     return {
       ok: true,
       msg: under >= 50_000
-        ? `Fee agreed at ${fmtMoney(fee)}, ${fmtMoney(under)} under their asking price. Now agree personal terms with ${p.name}'s camp.`
-        : `Fee agreed at ${fmtMoney(fee)}. Now agree personal terms with ${p.name}'s camp.`,
+        ? t('reply.feeAgreedUnder', { fee: fmtMoney(fee), under: fmtMoney(under), name: p.name })
+        : t('reply.feeAgreed', { fee: fmtMoney(fee), name: p.name }),
     }
   }
   // A near miss names the number that would do it, and says what is weakening
@@ -514,7 +514,7 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   // adding the rival premium; the probe that catches it now lives in
   // haggleprobe.)
   const whyText = reasons.length ? t(reasons[0].k, reasons[0].v) : ''
-  const why = whyText ? ` They are open to less than the ask: ${whyText}.` : ''
+  const why = whyText ? ` ${t('reply.openToLess', { why: whyText })}` : ''
   // the rival premium is the one thing a rejection must always teach, because
   // the number it produces (a floor ABOVE the ask) reads as a bug until the
   // reason is on the page
@@ -524,17 +524,17 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
   if (fee >= floor * 0.8) {
     return {
       ok: false,
-      msg: `${seller.short} reject ${fmtMoney(fee)} - but they'd do business at ${fmtMoney(counterPrice)}.${rivalWhy}${why}`,
+      msg: t('reply.rejectCounter', { club: seller.short, fee: fmtMoney(fee), counter: fmtMoney(counterPrice), tail: `${rivalWhy}${why}` }),
       counter: counterPrice,
     }
   }
   return {
     ok: false,
     msg: discount > 0 && premium === 0
-      ? `${seller.short} reject the bid out of hand. They want nearer ${fmtMoney(ask)}, though they would listen below it: ${whyText}.`
+      ? t('reply.rejectListen', { club: seller.short, ask: fmtMoney(ask), why: whyText })
       : premium > 0
-        ? `${seller.short} reject the bid out of hand.${rivalWhy} It would take ${fmtMoney(floor)} to move them.`
-        : `${seller.short} reject the bid. They value ${p.name} at ${fmtMoney(ask)} and have no reason to take less.`,
+        ? t('reply.rejectRival', { club: seller.short, tail: rivalWhy, floor: fmtMoney(floor) })
+        : t('reply.rejectFlat', { club: seller.short, name: p.name, ask: fmtMoney(ask) }),
   }
 }
 
@@ -542,10 +542,10 @@ export function agreeFee(state: GameState, playerId: number, fee: number): { ok:
  *  soften the wage his camp will take - the promise is a real pledge and
  *  he will hold you to it. */
 export function signOnTerms(state: GameState, playerId: number, fee: number, wage: number, signOn: number, promiseMinutes: boolean, asMarquee = false): { ok: boolean; msg: string } {
-  if (!realMoney(fee, wage, signOn)) return NOT_A_FIGURE
+  if (!realMoney(fee, wage, signOn)) return notAFigure()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
-  if (!p || !p.clubId) return { ok: false, msg: 'Player unavailable.' }
+  if (!p || !p.clubId) return { ok: false, msg: t('reply.playerUnavailable') }
   const seller = state.clubs[p.clubId]
   // THE INK IS STILL WET, CHECKED AGAIN (owner, v1.1.3: "if a club signs a
   // player and the player tries to buy for their club the bid should be
@@ -563,9 +563,9 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
       return { ok: false, msg: t('reply.inkWetTerms', { club: seller.short, name: p.name }) }
     }
   }
-  if (fee + signOn > user.budget) return { ok: false, msg: 'Fee plus signing bonus exceeds your transfer budget.' }
+  if (fee + signOn > user.budget) return { ok: false, msg: t('reply.feeBonusOverBudget') }
   if (embargoed(state, user.id)) {
-    return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. Nobody can be signed until it is served.' }
+    return { ok: false, msg: t('reply.embargoSign') }
   }
   // NAMED A MARQUEE MAN AT THE TABLE (owner, v1.2.8: the cap refusal said
   // "name him a marquee player" about a man who was not yet his to name).
@@ -578,14 +578,14 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
   const demand = personalTermsDemand(state, p)
   const squadWages = capBill(state, user)
   if (squadWages + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: `Those wages (${fmtWage(wage)}/wk) would break your wage budget.` }
+    return { ok: false, msg: t('reply.wagesBreakBudget', { wage: fmtWage(wage) }) }
   }
   const sweet = signOn >= demand * 8 ? 0.06 : signOn >= demand * 4 ? 0.03 : 0
   const floor = Math.round(demand * (1 - sweet - (promiseMinutes ? 0.05 : 0)))
   if (wage < floor) {
     return {
       ok: false,
-      msg: `${p.name}'s camp shake their heads. They opened at ${fmtWage(demand)}/wk${signOn > 0 || promiseMinutes ? ` and your extras only soften that so far - they need at least ${fmtWage(floor)}/wk on this package` : ' - a signing bonus or a first-team promise would soften that'}.`,
+      msg: t('reply.campShakeHeads', { name: p.name, demand: fmtWage(demand), floor: fmtWage(floor), tail_k: signOn > 0 || promiseMinutes ? 'reply.campTailExtras' : 'reply.campTailBonus' }),
     }
   }
   executeTransfer(state, p, user.id, fee)
@@ -598,7 +598,7 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
       due: Math.min(state.week + 6, 44), baseApps: p.stats.apps,
     })
   }
-  return { ok: true, msg: `${p.name} signs for ${user.name} - ${fmtMoney(fee)} fee, ${fmtWage(wage)}/wk${signOn > 0 ? `, ${fmtMoney(signOn)} signing bonus` : ''}${promiseMinutes ? ', first-team rugby promised' : ''}.` }
+  return { ok: true, msg: t('reply.signsFor', { name: p.name, club: user.name, fee: fmtMoney(fee), wage: fmtWage(wage), bonus: signOn > 0 ? t('reply.signsBonus', { bonus: fmtMoney(signOn) }) : '', promise: promiseMinutes ? t('reply.signsPromise') : '' }) }
 }
 
 /** Sign a clubless player: no fee, his wage demand, and the same guards a
@@ -610,20 +610,20 @@ export function signOnTerms(state: GameState, playerId: number, fee: number, wag
 export function signFreeAgent(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
-  if (!p || p.clubId != null || !user) return { ok: false, msg: 'He is not a free agent.' }
+  if (!p || p.clubId != null || !user) return { ok: false, msg: t('reply.notFreeAgent') }
   if (embargoed(state, user.id)) {
-    return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. Nobody can be signed until it is served.' }
+    return { ok: false, msg: t('reply.embargoSign') }
   }
   const wage = renewalDemand(p)
   const capMsg = capBreak(state, user.id, wage)
   if (capMsg) return { ok: false, msg: capMsg }
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: `His wage demands (${fmtWage(wage)}/wk) would exceed your wage budget.` }
+    return { ok: false, msg: t('reply.wageDemandsExceed', { wage: fmtWage(wage) }) }
   }
   executeTransfer(state, p, user.id, 0)
   p.wage = wage
   p.contractEnds = state.season + 2
-  return { ok: true, msg: `${p.name} signs on a free transfer (${fmtWage(wage)}/wk).` }
+  return { ok: true, msg: t('reply.signsFree', { name: p.name, wage: fmtWage(wage) }) }
 }
 
 /** Legacy one-shot bid: agree the fee and sign at his demanded wage. */
@@ -751,26 +751,26 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
   if (embargoed(state, state.userClubId)) {
-    return { ok: false, msg: 'The club is under a transfer embargo for breaching the salary cap. No pre-contracts either.' }
+    return { ok: false, msg: t('reply.embargoPre') }
   }
-  if (!p || !p.clubId || !user) return { ok: false, msg: 'Player unavailable.' }
-  if (p.clubId === user.id) return { ok: false, msg: 'Already your player.' }
-  if (p.contractEnds > state.season) return { ok: false, msg: 'He is under contract beyond this season.' }
-  if (p.loanFrom || p.onLoan) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
-  if (p.retiring) return { ok: false, msg: `${p.name} is retiring in the summer. There is nothing to sign.` }
-  if (state.week < 25) return { ok: false, msg: 'Pre-contract talks open from week 25.' }
+  if (!p || !p.clubId || !user) return { ok: false, msg: t('reply.playerUnavailable') }
+  if (p.clubId === user.id) return { ok: false, msg: t('reply.alreadyYours') }
+  if (p.contractEnds > state.season) return { ok: false, msg: t('reply.underContractBeyond') }
+  if (p.loanFrom || p.onLoan) return { ok: false, msg: t('reply.onLoanParent') }
+  if (p.retiring) return { ok: false, msg: t('reply.retiringNothingToSign', { name: p.name }) }
+  if (state.week < 25) return { ok: false, msg: t('reply.preContractFromWeek', { n: 25 }) }
   state.preContracts ??= []
-  if (state.preContracts.some(pc => pc.playerId === p.id)) return { ok: false, msg: 'A pre-contract is already signed.' }
+  if (state.preContracts.some(pc => pc.playerId === p.id)) return { ok: false, msg: t('reply.preContractAlready') }
   if (state.preContracts.filter(pc => pc.toClubId === user.id).length >= 3) {
-    return { ok: false, msg: 'Three pre-contracts already agreed - the board will not register more.' }
+    return { ok: false, msg: t('reply.preContractThree') }
   }
   const wage = Math.round((playerWage(p.ca, p.age) * 1.1) / 50) * 50 // free-agent premium
   if (capBill(state, user) + wage > userWageBudget(state, user)) {
-    return { ok: false, msg: `His terms (${fmtWage(wage)}/wk) would break the wage budget.` }
+    return { ok: false, msg: t('reply.termsBreakBudget', { wage: fmtWage(wage) }) }
   }
   const seller = state.clubs[p.clubId]
   if (seller && user.rep < seller.rep - 12 && p.morale > 5) {
-    return { ok: false, msg: `${p.name} thanks you for the interest, but he is holding out for a bigger stage.` }
+    return { ok: false, msg: t('reply.biggerStage', { name: p.name }) }
   }
   state.preContracts.push({ playerId: p.id, toClubId: user.id, week: state.week })
   p.morale = clamp(p.morale + 0.5, 1, 10)
@@ -787,7 +787,7 @@ export function agreePreContract(state: GameState, playerId: number): { ok: bool
     },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} joins on a free this summer (${fmtWage(wage)}/wk agreed).` }
+  return { ok: true, msg: t('reply.joinsFreeSummer', { name: p.name, wage: fmtWage(wage) }) }
 }
 
 /** From week 25, rivals circle the user's own expiring players: neglect a
@@ -834,20 +834,20 @@ export function renewalDemand(p: Player): number {
 
 export function offerRenewal(state: GameState, playerId: number): { ok: boolean; msg: string } {
   const p = state.players[playerId]
-  if (!p) return { ok: false, msg: 'Not your player.' }
+  if (!p) return { ok: false, msg: t('reply.notYourPlayer') }
   return offerRenewalAt(state, playerId, renewalDemand(p))
 }
 
 /** Haggled renewal: offer any wage; the agent accepts, counters or walks. */
 export function offerRenewalAt(state: GameState, playerId: number, offer: number): { ok: boolean; msg: string; counter?: number } {
-  if (!realMoney(offer)) return NOT_A_FIGURE
+  if (!realMoney(offer)) return notAFigure()
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
-  if (!p || p.clubId !== user.id) return { ok: false, msg: 'Not your player.' }
-  if (p.loanFrom) return { ok: false, msg: 'He is on loan - his contract belongs to his parent club.' }
-  if (p.retiring) return { ok: false, msg: `${p.name} appreciates the gesture, but his mind is made up - he retires in the summer.` }
+  if (!p || p.clubId !== user.id) return { ok: false, msg: t('reply.notYourPlayer') }
+  if (p.loanFrom) return { ok: false, msg: t('reply.onLoanParent') }
+  if (p.retiring) return { ok: false, msg: t('reply.retiringMindMadeUp', { name: p.name }) }
   if ((state.preContracts ?? []).some(pc => pc.playerId === p.id)) {
-    return { ok: false, msg: `Too late - ${p.name} has already signed a pre-contract elsewhere. The deal is binding.` }
+    return { ok: false, msg: t('reply.preContractElsewhere', { name: p.name }) }
   }
   const capMsgR = (user.marquee ?? []).includes(p.id) ? null : capBreak(state, user.id, offer, p.wage)
   if (capMsgR) return { ok: false, msg: capMsgR }
@@ -855,14 +855,14 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
   const marqueed = (user.marquee ?? []).includes(p.id)
   const squadWages = capBill(state, user)
   if (!marqueed && squadWages - ((user.marquee ?? []).includes(p.id) ? 0 : p.wage) + offer > userWageBudget(state, user)) {
-    return { ok: false, msg: 'Those terms would exceed the wage budget.' }
+    return { ok: false, msg: t('reply.termsExceedBudget') }
   }
   if (p.pers === 'Ambitious' && p.ca >= 84 && user.rep < 82 && p.morale < 8) {
-    return { ok: false, msg: `${p.name}'s agent is blunt: his client is ambitious, and he wants to see the club matching that ambition before committing.` }
+    return { ok: false, msg: t('reply.agentBlunt', { name: p.name }) }
   }
   const rng = mulberry32(state.seed ^ (playerId * 31 + state.week * 7 + state.season * 101))
   if (p.morale < 3.5 && p.pers !== 'Loyal' && rng() < 0.5) {
-    return { ok: false, msg: `${p.name} isn't interested in extending right now.` }
+    return { ok: false, msg: t('reply.notInterestedExtending', { name: p.name }) }
   }
   let wage = offer
   // A QUOTED NUMBER IS A PROMISE (user, offering MORE than the number on the
@@ -882,8 +882,8 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
       return {
         ok: false,
         msg: p.pers === 'Mercenary'
-          ? `The agent laughs down the phone. "${fmtWage(offer)} a week? We'll speak when you're serious." ${p.name} has heard about the lowball.`
-          : `${p.name}'s agent calls the offer "some way short" and ends the meeting. Come back with more.`,
+          ? t('reply.agentLaughs', { offer: fmtWage(offer), name: p.name })
+          : t('reply.someWayShort', { name: p.name }),
       }
     }
     // close enough to talk: loyalty, mood and character decide
@@ -891,7 +891,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
       (p.pers === 'Loyal' ? 0.6 : p.pers === 'Professional' ? 0.45 : p.pers === 'Mercenary' ? 0.12 : 0.3)
       + (p.morale >= 7.5 ? 0.15 : 0) + (ratio - 0.85) * 1.2
     if (rng() >= acceptP) {
-      return { ok: false, msg: `${p.name}'s camp say no - but they'd sign today at ${fmtWage(counterAt)}/wk.`, counter: counterAt }
+      return { ok: false, msg: t('reply.signTodayAt', { name: p.name, counter: fmtWage(counterAt) }), counter: counterAt }
     }
   }
   wage = Math.min(offer, Math.round(demand * 1.3)) // no accidental silly money
@@ -912,7 +912,7 @@ export function offerRenewalAt(state: GameState, playerId: number, offer: number
     v: { player: p.name, club: user.name, wage: fmtMoney(wage), until: 2026 + p.contractEnds },
     playerId: p.id,
   })
-  return { ok: true, msg: `${p.name} signs until ${2026 + p.contractEnds} (${fmtWage(wage)}/wk).` }
+  return { ok: true, msg: t('reply.signsUntil', { name: p.name, year: 2026 + p.contractEnds, wage: fmtWage(wage) }) }
 }
 
 /** AI clubs renew their expiring key players (some slip through to free agency). */

@@ -736,6 +736,11 @@ export interface SideCtx {
    *  a try from inside the bin (audit 16D). */
   binned: Set<number>
   sent: number // players lost to RC
+  /** players the side had to take off under Law 3.20 - a front-row card with
+   *  nobody trained to cover costs a second player, so the uncontested scrum
+   *  the card bought is never a free lunch. Charged like a sending-off in
+   *  numF, but not a card in anybody's record. */
+  short: number
   cardRisk: number
   /** per-tick chance of conceding a kickable penalty. Was a flat 0.115 for
    *  every side in the world, which made Physicality a free lunch: the dial
@@ -1116,7 +1121,7 @@ function mkSide(state: GameState, teamId: string, userTeamId: string | null, fxI
   })
   const side: SideCtx = {
     teamId, lineup, units,
-    score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), binned: new Set(), sent: 0,
+    score: 0, tries: 0, ratings, onPitch, yellowUntil: new Map(), binned: new Set(), sent: 0, short: 0,
     cardRisk: 0.012, penRisk: 0.115, aggF: 0,
     poss: 0, pens: 0, consPens: 0,
     energy, tempoF: 1, drainF: 1, goalBonus: 0,
@@ -1244,6 +1249,8 @@ const PEN_LINES = [
   'comm.pen10',
   'comm.pen11',
 ]
+/** the lines that claim range, and the plain line each becomes for a kicker without it */
+const PEN_LONG: Record<string, string> = { 'comm.pen4': 'comm.pen1', 'comm.pen6': 'comm.pen2', 'comm.pen9': 'comm.pen3' }
 const CON_LINES = [
   'comm.con1',
   'comm.con2',
@@ -1371,6 +1378,14 @@ export interface LiveCtx {
    *  in front of that line, not behind it - see resolveDecision. Null
    *  whenever the clock is running. */
   whistleAt?: number | null
+  /** the referee has ordered uncontested scrums: at kick-off for a lineup
+   *  that cannot cover the front row, or mid-match when the last trained
+   *  loosehead, hooker or tighthead goes off. Read before ordering them twice. */
+  uncontested?: boolean
+  /** the levelling factors a sin-bin ordered, kept so the scrum can be
+   *  contested again when the binned front-rower returns. Absent for a
+   *  shortage that cannot mend itself (kick-off, injury, red card). */
+  uncontestedUndo?: { home: number; away: number } | null
   /** momentum, -1 (away camped in our half) .. +1 (home dominant) */
   momo: number
   /** live bad blood between the clubs (reason string) - derby-lite heat */
@@ -1399,6 +1414,9 @@ const DEPICTS: Record<string, NonNullable<MatchEvent['fx']>> = {
   'comm.flavWet1': 'SCRUM',         // trudging to another scrum in the rain
   'comm.maulHeldUp': 'SCRUM',       // held up, and they win the scrum
   'comm.uncontested': 'SCRUM',      // the referee orders uncontested scrums
+  'comm.uncontestedNow': 'SCRUM',   // the last trained front-rower goes off
+  'comm.uncontestedShort': 'SCRUM', // Law 3.20: a second man leaves with him
+  'comm.contestedAgain': 'SCRUM',   // the binned front-rower returns
   'comm.flav9': 'LINEOUT',          // steals the lineout against the throw
   'comm.flav13': 'LINEOUT',         // a 50:22 and the lineout that follows
   'comm.flav18': 'LINEOUT',         // a quick lineout taken
@@ -1788,6 +1806,7 @@ export function beginMatch(state: GameState, fx: Fixture, rng: Rng, detail: bool
     })
   }
   if (uncontested) {
+    ctx.uncontested = true
     const short = !homeFR.legal
       ? teamShort(state, fx.homeId)
       : teamShort(state, fx.awayId)
@@ -1945,7 +1964,13 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
     // the same index, the same line. Where a bank's line names the kicker and
     // there is no kicker to name, "The kicker" is a WORD and gets a key of its
     // own rather than being passed in as a variable.
-    pushLine(state, ctx, min, 'PEN', side, PEN_LINES[Math.floor(rng() * PEN_LINES.length)],
+    // A LINE THAT NAMES THE DISTANCE NEEDS THE BOOT FOR IT. "From halfway"
+    // about a kicker with no range read as a wrong stat (release audit,
+    // 1.5.0); such a line falls back to a plain one for him, with no extra
+    // draw on the stream, so the fingerprint of every other match is intact.
+    let line = PEN_LINES[Math.floor(rng() * PEN_LINES.length)]
+    if ((!kicker || kicker.a.goa < 12) && PEN_LONG[line]) line = PEN_LONG[line]
+    pushLine(state, ctx, min, 'PEN', side, line,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else if (detail && rng() < 0.7) {
     pushLine(state, ctx, min, 'SUB', side, kicker ? 'comm.penWideNamed' : 'comm.penWide',
@@ -2194,6 +2219,67 @@ function pickBenchSub(state: GameState, side: SideCtx, outId: number): Player | 
   return bench[0]
 }
 
+const FRONT_ROW = ['LP', 'HK', 'TP'] as const
+function isFrontRower(p: Player | undefined | null): boolean {
+  return !!p && FRONT_ROW.some(n => p.pos === n || p.alt.includes(n))
+}
+
+/** Law 3 mid-match: can the side still put a trained loosehead, hooker and
+ *  tighthead on the pitch? Counts the players on it plus the bench that has
+ *  not been used; a man in the bin does not count until he is back. The
+ *  kick-off test (frontRowCover) wants two of each across the 23 because a
+ *  match has replacements to make; once it is running, one of each is enough
+ *  to keep the scrum contested. */
+export function liveFrontRowCover(state: GameState, side: SideCtx): boolean {
+  const pool: Player[] = []
+  for (const id of side.onPitch) { const p = state.players[id]; if (p && !p.injury) pool.push(p) }
+  for (const id of side.lineup.slice(15)) {
+    if (id == null || side.onPitch.has(id) || side.binned.has(id)) continue
+    const p = state.players[id]
+    if (p && !p.injury && !side.ratings.has(p.id)) pool.push(p)
+  }
+  const cover = { LP: 0, HK: 0, TP: 0 }
+  let capable = 0
+  for (const p of pool) {
+    if (!isFrontRower(p)) continue
+    capable += 1
+    for (const n of FRONT_ROW) if (p.pos === n || p.alt.includes(n)) cover[n] += 1
+  }
+  return capable >= 3 && cover.LP >= 1 && cover.HK >= 1 && cover.TP >= 1
+}
+
+/** A front-rower has just gone off. If nobody trained is left to take his
+ *  place the referee orders uncontested scrums from here (Law 3): both packs
+ *  are levelled the way kick-off levels them, so the side with the better
+ *  scrum pays for the other's shortage. A CARD costs more than an injury:
+ *  under Law 3.20 the carded side must also send a second player off, so the
+ *  uncontested scrum is never something a card can buy cheaply. A sin-bin
+ *  keeps the levelling factors so the scrum is contested again when the
+ *  binned man returns and the cover is back (simTick, the bin block). */
+export function checkFrontRow(state: GameState, ctx: LiveCtx, side: SideCtx, min: number, lost: Player, cause: 'red' | 'yellow' | 'injury') {
+  if (ctx.uncontested || !isFrontRower(lost)) return
+  if (liveFrontRowCover(state, side)) return
+  const { home, away } = ctx
+  const level = (home.units.scrum + away.units.scrum) / 2
+  const homeF = level / Math.max(1, home.units.scrum)
+  const awayF = level / Math.max(1, away.units.scrum)
+  layer(home, 'scrum', homeF)
+  layer(away, 'scrum', awayF)
+  ctx.uncontested = true
+  ctx.uncontestedUndo = cause === 'yellow' ? { home: homeF, away: awayF } : null
+  pushLine(state, ctx, min, 'SUB', side, 'comm.uncontestedNow', { team: teamShort(state, side.teamId), player: lost.name }, lost.id)
+  if (cause === 'red') {
+    // the second man off: the least valuable non-front-rower still out there
+    const rest = [...side.onPitch].map(id => state.players[id]).filter((p): p is Player => !!p && !isFrontRower(p))
+    if (!rest.length) return
+    let nom = rest[0]
+    for (const p of rest) if ((side.ratings.get(p.id) ?? 6) < (side.ratings.get(nom.id) ?? 6)) nom = p
+    side.onPitch.delete(nom.id)
+    side.short += 1
+    pushLine(state, ctx, min, 'SUB', side, 'comm.uncontestedShort', { team: teamShort(state, side.teamId), player: nom.name }, nom.id)
+  }
+}
+
 function aiAutoSubs(state: GameState, ctx: LiveCtx, side: SideCtx, min: number) {
   // the user manages his own bench (except forced injury subs elsewhere)
   if (side.isUser) return
@@ -2396,6 +2482,15 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
       if (p && !p.injury && s.lineup.slice(0, 15).includes(id)) s.onPitch.add(id)
     }
   }
+  // a sin-binned front-rower is back and the cover with him: the scrum is a
+  // contest again, the levelling his card ordered taken back off both packs
+  if (ctx.uncontested && ctx.uncontestedUndo && liveFrontRowCover(state, home) && liveFrontRowCover(state, away)) {
+    layer(home, 'scrum', 1 / ctx.uncontestedUndo.home)
+    layer(away, 'scrum', 1 / ctx.uncontestedUndo.away)
+    ctx.uncontested = false
+    ctx.uncontestedUndo = null
+    pushLine(state, ctx, min, 'SUB', null, 'comm.contestedAgain')
+  }
 
   // The bench has been on since the hour mark: the closing quarter takes the
   // shape the 23 was picked for (F4).
@@ -2441,8 +2536,8 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
   const eF = (s: SideCtx) => 0.78 + 0.22 * (sideEnergy(s) / 100)
 
   for (const [side, opp, adv] of [[home, away, ctx.hfa], [away, home, 1]] as [SideCtx, SideCtx, number][]) {
-    const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent)
-    const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent)
+    const numF = 1 - 0.07 * ([...side.yellowUntil.values()].filter(u => u > min).length + side.sent + side.short)
+    const oppNumF = 1 - 0.07 * ([...opp.yellowUntil.values()].filter(u => u > min).length + opp.sent + opp.short)
     const att = (side.units.attack * 0.55 + side.units.breakdown * 0.25 + side.units.scrum * 0.1 + side.units.lineout * 0.1) * eF(side)
     const def = (opp.units.defence * 0.7 + opp.units.breakdown * 0.3) * eF(opp)
     // THE BOOT IS TERRITORY (audit 16D). units.kicking was written by the dial,
@@ -2497,6 +2592,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           opp.ratings.set(p.id, (opp.ratings.get(p.id) ?? 6) - 0.7)
           pushLine(state, ctx, min, 'YC', opp, 'comm.ycRepeated',
             { n: opp.consPens, team: teamShort(state, opp.teamId), player: p.name }, p.id)
+          checkFrontRow(state, ctx, opp, min, p, 'yellow')
         }
       }
       // A standing instruction answers the call for you (F3). Being asked every
@@ -2561,6 +2657,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           p.bans += 2 + Math.floor(rng() * 2)
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 2)
           pushLine(state, ctx, min, 'RC', side, 'comm.redCard', { player: p.name }, p.id)
+          checkFrontRow(state, ctx, side, min, p, 'red')
         } else {
           side.yellowUntil.set(p.id, min + 10)
           // he SITS the ten minutes: off the pitch pools, so a man in the bin
@@ -2571,6 +2668,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           p.stats.yc += 1
           side.ratings.set(p.id, (side.ratings.get(p.id) ?? 6) - 0.7)
           pushLine(state, ctx, min, 'YC', side, 'comm.yellowCard', { player: p.name }, p.id)
+          checkFrontRow(state, ctx, side, min, p, 'yellow')
         }
       }
     }
@@ -2630,6 +2728,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             // and if the bench had nobody who plays there, the side pays (F4)
             forcedSwitchCost(state, ctx, side, p.id, sub, min)
           }
+          checkFrontRow(state, ctx, side, min, p, 'injury')
         }
       }
     }
@@ -2654,6 +2753,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
           const bSlot = side.lineup.indexOf(subId)
           if (slot >= 0 && slot < 15) { side.lineup[slot] = subId; if (bSlot >= 0) side.lineup[bSlot] = pid }
           pushLine(state, ctx, min, 'INJ', side, 'comm.hiaFailed', { player: p.name, sub: sub.name }, pid)
+          checkFrontRow(state, ctx, side, min, p, 'injury')
         } else {
           side.onPitch.delete(subId)
           side.onPitch.add(pid)

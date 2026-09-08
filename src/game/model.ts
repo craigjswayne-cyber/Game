@@ -1281,6 +1281,10 @@ export interface GameState {
    *  a save from before the choice existed, which reads as a man, exactly
    *  what every line in the game assumed until then. See i18n.ts `_w`. */
   mgrGender?: import('./gender').Gender
+  /** the analyst's coin, drawn once per career: the strings about the
+   *  analyst say "he" or "she" by it (i18n.ts `_w`). Absent on an older
+   *  save until the migration draws it. */
+  analystGender?: import('./gender').Gender
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /**

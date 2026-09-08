@@ -13,6 +13,7 @@ import { assistantFixtureThisWeek, userMatchThisWeek, weekRng } from '../../game
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t } from '../../game/i18n'
+import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
@@ -995,7 +996,7 @@ function Preview({ fxId }: { fxId: number }) {
                   if (out === 'completed') rewardAnalyst()
                   else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
                 })
-              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length })}</button>
+              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}</button>
             )}
             {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
             {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
