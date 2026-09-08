@@ -4,7 +4,7 @@
   "name": "Italiano",
   "locale": "it-IT",
   "ordByDigit": "",
-  "ordRule": ""
+  "ordRule": "first"
  },
  "menu": {
   "continue": "▸ Continua - {manager}, {club}",
