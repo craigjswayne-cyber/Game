@@ -1285,6 +1285,9 @@ export interface GameState {
    *  analyst say "he" or "she" by it (i18n.ts `_w`). Absent on an older
    *  save until the migration draws it. */
   analystGender?: import('./gender').Gender
+  /** A club has offered the job and is waiting on an answer (jobs.ts). One at
+   *  a time, cleared by either answer, and it goes stale with its vacancy. */
+  jobOffer?: { clubId: string; week: number } | null
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /**

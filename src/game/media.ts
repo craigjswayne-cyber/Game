@@ -4,7 +4,7 @@ import {absWeek, SEASON_WEEKS, fmtMoney, formGuide, logDecision, poss } from './
 import { loanOut } from './loans'
 import { offersFor, signOffer, type SlotId } from './commercial'
 import { derbyName, isDerby } from './rivalries'
-import { nationNameIn, nationVars } from './nations'
+import { nationByCode, nationNameIn, nationVars } from './nations'
 import { applyResponse } from './authority'
 import { clamp, pick, type Rng } from './rng'
 import { tIn, type Vars } from './i18n'
@@ -868,6 +868,50 @@ export function generatePress(state: GameState, rng: Rng) {
         ], rng)
     }
     if (reaction && state.press.filter(p => !p.answered).length < 2) state.press.push(reaction)
+  }
+
+  // 11. THE HOMESICK SIGNING (v1.5.4). Two of the three questions the press
+  // room asks about a struggling player were about the rugby - his form and
+  // his place in the side (owner: "can I check if there are also negative
+  // questions on players like home sickness, struggling with the pressure").
+  // This one is not. A man who moved countries in the summer, is not settled
+  // and is not happy is a real thing in a squad, and how a manager answers it
+  // in public is heard by the whole dressing room.
+  {
+    const now = absWeek(state.season, state.week)
+    const p = squad.find(q => q.nat !== club.country && !!nationByCode(q.nat) && !q.acad && !q.onLoan
+      && q.joinedAt != null && now - q.joinedAt <= 26 && now - q.joinedAt >= 4
+      && q.morale <= 5 && !askedThisSeason('press.homeQ', q.id))
+    if (p) {
+      // the country is a KEY, not a name: the story is saved and re-rendered,
+      // so "he misses Fiji" has to be able to come back in French
+      candidates.push(mk(state,
+        { k: voice(41 + p.id, ['press.homeQ1', 'press.homeQ2', 'press.homeQ3']), v: { player: p.name, home_k: `nation.${p.nat}` } },
+        p.id, [
+          opt({ morale: 1.4, board: -0.2, lk: 'press.homeSettle', rk: 'press.homeSettleR', rv: { player: p.name } }),
+          opt({ morale: -1.1, board: 0.4, unsettle: true, lk: 'press.homeProfessional', rk: 'press.homeProfessionalR', rv: { player: p.name } }),
+          opt({ morale: 0.9, board: 0.1, lk: 'press.homeSenior', rk: 'press.homeSeniorR', rv: { player: p.name } }),
+          opt({ morale: 0, board: -0.1, lk: 'press.noComment', rk: 'press.noCommentR' }),
+        ], rng))
+    }
+  }
+
+  // 12. THE WEIGHT OF IT (v1.5.4) - a young player who has played a lot and
+  // has stopped playing well. The press call it pressure; the manager decides
+  // in public whether it is the boy's to carry or his own.
+  {
+    const p = squad.find(q => q.age <= 22 && !q.acad && q.stats.apps >= 6 && q.form <= 5
+      && q.morale <= 6 && !askedThisSeason('press.weightQ', q.id))
+    if (p) {
+      candidates.push(mk(state,
+        { k: voice(42 + p.id, ['press.weightQ1', 'press.weightQ2', 'press.weightQ3']), v: { player: p.name, age: p.age } },
+        p.id, [
+          opt({ morale: 1.5, board: -0.3, lk: 'press.weightMine', rk: 'press.weightMineR', rv: { player: p.name } }),
+          opt({ morale: -1.2, board: 0.5, lk: 'press.weightSignedUp', rk: 'press.weightSignedUpR', rv: { player: p.name } }),
+          opt({ morale: 0.8, board: -0.1, lk: 'press.weightRest', rk: 'press.weightRestR', rv: { player: p.name } }),
+          opt({ morale: 0, board: -0.1, lk: 'press.noComment', rk: 'press.noCommentR' }),
+        ], rng))
+    }
   }
 
   if (candidates.length && rng() < 0.75) {

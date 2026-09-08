@@ -48,7 +48,7 @@ export const W_CELT: RawClub[] = [
     id: W + 'wolfhounds', name: 'Belfast RFC', short: 'Belfast',
     city: 'Belfast', country: 'IRE',
     stadium: 'Ravenhill', capacity: 4000,
-    colors: ['#0a2240', '#c8102e'],
+    colors: ['#ffffff', '#c8102e'],
     rep: 74, budget: 155000,
     // 30 players, all real
     players: [
@@ -88,7 +88,7 @@ export const W_CELT: RawClub[] = [
     id: W + 'clovers', name: 'Dublin RFC', short: 'Dublin',
     city: 'Dublin', country: 'IRE',
     stadium: 'Donnybrook Park', capacity: 3500,
-    colors: ['#0a5c36', '#ffffff'],
+    colors: ['#005daa', '#ffffff'],
     rep: 72, budget: 150000,
     // 31 players, all real
     players: [
@@ -129,7 +129,7 @@ export const W_CELT: RawClub[] = [
     id: W + 'edinburgh', name: 'Edinburgh RFC', short: 'Edinburgh',
     city: 'Edinburgh', country: 'SCO',
     stadium: 'Roseburn Park', capacity: 3500,
-    colors: ['#0e0e0e', '#c9a227'],
+    colors: ['#1b2a4a', '#d4622a'],
     rep: 69, budget: 143000,
     // 29 players, all real
     players: [
@@ -168,7 +168,7 @@ export const W_CELT: RawClub[] = [
     id: W + 'gwalia', name: 'South Wales RFC', short: 'S Wales',
     city: 'Ystrad Mynach', country: 'WAL',
     stadium: 'Sporting Centre', capacity: 3000,
-    colors: ['#c8102e', '#0e0e0e'],
+    colors: ['#1b4b9b', '#f5b301'],
     rep: 68, budget: 140000,
     // 29 players, all real
     players: [
@@ -207,7 +207,7 @@ export const W_CELT: RawClub[] = [
     id: W + 'brython', name: 'North Wales RFC', short: 'N Wales',
     city: 'Llanelli', country: 'WAL',
     stadium: 'Stradley Park', capacity: 3000,
-    colors: ['#0e5a3a', '#f5b301'],
+    colors: ['#c8102e', '#0e0e0e'],
     rep: 66, budget: 136000,
     // 33 players, all real
     players: [
@@ -250,7 +250,7 @@ export const W_CELT: RawClub[] = [
     id: W + 'glasgow', name: 'Glasgow RFC', short: 'Glasgow',
     city: 'Glasgow', country: 'SCO',
     stadium: 'Scotsworth Stadium', capacity: 4000,
-    colors: ['#12295c', '#c8102e'],
+    colors: ['#000000', '#59adeb'],
     rep: 64, budget: 132000,
     // 33 players, all real
     players: [

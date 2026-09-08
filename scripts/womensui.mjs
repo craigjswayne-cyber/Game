@@ -47,16 +47,19 @@ try {
   const menMatches = await page.locator('text=New Career').count()
   ok(menMatches === 1,
     `exactly one button on the menu matches text=New Career (${menMatches}) - two would break the other 52 harnesses under Playwright strict mode`)
-  // .new-career-w, not text=Women's Game. Playwright's text= is a
-  // case-insensitive SUBSTRING match, and the hint line under the buttons says
-  // "The men's and women's games are separate careers" - which contains it. The
-  // first run of this probe counted two and failed, which is the selector being
-  // wrong rather than the menu.
-  ok(await page.locator('.new-career-w').count() === 1, 'the women\'s game is one half of the picker on the menu')
-  // v1.5.2: a segmented control, so the two halves are a radio group and the
-  // men's game is the one lit when the screen opens. A career started from a
-  // cold menu is a men's career, which is what the other 52 harnesses assume
-  // when they click New Career without touching this control at all.
+  // v1.5.4: the picker is not on the menu any more. It sat one line under
+  // Continue, which read as a switch on the career already running - the owner
+  // chose the women's game, pressed Continue and arrived back in the men's one.
+  // The title screen offers the door; the wizard asks which game is behind it.
+  ok(await page.locator('.new-career-w').count() === 0,
+    'the title screen does not ask which game - it only offers New Career')
+  await page.click('text=New Career')
+  await page.waitForSelector('.new-career-w')
+  ok(await page.locator('.new-career-w').count() === 1, 'the women\'s game is one half of the picker in the wizard')
+  // A segmented control, so the two halves are a radio group and the men's game
+  // is the one lit when the wizard opens. A career started without touching it
+  // is a men's career, which is what the other 52 harnesses assume when they
+  // click New Career and go straight to the competition list.
   ok(await page.locator('.new-career-m[aria-checked="true"]').count() === 1,
     'the men\'s game is selected when the menu opens')
   ok(await page.locator('.new-career-w[aria-checked="false"]').count() === 1,
@@ -65,19 +68,16 @@ try {
   const otherHalf = await page.locator('.new-career-w').boundingBox()
   ok(Math.abs(half.width - otherHalf.width) <= 1 && Math.abs(half.y - otherHalf.y) <= 1,
     `the two games are the same size, side by side (${Math.round(half.width)}x${Math.round(half.height)} v ${Math.round(otherHalf.width)}x${Math.round(otherHalf.height)})`)
-  // v1.5.3: the button is above the pair, and the pair is the last thing on
-  // that block - the line about separate careers was dropped with it.
-  const goBtn = await page.locator('.new-career-pick > .btn').boundingBox()
-  ok(goBtn.y + goBtn.height <= half.y + 1,
-    `New Career sits above the two games (button ends ${Math.round(goBtn.y + goBtn.height)}px, pair starts ${Math.round(half.y)}px)`)
+  // the men's competition list is what the wizard opens on
+  ok(await page.locator('text=English Premier Division').count() >= 1,
+    'the wizard opens on the men\'s competitions')
 
-  // ---- the wizard, pointed at the women's world ----
+  // ---- and switching the picker switches the world under it ----
   await page.click('.new-career-w')
   ok(await page.locator('.new-career-w[aria-checked="true"]').count() === 1,
     'tapping the women\'s game lights it')
   ok(await page.locator('.new-career-m[aria-checked="false"]').count() === 1,
     'and puts the men\'s game out')
-  await page.click('text=New Career')
   await page.waitForSelector("text=English Women's Premier Division")
 
   ok(await page.locator('.challenge-card').count() === 0,

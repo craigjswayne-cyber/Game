@@ -8,8 +8,6 @@ import { dismiss, dismissed, isAndroidShell } from '../../game/shell'
 
 export default function Menu() {
   const go = useStore(s => s.go)
-  const setNewGender = useStore(s => s.setNewGender)
-  const newGender = useStore(s => s.newGender)
   const setGame = useStore(s => s.setGame)
   const lang = useStore(s => s.lang)
   const supporter = useStore(s => s.supporter)
@@ -56,53 +54,23 @@ export default function Menu() {
             </button>
           )
         })()}
-        {/* WHICH GAME (v1.5, rebuilt in v1.5.2). The owner: "IT SHOULD BE A
-            SELECTION ON THE MAIN PAGE AND YOU CAN ONLY COACH IN MENS TEAM OR A
-            WOMENS TEAM AT ONE TIME." It is asked here rather than inside the
-            wizard because it is not a setting inside a career, it is which
-            career you are starting: a save holds one game and cannot change
-            (src/game/gender.ts), and the club list on the wizard's first
-            screen already has to know the answer.
+        {/* NEW CAREER, and nothing about which game (v1.5.3 asked it here,
+            v1.5.4 does not). The picker sat one line under Continue, which
+            made it look like a switch on the career already running - the
+            owner selected the women's game, pressed Continue and arrived back
+            in the men's one, which is exactly what the layout promised and not
+            what the code does. It cannot do it either: a save holds one game
+            and cannot change (src/game/gender.ts).
 
-            v1.5 asked it as two doors, "New Career" above "Women's Game", on
-            the reasoning that two doors cannot be got wrong. What that shape
-            actually said was that one game is the game and the other is an
-            afterthought hanging off the bottom of it (owner, v1.5.2: "new
-            career is right but womens underneath feels wrong ... how do we
-            incorporate it so its a choice like languages"). So the two games
-            are one segmented control, side by side and the same size as each
-            other, and New Career starts whichever one is lit.
-
-            The button sits ABOVE the pair and the line that said the two are
-            separate careers is gone (owner, v1.5.3). Three things stacked was
-            one thing too many on the screen a player sees most, and the pair
-            reads as the qualifier on the button above it - New Career, of
-            which game - rather than as a second decision to get through.
-
-            The men's button keeps the exact words "New Career". Fifty-two
-            browser harnesses click text=New Career to start a game, and
-            Playwright matches that as a SUBSTRING, so no other element on this
-            screen may contain that phrase - scripts/womensui.ts counts the
-            matches and fails at two. The segments say "Men's Game" and
-            "Women's Game", which is also why the women's segment keeps its
-            .new-career-w class: the harness picks it by class, because
-            text="Women's Game" would match the hint line as well. */}
-        <div className="new-career-pick">
-          <button className={saves.length ? 'btn ghost' : 'btn gold'}
-            style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
-            onClick={() => go('newgame')}>
-            {t('menu.newCareer')}
-          </button>
-          <div className="game-pick" role="radiogroup" aria-label={t('menu.whichGame')}>
-            {(['m', 'w'] as const).map(g => (
-              <button key={g} type="button" role="radio" aria-checked={newGender === g}
-                className={`${g === 'w' ? 'new-career-w' : 'new-career-m'}${newGender === g ? ' sel' : ''}`}
-                onClick={() => setNewGender(g)}>
-                {t(g === 'w' ? 'menu.newCareerWomen' : 'menu.newCareerMen')}
-              </button>
-            ))}
-          </div>
-        </div>
+            So the question moves to the top of the new-career wizard, where it
+            is the first thing that screen asks and the league list underneath
+            answers to it. This screen offers the door; what is behind it is
+            chosen once you are through. */}
+        <button className={saves.length ? 'btn ghost' : 'btn gold'}
+          style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+          onClick={() => go('newgame')}>
+          {t('menu.newCareer')}
+        </button>
         {saves.length > 0 && (
           <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
             onClick={() => setShowLoad(!showLoad)}>

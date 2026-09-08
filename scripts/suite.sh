@@ -93,7 +93,7 @@ if [ "$MODE" != fast ]; then
 # not run what CI runs is not a gate, it is a rehearsal.
 echo "=== build, then the browser ==="
   run build npm run build
-  for n in e2e e2enight resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender matchad ipprobe; do
+  for n in e2e e2enight resilience reloadprobe subsprobe dramaprobe jobsprobe hubprobe tapsize motionprobe drawui portraitqa densityaudit stickyaudit scrollaudit overlapaudit blockprobe pickaudit nightcontrast contrastprobe colouraudit breaker subreach injurygate unemployedprobe stakesprobe devicematrix backlogprobe annualprobe geosweep strangerpath hireprobe bidprobe deskgate textscale langprobe skinui sackui engageui tillface keyscreen storeprobe backupreach replyreach subline testsheet healrefresh sidescroll adsprobe womensui mgrgender joboffer matchad ipprobe; do
     [ -f "scripts/$n.mjs" ] || continue
     run "$n" timeout 1200 node "scripts/$n.mjs"
   done

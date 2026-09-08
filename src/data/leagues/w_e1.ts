@@ -42,7 +42,7 @@ export const W_E1: RawClub[] = [
     id: W + 'toulouse', name: 'RC Toulouse', short: 'Toulouse',
     city: 'Toulouse', country: 'FRA',
     stadium: 'Stade Ernest-Vallon', capacity: 3000,
-    colors: ['#8b1a2b', '#0e0e0e'],
+    colors: ['#c8102e', '#0e0e0e'],
     rep: 84, budget: 260000,
     // 34 players, 32 of them from the workbook
     players: [
@@ -86,7 +86,7 @@ export const W_E1: RawClub[] = [
     id: W + 'bordeaux', name: 'RC Bordeaux', short: 'Bordeaux',
     city: 'Bordeaux', country: 'FRA',
     stadium: 'Stade Sainte-Germaine', capacity: 2500,
-    colors: ['#0a2240', '#c8102e'],
+    colors: ['#6b2231', '#ffffff'],
     rep: 82, budget: 250000,
     // 41 players, 38 of them from the workbook
     players: [
@@ -137,7 +137,7 @@ export const W_E1: RawClub[] = [
     id: W + 'blagnac', name: 'RC Blagnac', short: 'Blagnac',
     city: 'Blagnac', country: 'FRA',
     stadium: 'Stade Ernest-Argelas', capacity: 2000,
-    colors: ['#c8102e', '#ffffff'],
+    colors: ['#c8102e', '#1b4b9b'],
     rep: 79, budget: 235000,
     // 37 players, 24 of them from the workbook
     players: [
@@ -184,7 +184,7 @@ export const W_E1: RawClub[] = [
     id: W + 'romagnat', name: 'RC Romagnat', short: 'Romagnat',
     city: 'Romagnat', country: 'FRA',
     stadium: 'Parc des Sports de Romagnat', capacity: 1500,
-    colors: ['#0a5c36', '#c8102e'],
+    colors: ['#f2e500', '#17255a'],
     rep: 77, budget: 225000,
     // 39 players, 36 of them from the workbook
     players: [
@@ -233,7 +233,7 @@ export const W_E1: RawClub[] = [
     id: W + 'montpellier', name: 'RC Montpellier', short: 'Montpellier',
     city: 'Montpellier', country: 'FRA',
     stadium: 'Stade Sabathier', capacity: 2500,
-    colors: ['#0a2240', '#f5b301'],
+    colors: ['#0a2240', '#ffffff'],
     rep: 75, budget: 215000,
     // 32 players, 27 of them from the workbook
     players: [
@@ -413,7 +413,7 @@ export const W_E1: RawClub[] = [
     id: W + 'bobigny', name: 'RC Bobigny', short: 'Bobigny',
     city: 'Bobigny', country: 'FRA',
     stadium: 'Stade Henri-Vallon', capacity: 2000,
-    colors: ['#f5b301', '#0e0e0e'],
+    colors: ['#c8102e', '#0e0e0e'],
     rep: 67, budget: 175000,
     // 34 players, 28 of them from the workbook
     players: [
