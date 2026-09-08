@@ -53,7 +53,6 @@ try {
   // first run of this probe counted two and failed, which is the selector being
   // wrong rather than the menu.
   ok(await page.locator('.new-career-w').count() === 1, 'the women\'s game is one half of the picker on the menu')
-  ok(await page.locator('.new-career-hint').count() === 1, 'and a line saying the two are separate careers')
   // v1.5.2: a segmented control, so the two halves are a radio group and the
   // men's game is the one lit when the screen opens. A career started from a
   // cold menu is a men's career, which is what the other 52 harnesses assume
@@ -66,6 +65,11 @@ try {
   const otherHalf = await page.locator('.new-career-w').boundingBox()
   ok(Math.abs(half.width - otherHalf.width) <= 1 && Math.abs(half.y - otherHalf.y) <= 1,
     `the two games are the same size, side by side (${Math.round(half.width)}x${Math.round(half.height)} v ${Math.round(otherHalf.width)}x${Math.round(otherHalf.height)})`)
+  // v1.5.3: the button is above the pair, and the pair is the last thing on
+  // that block - the line about separate careers was dropped with it.
+  const goBtn = await page.locator('.new-career-pick > .btn').boundingBox()
+  ok(goBtn.y + goBtn.height <= half.y + 1,
+    `New Career sits above the two games (button ends ${Math.round(goBtn.y + goBtn.height)}px, pair starts ${Math.round(half.y)}px)`)
 
   // ---- the wizard, pointed at the women's world ----
   await page.click('.new-career-w')

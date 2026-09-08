@@ -9,6 +9,14 @@ import { noteScreen } from './game/bugreport'
  *  unstyled app, so scripts/skinprobe.ts checks the two lists agree. */
 export const SKINS = ['default', 'midnight', 'heritage', 'stealth'] as const
 export type Skin = typeof SKINS[number]
+const MGR_GENDER_KEY = 'rm-mgr-gender'
+/** The last pronoun this device chose, and 'm' for a device that has never
+ *  been asked - which is every save from before v1.5.1 and every fresh
+ *  install. */
+function readMgrGender(): Gender {
+  try { return localStorage.getItem(MGR_GENDER_KEY) === 'w' ? 'w' : 'm' } catch { return 'm' }
+}
+
 const SKIN_KEY = 'rm-skin'
 function readSkin(): Skin {
   try {
@@ -153,6 +161,11 @@ interface Store {
    *  type ignoring the OS text-size slider (release audit, Part 2.3). */
   textScale: number
   setTextScale: (v: number) => void
+  /** He or she, in every line the press, the fans and the board write about the
+   *  manager. Kept in the save (GameState.mgrGender) because it belongs to the
+   *  person rather than the phone, and mirrored to the device so the next
+   *  career starts as the last one ended rather than back at 'he'. */
+  setMgrGender: (g: Gender) => void
   /** The interface language. It lives in the store as well as in i18n.ts for
    *  one reason: t() is a plain function, so nothing would re-render when the
    *  dictionary underneath it changed. App reads this field, so switching
@@ -459,6 +472,25 @@ export const useStore = create<Store>((set, get) => ({
     try { localStorage.setItem(SKIN_KEY, skin) } catch { /* private mode */ }
     set({ skin })
   },
+
+  // WRITTEN IN TWO PLACES, deliberately. The save owns it - it is a fact about
+  // the manager and it travels with the career to another phone - and the
+  // device remembers the last answer so a second career does not open as a man
+  // again. i18n.ts is told directly rather than through the subscription above,
+  // which only fires when the game OBJECT changes; this mutates the one that is
+  // already open.
+  setMgrGender: (g: Gender) => {
+    try { localStorage.setItem(MGR_GENDER_KEY, g) } catch { /* private mode */ }
+    const game = get().game
+    if (game) game.mgrGender = g
+    setManagerGender(g)
+    set(st => ({ tick: st.tick + 1 }))
+    // WRITTEN THROUGH, not left for the next week to carry. A career resumed
+    // after a reload comes off the last save on disk, so a pronoun changed on
+    // a Tuesday and never followed by an autosave came back as it was
+    // (scripts/mgrgender.mjs, section 4).
+    if (game) void get().persist()
+  },
   toggleNight: () => set(s => {
     const night = !s.night
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
@@ -567,7 +599,7 @@ export const useStore = create<Store>((set, get) => ({
 
   start: (clubId, managerName, challengeId, origin, difficulty, gender, mgrGender) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender, mgrGender ?? 'm')
+    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender, mgrGender ?? readMgrGender())
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets

@@ -70,10 +70,14 @@ export default function Menu() {
             afterthought hanging off the bottom of it (owner, v1.5.2: "new
             career is right but womens underneath feels wrong ... how do we
             incorporate it so its a choice like languages"). So the two games
-            are one segmented control now, side by side and the same size as
-            each other, and the single New Career button under it starts
-            whichever one is lit. The hint line stays: the control says which
-            game, and the line says why the choice is worth caring about.
+            are one segmented control, side by side and the same size as each
+            other, and New Career starts whichever one is lit.
+
+            The button sits ABOVE the pair and the line that said the two are
+            separate careers is gone (owner, v1.5.3). Three things stacked was
+            one thing too many on the screen a player sees most, and the pair
+            reads as the qualifier on the button above it - New Career, of
+            which game - rather than as a second decision to get through.
 
             The men's button keeps the exact words "New Career". Fifty-two
             browser harnesses click text=New Career to start a game, and
@@ -84,6 +88,11 @@ export default function Menu() {
             .new-career-w class: the harness picks it by class, because
             text="Women's Game" would match the hint line as well. */}
         <div className="new-career-pick">
+          <button className={saves.length ? 'btn ghost' : 'btn gold'}
+            style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
+            onClick={() => go('newgame')}>
+            {t('menu.newCareer')}
+          </button>
           <div className="game-pick" role="radiogroup" aria-label={t('menu.whichGame')}>
             {(['m', 'w'] as const).map(g => (
               <button key={g} type="button" role="radio" aria-checked={newGender === g}
@@ -93,12 +102,6 @@ export default function Menu() {
               </button>
             ))}
           </div>
-          <button className={saves.length ? 'btn ghost' : 'btn gold'}
-            style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
-            onClick={() => go('newgame')}>
-            {t('menu.newCareer')}
-          </button>
-          <div className="meta new-career-hint">{t('menu.newCareerHint')}</div>
         </div>
         {saves.length > 0 && (
           <button className="btn ghost" style={{ color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 }}
