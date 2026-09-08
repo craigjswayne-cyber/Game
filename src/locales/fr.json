@@ -5353,6 +5353,7 @@
     "uncontestedNow": "{team} perdent {player} en première ligne sans personne de formé pour le remplacer : l'arbitre ordonne des MÊLÉES SIMULÉES à partir de maintenant. Plus de poussée, plus de pénalités en mêlée.",
     "uncontestedShort": "Et cela coûte un second joueur à {team} : selon la règle 3.20, une équipe qui passe en mêlée simulée à cause d'un carton doit sortir un homme de plus. {player} quitte le terrain.",
     "contestedAgain": "Le joueur de première ligne est revenu de la prison et la couverture avec lui : l'arbitre rétablit les MÊLÉES DISPUTÉES.",
+    "frontRowReturns": "Le banc est vide, alors {player} revient : un joueur de première ligne remplacé peut reprendre la place d'un blessé, et la mêlée reste disputée.",
     "oldBoy_f": "Un visage familier sur le terrain : {player} affronte {oldClub}, où elle a disputé {n} matchs. {tail_k}",
     "try11_f": "ESSAI ! Un raffut monumental de {player} et elle termine tranquillement !",
     "flavGrass4_f": "Énorme clameur depuis le balcon du club-house quand {player} aplatit son vis-à-vis. Quelqu'un sonne la cloche.",
@@ -5367,7 +5368,8 @@
     "doesAerial_f": "laisse une joueuse en couverture et garde le triangle arrière à la maison.",
     "doesPhysical_f": "refuse la bagarre, garde quinze joueuses sur le terrain et laisse l'arbitre faire le ménage.",
     "uncontestedShort_f": "Et cela coûte une seconde joueuse à {team} : selon la règle 3.20, une équipe qui passe en mêlée simulée à cause d'un carton doit sortir une femme de plus. {player} quitte le terrain.",
-    "contestedAgain_f": "La joueuse de première ligne est revenu de la prison et la couverture avec lui : l'arbitre rétablit les MÊLÉES DISPUTÉES."
+    "contestedAgain_f": "La joueuse de première ligne est revenu de la prison et la couverture avec lui : l'arbitre rétablit les MÊLÉES DISPUTÉES.",
+    "frontRowReturns_f": "Le banc est vide, alors {player} revient : une joueuse de première ligne remplacé peut reprendre la place d'un blessée, et la mêlée reste disputée."
   },
   "injury": {
     "ribs": "côtes contusionnées",

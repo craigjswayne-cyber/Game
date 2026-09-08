@@ -5243,6 +5243,7 @@
   "uncontestedNow": "{team} pierden a {player} en la primera línea sin nadie formado para cubrirle: el árbitro ordena MELÉS SIMULADAS a partir de ahora. Sin empuje, sin golpes de castigo en la melé.",
   "uncontestedShort": "Y le cuesta a {team} un segundo jugador: según la regla 3.20, un equipo que pasa a melé simulada por una tarjeta debe retirar a otro hombre. {player} se marcha.",
   "contestedAgain": "El primera línea vuelve del sin bin y con él la cobertura: el árbitro restablece las MELÉS DISPUTADAS.",
+  "frontRowReturns": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionado, y la melé sigue siendo disputada.",
   "try19_f": "¡ENSAYO! ¡{player} amaga y arranca: nadie a cinco metros de ella!",
   "tryWet2_f": "¡ENSAYO! ¡El balón, resbaladizo como el jabón, se escapa y {player} se abalanza sobre él!",
   "flav22_f": "{player} lanza un pase saltándose a tres mujeres: eso es visión de juego.",
@@ -5250,7 +5251,8 @@
   "tryAtTestimonial_f": "Tenía que ser ella. {player} marca en su propio partido homenaje y la grada se niega a sentarse. Escribe tú el guion: no lo mejorarías.",
   "penKickableAsk_f": "GOLPE DE CASTIGO para {team}, a distancia de palos. La capitana mira a la banda esperando la decisión...",
   "doesAerial_f": "dejan una mujer atrás y mantienen a las tres de atrás en casa.",
-  "uncontestedShort_f": "Y le cuesta a {team} una segunda jugadora: según la regla 3.20, un equipo que pasa a melé simulada por una tarjeta debe retirar a otro mujer. {player} se marcha."
+  "uncontestedShort_f": "Y le cuesta a {team} una segunda jugadora: según la regla 3.20, un equipo que pasa a melé simulada por una tarjeta debe retirar a otro mujer. {player} se marcha.",
+  "frontRowReturns_f": "El banquillo está agotado, así que {player} vuelve a entrar: un primera línea sustituido puede regresar por un lesionada, y la melé sigue siendo disputada."
  },
  "injury": {
   "ribs": "contusión en las costillas",
