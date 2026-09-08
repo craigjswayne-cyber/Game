@@ -147,6 +147,57 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.4, Play version code 25
+
+A round of fixes and two additions. The Job Centre stops moving your desk on a
+click; the press room learns two questions it did not have; the title screen
+stops asking a question that belonged to the wizard; and the badge finally
+wears the skin.
+
+```
+<en-GB>
+Apply for a job and you now get an offer to accept or turn down, rather than
+finding yourself behind a new desk on the click. The press ask about a player
+who is homesick, and about a young one carrying too much. Which game you are
+starting is asked in the new-career wizard now, not on the title screen. Kit
+colours corrected across the women's game.
+</en-GB>
+<fr-FR>
+Postulez pour un poste et vous recevez désormais une offre, à accepter ou à
+refuser, au lieu de vous retrouver derrière un nouveau bureau d'un simple clic.
+La presse interroge sur un joueur qui a le mal du pays, et sur un jeune qui en
+porte trop. Le choix du jeu se fait maintenant dans l'assistant de nouvelle
+carrière. Couleurs des maillots corrigées côté féminin.
+</fr-FR>
+<es-ES>
+Solicita un puesto y ahora recibes una oferta que puedes aceptar o rechazar, en
+lugar de aparecer tras un despacho nuevo de un solo clic. La prensa pregunta por
+un jugador con morriña y por un joven que carga demasiado. Qué juego empiezas se
+elige ya en el asistente de nueva carrera. Colores de equipación corregidos en el
+juego femenino.
+</es-ES>
+<it-IT>
+Candidati a un posto e ora ricevi un'offerta da accettare o rifiutare, invece di
+ritrovarti dietro una nuova scrivania con un clic. La stampa chiede di un
+giocatore che ha nostalgia di casa e di un ragazzo che porta troppo peso. Quale
+gioco stai iniziando si sceglie ora nella procedura di nuova carriera. Colori
+delle maglie corretti nel gioco femminile.
+</it-IT>
+<ja-JP>
+求職に応募すると、その場で新しい机に座らされるのではなく、受けるか断るかを選べる
+オファーが届くようになりました。記者はホームシックの選手や、重圧を背負いすぎた
+若手についても尋ねてきます。どちらの大会で始めるかは新規キャリアの作成画面で
+選びます。女子の各クラブのジャージの色も修正しました。
+</ja-JP>
+<af>
+Doen aansoek om 'n pos en jy kry nou 'n aanbod om te vat of van die hand te wys,
+in plaas daarvan om met een klik agter 'n nuwe lessenaar te sit. Die pers vra oor
+'n speler wat huissiek is, en oor 'n jong een wat te veel dra. Watter speletjie
+jy begin, word nou in die nuwe-loopbaan-skerm gevra. Truikleure reggestel in die
+vrouespel.
+</af>
+```
+
 ### What's new (500 max) - v1.5.3, Play version code 24
 
 Two screens, tidied. The title screen asks one question with New Career above

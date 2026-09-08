@@ -82,6 +82,17 @@ export function refreshVacancies(state: GameState, rng: Rng) {
   // expire stale vacancies (filled behind the scenes by a new name)
   state.vacancies = state.vacancies.filter(v => {
     const keep = state.week - v.week < 5 && state.clubs[v.clubId]
+    // an offer outlives nothing: the club that made it has appointed somebody
+    if (!keep && state.jobOffer?.clubId === v.clubId) {
+      const c = state.clubs[v.clubId]
+      state.jobOffer = null
+      if (c) state.news.push({
+        id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+        subject: tIn('en', 'news.jobWithdrawnSubj', { short: c.short }),
+        body: tIn('en', 'news.jobWithdrawn', { club: c.name }),
+        k: 'news.jobWithdrawn', v: { club: c.name },
+      })
+    }
     if (!keep && state.clubs[v.clubId] && v.clubId !== state.userClubId) {
       state.clubs[v.clubId].coachGender = staffGender(rng, genderOf(state))
       state.clubs[v.clubId].coach = regenName(rng, state.clubs[v.clubId].country, undefined, state.clubs[v.clubId].coachGender)
@@ -184,6 +195,61 @@ export function applyForJob(state: GameState, clubId: string): string {
   v.applied = true
   const rng = mulberry32(state.seed ^ (state.week * 31 + club.rep))
   if (rng() < jobChance(state, clubId)) {
+    // AN OFFER, NOT AN APPOINTMENT (owner, v1.5.4: "if you apply for the job
+    // you should have the option to accept or reject the offer rather than
+    // just instantly going into it"). Applying used to move the manager's desk
+    // mid-click: a speculative application at a club he was curious about
+    // ended his career at the one he was building. The offer sits on the Job
+    // Centre until it is answered, and it goes stale with its vacancy.
+    state.jobOffer = { clubId, week: state.week }
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
+      subject: tIn('en', 'news.jobOfferedSubj', { short: club.short }),
+      body: tIn('en', 'news.jobOffered', { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) }),
+      k: 'news.jobOffered', v: { club: club.name, stadium: club.stadium, budget: fmtMoney(club.budget) },
+    })
+    return t('world.jbOffered', { club: club.name })
+  }
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `${club.short} go in a different direction`,
+    body: `${club.name} thank you for your interest but have decided to pursue other candidates.`,
+    k: 'news.jobRejected', v: { short: club.short, club: club.name },
+  })
+  return t('world.jbPassed', { club: club.short })
+}
+
+/**
+ * ---- THE OFFER ON THE TABLE ----
+ *
+ * Yes moves the desk; no leaves it where it is and the club appoints somebody
+ * else, because an offer a manager can hold open forever is not a decision.
+ * Either answer clears it.
+ */
+export function answerJobOffer(state: GameState, accept: boolean): string {
+  const offer = state.jobOffer
+  if (!offer) return t('world.jbNoOffer')
+  const club = state.clubs[offer.clubId]
+  const still = state.vacancies.some(x => x.clubId === offer.clubId)
+  state.jobOffer = null
+  if (!club || !still) return t('world.jbTooLate')
+  if (!accept) {
+    state.vacancies = state.vacancies.filter(x => x.clubId !== offer.clubId)
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+      subject: tIn('en', 'news.jobDeclinedSubj', { short: club.short }),
+      body: tIn('en', 'news.jobDeclined', { club: club.name, manager: state.managerName }),
+      k: 'news.jobDeclined', v: { club: club.name, manager: state.managerName },
+    })
+    return t('world.jbDeclined', { club: club.short })
+  }
+  return takeJob(state, offer.clubId)
+}
+
+/** The appointment itself: everything that changes when a manager walks in. */
+function takeJob(state: GameState, clubId: string): string {
+  const club = state.clubs[clubId]
+  {
     // hired!
     const oldClubId = state.userClubId
     // any bid still waiting on the old desk is not this manager's to answer
@@ -264,13 +330,6 @@ export function applyForJob(state: GameState, clubId: string): string {
     })
     return t('world.jbHired', { club: club.name })
   }
-  state.news.push({
-    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
-    subject: `${club.short} go in a different direction`,
-    body: `${club.name} thank you for your interest but have decided to pursue other candidates.`,
-    k: 'news.jobRejected', v: { short: club.short, club: club.name },
-  })
-  return t('world.jbPassed', { club: club.short })
 }
 
 /** Walk away from the current job. */

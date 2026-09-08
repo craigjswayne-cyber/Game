@@ -78,7 +78,7 @@ import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
 } from './game/matchEngine'
-import { applyForJob, resignJob } from './game/jobs'
+import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
 import { natSquadHold } from './game/country'
@@ -286,6 +286,8 @@ interface Store {
   resumeLiveMatch: () => Promise<boolean>
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
+  /** Yes or no to the club that has offered you the job. */
+  answerJobOffer: (accept: boolean) => string
   /** Say no to a vacancy so it stops asking. Pass false to undo it. */
   passJob: (clubId: string, passed?: boolean) => void
   resign: () => void
@@ -1388,6 +1390,15 @@ export const useStore = create<Store>((set, get) => ({
     const amt = townCollection(g)
     if (amt != null) { set(s => ({ tick: s.tick + 1 })); void get().persist() }
     return amt
+  },
+
+  answerJobOffer: (accept) => {
+    const g = get().game
+    if (!g) return 'No game.'
+    const msg = answerJobOffer(g, accept)
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+    return msg
   },
 
   applyJob: (clubId) => {

@@ -30,7 +30,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'blues', name: 'Auckland RFC', short: 'Auckland',
     city: 'Auckland', country: 'NZL',
     stadium: 'Edendale Park', capacity: 6000,
-    colors: ['#00539f', '#ffffff'],
+    colors: ['#0b1864', '#ffffff'],
     rep: 86, budget: 340000,
     // 33 players; 9 carry a stated position and union
     players: [
@@ -73,7 +73,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'chiefs', name: 'Waikato RFC', short: 'Waikato',
     city: 'Hamilton', country: 'NZL',
     stadium: 'Waikato Stadium', capacity: 5000,
-    colors: ['#f5b301', '#0e0e0e'],
+    colors: ['#0e0e0e', '#c8102e'],
     rep: 83, budget: 320000,
     // 33 players; 7 carry a stated position and union
     players: [
@@ -160,7 +160,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'hurricanes', name: 'Wellington RFC', short: 'Wellington',
     city: 'Wellington', country: 'NZL',
     stadium: 'Wellington Stadium', capacity: 6000,
-    colors: ['#f8d000', '#0a0a3c'],
+    colors: ['#f8d000', '#0e0e0e'],
     rep: 79, budget: 295000,
     // 33 players; 5 carry a stated position and union
     players: [
@@ -203,7 +203,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'drua', name: 'Fiji RFC', short: 'Fiji',
     city: 'Suva', country: 'FIJ',
     stadium: 'Laucala Bay Stadium', capacity: 4000,
-    colors: ['#0a2f7a', '#ffffff'],
+    colors: ['#0a14be', '#ffffff'],
     rep: 78, budget: 250000,
     // 33 players; 6 carry a stated position and union
     players: [
@@ -246,7 +246,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'force', name: 'Perth RFC', short: 'Perth',
     city: 'Perth', country: 'AUS',
     stadium: 'Perth Oval', capacity: 5000,
-    colors: ['#0a2240', '#3aa9e0'],
+    colors: ['#054992', '#ffc72c'],
     rep: 74, budget: 240000,
     // 30 players; 6 carry a stated position and union
     players: [
@@ -286,7 +286,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'waratahs', name: 'New South Wales RFC', short: 'NSW',
     city: 'Sydney', country: 'AUS',
     stadium: 'Moore Park Stadium', capacity: 6000,
-    colors: ['#c8102e', '#ffffff'],
+    colors: ['#0085ca', '#0e1d3d'],
     rep: 72, budget: 235000,
     // 30 players; 8 carry a stated position and union
     players: [
@@ -326,7 +326,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'reds', name: 'Queensland RFC', short: 'Queensland',
     city: 'Brisbane', country: 'AUS',
     stadium: 'Langton Park', capacity: 5000,
-    colors: ['#8b1a2b', '#ffffff'],
+    colors: ['#98022c', '#ffffff'],
     rep: 68, budget: 215000,
     // 25 players; 1 carry a stated position and union
     players: [
@@ -361,7 +361,7 @@ export const W_PAC: RawClub[] = [
     id: W + 'brumbies', name: 'Canberra RFC', short: 'Canberra',
     city: 'Canberra', country: 'AUS',
     stadium: 'Bruce Stadium', capacity: 5000,
-    colors: ['#f5b301', '#0a2240'],
+    colors: ['#002b54', '#ffc222'],
     rep: 65, budget: 200000,
     // 28 players; 1 carry a stated position and union
     players: [

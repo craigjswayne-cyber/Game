@@ -31,6 +31,7 @@ export default function NewGame() {
   const start = useStore(s => s.start)
   const back = useStore(s => s.back)
   const newGender = useStore(s => s.newGender)
+  const setNewGender = useStore(s => s.setNewGender)
   const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
   const [step, setStep] = useState(0)
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
@@ -174,7 +175,32 @@ export default function NewGame() {
           <>
             {/* compact rows, not tiles: every league and challenge on one
                 screen with no scrolling (8-batch feedback) */}
-            <div className="wizard-hint">{t('wizard.pickCompetition')}</div>
+            {/* WHICH GAME, asked here from v1.5.4 and on the title screen
+                before that. It is the first thing the wizard asks because
+                everything under it answers to it: the competition list, the
+                clubs, the challenges and the world the save is stamped with.
+                Changing it clears whatever was picked underneath, because a
+                men's league index means nothing in the women's list.
+
+                The two halves keep the .new-career-m / .new-career-w class
+                names they had on the menu - scripts/womensui.mjs finds the
+                women's game by class rather than by text, because the text
+                would also match other lines on the screen. */}
+            <div className="wizard-hint">{t('wizard.whichGame')}</div>
+            <div className="game-pick" style={{ margin: '0 14px' }} role="radiogroup" aria-label={t('wizard.whichGame')}>
+              {(['m', 'w'] as const).map(g => (
+                <button key={g} type="button" role="radio" aria-checked={newGender === g}
+                  className={`${g === 'w' ? 'new-career-w' : 'new-career-m'}${newGender === g ? ' sel' : ''}`}
+                  onClick={() => {
+                    if (newGender === g) return
+                    setNewGender(g)
+                    setLeagueIdx(null); setClubId(null); setChallengeId(null)
+                  }}>
+                  {t(g === 'w' ? 'wizard.gameWomen' : 'wizard.gameMen')}
+                </button>
+              ))}
+            </div>
+            <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.pickCompetition')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6 }}>
               {defs.map((d, i) => (
                 <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}

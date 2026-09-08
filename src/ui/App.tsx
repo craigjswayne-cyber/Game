@@ -4,6 +4,7 @@ import { celebrationHeadline, celebrationSub, seasonLabel } from '../game/model'
 import { t } from '../game/i18n'
 import { dayLine, deskBlock, deskGates, inInbox, nextStep, pressBlock } from '../game/days'
 import { natSquadHold } from '../game/country'
+import { TOUR_WEEKS } from '../game/schedule'
 import { islesCoach } from '../game/isles'
 import { tillOpen } from '../game/monetise'
 import { IcoClipboard, IcoGlobe, IcoHome, IcoInbox, IcoPress, IcoTrophy } from './icons'
@@ -317,7 +318,14 @@ export default function App() {
   // version"). Not a purchase and not a setting: for the weeks a manager is
   // coaching the Isles XV the app wears red, over whatever he chose and whether
   // or not he has Pro, and takes it off when the tour is done.
+  // ...and only for the weeks the tour actually runs (owner, v1.5.4: "the
+  // Lions one should ONLY be used when the Lions take place"). islesCoach is
+  // true from the moment the letter is answered, which is the autumn before a
+  // summer tour: a manager who said yes in week 6 then played out his club
+  // season in red. The tour is TOUR_WEEKS, and the week before it for the
+  // squad announcement, so that is what wears the paint.
   const onTour = !!game && islesCoach(game)
+    && game.week >= TOUR_WEEKS[0] - 1 && game.week <= TOUR_WEEKS[TOUR_WEEKS.length - 1]
   const worn = onTour ? 'tour' : skin
   const appClass = `app${night ? ' night' : ''}${worn !== 'default' ? ` skin-${worn}` : ''}`
 
