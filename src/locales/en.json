@@ -156,7 +156,7 @@
   "confirm": "Confirm",
   "startCareer": "▸ Start Career",
   "difficulty": "Difficulty",
-  "difficultyBlurb": "Chosen once, for this career. It changes your club only: the money you start with, how patient the board is, and how often your players break down."
+  "difficultyBlurb": "Three things change, and nothing else: how much money you start with, how quickly the board loses patience, and how often your own players get hurt. Every other club plays the same game whichever you pick."
  },
  "common": {
   "a": "A",
@@ -3467,7 +3467,14 @@
   "unofficialLabel": "Unofficial, and independent",
   "storeLabel": "The Store",
   "storeBody": "Optional extras - none of it plays the matches.",
-  "storeBtn": "Open the Store"
+  "storeBtn": "Open the Store",
+  "bridgeLabel": "In this build",
+  "bridgeBody": "The store and the adverts come from the app around the game, not from the game itself. If either says not connected, this build of the app was assembled without that piece and nothing in here can switch it on.",
+  "bridgeShell": "Shell: {platform}",
+  "bridgeStore": "Store",
+  "bridgeAds": "Adverts",
+  "bridgeOn": "connected",
+  "bridgeOff": "not connected"
  },
  "news": {
   "maternitySubj": "{player} is expecting",
@@ -6674,11 +6681,11 @@
  },
  "difficulty": {
   "normal": "Normal",
-  "normalDesc": "The game as it comes.",
+  "normalDesc": "Full budget. The board gives you time. Injuries as they come.",
   "hard": "Hard",
-  "hardDesc": "Less money in the bank, a board that expects more, a physio room that is busier.",
+  "hardDesc": "A third less money. The board wants results sooner. A few more injuries.",
   "legend": "Legend",
-  "legendDesc": "Half the money, a board with no patience, and injuries that come in pairs."
+  "legendDesc": "Half the money. The board runs out of patience fast. Injuries all season."
  },
  "isles": {
   "title": "The Isles XV",

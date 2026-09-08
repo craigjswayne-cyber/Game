@@ -47,6 +47,8 @@ export interface Challenge {
   clubId: string
   title: string
   desc: string
+  /** which game it belongs to; absent means the men's, where they all began */
+  gender?: Gender
 }
 
 export const CHALLENGES: Challenge[] = [
@@ -67,6 +69,14 @@ export const CHALLENGES: Challenge[] = [
     desc: 'challenges.piratesDesc',
   },
 ]
+
+/** The four for one game or the other. Every challenge is pinned to a club, and
+ *  a men's club does not exist in the women's world: rendering the men's four
+ *  in a women's wizard drew four crestless cards that took the manager to a
+ *  league index of -1. The wizard asks this rather than the list. */
+export function challengesFor(gender: Gender): Challenge[] {
+  return CHALLENGES.filter(c => (c.gender ?? 'm') === gender)
+}
 
 export interface LeagueDef {
   id: string

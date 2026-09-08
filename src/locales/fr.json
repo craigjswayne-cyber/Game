@@ -159,7 +159,7 @@
     "confirm": "Confirmer",
     "startCareer": "▸ Démarrer la carrière",
     "difficulty": "Difficulté",
-    "difficultyBlurb": "Choisie une fois, pour cette carrière. Elle ne touche que votre club : l’argent de départ, la patience du conseil, et la fréquence des blessures.",
+    "difficultyBlurb": "Trois choses changent, et rien d'autre : l'argent dont vous disposez au départ, la vitesse à laquelle le conseil perd patience, et la fréquence des blessures dans VOTRE effectif. Tous les autres clubs jouent le même jeu quel que soit votre choix.",
     "starPlayer_f": "Joueuse vedette"
   },
   "common": {
@@ -3438,11 +3438,18 @@
     "sub": "ce que c'est, et ce qu'il prend : rien",
     "thanks": "Fait par amour du jeu. Merci d'y jouer.",
     "title": "À propos et mentions légales",
-    "unofficialBody": "PHASE: Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus.",
+    "unofficialBody": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'un joueur, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueurs sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus.",
     "unofficialLabel": "Non officiel et indépendant",
     "storeLabel": "La Boutique",
     "storeBody": "Des extras facultatifs - rien de tout cela ne joue les matchs.",
     "storeBtn": "Ouvrir la Boutique",
+    "bridgeLabel": "Dans cette version",
+    "bridgeBody": "La boutique et les publicités viennent de l'application qui entoure le jeu, pas du jeu lui-même. Si l'une des deux indique non connectée, cette version de l'application a été assemblée sans cette pièce et rien ici ne peut l'activer.",
+    "bridgeShell": "Enveloppe : {platform}",
+    "bridgeStore": "Boutique",
+    "bridgeAds": "Publicités",
+    "bridgeOn": "connectée",
+    "bridgeOff": "non connectée",
     "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus."
   },
   "news": {
@@ -6519,11 +6526,11 @@
   },
   "difficulty": {
     "normal": "Normal",
-    "normalDesc": "Le jeu tel qu’il est.",
+    "normalDesc": "Budget complet. Le conseil vous laisse du temps. Les blessures comme elles viennent.",
     "hard": "Difficile",
-    "hardDesc": "Moins d’argent en banque, un conseil plus exigeant, une infirmerie plus remplie.",
+    "hardDesc": "Un tiers d'argent en moins. Le conseil veut des résultats plus vite. Un peu plus de blessures.",
     "legend": "Légende",
-    "legendDesc": "La moitié de l’argent, un conseil sans patience, et des blessures qui vont par deux."
+    "legendDesc": "Moitié moins d'argent. Le conseil perd patience très vite. Des blessures toute la saison."
   },
   "isles": {
     "title": "Le XV des Îles",

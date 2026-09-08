@@ -45,6 +45,15 @@ export function isAndroidShell(): boolean {
   return !!cap && cap.isNativePlatform?.() === true && cap.getPlatform?.() === 'android'
 }
 
+/** Which native shell this is, or null in a browser. The store and the adverts
+ *  both come from the shell rather than from the game, so a page that wants to
+ *  say why one of them is silent has to know it is inside one. */
+export function nativePlatform(): string | null {
+  const cap = (globalThis as unknown as WithCap).Capacitor
+  if (!cap || cap.isNativePlatform?.() !== true) return null
+  return cap.getPlatform?.() ?? 'native'
+}
+
 /** A one-time card the player can put away. */
 export function dismissed(key: string): boolean {
   try { return localStorage.getItem(key) === '1' } catch { return false }
