@@ -2840,19 +2840,6 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
   box-shadow: inset 0 0 0 1.5px var(--row-selected-border);
 }
 .game-pick button:active { transform: translateY(1px); }
-/* The hint is one line, and it has to STAY one line in all five languages.
-   langprobe holds the language picker above the fold on a 360x640 phone, and
-   adding the second button plus a two-line hint put it at 651px of 640 - the
-   menu is the one screen with no scroll to give. At 11.5px the longest of the
-   five ("Juegos separados, carreras separadas.") fits 348px with room to
-   spare; a longer sentence here wraps and costs the fold again. */
-.new-career-hint {
-  font-size: 11.5px;
-  line-height: 1.3;
-  text-align: center;
-  padding: 0 4px;
-  margin-top: 0;
-}
 .ct-line {
   font-size: 15.5px; letter-spacing: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

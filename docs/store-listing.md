@@ -147,6 +147,49 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.3, Play version code 24
+
+Two screens, tidied. The title screen asks one question with New Career above
+the pair, and the line about separate careers is gone. He or she moves out of
+the new-career wizard, where it was asked once and could never be changed
+again, and becomes a Settings row that can be changed on any Tuesday.
+
+```
+<en-GB>
+Whether the press call you he or she is a Settings row now, so it can be
+changed whenever you like rather than once, at the start, forever. The title
+screen is tidier too: New Career, then the men's or women's game under it.
+</en-GB>
+<fr-FR>
+Le fait que la presse parle de vous au masculin ou au féminin est désormais un
+réglage, modifiable quand vous voulez plutôt qu'une seule fois au début. L'écran
+d'accueil est plus net aussi : Nouvelle carrière, puis le jeu masculin ou
+féminin en dessous.
+</fr-FR>
+<es-ES>
+Que la prensa hable de ti en masculino o en femenino es ahora un ajuste, que
+puedes cambiar cuando quieras en vez de una sola vez al empezar. La pantalla de
+inicio también está más limpia: Nueva carrera y debajo el juego masculino o el
+femenino.
+</es-ES>
+<it-IT>
+Che la stampa parli di te al maschile o al femminile è ora un'impostazione,
+modificabile quando vuoi invece che una volta sola all'inizio. Anche la
+schermata iniziale è più pulita: Nuova carriera e sotto il gioco maschile o
+femminile.
+</it-IT>
+<ja-JP>
+メディアでの呼ばれ方は設定の項目になりました。最初に一度きりではなく、いつでも変更
+できます。タイトル画面も整理し、「新しいキャリア」の下に男子の大会と女子の大会が
+並びます。
+</ja-JP>
+<af>
+Of die pers jou hy of sy noem, is nou 'n instelling wat jy enige tyd kan
+verander, in plaas van een keer aan die begin. Die titelskerm is ook netjieser:
+Nuwe loopbaan, en daaronder mansrugby of vrouerugby.
+</af>
+```
+
 ### What's new (500 max) - v1.5.2, Play version code 23
 
 One screen, one change. v1.5 put the women's game on the title screen as a

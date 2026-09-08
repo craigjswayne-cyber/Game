@@ -476,7 +476,7 @@ section('4.1 five languages on the screens that matter')
     ['tactics.presetTightDesc', {}], ['tacticsScreen.rolesNote', {}], ['tacticsScreen.kickerNote', {}],
     ['store.heal', {}], ['store.pinnacle', {}], ['store.estate', {}], ['till.watchPhysio', {}],
     ['comm.try1', { player: 'X' }], ['comm.penKickableAsk', { team: 'T' }], ['comm.halfTime', { home: 'A', away: 'B', hs: 10, ascore: 7 }],
-    ['press.hotQ1', { player: 'X', pos_k: 'pos.FH' }], ['press.coldQ1', { player: 'X' }], ['wizard.pronoun', {}], ['wizard.pronounBlurb', {}],
+    ['press.hotQ1', { player: 'X', pos_k: 'pos.FH' }], ['press.coldQ1', { player: 'X' }], ['settings.pronoun', {}], ['settings.pronounLine', {}],
     ['news.capFine', { club: 'C', fine: '£3', cap: '£1m', over: '£1' }],
   ]
   for (const l of LANGS) {
