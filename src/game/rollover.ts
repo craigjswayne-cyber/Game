@@ -12,7 +12,7 @@ import { assignPersonality } from './attributes'
 import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
-import { genderOf } from './gender'
+import { genderOf, W } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
 import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
@@ -2033,6 +2033,17 @@ function challengeCheck(state: GameState) {
     : ch === 'redbull' ? uid === 'newcastle' && state.history.some(h => h.season === prev && h.compId === 'prem' && h.champion === uid)
     : ch === 'dynasty' ? uid === 'munster' && wonEver('urc') && wonEver('cc')
     : ch === 'pirates' ? uid === 'pirates' && state.clubs[uid]?.leagueId === 'prem'
+    // the women's four. Same four shapes: win it, win it twice, climb out of
+    // the bottom, win the division below.
+    : ch === 'threepeat' ? uid === W + 'bristol' && wonEver(W + 'pwr')
+    : ch === 'ealing' ? uid === W + 'trailfinders'
+      && state.history.filter(h => h.champion === uid && h.compId === W + 'pwr').length >= 2
+    // no relegation to survive, so the licence is the thing at risk and a
+    // play-off place is what answers it. The annal carries the finish; the
+    // club name keeps a later job at another club from settling this one.
+    : ch === 'licence' ? uid === W + 'sale'
+      && (state.annals ?? []).some(a => a.clubName === state.clubs[uid]?.name && a.league.pos <= 4)
+    : ch === 'grudge' ? uid === W + 'lichfield' && wonEver(W + 'champ')
     : false
   if (!done) return
   state.challenge = undefined

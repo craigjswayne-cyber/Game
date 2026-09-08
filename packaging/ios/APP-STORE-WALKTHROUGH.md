@@ -143,11 +143,13 @@ App-Bridging-Header.h
 Products.storekit
 ```
 
-**If all four are there, skip to step 8.** They are on disk either way —
-`scaffold.sh` put them there — but Xcode does not always notice a file it did
-not add itself.
+**They should all be there, and step 8 should already be done too.**
+`scaffold.sh` now runs `install-billing.mjs`, which adds these files to the App
+target and sets the bridging-header build setting inside `project.pbxproj`
+before Xcode ever opens the project. Steps 7 and 8 are therefore a check, not a
+chore.
 
-If any is missing:
+If any file is missing (an old shell, or a project scaffolded by hand):
 
 1. Right-click the inner **App** folder → **Show in Finder**. A Finder window
    opens on the right folder.
@@ -162,10 +164,11 @@ If any is missing:
    the offer gives you the exact error the shipped header exists to prevent.
    Step 8 points at ours by hand.
 
-Expect the navigator to list only `AppDelegate`, `SceneDelegate`,
-`capacitor.config.json`, `Main`, `Assets`, `LaunchScreen`, `Info`, `config` and
-`public` before you do this. That is normal: Capacitor 8's template uses classic
-project references, so a file on disk is not a file in the project.
+Capacitor 8's template uses classic project references, so a file on disk is
+not a file in the project. Before `install-billing.mjs` existed, the navigator
+listed only `AppDelegate`, `SceneDelegate`, `capacitor.config.json`, `Main`,
+`Assets`, `LaunchScreen`, `Info`, `config` and `public`, and the four files
+below had to be dragged in by hand every single time.
 
 > **Where this bites.** A file sitting in the folder is not the same as a file
 > in the app. If `PhaseBilling.m` is not in the target, the purchase bridge is
@@ -173,6 +176,10 @@ project references, so a file on disk is not a file in the project.
 > anywhere to tell you why.
 
 ### 8. Point Xcode at the bridging header
+
+**Check first: `install-billing.mjs` has almost certainly already done this.**
+Follow steps 1 to 5 below; if the row already reads `App/App-Bridging-Header.h`,
+there is nothing to type and you can go to step 9.
 
 1. Click the blue **App** at the very top of the left panel.
 2. In the middle, under **TARGETS**, click **App**.

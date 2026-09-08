@@ -120,13 +120,19 @@
       // slot asks again. An advert that did not arrive should leave no trace.
       ad.addListener('bannerAdFailedToLoad', function (e) {
         log('banner FAILED to load:', JSON.stringify(e), '- taking the empty strip down')
+        // The commonest shape of "ads aren't showing" is not a broken bridge,
+        // it is a bridge that asked and was told no - a brand-new ad unit with
+        // no fill yet, an unlinked AdMob app, a region with no demand. Kept
+        // here so About & legal can show it on the phone, because that console
+        // line above needs a Mac to read.
+        why = 'the advert network refused the banner: ' + (e && (e.message || e.code || JSON.stringify(e)) || 'no reason given')
         setInset(0)
         enqueue(async function () {
           try { await ad.removeBanner() } catch (e2) {}
           created = null; visible = false
         })
       })
-      ad.addListener('bannerAdLoaded', function () { log('banner loaded') })
+      ad.addListener('bannerAdLoaded', function () { log('banner loaded'); why = 'ready' })
     } catch (e) { log('could not listen for banner events:', e && (e.message || e.code) || e) }
     return ad
   }

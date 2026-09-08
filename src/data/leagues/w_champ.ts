@@ -22,6 +22,15 @@
  * the men's map's treatment of London Scottish and becomes London Hibernians.
  * Trojans are Eastleigh and Old Albanian Saints are St Albans, because neither
  * Trojans nor Albanian is a place.
+ *
+ * KIT COLOURS. Every club in here used to carry the same #1e5aa8/#ffffff, which
+ * made the division one colour and every fixture a clash. Seventeen now carry
+ * their real club's traditional playing colours. Only Bath and London Irish
+ * publish a hex; the rest are a rendering of a named colour, and the sources
+ * are in docs/womens-kits.md. Thurrock, Novocastrians and Kenilworth are still
+ * on the old placeholder because no source reachable from here states their
+ * colours, and a wrong colour worn confidently is worse than an obvious
+ * placeholder. Those three are the ones to fix the moment somebody sees a shirt.
  */
 import type { RawClub } from '../types'
 import { W } from '../../game/gender'
@@ -31,7 +40,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'bathw', name: 'Bath RFC', short: 'Bath',
     city: 'Bath', country: 'ENG',
     stadium: 'Recreational Sports Centre', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#005baa', '#000000'],
     rep: 66, budget: 62000,
     // 30 players, 7 real
     players: [
@@ -71,7 +80,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'richmondw', name: 'Richmond RFC', short: 'Richmond',
     city: 'London', country: 'ENG',
     stadium: 'The Athletic Ground', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#cfb53b', '#c8102e'],
     rep: 65, budget: 60000,
     // 30 players, 6 real
     players: [
@@ -111,7 +120,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'londonirish', name: 'London Hibernians RFC', short: 'Hibernians',
     city: 'London', country: 'ENG',
     stadium: 'Hazelwood Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#006238', '#ffffff'],
     rep: 63, budget: 57000,
     // 30 players, 6 real
     players: [
@@ -151,7 +160,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'nbristol', name: 'North Bristol RFC', short: 'N Bristol',
     city: 'Bristol', country: 'ENG',
     stadium: 'Failand Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#1051a5', '#ce2029'],
     rep: 62, budget: 55000,
     // 30 players, 5 real
     players: [
@@ -191,7 +200,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'exeteruni', name: 'Exeter University RFC', short: 'Exeter Uni',
     city: 'Exeter', country: 'ENG',
     stadium: 'Topsham Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#00693c', '#ffffff'],
     rep: 61, budget: 53000,
     // 30 players, 3 real
     players: [
@@ -231,7 +240,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'oldalbanian', name: 'St Albans RFC', short: 'St Albans',
     city: 'St Albans', country: 'ENG',
     stadium: 'Woollam Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#7a1f2b', '#d4a017'],
     rep: 60, budget: 51000,
     // 30 players, 5 real
     players: [
@@ -271,7 +280,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'beckenham', name: 'Beckenham RFC', short: 'Beckenham',
     city: 'Beckenham', country: 'ENG',
     stadium: 'Balmoral Avenue', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#1b4f9c', '#e8b417'],
     rep: 58, budget: 49000,
     // 30 players, 4 real
     players: [
@@ -311,7 +320,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'trojans', name: 'Eastleigh RFC', short: 'Eastleigh',
     city: 'Eastleigh', country: 'ENG',
     stadium: 'Stoneham Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#0c1f45', '#c8102e'],
     rep: 57, budget: 47000,
     // 30 players, 5 real
     players: [
@@ -351,7 +360,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'ivybridge', name: 'Ivybridge RFC', short: 'Ivybridge',
     city: 'Ivybridge', country: 'ENG',
     stadium: 'Cross-in-Hand', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#14452f', '#ffffff'],
     rep: 56, budget: 45000,
     // 30 players, 5 real
     players: [
@@ -431,7 +440,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'lichfield', name: 'Lichfield RFC', short: 'Lichfield',
     city: 'Lichfield', country: 'ENG',
     stadium: 'Cooke Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#2f6b57', '#c8102e'],
     rep: 65, budget: 60000,
     // 30 players, 4 real
     players: [
@@ -471,7 +480,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'loughtown', name: 'Loughborough Town RFC', short: 'Loughb Town',
     city: 'Loughborough', country: 'ENG',
     stadium: 'Derby Road', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#4b2e83', '#8e9295'],
     rep: 63, budget: 57000,
     // 30 players, 5 real
     players: [
@@ -511,7 +520,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'harrogate', name: 'Harrogate RFC', short: 'Harrogate',
     city: 'Harrogate', country: 'ENG',
     stadium: 'Claro Road', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#0e0e0e', '#c8102e'],
     rep: 61, budget: 53000,
     // 30 players, 5 real
     players: [
@@ -631,7 +640,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'cheltenham', name: 'Cheltenham RFC', short: 'Cheltenham',
     city: 'Cheltenham', country: 'ENG',
     stadium: 'Prince of Wales Ground', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#c8102e', '#000000'],
     rep: 58, budget: 48000,
     // 30 players, 4 real
     players: [
@@ -671,7 +680,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'blaydon', name: 'Blaydon RFC', short: 'Blaydon',
     city: 'Blaydon', country: 'ENG',
     stadium: 'Crow Trees', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#c41e24', '#ffffff'],
     rep: 56, budget: 45000,
     // 30 players, 5 real
     players: [
@@ -711,7 +720,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'buryse', name: 'Bury St Edmunds RFC', short: 'Bury St Ed',
     city: 'Bury St Edmunds', country: 'ENG',
     stadium: 'Haberden Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#14663b', '#e0a80d'],
     rep: 55, budget: 44000,
     // 30 players, 5 real
     players: [
@@ -751,7 +760,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'barnsley', name: 'Barnsley RFC', short: 'Barnsley',
     city: 'Barnsley', country: 'ENG',
     stadium: 'Shaw Lane', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#172447', '#ffffff'],
     rep: 53, budget: 42000,
     // 30 players, 5 real
     players: [
@@ -791,7 +800,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'buckingham', name: 'Buckingham RFC', short: 'Buckingham',
     city: 'Buckingham', country: 'ENG',
     stadium: 'Floyd Field', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#007a33', '#ffffff'],
     rep: 52, budget: 41000,
     // 30 players, 5 real
     players: [

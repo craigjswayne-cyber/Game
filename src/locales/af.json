@@ -2207,7 +2207,15 @@
   "dynasty": "Breek die dinastie",
   "dynastyDesc": "Leinster vee elke trofee in Ierland op. Beëindig hulle heerskappy vanaf Thormond Park - wen die UPC en die Kontinentale Beker.",
   "pirates": "Die Cornwall-droom",
-  "piratesDesc": "Van Penzance tot die Premier-afdeling: neem Cornwall RFC op 'n skoenveterbegroting uit die Championship en sit die graafskap uiteindelik in die hoogste liga."
+  "piratesDesc": "Van Penzance tot die Premier-afdeling: neem Cornwall RFC op 'n skoenveterbegroting uit die Championship en sit die graafskap uiteindelik in die hoogste liga.",
+  "threepeat": "Stop die drieslag",
+  "threepeatDesc": "Gloucester het die laaste drie titels gevat. Bristol kom by die eindstryde uit en verloor hulle. Wen die Premier-afdeling en breek die reeks.",
+  "ealing": "Die Ealing-projek",
+  "ealingDesc": "Ealing het 'n plek in die Premier-afdeling, geld en 'n span wat haastig gekoop is, gekry. Hulle het nog niks gewen nie. Wen die liga twee keer.",
+  "licence": "Hou die lisensie",
+  "licenceDesc": "Sale het laaste geëindig in die Premier-afdeling. Niemand degradeer hier nie, so die lisensie word op resultate beoordeel. Eindig in die top vier en die plek is veilig.",
+  "grudge": "Die Lichfield-wrok",
+  "grudgeDesc": "Lichfield is oorgeslaan toe die hoogste liga gekies is, en daar is geen bevordering uit die tweede vlak nie. Wen die Championship en maak hulle onmoontlik om te ignoreer."
  },
  "profile": {
   "badgePlatinum": "Platinum-kenteken",
@@ -3478,7 +3486,8 @@
   "bridgeStore": "Winkel",
   "bridgeAds": "Advertensies",
   "bridgeOn": "gekoppel",
-  "bridgeOff": "nie gekoppel nie"
+  "bridgeOff": "nie gekoppel nie",
+  "bridgeAdsWhy": "Advertensies sê"
  },
  "news": {
   "maternitySubj": "{player} verwag",
