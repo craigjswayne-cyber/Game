@@ -52,11 +52,28 @@ try {
   // "The men's and women's games are separate careers" - which contains it. The
   // first run of this probe counted two and failed, which is the selector being
   // wrong rather than the menu.
-  ok(await page.locator('.new-career-w').count() === 1, 'the women\'s game has its own door on the menu')
+  ok(await page.locator('.new-career-w').count() === 1, 'the women\'s game is one half of the picker on the menu')
   ok(await page.locator('.new-career-hint').count() === 1, 'and a line saying the two are separate careers')
+  // v1.5.2: a segmented control, so the two halves are a radio group and the
+  // men's game is the one lit when the screen opens. A career started from a
+  // cold menu is a men's career, which is what the other 52 harnesses assume
+  // when they click New Career without touching this control at all.
+  ok(await page.locator('.new-career-m[aria-checked="true"]').count() === 1,
+    'the men\'s game is selected when the menu opens')
+  ok(await page.locator('.new-career-w[aria-checked="false"]').count() === 1,
+    'and the women\'s game is not')
+  const half = await page.locator('.new-career-m').boundingBox()
+  const otherHalf = await page.locator('.new-career-w').boundingBox()
+  ok(Math.abs(half.width - otherHalf.width) <= 1 && Math.abs(half.y - otherHalf.y) <= 1,
+    `the two games are the same size, side by side (${Math.round(half.width)}x${Math.round(half.height)} v ${Math.round(otherHalf.width)}x${Math.round(otherHalf.height)})`)
 
   // ---- the wizard, pointed at the women's world ----
   await page.click('.new-career-w')
+  ok(await page.locator('.new-career-w[aria-checked="true"]').count() === 1,
+    'tapping the women\'s game lights it')
+  ok(await page.locator('.new-career-m[aria-checked="false"]').count() === 1,
+    'and puts the men\'s game out')
+  await page.click('text=New Career')
   await page.waitForSelector("text=English Women's Premier Division")
 
   ok(await page.locator('.challenge-card').count() === 0,
