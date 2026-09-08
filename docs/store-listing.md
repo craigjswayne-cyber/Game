@@ -147,6 +147,59 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.6, Play version code 27
+
+The women's game catches up: its own challenges, and a division that stops
+wearing one colour.
+
+```
+<en-GB>
+The women's game has its own four challenges now, pinned to real clubs with real
+history behind them, offered in the wizard exactly as the men's are. The English
+Championship no longer plays every fixture in the same blue: seventeen of the
+twenty clubs wear their real colours. Difficulty is explained in plain words.
+And About & legal tells you whether the shop and the adverts actually reached
+your phone.
+</en-GB>
+<fr-FR>
+Le jeu féminin a désormais ses quatre défis, adossés à des clubs réels et à leur
+histoire, proposés dans l'assistant comme ceux du jeu masculin. Le Championship
+anglais ne dispute plus tous ses matches en bleu : dix-sept des vingt clubs
+portent leurs vraies couleurs. La difficulté est expliquée en mots simples. Et
+« À propos » vous dit si la boutique et les publicités sont bien arrivées sur
+votre téléphone.
+</fr-FR>
+<es-ES>
+El juego femenino ya tiene sus cuatro retos, anclados a clubes reales y a lo que
+de verdad les pasó, y aparecen en el asistente igual que los masculinos. El
+Championship inglés deja de jugarlo todo del mismo azul: diecisiete de los
+veinte clubes visten sus colores reales. La dificultad se explica con palabras
+sencillas. Y «Acerca de» te dice si la tienda y los anuncios han llegado a tu
+teléfono.
+</es-ES>
+<it-IT>
+Il gioco femminile ha ora le sue quattro sfide, legate a club veri e alla loro
+storia, e compaiono nella procedura guidata come quelle maschili. Il
+Championship inglese non gioca più tutto nello stesso blu: diciassette dei venti
+club vestono i colori veri. La difficoltà è spiegata con parole semplici. E
+«Informazioni» dice se negozio e pubblicità sono arrivati sul telefono.
+</it-IT>
+<ja-JP>
+女子ゲームにも4つのチャレンジが加わりました。実在のクラブとその歴史に基づくもので、男子と
+同じようにウィザードに表示されます。イングランド・チャンピオンシップは全20クラブが同じ青
+一色ではなくなり、17クラブが本来のカラーをまといます。難易度の説明は平易な言葉に書き直し
+ました。「アプリについて」では、ショップと広告が端末に届いているかを確認できます。
+</ja-JP>
+<af>
+Die vrouespel het nou sy eie vier uitdagings, gegrond op werklike klubs en
+werklike geskiedenis, en hulle verskyn in die assistent net soos die mans s'n.
+Die Engelse Championship speel nie meer elke wedstryd in dieselfde blou nie:
+sewentien van die twintig klubs dra hul regte kleure. Moeilikheidsgraad word in
+eenvoudige woorde verduidelik. En 'Aangaande' sê nou of die winkel en die
+advertensies jou foon gehaal het.
+</af>
+```
+
 ### What's new (500 max) - v1.5.5, Play version code 26
 
 Two things reported from real matches on a phone.

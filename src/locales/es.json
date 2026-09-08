@@ -2123,7 +2123,15 @@
   "dynasty": "Rompe la dinastía",
   "dynastyDesc": "Leinster arrasa con todos los trofeos de Irlanda. Desde Thormond Park, acaba con su reinado: gana la UPC y la Continental Cup.",
   "pirates": "El sueño de Cornualles",
-  "piratesDesc": "De Penzance a la Premier Division: saca a Cornwall RFC del Championship con cuatro perras y pon por fin al condado en la élite."
+  "piratesDesc": "De Penzance a la Premier Division: saca a Cornwall RFC del Championship con cuatro perras y pon por fin al condado en la élite.",
+  "threepeat": "Rompe el triplete",
+  "threepeatDesc": "Gloucester se ha llevado los tres últimos títulos. Bristol llega a las finales y las pierde. Gana la Premier Division y acaba con la racha.",
+  "ealing": "El proyecto Ealing",
+  "ealingDesc": "A Ealing le dieron una plaza en la Premier Division, un presupuesto y una plantilla comprada a toda prisa. Todavía no ha ganado nada. Gana la liga dos veces.",
+  "licence": "Conserva la licencia",
+  "licenceDesc": "Sale terminó último de la Premier Division. Aquí nadie desciende: la licencia se juzga por los resultados. Termina entre los cuatro primeros y la plaza está a salvo.",
+  "grudge": "La espina de Lichfield",
+  "grudgeDesc": "A Lichfield lo dejaron fuera cuando se eligió la élite y no hay ascenso desde la segunda categoría. Gana el Championship y hazlos imposibles de ignorar."
  },
  "profile": {
   "badgePlatinum": "Insignia de platino",
@@ -3417,7 +3425,8 @@
   "bridgeAds": "Anuncios",
   "bridgeOn": "conectada",
   "bridgeOff": "no conectada",
-  "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
+  "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial.",
+  "bridgeAdsWhy": "Los anuncios dicen"
  },
  "news": {
   "maternitySubj": "{player} está embarazada",

@@ -741,6 +741,24 @@ export function billingBridgePresent(): boolean { return !!bridge() }
 /** The same question for the adverts. */
 export function adBridgePresent(): boolean { return !!adBridge() }
 
+/** What the advert bridge says about itself, for the About screen.
+ *
+ *  A present bridge that shows nothing is a different fault from an absent
+ *  one, and on a phone there is no console to tell them apart - which is how
+ *  "ads aren't showing" arrives with nothing attached to it. ads-bridge.js has
+ *  always kept a one-line reason in __state().why ('ready', a consent refusal,
+ *  a banner that got no fill); this is the only thing in the game that reads
+ *  it, and it reads it defensively, because __state is a debugging courtesy
+ *  the contract above does not require. */
+export function adBridgeWhy(): string | null {
+  const a = adBridge() as (AdBridge & { __state?: () => { why?: unknown } }) | null
+  if (!a || typeof a.__state !== 'function') return null
+  try {
+    const why = a.__state().why
+    return typeof why === 'string' && why ? why : null
+  } catch { return null }
+}
+
 export function adsAllowed(place: string): boolean {
   return !hasSupporter() && !!adBridge() && (AD_PLACES as readonly string[]).includes(place)
 }

@@ -2149,7 +2149,15 @@
     "dynasty": "Briser la dynastie",
     "dynastyDesc": "Le Leinster rafle tous les trophées d'Irlande. Depuis Thormond Park, mettez fin à son règne - gagnez l'UPC et la Coupe continentale.",
     "pirates": "Le rêve des Cornouailles",
-    "piratesDesc": "De Penzance à la Premier Division : sortez Cornwall RFC du Championship avec trois francs six sous et mettez enfin le comté dans l'élite."
+    "piratesDesc": "De Penzance à la Premier Division : sortez Cornwall RFC du Championship avec trois francs six sous et mettez enfin le comté dans l'élite.",
+    "threepeat": "Briser le triplé",
+    "threepeatDesc": "Gloucester a raflé les trois derniers titres. Bristol atteint les finales et les perd. Gagnez la Premier Division et mettez fin à la série.",
+    "ealing": "Le projet Ealing",
+    "ealingDesc": "Ealing a reçu une place en Premier Division, un budget et un effectif acheté à la hâte. Le club n'a encore rien gagné. Gagnez le championnat deux fois.",
+    "licence": "Garder la licence",
+    "licenceDesc": "Sale a terminé dernier de la Premier Division. Ici personne ne descend : la licence se juge sur les résultats. Terminez dans les quatre premiers et la place est sauve.",
+    "grudge": "La rancune de Lichfield",
+    "grudgeDesc": "Lichfield a été écarté au moment de choisir l'élite, et il n'y a pas de montée depuis la deuxième division. Gagnez le Championship et rendez le club impossible à ignorer."
   },
   "profile": {
     "badgePlatinum": "Diplôme platine",
@@ -3450,7 +3458,8 @@
     "bridgeAds": "Publicités",
     "bridgeOn": "connectée",
     "bridgeOff": "non connectée",
-    "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus."
+    "unofficialBody_f": "PHASE : Rugby Manager n'est ni affilié, ni approuvé, ni sous licence d'une joueuse, d'un club, d'une ligue ou d'une fédération. Les noms de clubs sont réels ; les compétitions, les stades et les sponsors sont renommés ou inventés. Les noms des joueuses sont réels, utilisés pour identifier des personnes dans une base de données sportive et pour rien d'autre, et aucun écusson, maillot ou logo officiel n'est inclus.",
+    "bridgeAdsWhy": "Les publicités disent"
   },
   "news": {
     "maternitySubj": "{player} attend un enfant",

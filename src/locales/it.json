@@ -2134,7 +2134,15 @@
   "dynasty": "Spezza la Dinastia",
   "dynastyDesc": "Il Leinster fa incetta di ogni trofeo d'Irlanda. Da Thormond Park, poni fine al loro regno: vinci la UPC e la Continental Cup.",
   "pirates": "Il Sogno della Cornovaglia",
-  "piratesDesc": "Da Penzance alla Premier Division: tira fuori il Cornwall RFC dal Championship con due spiccioli e porta finalmente la contea nella massima serie."
+  "piratesDesc": "Da Penzance alla Premier Division: tira fuori il Cornwall RFC dal Championship con due spiccioli e porta finalmente la contea nella massima serie.",
+  "threepeat": "Ferma il tris",
+  "threepeatDesc": "Il Gloucester si è preso gli ultimi tre titoli. Il Bristol arriva in finale e la perde. Vinci la Premier Division e interrompi la serie.",
+  "ealing": "Il progetto Ealing",
+  "ealingDesc": "All'Ealing sono stati dati un posto in Premier Division, un budget e una rosa comprata di fretta. Non ha ancora vinto nulla. Vinci il campionato due volte.",
+  "licence": "Tieniti la licenza",
+  "licenceDesc": "Il Sale ha chiuso ultimo in Premier Division. Qui non retrocede nessuno: la licenza si giudica sui risultati. Chiudi tra le prime quattro e il posto è salvo.",
+  "grudge": "Il rancore di Lichfield",
+  "grudgeDesc": "Il Lichfield fu scartato quando si scelse la massima serie e dalla seconda non si sale. Vinci il Championship e rendilo impossibile da ignorare."
  },
  "profile": {
   "badgePlatinum": "Distintivo Platino",
@@ -3437,7 +3445,8 @@
   "bridgeAds": "Pubblicità",
   "bridgeOn": "collegato",
   "bridgeOff": "non collegato",
-  "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
+  "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale.",
+  "bridgeAdsWhy": "La pubblicità dice"
  },
  "news": {
   "maternitySubj": "{player} è in attesa",

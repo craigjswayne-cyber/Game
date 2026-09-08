@@ -1,7 +1,7 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { DEV_CONTACT } from '../../game/bugreport'
-import { adBridgePresent, billingBridgePresent, tillOpen } from '../../game/monetise'
+import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillOpen } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
 import { t } from '../../game/i18n'
 
@@ -27,6 +27,7 @@ export default function About() {
   const platform = nativePlatform()
   const storeOn = billingBridgePresent()
   const adsOn = adBridgePresent()
+  const adsWhy = adBridgeWhy()
   const go = useStore(s => s.go)
 
   return (
@@ -95,6 +96,14 @@ export default function About() {
               {t(adsOn ? 'about.bridgeOn' : 'about.bridgeOff')}
             </b>
           </div>
+          {/* A bridge that is present and still shows nothing has a reason, and
+              the reason has until now only ever gone to a console nobody on a
+              phone can open. It is the bridge's own English string, so it is
+              not translated: it is a diagnostic to read back to us, not copy
+              for a player. */}
+          {adsOn && adsWhy && adsWhy !== 'ready' && (
+            <div className="meta bridge-line">{t('about.bridgeAdsWhy')}: {adsWhy}</div>
+          )}
         </div>
       )}
 

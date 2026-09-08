@@ -68,6 +68,32 @@ export const CHALLENGES: Challenge[] = [
     id: 'pirates', clubId: 'pirates', title: 'challenges.pirates',
     desc: 'challenges.piratesDesc',
   },
+  // ---- and four for the women's game (v1.5.6) ----
+  //
+  // The same four shapes as the men's, hung on what has actually happened in
+  // the women's club game rather than on invented history: a side that has won
+  // three in a row and a challenger who lost a final to them, a club licensed
+  // into the top flight with money and no trophies, a club that finished last
+  // in a division with nothing to be relegated to, and a club that was second
+  // in the country and then passed over when the top flight picked its members.
+  // The research and what could and could not be verified is in
+  // docs/womens-challenges.md.
+  {
+    id: 'threepeat', clubId: W + 'bristol', gender: 'w',
+    title: 'challenges.threepeat', desc: 'challenges.threepeatDesc',
+  },
+  {
+    id: 'ealing', clubId: W + 'trailfinders', gender: 'w',
+    title: 'challenges.ealing', desc: 'challenges.ealingDesc',
+  },
+  {
+    id: 'licence', clubId: W + 'sale', gender: 'w',
+    title: 'challenges.licence', desc: 'challenges.licenceDesc',
+  },
+  {
+    id: 'grudge', clubId: W + 'lichfield', gender: 'w',
+    title: 'challenges.grudge', desc: 'challenges.grudgeDesc',
+  },
 ]
 
 /** The four for one game or the other. Every challenge is pinned to a club, and

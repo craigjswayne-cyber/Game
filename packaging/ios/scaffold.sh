@@ -96,6 +96,17 @@ else
   exit 1
 fi
 
+# ---- AND INTO THE TARGET, WHICH IS A SEPARATE THING FROM THE FOLDER ----
+#
+# Registering the class in packageClassList is necessary and not sufficient:
+# NSClassFromString only finds a class the target actually compiled, and the
+# copy above put four files in a folder, not in the target. `cap add ios`
+# generates project.pbxproj from Capacitor's template, which has never heard of
+# them. Until this runs, the shop is missing on a shell that looks correct in
+# every other way - the failure this project has paid for more than once.
+echo "==> putting the purchase bridge into the App target"
+node install-billing.mjs
+
 # ---- ADVERTS: the bridge the game speaks to, and the App ID the SDK needs ----
 # The AdMob plugin is an npm package, so cap sync registered it in
 # packageClassList itself (the set above keeps PhaseBilling beside it). The
@@ -194,9 +205,13 @@ echo
 echo "ON A MAC, from this folder:"
 echo "  npx cap open ios"
 echo
-echo "then, in Xcode, four things (README.md section 5 has the detail):"
-echo "  1. drag the four files above into the App target if they are not listed"
-echo "  2. Build Settings > Objective-C Bridging Header = App/App-Bridging-Header.h"
-echo "  3. Signing & Capabilities > + Capability > In-App Purchase"
-echo "  4. Product > Scheme > Edit Scheme > Run > Options >"
+echo "then, in Xcode, three things (README.md section 5 has the detail):"
+echo "  1. Signing & Capabilities > Team, and check the bundle id above"
+echo "  2. Signing & Capabilities > + Capability > In-App Purchase"
+echo "  3. Product > Scheme > Edit Scheme > Run > Options >"
 echo "     StoreKit Configuration = Products.storekit  (to test purchases)"
+echo
+echo "the file drag and the bridging-header setting are NO LONGER manual steps:"
+echo "install-billing.mjs put both into the project above. If the shop is still"
+echo "missing on device, open About & legal in the game - it now says which"
+echo "bridges the shell actually brought."

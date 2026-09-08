@@ -96,22 +96,19 @@ Everything above runs anywhere. Everything below is Xcode, and Xcode is a Mac.
 npx cap open ios
 ```
 
-Four things in Xcode before the first run, in this order:
+**Two of the four steps this section used to list are now done for you.**
+`install-billing.mjs`, which `scaffold.sh` runs after every scaffold, adds
+`PhaseBilling.swift`, `PhaseBilling.m` and `Products.storekit` to the App
+target in `project.pbxproj` and sets the bridging-header build setting. Both
+were manual, both were silent when forgotten, and forgetting either is exactly
+what a shop-less build on a correct-looking shell means. Check Compile Sources
+if you like - the files should already be listed.
 
-1. **The four plugin files must be in the App target.** `scaffold.sh` copies
-   them into `ios/App/App/`; if Xcode's navigator does not list them, drag
-   them in (Capacitor 8's template uses classic project references, not
-   Xcode 16 synchronised folders, so a file on disk is not automatically a
-   file in the target).
-2. **Build Settings → Objective-C Bridging Header → `App/App-Bridging-Header.h`.**
-   `PhaseBilling.m` is Objective-C in a Swift target and imports
-   `<Capacitor/Capacitor.h>`; without the bridging header it fails to compile
-   with "file not found", which reads like a broken dependency and is not one.
-   The Capacitor template does not generate this header - that is why one
-   ships in this folder.
-3. **Signing & Capabilities → + Capability → In-App Purchase.** Without it
+Two things are left in Xcode before the first run, and both need a Mac:
+
+1. **Signing & Capabilities → + Capability → In-App Purchase.** Without it
    StoreKit returns nothing and every product reads unavailable.
-4. **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
+2. **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
    → `Products.storekit`.** This is how you test all ten purchases on the
    simulator without App Store Connect, real money or a review.
 
@@ -141,17 +138,19 @@ it is running on.
 
 | File | Where it goes | What it does |
 |---|---|---|
-| `PhaseBilling.swift` | drag into the **App** target in Xcode | StoreKit 2: products, purchase sheet, entitlements, finishing |
+| `PhaseBilling.swift` | App target, by `install-billing.mjs` | StoreKit 2: products, purchase sheet, entitlements, finishing |
 | `PhaseBilling.m` | beside it, same target | the ObjC macro that makes those four methods visible to the web view |
-| `App-Bridging-Header.h` | beside it, same target | lets the ObjC file above see Capacitor's headers - the template does not ship one |
-| `Products.storekit` | beside it, same target | the ten products, for testing purchases with no App Store Connect |
+| `App-Bridging-Header.h` | beside it, referenced by the build setting | lets the ObjC file above see Capacitor's headers - the template does not ship one |
+| `Products.storekit` | Copy Bundle Resources | the ten products, for testing purchases with no App Store Connect |
 | `src/game/storekit.ts` | already in the web build | dresses the plugin in the contract, and attaches at boot |
 
-Drag the four files into the App target (**Copy items if needed**, target
-membership ticked). Capacitor 8's template uses classic project references, so
-files `scaffold.sh` copied onto disk do NOT appear in the navigator by
-themselves - verified on a real Mac, where the App group listed AppDelegate,
-SceneDelegate and nothing of ours.
+Capacitor 8's template uses classic project references, not Xcode 16
+synchronised folders, so a file `scaffold.sh` copies onto disk is NOT a file in
+the target - verified on a real Mac, where the App group listed AppDelegate,
+SceneDelegate and nothing of ours. That is what `install-billing.mjs` fixes: it
+writes the `PBXBuildFile`, `PBXFileReference`, group and build-phase entries
+into `project.pbxproj` itself, checks the file still balances afterwards, and
+is safe to run again. Doing it by hand still works; you should not have to.
 
 **When Xcode offers to create a bridging header, DECLINE it.** This folder ships
 one, and it is the reason `PhaseBilling.m` compiles: it carries the

@@ -2206,7 +2206,15 @@
   "dynasty": "Break the Dynasty",
   "dynastyDesc": "Leinster hoover up every trophy in Ireland. From Thormond Park, end their reign - win the UPC and the Continental Cup.",
   "pirates": "The Cornwall Dream",
-  "piratesDesc": "Penzance to the Premier Division: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last."
+  "piratesDesc": "Penzance to the Premier Division: take Cornwall RFC out of the Championship on a shoestring and put the county in the top flight at last.",
+  "threepeat": "Stop the Three-Peat",
+  "threepeatDesc": "Gloucester have taken the last three titles. Bristol keep reaching finals and losing them. Win the Premier Division and end the run.",
+  "ealing": "The Ealing Project",
+  "ealingDesc": "Ealing were given a place in the Premier Division, a budget and a squad bought in a hurry. They have won nothing yet. Win the league twice.",
+  "licence": "Keep the Licence",
+  "licenceDesc": "Sale finished bottom of the Premier Division. Nobody is relegated here, so the licence is judged on results alone. Finish in the top four and the place is safe.",
+  "grudge": "The Lichfield Grudge",
+  "grudgeDesc": "Lichfield were passed over when the top flight was picked, and there is no promotion out of the second tier. Win the Championship and make them impossible to ignore."
  },
  "profile": {
   "badgePlatinum": "Platinum Badge",
@@ -3474,7 +3482,8 @@
   "bridgeStore": "Store",
   "bridgeAds": "Adverts",
   "bridgeOn": "connected",
-  "bridgeOff": "not connected"
+  "bridgeOff": "not connected",
+  "bridgeAdsWhy": "Adverts say"
  },
  "news": {
   "maternitySubj": "{player} is expecting",
