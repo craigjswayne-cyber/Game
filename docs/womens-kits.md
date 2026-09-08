@@ -23,10 +23,9 @@ sides, the Pacific sides and the French Elite 1. See the table.
   is right for one of them, so it stays until somebody decides which.
 - The twenty clubs of the English women's Championship used to wear the same
   blue and white, which was the biggest single defect in the data: a division
-  with no visual identity, where every fixture was a colour clash. Seventeen have
-  since been given their real club's colours (section 5). Thurrock, Novocastrians
-  and Kenilworth still wear the placeholder, because no reachable source states
-  their colours and the fix waits for a source rather than for an invention.
+  with no visual identity, where every fixture was a colour clash. All twenty
+  now wear their real club's colours (section 5) — seventeen from research and
+  three from the owner, none invented.
 
 ## 1. Premiership Women's Rugby (England) — 9 clubs
 
@@ -91,12 +90,13 @@ a different answer, that is called out.
 | Bobigny | AC Bobigny 93 Rugby Women | **Red and black** | `#f5b301` / `#0e0e0e` | **WRONG** | `#c8102e` / `#0e0e0e` — yellow is not a Bobigny colour |
 | La Rochelle | Stade Rochelais Women | *Les Jaune et Noir* — yellow and black | `#0e0e0e` / `#f5b301` | **RIGHT** | — |
 
-## 5. English women's Championship tier — SHIPPED, 17 of 20 fixed
+## 5. English women's Championship tier — SHIPPED, all 20 fixed
 
 All twenty clubs used to carry the same `#1e5aa8` / `#ffffff`. That gave the tier no visual
 identity at all: every fixture was a same-colour fixture, so clash detection in the division was
-meaningless. Seventeen now carry the real club's traditional playing colours. Three do not, because
-nothing reachable from here states them.
+meaningless. All twenty now carry the real club's traditional playing colours. Seventeen came out of
+the research below; the last three came from the owner on 8 September, after nothing reachable from
+this environment would name them.
 
 **How the colours were found.** Direct page fetches are blocked by this environment's egress proxy
 (Wikipedia, National League Rugby, every club site, plain `curl`), and Wikipedia club infoboxes draw
@@ -116,26 +116,28 @@ a colour named in words, which is the honest ceiling at this level of the game.
 | Beckenham | Beckenham RFC | Blue and gold (founded 1894 in red/white stripes) | `#1b4f9c` *(approx)* / `#e8b417` *(approx)* | Good on colour |
 | Eastleigh | Trojans RFC, Eastleigh | Navy blue with red trim | `#0c1f45` *(approx)* / `#c8102e` *(approx)* | Medium — World Rugby Museum entry for an 1880s club cap |
 | Ivybridge | Ivybridge RFC | Bottle green; second colour never established | `#14452f` *(approx)* / `#ffffff` **(chosen, not sourced)** | Partial — green evidenced, white is a free choice |
-| Thurrock | Thurrock RFC, Grays | — | still `#1e5aa8` / `#ffffff` | **UNVERIFIED** |
+| Thurrock | Thurrock RFC, Grays | Black and yellow (hoops or panels) | `#0e0e0e` / `#f2a900` *(approx)* | Owner |
 | Lichfield | Lichfield RUFC (Lichfield Ladies) | Myrtle green shirts, red trim, navy shorts | `#2f6b57` *(approx)* / `#c8102e` *(approx)* | Good — Staffs RFU directory plus club colour history |
 | Loughborough Town | Loughborough Students RUFC | Purple, grey change | `#4b2e83` *(approx)* / `#8e9295` *(approx)* | Medium — an earlier pass found a conflicting maroon source |
 | Harrogate | Harrogate RUFC | Black, red and yellow hoops | `#0e0e0e` / `#c8102e` *(approx)* | Good — National League Rugby club-colours listing |
-| Novocastrians | Novocastrians RFC ("Novos"), Benton | — | still `#1e5aa8` / `#ffffff` | **UNVERIFIED** |
-| Kenilworth | Kenilworth RFC | — | still `#1e5aa8` / `#ffffff` | **UNVERIFIED** |
+| Novocastrians | Novocastrians RFC ("Novos"), Benton | Red, white and black horizontal hoops | `#a6192e` *(approx)* / `#ffffff` | Owner |
+| Kenilworth | Kenilworth RFC | Royal blue and gold | `#1f5ecb` *(approx)* / `#f5c518` *(approx)* | Owner |
 | Cheltenham | Cheltenham Tigers RFC, Newlands Park | Red and black | `#c8102e` *(approx)* / `#000000` | Good — O'Neills club-shop colourway codes |
 | Blaydon | Blaydon RFC, Swalwell | Red shirts, white shorts | `#c41e24` *(approx)* / `#ffffff` | Good on colour |
 | Bury St Edmunds | Bury St Edmunds RUFC, The Haberden | Green with gold stripe and trim | `#14663b` *(approx)* / `#e0a80d` *(approx)* | Good — league colours listing, snippet only |
 | Barnsley | Barnsley RUFC, Shaw Lane | Navy; second colour never established | `#172447` *(approx)* / `#ffffff` **(chosen, not sourced)** | Partial — navy evidenced from the club's Samurai range |
 | Buckingham | Buckingham RUFC ("the Swans") | Green and white | `#007a33` *(approx)* / `#ffffff` | Good — O'Neills shop colourway `grn-wht` |
 
-### The three still on the placeholder
+### The three the research could not reach
 
-Thurrock, Novocastrians and Kenilworth keep `#1e5aa8` / `#ffffff` on purpose. Searched and found
-nothing that states a colour: Wikipedia (kit rendered as images), each club's own site and RFU
-club page, the county unions, PlaySport, and the clubs' kit shops — Victor Trophies and Fenton
-Sports for Thurrock, Canterbury for Novocastrians, Akuma for Kenilworth. Product listings exist but
-never name a colourway. **A wrong colour worn confidently is worse than an obvious placeholder**, so
-these three wait for somebody who has seen a shirt.
+Thurrock, Novocastrians and Kenilworth held out against everything available here: Wikipedia (kit
+rendered as images), each club's own site and RFU club page, the county unions, PlaySport, and the
+clubs' kit shops — Victor Trophies and Fenton Sports for Thurrock, Canterbury for Novocastrians,
+Akuma for Kenilworth. Product listings exist but never name a colourway, and every direct page fetch
+was blocked. They sat on the placeholder rather than take an invented colour, because **a wrong
+colour worn confidently is worse than an obvious placeholder** — and the owner supplied all three
+on 8 September. The hexes are our rendering of the colours named; the third colour in each
+(Thurrock's hoops, Novos' black, Kenilworth's trim) has nowhere to go in a two-colour field.
 
 ### Two earlier findings corrected
 
@@ -150,9 +152,15 @@ is myrtle green with red trim, not red-primary. The shipped values follow the co
   Bury St Edmunds `#14663b` and Ivybridge `#14452f`. The secondaries separate Bury St Edmunds
   (gold) and Ivybridge is much darker, but Exeter and Buckingham are close and both pair with white.
   They are genuinely similar in real life, so this is faithful rather than lazy.
-- **Blue** covers Bath `#005baa`, Beckenham `#1b4f9c` and North Bristol `#1051a5`, plus the three
-  placeholders. Secondaries differ (black, gold, red), which is what a clash check keys on.
-- **Red primaries:** Cheltenham `#c8102e` and Blaydon `#c41e24`, separated by black against white.
+- **Blue** covers Bath `#005baa`, Beckenham `#1b4f9c`, North Bristol `#1051a5` and Kenilworth
+  `#1f5ecb`. Secondaries differ (black, gold, red, gold), which is what a clash check keys on, and
+  Kenilworth's royal blue is the brightest of the four on purpose — it and Beckenham are the pair
+  to watch, since both are blue and gold.
+- **Red primaries:** Cheltenham `#c8102e`, Blaydon `#c41e24` and Novocastrians `#a6192e`. Cheltenham
+  pairs with black and the other two with white, so Novos was pitched a shade deeper than Blaydon
+  deliberately.
+- **Black primaries:** Harrogate `#0e0e0e` with red, Thurrock `#0e0e0e` with yellow. Same ground,
+  different trim, and the two are at opposite ends of the table's geography.
 
 
 ---
@@ -166,11 +174,11 @@ is myrtle green with red trim, not red-primary. The shipped values follow the co
 | Pacific / Southern | 9 | 0 | 3 | 6 | 0 |
 | French Elite | 10 | 3 | 1 | 5 | 1 |
 | **Subtotal (the 34 named clubs)** | **34** | **6** | **7** | **20** | **1** |
-| English Championship | 20 | 2 | 15 | 0 | 3 still on the placeholder |
+| English Championship | 20 | 2 | 18 | 0 | 0 |
 
 ## Highest-value fixes, in order
 
-1. ~~**The 20 Championship clubs**~~ — DONE. 17 of 20 now carry real colours; Thurrock, Novocastrians and Kenilworth still need a human eye on a shirt.
+1. ~~**The 20 Championship clubs**~~ — DONE. All twenty now carry real colours.
 2. **Harlequins** — navy/purple for a club whose whole identity is magenta-and-light-blue quarters.
 3. **Leinster (Dublin RFC)** — green for a club that plays in blue.
 4. **NSW Waratahs** — red for a club whose nickname is effectively "sky blue".

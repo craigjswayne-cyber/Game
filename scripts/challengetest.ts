@@ -1,6 +1,7 @@
 // Scripted careers audit: every challenge runs two passive seasons without
 // crashing, and completion only ever fires when its condition truly holds.
 import { newGame, CHALLENGES } from '../src/game/newgame'
+import { genderOfId } from '../src/game/gender'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
 import { SEASON_WEEKS } from '../src/game/model'
@@ -9,7 +10,10 @@ let fails = 0
 const bad = (msg: string) => { fails++; console.error(`CHALLENGE FAIL: ${msg}`) }
 
 for (const ch of CHALLENGES) {
-  const g = newGame(ch.clubId, 'Audit Gaffer', 20260804, ch.id)
+  // the women's four are pinned to women's clubs, which only exist in the
+  // women's world - newGame built with the default 'm' has no such club and
+  // dies inside seedKnowledge with an undefined club rather than a message
+  const g = newGame(ch.clubId, 'Audit Gaffer', 20260804, ch.id, 'coach', 'normal', ch.gender ?? genderOfId(ch.clubId))
   if (g.challenge !== ch.id) bad(`${ch.id} not stamped at boot`)
   for (let season = 0; season < 2; season++) {
     const target = g.season + 1
@@ -41,5 +45,5 @@ for (const ch of CHALLENGES) {
   console.log(`${ch.id}: ${done ? 'COMPLETED' : 'still live'} · club now in ${g.clubs[ch.clubId].leagueId} · season ${g.season}`)
 }
 
-if (fails === 0) console.log('CHALLENGE AUDIT PASSED (4 careers, 2 seasons each)')
+if (fails === 0) console.log(`CHALLENGE AUDIT PASSED (${CHALLENGES.length} careers, 2 seasons each)`)
 else { console.error(`CHALLENGE AUDIT: ${fails} failures`); process.exit(1) }

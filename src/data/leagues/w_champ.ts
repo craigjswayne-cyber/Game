@@ -24,13 +24,14 @@
  * Trojans nor Albanian is a place.
  *
  * KIT COLOURS. Every club in here used to carry the same #1e5aa8/#ffffff, which
- * made the division one colour and every fixture a clash. Seventeen now carry
+ * made the division one colour and every fixture a clash. All twenty now carry
  * their real club's traditional playing colours. Only Bath and London Irish
- * publish a hex; the rest are a rendering of a named colour, and the sources
- * are in docs/womens-kits.md. Thurrock, Novocastrians and Kenilworth are still
- * on the old placeholder because no source reachable from here states their
- * colours, and a wrong colour worn confidently is worse than an obvious
- * placeholder. Those three are the ones to fix the moment somebody sees a shirt.
+ * publish a hex; the rest are a rendering of a colour named in a source, and
+ * the sources are in docs/womens-kits.md. Seventeen came out of research;
+ * Thurrock (black and yellow), Novocastrians (red, white and black hoops) and
+ * Kenilworth (royal blue and gold) came from the owner on 8 Sep, after nothing
+ * reachable from here would say. Where a club's second colour is a choice
+ * rather than a finding, docs/womens-kits.md says so.
  */
 import type { RawClub } from '../types'
 import { W } from '../../game/gender'
@@ -400,7 +401,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'thurrock', name: 'Thurrock RFC', short: 'Thurrock',
     city: 'Grays', country: 'ENG',
     stadium: 'Oakfield Grounds', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#0e0e0e', '#f2a900'],
     rep: 54, budget: 43000,
     // 30 players, 4 real
     players: [
@@ -560,7 +561,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'novocast', name: 'Novocastrians RFC', short: 'Novocast',
     city: 'Newcastle', country: 'ENG',
     stadium: 'Sutton Park', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#a6192e', '#ffffff'],
     rep: 60, budget: 51000,
     // 30 players, 5 real
     players: [
@@ -600,7 +601,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'kenilworth', name: 'Kenilworth RFC', short: 'Kenilworth',
     city: 'Kenilworth', country: 'ENG',
     stadium: 'Glasshouse Fields', capacity: 2500,
-    colors: ['#1e5aa8', '#ffffff'],
+    colors: ['#1f5ecb', '#f5c518'],
     rep: 59, budget: 50000,
     // 30 players, 5 real
     players: [
