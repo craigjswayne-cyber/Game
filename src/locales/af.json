@@ -156,7 +156,7 @@
   "confirm": "Bevestig",
   "startCareer": "▸ Begin loopbaan",
   "difficulty": "Moeilikheidsgraad",
-  "difficultyBlurb": "Word een keer gekies, vir hierdie loopbaan. Dit raak net jou klub: die geld waarmee jy begin, hoe geduldig die direksie is, en hoe gereeld jou spelers breek."
+  "difficultyBlurb": "Drie dinge verander, en niks anders nie: hoeveel geld jy mee begin, hoe vinnig die direksie sy geduld verloor, en hoe dikwels JOU spelers beseer word. Elke ander klub speel dieselfde speletjie, wat jy ook al kies."
  },
  "common": {
   "a": "U",
@@ -3471,7 +3471,14 @@
   "unofficialLabel": "Onamptelik, en onafhanklik",
   "storeLabel": "Winkel",
   "storeBody": "Opsionele ekstras - niks hier speel die wedstryde nie.",
-  "storeBtn": "Open die Winkel"
+  "storeBtn": "Open die Winkel",
+  "bridgeLabel": "In hierdie weergawe",
+  "bridgeBody": "Die winkel en die advertensies kom van die toepassing om die speletjie, nie van die speletjie self nie. As een van die twee sê nie gekoppel nie, is hierdie weergawe van die toepassing sonder daardie stuk gebou en niks hierbinne kan dit aanskakel nie.",
+  "bridgeShell": "Omhulsel: {platform}",
+  "bridgeStore": "Winkel",
+  "bridgeAds": "Advertensies",
+  "bridgeOn": "gekoppel",
+  "bridgeOff": "nie gekoppel nie"
  },
  "news": {
   "maternitySubj": "{player} verwag",
@@ -6722,11 +6729,11 @@
  },
  "difficulty": {
   "normal": "Normaal",
-  "normalDesc": "Die speletjie soos dit kom.",
+  "normalDesc": "Volle begroting. Die direksie gee jou tyd. Beserings soos hulle kom.",
   "hard": "Moeilik",
-  "hardDesc": "Minder geld in die bank, 'n direksie wat meer verwag, 'n fisiokamer wat besiger is.",
+  "hardDesc": "'n Derde minder geld. Die direksie wil gouer resultate hê. 'n Paar beserings meer.",
   "legend": "Legende",
-  "legendDesc": "Die helfte van die geld, 'n direksie sonder geduld, en beserings wat in pare kom."
+  "legendDesc": "Die helfte van die geld. Die direksie verloor gou sy geduld. Beserings die hele seisoen."
  },
  "isles": {
   "title": "Die Eilande-XV",

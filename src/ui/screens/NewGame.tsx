@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { DIFFICULTIES, type Difficulty } from '../../game/difficulty'
 import { useStore } from '../../store'
-import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
+import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
@@ -33,6 +33,7 @@ export default function NewGame() {
   const newGender = useStore(s => s.newGender)
   const setNewGender = useStore(s => s.setNewGender)
   const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
+  const challenges = useMemo(() => challengesFor(newGender), [newGender])
   const [step, setStep] = useState(0)
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
   const [clubId, setClubId] = useState<string | null>(null)
@@ -219,10 +220,10 @@ export default function NewGame() {
                 -1 and take the wizard to a screen with no league on it. The
                 women's game will have its own when it has the leagues to hang
                 them on. */}
-            {newGender === 'm' && <>
+            {challenges.length > 0 && <>
             <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.orChallenge')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
-              {CHALLENGES.map(ch => {
+              {challenges.map(ch => {
                 const chClub = defs.flatMap(d => d.clubs).find(c => c.id === ch.clubId)
                 return (
                   <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>

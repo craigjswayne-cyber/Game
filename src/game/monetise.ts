@@ -733,6 +733,14 @@ export function adBridge(): AdBridge | null {
 export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
 
+/** Did the shell inject a purchase bridge at all? Not the same question as
+ *  "can this be bought": a bridge that is there and answering with nothing is
+ *  a catalogue problem, and no bridge at all is a packaging one. About & legal
+ *  tells the two apart on the device. */
+export function billingBridgePresent(): boolean { return !!bridge() }
+/** The same question for the adverts. */
+export function adBridgePresent(): boolean { return !!adBridge() }
+
 export function adsAllowed(place: string): boolean {
   return !hasSupporter() && !!adBridge() && (AD_PLACES as readonly string[]).includes(place)
 }

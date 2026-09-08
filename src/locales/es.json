@@ -159,7 +159,8 @@
   "confirm": "Confirmar",
   "startCareer": "▸ Empezar carrera",
   "difficulty": "Dificultad",
-  "difficultyBlurb": "Se elige una vez, para esta carrera. Solo afecta a tu club: el dinero inicial, la paciencia de la directiva y la frecuencia de las lesiones."
+  "difficultyBlurb": "Cambian tres cosas y nada más: con cuánto dinero empiezas, con qué rapidez pierde la paciencia la directiva y cada cuánto se lesionan TUS jugadores. Los demás clubes juegan al mismo juego elijas lo que elijas.",
+  "difficultyBlurb_f": "Cambian tres cosas y nada más: con cuánto dinero empiezas, con qué rapidez pierde la paciencia la directiva y cada cuánto se lesionan Tus jugadoras. Los demás clubes juegan al mismo juego elijas lo que elijas."
  },
  "common": {
   "a": "V",
@@ -3409,6 +3410,13 @@
   "storeLabel": "La Tienda",
   "storeBody": "Extras opcionales: ninguno juega los partidos.",
   "storeBtn": "Abrir la Tienda",
+  "bridgeLabel": "En esta versión",
+  "bridgeBody": "La tienda y los anuncios vienen de la aplicación que envuelve al juego, no del juego. Si alguno dice no conectado, esta versión de la aplicación se montó sin esa pieza y nada de aquí dentro puede activarla.",
+  "bridgeShell": "Envoltorio: {platform}",
+  "bridgeStore": "Tienda",
+  "bridgeAds": "Anuncios",
+  "bridgeOn": "conectada",
+  "bridgeOff": "no conectada",
   "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
  },
  "news": {
@@ -6360,11 +6368,11 @@
  },
  "difficulty": {
   "normal": "Normal",
-  "normalDesc": "El juego tal como viene.",
+  "normalDesc": "Presupuesto completo. La directiva te da tiempo. Lesiones las normales.",
   "hard": "Difícil",
-  "hardDesc": "Menos dinero en caja, una directiva que exige más y una enfermería más llena.",
+  "hardDesc": "Un tercio menos de dinero. La directiva quiere resultados antes. Alguna lesión más.",
   "legend": "Leyenda",
-  "legendDesc": "La mitad del dinero, una directiva sin paciencia y lesiones que vienen de dos en dos."
+  "legendDesc": "La mitad del dinero. La directiva pierde la paciencia enseguida. Lesiones toda la temporada."
  },
  "isles": {
   "title": "El XV de las Islas",

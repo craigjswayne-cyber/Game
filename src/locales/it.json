@@ -159,7 +159,8 @@
   "confirm": "Conferma",
   "startCareer": "▸ Inizia la carriera",
   "difficulty": "Difficoltà",
-  "difficultyBlurb": "Si sceglie una volta, per questa carriera. Cambia solo il tuo club: i soldi di partenza, la pazienza della dirigenza e la frequenza degli infortuni."
+  "difficultyBlurb": "Cambiano tre cose e nient'altro: con quanti soldi cominci, quanto in fretta il consiglio perde la pazienza e quanto spesso si infortunano I TUOI giocatori. Tutti gli altri club giocano la stessa partita qualunque cosa tu scelga.",
+  "difficultyBlurb_f": "Cambiano tre cose e nient'altro: con quanti soldi cominci, quanto in fretta il consiglio perde la pazienza e quanto spesso si infortunano Le TUOI giocatrici. Tutti gli altri club giocano la stessa partita qualunque cosa tu scelga."
  },
  "common": {
   "a": "T",
@@ -3429,6 +3430,13 @@
   "storeLabel": "Lo Store",
   "storeBody": "Extra facoltativi - nessuno dei quali gioca le partite.",
   "storeBtn": "Apri lo Store",
+  "bridgeLabel": "In questa versione",
+  "bridgeBody": "Il negozio e la pubblicità arrivano dall'applicazione che avvolge il gioco, non dal gioco. Se uno dei due dice non collegato, questa versione dell'applicazione è stata montata senza quel pezzo e niente qui dentro può accenderlo.",
+  "bridgeShell": "Involucro: {platform}",
+  "bridgeStore": "Negozio",
+  "bridgeAds": "Pubblicità",
+  "bridgeOn": "collegato",
+  "bridgeOff": "non collegato",
   "unofficialBody_f": "PHASE: Rugby Manager non è affiliato, approvato o autorizzato da alcuna giocatrice, club, lega o federazione. I nomi dei club sono reali; competizioni, stadi e sponsor sono rinominati o inventati. I nomi delle giocatrici sono reali, usati per identificare persone in un database sportivo e per nulla altro, e non è incluso alcuno stemma, maglia o logo ufficiale."
  },
  "news": {
@@ -6394,11 +6402,11 @@
  },
  "difficulty": {
   "normal": "Normale",
-  "normalDesc": "Il gioco così com’è.",
+  "normalDesc": "Budget pieno. Il consiglio ti dà tempo. Infortuni normali.",
   "hard": "Difficile",
-  "hardDesc": "Meno soldi in cassa, una dirigenza che chiede di più, un’infermeria più piena.",
+  "hardDesc": "Un terzo di soldi in meno. Il consiglio vuole risultati prima. Qualche infortunio in più.",
   "legend": "Leggenda",
-  "legendDesc": "Metà dei soldi, una dirigenza senza pazienza e infortuni che arrivano a coppie."
+  "legendDesc": "Metà dei soldi. Il consiglio perde la pazienza subito. Infortuni tutta la stagione."
  },
  "isles": {
   "title": "Il XV delle Isole",
