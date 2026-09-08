@@ -14,10 +14,13 @@
 // Two things it is specifically watching for, both found by reading the wizard
 // rather than by running it:
 //
-//   - the four challenges are pinned to men's clubs (Montauban, Newcastle,
-//     Munster, Cornwall) that do not exist in the women's world. Rendered there,
-//     pickChallenge would set leagueIdx to -1 and the wizard would walk into a
-//     screen with no league on it. They are hidden; this checks they are.
+//   - a challenge is pinned to one club, and a club exists in one world. Render
+//     a men's challenge in the women's wizard and pickChallenge sets leagueIdx
+//     to -1, which walks into a screen with no league on it. Until 1.5.6 the
+//     women's wizard answered that by showing no challenges at all; it now has
+//     four of its own, and what this checks is that each world sees ONLY its
+//     own - the men's four in the men's wizard, the women's four in the
+//     women's, and no card that would break the screen behind it.
 //   - a women's world has nine clubs where the men's has 101, and no cups and
 //     no internationals. Screens that assume a fixture list longer than a league
 //     season, or a competition list with a cup in it, break there and only there.
@@ -80,9 +83,15 @@ try {
     'and puts the men\'s game out')
   await page.waitForSelector("text=English Women's Premier Division")
 
-  ok(await page.locator('.challenge-card').count() === 0,
-    'no challenge cards in the women\'s wizard (all four are pinned to men\'s clubs)')
-
+  // the women's four, and not one of the men's
+  const wCards = await page.locator('.challenge-card').count()
+  ok(wCards === 4, `the women's wizard offers its own four challenges (${wCards})`)
+  for (const n of ['Stop the Three-Peat', 'The Ealing Project', 'Keep the Licence', 'The Lichfield Grudge']) {
+    ok(await page.locator(`text=${n}`).count() >= 1, `${n} is one of them`)
+  }
+  for (const n of ['Sauvez Sapiac', 'The Energy Project', 'Break the Dynasty', 'The Cornwall Dream']) {
+    ok(await page.locator(`text=${n}`).count() === 0, `and ${n} is not, because its club is in the other world`)
+  }
   // both women's competitions are offered, not just England
   // named explicitly, never as the men's default (owner's rule)
   for (const n of ["Women's Pacific Championship", "French Women's Division 1",
