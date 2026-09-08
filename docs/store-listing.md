@@ -147,6 +147,48 @@ First release.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
 
+### What's new (500 max) - v1.5.5, Play version code 26
+
+Two things reported from real matches on a phone.
+
+```
+<en-GB>
+Slow commentary is properly slow now - a line and a breath rather than a line
+and a scramble. Normal and Fast are untouched. And if you override the
+assistant's injury replacement, the commentary and the match report name the
+man who actually came on, instead of the one who never left the bench.
+</en-GB>
+<fr-FR>
+Le commentaire lent est enfin lent : une ligne et le temps de respirer. Normal
+et Rapide sont inchangés. Et si vous remplacez le choix de votre adjoint après
+une blessure, le commentaire et le rapport de match nomment le joueur qui est
+réellement entré, et non celui qui n'a jamais quitté le banc.
+</fr-FR>
+<es-ES>
+El relato lento ya es realmente lento: una línea y tiempo para respirar. Normal
+y Rápido no cambian. Y si cambias el reemplazo que propone tu ayudante tras una
+lesión, el relato y el informe del partido nombran al que de verdad entró, no al
+que nunca se levantó del banquillo.
+</es-ES>
+<it-IT>
+La telecronaca lenta ora è davvero lenta: una riga e il tempo di respirare.
+Normale e Veloce restano com'erano. E se cambi il sostituto proposto dal tuo
+assistente dopo un infortunio, la telecronaca e il report nominano chi è
+entrato davvero, non chi non si è mai alzato dalla panchina.
+</it-IT>
+<ja-JP>
+実況の「ゆっくり」が本当にゆっくりになりました。一行読んで、ひと息つけます。「標準」と
+「速い」はそのままです。負傷交代でアシスタントの人選を変えた場合、実況と試合レポートは
+実際にピッチに入った選手の名前を表示します。
+</ja-JP>
+<af>
+Stadige kommentaar is nou regtig stadig - 'n reël en 'n asemteug. Normaal en
+Vinnig bly soos hulle was. En as jy jou assistent se beseringsvervanging
+oorheers, noem die kommentaar en die wedstrydverslag die speler wat werklik
+opgekom het, nie die een wat nooit van die bank af weg is nie.
+</af>
+```
+
 ### What's new (500 max) - v1.5.4, Play version code 25
 
 A round of fixes and two additions. The Job Centre stops moving your desk on a

@@ -1391,8 +1391,12 @@ function NationPreview({ fxId }: { fxId: number }) {
 // play/pause button shows when the match is paused, so the row genuinely had
 // two play buttons on it. Words instead of glyphs, inside a settings sheet:
 // speed is something you set once, not something you reach for every minute.
+// 900ms was Slow until v1.5.5, and a long line of commentary does not fit in
+// 900ms (owner: "commentary text needs to be slower if you select slower.
+// Normal is as it is. Fast is as is"). 1600 is a line and a breath, and the
+// tension multiplier below still stretches it at the sharp end of a match.
 const SPEEDS = [
-  { label: 'matchday.spdSlow', ms: 900, name: 'matchday.spdSlowName' },
+  { label: 'matchday.spdSlow', ms: 1600, name: 'matchday.spdSlowName' },
   { label: 'matchday.spdNormal', ms: 350, name: 'matchday.spdNormalName' },
   { label: 'matchday.spdFast', ms: 90, name: 'matchday.spdFastName' },
 ]
