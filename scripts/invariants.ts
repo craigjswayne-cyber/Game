@@ -280,10 +280,14 @@ function audit(g: GameState, tag: string) {
   }
 }
 
-// every scripted challenge must boot at its club with its intro news
+// every scripted challenge must boot at its club with its intro news. The
+// women's four are pinned to women's clubs, and a world built with the default
+// 'm' does not contain them - so the world comes from the challenge, or this
+// dies inside seedKnowledge with an undefined club and no message.
 import { CHALLENGES } from '../src/game/newgame'
+import { genderOfId } from '../src/game/gender'
 for (const ch of CHALLENGES) {
-  const cg = newGame(ch.clubId, 'Boot Check', 4242, ch.id)
+  const cg = newGame(ch.clubId, 'Boot Check', 4242, ch.id, 'coach', 'normal', ch.gender ?? genderOfId(ch.clubId))
   if (cg.userClubId !== ch.clubId) bad(`challenge ${ch.id} booted at ${cg.userClubId}`)
   if (cg.challenge !== ch.id) bad(`challenge ${ch.id} not stamped on the save (got ${cg.challenge})`)
   if (!cg.news.some(n => n.subject.includes('THE CHALLENGE'))) bad(`challenge ${ch.id} missing intro`)

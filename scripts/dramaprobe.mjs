@@ -30,7 +30,7 @@
 //
 // Run: node scripts/dramaprobe.mjs   (needs a fresh npm run build)
 import { chromium } from 'playwright-core'
-import { writeSync } from 'node:fs'
+import { writeSync, readFileSync } from 'node:fs'
 import { done, startPreview } from './lib/preview.mjs'
 
 const say = s => writeSync(1, s + '\n')
@@ -248,7 +248,15 @@ try {
 
   say(`  pacing: rout ${rout.per?.toFixed(0)}ms/event, one-score ${tight.per?.toFixed(0)}ms/event`)
   ok(tight.per > rout.per * 1.2, `a one-score finish is paced slower than a rout (${(tight.per / rout.per).toFixed(2)}x)`)
-  ok(rout.per < 1000, `and the rout keeps the speed the manager chose (${rout.per?.toFixed(0)}ms, Slow is 900)`)
+  // The base tick comes out of MatchDay itself rather than a number typed in
+  // here. It was 900ms and became 1600ms in 1.5.5, when Slow was found not to
+  // be slow, and this line failed for no reason except that it had memorised
+  // the old one. A rout gets no tension stretch, so the tick a rout runs at IS
+  // the base; the 15% is measurement slack, not a tolerance on the pacing.
+  const slowMs = Number(readFileSync('src/ui/screens/MatchDay.tsx', 'utf8')
+    .match(/matchday\.spdSlow['"],\s*ms:\s*(\d+)/)?.[1] ?? 0)
+  ok(slowMs > 0, `MatchDay still names the Slow tick (${slowMs}ms)`)
+  ok(rout.per < slowMs * 1.15, `and the rout keeps the speed the manager chose (${rout.per?.toFixed(0)}ms, Slow is ${slowMs})`)
 
   const bBlow = await bandAt(30, 74)   // late, but long since decided
   const bEarly = await bandAt(0, 20)   // level, but it is the first quarter
