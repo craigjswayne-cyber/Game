@@ -99,6 +99,37 @@ function mk(state: GameState, q: Q, playerId: number | undefined, options: Press
 const opt = (o: Omit<PressOption, 'label' | 'reaction'> & { lk: string; lv?: Vars; rk: string; rv?: Vars }): PressOption =>
   ({ ...o, label: tIn('en', o.lk, o.lv), reaction: tIn('en', o.rk, o.rv) })
 
+/**
+ * ---- WHAT A PRE-SEASON WEEK COSTS THIS CLUB ----
+ *
+ * The warm-weather camp cost a flat £400,000 and the sponsor's tour paid a flat
+ * £600,000, at every club in the game. Bath's women in the Championship carry a
+ * season budget of sixty-two thousand pounds, so the game was offering them a
+ * training camp at six and a half times their entire budget and a sponsor deal
+ * worth ten times it. Owner: "the initial money question feels way too much
+ * money for a lower team."
+ *
+ * A share of the budget, floored so the smallest club is still offered a real
+ * decision and capped so the richest is offered what it was offered before -
+ * the top of the game was never the part that read wrong. Rounded to something
+ * a person would say out loud.
+ *
+ * Both numbers are computed ONCE, put on the option, and read back when the
+ * answer resolves. Recomputing at resolution would let a mid-week transfer
+ * change the price of a camp already agreed.
+ */
+export function campCost(budget: number): number {
+  return roundMoney(Math.min(400_000, Math.max(5_000, budget * 0.10)))
+}
+export function tourFee(budget: number): number {
+  return roundMoney(Math.min(600_000, Math.max(8_000, budget * 0.15)))
+}
+/** To the nearest thousand under a hundred grand, the nearest twenty-five
+ *  thousand over it: nobody quotes a sponsor's tour at £417,300. */
+function roundMoney(v: number): number {
+  return v < 100_000 ? Math.round(v / 1_000) * 1_000 : Math.round(v / 25_000) * 25_000
+}
+
 /** Weekly press generation for the user's club. */
 export function generatePress(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
@@ -113,12 +144,17 @@ export function generatePress(state: GameState, rng: Rng) {
   // an internal staff call, and week 1 must never lose it to a leftover
   // question from the final round of last season
   if (state.week === 1 && !state.press.some(p => p.season === state.season && p.options.some(o => o.camp))) {
+    const heatCost = campCost(club.budget)
+    const tourMoney = tourFee(club.budget)
     const item = mk(state,
       { k: voice(20, ['press.campQ1', 'press.campQ2']) },
       undefined, [
-        opt({ morale: 0, board: 0, camp: 'heat', lk: 'press.campHeat', rk: 'press.campHeatR' }),
-        opt({ morale: 0, board: 0, camp: 'home', lk: 'press.campHome', rk: 'press.campHomeR' }),
-        opt({ morale: 0, board: 0, camp: 'tour', lk: 'press.campTour', rk: 'press.campTourR' }),
+        opt({ morale: 0, board: 0, camp: 'heat', campMoney: heatCost,
+          lk: 'press.campHeat', lv: { cost: fmtMoney(heatCost) }, rk: 'press.campHeatR' }),
+        opt({ morale: 0, board: 0, camp: 'home',
+          lk: 'press.campHome', rk: 'press.campHomeR' }),
+        opt({ morale: 0, board: 0, camp: 'tour', campMoney: tourMoney,
+          lk: 'press.campTour', lv: { fee: fmtMoney(tourMoney) }, rk: 'press.campTourR' }),
       ], rng)
     item.outlet = OFFICE_OUTLET
     state.press.push(item)
@@ -1048,7 +1084,8 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     const c = state.clubs[state.userClubId]
     const squad = c.players.map(id => state.players[id]).filter((p): p is Player => !!p)
     if (opt.camp === 'heat') {
-      c.balance -= 400_000
+      // what the option said, not what a flat number says now
+      c.balance -= opt.campMoney ?? campCost(c.budget)
       for (const p of squad) { p.sharp = clamp(p.sharp + 12, 0, 100); p.morale = clamp(p.morale + 0.3, 1, 10) }
       logDecision(state, 'dec.campHeat', undefined, true)
       state.news.push({
@@ -1068,7 +1105,7 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         k: 'news.campHome',
       })
     } else {
-      c.balance += 600_000
+      c.balance += opt.campMoney ?? tourFee(c.budget)
       state.fanMood = clamp((state.fanMood ?? 60) - 3, 10, 95)
       for (const p of squad) p.cond = clamp(p.cond - 8, 20, 100)
       logDecision(state, 'dec.campTour', undefined, false)

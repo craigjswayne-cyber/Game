@@ -824,6 +824,12 @@ export interface PressOption {
   disc?: 'fine' | 'word' | 'ignore'
   /** the pre-season decision: one special week, three philosophies */
   camp?: 'heat' | 'home' | 'tour'
+  /** what that week costs or pays THIS club, quoted on the button and spent on
+   *  resolution. Stored rather than recomputed so a transfer between asking and
+   *  answering cannot change the price of a camp already agreed. Absent on the
+   *  community week, which costs nothing, and on saves made before the figures
+   *  were scaled to the club at all. */
+  campMoney?: number
   /** agreeing to a loan actually sends him. Saying yes and then leaving the
    *  manager to go and find the Transfers screen is how a lad ended up asking
    *  the same question a week after his boss agreed to it. */

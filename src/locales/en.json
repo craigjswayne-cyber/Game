@@ -5997,11 +5997,11 @@
  "press": {
   "campQ1": "Pre-season, and the performance staff want a decision. The budget stretches to one special week: a warm-weather camp abroad, a community week at home, or the sponsor's exhibition tour. Which is it?",
   "campQ2": "Three options are circled on the staff-room whiteboard for the spare pre-season week: the heat camp, the town, or the sponsor's roadshow. The department heads are waiting on you.",
-  "campHeat": "Warm-weather camp (£400k)",
+  "campHeat": "Warm-weather camp ({cost})",
   "campHeatR": "Flights booked. A week of double sessions in the sun - the squad comes home lean, sharp, and united in their hatred of the hill runs.",
   "campHome": "Community week at home",
   "campHomeR": "Schools, junior clubs, open training. Costs nothing, and the town will remember it all season.",
-  "campTour": "Sponsor's exhibition tour (+£600k)",
+  "campTour": "Sponsor's exhibition tour (+{fee})",
   "campTourR": "Three airports, two black-tie functions, one glossy cheque. The accountants beam. The players' legs file a formal complaint.",
   "punditsHave": "The pundits have you {pred_o}.",
   "punditsSplit": "The pundits are split on you.",

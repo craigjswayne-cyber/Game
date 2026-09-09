@@ -6042,11 +6042,11 @@
  "press": {
   "campQ1": "Voorseisoen, en die prestasiepersoneel wil 'n besluit hê. Die begroting strek tot een spesiale week: 'n warmweerskamp in die buiteland, 'n gemeenskapsweek by die huis, of die borg se uitstallingstoer. Watter een gaan dit wees?",
   "campQ2": "Drie opsies is omkring op die personeelkamer se witbord vir die oorblywende voorseisoenweek: die hittekamp, die dorp, of die borg se roadshow. Die departementshoofde wag vir jou.",
-  "campHeat": "Warmweerskamp (£400k)",
+  "campHeat": "Warmweer-kamp ({cost})",
   "campHeatR": "Vlugte bespreek. 'n Week van dubbelsessies in die son - die spangroep kom lenig, skerp en verenig in hul haat vir die heuwelhardloop huis toe.",
   "campHome": "Gemeenskapsweek by die huis",
   "campHomeR": "Skole, junior klubs, oop oefensessies. Kos niks, en die dorp sal dit die hele seisoen onthou.",
-  "campTour": "Borg se uitstallingstoer (+£600k)",
+  "campTour": "Borg se uitstaltoer (+{fee})",
   "campTourR": "Drie lughawens, twee deftige galafunksies, een blink tjek. Die rekenmeesters glimlag breed. Die spelers se bene lê 'n formele klagte in.",
   "punditsHave": "Die kenners plaas jou {pred_o}.",
   "punditsSplit": "Die kenners is verdeeld oor jou.",
