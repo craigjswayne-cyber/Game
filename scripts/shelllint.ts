@@ -57,6 +57,39 @@ ok(/rel="apple-touch-icon"\s+sizes="180x180"\s+href="\.\/icon-180\.png"/.test(ht
   }
 }
 
+// ---- AND THE SVG IS AN SVG, WHICH IS NOT THE SAME AS BEING A FILE ----
+//
+// public/icon.svg is the site favicon AND an entry in the web manifest, and it
+// shipped MALFORMED for five releases without one thing anywhere saying so. Its
+// own explanatory comment named the CSS tokens it copies - "(--ramp-g7 / g9 /
+// --prop-white)" - and a DOUBLE HYPHEN IS ILLEGAL INSIDE AN XML COMMENT. The
+// file was therefore not well-formed XML, so a browser parsing it as SVG threw
+// it away and rendered nothing.
+//
+// Nothing caught it because every check that existed asked whether the file was
+// there. A favicon that fails to parse looks exactly like a favicon that has
+// not loaded yet, and a manifest icon that fails looks like a slow connection.
+// Found on 9 Sep 2026 only because the new landing page put the same file in an
+// <img>, where a broken image is visible.
+{
+  for (const svg of ['public/icon.svg', 'landing/img/icon.svg']) {
+    if (!existsSync(svg)) { ok(false, `${svg} exists`); continue }
+    const text = readFileSync(svg, 'utf8')
+    // the exact trap: -- inside <!-- ... -->
+    const comments = [...text.matchAll(/<!--([\s\S]*?)-->/g)].map(m => m[1])
+    ok(comments.every(c => !c.includes('--')),
+      `${svg} has no double hyphen inside an XML comment, which would stop it parsing at all`)
+    ok(/^\s*<svg[\s>]/.test(text) && /<\/svg>\s*$/.test(text.trim()),
+      `${svg} opens and closes as an svg element`)
+    // tags balance, cheaply: every non-self-closing open has a close
+    const opens = (text.match(/<(?!\/|!|\?)[a-zA-Z]/g) ?? []).length
+    const selfClose = (text.match(/\/>/g) ?? []).length
+    const closes = (text.match(/<\//g) ?? []).length
+    ok(opens === selfClose + closes,
+      `${svg} balances its tags (${opens} open, ${selfClose} self-closed, ${closes} closed)`)
+  }
+}
+
 // ---- no orientation lock may ever come back ----
 {
   const app = readFileSync('src/ui/App.tsx', 'utf8')
