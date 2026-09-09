@@ -1251,6 +1251,13 @@ const PEN_LINES = [
 ]
 /** the lines that claim range, and the plain line each becomes for a kicker without it */
 const PEN_LONG: Record<string, string> = { 'comm.pen4': 'comm.pen1', 'comm.pen6': 'comm.pen2', 'comm.pen9': 'comm.pen3' }
+/** the same idea for a line that claims WEATHER. pen11 has the kicker wiping
+ *  mud off the ball and rain off his face, and nothing stopped it firing under
+ *  a clear sky - the try bank has had TRY_LINES_WET since the beginning and the
+ *  penalty bank never got the equivalent. Same shape as PEN_LONG: a swap after
+ *  the draw, so no extra call on the stream and every seeded match keeps its
+ *  fingerprint. */
+const PEN_WET: Record<string, string> = { 'comm.pen11': 'comm.pen5' }
 const CON_LINES = [
   'comm.con1',
   'comm.con2',
@@ -1971,6 +1978,7 @@ function takePenaltyShot(state: GameState, ctx: LiveCtx, side: SideCtx, min: num
     // draw on the stream, so the fingerprint of every other match is intact.
     let line = PEN_LINES[Math.floor(rng() * PEN_LINES.length)]
     if ((!kicker || kicker.a.goa < 12) && PEN_LONG[line]) line = PEN_LONG[line]
+    if (ctx.weather !== 'Rain' && ctx.weather !== 'Snow' && PEN_WET[line]) line = PEN_WET[line]
     pushLine(state, ctx, min, 'PEN', side, line,
       { player: kicker?.name ?? tIn('en', 'comm.theKicker') }, kicker?.id)
   } else if (detail && rng() < 0.7) {

@@ -46,8 +46,15 @@ function say(s) { writeSync(1, s + '\n') }
 // has to be will eventually be resolved by loosening one of them.
 const MIN_TAP = { MIN: 44, FLOOR: ['preset-chip', 'form-chip', 'chip'] }
 
-// the floor, the phone it is played on, and a big one
+// the floor, the phone it is played on, and a big one.
+//
+// 320x568 IS THE REAL FLOOR AND IT WAS NOT HERE. 360 was called the floor
+// because it is the narrowest phone anybody on this project owns, but Play
+// still serves 320dp devices and an original iPhone SE is 320pt - so the
+// narrowest screen the game actually ships to had never been rendered. Added
+// by the v1.5.6 pre-launch audit (docs/release-audit-v1.5.6.md, T-5).
 const GEOMETRIES = [
+  { name: '320x568 smallest', w: 320, h: 568 },
   { name: '360x740 floor', w: 360, h: 740 },
   { name: '412x915 galaxy', w: 412, h: 915 },
   { name: '430x932 promax', w: 430, h: 932 },
