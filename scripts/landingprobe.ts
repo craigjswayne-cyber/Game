@@ -1,10 +1,19 @@
 /**
- * ---- THE LANDING PAGE, AND THE THREE URLS IT MUST NOT BREAK ----
+ * ---- THE LANDING PAGE, AND THE GAME THAT IS NO LONGER BEHIND IT ----
  *
- * phaserugbymanager.com used to open straight into the game. It now opens on
- * landing/index.html and the game lives at /play/, because the browser build
- * carries no adverts and no shop, so every visitor who went straight into it
- * earned nothing (owner, 9 Sep 2026).
+ * phaserugbymanager.com used to open straight into a playable game. It now opens
+ * on landing/index.html and THE GAME IS NOT PUBLISHED TO THE WEB AT ALL.
+ *
+ * That happened in two steps on the same day. First the root became a landing
+ * page and the game moved to /play/, because the browser build carries no
+ * adverts and no shop and so earned nothing from anybody it swallowed. Then:
+ * "i dont want people to be able to play in browser" - and a link you simply
+ * stop advertising is still a URL that a bookmark reaches. So the deploy stopped
+ * shipping the game to the web entirely.
+ *
+ * This probe therefore asserts the ABSENCE of something, which is the kind of
+ * check that rots quietest: nothing looks wrong on the day somebody re-adds a
+ * copy step, and the game is back on the web until a human happens to notice.
  *
  * That move quietly put three live things at risk, and none of them fails
  * loudly when broken:
@@ -69,8 +78,8 @@ ok(/property="og:image" content="https:\/\/phaserugbymanager\.com\//.test(html),
   'the share image is an absolute URL, which is the one place that is required')
 
 // ---- 3. the routes off it ----
-ok(/href="\.\/play\/"/.test(html), 'it links to the game at ./play/')
-ok(/href="\.\/privacy\.html"/.test(html), 'and to the privacy policy, which reviewers and players both look for')
+ok(!/href="[^"]*play\//.test(html), 'it offers NO link to a browser build, because there is not one to link to')
+ok(/href="\.\/privacy\.html"/.test(html), 'it links to the privacy policy, which reviewers and players both look for')
 ok(/mailto:phaserugbymanager@gmail\.com/.test(html), 'and carries the contact address from the store listing')
 
 // ---- 4. the store buttons ----
@@ -104,14 +113,20 @@ for (const name of ['canvas', 'surface-1', 'border', 'text-primary', 'text-secon
 // ---- 7. the deploy still assembles the site ----
 const wf = readFileSync('.github/workflows/pages.yml', 'utf8')
 ok(/path: site$/m.test(wf), 'the deploy publishes site/, not dist/')
-ok(/mkdir -p site\/play/.test(wf) && /cp -R dist\/\. site\/play\//.test(wf),
-  'and the game is copied into site/play/')
+ok(!/cp -R dist/.test(wf), 'and it copies NO part of dist/ to the web - that is what stops the game being playable in a browser')
+ok(/if \[ -e site\/play \]/.test(wf), 'and it fails the deploy outright if a site/play appears again')
 ok(/cp -R public\/\. site\//.test(wf),
-  'and public/ is copied to the ROOT, which is what keeps privacy.html, CNAME and the Search Console file where they were')
+  'public/ is copied to the ROOT, which is what keeps privacy.html, CNAME and the Search Console file where they were')
 ok(/cp -R landing\/\. site\//.test(wf), 'and the landing page is copied over the root')
-for (const guard of ['test -f site/privacy.html', 'test -f site/CNAME', 'test -f site/google59479af58f8cd344.html', 'test -f site/play/index.html']) {
+for (const guard of ['test -f site/privacy.html', 'test -f site/CNAME', 'test -f site/google59479af58f8cd344.html']) {
   ok(wf.includes(guard), `the deploy refuses to publish without: ${guard.replace('test -f ', '')}`)
 }
+
+// The build step is NOT dead weight and must not be "tidied away": dist/ is what
+// both shells bundle and what ipprobe reads to check no real mark ships. It is
+// simply no longer the website.
+ok(/npm run build/.test(wf), 'the deploy still builds dist/, which ipprobe and both shells depend on')
+ok(/ipprobe/.test(wf), 'and still runs the real-world-marks check over it')
 
 // ---- 8. dist/ is still the app, untouched ----
 //
@@ -123,5 +138,5 @@ const capAnd = JSON.parse(readFileSync('packaging/android/capacitor.config.json'
 ok(capIos.webDir === '../../dist' && capAnd.webDir === '../../dist',
   'both shells still bundle dist/ itself, so the site rearrangement cannot reach them')
 
-console.log(fails ? `\nLANDING PROBE FAILED (${fails})` : '\nLANDING PROBE PASSED: the shop window is not the game, and the three submitted URLs did not move')
+console.log(fails ? `\nLANDING PROBE FAILED (${fails})` : '\nLANDING PROBE PASSED: the shop window has no game behind it, and the three submitted URLs did not move')
 if (fails) process.exit(1)

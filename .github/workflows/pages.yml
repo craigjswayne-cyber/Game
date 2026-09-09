@@ -43,37 +43,38 @@ jobs:
       # nothing with a real club, competition or sponsor mark in it gets published
       - name: Real-world marks
         run: node scripts/ipprobe.mjs
-      # ---- THE SITE IS NOT THE APP ----
+      # ---- THE SITE IS NOT THE APP, AND NO LONGER CONTAINS IT ----
       #
-      # dist/ is the APP: it is what the iOS and Android shells bundle, and it
-      # must keep index.html at its root or both of them boot into nothing. The
-      # SITE wants the opposite - a landing page at the root, because the
-      # browser build carries no adverts and no shop and so earns nothing, and
-      # sending every visitor straight into it was leaving money on the floor.
+      # This used to publish dist/ as the whole website, so phaserugbymanager.com
+      # opened straight into a playable game. Two changes since, both the owner's:
+      # first the root became a landing page with the game moved to /play/, then
+      # "i dont want people to be able to play in browser" - so the game is not
+      # published to the web at all any more.
       #
-      # So the two are assembled separately here rather than compromised on:
-      # dist/ is untouched and the shells keep taking it as they always have,
-      # while site/ is a rearrangement of it for the web only.
+      # That is why THE BUILD ABOVE STILL RUNS. dist/ is not the website; it is
+      # what the iOS and Android shells bundle, and ipprobe reads it to check no
+      # real-world mark ships. Building it and then not publishing it looks
+      # wasteful and is not: it is the artefact every other check is about.
       #
-      # THREE THINGS MUST STAY AT THE ROOT and all three are copied there:
-      #   privacy.html               - the URL submitted to Apple AND Google
-      #   google...html              - Search Console verifies the root
-      #   CNAME                      - or the custom domain stops resolving
-      # public/ holds all three, so copying public/ over the root covers them
-      # even if another one is added later.
-      - name: Assemble the site (landing page at /, game at /play/)
+      # THREE THINGS MUST BE AT THE ROOT and all three live in public/, so
+      # copying public/ covers them even if a fourth is added later:
+      #   privacy.html   - the policy URL submitted to Apple AND Google
+      #   google...html  - Search Console verifies the ROOT specifically
+      #   CNAME          - or the custom domain stops resolving
+      - name: Assemble the site (landing page only, no game)
         run: |
-          rm -rf site && mkdir -p site/play
-          cp -R dist/. site/play/
+          rm -rf site && mkdir -p site
           cp -R public/. site/
           cp -R landing/. site/
           test -f site/index.html
-          test -f site/play/index.html
           test -f site/privacy.html
           test -f site/CNAME
           test -f site/google59479af58f8cd344.html
           grep -q 'Rugby Manager' site/index.html
-          grep -q './play/' site/index.html
+          # the game must NOT be here. A stray index at any depth below the root
+          # would be a playable build nobody meant to publish.
+          if [ -e site/play ]; then echo "site/play exists - the game is being published again"; exit 1; fi
+          if grep -q 'src="./assets/' site/index.html; then echo "the landing page is booting the app"; exit 1; fi
           echo "site assembled:" && ls site
       - uses: actions/configure-pages@v5
         with:
