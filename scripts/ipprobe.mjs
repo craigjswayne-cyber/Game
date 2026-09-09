@@ -128,6 +128,15 @@ const walk = (dir) => {
 }
 walk(DIST)
 
+// THE LANDING PAGE IS PUBLISHED CONTENT TOO.
+//
+// It is not in dist/ - it is assembled over the site root by the Pages workflow
+// (see scripts/landingprobe.ts) - so this probe would have walked straight past
+// the one page on the whole domain that a search engine indexes first. Marketing
+// copy is exactly where a real club name gets typed without thinking, because it
+// reads as a description rather than as game content.
+if (existsSync('landing')) walk('landing')
+
 const bundle = files.map(f => ({ f, text: readFileSync(f, 'utf8') }))
 console.log(`scanning ${files.length} shipped files (${Math.round(bundle.reduce((s, b) => s + b.text.length, 0) / 1024)} KB)`)
 

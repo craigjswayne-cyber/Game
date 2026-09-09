@@ -43,11 +43,43 @@ jobs:
       # nothing with a real club, competition or sponsor mark in it gets published
       - name: Real-world marks
         run: node scripts/ipprobe.mjs
+      # ---- THE SITE IS NOT THE APP ----
+      #
+      # dist/ is the APP: it is what the iOS and Android shells bundle, and it
+      # must keep index.html at its root or both of them boot into nothing. The
+      # SITE wants the opposite - a landing page at the root, because the
+      # browser build carries no adverts and no shop and so earns nothing, and
+      # sending every visitor straight into it was leaving money on the floor.
+      #
+      # So the two are assembled separately here rather than compromised on:
+      # dist/ is untouched and the shells keep taking it as they always have,
+      # while site/ is a rearrangement of it for the web only.
+      #
+      # THREE THINGS MUST STAY AT THE ROOT and all three are copied there:
+      #   privacy.html               - the URL submitted to Apple AND Google
+      #   google...html              - Search Console verifies the root
+      #   CNAME                      - or the custom domain stops resolving
+      # public/ holds all three, so copying public/ over the root covers them
+      # even if another one is added later.
+      - name: Assemble the site (landing page at /, game at /play/)
+        run: |
+          rm -rf site && mkdir -p site/play
+          cp -R dist/. site/play/
+          cp -R public/. site/
+          cp -R landing/. site/
+          test -f site/index.html
+          test -f site/play/index.html
+          test -f site/privacy.html
+          test -f site/CNAME
+          test -f site/google59479af58f8cd344.html
+          grep -q 'Rugby Manager' site/index.html
+          grep -q './play/' site/index.html
+          echo "site assembled:" && ls site
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
       - id: deployment
         uses: actions/deploy-pages@v4
