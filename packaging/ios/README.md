@@ -106,11 +106,23 @@ if you like - the files should already be listed.
 
 Two things are left in Xcode before the first run, and both need a Mac:
 
-1. **Signing & Capabilities → + Capability → In-App Purchase.** Without it
-   StoreKit returns nothing and every product reads unavailable.
+1. **Signing & Capabilities → Team.** Pick the account the app ships under.
+   An unset Team is also why a short capability list shows
+   "N Capabilities Unavailable" at the bottom: Xcode cannot tell what the team
+   is entitled to until it knows who the team is.
 2. **Product → Scheme → Edit Scheme → Run → Options → StoreKit Configuration
    → `Products.storekit`.** This is how you test all ten purchases on the
    simulator without App Store Connect, real money or a review.
+
+**THERE IS NO IN-APP PURCHASE CAPABILITY TO ADD, AND THIS FILE USED TO SAY
+THERE WAS.** It told you to add it and warned that StoreKit returns nothing
+without it. Modern Xcode does not offer it in the capability picker, because
+there is nothing to pick: In-App Purchase is enabled by default on an
+**explicit** App ID, which `com.phaserugbymanager.app` is, and there is no
+`com.apple.developer.in-app-purchase` entitlement (an entitlements file that
+carries one should have it removed). Wildcard App IDs are the ones it is off
+for, and this app has never used one. If you go looking for that capability and
+cannot find it, nothing is wrong: skip it.
 
 And before the first archive:
 
