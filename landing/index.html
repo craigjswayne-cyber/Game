@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#1a201e">
+<title>PHASE: Rugby Manager</title>
+<meta name="description" content="Take a club from the bottom to the top. A deep, offline rugby union manager for iPhone and Android, with over a hundred clubs across eight competitions.">
+<link rel="canonical" href="https://phaserugbymanager.com/">
+<link rel="icon" href="./img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./img/icon-180.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PHASE: Rugby Manager">
+<meta property="og:title" content="PHASE: Rugby Manager">
+<meta property="og:description" content="Take a club from the bottom to the top. A deep, offline rugby union manager.">
+<meta property="og:url" content="https://phaserugbymanager.com/">
+<meta property="og:image" content="https://phaserugbymanager.com/img/hero.webp">
+<meta name="twitter:card" content="summary_large_image">
+
+<!--
+  The landing page, and NOT the game.
+
+  phaserugbymanager.com used to open straight into the game. That was fine when
+  the game only existed on the web; it stopped being fine the moment there were
+  two paid apps to send people to, because the browser build carries no adverts
+  and no shop and therefore earns nothing. Owner, 9 Sep 2026: "my website
+  homepage is currently the game - I just want it to be a landing page."
+
+  So the root is this page and the game moved to /play/. Three things had to
+  survive that move and all three did:
+
+    * /privacy.html - the URL given to BOTH Apple and Google on the live
+      listings. Moving it would have broken a submitted store field, which is
+      the sort of thing nobody notices until a review comes back.
+    * /google59479af58f8cd344.html - Search Console ownership. It verifies the
+      root, so it has to stay at the root.
+    * every save ever made - localStorage is keyed by ORIGIN, not by path, so a
+      career started at / is still there at /play/. Nobody loses anything, they
+      just click Play first.
+
+  This file is deliberately standalone: no build step, no framework, no external
+  request of any kind. It is copied to the site root by .github/workflows/pages.yml
+  and the game is copied to /play/. Keep it that way - a landing page that needs
+  the app's toolchain to render is a landing page that breaks when the app does.
+
+  The palette is a frozen copy of the night tokens in src/ui/tokens.css. It
+  cannot read that file (no build step), so scripts/landingprobe.ts asserts the
+  two stay in step.
+-->
+<style>
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./space-grotesk-latin.woff2') format('woff2');
+}
+
+:root {
+  --canvas: #1a201e;
+  --surface-1: #242b29;
+  --surface-2: #2e3634;
+  --border: #333c3a;
+  --border-strong: #4a5553;
+  --text-primary: #f0f4f2;
+  --text-secondary: #b3bdb9;
+  --text-muted: #8b958f;
+  --primary: #34c06f;
+  --primary-hover: #4ed88c;
+  --on-primary: #070d0a;
+  --gold: #e9be68;
+  --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--canvas);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+a { color: var(--primary); }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------------- hero ---------------- */
+.hero {
+  position: relative;
+  padding: clamp(56px, 12vw, 110px) 0 clamp(40px, 8vw, 72px);
+  text-align: center;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom,
+      rgba(8, 12, 10, 0.58) 0%,
+      rgba(8, 12, 10, 0.46) 40%,
+      rgba(8, 12, 10, 0.86) 82%,
+      var(--canvas) 100%),
+    url('./img/hero.webp') center center / cover no-repeat;
+  z-index: 0;
+}
+.hero > * { position: relative; z-index: 1; }
+
+.mark { width: 84px; height: 84px; margin: 0 auto 18px; }
+h1 {
+  font-size: clamp(34px, 8vw, 62px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+h1 .brand { color: var(--primary); display: block; }
+.tagline {
+  margin-top: 10px;
+  font-size: clamp(11px, 2.4vw, 14px);
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.pitch {
+  margin: 22px auto 0;
+  max-width: 34ch;
+  font-size: clamp(17px, 2.6vw, 20px);
+  color: var(--text-primary);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* ---------------- store buttons ---------------- */
+.stores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+}
+.store {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 232px;
+  padding: 13px 22px;
+  border-radius: 12px;
+  text-decoration: none;
+  text-align: left;
+  border: 1px solid transparent;
+}
+.store svg { width: 26px; height: 26px; flex: none; }
+.store .l1 { display: block; font-size: 11px; letter-spacing: 1.1px; text-transform: uppercase; opacity: 0.75; }
+.store .l2 { display: block; font-size: 17px; font-weight: 700; line-height: 1.15; }
+
+.store.live { background: var(--primary); color: var(--on-primary); box-shadow: inset 0 1px rgba(255,255,255,0.45); }
+.store.live:hover { background: var(--primary-hover); }
+.store.soon {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
+  cursor: default;
+}
+
+.freeline {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------------- sections ---------------- */
+section { padding: clamp(48px, 9vw, 88px) 0; }
+h2 {
+  font-size: clamp(24px, 4.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  margin-bottom: 10px;
+}
+.sub { color: var(--text-secondary); max-width: 58ch; }
+
+/* screenshots */
+.shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+  margin-top: 34px;
+}
+.shot {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface-1);
+}
+.shot img { width: 100%; height: auto; }
+.shot figcaption {
+  padding: 11px 14px 13px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+}
+
+/* features */
+.feats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 16px;
+  margin-top: 34px;
+}
+.feat {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 20px 22px;
+}
+.feat h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.feat p { color: var(--text-secondary); font-size: 15px; }
+
+/* the browser strip, deliberately quieter than the stores above */
+.browser {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+}
+.browser .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+.browser h2 { font-size: clamp(19px, 3vw, 23px); margin-bottom: 4px; }
+.browser p { color: var(--text-muted); font-size: 14px; max-width: 52ch; }
+.ghost {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ghost:hover { background: var(--primary); color: var(--on-primary); }
+
+footer {
+  padding: 40px 0 56px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; justify-content: space-between; }
+footer nav { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+footer a { color: var(--text-secondary); text-decoration: none; }
+footer a:hover { color: var(--primary); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img class="mark" src="./img/icon.svg" alt="" width="84" height="84">
+  <h1><span class="brand">PHASE</span>Rugby Manager</h1>
+  <p class="tagline">Stories, seasons &amp; silverware</p>
+  <p class="pitch">Take a club from the bottom to the top. A deep rugby union manager that works with the aeroplane mode on.</p>
+
+  <div class="stores">
+    <a class="store live" href="https://play.google.com/store/apps/details?id=com.phaserugbymanager.app">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8a1.4 1.4 0 0 0-.5 1.1v18.2c0 .45.18.85.5 1.1l10-10.2-10-10.2Zm11.1 9.1 2.9-3-9.5-5.4 6.6 8.4Zm0 2.2-6.6 8.4 9.5-5.4-2.9-3Zm4.3-2.2-2.4-1.4-3 3.1 3 3.1 2.4-1.4c.9-.5.9-2.4 0-2.9v-.5Z"/></svg>
+      <span><span class="l1">Get it on</span><span class="l2">Google Play</span></span>
+    </a>
+    <span class="store soon" aria-disabled="true">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.4ZM14.3 6c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg>
+      <span><span class="l1">Coming soon to</span><span class="l2">the App Store</span></span>
+    </span>
+  </div>
+  <p class="freeline">Free to play. No advert to start a career, and no timer telling you to come back tomorrow.</p>
+</header>
+
+<main>
+  <section class="wrap">
+    <h2>A career worth the chase</h2>
+    <p class="sub">Over a hundred clubs across eight competitions, from the English top flight to Japan, with second tiers, a continental cup, playoffs and promotion underneath them. Men's and women's games, each with their own clubs, competitions and challenges.</p>
+
+    <div class="shots" id="shots">
+      <figure class="shot">
+        <img src="./img/shot-team.webp" alt="The team sheet: a squad table with positions, ratings and fitness." width="540" height="1170" loading="lazy">
+        <figcaption>Name a side. Live with it.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="./img/shot-match.webp" alt="A finished match: the full-time score, the scorers and the match statistics." width="540" height="1170" loading="lazy">
+        <figcaption>Eighty minutes, then the verdict.</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="./img/shot-home.webp" alt="The club home screen: fixtures, news and the week ahead." width="540" height="1170" loading="lazy">
+        <figcaption>A week at a time, for fifteen seasons.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-top:0">
+    <div class="feats">
+      <div class="feat">
+        <h3>Offline</h3>
+        <p>The whole game runs on the phone. No account, no connection, no server that can go away and take your career with it.</p>
+      </div>
+      <div class="feat">
+        <h3>Six languages</h3>
+        <p>English, French, Spanish, Italian, Japanese and Afrikaans, including the commentary and the press room.</p>
+      </div>
+      <div class="feat">
+        <h3>The press are watching</h3>
+        <p>Answer for a run of defeats, a dropped captain or a signing who cannot settle. What you say reaches the dressing room.</p>
+      </div>
+      <div class="feat">
+        <h3>It remembers</h3>
+        <p>Season fifteen knows what you did in season one: the trophies, the promotions, the sackings and the players you brought through.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="browser">
+  <div class="wrap">
+    <div>
+      <h2>Rather not install anything?</h2>
+      <p>The full game runs in this browser, free. Careers you started here stay here, on this device.</p>
+    </div>
+    <a class="ghost" href="./play/">Play in your browser</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>PHASE: Rugby Manager</span>
+    <nav>
+      <a href="./privacy.html">Privacy</a>
+      <a href="mailto:phaserugbymanager@gmail.com">Contact</a>
+      <a href="./play/">Play</a>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
