@@ -205,11 +205,15 @@ echo
 echo "ON A MAC, from this folder:"
 echo "  npx cap open ios"
 echo
-echo "then, in Xcode, three things (README.md section 5 has the detail):"
+echo "then, in Xcode, two things (README.md section 5 has the detail):"
 echo "  1. Signing & Capabilities > Team, and check the bundle id above"
-echo "  2. Signing & Capabilities > + Capability > In-App Purchase"
-echo "  3. Product > Scheme > Edit Scheme > Run > Options >"
+echo "  2. Product > Scheme > Edit Scheme > Run > Options >"
 echo "     StoreKit Configuration = Products.storekit  (to test purchases)"
+echo
+echo "there is NO In-App Purchase capability to add, whatever older notes say:"
+echo "it is on by default for an explicit App ID and the picker does not list"
+echo "it. If the capability list looks short and ends in \"N Capabilities"
+echo "Unavailable\", that is an unset Team, not a missing entitlement."
 echo
 echo "the file drag and the bridging-header setting are NO LONGER manual steps:"
 echo "install-billing.mjs put both into the project above. If the shop is still"

@@ -199,20 +199,30 @@ App/App-Bridging-Header.h
 > file not found"*, which looks like a missing dependency and is nothing of the
 > kind.
 
-### 9. Turn on In-App Purchase
+### 9. Set the Team (and do NOT go looking for In-App Purchase)
+
+**This step used to say "click + Capability, type `in-app`, double-click In-App
+Purchase". Do not. It is not there, and it does not need to be.** Xcode's
+capability picker has no In-App Purchase entry, because In-App Purchase is
+enabled by default on an **explicit** App ID — `com.phaserugbymanager.app` is
+one — and there is no `com.apple.developer.in-app-purchase` entitlement for a
+target to carry. Wildcard App IDs are what it is off for, and this app has never
+had one. If you hunt for it and cannot find it, nothing is wrong.
+
+What this tab is actually for:
 
 1. Same place — blue **App** → **TARGETS → App**.
 2. Click the **Signing & Capabilities** tab.
-3. Click **+ Capability** (top left of that panel).
-4. A window of capabilities opens. Type `in-app` and double-click
-   **In-App Purchase**. The window closes and it appears in the list.
+3. Tick *Automatically manage signing* and pick a **Team**.
+4. If the Team dropdown is empty, add your Apple ID: **Xcode → Settings** (⌘,)
+   → **Accounts** → **+** → *Apple ID*. A personal Apple ID is fine for the
+   simulator; swap it for the real team when enrolment comes through.
 
-While you are on this tab you may see a red signing complaint. **For the
-simulator it does not matter.** If you want it gone, tick *Automatically manage
-signing* and pick a **Team**. If the Team dropdown is empty, add your Apple ID:
-**Xcode → Settings** (⌘,) → **Accounts** → **+** → *Apple ID*. Your personal
-Apple ID is fine for now; swap it for the real team when enrolment comes
-through.
+> **Where this bites.** If the capability list looks suspiciously short and ends
+> in a line like *"8 Capabilities Unavailable"*, that is the Team being unset,
+> not an entitlement being missing. Xcode cannot say what a team may use until
+> it knows which team. A red signing complaint on this tab does not matter for
+> the simulator.
 
 ### 10. Point the scheme at the test products
 
