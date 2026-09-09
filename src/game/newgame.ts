@@ -79,7 +79,10 @@ export const CHALLENGES: Challenge[] = [
   // The research and what could and could not be verified is in
   // docs/womens-challenges.md.
   {
-    id: 'threepeat', clubId: W + 'bristol', gender: 'w',
+    // Saracens rather than Bristol (owner, this release): the three-peat is a
+    // Gloucester story, and the club with the history of stopping people is the
+    // one worth handing it to.
+    id: 'threepeat', clubId: W + 'saracens', gender: 'w',
     title: 'challenges.threepeat', desc: 'challenges.threepeatDesc',
   },
   {
@@ -764,11 +767,27 @@ function fanReaction(state: GameState, managerName: string, rng: () => number): 
   const hopefuls = ['news.fanHopeful1', 'news.fanHopeful2', 'news.fanHopeful3']
   const patient = ['news.fanPatient1', 'news.fanPatient2', 'news.fanPatient3']
   const pick = (xs: string[]) => xs[Math.floor(rng() * xs.length)]
+  // TWICE FROM THE SAME HAT PRINTS THE SAME QUOTE.
+  //
+  // The low-reputation branch below draws two hopefuls, and those two are the
+  // only voices printed. Two independent draws from a three-item array collide
+  // one time in three, so one career in three opened with a terrace saying
+  // "Fresh ideas, finally" twice in a row - reported from a real save at
+  // Loughborough Town, which is exactly this branch.
+  //
+  // pickBut still spends EXACTLY ONE rng() call, so the stream length is
+  // untouched and every fixture id in the world stays where it was. That
+  // constraint is why this is a second helper rather than a loop.
+  const pickBut = (xs: string[], not: string) => {
+    const pool = xs.filter(x => x !== not)
+    return pool[Math.floor(rng() * pool.length)]
+  }
+  const firstHopeful = big || mood >= 62 ? '' : pick(hopefuls)
   const voiceKeys = big
     ? [pick(sceptics), pick(patient), pick(hopefuls)]
     : mood >= 62
       ? [pick(hopefuls), pick(patient), pick(sceptics)]
-      : [pick(hopefuls), pick(hopefuls), pick(patient)]
+      : [firstHopeful, pickBut(hopefuls, firstHopeful), pick(patient)]
   const voices = voiceKeys.map(k => tIn('en', k))
   const headKey = big ? 'news.fanHeadBig' : mid ? 'news.fanHeadMid' : 'news.fanHeadSmall'
   const openKey = big ? 'news.fanOpenBig' : mid ? 'news.fanOpenMid' : 'news.fanOpenSmall'

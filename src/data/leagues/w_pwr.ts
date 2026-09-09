@@ -36,7 +36,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'glosharty', name: 'Gloucester RFC', short: 'Gloucester',
     city: 'Gloucester', country: 'ENG',
     stadium: 'Gillmore’s Ground', capacity: 3000,
-    colors: ['#8b1a2b', '#ffffff'],
+    colors: ['#8b0d32', '#ffffff'],
     rep: 88, budget: 380000,
     // 35 players from the sheet; 11 carry a stated position and union
     players: [
@@ -81,7 +81,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'saracens', name: 'Sarries RFC', short: 'Sarries',
     city: 'London', country: 'ENG',
     stadium: 'Hendon Park', capacity: 5000,
-    colors: ['#0e0e0e', '#c02f3a'],
+    colors: ['#000000', '#141414'],
     rep: 87, budget: 375000,
     // 50 players from the sheet; 11 carry a stated position and union
     players: [
@@ -141,7 +141,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'bristol', name: 'Bristol RFC', short: 'Bristol',
     city: 'Bristol', country: 'ENG',
     stadium: 'Shaftsbury Park', capacity: 2000,
-    colors: ['#0a2240', '#c02f3a'],
+    colors: ['#0a2240', '#ffffff'],
     rep: 80, budget: 300000,
     // 38 players from the sheet; 9 carry a stated position and union
     players: [
@@ -189,7 +189,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'quins', name: 'Quins Rugby', short: 'Quins',
     city: 'London', country: 'ENG',
     stadium: 'Little Twickenham', capacity: 5500,
-    colors: ['#c70750', '#80bfea'],
+    colors: ['#006747', '#b7228f'],
     rep: 79, budget: 295000,
     // 44 players from the sheet; 13 carry a stated position and union
     players: [
@@ -289,7 +289,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'exeter', name: 'Exeter RFC', short: 'Exeter',
     city: 'Exeter', country: 'ENG',
     stadium: 'Beachy Park', capacity: 3500,
-    colors: ['#0e0e0e', '#ffffff'],
+    colors: ['#000000', '#ffffff'],
     rep: 74, budget: 255000,
     // 44 players from the sheet; 10 carry a stated position and union
     players: [
@@ -390,7 +390,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'leicester', name: 'Leicester RFC', short: 'Leicester',
     city: 'Leicester', country: 'ENG',
     stadium: 'Welford Street', capacity: 4000,
-    colors: ['#0b4433', '#ab1d2d'],
+    colors: ['#00563f', '#c8102e'],
     rep: 67, budget: 200000,
     // 45 players from the sheet; 6 carry a stated position and union
     players: [
@@ -445,7 +445,7 @@ export const W_PWR: RawClub[] = [
     id: W + 'sale', name: 'Sale RFC', short: 'Sale',
     city: 'Sale', country: 'ENG',
     stadium: 'Heywood Road', capacity: 2500,
-    colors: ['#12295c', '#ffffff'],
+    colors: ['#001a4d', '#ff6a13'],
     rep: 63, budget: 180000,
     // 46 players from the sheet; 13 carry a stated position and union
     players: [

@@ -230,5 +230,30 @@ ok(dashes.length === 0, 'no em dashes in the advice')
   }
 }
 
+// ---- A JOB YOU DO IS NOT GRADED ON SILENCE ----
+//
+// "using the bench" only complains under conditions of its own, so a match
+// where those conditions never arose used to read as a match where the manager
+// had gone to his bench. Reported from a real save: "I didn't make any subs and
+// it said I completed my goal." Every other tag is an outcome and silence IS
+// the evidence; this one needs a witness, and the witness is ctx.subsUsed.
+{
+  const noSubs = gradeFixes(['fitness', 'kicking'], [], { fitness: false })
+  ok(!noSubs.fixed.includes('fitness'),
+    'the bench job is NOT done when no substitution was made, however quiet the complaint')
+  ok(noSubs.missed.includes('fitness'),
+    'and it stays on the homework list instead of vanishing')
+  ok(noSubs.fixed.includes('kicking'),
+    'while an OUTCOME job beside it still grades on the complaint alone')
+
+  const withSubs = gradeFixes(['fitness'], [], { fitness: true })
+  ok(withSubs.fixed.includes('fitness'), 'a manager who did use his bench gets the credit')
+
+  // absence of evidence is not evidence: an omitted flag must not pass
+  const noEvidence = gradeFixes(['fitness'], [])
+  ok(!noEvidence.fixed.includes('fitness'),
+    'and a caller that forgets to say gets the safe answer, not the flattering one')
+}
+
 if (fails) { console.error(`\nFIX PROBE: ${fails} failures`); process.exit(1) }
 console.log('\nFIX PROBE PASSED: two jobs named, and the next verdict marks them')

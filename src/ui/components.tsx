@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
-import { KIT_HOOPS } from '../data/kittrim'
+import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
@@ -403,7 +403,9 @@ export function Jersey({ club, size = 44 }: { club: CrestClub; size?: number }) 
   // from the shoulders at 8 to the hem at 30, and its hoops are laid between 10
   // and 28 so the top one clears the collar and the bottom one stays on the
   // shirt.
-  const hoopYs = KIT_HOOPS[club.id]
+  // kitHoops(), not the raw table: a women's club has to resolve to its men's
+  // twin here too, or Bath's hoops draw in the men's game and not the women's.
+  const hoopYs = hasHoopRow(club.id)
     ? Array.from({ length: hoops.n }, (_, i) =>
         Math.round((10 + (18 - hoops.h) * i / Math.max(1, hoops.n - 1)) * 10) / 10)
     : [12, 20, 28]
