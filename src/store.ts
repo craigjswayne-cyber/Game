@@ -9,6 +9,14 @@ import { noteScreen } from './game/bugreport'
  *  unstyled app, so scripts/skinprobe.ts checks the two lists agree. */
 export const SKINS = ['default', 'midnight', 'heritage', 'stealth'] as const
 export type Skin = typeof SKINS[number]
+const MGR_GENDER_KEY = 'rm-mgr-gender'
+/** The last pronoun this device chose, and 'm' for a device that has never
+ *  been asked - which is every save from before v1.5.1 and every fresh
+ *  install. */
+function readMgrGender(): Gender {
+  try { return localStorage.getItem(MGR_GENDER_KEY) === 'w' ? 'w' : 'm' } catch { return 'm' }
+}
+
 const SKIN_KEY = 'rm-skin'
 function readSkin(): Skin {
   try {
@@ -56,7 +64,7 @@ export const PRO_PLANS = 6
 export function planSlots(): number { return proLocked() ? FREE_PLANS : PRO_PLANS }
 /** What the app actually wears, as opposed to what was chosen. */
 export function effectiveSkin(chosen: Skin): Skin { return skinLocked(chosen) ? FREE_SKIN : chosen }
-import { getLang, initLang, onLangChange, setLang as applyLang, t, type Lang } from './game/i18n'
+import { getLang, initLang, onLangChange, setLang as applyLang, setManagerGender, setWorld, t, type Lang } from './game/i18n'
 import { hasSupporter, tillOpen } from './game/monetise'
 import { applyCharter, applyEstate, applyHeal, applyInjection, applyPinnacle, type InjectTier } from './game/grants'
 import { agencyFile, armAnalyst, physioFavour, townCollection } from './game/rewarded'
@@ -64,12 +72,13 @@ import { dreamState, dreamsFor } from './game/dream'
 import type { GameState, MatchEvent, Fixture, MgrOrigin } from './game/model'
 import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
+import { genderOf, type Gender } from './game/gender'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
 } from './game/matchEngine'
-import { applyForJob, resignJob } from './game/jobs'
+import { applyForJob, resignJob, answerJobOffer } from './game/jobs'
 import { answerPress } from './game/media'
 import { deskBlock, deskGates, firstStepOfWeek, inInbox, markRead, matchDayIndex, nextStep, pressBlock } from './game/days'
 import { natSquadHold } from './game/country'
@@ -152,6 +161,11 @@ interface Store {
    *  type ignoring the OS text-size slider (release audit, Part 2.3). */
   textScale: number
   setTextScale: (v: number) => void
+  /** He or she, in every line the press, the fans and the board write about the
+   *  manager. Kept in the save (GameState.mgrGender) because it belongs to the
+   *  person rather than the phone, and mirrored to the device so the next
+   *  career starts as the last one ended rather than back at 'he'. */
+  setMgrGender: (g: Gender) => void
   /** The interface language. It lives in the store as well as in i18n.ts for
    *  one reason: t() is a plain function, so nothing would re-render when the
    *  dictionary underneath it changed. App reads this field, so switching
@@ -207,7 +221,13 @@ interface Store {
    *  continueWeek and TAP_GUARD_MS. */
   lastAdvanceAt: number
 
-  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty) => void
+  start: (clubId: string, managerName: string, challengeId?: string, origin?: MgrOrigin, difficulty?: Difficulty, gender?: Gender, mgrGender?: Gender) => void
+  /** Which game the NEXT new career is in, chosen on the menu before the wizard
+   *  opens. Not part of a save - the save carries its own gender - just the
+   *  answer to "which game" travelling from the menu to the first screen of the
+   *  wizard, which is where the club list has to know. */
+  newGender: Gender
+  setNewGender: (g: Gender) => void
   /** A board injection bought at the till lands in this career (grants.ts).
    *  Returns false when the seasonal limit refuses it - the caller must then
    *  NOT consume the purchase, so the recovery pass keeps it. */
@@ -266,6 +286,8 @@ interface Store {
   resumeLiveMatch: () => Promise<boolean>
   startSecondHalf: () => void
   applyJob: (clubId: string) => string
+  /** Yes or no to the club that has offered you the job. */
+  answerJobOffer: (accept: boolean) => string
   /** Say no to a vacancy so it stops asking. Pass false to undo it. */
   passJob: (clubId: string, passed?: boolean) => void
   resign: () => void
@@ -452,6 +474,25 @@ export const useStore = create<Store>((set, get) => ({
     try { localStorage.setItem(SKIN_KEY, skin) } catch { /* private mode */ }
     set({ skin })
   },
+
+  // WRITTEN IN TWO PLACES, deliberately. The save owns it - it is a fact about
+  // the manager and it travels with the career to another phone - and the
+  // device remembers the last answer so a second career does not open as a man
+  // again. i18n.ts is told directly rather than through the subscription above,
+  // which only fires when the game OBJECT changes; this mutates the one that is
+  // already open.
+  setMgrGender: (g: Gender) => {
+    try { localStorage.setItem(MGR_GENDER_KEY, g) } catch { /* private mode */ }
+    const game = get().game
+    if (game) game.mgrGender = g
+    setManagerGender(g)
+    set(st => ({ tick: st.tick + 1 }))
+    // WRITTEN THROUGH, not left for the next week to carry. A career resumed
+    // after a reload comes off the last save on disk, so a pronoun changed on
+    // a Tuesday and never followed by an autosave came back as it was
+    // (scripts/mgrgender.mjs, section 4).
+    if (game) void get().persist()
+  },
   toggleNight: () => set(s => {
     const night = !s.night
     try { localStorage.setItem('rm-night', night ? '1' : '0') } catch { /* private mode */ }
@@ -555,9 +596,12 @@ export const useStore = create<Store>((set, get) => ({
     return { inboxId: left.length ? left.sort((a, b) => b.id - a.id)[0].id : null, tick: s.tick + 1 }
   }),
 
-  start: (clubId, managerName, challengeId, origin, difficulty) => {
+  newGender: 'm',
+  setNewGender: (g) => set({ newGender: g }),
+
+  start: (clubId, managerName, challengeId, origin, difficulty, gender, mgrGender) => {
     const seed = (Math.random() * 2 ** 31) | 0
-    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty)
+    const g = newGame(clubId, managerName, seed, challengeId, origin, difficulty, gender ?? get().newGender, mgrGender ?? readMgrGender())
     // the Manager's License, chosen at creation and never after: the wizard
     // only offers the toggle to an owner, and this re-checks the receipt so
     // nothing else can set the flag (grantprobe holds that it never sets
@@ -1066,7 +1110,10 @@ export const useStore = create<Store>((set, get) => ({
     while (ctx.events.length <= cursor && r === 'play' && !ctx.decision) {
       r = stepTick(game, ctx)
     }
-    if (r === 'FT') settleKnockout(game, ctx)
+    // NOT WHILE A KICK IS STILL IN THE MANAGER'S HANDS. A cup tie level at
+    // the whistle with a kickable penalty pending is not a draw yet: decide()
+    // settles it once the answer is in (releaseaudit.ts, 1.2b).
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
     if (ctx.events.length > cursor) cursor += 1
     set(s => s.liveMatch ? { liveMatch: { ...s.liveMatch, cursor }, tick: s.tick + 1 } : {})
     // where the match has got to, so a reload comes back to the same minute
@@ -1092,7 +1139,7 @@ export const useStore = create<Store>((set, get) => ({
       if (ctx.decision) { noted('posts'); resolveDecision(game, ctx, 'posts') }
       if (r !== 'play') break
     }
-    if (r === 'FT') settleKnockout(game, ctx)
+    if (r === 'FT' && !ctx.decision) settleKnockout(game, ctx)
     set(s => s.liveMatch ? {
       liveMatch: { ...s.liveMatch, cursor: ctx.events.length, playing: false, done: ctx.seg === 3, skipTook: took },
       tick: s.tick + 1,
@@ -1106,6 +1153,8 @@ export const useStore = create<Store>((set, get) => ({
     if (!game || !liveMatch || !liveMatch.ctx.decision) return ''
     get().noteCmd({ kind: 'decide', choice })
     const msg = resolveDecision(game, liveMatch.ctx, choice)
+    // the last kick of the match has been taken: a tie can now be settled
+    if (liveMatch.ctx.seg === 3) settleKnockout(game, liveMatch.ctx)
     set(s => s.liveMatch ? {
       liveMatch: { ...s.liveMatch, playing: true },
       tick: s.tick + 1,
@@ -1343,6 +1392,15 @@ export const useStore = create<Store>((set, get) => ({
     return amt
   },
 
+  answerJobOffer: (accept) => {
+    const g = get().game
+    if (!g) return 'No game.'
+    const msg = answerJobOffer(g, accept)
+    set(s => ({ tick: s.tick + 1 }))
+    void get().persist()
+    return msg
+  },
+
   applyJob: (clubId) => {
     const g = get().game
     if (!g) return 'No game.'
@@ -1447,6 +1505,18 @@ export const useStore = create<Store>((set, get) => ({
 // re-renders on a change. The subscription, not setLang, is what moves the
 // mirror: a lazily-fetched dictionary commits whenever its chunk arrives.
 onLangChange(() => useStore.setState({ lang: getLang() }))
+
+// THE WORLD FOLLOWS THE CAREER. i18n picks a feminine string in a women's save
+// and the plain one otherwise, and it learns which from here rather than from
+// the game object, because it is a leaf module the whole engine imports and
+// must not import the store back. Subscribed rather than set at each of the
+// five places a game is opened, so a sixth cannot forget.
+useStore.subscribe((s, prev) => {
+  if (s.game !== prev.game) {
+    setWorld(s.game ? genderOf(s.game) : 'm')
+    setManagerGender(s.game?.mgrGender === 'w' ? 'w' : 'm')
+  }
+})
 
 // Browser probes stage the states a natural walk cannot reach on demand - an
 // injured starter on match morning, a specific inbox backlog - through this

@@ -1,8 +1,9 @@
 import type { Club, FacilityId, GameState } from './model'
-import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, emptyStats, finalVenue, initFacilities } from './model'
+import { ATTR_KEYS, FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, WEEK_BASIS, emptyStats, finalVenue, initFacilities } from './model'
 import { ensureCaptains } from './analysis'
 import { buildPlayer, deriveCaps, deriveHist, deriveTrait, resetIds , playerWage } from './attributes'
 import { LEAGUE_DEFS, seedExClubs } from './newgame'
+import { genderOf, staffGender, type Gender } from './gender'
 import { autoSelect } from './matchEngine'
 import { NATIONS, regenName, worldNames } from './nations'
 import { rebuildTable } from './season'
@@ -111,7 +112,77 @@ export async function clearResume(slot: string): Promise<void> {
 }
 
 /** Backfill fields added since a save was written. */
+/**
+ * ---- REBASING EVERY ABSOLUTE-WEEK STAMP ----
+ *
+ * Until v1.5.1 a stamp was `season * 45 + week`, because 45 was the season
+ * length. The season is now 48, so a save written before the change holds
+ * stamps on the old multiplier, and read on the new one every one of them is
+ * wrong by three weeks per season elapsed: a loan due back in season 2 week 10
+ * would read as season 2 week 7, a contract clock would jump, a disciplinary
+ * incident would come back into range.
+ *
+ * WEEK_BASIS is now 100 and fixed for good, so this runs once per save and
+ * never again. The conversion is exact - old / 45 is the season, old % 45 is
+ * the week - because both are integers and week is always 1..45 in an old save.
+ *
+ * THE LIST IS THE DANGEROUS PART, not the arithmetic. A field left out of it
+ * keeps its old basis and drifts silently, which is the sort of bug that shows
+ * up as "my loanee never came home" three seasons later. It was built by
+ * grepping every write of `season * SEASON_WEEKS + week` in the engine rather
+ * than from memory, and scripts/basisprobe.ts holds it: it builds a save on the
+ * old basis, migrates it, and checks that every stamp still sits the same number
+ * of weeks from today as it did before.
+ */
+const OLD_BASIS = 45
+
+function rebase(v: unknown): number | undefined {
+  if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) return undefined
+  return Math.floor(v / OLD_BASIS) * WEEK_BASIS + (v % OLD_BASIS)
+}
+
+function rebaseStamps(s: GameState): void {
+  const num = (x: unknown) => typeof x === 'number' && Number.isFinite(x)
+  for (const p of Object.values(s.players ?? {})) {
+    const q = p as unknown as Record<string, unknown>
+    for (const f of ['joinedAt', 'loanSince', 'loanUntil', 'lastChatWk', 'retakeAt']) {
+      if (num(q[f])) q[f] = rebase(q[f])
+    }
+    // MATERNITY WAS NEVER ON EITHER BASIS. It shipped storing a within-season
+    // week, so a leave running past the end of a season could never come due and
+    // the player stayed away for good. There is no arithmetic that rescues that
+    // number, because the season it was granted in is not recorded: the honest
+    // repair is to end the leave now and give her back to her club, which is
+    // what the code would have done at the right time if it had worked.
+    if (q.maternity && typeof q.maternity === 'object') {
+      const m = q.maternity as { until?: number; from?: number }
+      if (num(m.until) && (m.until as number) <= OLD_BASIS) q.maternity = undefined
+    }
+  }
+  for (const c of Object.values(s.clubs ?? {})) {
+    const q = c as unknown as Record<string, unknown>
+    if (num(q.debtSince)) q.debtSince = rebase(q.debtSince)
+  }
+  const g = s as unknown as Record<string, unknown>
+  for (const f of ['groundsAt', 'lawWatchAt', 'challengeAt', 'chatWk', 'natAskAt',
+                   'natCoachAskAt', 'courtedAt', 'natCall']) {
+    if (num(g[f])) g[f] = rebase(g[f])
+  }
+  // NOT the discipline ledger: an incident stores its season and its week as two
+  // separate fields and rebuilds the absolute week when it is read, so it was
+  // never on the old basis and must not be touched.
+}
+
 export function migrate(s: GameState): GameState {
+  // ---- the week basis, before anything reads a stamp ----
+  // Runs once in the life of a save and is marked done, so a career loaded
+  // twice is not rebased twice - which would push every date out by a further
+  // three weeks a season and be far worse than never rebasing at all.
+  if ((s.basis ?? 45) !== WEEK_BASIS) {
+    rebaseStamps(s)
+    s.basis = WEEK_BASIS
+  }
+
   // ---- the collections the game reads without asking whether they are there ----
   //
   // A save written by an older build is simply missing the fields that build had
@@ -208,7 +279,9 @@ export function migrate(s: GameState): GameState {
     ['European Challenge Cup', 'Continental Shield'],
     ['The Rugby Championship', 'The Southern Championship'],
     ['Pacific Nations Cup', 'Pacific Islands Cup'],
-    ['British & Irish Lions', 'Northern Lions'],
+    ['British & Irish Lions', 'British & Irish Isles XV'],
+    ['British and Irish Lions', 'British & Irish Isles XV'],
+    ['Northern Lions', 'British & Irish Isles XV'],
     ['National League One', 'English National One'],
     ['Japan League One', 'Japan Division One'],
     ['Rugby World Cup', 'World Championship'],
@@ -512,6 +585,28 @@ export function migrate(s: GameState): GameState {
   s.vowedAt ??= 0
   s.agency ??= { seniors: [], kids: [], best: {} }
   for (const c of Object.values(s.clubs)) { c.captain ??= null; c.vice ??= null; c.legends ??= []; c.marquee ??= []; c.tactic.roles ??= []; if (c.id !== s.userClubId) c.coach ??= 'The Head Coach' }
+  /**
+   * WHO THE STAFF ARE, on a save written before the game asked.
+   *
+   * v1.5.0 already drew a coin for every coach and staff member in a women's
+   * world - it just spent it on the NAME and threw it away (gender.ts
+   * staffGender). Those saves therefore hold a squad of Sarahs and Niamhs
+   * that every story calls "he", which is worse than either answer on its own.
+   *
+   * The original coin cannot be recovered: it came out of an rng stream that
+   * has moved on. So this draws a fresh one, per person, from the save's seed
+   * and the person's own name - stable for that person for ever, and drawn the
+   * same way if the save is loaded twice. A men's world gets 'm' for everyone,
+   * which is what staffGender says and what it always was.
+   */
+  const world = genderOf(s)
+  const coinFor = (name: string): Gender =>
+    staffGender(mulberry32((s.seed ^ hashString(name)) >>> 0), world)
+  for (const c of Object.values(s.clubs)) {
+    if (c.id !== s.userClubId && c.coach) c.coachGender ??= coinFor(c.coach)
+  }
+  for (const p of Object.values(s.staffPeople ?? {})) if (p) p.g ??= coinFor(p.name)
+  s.analystGender ??= coinFor('the analyst')
   const PERS = ['Professional', 'Loyal', 'Ambitious', 'Mercenary', 'Temperamental', 'Leader'] as const
   for (const p of Object.values(s.players)) {
     p.pers ??= PERS[p.id % PERS.length]
@@ -545,8 +640,17 @@ export function migrate(s: GameState): GameState {
 
   // leagues added in later builds: inject their clubs & squads so existing
   // careers gain them (fixtures/tables arrive at the next season rebuild)
+  //
+  // GENDER IS LOAD-BEARING HERE. This injects every club of every league the
+  // current build knows about into any save that lacks them, which is exactly
+  // right for a men's career gaining Japan Division One in v1.2 - and would be
+  // catastrophic without the argument, because a women's career loaded by this
+  // build would silently gain all fifty-two men's clubs and their squads.
+  // Nothing downstream would object: they would be clubs in state.clubs like
+  // any other, in leagues the women's world does not have, and the save could
+  // not be repaired afterwards.
   const rng = mulberry32(0xadd1e ^ (s.season * 977 + s.week))
-  for (const def of LEAGUE_DEFS()) {
+  for (const def of LEAGUE_DEFS(genderOf(s))) {
     for (const rc of def.clubs) {
       if (s.clubs[rc.id]) continue
       const club: Club = {
@@ -559,8 +663,10 @@ export function migrate(s: GameState): GameState {
         wageBudget: Math.round(rc.budget * 0.9 + 2_500_000),
         boardConfidence: 70,
         captain: null,
-        coach: regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s)),
+        coachGender: staffGender(rng, genderOf(s)),
+        coach: '',
       }
+      club.coach = regenName(rng, rc.country === 'EUR' ? 'ENG' : rc.country, worldNames(s), club.coachGender)
       for (const rp of rc.players) {
         const p = buildPlayer(rp, club.id, (0xadd1e ^ hashString(rc.id)) + club.players.length * 13, s.season)
         // A HAND-WRITTEN NAME IS A REAL MAN, however he arrives. newGame stamps
@@ -601,7 +707,7 @@ export function migrate(s: GameState): GameState {
         const pos = [...FILL].sort((a, b) => (byPos[a] ?? 0) - (byPos[b] ?? 0))[0]
         const p = buildPlayer(
           {
-            name: regenName(rng, club.country, worldNames(s)), pos, age: 21 + Math.floor(rng() * 9),
+            name: regenName(rng, club.country, worldNames(s), genderOf(s)), pos, age: 21 + Math.floor(rng() * 9),
             nat: club.country, q: Math.max(42, club.rep - 16 + Math.floor(rng() * 10)),
             gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3,
           },

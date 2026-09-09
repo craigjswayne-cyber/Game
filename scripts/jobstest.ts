@@ -2,7 +2,7 @@
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance, userFixtureThisWeek, weekRng } from '../src/game/season'
 import { simMatch } from '../src/game/matchEngine'
-import { applyForJob, jobChance } from '../src/game/jobs'
+import { answerJobOffer, applyForJob, jobChance } from '../src/game/jobs'
 import { mgrReputation } from '../src/game/model'
 
 // This used to set confidence to 4 and hope thirty weeks of Montauban results
@@ -68,10 +68,17 @@ while (!hired && guard++ < 80) {
   for (const v of [...g.vacancies]) {
     if (v.applied) continue
     const msg = applyForJob(g, v.clubId)
-    if (!g.unemployed) {
-      hired = true
-      console.log(`week ${g.week}: ${msg}`)
-      break
+    // v1.5.4: an application that lands produces an OFFER, and the desk does
+    // not move until it is answered. An out-of-work manager in this simulation
+    // says yes to the first club that asks, which is what the walk was always
+    // modelling - the difference is that a real one now gets to say no.
+    if (g.jobOffer) {
+      const reply = answerJobOffer(g, true)
+      if (!g.unemployed) {
+        hired = true
+        console.log(`week ${g.week}: ${msg} -> ${reply}`)
+        break
+      }
     }
   }
 }

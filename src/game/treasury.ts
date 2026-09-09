@@ -24,7 +24,7 @@
 // cash the summer sweep can no longer turn into facilities.
 
 import type { GameState } from './model'
-import { SEASON_WEEKS, fmtMoney, logDecision, operatingCost } from './model'
+import {absWeek, SEASON_WEEKS, fmtMoney, logDecision, operatingCost } from './model'
 import { t, tIn } from './i18n'
 
 export const RELEASE_STEP = 500_000
@@ -168,7 +168,7 @@ const DEBT_BITE = 0.18
 export function debtWeek(state: GameState): void {
   const club = state.clubs[state.userClubId]
   if (!club || state.unemployed) return
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
 
   if (club.balance >= 0) {
     // OUT OF IT. The relief is filed only if there was something to be

@@ -1,4 +1,8 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
+import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
+import { islesCoach, offerIsles } from './isles'
+import { aiCloseSeason } from './closeseason'
+import { talkingPoints } from './talkingpoints'
 import { aiFireSale, aiWeeklyFinance } from './aiecon'
 import { adminPenalty, insolvencyWarning } from './insolvency'
 import { advanceHunt } from './living'
@@ -10,9 +14,9 @@ import { AWARD_EVERY, managerOfMonth, runLine, runVars } from './awards'
 import { boardMemo } from './boardmemo'
 import { terraceWeek } from './terraces'
 import { upkeepWeek } from './upkeep'
-import { addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
+import {absWeek, addGrudge, boardObjective, boardPatience, demandCeiling, FACILITY_INFO, facLevel, facilityCost, finalVenue, fixtureDayOff, fmtMoney, leagueTier, LEDGER_WEEKS, formGuide, grudgeBetween, MAX_FACILITY, mgrReputation, operatingCost, SEASON_WEEKS, seasonLabel, squadTrust, unbeatenRun, weeklyCentral, mgrWinWeight } from './model'
 import { simMatch, autoSelect, teamShort, teamUnits, rosterOf } from './matchEngine'
-import { emptyRow, leaguePos, sortTable, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS } from './schedule'
+import { emptyRow, leaguePos, sortTable, snIdFor, snWeeksFor, AUTUMN_WEEKS, PNC_WEEKS, SIX_NATIONS_WEEKS, TOUR_WEEKS, TRC_WEEKS, WC_KO_WEEKS, W_SIX_NATIONS_WEEKS, W_PAC4_WEEKS } from './schedule'
 import { aiPreContractPoach, aiRenewals, aiTransfers, askingPrice } from './ai'
 import { OFFICE_OUTLET, PRESS_KEEP_WEEKS, generatePress } from './media'
 import { debtWeek } from './treasury'
@@ -24,7 +28,7 @@ import { disciplineWeek } from './authority'
 import { updateAgency } from './agency'
 import { OBJECTIVE_DEFS } from './objectives'
 import { derbyName, isDerby, rivalsOf } from './rivalries'
-import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
+import { NAT_DEPTH, NAT_SQUAD_FLOOR, NAT_SQUAD_SIZE, NAT_TIERS, pickableNations, homeBased, nationByCode, nationNameIn, nationVars, regenName, worldNames } from './nations'
 import { logDecision } from './model'
 import { resolveCourses, staffWageBill } from './staff'
 import { resolveCommission, scoutPostcard } from './commission'
@@ -584,6 +588,23 @@ export function activeWindows(state: GameState): Window[] {
   if (state.comps['sn']) {
     out.push({ start: SIX_NATIONS_WEEKS[0] - 1, end: SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1], nations: ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'], size: NAT_SQUAD_SIZE })
   }
+  // THE WOMEN'S TWO. activeWindows tests for competitions by id, and the
+  // women's carry the w: prefix, so without these no window ever opens in a
+  // women's career: the Test fixtures are played, but no squad is ever named
+  // and no club ever loses a player to a Test. Found by playing a full season
+  // and finding natSquads empty in every week of it.
+  if (state.comps[W + 'sn']) {
+    out.push({
+      start: W_SIX_NATIONS_WEEKS[0] - 1, end: W_SIX_NATIONS_WEEKS[W_SIX_NATIONS_WEEKS.length - 1],
+      nations: state.comps[W + 'sn'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
+  if (state.comps[W + 'p4']) {
+    out.push({
+      start: W_PAC4_WEEKS[0] - 1, end: W_PAC4_WEEKS[W_PAC4_WEEKS.length - 1],
+      nations: state.comps[W + 'p4'].teamIds, size: NAT_SQUAD_SIZE,
+    })
+  }
   if (state.comps['tour']) {
     out.push({ start: TOUR_WEEKS[0] - 1, end: TOUR_WEEKS[TOUR_WEEKS.length - 1], nations: state.comps['tour'].teamIds, size: NAT_SQUAD_SIZE })
   }
@@ -606,8 +627,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         // stand-in gets generated (user: "there should be no age limits or
         // restrictions on who should be picked"). AI nations keep the floor
         // so the wider Test world's squad quality is untouched.
-        const usersNat = nat === state.natTeam ||
-          (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))
+        const usersNat = nat === state.natTeam || (nat === 'LIO' && islesCoach(state))
         // the squad, plus the next men in behind it
         const target = w.size + NAT_DEPTH
         const pool = Object.values(state.players)
@@ -658,7 +678,7 @@ function manageInternationals(state: GameState, rng: Rng) {
             const q = clamp(Math.round(natRep - 26 + rng() * 12), 40, 68)
             const hp = buildPlayer(
               {
-                name: regenName(rng, nat, worldNames(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
+                name: regenName(rng, nat, worldNames(state), genderOf(state)), pos: POS_CYCLE[i % POS_CYCLE.length],
                 age: 22 + Math.floor(rng() * 9), nat, q,
                 gk: (POS_CYCLE[i % POS_CYCLE.length] === 'FH') && rng() < 0.5,
               },
@@ -721,7 +741,7 @@ function manageInternationals(state: GameState, rng: Rng) {
           } else if (p.clubId === state.userClubId) userCalls.push(p)
         }
         // the national coach announces HIS squad - a proper occasion
-        if (nat === state.natTeam || (nat === 'LIO' && state.natTeam != null && HOME4.includes(state.natTeam))) {
+        if (nat === state.natTeam || (nat === 'LIO' && islesCoach(state))) {
           const FWD = ['LP', 'HK', 'TP', 'LK', 'FL', 'N8']
           // the squad sheet is the men who TRAVEL - the pool now runs deeper
           // than the squad, and the next men in are not in the announcement
@@ -752,11 +772,11 @@ function manageInternationals(state: GameState, rng: Rng) {
       }
       if (lionsCalls.length) {
         // the honour of a career deserves better than the generic list
-        const tour = state.comps['lions']?.name ?? 'the Lions tour'
+        const tour = state.comps['lions']?.name ?? 'the Isles tour'
         const names = lionsCalls.map(p => `${p.name}${(p.lions ?? 0) > 1 ? ` (tour number ${p.lions})` : ''}`).join(', ')
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🦁 LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
+          subject: `🔴 LIONS: ${lionsCalls.length === 1 ? lionsCalls[0].name.split(' ').slice(-1)[0] : `${lionsCalls.length} of yours`} make the tour`,
           k: (state.season * 5 + state.week * 3) % 2 === 0 ? 'news.lionsCallA' : 'news.lionsCallB',
           v: {
             n: lionsCalls.length, names, tour,
@@ -817,7 +837,7 @@ function manageInternationals(state: GameState, rng: Rng) {
         delete state.natSquads[nat]
       }
       if (lionsHome.length) {
-        // a Lions tour changes a player: he comes home a bigger presence
+        // a tour changes a player: he comes home a bigger presence
         const comp = state.comps['lions']
         const seriesWon = comp?.champion === 'LIO'
         for (const p of lionsHome) {
@@ -826,20 +846,20 @@ function manageInternationals(state: GameState, rng: Rng) {
         }
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+          subject: `🔴 The tourists come home${seriesWon ? ' as series winners' : ''}`,
           k: seriesWon ? 'news.lionsHomeWon' : 'news.lionsHome',
           v: {
-            tour: comp?.name ?? 'the Lions tour',
+            tour: comp?.name ?? 'the Isles tour',
             names: lionsHome.map(p => p.name).join(', '),
             him_k: lionsHome.length === 1 ? 'news.himOne' : 'news.himMany',
             come_k: lionsHome.length === 1 ? 'news.comesOne' : 'news.comeMany',
           },
           body: [
-            `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+            `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
             seriesWon
               ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
               : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
-            `The medical staff still counsel care: a Lions summer empties the tank like nothing else.`,
+            `The medical staff still counsel care: a tour summer empties the tank like nothing else.`,
           ].join(' '),
           playerId: lionsHome[0].id,
         })
@@ -1010,6 +1030,41 @@ function weeklyTraining(state: GameState, rng: Rng) {
       p.cond = clamp(p.cond + Math.round((((p.rust ?? 0) > 0 ? 16 : 22) + gym) * (isUser ? turnF : 1)), 20, 100)
       p.sharp = clamp(p.sharp - 4, 0, 100)
       if ((p.rust ?? 0) > 0) p.rust = (p.rust ?? 1) - 1
+      // ---- MATERNITY LEAVE: the grant, and the road back ----
+      //
+      // Fenced by mayTakeMaternityLeave, which is where the owner's rule that
+      // this may only touch GENERATED players lives. The rate is deliberately
+      // low: this should be a thing that happens to a handful of squads across
+      // a league in a season, the way it does, not a mechanic the manager is
+      // managing every week.
+      // AN ABSOLUTE WEEK, NOT THIS SEASON'S. This shipped comparing a
+      // within-season week against a within-season week, and a leave of 28 to 40
+      // weeks granted after about week 5 gave an `until` beyond the end of the
+      // season - a number state.week resets past every August and can never
+      // reach again. The player never came back. The maternity probe reported
+      // 106 grants and 30 returns and that gap WAS the bug, not women still away.
+      if (p.maternity && absWeek(state.season, state.week) >= p.maternity.until) {
+        p.maternity = undefined
+        p.cond = 62
+        p.sharp = 30
+        // a long way back: the conditioning track is longer than any injury's
+        p.rust = 4
+      } else if (!p.maternity && mayTakeMaternityLeave(p, genderOf(state)) && rng() < 0.00035) {
+        const wk = MATERNITY_WEEKS[0] + Math.floor(rng() * (MATERNITY_WEEKS[1] - MATERNITY_WEEKS[0] + 1))
+        const nowAbs = absWeek(state.season, state.week)
+        p.maternity = { until: nowAbs + wk, from: nowAbs }
+        // She keeps her place on the roster and her deal; what she does not do
+        // is occupy a shirt while she is away. See autoSelect's filter.
+        if (p.clubId === state.userClubId) {
+          const v = { player: p.name, n: wk }
+          state.news.push({
+            id: state.nextId++, week: state.week, season: state.season, type: 'injury', read: false,
+            subject: tIn('en', 'news.maternitySubj', v),
+            body: tIn('en', 'news.maternity', v),
+            k: 'news.maternity', v,
+          })
+        }
+      }
       if (p.injury && state.week >= p.injury.until) {
         const weeksOut = p.injury.weeks ?? 2
         p.injury = null
@@ -1202,6 +1257,10 @@ export function runSpotlight(state: GameState, fx: Fixture, us: number, them: nu
 
 function weeklyFinance(state: GameState, rng: Rng) {
   const club = state.clubs[state.userClubId]
+  // The last three weeks of a 48-week season are the tour, and the close season
+  // for everybody else. The books do not run - see LEDGER_WEEKS for what
+  // happened to the world economy when they did.
+  if (state.week > LEDGER_WEEKS) return
   // A LOAN COSTS WHAT THE LETTER SAID IT COSTS (audit 16D). The signing news
   // has always promised the parent club "will cover half his wage", and this
   // line charged the full amount anyway. Half for a borrowed man, as promised.
@@ -1221,9 +1280,22 @@ function weeklyFinance(state: GameState, rng: Rng) {
   // and the commercial department: whatever the three deals are worth this week,
   // clauses included. An empty slot pays nothing, which is the point of it (F30).
   club.balance += commercialWeekly(state)
-  // gate receipts from this week's home fixture
+  // Gate receipts from this week's home fixture - A COMPETITIVE ONE.
+  //
+  // This line paid out on friendlies for as long as friendlies have existed,
+  // and nobody noticed because nobody measured it: a home run-out was worth a
+  // full £30 a head, which on the owner's new midweek fixture came to £187,740
+  // in a single bye week. Two of this file's other aggregates - the average-gate
+  // figure above and the record-gate check below - had ALREADY been taught to
+  // skip compId 'fr'. This one was simply missed, so the club's books have been
+  // treating a Wednesday development match as a sell-out league Saturday.
+  //
+  // The owner's brief for the midweek game says it plainly ("financially they
+  // dont benefit the club"), and it is the right rule for the idle-week friendly
+  // and the testimonial too: nobody pays league prices to watch the academy, and
+  // a testimonial's takings belong to the player rather than the club.
   const home = state.fixtures.find(f =>
-    f.week === state.week && f.played && f.homeId === club.id && f.att)
+    f.week === state.week && f.played && f.homeId === club.id && f.att && f.compId !== 'fr')
   // F31: boxes and lounges mean the same crowd is worth more. 4% a level, so a
   // maxed block lifts a £30 head to £36. operatingCost documents why this one
   // facility carries an extra weekly bill.
@@ -1692,15 +1764,201 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
   return t('reply.friendlyArranged', { club: opp.name })
 }
 
+/**
+ * ---- A MIDWEEK RUN-OUT ----
+ *
+ * Owner, 7 Sep: "you should be able to arrange friendlies in the fixtures and
+ * results, below the fixtures - it should have 3 suggestions, only with teams
+ * below in leagues or in a different country. Dates should be at least 3 days
+ * before and after a game so midweek, financially they dont benefit the club
+ * but they do give more game time to academy."
+ *
+ * Every clause of that is a rule here, and two of them are load-bearing.
+ *
+ * WHO WILL PLAY YOU. A club below you in the pyramid, or one in another
+ * country. Not your own division: a league rival does not give you a free look
+ * at his squad, and a friendly against the team you are chasing is not a
+ * friendly. Three of them, drawn from the world's own seed so the list is the
+ * same every time you open the page in a given week and changes when the week
+ * does - a shortlist you can think about, not a fruit machine.
+ *
+ * WHY WEDNESDAY, AND WHY IT IS SOMETIMES REFUSED. The owner asked for three
+ * clear days either side. A league Saturday gives four days back to Wednesday
+ * and three days forward to the next one, so Wednesday is the only day of the
+ * week that satisfies both. But this game's fixtures do not all fall on
+ * Saturday - fixtureDayOff puts a third of them on Friday and a third on
+ * Sunday - and a FRIDAY fixture leaves only two days. So the week is checked
+ * rather than assumed, and a Friday match week simply cannot take a friendly.
+ * Saying "midweek" and then playing a game 48 hours before a league match would
+ * be the game breaking its own promise.
+ *
+ * WHAT IT IS WORTH. Nothing at the gate - simMatch already pays no attendance
+ * money on compId 'fr', so "financially they dont benefit the club" needed no
+ * new code, only checking. What it is FOR is the academy: the assistant fields
+ * a development side, so the minutes go to the boys and the fringe rather than
+ * to the men who are playing on Saturday anyway.
+ */
+export const FRIENDLY_DAY = 2 // Wednesday
+
+/** Where a club's league fixture falls that week, as a day index, or null. */
+function leagueDayThatWeek(state: GameState, week: number, clubId: string): number | null {
+  const fx = state.fixtures.find(f => f.week === week && f.compId !== 'fr' &&
+    (f.homeId === clubId || f.awayId === clubId))
+  return fx ? 5 + fixtureDayOff(fx.id) : null
+}
+
+/**
+ * Three clear days either side of the Wednesday, for whoever is being asked.
+ *
+ * THE OPPONENT GETS THE SAME RULE, NOT A HARSHER ONE. The first version of this
+ * demanded the other club have an entirely empty week, which sounds reasonable
+ * and is nonsense: in a normal league week every club in the world is playing,
+ * so the shortlist of three came back with one name on it. A club below you can
+ * play a midweek friendly for exactly the reason you can - it is Wednesday, and
+ * their Saturday is still three days away.
+ */
+function midweekOk(state: GameState, week: number, clubId: string): boolean {
+  const here = leagueDayThatWeek(state, week, clubId)
+  if (here != null && here - FRIENDLY_DAY < 3) return false
+  const prev = leagueDayThatWeek(state, week - 1, clubId)
+  if (prev != null && (7 + FRIENDLY_DAY) - prev < 3) return false
+  return true
+}
+
+/** Can a Wednesday friendly be played in this week without crowding a match? */
+export function friendlyWeekOk(state: GameState, week: number): boolean {
+  if (week <= state.week) return false
+  if (week > SEASON_WEEKS) return false
+  // already have one arranged that week
+  if (state.fixtures.some(f => f.compId === 'fr' && f.week === week &&
+    (f.homeId === state.userClubId || f.awayId === state.userClubId))) return false
+  // three clear days forward to this week's match (a Friday game is only two
+  // days after a Wednesday, so that week is out) and back to last week's
+  return midweekOk(state, week, state.userClubId)
+}
+
+/** The first few weeks ahead that could take a midweek friendly. */
+export function friendlyWeeks(state: GameState, howMany = 4): number[] {
+  const out: number[] = []
+  for (let w = state.week + 1; w <= SEASON_WEEKS && out.length < howMany; w++) {
+    if (friendlyWeekOk(state, w)) out.push(w)
+  }
+  return out
+}
+
+/** Three clubs who would take the game: below you, or from another country. */
+export function friendlySuggestions(state: GameState, week: number): string[] {
+  const user = state.clubs[state.userClubId]
+  if (!user) return []
+  const myTier = leagueTier(user.leagueId)
+  const pool = Object.values(state.clubs)
+    .filter(c => {
+      if (c.id === user.id) return false
+      // the same Wednesday has to work for him, and he cannot already have one
+      if (!midweekOk(state, week, c.id)) return false
+      if (state.fixtures.some(f => f.compId === 'fr' && f.week === week && (f.homeId === c.id || f.awayId === c.id))) return false
+      const lower = leagueTier(c.leagueId) > myTier
+      const abroad = c.country !== user.country
+      return lower || abroad
+    })
+    .sort((a, b) => a.id.localeCompare(b.id))
+  if (!pool.length) return []
+  // deterministic per (save, week): the same three every time you look, a
+  // different three next week. A list that reshuffles on every render is a
+  // list nobody can think about.
+  const rng = mulberry32(state.seed + week * 7919 + state.season * 31)
+  const picked: string[] = []
+  const seen = new Set<number>()
+  for (let guard = 0; guard < 200 && picked.length < 3; guard++) {
+    const i = Math.floor(rng() * pool.length)
+    if (seen.has(i)) continue
+    seen.add(i)
+    picked.push(pool[i].id)
+  }
+  return picked
+}
+
+export function arrangeMidweekFriendly(state: GameState, oppId: string, week: number): string {
+  const opp = state.clubs[oppId]
+  if (!opp) return t('reply.noSuchClub')
+  if (!friendlyWeekOk(state, week)) return t('reply.friendlyWeekBusy')
+  if (!friendlySuggestions(state, week).includes(oppId)) return t('reply.friendlyDeclined', { club: opp.short })
+  state.fixtures.push({
+    id: state.nextId++, compId: 'fr', round: 0, week,
+    homeId: state.userClubId, awayId: oppId,
+    played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+    devSide: true,
+  })
+  state.news.push({
+    id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
+    subject: `Midweek friendly agreed: ${opp.short}`,
+    body: `${opp.name} will come to your place on the Wednesday of week ${week}. There is no gate money worth counting in it - what there is, is eighty minutes for the academy and the men who have not had a game.`,
+    k: 'news.friendlyBooked', v: { club: opp.name, short: opp.short, week },
+  })
+  return t('reply.friendlyBooked', { club: opp.name, week })
+}
+
+/**
+ * The development XV for a midweek friendly, and putting the real side back
+ * afterwards.
+ *
+ * The engine reads club.tactic.lineup when it builds a side, so a friendly
+ * played on the Saturday team is a friendly that teaches nobody anything and
+ * risks the men who matter. The academy and the fringe play instead; the first
+ * fifteen are stood down. Swapped in and out around the sim so nothing outside
+ * this function ever sees the development sheet.
+ */
+function withDevelopmentSide(state: GameState, clubId: string, run: () => void): void {
+  const club = state.clubs[clubId]
+  if (!club) { run(); return }
+  const first = new Set(club.tactic.lineup.slice(0, 15).filter((x): x is number => x != null))
+  const squad = club.players.map(id => state.players[id]).filter(Boolean)
+  const devs = squad.filter(p => !first.has(p.id) && !p.injury && !p.natSquad && !p.maternity && p.bans === 0)
+  // if standing the first team down leaves too few bodies, this is not a
+  // development side, it is a forfeit - play the normal one
+  if (devs.length < 18) { run(); return }
+  const saved = club.tactic.lineup
+  club.tactic.lineup = autoSelect(state, devs)
+  try { run() } finally { club.tactic.lineup = saved }
+}
+
 /** The national side's fixture this week, when the user also coaches one.
- *  A home-nations coach also takes the Lions in a tour year. */
+ *  A home-nations coach also takes the Isles XV in a tour year. */
 export function natFixtureThisWeek(state: GameState): Fixture | undefined {
   if (!state.natTeam) return undefined
   const teams = [state.natTeam]
-  if (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam)) teams.push('LIO')
+  // THE TOUR IS NOT A PERK OF THE NATIONAL JOB (owner, 7 Sep: "it is knly offer
+  // only"). Coaching one of the four unions used to hand a manager the touring
+  // side automatically, which made the pinnacle of a career a side effect of a
+  // job he already had. Now the unions have to have asked, and he has to have
+  // said yes.
+  if (islesCoach(state)) teams.push('LIO')
+  // ---- AND THE ASSISTANT TAKES THE COUNTRY ----
+  //
+  // Owner, 7 Sep: "assistant takes over of national team while you do this
+  // job." On tour, the Isles XV is the match the manager stands on the
+  // touchline for and his own country's summer Tests are somebody else's
+  // problem - which is the cost of accepting, and the reason accepting is a
+  // decision rather than a formality.
+  //
+  // The search is ordered rather than filtered: LIO first, so a week holding
+  // both a tour match and a national Test hands him the tour one and leaves the
+  // Test to be simmed with the rest of the world.
+  const order = islesCoach(state) ? ['LIO', state.natTeam] : teams
+  for (const t of order) {
+    const fx = state.fixtures.find(f =>
+      f.week === state.week && !f.played && (f.homeId === t || f.awayId === t))
+    if (fx) return fx
+  }
+  return undefined
+}
+
+/** The national Test the manager is NOT taking, because he is away on tour. */
+export function assistantNatFixture(state: GameState): Fixture | undefined {
+  if (!islesCoach(state) || !state.natTeam) return undefined
+  const nat = state.natTeam
   return state.fixtures.find(f =>
-    f.week === state.week && !f.played &&
-    (teams.includes(f.homeId) || teams.includes(f.awayId)))
+    f.week === state.week && !f.played && (f.homeId === nat || f.awayId === nat))
 }
 
 /** THE MATCH THAT IS THE MANAGER'S THIS WEEK - one decision point, read by
@@ -1791,12 +2049,26 @@ export function processWeekAndAdvance(state: GameState) {
     const mine = fx.homeId === state.userClubId || fx.awayId === state.userClubId ||
       (state.natTeam != null && (fx.homeId === state.natTeam || fx.awayId === state.natTeam ||
         (['ENG', 'IRE', 'SCO', 'WAL'].includes(state.natTeam) && (fx.homeId === 'LIO' || fx.awayId === 'LIO'))))
+    // A MIDWEEK FRIENDLY IS THE ASSISTANT'S GAME, not the manager's: it never
+    // becomes simmedUserFx, so a league Saturday in the same week is still the
+    // match he stands on the touchline for.
+    if (fx.compId === 'fr' && fx.devSide) {
+      withDevelopmentSide(state, fx.homeId, () => simMatch(state, fx, rng, false))
+      continue
+    }
     simMatch(state, fx, rng, false)
     const comp = state.comps[fx.compId]
     if (comp) {
-      if (fx.stage) resolveKnockoutDraw(state, fx, rng)
-      applyToTable(comp, fx)
-      fx.tableApplied = true
+      // A PROVINCIAL TOUR GAME IS NOT PART OF THE SERIES. It carries a `stage`
+      // like every tour fixture does ("Tour match 3"), which would otherwise
+      // send it through the knockout-draw resolver, and its home side is a CLUB
+      // that has no row in a two-team Test table. It counts for minutes, form
+      // and the tourists' momentum; it does not count for the series.
+      if (!fx.tourMatch) {
+        if (fx.stage) resolveKnockoutDraw(state, fx, rng)
+        applyToTable(comp, fx)
+        fx.tableApplied = true
+      }
     }
     if (mine) simmedUserFx = fx
   }
@@ -2221,7 +2493,7 @@ export function processWeekAndAdvance(state: GameState) {
         k: out.length === 1
           ? (rest > 0 ? 'news.loanOneMore' : 'news.loanOne')
           : (rest > 0 ? 'news.loanManyMore' : 'news.loanMany'),
-        v: { who: out[0].name, rows_ll: JSON.stringify(shown), rest },
+        v: { ...subjectVar(state.staffPeople?.academyCoach?.g), who: out[0].name, rows_ll: JSON.stringify(shown), rest },
         playerId: out.length === 1 ? out[0].id : undefined,
       })
     }
@@ -2229,9 +2501,10 @@ export function processWeekAndAdvance(state: GameState) {
 
   // Northern Championship lore: the Slam and the Spoon are bigger than the table
   {
-    const sn = state.comps['sn']
-    const lastWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1]
-    const penultWk = SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 2]
+    const snWks = snWeeksFor(genderOf(state))
+    const sn = state.comps[snIdFor(genderOf(state))]
+    const lastWk = snWks[snWks.length - 1]
+    const penultWk = snWks[snWks.length - 2]
     if (sn && state.week === penultWk) {
       const leader = sortTable(sn.table)[0]
       if (leader && leader.w === 4 && leader.d === 0 && leader.l === 0) {
@@ -2545,7 +2818,7 @@ export function processWeekAndAdvance(state: GameState) {
           unit_k: GROUP[star.pos] ?? 'news.unitPack',
         }),
         k: 'news.intakePreview',
-        v: { n: cls.length, verdict_k: `news.intakeGrade${grade}`, unit_k: GROUP[star.pos] ?? 'news.unitPack' },
+        v: { ...subjectVar(state.staffPeople?.academyCoach?.g), n: cls.length, verdict_k: `news.intakeGrade${grade}`, unit_k: GROUP[star.pos] ?? 'news.unitPack' },
       })
     }
   }
@@ -2856,6 +3129,7 @@ export function processWeekAndAdvance(state: GameState) {
         : 'He hands the week back all square.'} The board judges the result the way it judges any other - the routines are yours even when the voice is not.`,
       k: 'news.assistantRan',
       v: {
+        ...subjectVar(state.staffPeople?.assistant?.g),
         opp: opp?.short ?? tIn('en', 'news.theLeague'), us, them,
         verb_k: us > them ? 'news.assWon' : us < them ? 'news.assLost' : 'news.assDrew',
         hand_k: us > them ? 'news.assHandWin' : us < them ? 'news.assHandLoss' : 'news.assHandDraw',
@@ -3210,12 +3484,13 @@ export function processWeekAndAdvance(state: GameState) {
   // is a normal natOffer in every way - same letter key, same 3-week shelf
   // life, same Profile buttons.
   if (state.natCall != null && !state.natTeam && !state.natOffer && !state.unemployed
-      && state.season * SEASON_WEEKS + state.week >= state.natCall) {
+      && absWeek(state.season, state.week) >= state.natCall) {
     const rep = mgrReputation(state)
-    const picked = state.natCallNat && NAT_TIERS.some(([n]) => n === state.natCallNat)
+    const offer = pickableNations(state)
+    const picked = state.natCallNat && offer.some(([n]) => n === state.natCallNat)
       ? state.natCallNat : null
-    const qualified = NAT_TIERS.filter(([, need]) => rep >= need)
-    const nat = picked ?? (qualified.length ? qualified[qualified.length - 1] : NAT_TIERS[0])[0]
+    const qualified = offer.filter(([, need]) => rep >= need)
+    const nat = picked ?? (qualified.length ? qualified[qualified.length - 1] : offer[0])[0]
     state.natCall = null
     state.natCallNat = null
     state.natOffer = { nat, week: state.week }
@@ -3230,7 +3505,7 @@ export function processWeekAndAdvance(state: GameState) {
     const rep = mgrReputation(state)
     if (rep >= 64) {
       // offers come from the best jobs you qualify for, not the whole ladder
-      const eligible = NAT_TIERS.filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
+      const eligible = pickableNations(state).filter(([, need]) => rep >= need).map(([n]) => n).slice(-5)
       if (eligible.length && rng() < 0.55) {
         const nat = eligible[Math.floor(rng() * eligible.length)]
         state.natOffer = { nat, week: state.week }
@@ -3398,21 +3673,23 @@ export function processWeekAndAdvance(state: GameState) {
     }
 
     // the Northern Championship window is a big deal - a round-up lands every week
-    if (state.comps['sn'] && SIX_NATIONS_WEEKS.includes(state.week)) {
-      const round = state.fixtures.filter(f => f.compId === 'sn' && f.week === state.week && f.played)
+    const snId = snIdFor(genderOf(state))
+    const snWeeks = snWeeksFor(genderOf(state))
+    if (state.comps[snId] && snWeeks.includes(state.week)) {
+      const round = state.fixtures.filter(f => f.compId === snId && f.week === state.week && f.played)
       if (round.length) {
-        const order = sortTable(state.comps['sn'].table)
+        const order = sortTable(state.comps[snId].table)
         const leader = order[0] ? nationNameIn('en', order[0].teamId) : null
         state.news.push({
           id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
-          subject: `🏆 Northern Championship round ${SIX_NATIONS_WEEKS.indexOf(state.week) + 1}: the story so far`,
+          subject: `🏆 Northern Championship round ${snWeeks.indexOf(state.week) + 1}: the story so far`,
           body: [
             ...round.map(f => `${nationNameIn('en', f.homeId)} ${f.homeScore}–${f.awayScore} ${nationNameIn('en', f.awayId)}`),
             leader ? `\n${leader} top the table${order[0].p >= 4 ? ' with the title in sight' : ''}. The whole sport stops for this.` : '',
           ].filter(Boolean).join('\n'),
           k: leader ? 'news.snRoundLeader' : 'news.snRound',
           v: {
-            n: SIX_NATIONS_WEEKS.indexOf(state.week) + 1,
+            n: snWeeks.indexOf(state.week) + 1,
             rows_ll: JSON.stringify(round.map(f => ({
               k: 'news.snRow', home_k: `nation.${f.homeId}`,
               hs: f.homeScore, as: f.awayScore, away_k: `nation.${f.awayId}`,
@@ -3448,7 +3725,33 @@ export function processWeekAndAdvance(state: GameState) {
   debtWeek(state)
   // the board's standing monthly item, three weeks off the awards beat so the
   // two never share an inbox (boardmemo.ts)
+  // the empty weeks are only empty of rugby: the rest of the world hires out its
+  // clubhouse whether the manager remembers to or not
+  aiCloseSeason(state)
+
+  // the stories a club has to answer for: the gate figures, the advert nobody
+  // read aloud, the kit, the breakaway that never happens, and the coach who
+  // talked. One a week at most, each once a season (talkingpoints.ts).
+  talkingPoints(state)
+
   boardMemo(state)
+
+  // ---- THE LETTER FROM THE FOUR UNIONS ----
+  // Once a season, in a tour year, and only for a manager who has met every one
+  // of the owner's four conditions. It arrives as an offer with no way to ask
+  // for it, which is the whole point of it.
+  if (offerIsles(state)) {
+    state.news.push({
+      id: state.nextId++, week: state.week, season: state.season, type: 'intl', read: false,
+      subject: `An invitation from the four unions`,
+      body: `The four unions have written to you jointly. They want you to take the British & Irish Isles XV to ${state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? 'the southern hemisphere'} this summer: seven provincial games and a three-Test series, one squad drawn from four countries who spend every February trying to beat each other.
+
+There is no shortlist and no interview. They have chosen, and they are asking.
+
+If you go, your assistant takes your national side for the duration. Nobody prepares a Test series eleven thousand miles from home and runs his own country in the same summer.`,
+      k: 'news.islesOffer', v: { host: state.comps['lions']?.name?.replace(/^.*Tour of /, '') ?? '' },
+    })
+  }
 
   // THE SECOND PLAYER OF THE MONTH USED TO LIVE HERE, AND IT HAD TO GO.
   //
@@ -3560,7 +3863,7 @@ export function processWeekAndAdvance(state: GameState) {
   // that the screen - which measures from the week it is actually drawn in -
   // then hid anyway. Same rule, one clock.
   {
-    const next = state.season * SEASON_WEEKS + state.week + 1
+    const next = absWeek(state.season, state.week) + 1
     state.press = state.press.filter(q =>
       !q.answered || next - (q.season * SEASON_WEEKS + q.week) <= PRESS_KEEP_WEEKS)
   }

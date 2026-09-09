@@ -1,7 +1,8 @@
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { DEV_CONTACT } from '../../game/bugreport'
-import { tillOpen } from '../../game/monetise'
+import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillOpen } from '../../game/monetise'
+import { nativePlatform } from '../../game/shell'
 import { t } from '../../game/i18n'
 
 /**
@@ -23,6 +24,10 @@ import { t } from '../../game/i18n'
  *     report screen uses.
  */
 export default function About() {
+  const platform = nativePlatform()
+  const storeOn = billingBridgePresent()
+  const adsOn = adBridgePresent()
+  const adsWhy = adBridgeWhy()
   const go = useStore(s => s.go)
 
   return (
@@ -57,6 +62,48 @@ export default function About() {
           <button className="btn gold block" style={{ marginTop: 8 }} onClick={() => go('supporter')}>
             {t('about.storeBtn')}
           </button>
+        </div>
+      )}
+
+      {/* ---- WHAT THE SHELL BROUGHT WITH IT ----
+          Reported from a phone: "the store on iPhone doesn't seem to be
+          working" and "ads aren't showing". Both come from the app AROUND the
+          game - StoreKit or Play Billing for one, AdMob for the other - and
+          both are injected by the native shell at boot. When the shell is
+          built without them the game sees nothing and, until now, said
+          nothing: the store row simply did not render and the adverts simply
+          did not appear, with no way to tell a missing bridge from a working
+          one that had nothing to show. The packaging walkthrough even warns
+          about it - "if PhaseBilling.m is not in the target, the purchase
+          bridge is invisible to the game and every product reads unavailable,
+          with no error anywhere to tell you why".
+          This is that error. Inside a native shell only, because in a browser
+          neither is expected and saying so would read as a fault. */}
+      {platform && (
+        <div className="card">
+          <div className="fact-label">{t('about.bridgeLabel')}</div>
+          <div className="meta">{t('about.bridgeBody')}</div>
+          <div className="meta bridge-line" style={{ marginTop: 6 }}>
+            {t('about.bridgeShell', { platform })}
+          </div>
+          <div className="meta bridge-line">
+            {t('about.bridgeStore')}: <b style={{ color: storeOn ? 'var(--positive)' : 'var(--text-negative)' }}>
+              {t(storeOn ? 'about.bridgeOn' : 'about.bridgeOff')}
+            </b>
+          </div>
+          <div className="meta bridge-line">
+            {t('about.bridgeAds')}: <b style={{ color: adsOn ? 'var(--positive)' : 'var(--text-negative)' }}>
+              {t(adsOn ? 'about.bridgeOn' : 'about.bridgeOff')}
+            </b>
+          </div>
+          {/* A bridge that is present and still shows nothing has a reason, and
+              the reason has until now only ever gone to a console nobody on a
+              phone can open. It is the bridge's own English string, so it is
+              not translated: it is a diagnostic to read back to us, not copy
+              for a player. */}
+          {adsOn && adsWhy && adsWhy !== 'ready' && (
+            <div className="meta bridge-line">{t('about.bridgeAdsWhy')}: {adsWhy}</div>
+          )}
         </div>
       )}
 

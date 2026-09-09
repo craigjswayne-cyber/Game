@@ -3,6 +3,7 @@ import { useStore } from '../../store'
 import { sortTable } from '../../game/schedule'
 import { flagOf, nationName } from '../../game/nations'
 import { ClubLink, SectionTitle } from '../components'
+import { answerIsles, islesCoach, islesEligible } from '../../game/isles'
 import { weekDate } from '../../game/model'
 import { t } from '../../game/i18n'
 
@@ -13,6 +14,7 @@ export default function Nations() {
     ['wc', 'world.natWc'], ['sn', 'world.natSn'], ['trc', 'world.natTrc'], ['pnc', 'world.natPnc'],
     ['aut', 'world.natAut'], ['tour', 'world.natTour'], ['lions', 'world.natLions'],
   ] as const).filter(([id]) => game.comps[id])
+  const touch = useStore(s => s.touch)
   const [compId, setCompId] = useState<string>(tabs[0]?.[0] ?? 'sn')
   const comp = game.comps[compId]
 
@@ -26,6 +28,37 @@ export default function Nations() {
 
   return (
     <>
+      {/* ---- THE LETTER FROM THE FOUR UNIONS ----
+          Offer only: there is no button anywhere that asks for this job. The
+          panel appears when they have written, and disappears once he answers.
+          While he is on tour it stays, saying what he took on. */}
+      {(game.isles?.season === game.season || islesCoach(game)) && (() => {
+        const open = game.isles?.answer === 'open'
+        const took = game.isles?.answer === 'yes'
+        return (
+          <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
+            <SectionTitle sub={game.comps['lions']?.name}>{t('isles.title')}</SectionTitle>
+            <div className="meta" style={{ padding: '0 10px 8px' }}>
+              {open ? t('isles.whyYes') : took ? t('isles.took') : t('isles.passed')}
+            </div>
+            {open && (
+              <div className="filter-line" style={{ padding: '0 10px 10px' }}>
+                <button className="btn" onClick={() => { answerIsles(game, true); touch() }}>{t('isles.accept')}</button>
+                <button className="btn ghost" onClick={() => { answerIsles(game, false); touch() }}>{t('isles.decline')}</button>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+      {/* and when there is a tour on that he is NOT part of, the panel says
+          which condition he has not met - a locked door with no sign on it is
+          just a missing feature */}
+      {!game.isles && game.comps['lions'] && !islesCoach(game) && (
+        <div className="card">
+          <SectionTitle sub={game.comps['lions']?.name}>{t('isles.title')}</SectionTitle>
+          <div className="muted" style={{ padding: '0 10px 10px', fontSize: 12 }}>{t(islesEligible(game).why)}</div>
+        </div>
+      )}
       {myNat && (
         <div className="card" style={{ borderLeft: '4px solid var(--gold)' }}>
           <h3 style={{ fontSize: 14 }}>{t('world.natYouCoach', { nat: nationName(myNat) })}</h3>

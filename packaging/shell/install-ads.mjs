@@ -12,8 +12,8 @@
 //      so globalThis.rmAds exists when monetise.ts first looks for it
 //   3. Android: the AdMob App ID as the APPLICATION_ID <meta-data> the SDK
 //      refuses to start without
-//      iOS: GADApplicationIdentifier, the ATT purpose string and Google's
-//      SKAdNetwork id in Info.plist
+//      iOS: GADApplicationIdentifier, the ATT purpose string and the whole
+//      SKAdNetwork list from ads.json in Info.plist
 //   4. a line saying which ids went in, because test ids in a store build
 //      earn nothing and live ids in a debug build are a policy strike
 import { readFileSync, writeFileSync, copyFileSync, existsSync } from 'node:fs'
@@ -89,6 +89,33 @@ if (platform === 'android') {
   const pl = 'ios/App/App/Info.plist'
   let p = readFileSync(pl, 'utf8')
   const purpose = 'This lets the game show adverts that are more relevant to you. Say no and you still get every part of the game, with less relevant adverts.'
+  // ---- SKADNETWORK: THE LIST, NOT THE ONE ----
+  //
+  // This used to write a single identifier, Google's own. The SDK says what
+  // that costs, out loud, on every launch:
+  //
+  //   <Google:HTML> 49 required SKAdNetwork identifier(s) missing from
+  //   Info.plist. See [Enable SKAdNetwork to track conversions]
+  //
+  // SKAdNetwork is how an advertiser learns that an install came from an
+  // advert without learning who installed it. An ad network whose identifier
+  // is not in this list cannot be credited for an install, so its advertisers
+  // will not bid on this app - which is not an error, a warning in the game,
+  // or anything a player would ever see. It is simply less money, quietly, on
+  // a build that otherwise looks perfect. Google publishes the list of its
+  // partners' identifiers and it changes as partners come and go, so it lives
+  // in ads.json beside the unit ids rather than in this file.
+  const skIds = Array.isArray(ads.skAdNetworkIds) && ads.skAdNetworkIds.length
+    ? ads.skAdNetworkIds
+    : ['cstr6suwn9.skadnetwork']
+  const bad = skIds.filter(id => !/^[a-z0-9.-]+\.skadnetwork$/.test(id))
+  if (bad.length) { console.error(`    ads.json has ${bad.length} malformed SKAdNetwork id(s): ${bad.join(', ')}`); process.exit(1) }
+  const skBlock = skIds.map(id => [
+    '\t\t<dict>',
+    '\t\t\t<key>SKAdNetworkIdentifier</key>',
+    `\t\t\t<string>${id}</string>`,
+    '\t\t</dict>',
+  ].join('\n')).join('\n')
   const block = [
     '\t<key>GADApplicationIdentifier</key>',
     `\t<string>${ids.appId}</string>`,
@@ -96,14 +123,20 @@ if (platform === 'android') {
     `\t<string>${purpose}</string>`,
     '\t<key>SKAdNetworkItems</key>',
     '\t<array>',
-    '\t\t<dict>',
-    '\t\t\t<key>SKAdNetworkIdentifier</key>',
-    '\t\t\t<string>cstr6suwn9.skadnetwork</string>',
-    '\t\t</dict>',
+    skBlock,
     '\t</array>',
   ].join('\n')
   if (/GADApplicationIdentifier/.test(p)) {
     p = p.replace(/(<key>GADApplicationIdentifier<\/key>\s*<string>)[^<]*(<\/string>)/, `$1${ids.appId}$2`)
+    // the list is rewritten wholesale, because a plist that already carries a
+    // short one is exactly the case this exists to fix
+    if (/<key>SKAdNetworkItems<\/key>/.test(p)) {
+      p = p.replace(/\t?<key>SKAdNetworkItems<\/key>\s*<array>[\s\S]*?<\/array>/,
+        ['\t<key>SKAdNetworkItems</key>', '\t<array>', skBlock, '\t</array>'].join('\n'))
+    } else {
+      p = p.replace(/(\n<\/dict>\s*<\/plist>\s*)$/,
+        `\n\t<key>SKAdNetworkItems</key>\n\t<array>\n${skBlock}\n\t</array>$1`)
+    }
   } else {
     // the outermost dict closes last; the plist's own closing tags follow it
     p = p.replace(/(\n<\/dict>\s*<\/plist>\s*)$/, `\n${block}$1`)
@@ -113,6 +146,12 @@ if (platform === 'android') {
 
 // 4. say what went in
 console.log(`    ads-bridge.js + window.__phaseAds (${platform}), App ID ${ids.appId}`)
+if (platform === 'ios') {
+  const n = (ads.skAdNetworkIds ?? []).length || 1
+  console.log(n >= 40
+    ? `    ${n} SKAdNetwork identifiers in Info.plist`
+    : `    ONLY ${n} SKAdNetwork identifier(s) - Google wants about fifty, and every one missing is an ad network that cannot bid. Paste the list into skAdNetworkIds in packaging/shell/ads.json.`)
+}
 console.log(ads.testing
   ? '    GOOGLE TEST IDS - banners say "Test Ad" and earn nothing. Fine for a debug or internal build.'
   : '    LIVE IDS - never install this build on a phone that is not in testDevices; clicking your own adverts is a strike.')

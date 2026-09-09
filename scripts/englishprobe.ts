@@ -36,6 +36,7 @@
 //    "1 semaines", and vice versa.
 //
 // Run: npx vite-node scripts/englishprobe.ts
+import { SIBLING, baseKey } from '../src/game/i18n'
 import { readFileSync } from 'node:fs'
 
 /** English entries that hard-code a plural next to a count. ONLY EVER DECREASE. */
@@ -104,6 +105,8 @@ const CANNOT_BE_ONE: Record<string, string> = {
   'news.scoutReport': 'the {months} of a brief, as above',
   'dec.scoutBrief': 'SEARCH_WEEKS for a brief, all above one',
   'news.briefSent': 'SEARCH_WEEKS, as above',
+  'news.maternity': 'MATERNITY_WEEKS bounds the leave at 28-40 weeks, so it is never one',
+  'player.loanBuyLine': 'LOAN_BUY_MIN_WEEKS is a constant of 8 - the trial is never one week',
   'reply.scoutOnTheRoad': 'SEARCH_WEEKS, as above',
   'finances.marqueeSub': 'MARQUEE_SLOTS is a constant greater than one',
   'stakes.beatenRun': 'only fires on a streak of three or more',
@@ -143,6 +146,9 @@ const CANNOT_BE_ONE: Record<string, string> = {
 }
 
 const hasSingularSibling = (path: string): boolean => {
+  // a feminine sibling (i18n.ts setWorld) is the same sentence as its base key
+  // in a women's world, so it is judged as its base
+  if (SIBLING.test(path)) return hasSingularSibling(baseKey(path))
   if (PAIRED[path] && lookupIn(EN, PAIRED[path]) !== undefined) return true
   if (CANNOT_BE_ONE[path]) return true
   const cut = path.lastIndexOf('.')

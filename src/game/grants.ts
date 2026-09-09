@@ -24,7 +24,7 @@
  */
 import { FACILITY_INFO, MAX_FACILITY, SEASON_WEEKS, fmtMoney, logDecision, mgrReputation, type Club, type FacilityId, type GameState } from './model'
 import { tIn } from './i18n'
-import { NAT_TIERS } from './nations'
+import { NAT_TIERS, pickableNations } from './nations'
 
 export type InjectTier = 's' | 'm' | 'l' | 'xl'
 
@@ -319,11 +319,15 @@ export function applyPinnacle(state: GameState, nat?: string): boolean {
   // as standing that survives losing the club, and the appointment news has
   // carried a no-club variant since v1.1.12.
   if (state.natTeam || state.natOffer) return false
-  if (nat != null && !NAT_TIERS.some(([n]) => n === nat)) return false
+  // Only a union this WORLD plays Test rugby in. A women's save has ten, not
+  // sixteen, and appointing a paying customer to a country with no fixtures is
+  // selling him a job that does not exist (nations.ts, pickableNations).
+  const offer = pickableNations(state)
+  if (nat != null && !offer.some(([n]) => n === nat)) return false
   state.pinnacleCalled = true
   const rep = mgrReputation(state)
-  const qualified = NAT_TIERS.filter(([, need]) => rep >= need)
-  const chosen = nat ?? (qualified.length ? qualified[qualified.length - 1] : NAT_TIERS[0])[0]
+  const qualified = offer.filter(([, need]) => rep >= need)
+  const chosen = nat ?? (qualified.length ? qualified[qualified.length - 1] : offer[0])[0]
   // the appointment itself, on the same terms answerNatOffer sets: a new
   // tenure starts at nought and the union starts out believing in you
   state.natTeam = chosen

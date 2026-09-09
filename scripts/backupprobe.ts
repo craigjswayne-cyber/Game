@@ -18,7 +18,7 @@
 // checking a rare story over a long career has to collect as it goes.
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { SEASON_WEEKS, type NewsItem } from '../src/game/model'
+import { BASE_YEAR, SEASON_WEEKS, type NewsItem } from '../src/game/model'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -54,8 +54,15 @@ for (const seed of [4242, 90210]) {
   ok(nudges.every(n => /Game Status/.test(n.body)), 'and the screen it lives on')
   // it must not be a gossip item: those never reach the inbox
   ok(nudges.every(n => n.type !== 'gossip'), 'filed where the manager will actually see it')
-  // and the season it names is the one just finished, not the one starting
-  ok(nudges.every(n => n.subject.includes(String(2025 + n.season - 1))),
+  // and the season it names is the one just finished, not the one starting.
+  //
+  // Reads BASE_YEAR rather than a literal 2025 (v1.5). The owner moved both
+  // games to 2026-27 - "both should run 26/27" - so the year in the headline
+  // moved with them and this line was asserting the old base. The CONTRACT it
+  // guards is unchanged and is the whole point of the check: the nudge names
+  // the season that has just ended, not the one about to start. Only the base
+  // year it measures against has moved.
+  ok(nudges.every(n => n.subject.includes(String(BASE_YEAR + n.season - 1))),
     'the headline names the season that just finished')
 }
 

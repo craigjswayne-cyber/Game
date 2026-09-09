@@ -23,7 +23,7 @@ the first thing a reviewer sees.
 | Privacy policy URL | `https://phaserugbymanager.com/privacy.html` (ships in `public/`) |
 | Support URL | the same page, which carries the contact address |
 | Content rating | 3+ / Everyone (see the questionnaire below) |
-| Languages | English, French, Spanish, Italian, Japanese |
+| Languages | English, French, Spanish, Italian, Japanese, Afrikaans |
 
 ---
 
@@ -116,7 +116,7 @@ BUILT FOR A PHONE
   Manager takes every advert away for good.
 • Four career slots, saved after every week, with export and import so a backup
   is yours to keep.
-• English, French, Spanish, Italian and Japanese.
+• English, French, Spanish, Italian, Japanese and Afrikaans.
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real;
 competitions, grounds and sponsors are renamed or invented. Player names are
@@ -146,6 +146,373 @@ First release.
 • Fixed a layout gap above the scoreboard on very tall screens.
 ```
 *(236 - and the French version is under `Nouveautés` in the French listing below)*
+
+### What's new (500 max) - v1.5.6, Play version code 27
+
+The women's game catches up: its own challenges, and a division that stops
+wearing one colour.
+
+```
+<en-GB>
+The women's game has its own four challenges now, pinned to real clubs with real
+history behind them, offered in the wizard exactly as the men's are. The English
+Championship no longer plays every fixture in the same blue: seventeen of the
+twenty clubs wear their real colours. Difficulty is explained in plain words.
+And About & legal tells you whether the shop and the adverts actually reached
+your phone.
+</en-GB>
+<fr-FR>
+Le jeu féminin a désormais ses quatre défis, adossés à des clubs réels et à leur
+histoire, proposés dans l'assistant comme ceux du jeu masculin. Le Championship
+anglais ne dispute plus tous ses matches en bleu : dix-sept des vingt clubs
+portent leurs vraies couleurs. La difficulté est expliquée en mots simples. Et
+« À propos » vous dit si la boutique et les publicités sont bien arrivées sur
+votre téléphone.
+</fr-FR>
+<es-ES>
+El juego femenino ya tiene sus cuatro retos, anclados a clubes reales y a lo que
+de verdad les pasó, y aparecen en el asistente igual que los masculinos. El
+Championship inglés deja de jugarlo todo del mismo azul: diecisiete de los
+veinte clubes visten sus colores reales. La dificultad se explica con palabras
+sencillas. Y «Acerca de» te dice si la tienda y los anuncios han llegado a tu
+teléfono.
+</es-ES>
+<it-IT>
+Il gioco femminile ha ora le sue quattro sfide, legate a club veri e alla loro
+storia, e compaiono nella procedura guidata come quelle maschili. Il
+Championship inglese non gioca più tutto nello stesso blu: diciassette dei venti
+club vestono i colori veri. La difficoltà è spiegata con parole semplici. E
+«Informazioni» dice se negozio e pubblicità sono arrivati sul telefono.
+</it-IT>
+<ja-JP>
+女子ゲームにも4つのチャレンジが加わりました。実在のクラブとその歴史に基づくもので、男子と
+同じようにウィザードに表示されます。イングランド・チャンピオンシップは全20クラブが同じ青
+一色ではなくなり、17クラブが本来のカラーをまといます。難易度の説明は平易な言葉に書き直し
+ました。「アプリについて」では、ショップと広告が端末に届いているかを確認できます。
+</ja-JP>
+<af>
+Die vrouespel het nou sy eie vier uitdagings, gegrond op werklike klubs en
+werklike geskiedenis, en hulle verskyn in die assistent net soos die mans s'n.
+Die Engelse Championship speel nie meer elke wedstryd in dieselfde blou nie:
+sewentien van die twintig klubs dra hul regte kleure. Moeilikheidsgraad word in
+eenvoudige woorde verduidelik. En 'Aangaande' sê nou of die winkel en die
+advertensies jou foon gehaal het.
+</af>
+```
+
+### What's new (500 max) - v1.5.5, Play version code 26
+
+Two things reported from real matches on a phone.
+
+```
+<en-GB>
+Slow commentary is properly slow now - a line and a breath rather than a line
+and a scramble. Normal and Fast are untouched. And if you override the
+assistant's injury replacement, the commentary and the match report name the
+man who actually came on, instead of the one who never left the bench.
+</en-GB>
+<fr-FR>
+Le commentaire lent est enfin lent : une ligne et le temps de respirer. Normal
+et Rapide sont inchangés. Et si vous remplacez le choix de votre adjoint après
+une blessure, le commentaire et le rapport de match nomment le joueur qui est
+réellement entré, et non celui qui n'a jamais quitté le banc.
+</fr-FR>
+<es-ES>
+El relato lento ya es realmente lento: una línea y tiempo para respirar. Normal
+y Rápido no cambian. Y si cambias el reemplazo que propone tu ayudante tras una
+lesión, el relato y el informe del partido nombran al que de verdad entró, no al
+que nunca se levantó del banquillo.
+</es-ES>
+<it-IT>
+La telecronaca lenta ora è davvero lenta: una riga e il tempo di respirare.
+Normale e Veloce restano com'erano. E se cambi il sostituto proposto dal tuo
+assistente dopo un infortunio, la telecronaca e il report nominano chi è
+entrato davvero, non chi non si è mai alzato dalla panchina.
+</it-IT>
+<ja-JP>
+実況の「ゆっくり」が本当にゆっくりになりました。一行読んで、ひと息つけます。「標準」と
+「速い」はそのままです。負傷交代でアシスタントの人選を変えた場合、実況と試合レポートは
+実際にピッチに入った選手の名前を表示します。
+</ja-JP>
+<af>
+Stadige kommentaar is nou regtig stadig - 'n reël en 'n asemteug. Normaal en
+Vinnig bly soos hulle was. En as jy jou assistent se beseringsvervanging
+oorheers, noem die kommentaar en die wedstrydverslag die speler wat werklik
+opgekom het, nie die een wat nooit van die bank af weg is nie.
+</af>
+```
+
+### What's new (500 max) - v1.5.4, Play version code 25
+
+A round of fixes and two additions. The Job Centre stops moving your desk on a
+click; the press room learns two questions it did not have; the title screen
+stops asking a question that belonged to the wizard; and the badge finally
+wears the skin.
+
+```
+<en-GB>
+Apply for a job and you now get an offer to accept or turn down, rather than
+finding yourself behind a new desk on the click. The press ask about a player
+who is homesick, and about a young one carrying too much. Which game you are
+starting is asked in the new-career wizard now, not on the title screen. Kit
+colours corrected across the women's game.
+</en-GB>
+<fr-FR>
+Postulez pour un poste et vous recevez désormais une offre, à accepter ou à
+refuser, au lieu de vous retrouver derrière un nouveau bureau d'un simple clic.
+La presse interroge sur un joueur qui a le mal du pays, et sur un jeune qui en
+porte trop. Le choix du jeu se fait maintenant dans l'assistant de nouvelle
+carrière. Couleurs des maillots corrigées côté féminin.
+</fr-FR>
+<es-ES>
+Solicita un puesto y ahora recibes una oferta que puedes aceptar o rechazar, en
+lugar de aparecer tras un despacho nuevo de un solo clic. La prensa pregunta por
+un jugador con morriña y por un joven que carga demasiado. Qué juego empiezas se
+elige ya en el asistente de nueva carrera. Colores de equipación corregidos en el
+juego femenino.
+</es-ES>
+<it-IT>
+Candidati a un posto e ora ricevi un'offerta da accettare o rifiutare, invece di
+ritrovarti dietro una nuova scrivania con un clic. La stampa chiede di un
+giocatore che ha nostalgia di casa e di un ragazzo che porta troppo peso. Quale
+gioco stai iniziando si sceglie ora nella procedura di nuova carriera. Colori
+delle maglie corretti nel gioco femminile.
+</it-IT>
+<ja-JP>
+求職に応募すると、その場で新しい机に座らされるのではなく、受けるか断るかを選べる
+オファーが届くようになりました。記者はホームシックの選手や、重圧を背負いすぎた
+若手についても尋ねてきます。どちらの大会で始めるかは新規キャリアの作成画面で
+選びます。女子の各クラブのジャージの色も修正しました。
+</ja-JP>
+<af>
+Doen aansoek om 'n pos en jy kry nou 'n aanbod om te vat of van die hand te wys,
+in plaas daarvan om met een klik agter 'n nuwe lessenaar te sit. Die pers vra oor
+'n speler wat huissiek is, en oor 'n jong een wat te veel dra. Watter speletjie
+jy begin, word nou in die nuwe-loopbaan-skerm gevra. Truikleure reggestel in die
+vrouespel.
+</af>
+```
+
+### What's new (500 max) - v1.5.3, Play version code 24
+
+Two screens, tidied. The title screen asks one question with New Career above
+the pair, and the line about separate careers is gone. He or she moves out of
+the new-career wizard, where it was asked once and could never be changed
+again, and becomes a Settings row that can be changed on any Tuesday.
+
+```
+<en-GB>
+Whether the press call you he or she is a Settings row now, so it can be
+changed whenever you like rather than once, at the start, forever. The title
+screen is tidier too: New Career, then the men's or women's game under it.
+</en-GB>
+<fr-FR>
+Le fait que la presse parle de vous au masculin ou au féminin est désormais un
+réglage, modifiable quand vous voulez plutôt qu'une seule fois au début. L'écran
+d'accueil est plus net aussi : Nouvelle carrière, puis le jeu masculin ou
+féminin en dessous.
+</fr-FR>
+<es-ES>
+Que la prensa hable de ti en masculino o en femenino es ahora un ajuste, que
+puedes cambiar cuando quieras en vez de una sola vez al empezar. La pantalla de
+inicio también está más limpia: Nueva carrera y debajo el juego masculino o el
+femenino.
+</es-ES>
+<it-IT>
+Che la stampa parli di te al maschile o al femminile è ora un'impostazione,
+modificabile quando vuoi invece che una volta sola all'inizio. Anche la
+schermata iniziale è più pulita: Nuova carriera e sotto il gioco maschile o
+femminile.
+</it-IT>
+<ja-JP>
+メディアでの呼ばれ方は設定の項目になりました。最初に一度きりではなく、いつでも変更
+できます。タイトル画面も整理し、「新しいキャリア」の下に男子の大会と女子の大会が
+並びます。
+</ja-JP>
+<af>
+Of die pers jou hy of sy noem, is nou 'n instelling wat jy enige tyd kan
+verander, in plaas van een keer aan die begin. Die titelskerm is ook netjieser:
+Nuwe loopbaan, en daaronder mansrugby of vrouerugby.
+</af>
+```
+
+### What's new (500 max) - v1.5.2, Play version code 23
+
+One screen, one change. v1.5 put the women's game on the title screen as a
+second button under New Career, and that shape said one game is the game and
+the other hangs off the bottom of it. The two are one control now.
+
+```
+<en-GB>
+Choosing your game is one control now. The men's and women's games sit side by
+side on the title screen, the same size as each other, and a single New Career
+button starts whichever one you pick.
+</en-GB>
+<fr-FR>
+Le choix du jeu tient maintenant en un seul réglage. Le rugby masculin et le
+rugby féminin sont côte à côte sur l'écran d'accueil, de la même taille, et un
+seul bouton Nouvelle carrière lance celui que vous choisissez.
+</fr-FR>
+<es-ES>
+Elegir tu juego es ahora un solo control. El juego masculino y el femenino
+están uno al lado del otro en la pantalla de inicio, del mismo tamaño, y un
+único botón Nueva carrera abre el que elijas.
+</es-ES>
+<it-IT>
+Scegliere il gioco è ora un unico controllo. Il gioco maschile e quello
+femminile stanno fianco a fianco nella schermata iniziale, della stessa
+dimensione, e un solo pulsante Nuova carriera avvia quello che scegli.
+</it-IT>
+<ja-JP>
+どちらの大会でプレーするかは、ひとつの選択になりました。タイトル画面で男子の大会と
+女子の大会が同じ大きさで並び、「新しいキャリア」ボタンひとつで選んだほうが始まります。
+</ja-JP>
+<af>
+Om jou speletjie te kies is nou een keuse. Mansrugby en vrouerugby staan langs
+mekaar op die titelskerm, ewe groot, en een Nuwe loopbaan-knoppie begin die een
+wat jy kies.
+</af>
+```
+
+### What's new (500 max) - v1.5.1, Play version code 22
+
+A language, a law and a round of fixes. Short notes, six languages, each under
+500 characters.
+
+```
+<en-GB>
+Afrikaans joins the game - the whole thing, not just the menus. The referee
+now orders uncontested scrums when a side loses its last trained front-rower
+mid-match, and a card costs a second player, as the law says. Every reply
+from the transfer desk now speaks your language, the board's anger at a
+salary-cap breach matches its size, and the commentary stops crediting a
+kicker with range he does not have.
+</en-GB>
+<fr-FR>
+L'afrikaans rejoint le jeu - tout le jeu, pas seulement les menus. L'arbitre
+ordonne désormais des mêlées simulées quand une équipe perd son dernier
+joueur de première ligne formé en cours de match, et un carton coûte un
+second joueur, comme le veut la règle. Chaque réponse du bureau des
+transferts parle votre langue, la colère du conseil face à un dépassement du
+salary cap est à la mesure du dépassement, et le commentaire cesse de prêter
+au buteur une portée qu'il n'a pas.
+</fr-FR>
+<es-ES>
+El afrikáans se une al juego - todo el juego, no solo los menús. El árbitro
+ordena ahora melés simuladas cuando un equipo pierde a su último primera
+línea formado durante el partido, y una tarjeta cuesta un segundo jugador,
+como dice el reglamento. Cada respuesta del despacho de fichajes habla tu
+idioma, el enfado de la directiva por saltarse el tope salarial va con el
+tamaño del exceso, y el comentario deja de atribuir a un pateador un alcance
+que no tiene.
+</es-ES>
+<it-IT>
+L'afrikaans entra nel gioco - tutto il gioco, non solo i menu. L'arbitro ora
+ordina mischie non contese quando una squadra perde il suo ultimo giocatore
+di prima linea formato durante la partita, e un cartellino costa un secondo
+giocatore, come dice il regolamento. Ogni risposta dell'ufficio mercato parla
+la tua lingua, l'ira del consiglio per uno sforamento del tetto salariale è
+proporzionata allo sforamento, e la telecronaca smette di attribuire a un
+calciatore una gittata che non ha.
+</it-IT>
+<ja-JP>
+アフリカーンス語が加わりました。メニューだけでなくゲーム全体です。試合中に訓練済みの
+フロントローを最後の一人まで失うと、レフェリーはノーコンテストスクラムを命じ、カードの
+場合は規則どおりもう一人を失います。移籍窓口の返答はすべてあなたの言語で届き、
+サラリーキャップ違反に対する取締役会の怒りは違反の大きさに応じ、実況はキッカーに
+持っていない飛距離を認めなくなりました。
+</ja-JP>
+<af>
+Afrikaans sluit by die speletjie aan - die hele ding, nie net die kieslyste
+nie. Die skeidsregter beveel nou onbestrede skrums wanneer 'n span sy laaste
+opgeleide voorryspeler in die loop van 'n wedstryd verloor, en 'n kaart kos 'n
+tweede speler, soos die reël sê. Elke antwoord van die oordragkantoor praat
+jou taal, die direksie se woede oor 'n salarisperk-oortreding pas by die
+grootte daarvan, en die kommentaar hou op om 'n skopper 'n afstand toe te
+skryf wat hy nie het nie.
+</af>
+```
+
+**The honest account of v1.5.1**: the bugs were the open items from the 1.5.0
+release audit (`docs/release-audit-prompt.md` and the published report).
+Uncontested scrums were decided at kick-off only; a tighthead sent off in the
+30th minute with no trained cover left the scrum contested for fifty minutes.
+Thirty-eight office replies were English string literals in every language.
+The board took seven points of confidence off a manager for a pound over the
+cap and seven for a fifth over it. A penalty line said "from halfway" about a
+kicker who could not reach halfway. The analyst was the one member of staff
+without a gender. All fixed; `scripts/scrumlaw.ts` and the release audit gate
+hold them. Afrikaans is a full dictionary with its own ordinal rule, its own
+women's-game siblings and its own sensitivity list; `docs/sensitivity-audit.md`
+is the deep-dive the release asked for.
+
+### What's new (500 max) - v1.5.0, Play version code 21
+
+The women's game is the whole release, and it is the first update since v1.0
+that a screenshot can carry: a new career picker on the front page, six
+competitions, 2,096 players. The short notes stay short, as the owner asked on
+5 Sep ("Nah lets not be too honest"), but this one names the feature because a
+listing that does not mention it wastes the release.
+
+```
+<en-GB>
+The women's game is here. Six competitions, real squads, and an international
+season of its own. Pick your side on the front page.
+</en-GB>
+<fr-FR>
+Le rugby féminin est là. Six compétitions, des effectifs réels et une saison
+internationale à part entière. Choisissez votre camp dès l'accueil.
+</fr-FR>
+<es-ES>
+Llega el rugby femenino. Seis competiciones, plantillas reales y una temporada
+internacional propia. Elige tu bando en la pantalla de inicio.
+</es-ES>
+<it-IT>
+Arriva il rugby femminile. Sei competizioni, rose reali e una stagione
+internazionale tutta sua. Scegli la tua squadra dalla schermata iniziale.
+</it-IT>
+<ja-JP>
+女子ラグビーが登場。6つの大会、実在の選手、そして独自の国際シーズン。
+ホーム画面でどちらの世界を指揮するか選べます。
+</ja-JP>
+```
+
+**The honest account of v1.5.0**, kept here for a press note or a longer
+listing, and NOT what goes in the release box:
+
+* **A women's game, separate from the men's.** The owner's rule was the design:
+  "THERE IS NO CROSS WITH ANY OF THE MENS TEAMS, THEY MUST STAY SEPERATE."
+  A save holds one world. You choose on the front page, you can hold a job in
+  either, and the two never share a fixture, a league table or a player.
+* **Six competitions.** An English top flight and Championship, a French first
+  and second division, a Celtic provincial cup, and a Pacific league across
+  Australia and New Zealand.
+* **2,096 players, 1,339 of them real**, off the owner's own squad sheets and
+  the clubs' own pages. The rest are generated and marked as such, and every
+  one of them is replaceable the moment a squad list exists.
+* **A women's international season**: a six-nation Northern Championship and a
+  four-nation Southern series, in their own windows.
+* **Injuries that differ by game.** The knee carries roughly three times its
+  flat share in the women's game and concussion takes longer to clear, which is
+  the least disputed finding in the literature on the two codes. The men's
+  table is mathematically unchanged, so a career in progress is untouched.
+* **Maternity leave**, on invented players only. The contract clock stops and
+  the shirt is hers on return.
+* **The copy reads as the women's game**, in all five languages. "She was
+  promised", "sa cliente", "la jugadora", "la giocatrice", 選手: around 1,700
+  lines carry a feminine sibling that a women's career reads instead, down to
+  the fragments a news story is assembled from.
+* **You choose how the press refer to you**, on the same screen as your name.
+  Pick "she" and the fans say "give her two seasons", the boardroom line reads
+  "a woman who promised nothing", and your record on the CV screen follows.
+  Every career before this one is a man, which is what the game always assumed.
+* **Your staff are their own people too.** A coach in the women's game is as
+  likely to be a woman as a man, so the game draws it once per person and then
+  says so: her report, her badge, her contract. The rival head coach who spends
+  the autumn talking about you is whoever the fixture list made them.
+* **The season now opens on a Saturday in every year**, not only in the first.
+  This was a real bug in shipped saves from season two onwards.
+* Both games run the 2026-27 season.
 
 ### What's new (500 max) - v1.3.1, Play version code 20
 
@@ -831,7 +1198,7 @@ BUILT FOR A PHONE
 • The game is completely offline: no account, no login, no cloud, and nothing about your career leaves your device. The adverts are the only part that uses the network, and Pro Manager removes them.
 • Four career slots, autosave after every week, and export and import so a backup is yours to keep.
 • Three difficulty settings, chosen once per career.
-• English, French, Spanish, Italian and Japanese.
+• English, French, Spanish, Italian, Japanese and Afrikaans.
 
 PHASE: Rugby Manager is an unofficial, independent game. Club names are real; competitions, grounds and sponsors are renamed or invented. Player names are real, used to identify people in a sporting database and for nothing else; the game is not affiliated with, endorsed by or licensed by any player, club, league or governing body, and contains no official badges, kits or logos.
 

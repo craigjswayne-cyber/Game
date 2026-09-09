@@ -20,13 +20,14 @@ import fr from '../src/locales/fr.json'
 import es from '../src/locales/es.json'
 import it from '../src/locales/it.json'
 import ja from '../src/locales/ja.json'
-import { LANGS, tIn, type Lang } from '../src/game/i18n'
+import af from '../src/locales/af.json'
+import { LANGS, tIn, type Lang, SIBLING, baseKey } from '../src/game/i18n'
 
 let fails = 0
 const ok = (c: boolean, what: string) => { console.log(`${c ? '  ok  ' : 'FAIL  '}${what}`); if (!c) fails++ }
 
 type Dict = Record<string, unknown>
-const DICTS: Record<string, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict }
+const DICTS: Record<string, Dict> = { en: en as Dict, fr: fr as Dict, es: es as Dict, it: it as Dict, ja: ja as Dict, af: af as Dict }
 
 /** Every leaf path in a dictionary, ignoring the _meta block and flattening a
  *  plural entry to the key that holds it rather than to its forms. */
@@ -116,6 +117,9 @@ ok(orphans.length === 0, `every key in the code is in en.json${orphans.length ? 
   )].filter(sfx => sfx.length > 2)
   const idle = [...enKeys].filter(k => {
     if ([...dynamic].some(p => p && k.startsWith(p))) return false
+    // A FEMININE SIBLING is read by t() in a women's world whenever its base key
+    // is (i18n.ts setWorld); the string `key_f` appears nowhere in the code.
+    if (SIBLING.test(k)) k = baseKey(k)
     // A news story's subject key is its body key with Subj on the end - see
     // newsSubject() in model.ts. Only the body key is ever written down, so the
     // subject is reachable exactly when its body is, and looking for it
@@ -153,15 +157,16 @@ for (const { code, label } of LANGS) {
   const d = DICTS[code]
   const theirs = new Set(leaves(d))
 
-  const gaps = [...enKeys].filter(k => !theirs.has(k))
+  // `_f` siblings are optional per language - langparity checks the ones a language has
+  const gaps = [...enKeys].filter(k => !SIBLING.test(k) && !theirs.has(k))
   ok(gaps.length === 0, `${label} has every key English has${gaps.length ? ` (${gaps.length} missing: ${gaps.slice(0, 6).join(', ')})` : ''}`)
 
-  const stale = [...theirs].filter(k => !enKeys.has(k))
+  const stale = [...theirs].filter(k => !SIBLING.test(k) && !enKeys.has(k))
   ok(stale.length === 0, `${label} has no keys English has dropped${stale.length ? ': ' + stale.slice(0, 6).join(', ') : ''}`)
 
   const bad: string[] = []
   for (const k of enKeys) {
-    if (!theirs.has(k)) continue
+    if (SIBLING.test(k) || !theirs.has(k)) continue
     const a = slots(en as Dict, k)
     const b = slots(d, k)
     if (a.size !== b.size || [...a].some(x => !b.has(x))) bad.push(`${k} [${[...a]}] vs [${[...b]}]`)
@@ -177,8 +182,16 @@ for (const { code, label } of LANGS) {
   // attempt exempted every key ending None and there are already keys called
   // finishersNone and prepNone that mean "none" and say so out loud.
   const BLANK_OK = 'common.nothing'
+  // A `_f` sibling has no English behind it to fall back on, so it is read
+  // straight from this language's file: blank is the only way it can fail.
+  const leafText = (k: string): string => {
+    const v = k.split('.').reduce<unknown>((o, part) => (o && typeof o === 'object' ? (o as Dict)[part] : undefined), d)
+    return typeof v === 'string' ? v : 'plural'
+  }
   const blanks = [...theirs].filter(k =>
-    k !== BLANK_OK && (tIn(code as Lang, k).trim() === '' || tIn(code as Lang, k) === k))
+    k !== BLANK_OK && (SIBLING.test(k)
+      ? leafText(k).trim() === ''
+      : (tIn(code as Lang, k).trim() === '' || tIn(code as Lang, k) === k)))
   ok(blanks.length === 0, `${label} has no blank or unresolved strings${blanks.length ? ': ' + blanks.slice(0, 4).join(', ') : ''}`)
 }
 

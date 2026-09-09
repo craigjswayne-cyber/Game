@@ -252,6 +252,69 @@
    Oatmeal on near-black, deep burgundy in the header, brass for value.
    Editorial rather than technical - the broadsheet to Midnight's
    broadcast graphics. */
+/* ---- THE TOUR SKIN ----
+   Owner, 7 Sep: "Skins change to a red version (make sure its readable) kit is
+   red jersey."
+
+   THIS ONE IS NOT FOR SALE AND NOT CHOSEN. The other three are Pro Manager's
+   and live in Settings; this one the game puts on by itself for the weeks a
+   manager is coaching the Isles XV, and takes off again when he comes home. It
+   outranks the chosen skin for the duration, which is the point: the tour
+   should not look like an ordinary June.
+
+   AND IT HAD TO BE READABLE, which is why the red that carries text is not the
+   red on the jersey. #C8102E is the shirt; against a near-black canvas it holds
+   about 4.4:1 against white, so it is fine as a FILL and wrong as a text colour
+   at small sizes. --primary is therefore a lifted red (#F2707E) that clears the
+   contrast probes, and the shirt red is kept for --primary-pressed, the hero
+   gradient and the fills - exactly the split the heritage skin already makes
+   between its brief's burgundy and the text-safe twin of it. */
+.app.skin-tour,
+.skin-swatches.skin-tour {
+  color-scheme: dark;
+
+  --canvas: #16090C;
+  --surface-1: #210E12;
+  --surface-2: #2B1318;
+  --surface-3: #35181E;
+  --border: #3A1A20;
+  --border-strong: #5A2730;
+
+  --text-primary: #FBEFF0;
+  --text-secondary: #C8A5AA;
+  --text-muted: #B4949A;
+
+  /* the text-safe twin of the jersey red */
+  --primary: #F2707E;
+  --primary-hover: #F98C97;
+  --primary-pressed: #C8102E;
+  --primary-tint: #331319;
+  --on-primary: #1B0509;
+
+  --gold: #E0B15C;
+  --gold-fill: #E0B15C;
+  --gold-tint: #33270F;
+  --on-gold: #1A1206;
+
+  --danger: #FF9A8E;
+  --danger-fill: #FFB3A6;
+  --danger-tint: #3A1C18;
+
+  --info: #90BEE2;
+
+  /* the jersey itself, in the one role that can hold it */
+  --hero-gradient: linear-gradient(135deg, #7A0A1C, #C8102E);
+
+  --on-hero: #FFF4F5;
+  --on-hero-soft: #F0C9CE;
+  --scrim: rgba(10, 4, 6, 0.70);
+  --on-danger: #2B0E0B;
+  --on-info: #0B1620;
+
+  --positive: #5BDD95;
+  --on-positive: #06170E;
+}
+
 .app.skin-heritage,
 .skin-swatches.skin-heritage {
   color-scheme: dark;
@@ -435,6 +498,55 @@
 /* ---------------- Heritage Gold, daylight ----------------
    The broadsheet on actual newsprint. Burgundy comes off the header and
    onto the page as the interactive colour - see the note above. */
+/* The tour skin in daylight. Same rule as the dark one: the jersey red carries
+   fills and the hero, and a DARKER red carries text, because #C8102E on a near
+   white surface is 5.6:1 and the lifted red used at night would be 2.4:1 and
+   illegible. "make sure its readable" cuts both ways. */
+.app.day.skin-tour,
+.app:not(.night).skin-tour,
+.skin-swatches.skin-tour.day {
+  color-scheme: light;
+
+  --canvas: #FAF3F4;
+  --surface-1: #FFFCFC;
+  --surface-2: #F2E4E6;
+  --surface-3: #FFFCFC;
+  --border: #E4D0D3;
+  --border-strong: #BE9AA0;
+
+  --text-primary: #1D1416;
+  --text-secondary: #4E3B3E;
+  --text-muted: #61494D;
+
+  --primary: #A80C26;
+  --primary-hover: #8C0A20;
+  --primary-pressed: #6E0819;
+  --primary-tint: #FBE3E6;
+  --on-primary: #FFFCFC;
+
+  --gold: #6E5210;
+  --gold-fill: #C9A227;
+  --gold-tint: #F7EDD4;
+  --on-gold: #FFFCFC;
+
+  --danger: #B32E22;
+  --danger-fill: #E8897E;
+  --danger-tint: #F8E5E2;
+
+  --info: #1D5A8A;
+
+  --hero-gradient: linear-gradient(135deg, #7A0A1C, #C8102E);
+
+  --on-hero: #FFF4F5;
+  --on-hero-soft: #F0C9CE;
+  --scrim: rgba(29, 20, 22, 0.45);
+  --on-danger: #FFFCFC;
+  --on-info: #FFFCFC;
+
+  --positive: #186B3C;
+  --on-positive: #FFFCFC;
+}
+
 .app.day.skin-heritage,
 .app:not(.night).skin-heritage,
 .skin-swatches.skin-heritage.day {

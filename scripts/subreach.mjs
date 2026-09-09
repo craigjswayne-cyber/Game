@@ -47,9 +47,9 @@ const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM 
  *                so measuring at 915 is measuring a phone nobody owns.
  * @param stopAt  'HT' for half-time, 'BRK' for the 60' break
  */
-async function sweep(label, height, stopAt) {
-  say(`\n=== ${label}: 412x${height}, ${stopAt === 'HT' ? 'half-time' : "the 60' break"} ===`)
-  const page = await browser.newPage({ viewport: { width: 412, height } })
+async function sweep(label, height, stopAt, width = 412) {
+  say(`\n=== ${label}: ${width}x${height}, ${stopAt === 'HT' ? 'half-time' : "the 60' break"} ===`)
+  const page = await browser.newPage({ viewport: { width, height } })
   await page.addInitScript(() => localStorage.setItem('rm-night', '1'))
   try {
     await page.goto('http://localhost:4193/')
@@ -306,6 +306,15 @@ try {
   await sweep('the break, real phone height', 640, 'BRK')
   await sweep('half-time, real phone height', 640, 'HT')
   await sweep('the break, tall phone', 915, 'BRK')
+  // THE PHONE THE BUG WAS REPORTED ON. Every sweep above is 412 wide, which is
+  // an Android. Reported from an iPhone: "when you are trying to do subs -
+  // player number 1 is out of shot". 390x664 is an iPhone 14/15 with Safari's
+  // chrome on the screen, and 390x568 is the same phone with the keyboard
+  // accessory bar and a shorter window - the sheet has to open on shirt 1 at
+  // both, because the man in the number one shirt is the first thing a manager
+  // looks for and the first thing the list offers.
+  await sweep('half-time, iPhone', 664, 'HT', 390)
+  await sweep('the break, short iPhone', 568, 'BRK', 390)
 } finally {
   await browser.close()
   server.stop()

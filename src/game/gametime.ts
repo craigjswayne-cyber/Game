@@ -24,7 +24,7 @@
 //   than merely spared.
 
 import type { Club, GameState, Player } from './model'
-import { SEASON_WEEKS } from './model'
+import {absWeek, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
 
@@ -153,7 +153,7 @@ export function settleGameTime(state: GameState) {
   // abs-week stamp stops a double-called settle from counting a match twice.
   // First touch of an older save seeds the old estimate - except a man
   // currently on Test duty, who starts level rather than owed.
-  const absWk = state.season * SEASON_WEEKS + state.week
+  const absWk = absWeek(state.season, state.week)
   const playedThisWeek = state.fixtures.some(f =>
     f.played && f.week === state.week && (f.homeId === club.id || f.awayId === club.id))
   if (playedThisWeek && state.availWeek !== absWk) {

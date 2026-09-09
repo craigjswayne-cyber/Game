@@ -12,12 +12,11 @@
 // ids and weeks, never the shared match rng). No new number is hidden: the
 // Profile screen prints the standing, and every consequence says its name.
 import type { GameState, Player, PressOption } from './model'
-import { mgrReputation, squadTrust, SEASON_WEEKS } from './model'
+import {absWeek, mgrReputation, squadTrust, SEASON_WEEKS } from './model'
 import { clamp, mulberry32 } from './rng'
 import { t, tIn, type Vars } from './i18n'
 import { OFFICE_OUTLET } from './media'
 
-const absWeek = (state: GameState) => state.season * SEASON_WEEKS + state.week
 
 /** The squad's collective standing, on the same 0-100 ruler as the manager's
  *  reputation. The 23 that actually play, not the 45 on the books - a famous
@@ -99,13 +98,13 @@ export function incidentsOf(state: GameState): Incident[] {
  *  meeting when the room has had enough. Deterministic gates throughout. */
 export function disciplineWeek(state: GameState) {
   if (state.unemployed) return
-  const now = absWeek(state)
+  const now = absWeek(state.season, state.week)
   const list = incidentsOf(state)
 
   // the desk does not wait forever: a flagged incident the manager has not
   // dealt with inside two weeks was dealt with by silence
   for (const inc of list) {
-    if (inc.state === 'flagged' && now - (inc.season * SEASON_WEEKS + inc.week) >= 2) {
+    if (inc.state === 'flagged' && now - (absWeek(inc.season, inc.week)) >= 2) {
       applyResponse(state, inc, 'ignore', true)
     }
   }
@@ -118,7 +117,7 @@ export function disciplineWeek(state: GameState) {
     const candidates = club.players
       .map(id => state.players[id])
       .filter((p): p is Player => !!p && !p.acad && !p.injury && !p.natSquad)
-      .filter(p => !list.some(i => i.pid === p.id && now - (i.season * SEASON_WEEKS + i.week) < 10))
+      .filter(p => !list.some(i => i.pid === p.id && now - (absWeek(i.season, i.week)) < 10))
     for (const p of candidates) {
       const sulky = (p.pers === 'Temperamental' || p.pers === 'Mercenary') && p.morale < 4.5
       const poorWeek = (p.lastR ?? 6) < 4.6
@@ -164,7 +163,7 @@ export function disciplineWeek(state: GameState) {
 
   // prune the history: resolved and more than a season old carries nothing
   state.incidents = list.filter(i =>
-    i.state === 'flagged' || live(i) || now - (i.season * SEASON_WEEKS + i.week) < SEASON_WEEKS)
+    i.state === 'flagged' || live(i) || now - (absWeek(i.season, i.week)) < SEASON_WEEKS)
 }
 
 function raiseIncident(state: GameState, p: Player, kind: Incident['kind']) {

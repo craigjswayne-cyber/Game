@@ -16,6 +16,13 @@ import { CHAMP } from '../data/leagues/champ'
 import { PROD2 } from '../data/leagues/prod2'
 import { JL1 } from '../data/leagues/jl1'
 import { NATL1 } from '../data/leagues/natl1'
+import { W_PWR } from '../data/leagues/w_pwr'
+import { W_PAC } from '../data/leagues/w_pac'
+import { W_E1 } from '../data/leagues/w_e1'
+import { W_CELT } from '../data/leagues/w_celt'
+import { W_E2 } from '../data/leagues/w_e2'
+import { W_CHAMP } from '../data/leagues/w_champ'
+import { W, type Gender, staffGender } from './gender'
 import type { Club, GameState, MgrOrigin, NewsItem, Pos } from './model'
 import { buildPlayer, playerValue, resetIds , repriceAcademies } from './attributes'
 import { regenName } from './nations'
@@ -24,14 +31,14 @@ import { seedPhilosophies } from './philosophy'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason } from './schedule'
 import { punditPredictions } from './gossip'
-import { CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
+import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
 import { ensureCaptains } from './analysis'
 import { CLUB_CAPTAINS, sameName } from '../data/captains'
 import { pickObjectives } from './objectives'
-import { mulberry32 } from './rng'
+import { hashString, mulberry32 } from './rng'
 import { ACAD_SHAPE, ACADEMY_SIZE, acadQuality, ensureAcademyLeague } from './academy'
 import { t, tIn } from './i18n'
 
@@ -40,6 +47,8 @@ export interface Challenge {
   clubId: string
   title: string
   desc: string
+  /** which game it belongs to; absent means the men's, where they all began */
+  gender?: Gender
 }
 
 export const CHALLENGES: Challenge[] = [
@@ -59,7 +68,41 @@ export const CHALLENGES: Challenge[] = [
     id: 'pirates', clubId: 'pirates', title: 'challenges.pirates',
     desc: 'challenges.piratesDesc',
   },
+  // ---- and four for the women's game (v1.5.6) ----
+  //
+  // The same four shapes as the men's, hung on what has actually happened in
+  // the women's club game rather than on invented history: a side that has won
+  // three in a row and a challenger who lost a final to them, a club licensed
+  // into the top flight with money and no trophies, a club that finished last
+  // in a division with nothing to be relegated to, and a club that was second
+  // in the country and then passed over when the top flight picked its members.
+  // The research and what could and could not be verified is in
+  // docs/womens-challenges.md.
+  {
+    id: 'threepeat', clubId: W + 'bristol', gender: 'w',
+    title: 'challenges.threepeat', desc: 'challenges.threepeatDesc',
+  },
+  {
+    id: 'ealing', clubId: W + 'trailfinders', gender: 'w',
+    title: 'challenges.ealing', desc: 'challenges.ealingDesc',
+  },
+  {
+    id: 'licence', clubId: W + 'sale', gender: 'w',
+    title: 'challenges.licence', desc: 'challenges.licenceDesc',
+  },
+  {
+    id: 'grudge', clubId: W + 'lichfield', gender: 'w',
+    title: 'challenges.grudge', desc: 'challenges.grudgeDesc',
+  },
 ]
+
+/** The four for one game or the other. Every challenge is pinned to a club, and
+ *  a men's club does not exist in the women's world: rendering the men's four
+ *  in a women's wizard drew four crestless cards that took the manager to a
+ *  league index of -1. The wizard asks this rather than the list. */
+export function challengesFor(gender: Gender): Challenge[] {
+  return CHALLENGES.filter(c => (c.gender ?? 'm') === gender)
+}
 
 export interface LeagueDef {
   id: string
@@ -89,7 +132,60 @@ export function mediaVerdict(club: { id: string }, league: LeagueDef): string {
   return t(RELEGATES.includes(league.id) ? 'verdict.relegationZone' : 'verdict.writtenOff')
 }
 
-export const LEAGUE_DEFS: () => LeagueDef[] = () => [
+/**
+ * The competitions of ONE world.
+ *
+ * `g` defaults to 'm' so that every call site written before v1.5 - and every
+ * men's career ever saved - gets exactly the world it always got. The three
+ * places that must pass it are the ones that rebuild a world from a save:
+ * newGame, save.ts's league repair, and the season rollover. A women's career
+ * that reached any of those with the default would have men's clubs injected
+ * into it, which is the one failure this whole design exists to make
+ * impossible; scripts/genderprobe.ts drives all three and checks.
+ */
+export const LEAGUE_DEFS: (g?: Gender) => LeagueDef[] = (g = 'm') =>
+  g === 'w' ? W_LEAGUE_DEFS() : M_LEAGUE_DEFS()
+
+/** The women's game: England, and the southern hemisphere.
+ *
+ *  NAMED EXPLICITLY, never as the default. The owner's rule: "Never treat men's
+ *  competitions as the default baseline. Always use explicit identifiers for
+ *  both." These carried the men's names verbatim - a women's career played in
+ *  something called simply the English Premier Division - which reads as though
+ *  the men's game is the real one and this is a variant of it. The men's names
+ *  are untouched: fifty-two browser harnesses select on them, and they are
+ *  already explicit by being the only ones in their world.
+ *
+ *  AND FICTIONALISED, like everything else the game ships. Four of these were
+ *  the real competitions' real names: Élite 1 and Élite 2 are exactly what the
+ *  French women's divisions are called, and the Celtic Challenge and the
+ *  Pacific Four Series are exactly what those two are called. The men's
+ *  database renamed every competition it carries - Top 14 became French Elite
+ *  14, the Six Nations the Northern Championship, the Champions Cup the
+ *  Continental Cup - and the women's competitions had escaped that pass simply
+ *  because they arrived after it. Generic tier and geography vocabulary stays;
+ *  the competition's actual name does not. scripts/ipprobe.mjs now holds the
+ *  four so they cannot come back.
+ *
+ *  The Pacific competition is Super Rugby Aupiki and Super W in one table, the
+ *  way the men's Pacific Championship already puts New Zealand, Australia and
+ *  Fiji in one - the owner asked for "Aus & Nz" together. Nine clubs each, so
+ *  neither league is thinner than the other. */
+const W_LEAGUE_DEFS: () => LeagueDef[] = () => [
+  { id: W + 'pwr', name: "English Women's Premier Division", short: 'Premier', double: true, playoffTeams: 4, clubs: W_PWR },
+  { id: W + 'pac', name: "Women's Pacific Championship", short: 'Pacific', double: true, playoffTeams: 4, clubs: W_PAC },
+  { id: W + 'e1', name: "French Women's Division 1", short: 'Division 1', double: true, playoffTeams: 6, clubs: W_E1 },
+  // Six clubs, so a double round robin is ten rounds and the season would be
+  // over by Christmas. Played three times, as the real one is.
+  { id: W + 'celt', name: 'Celtic Provinces Cup', short: 'Celtic', double: true, playoffTeams: 2, clubs: W_CELT },
+  // Championship North 1 and South 1 as one table, at the owner's request.
+  // Twenty clubs play each other once: nineteen rounds fits the season where a
+  // double round robin at thirty-eight plainly would not.
+  { id: W + 'champ', name: "English Women's Championship", short: 'Championship', double: false, playoffTeams: 4, clubs: W_CHAMP },
+  { id: W + 'e2', name: "French Women's Division 2", short: 'Division 2', double: true, playoffTeams: 4, clubs: W_E2 },
+]
+
+const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'prem', name: 'English Premier Division', short: 'Premier', double: true, playoffTeams: 4, clubs: [...PREM_A, ...PREM_B] },
   { id: 'top14', name: 'French Elite 14', short: 'Elite 14', double: true, playoffTeams: 6, clubs: [...TOP14_A, ...TOP14_B] },
   { id: 'urc', name: 'United Provinces Championship', short: 'UPC', double: false, playoffTeams: 8, clubs: [...URC_A, ...URC_B] },
@@ -100,14 +196,21 @@ export const LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
-export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', difficulty: Difficulty = 'normal'): GameState {
+export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', difficulty: Difficulty = 'normal', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
 
   const state: GameState = {
     seed,
+    gender,
+    mgrGender,
+    // drawn off a seed of its own, not the world's stream: a coin taken from
+    // `rng` here would move every draw after it and hand a seed a different
+    // world than it had in 1.5.0 (difficultyprobe caught exactly that)
+    analystGender: staffGender(mulberry32((seed ^ hashString('the analyst')) >>> 0), gender),
     saveName: '',
     season: 0,
+    basis: WEEK_BASIS,
     week: 1,
     userClubId,
     players: {},
@@ -154,7 +257,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
 
   // the Sapiac challenge's premise is that Montauban ARE in the Elite 14 -
   // make it true at boot: they come up, the weakest Elite 14 side goes down
-  const defs = LEAGUE_DEFS()
+  const defs = LEAGUE_DEFS(gender)
   if (challengeId === 'sapiac') {
     const top14 = defs.find(d => d.id === 'top14')
     const prod2 = defs.find(d => d.id === 'prod2')
@@ -271,7 +374,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       // seenNames already holds every real player in the world, so the guard has
       // the whole database to avoid and not just the generated men before him.
       // regenName does the retrying and the registering now.
-      const name = regenName(rng, club.country, seenNames)
+      const name = regenName(rng, club.country, seenNames, gender)
       const p = buildPlayer(
         { name, pos, age, nat: club.country, q, gk: (pos === 'FH' || pos === 'FB') && rng() < 0.3 },
         club.id, seed + club.players.length * 31 + i, 0)
@@ -302,7 +405,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
       const k = planted.findIndex(x => x.pos === pos)
       if (k >= 0) {
         const pr = planted.splice(k, 1)[0]
-        regenName(rng, club.country, seenNames) // the name he replaces, burned
+        regenName(rng, club.country, seenNames, gender) // the name he replaces, burned
         // and the goal-kicker roll, which mkExtra only draws for a 10 or a 15
         if (pos === 'FH' || pos === 'FB') rng()
         // lowercase, like every other writer and reader of this set: registered
@@ -383,7 +486,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     const nat = GEM_NATS[i % GEM_NATS.length]
     const p = buildPlayer(
       {
-        name: regenName(rng, nat, seenNames), pos: GEM_POS[i % GEM_POS.length],
+        name: regenName(rng, nat, seenNames, gender), pos: GEM_POS[i % GEM_POS.length],
         age: 18 + Math.floor(rng() * 3), nat,
         q: 55 + Math.floor(rng() * 12), gk: rng() < 0.15,
       },
@@ -427,26 +530,50 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     )
   }
 
-  // Continental Cup: best 16 by rep from prem/top14/urc (Europe)
-  const euro = Object.values(state.clubs)
-    .filter(c => ['prem', 'top14', 'urc'].includes(c.leagueId))
-    .sort((a, b) => b.rep - a.rep)
-    .slice(0, 16)
-    .map(c => c.id)
-  state.comps['cc'] = buildChampionsCup(euro, rng, state)
+  // ---- THE CUPS AND THE TEST GAME BELOW ARE THE MEN'S ONES ----
+  //
+  // Every competition in this block is shaped around the men's calendar: a
+  // sixteen-club Continental Cup drawn from prem/top14/urc, a Shield beneath it,
+  // the Northern and Southern Championships in their men's windows, a tour
+  // tour. Not one of those filters matches a club in the women's world, so left
+  // to run they build as EMPTY competitions wearing men's ids - which is both
+  // wrong in itself and exactly the cross-contamination the owner ruled out.
+  // scripts/genderprobe.ts caught it on the first run.
+  //
+  // The women's game has its own versions and they are not the same shape: the
+  // Women's Six Nations sits in a different window from the men's, WXV is not
+  // the Rugby Championship, and the European club cup is younger and smaller.
+  // They are the next piece of work, with the international game behind the paid
+  // option. Until they are built properly the women's world is its league and
+  // nothing else, which is honest and playable and leaves nothing half-made in
+  // somebody's save.
+  if (gender !== 'w') {
+    // Continental Cup: best 16 by rep from prem/top14/urc (Europe)
+    const euro = Object.values(state.clubs)
+      .filter(c => ['prem', 'top14', 'urc'].includes(c.leagueId))
+      .sort((a, b) => b.rep - a.rep)
+      .slice(0, 16)
+      .map(c => c.id)
+    state.comps['cc'] = buildChampionsCup(euro, rng, state)
 
-  // Continental Shield: the next 16 - Championship winners' pot and mid-table
-  // Europe. Continental Cup clubs are excluded outright: re-sorting with the
-  // champ clubs mixed in used to let a CC qualifier slip into both cups.
-  const ccSet = new Set(euro)
-  const chc = Object.values(state.clubs)
-    .filter(c => ['prem', 'top14', 'urc', 'champ'].includes(c.leagueId) && !ccSet.has(c.id))
-    .sort((a, b) => b.rep - a.rep)
-    .slice(0, 16)
-    .map(c => c.id)
-  state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
+    // Continental Shield: the next 16 - Championship winners' pot and mid-table
+    // Europe. Continental Cup clubs are excluded outright: re-sorting with the
+    // champ clubs mixed in used to let a CC qualifier slip into both cups.
+    const ccSet = new Set(euro)
+    const chc = Object.values(state.clubs)
+      .filter(c => ['prem', 'top14', 'urc', 'champ'].includes(c.leagueId) && !ccSet.has(c.id))
+      .sort((a, b) => b.rep - a.rep)
+      .slice(0, 16)
+      .map(c => c.id)
+    state.comps['chc'] = buildChampionsCup(chc, rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
 
-  buildInternationals(rng, state, isWorldCupSeason(0))
+    buildInternationals(rng, state, isWorldCupSeason(0))
+  } else {
+    // The women's game has its own two, in their own windows. See
+    // buildWomensInternationals for why this is not the men's builder with
+    // different arguments.
+    buildWomensInternationals(rng, state)
+  }
   schedulePreseason(state, rng)
   seedExClubs(state)
   seedKnowledge(state)
@@ -467,7 +594,10 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   state.legendOf = []
   // every dugout has a name in it, and an idea in it (F23)
   for (const club of Object.values(state.clubs)) {
-    if (club.id !== userClubId) club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames)
+    if (club.id !== userClubId) {
+      club.coachGender = staffGender(rng, gender)
+      club.coach = regenName(rng, club.country === 'EUR' ? 'ENG' : club.country, seenNames, club.coachGender)
+    }
   }
   seedPhilosophies(state)
   // F30: you do not arrive at a club with the front of its shirt blank

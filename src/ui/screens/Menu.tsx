@@ -54,6 +54,18 @@ export default function Menu() {
             </button>
           )
         })()}
+        {/* NEW CAREER, and nothing about which game (v1.5.3 asked it here,
+            v1.5.4 does not). The picker sat one line under Continue, which
+            made it look like a switch on the career already running - the
+            owner selected the women's game, pressed Continue and arrived back
+            in the men's one, which is exactly what the layout promised and not
+            what the code does. It cannot do it either: a save holds one game
+            and cannot change (src/game/gender.ts).
+
+            So the question moves to the top of the new-career wizard, where it
+            is the first thing that screen asks and the league list underneath
+            answers to it. This screen offers the door; what is behind it is
+            chosen once you are through. */}
         <button className={saves.length ? 'btn ghost' : 'btn gold'}
           style={saves.length ? { color: 'var(--text-primary)', borderColor: 'var(--border-strong)', fontSize: 15 } : { fontSize: 16, padding: '13px' }}
           onClick={() => go('newgame')}>

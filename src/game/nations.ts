@@ -1,5 +1,6 @@
 // International rugby nations, reputations, and regen name pools.
 import { t, tIn, type Lang } from './i18n'
+import type { Gender } from './gender'
 import type { GameState, Player } from './model'
 
 export interface Nation {
@@ -35,7 +36,7 @@ export const NATIONS: Nation[] = [
   { code: 'ROU', name: 'Romania', flag: '🇷🇴', rep: 55 },
   { code: 'NAM', name: 'Namibia', flag: '🇳🇦', rep: 52 },
   { code: 'CHL', name: 'Chile', flag: '🇨🇱', rep: 54 },
-  { code: 'LIO', name: 'Northern Lions', flag: '🦁', rep: 93 },
+  { code: 'LIO', name: 'British & Irish Isles XV', flag: '🔴', rep: 93 },
 ]
 
 export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)
@@ -45,6 +46,47 @@ export const nationByCode = (c: string) => NATIONS.find(n => n.code === c)
  *  written out twice in season.ts, which is one drift away from two ladders),
  *  here because the season engine, the store grants and the store UI all
  *  need it and none of them may import each other. */
+/**
+ * The nations this WORLD actually plays Test rugby in.
+ *
+ * NAT_TIERS is the full list of sixteen and it is a men's list. A women's save
+ * runs a six-nation Northern Championship and a four-nation Southern series -
+ * ten unions - so six of the sixteen have no women's Test programme in the
+ * game at all.
+ *
+ * That was a monetisation bug rather than a cosmetic one. "Become an
+ * International Coach" is a paid product: before this, a buyer in a women's
+ * career could pay for it, pick South Africa, Japan, Argentina, Fiji, Samoa or
+ * Tonga, be appointed head coach, and then never be given a single match,
+ * because no fixture in that world names his country. Somebody paying real
+ * money for a job that does not exist is the worst class of defect in the
+ * store.
+ *
+ * Reading the world's own competitions rather than keeping a second women's
+ * list means a league added later is picked up for free, and the two can never
+ * drift apart.
+ */
+export function testNationsIn(state: { comps: Record<string, { isNational?: boolean; teamIds: string[] }> }): string[] {
+  const out = new Set<string>()
+  for (const c of Object.values(state.comps)) {
+    if (!c.isNational) continue
+    for (const t of c.teamIds) out.add(t)
+  }
+  // the touring invitational is a squad, not a union - never a job
+  out.delete('LIO')
+  return [...out]
+}
+
+/** NAT_TIERS, less the unions this world has no Test programme for. */
+export function pickableNations(state: { comps: Record<string, { isNational?: boolean; teamIds: string[] }> }): [string, number][] {
+  const live = new Set(testNationsIn(state))
+  const kept = NAT_TIERS.filter(([n]) => live.has(n))
+  // never hand back an empty picker: a world with no national comps at all
+  // (an early save, a future mode) keeps the old behaviour rather than
+  // rendering a list with nothing in it
+  return kept.length ? kept : [...NAT_TIERS]
+}
+
 export const NAT_TIERS: [string, number][] = [
   ['CAN', 64], ['USA', 65], ['TGA', 66], ['SAM', 67], ['JPN', 69], ['FIJ', 71],
   ['ITA', 72], ['WAL', 74], ['SCO', 76], ['AUS', 78], ['ARG', 78],
@@ -155,9 +197,68 @@ export function nameRegistry(world: object, existing: () => Iterable<string>): S
  *
  *  And if it is exhausted, a second surname rather than a repeat. Double-barrelled
  *  names are ordinary in rugby and it squares the space instead of giving up. */
-export function regenName(rng: () => number, nat: string, taken?: Set<string>): string {
+/**
+ *  ---- WOMEN'S FIRST NAMES, BY UNION (v1.5) ----
+ *
+ *  Surnames are not gendered and are not duplicated: a generated woman draws her
+ *  surname from N[nat][1] like everybody else, so a Welsh player is a Prosser or
+ *  a Gwynne either way, and adding a union here is half the work rather than all
+ *  of it.
+ *
+ *  Sized to match the men's pools - thirty-six for the unions with a domestic
+ *  league in the game, twenty-eight for the rest - because the arithmetic that
+ *  produced seventeen Freddie Browns does not care which game it is in. Against
+ *  the same 36-surname lists that is about thirteen hundred combinations per
+ *  union, which is what lets regenName's uniqueness guard actually find a free
+ *  name instead of giving up.
+ *
+ *  NO FIRST NAME APPEARS IN BOTH POOLS FOR THE SAME UNION. Nine did at first -
+ *  Manaia, Marama, Nikau and Kahu in New Zealand, Jarrah in Australia, Alofa and
+ *  Nofoaluma in Samoa, Latu and Manu in Tonga - because they are genuinely
+ *  unisex names in those cultures. The result was a generated 'Manaia Kaipara'
+ *  existing in the men's world AND in the women's one, which scripts/genderprobe
+ *  caught on its second run. The two games are meant to have nothing in common
+ *  and that includes the people in them, so the women's pool gives way. Safe to
+ *  change because WF is new in v1.5 and no save has drawn from it; the men's
+ *  pools are untouched, because moving one name there would reshuffle every
+ *  generated man in every existing career.
+ *
+ *  Same rule as the men's pools and for the same reason: none of these is a
+ *  currently contracted professional. scripts/namedup.ts proves the built world
+ *  has no duplicate and no generated player wearing a real one's name, and it
+ *  does not care which game it is reading. */
+const WF: Record<string, string[]> = {
+  ENG: ['Alice', 'Beatrice', 'Bryony', 'Cerys', 'Daisy', 'Edith', 'Eleanor', 'Esme', 'Flora', 'Freya', 'Georgia', 'Harriet', 'Imogen', 'Isla', 'Jemima', 'Josie', 'Kitty', 'Lottie', 'Maisie', 'Martha', 'Matilda', 'Nell', 'Nancy', 'Orla', 'Phoebe', 'Primrose', 'Rosalind', 'Rowena', 'Saskia', 'Sybil', 'Tamsin', 'Thea', 'Verity', 'Wilhelmina', 'Winnie', 'Bea'],
+  FRA: ['Amandine', 'Anaïs', 'Ariane', 'Aurore', 'Bérénice', 'Blandine', 'Capucine', 'Célestine', 'Clarisse', 'Coralie', 'Delphine', 'Élodie', 'Fanny', 'Gwenaëlle', 'Hortense', 'Inès', 'Jeanne', 'Léonie', 'Lucile', 'Manon', 'Margaux', 'Marion', 'Mélusine', 'Noémie', 'Océane', 'Perrine', 'Roxane', 'Sidonie', 'Solène', 'Sylvie', 'Tiphaine', 'Violette', 'Yolande', 'Zélie', 'Apolline', 'Bastienne'],
+  IRE: ['Aoibhinn', 'Aoife', 'Bláthnaid', 'Bríd', 'Caoimhe', 'Ciara', 'Clodagh', 'Dearbhla', 'Eabha', 'Eimear', 'Fionnuala', 'Grainne', 'Íde', 'Laoise', 'Maeve', 'Mairéad', 'Muireann', 'Neasa', 'Niamh', 'Nuala', 'Órla', 'Póilín', 'Réiltín', 'Roisin', 'Saoirse', 'Sinéad', 'Siobhán', 'Sorcha', 'Tara', 'Treasa', 'Úna', 'Aisling', 'Brona', 'Deirbhile', 'Fidelma', 'Meabh'],
+  SCO: ['Ailsa', 'Aileen', 'Beathag', 'Bonnie', 'Catriona', 'Coira', 'Davina', 'Eilidh', 'Elspeth', 'Fenella', 'Fiona', 'Flora', 'Greer', 'Iona', 'Isobel', 'Jean', 'Kirsty', 'Lorna', 'Maisie', 'Mhairi', 'Moira', 'Morag', 'Muriel', 'Nessa', 'Nairne', 'Peigi', 'Rhona', 'Senga', 'Shona', 'Sileas', 'Tamsin', 'Torrance', 'Una', 'Vaila', 'Wilma', 'Ishbel'],
+  WAL: ['Angharad', 'Arianwen', 'Bethan', 'Branwen', 'Carys', 'Ceri', 'Delyth', 'Eiluned', 'Elin', 'Enfys', 'Ffion', 'Gwenllian', 'Gwyneth', 'Haf', 'Heledd', 'Lowri', 'Mabli', 'Meinir', 'Meleri', 'Myfanwy', 'Nerys', 'Nia', 'Olwen', 'Rhiannon', 'Seren', 'Sian', 'Sioned', 'Tegan', 'Tegwen', 'Alaw', 'Bronwen', 'Catrin', 'Dwynwen', 'Eirlys', 'Glesni', 'Nesta'],
+  ITA: ['Alessia', 'Arianna', 'Benedetta', 'Bianca', 'Camilla', 'Carlotta', 'Chiara', 'Cristiana', 'Daniela', 'Elisa', 'Federica', 'Flavia', 'Francesca', 'Gaia', 'Giorgia', 'Giulia', 'Ilaria', 'Isabella', 'Laura', 'Lucrezia', 'Manuela', 'Marta', 'Martina', 'Micaela', 'Nadia', 'Ornella', 'Paola', 'Rossella', 'Sabrina', 'Serena', 'Silvia', 'Simona', 'Valentina', 'Veronica', 'Vittoria', 'Alba'],
+  NZL: ['Anahera', 'Aroha', 'Awhina', 'Hinewai', 'Huia', 'Kahurangi', 'Kaia', 'Kiri', 'Mahina', 'Maia', 'Hineata', 'Ariana', 'Mereana', 'Miriama', 'Moana', 'Ngaio', 'Kararaina', 'Parehuia', 'Pounamu', 'Rangimarie', 'Reremoana', 'Rima', 'Ripeka', 'Tamsyn', 'Tui', 'Waimarie', 'Whetu', 'Ataahua', 'Hana', 'Terina', 'Manawa', 'Ngahuia', 'Pania', 'Rawinia', 'Tiare', 'Wairua'],
+  AUS: ['Amber', 'Bindi', 'Bronte', 'Caitlin', 'Chelsea', 'Darcie', 'Ebony', 'Elke', 'Georgie', 'Hayley', 'Indigo', 'Jaslyn', 'Jorja', 'Kalinda', 'Kirra', 'Lara', 'Lilee', 'Maddi', 'Marli', 'Nyah', 'Peta', 'Piper', 'Quinn', 'Rylee', 'Sienna', 'Skye', 'Tahlia', 'Talia', 'Tarni', 'Willa', 'Xanthe', 'Zali', 'Bridie', 'Charlee', 'Keeley', 'Shanae'],
+  RSA: ['Anelisa', 'Ayanda', 'Babalwa', 'Chuma', 'Elmarie', 'Hanlie', 'Ilze', 'Jolandi', 'Kegomoditswe', 'Lerato', 'Lindiwe', 'Mandisa', 'Marlize', 'Nandi', 'Nokuthula', 'Nolwazi', 'Ntombi', 'Palesa', 'Refilwe', 'Rethabile', 'Sanele', 'Sindiswa', 'Thandeka', 'Thembi', 'Tshegofatso', 'Wilmien', 'Xoliswa', 'Zanele', 'Zinhle', 'Anneke', 'Bulelwa', 'Karabo', 'Mbali', 'Nomvula', 'Retha', 'Yolande'],
+  ARG: ['Abril', 'Agustina', 'Aitana', 'Belen', 'Bianca', 'Camila', 'Candela', 'Catalina', 'Delfina', 'Emilia', 'Florencia', 'Guadalupe', 'Ines', 'Josefina', 'Julieta', 'Lucia', 'Malena', 'Micaela', 'Milagros', 'Morena', 'Nerina', 'Paulina', 'Pilar', 'Renata', 'Rocio', 'Sofia', 'Solana', 'Tamara', 'Valentina', 'Victoria', 'Ximena', 'Zoe', 'Antonella', 'Brisa', 'Constanza', 'Luciana'],
+  FIJ: ['Adi', 'Ana', 'Asenaca', 'Bulou', 'Ilisapeci', 'Kalisi', 'Karalaini', 'Laisana', 'Litia', 'Losana', 'Luisa', 'Makareta', 'Merewalesi', 'Mereoni', 'Naomi', 'Raijieli', 'Roela', 'Salanieta', 'Sereima', 'Sesenieli', 'Talei', 'Tarusila', 'Timaima', 'Ulamila', 'Unaisi', 'Vasiti', 'Verenaisi', 'Wainikiti'],
+  SAM: ['Sieni', 'Faafetai', 'Faaolataga', 'Fetu', 'Ioana', 'Leilani', 'Lupe', 'Maiava', 'Malia', 'Manaia', 'Mareta', 'Moana', 'Lalelei', 'Palepa', 'Pele', 'Salamasina', 'Sefina', 'Sina', 'Tala', 'Tausala', 'Teuila', 'Tiare', 'Tuiloma', 'Uila', 'Vaiola', 'Vaitiare', 'Fuatino', 'Lagi'],
+  TGA: ['Ana', 'Elenoa', 'Fatafehi', 'Halaevalu', 'Heilala', 'Kalolaine', 'Lavinia', 'Lose', 'Mele', 'Meleane', 'Nanasi', 'Ofa', 'Salote', 'Sela', 'Sesilia', 'Sinaitakala', 'Melenaite', 'Talia', 'Tupou', 'Uinise', 'Vaha', 'Vika', 'Amelia', 'Fifita', 'Tuputupu', 'Loua', 'Fusi', 'Paea'],
+  JPN: ['Ayaka', 'Ayumi', 'Chihiro', 'Emi', 'Hana', 'Haruka', 'Hinata', 'Kaede', 'Kanako', 'Kaori', 'Mai', 'Mana', 'Mao', 'Megumi', 'Misaki', 'Miyu', 'Nanami', 'Nao', 'Natsuki', 'Rin', 'Riko', 'Saki', 'Sakura', 'Shiori', 'Tomomi', 'Yui', 'Yuka', 'Yuzuki'],
+  GEO: ['Ana', 'Barbare', 'Elene', 'Eter', 'Gvantsa', 'Ia', 'Ketevan', 'Khatia', 'Lali', 'Lika', 'Mariam', 'Maka', 'Nana', 'Natia', 'Nino', 'Nutsa', 'Salome', 'Sopio', 'Tamar', 'Tamta', 'Teona', 'Tinatin', 'Ana-Mariam', 'Dali', 'Eka', 'Manana', 'Rusudan', 'Shorena'],
+  USA: ['Addison', 'Alexis', 'Ashlyn', 'Aubrey', 'Bailey', 'Brooke', 'Cassidy', 'Delaney', 'Emerson', 'Harper', 'Hayden', 'Jordan', 'Kelsey', 'Kendall', 'Logan', 'Mackenzie', 'Madison', 'Marlowe', 'Peyton', 'Quinn', 'Reagan', 'Riley', 'Rowan', 'Sawyer', 'Sydney', 'Taylor', 'Tegan', 'Whitney'],
+  CAN: ['Alexa', 'Amelie', 'Brooklyn', 'Camryn', 'Chloe', 'Danika', 'Elowen', 'Emmeline', 'Genevieve', 'Greta', 'Harlow', 'Jaclyn', 'Kaia', 'Keira', 'Larissa', 'Maren', 'Marielle', 'Nadine', 'Noelle', 'Paige', 'Reese', 'Rowyn', 'Shae', 'Sloane', 'Tenille', 'Tessa', 'Willa', 'Wren'],
+}
+
+/**
+ * A name for a generated player, in either game.
+ *
+ * `g` defaults to 'm' so every existing call site keeps its exact behaviour -
+ * this is called from a dozen places across the engine and a men's career must
+ * generate byte-identically to how it did before v1.5, or every seeded world
+ * shifts under saves that already exist.
+ */
+export function regenName(rng: () => number, nat: string, taken?: Set<string>, g: Gender = 'm'): string {
   const pool = N[nat] ?? N.ENG
-  const first = () => pool[0][Math.floor(rng() * pool[0].length)]
+  const firsts = g === 'w' ? (WF[nat] ?? WF.ENG) : pool[0]
+  const first = () => firsts[Math.floor(rng() * firsts.length)]
   const last = () => pool[1][Math.floor(rng() * pool[1].length)]
   let name = `${first()} ${last()}`
   if (!taken) return name

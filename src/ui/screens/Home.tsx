@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { genderOf } from '../../game/gender'
 import { useStore } from '../../store'
 import { dismiss, dismissed, isOldPlayApp } from '../../game/shell'
-import { SIX_NATIONS_WEEKS } from '../../game/schedule'
+import { snIdFor, snWeeksFor, SIX_NATIONS_WEEKS } from '../../game/schedule'
 import { nationByCode, nationName, flagOf } from '../../game/nations'
 import { leaguePos, sortTable } from '../../game/schedule'
 import { arrangeFriendly, assistantFixtureThisWeek, userFixtureThisWeek } from '../../game/season'
@@ -117,13 +118,18 @@ export default function Home() {
         </div>
       )}
       <div className="card-grid">
-      {game.comps['sn'] && game.week >= SIX_NATIONS_WEEKS[0] - 1 && game.week <= SIX_NATIONS_WEEKS[SIX_NATIONS_WEEKS.length - 1] && (() => {
-        const rows = sortTable(game.comps['sn'].table).slice(0, 3)
-        const thisWk = game.fixtures.filter(f => f.compId === 'sn' && f.week === game.week)
+      {/* The Championship panel, in whichever game this career is in: the id and
+          the window both differ between the two, and naming the men's flat meant
+          a women's manager played a Northern Championship her home screen never
+          mentioned. */}
+      {(() => { const snId = snIdFor(genderOf(game)); const snWks = snWeeksFor(genderOf(game)); return (
+      game.comps[snId] && game.week >= snWks[0] - 1 && game.week <= snWks[snWks.length - 1] && (() => {
+        const rows = sortTable(game.comps[snId].table).slice(0, 3)
+        const thisWk = game.fixtures.filter(f => f.compId === snId && f.week === game.week)
         return (
           <div className="card" onClick={() => go('nations')}
             style={{ background: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer' }}>
-            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (game.comps['sn']?.name ?? t('home.theChampionship')).toUpperCase() })}</div>
+            <div className="fact-label" style={{ color: 'var(--gold)' }}>{t('home.snLabel', { comp: (game.comps[snId]?.name ?? t('home.theChampionship')).toUpperCase() })}</div>
             {thisWk.map(f => (
               <div key={f.id} style={{ fontSize: 13, marginTop: 3 }}>
                 {flagOf(f.homeId)} {nationName(f.homeId)} {f.played ? <b>{f.homeScore}–{f.awayScore}</b> : t('common.v')} {nationName(f.awayId)} {flagOf(f.awayId)}
@@ -137,7 +143,7 @@ export default function Home() {
             <div className="meta" style={{ color: 'var(--gold)', marginTop: 3 }}>{t('home.snTap')}</div>
           </div>
         )
-      })()}
+      })()) })()}
       {(() => {
         // the hook: why THIS week matters - the reason to press Continue
         const grudge = fx ? grudgeBetween(game, fx.homeId, fx.awayId) : null

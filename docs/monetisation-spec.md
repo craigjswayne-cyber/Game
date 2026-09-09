@@ -49,8 +49,8 @@ These are constraints the spec builds on, not aspirations:
 | 5 | `phase.inject.xl` | The Sugar Daddy | $7.99 | Consumable |
 | 6 | `phase.license` | Support the game | $0.99 | **Consumable** (see below) |
 | 8 | `phase.uncapped` | The Owner's Charter | $9.99 | Non-consumable |
-| 9 | `phase.heal` | Full Fitness | $0.99 | Consumable |
-| 10 | `phase.estate` | The Estate | $9.99 | Non-consumable |
+| 9 | `phase.heal` | Magic Sponge - Full Fitness | $0.99 | Consumable |
+| 10 | `phase.estate` | Max Upgrade Facilities | $9.99 | Non-consumable |
 | 11 | `phase.pinnacle` | The International Stage | $4.99 | Non-consumable |
 
 > **`phase.license` is a CONSUMABLE, and this table said otherwise until
@@ -158,6 +158,25 @@ already reads marquee exemptions.
   the Annual. Records still count; the badge says how they were built.
 * The whale product sold honestly: no drip of exemptions — one price,
   total freedom, permanent mark.
+
+
+### Product names, v1.5.0
+
+The three abstract names were renamed on the owner's instruction: "Simplify what
+it is exactly people are buying in the store for the options." A shopper reading
+"The Estate" cannot tell what it does, and a name that has to be explained by the
+line underneath it is a name that is costing sales.
+
+| Was | Is |
+|---|---|
+| Coach a Nation | Become an International Coach |
+| Full Fitness | Magic Sponge - Full Fitness |
+| The Estate | Max Upgrade Facilities |
+
+**The SKUs did not change** - `phase.heal`, `phase.estate` and the nation
+product keep their store identifiers, so nothing has to be recreated in Play or
+App Store Connect and every existing purchase still restores. Only the words on
+the shelf moved.
 
 ### 1.6 Full Fitness — $0.99, consumable (v1.1.4)
 

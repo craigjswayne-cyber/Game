@@ -27,7 +27,7 @@
 // £0.85M a season over ten seasons). What changes is the SPREAD: a club with a
 // bloated bill and a small ground now bleeds, and a club that fills a big stadium
 // banks it. scripts/aiecon.ts holds both the median and the spread.
-import { weeklyCentral, type Club, type GameState, type Player , UPKEEP_PER_SEAT} from './model'
+import {LEDGER_WEEKS, weeklyCentral, type Club, type GameState, type Player , UPKEEP_PER_SEAT} from './model'
 
 /** Same £30 a head the manager's club takes, because it is the same ticket. */
 const GATE_PER_HEAD = 30
@@ -187,6 +187,8 @@ export function aiWeek(state: GameState, club: Club, index = moneyIndex(state)):
  * move every match in the world - the EK lesson, applied to money.
  */
 export function aiWeeklyFinance(state: GameState): void {
+  // the close season: same rule as the user's club, for the same reason
+  if (state.week > LEDGER_WEEKS) return
   const index = moneyIndex(state)
   for (const club of Object.values(state.clubs)) {
     if (club.id === state.userClubId) continue

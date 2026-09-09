@@ -16,6 +16,7 @@
  *
  * Run: npx vite-node scripts/langparity.ts
  */
+import { SIBLING } from '../src/game/i18n'
 import { readFileSync } from 'node:fs'
 
 let fails = 0
@@ -31,7 +32,7 @@ const phs = (s: string) => [...s.matchAll(PH)].map(m => m[1]).sort().join(',')
 const isPlural = (v: unknown): v is Record<string, string> =>
   !!v && typeof v === 'object' && 'other' in (v as object) && Object.values(v as object).every(x => typeof x === 'string')
 
-for (const lang of ['fr', 'es', 'it', 'ja']) {
+for (const lang of ['fr', 'es', 'it', 'ja', 'af']) {
   const D = load(lang)
   const errs: string[] = []
   const walk = (e: unknown, o: unknown, path: string) => {
@@ -53,10 +54,26 @@ for (const lang of ['fr', 'es', 'it', 'ja']) {
     } else if (e && typeof e === 'object') {
       if (!o || typeof o !== 'object') { errs.push(`${path}: branch missing`); return }
       for (const k of Object.keys(e)) {
+        // a feminine sibling is a language's own business (i18n.ts, setWorld):
+        // English owes nobody its `_f` keys and nobody owes English theirs
+        if (SIBLING.test(k)) continue
         if (!(k in (o as object))) { errs.push(`${path}.${k}: missing`); continue }
         walk((e as Record<string, unknown>)[k], (o as Record<string, unknown>)[k], path ? `${path}.${k}` : k)
       }
       for (const k of Object.keys(o as object)) {
+        if (SIBLING.test(k)) {
+          // ...but a sibling must have a base to fall back to, and must fill
+          // the same holes as that base, or the women's game renders a
+          // different set of placeholders from the men's
+          const base = k.replace(SIBLING, '')
+          const ob = o as Record<string, unknown>
+          if (!(base in ob)) { errs.push(`${path}.${k}: feminine form with no base key`); continue }
+          const fv = ob[k], bv = ob[base]
+          if (typeof fv === 'string' && typeof bv === 'string' && phs(fv) !== phs(bv))
+            errs.push(`${path}.${k}: placeholders differ from ${base} (${phs(fv)} vs ${phs(bv)})`)
+          if (isPlural(bv) && !isPlural(fv)) errs.push(`${path}.${k}: base is plural, sibling is not`)
+          continue
+        }
         if (!(k in (e as object))) errs.push(`${path}.${k}: extra key the English does not have`)
       }
     }
@@ -67,6 +84,6 @@ for (const lang of ['fr', 'es', 'it', 'ja']) {
 }
 
 console.log(fails === 0
-  ? '\nLANG PARITY PASSED: five languages, one game'
+  ? '\nLANG PARITY PASSED: six languages, one game'
   : `\nLANG PARITY FAILED: ${fails}`)
 process.exit(fails ? 1 : 0)

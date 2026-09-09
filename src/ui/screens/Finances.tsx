@@ -11,6 +11,7 @@ import { OBJECTIVE_DEFS } from '../../game/objectives'
 import { MARQUEE_SLOTS, capPosition, capWord, rosterGrid, rosterWarnings } from '../../game/cap'
 import { SectionTitle } from '../components'
 import { t } from '../../game/i18n'
+import { CLOSE_EVENTS, bookEvent, bookedThisWeek, eventFee, eventOpen, isCloseSeason } from '../../game/closeseason'
 import {
   CLAUSES, SLOTS, clauseActive, commercialWeekly, dealWeekly, endDealEarly, marketRate,
   offersFor, signOffer,
@@ -26,6 +27,8 @@ export default function Finances() {
   const [endArm, setEndArm] = useState<string | null>(null)
   const game = useStore(s => s.game)!
   const touch = useStore(s => s.touch)
+  /** the reply to the last thing booked into the summer diary */
+  const [diaryMsg, setDiaryMsg] = useState<string | null>(null)
   const rewardTown = useStore(s => s.rewardTown)
   const [askMsg, setAskMsg] = useState<string | null>(null)
   const [relMsg, setRelMsg] = useState<string | null>(null)
@@ -49,6 +52,50 @@ export default function Finances() {
 
   return (
     <>
+      {/* ---- THE SUMMER DIARY ----
+          Owner, 7 Sep: "in the extra weeks, club can put on events... it
+          shouldnt be completely impossible for them to make some money."
+          It only exists in the weeks with no rugby in them, and it is the only
+          money that moves in those weeks - so it sits above the ledger rather
+          than buried in a tab, because for three weeks a year it IS the ledger. */}
+      {isCloseSeason(game.week) && (() => {
+        const booked = bookedThisWeek(game)
+        return (
+          <>
+            <SectionTitle sub={t('close.sub')}>{t('close.title')}</SectionTitle>
+            {booked ? (
+              <div className="card"><div className="meta" style={{ padding: 10 }}>
+                {t('close.alreadyBooked')} ({t(`close.${booked}`)})
+              </div></div>
+            ) : (
+              <div className="tblwrap"><table className="dtable"><tbody>
+                {CLOSE_EVENTS.map(ev => {
+                  const open = eventOpen(game, ev)
+                  return (
+                    <tr key={ev.id}>
+                      <td className="name">
+                        {t(`close.${ev.id}`)}
+                        <div className="muted" style={{ fontSize: 11 }}>{t(`close.${ev.id}D`)}</div>
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {open ? (
+                          <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                            onClick={() => { setDiaryMsg(bookEvent(game, ev.id)); touch() }}>
+                            {t('close.fee', { fee: fmtMoney(eventFee(game, ev)) })}
+                          </button>
+                        ) : (
+                          <span className="muted" style={{ fontSize: 11 }}>{t('close.locked')}</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody></table></div>
+            )}
+            {diaryMsg && <div className="card"><div className="meta" style={{ padding: 10 }}>{diaryMsg}</div></div>}
+          </>
+        )
+      })()}
       <div className="tab-bar">
         <button className={ftab === 'money' ? 'active' : ''} onClick={() => setFtab('money')}>{t('finances.tabFinances')}</button>
         <button className={ftab === 'deals' ? 'active' : ''} onClick={() => setFtab('deals')}>{t('finances.tabCommercial')}</button>
