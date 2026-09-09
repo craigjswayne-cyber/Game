@@ -104,6 +104,13 @@ were manual, both were silent when forgotten, and forgetting either is exactly
 what a shop-less build on a correct-looking shell means. Check Compile Sources
 if you like - the files should already be listed.
 
+**The version is not one of them any more.** `scaffold.sh` stamps
+`MARKETING_VERSION` from the root `package.json` and `CURRENT_PROJECT_VERSION`
+from `packaging/ios/version.json` into every build configuration, and fails if
+either does not land. Typing a version into Xcode's General tab now achieves
+nothing except being overwritten. Raise `build` in `version.json` for each
+upload, the way `versionCode` works on the Android side.
+
 Two things are left in Xcode before the first run, and both need a Mac:
 
 1. **Signing & Capabilities → Team.** Pick the account the app ships under.

@@ -196,14 +196,47 @@ if [ -f "$PBX" ]; then
   else
     echo "    already iPhone-only"
   fi
+
+  # ---- THE VERSION, WHICH NOBODY WAS SETTING ----
+  #
+  # Android has read versionName out of the root package.json since the first
+  # Gradle build. iOS read nothing, so project.pbxproj kept whatever had last
+  # been typed into Xcode's General tab by hand - and what had been typed was
+  # 1.3.1, the number APP-STORE-WALKTHROUGH.md used as its worked example.
+  #
+  # On 9 Sep 2026 that shipped: a binary carrying the entire 1.5.6 game was
+  # uploaded to App Store Connect labelled 1.3.1, and the first anyone knew was
+  # the owner asking why the console still said 1.3.1. Nothing was broken and
+  # nothing warned, because a version number is only wrong relative to an
+  # intention that lives outside the file.
+  #
+  # Capacitor's Info.plist reads $(MARKETING_VERSION) and
+  # $(CURRENT_PROJECT_VERSION), so setting the two build settings sets the app.
+  # Both appear once per configuration (Debug and Release), hence the global
+  # substitution - a version stamped on only one of them is worse than none.
+  VNAME=$(node -p "require('../../package.json').version")
+  IBUILD=$(node -p "require('./version.json').build")
+  sed -i.bak -E "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = ${VNAME};/g; s/CURRENT_PROJECT_VERSION = [^;]+;/CURRENT_PROJECT_VERSION = ${IBUILD};/g" "$PBX"
+  rm -f "$PBX.bak"
+  STAMPED=$(grep -c "MARKETING_VERSION = ${VNAME};" "$PBX")
+  if [ "$STAMPED" -lt 2 ]; then
+    echo "!! the version did not stamp onto every build configuration ($STAMPED found) - check $PBX by hand"
+    exit 1
+  fi
+  echo "    version ${VNAME}, build ${IBUILD} (both configurations)"
 fi
 
 BUNDLE=$(grep -m1 'PRODUCT_BUNDLE_IDENTIFIER' ios/App/App.xcodeproj/project.pbxproj | tr -d '\t ;' | cut -d= -f2)
 echo
-echo "the shell is built. bundle identity: $BUNDLE"
+echo "the shell is built. bundle identity: $BUNDLE, version ${VNAME} (build ${IBUILD})"
 echo
 echo "ON A MAC, from this folder:"
 echo "  npx cap open ios"
+echo
+echo "the version and build number are stamped from package.json and"
+echo "version.json - do NOT type them into Xcode's General tab, they will be"
+echo "overwritten on the next scaffold. Raise \"build\" in packaging/ios/version.json"
+echo "for every upload."
 echo
 echo "then, in Xcode, two things (README.md section 5 has the detail):"
 echo "  1. Signing & Capabilities > Team, and check the bundle id above"

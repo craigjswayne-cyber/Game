@@ -1065,6 +1065,36 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
     readFileSync('packaging/ios/capacitor.config.json', 'utf8')),
     'and the shell carries the same bundle identity as the Android build')
 
+  // ---- THE VERSION IS STAMPED, NOT TYPED ----
+  //
+  // Android has read versionName out of package.json since its first Gradle
+  // build. iOS read nothing for four releases, so project.pbxproj kept whatever
+  // had last been typed into Xcode by hand - and that was 1.3.1, the number the
+  // walkthrough used as its example. A binary carrying the whole 1.5.6 game
+  // went to App Store Connect labelled 1.3.1 on 9 Sep 2026, and nothing
+  // anywhere said so: a version number is only wrong relative to an intention
+  // that lives outside the file, which is exactly what a probe is for.
+  {
+    const iosVer = JSON.parse(readFileSync('packaging/ios/version.json', 'utf8'))
+    ok(Number.isInteger(iosVer.build) && iosVer.build >= 1,
+      `packaging/ios/version.json carries a whole build number (${iosVer.build})`)
+    ok(/MARKETING_VERSION = \$\{VNAME\};/.test(scaffold),
+      'scaffold.sh stamps MARKETING_VERSION from package.json rather than trusting the project file')
+    ok(/CURRENT_PROJECT_VERSION = \$\{IBUILD\};/.test(scaffold),
+      'and CURRENT_PROJECT_VERSION from version.json')
+    ok(/require\('\.\.\/\.\.\/package\.json'\)\.version/.test(scaffold),
+      'and it reads the version from the ONE file that decides it')
+    // both configurations, or a debug build and a release build disagree
+    ok(/\/g["']/.test(scaffold.slice(scaffold.indexOf('MARKETING_VERSION = ${VNAME}'), scaffold.indexOf('MARKETING_VERSION = ${VNAME}') + 200)),
+      'and substitutes globally, so Debug and Release cannot carry different versions')
+    ok(/STAMPED.*-lt 2/s.test(scaffold),
+      'and fails the scaffold if the stamp did not land on both')
+    // the two platforms must not drift apart again
+    const andVer = JSON.parse(readFileSync('packaging/android/version.json', 'utf8'))
+    ok(Number.isInteger(andVer.versionCode),
+      `and Android still counts its own uploads separately (versionCode ${andVer.versionCode})`)
+  }
+
   delete gg.Capacitor
 }
 

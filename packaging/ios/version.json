@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "The iOS build number, and the Android twin of packaging/android/version.json.",
+    "",
+    "WHY THIS FILE EXISTS. It did not, and that cost a submission. The Android",
+    "scaffold has always read versionName out of the root package.json and",
+    "stamped it into Gradle; the iOS scaffold stamped nothing, so the Xcode",
+    "project kept whatever number was last typed into it by hand. That number",
+    "was 1.3.1 - the value used as the EXAMPLE in APP-STORE-WALKTHROUGH.md - and",
+    "on 9 Sep 2026 a binary carrying the whole 1.5.6 game went to App Store",
+    "Connect labelled 1.3.1, because setting the field was a step a human had to",
+    "remember every single release.",
+    "",
+    "scaffold.sh now stamps both numbers:",
+    "  MARKETING_VERSION       from the root package.json (the version players see)",
+    "  CURRENT_PROJECT_VERSION from build below (the number Apple counts uploads by)",
+    "",
+    "Apple requires the build number to be unique WITHIN a marketing version, and",
+    "to go up. Raise build by one for every upload of the same version; when the",
+    "version in package.json changes you may start again at 1, but going up is",
+    "always safe and never wrong. Record what Apple accepted, and never reuse a",
+    "number - a spent build number is spent even if the upload was discarded."
+  ],
+  "build": 1
+}

@@ -462,11 +462,35 @@ that was never designed.
 There is nothing to switch off for Apple Watch. A watchOS app is a separate
 target that has to be added deliberately, and this project has never had one.
 
-### 18. Set the version and build number
+### 18. The version and build number set themselves
 
-*App* target → *General* → **Version** must match `package.json` (today that
-is **1.5.6**) and the figure on the App Store Connect listing, or the upload is
-rejected. **Build** is a separate number that only ever goes up.
+**Do not type a version into Xcode.** `scaffold.sh` stamps both numbers into the
+project before Xcode ever opens it, and anything you type will be overwritten on
+the next scaffold:
+
+* **Version** comes from the root `package.json` — the one file that decides what
+  release this is.
+* **Build** comes from `packaging/ios/version.json`. Raise it by one for every
+  upload; Apple requires it to be unique within a version and to go up.
+
+**This step used to read "Version `1.3.1`, Build `6`" and expect you to type it,
+and that is exactly how it went wrong.** For four releases the iOS scaffold
+stamped nothing while the Android one had always read `versionName` out of
+`package.json`. The Xcode project kept whatever had last been typed by hand,
+which was `1.3.1` — the number this very page used as its example. On 9 Sep 2026
+a binary carrying the whole 1.5.6 game was uploaded to App Store Connect
+labelled 1.3.1, and nothing anywhere said so, because a version number is only
+wrong relative to an intention that lives outside the file.
+
+Check it if you like: the scaffold prints `version 1.5.6, build 1 (both
+configurations)` and refuses to finish if the stamp did not land on both Debug
+and Release.
+
+> **The other half of this trap.** Uploading a build does **not** create a
+> version. If App Store Connect still shows the old number after a successful
+> upload, that is why: go to the app, click **+ Version or Platform**, make the
+> new version, then attach the build to it. Two separate things, and only one of
+> them happens in Xcode.
 
 Every upload needs a build number higher than the last. The version can repeat;
 the build number can never go backwards.
