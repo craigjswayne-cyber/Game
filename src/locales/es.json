@@ -5751,11 +5751,11 @@
  "press": {
   "campQ1": "Pretemporada, y el área de rendimiento quiere una decisión. El presupuesto da para una semana especial: una concentración al sol en el extranjero, una semana comunitaria en casa o la gira de exhibición del patrocinador. ¿Cuál eliges?",
   "campQ2": "Tres opciones rodeadas en la pizarra de la sala de técnicos para la semana libre de pretemporada: la concentración al calor, la ciudad o la gira del patrocinador. Los jefes de departamento te esperan.",
-  "campHeat": "Concentración al sol (£400k)",
+  "campHeat": "Concentración en el calor ({cost})",
   "campHeatR": "Vuelos reservados. Una semana de dobles sesiones bajo el sol: la plantilla vuelve fina, afilada y unida en su odio a las cuestas.",
   "campHome": "Semana comunitaria en casa",
   "campHomeR": "Colegios, clubes de base, entrenamientos abiertos. No cuesta nada, y la ciudad lo recordará toda la temporada.",
-  "campTour": "Gira de exhibición del patrocinador (+£600k)",
+  "campTour": "Gira de exhibición del patrocinador (+{fee})",
   "campTourR": "Tres aeropuertos, dos galas de etiqueta y un cheque reluciente. Los contables sonríen de oreja a oreja. Las piernas de los jugadores presentan una queja formal.",
   "punditsHave": "Los analistas te sitúan {pred_o}.",
   "punditsSplit": "Los analistas no se ponen de acuerdo contigo.",

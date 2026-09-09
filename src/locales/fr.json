@@ -5893,11 +5893,11 @@
   "press": {
     "campQ1": "Présaison, et le service performance attend une décision. Le budget permet une semaine spéciale : un stage au chaud à l'étranger, une semaine avec la ville, ou la tournée d'exhibition du sponsor. Laquelle ?",
     "campQ2": "Trois options sont entourées sur le tableau de la salle du staff pour la semaine libre de présaison : le stage au chaud, la ville, ou la tournée du sponsor. Les chefs de service attendent votre réponse.",
-    "campHeat": "Stage au chaud (£400k)",
+    "campHeat": "Stage au chaud ({cost})",
     "campHeatR": "Vols réservés. Une semaine de double séance au soleil - le groupe rentre affûté, tranchant, et uni dans sa haine des montées de côte.",
     "campHome": "Semaine avec la ville",
     "campHomeR": "Écoles, clubs de jeunes, entraînements ouverts. Cela ne coûte rien, et la ville s'en souviendra toute la saison.",
-    "campTour": "Tournée d'exhibition du sponsor (+£600k)",
+    "campTour": "Tournée du sponsor (+{fee})",
     "campTourR": "Trois aéroports, deux dîners de gala, un chèque bien brillant. Les comptables rayonnent. Les jambes des joueurs déposent une réclamation.",
     "punditsHave": "Les experts vous voient {pred_o}.",
     "punditsSplit": "Les experts sont partagés à votre sujet.",

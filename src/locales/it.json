@@ -5781,11 +5781,11 @@
  "press": {
   "campQ1": "Precampionato, e lo staff della performance vuole una decisione. Il budget basta per una sola settimana speciale: un ritiro al caldo all'estero, una settimana in mezzo alla gente o il tour di esibizione dello sponsor. Cosa scegli?",
   "campQ2": "Tre opzioni cerchiate sulla lavagna dello staff per la settimana libera del precampionato: il ritiro al caldo, la città o il roadshow dello sponsor. I capi reparto aspettano solo te.",
-  "campHeat": "Ritiro al caldo (£400k)",
+  "campHeat": "Ritiro al caldo ({cost})",
   "campHeatR": "Voli prenotati. Una settimana di doppie sedute sotto il sole: la squadra torna a casa asciutta, brillante e unita nell'odio per le ripetute in salita.",
   "campHome": "Settimana in città",
   "campHomeR": "Scuole, club giovanili, allenamenti aperti. Non costa nulla, e la città se lo ricorderà per tutta la stagione.",
-  "campTour": "Tour di esibizione dello sponsor (+£600k)",
+  "campTour": "Tournée di gala dello sponsor (+{fee})",
   "campTourR": "Tre aeroporti, due serate di gala, un assegno patinato. I contabili sono raggianti. Le gambe dei giocatori presentano reclamo formale.",
   "punditsHave": "Gli opinionisti ti vedono {pred_o}.",
   "punditsSplit": "Gli opinionisti su di te sono divisi.",
