@@ -380,6 +380,35 @@ try {
   const pending = Object.entries(ADS.android.banner).concat(Object.entries(ADS.ios.banner)).filter(([, v]) => v === '').map(([k]) => k)
   ok(pending.every(k => k === 'match-foot'),
     pending.length ? `the only place still awaiting a unit id is match-foot (${[...new Set(pending)].join(', ')})` : 'every place has its own unit id')
+
+  // ---- SKADNETWORK, WHICH FAILS BY EARNING LESS ----
+  //
+  // Info.plist carried ONE identifier, Google's own, and the SDK said so on
+  // every launch: "49 required SKAdNetwork identifier(s) missing". An ad
+  // network not on the list cannot be credited for an install it caused, so
+  // its advertisers do not bid here. Nothing breaks, nobody is told, the
+  // adverts are simply worth less. That is exactly the shape of defect a
+  // probe has to hold, because nothing else will notice it.
+  //
+  // The count is NOT asserted at fifty: Google's partner list moves, and a
+  // probe that fails when a partner leaves would just get loosened. What is
+  // asserted is that the list exists, is well formed, has no duplicates, and
+  // still contains Google's own id. The short-list WARNING is the reminder.
+  const sk = ADS.skAdNetworkIds
+  ok(Array.isArray(sk) && sk.length > 0, `ads.json carries an skAdNetworkIds list (${sk?.length ?? 'missing'})`)
+  if (Array.isArray(sk)) {
+    ok(sk.every(id => /^[a-z0-9.-]+\.skadnetwork$/.test(id)),
+      'every SKAdNetwork id is shaped like one')
+    ok(new Set(sk).size === sk.length, 'and none of them is listed twice')
+    ok(sk.includes('cstr6suwn9.skadnetwork'),
+      "and Google's own id is among them, which is the one the SDK needs to attribute its own network")
+    if (sk.length < 40) say(`  WARN: only ${sk.length} SKAdNetwork id(s). Google publishes about fifty and every one missing is a network that cannot bid - see ads.json`)
+  }
+  // and the installer has to actually write the list rather than the one
+  const INSTALL = readFileSync('packaging/shell/install-ads.mjs', 'utf8')
+  ok(/skAdNetworkIds/.test(INSTALL), 'install-ads.mjs reads the list out of ads.json')
+  ok(/SKAdNetworkItems/.test(INSTALL) && /skIds\.map/.test(INSTALL),
+    'and writes every entry into Info.plist, not just the first')
 } catch (e) {
   say('PROBE THREW: ' + (e?.message ?? e))
   fails++
