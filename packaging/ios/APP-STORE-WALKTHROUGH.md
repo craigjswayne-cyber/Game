@@ -391,16 +391,20 @@ The answers people get wrong:
 
 ### 17b. Refresh the content the app will ship
 
-**Do this every single time, before anything else in this phase.** Android and
-iOS do not work the same way and it is the easiest mistake in the project to
-make:
+**Do this every single time, before anything else in this phase.**
 
-* the **Android** app is a TWA - it renders the LIVE SITE, so a Pages deploy
-  reaches every phone and no upload is needed for a content change;
-* the **iOS** app **BUNDLES** the site inside the binary (`webDir` is
-  `../../dist`). Nothing you deploy to the web reaches it. If you archive
-  without rebuilding, you will ship whatever `dist/` happened to hold last
-  time, and it will pass review looking like an old version of the game.
+**BOTH APPS BUNDLE THE SITE. NEITHER READS THE WEB.** This paragraph used to
+say the opposite about Android, and it was true once: Android was a TWA that
+rendered the live site, so a Pages deploy reached every phone. It has not been
+a TWA since the Capacitor shell replaced it - `packaging/android/capacitor.config.json`
+carries the same `"webDir": "../../dist"` the iOS one does. Anyone following
+the old advice would deploy to the website, see the change there, and ship an
+Android build full of whatever `dist/` happened to hold, having been told in
+writing that no upload was needed.
+
+So for **both** stores: nothing you deploy to the web reaches a phone. If you
+archive or bundle without rebuilding, you ship stale content that will pass
+review looking like an old version of the game.
 
 From the repository root:
 
@@ -460,9 +464,9 @@ target that has to be added deliberately, and this project has never had one.
 
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.3.1`, **Build** `6`.
-The version must match `package.json` and the figure on the App Store Connect
-listing, or the upload is rejected.
+*App* target → *General* → **Version** must match `package.json` (today that
+is **1.5.6**) and the figure on the App Store Connect listing, or the upload is
+rejected. **Build** is a separate number that only ever goes up.
 
 Every upload needs a build number higher than the last. The version can repeat;
 the build number can never go backwards.
