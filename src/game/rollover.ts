@@ -2035,7 +2035,7 @@ function challengeCheck(state: GameState) {
     : ch === 'pirates' ? uid === 'pirates' && state.clubs[uid]?.leagueId === 'prem'
     // the women's four. Same four shapes: win it, win it twice, climb out of
     // the bottom, win the division below.
-    : ch === 'threepeat' ? uid === W + 'bristol' && wonEver(W + 'pwr')
+    : ch === 'threepeat' ? uid === W + 'saracens' && wonEver(W + 'pwr')
     : ch === 'ealing' ? uid === W + 'trailfinders'
       && state.history.filter(h => h.champion === uid && h.compId === W + 'pwr').length >= 2
     // no relegation to survive, so the licence is the thing at risk and a

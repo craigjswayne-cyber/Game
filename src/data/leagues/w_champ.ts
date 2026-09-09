@@ -41,7 +41,7 @@ export const W_CHAMP: RawClub[] = [
     id: W + 'bathw', name: 'Bath RFC', short: 'Bath',
     city: 'Bath', country: 'ENG',
     stadium: 'Recreational Sports Centre', capacity: 2500,
-    colors: ['#005baa', '#000000'],
+    colors: ['#003c71', '#ffffff'],
     rep: 66, budget: 62000,
     // 30 players, 7 real
     players: [

@@ -2323,8 +2323,10 @@ function MatchVerdict() {
   // always next week, hence four rather than one.
   const hw = game.fixHw
   const fresh = !!hw && hw.fxId !== live.fixture.id && hw.season === game.season && game.week - hw.week <= 4
+  // "using the bench" is a job you DO, so it is graded on evidence rather than
+  // on the complaint staying quiet - ctx.subsUsed is the only honest witness.
   const grade = fresh && hw
-    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag))
+    ? gradeFixes(hw.tags as FixTag[], fixes.map(f => f.tag), { fitness: live.ctx.subsUsed > 0 })
     : { fixed: [], missed: [] }
   const verdictOnLast = gradeLine(grade.fixed, grade.missed)
 
