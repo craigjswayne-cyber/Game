@@ -27,7 +27,18 @@
     "reports against the Home unit until two new adaptive-banner units are",
     "created in AdMob and pasted here. Creating them is the owner's job - it",
     "needs the AdMob console - and it is worth doing, because otherwise match",
-    "revenue and home revenue are indistinguishable in the reports."
+    "revenue and home revenue are indistinguishable in the reports.",
+    "",
+    "skAdNetworkIds IS SHORT AND THAT COSTS MONEY. Google's SDK prints",
+    "'49 required SKAdNetwork identifier(s) missing from Info.plist' on every",
+    "launch until this list is the full one. An ad network whose id is not here",
+    "cannot be credited for an install it caused, so its advertisers do not bid",
+    "on this app. Nothing in the game breaks and nobody sees a warning; the",
+    "adverts are just worth less. The list is Google's and it changes as their",
+    "partners do: copy it from",
+    "developers.google.com/admob/ios/3p-skadnetworks and paste the identifiers",
+    "in here, one string each. install-ads.mjs writes every one of them into",
+    "Info.plist and refuses anything not shaped like an identifier."
   ],
   "testing": false,
   "consentDebug": false,
@@ -49,5 +60,8 @@
       "match-foot": ""
     },
     "rewarded": "ca-app-pub-1341622370227647/8042159971"
-  }
+  },
+  "skAdNetworkIds": [
+    "cstr6suwn9.skadnetwork"
+  ]
 }
