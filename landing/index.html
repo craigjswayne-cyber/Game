@@ -28,22 +28,36 @@
   and no shop and therefore earns nothing. Owner, 9 Sep 2026: "my website
   homepage is currently the game - I just want it to be a landing page."
 
-  So the root is this page and the game moved to /play/. Three things had to
-  survive that move and all three did:
+  THE GAME IS NOT PUBLISHED HERE AT ALL. Not at /, not at /play/, not anywhere.
+  The first cut of this moved it to /play/ and linked to it politely from the
+  bottom of the page; the owner's answer to that was "i dont want people to be
+  able to play in browser", and a link you do not advertise is still a URL that
+  a bookmark and a guess both reach. So the Pages deploy stopped shipping the
+  game to the web entirely, and the only PHASE there is now is the one in a
+  store. See .github/workflows/pages.yml, which no longer copies dist/ anywhere.
+
+  Three things still had to survive that and all three did:
 
     * /privacy.html - the URL given to BOTH Apple and Google on the live
       listings. Moving it would have broken a submitted store field, which is
       the sort of thing nobody notices until a review comes back.
     * /google59479af58f8cd344.html - Search Console ownership. It verifies the
       root, so it has to stay at the root.
-    * every save ever made - localStorage is keyed by ORIGIN, not by path, so a
-      career started at / is still there at /play/. Nobody loses anything, they
-      just click Play first.
+    * privacy.html and the verification file are the only two pages left on this
+      domain besides this one, which is the whole point.
+
+  WHAT THIS DOES COST: a career started in a browser lives in that browser's
+  localStorage, and with nothing served to open it, its owner cannot reach it or
+  export it. That is a real loss for anyone who played on the web, and it was
+  raised before the change rather than after. The store builds import a save file,
+  so the rescue - if it is ever wanted - is to serve the game once more with a
+  notice telling people to use Saves > Export first.
 
   This file is deliberately standalone: no build step, no framework, no external
-  request of any kind. It is copied to the site root by .github/workflows/pages.yml
-  and the game is copied to /play/. Keep it that way - a landing page that needs
-  the app's toolchain to render is a landing page that breaks when the app does.
+  request of any kind. It is copied to the site root by .github/workflows/pages.yml,
+  which now publishes nothing else but public/. Keep it that way - a landing page
+  that needs the app's toolchain to render is a landing page that breaks when the
+  app does, and this one is the only shop window there is.
 
   The palette is a frozen copy of the night tokens in src/ui/tokens.css. It
   cannot read that file (no build step), so scripts/landingprobe.ts asserts the
@@ -246,17 +260,9 @@ h2 {
 }
 .browser h2 { font-size: clamp(19px, 3vw, 23px); margin-bottom: 4px; }
 .browser p { color: var(--text-muted); font-size: 14px; max-width: 52ch; }
-.ghost {
-  display: inline-block;
-  padding: 12px 24px;
-  border-radius: 10px;
-  border: 1.5px solid var(--primary);
-  color: var(--primary);
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.ghost:hover { background: var(--primary); color: var(--on-primary); }
+.closing { padding-top: 40px; padding-bottom: 44px; }
+.stores-end { margin-top: 0; justify-content: flex-start; }
+@media (max-width: 720px) { .stores-end { justify-content: center; width: 100%; } }
 
 footer {
   padding: 40px 0 56px;
@@ -334,12 +340,21 @@ footer a:hover { color: var(--primary); }
 </main>
 
 <div class="browser">
-  <div class="wrap">
+  <div class="wrap closing">
     <div>
-      <h2>Rather not install anything?</h2>
-      <p>The full game runs in this browser, free. Careers you started here stay here, on this device.</p>
+      <h2>Free to play. Nothing to lose but a season.</h2>
+      <p>On the phone, in your pocket, with or without a signal.</p>
     </div>
-    <a class="ghost" href="./play/">Play in your browser</a>
+    <div class="stores stores-end">
+      <a class="store live" href="https://play.google.com/store/apps/details?id=com.phaserugbymanager.app">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8a1.4 1.4 0 0 0-.5 1.1v18.2c0 .45.18.85.5 1.1l10-10.2-10-10.2Zm11.1 9.1 2.9-3-9.5-5.4 6.6 8.4Zm0 2.2-6.6 8.4 9.5-5.4-2.9-3Zm4.3-2.2-2.4-1.4-3 3.1 3 3.1 2.4-1.4c.9-.5.9-2.4 0-2.9v-.5Z"/></svg>
+        <span><span class="l1">Get it on</span><span class="l2">Google Play</span></span>
+      </a>
+      <span class="store soon" aria-disabled="true">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.7c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.4ZM14.3 6c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 2-.5 2.6-1.2Z"/></svg>
+        <span><span class="l1">Coming soon to</span><span class="l2">the App Store</span></span>
+      </span>
+    </div>
   </div>
 </div>
 
@@ -349,7 +364,6 @@ footer a:hover { color: var(--primary); }
     <nav>
       <a href="./privacy.html">Privacy</a>
       <a href="mailto:phaserugbymanager@gmail.com">Contact</a>
-      <a href="./play/">Play</a>
     </nav>
   </div>
 </footer>
