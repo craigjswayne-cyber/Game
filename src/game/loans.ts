@@ -1,10 +1,12 @@
 // The loan-in market: borrow tomorrow's stars from the big clubs' benches.
 
 import type { GameState, Player } from './model'
-import { SEASON_WEEKS, leagueTier } from './model'
+import {absWeek, SEASON_WEEKS, leagueTier } from './model'
 import { autoSelect } from './matchEngine'
 import { t, tIn } from './i18n'
 import { clamp, mulberry32 } from './rng'
+import { isDerby } from './rivalries'
+import { askingPrice, executeTransfer } from './ai'
 
 /** Young talent parked on big-club benches, available for a season's loan. */
 export function loanTargets(state: GameState): Player[] {
@@ -78,6 +80,46 @@ export interface LoanVerdict {
   counter?: { length?: LoanLength; share?: number }
 }
 
+/**
+ * ---- ASKING ABOUT A PLAYER WHO IS NOT FOR LOAN ----
+ *
+ * Owner, 7 Sep: "can you propose to loan players even if they dont have loan
+ * available? So you can take younger players and develop them. Rival clubs
+ * shouldn't accept this though."
+ *
+ * loanTargets() is the SHOP WINDOW - the kids a big club has already decided it
+ * wants out getting rugby. This is the other conversation: you have watched a
+ * nineteen-year-old at a club that never listed him, and you ring up anyway.
+ *
+ * It is a worse conversation on purpose. You are asking a club to give up a
+ * player it had no plans to lose, so the odds start well under the shop window
+ * and drop again if he is in their side. What makes it worth having is that the
+ * shop window is picked by the game and this is picked by you.
+ *
+ * AND A RIVAL SIMPLY PUTS THE PHONE DOWN. Not a low chance - none. The game
+ * already knows who your rivals are (rivalries.ts, the same map that names the
+ * derbies), and no club strengthens the team it most wants to beat.
+ */
+export function loanApproachable(state: GameState, p: Player): boolean {
+  const user = state.clubs[state.userClubId]
+  if (!user || !p.clubId || p.clubId === user.id) return false
+  if (p.onLoan || p.loanFrom || p.injury || p.natSquad) return false
+  // a development loan, so it is a young player or it is nothing
+  return p.age <= 23
+}
+
+/** Is this an unsolicited approach rather than a pick off the shop window? */
+export function isApproach(state: GameState, playerId: number): boolean {
+  return !loanTargets(state).some(t => t.id === playerId)
+}
+
+/** A rival never lends you anybody, at any price. */
+export function loanRival(state: GameState, playerId: number): boolean {
+  const p = state.players[playerId]
+  if (!p?.clubId) return false
+  return isDerby(state.userClubId, p.clubId)
+}
+
 export function loanScore(state: GameState, playerId: number, length: LoanLength, share: number): number {
   const p = state.players[playerId]
   const user = state.clubs[state.userClubId]
@@ -89,6 +131,12 @@ export function loanScore(state: GameState, playerId: number, length: LoanLength
     + (length === 'season' ? 0.16 : length === 'half' ? 0.04 : -0.14) // a long loan clears the wage bill longer
     + Math.min(0.12, Math.max(0, gap - 4) * 0.012)                  // a much bigger club farms out freely
     + (p.age <= 21 ? 0.05 : 0)                                      // a boy needs the rugby
+    // ASKING ABOUT A MAN THEY NEVER OFFERED. Two separate costs: the approach
+    // itself, and whether he is actually playing for them. A squad player they
+    // had not thought about is a conversation; a starter is close to a no.
+    + (isApproach(state, playerId)
+        ? -0.30 - (parent.tactic.lineup.slice(0, 15).includes(p.id) ? 0.25 : 0)
+        : 0)
 }
 
 export function loanTerms(state: GameState, playerId: number, length: LoanLength, share: number): LoanVerdict {
@@ -97,7 +145,13 @@ export function loanTerms(state: GameState, playerId: number, length: LoanLength
   if (!p || !p.clubId || p.clubId === user.id) return { ok: false, k: 'reply.unavailable' }
   const parent = state.clubs[p.clubId]
   if (!parent) return { ok: false, k: 'reply.unavailable' }
-  if (!loanTargets(state).some(t => t.id === playerId)) return { ok: false, k: 'reply.parentWontLoan' }
+  // NOT ON THE SHOP WINDOW IS NO LONGER A CLOSED DOOR (owner, 7 Sep). It is a
+  // harder conversation, priced in loanScore - except with a rival, which is
+  // not a conversation at all.
+  if (isApproach(state, playerId)) {
+    if (!loanApproachable(state, p)) return { ok: false, k: 'reply.parentWontLoan' }
+    if (loanRival(state, playerId)) return { ok: false, k: 'reply.loanRivalNo', counter: undefined }
+  }
   if (p.pers === 'Mercenary' && p.morale < 5) return { ok: false, k: 'reply.agentWantsPermanent' }
   const score = clamp(loanScore(state, playerId, length, share), 0.04, 0.96)
   const roll = mulberry32(state.seed + p.id * 7 + state.season * 97 + state.week * 13)()
@@ -126,13 +180,19 @@ export function loanIn(state: GameState, playerId: number, length: LoanLength = 
       len_k: `transfers.loanLen${cap1(verdict.counter?.length ?? length)}`,
     })
   }
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
   parent.players = parent.players.filter(id => id !== p.id)
   parent.tactic.lineup = parent.tactic.lineup.map(id => (id === p.id ? null : id))
   user.players.push(p.id)
   p.loanFrom = parent.id
   p.loanUntil = LOAN_LENGTH_WEEKS[length] ? now + LOAN_LENGTH_WEEKS[length] : undefined
   p.loanShare = share
+  p.loanCa = p.ca   // what he was worth walking in: the buy option reads it
+  // AND WHEN HE WALKED IN. Only executeTransfer stamped this, so a loan arrival
+  // left it unset and the buy option's eight-week trial measured against week
+  // zero of season zero - which is to say it was no gate at all. He did join
+  // the club; the stamp is the truth as much for a loan as for a fee.
+  p.joinedAt = now
   p.clubId = user.id
   p.morale = clamp(p.morale + 1, 1, 10)
   p.sc = 100
@@ -182,7 +242,7 @@ export function returnLoanIn(state: GameState, p: Player, rng: () => number, wee
 
 /** The loan-ins whose date has come. Run from the weekly settle. */
 export function expireLoans(state: GameState, rng: () => number): void {
-  const now = state.season * SEASON_WEEKS + state.week
+  const now = absWeek(state.season, state.week)
   for (const p of Object.values(state.players)) {
     if (p.loanFrom && p.clubId === state.userClubId && p.loanUntil != null && now >= p.loanUntil) returnLoanIn(state, p, rng)
   }
@@ -200,7 +260,7 @@ export function loanOut(state: GameState, playerId: number): { ok: boolean; msg:
     return { ok: false, msg: `${p.name} is in your starting XV. Drop him first if you mean it.` }
   }
   p.onLoan = true
-  p.loanSince = state.season * SEASON_WEEKS + state.week
+  p.loanSince = absWeek(state.season, state.week)
   // a NAMED feeder club (round 25, user: "say what club they are playing
   // for"): a real lower-tier side, picked deterministically per player, so
   // every postcard about him can say where he is. Cosmetic - he does not
@@ -245,7 +305,7 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
   // facilities, minutes - that the rest of the game is built on.
   //
   // So the recall now reads how long he was actually away.
-  const served = (state.season * SEASON_WEEKS + state.week) - (p.loanSince ?? 0)
+  const served = (absWeek(state.season, state.week)) - (p.loanSince ?? 0)
   if (served < 4) {
     const left = 4 - served
     return {
@@ -276,4 +336,95 @@ export function loanRecall(state: GameState, playerId: number): { ok: boolean; m
     playerId: p.id,
   })
   return { ok: true, msg: `${p.name} reports back to training in the morning.` }
+}
+
+/**
+ * ---- LOAN TO BUY ----
+ *
+ * Owner, 7 Sep: "you should also do a loan to buy scheme where if things go
+ * well you can offer to buy the player at the value. The team will likely sell
+ * unless they think he is crucial to the team moving forward."
+ *
+ * The loan is the trial, and this is the option at the end of it. You have had
+ * him in your building for months, you have seen him every week, and the fuzz
+ * the scouting system puts over a stranger's rating is long gone - so the price
+ * is his honest asking price rather than a negotiation. What you are buying is
+ * the certainty, and you pay for it.
+ *
+ * THE PARENT USUALLY SAYS YES, because a club that lent a boy out for a season
+ * has already told you what it thinks of him. It says no when he is CRUCIAL,
+ * and crucial has to mean something specific or it means nothing:
+ *
+ *   - he is in their best fifteen, or
+ *   - he has grown into a better player than the one they lent you, and is
+ *     young enough that they would be selling their own future.
+ *
+ * "Grown" is measured against the rating he arrived with, which the loan
+ * records. That is the honest version of the owner's "if things go well": a boy
+ * who did nothing at your club is one they will happily cash in, and the one
+ * who tore the league up is the one they suddenly remember they own.
+ */
+export const LOAN_BUY_MIN_WEEKS = 8
+
+export interface LoanBuy {
+  /** what it would take, whether or not they would take it */
+  fee: number
+  /** WOULD THEY SELL? The parent club's own answer, and nothing to do with
+   *  whether you can pay. Kept apart from `ok` because "they will not sell him"
+   *  and "you cannot afford him" are opposite problems - one you plan around,
+   *  the other you save up for - and a single no told the manager neither. */
+  willing: boolean
+  /** would they sell AND can you pay AND has he been here long enough */
+  ok: boolean
+  k: string
+}
+
+export function loanBuyOffer(state: GameState, playerId: number): LoanBuy | null {
+  const p = state.players[playerId]
+  const user = state.clubs[state.userClubId]
+  if (!p || !user) return null
+  if (!p.loanFrom || p.clubId !== user.id) return null
+  const parent = state.clubs[p.loanFrom]
+  if (!parent) return null
+  const fee = askingPrice(state, p)
+  // a trial is weeks of rugby, not a signature and a change of mind
+  // CRUCIAL TO THEM, decided first and on its own. In the two ways that can be
+  // checked rather than asserted: he is in their side, or the months here made
+  // him into a player they would be selling their own future to let go.
+  const inTheirXV = parent.tactic.lineup.slice(0, 15).includes(p.id)
+  const outgrewThem = p.ca >= (p.loanCa ?? p.ca) + 4 && p.age <= 22 && p.pa >= 78
+  const willing = !inTheirXV && !outgrewThem
+  // an old save's loan carries no stamp, and the honest reading of "no record
+  // of him arriving" is that the trial has not been served, not that it has
+  if (p.joinedAt == null) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
+  const served = (absWeek(state.season, state.week)) - p.joinedAt
+  if (served < LOAN_BUY_MIN_WEEKS) return { fee, willing, ok: false, k: 'reply.loanBuyTooSoon' }
+  if (!willing) return { fee, willing, ok: false, k: 'reply.loanBuyCrucial' }
+  // and only once they have said yes does the money become the question
+  if (user.budget < fee) return { fee, willing, ok: false, k: 'reply.loanBuyNoFunds' }
+  return { fee, willing, ok: true, k: 'reply.loanBuyAgreed' }
+}
+
+/** Take up the option. The loan ends the moment the fee clears. */
+export function loanBuy(state: GameState, playerId: number): { ok: boolean; k: string; fee: number } {
+  const p = state.players[playerId]
+  const offer = loanBuyOffer(state, playerId)
+  if (!p || !offer) return { ok: false, k: 'reply.unavailable', fee: 0 }
+  if (!offer.ok) return { ok: false, k: offer.k, fee: offer.fee }
+  const parent = state.clubs[p.loanFrom!]
+  // he is ALREADY on the user's roster while on loan, so the parent has to be
+  // put back on the deed before the transfer moves him properly - otherwise
+  // executeTransfer takes him off a squad he is not in and the fee goes
+  // nowhere. The loan is unwound first, then the sale happens for real.
+  const user = state.clubs[state.userClubId]
+  user.players = user.players.filter(id => id !== p.id)
+  user.tactic.lineup = user.tactic.lineup.map(id => (id === p.id ? null : id))
+  parent.players.push(p.id)
+  p.clubId = parent.id
+  p.loanFrom = null
+  p.loanUntil = undefined
+  p.loanShare = undefined
+  p.loanCa = undefined
+  executeTransfer(state, p, state.userClubId, offer.fee)
+  return { ok: true, k: 'reply.loanBuyAgreed', fee: offer.fee }
 }

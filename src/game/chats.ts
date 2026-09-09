@@ -11,27 +11,26 @@
 // keep their value.
 
 import type { GameState, Player } from './model'
-import { SEASON_WEEKS, logDecision } from './model'
+import {absWeek, SEASON_WEEKS, logDecision } from './model'
 import { t } from './i18n'
 
 const CAP_PER_WEEK = 2
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
-const absWk = (state: GameState) => state.season * SEASON_WEEKS + state.week
 
 /** Conversations left this week. */
 export function chatBudget(state: GameState): number {
-  if (state.chatWk !== absWk(state)) return CAP_PER_WEEK
+  if (state.chatWk !== absWeek(state.season, state.week)) return CAP_PER_WEEK
   return Math.max(0, CAP_PER_WEEK - (state.chatsUsed ?? 0))
 }
 
 /** Can the manager call this man in at all? */
 export function canChat(state: GameState, p: Player): boolean {
   return p.clubId === state.userClubId && !p.acad &&
-    chatBudget(state) > 0 && p.lastChatWk !== absWk(state)
+    chatBudget(state) > 0 && p.lastChatWk !== absWeek(state.season, state.week)
 }
 
 function spend(state: GameState, p: Player) {
-  const now = absWk(state)
+  const now = absWeek(state.season, state.week)
   if (state.chatWk !== now) { state.chatWk = now; state.chatsUsed = 0 }
   state.chatsUsed = (state.chatsUsed ?? 0) + 1
   p.lastChatWk = now

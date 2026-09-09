@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { DIFFICULTIES, type Difficulty } from '../../game/difficulty'
 import { useStore } from '../../store'
-import { CHALLENGES, LEAGUE_DEFS, mediaVerdict } from '../../game/newgame'
+import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
 import { COACHING_STYLES } from '../../game/tactics'
 import type { RawClub } from '../../data/types'
@@ -30,7 +30,10 @@ const finances = (budget: number) =>
 export default function NewGame() {
   const start = useStore(s => s.start)
   const back = useStore(s => s.back)
-  const defs = useMemo(() => LEAGUE_DEFS(), [])
+  const newGender = useStore(s => s.newGender)
+  const setNewGender = useStore(s => s.setNewGender)
+  const defs = useMemo(() => LEAGUE_DEFS(newGender), [newGender])
+  const challenges = useMemo(() => challengesFor(newGender), [newGender])
   const [step, setStep] = useState(0)
   const [leagueIdx, setLeagueIdx] = useState<number | null>(null)
   const [clubId, setClubId] = useState<string | null>(null)
@@ -97,6 +100,8 @@ export default function NewGame() {
     // The origin tiles (18B's "Your Story") were cut at the user's request:
     // "this feature isnt too much of interest". Every career takes the
     // engine's default coach background.
+    // The pronoun is not asked here any more (v1.5.3): Settings owns it, and
+    // start() takes the device's last answer when nothing is passed.
     start(club.id, name.trim(), challengeId ?? undefined, undefined, difficulty)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
@@ -171,7 +176,32 @@ export default function NewGame() {
           <>
             {/* compact rows, not tiles: every league and challenge on one
                 screen with no scrolling (8-batch feedback) */}
-            <div className="wizard-hint">{t('wizard.pickCompetition')}</div>
+            {/* WHICH GAME, asked here from v1.5.4 and on the title screen
+                before that. It is the first thing the wizard asks because
+                everything under it answers to it: the competition list, the
+                clubs, the challenges and the world the save is stamped with.
+                Changing it clears whatever was picked underneath, because a
+                men's league index means nothing in the women's list.
+
+                The two halves keep the .new-career-m / .new-career-w class
+                names they had on the menu - scripts/womensui.mjs finds the
+                women's game by class rather than by text, because the text
+                would also match other lines on the screen. */}
+            <div className="wizard-hint">{t('wizard.whichGame')}</div>
+            <div className="game-pick" style={{ margin: '0 14px' }} role="radiogroup" aria-label={t('wizard.whichGame')}>
+              {(['m', 'w'] as const).map(g => (
+                <button key={g} type="button" role="radio" aria-checked={newGender === g}
+                  className={`${g === 'w' ? 'new-career-w' : 'new-career-m'}${newGender === g ? ' sel' : ''}`}
+                  onClick={() => {
+                    if (newGender === g) return
+                    setNewGender(g)
+                    setLeagueIdx(null); setClubId(null); setChallengeId(null)
+                  }}>
+                  {t(g === 'w' ? 'wizard.gameWomen' : 'wizard.gameMen')}
+                </button>
+              ))}
+            </div>
+            <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.pickCompetition')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6 }}>
               {defs.map((d, i) => (
                 <button key={d.id} className={`club-pick${leagueIdx === i ? ' sel' : ''}`} style={{ margin: 0 }}
@@ -182,9 +212,18 @@ export default function NewGame() {
                 </button>
               ))}
             </div>
+            {/* The four challenges are each pinned to a specific men's club -
+                Montauban, Newcastle, Munster, Cornwall - and none of those
+                clubs exists in the women's world. Rendered there, every card
+                would draw with no crest and pickChallenge would look its club
+                up in a league list that does not contain it, set leagueIdx to
+                -1 and take the wizard to a screen with no league on it. The
+                women's game will have its own when it has the leagues to hang
+                them on. */}
+            {challenges.length > 0 && <>
             <div className="wizard-hint" style={{ marginTop: 10 }}>{t('wizard.orChallenge')}</div>
             <div style={{ padding: '0 14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 6 }}>
-              {CHALLENGES.map(ch => {
+              {challenges.map(ch => {
                 const chClub = defs.flatMap(d => d.clubs).find(c => c.id === ch.clubId)
                 return (
                   <button key={ch.id} className="card challenge-card" style={{ margin: 0 }} onClick={() => pickChallenge(ch.id)}>
@@ -197,6 +236,7 @@ export default function NewGame() {
                 )
               })}
             </div>
+            </>}
           </>
         )}
 

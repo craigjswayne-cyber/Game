@@ -80,11 +80,22 @@ console.log('--- 1. every skin the store offers has a block to render it')
 {
   const missing = SKINS.filter(s => s !== 'default' && !css.includes(`.app.skin-${s}`))
   ok(missing.length === 0, `every named skin has tokens (${missing.join(', ') || 'all present'})`)
-  // and nothing is defined that the store cannot reach
+  // and nothing is defined that NOTHING can reach.
+  //
+  // 'tour' is not in SKINS on purpose: it is not for sale and not in Settings.
+  // The game puts it on by itself for the weeks a manager is coaching the Isles
+  // XV (App.tsx, and the owner's "Skins change to a red version"), so the store
+  // genuinely cannot select it and it is not an orphan either. It still has to
+  // clear every contrast pair below, which is the half of this probe that
+  // matters and the half the owner asked for by name: "make sure its readable".
+  const AUTO_SKINS = ['tour']
+  const reachable = [...SKINS, ...AUTO_SKINS] as readonly string[]
   const orphans = [...css.matchAll(/\.app\.skin-([a-z]+)\s*[,{]/g)]
     .map(m => m[1])
-    .filter(name => !(SKINS as readonly string[]).includes(name))
-  ok(orphans.length === 0, `no skin block the game cannot select (${orphans.join(', ') || 'none'})`)
+    .filter(name => !reachable.includes(name))
+  ok(orphans.length === 0, `no skin block nothing can reach (${orphans.join(', ') || 'none'})`)
+  ok(AUTO_SKINS.every(n => css.includes(`.app.skin-${n}`)),
+    'and the skins the game wears by itself are all defined')
 }
 
 /** Every palette the game can actually be wearing: each skin at night, and
@@ -97,7 +108,8 @@ const VARIANTS = (skin: string): [string, string][] => [
   [`${skin} (night)`, `.app.skin-${skin}`],
   [`${skin} (day)`, `.app.day.skin-${skin}`],
 ]
-const PALETTES = SKINS.filter(s => s !== 'default').flatMap(VARIANTS)
+// the automatic skins are checked exactly as hard as the paid ones
+const PALETTES = [...SKINS.filter(s => s !== 'default'), 'tour'].flatMap(VARIANTS)
 
 console.log('\n--- 2. body text on every surface clears WCAG AA (4.5:1)')
 for (const [name, sel] of PALETTES) {
@@ -147,6 +159,6 @@ for (const [skin, sel] of PALETTES) {
 }
 
 console.log(fails === 0
-  ? '\nSKIN PROBE PASSED: three skins, in daylight and at night, every one readable'
+  ? '\nSKIN PROBE PASSED: three bought skins and the tour skin, in daylight and at night, every one readable'
   : `\nSKIN PROBE FAILED: ${fails}`)
 process.exit(fails === 0 ? 0 : 1)

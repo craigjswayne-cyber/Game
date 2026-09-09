@@ -1,4 +1,6 @@
 import type { Competition, Fixture, GameState, TableRow } from './model'
+import { W, type Gender } from './gender'
+import {absWeek, BASE_YEAR } from './model'
 import { shuffled, type Rng } from './rng'
 import { seedNatRank } from './natrank'
 import { nationNameIn, nationVars } from './nations'
@@ -42,6 +44,25 @@ export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
 export const PNC_WEEKS = [5, 6, 7, 9, 10]
+
+/**
+ * ---- THE WOMEN'S TEST CALENDAR ----
+ *
+ * Not the men's windows, because the women's game does not play in them. The
+ * Women's Six Nations runs from late March into April, where the men's is
+ * February and early March, and the Pacific Four Series is a May-into-June
+ * competition with no men's equivalent at all - it is not the Southern
+ * Championship with different names on it.
+ *
+ * Against a season that opens mid-August, that puts the Championship around
+ * weeks 32 to 38 and the Pacific Four in the low forties, after the last league
+ * round in week 39. Two consequences that are the point rather than an
+ * accident: a women's manager loses players to a Test window at a different
+ * time of year from a men's one, and the Pacific Four sits in a fortnight when
+ * no club rugby is being played at all, which is exactly where the real one is.
+ */
+export const W_SIX_NATIONS_WEEKS = [32, 33, 34, 36, 38]
+export const W_PAC4_WEEKS = [40, 41, 42]
 
 /** Berger-style round robin. Returns rounds of [home, away] pairs. */
 export function roundRobin(teams: string[], rng: Rng, double: boolean): [string, string][][] {
@@ -220,7 +241,32 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   return comp
 }
 
-export const TOUR_WEEKS = [44, 45]
+// FIVE WEEKS, A MIDWEEK GAME AND A WEEKEND GAME IN EACH (owner, 7 Sep: "the
+// tour should be over 5 weeks... one midweek game, one weekend game"). The
+// season grew from 45 weeks to 48 to hold it, and nothing domestic moved: the
+// club finals still end at week 43, so the party leaves after the season rather
+// than across it, which is where a real tour goes.
+export const TOUR_WEEKS = [44, 45, 46, 47, 48]
+/** Midweek provincial games before the Test series - seven, then three Tests. */
+/**
+ * THE ORDINARY SUMMER IS STILL TWO TESTS, and it needs its own weeks.
+ *
+ * In every year that is not a tour year the north goes south for a two-Test
+ * series, and that series was reading TOUR_WEEKS - fine when TOUR_WEEKS was two
+ * weeks long, and quietly catastrophic when it became five. Every non-tour
+ * summer started building FIVE rounds of internationals instead of two: thirty
+ * fixtures where there should be twelve, three extra weeks of every country's
+ * best players away from their clubs, every year.
+ *
+ * It took five probes to find - insolvency, board patience, Player of the Month,
+ * the defensive dials and the match pitch all failed, none of them obviously
+ * about a fixture list - because a constant two things share is a constant one
+ * of them will eventually be wrong about.
+ */
+export const SUMMER_TEST_WEEKS = [44, 45]
+
+export const TOUR_PROVINCIAL = 7
+export const TEST_NAMES = ['1st Test', '2nd Test', '3rd Test'] as const
 export const WC_POOL_WEEKS = [5, 6, 7, 8, 9]
 export const WC_KO_WEEKS = [10, 11, 12]
 
@@ -282,43 +328,94 @@ function buildWorldCup(rng: Rng, state: GameState) {
   state.comps['wc'] = comp
 }
 
-/** Lions years: 2029, 2033, ... (every 4th season, offset from the World Championship). */
+/** Tour years: 2029, 2033, ... (every 4th season, offset from the World
+ *  Championship, which puts the tour exactly two years off a World Cup - the
+ *  real cycle, and what the owner asked for: "2 away from a world cup").
+ *
+ *  The FUNCTION and the competition id still say "lions" because both are
+ *  written into every save ever made and neither is ever shown to a player. The
+ *  display name is the British & Irish Isles XV (owner, 7 Sep: "we shouldn't
+ *  say Lions... should just be british and irish isles xv tour"). */
 export function isLionsSeason(season: number): boolean {
-  return (2025 + season) % 4 === 1 && season > 0
+  return (BASE_YEAR + season) % 4 === 1 && season > 0
 }
 
-/** Summer theatre: either a Lions series or north-south tours close the season. */
+/** Summer theatre: either an Isles XV series or north-south tours close the season. */
 function buildSummer(rng: Rng, state: GameState) {
   const season = state.season
   if (isLionsSeason(season)) {
     const hosts = ['NZL', 'RSA', 'AUS']
-    const host = hosts[Math.floor((2025 + season - 2029) / 4) % 3]
+    const host = hosts[Math.floor((BASE_YEAR + season - 2029) / 4) % 3]
+    // ---- TEN MATCHES, AND A THREE-TEST SERIES AT THE END ----
+    //
+    // Owner, 7 Sep: "a fixture list of 10 fixtures with a 3 test series at the
+    // end in the country". This was two Tests and nothing else, which is not a
+    // tour, it is a series.
+    //
+    // THE MIDWEEK GAMES ARE AGAINST REAL CLUBS. A tour's first month is
+    // provincial rugby - the host's franchises, one after another - and this
+    // world already holds them, so they are used rather than invented. When the
+    // host has fewer clubs than the tour has midweek slots (Australia and South
+    // Africa carry four each; New Zealand six) the list is topped up from the
+    // other southern countries, which is exactly what a real tour does when it
+    // fills a Tuesday with a combined invitational XV.
+    //
+    // FIVE WEEKS, AFTER THE DOMESTIC SEASON. The club finals end at week 43 and
+    // the season runs to 48, so the tour has the summer to itself - which is
+    // where a real tour is. It was compressed into two weeks until the owner
+    // asked for five ("one midweek game, one weekend game"), and making room
+    // meant growing the season, which in turn meant taking every absolute-week
+    // stamp off the season length. See WEEK_BASIS in model.ts.
+    const hostName = host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'
+    const SOUTH = ['NZL', 'AUS', 'RSA', 'FIJ', 'ARG', 'JPN']
+    const provincial = [
+      ...Object.values(state.clubs).filter(c => c.country === host),
+      ...Object.values(state.clubs).filter(c => c.country !== host && SOUTH.includes(c.country)),
+    ].sort((a, b) => (a.country === host ? -1 : 1) - (b.country === host ? -1 : 1) || b.rep - a.rep)
+    const midweek = provincial.slice(0, TOUR_PROVINCIAL)
     const comp: Competition = {
-      id: 'lions', name: `Northern Lions Tour of ${host === 'NZL' ? 'New Zealand' : host === 'RSA' ? 'South Africa' : 'Australia'}`,
-      short: 'Lions Tour', type: 'intl',
-      teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 2, playoffTeams: 0,
+      id: 'lions', name: `British & Irish Isles Tour of ${hostName}`,
+      short: 'Isles Tour', type: 'intl',
+      // the TABLE is the Test series - that is what the tour is judged on, and
+      // what rollover.ts reads to decide whether the series was won
+      teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 3, playoffTeams: 0,
       weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
     }
-    TOUR_WEEKS.forEach((week, r) => {
-      state.fixtures.push({
-        id: state.nextId++, compId: 'lions', round: r, week,
-        homeId: host, awayId: 'LIO', played: false,
-        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
-        stage: r === 0 ? '1st Test' : '2nd Test',
-      })
-    })
+    buildTourFixtures(state, 'lions', host, midweek)
     state.comps['lions'] = comp
+    // ---- AND THE COUNTRIES STILL PLAY ----
+    //
+    // A tour year used to mean nobody else had a summer at all: this function
+    // returned here, so England, France, Italy and the rest simply did not
+    // play, and a manager who coached a country had three empty weeks in a
+    // season that was supposed to be the biggest of his career.
+    //
+    // In reality the unions tour anyway, with what the tour party left behind.
+    // That is the point of the owner's "assistant takes over of national team
+    // while you do this job" - there has to be a national team doing something
+    // for an assistant to take over. Two Tests rather than the usual series,
+    // because the best players are on the other side of the world.
+    buildSummerTests(rng, state, 2)
     return
   }
-  // classic July tours: north heads south for two-Test series
+  buildSummerTests(rng, state, 2)
+}
+
+/** The July programme: north heads south for a short Test series. `rounds` is
+ *  two in an ordinary year and two in a tour year as well - but in a tour year
+ *  the squads are what the touring party left at home, which the selection
+ *  already handles, because a man away with the Isles XV is unavailable to his
+ *  country exactly as he is to his club. */
+function buildSummerTests(rng: Rng, state: GameState, rounds: number) {
   const north = shuffled(rng, ['ENG', 'FRA', 'IRE', 'SCO', 'WAL', 'ITA'])
   const south = shuffled(rng, ['NZL', 'RSA', 'AUS', 'ARG', 'FIJ', 'JPN'])
+  const weeks = SUMMER_TEST_WEEKS.slice(0, rounds)
   const comp: Competition = {
     id: 'tour', name: 'Summer Tours', short: 'Summer Tours', type: 'intl',
-    teamIds: [...north, ...south], table: [], rounds: 2, playoffTeams: 0,
-    weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
+    teamIds: [...north, ...south], table: [], rounds: weeks.length, playoffTeams: 0,
+    weeksByRound: weeks, koWeeks: [], isNational: true,
   }
-  TOUR_WEEKS.forEach((week, r) => {
+  weeks.forEach((week, r) => {
     north.forEach((n, i) => {
       state.fixtures.push({
         id: state.nextId++, compId: 'tour', round: r, week,
@@ -414,6 +511,108 @@ export function buildInternationals(rng: Rng, state: GameState, worldCup = false
   state.comps['aut'] = aut
 }
 
+/**
+ * The women's Test competitions: the Six Nations and the Pacific Four Series.
+ *
+ * Deliberately NOT buildInternationals with different arguments. That function
+ * builds five competitions shaped around the men's game - a Southern
+ * Championship of four unions, a Pacific Islands Cup of six, an autumn series
+ * pairing north against south, an Isles XV tour - and not one of them has a women's
+ * counterpart of the same shape. The women's international game is two
+ * tournaments, so this builds two, and when WXV is added it will be a third
+ * rather than a men's window renamed.
+ *
+ * Both are RENAMED, like every competition the game ships: the Pacific Four
+ * Series is what the real one is called, so it is the Southern Four Series here
+ * the way the Rugby Championship is the Southern Championship in the men's.
+ *
+ * National teams are nation codes rather than club ids, here as in the men's
+ * game, so these carry no w: prefix and the squads are picked by season.ts from
+ * whichever players in this world hold that passport. That is why the leagues
+ * had to exist first: a women's ENG squad is the Red Roses because the only
+ * English players in a women's world are the ones in w_pwr.ts.
+ */
+/**
+ * Which Championship a world is running, and when.
+ *
+ * The Northern Championship is the one competition both games have under the
+ * same name, in different windows, with different ids. Three places outside
+ * this file read it - the Grand Slam and Wooden Spoon lore, the round-by-round
+ * news, and the panel on Home - and all three used to name the men's id and the
+ * men's weeks flat, so a women's career saw a Championship it was playing in
+ * and never heard a word about it.
+ */
+export const snIdFor = (g: Gender) => (g === 'w' ? W + 'sn' : 'sn')
+export const snWeeksFor = (g: Gender) => (g === 'w' ? W_SIX_NATIONS_WEEKS : SIX_NATIONS_WEEKS)
+
+/**
+ * ---- THE WOMEN'S TOUR ----
+ *
+ * Owner, 7 Sep: "Should also be available on the women's side 2 years after the
+ * men and repeated every 4 years... Womens tour should go NZ, Canada and
+ * France."
+ *
+ * Two years after the men's and every four thereafter, so the two never share a
+ * summer: men in 2029, 2033, 2037; women in 2031, 2035, 2039. That is the same
+ * arithmetic the men's cycle uses, offset by two.
+ *
+ * AND IT GOES WHERE THE OWNER SENT IT. New Zealand, then Canada, then France -
+ * not the men's three. Two of those three are in the north, which is the point:
+ * the women's game's strongest sides are not the same three countries, and a
+ * tour that visited South Africa because the men's tour does would be copying
+ * the men's map rather than reading the women's.
+ */
+export function isWomensTourSeason(season: number): boolean {
+  // TWO YEARS AFTER THE MEN, AND NOT BEFORE THEM. The modulo alone is satisfied
+  // by 2027, which is a year into the game and two years BEFORE the first men's
+  // tour - the opposite of what was asked for. The floor pins the first one to
+  // 2031, so the pattern reads 2029 men, 2031 women, 2033 men, 2035 women.
+  //
+  // It also lands where the real calendar puts it. The women's World Cup falls
+  // on the men's tour years (2029, 2033), so a women's tour in 2031 and 2035
+  // sits exactly in the gap between two World Cups - which is where the men's
+  // tour sits in their calendar too.
+  return (BASE_YEAR + season) % 4 === 3 && BASE_YEAR + season >= 2031
+}
+
+export function buildWomensInternationals(rng: Rng, state: GameState) {
+  if (isWomensTourSeason(state.season)) buildWomensTour(state)
+  const sn = ['ENG', 'FRA', 'IRE', 'ITA', 'SCO', 'WAL']
+  const snComp: Competition = {
+    id: W + 'sn', name: "Women's Northern Championship", short: 'Northern', type: 'intl',
+    teamIds: sn, table: sn.map(emptyRow), rounds: 5, playoffTeams: 0,
+    weeksByRound: W_SIX_NATIONS_WEEKS, koWeeks: [], isNational: true,
+  }
+  roundRobin(sn, rng, false).forEach((pairs, r) => {
+    for (const [h, a] of pairs) {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'sn', round: r, week: W_SIX_NATIONS_WEEKS[r],
+        homeId: h, awayId: a, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    }
+  })
+  state.comps[W + 'sn'] = snComp
+
+  // Four teams, played once each: three rounds, not the men's home-and-away six.
+  const p4 = ['NZL', 'CAN', 'USA', 'AUS']
+  const p4Comp: Competition = {
+    id: W + 'p4', name: 'Southern Four Series', short: 'Southern Four', type: 'intl',
+    teamIds: p4, table: p4.map(emptyRow), rounds: 3, playoffTeams: 0,
+    weeksByRound: W_PAC4_WEEKS, koWeeks: [], isNational: true,
+  }
+  roundRobin(p4, rng, false).forEach((pairs, r) => {
+    for (const [h, a] of pairs) {
+      state.fixtures.push({
+        id: state.nextId++, compId: W + 'p4', round: r, week: W_PAC4_WEEKS[r],
+        homeId: h, awayId: a, played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+      })
+    }
+  })
+  state.comps[W + 'p4'] = p4Comp
+}
+
 export function sortTable(table: TableRow[]): TableRow[] {
   return [...table].sort((a, b) =>
     b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.tf - a.tf || b.pf - a.pf)
@@ -432,4 +631,80 @@ export function leaguePos(table: TableRow[] | undefined, clubId: string): number
   if (!table?.length) return 0
   if (table.every(r => r.p === 0)) return 0
   return sortTable(table).findIndex(r => r.teamId === clubId) + 1
+}
+
+/** The women's Isles XV tour: seven provincial games and three Tests, in the
+ *  host the four-year rotation has reached. Same shape as the men's, because
+ *  the owner asked for the same tour rather than a smaller version of it. */
+function buildWomensTour(state: GameState) {
+  const hosts = ['NZL', 'CAN', 'FRA']
+  const host = hosts[Math.floor((BASE_YEAR + state.season - 2031) / 4) % 3]
+  const hostName = host === 'NZL' ? 'New Zealand' : host === 'CAN' ? 'Canada' : 'France'
+  // provincial opposition from the host's own clubs first, then the rest of the
+  // women's world. Canada has no club league in this game, so a Canadian tour
+  // leans on the wider pool - which is honest: a real tour there would play
+  // provincial and invitational sides that no database carries either.
+  const provincial = [
+    ...Object.values(state.clubs).filter(c => c.country === host),
+    ...Object.values(state.clubs).filter(c => c.country !== host),
+  ].slice(0, TOUR_PROVINCIAL)
+  const comp: Competition = {
+    id: W + 'lions', name: `Women's British & Irish Isles Tour of ${hostName}`,
+    short: 'Isles Tour', type: 'intl',
+    teamIds: ['LIO', host], table: ['LIO', host].map(emptyRow), rounds: 3, playoffTeams: 0,
+    weeksByRound: TOUR_WEEKS, koWeeks: [], isNational: true,
+  }
+  buildTourFixtures(state, W + 'lions', host, provincial)
+  state.comps[W + 'lions'] = comp
+}
+
+/**
+ * The ten fixtures of a tour, laid out the way a tour actually runs.
+ *
+ * A midweek game and a weekend game in each of five weeks. The Tests take the
+ * last three WEEKENDS, and the midweek games carry on between them - which is
+ * exactly the rhythm of a real tour, where the Wednesday side plays a province
+ * while the Test side prepares.
+ *
+ *   wk 44   Wed: tour 1      Sat: tour 2
+ *   wk 45   Wed: tour 3      Sat: tour 4
+ *   wk 46   Wed: tour 5      Sat: 1st Test
+ *   wk 47   Wed: tour 6      Sat: 2nd Test
+ *   wk 48   Wed: tour 7      Sat: 3rd Test
+ */
+function buildTourFixtures(state: GameState, compId: string, host: string, provincial: { id: string }[]) {
+  let prov = 0
+  let round = 0
+  TOUR_WEEKS.forEach((week, i) => {
+    // the Wednesday game is always a province
+    const club = provincial[prov++]
+    if (club) {
+      state.fixtures.push({
+        id: state.nextId++, compId, round: round++, week,
+        homeId: club.id, awayId: 'LIO', played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: `Tour match ${prov}`, tourMatch: true, midweek: true,
+      })
+    }
+    // the weekend is a province for the first two weeks, then a Test
+    const testIndex = i - (TOUR_WEEKS.length - TEST_NAMES.length)
+    if (testIndex >= 0) {
+      state.fixtures.push({
+        id: state.nextId++, compId, round: round++, week,
+        homeId: host, awayId: 'LIO', played: false,
+        homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+        stage: TEST_NAMES[testIndex],
+      })
+    } else {
+      const w = provincial[prov++]
+      if (w) {
+        state.fixtures.push({
+          id: state.nextId++, compId, round: round++, week,
+          homeId: w.id, awayId: 'LIO', played: false,
+          homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
+          stage: `Tour match ${prov}`, tourMatch: true,
+        })
+      }
+    }
+  })
 }

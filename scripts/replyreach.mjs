@@ -165,8 +165,15 @@ try {
   await hireBtn.scrollIntoViewIfNeeded()
   await hireBtn.click()
   await page.waitForTimeout(300)
+  // v1.5.4: the application no longer moves the desk. It produces an OFFER,
+  // which lands on the card at the top of this page and waits to be answered -
+  // so the probe answers it, which is the click a manager now makes too.
+  const offered = await page.evaluate(() => window.rugbyStore.getState().game.jobOffer?.clubId ?? null)
+  ok(offered === hireClub.clubId, `Jobs: the rigged application brings an offer (${offered})`)
+  await page.locator('.job-accept').click()
+  await page.waitForTimeout(400)
   const hired = await page.evaluate(() => window.rugbyStore.getState().game.userClubId)
-  ok(hired === hireClub.clubId, `Jobs: the rigged application succeeds (now at ${hired})`)
+  ok(hired === hireClub.clubId, `Jobs: and taking it moves the desk (now at ${hired})`)
   const hireReplies = await readReplies()
   ok(hireReplies.length === 1,
     `Jobs: the hire produces exactly one answer (${hireReplies.length})`)

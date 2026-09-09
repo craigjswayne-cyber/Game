@@ -2791,6 +2791,55 @@ button.card { display: block; width: calc(100% - 28px); text-align: left; }
    title screen has 844px to play with, so it gets real headroom instead. */
 .title-screen .menu-btns { max-width: 540px; }
 .continue-tile { font-size: 16px; padding: 12px 14px; }
+
+/* WHICH GAME (v1.5). The two doors onto a new career, plus the line that says
+   why there are two. A column rather than a row: on the 360px floor device two
+   side-by-side buttons would each be about 165px wide, and "Nouvelle carrière"
+   and "Nuova carriera maschile" do not fit in that - the French and Italian
+   labels are half again as long as the English, which is the usual way a
+   two-across menu breaks in a game that ships in five languages. Stacked, every
+   label has the full width whatever it says. */
+.new-career-pick { display: flex; flex-direction: column; gap: 6px; }
+
+/* WHICH GAME: one segmented control, not two doors (v1.5.2).
+ *
+ * The two games are the same size as each other and sit on one track, so
+ * neither reads as the other's footnote, and the single New Career button
+ * below starts whichever is lit. The lit half uses the selection colours the
+ * rest of the game uses for a chosen row (--row-selected-bg / -border) rather
+ * than the green of the button under it: two greens stacked would read as two
+ * buttons again, which is the shape this replaced.
+ *
+ * 44px inside the track, not 40: tapsize.mjs measures the real reach of every
+ * button and the track's own padding is not part of it (an ancestor does not
+ * count as the target). Sentence case rather than the condensed caps this
+ * screen uses elsewhere, because "GIOCO FEMMINILE" in caps does not fit half
+ * of a 300px column and wrapping a segment label makes the track two lines
+ * deep on one side only. */
+.game-pick {
+  display: flex; gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+}
+.game-pick button {
+  flex: 1 1 0; min-width: 0;
+  min-height: 44px;
+  padding: 8px 6px;
+  border-radius: 7px;
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 700;
+  letter-spacing: .2px; line-height: 1.2;
+  color: var(--text-secondary);
+  transition: background .15s, color .15s;
+}
+.game-pick button.sel {
+  background: var(--row-selected-bg);
+  color: var(--primary);
+  box-shadow: inset 0 0 0 1.5px var(--row-selected-border);
+}
+.game-pick button:active { transform: translateY(1px); }
 .ct-line {
   font-size: 15.5px; letter-spacing: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

@@ -9,7 +9,7 @@ import {
 } from '../../game/monetise'
 import { INJECT_TIERS, estateBuiltHere, healReady, injectionCash, injectionsLeft, type InjectTier } from '../../game/grants'
 import { fmtMoney, fmtWage } from '../../game/model'
-import { NAT_TIERS, flagOf, nationName } from '../../game/nations'
+import { NAT_TIERS, pickableNations, flagOf, nationName } from '../../game/nations'
 import { t } from '../../game/i18n'
 import { endingText } from '../purchase'
 
@@ -178,7 +178,8 @@ export default function Supporter() {
   const [healPending, setHealPending] = useState(false)
   const [estateArm, setEstateArm] = useState(false)
   const [charterArm, setCharterArm] = useState(false)
-  const [natPick, setNatPick] = useState<string>(NAT_TIERS[0][0])
+  const natOptions = game ? pickableNations(game) : NAT_TIERS
+  const [natPick, setNatPick] = useState<string>(natOptions[0][0])
   const [pendingInj, setPendingInj] = useState<InjectTier[]>([])
   const say = (sku: string, text: string | null) => setMsgs(m => ({ ...m, [sku]: text }))
 
@@ -406,7 +407,7 @@ export default function Supporter() {
         {ownsPinnacle && canCall && (
           <div className="btn-row" style={{ alignItems: 'stretch' }}>
             <select value={natPick} onChange={e => setNatPick(e.target.value)} style={{ flex: 1, minWidth: 0 }}>
-              {NAT_TIERS.map(([code]) => (
+              {natOptions.map(([code]) => (
                 <option key={code} value={code}>{flagOf(code)} {nationName(code)}</option>
               ))}
             </select>

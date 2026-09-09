@@ -2,15 +2,20 @@ import { useState } from 'react'
 import { useStore } from '../../store'
 import { teamShort } from '../../game/matchEngine'
 import { venueBadge, venueEffect } from '../../game/venue'
-import { fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
+import { MIDWEEK_OFF, fixtureDate, weekDate, type Fixture, type MatchEvent } from '../../game/model'
 import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 import { t } from '../../game/i18n'
+import { arrangeMidweekFriendly, friendlySuggestions, friendlyWeeks } from '../../game/season'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
+  const touch = useStore(s => s.touch)
   const [replayId, setReplayId] = useState<number | null>(null)
+  /** the week the friendly panel is offering games in, and the reply to the last invite */
+  const [frWeek, setFrWeek] = useState<number | null>(null)
+  const [frMsg, setFrMsg] = useState<string | null>(null)
   const [comp, setComp] = useState('ALL')
   // "fixtures and results should also have the table for the league in there as
   // an additional page". Two pages behind one tab bar, and the table follows the
@@ -117,7 +122,7 @@ export default function Fixtures() {
               <tr key={f.id} className={isNext ? 'next-fx' : undefined}
                 onClick={() => f.played && f.events?.length ? setReplayId(f.id) : undefined}
                 style={f.played && f.events?.length ? { cursor: 'pointer' } : undefined}>
-                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id).replace(/day /, " ")}</td>
+                <td className="muted" style={{ whiteSpace: 'nowrap' }}>{fixtureDate(game.season, f.week, f.id, f.midweek ? MIDWEEK_OFF : undefined).replace(/day /, " ")}</td>
                 <td className="name">
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                     <span className="muted" style={{ width: 12, display: 'inline-block', textAlign: 'center' }}>{t(f.homeId === me ? 'fixtures.atHomeMark' : 'fixtures.awayMark')}</span>
@@ -137,6 +142,61 @@ export default function Fixtures() {
           })}
         </tbody>
       </table></div>
+
+      {/* ---- ARRANGE A FRIENDLY ----
+          Owner, 7 Sep: "you should be able to arrange friendlies in the
+          fixtures and results, BELOW THE FIXTURES - it should have 3
+          suggestions". So it is here rather than on the Home screen where the
+          idle-week run-out lives: this is a thing you do while looking at the
+          calendar, because the whole decision is which gap to put it in. */}
+      {!game.unemployed && (() => {
+        const weeks = friendlyWeeks(game)
+        const wk = frWeek != null && weeks.includes(frWeek) ? frWeek : weeks[0] ?? null
+        return (
+          <>
+            <SectionTitle sub={t('fixtures.friendliesSub')}>{t('fixtures.friendlies')}</SectionTitle>
+            {wk == null ? (
+              <div className="card"><div className="muted" style={{ padding: 12 }}>{t('fixtures.friendlyNone')}</div></div>
+            ) : (
+              <>
+                <div className="filter-line">
+                  {weeks.map(w => (
+                    <button key={w} className={`chip${w === wk ? ' active' : ''}`}
+                      onClick={() => { setFrWeek(w); setFrMsg(null) }}>
+                      {t('fixtures.friendlyWeek', { n: w })}
+                    </button>
+                  ))}
+                </div>
+                <div className="tblwrap"><table className="dtable"><tbody>
+                  {friendlySuggestions(game, wk).map(id => (
+                    <tr key={id}>
+                      <td className="name">
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                          <CrestT g={game} teamId={id} size={16} />
+                          {teamShort(game, id)}
+                        </span>
+                      </td>
+                      <td className="muted" style={{ whiteSpace: 'nowrap', fontSize: 11 }}>
+                        {game.comps[game.clubs[id]?.leagueId ?? '']?.short ?? ''}
+                      </td>
+                      <td>
+                        {/* a real tap target: geosweep holds every button to 44px
+                            and this one shipped at 28, which on a phone is a
+                            button you miss rather than a button you press */}
+                        <button className="btn ghost" style={{ fontSize: 12, padding: '12px 14px', minHeight: 44 }}
+                          onClick={() => { setFrMsg(arrangeMidweekFriendly(game, id, wk)); touch() }}>
+                          {t('fixtures.friendlyPlay')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody></table></div>
+                {frMsg && <div className="card"><div className="meta" style={{ padding: 10 }}>{frMsg}</div></div>}
+              </>
+            )}
+          </>
+        )
+      })()}
         </>
       )}
       {replay && (

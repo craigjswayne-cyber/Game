@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from 'react'
 import { useStore } from '../../store'
 import { clubCode, fmtMoney, fmtWage, newsBody, newsSubject, POS_ORDER, weekDate, type Pos } from '../../game/model'
 import { counterIncomingOffer, renewalDemand, respondToOffer } from '../../game/ai'
-import { LOAN_LENGTHS, LOAN_SHARES, loanIn, loanTargets, type LoanLength } from '../../game/loans'
+import { LOAN_LENGTHS, LOAN_SHARES, loanApproachable, loanIn, loanTargets, type LoanLength } from '../../game/loans'
 import { fuzzedCa, knowledge } from '../../game/scout'
 import { commissionScout, searchFee, type SearchMonths } from '../../game/commission'
 import { badgeLabel } from '../../game/staff'
@@ -23,6 +23,8 @@ export default function Transfers() {
   const [listedOnly, setListedOnly] = useState(false)
   /** the loan being negotiated: who, for how long, and who pays (v1.2.8) */
   const [loanDeal, setLoanDeal] = useState<{ id: number; length: LoanLength; share: number } | null>(null)
+  /** the unsolicited loan approach: a name typed, not a list browsed */
+  const [aq, setAq] = useState('')
   // WHO WOULD ACTUALLY COME? The engine has always refused a bid from a club
   // far below a happy player's, and never said so until you had spent the bid
   // (interest.ts). This chip asks that same question up front.
@@ -38,6 +40,22 @@ export default function Transfers() {
   const PER_PAGE = 10
 
   const user = game.clubs[game.userClubId]
+
+  // WHO YOU MAY RING ABOUT. Every under-23 in the world is far too many rows to
+  // list, so this is a search and not a browse: three characters of a name or a
+  // club, capped at a dozen hits. loanApproachable is the same gate the engine
+  // applies, so nothing appears here that the phone call would refuse outright.
+  const approachHits = useMemo(() => {
+    const q = aq.trim().toLowerCase()
+    if (q.length < 3) return []
+    const listed = new Set(loanTargets(game).map(p => p.id))
+    return Object.values(game.players)
+      .filter(p => !listed.has(p.id) && loanApproachable(game, p)
+        && (p.name.toLowerCase().includes(q)
+          || (p.clubId ? (game.clubs[p.clubId]?.short ?? '').toLowerCase().includes(q) : false)))
+      .sort((a, b) => b.ca - a.ca)
+      .slice(0, 12)
+  }, [game, aq])
   const offers = game.offers.filter(o => o.status === 'pending' && o.forUser)
 
   const MTh = ({ k, children, right }: { k: typeof msort; children: React.ReactNode; right?: boolean }) => (
@@ -270,6 +288,41 @@ export default function Transfers() {
           <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.noLoans')}</td></tr>
         )}
       </tbody></table></div>
+
+      {/* ---- ASKING ABOUT SOMEBODY WHO WAS NEVER OFFERED ----
+          Owner, 7 Sep: "can you propose to loan players even if they dont have
+          loan available?" The list above is the shop window; this is the phone
+          call. It reuses the same negotiating sheet, so the length and the wage
+          share work exactly as they do for a listed player - only the odds are
+          worse, and a rival hangs up. Search rather than a list, because every
+          under-23 at every club in the world is thousands of rows. */}
+      <SectionTitle sub={t('transfers.loanApproachSub')}>{t('transfers.loanApproach')}</SectionTitle>
+      <div className="filter-line">
+        <input className="inline-input" placeholder={t('transfers.nameOrClub')} value={aq}
+          onChange={e => setAq(e.target.value)} style={{ flex: '1 1 0' }} />
+      </div>
+      {aq.trim().length >= 3 && (
+        <div className="tblwrap"><table className="dtable codefirst"><tbody>
+          {approachHits.map(p => (
+            <tr key={p.id}>
+              <td onClick={() => go('player', p.id)}><PosBadge pos={p.pos} /></td>
+              <td className="name" onClick={() => go('player', p.id)}>
+                {p.name} <span className="muted">({p.age} · {p.clubId ? game.clubs[p.clubId]?.short : ''})</span>
+              </td>
+              <td onClick={() => go('player', p.id)}><Stars ca={fuzzedCa(game, p)} /></td>
+              <td>
+                <button className="btn ghost" style={{ fontSize: 11, padding: '5px 10px' }}
+                  onClick={() => { setLoanDeal({ id: p.id, length: 'season', share: 0.5 }); setMsg(null) }}>
+                  {t('transfers.loanAsk')}
+                </button>
+              </td>
+            </tr>
+          ))}
+          {approachHits.length === 0 && (
+            <tr><td className="muted" style={{ padding: 12 }}>{t('transfers.loanNoHits')}</td></tr>
+          )}
+        </tbody></table></div>
+      )}
       {loanDeal && (() => {
         const lp = game.players[loanDeal.id]
         const parent = lp?.clubId ? game.clubs[lp.clubId] : null
@@ -459,6 +512,7 @@ function ScoutCommission() {
           <>
             <div className="meta" style={{ marginBottom: 6 }}>
               {t('transfers.longerTrip', {
+                g: game.staffPeople?.scout?.g ?? 'm',
                 where: game.scoutFocus
                   ? t('transfers.watchesLeague', { league: game.comps[game.scoutFocus]?.short ?? t('transfers.focusLeague') })
                   : t('transfers.watchesWorld'),
@@ -485,7 +539,7 @@ function ScoutCommission() {
 
       {finds.length > 0 && (
         <>
-          <SectionTitle sub={t('transfers.scoutsReportSub')}>{t('transfers.scoutsReport')}</SectionTitle>
+          <SectionTitle sub={t('transfers.scoutsReportSub', { g: game.staffPeople?.scout?.g ?? 'm' })}>{t('transfers.scoutsReport')}</SectionTitle>
           <div className="tblwrap"><table className="dtable codefirst"><tbody>
             {finds.map(f => {
               const p = game.players[f.playerId]

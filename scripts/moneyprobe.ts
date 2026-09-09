@@ -179,7 +179,19 @@ clear()
 g.rmAds = { mount: () => {} }
 ok(M.adsAllowed('home-foot'), 'with a provider attached, a declared place may draw one')
 ok(!M.adsAllowed('match-live'), 'an undeclared place may not, whatever a caller passes')
+// 'match-foot' IS THE ONE EXCEPTION, AND IT IS THE OWNER'S (6 Sep, with a
+// screenshot of the empty strip under the commentary): "there should be an ad
+// down the bottom during game time when the motion screen is on... should only
+// be in-game! NOT when making subs, half-time, 60 or ft."
+//
+// The rest of the rule stands and is worth more for having one hole in it: no
+// tunnel, no modal, no title screen, and nothing else inside a match. The
+// exception is not taken on trust either - scripts/matchad.mjs drives a real
+// match in a real browser and holds the banner to all eight of the states the
+// owner listed, which is a stronger guarantee than this line ever was.
+const AD_EXCEPTIONS = ['match-foot']
 for (const place of M.AD_PLACES) {
+  if (AD_EXCEPTIONS.includes(place)) continue
   ok(!/match|tunnel|modal|title/.test(place), `no declared place is inside a match or a modal (${place})`)
 }
 M.grantSupporter()
@@ -1022,6 +1034,32 @@ console.log('\n--- 14. the StoreKit bridge and the native files behind it')
 
   for (const f of ['PhaseBilling.swift', 'PhaseBilling.m', 'App-Bridging-Header.h', 'Products.storekit']) {
     ok(scaffold.includes(f), `scaffold.sh installs ${f} into the App target`)
+  }
+
+  // ---- COPIED INTO THE FOLDER IS NOT THE SAME AS IN THE TARGET ----
+  //
+  // The loop above only proves the files are copied. An Xcode target compiles
+  // what project.pbxproj lists, `cap add ios` generates that file from
+  // Capacitor's template, and the template has never heard of these four - so
+  // for two releases the shop was missing on a shell where every other check
+  // passed, and the README's answer was "drag them in by hand". install-billing.mjs
+  // writes the build-file, file-reference, group and build-phase entries
+  // itself, and sets the bridging header the ObjC stub cannot compile without.
+  {
+    const inst = readFileSync('packaging/ios/install-billing.mjs', 'utf8')
+    ok(/node install-billing\.mjs/.test(scaffold),
+      'scaffold.sh runs install-billing.mjs, so target membership is not a manual step')
+    ok(scaffold.indexOf('node install-billing.mjs') > scaffold.indexOf('npx cap add ios'),
+      'and it runs after the platform exists, which is when project.pbxproj does')
+    for (const need of ['PBXBuildFile', 'PBXFileReference', 'PBXSourcesBuildPhase', 'PBXResourcesBuildPhase']) {
+      ok(inst.includes(need), `install-billing.mjs writes the ${need} entry`)
+    }
+    ok(/PhaseBilling\.swift in Sources/.test(inst) && /PhaseBilling\.m in Sources/.test(inst),
+      'and it is the two compiled files that go into Compile Sources')
+    ok(/SWIFT_OBJC_BRIDGING_HEADER/.test(inst),
+      'and it sets the bridging header, without which PhaseBilling.m does not build')
+    ok(/already in the App target/.test(inst),
+      'and it is idempotent, because scaffold.sh is run again on every re-scaffold')
   }
   ok(/appId["']?\s*:\s*["']com\.phaserugbymanager\.app/.test(
     readFileSync('packaging/ios/capacitor.config.json', 'utf8')),

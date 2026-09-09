@@ -22,6 +22,7 @@
 //      empties the pitch and nothing else in the suite would notice.
 //
 // Run: npx vite-node scripts/commprobe.ts
+import { SIBLING } from '../src/game/i18n'
 import { readFileSync } from 'node:fs'
 
 /** Commentary lines still called as finished English. ONLY EVER DECREASE. */
@@ -90,6 +91,8 @@ const holes = (s: unknown): string => {
 const enComm = (LANGS.en.comm ?? {}) as Dict
 const bad: string[] = []
 for (const key of Object.keys(enComm)) {
+  // a `_f` sibling is optional per language (i18n.ts setWorld); langparity checks its holes
+  if (SIBLING.test(key)) continue
   for (const lang of Object.keys(LANGS).filter(l => l !== 'en')) {
     const other = lookup(LANGS[lang], `comm.${key}`)
     if (other === undefined) { bad.push(`${lang}:comm.${key} missing`); continue }

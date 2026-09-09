@@ -321,7 +321,13 @@ export interface Player {
   hist?: { apps: number; tries: number; points: number }
   /** Test caps, pre-2025 estimate plus every international played here */
   caps?: number
-  /** Northern Lions tours made - the honour of a career */
+  /** Isles XV tours made - the honour of a career.
+   *
+   *  THE FIELD KEEPS ITS OLD NAME ON PURPOSE. It is written into every save
+   *  ever made, and renaming it would mean a migration that buys nothing: no
+   *  player ever sees the word. What they see is the display name, and that is
+   *  now the British & Irish Isles XV (owner, 7 Sep: "we shouldn't say Lions").
+   */
   lions?: number
   /** World Championships won while in the squad - the other honour of a career */
   wcWins?: number
@@ -409,6 +415,11 @@ export interface Player {
    *  able to buy them back within 6 months"). Absent on moves from before
    *  the stamp existed. */
   joinedAt?: number
+  /** The rating he arrived on loan with. Read by the loan-to-buy option: a
+   *  parent club that lent out a boy will sell him, unless the months at your
+   *  place turned him into somebody they want back. Without this the "if things
+   *  go well" half of the option has nothing to measure against. */
+  loanCa?: number
   /** parent club when this player is on loan AT the user's club */
   loanFrom?: string | null
   /** absolute week (season * SEASON_WEEKS + week) a loan-in ends early;
@@ -428,6 +439,29 @@ export interface Player {
    * rounds of squad-accuracy work were measured against that.
    */
   real?: boolean
+  /**
+   * ---- MATERNITY LEAVE ----
+   *
+   * Owner, 6 Sep 2026, asking for it and fencing it in the same breath: "for
+   * maternity this isnt something for everyone - make sure this is only on
+   * fictional players."
+   *
+   * That fence is the important half. Every NAMED player in this game is a real,
+   * living person - 1,339 of them in the women's leagues, off the owner's own
+   * squad sheets. Giving one of them a pregnancy the game invented would be
+   * inventing a private life event about a real individual and putting her name
+   * on it. That is not the game's to invent, whatever the simulation gains.
+   *
+   * So the gate is `!p.real`, and it is checked at the one place leave is
+   * granted rather than trusted to whoever edits this next. Generated players
+   * are nobody, which is exactly what makes them the right ones to model a real
+   * career interruption on.
+   *
+   * `until` is an absolute game-week like Injury.until. `from` is kept so the
+   * rollover knows a season was missed and can push the contract out rather
+   * than running it down while she is not playing.
+   */
+  maternity?: { until: number; from: number }
 }
 
 export interface Club {
@@ -485,6 +519,8 @@ export interface Club {
   admin?: { season: number; penalty: number }
   /** the AI head coach's name (yours shows the manager name) */
   coach?: string
+  /** the coin that named the coach - see StaffPerson.g */
+  coachGender?: import('./gender').Gender
   /** the head coach's standing instruction (F23) - an id from philosophy.ts.
    *  Absent on the club you manage: your dials are yours. */
   philosophy?: string
@@ -593,6 +629,17 @@ export interface Fixture {
   derby?: boolean
   /** this friendly is a testimonial for the named player - his day */
   testimonial?: number
+  /** A provincial game on a tour: it counts for the tourists' momentum and the
+   *  players' minutes, but it is not a Test and never touches the series table. */
+  tourMatch?: boolean
+  /** Played on the Wednesday rather than the weekend. A touring party plays
+   *  twice a week - a midweek side and a Test side - which is the one place in
+   *  this game where a team legitimately appears twice in the same week. */
+  midweek?: boolean
+  /** A midweek friendly the assistant runs with a development side. The flag
+   *  is what keeps it out of the manager's own Saturday: the settle plays it,
+   *  the academy get the minutes, and it never becomes the match he coaches. */
+  devSide?: boolean
   /** a showpiece final is played at a neutral ground, not the higher seed's
    *  place: set at creation by finalVenue(), it overrides the stadium line,
    *  the gate and home advantage */
@@ -1121,6 +1168,9 @@ export interface StaffLevels {
 /** A named coach with a badge. The level in StaffLevels mirrors his tier. */
 export interface StaffPerson {
   name: string
+  /** the coin from gender.ts staffGender, kept so the stories about this
+   *  person can say "she filed her report". Absent on older saves: a man. */
+  g?: import('./gender').Gender
   nat: string
   age: number
   /** 1 Bronze, 2 Silver, 3 Gold */
@@ -1170,6 +1220,13 @@ export interface ManagerStats {
 
 export interface GameState {
   seed: number
+  /** Which game this career is in: the men's world or the women's.
+   *
+   *  A save holds ONE world and a world has one gender - see src/game/gender.ts
+   *  for why that is a property of the save rather than a filter in the engine.
+   *  Absent on every career started before v1.5, which is why nothing reads this
+   *  field directly: genderOf(state) supplies 'm' for them. */
+  gender?: import('./gender').Gender
   saveName: string
   season: number // 0 = 2025-26
   week: number   // 1..46
@@ -1219,6 +1276,18 @@ export interface GameState {
   mgrTrust?: number
   /** the manager's backstory, chosen at career creation (18B) */
   mgrOrigin?: MgrOrigin
+  /** How the press and the fans refer to you - chosen at career start and
+   *  carried across every job, including a move to the other game. Absent on
+   *  a save from before the choice existed, which reads as a man, exactly
+   *  what every line in the game assumed until then. See i18n.ts `_w`. */
+  mgrGender?: import('./gender').Gender
+  /** the analyst's coin, drawn once per career: the strings about the
+   *  analyst say "he" or "she" by it (i18n.ts `_w`). Absent on an older
+   *  save until the migration draws it. */
+  analystGender?: import('./gender').Gender
+  /** A club has offered the job and is waiting on an answer (jobs.ts). One at
+   *  a time, cleared by either answer, and it goes stale with its vacancy. */
+  jobOffer?: { clubId: string; week: number } | null
   /** the scripted challenge this career started as - cleared when conquered */
   challenge?: string
   /**
@@ -1263,7 +1332,23 @@ export interface GameState {
   chatWk?: number
   chatsUsed?: number
   /** national side the manager also coaches (FM-style dual role) */
+  /** Which multiplier this save's absolute-week stamps were written on. Absent
+   *  or 45 means a save from before the season grew to 48 weeks, and save.ts
+   *  rebases it once, on load, to WEEK_BASIS. */
+  basis?: number
+  /** What the club has booked into the empty summer weeks, keyed by week. One
+   *  event a week, because it is one ground. */
+  closeBook?: Record<string, string>
+  /** Which season each once-a-year talking point last fired in. */
+  points?: Record<string, number>
+  /** The week a rival coach briefed the press about your side. The next match
+   *  is played against a team that has read it. */
+  leaked?: number
   natTeam?: string | null
+  /** The Isles XV tour job: which season it was offered in and what he said.
+   *  Absent on every save made before v1.5, which is correct - nobody was ever
+   *  offered it, because until now it was not a job you could be offered. */
+  isles?: { season: number; answer: 'open' | 'yes' | 'no' }
   /** a country wants you - pending offer from a union */
   natOffer?: { nat: string; week: number } | null
   /** the board's secondary season objectives (evaluated at rollover) */
@@ -1492,6 +1577,10 @@ export interface GameState {
    *  airing out of the window and re-armed the story early; and it compared
    *  same-season only, so every rollover reset the clock. */
   lawWatchAt?: number
+  /** Week stamp of the last AROUND THE GROUNDS story. Absolute weeks, like
+   *  lawWatchAt, because the news log is trimmed and a same-season scan
+   *  re-arms every rollover. */
+  groundsAt?: number
   /** the season the playoff-clinch announcement ran (user: "no announcement
    *  when you mathematically qualify"). A stamp, not a news-log scan. */
   playoffClinch?: number
@@ -1775,10 +1864,68 @@ export function trustWord(v: number): string {
 
 /** World Championship years: 2027, 2031, ... (in-game season index) */
 export function isWorldCupSeason(season: number): boolean {
-  return (2025 + season) % 4 === 3
+  return (BASE_YEAR + season) % 4 === 3
 }
 
-export const SEASON_WEEKS = 45
+/**
+ * ---- THE BASIS FOR AN ABSOLUTE WEEK ----
+ *
+ * Anything in a save that says "this happened in week N of the career" - a loan
+ * return, the day a player joined, a disciplinary incident, a chat allowance -
+ * stores `season * BASIS + week`. For most of this game's life that basis WAS
+ * SEASON_WEEKS, which meant the season length could never change: bumping it
+ * would silently move every stamp already written into every career in progress,
+ * and a player mid-loan would find his return date had slid by a season.
+ *
+ * That bill came due when the owner asked for a five-week tour (7 Sep: "the tour
+ * should be over 5 weeks... one midweek game, one weekend game"), which needs
+ * three more weeks than the season had.
+ *
+ * SO IT IS A NAMED CONSTANT, AND IT EQUALS THE SEASON LENGTH. It has to. The
+ * first version of this used 100 - comfortably above any season, no migration
+ * needed for the next change - and that was wrong in a way five probes found
+ * within the hour: the whole point of an absolute week is that subtracting two
+ * of them gives a number of WEEKS. With a basis of 100 and a 48-week season,
+ * the gap from season 0 week 48 to season 1 week 1 came out as 53 instead of 1,
+ * so every duration that crossed an August - a loan running into the next
+ * season, a contract clock, how long a manager had been at a club - inflated by
+ * 52. Board patience, insolvency and the awards all read those numbers.
+ *
+ * What this buys is not freedom from migration. It is one place to change, and
+ * one migration in save.ts that knows what the basis USED to be, instead of the
+ * multiplier being spelled out in seventy-one expressions across nineteen
+ * files where changing it means finding every one.
+ */
+export const WEEK_BASIS = 48
+export const absWeek = (season: number, week: number) => season * WEEK_BASIS + week
+
+/**
+ * How many weeks a season runs.
+ *
+ * 45 until v1.5.1, when the tour needed weeks 44 to 48. Nothing domestic moved:
+ * the club finals still end at week 43, and the three new weeks are the summer
+ * the tour party spends abroad - which is where a real tour is, after the
+ * domestic season rather than across it.
+ */
+export const SEASON_WEEKS = 48
+
+/**
+ * How many weeks of the season a club's books actually run for.
+ *
+ * The season grew to 48 to hold a five-week tour, and the club economy noticed
+ * immediately: three more weeks of wages, staff salaries and upkeep, with no
+ * club fixture to earn against, because those weeks are an international tour.
+ * scripts/aiecon.ts measured the median club's yearly gain falling from £0.85M
+ * to £0.30M - not a rounding difference, a third of the game's economy.
+ *
+ * The three new weeks are therefore CLOSE SEASON for the ledger. Nothing is
+ * earned and nothing is spent, which keeps every club's financial year exactly
+ * the length it was tuned for, and is a fair description of what those weeks
+ * are: the domestic game is over, the tour party has gone, and the rest are on
+ * holiday. Extending the season should not have quietly cost every club in the
+ * world a third of its income, and it does not.
+ */
+export const LEDGER_WEEKS = 45
 
 /** Leagues where the bottom club goes down. ONE list: the table's shading,
  *  the new-career media verdict and the pundits' predictions all read it, so
@@ -1876,14 +2023,41 @@ export const celebrationSub = (c: Cel): string => (c.sk ? t(c.sk, c.sv) : c.sub)
 export const monthName = (m: number): string => t(`date.mon${m}`)
 export const dayAbbr = (d: number): string => t(`date.day${d}`)
 
+/**
+ * The Saturday a season opens on, in UTC milliseconds.
+ *
+ * Every date the game prints is this plus a number of weeks, and the whole
+ * calendar rests on one promise made in days.ts: "week N's date IS its
+ * Saturday". That promise used to be a coincidence. The anchor was
+ * Date.UTC(year, 7, 16) flat, and 16 August is a Saturday in 2025 and in no
+ * other year this decade - Sunday in 2026, Monday in 2027, Wednesday in 2028 -
+ * so from season one onwards every weekday label was already sliding, and
+ * dayprobe never caught it because it only ever read season zero.
+ *
+ * Moving BASE_YEAR to 2026 for v1.5 dragged that latent drift onto season zero,
+ * where the probe finally saw it: "Monday reads as a Monday (Tue 11 Aug)".
+ *
+ * So the anchor is computed rather than assumed: mid-August, then back to the
+ * Saturday on or before it. 2025 is unchanged, which is the point - a men's
+ * career started before v1.5 keeps the exact dates it has always printed - and
+ * every other season is now right instead of accidentally wrong.
+ */
+export function seasonStart(season: number): number {
+  const mid = Date.UTC(BASE_YEAR + season, 7, 16)
+  // getUTCDay: 0 Sun .. 6 Sat. Saturday needs no step back, Sunday one, and so on.
+  const back = (new Date(mid).getUTCDay() + 1) % 7
+  return mid - back * 86400000
+}
+
 export function weekDate(season: number, week: number): string {
-  const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
-  const d = new Date(start + (week - 1) * 7 * 86400000)
+  const d = new Date(seasonStart(season) + (week - 1) * 7 * 86400000)
   return `${d.getUTCDate()} ${monthName(d.getUTCMonth())} ${d.getUTCFullYear()}`
 }
 
 /** Which day this fixture kicks off: -1 Friday, 0 Saturday, +1 Sunday.
  *  Fixed per fixture, so previews, reports and recovery all agree. */
+export const MIDWEEK_OFF = -3 // Wednesday, three days before the Saturday
+
 export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
   const h = (fxId * 2654435761) >>> 0
   return h % 3 === 0 ? -1 : h % 3 === 2 ? 1 : 0
@@ -1897,14 +2071,37 @@ export function fixtureDayOff(fxId: number): -1 | 0 | 1 {
  *
  *  dayOff overrides the per-fixture hash for competitions that always play the
  *  same day - the A League is every Friday, the night before the first team. */
-export function fixtureDate(season: number, week: number, fxId: number, dayOff?: -1 | 0 | 1): string {
-  const start = Date.UTC(2025 + season, 7, 16) // season opens mid-August with pre-season
+export function fixtureDate(season: number, week: number, fxId: number, dayOff?: number): string {
+  const start = seasonStart(season) // the season's opening Saturday
   const d = new Date(start + ((week - 1) * 7 + (dayOff ?? fixtureDayOff(fxId))) * 86400000)
   return `${dayAbbr(d.getUTCDay())} ${d.getUTCDate()} ${monthName(d.getUTCMonth())}`
 }
 
+/**
+ * The real-world year that season 0 starts in.
+ *
+ * 2025 until v1.5, when the owner asked for both games to run 26/27: "both
+ * should run 26/27". The women's database is a 2026-27 squad list and the men's
+ * competitions are dated from the same August, so one constant moves both.
+ *
+ * Everything year-shaped reads this rather than a literal, which matters most
+ * for the two cycles that must keep landing on their REAL years: the World
+ * Championship every fourth year and the Lions tour four years off it. Both are
+ * computed from the absolute year rather than the season index, so moving the
+ * base moves the season they fall in and leaves the year alone - the World
+ * Championship is still 2027 and the Lions still 2029, they just arrive a season
+ * sooner in a career. isWorldCupSeason and isLionsSeason are the proof.
+ *
+ * A career saved before v1.5 keeps its season NUMBER and gains a year on its
+ * LABEL: a save that read 2025-26 now reads 2026-27. Nothing about the career
+ * changes, and in closed testing that is the cheaper of the two wrongs - the
+ * alternative is storing a base year per save so old careers keep old labels,
+ * which is a field on every save for ever to spare 39 testers a one-off shift.
+ */
+export const BASE_YEAR = 2026
+
 export function seasonLabel(season: number): string {
-  const y = 2025 + season
+  const y = BASE_YEAR + season
   return `${y}-${String((y + 1) % 100).padStart(2, '0')}`
 }
 

@@ -1,6 +1,7 @@
 // Commissioned scouting (8-batch feedback): send your chief scout out on a
 // 3, 6 or 9-month brief. He comes back with a shortlist of mixed quality - the
 // longer the trip and the better his badge, the more of it is worth signing.
+import { subjectVar } from './gender'
 import { POS_NAMES, fmtMoney, logDecision, type GameState, type Player, type Pos } from './model'
 import { t, tIn } from './i18n'
 import { mulberry32 } from './rng'
@@ -60,7 +61,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
   if (tier <= 0 || !man) return t('reply.noChiefScout')
   if (state.commission) {
     const left = Math.max(1, state.commission.done - (state.season * 100 + state.week))
-    return t('reply.scoutAlreadyOut', { scout: man.name, n: left })
+    return t('reply.scoutAlreadyOut', { ...subjectVar(man.g), scout: man.name, n: left })
   }
   const fee = searchFee(months, tier)
   if (club.balance < fee) return t('reply.briefTooDear', { months, fee: fmtMoney(fee) })
@@ -76,7 +77,7 @@ export function commissionScout(state: GameState, pos: Pos | 'any', months: Sear
     body: `${fmtMoney(fee)} of expenses, a hire car and a brief: ${pos === 'any' ? 'anyone who can play' : POS_NAMES[pos].toLowerCase()}, in ${where}. ${man.name} (${BADGE[tier].toLowerCase()} badge) files his report in ${SEARCH_WEEKS[months]} weeks. A longer trip sees more rugby and less of it in the rain.`,
     k: 'news.briefSent',
     v: {
-      scout: man.name, months, fee: fmtMoney(fee), where,
+      ...subjectVar(man.g), scout: man.name, months, fee: fmtMoney(fee), where,
       where_k: where ? 'news.inLeague' : 'news.inLeagueAny',
       brief_k: pos === 'any' ? 'news.briefAnyone' : `pos.${pos}`,
       badge_k: `staff.badge${tier}`, n: SEARCH_WEEKS[months],
@@ -145,7 +146,7 @@ export function scoutPostcard(state: GameState) {
       + `He is properly scouted now, so his page shows what he actually is rather than a range.`,
     k: 'news.postcard',
     v: {
-      scout: man.name, player: p.name, weeksIn, n: weeksLeft,
+      ...subjectVar(man.g), scout: man.name, player: p.name, weeksIn, n: weeksLeft,
       verdict_k: keen ? 'news.postcardKeen' : 'news.postcardMaybe',
       age: p.age, pos_k: `pos.${p.pos}`, club: club?.name ?? '',
       at_k: club ? 'news.atClub' : 'news.atClubAbroad',
@@ -211,7 +212,7 @@ export function resolveCommission(state: GameState) {
     body: `${c.months} months, ${finds.length} names, ${good} of them he would sign tomorrow. Top of the list: ${best.name}, ${best.age}, ${POS_NAMES[best.pos].toLowerCase()} at ${state.clubs[best.clubId ?? '']?.name ?? 'a club abroad'} - ${tIn('en', note.k, note)} The full report is in the Transfer Centre, and every man on it is now properly known to your recruitment staff.`,
     k: 'news.scoutReport',
     v: {
-      scout: man?.name ?? '', scout_k: man ? 'news.scoutNamed' : 'news.theChiefScout',
+      ...subjectVar(man?.g), scout: man?.name ?? '', scout_k: man ? 'news.scoutNamed' : 'news.theChiefScout',
       n: finds.length, months: c.months, good,
       names_k: finds.length === 1 ? 'count.nameOne' : 'count.nameMany',
       player: best.name, age: best.age, pos_k: `pos.${best.pos}`,

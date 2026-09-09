@@ -27,6 +27,7 @@ function FallbackReply({ text }: { text: string }) {
 export default function Jobs() {
   const game = useStore(s => s.game)!
   const applyJob = useStore(s => s.applyJob)
+  const answerJobOffer = useStore(s => s.answerJobOffer)
   const passJob = useStore(s => s.passJob)
   const resign = useStore(s => s.resign)
   // KEYED TO THE ROW THAT ASKED. This used to be a bare string rendered in one
@@ -108,8 +109,36 @@ export default function Jobs() {
     )
   }
 
+  // THE OFFER, AT THE TOP OF THE PAGE. An application that succeeds no longer
+  // moves the desk on the click (v1.5.4): the club makes an offer and it sits
+  // here, above everything, until it is answered. No means they appoint
+  // somebody else, which is why the card says so before the tap rather than
+  // after it.
+  const offer = game.jobOffer && game.clubs[game.jobOffer.clubId]
+    ? game.clubs[game.jobOffer.clubId] : null
+
   return (
     <>
+      {offer && (
+        <div className="card job-offer" style={{ borderLeft: '4px solid var(--gold)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Crest club={offer} size={30} mr={4} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ fontSize: 15 }}>{t('world.jbOfferHead', { club: offer.name })}</h3>
+              <div className="meta">{t('world.jbOfferBody', { club: offer.short, stadium: offer.stadium, budget: fmtMoney(offer.budget) })}</div>
+            </div>
+          </div>
+          <div className="btn-row" style={{ margin: '10px 0 0' }}>
+            <button className="btn ghost job-decline" onClick={() => setMsg({ key: 'offer', text: answerJobOffer(false) })}>
+              {t('world.jbDecline')}
+            </button>
+            <button className="btn gold job-accept" style={{ flex: 1.6 }} onClick={() => setMsg({ key: 'offer', text: answerJobOffer(true) })}>
+              {t('world.jbAccept')}
+            </button>
+          </div>
+          {msg?.key === 'offer' && <div className="meta" style={{ marginTop: 8 }}>{msg.text}</div>}
+        </div>
+      )}
       <div className="card">
         <h3 style={{ fontSize: 16 }}>{t(game.unemployed ? 'world.jbBetweenJobs' : 'world.jbMarket')}</h3>
         <div className="meta">

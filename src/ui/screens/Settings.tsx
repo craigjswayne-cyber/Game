@@ -6,12 +6,15 @@ import { LANGS, getLang, t } from '../../game/i18n'
  * SETTINGS. Above Report a Bug in the manager's menu, because it is the page a
  * player looks for before they conclude something is broken.
  *
- * It holds the choices that change how the game LOOKS and nothing that changes
- * how it plays - the skin, the floodlights, the language and the type size.
- * Everything here is stored on the device rather than in the save, so a career
- * carried to another phone arrives in that phone's colours and its owner's
- * language. The type size joined them in v1.2.3, when the title screen's copy
- * of it was removed and this became its one address.
+ * It holds the choices that change how the game LOOKS and READS and nothing
+ * that changes how it plays - the skin, the floodlights, the language, the type
+ * size and, since v1.5.3, whether the press call the manager he or she. The
+ * first four are stored on the device, so a career carried to another phone
+ * arrives in that phone's colours and its owner's language; the pronoun is the
+ * exception and is kept in the save, because it is a fact about the manager
+ * rather than a preference of the handset. The type size joined them in v1.2.3,
+ * when the title screen's copy of it was removed and this became its one
+ * address.
  *
  * THE SWATCHES ARE THE REAL TOKENS. Each card paints itself from the same CSS
  * variables the skin ships, scoped by the skin's own class, so the preview
@@ -58,6 +61,9 @@ export default function Settings() {
   const toggleNight = useStore(s => s.toggleNight)
   const lang = useStore(s => s.lang)
   const setLang = useStore(s => s.setLang)
+  const game = useStore(s => s.game)
+  const mgrGender = game?.mgrGender === 'w' ? 'w' : 'm'
+  const setMgrGender = useStore(s => s.setMgrGender)
   const textScale = useStore(s => s.textScale)
   const setTextScale = useStore(s => s.setTextScale)
 
@@ -146,6 +152,43 @@ export default function Settings() {
           {LANGS.map(l => <option key={l.code} value={l.code} lang={l.code}>{l.label}</option>)}
         </select>
       </div>
+
+      {/* ---- he or she ----
+          Asked at the end of the new-career wizard until v1.5.3, on the
+          reasoning that it is a fact about the manager rather than a
+          preference. It is both, and the wizard was the wrong place for it:
+          somebody who wants to be called she reads eight screens of a career
+          being set up before the game mentions that it can, and if they miss
+          the tile there is no way back short of starting again (owner: "move
+          he/she section to the settings"). Here it can be changed on the
+          Tuesday of any week, and the stories already in the inbox re-render
+          in the new pronoun the same way they re-render in a new language -
+          they are keys and variables, not sentences (i18n.ts).
+
+          The one thing on this page that is kept in the SAVE rather than on
+          the device, because it belongs to the manager and not to the phone.
+          The device remembers the last answer as well, so the next career
+          starts where this one left off. */}
+      {game && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 20, flexShrink: 0 }}>🗞️</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{t('settings.pronoun')}</div>
+              <div className="meta" style={{ marginTop: 1 }}>{t('settings.pronounLine')}</div>
+            </div>
+          </div>
+          <div className="btn-row" style={{ marginTop: 8 }} role="radiogroup" aria-label={t('settings.pronoun')}>
+            {(['m', 'w'] as const).map(g => (
+              <button key={g} className={`btn mgr-gender-btn ${mgrGender === g ? 'gold' : 'ghost'}`}
+                style={{ flex: 1 }} role="radio" aria-checked={mgrGender === g}
+                onClick={() => setMgrGender(g)}>
+                {t(g === 'w' ? 'settings.pronounShe' : 'settings.pronounHe')}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ---- type size: the only place it lives now ----
            The title screen carried a second copy of this control until v1.2.3

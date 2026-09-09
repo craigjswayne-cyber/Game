@@ -1,16 +1,18 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { returnLoanIn } from './loans'
+import { runTeamOfTheYear } from './yearend'
 import { difficultyOf } from './difficulty'
 import { aiBoardsReinvest } from './aiecon'
 import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
 import { ageManager } from './career'
 import { rivalVerdict } from './boss'
-import { boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
+import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
-import { buildChampionsCup, buildInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
+import { genderOf, W } from './gender'
 import { SLOTS, expireDeals, offersFor } from './commercial'
 import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
@@ -192,6 +194,8 @@ function worldPlayerOfTheYear(state: GameState) {
     },
     playerId: win.p.id,
   })
+  // and the fifteen, on the same night, off the same season (yearend.ts)
+  runTeamOfTheYear(state, win.p.id)
 }
 
 function settleRecords(state: GameState) {
@@ -498,7 +502,7 @@ function agePlayers(state: GameState, rng: Rng) {
       const club = state.clubs[clubId]
       const q = 42 + Math.floor(rng() * 14)
       const raw = {
-        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country, worldNames(state)),
+        name: regenName(rng, p.nat in { ENG:1, FRA:1, IRE:1, SCO:1, WAL:1, ITA:1, NZL:1, AUS:1, RSA:1, ARG:1, FIJ:1, SAM:1, TGA:1, JPN:1, GEO:1 } ? p.nat : club.country, worldNames(state), genderOf(state)),
         pos: p.pos, age: 17 + Math.floor(rng() * 2), nat: p.nat, q,
         gk: p.gk && rng() < 0.6,
       }
@@ -624,7 +628,7 @@ function handleContracts(state: GameState, rng: Rng) {
     // at his plain market price - the exact hole the owner walked through
     // (v1.1.3). This runs before season += 1, so the stamp dates the move to
     // the end of the old season and ages correctly into the new one.
-    p.joinedAt = state.season * SEASON_WEEKS + state.week
+    p.joinedAt = absWeek(state.season, state.week)
     p.contractEnds = state.season + 1 + (p.age < 30 ? 2 : 1)
     p.morale = clamp(p.morale + 1, 1, 10)
     p.transferListed = false
@@ -756,7 +760,7 @@ export function rollIntakeClass(state: GameState, rng: Rng): NonNullable<GameSta
     // a more generous intake makes more stories, not more free superstars.
     const wonder = rng() < 0.13 + coe * 0.02
     out.push({
-      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
+      name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state), genderOf(state)),
       pos, age: 17 + Math.floor(rng() * 2), q,
       pa: wonder ? clamp(87 + Math.floor(rng() * 13), q + 20, 99) : clamp(q + 12 + Math.floor(rng() * rng() * 30), q, 99),
       gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
@@ -840,7 +844,7 @@ function youthIntake(state: GameState, rng: Rng) {
       const pos = pick(rng, YOUTH_POS)
       const q = 38 + Math.floor(rng() * 22) + Math.floor(club.rep / 12) + natTalentBonus(club.country)
       const raw = {
-        name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state)),
+        name: regenName(rng, club.country === 'NZL' && club.id === 'moana' ? 'SAM' : club.country, worldNames(state), genderOf(state)),
         pos, age: 17 + Math.floor(rng() * 2), nat: club.country, q,
         gk: (pos === 'FH' || pos === 'FB') && rng() < 0.4,
       }
@@ -872,7 +876,7 @@ function youthIntake(state: GameState, rng: Rng) {
     const nat = pick(rng, nats)
     const pos = pick(rng, YOUTH_POS)
     const q = 54 + Math.floor(rng() * 12)
-    const raw = { name: regenName(rng, nat, worldNames(state)), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
+    const raw = { name: regenName(rng, nat, worldNames(state), genderOf(state)), pos, age: 18 + Math.floor(rng() * 3), nat, q, gk: rng() < 0.15 }
     const a = deriveAttrs(raw, state.seed + state.season * 3011 + i)
     const p: Player = {
       id: nextPid(),
@@ -923,7 +927,7 @@ function replenishSquads(state: GameState, rng: Rng) {
         // not raise the senior count, so the loop would spin to its guard and
         // hand the club twenty-five schoolboys it did not need.
         const raw = {
-          name: regenName(rng, club.country, worldNames(state)), pos: need,
+          name: regenName(rng, club.country, worldNames(state), genderOf(state)), pos: need,
           age: 19 + Math.floor(rng() * 2), nat: club.country,
           q: clamp(40 + Math.floor(rng() * 12) + Math.floor(club.rep / 14), 38, 62),
           gk: (need === 'FH' || need === 'FB') && rng() < 0.3,
@@ -1034,9 +1038,9 @@ export function rebuildSeason(state: GameState) {
       }
       state.news.push({
         id: state.nextId++, week: 1, season: state.season + 1, type: 'intl', read: false,
-        subject: `🦁 The Lions come home${seriesWon ? ' as series winners' : ''}`,
+        subject: `🔴 The tourists come home${seriesWon ? ' as series winners' : ''}`,
         body: [
-          `Back in club colours after ${comp?.name ?? 'the Lions tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
+          `Back in club colours after ${comp?.name ?? 'the Isles tour'}: ${lionsHome.map(p => p.name).join(', ')}.`,
           seriesWon
             ? `A series win in the luggage, and the kind of standing money cannot buy. Expect ${lionsHome.length === 1 ? 'him' : 'them'} to walk taller here too.`
             : `Win or lose, a tour changes a player - ${lionsHome.length === 1 ? 'he comes' : 'they come'} back a bigger presence in this dressing room.`,
@@ -1123,6 +1127,8 @@ export function rebuildSeason(state: GameState) {
     const topPts = [...squad].sort((a, b) => b.stats.points - a.stats.points)[0]
     const topTry = [...squad].sort((a, b) => b.stats.tries - a.stats.tries)[0]
     let predLine = ''
+    /** the same line as a KEY, so it is not English in a French inbox */
+    let predRow: Record<string, unknown> | null = null
     const predicted = state.preds?.[uid]
     const myComp = state.comps[state.clubs[uid].leagueId]
     const actualPos = myComp ? sortTable(myComp.table).findIndex(r => r.teamId === uid) + 1 : 0
@@ -1130,6 +1136,15 @@ export function rebuildSeason(state: GameState) {
       predLine = `Pundits predicted ${actualPos < predicted ? `${ordinal(predicted)} - you finished ${ordinal(actualPos)}. They owe you an apology.`
         : actualPos === predicted ? `${ordinal(predicted)} - and ${ordinal(actualPos)} it was. Read like a book.`
         : `${ordinal(predicted)} - you finished ${ordinal(actualPos)}. The phone-ins will be brutal.`}`
+      // THE ENGLISH ABOVE IS THE FALLBACK BODY ONLY. It used to be handed
+      // straight into v.pred, so a French career read three lines of French and
+      // then "Pundits predicted 4th..." in English. frliveprobe found it the
+      // moment the calendar change made the prediction fire in its run.
+      predRow = {
+        k: actualPos < predicted ? 'news.srPredBeat'
+          : actualPos === predicted ? 'news.srPredExact' : 'news.srPredMiss',
+        pred_o: predicted, act_o: actualPos,
+      }
     }
 
     // structured snapshot for the one-page Season Review screen
@@ -1236,8 +1251,8 @@ export function rebuildSeason(state: GameState) {
           ...(best ? [{ k: 'news.srBest', line: best.line }] : []),
           ...(topPts?.stats.points ? [{ k: 'news.srPoints', name: topPts.name, n: topPts.stats.points }] : []),
           ...(topTry?.stats.tries ? [{ k: 'news.srTries', name: topTry.name, n: topTry.stats.tries }] : []),
+          ...(predRow ? [predRow] : []),
         ]),
-        pred: predLine,
       },
     })
 
@@ -1671,6 +1686,20 @@ export function rebuildSeason(state: GameState) {
   ageManager(state)
 
   // wipe season structures & rebuild
+  // ---- THE CONTRACT CLOCK STOPS WHILE SHE IS AWAY ----
+  //
+  // The owner's spec: maternity leave should "freeze contract duration clocks,
+  // preserve roster rights without taking up an active playing squad slot".
+  // contractEnds is an absolute season index, so a season rolling over while a
+  // player is on leave would spend a year of her deal on a year she did not
+  // play. Pushing it out by one is the freeze.
+  //
+  // Done here, before the increment, so it reads in the same units as every
+  // other contractEnds in the file.
+  for (const p of Object.values(state.players)) {
+    if (p.maternity) p.contractEnds += 1
+  }
+
   state.season += 1
   // F30: a deal whose term ran out with the old season is gone, and the manager
   // is told, because an empty commercial slot pays nothing and that has to be a
@@ -1732,7 +1761,12 @@ export function rebuildSeason(state: GameState) {
   }
   state.comps = {}
 
-  for (const def of LEAGUE_DEFS()) {
+  // LEAGUE_DEFS takes the world's gender: a women's career rebuilding its
+  // competitions in August must rebuild the women's ones. Without it the
+  // season rollover would quietly replace them with the men's leagues, and
+  // every club in the save would find itself in a competition that does not
+  // contain it.
+  for (const def of LEAGUE_DEFS(genderOf(state))) {
     const teamIds = Object.values(state.clubs).filter(c => c.leagueId === def.id).map(c => c.id)
     state.comps[def.id] = buildLeague(
       { id: def.id, name: def.name, short: def.short, teams: teamIds, double: def.double, playoffTeams: def.playoffTeams },
@@ -1741,10 +1775,23 @@ export function rebuildSeason(state: GameState) {
   }
   // minus ten before a ball is kicked, for anyone who went under in the summer
   for (const comp of Object.values(state.comps)) applyAdminPenalties(comp, state)
-  state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
-  state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
-  const wcYear = isWorldCupSeason(state.season)
-  buildInternationals(rng, state, wcYear)
+  // The men's cups and the men's Test calendar, rebuilt each August. Skipped in
+  // the women's world for the same reason newGame skips them: they are shaped
+  // around competitions the women's game does not have, and building them there
+  // creates empty comps wearing men's ids inside a women's save. The women's
+  // cups and internationals arrive with their own calendar.
+  //
+  // wcYear is false in the women's world rather than skipped, because it also
+  // gates the "a World Championship season" story further down. A women's
+  // career must not be told to plan around a men's World Cup it cannot see.
+  const wcYear = genderOf(state) !== 'w' && isWorldCupSeason(state.season)
+  if (genderOf(state) !== 'w') {
+    state.comps['cc'] = buildChampionsCup(euroSlots.slice(0, 16), rng, state)
+    state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
+    buildInternationals(rng, state, wcYear)
+  } else {
+    buildWomensInternationals(rng, state)
+  }
   schedulePreseason(state, rng)
   // and a fresh A League for whichever league the manager is in NOW - a summer
   // move to the Elite 14 gets him the Espoirs rather than last year's Premier Division
@@ -1784,8 +1831,8 @@ export function rebuildSeason(state: GameState) {
     state.news.push({
       id: state.nextId++, week: 1, season: state.season, type: 'intl', read: false,
       subject: `🏆 A WORLD CHAMPIONSHIP season`,
-      body: `The ${2025 + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
-      k: 'news.wcSeason', v: { year: 2025 + state.season },
+      body: `The ${BASE_YEAR + state.season} World Championship kicks off in the opening weeks of the season. Twenty nations, four pools, one trophy - and your internationals will be away with their countries until it's decided. Plan your early rounds carefully.`,
+      k: 'news.wcSeason', v: { year: BASE_YEAR + state.season },
     })
   }
 
@@ -1986,6 +2033,17 @@ function challengeCheck(state: GameState) {
     : ch === 'redbull' ? uid === 'newcastle' && state.history.some(h => h.season === prev && h.compId === 'prem' && h.champion === uid)
     : ch === 'dynasty' ? uid === 'munster' && wonEver('urc') && wonEver('cc')
     : ch === 'pirates' ? uid === 'pirates' && state.clubs[uid]?.leagueId === 'prem'
+    // the women's four. Same four shapes: win it, win it twice, climb out of
+    // the bottom, win the division below.
+    : ch === 'threepeat' ? uid === W + 'bristol' && wonEver(W + 'pwr')
+    : ch === 'ealing' ? uid === W + 'trailfinders'
+      && state.history.filter(h => h.champion === uid && h.compId === W + 'pwr').length >= 2
+    // no relegation to survive, so the licence is the thing at risk and a
+    // play-off place is what answers it. The annal carries the finish; the
+    // club name keeps a later job at another club from settling this one.
+    : ch === 'licence' ? uid === W + 'sale'
+      && (state.annals ?? []).some(a => a.clubName === state.clubs[uid]?.name && a.league.pos <= 4)
+    : ch === 'grudge' ? uid === W + 'lichfield' && wonEver(W + 'champ')
     : false
   if (!done) return
   state.challenge = undefined

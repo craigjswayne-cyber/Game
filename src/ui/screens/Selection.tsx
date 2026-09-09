@@ -214,7 +214,7 @@ export default function SelectionPane() {
           goes away, because the sheet is his from then on */}
       {!tac.userPicked && (
         <div className="muted" style={{ padding: '4px 2px 0' }}>
-          {t('selection.untouched')}
+          {t('selection.untouched', { g: game.staffPeople?.assistant?.g ?? 'm' })}
         </div>
       )}
       {/* the bench and the armband sit side by side in landscape: stacked,

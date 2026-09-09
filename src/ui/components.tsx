@@ -29,9 +29,17 @@ import { useStore } from '../store'
  * They are what makes it read as a ball at 20px, where actual lacing turns to mud.
  */
 export function BrandMark({ size = 64, inverse = false }: { size?: number; inverse?: boolean }) {
-  const disc = inverse ? 'var(--ramp-g8)' : 'var(--ramp-g7)'
+  // THE BADGE WEARS THE SKIN (owner, v1.5.4: "can we make it so the background
+  // behind the rugby ball on the front page changes colour with the skins?").
+  // It was painted from the green ramp, which is one palette written once and
+  // never redefined per skin - so a manager in Tactical Midnight or on tour got
+  // a cyan or red title screen with a green disc sitting in the middle of it.
+  // --primary is the skin's own accent and --on-primary is the colour that
+  // reads on top of it, both of which every skin in tokens.css defines, so the
+  // badge now changes with the paint and the keyline stays legible on it.
+  const disc = inverse ? 'var(--primary-pressed)' : 'var(--primary)'
   const ring = 'var(--prop-white)'
-  const line = 'var(--ramp-g9)'
+  const line = 'var(--on-primary)'
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
       <circle cx="32" cy="32" r="32" fill={disc} />

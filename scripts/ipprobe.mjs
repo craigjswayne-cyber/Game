@@ -43,6 +43,11 @@ const MARKS = {
     'National League One', 'Champions Cup', 'Challenge Cup', 'Six Nations',
     'Rugby World Cup', 'Rugby Championship', 'Pacific Nations Cup', 'British & Irish Lions',
     'British and Irish Lions', 'Currie Cup', 'Heineken Cup',
+    // The touring side was called the Northern Lions until 7 Sep, when the owner
+    // took the view that the lion is the distinctive half of the real mark:
+    // "we shouldn't say Lions... should just be british and irish isles xv tour".
+    // So the substitute is banned too, and so is the bare tour name.
+    'Northern Lions', 'Lions Tour', 'Lions tour',
   ],
   'sponsor and venue marks': [
     // NOT bare 'Gallagher' or 'Vodacom': those are a real PLAYER's surname
@@ -57,6 +62,12 @@ const MARKS = {
     'Stade Mayol', 'Matmut', 'GGL Stadium', 'Aimé-Giral', 'Wembley Stadium', 'Murrayfield',
     'Stade de France', 'Principality Stadium', 'Croke Park', 'Stade Velodrome',
     'Heineken Cup', 'Heineken Champions',
+    // the women's competitions, added v1.5. Élite 1 and Élite 2 are exactly
+    // what the French women's divisions are called, and Celtic Challenge and
+    // Pacific Four Series are exactly what those two are called - all four
+    // shipped in the first women's build because they arrived after the pass
+    // that renamed every men's competition.
+    'Celtic Challenge', 'Pacific Four Series', 'Premiership Women', 'Élite 1', 'Élite 2',
   ],
   'governing bodies quoted': ['World Rugby', 'SANZAAR', 'the RFU', 'the IRFU', 'the WRU'],
   // OTHER PEOPLE'S GAMES, AND THE WRONG SPORT (v1.2.5). Owner: "make sure

@@ -2,16 +2,18 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
 import { rewardedAvailable, showRewarded } from '../../game/monetise'
+import { AdSlot } from '../AdSlot'
 import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
   refFor, refNotes, frontRowCover, repairSheet, rollWeather, sideEnergy, MAX_SUBS, type LiveCtx, type SideCtx,
 } from '../../game/matchEngine'
-import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
+import { MIDWEEK_OFF, BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, chemKey, clubCode, chemTier, eventText, injuryDesc, fixtureDate, fixtureDayOff, grudgeBetween, inRedZone, oldBoyApps, weekDate, type MatchEvent, type Player, type Pos } from '../../game/model'
 import { BRIEF_BY_ID, SPLIT_BY_ID, benchSeats, briefForSeat, splitFor } from '../../game/bench'
 import { assistantFixtureThisWeek, userMatchThisWeek, weekRng } from '../../game/season'
 import { effAt } from '../../game/attributes'
 import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/tactics'
 import { ord, posName, t } from '../../game/i18n'
+import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
 import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
 import { stageName } from './Home'
@@ -578,7 +580,7 @@ function Preview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>{t('matchday.mdTitle')}</h1>
-            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
+            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
           </div>
           <button className="continue-btn" onClick={tryKickOff}>{t('matchday.kickOff')}</button>
         </div>
@@ -994,7 +996,7 @@ function Preview({ fxId }: { fxId: number }) {
                   if (out === 'completed') rewardAnalyst()
                   else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
                 })
-              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length })}</button>
+              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}</button>
             )}
             {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
             {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}
@@ -1218,7 +1220,7 @@ function NationPreview({ fxId }: { fxId: number }) {
           <button className="back-btn" onClick={back}>‹</button>
           <div style={{ flex: 1 }}>
             <h1>{t('matchday.testMatch', { nat: nationName(nat) })}</h1>
-            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id)}</div>
+            <div className="date">{comp?.name ?? (fx.compId === 'fr' ? t('matchday.clubFriendly') : '')}{fx.stage ? ` · ${stageName(fx.stage)}` : ''} · {fixtureDate(game.season, fx.week, fx.id, fx.midweek ? MIDWEEK_OFF : undefined)}</div>
           </div>
         </div>
       </header>
@@ -1245,7 +1247,7 @@ function NationPreview({ fxId }: { fxId: number }) {
             <div className="card" style={{ borderLeft: '4px solid var(--border-strong)' }}>
               <div className="fact-label">{t('matchday.clubSameDay')}</div>
               <div className="meta" style={{ marginTop: 3 }}>
-                {t('matchday.assistantTakes', { home: teamShort(game, cfx.homeId), away: teamShort(game, cfx.awayId) })}
+                {t('matchday.assistantTakes', { g: game.staffPeople?.assistant?.g ?? 'm', home: teamShort(game, cfx.homeId), away: teamShort(game, cfx.awayId) })}
               </div>
             </div>
           )
@@ -1389,8 +1391,12 @@ function NationPreview({ fxId }: { fxId: number }) {
 // play/pause button shows when the match is paused, so the row genuinely had
 // two play buttons on it. Words instead of glyphs, inside a settings sheet:
 // speed is something you set once, not something you reach for every minute.
+// 900ms was Slow until v1.5.5, and a long line of commentary does not fit in
+// 900ms (owner: "commentary text needs to be slower if you select slower.
+// Normal is as it is. Fast is as is"). 1600 is a line and a breath, and the
+// tension multiplier below still stretches it at the sharp end of a match.
 const SPEEDS = [
-  { label: 'matchday.spdSlow', ms: 900, name: 'matchday.spdSlowName' },
+  { label: 'matchday.spdSlow', ms: 1600, name: 'matchday.spdSlowName' },
   { label: 'matchday.spdNormal', ms: 350, name: 'matchday.spdNormalName' },
   { label: 'matchday.spdFast', ms: 90, name: 'matchday.spdFastName' },
 ]
@@ -2201,6 +2207,23 @@ function Live() {
         )}
       </div>
       )}
+      {/* THE BANNER, AND THE FOUR MOMENTS IT REFUSES TO APPEAR.
+          Owner: "there should be an ad down the bottom during game time when
+          the motion screen is on." It is the last child of .live-wrap, so it
+          sits UNDER the controls rather than over them, and the native banner
+          reserves its own height through --ad-inset.
+
+          It is up only while the match is RUNNING. Half time, the hour break, a
+          penalty decision and full time all take it down, because each of those
+          is the game asking the manager for something and an advert beside a
+          question is how a mis-tap becomes a substitution you did not make. So
+          do the squad sheet, the drawer, the settings and an injury prompt -
+          the owner's list was "NOT when making subs, half-time, 60 or ft", and
+          making subs is a panel rather than a moment on the clock. A
+          supporter never sees it at all - adsAllowed answers that inside the
+          slot, before any provider is asked. */}
+      {!done && !atHalfTime && !atBreak && !atDecision
+        && !sheet && !drawer && !settings && !injury && <AdSlot place="match-foot" />}
     </div>
   )
 }

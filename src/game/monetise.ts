@@ -714,10 +714,50 @@ export function adBridge(): AdBridge | null {
 }
 
 /** Where a banner may appear at all. Deliberately short, and deliberately
- *  nowhere near a decision: never during a match, never on a modal, never on
- *  the title screen, never between a tap and the thing the tap was for. */
-export const AD_PLACES = ['home-foot', 'results-foot'] as const
+ *  nowhere near a decision: never on a modal, never on the title screen, never
+ *  between a tap and the thing the tap was for.
+ *
+ *  'match-foot' IS THE OWNER'S CALL AND IT BREAKS THE OLD RULE, which said
+ *  never during a match at all (owner, 6 Sep: "there should be an ad down the
+ *  bottom during game time when the motion screen is on"). The match screen is
+ *  the busiest minute in the game and the one where a mis-tap costs a
+ *  substitution, so the surface pays for the decision rather than the rule
+ *  simply being deleted: MatchDay renders it ONLY while the match is actually
+ *  running, and takes it down for half time, the hour break, a penalty
+ *  decision and full time - every moment the player is being asked for
+ *  something. The banner is a native view under the controls, never over them.
+ *
+ *  It has no unit id of its own yet. packaging/shell/ads-bridge.js falls back
+ *  to the home unit when a place has none, so it earns from the first build and
+ *  simply reports against the wrong unit until the owner creates two. */
+export const AD_PLACES = ['home-foot', 'results-foot', 'match-foot'] as const
 export type AdPlace = typeof AD_PLACES[number]
+
+/** Did the shell inject a purchase bridge at all? Not the same question as
+ *  "can this be bought": a bridge that is there and answering with nothing is
+ *  a catalogue problem, and no bridge at all is a packaging one. About & legal
+ *  tells the two apart on the device. */
+export function billingBridgePresent(): boolean { return !!bridge() }
+/** The same question for the adverts. */
+export function adBridgePresent(): boolean { return !!adBridge() }
+
+/** What the advert bridge says about itself, for the About screen.
+ *
+ *  A present bridge that shows nothing is a different fault from an absent
+ *  one, and on a phone there is no console to tell them apart - which is how
+ *  "ads aren't showing" arrives with nothing attached to it. ads-bridge.js has
+ *  always kept a one-line reason in __state().why ('ready', a consent refusal,
+ *  a banner that got no fill); this is the only thing in the game that reads
+ *  it, and it reads it defensively, because __state is a debugging courtesy
+ *  the contract above does not require. */
+export function adBridgeWhy(): string | null {
+  const a = adBridge() as (AdBridge & { __state?: () => { why?: unknown } }) | null
+  if (!a || typeof a.__state !== 'function') return null
+  try {
+    const why = a.__state().why
+    return typeof why === 'string' && why ? why : null
+  } catch { return null }
+}
 
 export function adsAllowed(place: string): boolean {
   return !hasSupporter() && !!adBridge() && (AD_PLACES as readonly string[]).includes(place)
