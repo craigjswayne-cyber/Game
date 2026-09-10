@@ -151,6 +151,21 @@
       "productID": "phase.ground",
       "referenceName": "The Estate, at the next ground",
       "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "1011",
+      "localizations": [
+        {
+          "description": "No adverts, ever. Three skins only Pro managers get, and six saved game plans instead of three. Nothing about the rugby changes.",
+          "displayName": "Pro Manager",
+          "locale": "en_GB"
+        }
+      ],
+      "productID": "phase.supporter",
+      "referenceName": "Pro Manager",
+      "type": "NonConsumable"
     }
   ],
   "settings": {
