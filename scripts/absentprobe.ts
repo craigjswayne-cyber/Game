@@ -3,7 +3,7 @@
  *
  * Reported from a hands-off save at week 11, 3W-1D-1L: "ive not made one
  * single change yet in the game since I signed up and started everything is
- * done with the auto buttons". difficultyprobe had already measured the gap in
+ * done with the auto buttons". autopilotprobe had already measured the gap in
  * a lab; this was the same finding walking around in the wild. Autopilot was
  * the honest optimiser - lineupFor handed a never-touched sheet to the same
  * auto-picker the OPTIMISER manager uses, and ignoring the press desk cost
@@ -16,7 +16,7 @@
  *      the manager has not claimed, and the Best XV button). Amplitude runs
  *      12% with no assistant hired down to 2% at level 3.
  *   2. The sheet stays STICKY, exactly as before - the first cut re-named it
- *      weekly and difficultyprobe caught that making autopilot BETTER (a
+ *      weekly and autopilotprobe caught that making autopilot BETTER (a
  *      weekly form refresh outweighs a 12% misread). Only the naming moments
  *      carry the eye: day one, the stale tidy-up, the one-tap buttons. A
  *      claimed sheet (userPicked) is untouched, as ever.

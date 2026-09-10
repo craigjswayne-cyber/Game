@@ -154,9 +154,7 @@
   "mainMenu": "Main Menu",
   "back": "Back",
   "confirm": "Confirm",
-  "startCareer": "▸ Start Career",
-  "difficulty": "Difficulty",
-  "difficultyBlurb": "Three things change, and nothing else: how much money you start with, how quickly the board loses patience, and how often your own players get hurt. Every other club plays the same game whichever you pick."
+  "startCareer": "▸ Start Career"
  },
  "common": {
   "a": "A",
@@ -6688,14 +6686,6 @@
   "unfairBtn": "“It was unfair.”",
   "unfairLine": "It was unfair, and everyone in this room knows it. Injuries all winter, no money in January, and eleven weeks to fix what took ten years to break. Judge me on a full season or do not judge me at all.",
   "unfairReply": "Half the room writes “dignified”, the other half writes “excuses”. Both pieces run. That is the press for you - you were never going to get one headline out of this."
- },
- "difficulty": {
-  "normal": "Normal",
-  "normalDesc": "Full budget. The board gives you time. Injuries as they come.",
-  "hard": "Hard",
-  "hardDesc": "A third less money. The board wants results sooner. A few more injuries.",
-  "legend": "Legend",
-  "legendDesc": "Half the money. The board runs out of patience fast. Injuries all season."
  },
  "isles": {
   "title": "The Isles XV",

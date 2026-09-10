@@ -157,10 +157,7 @@
   "mainMenu": "Menú principal",
   "back": "Atrás",
   "confirm": "Confirmar",
-  "startCareer": "▸ Empezar carrera",
-  "difficulty": "Dificultad",
-  "difficultyBlurb": "Cambian tres cosas y nada más: con cuánto dinero empiezas, con qué rapidez pierde la paciencia la directiva y cada cuánto se lesionan TUS jugadores. Los demás clubes juegan al mismo juego elijas lo que elijas.",
-  "difficultyBlurb_f": "Cambian tres cosas y nada más: con cuánto dinero empiezas, con qué rapidez pierde la paciencia la directiva y cada cuánto se lesionan Tus jugadoras. Los demás clubes juegan al mismo juego elijas lo que elijas."
+  "startCareer": "▸ Empezar carrera"
  },
  "common": {
   "a": "V",
@@ -6375,14 +6372,6 @@
   "unfairLine": "Fue injusto, y todos en esta sala lo saben. Lesiones todo el invierno, ni un euro en enero y once semanas para arreglar lo que se rompió en diez años. Júzguenme por una temporada entera o no me juzguen.",
   "unfairReply": "Media sala escribe «digno» y la otra media escribe «excusas». Se publican las dos piezas. Así es la prensa: nunca ibas a salir de esto con un solo titular.",
   "ownedLine_f": "Me lo merecía. No se pierden tantos partidos y luego se le echa la culpa al calendario. Las jugadoras me lo dieron todo, los resultados son míos y el club hace bien en querer más."
- },
- "difficulty": {
-  "normal": "Normal",
-  "normalDesc": "Presupuesto completo. La directiva te da tiempo. Lesiones las normales.",
-  "hard": "Difícil",
-  "hardDesc": "Un tercio menos de dinero. La directiva quiere resultados antes. Alguna lesión más.",
-  "legend": "Leyenda",
-  "legendDesc": "La mitad del dinero. La directiva pierde la paciencia enseguida. Lesiones toda la temporada."
  },
  "isles": {
   "title": "El XV de las Islas",

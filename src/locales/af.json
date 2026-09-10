@@ -154,9 +154,7 @@
   "mainMenu": "Hoofkieslys",
   "back": "Terug",
   "confirm": "Bevestig",
-  "startCareer": "▸ Begin loopbaan",
-  "difficulty": "Moeilikheidsgraad",
-  "difficultyBlurb": "Drie dinge verander, en niks anders nie: hoeveel geld jy mee begin, hoe vinnig die direksie sy geduld verloor, en hoe dikwels JOU spelers beseer word. Elke ander klub speel dieselfde speletjie, wat jy ook al kies."
+  "startCareer": "▸ Begin loopbaan"
  },
  "common": {
   "a": "U",
@@ -6736,14 +6734,6 @@
   "unfairBtn": "“Dit was onregverdig.”",
   "unfairLine": "Dit was onregverdig, en almal in hierdie kamer weet dit. Beserings die hele winter, geen geld in Januarie nie, en elf weke om reg te maak wat tien jaar gevat het om te breek. Oordeel my oor 'n volle seisoen of moet my glad nie oordeel nie.",
   "unfairReply": "Die helfte van die kamer skryf “waardig”, die ander helfte skryf “verskonings”. Albei stukke verskyn. Dis die pers vir jou - jy sou nooit een opskrif hieruit kry nie."
- },
- "difficulty": {
-  "normal": "Normaal",
-  "normalDesc": "Volle begroting. Die direksie gee jou tyd. Beserings soos hulle kom.",
-  "hard": "Moeilik",
-  "hardDesc": "'n Derde minder geld. Die direksie wil gouer resultate hê. 'n Paar beserings meer.",
-  "legend": "Legende",
-  "legendDesc": "Die helfte van die geld. Die direksie verloor gou sy geduld. Beserings die hele seisoen."
  },
  "isles": {
   "title": "Die Eilande-XV",

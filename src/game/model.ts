@@ -1498,7 +1498,16 @@ export interface GameState {
   licensed?: boolean
   /** Difficulty, chosen at career creation and never after (v1.2.7). Absent
    *  on every save written before it existed, which reads as 'normal' - the
-   *  game exactly as it was. See src/game/difficulty.ts for the three levers. */
+   *  game exactly as it was.
+   *
+   *  REMOVED, and kept here as a tombstone. Difficulty was three levers on the
+   *  manager's own club - starting cash, board patience, injury rate - and the
+   *  owner's verdict was that it "doesn't really work for this type of game".
+   *  It is gone: no picker, no levers, no file. Careers saved while it existed
+   *  still carry this key and nothing reads it, so every one of them now plays
+   *  at what used to be 'normal' - which is the setting where all three levers
+   *  were exactly 1, 0 and 1, so a normal save is unchanged and a hard one gets
+   *  the game it would have had. */
   difficulty?: 'normal' | 'hard' | 'legend'
   /** The manager's own saved game plans (v1.2.7): up to three, each the four
    *  dials plus the defensive pair, set-piece calls, kicking order and exit,

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { DIFFICULTIES, type Difficulty } from '../../game/difficulty'
 import { useStore } from '../../store'
 import { CHALLENGES, LEAGUE_DEFS, mediaVerdict, challengesFor } from '../../game/newgame'
 import { dreamsFor, dreamTitle, type DreamContext } from '../../game/dream'
@@ -40,7 +39,6 @@ export default function NewGame() {
   const [name, setName] = useState('')
   const [styleId, setStyleId] = useState('balanced')
   const [challengeId, setChallengeId] = useState<string | null>(null)
-  const [difficulty, setDifficulty] = useState<Difficulty>('normal')
   const [dreamId, setDreamId] = useState<string | null>(null)
   // the Manager's License (v1.1.0): offered here and only here, and only to
   // an owner - the receipt is bought on the Supporter page, the choice is made
@@ -102,7 +100,7 @@ export default function NewGame() {
     // engine's default coach background.
     // The pronoun is not asked here any more (v1.5.3): Settings owns it, and
     // start() takes the device's last answer when nothing is passed.
-    start(club.id, name.trim(), challengeId ?? undefined, undefined, difficulty)
+    start(club.id, name.trim(), challengeId ?? undefined)
     // coaching philosophy shapes your starting game plan
     const g = useStore.getState().game
     const chosen = COACHING_STYLES.find(s => s.id === styleId)
@@ -340,27 +338,9 @@ export default function NewGame() {
                 <div><label>{t('wizard.competition')}</label><span>{league.name}</span></div>
                 <div><label>{t('wizard.philosophyShort')}</label><span>{t(COACHING_STYLES.find(s => s.id === styleId)?.name ?? '')}</span></div>
                 <div><label>{t('wizard.season')}</label><span>2025-26</span></div>
-                <div><label>{t('wizard.difficulty')}</label><span>{t(DIFFICULTIES.find(d => d.id === difficulty)!.name)}</span></div>
                 {challenge && <div><label>{t('wizard.challenge')}</label><span>{t(challenge.title)}</span></div>}
                 <div><label>{t('wizard.objective')}</label><span>{t(club.rep >= 87 ? 'wizard.objTitle' : club.rep >= 80 ? 'wizard.objPlayoffs' : club.rep >= 72 ? 'wizard.objTopHalf' : 'wizard.objSurvive')}</span></div>
               </div>
-            </div>
-            {/* DIFFICULTY (owner, v1.2.7): three levers on the manager's club
-                alone, chosen here and never after - see game/difficulty.ts */}
-            <div className="card">
-              <label className="fact-label">{t('wizard.difficulty')}</label>
-              <div className="meta" style={{ marginBottom: 2 }}>{t('wizard.difficultyBlurb')}</div>
-              {/* a drop-down, not tiles (owner, v1.2.7: "difficulty should
-                  be a drop down option") - the same control Settings uses
-                  for the language, with the chosen level's line under it */}
-              <select className="inline-input lang-select" value={difficulty} aria-label={t('wizard.difficulty')}
-                style={{ marginTop: 6 }}
-                onChange={e => setDifficulty(e.target.value as Difficulty)}>
-                {DIFFICULTIES.map(d => (
-                  <option key={d.id} value={d.id}>{d.icon} {t(d.name)}</option>
-                ))}
-              </select>
-              <div className="meta" style={{ marginTop: 6 }}>{t(DIFFICULTIES.find(d => d.id === difficulty)!.desc)}</div>
             </div>
             <div className="card">
               <label className="fact-label">{t('wizard.yourDream')}</label>

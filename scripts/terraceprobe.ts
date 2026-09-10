@@ -142,7 +142,7 @@ console.log('\n--- 4. and the board reads the same phone-ins\n')
   ok(club.boardConfidence < before,
     `six weeks of a plane costs real confidence (${before} -> ${club.boardConfidence.toFixed(1)})`)
   // AND IT STOPS. The first draft drained the board without a floor and
-  // difficultyprobe caught what that meant: a sleepwalking minnow bottomed at
+  // autopilotprobe caught what that meant: a sleepwalking minnow bottomed at
   // 34 where it used to bottom at 50, because forty weeks of a grumble is
   // sixteen points whatever happens on the pitch. An angry support makes
   // directors doubt you; results are what end it.

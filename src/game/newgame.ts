@@ -1,6 +1,5 @@
 import type { RawClub, RawPlayer } from '../data/types'
 import { refreshCaps } from './cap'
-import { difficultyOf, type Difficulty } from './difficulty'
 import { GONE, verifiedClub } from '../data/verified'
 import { extraPlayers } from '../data/additions'
 import { prospectsFor } from '../data/prospects'
@@ -199,7 +198,7 @@ const M_LEAGUE_DEFS: () => LeagueDef[] = () => [
   { id: 'natl1', name: 'English National One', short: 'National 1', double: true, playoffTeams: 0, clubs: NATL1 },
 ]
 
-export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', difficulty: Difficulty = 'normal', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
+export function newGame(userClubId: string, managerName: string, seed: number, challengeId?: string, origin: MgrOrigin = 'coach', gender: Gender = 'm', mgrGender: Gender = 'm'): GameState {
   const rng = mulberry32(seed)
   resetIds(1)
 
@@ -209,7 +208,7 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     mgrGender,
     // drawn off a seed of its own, not the world's stream: a coin taken from
     // `rng` here would move every draw after it and hand a seed a different
-    // world than it had in 1.5.0 (difficultyprobe caught exactly that)
+    // world than it had in 1.5.0 (autopilotprobe caught exactly that)
     analystGender: staffGender(mulberry32((seed ^ hashString('the analyst')) >>> 0), gender),
     saveName: '',
     season: 0,
@@ -248,7 +247,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // Monday of week 1. Continue walks the week a day at a time (game/days.ts).
     day: 0,
     challenge: challengeId,
-    difficulty,
     vacancies: [],
     devFocus: [],
   }
@@ -698,17 +696,6 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
   // the salary cap for every division, measured from the division itself (F6)
   refreshCaps(state, true)
 
-  // THE DIFFICULTY'S CASH LEVER, on the manager's club alone (v1.2.7). Applied
-  // last, after every other pass has set the balance it would have set, so
-  // 'normal' (factor 1) leaves the career byte-for-byte as it was.
-  {
-    const uc = state.clubs[userClubId]
-    const d = difficultyOf(state)
-    if (uc && d.cash !== 1) {
-      uc.balance = Math.round(uc.balance * d.cash)
-      uc.wageBudget = Math.round(uc.wageBudget * (0.5 + d.cash * 0.5))
-    }
-  }
   return state
 }
 

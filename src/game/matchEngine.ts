@@ -1,7 +1,6 @@
 import type { Club, Fixture, GameState, MatchEvent, Player, Pos, Weather } from './model'
 import { genderOf, type Gender, subjectVar } from './gender'
 import { prepLeaked } from './talkingpoints'
-import { difficultyOf } from './difficulty'
 import { ROLE_FX, rolesForSlot } from './roles'
 import { BENCH_SLOTS, CHEM_SLOTS, XV_SLOTS, addGrudge, chemKey, demandCeiling, facLevel, fmtMoney, formGuide, grudgeBetween, inRedZone, oldBoyApps, trustFactor, unbeatenRun } from './model'
 import { standing } from './authority'
@@ -422,7 +421,7 @@ export function lineupFor(state: GameState, teamId: string): (number | null)[] {
       // which means the ASSISTANT is the one naming the replacement side, and
       // his eye (assistantJudgement) comes with him. The first cut of this
       // wave re-picked an unclaimed sheet fresh every week instead, and the
-      // difficultyprobe caught it making autopilot BETTER: a weekly form-and-
+      // autopilotprobe caught it making autopilot BETTER: a weekly form-and-
       // condition refresh is worth far more than a 12% misread costs. The
       // absent manager's real bill is the sheet nobody updates; the misread
       // is the surcharge on the rare day somebody does.
@@ -1908,7 +1907,7 @@ const RATING_MARGIN_CAP = 0.9
 // to its own hard ceiling: the full extra +0.35 arrives by a 53-point margin.
 // Exactly symmetric, so the two sides of any fixture still cancel and the
 // world's mean mark holds by construction; and the team term still never
-// reaches form, so the difficultyprobe lesson stands untouched.
+// reaches form, so the autopilotprobe lesson stands untouched.
 const RATING_TAIL_DIV = 80
 const RATING_TAIL_CAP = 0.35
 
@@ -2702,11 +2701,7 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
     // true home surface keeps a few of them on their feet
     const surface = side.teamId === state.userClubId && ctx.fx.homeId === state.userClubId
       ? facLevel(state, 'pitch') : 0
-    // the difficulty's injury lever is the manager's own side's to carry; on
-    // 'normal' (and every save from before it existed) the factor is exactly 1
-    // and the stream is untouched
-    const diffInj = side.teamId === state.userClubId ? difficultyOf(state).injury : 1
-    if (rng() < 0.019 * (1 - surface * 0.035) * diffInj) {
+    if (rng() < 0.019 * (1 - surface * 0.035)) {
       const ids = [...side.onPitch]
       const ps = ids.map(id => state.players[id]).filter(p => p && !p.injury)
       if (ps.length) {
@@ -3467,7 +3462,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
       // hammering does not make a prop individually sharper.
       //
       // This split was not a design instinct, it was a measurement.
-      // scripts/difficultyprobe.ts went red the moment the team term reached
+      // scripts/autopilotprobe.ts went red the moment the team term reached
       // form: picking your best side was worth 21.0 league points a season
       // before, and 10.3 after. Form drives the auto-picked XV, so pouring a
       // team-wide number into it made every man in a winning side look sharp
@@ -3523,7 +3518,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         // puts the same XV at 70, clear of the 62% rotation flag, so the wall
         // cannot recur - while a manager who never rests anybody still rolls
         // into the league opener a long way short of the rotated sides. (A
-        // first cut floored at 64 and difficultyprobe caught what that really
+        // first cut floored at 64 and autopilotprobe caught what that really
         // was: most of the sleepwalk penalty gone - board-misery gaps
         // collapsed, a sacking-parity flip, and a title stolen on autopilot.
         // 48 keeps the owner's fix and the game's teeth.) The rng draw on the

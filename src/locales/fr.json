@@ -158,8 +158,6 @@
     "back": "Retour",
     "confirm": "Confirmer",
     "startCareer": "▸ Démarrer la carrière",
-    "difficulty": "Difficulté",
-    "difficultyBlurb": "Trois choses changent, et rien d'autre : l'argent dont vous disposez au départ, la vitesse à laquelle le conseil perd patience, et la fréquence des blessures dans VOTRE effectif. Tous les autres clubs jouent le même jeu quel que soit votre choix.",
     "starPlayer_f": "Joueuse vedette"
   },
   "common": {
@@ -6533,14 +6531,6 @@
     "unfairReply": "La moitié de la salle écrit « digne », l’autre moitié écrit « excuses ». Les deux papiers paraissent. C’est la presse - vous n’alliez jamais en sortir avec un seul titre.",
     "ownedLine_f": "Je l’ai mérité. On ne perd pas autant de matches en accusant le calendrier. Les joueuses m’ont tout donné, les résultats sont les miens, et le club a raison de vouloir mieux.",
     "unfairLine_f": "C’était injuste, et tout le monde ici le sait. Des blessées tout l’hiver, pas un centime en janvier, et onze semaines pour réparer ce que dix ans ont cassé. Jugez-moi sur une saison entière ou ne me jugez pas."
-  },
-  "difficulty": {
-    "normal": "Normal",
-    "normalDesc": "Budget complet. Le conseil vous laisse du temps. Les blessures comme elles viennent.",
-    "hard": "Difficile",
-    "hardDesc": "Un tiers d'argent en moins. Le conseil veut des résultats plus vite. Un peu plus de blessures.",
-    "legend": "Légende",
-    "legendDesc": "Moitié moins d'argent. Le conseil perd patience très vite. Des blessures toute la saison."
   },
   "isles": {
     "title": "Le XV des Îles",

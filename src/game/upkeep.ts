@@ -159,7 +159,7 @@ export function upkeepWeek(state: GameState, rng: Rng): number {
   // THE BOARD DOES NOT BLAME YOU FOR THE WEATHER (owner: "it impacts the
   // board. keep them positive"). A burst pipe is not a coaching decision and
   // the directors know it, so a bad month costs half of what a good one earns;
-  // difficultyprobe also had a view, having watched the full-weight version
+  // autopilotprobe also had a view, having watched the full-weight version
   // push a sleepwalking minnow's board to the edge of the crisis range that
   // probe exists to keep it out of. Good news moves them properly, because
   // somebody in the commercial department did that on purpose.

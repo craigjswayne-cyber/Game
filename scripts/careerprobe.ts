@@ -2,13 +2,12 @@
  * CAREER PROBE - the v1.2.7 asks, at the engine.
  *
  * Owner: "in v1.2.7 lets fix these" - release a player, a form and injury
- * record, saved plans, a depth chart, confirmations, sacking staff and a
- * difficulty setting. The screens are checked in the browser harnesses; this
- * is the part underneath them, run on a seeded career so it is the same
- * career every time:
+ * record, saved plans, a depth chart, confirmations and sacking staff. The
+ * screens are checked in the browser harnesses; this is the part underneath
+ * them, run on a seeded career so it is the same career every time:
  *
- *   1. difficulty is three levers on the manager's club and nothing else -
- *      'normal' is byte-for-byte the career that existed before it
+ *   1. a career carries no difficulty lever at all, and an old save that
+ *      chose one is played as if it never had
  *   2. releasing a player pays off half the contract, frees him, and refuses
  *      for exactly the reasons the button names
  *   3. sacking a coach empties the seat for eight weeks' wages
@@ -16,9 +15,9 @@
  *      injury writes into the log, so the player screen has something true
  *      to show
  */
+import { readFileSync, existsSync } from 'node:fs'
 import { newGame } from '../src/game/newgame'
 import { processWeekAndAdvance } from '../src/game/season'
-import { DIFFICULTIES, difficultyOf } from '../src/game/difficulty'
 import { RELEASE_FLOOR, releaseBlock, releaseCost, releasePlayer } from '../src/game/release'
 import { appointStaff, sackCost, sackStaff, staffCandidates } from '../src/game/staff'
 import { SEASON_WEEKS, type GameState, absWeek} from '../src/game/model'
@@ -29,25 +28,36 @@ let fails = 0
 const ok = (c: boolean, msg: string) => { console.log(`  ${c ? 'ok  ' : 'FAIL'} ${msg}`); if (!c) fails++ }
 const say = (s: string) => console.log(s)
 
-// ---- 1. difficulty ----
-say('\n--- 1. difficulty pulls three levers on one club')
+// ---- 1. no difficulty lever ----
+//
+// Difficulty was three levers on the manager's own club - starting cash, board
+// patience, injury rate - and the owner removed it: "this option doesn't really
+// work for this type of game." What has to be true afterwards is not that the
+// levers are gone from the source, which is obvious, but that a CAREER SAVED
+// WHILE THEY EXISTED still plays. Those saves carry a difficulty key, nothing
+// reads it, and the game they get is the one 'normal' gave - which is the
+// setting where all three levers were 1, 0 and 1, so a normal save is
+// unchanged and a legend save gets an easier ride than it signed up for.
+// That is the agreed trade and it is worth a probe rather than a hope.
+say('\n--- 1. no difficulty lever, and an old save still plays')
 {
   const plain = newGame('northampton', 'Probe', 9001)
-  const normal = newGame('northampton', 'Probe', 9001, undefined, 'coach', 'normal')
-  const legend = newGame('northampton', 'Probe', 9001, undefined, 'coach', 'legend')
-  const strip = (g: GameState) => JSON.stringify({ ...g, difficulty: undefined })
-  ok(strip(plain) === strip(normal), "'normal' is the career exactly as it was without the setting")
-  ok(plain.difficulty === 'normal', `a career that never chose reads as normal (${plain.difficulty})`)
-  const u = 'northampton'
-  ok(legend.clubs[u].balance === Math.round(normal.clubs[u].balance * 0.45),
-    `legend starts with 45% of the money (${legend.clubs[u].balance} of ${normal.clubs[u].balance})`)
-  const others = Object.keys(normal.clubs).filter(id => id !== u)
-  const untouched = others.every(id => normal.clubs[id].balance === legend.clubs[id].balance && normal.clubs[id].wageBudget === legend.clubs[id].wageBudget)
-  ok(untouched, `and the other ${others.length} clubs are not touched by it`)
-  ok(difficultyOf({}).injury === 1 && difficultyOf({}).board === 0 && difficultyOf({}).cash === 1,
-    'a save with no difficulty field is factor one everywhere')
-  ok(DIFFICULTIES.every(d => d.cash > 0 && d.cash <= 1 && d.injury >= 1 && d.board >= 0),
-    'every level makes life harder, never easier, than normal')
+  ok(plain.difficulty === undefined,
+    `a new career carries no difficulty at all (${String(plain.difficulty)})`)
+
+  // an old save, forged the way one would have been stored
+  const legacy = { ...newGame('northampton', 'Probe', 9001), difficulty: 'legend' as const }
+  const stripped = (g: GameState) => JSON.stringify({ ...g, difficulty: undefined })
+  ok(stripped(legacy) === stripped(plain),
+    'and a save that chose the hardest level is byte-for-byte the same career once the dead key is set aside')
+
+  // the levers are gone from the engine, not merely from the wizard
+  const src = readFileSync('src/game/matchEngine.ts', 'utf8')
+    + readFileSync('src/game/rollover.ts', 'utf8')
+    + readFileSync('src/game/newgame.ts', 'utf8')
+  ok(!/difficultyOf\(/.test(src),
+    'no engine file still asks a career how hard it wanted the game')
+  ok(!existsSync('src/game/difficulty.ts'), 'and the module itself is gone')
 }
 
 // ---- 2. release ----
@@ -193,6 +203,6 @@ say('\n--- 5. a loan is negotiated, not collected (v1.2.8)')
 }
 
 console.log(fails === 0
-  ? '\nCAREER PROBE PASSED: release, sack, difficulty and the record all hold at the engine'
+  ? '\nCAREER PROBE PASSED: release, sack and the record all hold at the engine'
   : `\nCAREER PROBE FAILED (${fails})`)
 process.exit(fails === 0 ? 0 : 1)
