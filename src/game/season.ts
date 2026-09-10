@@ -1545,7 +1545,7 @@ function mgrMilestones(state: GameState, won: boolean) {
     state.news.push({
       id: state.nextId++, week: state.week, season: state.season, type: 'award', read: false,
       subject: `📇 Match ${m.m} in the dugout`,
-      body: `You have now taken charge of ${m.m} matches: ${m.w} won, ${m.d} drawn, ${m.l} lost (${pct}%). Very few last this long in the job. The trick, as ever, is the next one.`,
+      body: `You have now taken charge of ${m.m} matches: ${m.w} won, ${m.d} drawn, ${m.l} lost (${pct}%). Very few last this long in the job.`,
       k: 'news.careerGames',
       v: { m: m.m, w: m.w, d: m.d, l: m.l, pct },
     })
@@ -2758,7 +2758,7 @@ export function processWeekAndAdvance(state: GameState) {
         subject: `🏆 YOU ARE IN THE FINAL: ${compName}`,
         body: [
           `The semi-final is won and there is one game left in the ${compName}${oppName ? ` - ${oppName}, winner takes the trophy` : ''}. The town plans its week around it, training closes to the public, and everyone you have ever met asks about tickets.`,
-          v ? `And it is at ${v.name}. ${v.capacity.toLocaleString()} people in ${v.city}, half of them yours. Days like this are why anybody does this job.` : '',
+          v ? `And it is at ${v.name}. ${v.capacity.toLocaleString()} people in ${v.city}, half of them yours.` : '',
           `Nobody remembers a beaten finalist. Pick the team that wins it.`,
         ].filter(Boolean).join('\n'),
         k: v ? 'news.finalVenue' : 'news.final',
