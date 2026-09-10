@@ -11,7 +11,7 @@ import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS } from '../../game/cap'
-import { canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
+import { answerRequest, canAnswerRequest, canChat, chatBudget, praisePlayer, warnPlayer } from '../../game/chats'
 import { mulberry32 } from '../../game/rng'
 import { attrName, persName, posName, t, traitInfo, traitName } from '../../game/i18n'
 
@@ -610,6 +610,24 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
                   </div>
                 </>
               )}
+            </div>
+          )}
+          {/* ---- ANSWERING THE LETTER ----
+              Owner: "when someone makes a transfer request the user should have
+              the ability to accept or reject this - causing a morale impact on
+              camp/the player." The chip above said a request had been handed in
+              and there was nothing to do about it but pick him or sell him.
+              Both answers cost something, and chats.answerRequest says what. */}
+          {canAnswerRequest(game, p) && (
+            <div className="card" style={{ borderLeft: '4px solid var(--text-negative)', marginBottom: 8 }}>
+              <div className="fact-label">{t('player.requestAnswerTitle')}</div>
+              <div className="meta">{t('player.requestAnswerSub')}</div>
+              <div className="btn-row" style={{ margin: '10px 0 0' }}>
+                <TwoStep className="btn ghost" label={t('player.requestGrant')} confirm={t('player.requestGrant')}
+                  onConfirm={() => { setMsg(answerRequest(game, p, true)); touch() }} />
+                <TwoStep className="btn" label={t('player.requestRefuse')} confirm={t('player.requestRefuse')}
+                  onConfirm={() => { setMsg(answerRequest(game, p, false)); touch() }} />
+              </div>
             </div>
           )}
           <div className="btn-row">

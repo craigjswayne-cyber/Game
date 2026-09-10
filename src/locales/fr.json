@@ -2136,7 +2136,12 @@
     "releasedMsg_f": "{name} a été libérée. {cost} d’indemnité versés ; elle est agent libre.",
     "releaseFloor_f": "L’effectif ne peut pas descendre sous {n} joueuses seniors.",
     "signAsMarquee_f": "La signer comme joueuse vedette ({n} places libres) : son salaire sort du plafond",
-    "signAsMarqueeOne_f": "La signer comme joueuse vedette (dernière place) : son salaire sort du plafond"
+    "signAsMarqueeOne_f": "La signer comme joueuse vedette (dernière place) : son salaire sort du plafond",
+    "requestAnswerTitle": "Une demande de transfert est sur votre bureau",
+    "requestAnswerSub": "Répondez dans un sens ou dans l'autre, ou laissez la feuille de match parler.",
+    "requestGrant": "Le laisser partir",
+    "requestGrant_f": "La laisser partir",
+    "requestRefuse": "Refuser"
   },
   "challenges": {
     "sapiac": "Sauvez Sapiac",
@@ -5171,7 +5176,11 @@
     "scoutReport_fw": "{months} mois, {n} {names_k}, {good} d'entre elles qu'elle signerait demain. En tête de liste : {player}, {age} ans, {pos_k} {at_k} - {note_k} Le rapport complet est au Centre des transferts, et chaque joueuse qui y figure est désormais bien connue de votre cellule de recrutement.",
     "aWonLine1_w": "Elle était plus satisfaite des vingt dernières minutes que du score, ce qui en dit long.",
     "aWonLine5_w": "Elle a conclu par une seule phrase : « Voilà le standard maintenant. »",
-    "aLostLine2_w": "Elle veut savoir quels trois ont continué à 20 points de retard, parce que ce sont ces trois-là qui perceront."
+    "aLostLine2_w": "Elle veut savoir quels trois ont continué à 20 points de retard, parce que ce sont ces trois-là qui perceront.",
+    "requestGrantedSubj": "🚪 {player} est libre de se trouver un club",
+    "requestGranted": "La demande est accordée et le nom part sur la liste. {club} écoutera les offres, et tous les agents du championnat le savent déjà.",
+    "requestRefusedSubj": "🔒 {player} n'ira nulle part",
+    "requestRefused": "La demande est refusée. Il y a un contrat, {club} entend le faire respecter, et la seule sortie passe désormais par la feuille de match."
   },
   "comm": {
     "oppCoachNamed": "{coach} a fait ses devoirs : {team} s'est réglé spécifiquement sur {pattern_k}. Changez le visage du match, ou jouez à travers leur plan.",
@@ -5499,7 +5508,9 @@
     "analystRight_w": "Suivi la lecture la plus forte de l'analyste à {opp} ({unit_k}) : elle avait raison, et cela s'est vue.",
     "analystWrong_w": "Suivi la lecture la plus forte de l'analyste à {opp} ({unit_k}) : elle avait tort, et la semaine a été perdue.",
     "badgeFailedFee_w": "{name} a échoué à son diplôme {badge_k}. Les {fee} sont perdus et elle ne peut pas repasser avant un mois.",
-    "badgeFailedCourse_w": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et elle repasse dans quatre semaines."
+    "badgeFailedCourse_w": "{name} a échoué à son diplôme {badge_k}. Les frais de formation sont perdus et elle repasse dans quatre semaines.",
+    "requestGranted": "A accordé sa demande de transfert à {player}.",
+    "requestRefused": "A refusé sa demande de transfert à {player}."
   },
   "persLower": {
     "Professional": "professionnel",
@@ -5709,7 +5720,13 @@
       "other": "{scout} est déjà en mission. Elle rend son rapport dans environ {n} semaines."
     },
     "badgePassed_w": "{name} a réussi. Elle est diplômée {badge_k} à partir d'aujourd'hui, et passe à {wage} par semaine.",
-    "badgeFailed_w": "{name} a échoué. Les {fee} sont perdus et elle ne peut pas repasser avant un mois."
+    "badgeFailed_w": "{name} a échoué. Les {fee} sont perdus et elle ne peut pas repasser avant un mois.",
+    "requestAlreadyAnswered": "Cette lettre a déjà reçu sa réponse.",
+    "requestGranted": "Accordé. {player} est placé sur la liste, et le groupe le saura avant midi.",
+    "requestGrantedSenior": "Accordé, et le vestiaire s'est tu en l'apprenant. {player} était des leurs.",
+    "requestRefused": "Refusé. {player} reste, et reste mécontent de rester.",
+    "requestRefusedBadly": "Refusé, et très mal pris. {player} a quitté le bureau sans serrer la main.",
+    "requestRefusedBadly_f": "Refusé, et très mal pris. {player} a quitté le bureau sans serrer la main."
   },
   "verdict": {
     "titleFavourites": "Favoris pour le titre",

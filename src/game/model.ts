@@ -374,6 +374,19 @@ export interface Player {
    *  absent means no request. Cleared when the team sheets make it right,
    *  and moot when he is sold. */
   wantsOut?: number
+  /** ABSOLUTE week the manager answered that request, either way.
+   *
+   *  The request used to be a notice rather than a question: it landed on the
+   *  desk, and the only replies the game understood were selling him or
+   *  playing him. Owner: "when someone makes a transfer request the user
+   *  should have the ability to accept or reject this - causing a morale
+   *  impact on camp/the player."
+   *
+   *  So an answer is recorded here. It stops the ledger asking again the
+   *  following week, and it is what lets a refusal wear off: a man told no,
+   *  who is still being left out months later, asks again. Cleared with
+   *  wantsOut whenever the minutes make it right. */
+  reqAns?: number
   /** absolute week (season * SEASON_WEEKS + week) of the manager's last
    *  office chat with him (20D) - one conversation per man per week, or
    *  praise stops meaning anything */

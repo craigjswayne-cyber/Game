@@ -2109,7 +2109,12 @@
   "vSolid_f": "una jugadora de plantilla solvente",
   "releaseFloor_f": "La plantilla no puede bajar de {n} jugadoras sénior.",
   "signAsMarquee_f": "Ficharla como jugadora franquicia ({n} plazas libres): su salario queda fuera del tope",
-  "signAsMarqueeOne_f": "Ficharla como jugadora franquicia (última plaza): su salario queda fuera del tope"
+  "signAsMarqueeOne_f": "Ficharla como jugadora franquicia (última plaza): su salario queda fuera del tope",
+  "requestAnswerTitle": "Tienes una solicitud de traspaso en la mesa",
+  "requestAnswerSub": "Respóndela en un sentido u otro, o déjala y que hable la alineación.",
+  "requestGrant": "Dejarle salir",
+  "requestRefuse": "Rechazarla",
+  "requestGrant_f": "Dejarla salir"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5061,7 +5066,11 @@
   "rivalAboveYou_w": "{his} contra {mine}. {boss} tenía razón, o al menos eso dice la clasificación, que en este oficio es lo mismo hasta el próximo mayo. Ella no habrá olvidado ni una palabra, y tú tampoco deberías.",
   "staffHired_w": "{club} ya tiene a su mujer: {name}, {age} años, {role_k} con titulación {badge_k} y fama de {trait_k}. {fee} de compensación, {wage} a la semana.{out_k}{chem_k}",
   "staffClick_w": "La sala de técnicos lo aprueba: {other} y ella conectan - {note_k}.",
-  "staffClash_w": "Una nube en el horizonte: {other} y ella ven el juego de forma muy distinta - {note_k}."
+  "staffClash_w": "Una nube en el horizonte: {other} y ella ven el juego de forma muy distinta - {note_k}.",
+  "requestGrantedSubj": "🚪 {player} queda libre para buscar club",
+  "requestGranted": "La solicitud se concede y el nombre pasa a la lista. {club} escuchará ofertas, y todos los agentes de la liga ya lo saben.",
+  "requestRefusedSubj": "🔒 {player} no se mueve de aquí",
+  "requestRefused": "La solicitud se rechaza. Hay un contrato, {club} piensa hacerlo valer, y la única salida ahora pasa por la alineación."
  },
  "comm": {
   "oppCoachNamed": "{coach} ha hecho los deberes: {team} salen preparados específicamente para {pattern_k}. Cambia el dibujo, o juega a través del plan.",
@@ -5375,7 +5384,9 @@
   "heal_f": {
    "one": "Reservado el retiro con especialistas: una mujer recuperada al cien por cien",
    "other": "Reservado el retiro con especialistas: {n} mujeres recuperadas al cien por cien"
-  }
+  },
+  "requestGranted": "Concedió a {player} su solicitud de traspaso.",
+  "requestRefused": "Rechazó a {player} su solicitud de traspaso."
  },
  "persLower": {
   "Professional": "profesional",
@@ -5572,7 +5583,13 @@
   "alreadyYours_f": "Ya es tu jugadora.",
   "tooSoonToSell_f": "{club} cuelgan con educación: {name} llegó hace {ago_k} y el club ha invertido en ella. Hasta que lleve media temporada con ellas, solo una oferta imposible de rechazar - {door} - reabre la conversación.",
   "biggerStage_f": "{name} agradece el interés, pero ella aguarda un escenario mayor.",
-  "notYourPlayer_f": "No es tu jugadora."
+  "notYourPlayer_f": "No es tu jugadora.",
+  "requestAlreadyAnswered": "Esa carta ya tiene respuesta.",
+  "requestGranted": "Concedida. {player} pasa a la lista, y el vestuario lo sabrá antes de comer.",
+  "requestGrantedSenior": "Concedida, y el vestuario se quedó callado al enterarse. {player} era de los suyos.",
+  "requestRefused": "Rechazada. {player} se queda, y se queda a disgusto.",
+  "requestRefusedBadly": "Rechazada, y encajada muy mal. {player} salió del despacho sin dar la mano.",
+  "requestRefusedBadly_f": "Rechazada, y encajada muy mal. {player} salió del despacho sin dar la mano."
  },
  "verdict": {
   "titleFavourites": "Favoritos al título",

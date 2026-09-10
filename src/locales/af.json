@@ -2194,7 +2194,12 @@
   "signAsMarquee_f": "Teken haar as hoofspeler ({n} plekke vry): haar salaris val buite die salarisperk",
   "signAsMarqueeOne_f": "Teken haar as hoofspeler (laaste plek): haar salaris val buite die salarisperk",
   "loanBuy_f": "Koop haar vir {fee}",
-  "loanBuyConfirm_f": "Betaal dit - sy is ons s'n"
+  "loanBuyConfirm_f": "Betaal dit - sy is ons s'n",
+  "requestAnswerTitle": "'n Oordragversoek lê op jou lessenaar",
+  "requestAnswerSub": "Antwoord dit een of ander kant toe, of los dit en laat die spanlys praat.",
+  "requestGrant": "Laat hom gaan",
+  "requestRefuse": "Weier dit",
+  "requestGrant_f": "Laat haar gaan"
  },
  "challenges": {
   "sapiac": "Sauvez Sapiac",
@@ -5270,7 +5275,11 @@
   "aWonLine5_w": "Sy het afgesluit met een reël: \"Dit is nou die standaard.\"",
   "aLostLine2_w": "Sy wil hê jy moet weet watter drie aangehou het toe hulle 20 punte agter was, want dít is die drie wat dit gaan maak.",
   "aLostLine4_w": "Niemand het weggekruip nie. Dit was haar hele verslag, en dit is die een ding waaroor sy haar bekommer.",
-  "staffSacked_w": "{club} en {role_k} {name} het uitmekaar gegaan. Die klub het {cost} betaal om haar kontrak te beëindig; die pos is vakant."
+  "staffSacked_w": "{club} en {role_k} {name} het uitmekaar gegaan. Die klub het {cost} betaal om haar kontrak te beëindig; die pos is vakant.",
+  "requestGrantedSubj": "🚪 {player} is vry om 'n klub te kry",
+  "requestGranted": "Die versoek word toegestaan en die naam gaan op die lys. {club} sal aanbiedinge aanhoor, en elke agent in die liga weet dit reeds.",
+  "requestRefusedSubj": "🔒 {player} gaan nêrens heen nie",
+  "requestRefused": "Die versoek word geweier. Daar is 'n kontrak, {club} is van plan om dit af te dwing, en die enigste pad hieruit loop nou deur die spanlys."
  },
  "comm": {
   "oppCoachNamed": "{coach} het sy huiswerk gedoen: {team} is spesifiek opgestel vir {pattern_k}. Verander die prentjie, of speel deur die plan.",
@@ -5633,7 +5642,9 @@
   "badgeFailedFee_w": "{name} het haar {badge_k}-kwalifikasie gedruip. Die {fee} is weg en sy kan nie vir 'n maand herskryf nie.",
   "badgeFailedFee_fw": "{name} het haar {badge_k}-kwalifikasie gedruip. Die {fee} is weg en haar kan nie vir 'n maand herskryf nie.",
   "badgeFailedCourse_w": "{name} het haar {badge_k}-kwalifikasie gedruip. Die kursusfooi is weg en sy herskryf oor vier weke.",
-  "badgeFailedCourse_fw": "{name} het haar {badge_k}-kwalifikasie gedruip. Die kursusfooi is weg en haar herskryf oor vier weke."
+  "badgeFailedCourse_fw": "{name} het haar {badge_k}-kwalifikasie gedruip. Die kursusfooi is weg en haar herskryf oor vier weke.",
+  "requestGranted": "Het {player} se oordragversoek toegestaan.",
+  "requestRefused": "Het {player} se oordragversoek geweier."
  },
  "persLower": {
   "Professional": "professioneel",
@@ -5864,7 +5875,13 @@
   "badgePassed_w": "{name} het geslaag. Sy is van vandag af {badge_k}-gekwalifiseer, en op {wage} per week.",
   "badgePassed_fw": "{name} het geslaag. Haar is van vandag af {badge_k}-gekwalifiseer, en op {wage} per week.",
   "badgeFailed_w": "{name} het te kort geskiet. Die {fee} is weg en sy kan dit nie vir 'n maand weer skryf nie.",
-  "badgeFailed_fw": "{name} het te kort geskiet. Die {fee} is weg en haar kan dit nie vir 'n maand weer skryf nie."
+  "badgeFailed_fw": "{name} het te kort geskiet. Die {fee} is weg en haar kan dit nie vir 'n maand weer skryf nie.",
+  "requestAlreadyAnswered": "Daardie brief is reeds beantwoord.",
+  "requestGranted": "Toegestaan. {player} gaan op die lys, en die span sal dit voor middagete weet.",
+  "requestGrantedSenior": "Toegestaan, en die kleedkamer het stil geword toe hulle dit hoor. {player} was een van hulle.",
+  "requestRefused": "Geweier. {player} bly, en bly ongelukkig daaroor.",
+  "requestRefusedBadly": "Geweier, en sleg opgeneem. {player} het die kantoor verlaat sonder om hande te skud.",
+  "requestRefusedBadly_f": "Geweier, en sleg opgeneem. {player} het die kantoor verlaat sonder om hande te skud."
  },
  "verdict": {
   "titleFavourites": "Titelgunstelinge",

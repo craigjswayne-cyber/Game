@@ -27,6 +27,7 @@ import type { Club, GameState, Player } from './model'
 import {absWeek, SEASON_WEEKS } from './model'
 import { clamp } from './rng'
 import { tIn } from './i18n'
+import { REQUEST_ANSWER_WEEKS } from './chats'
 
 export type SquadStatus = 'key' | 'rotation' | 'squad' | 'prospect' | 'fringe'
 
@@ -213,9 +214,19 @@ export function settleGameTime(state: GameState) {
     // gettable), and his mood stays on the floor until the team sheets change
     // or the van arrives. Deterministic on purpose: the moment is earned over
     // weeks, not rolled.
+    //
+    // AND A REFUSAL WEARS OFF. The manager can now answer the letter either way
+    // (chats.answerRequest), and a man told no is recorded rather than silenced:
+    // if he is still watching from the stand three months later he asks again,
+    // which is what anybody would do. Without this the first refusal would have
+    // been permanent, and "no" would have been a free way to end the mechanic.
+    const answered = p.reqAns ?? 0
+    const stale = answered > 0
+      && absWeek(state.season, state.week) - answered >= REQUEST_ANSWER_WEEKS
     if ((row.status === 'key' || row.status === 'rotation') && row.gap <= -6 &&
-        p.morale <= 4.2 && !(p.wantsOut ?? 0) && !p.transferListed && p.age <= 33) {
+        p.morale <= 4.2 && (!(p.wantsOut ?? 0) || stale) && !p.transferListed && p.age <= 33) {
       p.wantsOut = state.week
+      p.reqAns = 0
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `🚪 ${p.name} hands in a transfer request`,
@@ -228,6 +239,7 @@ export function settleGameTime(state: GameState) {
     // and the road back: minutes, actually given, withdraw the request
     if ((p.wantsOut ?? 0) > 0 && row.gap >= -2) {
       p.wantsOut = 0
+      p.reqAns = 0   // the grievance is gone, and so is the answer to it
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'contract', read: false,
         subject: `🤝 ${p.name} withdraws his transfer request`,
