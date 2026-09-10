@@ -30,6 +30,7 @@
 import { LEAGUE_TIER } from './model'
 import type { GameState } from './model'
 import { t, tIn, type Vars } from './i18n'
+import { isWomensId, type Gender } from './gender'
 
 /** What the wizard knows when it offers the choice: no GameState exists yet. */
 export interface DreamContext {
@@ -65,6 +66,20 @@ export interface DreamDef {
   titleVars?: (ctx: DreamContext) => Vars
   /** what taking it on actually means */
   blurbK: string
+  /** THE COMPETITIONS THIS DREAM CANNOT BE FINISHED WITHOUT.
+   *
+   *  Declared rather than left inside progress(), because a dependency hidden
+   *  in a closure is a dependency nothing can check. The women's world builds
+   *  no Continental Cup and no World Championship - newgame.ts gates all three
+   *  behind `if (gender !== 'w')` - so "Win the Continental Cup" and "Win the
+   *  league and Europe" and "Coach a nation to the World Championship" were
+   *  offered to women's managers as career-defining ambitions that could never
+   *  complete, counting trophies in a competition their world does not hold.
+   *  Reported from a real wizard screenshot at a Championship club.
+   *
+   *  dreamsFor() now refuses to offer a dream whose competitions are absent,
+   *  and scripts/worldparity.ts holds every world to it. */
+  needs?: readonly string[]
   /** offered only where it means something */
   applies: (ctx: DreamContext) => boolean
   progress: (state: GameState) => DreamProgress
@@ -119,6 +134,7 @@ export const DREAMS: DreamDef[] = [
     id: 'europe',
     titleK: 'dream.europe', titleLowerK: 'dream.europeLower',
     blurbK: 'dream.europeBlurb',
+    needs: ['cc'],
     applies: () => true,
     progress: state => {
       const n = won(state, 'cc')
@@ -139,6 +155,7 @@ export const DREAMS: DreamDef[] = [
     titleK: 'dream.double', titleLowerK: 'dream.doubleLower',
     titleVars: ctx => ({ club: ctx.clubName }),
     blurbK: 'dream.doubleBlurb',
+    needs: ['cc'],
     applies: ctx => (LEAGUE_TIER[ctx.leagueId] ?? 1) === 1,
     progress: state => {
       const club = dreamClub(state)
@@ -203,6 +220,7 @@ export const DREAMS: DreamDef[] = [
   },
   {
     id: 'world',
+    needs: ['wc'],
     titleK: 'dream.world', titleLowerK: 'dream.worldLower',
     blurbK: 'dream.worldBlurb',
     applies: () => true,
@@ -240,8 +258,33 @@ export const DREAMS: DreamDef[] = [
 ]
 
 /** The dreams worth offering a manager walking into this club. */
+/**
+ * WHICH COMPETITIONS A WORLD ACTUALLY HOLDS.
+ *
+ * The wizard offers dreams before a career exists, so it cannot look in
+ * state.comps - there is no state yet. This is the same fact newgame.ts acts
+ * on when it wraps the Continental Cup, the Continental Shield and the men's
+ * internationals in `if (gender !== 'w')`, stated once where both can read it.
+ *
+ * Kept deliberately small: it answers "does this world have this competition",
+ * nothing else. If the women's game gains a continental knockout, this is the
+ * one place that has to learn about it, and three unwinnable dreams become
+ * winnable on the same line.
+ */
+const WORLD_COMPS: Record<Gender, readonly string[]> = {
+  m: ['cc', 'chc', 'wc'],
+  w: [],
+}
+
+export function worldHasComp(gender: Gender, compId: string): boolean {
+  return WORLD_COMPS[gender].includes(compId)
+}
+
 export function dreamsFor(ctx: DreamContext): DreamDef[] {
-  return DREAMS.filter(d => d.applies(ctx))
+  // the club id carries the world: "w:bristol" is the women's Bristol
+  const gender: Gender = isWomensId(ctx.clubId) ? 'w' : 'm'
+  return DREAMS.filter(d =>
+    d.applies(ctx) && (d.needs ?? []).every(c => worldHasComp(gender, c)))
 }
 
 export function dreamById(id: string | undefined): DreamDef | undefined {

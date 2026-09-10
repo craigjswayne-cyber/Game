@@ -3422,9 +3422,9 @@
   "bridgeAds": "Anuncios",
   "bridgeOn": "conectada",
   "bridgeOff": "no conectada",
-  "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial.",
   "bridgeAdsWhy": "Los anuncios dicen",
-  "bridgeProducts": "Productos con precio en la tienda: {live} de {asked}"
+  "bridgeProducts": "Productos con precio en la tienda: {live} de {asked}",
+  "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial."
  },
  "news": {
   "maternitySubj": "{player} está embarazada",
@@ -6146,8 +6146,8 @@
   "centuryConversationR": "Diplomático. Él se ha fijado en la palabra «conversación» y la sacará en Navidad.",
   "centuryTwoHundred": "«Pregúntame cuando llegue a doscientos.»",
   "centuryTwoHundredR": "Una risa, y un objetivo. Le quedan cien y ya ha empezado a contar.",
-  "benchQ1": "{player} lleva seis semanas sin ser titular. Su agente dice que está «explorando opciones». ¿Y tú?",
-  "benchQ2": "Seis semanas de banquillo para {player}, y es mejor que eso. ¿Qué ha hecho?",
+  "benchQ1": "{player} no es titular desde hace {n} semanas. Su agente dice que está «valorando opciones». ¿Y tú?",
+  "benchQ2": "{n} semanas en el banquillo para {player}, y vale más que eso. ¿Qué ha hecho?",
   "benchDoor": "«Que explore. Mi puerta está abierta.»",
   "benchDoorR": "Lo está. La cruza el lunes con una petición de traspaso y un folio impreso.",
   "benchBuilding": "«Es una pieza clave de lo que estamos construyendo.»",
