@@ -6590,9 +6590,10 @@
   "townBody": "The supporters' trust will pass the bucket for a club in real trouble - watch a spot and the collection lands in the bank. It pays wages and lights, never players.",
   "watchTown": "📺 Let them pass the bucket",
   "townDone": "The collection came to {amount}. It is in the bank.",
-  "agencyDone": "The agency's file on {name} is in: the scouting picture just sharpened.",
+  "agencyDone": "The agency's file on {name} is in: every attribute, and the character to go with it.",
   "spotSkipped": "The spot was closed early, so nothing changed - the favour needs the whole thing.",
   "spotUnavailable": "No spot is available right now. Nothing is lost - try again later.",
+  "spotLoading": "Finding a spot…",
   "favourGone": "The moment has passed: the week's allowance was already used.",
   "watchAnalyst": {
    "one": "📺 The analyst has one more read - his all-nighter for a spot",

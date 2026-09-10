@@ -6428,9 +6428,10 @@
     "townBody": "L'association des supporters fera passer le seau pour un club en vraie difficulté : regardez un spot et la collecte arrive en banque. Elle paie les salaires et la lumière, jamais les joueurs.",
     "watchTown": "📺 Laisser passer le seau",
     "townDone": "La collecte a rapporté {amount}. C'est en banque.",
-    "agencyDone": "Le dossier de l'agence sur {name} est arrivé : le tableau du recrutement vient de se préciser.",
+    "agencyDone": "Le dossier de l'agence sur {name} est arrivé : chaque caractéristique, et le caractère avec.",
     "spotSkipped": "Le spot a été fermé avant la fin, rien n'a changé : la faveur exige le spot entier.",
     "spotUnavailable": "Aucun spot n'est disponible pour le moment. Rien n'est perdu : réessayez plus tard.",
+    "spotLoading": "Recherche d'un spot…",
     "favourGone": "Le moment est passé : l'allocation de la semaine était déjà utilisée.",
     "watchAnalyst": {
       "one": "📺 L'analyste a une lecture de plus - sa nuit blanche contre un spot",

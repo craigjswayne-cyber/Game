@@ -2,12 +2,12 @@ import { useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { ATTR_KEYS, SEASON_WEEKS, fmtMoney, fmtWage, injuryDesc, type Attrs, type GameState, type Player } from '../../game/model'
 import { agreeFee, agreePreContract, askingPrice, floorPrice, sellerWillingness, offerRenewalAt, personalTermsDemand, renewalDemand, signFreeAgent, signOnTerms } from '../../game/ai'
-import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep } from '../components'
+import { FormPill, Nat, PosBadge, SectionTitle, Stars, TwoStep, RewardedButton } from '../components'
 import { flagOf, nationName } from '../../game/nations'
 import { fineAttr, playerWage } from '../../game/attributes'
 import { attrRange, fuzzedCa, knowledge, persKnown, reportStage } from '../../game/scout'
 import { canAgencyFile } from '../../game/rewarded'
-import { rewardedAvailable, showRewarded } from '../../game/monetise'
+import { rewardedAvailable } from '../../game/monetise'
 import { LOAN_BUY_MIN_WEEKS, loanBuy, loanBuyOffer, loanOut, loanRecall } from '../../game/loans'
 import { releaseBlock, releaseCost, releasePlayer } from '../../game/release'
 import { MARQUEE_SLOTS } from '../../game/cap'
@@ -649,12 +649,11 @@ export default function PlayerScreen({ playerId }: { playerId: number }) {
               shared for a watched spot - once per player a season, three a
               week, and only where a provider exists (rewarded.ts) */}
           {rewardedAvailable('scouting') && canAgencyFile(game, p.id) && (
-            <button className="btn ghost block" onClick={() => {
-              void showRewarded('scouting').then(out => {
+            <RewardedButton place="scouting" label={t('till.watchAgency')}
+              onDone={out => {
                 if (out === 'completed') setMsg(rewardAgency(p.id) ? t('till.agencyDone', { name: p.name }) : t('till.favourGone'))
                 else setMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-              })
-            }}>{t('till.watchAgency')}</button>
+              }} />
           )}
           {!bidding
             ? <>

@@ -30,7 +30,7 @@ import { seedPhilosophies } from './philosophy'
 import { seedDeals } from './commercial'
 import { clamp } from './rng'
 import { assistantJudgement, autoSelect } from './matchEngine'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, W_CC_POOL_WEEKS, W_CC_KO_WEEKS } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, buildWomensContinentalCup } from './schedule'
 import { punditPredictions } from './gossip'
 import { WEEK_BASIS, CHEM_SLOTS, RELEGATES, boardObjective, chemKey, fmtMoney, initFacilities, isWorldCupSeason } from './model'
 import { seedKnowledge } from './scout'
@@ -590,29 +590,9 @@ export function newGame(userClubId: string, managerName: string, seed: number, c
     // continental cup of this game" - which is exactly what every dream, award
     // and trophy-counting path already assumes. A separate id would have meant
     // touching all of them to teach each one a second name for the same thing.
-    // PLACES ARE ALLOCATED PER LEAGUE, NOT BY REPUTATION ALONE. Taking the best
-    // sixteen reputations gave England six, France five, the Pacific five and
-    // THE CELTIC PROVINCES NONE - they are a six-club league of provincial
-    // sides and every one of them sits below the cut. A continental cup with no
-    // Celtic entrants is not the competition the owner asked for, and it is not
-    // how any real cross-border cup has ever worked: places go to leagues, and
-    // leagues send their best.
-    //
-    // 5-5-4-2 against league sizes of 9, 10, 9 and 6. England and France get
-    // the most because they are the deepest; the Celtic provinces get two,
-    // which is a third of their league and the most generous share of the four.
-    const WOMENS_CC_PLACES: [string, number][] = [
-      [W + 'pwr', 5], [W + 'e1', 5], [W + 'pac', 4], [W + 'celt', 2],
-    ]
-    const wEuro = WOMENS_CC_PLACES.flatMap(([leagueId, places]) =>
-      Object.values(state.clubs)
-        .filter(c => c.leagueId === leagueId)
-        .sort((a, b) => b.rep - a.rep)
-        .slice(0, places)
-        .map(c => c.id))
-    state.comps['cc'] = buildChampionsCup(wEuro, rng, state,
-      { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
-      W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
+    // The draw, the calendar and the reasoning all live in schedule.ts, because
+    // the August rollover has to build the same competition the same way.
+    state.comps['cc'] = buildWomensContinentalCup(rng, state)
 
     // The women's game has its own two internationals, in their own windows.
     // See buildWomensInternationals for why this is not the men's builder with

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { analystArmed } from '../../game/rewarded'
-import { rewardedAvailable, showRewarded } from '../../game/monetise'
+import { rewardedAvailable } from '../../game/monetise'
 import { AdSlot } from '../AdSlot'
 import {
   matchStats, teamShort, teamUnits, rosterOf, assistantJudgement, autoSelect, availablePlayers,
@@ -15,7 +15,7 @@ import { PRESETS, SLIDER_INFO, sliderReadout, type SliderKey } from '../../game/
 import { ord, posName, t } from '../../game/i18n'
 import { subjectVar } from '../../game/gender'
 import { coachFixes, gradeFixes, gradeLine, unitBattles, type FixTag } from '../../game/coachfix'
-import { CrestT, Jersey, PosBadge, SectionTitle, Stars } from '../components'
+import { CrestT, Jersey, PosBadge, SectionTitle, Stars, RewardedButton } from '../components'
 import { stageName } from './Home'
 import { matchSfx, soundOn, toggleSound } from '../audio'
 import { derbyName } from '../../game/rivalries'
@@ -991,12 +991,12 @@ function Preview({ fxId }: { fxId: number }) {
               {t(planApplied ? 'matchday.planApplied' : 'matchday.planApply')}
             </button>
             {rewardedAvailable('matchday') && !fullRead && allPlans.length > gamePlan.length && (
-              <button className="btn ghost block" style={{ marginTop: 6, fontSize: 12.5 }} onClick={() => {
-                void showRewarded('matchday').then(out => {
+              <RewardedButton place="matchday" style={{ marginTop: 6, fontSize: 12.5 }}
+                label={t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}
+                onDone={out => {
                   if (out === 'completed') rewardAnalyst()
                   else setSpotMsg(t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable'))
-                })
-              }}>{t('till.watchAnalyst', { n: allPlans.length - gamePlan.length, ...subjectVar(game.analystGender) })}</button>
+                }} />
             )}
             {fullRead && <div className="meta" style={{ marginTop: 6, color: 'var(--gold)' }}>{t('till.analystDone')}</div>}
             {spotMsg && <div className="meta sheet-log" style={{ marginTop: 6, borderLeft: '3px solid var(--gold)', paddingLeft: 8 }}>{spotMsg}</div>}

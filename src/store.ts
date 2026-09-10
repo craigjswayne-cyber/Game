@@ -73,6 +73,7 @@ import { closeNatTenure, logDecision } from './game/model'
 import { newGame } from './game/newgame'
 import { genderOf, type Gender } from './game/gender'
 import { processWeekAndAdvance, resolveKnockoutDraw, userFixtureThisWeek, userMatchThisWeek, weekRng } from './game/season'
+import { resultsParam } from './game/schedule'
 import {
   applyPreTalk, applyTacticsChange, applyTeamTalk, beginMatch, makeSubstitution, swapInjuryCover, swapShirts, undoSubstitution,
   playHalf, resolveDecision, stepTick, teamShort, type LiveCtx,
@@ -971,7 +972,7 @@ export const useStore = create<Store>((set, get) => ({
     if (preTalk) applyPreTalk(g, ctx, preTalk)
     playHalf(g, ctx)
     playHalf(g, ctx)
-    const resultsKey = `${fx.compId}:${g.week}`
+    const resultsKey = resultsParam(fx.compId, g.week)
     // Exactly what finishMatch does, and for the same reason. This used to set
     // its own watermark aside and then push every new story of the week into the
     // Wire in one go, which meant a week played through the assistant was
@@ -1278,7 +1279,7 @@ export const useStore = create<Store>((set, get) => ({
     const g = get().game
     const live = get().liveMatch
     if (!g) return
-    const resultsKey = live ? `${live.fixture.compId}:${g.week}` : null
+    const resultsKey = live ? resultsParam(live.fixture.compId, g.week) : null
     g.newsFrom = g.nextId
     processWeekAndAdvance(g)
     get().dropResume()

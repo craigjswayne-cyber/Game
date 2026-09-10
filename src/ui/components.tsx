@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { clubCode, type GameState, type Player } from '../game/model'
 import { flagOf } from '../game/nations'
 import { kitCycle, kitHoops, kitPattern, kitQuarters, kitSleeves, kitTrim, type KitPattern } from '../game/kits'
 import { hasHoopRow } from '../game/kits'
 import { t } from '../game/i18n'
+import { showRewarded, type RewardedPlace } from '../game/monetise'
 // the store, for ClubLink's one job: opening a club. store.ts imports nothing
 // from ui/, so this direction is the only one and there is no cycle.
 import { useStore } from '../store'
@@ -644,5 +645,44 @@ export function TwoStep({ label, confirm, onConfirm, className = 'btn', style, d
       onPointerDown={e => { if (armed) e.stopPropagation() }}
       onClick={e => { e.stopPropagation(); if (armed) { setArmed(false); onConfirm() } else setArmed(true) }}
     >{armed ? confirm : label}</button>
+  )
+}
+
+/**
+ * ---- A BUTTON THAT SAYS IT IS WORKING ----
+ *
+ * Four screens offer a rewarded spot, and all four used to fire showRewarded()
+ * straight off the tap with nothing on screen until it resolved. Fetching an ad
+ * takes a second or three, so the button sat there looking dead, and the player
+ * did what anyone does with a dead button: tapped it again. Reported from a live
+ * save: "click ask the agency for a file and it doesnt do anything - a couple of
+ * repeated taps and it loads an ad."
+ *
+ * The bridge now keeps a spot loaded (packaging/shell/ads-bridge.js), which
+ * fixes the wait. This fixes the rest of it: while the call is in flight the
+ * button says so and refuses further taps, so a slow network reads as loading
+ * rather than as a broken control - and two taps can never spend two spots.
+ *
+ * One component rather than the same three lines copied into four screens,
+ * because the four had already drifted: two stopped propagation and two did not.
+ */
+export function RewardedButton({ place, label, onDone, className = 'btn ghost block', style }: {
+  place: RewardedPlace
+  label: ReactNode
+  onDone: (out: 'completed' | 'skipped' | 'unavailable') => void
+  className?: string
+  style?: CSSProperties
+}) {
+  const [busy, setBusy] = useState(false)
+  return (
+    <button className={className} style={style} disabled={busy}
+      onClick={e => {
+        e.stopPropagation()
+        if (busy) return
+        setBusy(true)
+        void showRewarded(place).then(out => { setBusy(false); onDone(out) })
+      }}>
+      {busy ? t('till.spotLoading') : label}
+    </button>
   )
 }

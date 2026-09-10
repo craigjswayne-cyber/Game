@@ -3,9 +3,9 @@ import { useStore } from '../../store'
 import { fmtMoney, inRedZone, type Player } from '../../game/model'
 import { SPECIALIST_FEE, cottonWool, specialistConsult } from '../../game/medical'
 import { canPhysioFavour } from '../../game/rewarded'
-import { rewardedAvailable, showRewarded } from '../../game/monetise'
+import { rewardedAvailable } from '../../game/monetise'
 import { badgeLabel } from '../../game/staff'
-import { PosBadge, SectionTitle } from '../components'
+import { PosBadge, SectionTitle, RewardedButton } from '../components'
 import FullFitness from '../FullFitness'
 import { t } from '../../game/i18n'
 
@@ -125,16 +125,12 @@ export default function Medical() {
               replaced by a watched spot - only where a provider exists, and
               only while the week's ledger allows it (rewarded.ts) */}
           {rewardedAvailable('medical') && canPhysioFavour(game, p.id) && (
-            <button className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
-              onClick={e => {
-                e.stopPropagation()
-                void showRewarded('medical').then(out => {
-                  if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
-                  else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
-                })
-              }}>
-              {t('till.watchPhysio')}
-            </button>
+            <RewardedButton place="medical" label={t('till.watchPhysio')}
+              className="btn ghost" style={{ marginLeft: 8, padding: '2px 8px', fontSize: 11 }}
+              onDone={out => {
+                if (out === 'completed') setMsg({ id: p.id, text: rewardPhysio(p.id) ?? t('till.favourGone') })
+                else setMsg({ id: p.id, text: t(out === 'skipped' ? 'till.spotSkipped' : 'till.spotUnavailable') })
+              }} />
           )}
         </span>
       ))}

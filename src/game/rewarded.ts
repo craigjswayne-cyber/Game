@@ -60,12 +60,31 @@ export function canAgencyFile(state: GameState, pid: number): boolean {
   return weekCount(state.rewarded?.scout, abs(state)) < 3
 }
 
+/**
+ * THE WHOLE FILE, not thirty points of it.
+ *
+ * This used to add 30 to whatever the scouts already had, which meant the
+ * reward depended on how much attention the player had happened to receive
+ * already: a man on 57% came back at 87%, still with ranges on every attribute
+ * and his character still marked unknown, and a man on 20% came back at 50%
+ * knowing almost nothing. Reported from a live save after watching the spot in
+ * full: "when the ad is complete, the scouting profile should be 100%."
+ *
+ * He is right, and the copy already promised it. An agency file is a dossier,
+ * not a weekend of tape. At 100 the margin is zero (scout.margin), so every
+ * attribute reads as a number rather than a band, the star rating stops being
+ * fuzzed, and reportStage reaches 3 - which is what puts his character on the
+ * page. That is the thing the spot is worth watching for.
+ *
+ * The cost of it staying honest is the ledger, which is unchanged: once per
+ * player per season, three a week, and never for a man already at the club.
+ */
 export function agencyFile(state: GameState, pid: number): boolean {
   if (!canAgencyFile(state, pid)) return false
   const l = ledger(state)
   l.scout = [abs(state), weekCount(l.scout, abs(state)) + 1]
   ;(l.scoutSeen ??= {})[pid] = state.season
-  bumpKnowledge(state.players[pid]!, 30)
+  bumpKnowledge(state.players[pid]!, 100)
   return true
 }
 

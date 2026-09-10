@@ -6638,9 +6638,10 @@
   "townBody": "Die ondersteunerstrust stuur die emmer rond vir 'n klub in werklike moeilikheid - kyk 'n advertensie en die kollekte land in die bank. Dit betaal salarisse en ligte, nooit spelers nie.",
   "watchTown": "📺 Laat hulle die emmer rondstuur",
   "townDone": "Die kollekte het op {amount} te staan gekom. Dit is in die bank.",
-  "agencyDone": "Die agentskap se lêer oor {name} is in: die talentsoekprentjie het sopas skerper geword.",
+  "agencyDone": "Die agentskap se lêer oor {name} is in: elke eienskap, en die karakter daarby.",
   "spotSkipped": "Die advertensie is vroeg toegemaak, so niks het verander nie - die guns het die hele ding nodig.",
   "spotUnavailable": "Geen advertensie is nou beskikbaar nie. Niks is verlore nie - probeer later weer.",
+  "spotLoading": "Op soek na 'n advertensie…",
   "favourGone": "Die oomblik is verby: die week se toelae is reeds gebruik.",
   "watchAnalyst": {
    "one": "📺 Die ontleder het nog een lesing - sy deurnagsessie vir 'n advertensie",

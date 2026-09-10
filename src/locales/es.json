@@ -6272,9 +6272,10 @@
   "townBody": "La peña de socios pasará la gorra por un club en apuros de verdad: ve un anuncio y la colecta entra en el banco. Paga sueldos y luz, nunca jugadores.",
   "watchTown": "📺 Que pasen la gorra",
   "townDone": "La colecta ha sumado {amount}. Ya está en el banco.",
-  "agencyDone": "El informe de la agencia sobre {name} ha llegado: el ojo del ojeador acaba de afinarse.",
+  "agencyDone": "El informe de la agencia sobre {name} ya está: cada atributo, y el carácter que los acompaña.",
   "spotSkipped": "El anuncio se cerró antes de tiempo, así que nada ha cambiado: el favor exige verlo entero.",
   "spotUnavailable": "Ahora mismo no hay ningún anuncio disponible. No se pierde nada: inténtalo más tarde.",
+  "spotLoading": "Buscando un anuncio…",
   "favourGone": "El momento pasó: el cupo de la semana ya estaba gastado.",
   "watchAnalyst": {
    "one": "📺 Al analista le queda una lectura más: su noche en vela, por un anuncio",
