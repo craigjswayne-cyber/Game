@@ -27,7 +27,15 @@ Add it to the home screen for the standalone shell.
 npm install                      # from the repository root, for playwright-core
 node mimi/scripts/smoke.mjs      # serves the app and drives a real browser
 node mimi/scripts/icons.mjs      # regenerate the PNG icons from icons/icon.svg
+npx esbuild --version            # needed by the next one
+node mimi/scripts/singlefile.mjs # one self contained .html to send to somebody
 ```
+
+`singlefile.mjs` flattens the modules, both stylesheets and all three fonts into
+a single file that opens with no server and no build. It drops the service
+worker and the manifest, because neither has anything to point at inside one
+file, so there is no offline cache and Add to Home Screen gives a plain
+bookmark. Everything else is the real app, localStorage included.
 
 The smoke test walks the intake, both workout filters, a logged session with its
 rest timer, every habit on the tracker, the macro calculator, the recipe vault,
@@ -60,6 +68,7 @@ mimi/
   js/screens/                one module per screen
   scripts/smoke.mjs          end to end harness, fails on any console error
   scripts/icons.mjs          rasterises the PNG icons from the master SVG
+  scripts/singlefile.mjs     flattens the whole app into one shareable .html
 ```
 
 ## The five tabs
