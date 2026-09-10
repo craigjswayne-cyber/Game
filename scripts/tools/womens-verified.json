@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "what": "Real ages and positions for women's players, checked against public sources one player at a time. Anything in here is a FACT and overrides the generated value; scripts/tools/womens-ages.py deals ages only to the players who are not listed here.",
+    "why": "The owner's squad sheet carried names and clubs. Position, age, nationality and rating were all assigned by the game, including for the 96 capped internationals whose positions the data file claimed were a matter of record. Five were spot-checked on 10 Sep 2026 and four of the five positions were wrong: a fly-half listed as a tighthead, a lock as a hooker, a back-row as a loosehead, a number 8 as a hooker.",
+    "season": "ages are as at the 2026-27 season",
+    "howToAdd": "name, then any of age / pos, and a src naming where it was checked. No entry without a source."
+  },
+  "Sarah Bonar": { "age": 32, "src": "en.wikipedia.org/wiki/Sarah_Bonar - born 9 Feb 1994" },
+  "Rosie Galligan": { "age": 28, "pos": "LK", "src": "en.wikipedia.org/wiki/Rosie_Galligan - born 30 Apr 1998, lock" },
+  "Holly Aitchison": { "age": 29, "pos": "FH", "src": "en.wikipedia.org/wiki/Holly_Aitchison - born 13 Sep 1997, fly-half" },
+  "Abi Burton": { "age": 26, "pos": "FL", "src": "en.wikipedia.org/wiki/Abi_Burton - born 9 Mar 2000, back row" },
+  "Haineala Lutui": { "age": 20, "pos": "N8", "src": "en.wikipedia.org/wiki/Haineala_Lutui - born 8 Aug 2006, number 8" }
+}
