@@ -1092,14 +1092,24 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
     const squad = c.players.map(id => state.players[id]).filter((p): p is Player => !!p)
     if (opt.camp === 'heat') {
       // what the option said, not what a flat number says now
-      c.balance -= opt.campMoney ?? campCost(c.budget)
+      const spent = opt.campMoney ?? campCost(c.budget)
+      c.balance -= spent
       for (const p of squad) { p.sharp = clamp(p.sharp + 12, 0, 100); p.morale = clamp(p.morale + 0.3, 1, 10) }
-      logDecision(state, 'dec.campHeat', undefined, true)
+      // AND THE STORY QUOTES THE SAME FIGURE THE BUTTON DID.
+      //
+      // The cost was scaled to the club's budget, and these three sentences
+      // were not: they carried a hard-coded £400k in all six languages. A
+      // Championship club paid thirty-eight thousand for the camp and was then
+      // told, by its own inbox and its own decision log, that £400k had been
+      // well spent. Found by scripts/proportionprobe.ts, which reads the money
+      // back out of the prose and compares it with the money that moved.
+      const v = { cost: fmtMoney(spent) }
+      logDecision(state, 'dec.campHeat', v, true)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: tIn('en', 'news.campHeatSubj'),
-        body: tIn('en', 'news.campHeat'),
-        k: 'news.campHeat',
+        body: tIn('en', 'news.campHeat', v),
+        k: 'news.campHeat', v,
       })
     } else if (opt.camp === 'home') {
       state.fanMood = clamp((state.fanMood ?? 60) + 6, 10, 95)
@@ -1112,15 +1122,17 @@ export function answerPress(state: GameState, pressId: number, optionIndex: numb
         k: 'news.campHome',
       })
     } else {
-      c.balance += opt.campMoney ?? tourFee(c.budget)
+      const banked = opt.campMoney ?? tourFee(c.budget)
+      c.balance += banked
       state.fanMood = clamp((state.fanMood ?? 60) - 3, 10, 95)
       for (const p of squad) p.cond = clamp(p.cond - 8, 20, 100)
-      logDecision(state, 'dec.campTour', undefined, false)
+      const v = { fee: fmtMoney(banked) }
+      logDecision(state, 'dec.campTour', v, false)
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
         subject: tIn('en', 'news.campTourSubj'),
-        body: tIn('en', 'news.campTour'),
-        k: 'news.campTour',
+        body: tIn('en', 'news.campTour', v),
+        k: 'news.campTour', v,
       })
     }
   }

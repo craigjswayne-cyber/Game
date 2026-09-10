@@ -17,7 +17,7 @@ import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
-import { objectiveById, pickObjectives } from './objectives'
+import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -1373,9 +1373,12 @@ export function rebuildSeason(state: GameState) {
         if (!def || !def.applies(state)) continue
         const ok = def.met(state)
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
-        if (ok) { objBonus += 250_000; state.boardOwed = true }
-        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.textKey(state))}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
-        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state) })
+        // what it is worth to THIS club, not a flat figure that is four per
+        // cent of one budget and six times another (objectives.objectiveBonus)
+        const bonus = objectiveBonus(club.budget)
+        if (ok) { objBonus += bonus; state.boardOwed = true }
+        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.textKey(state))}${ok ? ` - met (+${fmtMoney(bonus)} budget)` : ' - missed'}`)
+        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state), amount: fmtMoney(bonus) })
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
