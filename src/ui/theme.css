@@ -374,6 +374,52 @@ option { font: inherit; color: var(--text-primary); background-color: var(--surf
 .th-sort { cursor: pointer; user-select: none; }
 .th-sort.active { color: var(--primary); }
 
+/* ---- THE ONE PRODUCT THAT IS NOT LIKE THE OTHERS ----
+   Pro Manager sat on the shelf as a row with a star on it, the same weight as a
+   £1.99 cash injection, and it is the only thing in the shop that changes how
+   the whole game looks rather than what one career owns. Owner: "Pro Manager
+   needs to stand out more. Make it really stand out - gold, white, black -
+   textured background."
+
+   Gold, white and black, and the texture is a fine diagonal weave laid over a
+   gold-into-black wash - two gradients, no image, so it costs nothing to load
+   and scales to any width. Every value is a mix of the theme's OWN --gold and
+   --canvas rather than a new hex, which is what keeps tokenlint green and what
+   makes the card follow a skin instead of fighting it: under Midnight the gold
+   stays gold and the ground goes with the skin.
+
+   The body copy goes white here. On every other row it is --text-secondary,
+   and that difference is most of why this one reads as the premium thing. */
+.store-hero {
+  position: relative;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 72%, transparent);
+  background:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--gold) 11%, transparent) 0 2px,
+      transparent 2px 6px),
+    linear-gradient(158deg,
+      color-mix(in srgb, var(--gold) 26%, var(--canvas)) 0%,
+      color-mix(in srgb, var(--gold) 8%, var(--canvas)) 46%,
+      var(--canvas) 88%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--gold) 55%, transparent),
+    0 3px 20px color-mix(in srgb, var(--gold) 16%, transparent);
+}
+/* a solid gold edge down the left, the way a premium tile is banded */
+.store-hero::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 10px 0 0 10px;
+  background: linear-gradient(to bottom, var(--gold-fill), color-mix(in srgb, var(--gold) 35%, transparent));
+}
+.store-hero > div > div > div:first-child {
+  color: var(--gold);
+  text-shadow: 0 1px 6px color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.store-hero .meta { color: var(--text-primary); }
+
 /* ================= Cards ================= */
 .card {
   background: var(--surface-1);

@@ -653,7 +653,7 @@ export async function skuPriceFrom(sku: string): Promise<{ price: string | null;
  *  inactive in the console is a different fault from a store that is not
  *  answering at all, and the screen phrases them differently. Returns the
  *  count that answered and the count asked. */
-export async function tillHealth(): Promise<{ live: number; asked: number }> {
+export async function tillHealth(): Promise<{ live: number; asked: number; missing: string[] }> {
   // ONLY THE PRODUCTS THIS BUILD ACTUALLY SELLS. Remove-all-ads is in the
   // catalogue but deliberately NOT in any store until a build ships ads
   // (packaging/twa/README.md 4; the Store hides its row on the same rule), so
@@ -673,13 +673,28 @@ export async function tillHealth(): Promise<{ live: number; asked: number }> {
       const got = await quick(b.detailsMany(sellable), null)
       if (got) {
         const live = new Set(got.filter(p => p?.price).map(p => p.sku))
-        return { live: sellable.filter(s => live.has(s)).length, asked: sellable.length }
+        // WHICH ONE, not just how many. "The store answered for 10 of 11" sent
+        // the owner looking through two web consoles for a product nobody
+        // could name; the shopper's banner still says only the count, because a
+        // shopper does not care, but About & legal now prints the ids so the
+        // person who can fix it is told what to fix.
+        const priced = sellable.filter(s => live.has(s))
+        return {
+          live: priced.length,
+          asked: sellable.length,
+          missing: sellable.filter(s => !live.has(s)),
+        }
       }
-      return { live: 0, asked: sellable.length } // the one call timed out: nothing is known
+      // the one call timed out: nothing is known, so nothing is named
+      return { live: 0, asked: sellable.length, missing: [...sellable] }
     } catch { /* a throwing store has priced nothing; fall through to the count below */ }
   }
   const got = await Promise.all(sellable.map(s => skuPriceFrom(s).then(r => r.live).catch(() => false)))
-  return { live: got.filter(Boolean).length, asked: sellable.length }
+  return {
+    live: got.filter(Boolean).length,
+    asked: sellable.length,
+    missing: sellable.filter((_, i) => !got[i]),
+  }
 }
 
 /**

@@ -3426,7 +3426,8 @@
   "bridgeOn": "conectada",
   "bridgeOff": "no conectada",
   "unofficialBody_f": "PHASE: Rugby Manager no está afiliado, avalado ni licenciado por ninguna jugadora, club, liga u organismo. Los nombres de los clubes son reales; las competiciones, los estadios y los patrocinadores están renombrados o inventados. Los nombres de las jugadoras son reales, usados para identificar a personas en una base de datos deportiva y para nada más, y no se incluye ningún escudo, camiseta ni logotipo oficial.",
-  "bridgeAdsWhy": "Los anuncios dicen"
+  "bridgeAdsWhy": "Los anuncios dicen",
+  "bridgeProducts": "Productos con precio en la tienda: {live} de {asked}"
  },
  "news": {
   "maternitySubj": "{player} está embarazada",

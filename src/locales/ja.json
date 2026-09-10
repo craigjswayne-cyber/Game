@@ -3339,7 +3339,8 @@
   "bridgeAds": "広告",
   "bridgeOn": "接続済み",
   "bridgeOff": "未接続",
-  "bridgeAdsWhy": "広告の状態"
+  "bridgeAdsWhy": "広告の状態",
+  "bridgeProducts": "ストアが価格を返した商品：{asked}件中{live}件"
  },
  "news": {
   "maternitySubj": "{player}が産休に入ります",

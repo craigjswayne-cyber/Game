@@ -3487,7 +3487,8 @@
   "bridgeAds": "Advertensies",
   "bridgeOn": "gekoppel",
   "bridgeOff": "nie gekoppel nie",
-  "bridgeAdsWhy": "Advertensies sê"
+  "bridgeAdsWhy": "Advertensies sê",
+  "bridgeProducts": "Produkte waarvoor die winkel 'n prys gegee het: {live} van {asked}"
  },
  "news": {
   "maternitySubj": "{player} verwag",
