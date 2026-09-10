@@ -231,13 +231,22 @@ export function coachFixes(
 
   // ---- discipline: cards are the most expensive thing on this list -----------
   const cards = ctx.events.filter(e => (e.type === 'YC' || e.type === 'RC') && e.teamId === mine.teamId)
-  const reds = cards.filter(e => e.type === 'RC').length
+  const sendings = cards.filter(e => e.type === 'RC')
+  const reds = sendings.length
   const yellows = cards.length - reds
   if (cards.length) {
     // name him. "Ten minutes a man short" is a statistic; "Curtis Langdon spent
     // ten minutes in the bin" is a selection decision the manager can make.
-    const first = cards[0].playerId != null ? game.players[cards[0].playerId] : null
-    const who = first?.name
+    //
+    // AND NAME THE RIGHT HIM. This took the first card of the afternoon and put
+    // that name into whichever sentence the match called for, so an early yellow
+    // followed by somebody else's red printed "Tom Lockett sent off" about a man
+    // who finished the game. The subject of the sentence is the man it is about:
+    // the one sent off when there was a sending-off, the one binned otherwise.
+    // Found by scripts/journeyprobe.ts reading the verdict back against the
+    // cards the commentary actually showed.
+    const subject = sendings[0] ?? cards[0]
+    const who = subject.playerId != null ? game.players[subject.playerId]?.name : undefined
     c.push({
       tag: 'discipline', score: reds * 62 + yellows * 24,
       head: reds
