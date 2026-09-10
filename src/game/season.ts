@@ -1,5 +1,7 @@
 import type { Competition, FacilityId, Fixture, GameState, Player, Pos, TableRow, TrainingFocus } from './model'
 import { W, genderOf, mayTakeMaternityLeave, MATERNITY_WEEKS, subjectVar } from './gender'
+// FRIENDLY_DAY below is the Wednesday index this hands to dayDate
+import { dayDate, type DayIndex } from './days'
 import { islesCoach, offerIsles } from './isles'
 import { aiCloseSeason } from './closeseason'
 import { talkingPoints } from './talkingpoints'
@@ -1798,7 +1800,7 @@ export function arrangeFriendly(state: GameState, oppId: string): string {
  * a development side, so the minutes go to the boys and the fringe rather than
  * to the men who are playing on Saturday anyway.
  */
-export const FRIENDLY_DAY = 2 // Wednesday
+export const FRIENDLY_DAY: DayIndex = 2 // Wednesday
 
 /** Where a club's league fixture falls that week, as a day index, or null. */
 function leagueDayThatWeek(state: GameState, week: number, clubId: string): number | null {
@@ -1878,11 +1880,22 @@ export function friendlySuggestions(state: GameState, week: number): string[] {
   return picked
 }
 
+/** The Wednesday a midweek friendly is played on, as a date the manager reads.
+ *
+ *  Owner: "arrange a friendly is a great feature but it needs to be date based
+ *  rather than week based." Every other fixture in the game announces itself
+ *  with a date - the masthead has said MON 28 SEP since the calendar went in -
+ *  and this one corner still counted in week numbers, which is an internal
+ *  index and not something a manager has any feel for. */
+export const friendlyDate = (state: GameState, week: number): string =>
+  dayDate(state.season, week, FRIENDLY_DAY)
+
 export function arrangeMidweekFriendly(state: GameState, oppId: string, week: number): string {
   const opp = state.clubs[oppId]
   if (!opp) return t('reply.noSuchClub')
   if (!friendlyWeekOk(state, week)) return t('reply.friendlyWeekBusy')
   if (!friendlySuggestions(state, week).includes(oppId)) return t('reply.friendlyDeclined', { club: opp.short })
+  const date = friendlyDate(state, week)
   state.fixtures.push({
     id: state.nextId++, compId: 'fr', round: 0, week,
     homeId: state.userClubId, awayId: oppId,
@@ -1892,10 +1905,10 @@ export function arrangeMidweekFriendly(state: GameState, oppId: string, week: nu
   state.news.push({
     id: state.nextId++, week: state.week, season: state.season, type: 'general', read: false,
     subject: `Midweek friendly agreed: ${opp.short}`,
-    body: `${opp.name} will come to your place on the Wednesday of week ${week}. There is no gate money worth counting in it - what there is, is eighty minutes for the academy and the men who have not had a game.`,
-    k: 'news.friendlyBooked', v: { club: opp.name, short: opp.short, week },
+    body: `${opp.name} will come to your place on ${date}. There is no gate money worth counting in it - what there is, is eighty minutes for the academy and the men who have not had a game.`,
+    k: 'news.friendlyBooked', v: { club: opp.name, short: opp.short, date },
   })
-  return t('reply.friendlyBooked', { club: opp.name, week })
+  return t('reply.friendlyBooked', { club: opp.name, date })
 }
 
 /**

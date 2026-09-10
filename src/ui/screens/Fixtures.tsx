@@ -7,7 +7,7 @@ import { ClubLink, CrestT, Jersey, SectionTitle } from '../components'
 import LeagueTable from '../LeagueTable'
 import { stageName } from './Home'
 import { t } from '../../game/i18n'
-import { arrangeMidweekFriendly, friendlySuggestions, friendlyWeeks } from '../../game/season'
+import { arrangeMidweekFriendly, friendlyDate, friendlySuggestions, friendlyWeeks } from '../../game/season'
 
 export default function Fixtures() {
   const game = useStore(s => s.game)!
@@ -160,10 +160,18 @@ export default function Fixtures() {
             ) : (
               <>
                 <div className="filter-line">
+                  {/* THE DATE, NOT THE WEEK NUMBER (owner: "arrange a friendly
+                      is a great feature but it needs to be date based rather
+                      than week based"). A week index is how the engine counts;
+                      the manager has had a real calendar on the masthead since
+                      the day system went in, and this was the one place still
+                      asking him to pick a number. friendlyDate names the same
+                      Wednesday the booking, the news item and the fixture all
+                      use, so the four cannot drift apart. */}
                   {weeks.map(w => (
                     <button key={w} className={`chip${w === wk ? ' active' : ''}`}
                       onClick={() => { setFrWeek(w); setFrMsg(null) }}>
-                      {t('fixtures.friendlyWeek', { n: w })}
+                      {friendlyDate(game, w)}
                     </button>
                   ))}
                 </div>
