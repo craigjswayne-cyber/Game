@@ -2754,6 +2754,21 @@ function simTick(state: GameState, ctx: LiveCtx, tick: number) {
             }
             // and if the bench had nobody who plays there, the side pays (F4)
             forcedSwitchCost(state, ctx, side, p.id, sub, min)
+          } else {
+            // NOBODY LEFT TO SEND ON. The bench is spent, so the side finishes
+            // the match a man down - and until this line existed, that cost it
+            // nothing at all. The commentary said fourteen; numF, which is the
+            // only place the missing man is charged for, counted yellows, red
+            // cards and Law 3.20 and knew nothing about an uncovered injury.
+            // So a side could play twenty minutes with fourteen men and be
+            // exactly as strong as one with fifteen.
+            //
+            // Found by scripts/journeyprobe.ts reconciling the men on the pitch
+            // against the men the card accounted for, in a Bristol side that
+            // lost a man at 72 minutes with an empty bench. Charged as `short`
+            // because that is what short means: a player the side had to do
+            // without, and not a card in anybody's record.
+            side.short += 1
           }
           checkFrontRow(state, ctx, side, min, p, 'injury')
         }
@@ -3105,6 +3120,19 @@ export function makeSubstitution(state: GameState, ctx: LiveCtx, outId: number, 
   if (slotOut < 0 || slotOut > 14 || !pout) return t('touch.notInStartingXV')
   // Law 3: a side may not replace a sin-binned player during his ten minutes
   if (mine.binned.has(outId)) return t('touch.inTheBin')
+  // AND A MAN WHO IS NOT OUT THERE CANNOT BE REPLACED AT ALL.
+  //
+  // A sending-off and a Law 3.20 removal both leave a shirt in the starting XV
+  // with nobody wearing it, and every check above passed for that shirt: the
+  // number is in the lineup, the man exists, the bench is fit. So taking it off
+  // deleted a player who was not on the pitch (a no-op) and added one who now
+  // was, and a side that should have finished with fourteen men finished with
+  // fifteen - carrying its full strength through the twenty minutes the red
+  // card was supposed to cost it.
+  //
+  // Found by scripts/journeyprobe.ts counting the men on the pitch at full time
+  // against the men the card accounted for.
+  if (!mine.onPitch.has(outId)) return t('touch.notOnPitch')
   if (!pin || pin.injury || (mine.ratings.has(inId) && mine.onPitch.has(inId))) return t('touch.notAvailable')
   mine.lineup[slotOut] = inId
   if (slotIn >= 0) mine.lineup[slotIn] = outId
