@@ -3443,7 +3443,7 @@ function finalizeMatch(state: GameState, ctx: LiveCtx) {
         subject: `Old boy ${haunter.name} crosses against his former club`,
         body: weWon
           ? `${haunter.name}, once of this parish, went over for ${oppClub.short} - no celebration, just a nod to the away end. Your side had the last word on the scoreboard, which is all that matters.`
-          : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming. The oldest story in sport, and it found you today.`,
+          : `Of course it was him. ${haunter.name} - ${oldBoyApps(haunter, state.userClubId)} appearances in your colours before he left - crossed against his old club and the ground knew it was coming.`,
         k: weWon ? 'news.oldBoyWeWon' : 'news.oldBoyWeLost',
         v: { player: haunter.name, opp: oppClub.short, apps: oldBoyApps(haunter, state.userClubId) },
         playerId: haunter.id,

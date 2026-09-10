@@ -38,6 +38,7 @@ import { newGame, LEAGUE_DEFS } from '../src/game/newgame'
 import { generatePress } from '../src/game/media'
 import { mulberry32 } from '../src/game/rng'
 import type { GameState } from '../src/game/model'
+import { readFileSync } from 'node:fs'
 
 let fails = 0
 const ok = (c: boolean, what: string) => {
@@ -168,6 +169,72 @@ say('\n--- 3. the press room varies week to week')
     `the most-used question is ${(share * 100).toFixed(0)}% of the season's press (${worstStem[0]}, ${worstStem[1]} of ${asked.filter(Boolean).length})`)
   const distinct = byStem.size
   ok(distinct >= 8, `and the room draws on at least eight different questions in a season (${distinct})`)
+}
+
+// ---------------------------------------------------------------------------
+// 4. TWO DIFFERENT STORIES DO NOT REACH FOR THE SAME ENDING
+//
+// The owner's rule for the whole dictionary was "does this line add something?
+// If not then scrap it", and the surest sign that a line adds nothing is the
+// game already having used it somewhere else.
+//
+// Five unrelated stories - a testimonial, a shirt going up over the tunnel, a
+// career-games milestone, an old boy scoring against you, and the venue for a
+// final - all closed on the same sentiment in slightly different words:
+//
+//     "Days like this are why the game matters."
+//     "The game moves on; days like his are why it matters."
+//     "Days like this are why anybody does this job."
+//
+// Not one of them carried a fact, a consequence or an instruction, and all
+// five are gone.
+//
+// WHAT IS ALLOWED IS TWO TELLINGS OF ONE EVENT. news.lionsCallA and
+// news.lionsCallB are the same tour call written twice, and a manager sees one
+// or the other and never both; ending them alike is not repetition. The test
+// for "the same event" is the key stem, because that is how this dictionary
+// has always named a pair - appoint/appointChallenge, bowOne/bowTwo,
+// debtConcern/debtDemand, loanOneMore/loanManyMore. The five faults above
+// shared no stem at all, which is exactly what made them stock endings rather
+// than variants.
+// ---------------------------------------------------------------------------
+say('\n--- 4. two unrelated stories do not end the same way')
+{
+  const EN = JSON.parse(readFileSync('src/locales/en.json', 'utf8')) as { news: Record<string, string> }
+  const base = (k: string) => k.replace(/_(fw|f|w)$/, '')
+  const shared = (a: string, b: string) => {
+    let i = 0
+    while (i < a.length && i < b.length && a[i] === b[i]) i++
+    return i
+  }
+  const closes = new Map<string, Set<string>>()
+  for (const [k, v] of Object.entries(EN.news)) {
+    if (typeof v !== 'string' || v.split(/\s+/).length < 15) continue
+    const parts = v.trim().split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean)
+    const last = parts[parts.length - 1] ?? ''
+    if (last.split(/\s+/).length < 5) continue
+    const key = last.replace(/\{[^}]*\}/g, 'X').toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean).join(' ')
+    if (!closes.has(key)) closes.set(key, new Set())
+    closes.get(key)!.add(base(k))
+  }
+  // 'bow' is the shortest real stem in the dictionary (bowOne / bowTwo), so
+  // three characters is the line. The stock endings shared none.
+  const STEM = 3
+  const stock: string[] = []
+  let pairs = 0
+  for (const [line, keys] of closes) {
+    const ks = [...keys]
+    if (ks.length < 2) continue
+    for (let i = 0; i < ks.length; i++) {
+      for (let j = i + 1; j < ks.length; j++) {
+        pairs++
+        if (shared(ks[i], ks[j]) < STEM) stock.push(`${ks[i]} and ${ks[j]} both end "${line.slice(0, 52)}..."`)
+      }
+    }
+  }
+  ok(stock.length === 0,
+    `${pairs} stories share an ending, and every one of them is the same event told twice${stock.length ? ` - ${stock[0]}` : ''}`)
+  stock.slice(1, 4).forEach(x => console.log(`        ${x}`))
 }
 
 console.log(fails

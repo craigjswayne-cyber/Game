@@ -577,7 +577,7 @@ function agePlayers(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎗 The shirt goes up: ${legend.p.name} retires`,
-          body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it. The game moves on; days like his are why it matters.`,
+          body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it.`,
           k: 'news.shirtUp', v: { player: legend.p.name, apps: legend.apps },
         })
       } else {
@@ -586,7 +586,7 @@ function agePlayers(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎗 Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
-          body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.`,
+          body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel.`,
           k: 'news.testimonial',
           v: { player: legend.p.name, apps: legend.apps, stadium: club.stadium, gate: fmtMoney(gate) },
         })
