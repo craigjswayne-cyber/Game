@@ -121,16 +121,44 @@ export const FIX_LABEL: Record<FixTag, string> = {
  * reward, and a board that hands out confidence for obeying its own coach would be
  * marking its own homework twice.
  */
-export function gradeFixes(prev: readonly FixTag[], now: readonly FixTag[]): {
+/** Tags that describe SOMETHING THE MANAGER DOES, not something the scoreboard
+ *  shows. Silence does not prove these were done.
+ *
+ *  Every other tag is an outcome - the set piece held, the discipline improved,
+ *  the kicks went over - and for those, the complaint not firing again IS the
+ *  evidence, because the complaint measures the outcome directly.
+ *
+ *  'fitness' is not like that. Its label is "using the bench", and its
+ *  complaint only speaks under conditions of its own (a fatigue gap, a certain
+ *  number of changes). A match where those conditions simply never arose looked
+ *  identical to a match where the manager had gone to his bench, so the card
+ *  congratulated him either way. Reported from a real save: "I didn't make any
+ *  subs and it said I completed my goal."
+ *
+ *  So this one asks for proof, and gets it from ctx.subsUsed. */
+const ACTION_TAGS: ReadonlySet<FixTag> = new Set<FixTag>(['fitness'])
+
+export function gradeFixes(
+  prev: readonly FixTag[],
+  now: readonly FixTag[],
+  /** What the manager actually did this match. A tag in ACTION_TAGS cannot be
+   *  graded as done without a true here; anything absent is treated as not
+   *  done, which is the safe direction - a job wrongly still open costs a
+   *  reminder, a job wrongly closed costs the card its credibility. */
+  did: Partial<Record<FixTag, boolean>> = {},
+): {
   fixed: FixTag[]
   missed: FixTag[]
 } {
   const open = new Set(now)
+  // 'admin' is the coach saying nothing broke, so it is never homework
+  // (`tag`, not `t`: t() is the translator and a shadow here would be silent)
+  const homework = prev.filter(tag => tag !== 'admin')
+  const done = (tag: FixTag) =>
+    !open.has(tag) && (!ACTION_TAGS.has(tag) || did[tag] === true)
   return {
-    // 'admin' is the coach saying nothing broke, so it is never homework
-    // (`tag`, not `t`: t() is the translator and a shadow here would be silent)
-    fixed: prev.filter(tag => tag !== 'admin' && !open.has(tag)),
-    missed: prev.filter(tag => tag !== 'admin' && open.has(tag)),
+    fixed: homework.filter(done),
+    missed: homework.filter(tag => !done(tag)),
   }
 }
 
@@ -203,13 +231,22 @@ export function coachFixes(
 
   // ---- discipline: cards are the most expensive thing on this list -----------
   const cards = ctx.events.filter(e => (e.type === 'YC' || e.type === 'RC') && e.teamId === mine.teamId)
-  const reds = cards.filter(e => e.type === 'RC').length
+  const sendings = cards.filter(e => e.type === 'RC')
+  const reds = sendings.length
   const yellows = cards.length - reds
   if (cards.length) {
     // name him. "Ten minutes a man short" is a statistic; "Curtis Langdon spent
     // ten minutes in the bin" is a selection decision the manager can make.
-    const first = cards[0].playerId != null ? game.players[cards[0].playerId] : null
-    const who = first?.name
+    //
+    // AND NAME THE RIGHT HIM. This took the first card of the afternoon and put
+    // that name into whichever sentence the match called for, so an early yellow
+    // followed by somebody else's red printed "Tom Lockett sent off" about a man
+    // who finished the game. The subject of the sentence is the man it is about:
+    // the one sent off when there was a sending-off, the one binned otherwise.
+    // Found by scripts/journeyprobe.ts reading the verdict back against the
+    // cards the commentary actually showed.
+    const subject = sendings[0] ?? cards[0]
+    const who = subject.playerId != null ? game.players[subject.playerId]?.name : undefined
     c.push({
       tag: 'discipline', score: reds * 62 + yellows * 24,
       head: reds

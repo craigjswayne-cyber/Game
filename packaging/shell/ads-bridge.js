@@ -331,12 +331,49 @@
   }
   function countSpot() { try { localStorage.setItem('rm-rw', today() + ':' + (spotsToday() + 1)) } catch (e) {} }
 
+  // ---- keeping one spot loaded ---------------------------------------------
+  //
+  // prepareRewardVideoAd is a NETWORK FETCH. It used to be called on the tap,
+  // so the first tap on "ask the agency for their file" asked AdMob for an ad
+  // that was not there yet, got a refusal, and returned 'unavailable' - and the
+  // player, who had asked for something and been given a shrug, tapped again.
+  // By the third tap the fetch had landed and the spot played. Reported exactly
+  // that way: "click ask the agency for a file and it doesnt do anything - a
+  // couple of repeated taps and it loads an ad."
+  //
+  // So a spot is fetched in the background and kept ready, and another is
+  // fetched as soon as one is spent. The tap then shows what is already there.
+  var priming = null
+
+  function prime() {
+    if (priming) return priming
+    priming = (async function () {
+      if (!(await ready())) return false
+      var ad = plugin()
+      if (!ad) return false
+      try {
+        await ad.prepareRewardVideoAd({ adId: ids.rewarded, isTesting: !!cfg.testing })
+        log('a rewarded spot is loaded and waiting')
+        return true
+      } catch (e) {
+        log('rewarded spot could not be prepared:', e && (e.message || e.code) || e)
+        return false
+      }
+    })()
+    // a failed fetch must not stick: the next tap tries again rather than
+    // remembering for ever that there was no ad three hours ago
+    priming.then(function (okd) { if (!okd) priming = null }).catch(function () { priming = null })
+    return priming
+  }
+
   async function showRewarded(place) {
     if (spotsToday() >= REWARDED_CAP) return 'unavailable'
-    if (!(await ready())) return 'unavailable'
+    // whatever is loading now, wait for it: the button shows a busy state while
+    // this runs, so waiting reads as loading rather than as nothing happening
+    if (!(await prime())) return 'unavailable'
+    priming = null   // this one is about to be spent
     var ad = plugin()
     if (!ad) return 'unavailable'
-    try { await ad.prepareRewardVideoAd({ adId: ids.rewarded, isTesting: !!cfg.testing }) } catch (e) { log('rewarded spot could not be prepared:', e && (e.message || e.code) || e); return 'unavailable' }
     return new Promise(function (resolve) {
       var earned = false, done = false, handles = []
       function finish(v) {
@@ -345,6 +382,8 @@
         clearTimeout(timer)
         handles.forEach(function (p) { p.then(function (h) { h && h.remove && h.remove() }).catch(function () {}) })
         if (v === 'completed') countSpot()
+        // and start fetching the next one, so the following tap is instant too
+        setTimeout(prime, 1500)
         resolve(v)
       }
       function on(ev, fn) { handles.push(Promise.resolve(ad.addListener(ev, fn))) }
@@ -367,6 +406,9 @@
     // for the probe and for a debugging session on a device: never read by the game
     __state: function () { return { created: created, visible: visible, wanted: wantedPlace, spotsToday: spotsToday(), why: why } }
   }
+  // one spot fetched at launch, so the first thing the player asks for arrives
+  // when he asks for it
+  if (ids.rewarded) setTimeout(prime, 3000)
   log('bridge ready - window.rmAds is live')
   }
 })()

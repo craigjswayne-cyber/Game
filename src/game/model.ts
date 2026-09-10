@@ -374,6 +374,19 @@ export interface Player {
    *  absent means no request. Cleared when the team sheets make it right,
    *  and moot when he is sold. */
   wantsOut?: number
+  /** ABSOLUTE week the manager answered that request, either way.
+   *
+   *  The request used to be a notice rather than a question: it landed on the
+   *  desk, and the only replies the game understood were selling him or
+   *  playing him. Owner: "when someone makes a transfer request the user
+   *  should have the ability to accept or reject this - causing a morale
+   *  impact on camp/the player."
+   *
+   *  So an answer is recorded here. It stops the ledger asking again the
+   *  following week, and it is what lets a refusal wear off: a man told no,
+   *  who is still being left out months later, asks again. Cleared with
+   *  wantsOut whenever the minutes make it right. */
+  reqAns?: number
   /** absolute week (season * SEASON_WEEKS + week) of the manager's last
    *  office chat with him (20D) - one conversation per man per week, or
    *  praise stops meaning anything */
@@ -824,6 +837,12 @@ export interface PressOption {
   disc?: 'fine' | 'word' | 'ignore'
   /** the pre-season decision: one special week, three philosophies */
   camp?: 'heat' | 'home' | 'tour'
+  /** what that week costs or pays THIS club, quoted on the button and spent on
+   *  resolution. Stored rather than recomputed so a transfer between asking and
+   *  answering cannot change the price of a camp already agreed. Absent on the
+   *  community week, which costs nothing, and on saves made before the figures
+   *  were scaled to the club at all. */
+  campMoney?: number
   /** agreeing to a loan actually sends him. Saying yes and then leaving the
    *  manager to go and find the Transfers screen is how a lad ended up asking
    *  the same question a week after his boss agreed to it. */
@@ -1492,7 +1511,16 @@ export interface GameState {
   licensed?: boolean
   /** Difficulty, chosen at career creation and never after (v1.2.7). Absent
    *  on every save written before it existed, which reads as 'normal' - the
-   *  game exactly as it was. See src/game/difficulty.ts for the three levers. */
+   *  game exactly as it was.
+   *
+   *  REMOVED, and kept here as a tombstone. Difficulty was three levers on the
+   *  manager's own club - starting cash, board patience, injury rate - and the
+   *  owner's verdict was that it "doesn't really work for this type of game".
+   *  It is gone: no picker, no levers, no file. Careers saved while it existed
+   *  still carry this key and nothing reads it, so every one of them now plays
+   *  at what used to be 'normal' - which is the setting where all three levers
+   *  were exactly 1, 0 and 1, so a normal save is unchanged and a hard one gets
+   *  the game it would have had. */
   difficulty?: 'normal' | 'hard' | 'legend'
   /** The manager's own saved game plans (v1.2.7): up to three, each the four
    *  dials plus the defensive pair, set-piece calls, kicking order and exit,

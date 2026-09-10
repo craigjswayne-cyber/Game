@@ -40,6 +40,28 @@ export const LEAGUE_WEEKS = [
 ]
 export const CC_POOL_WEEKS = [18, 19, 22, 23, 32, 33]
 export const CC_KO_WEEKS = [34, 38, 41]
+
+/**
+ * ---- AND THE WOMEN'S CUP, WHICH CANNOT USE THOSE WEEKS ----
+ *
+ * The men's Continental Cup plays its last two pool rounds in weeks 32 and 33
+ * and its knockouts in 34, 38 and 41. Every one of those is an international
+ * week in the WOMEN'S calendar: the Northern Championship takes 32, 33, 34, 36
+ * and 38, and the Southern Four takes 40, 41 and 42. Reusing the men's weeks
+ * would have put a continental quarter-final on the same Saturday as a Test.
+ *
+ * So the women's cup has its own calendar, and these are the weeks their top
+ * four leagues are genuinely idle - checked against a built season rather than
+ * chosen by eye. Weeks 28, 31 and 37 carry Championship fixtures and nothing
+ * else, and the Championship is a second tier which this cup does not include
+ * (owner: "celtic sides in but no second tiers"), so its clubs are free.
+ *
+ * The whole competition therefore runs from week 8 to a final in week 37 -
+ * inside the domestic season, out of every international window, and finishing
+ * before the last league round rather than after it.
+ */
+export const W_CC_POOL_WEEKS = [8, 11, 18, 19, 22, 23]
+export const W_CC_KO_WEEKS = [28, 31, 37]
 export const AUTUMN_WEEKS = [13, 14, 15]
 export const SIX_NATIONS_WEEKS = [25, 26, 27, 28, 29]
 export const TRC_WEEKS = [5, 6, 7, 9, 10, 11]
@@ -202,9 +224,42 @@ export function schedulePreseason(state: GameState, rng: Rng) {
   }
 }
 
+/**
+ * ---- THE ROUND-UP'S SCREEN PARAMETER ----
+ *
+ * The full-time round-up is reached as "results" with one string carrying which
+ * competition and which week. Written in one place and read in another, the
+ * format drifted the moment an id could contain the separator.
+ *
+ * Every men's competition id is a bare word, so "prem:8" split on ':' and took
+ * the first two pieces for two years without complaint. Every WOMEN'S id
+ * carries the world prefix - 'w:pwr', 'w:celt' - so "w:pwr:8" split into three
+ * pieces, the competition became 'w', the week became Number('pwr'), and the
+ * entire women's game showed "No other results this round" after every match,
+ * including the manager's own.
+ *
+ * One writer and one reader now, so the next id that carries a colon cannot
+ * reopen it. scripts/worldparity.ts round-trips every competition in both
+ * worlds through the pair.
+ */
+export function resultsParam(compId: string, week: number): string {
+  return `${compId}:${week}`
+}
+
+export function parseResultsParam(param: string): { compId: string; week: number } {
+  // the week is what follows the LAST colon; everything before it is the id
+  const cut = param.lastIndexOf(':')
+  if (cut <= 0) return { compId: param, week: NaN }
+  return { compId: param.slice(0, cut), week: Number(param.slice(cut + 1)) }
+}
+
 export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
   // just "Continental Cup" (user: "remove the word continental")
   meta: { id: string; name: string; short: string } = { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
+  // The weeks it plays in. Defaulted to the men's, because they were hard-coded
+  // in here and the women's calendar cannot use them - see W_CC_POOL_WEEKS.
+  poolWeeks: readonly number[] = CC_POOL_WEEKS,
+  koWeeks: readonly number[] = CC_KO_WEEKS,
 ): Competition {
   const teams = shuffled(rng, clubIds.slice(0, 16))
   const comp: Competition = {
@@ -216,8 +271,8 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
     table: teams.map(emptyRow),
     rounds: 6,
     playoffTeams: 8,
-    weeksByRound: CC_POOL_WEEKS,
-    koWeeks: CC_KO_WEEKS,
+    weeksByRound: [...poolWeeks],
+    koWeeks: [...koWeeks],
   }
   // seeded pools: 1 top seed per pool
   const pools: string[][] = [[], [], [], []]
@@ -231,7 +286,7 @@ export function buildChampionsCup(clubIds: string[], rng: Rng, state: GameState,
           id: state.nextId++,
           compId: meta.id,
           round: r,
-          week: CC_POOL_WEEKS[r],
+          week: poolWeeks[r],
           homeId: h, awayId: a,
           played: false, homeScore: 0, awayScore: 0, homeTries: 0, awayTries: 0,
         })
@@ -573,6 +628,55 @@ export function isWomensTourSeason(season: number): boolean {
   // sits exactly in the gap between two World Cups - which is where the men's
   // tour sits in their calendar too.
   return (BASE_YEAR + season) % 4 === 3 && BASE_YEAR + season >= 2031
+}
+
+/**
+ * ---- THE WOMEN'S CONTINENTAL CUP ----
+ *
+ * Sixteen clubs from the four top tiers - England, France, the Pacific and the
+ * Celtic provinces. No second tiers, and so no Shield beneath it either (owner:
+ * "celtic sides in but no second tiers"): the men's game has a Continental
+ * Shield because it has thirty-odd top-flight clubs and a Championship to feed
+ * it, and inventing one here would be filling a competition rather than
+ * answering a demand for one.
+ *
+ * It takes the id 'cc' deliberately, not a namespaced one. A save is one world
+ * or the other and never both, so within any career 'cc' means "the continental
+ * cup of this game" - which is exactly what every dream, award and
+ * trophy-counting path already assumes. A separate id would have meant teaching
+ * all of them a second name for the same thing.
+ *
+ * PLACES ARE ALLOCATED PER LEAGUE, NOT BY REPUTATION ALONE. Taking the best
+ * sixteen reputations gave England six, France five, the Pacific five and THE
+ * CELTIC PROVINCES NONE - they are a six-club league of provincial sides and
+ * every one of them sits below the cut. A continental cup with no Celtic
+ * entrants is not the competition the owner asked for, and it is not how any
+ * real cross-border cup has ever worked: places go to leagues, and leagues send
+ * their best.
+ *
+ * 5-5-4-2 against league sizes of 9, 10, 9 and 6. England and France get the
+ * most because they are the deepest; the Celtic provinces get two, which is a
+ * third of their league and the most generous share of the four.
+ *
+ * Lives here rather than in newgame.ts because AUGUST HAS TO BUILD IT TOO. The
+ * first draft built the cup only at the start of a career, so the competition
+ * existed for one season and then vanished at the rollover - and with it the
+ * two dreams that name it, in the middle of a save that had been offered them.
+ */
+const WOMENS_CC_PLACES: readonly [string, number][] = [
+  [W + 'pwr', 5], [W + 'e1', 5], [W + 'pac', 4], [W + 'celt', 2],
+]
+
+export function buildWomensContinentalCup(rng: Rng, state: GameState): Competition {
+  const entrants = WOMENS_CC_PLACES.flatMap(([leagueId, places]) =>
+    Object.values(state.clubs)
+      .filter(c => c.leagueId === leagueId)
+      .sort((a, b) => b.rep - a.rep)
+      .slice(0, places)
+      .map(c => c.id))
+  return buildChampionsCup(entrants, rng, state,
+    { id: 'cc', name: 'Continental Cup', short: 'Continental Cup' },
+    W_CC_POOL_WEEKS, W_CC_KO_WEEKS)
 }
 
 export function buildWomensInternationals(rng: Rng, state: GameState) {

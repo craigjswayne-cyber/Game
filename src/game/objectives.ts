@@ -139,6 +139,29 @@ export const OBJECTIVE_DEFS: ObjectiveDef[] = [
  * (seed, season) so the same save always deals the same board but next season
  * deals a different one. Deterministic arithmetic, no rng stream.
  */
+/**
+ * ---- WHAT A SIDE QUEST IS WORTH, TO THIS CLUB ----
+ *
+ * A met secondary objective paid a flat £250,000, to everybody.
+ *
+ * That is four per cent of Toulouse's transfer budget and SIX TIMES the whole
+ * budget of a club in the women's Championship. A National One side asked to
+ * blood two academy players and given more than twice its own budget for doing
+ * it has not been rewarded, it has been rescued, and the reward stops meaning
+ * anything at the top while it breaks the economy at the bottom.
+ *
+ * Same fault as the pre-season camp that asked a Championship club for
+ * £400,000, and found the same way: by asking what every figure in the game
+ * looks like to the club that receives it rather than in the abstract.
+ *
+ * A share of the budget, floored so it is always worth having and capped at the
+ * old figure so nothing at the top of the game changes at all.
+ */
+export function objectiveBonus(budget: number): number {
+  const raw = Math.min(250_000, Math.max(15_000, budget * 0.12))
+  return raw < 100_000 ? Math.round(raw / 1_000) * 1_000 : Math.round(raw / 25_000) * 25_000
+}
+
 export function pickObjectives(state: GameState): string[] {
   const out: string[] = ['youth']
   const pool = OBJECTIVE_DEFS.filter(o => o.id !== 'youth' && o.applies(state))

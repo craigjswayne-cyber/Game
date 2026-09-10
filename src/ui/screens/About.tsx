@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useStore } from '../../store'
 import { SectionTitle } from '../components'
 import { DEV_CONTACT } from '../../game/bugreport'
-import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillOpen } from '../../game/monetise'
+import { adBridgePresent, adBridgeWhy, billingBridgePresent, tillHealth, tillOpen } from '../../game/monetise'
 import { nativePlatform } from '../../game/shell'
 import { t } from '../../game/i18n'
 
@@ -28,6 +29,20 @@ export default function About() {
   const storeOn = billingBridgePresent()
   const adsOn = adBridgePresent()
   const adsWhy = adBridgeWhy()
+
+  // WHICH PRODUCT, NOT JUST HOW MANY. The shop's own banner says "the store
+  // answered for 10 of 11 products" and stops there, which is right for a
+  // shopper and useless for the person who has to go and create the missing
+  // one - it sent the owner hunting through two web consoles for a product
+  // nobody had named. The ids are ugly and belong here, on the page that
+  // already reports which bridges the shell brought, rather than on a shelf.
+  const [till, setTill] = useState<{ live: number; asked: number; missing: string[] } | null>(null)
+  useEffect(() => {
+    if (!platform || !storeOn) return
+    let alive = true
+    void tillHealth().then(h => { if (alive) setTill(h) })
+    return () => { alive = false }
+  }, [platform, storeOn])
   const go = useStore(s => s.go)
 
   return (
@@ -103,6 +118,14 @@ export default function About() {
               for a player. */}
           {adsOn && adsWhy && adsWhy !== 'ready' && (
             <div className="meta bridge-line">{t('about.bridgeAdsWhy')}: {adsWhy}</div>
+          )}
+          {till && (
+            <div className="meta bridge-line">
+              {t('about.bridgeProducts', { live: till.live, asked: till.asked })}
+              {till.missing.length > 0 && (
+                <>: <b style={{ color: 'var(--text-negative)' }}>{till.missing.join(', ')}</b></>
+              )}
+            </div>
           )}
         </div>
       )}

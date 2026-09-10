@@ -34,7 +34,7 @@ const ok = (c: boolean, what: string) => {
 
 const SEASONS = 10
 const wClub = LEAGUE_DEFS('w')[0].clubs[0].id
-const g = newGame(wClub, 'Test', 8191, undefined, 'coach', 'normal', 'w')
+const g = newGame(wClub, 'Test', 8191, undefined, 'coach', 'w')
 
 /** Every player who has ever been granted leave, and whether she is real. */
 const granted = new Map<number, { name: string; real: boolean }>()
@@ -74,7 +74,7 @@ ok(returned > 0, `and she comes back (${returned} returns)`)
 
 // the contract clock: a season rolling over while she is away must push the
 // deal out rather than spend a year she did not play
-const m = newGame(wClub, 'Test', 4242, undefined, 'coach', 'normal', 'w')
+const m = newGame(wClub, 'Test', 4242, undefined, 'coach', 'w')
 const victim = Object.values(m.players).find(p => !p.real && p.clubId && p.age >= 23 && p.age <= 37)!
 victim.maternity = { until: m.week + 200, from: m.week }
 const before = victim.contractEnds

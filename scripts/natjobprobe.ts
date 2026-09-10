@@ -25,7 +25,7 @@ const ok = (c: boolean, what: string) => {
 
 const worlds: [string, GameState][] = [
   ['men', newGame('bath', 'Test', 4242)],
-  ['women', newGame(LEAGUE_DEFS('w')[0].clubs[0].id, 'Test', 4242, undefined, 'coach', 'normal', 'w')],
+  ['women', newGame(LEAGUE_DEFS('w')[0].clubs[0].id, 'Test', 4242, undefined, 'coach', 'w')],
 ]
 
 for (const [label, g] of worlds) {

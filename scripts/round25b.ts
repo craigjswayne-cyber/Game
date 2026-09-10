@@ -230,7 +230,7 @@ console.log('\nthe terrace on seed 11 (three pulses, close together):\n')
 // one more number a week from the world's rng, every downstream draw shifted,
 // and seed 11 stopped producing the streak. Nothing about the terraces had
 // changed - the probe was measuring a reshuffled deck and calling it a dead
-// beat, which is the exact failure difficultyprobe's own comments warn about.
+// beat, which is the exact failure autopilotprobe's own comments warn about.
 //
 // So the claim scans a BAND. Measured today: 35 of 39 seeds pulse at least
 // once in a season. The floor is set well under that, because it is guarding

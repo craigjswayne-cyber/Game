@@ -1,7 +1,6 @@
 import type { Club, GameState, Player, Pos } from './model'
 import { returnLoanIn } from './loans'
 import { runTeamOfTheYear } from './yearend'
-import { difficultyOf } from './difficulty'
 import { aiBoardsReinvest } from './aiecon'
 import { applyAdminPenalties } from './season'
 import { settleInsolvency } from './insolvency'
@@ -9,7 +8,7 @@ import { ageManager } from './career'
 import { rivalVerdict } from './boss'
 import {absWeek, BASE_YEAR, boardObjective, boardPatience, closeNatTenure, demandCeiling, emptyStats, facLevel, facilityCost, FACILITY_INFO, fmtMoney, isWorldCupSeason, logDecision, MAX_FACILITY, SEASON_WEEKS, seasonLabel, XV_SLOTS, type FacilityId } from './model'
 import { assignPersonality } from './attributes'
-import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildLeague, schedulePreseason, sortTable } from './schedule'
+import { buildChampionsCup, buildInternationals, buildWomensInternationals, buildWomensContinentalCup, buildLeague, schedulePreseason, sortTable } from './schedule'
 import { punditPredictions } from './gossip'
 import { CHALLENGES, LEAGUE_DEFS } from './newgame'
 import { genderOf, W } from './gender'
@@ -18,7 +17,7 @@ import { OFFICE_OUTLET } from './media'
 import { autoSelect } from './matchEngine'
 import { ensureCaptains } from './analysis'
 import { dreamState } from './dream'
-import { objectiveById, pickObjectives } from './objectives'
+import { objectiveBonus, objectiveById, pickObjectives } from './objectives'
 import { deriveAttrs, isLateBloomer, nextPid, playerValue, playerWage } from './attributes'
 import { nationByCode, regenName, worldNames } from './nations'
 import { clamp, mulberry32, pick, type Rng } from './rng'
@@ -578,7 +577,7 @@ function agePlayers(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎗 The shirt goes up: ${legend.p.name} retires`,
-          body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it. The game moves on; days like his are why it matters.`,
+          body: `The farewell tour is over. ${legend.p.name} finishes with ${legend.apps} appearances for the club, and this morning his shirt went up over the tunnel where every young player will walk under it.`,
           k: 'news.shirtUp', v: { player: legend.p.name, apps: legend.apps },
         })
       } else {
@@ -587,7 +586,7 @@ function agePlayers(state: GameState, rng: Rng) {
         state.news.push({
           id: state.nextId++, week: 1, season: state.season + 1, type: 'award', read: false,
           subject: `🎗 Testimonial: ${legend.p.name} - ${legend.apps} games of service`,
-          body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel. Days like this are why the game matters.`,
+          body: `A full ${club.stadium} rises for ${legend.p.name}. ${legend.apps} appearances, every one of them honest. He walks the pitch with his family, the gate receipts (${fmtMoney(gate)}) go to the club at his insistence, and his shirt goes up over the tunnel.`,
           k: 'news.testimonial',
           v: { player: legend.p.name, apps: legend.apps, stadium: club.stadium, gate: fmtMoney(gate) },
         })
@@ -1374,9 +1373,12 @@ export function rebuildSeason(state: GameState) {
         if (!def || !def.applies(state)) continue
         const ok = def.met(state)
         club.boardConfidence = clamp(club.boardConfidence + (ok ? 5 : -4), 5, 100)
-        if (ok) { objBonus += 250_000; state.boardOwed = true }
-        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.textKey(state))}${ok ? ' - met (+£250k budget)' : ' - missed'}`)
-        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state) })
+        // what it is worth to THIS club, not a flat figure that is four per
+        // cent of one budget and six times another (objectives.objectiveBonus)
+        const bonus = objectiveBonus(club.budget)
+        if (ok) { objBonus += bonus; state.boardOwed = true }
+        sideLines.push(`${ok ? '✅' : '❌'} ${tIn('en', def.textKey(state))}${ok ? ` - met (+${fmtMoney(bonus)} budget)` : ' - missed'}`)
+        sideRows.push({ k: ok ? 'news.sideMet' : 'news.sideMissed', text_k: def.textKey(state), amount: fmtMoney(bonus) })
       }
       state.news.push({
         id: state.nextId++, week: state.week, season: state.season, type: 'board', read: false,
@@ -1790,6 +1792,12 @@ export function rebuildSeason(state: GameState) {
     state.comps['chc'] = buildChampionsCup(chcSlots.slice(0, 16), rng, state, { id: 'chc', name: 'Continental Shield', short: 'Continental Shield' })
     buildInternationals(rng, state, wcYear)
   } else {
+    // The women's world gets its own continental cup, drawn the same way it was
+    // drawn in August of year one. This used to be built only in newGame, so a
+    // women's career had the competition for a single season and then found it
+    // gone at the rollover - along with the two ambitions that name it, in the
+    // middle of a save that had already been offered them.
+    state.comps['cc'] = buildWomensContinentalCup(rng, state)
     buildWomensInternationals(rng, state)
   }
   schedulePreseason(state, rng)
@@ -1903,10 +1911,7 @@ export function rebuildSeason(state: GameState) {
     // 53%, which would sack a manager who was doing well. This range and weight
     // keep the coupling while leaving a successful side comfortable.
     const frac = finishFrac.get(club.id)
-    // the difficulty's board lever pulls the manager's own attractor down;
-    // zero on 'normal', and nobody else's board is touched
-    const lean = club.id === state.userClubId ? difficultyOf(state).board : 0
-    const target = (frac == null ? 75 : 86 - frac * 54) - lean
+    const target = frac == null ? 75 : 86 - frac * 54
     club.boardConfidence = clamp(club.boardConfidence * 0.55 + target * 0.45, 0, 100)
     const pool = club.players.map(id => state.players[id]).filter(Boolean)
     club.tactic.lineup = autoSelect(state, pool)
@@ -2035,7 +2040,7 @@ function challengeCheck(state: GameState) {
     : ch === 'pirates' ? uid === 'pirates' && state.clubs[uid]?.leagueId === 'prem'
     // the women's four. Same four shapes: win it, win it twice, climb out of
     // the bottom, win the division below.
-    : ch === 'threepeat' ? uid === W + 'bristol' && wonEver(W + 'pwr')
+    : ch === 'threepeat' ? uid === W + 'saracens' && wonEver(W + 'pwr')
     : ch === 'ealing' ? uid === W + 'trailfinders'
       && state.history.filter(h => h.champion === uid && h.compId === W + 'pwr').length >= 2
     // no relegation to survive, so the licence is the thing at risk and a

@@ -1,0 +1,479 @@
+{
+ "_meta": {
+  "what": "Real ages, positions and unions for women's players, each checked against a public source one player at a time. Anything in here is a FACT: scripts/tools/womens-ages.py never deals an age to a player listed with one, and never changes a position listed here.",
+  "why": "The owner's squad sheet carried names and clubs. Position, age, nationality and rating were all assigned by the game, including for the 96 capped internationals whose positions the data file claimed were a matter of record. They were not. Owner: 'check the ages of the womens players against a Google search.'",
+  "ageRule": "age = 2026 minus year of birth, which is the player's age through the 2026-27 season the database is set in",
+  "howToAdd": "name, then any of age / pos / nat, and a src naming where it was checked. No entry without a source.",
+  "checked": "10 Sep 2026"
+ },
+ "Sarah Bonar": {
+  "age": 32,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Sarah_Bonar - born 9 Feb 1994"
+ },
+ "Rosie Galligan": {
+  "age": 28,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Rosie_Galligan - born 30 Apr 1998, lock"
+ },
+ "Holly Aitchison": {
+  "age": 29,
+  "pos": "FH",
+  "src": "en.wikipedia.org/wiki/Holly_Aitchison - born 13 Sep 1997, fly-half"
+ },
+ "Abi Burton": {
+  "age": 26,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Abi_Burton - born 9 Mar 2000, back row"
+ },
+ "Haineala Lutui": {
+  "age": 20,
+  "pos": "N8",
+  "src": "en.wikipedia.org/wiki/Haineala_Lutui - born 8 Aug 2006, number 8"
+ },
+ "Natasha Hunt": {
+  "age": 37,
+  "pos": "SH",
+  "src": "en.wikipedia.org/wiki/Natasha_Hunt - born 21 Mar 1989, scrum-half"
+ },
+ "Alex Matthews": {
+  "age": 33,
+  "pos": "N8",
+  "src": "en.wikipedia.org/wiki/Alex_Matthews - born 3 Aug 1993, number 8"
+ },
+ "Sam Monaghan": {
+  "age": 33,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Sam_Monaghan - born 25 Jun 1993, lock"
+ },
+ "Neve Jones": {
+  "age": 28,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Neve_Jones - born 26 Dec 1998, hooker"
+ },
+ "Maud Muir": {
+  "age": 25,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Maud_Muir - born 12 Jul 2001, prop"
+ },
+ "Emma Sing": {
+  "age": 25,
+  "pos": "FB",
+  "src": "en.wikipedia.org/wiki/Emma_Sing - born 11 Mar 2001, full-back"
+ },
+ "Mackenzie Carson": {
+  "age": 28,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Mackenzie_Carson - born 24 Jun 1998, prop (not a lock)"
+ },
+ "Gabrielle Vernier": {
+  "age": 29,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Gabrielle_Vernier - born 12 Jun 1997, centre"
+ },
+ "Jess Breach": {
+  "age": 29,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Jess_Breach - born 4 Nov 1997, wing"
+ },
+ "Poppy Cleall": {
+  "age": 34,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Poppy_Cleall - born 12 Jun 1992, lock/back row"
+ },
+ "Sarah McKenna": {
+  "age": 37,
+  "pos": "FB",
+  "src": "en.wikipedia.org/wiki/Sarah_McKenna - born 23 Mar 1989, full-back"
+ },
+ "May Campbell": {
+  "age": 30,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/May_Campbell_(rugby_union) - born 16 May 1996, hooker"
+ },
+ "Kelsey Clifford": {
+  "age": 25,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Kelsey_Clifford - born 11 Dec 2001, tighthead prop"
+ },
+ "Laetitia Royer": {
+  "age": 35,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Laetitia_Royer - born 9 Feb 1991, lock/back row"
+ },
+ "Olivia Apps": {
+  "age": 28,
+  "pos": "SH",
+  "src": "en.wikipedia.org/wiki/Olivia_Apps - born 1 Dec 1998, scrum-half"
+ },
+ "Alysha Corrigan": {
+  "age": 29,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Alysha_Corrigan - born 25 Jan 1997, wing/centre"
+ },
+ "Sarah Bern": {
+  "age": 29,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Sarah_Bern - born 10 Jul 1997, tighthead prop"
+ },
+ "Hannah Botterman": {
+  "age": 27,
+  "pos": "LP",
+  "src": "en.wikipedia.org/wiki/Hannah_Botterman - born 8 Jun 1999, loosehead prop"
+ },
+ "Abbie Ward": {
+  "age": 33,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Abbie_Ward - born 27 Mar 1993, lock"
+ },
+ "Lark Atkin-Davies": {
+  "age": 31,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Lark_Atkin-Davies - born 3 Mar 1995, hooker"
+ },
+ "Keira Bevan": {
+  "age": 29,
+  "pos": "SH",
+  "src": "en.wikipedia.org/wiki/Keira_Bevan - born 28 Apr 1997, scrum-half"
+ },
+ "Lana Skeldon": {
+  "age": 33,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Lana_Skeldon - born 18 Oct 1993, hooker"
+ },
+ "Bethan Lewis": {
+  "age": 27,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Bethan_Lewis - born 19 Feb 1999, flanker"
+ },
+ "Marlie Packer": {
+  "age": 37,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Marlie_Packer - born 2 Oct 1989, flanker"
+ },
+ "Lucy Packer": {
+  "age": 26,
+  "pos": "SH",
+  "src": "en.wikipedia.org/wiki/Lucy_Packer - born 2 Feb 2000, scrum-half"
+ },
+ "Aoife Wafer": {
+  "age": 23,
+  "pos": "N8",
+  "src": "en.wikipedia.org/wiki/Aoife_Wafer - born 25 Mar 2003, number 8"
+ },
+ "Connie Powell": {
+  "age": 26,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Connie_Powell - born 13 Jul 2000, hooker"
+ },
+ "Alex Callender": {
+  "age": 26,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Alex_Callender - born 29 Jul 2000, back row"
+ },
+ "Sisilia Tuipulotu": {
+  "age": 23,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Sisilia_Tuipulotu - born 14 Aug 2003, prop"
+ },
+ "Lizzie Hanlon": {
+  "age": 25,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Lizzie_Hanlon - born 30 Jul 2001, tighthead prop (not a centre)"
+ },
+ "Sarah Parry": {
+  "age": 21,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Sarah_Parry - born 21 Oct 2005, centre (not a wing)"
+ },
+ "Silvia Turani": {
+  "age": 31,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Silvia_Turani - born 6 Jul 1995, prop"
+ },
+ "Sara Svoboda": {
+  "age": 31,
+  "pos": "FL",
+  "nat": "CAN",
+  "src": "en.wikipedia.org/wiki/Sara_Svoboda - born 3 Feb 1995, back row, Canada (not Italy)"
+ },
+ "Sara Mannini": {
+  "age": 21,
+  "pos": "FH",
+  "src": "en.wikipedia.org/wiki/Sara_Mannini - born 28 Aug 2005, fly-half/centre (not a flanker)"
+ },
+ "Emma Wassell": {
+  "age": 32,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Emma_Wassell - born 28 Dec 1994, lock"
+ },
+ "Rachel Malcolm": {
+  "age": 35,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Rachel_Malcolm - born 23 May 1991, flanker"
+ },
+ "Lisa Thomson": {
+  "age": 29,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Lisa_Thomson - born 7 Sep 1997, centre"
+ },
+ "Meg Jones": {
+  "age": 30,
+  "pos": "CE",
+  "nat": "ENG",
+  "src": "en.wikipedia.org/wiki/Megan_Jones_(rugby_union) - born 23 Oct 1996, centre, plays for England"
+ },
+ "Maia Roos": {
+  "age": 25,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Maia_Roos - born 27 Jul 2001, lock"
+ },
+ "Tanya Kalounivale": {
+  "age": 27,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Tanya_Kalounivale - born 20 Jan 1999, tighthead prop"
+ },
+ "Julia Schell": {
+  "age": 30,
+  "pos": "FB",
+  "src": "en.wikipedia.org/wiki/Julia_Schell - born 13 Jul 1996, full-back/fly-half (not a wing)"
+ },
+ "Cliodhna Moloney-MacDonald": {
+  "age": 33,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Cliodhna_Moloney - born 31 May 1993, hooker"
+ },
+ "Claudia Moloney-MacDonald": {
+  "age": 30,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Claudia_MacDonald - born 4 Jan 1996, wing/scrum-half (not a full-back)"
+ },
+ "Dorothy Wall": {
+  "age": 26,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Dorothy_Wall_(rugby_union) - born 4 May 2000, flanker"
+ },
+ "Hope Rogers": {
+  "age": 33,
+  "pos": "LP",
+  "src": "en.wikipedia.org/wiki/Hope_Rogers - born 7 Jan 1993, loosehead prop"
+ },
+ "Alex Tessier": {
+  "age": 33,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Alex_Tessier - born 3 Sep 1993, centre"
+ },
+ "DaLeaka Menin": {
+  "age": 31,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/DaLeaka_Menin - born 16 Jun 1995, prop"
+ },
+ "Carys Phillips": {
+  "age": 34,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Carys_Phillips - born 12 Nov 1992, hooker"
+ },
+ "Maddie Feaunati": {
+  "age": 24,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Maddie_Feaunati - born 18 May 2002, back row"
+ },
+ "Amy Cokayne": {
+  "age": 30,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Amy_Cokayne - born 11 Jul 1996, hooker"
+ },
+ "Sarah Beckett": {
+  "age": 27,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Sarah_Beckett - born 14 Feb 1999, back row"
+ },
+ "Morwenna Talling": {
+  "age": 24,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Morwenna_Talling - born 5 Aug 2002, lock"
+ },
+ "Tatyana Heard": {
+  "age": 31,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Tatyana_Heard - born 14 Jan 1995, centre"
+ },
+ "Rhona Lloyd": {
+  "age": 30,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Rhona_Lloyd - born 17 Oct 1996, wing"
+ },
+ "Leah Bartlett": {
+  "age": 28,
+  "pos": "LP",
+  "src": "en.wikipedia.org/wiki/Leah_Bartlett - born 28 Aug 1998, loosehead prop"
+ },
+ "Beatrice Rigoni": {
+  "age": 31,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Beatrice_Rigoni - born 1 Aug 1995, centre"
+ },
+ "Brittany Hogan": {
+  "age": 28,
+  "pos": "N8",
+  "src": "en.wikipedia.org/wiki/Brittany_Hogan - born 19 Sep 1998, number 8"
+ },
+ "Gwenllian Pyrs": {
+  "age": 29,
+  "pos": "LP",
+  "src": "en.wikipedia.org/wiki/Gwenllian_Pyrs - born 28 Nov 1997, prop (not a lock)"
+ },
+ "Kelsey Jones": {
+  "age": 29,
+  "pos": "HK",
+  "src": "en.wikipedia.org/wiki/Kelsey_Jones_(rugby_union) - born 4 Sep 1997, hooker"
+ },
+ "Alaw Pyrs": {
+  "age": 21,
+  "pos": "LK",
+  "src": "fr.wikipedia.org/wiki/Alaw_Pyrs - born 12 Oct 2005, lock (not a prop)"
+ },
+ "Sadia Kabeya": {
+  "age": 24,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Sadia_Kabeya - born 22 Feb 2002, flanker"
+ },
+ "Daisy Hibbert-Jones": {
+  "age": 24,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Daisy_Hibbert-Jones - born 21 Aug 2002, flanker (not a centre)"
+ },
+ "Alev Kelter": {
+  "age": 35,
+  "pos": "CE",
+  "src": "en.wikipedia.org/wiki/Alev_Kelter - born 21 Mar 1991, centre"
+ },
+ "Lilli Ives Campion": {
+  "age": 23,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Lilli_Ives_Campion - born 10 Oct 2003, lock (not a scrum-half)"
+ },
+ "Pamphinette Buisa": {
+  "age": 30,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Pamphinette_Buisa - born 28 Dec 1996, wing (not a lock)"
+ },
+ "Mae Sagapolu": {
+  "age": 26,
+  "pos": "LP",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Keia_Mae_Sagapolu - born 12 May 2000, prop, United States (not Samoa)"
+ },
+ "Tess Feury": {
+  "age": 30,
+  "pos": "FB",
+  "src": "en.wikipedia.org/wiki/Tess_Feury - born 15 Mar 1996, full-back"
+ },
+ "Caitlyn Halse": {
+  "age": 20,
+  "pos": "FB",
+  "src": "en.wikipedia.org/wiki/Caitlyn_Halse - born 19 Sep 2006, full-back"
+ },
+ "Georgie Perris-Redding": {
+  "age": 29,
+  "pos": "FL",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Georgie_Perris-Redding - born 10 Jan 1997, flanker, United States (not a wing, not England)"
+ },
+ "Erica Jarrell-Searcy": {
+  "age": 27,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Erica_Jarrell - born 25 Feb 1999, lock"
+ },
+ "Katana Howard": {
+  "age": 33,
+  "pos": "CE",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Katana_Howard - born 25 Jun 1993, centre, United States (not New Zealand)"
+ },
+ "Wako Kitano": {
+  "age": 27,
+  "pos": "TP",
+  "src": "en.wikipedia.org/wiki/Wako_Kitano - born 8 Sep 1999, tighthead prop (not a scrum-half)"
+ },
+ "Kathryn Treder": {
+  "age": 30,
+  "pos": "HK",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Kathryn_Treder - born 17 Mar 1996, hooker, United States"
+ },
+ "Evie Gallagher": {
+  "age": 26,
+  "pos": "N8",
+  "src": "en.wikipedia.org/wiki/Evie_Gallagher - born 22 Aug 2000, number 8"
+ },
+ "Millie David": {
+  "age": 21,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Millie_David - born 15 Jun 2005, wing (not a prop)"
+ },
+ "Demelza Short": {
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Demelza_Short - back row/blindside flanker (not a fly-half); no exact DOB published"
+ },
+ "Jodie Verghese": {
+  "pos": "LK",
+  "src": "www.rugbypass.com/players/jodie-verghese - lock (not a flanker); no exact DOB published"
+ },
+ "Francesca Granzotto": {
+  "age": 24,
+  "pos": "WG",
+  "src": "en.wikipedia.org/wiki/Francesca_Granzotto - born 22 Mar 2002, wing/full-back (not a lock)"
+ },
+ "Flo Robinson": {
+  "age": 25,
+  "pos": "SH",
+  "src": "en.wikipedia.org/wiki/Flo_Robinson - born 4 Oct 2001, scrum-half (not a centre)"
+ },
+ "Emerson Allen": {
+  "age": 27,
+  "pos": "LK",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Emerson_Allen - born 1 May 1999, lock, United States (not an England wing)"
+ },
+ "Mia Venner": {
+  "age": 24,
+  "pos": "FB",
+  "src": "en.wikipedia.org/wiki/Mia_Venner - born 3 May 2002, full-back/wing (not a centre)"
+ },
+ "Annabel Meta": {
+  "age": 21,
+  "pos": "LP",
+  "src": "ealingtrailfinders.com/player/annabel-meta - born 11 Aug 2005, loosehead prop (not a full-back)"
+ },
+ "Manuqalo Komaitai": {
+  "pos": "N8",
+  "src": "rugbypass.com/news/manuqalo-komaitai - back row / number 8; no exact DOB published"
+ },
+ "Alivia Leatherman": {
+  "age": 24,
+  "pos": "LP",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Alivia_Leatherman - born 9 Aug 2002, prop, United States (not a flanker, not England)"
+ },
+ "Bulou Mataitoga": {
+  "age": 32,
+  "pos": "FB",
+  "nat": "USA",
+  "src": "en.wikipedia.org/wiki/Bulou_Mataitoga - born 8 Apr 1994, full-back, United States (not a Fiji wing)"
+ },
+ "Tabua Tuinakauvadra": {
+  "age": 24,
+  "pos": "FL",
+  "src": "en.wikipedia.org/wiki/Tabua_Tuinakauvadra - born 27 Dec 2002, flanker"
+ },
+ "Ashley Fernandez": {
+  "age": 24,
+  "pos": "LK",
+  "src": "en.wikipedia.org/wiki/Ashley_Fernandez - born 24 Oct 2002, lock (not a centre)"
+ },
+ "Sofia Bekir Fuente": {
+  "pos": "HK",
+  "src": "exeterchiefs.co.uk/players/sofia-bekir-fuente - hooker (not a centre); no exact DOB published"
+ }
+}

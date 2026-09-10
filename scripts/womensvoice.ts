@@ -65,7 +65,7 @@ const wClubs = LEAGUE_DEFS('w').flatMap(d => d.clubs).slice(0, 4).map(c => c.id)
 // Rendering is a pure function of the stored (k, v), so one set of careers is
 // the same reading for all four, and the numbers are comparable.
 const careers = wClubs.map((id, i) => {
-  const g = newGame(id, 'Test', 500 + i * 7, undefined, 'coach', 'normal', 'w', 'w')
+  const g = newGame(id, 'Test', 500 + i * 7, undefined, 'coach', 'w', 'w')
   for (let w = 0; w < 48 * 3; w++) processWeekAndAdvance(g)
   return g
 })

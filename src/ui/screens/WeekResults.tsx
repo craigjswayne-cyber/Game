@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../../store'
-import { leaguePos, sortTable } from '../../game/schedule'
+import { leaguePos, parseResultsParam, sortTable } from '../../game/schedule'
 import { teamShort } from '../../game/matchEngine'
 import { CrestT, SectionTitle } from '../components'
 import { ord, t } from '../../game/i18n'
@@ -11,8 +11,9 @@ import { AdSlot } from '../AdSlot'
 export default function WeekResults({ param }: { param: string }) {
   const game = useStore(s => s.game)!
   const { back, go } = useStore.getState()
-  const [compId, wkStr] = param.split(':')
-  const week = Number(wkStr)
+  // One reader, one writer: see parseResultsParam for the colon that hid inside
+  // every women's competition id and emptied this screen for the whole world.
+  const { compId, week } = parseResultsParam(param)
   const comp = game.comps[compId]
   const results = game.fixtures
     .filter(f => f.compId === compId && f.week === week && f.played)

@@ -108,9 +108,30 @@ ok(t.clubs[t.userClubId].boardConfidence < f.clubs[f.userClubId].boardConfidence
 console.log('\n--- 5. "(doesn\'t ever happen)"')
 const b = newGame('bath', 'Test', 4242)
 const compsBefore = Object.keys(b.comps).length
-for (let s = 0; s < 5; s++) for (let i = 0; i < SEASON_WEEKS; i++) processWeekAndAdvance(b)
-const threats = b.news.filter(n => n.k === 'point.breakaway').length
-const ends = b.news.filter(n => n.k === 'point.breakawayEnd').length
+// COUNTED AS THEY LAND, not read off state.news at the end.
+//
+// The first version walked five seasons and then filtered the inbox, and
+// reported one collapse with no threat in front of it. The engine was right:
+// both stories fired, five weeks apart, in every one of the five seasons. The
+// INBOX was wrong, because season.ts trims state.news to NEWS_KEEP and five
+// seasons is far more news than that - so the threat had been swept out from
+// under the ending it belonged to.
+//
+// A probe that reads a capped buffer at the end of a long run is measuring the
+// cap. Anything counted over more than a season or two has to be counted as it
+// happens.
+let threats = 0, ends = 0
+let read = b.news.length
+for (let s = 0; s < 5; s++) {
+  for (let i = 0; i < SEASON_WEEKS; i++) {
+    processWeekAndAdvance(b)
+    for (const n of b.news.slice(read)) {
+      if (n.k === 'point.breakaway') threats++
+      if (n.k === 'point.breakawayEnd') ends++
+    }
+    read = b.news.length
+  }
+}
 console.log(`     five seasons: ${threats} threat(s), ${ends} collapse(s)`)
 ok(ends <= threats, 'it never collapses without having been threatened first')
 ok(Object.keys(b.comps).length <= compsBefore + 2,

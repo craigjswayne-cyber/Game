@@ -16,6 +16,7 @@ import {
   STATUSES, STATUS_BY_ID, clubMatchesPlayed, defaultStatus, ledger, ledgerRow,
   settleGameTime, statusOf,
 } from '../src/game/gametime'
+import { answerRequest, canAnswerRequest } from '../src/game/chats'
 
 let fails = 0
 const ok = (cond: boolean, what: string) => {
@@ -209,6 +210,62 @@ const club = g.clubs[g.userClubId]
   settleGameTime(gg)
   ok((victim.wantsOut ?? 0) === 0, 'minutes actually given withdraw the request')
   ok(gg.news.slice(before2).some(n => n.subject.includes('withdraws')), 'and the withdrawal is announced, not silent')
+
+  // ---- AND THE MANAGER GETS TO ANSWER IT ----------------------------------
+  //
+  // Owner: "when someone makes a transfer request the user should have the
+  // ability to accept or reject this - causing a morale impact on camp/the
+  // player." The letter used to be a notice: the only replies the game
+  // understood were selling him or picking him, and neither is an answer.
+  //
+  // What is checked is that BOTH answers cost something. A choice with a free
+  // side is not a choice, and the easy way to ship this feature would have
+  // been to make refusing free - the mechanic would look complete and quietly
+  // never matter.
+  {
+    const g2 = newGame('northampton', 'Human', 31)
+    const c2 = g2.clubs[g2.userClubId]
+    for (const fx of g2.fixtures) {
+      if (fx.week <= 20 && (fx.homeId === c2.id || fx.awayId === c2.id) && fx.compId !== 'fr') fx.played = true
+    }
+    g2.week = 21
+    const asked = c2.players.map(id => g2.players[id])
+      .find(p => p && !p.acad && !c2.tactic.lineup.includes(p.id) && p.age <= 30)!
+    asked.status = 'key'
+    asked.stats.apps = 0
+    asked.morale = 3.5
+    settleGameTime(g2)
+    ok((asked.wantsOut ?? 0) > 0 && canAnswerRequest(g2, asked), 'the letter can be answered while it is open')
+
+    // refusing: he takes it badly and the answer is on the record
+    const moraleBefore = asked.morale
+    const roomBefore = c2.players.map(id => g2.players[id]).filter(p => p && p.id !== asked.id)
+      .reduce((s, p) => s + p.morale, 0)
+    const refusal = answerRequest(g2, asked, false)
+    const roomAfter = c2.players.map(id => g2.players[id]).filter(p => p && p.id !== asked.id)
+      .reduce((s, p) => s + p.morale, 0)
+    ok(asked.morale < moraleBefore, `a refusal costs him morale (${moraleBefore.toFixed(1)} to ${asked.morale.toFixed(1)})`)
+    ok(roomAfter !== roomBefore, `and the dressing room moves with it (${(roomAfter - roomBefore).toFixed(1)} across ${c2.players.length - 1} men)`)
+    ok(refusal.length > 0 && !canAnswerRequest(g2, asked), `the letter is answered once: "${refusal.slice(0, 48)}..."`)
+    ok(!asked.transferListed, 'and a man told no is not quietly listed anyway')
+
+    // granting: he gets what he asked for, and the club has to live with it
+    const g3 = newGame('northampton', 'Human', 31)
+    const c3 = g3.clubs[g3.userClubId]
+    for (const fx of g3.fixtures) {
+      if (fx.week <= 20 && (fx.homeId === c3.id || fx.awayId === c3.id) && fx.compId !== 'fr') fx.played = true
+    }
+    g3.week = 21
+    const asked3 = g3.players[asked.id]
+    asked3.status = 'key'; asked3.stats.apps = 0; asked3.morale = 3.5
+    settleGameTime(g3)
+    const before3 = asked3.morale
+    const news3 = g3.news.length
+    answerRequest(g3, asked3, true)
+    ok(asked3.morale > before3, `granting it lifts him (${before3.toFixed(1)} to ${asked3.morale.toFixed(1)})`)
+    ok(asked3.transferListed, 'and puts him on the list, which is what he asked for')
+    ok(g3.news.length > news3, 'both answers are announced rather than applied in silence')
+  }
 
   // a man who was told he is not in the plans does not get to demand a move
   const told = c.players.map(id => gg.players[id])
