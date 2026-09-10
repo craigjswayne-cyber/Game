@@ -460,12 +460,24 @@ target that has to be added deliberately, and this project has never had one.
 
 ### 18. Set the version and build number
 
-*App* target → *General* → **Version** `1.3.1`, **Build** `6`.
-The version must match `package.json` and the figure on the App Store Connect
-listing, or the upload is rejected.
+*App* target → *General* → **Version**, **Build**.
+
+THE VERSION IS WHATEVER `package.json` SAYS, and nothing else. Read it there
+rather than from this page:
+
+```bash
+node -p "require('./package.json').version"     # from the repo root
+```
+
+It has to match `package.json` and the figure on the App Store Connect listing
+or the upload is rejected. This step used to name a version, and the version it
+named went stale four releases ago - the owner rebuilt against it and uploaded
+a build of the old game with the new one's release notes on it. It names none
+now, on purpose.
 
 Every upload needs a build number higher than the last. The version can repeat;
-the build number can never go backwards.
+the build number can never go backwards. Xcode does not track this for you, so
+check what App Store Connect already has under *TestFlight* and go one higher.
 
 ### 19. Archive it
 
